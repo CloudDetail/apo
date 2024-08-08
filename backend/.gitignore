@@ -1,0 +1,9 @@
+/apo
+/handlergen
+logs/*.log
+.idea
+*.exe
+database-apo.db
+logs/*.log.gz
+.DS_Store
+backend

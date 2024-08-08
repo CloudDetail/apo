@@ -1,0 +1,17 @@
+package serviceoverview
+
+import (
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
+)
+
+func (s *service) GetThreshold(level string, serviceName string, endPoint string) (res response.GetThresholdResponse, err error) {
+	threshold, err := s.dbRepo.GetOrCreateThreshold(serviceName, endPoint, level)
+	if err != nil {
+		return res, err
+	}
+	res.Log = threshold.Log
+	res.ErrorRate = threshold.ErrorRate
+	res.Tps = threshold.Tps
+	res.Latency = threshold.Latency
+	return res, nil
+}

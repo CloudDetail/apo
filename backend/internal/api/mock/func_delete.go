@@ -1,0 +1,47 @@
+package mock
+
+import (
+	"net/http"
+
+	"github.com/CloudDetail/apo/backend/internal/model/request"
+	"github.com/CloudDetail/apo/backend/internal/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
+)
+
+// Delete 删除xx
+// @Summary 删除xx
+// @Description 删除xx
+// @Tags API.mock
+// @Accept json
+// @Produce json
+// @Param id path uint true "Id"
+// @Success 200 {object} response.DeleteResponse
+// @Failure 400 {object} code.Failure
+// @Router /api/mock/{id} [delete]
+func (h *handler) Delete() core.HandlerFunc {
+	return func(c core.Context) {
+		req := new(request.DeleteRequest)
+		if err := c.ShouldBindURI(req); err != nil {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.ParamBindError,
+				code.Text(code.ParamBindError)).WithError(err),
+			)
+			return
+		}
+
+		err := h.mockService.Delete(req)
+		if err != nil {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.MockDetailError,
+				code.Text(code.MockDetailError)).WithError(err),
+			)
+			return
+		}
+		resp := new(response.DeleteResponse)
+		resp.Id = req.Id
+		c.Payload(resp)
+	}
+}

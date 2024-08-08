@@ -1,0 +1,112 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    kubernetes.io/metadata.name: apo
+  name: apo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apo-backend
+  namespace: apo
+  labels:
+    app: apo-backend
+spec:
+  selector:
+    matchLabels:
+      app: apo-backend
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: apo-backend
+    spec:
+      volumes:
+        - name: apo-backend-config
+          configMap:
+            name: apo-backend-config
+      containers:
+        - name: apo-backend
+          image: apo-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: apo-backend-config
+              mountPath: /app/config/apo.yml
+              subPath: apo.yml
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apo-backend-svc
+  namespace: apo
+  labels:
+    app: apo-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: apo-backend
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apo-backend-config
+  namespace: apo
+data:
+  apo.yml: |
+    server:
+      port: 8080
+    
+    logger:
+      level: INFO
+      console_enable: true
+      file_enable: true
+      # 日志保存路径.
+      file_path: "./logs/apo.log"
+      # 日志保存个数.
+      file_num: 10
+      # 日志保存大小，单位MB.
+      file_size_mb: 100
+
+    database:
+      # 数据库类型 sqllite / mysql
+      connection: sqllite
+      max_open: 10
+      max_idle: 60
+      max_life_second: 60
+      sqllite:
+        database: database-apo.db
+      mysql:
+        host: 127.0.0.1
+        port: 3306
+        database: demo
+        username: ""
+        password: ""
+        charset: "utf8mb4"
+
+    clickhouse:
+      address: my-release-clickhouse.platform:9000
+      username: admin
+      password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
+      database: apo
+    
+    promethues:
+      address: http://apo-victoria-metrics-single-server:8428
+      # vm / prom
+      storage: vm
+    
+    language:
+      # 返回错误的语言，en - 英文，zh-cn: 简体中文.
+      local: zh-cn

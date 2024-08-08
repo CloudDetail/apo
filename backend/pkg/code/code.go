@@ -1,0 +1,55 @@
+package code
+
+import "github.com/CloudDetail/apo/backend/config"
+
+const (
+	ServerError    = "A0001"
+	ParamBindError = "A0002"
+	DbConnectError = "A0003"
+
+	MockCreateError = "B0101"
+	MockListError   = "B0102"
+	MockDetailError = "B0103"
+	MockDeleteError = "B0104"
+
+	GetServiceUrlTopologyError          = "B0301"
+	GetDescendantMetricsError           = "B0302"
+	GetDescendantRelevanceError         = "B0303"
+	GetPolarisInferError                = "B0304"
+	GetErrorInstanceError               = "B0306"
+	GetErrorInstanceLogsError           = "B0307"
+	GetLogMetricsError                  = "B0308"
+	GetLogLogsError                     = "B0309"
+	GetTraceMetricsError                = "B0310"
+	GetTraceLogsError                   = "B0311"
+	GetServiceListError                 = "B0312"
+	GetServiceInstanceListError         = "B0313" // TODO 待删除.
+	GetServiceInstanceOptionsError      = "B0313"
+	GetK8sEventError                    = "B0314"
+	GetOverviewServiceInstanceListError = "B0315"
+	GetServiceMoreUrlListError          = "B0316"
+	GetThresholdError                   = "B0317"
+	GetTop3UrlListError                 = "B0318"
+	SetThresholdError                   = "B0319"
+	GetServiceEndPointListError         = "B0320"
+	GetServicesAlertError               = "B0321"
+	GetFaultLogPageListError            = "B0401"
+	GetFaultLogContentError             = "B0402"
+
+	GetTracePageListError = "B0501"
+)
+
+func Text(code string) string {
+	lang := config.Get().Language.Local
+
+	if lang == config.LANG_EN {
+		return enText[code]
+	}
+	return zhCnText[code]
+}
+
+// Failure 返回结构
+type Failure struct {
+	Code    string `json:"code"`    // 业务码
+	Message string `json:"message"` // 错误信息
+}

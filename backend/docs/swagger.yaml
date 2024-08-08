@@ -1,0 +1,1887 @@
+basePath: /
+definitions:
+  clickhouse.FaultLogResult:
+    properties:
+      containerId:
+        type: string
+      endTime:
+        type: integer
+      endpoint:
+        type: string
+      instanceId:
+        type: string
+      nodeName:
+        type: string
+      pid:
+        type: integer
+      podName:
+        type: string
+      serviceName:
+        type: string
+      startTime:
+        type: integer
+      traceId:
+        type: string
+    type: object
+  clickhouse.LogContent:
+    properties:
+      body:
+        type: string
+      timestamp:
+        type: integer
+    type: object
+  clickhouse.Logs:
+    properties:
+      contents:
+        items:
+          $ref: '#/definitions/clickhouse.LogContent'
+        type: array
+      source:
+        type: string
+    type: object
+  clickhouse.QueryTraceResult:
+    properties:
+      duration:
+        type: integer
+      endpoint:
+        type: string
+      instanceId:
+        type: string
+      isError:
+        type: boolean
+      serviceName:
+        type: string
+      timestamp:
+        type: integer
+      traceId:
+        type: string
+    type: object
+  clickhouse.TopologyNode:
+    properties:
+      endpoint:
+        type: string
+      isTraced:
+        type: boolean
+      service:
+        type: string
+    type: object
+  code.Failure:
+    properties:
+      code:
+        description: 业务码
+        type: string
+      message:
+        description: 错误信息
+        type: string
+    type: object
+  model.Pagination:
+    properties:
+      currentPage:
+        description: 当前页码
+        type: integer
+      pageSize:
+        description: 每页条数
+        type: integer
+      total:
+        description: 总记录数
+        type: integer
+    type: object
+  model.ServiceInstance:
+    properties:
+      containerId:
+        description: 容器ID
+        type: string
+      nodeName:
+        description: 主机名
+        type: string
+      pid:
+        description: 进程号
+        type: integer
+      podName:
+        description: Pod名
+        type: string
+      service:
+        description: 服务名
+        type: string
+    type: object
+  request.Alert:
+    properties:
+      annotations:
+        additionalProperties:
+          type: string
+        type: object
+      endsAt:
+        type: string
+      fingerprint:
+        type: string
+      generatorURL:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      startsAt:
+        type: string
+      status:
+        type: string
+    type: object
+  request.GetFaultLogContentRequest:
+    properties:
+      containerId:
+        type: string
+      endTime:
+        type: integer
+      endpoint:
+        type: string
+      instanceId:
+        type: string
+      nodeName:
+        type: string
+      pid:
+        type: integer
+      podName:
+        type: string
+      serviceName:
+        type: string
+      sourceFrom:
+        description: 日志数据源
+        type: string
+      startTime:
+        type: integer
+      traceId:
+        type: string
+    type: object
+  request.GetFaultLogPageListRequest:
+    properties:
+      containerId:
+        description: 容器名
+        type: string
+      endTime:
+        description: 查询结束时间
+        type: integer
+      instance:
+        description: 实例名
+        type: string
+      nodeName:
+        description: 主机名
+        type: string
+      pageNum:
+        description: 第几页
+        type: integer
+      pageSize:
+        description: 每页显示条数
+        type: integer
+      pid:
+        description: 进程号
+        type: integer
+      service:
+        description: 查询服务名
+        type: string
+      startTime:
+        description: 查询开始时间
+        minimum: 0
+        type: integer
+      traceId:
+        description: TraceId
+        type: string
+    required:
+    - endTime
+    type: object
+  request.GetTracePageListRequest:
+    properties:
+      containerId:
+        description: 容器名
+        type: string
+      endTime:
+        description: 查询结束时间
+        type: integer
+      endpoint:
+        description: 查询Endpoint
+        type: string
+      instance:
+        description: 实例名
+        type: string
+      nodeName:
+        description: 主机名
+        type: string
+      pageNum:
+        description: 第几页
+        type: integer
+      pageSize:
+        type: integer
+      pid:
+        description: 进程号
+        type: integer
+      service:
+        description: 查询服务名
+        type: string
+      startTime:
+        description: 查询开始时间
+        minimum: 0
+        type: integer
+      traceId:
+        description: TraceId
+        type: string
+    required:
+    - endTime
+    type: object
+  request.InputAlertManagerRequest:
+    properties:
+      alerts:
+        items:
+          $ref: '#/definitions/request.Alert'
+        type: array
+      commonAnnotations:
+        additionalProperties:
+          type: string
+        type: object
+      commonLabels:
+        additionalProperties:
+          type: string
+        type: object
+      groupLabels:
+        additionalProperties:
+          type: string
+        type: object
+      receiver:
+        type: string
+      status:
+        type: string
+      truncatedAlerts:
+        type: integer
+    type: object
+  response.CreateResponse:
+    properties:
+      id:
+        description: 主键ID
+        type: integer
+    type: object
+  response.DeleteResponse:
+    properties:
+      id:
+        description: 主键ID
+        type: integer
+    type: object
+  response.DetailResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  response.ErrorInfo:
+    properties:
+      message:
+        description: 错误消息
+        type: string
+      type:
+        description: 错误类型
+        type: string
+    type: object
+  response.ErrorInstance:
+    properties:
+      containerId:
+        description: 容器ID
+        type: string
+      logs:
+        additionalProperties:
+          type: number
+        description: 日志告警
+        type: object
+      name:
+        description: 错误实例名
+        type: string
+      nodeName:
+        description: 主机名
+        type: string
+      pid:
+        description: 进程号
+        type: integer
+      propations:
+        description: 错误传播信息
+        items:
+          $ref: '#/definitions/response.ErrorPropation'
+        type: array
+    type: object
+  response.ErrorPropation:
+    properties:
+      children:
+        description: 下游节点列表
+        items:
+          $ref: '#/definitions/response.InstanceNode'
+        type: array
+      current:
+        allOf:
+        - $ref: '#/definitions/response.InstanceNode'
+        description: 当前节点
+      errors:
+        description: 错误信息
+        items:
+          $ref: '#/definitions/response.ErrorInfo'
+        type: array
+      parents:
+        description: 上游节点列表
+        items:
+          $ref: '#/definitions/response.InstanceNode'
+        type: array
+      timestamp:
+        description: 时间戳
+        type: integer
+      traceId:
+        description: TraceId
+        type: string
+    type: object
+  response.GetDescendantMetricsResponse:
+    properties:
+      endpoint:
+        description: Endpoint
+        type: string
+      latencyP90:
+        description: P90曲线值
+        items:
+          $ref: '#/definitions/response.MetricsPoint'
+        type: array
+      serviceName:
+        description: 服务名
+        type: string
+    type: object
+  response.GetDescendantRelevanceResponse:
+    properties:
+      REDAlarmReason:
+        description: RED告警原因
+        type: string
+      REDStatus:
+        description: RED指标告警
+        type: string
+      delayDistribution:
+        description: 延时分布
+        type: string
+      delaySource:
+        description: 延时主要来源 self/dependency
+        type: string
+      distance:
+        description: 延时曲线差异
+        type: number
+      endpoint:
+        description: Endpoint
+        type: string
+      infrastructureStatus:
+        description: 基础设施告警
+        type: string
+      k8sStatus:
+        description: K8s状态告警
+        type: string
+      logAlarmReason:
+        description: 日志告警原因
+        type: string
+      logsStatus:
+        description: TODO 各类型告警状态
+        type: string
+      netStatus:
+        description: 网络告警
+        type: string
+      serviceName:
+        description: 服务名
+        type: string
+      timestamp:
+        description: 末次部署时间
+        type: integer
+    type: object
+  response.GetErrorInstanceResponse:
+    properties:
+      instances:
+        description: 错误实例列表
+        items:
+          $ref: '#/definitions/response.ErrorInstance'
+        type: array
+      status:
+        description: 错误实例状态
+        type: string
+    type: object
+  response.GetFaultLogContentResponse:
+    properties:
+      logContents:
+        $ref: '#/definitions/clickhouse.Logs'
+      sources:
+        items:
+          type: string
+        type: array
+    type: object
+  response.GetFaultLogPageListResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/clickhouse.FaultLogResult'
+        type: array
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetK8sEventsResponse:
+    properties:
+      data:
+        additionalProperties:
+          $ref: '#/definitions/response.K8sEventStatistics'
+        type: object
+      reasons:
+        items:
+          type: string
+        type: array
+      status:
+        type: string
+    type: object
+  response.GetLogMetricsResponse:
+    properties:
+      containerId:
+        description: 容器ID
+        type: string
+      errorRate:
+        additionalProperties:
+          type: number
+        description: 错误率
+        type: object
+      latency:
+        additionalProperties:
+          type: number
+        description: 延时P90
+        type: object
+      logs:
+        additionalProperties:
+          type: number
+        description: 日志告警
+        type: object
+      name:
+        description: 实例名
+        type: string
+      nodeName:
+        description: 主机名
+        type: string
+      pid:
+        description: 进程号
+        type: integer
+    type: object
+  response.GetPolarisInferResponse:
+    properties:
+      inferCause:
+        type: string
+      inferMetricsPng:
+        type: string
+    type: object
+  response.GetServiceEndpointTopologyResponse:
+    properties:
+      children:
+        description: 下游节点列表
+        items:
+          $ref: '#/definitions/clickhouse.TopologyNode'
+        type: array
+      current:
+        allOf:
+        - $ref: '#/definitions/clickhouse.TopologyNode'
+        description: 当前服务
+      parents:
+        description: 上游节点列表
+        items:
+          $ref: '#/definitions/clickhouse.TopologyNode'
+        type: array
+    type: object
+  response.GetTraceMetricsResponse:
+    properties:
+      containerId:
+        description: 容器ID
+        type: string
+      errorRate:
+        additionalProperties:
+          type: number
+        description: 错误率
+        type: object
+      latency:
+        additionalProperties:
+          type: number
+        description: 延时P90
+        type: object
+      logs:
+        additionalProperties:
+          type: number
+        description: 日志告警
+        type: object
+      name:
+        description: 实例名
+        type: string
+      nodeName:
+        description: 主机名
+        type: string
+      pid:
+        description: 进程号
+        type: integer
+    type: object
+  response.GetTracePageListResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/clickhouse.QueryTraceResult'
+        type: array
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+    type: object
+  response.InstanceData:
+    properties:
+      errorRate:
+        $ref: '#/definitions/response.TempChartObject'
+      infrastructureStatus:
+        type: string
+      k8sStatus:
+        type: string
+      latency:
+        $ref: '#/definitions/response.TempChartObject'
+      logs:
+        $ref: '#/definitions/response.TempChartObject'
+      name:
+        description: 实例名
+        type: string
+      namespace:
+        type: string
+      netStatus:
+        type: string
+      timestamp:
+        type: integer
+      tps:
+        $ref: '#/definitions/response.TempChartObject'
+    type: object
+  response.InstanceNode:
+    properties:
+      instance:
+        type: string
+      isTraced:
+        type: boolean
+      service:
+        type: string
+    type: object
+  response.InstancesRes:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/response.InstanceData'
+        type: array
+      status:
+        type: string
+    type: object
+  response.K8sEventCountValues:
+    properties:
+      current:
+        type: integer
+      lastMonth:
+        type: integer
+      lastWeek:
+        type: integer
+    type: object
+  response.K8sEventStatistics:
+    properties:
+      counts:
+        $ref: '#/definitions/response.K8sEventCountValues'
+      displayName:
+        type: string
+      eventName:
+        type: string
+      severity:
+        description: Normal or Warning
+        type: string
+    type: object
+  response.ListData:
+    properties:
+      id:
+        description: ID
+        type: integer
+      name:
+        description: 用户名
+        type: string
+    type: object
+  response.ListResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/response.ListData'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.Pagination'
+    type: object
+  response.MetricsPoint:
+    properties:
+      timestamp:
+        description: 时间(微秒)
+        type: integer
+      value:
+        description: 值
+        type: number
+    type: object
+  response.Pagination:
+    properties:
+      current_page:
+        description: 当前页码
+        type: integer
+      per_page_count:
+        description: 每页条数
+        type: integer
+      total:
+        description: 总记录数
+        type: integer
+    type: object
+  response.Ratio:
+    properties:
+      dayOverDay:
+        type: number
+      weekOverDay:
+        type: number
+    type: object
+  response.ServiceAlertRes:
+    properties:
+      infrastructureStatus:
+        type: string
+      k8sStatus:
+        type: string
+      logs:
+        $ref: '#/definitions/response.TempChartObject'
+      netStatus:
+        type: string
+      serviceName:
+        type: string
+      timestamp:
+        type: integer
+    type: object
+  response.ServiceDetail:
+    properties:
+      delaySource:
+        type: string
+      endpoint:
+        type: string
+      errorRate:
+        $ref: '#/definitions/response.TempChartObject'
+      latency:
+        $ref: '#/definitions/response.TempChartObject'
+      tps:
+        $ref: '#/definitions/response.TempChartObject'
+    type: object
+  response.ServiceEndPointsRes:
+    properties:
+      endpointCount:
+        type: integer
+      serviceDetails:
+        items:
+          $ref: '#/definitions/response.ServiceDetail'
+        type: array
+      serviceName:
+        type: string
+    type: object
+  response.TempChartObject:
+    properties:
+      chartData:
+        additionalProperties:
+          type: number
+        type: object
+      ratio:
+        $ref: '#/definitions/response.Ratio'
+      value:
+        type: number
+    type: object
+info:
+  contact: {}
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: swagger 接口文档
+  version: "2.0"
+paths:
+  /api/alerts/inputs/alertmanager:
+    post:
+      consumes:
+      - application/json
+      description: 获取 AlertManager 的告警事件
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.InputAlertManagerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取 AlertManager 的告警事件
+      tags:
+      - API.alerts
+  /api/log/fault/content:
+    post:
+      description: 获取故障现场日志内容
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetFaultLogContentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetFaultLogContentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取故障现场日志内容
+      tags:
+      - API.log
+  /api/log/fault/pagelist:
+    post:
+      consumes:
+      - application/json
+      description: 获取故障现场分页日志
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetFaultLogPageListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetFaultLogPageListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取故障现场分页日志
+      tags:
+      - API.log
+  /api/mock:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: xx列表
+      parameters:
+      - default: 1
+        description: 第几页
+        in: query
+        name: page_num
+        required: true
+        type: integer
+      - default: 10
+        description: 每页显示条数
+        in: query
+        name: page_size
+        type: integer
+      - description: 用户名
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: xx列表
+      tags:
+      - API.mock
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 创建/编辑xx
+      parameters:
+      - description: 名称
+        in: formData
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 创建/编辑xx
+      tags:
+      - API.mock
+  /api/mock/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除xx
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.DeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 删除xx
+      tags:
+      - API.mock
+    get:
+      consumes:
+      - application/json
+      description: xx详情
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.DetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: xx详情
+      tags:
+      - API.mock
+  /api/service/descendant/metrics:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取所有下游服务的延时曲线数据
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      - description: 查询步长(us)
+        in: query
+        name: step
+        required: true
+        type: integer
+      - description: 入口服务名
+        in: query
+        name: entryService
+        type: string
+      - description: 入口Endpoint
+        in: query
+        name: entryEndpoint
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.GetDescendantMetricsResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取所有下游服务的延时曲线数据
+      tags:
+      - API.service
+  /api/service/descendant/relevance:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取依赖节点延时关联度
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      - description: 查询步长(us)
+        in: query
+        name: step
+        required: true
+        type: integer
+      - description: 入口服务名
+        in: query
+        name: entryService
+        type: string
+      - description: 入口Endpoint
+        in: query
+        name: entryEndpoint
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.GetDescendantRelevanceResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取依赖节点延时关联度
+      tags:
+      - API.service
+  /api/service/endpoint/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取服务EndPoint列表
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取服务EndPoint列表
+      tags:
+      - API.service
+  /api/service/endpoints:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取endpoints服务列表
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 步长
+        in: query
+        name: step
+        required: true
+        type: integer
+      - description: 名称
+        in: query
+        name: serviceName
+        type: string
+      - description: 排序逻辑
+        in: query
+        name: sortRule
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ServiceEndPointsRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取endpoints服务列表
+      tags:
+      - API.service
+  /api/service/error/instance:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取错误实例
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      - description: 查询步长(us)
+        in: query
+        name: step
+        required: true
+        type: integer
+      - description: 入口服务名
+        in: query
+        name: entryService
+        type: string
+      - description: 入口Endpoint
+        in: query
+        name: entryEndpoint
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetErrorInstanceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取错误实例
+      tags:
+      - API.service
+  /api/service/errorinstance/logs:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取错误实例故障现场日志
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      - description: 实例名
+        in: query
+        name: instance
+        type: string
+      - description: 主机名
+        in: query
+        name: nodeName
+        type: string
+      - description: 容器名
+        in: query
+        name: containerId
+        type: string
+      - description: 进程号
+        in: query
+        name: pid
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/clickhouse.FaultLogResult'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取错误实例故障现场日志
+      tags:
+      - API.service
+  /api/service/getThreshold:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取单个阈值配置信息
+      parameters:
+      - description: 应用名称
+        in: query
+        name: serviceName
+        type: string
+      - description: endpoint
+        in: query
+        name: endpoint
+        type: string
+      - description: 阈值等级
+        in: query
+        name: level
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取单个阈值配置信息
+      tags:
+      - API.service
+  /api/service/instance/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取服务实例列表
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取服务实例列表
+      tags:
+      - API.service
+  /api/service/instance/options:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取服务下拉实例列表
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/model.ServiceInstance'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取服务下拉实例列表
+      tags:
+      - API.service
+  /api/service/instances:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取service对应url实例
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 步长
+        in: query
+        name: step
+        required: true
+        type: integer
+      - description: 应用名称
+        in: query
+        name: serviceName
+        required: true
+        type: string
+      - description: endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.InstancesRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取service对应url实例
+      tags:
+      - API.service
+  /api/service/k8s/events/count:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取K8s事件
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetK8sEventsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取K8s事件
+      tags:
+      - API.service
+  /api/service/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取服务列表
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取服务列表
+      tags:
+      - API.service
+  /api/service/log/logs:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取Log故障现场日志
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      - description: 实例名
+        in: query
+        name: instance
+        type: string
+      - description: 主机名
+        in: query
+        name: nodeName
+        type: string
+      - description: 容器名
+        in: query
+        name: containerId
+        type: string
+      - description: 进程号
+        in: query
+        name: pid
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/clickhouse.FaultLogResult'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取Log故障现场日志
+      tags:
+      - API.service
+  /api/service/log/metrics:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取日志相关指标
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      - description: 查询步长(us)
+        in: query
+        name: step
+        required: true
+        type: integer
+      - description: 入口服务名
+        in: query
+        name: entryService
+        type: string
+      - description: 入口Endpoint
+        in: query
+        name: entryEndpoint
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.GetLogMetricsResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取日志相关指标
+      tags:
+      - API.service
+  /api/service/moreUrl:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取服务的更多url列表
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 步长
+        in: query
+        name: step
+        required: true
+        type: integer
+      - description: 应用名称
+        in: query
+        name: serviceName
+        required: true
+        type: string
+      - description: 排序逻辑
+        in: query
+        name: sortRule
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.ServiceDetail'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取服务的更多url列表
+      tags:
+      - API.service
+  /api/service/polaris/infer:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取北极星指标分析情况
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询步长(us)
+        in: query
+        name: step
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetPolarisInferResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取北极星指标分析情况
+      tags:
+      - API.service
+  /api/service/servicesAlert:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取Service的日志告警和状态灯信息
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 步长
+        in: query
+        name: step
+        required: true
+        type: integer
+      - collectionFormat: multi
+        description: 应用名称
+        in: query
+        items:
+          type: string
+        name: serviceNames
+        required: true
+        type: array
+      - collectionFormat: multi
+        description: 返回数据内容
+        in: query
+        items:
+          type: string
+        name: returnData
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ServiceAlertRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取Service的日志告警和状态灯信息
+      tags:
+      - API.service
+  /api/service/setThreshold:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 配置单个阈值配置信息
+      parameters:
+      - description: 阈值等级
+        in: formData
+        name: level
+        required: true
+        type: string
+      - description: 应用名称
+        in: formData
+        name: serviceName
+        type: string
+      - description: endpoint
+        in: formData
+        name: endpoint
+        type: string
+      - description: 同比延时
+        in: formData
+        name: latency
+        required: true
+        type: number
+      - description: 同比错误率
+        in: formData
+        name: errorRate
+        required: true
+        type: number
+      - description: 同比请求次数
+        in: formData
+        name: tps
+        required: true
+        type: number
+      - description: 同比日志告警
+        in: formData
+        name: log
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 配置单个阈值配置信息
+      tags:
+      - API.service
+  /api/service/topology:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取服务上下游拓扑
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      - description: 入口服务名
+        in: query
+        name: entryService
+        type: string
+      - description: 入口Endpoint
+        in: query
+        name: entryEndpoint
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetServiceEndpointTopologyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取服务上下游拓扑
+      tags:
+      - API.service
+  /api/service/trace/logs:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取Trace故障现场日志
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      - description: 实例名
+        in: query
+        name: instance
+        type: string
+      - description: 主机名
+        in: query
+        name: nodeName
+        type: string
+      - description: 容器名
+        in: query
+        name: containerId
+        type: string
+      - description: 进程号
+        in: query
+        name: pid
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/clickhouse.FaultLogResult'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取Trace故障现场日志
+      tags:
+      - API.service
+  /api/service/trace/metrics:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取Trace相关指标
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      - description: 查询步长(us)
+        in: query
+        name: step
+        required: true
+        type: integer
+      - description: 入口服务名
+        in: query
+        name: entryService
+        type: string
+      - description: 入口Endpoint
+        in: query
+        name: entryEndpoint
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.GetTraceMetricsResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取Trace相关指标
+      tags:
+      - API.service
+  /api/trace/pagelist:
+    post:
+      consumes:
+      - application/json
+      description: 查询Trace分页列表
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetTracePageListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetTracePageListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 查询Trace分页列表
+      tags:
+      - API.trace
+swagger: "2.0"
