@@ -1,0 +1,153 @@
+[
+  {
+    "serviceName": "ts-route-plan-service",
+    "serviceDetail": [
+      {
+        "url": "url1",
+        "delay": "依赖",
+        "latency": {
+          "value": "235ms",
+          "list": []
+        },
+        "successRate": {
+          "value": "0%",
+          "list": []
+        },
+        "tps": {
+          "value": "20",
+          "list": []
+        }
+      },
+      {
+        "url": "url2",
+        "delay": "依赖",
+        "latency": {
+          "value": "235ms",
+          "list": []
+        },
+        "successRate": {
+          "value": "0%",
+          "list": []
+        },
+        "tps": {
+          "value": "20",
+          "list": []
+        }
+      },
+      {
+        "url": "url3",
+        "delay": "依赖",
+        "latency": {
+          "value": "235ms",
+          "list": []
+        },
+        "successRate": {
+          "value": "0%",
+          "list": []
+        },
+        "tps": {
+          "value": "20",
+          "list": []
+        }
+      }
+    ],
+    "logs": {
+      "list": []
+    },
+    "infrastructure": "success",
+    "net": "error",
+    "k8s": "success",
+    "timestamp": "2024-6-20 11:18"
+  },
+  {
+    "serviceName": "ts-travel2-service",
+    "serviceDetail": [
+      {
+        "url": "url1",
+        "delay": "依赖",
+        "latency": {
+          "value": "235ms",
+          "list": []
+        },
+        "successRate": {
+          "value": "0%",
+          "list": []
+        },
+
+        "tps": {
+          "value": "20",
+          "list": []
+        }
+      },
+      {
+        "url": "url2",
+        "delay": "依赖",
+        "latency": {
+          "value": "235ms",
+          "list": []
+        },
+        "successRate": {
+          "value": "0%",
+          "list": []
+        },
+
+        "tps": {
+          "value": "20",
+          "list": []
+        }
+      }
+    ],
+    "logs": {
+      "list": []
+    },
+    "infrastructure": "success",
+    "net": "error",
+    "k8s": "success",
+    "timestamp": "2024-6-20 11:18"
+  },
+  {
+    "serviceName": "ts-basic-service",
+    "serviceDetail": [
+      {
+        "url": "url1",
+        "delay": "依赖",
+        "latency": {
+          "value": "235ms",
+          "list": []
+        },
+        "successRate": {
+          "value": "0%",
+          "list": []
+        },
+        "tps": {
+          "value": "20",
+          "list": []
+        }
+      },
+      {
+        "url": "url1",
+        "delay": "依赖",
+        "latency": {
+          "value": "235ms",
+          "list": []
+        },
+        "successRate": {
+          "value": "0%",
+          "list": []
+        },
+        "tps": {
+          "value": "20",
+          "list": []
+        }
+      }
+    ],
+
+    "logs": {
+      "list": []
+    },
+    "infrastructure": "success",
+    "net": "error",
+    "k8s": "success",
+    "timestamp": "2024-6-20 11:18"
+  }
+]

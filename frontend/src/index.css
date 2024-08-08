@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.accordion-item .show{
+    visibility: visible !important;
+}
+.collapse.show{
+    visibility: visible
+}

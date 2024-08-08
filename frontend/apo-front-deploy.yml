@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apo-front
+  labels:
+    app: apo-front
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apo-front
+  template:
+    metadata:
+      labels:
+        app: apo-front
+    spec:
+      volumes:
+        - name: apo-front-nginx
+          configMap:
+            name: apo-front-nginx
+            defaultMode: 420
+      containers:
+        - name: apo-front
+          image: apo-front:latest
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          resources:
+            limits:
+              memory: 100Mi
+            requests:
+              memory: 30Mi
+          volumeMounts:
+            - name: apo-front-nginx
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apo-front
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: http
+  selector:
+    app: apo-front
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apo-front-nginx
+data:
+  default.conf: |
+    server {
+      listen       80;
+      listen  [::]:80;
+      server_name  localhost;
+
+      access_log  /var/log/nginx/host.access.log  main;
+
+      location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+      }
+
+      location /jaeger/ {
+        proxy_pass http://jaeger-collector:16686/jaeger/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Frame-Options "allow-from http://localhost:8080";
+        proxy_buffering off;
+      }
+
+      location /grafana/ {
+        proxy_pass http://apo-grafana-svc:3000/grafana/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Frame-Options "allow-from http://localhost:8080";
+        proxy_buffering off;
+      }
+      # 代理 API 请求到后端服务
+      location /api/ {
+        proxy_pass http://apo-backend-svc:8080/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+      }
+
+      location /alert {
+        rewrite ^/alert/(.*) /$1 break;
+        proxy_pass http://vm-alert-victoria-metrics-alert-server:8880/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+      }
+      
+      #error_page  404              /404.html;
+
+      # redirect server error pages to the static page /50x.html
+      #
+      error_page   500 502 503 504  /50x.html;
+      location = /50x.html {
+          root   /usr/share/nginx/html;
+      }
+    }

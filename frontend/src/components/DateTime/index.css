@@ -1,0 +1,9 @@
+.rdrCalendarWrapper{
+    background: none;
+}
+.rdrDayNumber span {
+    color: #CCCCDC;
+}
+.rdrMonthAndYearPickers select{
+    color: #CCCCDC;
+}

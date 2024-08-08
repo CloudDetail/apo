@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "checkJs": true,
+    "allowJs": true,
+    "jsx": "react",
+
+    "types": ["react", "react-dom"],
+    "noEmit": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "src/*": ["src/*"],
+      "components/*": ["src/components/*"]
+    }
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,40 @@
+.pagination{
+    
+    .basic-pagination {
+        height: 40px;
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        justify-content: flex-end;
+        button {
+          cursor: pointer;
+          border-radius: 50%;
+          height: 15px;
+          border: 0;
+          width: 15px;
+          transition: background-color 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+    justify-content: flex-end;
+        .basic-pagination button {
+          background-color: rgba(204, 204, 220, 0.04);
+        }
+        button:hover {
+          background-color: rgba(204, 204, 220, 0.04);
+          color: rgba(204, 204, 220, 0.6);
+        }
+        .basic-pagination .active {
+          background-color: rgba(204, 204, 220, 0.3);;
+        }
+        button[disabled] {
+          background-color: rgba(204, 204, 220, 0.04);
+          color: rgba(204, 204, 220, 0.6);
+        }
+        button[disabled]:hover {
+          background-color: rgba(204, 204, 220, 0.04);
+          color: rgba(204, 204, 220, 0.6);
+        }
+      }

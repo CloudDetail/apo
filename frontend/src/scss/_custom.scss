@@ -1,0 +1,94 @@
+// Here you can add other styles
+.sidebar-narrow-unfoldable:not(:hover) {
+  .nav-item-name-narrow {
+    display: block;
+  }
+  .nav-item-name-full {
+    display: none;
+  }
+  .nav-item-icon {
+    svg {
+      width: 32px;
+    }
+  }
+}
+.nav-item-icon {
+  min-width: 42px;
+
+  .nav-item-name-narrow {
+    display: none;
+    font-size: 10px;
+    margin-right: 12px;
+    text-align: center;
+  }
+}
+
+.accordion-button {
+  // border: .5px solid rgba(207,199,243,.5);
+  border-left: 10px solid var(--cui-accordion-active-bg);
+  // box-shadow: 0 0  .25rem  rgba(207,199,243,.2);
+  box-shadow: var(--cui-accordion-btn-focus-box-shadow);
+  box-shadow: var(--cui-accordion-btn-focus-box-shadow);
+}
+.accordion-button:not(.collapsed) {
+  border: 0;
+}
+// tab
+.flex-column-tab {
+  .nav-tabs {
+    // border: 0
+    border-right: var(--cui-nav-tabs-border-width) solid var(--cui-nav-tabs-border-color);
+    border-bottom: 0;
+  }
+  .nav-tabs .nav-link {
+    border-right: 1px solid var(--cui-border-color);
+    margin-right: calc(var(--cui-nav-tabs-border-width) * -1);
+  }
+  .nav-tabs .nav-link.active,
+  .nav-tabs .nav-item.show .nav-link {
+    border-color: var(--cui-border-color);
+    border-right: var(--cui-body-bg);
+    border-top-right-radius: 0;
+    border-bottom-left-radius: var(--cui-nav-tabs-border-radius);
+  }
+  .tab-content {
+    border: 1px solid var(--cui-border-color);
+    border-left: 0;
+    border-radius: var(--cui-nav-tabs-border-radius);
+  }
+}
+.border-tab > .tab-content {
+  border: 1px solid var(--cui-border-color);
+  border-top: 0;
+  border-radius: var(--cui-nav-tabs-border-radius);
+  border-top-right-radius: var(--cui-nav-tabs-border-radius);
+}
+//toast
+.toast {
+  --cui-toast-border-radius: 0.75rem;
+  .toast-body{
+    border-color: rgba(255, 255, 255, 0.1)
+  }
+}
+
+.bg-danger{
+  .toast-body{
+    border-left-color: #f6786f;
+  }
+}
+.bg-success{
+  .toast-body{
+    border-left-color: #3abf8c;
+  }
+}
+//modal
+.absolute-modal{
+  .modal-content{
+    position: absolute;
+    height: 100%;
+  }
+}
+
+.react-flow__panel{
+  display: none;
+}

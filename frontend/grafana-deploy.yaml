@@ -1,0 +1,222 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: apo-grafana
+  name: apo-grafana
+spec:
+  selector:
+    matchLabels:
+      app: apo-grafana
+  template:
+    metadata:
+      labels:
+        app: apo-grafana
+    spec:
+      securityContext:
+        fsGroup: 472
+        supplementalGroups:
+          - 0
+      volumes:
+        - name: grafana-config
+          configMap:
+            name: apo-grafana-config
+            defaultMode: 420
+      containers:
+        - name: grafana
+          image: grafana/grafana:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+              name: http-grafana
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /robots.txt
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 2
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+          resources:
+            requests:
+              cpu: 250m
+              memory: 750Mi
+          volumeMounts:
+            - name: grafana-config
+              mountPath: /etc/grafana/grafana.ini
+              subPath: grafana.ini
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apo-grafana
+spec:
+  ports:
+    - port: 3000
+      protocol: TCP
+      targetPort: http-grafana
+  selector:
+    app: apo-grafana
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apo-grafana-config
+data:
+  grafana.ini: |
+    ##################### Grafana Configuration Example #####################
+    #
+    # Everything has defaults so you only need to uncomment things you want to
+    # change
+
+    # possible values : production, development
+    app_mode = production
+
+    # instance name, defaults to HOSTNAME environment variable value or hostname if HOSTNAME var is empty
+    ;instance_name = ${HOSTNAME}
+
+    #################################### Paths ####################################
+    [paths]
+    # Path to where grafana can store temp files, sessions, and the sqlite3 db (if that is used)
+    data = /var/lib/grafana
+
+    # Temporary files in `data` directory older than given duration will be removed
+    ;temp_data_lifetime = 24h
+
+    # Directory where grafana can store logs
+    ;logs = /var/log/grafana
+
+    # Directory where grafana will automatically scan and look for plugins
+    ;plugins = /opt/grafana/plugins/
+
+    # folder that contains provisioning config files that grafana will apply on startup and while running.
+    ;provisioning = conf/provisioning
+
+    #################################### Server ####################################
+    [server]
+    # Protocol (http, https, h2, socket)
+    protocol = http
+
+    # The ip address to bind to, empty will bind to all interfaces
+    ;http_addr =
+
+    # The http port  to use
+    ;http_port = 3000
+
+    # The public facing domain name used to access grafana from a browser
+    domain = 192.168.1.56
+
+    # Redirect to correct domain if host header does not match domain
+    # Prevents DNS rebinding attacks
+    enforce_domain = true
+
+    # The full public facing url you use in browser, used for redirects and emails
+    # If you use reverse proxy and sub path specify full url (with sub path)
+    root_url = %(protocol)s://%(domain)s/grafana/
+
+    # Serve Grafana from subpath specified in `root_url` setting. By default it is set to `false` for compatibility reasons.
+    serve_from_sub_path = true
+
+    # enable gzip
+    enable_gzip = true
+
+    #################################### Database ####################################
+    [database]
+    # You can configure the database connection by specifying type, host, name, user and password
+    # as separate properties or as on string using the url properties.
+
+    # Either "mysql", "postgres" or "sqlite3", it's your choice
+    type = sqlite3
+    # host = mysql-single-node.default:3306
+    # name = grafana-2c6ee4a4-bae2-4e70-abe8-bbc5cd6dd29d
+    # user = 2c6ee4a4bae24e70abe8bbc5cd6dd29d
+    # If the password contains # or ; you have to wrap it with triple quotes. Ex """#password;"""
+    # password = U]3s$N7A[0%3
+
+    #################################### Analytics ####################################
+    [analytics]
+    # Server reporting, sends usage counters to stats.grafana.org every 24 hours.
+    # No ip addresses are being tracked, only simple counters to track
+    # running instances, dashboard and error counts. It is very helpful to us.
+    # Change this option to false to disable reporting.
+    reporting_enabled = false
+
+    #################################### Security ####################################
+    [security]
+    # disable creation of admin user on first start of grafana
+    disable_initial_admin_creation = false
+
+    # disable gravatar profile images
+    disable_gravatar = true
+
+    # set to true if you want to allow browsers to render Grafana in a <frame>, <iframe>, <embed> or <object>. default is false.
+    allow_embedding = true
+    #################################### Snapshots ###########################
+    [snapshots]
+    # snapshot sharing options
+    external_enabled = false
+
+    #################################### Users ###############################
+    [users]
+    # disable user signup / registration
+    allow_sign_up = true
+
+    # Allow non admin users to create organizations
+    allow_org_create = true
+
+    # Default role new users will be automatically assigned (if disabled above is set to true)
+    auto_assign_org_role = Admin
+
+    # Default UI language (supported IETF language tag, such as en-US)
+    default_language = zh-Hans
+
+    # Path to a custom home page. Users are only redirected to this if the default home dashboard is used. It should match a frontend route and contain a leading slash.
+    home_page = /
+
+    [auth]
+    # Set to true to disable (hide) the login form, useful if you use OAuth, defaults to false
+    disable_login_form = false
+
+    # Set to true to disable the sign out link in the side menu. Useful if you use auth.proxy or auth.jwt, defaults to false
+    disable_signout_menu = false
+
+    #################################### Anonymous Auth ######################
+    [auth.anonymous]
+    # enable anonymous access
+    enabled = true
+
+    # specify organization name that should be used for unauthenticated users
+    org_name = Main Org.
+
+    # specify role for unauthenticated users
+    org_role = Admin
+
+    # mask the Grafana version number for unauthenticated users
+    hide_version = true
+
+    #################################### Usage Quotas ########################
+    [quota]
+    enabled = false
+
+    #################################### Profile #############################
+    [profile]
+    # Enable the Profile section
+    enabled = false
+
+    #################################### News #############################
+    [news]
+    # Enable the news feed section
+    news_feed_enabled = false

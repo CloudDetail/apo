@@ -62,7 +62,8 @@ APO 集成了链路、指标、日志和事件等数据，能够一站式解决�
 ## 社区 & 支持
 如果您在使用过程中有任何问题，欢迎通过下方的方式联系我们：
 
-- 微信：
+- 微信
+
   ![contact us](./docs/img/contact-wechat.jpg)
 ## License
 [Apache License 2.0](https://github.com/CloudDetail/apo/blob/main/LICENSE)

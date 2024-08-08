@@ -1,0 +1,54 @@
+.simplebar-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+// // .sidebar-narrow-unfoldable:not(:hover) .sidebar-brand-narrow{
+// //   display: block;
+// // }
+// // .sidebar-narrow-unfoldable:hover .sidebar-brand-narrow{
+// //   display: none;
+// // }
+// // .sidebar-narrow-unfoldable:not(:hover) .sidebar-brand-full{
+// //   display: block;
+// // }
+// .sidebar-narrow-unfoldable:hover {
+//   // background: red;
+//    //narrow 显示
+//    .sidebar-brand-narrow-custom {
+//     display: none !important;
+//     color: red;
+//   }
+  
+//   // 全版不显示
+//   .sidebar-brand-full-custom {
+//     display: block;
+//     color: blue;
+//   }
+// }
+// // 默认收缩的时候 
+// .sidebar-narrow-unfoldable:not(:hover) {
+//   // background: blue;
+//   //narrow 显示
+//   .sidebar-brand-narrow-custom {
+//     display: block !important;
+//     color: red;
+//   }
+//   // 全版不显示
+//   .sidebar-brand-full-custom {
+//     display: none;
+//     color: blue;
+//   }
+// }
+// //收缩版
+// // .sidebar-narrow-unfoldable{
+  
+// //   .sidebar-brand-narrow-custom {
+// //     display: none;
+// //     color: red;
+// //   }
+// //   .sidebar-brand-full-custom {
+// //     display: block;
+// //     color: blue;
+// //   }
+// // }
