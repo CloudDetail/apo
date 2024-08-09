@@ -1,0 +1,3 @@
+[submodule "one-agent/node-agent"]
+	path = one-agent/node-agent
+	url = https://github.com/CloudDetail/node-agent
