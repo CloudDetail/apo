@@ -1,3 +1,9 @@
 [submodule "one-agent/node-agent"]
 	path = one-agent/node-agent
 	url = https://github.com/CloudDetail/node-agent
+[submodule "one-agent/preload"]
+	path = one-agent/preload
+	url = https://github.com/CloudDetail/preload.git
+[submodule "one-agent/ilogtail"]
+	path = one-agent/ilogtail
+	url = https://github.com/CloudDetail/ilogtail.git
