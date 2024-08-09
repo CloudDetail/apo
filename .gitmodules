@@ -7,3 +7,6 @@
 [submodule "one-agent/ilogtail"]
 	path = one-agent/ilogtail
 	url = https://github.com/CloudDetail/ilogtail.git
+[submodule "one-agent/odigos"]
+	path = one-agent/odigos
+	url = https://github.com/CloudDetail/odigos.git
