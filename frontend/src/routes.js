@@ -7,8 +7,7 @@ const Service = React.lazy(() => import('./views/service/index.js'))
 const ServiceInfo = React.lazy(() => import('./views/serviceInfo/index.js'))
 const LogsPage = React.lazy(() => import('./views/logs/index.js'))
 const TracePage = React.lazy(() => import('./views/trace/index.js'))
-
-
+const Alerts = React.lazy(() => import('./views/alerts/index.js'))
 
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
 const Typography = React.lazy(() => import('./views/theme/typography/Typography'))
@@ -53,23 +52,20 @@ const Flags = React.lazy(() => import('./views/icons/flags/Flags'))
 const Brands = React.lazy(() => import('./views/icons/brands/Brands'))
 
 // Notifications
-const Alerts = React.lazy(() => import('./views/notifications/alerts/Alerts'))
 const Badges = React.lazy(() => import('./views/notifications/badges/Badges'))
 const Modals = React.lazy(() => import('./views/notifications/modals/Modals'))
 const Toasts = React.lazy(() => import('./views/notifications/toasts/Toasts'))
 
-
 const routes = [
   { path: '/', exact: true, name: 'Home' },
-  { path: '/service',exact: true, name: 'Service', element: Service,
-  },
+  { path: '/service', exact: true, name: 'Service', element: Service },
   { path: '/service/info', name: 'ServiceInfo', element: ServiceInfo },
-  { path: '/logs', name: 'Logs', element: LogsPage,hideSystemTimeRangePicker: true },
-  { path: '/trace', name: 'Trace', element: TracePage ,hideSystemTimeRangePicker: true},
+  { path: '/logs', name: 'Logs', element: LogsPage, hideSystemTimeRangePicker: true },
+  { path: '/trace', name: 'Trace', element: TracePage, hideSystemTimeRangePicker: true },
   { path: '/basic-dashboard', name: 'Basic Dashboard', element: BasicDashboard },
   { path: '/system-dashboard', name: 'System Dashboard', element: SystemDashboard },
   { path: '/application-dashboard', name: 'Application Dashboard', element: ApplicationDashboard },
-
+  { path: '/alerts', name: 'Alerts Rule', element: Alerts },
 
   // { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   // { path: '/theme', name: 'Theme', element: Colors, exact: true },

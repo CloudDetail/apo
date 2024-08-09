@@ -310,9 +310,7 @@ export default function ServiceView() {
           <CFormInput placeholder="检索" size="sm" onKeyDown={handleKeyDown} />
         </div>
 
-        <div>
-          <ThresholdCofigModal />
-        </div>
+        <div>{/* <ThresholdCofigModal /> */}</div>
       </div>
 
       <CCard style={{ height: 'calc(100vh - 220px)' }}>

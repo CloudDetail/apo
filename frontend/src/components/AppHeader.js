@@ -31,7 +31,7 @@ import DateTimeRangePicker from './DateTime/DateTimeRangePicker'
 import routes from 'src/routes'
 
 const AppHeader = () => {
-  const location = useLocation();
+  const location = useLocation()
   const headerRef = useRef()
   const { colorMode, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
 
@@ -47,7 +47,8 @@ const AppHeader = () => {
 
   const vars = {
     // '--cui-header-bg': 'inherit',
-    'borderBottom': 0
+    borderBottom: 0,
+    zIndex: 999,
   }
 
   return (
@@ -60,7 +61,7 @@ const AppHeader = () => {
           <CIcon icon={cilMenu} size="lg" />
         </CHeaderToggler> */}
         <CHeaderNav className="d-none d-md-flex">
-        <AppBreadcrumb />
+          <AppBreadcrumb />
           {/* <CNavItem>
             <CNavLink to="/service" as={NavLink}>
               Dashboard
@@ -91,7 +92,9 @@ const AppHeader = () => {
           </CNavItem>
         </CHeaderNav> */}
         <CHeaderNav>
-         {!routes.find((route) => route.path === location.pathname).hideSystemTimeRangePicker && <DateTimeRangePicker />}
+          {!routes.find((route) => route.path === location.pathname).hideSystemTimeRangePicker && (
+            <DateTimeRangePicker />
+          )}
           {/* <li className="nav-item py-1">
             <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
           </li> */}

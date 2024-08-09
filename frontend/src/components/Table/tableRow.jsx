@@ -71,7 +71,11 @@ function TableRow({ row, clickRow }) {
   }, [row.cells, selectedValues])
 
   return (
-    <tr {...row.getRowProps()} onClick={() => clickRow?.(row.values)}>
+    <tr
+      {...row.getRowProps()}
+      onClick={() => clickRow?.(row.values)}
+      className={clickRow ? 'cursor-pointer' : ''}
+    >
       {cellPropsArray.map((props, idx) => {
         return props.isNested ? (
           <NestedTd {...props} key={`body_td_${idx}`} />

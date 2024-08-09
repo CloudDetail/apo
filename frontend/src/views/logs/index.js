@@ -25,6 +25,7 @@ import {
 import { ISOToTimestamp } from 'src/utils/time'
 import { PropsProvider } from 'src/contexts/PropsContext'
 import { InstanceProvider, useInstance } from 'src/contexts/InstanceContext'
+import Empty from 'src/components/Empty/Empty'
 function LogsPage() {
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
@@ -107,7 +108,7 @@ function LogsPage() {
             {activeItemKey === 'faultSite' && <FaultSiteLogs />}
           </CTabPanel>
           <CTabPanel className="p-3 h-full" itemKey="full">
-            {activeItemKey === 'full' && <logsList />}
+            {activeItemKey === 'full' && <Empty context="敬请期待" />}
             {/* <FullLogs logsList={logsList} /> */}
           </CTabPanel>
         </CTabContent>

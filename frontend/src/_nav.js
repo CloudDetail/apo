@@ -15,14 +15,14 @@ import {
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 import { PiPath } from 'react-icons/pi'
-import { CiServer } from "react-icons/ci";
+import { CiServer } from 'react-icons/ci'
 
 const _nav = [
   {
     component: CNavItem,
     name: 'Service',
     to: '/service',
-    icon: <CiServer  className="nav-icon"/>,
+    icon: <CiServer className="nav-icon" />,
     badge: {
       color: 'info',
       // text: 'NEW',
@@ -56,9 +56,7 @@ const _nav = [
     component: CNavItem,
     name: 'System Dashboard',
     to: '/system-dashboard',
-    icon: (
-      <CIcon icon={cilSpeedometer} customClassName="nav-icon" />
-    ),
+    icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
     badge: {
       color: 'info',
       // text: 'NEW',
@@ -68,9 +66,7 @@ const _nav = [
     component: CNavItem,
     name: 'Basic Dashboard',
     to: '/basic-dashboard',
-    icon: (
-      <CIcon icon={cilSpeedometer} customClassName="nav-icon" />
-    ),
+    icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
     badge: {
       color: 'info',
       // text: 'NEW',
@@ -80,9 +76,17 @@ const _nav = [
     component: CNavItem,
     name: 'Application Dashboard',
     to: '/application-dashboard',
-    icon: (
-      <CIcon icon={cilSpeedometer} customClassName="nav-icon" />
-    ),
+    icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
+    badge: {
+      color: 'info',
+      // text: 'NEW',
+    },
+  },
+  {
+    component: CNavItem,
+    name: 'Alerts Rule',
+    to: '/alerts',
+    icon: <CIcon icon={cilBell} customClassName="nav-icon" />,
     badge: {
       color: 'info',
       // text: 'NEW',

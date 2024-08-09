@@ -58,7 +58,7 @@ function PolarisMetricsInfo() {
           />
           {isOpen && (
             <Lightbox
-              wrapperClassName="p-2"
+              imagePadding={50}
               mainSrc={'data:image/png;base64,' + image}
               onCloseRequest={() => setIsOpen(false)}
             />

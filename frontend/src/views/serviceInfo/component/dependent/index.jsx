@@ -68,7 +68,7 @@ function DependentTabs() {
   return (
     <CCard className="mb-4 ml-1 h-[350px] p-2  w-3/5">
       <CCardHeader>
-        {serviceName}的依赖视图
+        {serviceName}的所有依赖视图（包括所有递归依赖）
         {/* <div className="text-xs">
           <span className="text-slate-300">展示所有多层依赖，且已按照延时曲线相似度排序，点击</span>
           <a className="cursor-pointer underline" onClick={() => setVisible(true)}>
