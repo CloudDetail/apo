@@ -1,4 +1,8 @@
 # AutoPilot Observability
+[![License](https://img.shields.io/badge/license-Apache2.0-blue.svg)](https://github.com/CloudDetail/apo/blob/main/LICENSE)
+[![Doc](https://img.shields.io/badge/docs-latest-green.svg)](https://originx.kindlingx.com/docs/APO%20%E5%90%91%E5%AF%BC%E5%BC%8F%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E4%B8%AD%E5%BF%83/%E4%BA%A7%E5%93%81%E4%BB%8B%E7%BB%8D) 
+
+访问[官方网站](https://apo.kindlingx.com)查看更多详情。
 ## AutoPilot Observability （简称APO）是什么？
 - **OpenTelemetry 发行版**：APO 整合了 OpenTelemetry 探针、otel-collector、Jaeger、ClickHouse 和 VictoriaMetrics，通过 OneAgent 技术，支持在传统服务器和容器环境**自动安装**多语言的 OpenTelemetry 探针，减少用户配置工作。支持使用 Jaeger UI 查询 Tracing 数据，使用 PromQL 从 VictoriaMetrics 中查询 Metrics 数据并展示在 Grafana 上。
 - **开箱即用的可观测性平台**：APO 致力于提供一键安装、开箱即用的可观测性平台。APO 的 OneAgent 除了安装 OpenTelemetry 的 Tracing 探针外，还支持采集应用的故障现场日志、Kubernetes 事件、基础设施指标、应用和下游依赖的网络指标以及基于 eBPF 采集的北极星因果指标等数据。
