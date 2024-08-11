@@ -6,7 +6,7 @@
 ## AutoPilot Observability （简称APO）是什么？
 - **OpenTelemetry 发行版**：APO 整合了 OpenTelemetry 探针、otel-collector、Jaeger、ClickHouse 和 VictoriaMetrics，通过 OneAgent 技术，支持在传统服务器和容器环境**自动安装**多语言的 OpenTelemetry 探针，减少用户配置工作。支持使用 Jaeger UI 查询 Tracing 数据，使用 PromQL 从 VictoriaMetrics 中查询 Metrics 数据并展示在 Grafana 上。
 - **开箱即用的可观测性平台**：APO 致力于提供一键安装、开箱即用的可观测性平台。APO 的 OneAgent 除了安装 OpenTelemetry 的 Tracing 探针外，还支持采集应用的故障现场日志、Kubernetes 事件、基础设施指标、应用和下游依赖的网络指标以及基于 eBPF 采集的北极星因果指标等数据。
-- **向导式故障定界能力**：AutoPilot 表示辅助用户定界定位故障原因。APO 除了可以通过 Jaeger UI 和 Grafana 展示数据以外，还提供了向导式辅助用户定界定位故障原因的界面。通过使用 APO 的 OneAgent 安装 OpenTelemetry 探针，探针能够分析相关节点故障，保留故障现场数据，并展示在向导式排障界面上。向导式排障界面辅助用户在一个页面上完成故障原因的定界定位。
+- **基于 eBPF 的向导式定界能力**：AutoPilot 表示辅助用户定界定位故障原因。APO 除了可以通过 Jaeger UI 和 Grafana 展示数据以外，还提供了向导式辅助用户定界定位故障原因的界面。通过使用 APO 的 OneAgent 安装 OpenTelemetry 探针，探针能够分析相关节点故障，保留故障现场数据，并展示在向导式排障界面上。向导式排障界面辅助用户在一个页面上完成故障原因的定界定位。
 ## 功能
 ### 自动安装 OpenTelemetry 探针，无需手动配置
 通过 OneAgent 技术，支持在传统服务器和容器环境自动安装多语言的 OpenTelemetry 探针，减少用户配置工作。
