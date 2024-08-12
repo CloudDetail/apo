@@ -10,3 +10,6 @@
 [submodule "one-agent/odigos"]
 	path = one-agent/odigos
 	url = https://github.com/CloudDetail/odigos.git
+[submodule "one-agent/sdk-auto"]
+	path = one-agent/sdk-auto
+	url = https://github.com/CloudDetail/sdk-auto.git
