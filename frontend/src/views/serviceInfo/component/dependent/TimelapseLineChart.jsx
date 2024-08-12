@@ -5,12 +5,14 @@ import ReactECharts from 'echarts-for-react'
 import { convertTime } from 'src/utils/time'
 import { format } from 'date-fns'
 import Empty from 'src/components/Empty/Empty'
+import { ChartColorList } from 'src/constants'
 
 function TimelapseLineChart(props) {
   const { data, startTime, endTime } = props
-  const { serviceName } = usePropsContext()
+  const chartRef = useRef(null)
   const [option, setOption] = useState({
     title: {},
+    color: ChartColorList,
     tooltip: {
       trigger: 'item',
       confine: true,
@@ -19,17 +21,17 @@ function TimelapseLineChart(props) {
       axisPointer: {
         type: 'cross',
         label: {
-          formatter: function(params) {
+          formatter: function (params) {
             // 自定义格式化函数，params.value 是轴上指示的值
-            const{axisDimension, value} = params
-            if(axisDimension === 'y'){
-              return convertTime(value,'ms',2) + 'ms'
-            } else{
-              return convertTime(value * 1000,'yyyy-mm-dd hh:mm:ss')
+            const { axisDimension, value } = params
+            if (axisDimension === 'y') {
+              return convertTime(value, 'ms', 2) + 'ms'
+            } else {
+              return convertTime(value * 1000, 'yyyy-mm-dd hh:mm:ss')
             }
             // return `自定义格式: ${params.value}`;
-          }
-        }
+          },
+        },
       },
       //   position: function (point, params, dom, rect, size) {
       //     // point 是鼠标位置 [x, y]
@@ -91,6 +93,7 @@ function TimelapseLineChart(props) {
       left: '3%',
       right: '4%',
       bottom: '3%',
+      top: '10px',
       containLabel: true,
     },
     // toolbox: {
@@ -128,17 +131,49 @@ function TimelapseLineChart(props) {
     },
     series: [],
   })
+  const [activeSeries, setActiveSeries] = useState(null)
+
+  const handleActiveServices = (item) => {
+    const seriesName = item.serviceName + `(${item.endpoint})`
+    const chartInstance = chartRef.current.getEchartsInstance()
+
+    if (seriesName === activeSeries) {
+      setActiveSeries(null)
+      data.forEach((item) => {
+        chartInstance.dispatchAction({
+          type: 'legendSelect',
+          name: item.serviceName + `(${item.endpoint})`,
+        })
+      })
+    } else {
+      setActiveSeries(seriesName)
+
+      // 先取消所有系列的显示
+      data.forEach((item) => {
+        chartInstance.dispatchAction({
+          type: 'legendUnSelect',
+          name: item.serviceName + `(${item.endpoint})`,
+        })
+      })
+
+      // 仅显示点击的系列
+      chartInstance.dispatchAction({
+        type: 'legendSelect',
+        name: seriesName,
+      })
+    }
+  }
 
   useEffect(() => {
     console.log(data)
     setOption({
       ...option,
-      legend: {
-        type: 'scroll',
-        data: data.map((item) => {
-          return item.serviceName + `(${item.endpoint})`
-        }),
-      },
+      // legend: {
+      //   type: 'scroll',
+      //   data: data.map((item) => {
+      //     return item.serviceName + `(${item.endpoint})`
+      //   }),
+      // },
       series: data.map((item) => {
         return {
           data: item.latencyP90.map((i) => [i.timestamp / 1000, i.value]),
@@ -151,7 +186,36 @@ function TimelapseLineChart(props) {
   }, [data])
 
   return data && data.length > 0 && option ? (
-    <ReactECharts theme="dark" option={option} style={{ height: '100%', width: '100%' }} />
+    <div className="w-full flex flex-row h-full">
+      <ReactECharts
+        ref={chartRef}
+        theme="dark"
+        option={option}
+        style={{ height: '100%', width: '50%' }}
+      />
+      <div className="w-1/2 h-full overflow-y-auto">
+        {data.map((item, index) => (
+          <div
+            className={'flex break-all p-1 cursor-pointer '}
+            onClick={() => handleActiveServices(item)}
+          >
+            <div
+              className="w-4 h-2 m-1 rounded flex-shrink-0 "
+              style={{ background: ChartColorList[index] }}
+            ></div>
+            <span
+              className={
+                !activeSeries || item.serviceName + `(${item.endpoint})` === activeSeries
+                  ? ''
+                  : 'text-stone-400'
+              }
+            >
+              {item.serviceName}({item.endpoint})
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   ) : (
     <Empty />
   )
