@@ -4,9 +4,9 @@
 
 访问[官方网站](https://apo.kindlingx.com)查看更多详情。
 ## AutoPilot Observability （简称APO）是什么？
-- **OpenTelemetry 发行版**：APO 整合了 OpenTelemetry 探针、otel-collector、Jaeger、ClickHouse 和 VictoriaMetrics，通过 OneAgent 技术，支持在传统服务器和容器环境**自动安装**多语言的 OpenTelemetry 探针，减少用户配置工作。支持使用 Jaeger UI 查询 Tracing 数据，使用 PromQL 从 VictoriaMetrics 中查询 Metrics 数据并展示在 Grafana 上。
-- **开箱即用的可观测性平台**：APO 致力于提供一键安装、开箱即用的可观测性平台。APO 的 OneAgent 除了安装 OpenTelemetry 的 Tracing 探针外，还支持采集应用的故障现场日志、Kubernetes 事件、基础设施指标、应用和下游依赖的网络指标以及基于 eBPF 采集的北极星因果指标等数据。
-- **基于 eBPF 的向导式定界能力**：AutoPilot 表示辅助用户定界定位故障原因。APO 除了可以通过 Jaeger UI 和 Grafana 展示数据以外，还提供了向导式辅助用户定界定位故障原因的界面。通过使用 APO 的 OneAgent 安装 OpenTelemetry 探针，探针能够分析相关节点故障，保留故障现场数据，并展示在向导式排障界面上。向导式排障界面辅助用户在一个页面上完成故障原因的定界定位。
+- **开箱即用的可观测性平台**：APO 致力于提供一键安装、开箱即用的可观测性平台。APO 的 OneAgent 支持一键免配置安装 Tracing 探针，支持采集应用的故障现场日志、基础设施指标、应用和下游依赖的网络指标以及Kubernetes 事件，支持采集基于 eBPF 实现的[北极星因果指标](https://one.kindlingx.com)等数据。支持使用 Jaeger UI 查询 Tracing 数据，使用 PromQL 从 VictoriaMetrics 中查询 Metrics 数据并展示在 Grafana 上。
+- **集成 eBPF 技术的 OpenTelemetry 发行版**：APO 整合了 OpenTelemetry 探针、otel-collector、Jaeger、ClickHouse 和 VictoriaMetrics，通过 OneAgent 技术支持在传统服务器和容器环境**自动安装**多语言的 OpenTelemetry 探针，减少用户配置工作。APO 创新性地将 eBPF 技术与 OpenTelemetry 生态融合，基于回溯采样算法，大大降低了数据的存储量。
+- **基于 eBPF 的向导式排障产品**：AutoPilot 表示辅助用户定界定位故障原因。APO 提供了向导式辅助用户定界定位故障原因的界面，通过使用 APO 的 OneAgent 安装 OpenTelemetry 探针，OneAgent 能够分析环境故障，基于 eBPF 技术保留故障现场数据并展示在向导式排障界面上。eBPF 技术将向导式排障界面辅助用户在一个页面上完成故障原因的定界定位。
 ## 功能
 ### 自动安装 OpenTelemetry 探针，无需手动配置
 通过 OneAgent 技术，支持在传统服务器和容器环境自动安装多语言的 OpenTelemetry 探针，减少用户配置工作。
@@ -37,13 +37,19 @@ APO 集成了链路、指标、日志和事件等数据，能够一站式解决�
 
 ![avg-duration-line](./docs/img/avg-duration-line.png)![logs-list](./docs/img/logs-list.png)
 ## 特点
-### 保留故障现场的热数据
+### 保留故障现场的热数据，降低数据存储成本
 故障现场的热数据 vs. 传统可观测性数据
 
 - 对于异常（慢或者错）链路数据进行回溯采样，同时保留同时间段的日志（称之为**故障现场日志**），这些故障现场的数据在 APO 中被称之为热数据。回溯采样算法可以参考[算法论文](https://www.usenix.org/conference/nsdi23/presentation/zhang-lei)。
 - 传统可观测性的保留方式称之为冷数据保留方式。
 
 基于故障现场的热数据关联带来了不同数据之间跳转的极致流畅的体验。此外基于故障现场的热数据为未来优化存储、节约可观测性的成本带来了更多的可能性。
+
+### 无惧数据膨胀，高效地在数据间关联跳转
+APO 利用 eBPF 技术为原始数据生成并保存了“索引”数据，“索引“数据的大小明显小于原始数据，即使原始数据膨胀，APO 仍然能够通过查询索引数据快速给出可观测性数据结果。同时利用 eBPF 技术在内核中为不同类型的数据增加元信息标签，增强数据间的关联性，使用户在不同数据之间能够无缝跳转。
+
+相比于其他可观测性方案，APO 在保存相同时间周期的数据时，占用更少的存储成本同时能够更快地给出数据结果。
+
 ### 事件指标化联动与更加直观的故障提示
 
 - **日志错误数指标**：传统日志告警思路是根据日志内容为“Exception”或者“错误”进行告警，但有时日志会经常输出 Exception，业务却一切正常，如果按照日志内容告警，则会发生误告警。为了避免这个问题，APO 只匹配“Exception”或者“错误”日志，并将这些数量变成指标，如果该指标短时间飙升，可以起到日志告警的作用，提示用户程序执行过程有问题。
