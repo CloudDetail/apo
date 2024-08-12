@@ -11,6 +11,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/logger"
 	"github.com/CloudDetail/apo/backend/pkg/router"
 	"github.com/CloudDetail/apo/backend/pkg/util"
+	"github.com/CloudDetail/metadata/source"
 	"go.uber.org/zap"
 )
 
@@ -43,6 +44,17 @@ func main() {
 	s, err := router.NewHTTPServer(accessLogger)
 	if err != nil {
 		panic(err)
+	}
+
+	if config.Get().MetaServer.Enable {
+		// 创建缓存结构
+		ms := source.CreateMetaSourceFromConfig(&config.Get().MetaServer.MetaSourceConfig)
+		err := ms.Run()
+		if err != nil {
+			accessLogger.Error("start meta server err", zap.Error(err))
+		}
+		// 注册服务端点
+		router.SetMetaServerRouter(s, ms)
 	}
 
 	serverPort := config.Get().Server.Port

@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 
+	"github.com/CloudDetail/metadata/configs"
 	"github.com/spf13/viper"
 )
 
@@ -50,6 +51,10 @@ type Config struct {
 	Language struct {
 		Local string `mapstructure:"local"`
 	} `mapstructure:"language"`
+	MetaServer struct {
+		Enable           bool                     `mapstructure:"enable"`
+		MetaSourceConfig configs.MetaSourceConfig `mapstructure:"meta_source_config"`
+	} `mapstructure:"meta_server"`
 }
 
 func Get() *Config {

@@ -12,7 +12,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
-const queryProcessStartPromQL = "originx_process_start_time{%s}"
+const queryProcessStartPromQL = "avg by (node_ip, node_name, pid) (originx_process_start_time{%s})"
 
 // QueryProcessStartTime 查询进程启动时间
 // 返回结果中包含了查询pid在多个节点上的进程，因此需要根据node_name进行筛选

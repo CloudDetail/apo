@@ -1533,7 +1533,7 @@ func QueryLogByContainerIdPromql(duration string, queryType QueryType, container
   sum(
     increase(
       originx_logparser_level_count_total{
-        container_id=~"%s""
+        container_id=~"%s"
       }[%s]
     )
   ) by(container_id)
@@ -1559,7 +1559,7 @@ sum(
   sum(
     increase(
       originx_logparser_level_count_total{
-        container_id=~"%s""
+        container_id=~"%s"
       }[%s]
     )
   ) by(container_id)
@@ -1583,7 +1583,7 @@ sum(
   sum(
     increase(
       originx_logparser_level_count_total{
-        container_id=~"%s""
+        container_id=~"%s"
       }[%s] offset 24h
     )
   ) by(container_id)
@@ -1601,21 +1601,21 @@ sum(
   or
 sum(
   increase(
-    originx_logparser_exception_count_total{container_id=~"%s"}[%s]offset 24h
+    originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 24h
   )
 ) by(container_id))/(
   sum(
     increase(
       originx_logparser_level_count_total{
-        container_id=~"%s""
-      }[%s]offset 24h
+        container_id=~"%s"
+      }[%s] offset 24h
     )
   ) by(container_id)
     +
   (
     sum(
       increase(
-        originx_logparser_exception_count_total{container_id=~"%s"}[%s]offset 24h
+        originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 24h
       )
     ) by(container_id)
       or
@@ -1625,7 +1625,7 @@ sum(
   or
 sum(
   increase(
-    originx_logparser_exception_count_total{container_id=~"%s"}[%s]offset 24h
+    originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 24h
   )
 ) by(container_id)`, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration)
 	case LogWOW:
@@ -1633,7 +1633,7 @@ sum(
   sum(
     increase(
       originx_logparser_level_count_total{
-        container_id=~"%s""
+        container_id=~"%s"
       }[%s]
     )
   ) by(container_id)
@@ -1657,7 +1657,7 @@ sum(
   sum(
     increase(
       originx_logparser_level_count_total{
-        container_id=~"%s""
+        container_id=~"%s"
       }[%s] offset 7d
     )
   ) by(container_id)
@@ -1675,21 +1675,21 @@ sum(
   or
 sum(
   increase(
-    originx_logparser_exception_count_total{container_id=~"%s"}[%s]offset 7d
+    originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 7d
   )
 ) by(container_id))/(
   sum(
     increase(
       originx_logparser_level_count_total{
-        container_id=~"%s""
-      }[%s]offset 7d
+        container_id=~"%s"
+      }[%s] offset 7d
     )
   ) by(container_id)
     +
   (
     sum(
       increase(
-        originx_logparser_exception_count_total{container_id=~"%s"}[%s]offset 7d
+        originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 7d
       )
     ) by(container_id)
       or
@@ -1699,7 +1699,7 @@ sum(
   or
 sum(
   increase(
-    originx_logparser_exception_count_total{container_id=~"%s"}[%s]offset 7d
+    originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 7d
   )
 ) by(container_id)`, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration)
 	}

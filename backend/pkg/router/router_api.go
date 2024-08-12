@@ -7,6 +7,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/service"
 	"github.com/CloudDetail/apo/backend/pkg/api/serviceoverview"
 	"github.com/CloudDetail/apo/backend/pkg/api/trace"
+	"github.com/CloudDetail/apo/backend/pkg/util"
+	"github.com/CloudDetail/metadata/source"
 )
 
 func setApiRouter(r *resource) {
@@ -65,5 +67,14 @@ func setApiRouter(r *resource) {
 	{
 		alertHandler := alerts.New(r.logger, r.ch)
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
+	}
+}
+
+func SetMetaServerRouter(srv *Server, meta source.MetaSource) {
+	api := srv.Mux.Group("/metadata")
+	for path, handler := range meta.Handlers() {
+		// 这组API同时支持GET和POST
+		api.POST_Gin(path, util.WrapHandlerFunctions(handler))
+		api.GET_Gin(path, util.WrapHandlerFunctions(handler))
 	}
 }

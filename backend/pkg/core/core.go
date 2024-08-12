@@ -88,6 +88,12 @@ func New(logger *zap.Logger) (*Mux, error) {
 					Message: businessCodeMsg,
 				})
 			} else {
+				if len(ctx.GetHeader("X-Data-Flow")) > 0 {
+					// 不需要为 X-Data-Flow = Meta 类型数据记录debug日志
+					// 同时响应数据在handler内部处理并返回过了
+					return
+				}
+
 				// region 正确返回
 				ctx.JSON(http.StatusOK, context.getPayload())
 			}
@@ -143,8 +149,16 @@ func (r *Router) GET(relativePath string, handlers ...HandlerFunc) {
 	r.group.GET(relativePath, wrapHandlers(handlers...)...)
 }
 
+func (r *Router) GET_Gin(relativePath string, handlers []gin.HandlerFunc) {
+	r.group.GET(relativePath, handlers...)
+}
+
 func (r *Router) POST(relativePath string, handlers ...HandlerFunc) {
 	r.group.POST(relativePath, wrapHandlers(handlers...)...)
+}
+
+func (r *Router) POST_Gin(relativePath string, handlers []gin.HandlerFunc) {
+	r.group.POST(relativePath, handlers...)
 }
 
 func (r *Router) DELETE(relativePath string, handlers ...HandlerFunc) {
