@@ -8,18 +8,20 @@ import 'simplebar-react/dist/simplebar.min.css'
 import { CBadge, CNavLink, CSidebarNav } from '@coreui/react'
 
 export const AppSidebarNav = ({ items }) => {
-  const navLink = (name, icon, badge, indent = false) => {
+  const navLink = (name, icon, badge, indent = false, abbreviation) => {
     return (
       <>
-        <div className="nav-item-icon" >
-          {icon
-            ? icon
-            : indent && (
-                <span className="nav-icon">
-                  <span className="nav-icon-bullet"></span>
-                </span>
-              )}
-              <span className="nav-item-name-narrow">{name && name}</span>
+        <div className="nav-item-icon inline-flex flex-col items-center">
+          {icon ? (
+            <div className="nav-icon">{icon}</div>
+          ) : (
+            indent && (
+              <span className="nav-icon">
+                <span className="nav-icon-bullet"></span>
+              </span>
+            )
+          )}
+          <span className="nav-item-name-narrow">{abbreviation ?? name}</span>
         </div>
         <span className="nav-item-name-full">{name && name}</span>
         {badge && (
@@ -32,13 +34,13 @@ export const AppSidebarNav = ({ items }) => {
   }
 
   const navItem = (item, index, indent = false) => {
-    const { component, name, badge, icon, ...rest } = item
+    const { component, name, badge, icon, abbreviation, ...rest } = item
     const Component = component
     return (
       <Component as="div" key={index}>
         {rest.to || rest.href ? (
           <CNavLink {...(rest.to && { as: NavLink })} {...rest}>
-            {navLink(name, icon, badge, indent)}
+            {navLink(name, icon, badge, indent, abbreviation)}
           </CNavLink>
         ) : (
           navLink(name, icon, badge, indent)

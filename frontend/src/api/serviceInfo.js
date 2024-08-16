@@ -5,6 +5,10 @@ import { get } from 'src/utils/request'
 export const getServiceTopologyApi = (params) => {
   return get(`api/service/topology`, params)
 }
+// 获取更多下游拓扑
+export const getServiceRelationApi = (params) => {
+  return get(`/api/service/relation`, params)
+}
 
 //获取所有下游服务的延时曲线
 export const getServiceDsecendantMetricsApi = (params) => {
@@ -44,12 +48,10 @@ export const getK8sEventApi = (params) => {
   return get(`/api/service/k8s/events/count`, params)
 }
 
-
 //日志TAB故障现场日志列表切片
 export const getServiceLogLogsApi = (params) => {
   return get(`/api/service/log/logs`, params)
 }
-
 
 //获取Trace TAB故障现场获取Trace列表切片
 export const getServiceTraceLogsApi = (params) => {

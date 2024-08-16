@@ -93,6 +93,7 @@ const CustomSelect = React.memo((props) => {
       onChange={handleChange}
       defaultValue={defaultValue}
       isClearable={isClearable}
+      placeholder={'请选择'}
     />
   );
 });

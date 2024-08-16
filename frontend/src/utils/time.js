@@ -167,3 +167,33 @@ export function DateToISO(dateString) {
   }
   return TimestampToISO(date.getTime() * 1000)
 }
+
+/**
+ * [时间单位转换-毫秒]
+ * 默认 ms
+ * @param   {number}  time [time value]
+ * @return  {string|number}       [time value with unit]
+ */
+export const formatTime = (time, reserve = 2) => {
+  let flag = false
+  if (time === undefined) {
+    return 0
+  } else {
+    flag = time < 0
+    time = Math.abs(time)
+    if (time > 3600000) {
+      time = parseFloat((time / 3600000).toFixed(reserve)) + 'h'
+    } else if (time >= 60000) {
+      time = parseFloat((time / 60000).toFixed(reserve)) + 'min'
+    } else if (time >= 1000) {
+      time = parseFloat((time / 1000).toFixed(reserve)) + 's'
+    } else if (time >= 10) {
+      time = parseFloat(time.toFixed(reserve)) + 'ms'
+    } else if (time > 0) {
+      time = parseFloat(time.toFixed(reserve)) + 'ms'
+    } else {
+      time = parseFloat(time.toFixed(reserve))
+    }
+    return flag ? '-' + time : time
+  }
+}

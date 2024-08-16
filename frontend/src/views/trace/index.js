@@ -185,33 +185,33 @@ function TracePage() {
   }
   const column = [
     {
-      title: 'Service Name',
+      title: '服务名',
       accessor: 'serviceName',
     },
     {
-      title: 'InstanceId',
+      title: '实例名',
       accessor: 'instanceId',
     },
     {
-      title: 'Endpoint',
+      title: '服务端点',
       accessor: 'endpoint',
     },
     {
-      title: 'Duration',
+      title: '持续时间',
       accessor: 'duration',
       Cell: ({ value }) => {
         return convertTime(value, 'ms', 2) + 'ms'
       },
     },
     {
-      title: 'Time',
+      title: '发生时间',
       accessor: 'timestamp',
       Cell: ({ value }) => {
         return convertTime(value, 'yyyy-mm-dd hh:mm:ss')
       },
     },
     {
-      title: 'Is Error',
+      title: '状态',
       accessor: 'isError',
       Cell: ({ value }) => {
         return <StatusInfo status={value ? 'critical' : 'normal'} />

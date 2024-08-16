@@ -48,7 +48,7 @@ const AppHeader = () => {
   const vars = {
     // '--cui-header-bg': 'inherit',
     borderBottom: 0,
-    zIndex: 999,
+    zIndex: 998,
   }
 
   return (

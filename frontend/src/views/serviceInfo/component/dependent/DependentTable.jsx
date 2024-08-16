@@ -17,18 +17,20 @@ import { usePropsContext } from 'src/contexts/PropsContext'
 import DelayLineChart from '../infoUni/DelayLineChart'
 import { convertTime } from 'src/utils/time'
 import { getServiceDsecendantRelevanceApi } from 'src/api/serviceInfo'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/store/reducers/timeRangeReducer'
 import { getStep } from 'src/utils/step'
 
 function DependentTable(props) {
-  const { serviceList } = props
-  const { serviceName, endpoint } = usePropsContext()
-  const [visible, setVisible] = useState(false)
+  const { serviceName, endpoint, startTime, endTime, storeDisplayData = false } = props
   const navigate = useNavigate()
   const [data, setData] = useState([])
-  const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [loading, setLoading] = useState(false)
+  const dispatch = useDispatch()
+
+  const setDisplayData = (value) => {
+    dispatch({ type: 'setDisplayData', payload: value })
+  }
   const getTableData = () => {
     setLoading(true)
 
@@ -42,6 +44,8 @@ function DependentTable(props) {
       .then((res) => {
         setData(res ?? [])
         setLoading(false)
+        // console.log(res.slice(0, 5))
+        if (storeDisplayData) setDisplayData((res ?? []).slice(0, 5))
       })
       .catch((error) => {
         setData([])
@@ -49,7 +53,12 @@ function DependentTable(props) {
       })
   }
   useEffect(() => {
-    getTableData()
+    return () => {
+      if (storeDisplayData) setDisplayData(null)
+    }
+  }, [])
+  useEffect(() => {
+    if (serviceName && endpoint) getTableData()
   }, [startTime, endTime, serviceName, endpoint])
   const column = [
     {
@@ -169,24 +178,7 @@ function DependentTable(props) {
       clickRow: toServiceInfoPage,
     }
   }, [data, startTime, endTime, loading])
-  return (
-    <>
-      <CModal
-        alignment="center"
-        visible={visible}
-        onClose={() => setVisible(false)}
-        aria-labelledby="VerticallyCenteredExample"
-      >
-        <CModalHeader>
-          <CModalTitle id="VerticallyCenteredExample">延时曲线全览对比图</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <DelayLineChart color="rgba(154, 102, 255, 1)" multiple />
-        </CModalBody>
-      </CModal>
-      {data && <BasicTable {...tableProps} />}
-    </>
-  )
+  return <>{data && <BasicTable {...tableProps} />}</>
 }
 
 export default DependentTable

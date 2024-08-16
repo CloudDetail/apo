@@ -36,23 +36,14 @@ const AppSidebar = () => {
       onVisibleChange={(visible) => {
         dispatch({ type: 'set', sidebarShow: visible })
       }}
+      style={{ zIndex: 999 }}
     >
       <CSidebarHeader className="border-bottom">
         <CSidebarBrand to="/">
-          <CImage
-            src={logo}
-            className="w-[32px] sidebar-brand-narrow"
-            alt="CoreuiVue"
-          />
+          <CImage src={logo} className="w-[32px] sidebar-brand-narrow" alt="CoreuiVue" />
           <div className="sidebar-brand-full flex flex-row justify-center items-center">
-
-          <CImage
-            src={logo}
-            className="w-[32px]"
-            alt="CoreuiVue"
-          />
-          <span className="w-[32px] sidebar-brand-full">向导式可观测平台</span>
-
+            <CImage src={logo} className="w-[32px]" alt="CoreuiVue" />
+            <span className="w-[32px] sidebar-brand-full">向导式可观测平台</span>
           </div>
         </CSidebarBrand>
         <CCloseButton

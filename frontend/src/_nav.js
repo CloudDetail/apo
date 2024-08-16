@@ -20,9 +20,9 @@ import { CiServer } from 'react-icons/ci'
 const _nav = [
   {
     component: CNavItem,
-    name: 'Service',
+    name: '服务概览',
     to: '/service',
-    icon: <CiServer className="nav-icon" />,
+    icon: <CiServer />,
     badge: {
       color: 'info',
       // text: 'NEW',
@@ -30,9 +30,9 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Logs',
+    name: '日志检索',
     to: '/logs',
-    icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
+    icon: <CIcon icon={cilDescription} />,
     badge: {
       color: 'info',
       // text: 'NEW',
@@ -40,13 +40,9 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Trace',
+    name: '链路追踪',
     to: '/trace',
-    icon: (
-      <div className="nav-icon">
-        <PiPath />
-      </div>
-    ),
+    icon: <PiPath />,
     badge: {
       color: 'info',
       // text: 'NEW',
@@ -54,9 +50,10 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'System Dashboard',
+    name: '全局资源大盘',
+    abbreviation: '全局资源',
     to: '/system-dashboard',
-    icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
+    icon: <CIcon icon={cilSpeedometer} />,
     badge: {
       color: 'info',
       // text: 'NEW',
@@ -64,9 +61,10 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Basic Dashboard',
+    name: '应用基础设施大盘',
+    abbreviation: '基础设施',
     to: '/basic-dashboard',
-    icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
+    icon: <CIcon icon={cilSpeedometer} />,
     badge: {
       color: 'info',
       // text: 'NEW',
@@ -74,9 +72,10 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Application Dashboard',
+    name: '应用指标大盘',
+    abbreviation: '应用指标',
     to: '/application-dashboard',
-    icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
+    icon: <CIcon icon={cilSpeedometer} />,
     badge: {
       color: 'info',
       // text: 'NEW',
@@ -84,9 +83,9 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Alerts Rule',
+    name: '告警规则',
     to: '/alerts',
-    icon: <CIcon icon={cilBell} customClassName="nav-icon" />,
+    icon: <CIcon icon={cilBell} />,
     badge: {
       color: 'info',
       // text: 'NEW',
@@ -96,7 +95,7 @@ const _nav = [
   //   component: CNavItem,
   //   name: 'Dashboard',
   //   to: '/dashboard',
-  //   icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
+  //   icon: <CIcon icon={cilSpeedometer} />,
   //   badge: {
   //     color: 'info',
   //     text: 'NEW',
@@ -110,13 +109,13 @@ const _nav = [
   //   component: CNavItem,
   //   name: 'Colors',
   //   to: '/theme/colors',
-  //   icon: <CIcon icon={cilDrop} customClassName="nav-icon" />,
+  //   icon: <CIcon icon={cilDrop} />,
   // },
   // {
   //   component: CNavItem,
   //   name: 'Typography',
   //   to: '/theme/typography',
-  //   icon: <CIcon icon={cilPencil} customClassName="nav-icon" />,
+  //   icon: <CIcon icon={cilPencil} />,
   // },
   // {
   //   component: CNavTitle,
@@ -126,7 +125,7 @@ const _nav = [
   //   component: CNavGroup,
   //   name: 'Base',
   //   to: '/base',
-  //   icon: <CIcon icon={cilPuzzle} customClassName="nav-icon" />,
+  //   icon: <CIcon icon={cilPuzzle} />,
   //   items: [
   //     {
   //       component: CNavItem,
@@ -209,7 +208,7 @@ const _nav = [
   //   component: CNavGroup,
   //   name: 'Buttons',
   //   to: '/buttons',
-  //   icon: <CIcon icon={cilCursor} customClassName="nav-icon" />,
+  //   icon: <CIcon icon={cilCursor} />,
   //   items: [
   //     {
   //       component: CNavItem,
@@ -231,7 +230,7 @@ const _nav = [
   // {
   //   component: CNavGroup,
   //   name: 'Forms',
-  //   icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
+  //   icon: <CIcon icon={cilNotes} />,
   //   items: [
   //     {
   //       component: CNavItem,
@@ -279,12 +278,12 @@ const _nav = [
   //   component: CNavItem,
   //   name: 'Charts',
   //   to: '/charts',
-  //   icon: <CIcon icon={cilChartPie} customClassName="nav-icon" />,
+  //   icon: <CIcon icon={cilChartPie} />,
   // },
   // {
   //   component: CNavGroup,
   //   name: 'Icons',
-  //   icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
+  //   icon: <CIcon icon={cilStar} />,
   //   items: [
   //     {
   //       component: CNavItem,
@@ -310,7 +309,7 @@ const _nav = [
   // {
   //   component: CNavGroup,
   //   name: 'Notifications',
-  //   icon: <CIcon icon={cilBell} customClassName="nav-icon" />,
+  //   icon: <CIcon icon={cilBell} />,
   //   items: [
   //     {
   //       component: CNavItem,
@@ -338,7 +337,7 @@ const _nav = [
   //   component: CNavItem,
   //   name: 'Widgets',
   //   to: '/widgets',
-  //   icon: <CIcon icon={cilCalculator} customClassName="nav-icon" />,
+  //   icon: <CIcon icon={cilCalculator} />,
   //   badge: {
   //     color: 'info',
   //     text: 'NEW',
@@ -351,7 +350,7 @@ const _nav = [
   // {
   //   component: CNavGroup,
   //   name: 'Pages',
-  //   icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
+  //   icon: <CIcon icon={cilStar} />,
   //   items: [
   //     {
   //       component: CNavItem,
@@ -379,7 +378,7 @@ const _nav = [
   //   component: CNavItem,
   //   name: 'Docs',
   //   href: 'https://coreui.io/react/docs/templates/installation/',
-  //   icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
+  //   icon: <CIcon icon={cilDescription} />,
   // },
 ]
 

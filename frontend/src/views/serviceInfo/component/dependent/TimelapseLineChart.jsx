@@ -6,9 +6,12 @@ import { convertTime } from 'src/utils/time'
 import { format } from 'date-fns'
 import Empty from 'src/components/Empty/Empty'
 import { ChartColorList } from 'src/constants'
+import { getServiceDsecendantMetricsApi } from 'src/api/serviceInfo'
+import { getStep } from 'src/utils/step'
+import LoadingSpinner from 'src/components/Spinner'
 
-function TimelapseLineChart(props) {
-  const { data, startTime, endTime } = props
+const TimelapseLineChart = (props) => {
+  const { startTime, endTime, serviceName, endpoint } = props
   const chartRef = useRef(null)
   const [option, setOption] = useState({
     title: {},
@@ -132,14 +135,14 @@ function TimelapseLineChart(props) {
     series: [],
   })
   const [activeSeries, setActiveSeries] = useState(null)
-
+  const [chartData, setChartData] = useState([])
+  const [loading, setLoading] = useState(false)
   const handleActiveServices = (item) => {
     const seriesName = item.serviceName + `(${item.endpoint})`
     const chartInstance = chartRef.current.getEchartsInstance()
-
     if (seriesName === activeSeries) {
       setActiveSeries(null)
-      data.forEach((item) => {
+      chartData.forEach((item) => {
         chartInstance.dispatchAction({
           type: 'legendSelect',
           name: item.serviceName + `(${item.endpoint})`,
@@ -149,7 +152,7 @@ function TimelapseLineChart(props) {
       setActiveSeries(seriesName)
 
       // 先取消所有系列的显示
-      data.forEach((item) => {
+      chartData.forEach((item) => {
         chartInstance.dispatchAction({
           type: 'legendUnSelect',
           name: item.serviceName + `(${item.endpoint})`,
@@ -164,17 +167,37 @@ function TimelapseLineChart(props) {
     }
   }
 
+  const getChartData = () => {
+    getServiceDsecendantMetricsApi({
+      startTime: startTime,
+      endTime: endTime,
+      service: serviceName,
+      endpoint: endpoint,
+      step: getStep(startTime, endTime),
+    })
+      .then((res) => {
+        // console.log(res)
+        setChartData(res ?? [])
+        setLoading(false)
+      })
+      .catch((error) => {
+        setChartData([])
+        setLoading(false)
+      })
+  }
   useEffect(() => {
-    console.log(data)
-    setOption({
+    // console.log(serviceName, startTime, endTime, endpoint)
+    if (serviceName && endpoint) {
+      setLoading(true)
+      getChartData()
+    }
+  }, [serviceName, startTime, endTime, endpoint])
+  useEffect(() => {
+    // console.log(chartData)
+    const newOption = {
       ...option,
-      // legend: {
-      //   type: 'scroll',
-      //   data: data.map((item) => {
-      //     return item.serviceName + `(${item.endpoint})`
-      //   }),
-      // },
-      series: data.map((item) => {
+      color: ChartColorList,
+      series: chartData.map((item) => {
         return {
           data: item.latencyP90.map((i) => [i.timestamp / 1000, i.value]),
           type: 'line',
@@ -182,42 +205,52 @@ function TimelapseLineChart(props) {
           name: item.serviceName + `(${item.endpoint})`,
         }
       }),
-    })
-  }, [data])
+    }
+    if (chartRef.current) {
+      const chartInstance = chartRef.current.getEchartsInstance()
+      chartInstance.setOption(newOption, true) // 这里通过true来确保完全更新
+    }
+    setOption(newOption)
+  }, [chartData])
 
-  return data && data.length > 0 && option ? (
-    <div className="w-full flex flex-row h-full">
-      <ReactECharts
-        ref={chartRef}
-        theme="dark"
-        option={option}
-        style={{ height: '100%', width: '50%' }}
-      />
-      <div className="w-1/2 h-full overflow-y-auto">
-        {data.map((item, index) => (
-          <div
-            className={'flex break-all p-1 cursor-pointer '}
-            onClick={() => handleActiveServices(item)}
-          >
-            <div
-              className="w-4 h-2 m-1 rounded flex-shrink-0 "
-              style={{ background: ChartColorList[index] }}
-            ></div>
-            <span
-              className={
-                !activeSeries || item.serviceName + `(${item.endpoint})` === activeSeries
-                  ? ''
-                  : 'text-stone-400'
-              }
-            >
-              {item.serviceName}({item.endpoint})
-            </span>
+  return (
+    <>
+      <LoadingSpinner loading={loading} />
+      {chartData && chartData.length > 0 && option ? (
+        <div className="w-full flex flex-row h-full text-sm">
+          <ReactECharts
+            ref={chartRef}
+            theme="dark"
+            option={option}
+            style={{ height: '100%', width: '50%' }}
+          />
+          <div className="w-1/2 h-full overflow-y-auto">
+            {chartData.map((item, index) => (
+              <div
+                className={'flex break-all p-1 cursor-pointer '}
+                onClick={() => handleActiveServices(item)}
+              >
+                <div
+                  className="w-4 h-2 m-1 rounded flex-shrink-0 "
+                  style={{ background: ChartColorList[index] }}
+                ></div>
+                <span
+                  className={
+                    !activeSeries || item.serviceName + `(${item.endpoint})` === activeSeries
+                      ? ''
+                      : 'text-stone-400'
+                  }
+                >
+                  {item.serviceName}({item.endpoint})
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-    </div>
-  ) : (
-    <Empty />
+        </div>
+      ) : (
+        !loading && <Empty context={serviceName + ' 无下游依赖节点'} />
+      )}
+    </>
   )
 }
 export default TimelapseLineChart

@@ -24,6 +24,8 @@ export const StatusColorMap = {
   success: '#24d160',
   error: '#ff3366',
   unknown: '',
+  ok: '#24d160',
+  err: '#ff3366',
 }
 
 export const TimeLineTypeApiMap = {

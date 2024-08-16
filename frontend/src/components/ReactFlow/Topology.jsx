@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback,useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
@@ -11,91 +11,43 @@ import { graphlib, layout as dagreLayout } from 'dagre'
 import * as d3 from 'd3'
 import 'reactflow/dist/style.css'
 import ServiceNode from './ServiceNode'
-
-
-// current parent children的数据处理
-export const prepareTopologyData = (data) => {
-  if(!data){
-    return {nodes:[], edges: []}
-  }
-  const current = data.current
-
-  const nodes = [{
-    id: 'current-' + current.service,
-      data: {
-        label: current.service,
-        isTraced: current.isTraced,
-        endpoint: current.endpoint,
-      },
-      position: { x: 0, y: 0 },
-      type: 'serviceNode',
-  }]
-  const edges = []
-  data.children?.forEach((child)=>{
-    nodes.push({
-      id: 'child-' + child.service,
-      data: {
-        label: child.service,
-        isTraced: child.isTraced,
-        endpoint: child.endpoint,
-      },
-      position: { x: 0, y: 0 },
-      type: 'serviceNode',
-    })
-    edges.push({
-      id: current.service + '-' +  child.service,
-        source: 'current-' + current.service,
-        target: 'child-' + child.service,
-        
-    })
-  })
-  data.parents?.forEach((parent)=>{
-    nodes.push({
-      id: 'parent-' + parent.service,
-      data: {
-        label: parent.service,
-        isTraced: parent.isTraced,
-        endpoint: parent.endpoint,
-      },
-      position: { x: 0, y: 0 },
-      type: 'serviceNode',
-    })
-    edges.push({
-      id: parent.service + '-' +  current.service,
-        source: 'parent-' +parent.service,
-        target: 'current-' +current.service,
-        // markerEnd: markerEnd,
-        // style:{
-        //   stroke: '#6293FF'
-        // }
-    })
-  })
-  return {nodes,edges}
-}
-
+import { useDispatch, useSelector } from 'react-redux'
+import MoreNode from './MoreNode'
+import { SmartBezierEdge } from '@tisoap/react-flow-smart-edge'
+import 'reactflow/dist/style.css'
+import { AiOutlineRollback } from 'react-icons/ai'
+import { Tooltip } from 'antd'
 const nodeWidth = 200
 const nodeHeight = 60
-const nodeTypes = { serviceNode: ServiceNode } // 定义在组件外部
+const nodeTypes = { serviceNode: ServiceNode, moreNode: MoreNode } // 定义在组件外部
+const edgeTypes = {
+  smart: SmartBezierEdge, // 或者使用 SmartBezierEdge 等
+}
 const LayoutFlow = (props) => {
-  const {data} = props
+  const { data } = props
   // 所有链路
-  const reactFlowInstance = useRef(null);
+  const reactFlowInstance = useRef(null)
   const { canZoom } = props
   // const [initialNodes, setInitialNodes] = useState([])
   // const [initialEdges, setInitialEdges] = useState([])
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
-  const {fitView} = useReactFlow()
+  const dispatch = useDispatch()
+
+  const setModalData = (value) => {
+    dispatch({ type: 'setModalData', payload: value })
+  }
+  const { fitView } = useReactFlow()
   const prepareData = () => {
-    const initialNodes = data.nodes??[]
+    const initialNodes = data.nodes ?? []
     const initialEdges = []
-    data.edges.forEach((edge)=>{
+    data.edges.forEach((edge) => {
       initialEdges.push({
         ...edge,
         markerEnd: markerEnd,
-          style:{
-            stroke: '#6293FF'
-          }
+        style: {
+          stroke: '#6293FF',
+        },
       })
     })
     return { initialNodes, initialEdges }
@@ -143,6 +95,15 @@ const LayoutFlow = (props) => {
     })
     return { nodes, edges }
   }
+  const clickNode = (e, node) => {
+    if (node.type === 'moreNode') {
+      setModalData({
+        modalService: node.data.parentService,
+        modalEndpoint: node.data.parentEndpoint,
+        displayData: null,
+      })
+    }
+  }
 
   useEffect(() => {
     const { initialNodes, initialEdges } = prepareData()
@@ -153,14 +114,13 @@ const LayoutFlow = (props) => {
     setNodes([...layoutedNodes])
     setEdges([...layoutedEdges])
     requestAnimationFrame(() => {
-
       if (reactFlowInstance.current) {
         setTimeout(() => {
           fitView({
             padding: layoutedNodes.length > 1 ? 0.1 : 0.2,
             includeHiddenNodes: true,
-          });
-        }, 20);
+          })
+        }, 20)
       }
     })
   }, [data])
@@ -168,36 +128,62 @@ const LayoutFlow = (props) => {
     <ReactFlow
       nodes={nodes}
       edges={edges}
+      // edgeTypes={edgeTypes}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       nodeTypes={nodeTypes}
       ref={reactFlowInstance}
       minZoom={0.1} // 设置最小缩放
       maxZoom={2} // 设置最大缩放
+      onNodeClick={clickNode}
     />
   )
 }
 function FlowWithProvider(props) {
+  const { modalDataUrl } = useSelector((state) => state.topologyReducer)
+  const dispatch = useDispatch()
+
+  const rollback = (value) => {
+    dispatch({ type: 'rollback', payload: value })
+  }
+  console.log(modalDataUrl, modalDataUrl[modalDataUrl.length - 2])
 
   return (
-    <ReactFlowProvider>
-      <svg style={{ position: 'absolute', top: 0, left: 0 }}>
-        <defs>
-          <marker
-            id="arrowhead"
-            viewBox="0 0 10 10"
-            refX="5"
-            refY="5"
-            markerWidth="6"
-            markerHeight="6"
-            orient="auto"
+    <>
+      {modalDataUrl?.length > 1 && (
+        <Tooltip
+          title={'点击回退上级入口' + modalDataUrl[modalDataUrl.length - 2]?.modalService}
+          placement="bottom"
+        >
+          <div
+            className=" absolute top-0 right-0 w-10 h-10 flex items-center justify-center cursor-pointer"
+            style={{ zIndex: 1 }}
+            onClick={() => rollback()}
           >
-            <path d="M0,0 L10,5 L0,10" fill="#6293ff" stroke="#6293ff" />
-          </marker>
-        </defs>
-      </svg>
-      <LayoutFlow {...props} />
-    </ReactFlowProvider>
+            <AiOutlineRollback size={28} />
+          </div>
+        </Tooltip>
+      )}
+      <ReactFlowProvider>
+        <svg style={{ position: 'absolute', top: 0, left: 0 }}>
+          <defs>
+            <marker
+              id="arrowhead"
+              viewBox="0 0 10 10"
+              refX="5"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto"
+            >
+              <path d="M0,0 L10,5 L0,10" fill="#6293ff" stroke="#6293ff" />
+            </marker>
+          </defs>
+        </svg>
+
+        <LayoutFlow {...props} />
+      </ReactFlowProvider>
+    </>
   )
 }
 export default FlowWithProvider

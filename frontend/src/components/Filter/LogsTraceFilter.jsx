@@ -228,7 +228,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     <div className="flex flex-row my-2 justify-between">
       <div className="flex flex-row">
         <div className="flex flex-row items-center mr-5">
-          <span className="text-nowrap">Service Name：</span>
+          <span className="text-nowrap">服务名：</span>
           <CustomSelect
             options={serviceList}
             value={selectServiceName}
@@ -237,7 +237,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
           />
         </div>
         <div className="flex flex-row items-center mr-5">
-          <span className="text-nowrap">Instance：</span>
+          <span className="text-nowrap">实例名：</span>
           <CustomSelect
             options={Object.keys(instanceList)}
             value={selectInstance}
@@ -248,7 +248,6 @@ const LogsTraceFilter = React.memo(({ type }) => {
         <div className="flex flex-row items-center mr-5">
           <span className="text-nowrap">TraceId：</span>
           <CFormInput
-            placeholder="Trace Id"
             size="sm"
             value={inputTraceId}
             onChange={onChangeTraceId}
@@ -256,9 +255,8 @@ const LogsTraceFilter = React.memo(({ type }) => {
         </div>
         {type === 'trace' && (
           <div className="flex flex-row items-center mr-5">
-            <span className="text-nowrap">Endpoint：</span>
+            <span className="text-nowrap">服务端点：</span>
             <CFormInput
-              placeholder="Endpoint"
               size="sm"
               value={inputEndpoint}
               onChange={onChangeEndpoint}

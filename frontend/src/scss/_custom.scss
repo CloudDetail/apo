@@ -1,7 +1,16 @@
 // Here you can add other styles
+.sidebar-narrow-unfoldable:hover {
+  .nav-item {
+    padding: 12px 5px;
+  }
+}
+.sidebar-nav .nav-link {
+  padding: 5px !important;
+}
 .sidebar-narrow-unfoldable:not(:hover) {
   .nav-item-name-narrow {
     display: block;
+    // font-size: 8px;
   }
   .nav-item-name-full {
     display: none;
@@ -66,29 +75,29 @@
 //toast
 .toast {
   --cui-toast-border-radius: 0.75rem;
-  .toast-body{
-    border-color: rgba(255, 255, 255, 0.1)
+  .toast-body {
+    border-color: rgba(255, 255, 255, 0.1);
   }
 }
 
-.bg-danger{
-  .toast-body{
+.bg-danger {
+  .toast-body {
     border-left-color: #f6786f;
   }
 }
-.bg-success{
-  .toast-body{
+.bg-success {
+  .toast-body {
     border-left-color: #3abf8c;
   }
 }
 //modal
-.absolute-modal{
-  .modal-content{
+.absolute-modal {
+  .modal-content {
     position: absolute;
     height: 100%;
   }
 }
 
-.react-flow__panel{
+.react-flow__panel {
   display: none;
 }

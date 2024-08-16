@@ -125,7 +125,7 @@ export default function InfoUni() {
       key: 'trace',
       showHeader: true,
       icon: <PiPath />,
-      name: 'Trace',
+      name: '链路追踪',
       component: TraceInfo,
     },
   ];
