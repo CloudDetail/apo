@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/CloudDetail/apo/backend/internal/api/mock"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
+	"github.com/CloudDetail/apo/backend/pkg/api/config"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
 	"github.com/CloudDetail/apo/backend/pkg/api/service"
 	"github.com/CloudDetail/apo/backend/pkg/api/serviceoverview"
@@ -68,6 +69,13 @@ func setApiRouter(r *resource) {
 	{
 		alertHandler := alerts.New(r.logger, r.ch)
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
+	}
+	configApi := r.mux.Group("/api/config")
+	{
+		configHandler := config.New(r.logger, r.ch)
+		configApi.POST("/setTTL", configHandler.SetTTL())
+		configApi.POST("/setSingleTableTTL", configHandler.SetSingleTableTTL())
+		configApi.GET("/getTTL", configHandler.GetTTL())
 	}
 }
 

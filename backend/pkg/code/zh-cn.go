@@ -35,4 +35,7 @@ var zhCnText = map[string]string{
 	GetTop3UrlListError:                 "获取应用下前三条异常服务端点信息失败",
 	SetThresholdError:                   "设置阈值信息失败",
 	GetServicesAlertError:               "获取服务告警信息失败",
+	SetTTLError:                         "配置存储周期失败",
+	GetTTLError:                         "获取存储周期失败",
+	SetSingleTableTTLError:              "配置单个存储周期失败",
 }

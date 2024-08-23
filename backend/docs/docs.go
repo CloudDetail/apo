@@ -59,6 +59,103 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/config/getTTL": {
+            "get": {
+                "description": "获取TTL",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.config"
+                ],
+                "summary": "获取TTL",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetTTLResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/config/setSingleTableTTL": {
+            "post": {
+                "description": "配置单个表格的TTL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api.config"
+                ],
+                "summary": "配置单个表格的TTL",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SetSingleTTLRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    }
+                }
+            }
+        },
+        "/api/config/setTTL": {
+            "post": {
+                "description": "配置TTL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Api.config"
+                ],
+                "summary": "配置TTL",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SetTTLRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    }
+                }
+            }
+        },
         "/api/log/fault/content": {
             "post": {
                 "description": "获取故障现场日志内容",
@@ -2000,6 +2097,20 @@ const docTemplate = `{
                 }
             }
         },
+        "model.ModifyTableTTLMap": {
+            "type": "object",
+            "properties": {
+                "TTLExpression": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "originalDays": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.Pagination": {
             "type": "object",
             "properties": {
@@ -2252,6 +2363,46 @@ const docTemplate = `{
                 }
             }
         },
+        "request.SetSingleTTLRequest": {
+            "type": "object",
+            "required": [
+                "day",
+                "name"
+            ],
+            "properties": {
+                "day": {
+                    "description": "保存数据周期天数",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "表名",
+                    "type": "string"
+                }
+            }
+        },
+        "request.SetTTLRequest": {
+            "type": "object",
+            "required": [
+                "dataType",
+                "day"
+            ],
+            "properties": {
+                "dataType": {
+                    "description": "类型（日志、trace、Kubernetes、其他）",
+                    "type": "string",
+                    "enum": [
+                        "logs",
+                        "trace",
+                        "k8s",
+                        "other"
+                    ]
+                },
+                "day": {
+                    "description": "保存数据周期天数",
+                    "type": "integer"
+                }
+            }
+        },
         "response.CreateResponse": {
             "type": "object",
             "properties": {
@@ -2413,6 +2564,10 @@ const docTemplate = `{
                 "distance": {
                     "description": "延时曲线差异",
                     "type": "number"
+                },
+                "distanceType": {
+                    "description": "延时曲线差异计算方式, 有euclidean/pearson/dtw/failed/net_failed四种",
+                    "type": "string"
                 },
                 "endpoint": {
                     "description": "Endpoint",
@@ -2615,6 +2770,41 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/clickhouse.TopologyNode"
+                    }
+                }
+            }
+        },
+        "response.GetTTLResponse": {
+            "type": "object",
+            "properties": {
+                "k8s": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ModifyTableTTLMap"
+                    }
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ModifyTableTTLMap"
+                    }
+                },
+                "other": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ModifyTableTTLMap"
+                    }
+                },
+                "topology": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ModifyTableTTLMap"
+                    }
+                },
+                "trace": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ModifyTableTTLMap"
                     }
                 }
             }

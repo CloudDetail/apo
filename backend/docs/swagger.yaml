@@ -87,6 +87,15 @@ definitions:
         description: 错误信息
         type: string
     type: object
+  model.ModifyTableTTLMap:
+    properties:
+      TTLExpression:
+        type: string
+      name:
+        type: string
+      originalDays:
+        type: integer
+    type: object
   model.Pagination:
     properties:
       currentPage:
@@ -263,6 +272,35 @@ definitions:
       truncatedAlerts:
         type: integer
     type: object
+  request.SetSingleTTLRequest:
+    properties:
+      day:
+        description: 保存数据周期天数
+        type: integer
+      name:
+        description: 表名
+        type: string
+    required:
+    - day
+    - name
+    type: object
+  request.SetTTLRequest:
+    properties:
+      dataType:
+        description: 类型（日志、trace、Kubernetes、其他）
+        enum:
+        - logs
+        - trace
+        - k8s
+        - other
+        type: string
+      day:
+        description: 保存数据周期天数
+        type: integer
+    required:
+    - dataType
+    - day
+    type: object
   response.CreateResponse:
     properties:
       id:
@@ -375,6 +413,9 @@ definitions:
       distance:
         description: 延时曲线差异
         type: number
+      distanceType:
+        description: 延时曲线差异计算方式, 有euclidean/pearson/dtw/failed/net_failed四种
+        type: string
       endpoint:
         description: Endpoint
         type: string
@@ -511,6 +552,29 @@ definitions:
         description: 上游节点列表
         items:
           $ref: '#/definitions/clickhouse.TopologyNode'
+        type: array
+    type: object
+  response.GetTTLResponse:
+    properties:
+      k8s:
+        items:
+          $ref: '#/definitions/model.ModifyTableTTLMap'
+        type: array
+      logs:
+        items:
+          $ref: '#/definitions/model.ModifyTableTTLMap'
+        type: array
+      other:
+        items:
+          $ref: '#/definitions/model.ModifyTableTTLMap'
+        type: array
+      topology:
+        items:
+          $ref: '#/definitions/model.ModifyTableTTLMap'
+        type: array
+      trace:
+        items:
+          $ref: '#/definitions/model.ModifyTableTTLMap'
         type: array
     type: object
   response.GetTraceMetricsResponse:
@@ -745,6 +809,69 @@ paths:
       summary: 获取 AlertManager 的告警事件
       tags:
       - API.alerts
+  /api/config/getTTL:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取TTL
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetTTLResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取TTL
+      tags:
+      - API.config
+  /api/config/setSingleTableTTL:
+    post:
+      consumes:
+      - application/json
+      description: 配置单个表格的TTL
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SetSingleTTLRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+      summary: 配置单个表格的TTL
+      tags:
+      - Api.config
+  /api/config/setTTL:
+    post:
+      consumes:
+      - application/json
+      description: 配置TTL
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SetTTLRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+      summary: 配置TTL
+      tags:
+      - Api.config
   /api/log/fault/content:
     post:
       description: 获取故障现场日志内容

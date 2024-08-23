@@ -54,6 +54,10 @@ type Repo interface {
 	InsertBatchAlertEvents(ctx context.Context, events []*model.AlertEvent) error
 	ReadAlertEvent(ctx context.Context, id uuid.UUID) (*model.AlertEvent, error)
 	GetConn() driver.Conn
+
+	//config
+	ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTableTTLMap) error
+	GetTables(blackTableNames []string, whiteTableNames []string) ([]model.TablesQuery, error)
 }
 
 type chRepo struct {

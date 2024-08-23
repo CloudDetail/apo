@@ -38,6 +38,10 @@ const (
 	GetFaultLogContentError             = "B0402"
 
 	GetTracePageListError = "B0501"
+
+	SetTTLError            = "B0601"
+	GetTTLError            = "B0602"
+	SetSingleTableTTLError = "BP603"
 )
 
 func Text(code string) string {

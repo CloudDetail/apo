@@ -36,4 +36,7 @@ var enText = map[string]string{
 	GetTop3UrlListError:                 "Failed to get top3 url list",
 	SetThresholdError:                   "Failed to set threshold",
 	GetServicesAlertError:               "Failed to get services alert",
+	SetTTLError:                         "Failed to set ttl",
+	GetTTLError:                         "Failed to get ttl",
+	SetSingleTableTTLError:              "Failed to set single table ttl",
 }
