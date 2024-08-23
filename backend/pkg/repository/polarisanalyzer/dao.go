@@ -14,7 +14,7 @@ type Repo interface {
 		startTime, endTime int64, stepStr string,
 		targetService, targetEndpoint string,
 		unsortedDescendant []LatencyRelevance,
-	) (sorted []LatencyRelevance, unsorted []LatencyRelevance, err error)
+	) (sortResp *LatencyRelevanceResponse, err error)
 
 	QueryPolarisInfer(
 		startTime, endTime int64, stepStr string,

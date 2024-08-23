@@ -29,7 +29,7 @@ func (ch *chRepo) ListParentNodes(req *request.GetServiceEndpointTopologyRequest
 		EqualsNotEmpty("entry_service", req.EntryService).
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
 
-	var results []TopologyNode
+	results := []TopologyNode{}
 	sql := fmt.Sprintf(SQL_GET_PARENT_NODES, queryBuilder.String())
 	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (ch *chRepo) ListChildNodes(req *request.GetServiceEndpointTopologyRequest)
 		EqualsNotEmpty("entry_service", req.EntryService).
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
 
-	var results []TopologyNode
+	results := []TopologyNode{}
 	sql := fmt.Sprintf(SQL_GET_CHILD_NODES, queryBuilder.String())
 	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err

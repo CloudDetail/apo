@@ -21,7 +21,7 @@ func (p *polRepo) SortDescendantByLatencyRelevance(
 	targetService string,
 	targetEndpoint string,
 	descendants []LatencyRelevance,
-) (sorted []LatencyRelevance, unsorted []LatencyRelevance, err error) {
+) (sortResp *LatencyRelevanceResponse, err error) {
 	sortRequest := &SortRelevanceRequest{
 		StartTime: startTime,
 		EndTime:   endTime,
@@ -35,35 +35,35 @@ func (p *polRepo) SortDescendantByLatencyRelevance(
 
 	body, err := json.Marshal(sortRequest)
 	if err != nil {
-		return nil, descendants, err
+		return nil, err
 	}
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", polarisAnalyzerAddress, RelevanceSortAPI), bytes.NewBuffer(body))
 	if err != nil {
-		return nil, descendants, err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := p.client.Do(req)
 	if err != nil {
-		return nil, descendants, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, descendants, errors.New("failed to sort relevance, polarisanalyzer response status code: " + resp.Status)
+		return nil, errors.New("failed to sort relevance, polarisanalyzer response status code: " + resp.Status)
 	}
 
 	relevanceRes := &LatencyRelevanceResponse{}
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, descendants, err
+		return nil, err
 	}
 
 	err = json.Unmarshal(respBytes, relevanceRes)
 	if err != nil {
-		return nil, descendants, err
+		return nil, err
 	}
 
-	return relevanceRes.SortedDescendant, relevanceRes.UnsortedDescendant, nil
+	return relevanceRes, nil
 }
 
 type SortRelevanceRequest struct {
@@ -82,6 +82,7 @@ type Target struct {
 type LatencyRelevanceResponse struct {
 	SortedDescendant   []LatencyRelevance `json:"sortedDescendant"`
 	UnsortedDescendant []LatencyRelevance `json:"unsortedDescendant"`
+	DistanceType       string             `json:"distanceType"`
 }
 
 type LatencyRelevance struct {

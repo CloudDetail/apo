@@ -56,6 +56,19 @@ definitions:
       traceId:
         type: string
     type: object
+  clickhouse.ToplogyRelation:
+    properties:
+      endpoint:
+        type: string
+      isTraced:
+        type: boolean
+      parentEndpoint:
+        type: string
+      parentService:
+        type: string
+      service:
+        type: string
+    type: object
   clickhouse.TopologyNode:
     properties:
       endpoint:
@@ -465,6 +478,23 @@ definitions:
         type: string
       inferMetricsPng:
         type: string
+    type: object
+  response.GetServiceEndpointRelationResponse:
+    properties:
+      childRelations:
+        description: 下游节点调用关系列表
+        items:
+          $ref: '#/definitions/clickhouse.ToplogyRelation'
+        type: array
+      current:
+        allOf:
+        - $ref: '#/definitions/clickhouse.TopologyNode'
+        description: 当前服务
+      parents:
+        description: 上游节点列表
+        items:
+          $ref: '#/definitions/clickhouse.TopologyNode'
+        type: array
     type: object
   response.GetServiceEndpointTopologyResponse:
     properties:
@@ -1594,6 +1624,54 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取北极星指标分析情况
+      tags:
+      - API.service
+  /api/service/relation:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取服务上下游调用关系
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      - description: 入口服务名
+        in: query
+        name: entryService
+        type: string
+      - description: 入口Endpoint
+        in: query
+        name: entryEndpoint
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetServiceEndpointRelationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取服务上下游调用关系
       tags:
       - API.service
   /api/service/servicesAlert:

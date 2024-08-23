@@ -10,7 +10,7 @@ var zhCnText = map[string]string{
 	MockDetailError: "获取mock详情失败",
 	MockDeleteError: "删除mock失败",
 
-	GetServiceUrlTopologyError:     "获取服务拓扑失败",
+	GetServiceUrlRelationError:     "获取服务调用关系失败",
 	GetDescendantMetricsError:      "获取依赖视图的延时曲线失败",
 	GetDescendantRelevanceError:    "获取依赖视图的关联度失败",
 	GetPolarisInferError:           "获取北极星指标分析情况失败",

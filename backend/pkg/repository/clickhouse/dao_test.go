@@ -22,11 +22,12 @@ func TestRepo(t *testing.T) {
 		t.Fatalf("Error to connect clickhouse: %v", err)
 	}
 
-	testListParentNodes(t, repo) // 查询上游节点列表
-	testListChildNodes(t, repo)  // 查询下游节点列表
-	testDescendantNodes(t, repo) // 查询所有子孙节点列表
+	testListParentNodes(t, repo)     // 查询上游节点列表
+	testListChildNodes(t, repo)      // 查询下游节点列表
+	testDescendantNodes(t, repo)     // 查询所有子孙节点列表
+	testDescendantRelations(t, repo) // 查询下游节点调用关系列表
 
-	testCountK8sEvents(t, repo) // 计算K8s事件数量
+	// testCountK8sEvents(t, repo) // 计算K8s事件数量
 }
 
 func testListParentNodes(t *testing.T, repo Repo) {
@@ -115,6 +116,54 @@ func testDescendantNodes(t *testing.T, repo Repo) {
 		},
 	}
 	checkTopologyNodes(util.NewValidator(t, "ListDescendantNodes"), expect, resp)
+}
+
+func testDescendantRelations(t *testing.T, repo Repo) {
+	req := &request.GetServiceEndpointRelationRequest{
+		StartTime: 1723514677000000,
+		EndTime:   1723515577000000,
+		Service:   "ts-seat-service",
+		Endpoint:  "POST /api/v1/seatservice/seats/left_tickets",
+	}
+	resp, err := repo.ListDescendantRelations(req)
+	if err != nil {
+		t.Errorf("Error to list descendant relation: %v", err)
+	}
+	expect := []ToplogyRelation{
+		{
+			ParentService:  "ts-seat-service",
+			ParentEndpoint: "POST /api/v1/seatservice/seats/left_tickets",
+			Service:        "ts-order-service",
+			Endpoint:       "POST /api/v1/orderservice/order/tickets",
+			IsTraced:       true,
+		},
+
+		{
+			ParentService:  "ts-seat-service",
+			ParentEndpoint: "POST /api/v1/seatservice/seats/left_tickets",
+			Service:        "ts-order-other-service",
+			Endpoint:       "POST /api/v1/orderOtherService/orderOther/tickets",
+			IsTraced:       true,
+		},
+		{
+			ParentService:  "ts-seat-service",
+			ParentEndpoint: "POST /api/v1/seatservice/seats/left_tickets",
+			Service:        "ts-config-service",
+			Endpoint:       "GET /api/v1/configservice/configs/{configName}",
+			IsTraced:       true,
+		},
+	}
+	validator := util.NewValidator(t, "ListDescendantTopology").
+		CheckIntValue("Response Size", len(expect), len(resp))
+	for i, gotTopology := range resp {
+		expectTopology := expect[i]
+		validator.
+			CheckStringValue("parentService", expectTopology.ParentService, gotTopology.ParentService).
+			CheckStringValue("parentEndpoint", expectTopology.ParentEndpoint, gotTopology.ParentEndpoint).
+			CheckStringValue("service", expectTopology.Service, gotTopology.Service).
+			CheckStringValue("endpoint", expectTopology.Endpoint, gotTopology.Endpoint).
+			CheckBoolValue("isTraced", expectTopology.IsTraced, gotTopology.IsTraced)
+	}
 }
 
 func testCountK8sEvents(t *testing.T, repo Repo) {

@@ -53,6 +53,7 @@ const (
 )
 
 func QueryNodeName(serviceName string, contentKey string) string {
+	contentKey = EscapeRegexp(contentKey)
 	return fmt.Sprintf(FillNodeName, serviceName, contentKey)
 }
 
@@ -1188,6 +1189,7 @@ func QueryEndPointRangePromql(step string, duration string, queryType QueryType,
 
 }
 func QueryPodPromql(duration string, queryType QueryType, serviceName string, contentKey string) string {
+	contentKey = EscapeRegexp(contentKey)
 	switch queryType {
 	case AvgError:
 		return fmt.Sprintf(AVG_ERROR_BY_POD, serviceName, contentKey, duration, serviceName, contentKey, duration)
@@ -1213,6 +1215,7 @@ func QueryPodPromql(duration string, queryType QueryType, serviceName string, co
 	return ""
 }
 func QueryPodRangePromql(duration string, queryType QueryType, contentKey string, serviceName string) string {
+	contentKey = EscapeRegexp(contentKey)
 	switch queryType {
 	case TPSData:
 		trimmedDuration := strings.TrimSuffix(duration, "m")
@@ -1228,6 +1231,7 @@ func QueryPodRangePromql(duration string, queryType QueryType, contentKey string
 }
 
 func QueryContainerIdPromql(duration string, queryType QueryType, serviceName string, contentKey string) string {
+	contentKey = EscapeRegexp(contentKey)
 	switch queryType {
 	case AvgError:
 		return fmt.Sprintf(AVG_ERROR_BY_CONTAINERID, serviceName, contentKey, duration, serviceName, contentKey, duration)
@@ -1253,6 +1257,7 @@ func QueryContainerIdPromql(duration string, queryType QueryType, serviceName st
 	return ""
 }
 func QueryContainerIdRangePromql(duration string, queryType QueryType, contentKey string, serviceName string) string {
+	contentKey = EscapeRegexp(contentKey)
 	switch queryType {
 	case TPSData:
 		trimmedDuration := strings.TrimSuffix(duration, "m")
@@ -1268,6 +1273,7 @@ func QueryContainerIdRangePromql(duration string, queryType QueryType, contentKe
 }
 
 func QueryPidPromql(duration string, queryType QueryType, serviceName string, contentKey string) string {
+	contentKey = EscapeRegexp(contentKey)
 	switch queryType {
 	case AvgError:
 		return fmt.Sprintf(AVG_ERROR_BY_PID, serviceName, contentKey, duration, serviceName, contentKey, duration)
@@ -1293,6 +1299,7 @@ func QueryPidPromql(duration string, queryType QueryType, serviceName string, co
 	return ""
 }
 func QueryPidRangePromql(duration string, queryType QueryType, contentKey string, serviceName string) string {
+	contentKey = EscapeRegexp(contentKey)
 	switch queryType {
 	case TPSData:
 		trimmedDuration := strings.TrimSuffix(duration, "m")

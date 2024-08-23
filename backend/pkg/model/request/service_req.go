@@ -9,6 +9,8 @@ type GetServiceEndpointTopologyRequest struct {
 	EntryEndpoint string `form:"entryEndpoint"`                                // 入口Endpoint
 }
 
+type GetServiceEndpointRelationRequest = GetServiceEndpointTopologyRequest
+
 type GetDescendantMetricsRequest struct {
 	StartTime     int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
 	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
@@ -37,9 +39,9 @@ type GetErrorInstanceLogsRequest struct {
 	Service     string `form:"service" binding:"required"`                   // 查询服务名
 	Endpoint    string `form:"endpoint" binding:"required"`                  // 查询Endpoint
 	Instance    string `form:"instance"`                                     // 实例名
-	NodeName    string `json:"nodeName"`                                     // 主机名
-	ContainerId string `json:"containerId"`                                  // 容器名
-	Pid         uint32 `json:"pid"`                                          // 进程号
+	NodeName    string `form:"nodeName"`                                     // 主机名
+	ContainerId string `form:"containerId"`                                  // 容器名
+	Pid         uint32 `form:"pid"`                                          // 进程号
 }
 
 type GetLogMetricsRequest = GetDescendantMetricsRequest

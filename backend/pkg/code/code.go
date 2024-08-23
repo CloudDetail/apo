@@ -12,7 +12,8 @@ const (
 	MockDetailError = "B0103"
 	MockDeleteError = "B0104"
 
-	GetServiceUrlTopologyError          = "B0301"
+	GetServiceUrlRelationError          = "B0301"
+	GetServiceUrlTopologyError          = "B0301" // TODO 待删除
 	GetDescendantMetricsError           = "B0302"
 	GetDescendantRelevanceError         = "B0303"
 	GetPolarisInferError                = "B0304"

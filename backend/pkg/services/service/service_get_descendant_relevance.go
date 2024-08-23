@@ -38,39 +38,54 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 		endpoints = append(endpoints, node.Endpoint)
 	}
 
+	// TODO 新的polarisanalyzer不再需要把target添加到unsortedDescendant
+	// 下个版本移除
 	unsortedDescendantWithTarget := append(unsortedDescendant, polarisanalyzer.LatencyRelevance{
 		Service:  req.Service,
 		Endpoint: req.Endpoint,
 	})
 
 	// 按延时相似度排序
-	sorted, unsorted, err := s.polRepo.SortDescendantByLatencyRelevance(
+	// sorted, unsorted, err :=
+	sortResp, err := s.polRepo.SortDescendantByLatencyRelevance(
 		req.StartTime, req.EndTime, prom.VecFromDuration(time.Duration(req.Step)*time.Microsecond),
 		req.Service, req.Endpoint,
 		unsortedDescendantWithTarget,
 	)
 
-	if err != nil {
+	var sortResult []polarisanalyzer.LatencyRelevance
+	var sortType string
+	if err != nil || sortResp == nil {
 		// TODO 排序失败,输出日志,但正常继续返回
-	}
-
-	// 将未能排序成功的下游添加到descendants后(可能是没有北极星指标)
-	for _, descendant := range unsorted {
-		sorted = append(unsorted, polarisanalyzer.LatencyRelevance{
-			Service:  descendant.Service,
-			Endpoint: descendant.Endpoint,
-		})
+		sortResult = unsortedDescendant
+		sortType = "net_failed"
+	} else {
+		sortResult = sortResp.SortedDescendant
+		sortType = sortResp.DistanceType
+		// 将未能排序成功的下游添加到descendants后(可能是没有北极星指标)
+		for _, descendant := range sortResp.UnsortedDescendant {
+			sortResult = append(sortResult, polarisanalyzer.LatencyRelevance{
+				Service:  descendant.Service,
+				Endpoint: descendant.Endpoint,
+			})
+		}
 	}
 
 	var resp []response.GetDescendantRelevanceResponse
 	descendantStatus, err := s.queryDescendantStatus(services, endpoints, req.StartTime, req.EndTime)
-
+	if err != nil {
+		// TODO 添加日志,查询RED指标失败
+	}
 	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
-	for _, descendant := range sorted {
+	if err != nil {
+		// TODO 添加日志,查询阈值失败
+	}
+	for _, descendant := range sortResult {
 		var descendantResp = response.GetDescendantRelevanceResponse{
 			ServiceName:      descendant.Service,
 			EndPoint:         descendant.Endpoint,
 			Distance:         descendant.Relevance,
+			DistanceType:     sortType,
 			DelaySource:      "self",
 			REDMetricsStatus: model.STATUS_NORMAL,
 			// TODO 查询日志,K8s,基础设施,网络告警和最后部署时间
@@ -80,7 +95,11 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 			K8sStatus:            model.STATUS_NORMAL,
 			LastUpdateTime:       nil,
 		}
-		//获取每个endpoint下的所有实例
+
+		// 填充延时源和RED告警 (DelaySource/REDMetricsStatus)
+		fillServiceDelaySourceAndREDAlarm(&descendantResp, descendantStatus, threshold)
+
+		// 获取每个endpoint下的所有实例
 		var instances []serviceoverview.Instance
 		startTime := time.Unix(req.StartTime/1000000, 0)
 		endTime := time.Unix(req.EndTime/1000000, 0)
@@ -165,44 +184,6 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 				descendantResp.LastUpdateTime = new(int64)
 				*descendantResp.LastUpdateTime = latestStartTime * 1e6
 			}
-		}
-		descendantKey := descendant.Service + "_" + descendant.Endpoint
-		if status, ok := descendantStatus[descendantKey]; ok {
-			if status.DepLatency > 0 && status.Latency > 0 {
-				var depRatio = status.DepLatency / status.Latency
-				if depRatio > 0.5 {
-					descendantResp.DelaySource = "dependency"
-					descendantResp.DelayDistribution = fmt.Sprintf("latency: %.2f, depLatency: %.2f(%.2f)", status.DepLatency, status.Latency, depRatio)
-				} else {
-					descendantResp.DelaySource = "self"
-					descendantResp.DelayDistribution = fmt.Sprintf("latency: %.2f, depLatency: %.2f(%.2f)", status.DepLatency, status.Latency, depRatio)
-				}
-			} else {
-				descendantResp.DelaySource = "self"
-			}
-
-			if status.RequestPerSecondDoD < 0 {
-				descendantResp.REDAlarmReason = "未统计到TPS日同比,忽略TPS告警;"
-			} else if threshold.Tps > 0 && status.RequestPerSecondDoD*100 > (100+threshold.Tps) {
-				descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
-				descendantResp.REDAlarmReason = fmt.Sprintf("%s 请求TPS日同比: %.2f 高于设定阈值 %.2f;", descendantResp.REDAlarmReason, status.RequestPerSecondDoD, (100+threshold.Latency)/100)
-			}
-
-			if status.LatencyDoD < 0 {
-				descendantResp.REDAlarmReason = descendantResp.REDAlarmReason + "未统计到延迟日同比,忽略延迟告警"
-			} else if threshold.Latency > 0 && status.LatencyDoD*100 > (100+threshold.Latency) {
-				descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
-				descendantResp.REDAlarmReason = fmt.Sprintf("%s 延迟日同比: %.2f 高于设定阈值 %.2f;", descendantResp.REDAlarmReason, status.LatencyDoD, (100+threshold.Latency)/100)
-			}
-
-			if status.ErrorRateDoD < 0 {
-				descendantResp.REDAlarmReason = descendantResp.REDAlarmReason + "未统计错误率日同比,忽略错误率告警;"
-			} else if threshold.ErrorRate > 0 && status.ErrorRateDoD*100 < (100-threshold.ErrorRate) {
-				descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
-				descendantResp.REDAlarmReason = fmt.Sprintf("%s 错误率日同比: %.2f 低于设定阈值 %.2f;", descendantResp.REDAlarmReason, status.ErrorRateDoD, (100-threshold.ErrorRate)/100)
-			}
-		} else {
-			descendantResp.REDAlarmReason = "时间段内未统计到应用延时,应用无请求或未监控,忽略RED告警;"
 		}
 
 		resp = append(resp, descendantResp)
@@ -312,4 +293,45 @@ type DescendantStatus struct {
 	LatencyDoD          float64 // 延迟日同比
 	ErrorRateDoD        float64 // 错误率日同比
 	RequestPerSecondDoD float64 // 请求数日同比
+}
+
+func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRelevanceResponse, descendantStatus map[string]*DescendantStatus, threshold database.Threshold) {
+	descendantKey := descendantResp.ServiceName + "_" + descendantResp.EndPoint
+	if status, ok := descendantStatus[descendantKey]; ok {
+		if status.DepLatency > 0 && status.Latency > 0 {
+			var depRatio = status.DepLatency / status.Latency
+			if depRatio > 0.5 {
+				descendantResp.DelaySource = "dependency"
+				descendantResp.DelayDistribution = fmt.Sprintf("latency: %.2f, depLatency: %.2f(%.2f)", status.DepLatency, status.Latency, depRatio)
+			} else {
+				descendantResp.DelaySource = "self"
+				descendantResp.DelayDistribution = fmt.Sprintf("latency: %.2f, depLatency: %.2f(%.2f)", status.DepLatency, status.Latency, depRatio)
+			}
+		} else {
+			descendantResp.DelaySource = "self"
+		}
+
+		if status.RequestPerSecondDoD < 0 {
+			descendantResp.REDAlarmReason = "未统计到TPS日同比,忽略TPS告警;"
+		} else if threshold.Tps > 0 && status.RequestPerSecondDoD*100 > (100+threshold.Tps) {
+			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
+			descendantResp.REDAlarmReason = fmt.Sprintf("%s 请求TPS日同比: %.2f 高于设定阈值 %.2f;", descendantResp.REDAlarmReason, status.RequestPerSecondDoD, (100+threshold.Latency)/100)
+		}
+
+		if status.LatencyDoD < 0 {
+			descendantResp.REDAlarmReason = descendantResp.REDAlarmReason + "未统计到延迟日同比,忽略延迟告警"
+		} else if threshold.Latency > 0 && status.LatencyDoD*100 > (100+threshold.Latency) {
+			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
+			descendantResp.REDAlarmReason = fmt.Sprintf("%s 延迟日同比: %.2f 高于设定阈值 %.2f;", descendantResp.REDAlarmReason, status.LatencyDoD, (100+threshold.Latency)/100)
+		}
+
+		if status.ErrorRateDoD < 0 {
+			descendantResp.REDAlarmReason = descendantResp.REDAlarmReason + "未统计错误率日同比,忽略错误率告警;"
+		} else if threshold.ErrorRate > 0 && status.ErrorRateDoD*100 < (100-threshold.ErrorRate) {
+			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
+			descendantResp.REDAlarmReason = fmt.Sprintf("%s 错误率日同比: %.2f 低于设定阈值 %.2f;", descendantResp.REDAlarmReason, status.ErrorRateDoD, (100-threshold.ErrorRate)/100)
+		}
+	} else {
+		descendantResp.REDAlarmReason = "时间段内未统计到应用延时,应用无请求或未监控,忽略RED告警;"
+	}
 }

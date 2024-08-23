@@ -13,6 +13,8 @@ import (
 var _ Service = (*service)(nil)
 
 type Service interface {
+	// 获取上下游调用关系
+	GetServiceEndpointRelation(req *request.GetServiceEndpointRelationRequest) (*response.GetServiceEndpointRelationResponse, error)
 	// 获取上下游拓扑图
 	GetServiceEndpointTopology(req *request.GetServiceEndpointTopologyRequest) (*response.GetServiceEndpointTopologyResponse, error)
 	// 获取依赖服务的延时曲线

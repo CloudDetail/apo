@@ -41,6 +41,10 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 	}
 
 	count := int64(countResults[0].Total)
+	result := []FaultLogResult{}
+	if count == 0 {
+		return result, 0, nil
+	}
 
 	fieldSql := NewFieldBuilder().
 		Fields("trace_id", "pid").
@@ -58,7 +62,6 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 		Limit(query.PageSize).
 		Offset((query.PageNum - 1) * query.PageSize).
 		String()
-	var result []FaultLogResult
 	// 查询列表数据
 	sql := fmt.Sprintf(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, whereClause, bySql)
 	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
@@ -90,6 +93,10 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 	}
 
 	count := int64(countResults[0].Total)
+	result := []QueryTraceResult{}
+	if count == 0 {
+		return result, 0, nil
+	}
 
 	fieldSql := NewFieldBuilder().
 		Fields("trace_id").
@@ -105,7 +112,6 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 		Limit(req.PageSize).
 		Offset((req.PageNum - 1) * req.PageSize).
 		String()
-	var result []QueryTraceResult
 	// 查询列表数据
 	sql := fmt.Sprintf(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, whereClause, bySql)
 	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)

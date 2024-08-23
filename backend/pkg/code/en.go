@@ -10,7 +10,7 @@ var enText = map[string]string{
 	MockDetailError: "Failed to get mock detail",
 	MockDeleteError: "Failed to delete mock",
 
-	GetServiceUrlTopologyError:     "Failed to get service url topology",
+	GetServiceUrlRelationError:     "Failed to get service url relation",
 	GetDescendantMetricsError:      "Failed to get descendant metrics",
 	GetDescendantRelevanceError:    "Failed to get descendant relevance",
 	GetPolarisInferError:           "Failed to get polaris infer",

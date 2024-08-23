@@ -12,6 +12,11 @@ import (
 )
 
 type Handler interface {
+	// GetServiceEndpointRelation 获取服务上下游调用关系
+	// @Tags API.service
+	// @Router /api/service/relation [get]
+	GetServiceEndpointRelation() core.HandlerFunc
+
 	// GetServiceEndpointTopology 获取服务上下游拓扑
 	// @Tags API.service
 	// @Router /api/service/topology [get]

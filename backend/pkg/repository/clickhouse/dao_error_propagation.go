@@ -27,7 +27,7 @@ const (
 			FROM error_propagation
 			ARRAY JOIN nodes
 			JOIN found_trace_ids ON error_propagation.trace_id = found_trace_ids.trace_id AND error_propagation.entry_span_id = found_trace_ids.entry_span_id
-			WHERE startsWith(found_trace_ids.path, nodes.path) AND nodes.depth=found_trace_ids.depth - 1 AND nodes.is_error = true
+			WHERE timestamp BETWEEN %d AND %d AND startsWith(found_trace_ids.path, nodes.path) AND nodes.depth=found_trace_ids.depth - 1 AND nodes.is_error = true
 			GROUP BY trace_id
 		) AS parent_node ON parent_node.trace_id = found_trace_ids.trace_id
 		LEFT JOIN(
@@ -35,7 +35,7 @@ const (
 			FROM error_propagation
 			ARRAY JOIN nodes
 			JOIN found_trace_ids ON error_propagation.trace_id = found_trace_ids.trace_id AND error_propagation.entry_span_id = found_trace_ids.entry_span_id
-			WHERE startsWith(nodes.path, found_trace_ids.path) AND nodes.depth=found_trace_ids.depth+1 AND nodes.is_error = true
+			WHERE timestamp BETWEEN %d AND %d AND startsWith(nodes.path, found_trace_ids.path) AND nodes.depth=found_trace_ids.depth+1 AND nodes.is_error = true
 			GROUP BY trace_id
 		) AS child_node on child_node.trace_id = found_trace_ids.trace_id
 	`
@@ -43,8 +43,10 @@ const (
 
 // 查询实例相关的错误传播链
 func (ch *chRepo) ListErrorPropagation(req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error) {
+	startTime := req.StartTime / 1000000
+	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
-		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
+		Between("timestamp", startTime, endTime).
 		Equals("nodes.service", req.Service).
 		Equals("nodes.url", req.Endpoint).
 		Equals("nodes.is_traced", true).
@@ -56,7 +58,7 @@ func (ch *chRepo) ListErrorPropagation(req *request.GetErrorInstanceRequest) ([]
 		OrderBy("timestamp", false).
 		Limit(2000).String()
 	var results []ErrorInstancePropagation
-	sql := fmt.Sprintf(SQL_GET_INSTANCE_ERROR_PROPAGATION, queryBuilder.String(), bySql)
+	sql := fmt.Sprintf(SQL_GET_INSTANCE_ERROR_PROPAGATION, queryBuilder.String(), bySql, startTime, endTime, startTime, endTime)
 	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}

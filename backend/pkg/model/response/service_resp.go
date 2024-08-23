@@ -5,6 +5,12 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 )
 
+type GetServiceEndpointRelationResponse struct {
+	Parents       []clickhouse.TopologyNode    `json:"parents"`        // 上游节点列表
+	Current       clickhouse.TopologyNode      `json:"current"`        // 当前服务
+	ChildRelation []clickhouse.ToplogyRelation `json:"childRelations"` // 下游节点调用关系列表
+}
+
 type GetServiceEndpointTopologyResponse struct {
 	Parents  []clickhouse.TopologyNode `json:"parents"`  // 上游节点列表
 	Current  clickhouse.TopologyNode   `json:"current"`  // 当前服务
@@ -21,6 +27,7 @@ type GetDescendantRelevanceResponse struct {
 	ServiceName       string  `json:"serviceName"`       // 服务名
 	EndPoint          string  `json:"endpoint"`          // Endpoint
 	Distance          float64 `json:"distance"`          // 延时曲线差异
+	DistanceType      string  `json:"distanceType"`      // 延时曲线差异计算方式, 有euclidean/pearson/dtw/failed/net_failed四种
 	DelaySource       string  `json:"delaySource"`       // 延时主要来源 self/dependency
 	DelayDistribution string  `json:"delayDistribution"` // 延时分布
 	REDMetricsStatus  string  `json:"REDStatus"`         // RED指标告警
