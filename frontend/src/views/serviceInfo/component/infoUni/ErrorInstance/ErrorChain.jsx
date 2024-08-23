@@ -158,26 +158,47 @@ export const ErrotChain = React.memo(function ErrotChain(props) {
     // })
     // 定义交互筛选
 
-    const allNodeNames = g.nodes()
-    allNodeNames.forEach((nodeName) => {
-      d3.selectAll(`g[id^="${escapeId(chartId)}"].node`)
-        .on('click', function () {
-          d3.selectAll('circle').interrupt()
-          d3.selectAll('.bg-circle')
-            .style('fill', 'none')
-            .style('stroke', 'none')
-            .style('stroke-width', '0')
-          d3.select(this)
-            .select('circle')
-            .transition()
-            .ease(d3.easeExpOut) // 缓动函数，可以根据需要调整
-            .duration(1000) // 动画持续时间
-            .attr('class', 'bg-circle')
-            .style('fill', 'rgba(255, 208, 0, 0.3)')
-            .style('stroke', 'rgba(255, 208, 0, 0.2)')
-            .style('stroke-width', '15px')
-          const nodeData = g.node(nodeName) // 获取节点的所有数据
-          navigate(`/logs?service=${nodeData.service}&endpoint=${endpoint}&instance=${nodeName}`)
+    // const allNodeNames = g.nodes()
+    // console.log(allNodeNames)
+    // allNodeNames.forEach((nodeName) => {
+    //   d3.selectAll(`g[id^="${escapeId(chartId)}"].node`)
+    //     .on('click', function () {
+    //       d3.selectAll('circle').interrupt()
+    //       d3.selectAll('.bg-circle')
+    //         .style('fill', 'none')
+    //         .style('stroke', 'none')
+    //         .style('stroke-width', '0')
+    //       d3.select(this)
+    //         .select('circle')
+    //         .transition()
+    //         .ease(d3.easeExpOut) // 缓动函数，可以根据需要调整
+    //         .duration(1000) // 动画持续时间
+    //         .attr('class', 'bg-circle')
+    //         .style('fill', 'rgba(255, 208, 0, 0.3)')
+    //         .style('stroke', 'rgba(255, 208, 0, 0.2)')
+    //         .style('stroke-width', '15px')
+    //       const nodeData = g.node(nodeName) // 获取节点的所有数据
+    //       console.log(nodeName, nodeData)
+    //       // navigate(`/logs?service=${nodeData.service}&endpoint=${endpoint}&instance=${nodeName}`)
+    //     })
+    //     .on('mouseover', function (d) {
+    //       d3.select(this).style('cursor', 'pointer')
+    //     })
+    // })
+    inner.selectAll('g.node').each(function (nodeName) {
+      const node = d3.select(this)
+      // 为当前节点添加点击事件
+      node
+        .on('click', () => {
+          // console.log(`${nodeName} 被点击了`)
+          const nodeData = g.node(nodeName)
+          // console.log('节点数据:', nodeData)
+          const from = searchParams.get('from')
+          const to = searchParams.get('to')
+          console.log(from)
+          navigate(
+            `/logs?service=${nodeData.service}&endpoint=${endpoint}&instance=${nodeName}&logs-from=${from}&logs-to=${to}`,
+          )
         })
         .on('mouseover', function (d) {
           d3.select(this).style('cursor', 'pointer')

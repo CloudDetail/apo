@@ -4,6 +4,7 @@ import {
   cilBell,
   cilCalculator,
   cilChartPie,
+  cilCog,
   cilCursor,
   cilDescription,
   cilDrop,
@@ -86,6 +87,16 @@ const _nav = [
     name: '告警规则',
     to: '/alerts',
     icon: <CIcon icon={cilBell} />,
+    badge: {
+      color: 'info',
+      // text: 'NEW',
+    },
+  },
+  {
+    component: CNavItem,
+    name: '配置中心',
+    to: '/config',
+    icon: <CIcon icon={cilCog} />,
     badge: {
       color: 'info',
       // text: 'NEW',

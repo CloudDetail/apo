@@ -46,13 +46,23 @@ function TraceFilters() {
   }, [serviceName, instanceName])
   return (
     <CCard className="mb-3 px-3">
-      <LogsTraceFilter type={'trace'} />
+      <div className="">
+        <LogsTraceFilter type={'trace'} />
+        {/* <div className="flex justify-end flex-grow items-center flex-shrink-0">
+          <div
+            onClick={() => setVisible(!visible)}
+            className="flex flex-row items-center cursor-pointer"
+          >
+            <span className=" font-bold mr-2">More Filters</span> <BsChevronDoubleDown size={20} />
+          </div>
+        </div> */}
+      </div>
 
       <CCollapse visible={visible}>
         <div className="p-3">
           <CRow xs={{ cols: 3 }} className="gap-y-3">
             {/* Duration */}
-            <CCol >
+            <CCol>
               <h2 className="text-sm font-bold mb-2">Duration</h2>
               <div className="flex flex-row ">
                 <div className="pr-2">
@@ -80,12 +90,7 @@ function TraceFilters() {
                 </div>
               </div>
               <div className="px-3 pt-3">
-                <Slider
-                  range
-                  max={10000}
-                  value={sliderRange}
-                  onChange={changeSlider}
-                />
+                <Slider range max={10000} value={sliderRange} onChange={changeSlider} />
               </div>
             </CCol>
             <CCol className="text-base">

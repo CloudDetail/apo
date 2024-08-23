@@ -38,7 +38,7 @@ function LogsInfo() {
       },
     },
     {
-      title: '平均响应时间P90',
+      title: '响应时间90分位数',
       accessor: 'latency',
       Cell: (props) => {
         const { value } = props

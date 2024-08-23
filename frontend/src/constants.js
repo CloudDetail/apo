@@ -40,7 +40,7 @@ export const TimeLineTypeTitleMap = {
 }
 
 export const DelayLineChartTitleMap = {
-  latency: '平均响应时间',
+  latency: '90分位数',
   errorRate: '错误率',
   logs: '日志错误数量',
 }
@@ -85,3 +85,11 @@ export const ChartColorList = [
   '#3274D9',
   '#8C564B',
 ]
+
+export const TableType = {
+  logs: '日志',
+  trace: '链路',
+  k8s: 'Kubernetes事件',
+  topology: '拓扑图',
+  other: '其他',
+}

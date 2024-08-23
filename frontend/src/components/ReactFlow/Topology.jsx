@@ -156,10 +156,11 @@ function FlowWithProvider(props) {
           placement="bottom"
         >
           <div
-            className=" absolute top-0 right-0 w-10 h-10 flex items-center justify-center cursor-pointer"
+            className=" absolute top-0 right-3 h-10 flex items-center justify-center cursor-pointer"
             style={{ zIndex: 1 }}
             onClick={() => rollback()}
           >
+            点击回退上级入口拓扑图
             <AiOutlineRollback size={28} />
           </div>
         </Tooltip>

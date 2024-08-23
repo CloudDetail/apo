@@ -1,21 +1,19 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { CTab, CTabList, CTabs, CTabContent, CTabPanel, CRow, CCol, CCard } from '@coreui/react'
-import { convertTime, ISOToTimestamp, TimestampToISO } from 'src/utils/time'
+import React, { useEffect, useRef, useState } from 'react'
+import { CTab, CTabList, CTabs, CRow, CCol, CCard } from '@coreui/react'
+import { convertTime } from 'src/utils/time'
 import { getLogContentApi, getLogPageListApi } from 'src/api/logs'
 import { useSearchParams } from 'react-router-dom'
-import { usePropsContext } from 'src/contexts/PropsContext'
 import { CustomSelect } from 'src/components/Select'
 import LogContent from './component/LogContent'
 import CustomPagination from 'src/components/Pagination/CustomPagination'
 import Empty from 'src/components/Empty/Empty'
 import LoadingSpinner from 'src/components/Spinner'
 import LogsTraceFilter from 'src/components/Filter/LogsTraceFilter'
-import { useInstance } from 'src/contexts/InstanceContext'
-import { useUrlParams } from 'src/contexts/UrlParamsContext'
+import { useSelector } from 'react-redux'
 function FaultSiteLogs(props) {
-  const { urlParamsState } = useUrlParams()
-  const { startTime, endTime, service, instance, traceId, filtersLoaded, instanceOption } =
-    urlParamsState
+  const { startTime, endTime, service, instance, traceId, instanceOption } = useSelector(
+    (state) => state.urlParamsReducer,
+  )
 
   const [searchParams, setSearchParams] = useSearchParams()
   const [logsPageList, setLogsPageList] = useState([])
@@ -35,7 +33,6 @@ function FaultSiteLogs(props) {
     traceId: '',
     pageIndex: 1,
     selectInstanceOption: {},
-    filtersLoaded: false,
   })
   const [source, setSource] = useState('')
   const changeActiveItemKey = (key) => {
@@ -138,9 +135,6 @@ function FaultSiteLogs(props) {
     if (instance && !selectInstanceOption) {
       paramsChange = false
     }
-    if (prev.filtersLoaded !== filtersLoaded) {
-      paramsChange = true
-    }
     console.log(
       '-----------',
       paramsChange,
@@ -151,7 +145,6 @@ function FaultSiteLogs(props) {
       traceId,
       pageIndex,
       instanceOption,
-      filtersLoaded,
     )
 
     previousValues.current = {
@@ -162,9 +155,8 @@ function FaultSiteLogs(props) {
       traceId,
       pageIndex,
       selectInstanceOption,
-      filtersLoaded,
     }
-    if (startTime && endTime && filtersLoaded) {
+    if (startTime && endTime) {
       if (paramsChange) {
         if (pageIndex === 1) {
           getLogs()
@@ -175,7 +167,7 @@ function FaultSiteLogs(props) {
         getLogs()
       }
     }
-  }, [startTime, endTime, service, instance, traceId, pageIndex, instanceOption, filtersLoaded])
+  }, [startTime, endTime, service, instance, traceId, pageIndex])
   useEffect(() => {
     getLogContent()
   }, [logsPageList, activeItemKey])

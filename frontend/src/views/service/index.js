@@ -299,8 +299,7 @@ export default function ServiceView() {
         <div className="d-flex">
           <CToastBody className=" flex flex-row items-center text-xs">
             <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-            请根据本页提供的各种提示信息，选择您最怀疑的服务
-            URL，在URL选择之后可以查看具体的相关指标、日志和事件信息、Trace信息
+            请根据本页提供的各种提示信息，选择您最怀疑的服务端点，选择服务端点之后可以查看具体的相关指标、日志和事件信息、Trace信息
           </CToastBody>
         </div>
       </CToast>

@@ -9,7 +9,8 @@ import { getTracePageListApi } from 'src/api/trace.js'
 import StatusInfo from 'src/components/StatusInfo'
 import { PropsProvider } from 'src/contexts/PropsContext'
 import EndpointTableModal from './component/JaegerIframeModal'
-import { useUrlParams } from 'src/contexts/UrlParamsContext'
+import { useSelector } from 'react-redux'
+import LoadingSpinner from 'src/components/Spinner'
 
 function TracePage() {
   const [searchParams] = useSearchParams()
@@ -29,17 +30,10 @@ function TracePage() {
   const [modalVisible, setModalVisible] = useState(false)
   // 传入modal的traceid
   const [selectTraceId, setSelectTraceId] = useState('')
-  const { urlParamsState } = useUrlParams()
-  const {
-    startTime,
-    endTime,
-    service,
-    instance,
-    traceId,
-    filtersLoaded,
-    instanceOption,
-    endpoint,
-  } = urlParamsState
+
+  const { startTime, endTime, service, instance, traceId, instanceOption, endpoint } = useSelector(
+    (state) => state.urlParamsReducer,
+  )
   const previousValues = useRef({
     startTime: null,
     endTime: null,
@@ -49,77 +43,24 @@ function TracePage() {
     endpoint: '',
     pageIndex: 1,
     selectInstanceOption: {},
-    filtersLoaded: false,
   })
-  // useEffect(() => {
-  //   const urlService = searchParams.get('service')
-  //   const urlInstance = searchParams.get('instance')
-  //   const urlTraceId = searchParams.get('traceId')
-  //   const urlEndpoint = searchParams.get('endpoint')
-  //   const urlFrom = searchParams.get('trace-from')
-  //   const urlTo = searchParams.get('trace-to')
-  //   let changeParams = false
-  //   if (urlService !== service) {
-  //     setService(urlService)
-  //     changeParams = true
-  //   }
-  //   if (urlInstance !== instance) {
-  //     setInstance(urlInstance)
-  //     changeParams = true
-  //   }
-  //   if (urlTraceId !== traceId) {
-  //     setTraceId(urlTraceId)
-  //     changeParams = true
-  //   }
-  //   if (urlEndpoint !== endpoint) {
-  //     setEndpoint(urlEndpoint)
-  //     changeParams = true
-  //   }
-  //   if (urlFrom && urlTo && (urlFrom !== from || urlTo !== to)) {
-  //     const urlTimeRange = timeRangeList.find((item) => item.from === urlFrom && item.to === urlTo)
-  //     if (urlTimeRange) {
-  //       //说明是快速范围，根据rangetype 获取当前开始结束时间戳
-  //       const { startTime, endTime } = getTimestampRange(urlTimeRange.rangeType)
-  //       setStartTime(startTime)
-  //       setEndTime(endTime)
-  //       changeParams = true
-  //     } else {
-  //       //说明可能是精确时间，先判断是不是可以转化成微妙时间戳
-  //       const startTimestamp = ISOToTimestamp(urlFrom)
-  //       const endTimestamp = ISOToTimestamp(urlTo)
-  //       if (startTimestamp && endTimestamp) {
-  //         setStartTime(startTimestamp)
-  //         setEndTime(endTimestamp)
-  //         changeParams = true
-  //       }
-  //     }
-  //     setFrom(urlFrom)
-  //     setTo(urlTo)
-  //   }
-  //   if (changeParams) {
-  //     setPageIndex(1)
-  //   }
-  //   // console.log(window.location.href)
-  // }, [searchParams])
   useEffect(() => {
     const prev = previousValues.current
     let paramsChange = false
 
     if (prev.startTime !== startTime) {
-      console.log('startTime -> pre:', prev.startTime, 'now:', startTime)
       paramsChange = true
     }
     if (prev.endTime !== endTime) {
-      console.log('endTime -> pre:', prev.endTime, 'now:', endTime)
       paramsChange = true
     }
     if (prev.service !== service) {
-      console.log('service -> pre:', prev.service, 'now:', service)
       paramsChange = true
     }
-
+    if (prev.instance !== instance) {
+      paramsChange = true
+    }
     if (prev.traceId !== traceId) {
-      console.log('traceId -> pre:', prev.traceId, 'now:', traceId)
       paramsChange = true
     }
     if (prev.endpoint !== endpoint) {
@@ -139,22 +80,6 @@ function TracePage() {
     if (instance && !selectInstanceOption) {
       paramsChange = false
     }
-    if (prev.filtersLoaded !== filtersLoaded) {
-      paramsChange = true
-    }
-    console.log(
-      '-----------',
-      paramsChange,
-      startTime,
-      endTime,
-      service,
-      instance,
-      traceId,
-      endpoint,
-      pageIndex,
-      instanceOption,
-      filtersLoaded,
-    )
 
     previousValues.current = {
       startTime,
@@ -165,9 +90,8 @@ function TracePage() {
       pageIndex,
       endpoint,
       selectInstanceOption,
-      filtersLoaded,
     }
-    if (startTime && endTime && filtersLoaded) {
+    if (startTime && endTime) {
       if (paramsChange) {
         if (pageIndex === 1) {
           getTraceData()
@@ -178,7 +102,7 @@ function TracePage() {
         getTraceData()
       }
     }
-  }, [startTime, endTime, service, instance, traceId, pageIndex, instanceOption, filtersLoaded])
+  }, [startTime, endTime, service, instance, traceId, endpoint, pageIndex, instanceOption])
   const openJeagerModal = (traceId) => {
     setSelectTraceId(traceId)
     setModalVisible(true)
@@ -218,7 +142,7 @@ function TracePage() {
       },
     },
     {
-      title: 'TraceID',
+      title: 'TraceId',
       accessor: 'traceId',
       Cell: (props) => {
         const { value } = props
@@ -233,6 +157,7 @@ function TracePage() {
   ]
   const getTraceData = () => {
     const { containerId, nodeName, pid } = instanceOption[instance] ?? {}
+    setLoading(true)
     getTracePageListApi({
       startTime,
       endTime,
@@ -299,6 +224,7 @@ function TracePage() {
     //   }}
     // >
     <>
+      <LoadingSpinner loading={loading} />
       <div
         style={{ width: '100%', overflow: 'hidden', height: 'calc(100vh - 120px)' }}
         className="text-xs flex flex-col"

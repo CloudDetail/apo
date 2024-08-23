@@ -26,11 +26,12 @@ export const ToastProvider = ({ children }) => {
   const vars = {
     '--cui-danger-rgb': '27, 31, 40',
     '--cui-success-rgb': '27, 31, 40',
+    '--cui-info-rgb': '27, 31, 40',
   }
   const statusIconMap = {
     success: <FaCheck color="#3abf8c" />,
     danger: <PiWarningBold color="#f6786f" />,
-    info: <MdInfoOutline />,
+    info: <MdInfoOutline color="1477ff" />,
   }
   return (
     <ToastContext.Provider value={addToast}>
@@ -45,7 +46,7 @@ export const ToastProvider = ({ children }) => {
             style={vars}
           >
             <CToastBody className="border-t-2 border-b-2 border-r-2 border-l-4 rounded-md relative">
-              <div className="flex items-start">
+              <div className="flex items-start   pr-7">
                 <div className="mx-2 my-1 text-xl">{statusIconMap[toast.color]}</div>
                 <div>
                   <div className="text-base">{toast.title}</div>
