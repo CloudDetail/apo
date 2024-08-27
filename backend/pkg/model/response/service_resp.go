@@ -24,21 +24,20 @@ type GetDescendantMetricsResponse struct {
 }
 
 type GetDescendantRelevanceResponse struct {
-	ServiceName       string  `json:"serviceName"`       // 服务名
-	EndPoint          string  `json:"endpoint"`          // Endpoint
-	Distance          float64 `json:"distance"`          // 延时曲线差异
-	DistanceType      string  `json:"distanceType"`      // 延时曲线差异计算方式, 有euclidean/pearson/dtw/failed/net_failed四种
-	DelaySource       string  `json:"delaySource"`       // 延时主要来源 self/dependency
-	DelayDistribution string  `json:"delayDistribution"` // 延时分布
-	REDMetricsStatus  string  `json:"REDStatus"`         // RED指标告警
-	REDAlarmReason    string  `json:"REDAlarmReason"`    // RED告警原因
-	// TODO 各类型告警状态
-	LogMetricsStatus     string `json:"logsStatus"`           // 日志指标告警
-	LogAlarmReason       string `json:"logAlarmReason"`       // 日志告警原因
-	InfrastructureStatus string `json:"infrastructureStatus"` // 基础设施告警
-	NetStatus            string `json:"netStatus"`            // 网络告警
-	K8sStatus            string `json:"k8sStatus"`            // K8s状态告警
-	LastUpdateTime       *int64 `json:"timestamp"`            // 末次部署时间
+	ServiceName          string  `json:"serviceName"`          // 服务名
+	EndPoint             string  `json:"endpoint"`             // Endpoint
+	Distance             float64 `json:"distance"`             // 延时曲线差异
+	DistanceType         string  `json:"distanceType"`         // 延时曲线差异计算方式, 有euclidean/pearson/dtw/failed/net_failed四种
+	DelaySource          string  `json:"delaySource"`          // 延时主要来源 self/dependency
+	DelayDistribution    string  `json:"delayDistribution"`    // 延时分布
+	REDMetricsStatus     string  `json:"REDStatus"`            // RED指标告警
+	REDAlarmReason       string  `json:"REDAlarmReason"`       // RED告警原因
+	LogMetricsStatus     string  `json:"logsStatus"`           // 日志指标告警
+	LogAlarmReason       string  `json:"logAlarmReason"`       // 日志告警原因
+	InfrastructureStatus string  `json:"infrastructureStatus"` // 基础设施告警
+	NetStatus            string  `json:"netStatus"`            // 网络告警
+	K8sStatus            string  `json:"k8sStatus"`            // K8s状态告警
+	LastUpdateTime       *int64  `json:"timestamp"`            // 末次部署时间
 }
 
 type GetPolarisInferResponse = polarisanalyzer.PolarisInferRes
@@ -115,7 +114,7 @@ type ServiceDetail struct {
 	DelaySource string          `json:"delaySource"`
 	Latency     TempChartObject `json:"latency"`
 	ErrorRate   TempChartObject `json:"errorRate"`
-	Tps         TempChartObject `json:"tps"`
+	Tps         TempChartObject `json:"tps"` // FIXME 名称为tps,实际为每分钟请求数
 }
 
 type ServiceRes struct {

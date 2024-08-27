@@ -82,13 +82,12 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 	}
 	for _, descendant := range sortResult {
 		var descendantResp = response.GetDescendantRelevanceResponse{
-			ServiceName:      descendant.Service,
-			EndPoint:         descendant.Endpoint,
-			Distance:         descendant.Relevance,
-			DistanceType:     sortType,
-			DelaySource:      "self",
-			REDMetricsStatus: model.STATUS_NORMAL,
-			// TODO 查询日志,K8s,基础设施,网络告警和最后部署时间
+			ServiceName:          descendant.Service,
+			EndPoint:             descendant.Endpoint,
+			Distance:             descendant.Relevance,
+			DistanceType:         sortType,
+			DelaySource:          "self",
+			REDMetricsStatus:     model.STATUS_NORMAL,
 			LogMetricsStatus:     model.STATUS_NORMAL,
 			InfrastructureStatus: model.STATUS_NORMAL,
 			NetStatus:            model.STATUS_NORMAL,
