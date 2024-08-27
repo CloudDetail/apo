@@ -62,7 +62,5 @@ jobs:
       run: |
         IMAGE_FULL_NAME="${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.CONTAINER_NAME }}:$IMAGE_TAG_NAME"
         echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME"
-        export KUBECONFIG="~/.kube/config"
-        kubectl cluster-info
-        kubectl version
+        export KUBECONFIG="/root/.kube/config"
         kubectl set image deployment ${{ env.DEPLOYMENT_NAME }} ${{ env.CONTAINER_NAME }}=$IMAGE_FULL_NAME -n ${{ env.NAMESPACE }}
