@@ -18,7 +18,7 @@ jobs:
   build-backend:
     runs-on: ubuntu-latest
     outputs:
-      IMAGE_FULL_NAME: ${{ steps.build-image.outputs.IMAGE_FULL_NAME }}
+      IMAGE_TAG_NAME: ${{ steps.build-image.outputs.IMAGE_TAG_NAME }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -33,10 +33,11 @@ jobs:
         COMMIT_HASH: ${{ github.sha }}
       run: |
         DATE=$(date +"%Y%m%d%H%M%S%Z")
-        TAG_NAME="${BRANCH_NAME}-${COMMIT_HASH::7}-${DATE}"
-        IMAGE_FULL_NAME="${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.CONTAINER_NAME }}:$TAG_NAME"
+        IMAGE_TAG_NAME="${BRANCH_NAME}-${COMMIT_HASH::7}-${DATE}"
+        echo "IMAGE_TAG_NAME=$IMAGE_TAG_NAME" >> "$GITHUB_OUTPUT"
+
+        IMAGE_FULL_NAME="${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.CONTAINER_NAME }}:$IMAGE_TAG_NAME"
         echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME" >> "$GITHUB_ENV"
-        echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME" >> "$GITHUB_OUTPUT"
         docker build -t $IMAGE_FULL_NAME ./backend
 
     - name: Log in to container registry
@@ -57,7 +58,7 @@ jobs:
     steps:
     - name: Deploy to dev
       env: 
-        IMAGE_FULL_NAME: ${{ needs.build-backend.outputs.IMAGE_FULL_NAME }}
+        IMAGE_TAG_NAME: ${{ needs.build-backend.outputs.IMAGE_TAG_NAME }}
       run: |
-        echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME"
+        IMAGE_FULL_NAME="${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.CONTAINER_NAME }}:$IMAGE_TAG_NAME"
         kubectl set image deployment/$DEPLOYMENT_NAME $CONTAINER_NAME=$IMAGE_FULL_NAME -n $NAMESPACE
