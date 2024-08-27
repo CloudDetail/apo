@@ -61,5 +61,5 @@ func PQLAvgErrorRateWithFilters(vector string, granularity string, filters []str
 // PQLAvgTPSWithFilters 查询平均TPS
 func PQLAvgTPSWithFilters(vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")
-	return `avg(rate(kindling_span_trace_duration_nanoseconds_count{` + filtersStr + `}[` + vector + `])) by(` + granularity + `)`
+	return `sum(rate(kindling_span_trace_duration_nanoseconds_count{` + filtersStr + `}[` + vector + `])) by(` + granularity + `)`
 }
