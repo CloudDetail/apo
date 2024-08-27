@@ -11,19 +11,17 @@ import (
 )
 
 func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule SortType) (res []response.ServiceDetail, err error) {
-
-	var Urls []Url
 	var duration string
 	var stepNS = endTime.Sub(startTime).Nanoseconds()
 	duration = strconv.FormatInt(stepNS/int64(time.Minute), 10) + "m"
-	// 查询日同比，填充相应数据,只查servicesName对应的url
-	s.UrlDOD(&Urls, serviceNames, endTime, duration)
 
-	//查询所有url的平均值,只查servicesName对应的url
-	s.UrlAVG(&Urls, serviceNames, endTime, duration)
+	filter := EndpointsFilter{
+		ServiceName: serviceNames,
+	}
 
-	//查询所有url的周同比,只查servicesName对应的url
-	s.UrlWOW(&Urls, serviceNames, endTime, duration)
+	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filter)
+	endpoints := endpointsMap.Endpoints
+
 	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
 	if err != nil {
 		return nil, err
@@ -32,28 +30,28 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	//不对吞吐量进行比较
 	//tpsThreshold := threshold.Tps
 	latencyThreshold := threshold.Latency
-	for i := range Urls {
+	for i := range endpoints {
 		//填充错误率不等于0查不出同比，填充为最大值（通过判断是否有请求，有请求进行填充）
-		if Urls[i].LatencyDayOverDay != nil && Urls[i].ErrorRateDayOverDay == nil && Urls[i].AvgErrorRate != nil && *Urls[i].AvgErrorRate != 0 {
-			Urls[i].ErrorRateDayOverDay = new(float64)
-			*Urls[i].ErrorRateDayOverDay = RES_MAX_VALUE
+		if endpoints[i].LatencyDayOverDay != nil && endpoints[i].ErrorRateDayOverDay == nil && endpoints[i].AvgErrorRate != nil && *endpoints[i].AvgErrorRate != 0 {
+			endpoints[i].ErrorRateDayOverDay = new(float64)
+			*endpoints[i].ErrorRateDayOverDay = RES_MAX_VALUE
 		}
-		if Urls[i].LatencyWeekOverWeek != nil && Urls[i].ErrorRateWeekOverWeek == nil && Urls[i].AvgErrorRate != nil && *Urls[i].AvgErrorRate != 0 {
-			Urls[i].ErrorRateWeekOverWeek = new(float64)
-			*Urls[i].ErrorRateWeekOverWeek = RES_MAX_VALUE
+		if endpoints[i].LatencyWeekOverWeek != nil && endpoints[i].ErrorRateWeekOverWeek == nil && endpoints[i].AvgErrorRate != nil && *endpoints[i].AvgErrorRate != 0 {
+			endpoints[i].ErrorRateWeekOverWeek = new(float64)
+			*endpoints[i].ErrorRateWeekOverWeek = RES_MAX_VALUE
 		}
 
 		//过滤错误率
-		if Urls[i].ErrorRateDayOverDay != nil && *Urls[i].ErrorRateDayOverDay > errorThreshold {
-			Urls[i].IsErrorRateExceeded = true
-			Urls[i].Count += ErrorCount
+		if endpoints[i].ErrorRateDayOverDay != nil && *endpoints[i].ErrorRateDayOverDay > errorThreshold {
+			endpoints[i].IsErrorRateExceeded = true
+			endpoints[i].Count += ErrorCount
 		}
 
 		//过滤延时
 
-		if Urls[i].LatencyDayOverDay != nil && *Urls[i].LatencyDayOverDay > latencyThreshold {
-			Urls[i].IsLatencyExceeded = true
-			Urls[i].Count += LatencyCount
+		if endpoints[i].LatencyDayOverDay != nil && *endpoints[i].LatencyDayOverDay > latencyThreshold {
+			endpoints[i].IsLatencyExceeded = true
+			endpoints[i].Count += LatencyCount
 		}
 		//不对吞吐量进行比较
 		////过滤TPS
@@ -67,19 +65,19 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	//对所有的url进行排序
 	switch sortRule {
 	case DODThreshold: //按照日同比阈值排序
-		sortByDODThreshold(Urls)
+		sortByDODThreshold(endpoints)
 	}
 
 	//将所有url存到对应的service中
-	Services := fillOneService(Urls)
+	Services := fillOneService(endpoints)
 
 	//查询service的所有url数据,并填充
-	s.UrlRangeData(&Services, startTime, endTime, duration, step)
+	s.EndpointRangeREDChart(&Services, startTime, endTime, duration, step)
 	//(searchTime.Add(-30*time.Minute), searchTime, errorDataQuery, time.Minute)
 
 	service := Services[0]
 	var newServiceDetails []response.ServiceDetail
-	for _, url := range service.Urls {
+	for _, url := range service.Endpoints {
 		newErrorRadio := response.Ratio{
 			DayOverDay:  url.ErrorRateDayOverDay,
 			WeekOverDay: url.ErrorRateWeekOverWeek,

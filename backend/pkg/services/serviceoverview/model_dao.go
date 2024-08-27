@@ -5,7 +5,7 @@ import "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 // RES_MAX_VALUE 返回前端的最大值，同比为该值时表示最大值
 const RES_MAX_VALUE = 9999999
 
-type Url struct {
+type Endpoint struct {
 	ContentKey          string // URL
 	SvcName             string //url所属的服务名
 	Count               int
@@ -39,7 +39,7 @@ type serviceDetail struct {
 	ServiceName          string
 	EndpointCount        int
 	ServiceSize          int
-	Urls                 []Url
+	Endpoints            []*Endpoint
 	Instances            []Instance
 	LogData              []prometheus.Points // 日志告警次数 30min的数据
 	InfrastructureStatus string
