@@ -9,6 +9,9 @@ RUN yarn install
 COPY . .
 
 ENV NODE_OPTIONS --openssl-legacy-provider
+ARG VITE_PUBLIC_POSTHOG_HOST
+ARG VITE_PUBLIC_POSTHOG_KEY
+
 RUN yarn build
 
 FROM nginx:alpine

@@ -1,0 +1,43 @@
+name: Build Frontend Docker Images
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+jobs:
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build backend image
+      env:
+        BRANCH_NAME: ${{ github.ref_name }}
+        COMMIT_HASH: ${{ github.sha }}
+      run: |
+        DATE=$(date +"%Y%m%d%H%M%S%Z")
+        TAG_NAME="${BRANCH_NAME}-${COMMIT_HASH::7}-${DATE}"
+        echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_ENV"
+        docker build \
+          --build-arg VITE_PUBLIC_POSTHOG_HOST=${{ secrets.VITE_PUBLIC_POSTHOG_HOST }} \
+          --build-arg VITE_PUBLIC_POSTHOG_KEY=${{ secrets.VITE_PUBLIC_POSTHOG_KEY }} \
+          -t registry.cn-hangzhou.aliyuncs.com/${{ secrets.REGISTRY_USERNAME }}/apo-front:$TAG_NAME ./frontend
+
+    - name: Log in to container registry
+      uses: docker/login-action@v3
+      with:
+        registry: registry.cn-hangzhou.aliyuncs.com
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+
+    - name: Push to Container Registry
+      run: |
+        echo "TAG_NAME=$TAG_NAME"
+        docker push registry.cn-hangzhou.aliyuncs.com/${{ secrets.REGISTRY_USERNAME }}/apo-front:$TAG_NAME 
