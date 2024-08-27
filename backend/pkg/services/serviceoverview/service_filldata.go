@@ -112,7 +112,7 @@ func (s *service) EndpointsREDMetric(startTime, endTime time.Time, filter Endpoi
 		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(filter.ServiceName))
 	}
 	if len(filter.EndpointName) > 0 {
-		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(filter.ServiceName))
+		filters = append(filters, prom.ContentKeyRegexPQLFilter, prom.RegexContainsValue(filter.EndpointName))
 	}
 	if len(filter.Namespace) > 0 {
 		filters = append(filters, prom.NamespacePQLFilter, filter.Namespace)
@@ -134,7 +134,7 @@ func (s *service) EndpointsRealtimeREDMetric(filter EndpointsFilter, endpointsMa
 		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(filter.ServiceName))
 	}
 	if len(filter.EndpointName) > 0 {
-		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(filter.ServiceName))
+		filters = append(filters, prom.ContentKeyRegexPQLFilter, prom.RegexContainsValue(filter.EndpointName))
 	}
 	if len(filter.Namespace) > 0 {
 		filters = append(filters, prom.NamespacePQLFilter, filter.Namespace)
