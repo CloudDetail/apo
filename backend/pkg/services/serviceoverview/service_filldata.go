@@ -723,36 +723,40 @@ func SetValue(e *Endpoint, metricGroup, metricName string, value float64) bool {
 	case REALTIME:
 		switch metricName {
 		case LATENCY:
-			e.Avg1minLatency = &value
+			micros := value / 1e3
+			e.Avg1minLatency = &micros
 		case ERROR:
 			e.Avg1minErrorRate = &value
 		}
 	case AVG:
 		switch metricName {
 		case LATENCY:
-			e.AvgLatency = &value
+			micros := value / 1e3
+			e.AvgLatency = &micros
 		case ERROR:
 			e.AvgErrorRate = &value
 		case THROUGHPUT:
 			e.AvgTPS = &value
 		}
 	case DOD:
+		radio := (value - 1) * 100
 		switch metricName {
 		case LATENCY:
-			e.LatencyDayOverDay = &value
+			e.LatencyDayOverDay = &radio
 		case ERROR:
-			e.ErrorRateDayOverDay = &value
+			e.ErrorRateDayOverDay = &radio
 		case THROUGHPUT:
-			e.TPSDayOverDay = &value
+			e.TPSDayOverDay = &radio
 		}
 	case WOW:
+		radio := (value - 1) * 100
 		switch metricName {
 		case LATENCY:
-			e.LatencyWeekOverWeek = &value
+			e.LatencyWeekOverWeek = &radio
 		case ERROR:
-			e.ErrorRateWeekOverWeek = &value
+			e.ErrorRateWeekOverWeek = &radio
 		case THROUGHPUT:
-			e.TPSWeekOverWeek = &value
+			e.TPSWeekOverWeek = &radio
 		}
 	}
 
