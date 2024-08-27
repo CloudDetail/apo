@@ -197,8 +197,8 @@ func (s *service) queryDescendantStatus(services []string, endpoints []string, s
 		prom.PQLAvgDepLatencyWithFilters,
 		startTime, endTime,
 		prom.EndpointGranularity,
-		prom.ServiceRegexPQLFilter, prom.MultipleValue(services...),
-		prom.ContentKeyRegexPQLFilter, prom.MultipleValue(endpoints...))
+		prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
+		prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(endpoints...))
 	if err != nil {
 		return nil, err
 	}
@@ -207,8 +207,8 @@ func (s *service) queryDescendantStatus(services []string, endpoints []string, s
 		prom.PQLAvgLatencyWithFilters,
 		startTime, endTime,
 		prom.EndpointGranularity,
-		prom.ServiceRegexPQLFilter, prom.MultipleValue(services...),
-		prom.ContentKeyRegexPQLFilter, prom.MultipleValue(endpoints...))
+		prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
+		prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(endpoints...))
 	if err != nil {
 		return nil, err
 	}
@@ -217,8 +217,8 @@ func (s *service) queryDescendantStatus(services []string, endpoints []string, s
 		prom.DayOnDay(prom.PQLAvgLatencyWithFilters),
 		startTime, endTime,
 		prom.EndpointGranularity,
-		prom.ServiceRegexPQLFilter, prom.MultipleValue(services...),
-		prom.ContentKeyRegexPQLFilter, prom.MultipleValue(endpoints...))
+		prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
+		prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(endpoints...))
 	if err != nil {
 		return nil, err
 	}
@@ -227,8 +227,8 @@ func (s *service) queryDescendantStatus(services []string, endpoints []string, s
 		prom.DayOnDay(prom.PQLAvgErrorRateWithFilters),
 		startTime, endTime,
 		prom.EndpointGranularity,
-		prom.ServiceRegexPQLFilter, prom.MultipleValue(services...),
-		prom.ContentKeyRegexPQLFilter, prom.MultipleValue(endpoints...))
+		prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
+		prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(endpoints...))
 	if err != nil {
 		return nil, err
 	}
@@ -236,8 +236,8 @@ func (s *service) queryDescendantStatus(services []string, endpoints []string, s
 		prom.DayOnDay(prom.PQLAvgTPSWithFilters),
 		startTime, endTime,
 		prom.EndpointGranularity,
-		prom.ServiceRegexPQLFilter, prom.MultipleValue(services...),
-		prom.ContentKeyRegexPQLFilter, prom.MultipleValue(endpoints...))
+		prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
+		prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(endpoints...))
 
 	if err != nil {
 		return nil, err

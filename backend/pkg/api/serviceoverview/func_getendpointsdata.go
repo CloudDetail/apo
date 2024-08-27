@@ -40,16 +40,18 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 		}
 		var startTime time.Time
 		var endTime time.Time
-		req.StartTime = req.StartTime / 1000000 //接收的微秒级别的startTime和endTime需要先转成秒级别
-		req.EndTime = req.EndTime / 1000000     //接收的微秒级别的startTime和endTime需要先转成秒级别
-		startTime = time.Unix(req.StartTime, 0)
-		endTime = time.Unix(req.EndTime, 0)
+		startTime = time.UnixMicro(req.StartTime)
+		endTime = time.UnixMicro(req.EndTime)
 		step := time.Duration(req.Step * 1000)
-		//step := time.Minute
-		serviceName := req.ServiceName
 		sortRule := serviceoverview.SortType(req.SortRule)
-		var res []response.ServiceEndPointsRes
-		data, err := h.serviceoverview.GetServicesEndPointData(startTime, endTime, step, serviceName, sortRule)
+
+		filter := serviceoverview.EndpointsFilter{
+			ServiceName:  req.ServiceName,
+			EndpointName: req.EndpointName,
+			Namespace:    req.Namespace,
+		}
+
+		data, err := h.serviceoverview.GetServicesEndPointData(startTime, endTime, step, filter, sortRule)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -58,12 +60,11 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 			)
 			return
 		}
-		if data != nil {
-			res = data
-		} else {
-			res = []response.ServiceEndPointsRes{} // 确保返回一个空数组
+
+		if data == nil {
+			data = []response.ServiceEndPointsRes{}
 		}
 
-		c.Payload(res)
+		c.Payload(data)
 	}
 }

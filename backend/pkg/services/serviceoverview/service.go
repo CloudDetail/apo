@@ -18,8 +18,9 @@ type Service interface {
 	GetThreshold(level string, serviceName string, endPoint string) (res response.GetThresholdResponse, err error)
 	SetThreshold(level string, serviceName string, endPoint string, latency float64, errorRate float64, tps float64, log float64) (res response.SetThresholdResponse, err error)
 	GetServicesAlert(startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error)
-	GetServicesEndPointData(startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule SortType) (res []response.ServiceEndPointsRes, err error)
+	GetServicesEndPointData(startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule SortType) (res []response.ServiceEndPointsRes, err error)
 }
+
 type service struct {
 	dbRepo   database.Repo
 	promRepo prometheus.Repo
@@ -32,4 +33,10 @@ func New(chRepo clickhouse.Repo, dbRepo database.Repo, promRepo prometheus.Repo)
 		promRepo: promRepo,
 		chRepo:   chRepo,
 	}
+}
+
+type EndpointsFilter struct {
+	ServiceName  string
+	EndpointName string
+	Namespace    string // 仅支持容器服务,基于Namespace过滤
 }

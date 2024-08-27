@@ -103,9 +103,14 @@ type GetServiceEndPointListRequest struct {
 	ServiceName string `form:"service"`                                      // 查询服务名
 }
 type GetEndPointsDataRequest struct {
-	StartTime   int64  `form:"startTime" binding:"required"`                 // 查询开始时间
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Step        int64  `form:"step" binding:"required"`                      // 步长
-	ServiceName string `form:"serviceName"`                                  // 应用名
-	SortRule    int    `form:"sortRule" binding:"required"`                  //排序逻辑
+	// 筛选条件
+	ServiceName  string `form:"serviceName"`  // 应用名,包含匹配
+	EndpointName string `form:"endpointName"` // 端点名,包含匹配
+	Namespace    string `form:"namespace"`    // 指定命名空间,完全匹配
+
+	// 查询条件
+	StartTime int64 `form:"startTime" binding:"required"`                 // 查询开始时间
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+	Step      int64 `form:"step" binding:"required"`                      // 步长
+	SortRule  int   `form:"sortRule" binding:"required"`                  //排序逻辑
 }
