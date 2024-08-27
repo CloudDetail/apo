@@ -3,10 +3,10 @@
   "version": "0.1",
   "author": "云观秋毫",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build --mode production ",
     "lint": "eslint \"src/**/*.js\"",
-    "serve": "vite preview",
-    "start": "vite --host"
+    "serve": "vite preview --mode production",
+    "start": "vite --host --mode development"
   },
   "dependencies": {
     "@coreui/chartjs": "^4.0.0",
@@ -52,6 +52,7 @@
     "react-router-dom": "^6.23.1",
     "react-select": "^5.8.0",
     "react-table": "^7.8.0",
+    "react-use": "^17.5.1",
     "reactflow": "^11.11.4",
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",

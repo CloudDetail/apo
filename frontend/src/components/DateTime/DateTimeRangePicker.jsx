@@ -29,6 +29,8 @@ import {
 } from 'src/store/reducers/timeRangeReducer'
 import { convertTime, ISOToTimestamp, TimestampToISO } from 'src/utils/time'
 import { useLocation, useSearchParams } from 'react-router-dom'
+import { useUpdateEffect } from 'react-use'
+
 const DateTimeRangePicker = React.memo((props) => {
   const location = useLocation()
   const [dropdownVisible, setDropdownVisible] = useState(false)
@@ -113,7 +115,7 @@ const DateTimeRangePicker = React.memo((props) => {
   }, [dropdownVisible])
   // 存储数据变了初始化该组件的数据
 
-  useEffect(() => {
+  useUpdateEffect(() => {
     initTimeRange()
     updataUrlTimeRange()
   }, [storeTimeRange])
