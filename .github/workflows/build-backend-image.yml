@@ -8,7 +8,7 @@ on:
     paths:
       - 'backend/**'
 jobs:
-  build-backend:
+  build-frontend:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
