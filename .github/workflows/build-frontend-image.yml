@@ -17,6 +17,8 @@ env:
 jobs:
   build-frontend:
     runs-on: ubuntu-latest
+    outputs:
+      IMAGE_TAG_NAME: ${{ steps.build-image.outputs.IMAGE_TAG_NAME }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -25,13 +27,16 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Build frontend image
+      id: build-image
       env:
         BRANCH_NAME: ${{ github.ref_name }}
         COMMIT_HASH: ${{ github.sha }}
       run: |
         DATE=$(date +"%Y%m%d%H%M%S%Z")
-        TAG_NAME="${BRANCH_NAME}-${COMMIT_HASH::7}-${DATE}"
-        IMAGE_FULL_NAME="${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.CONTAINER_NAME }}:$TAG_NAME"
+        IMAGE_TAG_NAME="${BRANCH_NAME}-${COMMIT_HASH::7}-${DATE}"
+        echo "IMAGE_TAG_NAME=$IMAGE_TAG_NAME" >> "$GITHUB_OUTPUT"
+
+        IMAGE_FULL_NAME="${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.CONTAINER_NAME }}:$IMAGE_TAG_NAME"
         echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME" >> "$GITHUB_ENV"
         docker build \
           --build-arg VITE_PUBLIC_POSTHOG_HOST=${{ secrets.VITE_PUBLIC_POSTHOG_HOST }} \
@@ -49,3 +54,16 @@ jobs:
       run: |
         echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME"
         docker push $IMAGE_FULL_NAME
+
+  deploy-dev:
+    runs-on: [self-hosted, dev]
+    needs: [build-frontend]
+    steps:
+    - name: Deploy to dev
+      env: 
+        IMAGE_TAG_NAME: ${{ needs.build-frontend.outputs.IMAGE_TAG_NAME }}
+      run: |
+        IMAGE_FULL_NAME="${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.CONTAINER_NAME }}:$IMAGE_TAG_NAME"
+        echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME"
+        export KUBECONFIG="/root/.kube/config"
+        kubectl set image deployment ${{ env.DEPLOYMENT_NAME }} ${{ env.CONTAINER_NAME }}=$IMAGE_FULL_NAME -n ${{ env.NAMESPACE }}
