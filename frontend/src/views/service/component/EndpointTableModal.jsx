@@ -12,6 +12,8 @@ function EndpointTableModal(props) {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState([])
   const navigate = useNavigate()
+  const [pageIndex, setPageIndex] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   useEffect(() => {
     if (visible && serviceName) {
@@ -116,21 +118,34 @@ function EndpointTableModal(props) {
       },
     },
   ]
+  const handleTableChange = (props) => {
+    if (props.pageSize && props.pageIndex) {
+      setPageSize(props.pageSize), setPageIndex(props.pageIndex)
+    }
+  }
   const tableProps = useMemo(() => {
+    const paginatedData = data.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)
     return {
       columns: column,
-      data: data,
+      data: paginatedData,
       showBorder: true,
       loading: loading,
-      pagination:{
-        pageSize: 10,
-    pageIndex: 1,
-    pageCount:  Math.ceil(data.length/10),
-      }
+      onChange: handleTableChange,
+      pagination: {
+        pageSize: pageSize,
+        pageIndex: pageIndex,
+        pageCount: Math.ceil(data.length / pageSize),
+      },
     }
-  }, [data, loading])
+  }, [data, loading, pageIndex, pageSize])
   return (
-    <CModal visible={visible} alignment="center" size="xl" className="absolute-modal" onClose={closeModal}>
+    <CModal
+      visible={visible}
+      alignment="center"
+      size="xl"
+      className="absolute-modal"
+      onClose={closeModal}
+    >
       <CModalHeader>
         <CModalTitle>{serviceName}下所有服务端点数据</CModalTitle>
       </CModalHeader>

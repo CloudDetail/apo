@@ -288,7 +288,7 @@ export default function ServiceView() {
       pagination: {
         pageSize: pageSize,
         pageIndex: pageIndex,
-        pageCount: Math.ceil(data.length / 10),
+        pageCount: Math.ceil(data.length / pageSize),
       },
     }
   }, [data, pageIndex, pageSize])
