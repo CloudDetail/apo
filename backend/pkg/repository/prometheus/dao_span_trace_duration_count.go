@@ -137,7 +137,7 @@ func (repo *promRepo) GetInstanceList(startTime int64, endTime int64, serviceNam
 }
 
 func (repo *promRepo) GetMultiServicesInstanceList(startTime int64, endTime int64, services []string) (map[string]*model.ServiceInstances, error) {
-	var queryCondition = fmt.Sprintf("svc_name=~'%s'", MultipleValue(services...))
+	var queryCondition = fmt.Sprintf("svc_name=~'%s'", RegexMultipleValue(services...))
 	query := fmt.Sprintf(TEMPLATE_GET_SERVICE_INSTANCE, queryCondition, VecFromS2E(startTime, endTime))
 	res, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
 	if err != nil {

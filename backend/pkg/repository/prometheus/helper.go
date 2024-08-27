@@ -18,6 +18,7 @@ const (
 	ContentKeyRegexPQLFilter = "content_key=~"
 	ServicePQLFilter         = "svc_name="
 	ServiceRegexPQLFilter    = "svc_name=~"
+	NamespacePQLFilter       = "namespace="
 	ContainerIdPQLFilter     = "container_id="
 	IsErrorPQLFilter         = "is_error="
 
@@ -30,6 +31,7 @@ type Granularity string
 const (
 	SVCGranularity      Granularity = "svc_name"
 	EndpointGranularity Granularity = "svc_name, content_key"
+	InstanceGranularity Granularity = "svc_name, content_key, container_id, node_name, pid"
 )
 
 // AggPQLWithFilters 生成PQL语句
@@ -65,13 +67,20 @@ func VecFromDuration(duration time.Duration) (vec string) {
 	return vec
 }
 
-// MultipleValue 创建匹配多个目标值的正则表达式
+// RegexMultipleValue 创建匹配多个目标值的正则表达式
 // 需要配合 xxxRegexPQLFilter 使用
-func MultipleValue(key ...string) string {
+func RegexMultipleValue(key ...string) string {
 	escapedKeys := make([]string, len(key))
 	for i, key := range key {
 		escapedKeys[i] = EscapeRegexp(key)
 	}
 	// 使用 strings.Join 生成正则表达式模式
 	return strings.Join(escapedKeys, "|")
+}
+
+// RegexContainsValue 创建匹配单个目标值的正则表达式
+// 需要配合 xxxRegexPQLFilter 使用
+func RegexContainsValue(key string) string {
+	escapedKey := EscapeRegexp(key)
+	return ".*" + escapedKey + ".*"
 }

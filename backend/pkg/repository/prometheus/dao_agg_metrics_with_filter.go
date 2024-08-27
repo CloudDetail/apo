@@ -26,3 +26,12 @@ func DayOnDay(pqlTemplate AggPQLWithFilters) AggPQLWithFilters {
 		return `(` + nowPql + `) / ` + `(` + nowPql + ` offset 24h )`
 	}
 }
+
+// 计算指标日同比变化率
+func WeekOnWeek(pqlTemplate AggPQLWithFilters) AggPQLWithFilters {
+	return func(vector string, granularity string, filterKVs []string) string {
+		nowPql := pqlTemplate(vector, granularity, filterKVs)
+
+		return `(` + nowPql + `) / ` + `(` + nowPql + ` offset 7d )`
+	}
+}

@@ -18,7 +18,7 @@ const queryProcessStartPromQL = "avg by (node_ip, node_name, pid) (originx_proce
 // 返回结果中包含了查询pid在多个节点上的进程，因此需要根据node_name进行筛选
 func (repo *promRepo) QueryProcessStartTime(startTime time.Time, endTime time.Time, step time.Duration, pids []string) (map[model.ServiceInstance]int64, error) {
 	// pid 有可能在不同主机上是重复的，无法在查询时筛选出对应node和pid的数据，因此查询后要针对node_name进行筛选
-	var queryCondition = fmt.Sprintf("pid=~'%s'", MultipleValue(pids...))
+	var queryCondition = fmt.Sprintf("pid=~'%s'", RegexMultipleValue(pids...))
 	tRange := v1.Range{
 		Start: startTime,
 		End:   endTime,
