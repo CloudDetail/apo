@@ -7,8 +7,15 @@ on:
       - main
     paths:
       - 'frontend/**'
+
+env:
+  REGISTRY_HOST: registry.cn-hangzhou.aliyuncs.com
+  CONTAINER_NAME: apo-front
+  DEPLOYMENT_NAME: apo-front
+  NAMESPACE: apo
+
 jobs:
-  build-backend:
+  build-frontend:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -17,27 +24,28 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build backend image
+    - name: Build frontend image
       env:
         BRANCH_NAME: ${{ github.ref_name }}
         COMMIT_HASH: ${{ github.sha }}
       run: |
         DATE=$(date +"%Y%m%d%H%M%S%Z")
         TAG_NAME="${BRANCH_NAME}-${COMMIT_HASH::7}-${DATE}"
-        echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_ENV"
+        IMAGE_FULL_NAME="${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.CONTAINER_NAME }}:$TAG_NAME"
+        echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME" >> "$GITHUB_ENV"
         docker build \
           --build-arg VITE_PUBLIC_POSTHOG_HOST=${{ secrets.VITE_PUBLIC_POSTHOG_HOST }} \
           --build-arg VITE_PUBLIC_POSTHOG_KEY=${{ secrets.VITE_PUBLIC_POSTHOG_KEY }} \
-          -t registry.cn-hangzhou.aliyuncs.com/${{ secrets.REGISTRY_USERNAME }}/apo-front:$TAG_NAME ./frontend
+          -t $IMAGE_FULL_NAME ./frontend
 
     - name: Log in to container registry
       uses: docker/login-action@v3
       with:
-        registry: registry.cn-hangzhou.aliyuncs.com
+        registry: ${{ env.REGISTRY_HOST }}
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
 
-    - name: Push to Container Registry
+    - name: Push to container registry
       run: |
-        echo "TAG_NAME=$TAG_NAME"
-        docker push registry.cn-hangzhou.aliyuncs.com/${{ secrets.REGISTRY_USERNAME }}/apo-front:$TAG_NAME 
+        echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME"
+        docker push $IMAGE_FULL_NAME

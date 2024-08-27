@@ -7,8 +7,15 @@ on:
       - main
     paths:
       - 'backend/**'
+
+env:
+  REGISTRY_HOST: registry.cn-hangzhou.aliyuncs.com
+  CONTAINER_NAME: apo-backend
+  DEPLOYMENT_NAME: apo-backend
+  NAMESPACE: apo
+
 jobs:
-  build-frontend:
+  build-backend:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -24,17 +31,18 @@ jobs:
       run: |
         DATE=$(date +"%Y%m%d%H%M%S%Z")
         TAG_NAME="${BRANCH_NAME}-${COMMIT_HASH::7}-${DATE}"
-        echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_ENV"
-        docker build -t registry.cn-hangzhou.aliyuncs.com/${{ secrets.REGISTRY_USERNAME }}/apo-backend:$TAG_NAME ./backend
+        IMAGE_FULL_NAME="${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.CONTAINER_NAME }}:$TAG_NAME"
+        echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME" >> "$GITHUB_ENV"
+        docker build -t $IMAGE_FULL_NAME ./backend
 
     - name: Log in to container registry
       uses: docker/login-action@v3
       with:
-        registry: registry.cn-hangzhou.aliyuncs.com
+        registry: ${{ env.REGISTRY_HOST }}
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
 
-    - name: Push to Container Registry
+    - name: Push to container registry
       run: |
-        echo "TAG_NAME=$TAG_NAME"
-        docker push registry.cn-hangzhou.aliyuncs.com/${{ secrets.REGISTRY_USERNAME }}/apo-backend:$TAG_NAME 
+        echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME"
+        docker push $IMAGE_FULL_NAME
