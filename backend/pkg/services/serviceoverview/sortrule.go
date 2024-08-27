@@ -24,8 +24,8 @@ func sortByDODThreshold(endpoints []*Endpoint) {
 			if endpoints[i].LatencyDayOverDay != nil && endpoints[j].LatencyDayOverDay != nil && endpoints[i].LatencyDayOverDay != endpoints[j].LatencyDayOverDay {
 				return *endpoints[i].LatencyDayOverDay > *endpoints[j].LatencyDayOverDay
 			}
-			if endpoints[i].TPSDayOverDay != nil && endpoints[j].TPSDayOverDay != nil {
-				return *endpoints[i].TPSDayOverDay > *endpoints[j].TPSDayOverDay
+			if endpoints[i].TPMDayOverDay != nil && endpoints[j].TPMDayOverDay != nil {
+				return *endpoints[i].TPMDayOverDay > *endpoints[j].TPMDayOverDay
 			}
 		}
 		//count = 2的比较方式
@@ -40,8 +40,8 @@ func sortByDODThreshold(endpoints []*Endpoint) {
 				if endpoints[i].LatencyDayOverDay != nil && endpoints[j].LatencyDayOverDay != nil && endpoints[i].LatencyDayOverDay != endpoints[j].LatencyDayOverDay {
 					return *endpoints[i].LatencyDayOverDay > *endpoints[j].LatencyDayOverDay
 				}
-				if endpoints[i].TPSDayOverDay != nil && endpoints[j].TPSDayOverDay != nil {
-					return *endpoints[i].TPSDayOverDay > *endpoints[j].TPSDayOverDay
+				if endpoints[i].TPMDayOverDay != nil && endpoints[j].TPMDayOverDay != nil {
+					return *endpoints[i].TPMDayOverDay > *endpoints[j].TPMDayOverDay
 				}
 			}
 
@@ -54,8 +54,8 @@ func sortByDODThreshold(endpoints []*Endpoint) {
 						return *endpoints[i].AvgErrorRate > *endpoints[j].AvgErrorRate
 					}
 				}
-				if endpoints[i].TPSDayOverDay != nil && endpoints[j].TPSDayOverDay != nil {
-					return *endpoints[i].TPSDayOverDay > *endpoints[j].TPSDayOverDay
+				if endpoints[i].TPMDayOverDay != nil && endpoints[j].TPMDayOverDay != nil {
+					return *endpoints[i].TPMDayOverDay > *endpoints[j].TPMDayOverDay
 				}
 			}
 			if endpoints[i].IsTPSExceeded == endpoints[j].IsTPSExceeded && endpoints[j].IsTPSExceeded == false {
@@ -71,8 +71,8 @@ func sortByDODThreshold(endpoints []*Endpoint) {
 					return *endpoints[i].LatencyDayOverDay > *endpoints[j].LatencyDayOverDay
 				}
 
-				if endpoints[i].TPSDayOverDay != nil && endpoints[j].TPSDayOverDay != nil {
-					return *endpoints[i].TPSDayOverDay > *endpoints[j].TPSDayOverDay
+				if endpoints[i].TPMDayOverDay != nil && endpoints[j].TPMDayOverDay != nil {
+					return *endpoints[i].TPMDayOverDay > *endpoints[j].TPMDayOverDay
 				}
 			}
 
@@ -96,8 +96,8 @@ func sortByDODThreshold(endpoints []*Endpoint) {
 			if endpoints[i].LatencyDayOverDay != nil && endpoints[j].LatencyDayOverDay != nil && endpoints[i].IsLatencyExceeded == endpoints[j].IsLatencyExceeded && endpoints[j].IsLatencyExceeded == true {
 				return *endpoints[i].LatencyDayOverDay > *endpoints[j].LatencyDayOverDay
 			}
-			if endpoints[i].TPSDayOverDay != nil && endpoints[j].TPSDayOverDay != nil && endpoints[i].IsTPSExceeded == endpoints[j].IsTPSExceeded && endpoints[j].IsTPSExceeded == true {
-				return *endpoints[i].TPSDayOverDay > *endpoints[j].TPSDayOverDay
+			if endpoints[i].TPMDayOverDay != nil && endpoints[j].TPMDayOverDay != nil && endpoints[i].IsTPSExceeded == endpoints[j].IsTPSExceeded && endpoints[j].IsTPSExceeded == true {
+				return *endpoints[i].TPMDayOverDay > *endpoints[j].TPMDayOverDay
 			}
 		}
 		if endpoints[i].Count == endpoints[j].Count && endpoints[i].Count == 0 {
@@ -107,7 +107,7 @@ func sortByDODThreshold(endpoints []*Endpoint) {
 			if endpoints[i].ErrorRateDayOverDay == endpoints[j].ErrorRateDayOverDay && endpoints[i].LatencyDayOverDay != nil && endpoints[j].LatencyDayOverDay == nil {
 				return true
 			}
-			if endpoints[i].ErrorRateDayOverDay == endpoints[j].ErrorRateDayOverDay && endpoints[i].LatencyDayOverDay == endpoints[j].LatencyDayOverDay && endpoints[i].TPSDayOverDay != nil && endpoints[j].TPSDayOverDay == nil {
+			if endpoints[i].ErrorRateDayOverDay == endpoints[j].ErrorRateDayOverDay && endpoints[i].LatencyDayOverDay == endpoints[j].LatencyDayOverDay && endpoints[i].TPMDayOverDay != nil && endpoints[j].TPMDayOverDay == nil {
 				return true
 			}
 			if endpoints[i].ErrorRateDayOverDay != nil && endpoints[j].ErrorRateDayOverDay != nil && endpoints[i].ErrorRateDayOverDay != endpoints[j].ErrorRateDayOverDay {
@@ -121,8 +121,8 @@ func sortByDODThreshold(endpoints []*Endpoint) {
 			if endpoints[i].LatencyDayOverDay != nil && endpoints[j].LatencyDayOverDay != nil && endpoints[i].LatencyDayOverDay != endpoints[j].LatencyDayOverDay {
 				return *endpoints[i].LatencyDayOverDay > *endpoints[j].LatencyDayOverDay
 			}
-			if endpoints[i].TPSDayOverDay != nil && endpoints[j].TPSDayOverDay != nil && endpoints[i].TPSDayOverDay != endpoints[j].TPSDayOverDay {
-				return *endpoints[i].TPSDayOverDay > *endpoints[j].TPSDayOverDay
+			if endpoints[i].TPMDayOverDay != nil && endpoints[j].TPMDayOverDay != nil && endpoints[i].TPMDayOverDay != endpoints[j].TPMDayOverDay {
+				return *endpoints[i].TPMDayOverDay > *endpoints[j].TPMDayOverDay
 			}
 
 		}
@@ -289,7 +289,7 @@ func fillServices(endpoints []*Endpoint) []serviceDetail {
 	var Services []serviceDetail
 	for _, url := range endpoints {
 		//如果没有数据则不返回
-		if (url.AvgLatency == nil && url.AvgErrorRate == nil) || (url.AvgLatency == nil && url.AvgErrorRate != nil && *url.AvgErrorRate == 0 && url.AvgTPS == nil) {
+		if (url.AvgLatency == nil && url.AvgErrorRate == nil) || (url.AvgLatency == nil && url.AvgErrorRate != nil && *url.AvgErrorRate == 0 && url.AvgTPM == nil) {
 			continue
 		}
 		serviceName := url.SvcName

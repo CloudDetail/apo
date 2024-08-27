@@ -29,10 +29,10 @@ type Endpoint struct {
 	ErrorRateWeekOverWeek *float64            // 错误率周同比
 	ErrorRateData         []prometheus.Points // 错误率时间段的数据
 
-	AvgTPS          *float64            // 时间段内的平均TPS
-	TPSDayOverDay   *float64            // TPS日同比
-	TPSWeekOverWeek *float64            // TPS周同比
-	TPSData         []prometheus.Points // TPS 时间段的数据
+	AvgTPM          *float64            // 时间段内的平均每分钟请求数
+	TPMDayOverDay   *float64            // TPM日同比
+	TPMWeekOverWeek *float64            // TPM周同比
+	TPMData         []prometheus.Points // TPM 时间段的数据
 
 }
 type serviceDetail struct {

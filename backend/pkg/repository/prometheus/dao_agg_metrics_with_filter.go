@@ -23,7 +23,7 @@ func DayOnDay(pqlTemplate AggPQLWithFilters) AggPQLWithFilters {
 	return func(vector string, granularity string, filterKVs []string) string {
 		nowPql := pqlTemplate(vector, granularity, filterKVs)
 
-		return `(` + nowPql + `) / ` + `(` + nowPql + ` offset 24h )`
+		return `(` + nowPql + `) / ` + `((` + nowPql + `) offset 24h )`
 	}
 }
 
@@ -32,6 +32,6 @@ func WeekOnWeek(pqlTemplate AggPQLWithFilters) AggPQLWithFilters {
 	return func(vector string, granularity string, filterKVs []string) string {
 		nowPql := pqlTemplate(vector, granularity, filterKVs)
 
-		return `(` + nowPql + `) / ` + `(` + nowPql + ` offset 7d )`
+		return `(` + nowPql + `) / ` + `((` + nowPql + `) offset 7d )`
 	}
 }

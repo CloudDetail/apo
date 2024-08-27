@@ -14,8 +14,6 @@ func (s *service) GetServicesEndPointData(startTime time.Time, endTime time.Time
 	var stepNS = endTime.Sub(startTime).Nanoseconds()
 	duration = strconv.FormatInt(stepNS/int64(time.Minute), 10) + "m"
 
-	// TODO step0 统计查询时段内满足Filter的Svc总数完成分页
-
 	// step1 查询满足Filter的Endpoint,并返回对应的RED指标
 	// RED指标包含了选定时间段内的平均值,日同比变化率和周同比变化率
 	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filter)
@@ -151,20 +149,20 @@ func (*service) extractDetail(service serviceDetail, startTime time.Time, endTim
 			newErrorRate.ChartData = values
 		}
 		newtpsRadio := response.Ratio{
-			DayOverDay:  endpoint.TPSDayOverDay,
-			WeekOverDay: endpoint.TPSWeekOverWeek,
+			DayOverDay:  endpoint.TPMDayOverDay,
+			WeekOverDay: endpoint.TPMWeekOverWeek,
 		}
 		newtpsRate := response.TempChartObject{
 			//ChartData: map[int64]float64{},
 			Ratio: newtpsRadio,
 		}
-		if endpoint.AvgTPS != nil && !math.IsInf(*endpoint.AvgTPS, 0) { //为无穷大时则不赋值
-			newtpsRate.Value = endpoint.AvgTPS
+		if endpoint.AvgTPM != nil && !math.IsInf(*endpoint.AvgTPM, 0) { //为无穷大时则不赋值
+			newtpsRate.Value = endpoint.AvgTPM
 		}
-		if endpoint.TPSData != nil {
+		if endpoint.TPMData != nil {
 			data := make(map[int64]float64)
 			// 将chartData转换为map
-			for _, item := range endpoint.TPSData {
+			for _, item := range endpoint.TPMData {
 				timestamp := item.TimeStamp
 				value := item.Value
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值

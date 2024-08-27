@@ -81,7 +81,7 @@ func (s *service) UrlAVG(Urls *[]Endpoint, serviceName string, endTime time.Time
 			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Urls)[i].AvgTPS = &value
+					(*Urls)[i].AvgTPM = &value
 				}
 				break
 			}
@@ -92,7 +92,7 @@ func (s *service) UrlAVG(Urls *[]Endpoint, serviceName string, endTime time.Time
 				SvcName:    serviceName,
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newUrl.AvgTPS = &value
+				newUrl.AvgTPM = &value
 			}
 			*Urls = append(*Urls, newUrl)
 		}
@@ -320,7 +320,7 @@ func (s *service) UrlDOD(Urls *[]Endpoint, serviceName string, endTime time.Time
 			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Urls)[i].TPSDayOverDay = &value
+					(*Urls)[i].TPMDayOverDay = &value
 				}
 				break
 			}
@@ -331,7 +331,7 @@ func (s *service) UrlDOD(Urls *[]Endpoint, serviceName string, endTime time.Time
 				SvcName:    serviceName,
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newUrl.TPSDayOverDay = &value
+				newUrl.TPMDayOverDay = &value
 			}
 			*Urls = append(*Urls, newUrl)
 		}
@@ -382,7 +382,7 @@ func (s *service) UrlWOW(Urls *[]Endpoint, serviceName string, endTime time.Time
 			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Urls)[i].TPSWeekOverWeek = &value
+					(*Urls)[i].TPMWeekOverWeek = &value
 				}
 				break
 			}
@@ -393,7 +393,7 @@ func (s *service) UrlWOW(Urls *[]Endpoint, serviceName string, endTime time.Time
 				SvcName:    serviceName,
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newUrl.TPSWeekOverWeek = &value
+				newUrl.TPMWeekOverWeek = &value
 			}
 			*Urls = append(*Urls, newUrl)
 		}
@@ -538,7 +538,7 @@ func (s *service) EndpointRangeREDChart(Services *[]serviceDetail, startTime tim
 			for i, Url := range newUrls {
 				if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 					found = true
-					newUrls[i].TPSData = result.Values
+					newUrls[i].TPMData = result.Values
 					break
 				}
 			}
@@ -546,7 +546,7 @@ func (s *service) EndpointRangeREDChart(Services *[]serviceDetail, startTime tim
 				newUrl := Endpoint{
 					ContentKey: contentKey,
 					SvcName:    serviceName,
-					TPSData:    result.Values,
+					TPMData:    result.Values,
 				}
 				newUrls = append(newUrls, newUrl)
 			}
@@ -563,7 +563,7 @@ func (s *service) EndpointRangeREDChart(Services *[]serviceDetail, startTime tim
 					if contentKey == (*Services)[j].Endpoints[k].ContentKey {
 						(*Services)[j].Endpoints[k].LatencyData = url.LatencyData
 						(*Services)[j].Endpoints[k].ErrorRateData = url.ErrorRateData
-						(*Services)[j].Endpoints[k].TPSData = url.TPSData
+						(*Services)[j].Endpoints[k].TPMData = url.TPMData
 					}
 				}
 			}
@@ -736,7 +736,8 @@ func SetValue(e *Endpoint, metricGroup, metricName string, value float64) bool {
 		case ERROR:
 			e.AvgErrorRate = &value
 		case THROUGHPUT:
-			e.AvgTPS = &value
+			tpm := value * 60
+			e.AvgTPM = &tpm
 		}
 	case DOD:
 		radio := (value - 1) * 100
@@ -746,7 +747,7 @@ func SetValue(e *Endpoint, metricGroup, metricName string, value float64) bool {
 		case ERROR:
 			e.ErrorRateDayOverDay = &radio
 		case THROUGHPUT:
-			e.TPSDayOverDay = &radio
+			e.TPMDayOverDay = &radio
 		}
 	case WOW:
 		radio := (value - 1) * 100
@@ -756,7 +757,7 @@ func SetValue(e *Endpoint, metricGroup, metricName string, value float64) bool {
 		case ERROR:
 			e.ErrorRateWeekOverWeek = &radio
 		case THROUGHPUT:
-			e.TPSWeekOverWeek = &radio
+			e.TPMWeekOverWeek = &radio
 		}
 	}
 

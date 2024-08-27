@@ -117,15 +117,15 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 			newErrorRate.ChartData = values
 		}
 		newtpsRadio := response.Ratio{
-			DayOverDay:  url.TPSDayOverDay,
-			WeekOverDay: url.TPSWeekOverWeek,
+			DayOverDay:  url.TPMDayOverDay,
+			WeekOverDay: url.TPMWeekOverWeek,
 		}
 		newtpsRate := response.TempChartObject{
 			//ChartData: map[int64]float64{},
 			Ratio: newtpsRadio,
 		}
-		if url.AvgTPS != nil && !math.IsInf(*url.AvgTPS, 0) { //为无穷大时则不赋值
-			newtpsRate.Value = url.AvgTPS
+		if url.AvgTPM != nil && !math.IsInf(*url.AvgTPM, 0) { //为无穷大时则不赋值
+			newtpsRate.Value = url.AvgTPM
 		}
 		//没有查询到数据，is_error=true，填充为0
 		if newErrorRate.Value == nil && newtpsRate.Value != nil {
@@ -137,10 +137,10 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 			newErrorRate.Value = new(float64)
 			*newErrorRate.Value = 0
 		}
-		if url.TPSData != nil {
+		if url.TPMData != nil {
 			data := make(map[int64]float64)
 			// 将chartData转换为map
-			for _, item := range url.TPSData {
+			for _, item := range url.TPMData {
 				timestamp := item.TimeStamp
 				value := item.Value
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
