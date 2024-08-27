@@ -36,6 +36,7 @@
     "import": "^0.0.6",
     "less": "^4.2.0",
     "less-loader": "^12.2.0",
+    "posthog-js": "^1.158.1",
     "prop-types": "^15.8.1",
     "qs": "^6.13.0",
     "rc-slider": "^10.6.2",
