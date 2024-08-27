@@ -17,6 +17,8 @@ env:
 jobs:
   build-backend:
     runs-on: ubuntu-latest
+    outputs:
+      IMAGE_FULL_NAME: ${{ steps.build-image.outputs.IMAGE_FULL_NAME }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -25,6 +27,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Build backend image
+      id: build-image
       env:
         BRANCH_NAME: ${{ github.ref_name }}
         COMMIT_HASH: ${{ github.sha }}
@@ -33,6 +36,7 @@ jobs:
         TAG_NAME="${BRANCH_NAME}-${COMMIT_HASH::7}-${DATE}"
         IMAGE_FULL_NAME="${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.CONTAINER_NAME }}:$TAG_NAME"
         echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME" >> "$GITHUB_ENV"
+        echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME" >> "$GITHUB_OUTPUT"
         docker build -t $IMAGE_FULL_NAME ./backend
 
     - name: Log in to container registry
@@ -46,3 +50,14 @@ jobs:
       run: |
         echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME"
         docker push $IMAGE_FULL_NAME
+
+  deploy-dev:
+    runs-on: [self-hosted, dev]
+    needs: [build-backend]
+    steps:
+    - name: Deploy to dev
+      env: 
+        IMAGE_FULL_NAME: ${{ needs.build-backend.outputs.IMAGE_FULL_NAME }}
+      run: |
+        echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME"
+        kubectl set image deployment/$DEPLOYMENT_NAME $CONTAINER_NAME=$IMAGE_FULL_NAME -n $NAMESPACE
