@@ -25,7 +25,7 @@ type Endpoint struct {
 	LatencyWeekOverWeek *float64            // 延时周同比
 	LatencyData         []prometheus.Points // 延时时间段的数据
 
-	AvgErrorRate          *float64            // 时间段内的平均错误率
+	AvgErrorRate          *float64            // 时间段内的平均错误率, % 单位
 	ErrorRateDayOverDay   *float64            // 错误率日同比
 	ErrorRateWeekOverWeek *float64            // 错误率周同比
 	ErrorRateData         []prometheus.Points // 错误率时间段的数据

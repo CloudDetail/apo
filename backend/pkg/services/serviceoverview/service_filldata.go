@@ -752,7 +752,8 @@ func SetValue(e *Endpoint, metricGroup, metricName string, value float64) bool {
 			micros := value / 1e3
 			e.Avg1minLatency = &micros
 		case ERROR:
-			e.Avg1minErrorRate = &value
+			errorRatePercent := value * 100
+			e.Avg1minErrorRate = &errorRatePercent
 		}
 	case AVG:
 		switch metricName {
@@ -760,7 +761,8 @@ func SetValue(e *Endpoint, metricGroup, metricName string, value float64) bool {
 			micros := value / 1e3
 			e.AvgLatency = &micros
 		case ERROR:
-			e.AvgErrorRate = &value
+			errorRatePercent := value * 100
+			e.AvgErrorRate = &errorRatePercent
 		case THROUGHPUT:
 			tpm := value * 60
 			e.AvgTPM = &tpm
