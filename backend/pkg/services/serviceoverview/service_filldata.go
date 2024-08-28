@@ -703,13 +703,16 @@ func (m *EndpointsMap) MergeMetricResults(metricGroup, metricName string, metric
 		// 所有合并值均只包含最新时间点的结果,直接取metricResult.Values[0]
 		value := metricResult.Values[0].Value
 		endpoint, find := m.EndpointsMap[key]
-		if !find {
+		if !find && metricName == LATENCY {
+			// 由Latency查询结果添加新的endpoint,如果latency指标无结果, 没有添加其他指标的必要
 			endpoint = &Endpoint{
 				ContentKey: metricResult.Metric.ContentKey,
 				SvcName:    metricResult.Metric.SvcName,
 			}
 			m.Endpoints = append(m.Endpoints, endpoint)
 			m.EndpointsMap[key] = endpoint
+		} else if !find {
+			continue
 		}
 		if math.IsInf(value, 0) {
 			continue

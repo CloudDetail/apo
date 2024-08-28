@@ -50,7 +50,14 @@ func PQLAvgLatencyWithFilters(vector string, granularity string, filters []strin
 func PQLAvgErrorRateWithFilters(vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")
 
-	errorCount := `sum by (` + granularity + `) (increase(kindling_span_trace_duration_nanoseconds_count{` + filtersStr + `, is_error='true'}[` + vector + `]))`
+	var filterWithError string
+	if len(filters) > 0 {
+		filterWithError = filtersStr + `, is_error="true"`
+	} else {
+		filterWithError = `is_error="true"`
+	}
+
+	errorCount := `sum by (` + granularity + `) (increase(kindling_span_trace_duration_nanoseconds_count{` + filterWithError + `}[` + vector + `]))`
 	requestCount := `sum by (` + granularity + `) (increase(kindling_span_trace_duration_nanoseconds_count{` + filtersStr + `}[` + vector + `]))`
 
 	// ( errorCount or requestCount * 0 ) / requestCount
