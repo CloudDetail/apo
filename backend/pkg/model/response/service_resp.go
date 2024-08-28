@@ -137,7 +137,7 @@ type ServiceAlertRes struct {
 }
 type ServiceEndPointsRes struct {
 	ServiceName    string          `json:"serviceName"`
-	Namespaces     string          `json:"namespaces"` // 应用所属命名空间,可能为空; 多个之间用;分隔
+	Namespaces     []string        `json:"namespaces"` // 应用所属命名空间,可能为空
 	EndpointCount  int             `json:"endpointCount"`
 	ServiceDetails []ServiceDetail `json:"serviceDetails"`
 }

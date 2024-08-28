@@ -3,7 +3,6 @@ package serviceoverview
 import (
 	"math"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -72,7 +71,7 @@ func (s *service) GetServicesEndPointData(startTime time.Time, endTime time.Time
 
 		newServiceRes := response.ServiceEndPointsRes{
 			ServiceName:    service.ServiceName,
-			Namespaces:     strings.Join(nsList, ";"),
+			Namespaces:     nsList,
 			EndpointCount:  service.EndpointCount,
 			ServiceDetails: serviceDetails,
 		}
