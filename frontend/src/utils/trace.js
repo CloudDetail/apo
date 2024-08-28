@@ -1,6 +1,4 @@
 //skywalking traceid
-import { Buffer } from 'buffer'
-import { parse, stringify as stringifyUUID } from 'uuid'
 
 export function swTraceIDToTraceID(traceID) {
   if (traceID.length <= 36) {
