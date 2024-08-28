@@ -45,17 +45,6 @@ function EndpointTableModal(props) {
       title: '服务端点',
       accessor: 'endpoint',
       canExpand: false,
-      Cell: (props) => {
-        const endpoint = props.value
-
-        const goToInfo = () => {
-          // TODO encode
-          navigate(
-            `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}`,
-          )
-        }
-        return <a onClick={goToInfo}>{props.value}</a>
-      },
     },
     {
       title: (
@@ -118,6 +107,11 @@ function EndpointTableModal(props) {
       },
     },
   ]
+  const toServiceInfoPage = (props) => {
+    navigate(
+      `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(props.endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}`,
+    )
+  }
   const handleTableChange = (props) => {
     if (props.pageSize && props.pageIndex) {
       setPageSize(props.pageSize), setPageIndex(props.pageIndex)
@@ -131,6 +125,7 @@ function EndpointTableModal(props) {
       showBorder: true,
       loading: loading,
       onChange: handleTableChange,
+      clickRow: toServiceInfoPage,
       pagination: {
         pageSize: pageSize,
         pageIndex: pageIndex,

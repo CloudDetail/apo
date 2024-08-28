@@ -83,7 +83,7 @@ const TempCell = (props) => {
       <div className="flex items-center flex-row flex-wrap justify-center pr-5">
         <div className="flex mr-1 flex-1 justify-end">
           {/* eslint-disable-next-line react/prop-types */}
-          {displayValue}
+          <span className={displayValue === 'N/A' && 'text-slate-400'}>{displayValue}</span>
         </div>
 
         <div className="felx h-[30px] items-center flex-1">

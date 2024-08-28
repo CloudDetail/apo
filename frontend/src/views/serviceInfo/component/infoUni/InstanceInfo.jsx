@@ -104,7 +104,15 @@ export default function InstanceInfo(props) {
       accessor: `timestamp`,
       Cell: (props) => {
         const { value } = props
-        return <>{value !== null ? convertTime(value, 'yyyy-mm-dd hh:mm:ss') : 'N/A'} </>
+        return (
+          <>
+            {value !== null ? (
+              convertTime(value, 'yyyy-mm-dd hh:mm:ss')
+            ) : (
+              <span className="text-slate-400">N/A</span>
+            )}
+          </>
+        )
       },
     },
   ]
