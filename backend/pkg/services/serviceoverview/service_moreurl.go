@@ -69,13 +69,13 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	}
 
 	//将所有url存到对应的service中
-	Services := fillOneService(endpoints)
+	services := fillOneService(endpoints)
 
 	//查询service的所有url数据,并填充
-	s.EndpointRangeREDChart(&Services, startTime, endTime, duration, step)
+	s.EndpointRangeREDChart(&services, startTime, endTime, duration, step)
 	//(searchTime.Add(-30*time.Minute), searchTime, errorDataQuery, time.Minute)
 
-	service := Services[0]
+	service := services[0]
 	var newServiceDetails []response.ServiceDetail
 	for _, url := range service.Endpoints {
 		newErrorRadio := response.Ratio{

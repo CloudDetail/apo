@@ -286,7 +286,7 @@ func sortByMutation(endpoints []*Endpoint) {
 }
 
 func fillServices(endpoints []*Endpoint) []serviceDetail {
-	var Services []serviceDetail
+	var services []serviceDetail
 	for _, url := range endpoints {
 		//如果没有数据则不返回
 		if (url.AvgLatency == nil && url.AvgErrorRate == nil) || (url.AvgLatency == nil && url.AvgErrorRate != nil && *url.AvgErrorRate == 0 && url.AvgTPM == nil) {
@@ -294,13 +294,13 @@ func fillServices(endpoints []*Endpoint) []serviceDetail {
 		}
 		serviceName := url.SvcName
 		found := false
-		for j, _ := range Services {
-			if Services[j].ServiceName == serviceName {
+		for j, _ := range services {
+			if services[j].ServiceName == serviceName {
 				found = true
-				Services[j].EndpointCount++
-				if Services[j].ServiceSize < 3 {
-					Services[j].Endpoints = append(Services[j].Endpoints, url)
-					Services[j].ServiceSize++
+				services[j].EndpointCount++
+				if services[j].ServiceSize < 3 {
+					services[j].Endpoints = append(services[j].Endpoints, url)
+					services[j].ServiceSize++
 					break
 				}
 			}
@@ -312,24 +312,24 @@ func fillServices(endpoints []*Endpoint) []serviceDetail {
 				EndpointCount: 1,
 				Endpoints:     []*Endpoint{url},
 			}
-			Services = append(Services, newService)
+			services = append(services, newService)
 		}
 	}
 
-	return Services
+	return services
 }
 
 func fillOneService(endpoints []*Endpoint) []serviceDetail {
-	var Services []serviceDetail
+	var service []serviceDetail
 	for _, url := range endpoints {
 		serviceName := url.SvcName
 		found := false
-		for j, _ := range Services {
-			if Services[j].ServiceName == serviceName {
+		for j, _ := range service {
+			if service[j].ServiceName == serviceName {
 				found = true
-				Services[j].EndpointCount++
-				Services[j].Endpoints = append(Services[j].Endpoints, url)
-				Services[j].ServiceSize++
+				service[j].EndpointCount++
+				service[j].Endpoints = append(service[j].Endpoints, url)
+				service[j].ServiceSize++
 				break
 			}
 		}
@@ -340,9 +340,9 @@ func fillOneService(endpoints []*Endpoint) []serviceDetail {
 				EndpointCount: 1,
 				Endpoints:     []*Endpoint{url},
 			}
-			Services = append(Services, newService)
+			service = append(service, newService)
 		}
 	}
 
-	return Services
+	return service
 }
