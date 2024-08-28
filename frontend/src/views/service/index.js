@@ -14,10 +14,13 @@ import { DelaySourceTimeUnit } from 'src/constants'
 import { convertTime } from 'src/utils/time'
 import EndpointTableModal from './component/EndpointTableModal'
 import LoadingSpinner from 'src/components/Spinner'
+import { Input } from 'antd'
 export default function ServiceView() {
   const navigate = useNavigate()
   const [data, setData] = useState([])
   const [serachServiceName, setSerachServiceName] = useState()
+  const [serachEndpointName, setSerachEndpointName] = useState()
+  const [serachNamespace, setSerachNamespace] = useState()
   const [loading, setLoading] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
   const [modalServiceName, setModalServiceName] = useState()
@@ -32,6 +35,18 @@ export default function ServiceView() {
       title: '应用名称',
       accessor: 'serviceName',
       customWidth: 150,
+    },
+    {
+      title: '命名空间',
+      accessor: 'namespaces',
+      customWidth: 120,
+      Cell: (props) => {
+        return (props.value ?? []).length > 0 ? (
+          props.value.join()
+        ) : (
+          <span className="text-slate-400">N/A</span>
+        )
+      },
     },
     {
       title: '应用详情',
@@ -205,15 +220,22 @@ export default function ServiceView() {
           minWidth: 90,
           Cell: (props) => {
             const { value } = props
-            return <>{value !== null ? convertTime(value, 'yyyy-mm-dd hh:mm:ss') : 'N/A'} </>
+            return (
+              <>
+                {value !== null ? (
+                  convertTime(value, 'yyyy-mm-dd hh:mm:ss')
+                ) : (
+                  <span className="text-slate-400">N/A</span>
+                )}{' '}
+              </>
+            )
           },
         },
       ],
     },
   ]
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
-
-  useEffect(() => {
+  const getTableData = () => {
     setLoading(true)
     // 记录请求的时间范围，以便后续趋势图补0
     setRequestTimeRange({
@@ -225,6 +247,8 @@ export default function ServiceView() {
       endTime: endTime,
       step: getStep(startTime, endTime),
       serviceName: serachServiceName,
+      endpointName: serachEndpointName,
+      namespace: serachNamespace,
       sortRule: 1,
     })
       .then((res) => {
@@ -241,13 +265,27 @@ export default function ServiceView() {
         setData([])
         setLoading(false)
       })
-  }, [startTime, endTime, serachServiceName])
+  }
+  useEffect(() => {
+    getTableData()
+  }, [startTime, endTime])
 
   const handleKeyDown = (event) => {
-    if (event.key === 'Enter') {
-      setSerachServiceName(event.target.value)
-      // 在这里添加回车事件的处理逻辑
-      // 例如，你可以在这里提交表单、搜索数据等
+    getTableData()
+  }
+  const changeSearchValue = (event) => {
+    switch (event.target.id) {
+      case 'serviceName':
+        setSerachServiceName(event.target.value)
+        return
+      case 'endpointName':
+        setSerachEndpointName(event.target.value)
+        return
+      case 'namespace':
+        setSerachNamespace(event.target.value)
+        return
+      default:
+        break
     }
   }
   const getServicesAlert = (serviceNames, returnData) => {
@@ -303,12 +341,37 @@ export default function ServiceView() {
           </CToastBody>
         </div>
       </CToast>
-      <div className="p-2 my-2 flex flex-row justify-between">
+      <div className="p-2 my-2 flex flex-row">
         <div className="flex flex-row items-center mr-5 text-sm">
           <span className="text-nowrap">应用名称：</span>
-          <CFormInput placeholder="检索" size="sm" onKeyDown={handleKeyDown} />
+          <Input
+            id="serviceName"
+            placeholder="检索"
+            value={serachServiceName}
+            onChange={changeSearchValue}
+            onPressEnter={handleKeyDown}
+          />
         </div>
-
+        <div className="flex flex-row items-center mr-5 text-sm">
+          <span className="text-nowrap">服务端点：</span>
+          <Input
+            id="endpointName"
+            placeholder="检索"
+            value={serachEndpointName}
+            onChange={changeSearchValue}
+            onPressEnter={handleKeyDown}
+          />
+        </div>
+        <div className="flex flex-row items-center mr-5 text-sm">
+          <span className="text-nowrap">命名空间：</span>
+          <Input
+            id="namespace"
+            placeholder="检索"
+            value={serachNamespace}
+            onChange={changeSearchValue}
+            onPressEnter={handleKeyDown}
+          />
+        </div>
         <div>{/* <ThresholdCofigModal /> */}</div>
       </div>
 
