@@ -7,6 +7,8 @@ import { CustomSelect } from 'src/components/Select'
 import { getTimestampRange, timeRangeList } from 'src/store/reducers/timeRangeReducer'
 import { ISOToTimestamp } from 'src/utils/time'
 import { useDispatch } from 'react-redux'
+import { Segmented, Tooltip } from 'antd'
+import { swTraceIDToTraceID } from 'src/utils/trace'
 
 const LogsTraceFilter = React.memo(({ type }) => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -21,6 +23,9 @@ const LogsTraceFilter = React.memo(({ type }) => {
   const [inputEndpoint, setInputEndpoint] = useState('')
   const [startTime, setStartTime] = useState(null)
   const [endTime, setEndTime] = useState(null)
+  const [inputSWTraceId, setInputSWTraceId] = useState('')
+  const [convertTraceId, setConvertSWTraceId] = useState('')
+  const [traceType, setTraceType] = useState('TraceId')
   const [urlParam, setUrlParam] = useState({
     service: '',
     instance: '',
@@ -60,6 +65,15 @@ const LogsTraceFilter = React.memo(({ type }) => {
     setInputTraceId(event.target.value)
     updateUrlParamsState({
       traceId: event.target.value,
+    })
+  }
+  const onChangeSWTraceId = (event) => {
+    setInputSWTraceId(event.target.value)
+    const convertTraceId = swTraceIDToTraceID(event.target.value)
+    setConvertSWTraceId(convertTraceId)
+    setInputTraceId(convertTraceId)
+    updateUrlParamsState({
+      traceId: convertTraceId,
     })
   }
   const onChangeEndpoint = (event) => {
@@ -275,8 +289,25 @@ const LogsTraceFilter = React.memo(({ type }) => {
           />
         </div>
         <div className="flex flex-row items-center mr-5">
-          <span className="text-nowrap">TraceId：</span>
-          <CFormInput size="sm" value={inputTraceId} onChange={onChangeTraceId} />
+          {type === 'trace' ? (
+            <Segmented options={['TraceId', 'SWTraceId']} onChange={setTraceType} />
+          ) : (
+            <span className="text-nowrap">TraceId：</span>
+          )}
+          ：
+          {traceType === 'TraceId' ? (
+            <CFormInput size="sm" value={inputTraceId} onChange={onChangeTraceId} />
+          ) : (
+            <Tooltip
+              title={
+                convertTraceId
+                  ? '自动转换为TraceID：' + convertTraceId
+                  : '输入SkyWalking的traceid将自动转换'
+              }
+            >
+              <CFormInput size="sm" value={inputSWTraceId} onChange={onChangeSWTraceId} />
+            </Tooltip>
+          )}
         </div>
         {type === 'trace' && (
           <div className="flex flex-row items-center mr-5">
