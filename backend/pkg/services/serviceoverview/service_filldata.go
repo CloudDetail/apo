@@ -107,16 +107,7 @@ func (s *service) EndpointsREDMetric(startTime, endTime time.Time, filter Endpoi
 		EndpointsMap: map[string]*Endpoint{},
 	}
 
-	var filters []string
-	if len(filter.ServiceName) > 0 {
-		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(filter.ServiceName))
-	}
-	if len(filter.EndpointName) > 0 {
-		filters = append(filters, prom.ContentKeyRegexPQLFilter, prom.RegexContainsValue(filter.EndpointName))
-	}
-	if len(filter.Namespace) > 0 {
-		filters = append(filters, prom.NamespacePQLFilter, filter.Namespace)
-	}
+	filters := extractFilters(filter)
 
 	// 填充时间段内的平均RED指标
 	s.fillMetric(res, AVG, startTime, endTime, filters)
@@ -128,17 +119,26 @@ func (s *service) EndpointsREDMetric(startTime, endTime time.Time, filter Endpoi
 	return res
 }
 
-func (s *service) EndpointsRealtimeREDMetric(filter EndpointsFilter, endpointsMap *EndpointsMap, startTime time.Time, endTime time.Time) {
+// extractFilters 提取过滤条件
+// 返回一个长度为偶数的string数组, 奇数位为key, 偶数位为 value
+func extractFilters(filter EndpointsFilter) []string {
 	var filters []string
 	if len(filter.ServiceName) > 0 {
-		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(filter.ServiceName))
+		filters = append(filters, prom.ServicePQLFilter, filter.ServiceName)
+	} else if len(filter.ContainsSvcName) > 0 {
+		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(filter.ContainsSvcName))
 	}
-	if len(filter.EndpointName) > 0 {
-		filters = append(filters, prom.ContentKeyRegexPQLFilter, prom.RegexContainsValue(filter.EndpointName))
+	if len(filter.ContainsEndpointName) > 0 {
+		filters = append(filters, prom.ContentKeyRegexPQLFilter, prom.RegexContainsValue(filter.ContainsEndpointName))
 	}
 	if len(filter.Namespace) > 0 {
 		filters = append(filters, prom.NamespacePQLFilter, filter.Namespace)
 	}
+	return filters
+}
+
+func (s *service) EndpointsRealtimeREDMetric(filter EndpointsFilter, endpointsMap *EndpointsMap, startTime time.Time, endTime time.Time) {
+	filters := extractFilters(filter)
 	s.fillMetric(endpointsMap, REALTIME, startTime, endTime, filters)
 }
 
@@ -204,16 +204,7 @@ func (s *service) fillMetric(res *EndpointsMap, metricGroup string, startTime, e
 // EndpointsDelaySource 填充延时来源
 // 基于输入的Endpoints填充, 会抛弃Endpoints中不存在的记录
 func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTime time.Time, filter EndpointsFilter) error {
-	var filters []string
-	if len(filter.ServiceName) > 0 {
-		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(filter.ServiceName))
-	}
-	if len(filter.EndpointName) > 0 {
-		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(filter.ServiceName))
-	}
-	if len(filter.Namespace) > 0 {
-		filters = append(filters, prom.NamespacePQLFilter, filter.Namespace)
-	}
+	filters := extractFilters(filter)
 
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
@@ -247,16 +238,7 @@ func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTi
 }
 
 func (s *service) EndpointsNamespaceInfo(endpoints *EndpointsMap, startTime, endTime time.Time, filter EndpointsFilter) error {
-	var filters []string
-	if len(filter.ServiceName) > 0 {
-		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(filter.ServiceName))
-	}
-	if len(filter.EndpointName) > 0 {
-		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(filter.ServiceName))
-	}
-	if len(filter.Namespace) > 0 {
-		filters = append(filters, prom.NamespacePQLFilter, filter.Namespace)
-	}
+	filters := extractFilters(filter)
 
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()

@@ -36,7 +36,8 @@ func New(chRepo clickhouse.Repo, dbRepo database.Repo, promRepo prometheus.Repo)
 }
 
 type EndpointsFilter struct {
-	ServiceName  string
-	EndpointName string
-	Namespace    string // 仅支持容器服务,基于Namespace过滤
+	ContainsSvcName      string // SvcName,包含匹配
+	ContainsEndpointName string // EndpointName,包含匹配
+	Namespace            string // Namespace, 完全匹配
+	ServiceName          string // 指定服务名, 完全匹配
 }

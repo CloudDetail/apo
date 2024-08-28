@@ -46,9 +46,9 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 		sortRule := serviceoverview.SortType(req.SortRule)
 
 		filter := serviceoverview.EndpointsFilter{
-			ServiceName:  req.ServiceName,
-			EndpointName: req.EndpointName,
-			Namespace:    req.Namespace,
+			ContainsSvcName:      req.ServiceName,
+			ContainsEndpointName: req.EndpointName,
+			Namespace:            req.Namespace,
 		}
 
 		data, err := h.serviceoverview.GetServicesEndPointData(startTime, endTime, step, filter, sortRule)

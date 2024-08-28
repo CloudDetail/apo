@@ -22,6 +22,12 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filter)
 	endpoints := endpointsMap.Endpoints
 
+	if len(endpoints) == 0 {
+		// NOTE 通过moreUrl进入的请求,原则上不可能出现未查询到数据的情况
+		// 不应该进入该分支
+		return nil, nil
+	}
+
 	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
 	if err != nil {
 		return nil, err
@@ -75,6 +81,13 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	s.EndpointRangeREDChart(&services, startTime, endTime, duration, step)
 	//(searchTime.Add(-30*time.Minute), searchTime, errorDataQuery, time.Minute)
 
+	if len(services) == 0 {
+		// NOTE 通过moreUrl进入的请求,原则上不可能出现未查询到数据的情况
+		// DOUBLE CHECK
+		return nil, nil
+	}
+
+	// NOTE 原则上进入这个入口的服务指定了Service,所以只会有一个
 	service := services[0]
 	var newServiceDetails []response.ServiceDetail
 	for _, url := range service.Endpoints {
