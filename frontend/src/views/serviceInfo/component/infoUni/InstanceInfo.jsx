@@ -146,7 +146,7 @@ export default function InstanceInfo(props) {
       ...new Set(data?.map((obj) => obj.namespace).filter((namespace) => namespace !== '')),
     ]
     const podList = [...new Set(data?.map((obj) => obj.name).filter((name) => name !== ''))]
-    prepareVariable({ namespaceList, podList })
+    prepareVariable({ namespaceList, podList, service: serviceName })
   }, [data])
   const tableProps = useMemo(() => {
     return {
