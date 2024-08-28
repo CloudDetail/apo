@@ -3,6 +3,7 @@ package serviceoverview
 import (
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -22,6 +23,12 @@ func (s *service) GetServicesEndPointData(startTime time.Time, endTime time.Time
 	err = s.EndpointsDelaySource(endpointsMap, startTime, endTime, filter)
 	if err != nil {
 		// TODO 输出错误日志, DelaySource查询失败
+	}
+
+	// step2.. 填充Namespace信息
+	err = s.EndpointsNamespaceInfo(endpointsMap, startTime, endTime, filter)
+	if err != nil {
+		// TODO 输出错误日志, Namespace查询失败
 	}
 
 	// step3 根据排序规则对URL进行排序, 并填充前期未查询到的数据
@@ -50,8 +57,22 @@ func (s *service) GetServicesEndPointData(startTime time.Time, endTime time.Time
 			continue
 		}
 
+		// endpoint的namespaceList去重
+		tmpSet := make(map[string]struct{})
+		nsList := make([]string, 0)
+		for _, endpoint := range service.Endpoints {
+			for _, ns := range endpoint.NamespaceList {
+				if _, find := tmpSet[ns]; find {
+					continue
+				}
+				tmpSet[ns] = struct{}{}
+				nsList = append(nsList, ns)
+			}
+		}
+
 		newServiceRes := response.ServiceEndPointsRes{
 			ServiceName:    service.ServiceName,
+			Namespaces:     strings.Join(nsList, ";"),
 			EndpointCount:  service.EndpointCount,
 			ServiceDetails: serviceDetails,
 		}

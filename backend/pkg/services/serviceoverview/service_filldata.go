@@ -246,6 +246,47 @@ func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTi
 	return nil
 }
 
+func (s *service) EndpointsNamespaceInfo(endpoints *EndpointsMap, startTime, endTime time.Time, filter EndpointsFilter) error {
+	var filters []string
+	if len(filter.ServiceName) > 0 {
+		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(filter.ServiceName))
+	}
+	if len(filter.EndpointName) > 0 {
+		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(filter.ServiceName))
+	}
+	if len(filter.Namespace) > 0 {
+		filters = append(filters, prom.NamespacePQLFilter, filter.Namespace)
+	}
+
+	startTS := startTime.UnixMicro()
+	endTS := endTime.UnixMicro()
+
+	metricResult, err := s.promRepo.QueryAggMetricsWithFilter(
+		prom.PQLAvgTPSWithFilters,
+		startTS, endTS,
+		prom.NSEndpointGranularity,
+		filters...,
+	)
+	if err != nil {
+		return err
+	}
+
+	for _, metric := range metricResult {
+		if len(metric.Values) <= 0 {
+			continue
+		}
+		key := metric.Metric.SvcName + "_" + metric.Metric.ContentKey
+		if endpoint, ok := endpoints.EndpointsMap[key]; ok {
+			if len(metric.Metric.Namespace) > 0 {
+				// 因为查询粒度是 namespace,svc_name,contentKey 所以不用去重
+				endpoint.NamespaceList = append(endpoint.NamespaceList, metric.Metric.Namespace)
+			}
+		}
+	}
+
+	return nil
+}
+
 func (s *service) UrlDOD(Urls *[]Endpoint, serviceName string, endTime time.Time, duration string) (*[]Endpoint, error) {
 	latencyDODquery := prom.QueryEndPointPromql(duration, prom.LatencyDOD, serviceName)
 	latencyDoDres, err := s.promRepo.QueryData(endTime, latencyDODquery)

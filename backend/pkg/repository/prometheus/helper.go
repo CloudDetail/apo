@@ -29,9 +29,10 @@ const (
 type Granularity string
 
 const (
-	SVCGranularity      Granularity = "svc_name"
-	EndpointGranularity Granularity = "svc_name, content_key"
-	InstanceGranularity Granularity = "svc_name, content_key, container_id, node_name, pid"
+	SVCGranularity        Granularity = "svc_name"
+	EndpointGranularity   Granularity = "svc_name, content_key"
+	NSEndpointGranularity Granularity = "namespace, svc_name, content_key"
+	InstanceGranularity   Granularity = "svc_name, content_key, container_id, node_name, pid"
 )
 
 // AggPQLWithFilters 生成PQL语句

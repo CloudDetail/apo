@@ -6,8 +6,9 @@ import "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 const RES_MAX_VALUE = 9999999
 
 type Endpoint struct {
-	ContentKey          string // URL
-	SvcName             string //url所属的服务名
+	ContentKey          string   // URL
+	SvcName             string   // url所属的服务名
+	NamespaceList       []string // 包含该端点的Namespace
 	Count               int
 	DelaySource         *float64 //延时主要来源
 	IsLatencyExceeded   bool
