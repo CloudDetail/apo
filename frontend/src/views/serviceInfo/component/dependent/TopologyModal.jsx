@@ -50,6 +50,7 @@ export default function TopologyModal(props) {
       return
     }
     const nodeSet = new Set() // 用于存储已添加节点的 ID
+    const edgeSet = new Set() // 用于存储已添加边的 ID
     const current = data.current
 
     const nodes = [
@@ -69,28 +70,32 @@ export default function TopologyModal(props) {
     const edges = []
     data.parents?.forEach((parent) => {
       const nodeId = contactServiceEndpoint(parent.service, parent.endpoint)
-      nodes.push({
-        id: nodeId,
-        data: {
-          label: parent.service,
-          isTraced: parent.isTraced,
-          service: parent.service,
-          endpoint: parent.endpoint,
-        },
-        position: { x: 0, y: 0 },
-        type: 'serviceNode',
-      })
-      nodeSet.add(nodeId)
-      edges.push({
-        id: nodeId + '-' + contactServiceEndpoint(current.service, current.endpoint),
-        source: nodeId,
-        target: contactServiceEndpoint(current.service, current.endpoint),
-        type: 'smart',
-        // markerEnd: markerEnd,
-        // style:{
-        //   stroke: '#6293FF'
-        // }
-      })
+      if (!nodeSet.has(nodeId)) {
+        nodes.push({
+          id: nodeId,
+          data: {
+            label: parent.service,
+            isTraced: parent.isTraced,
+            service: parent.service,
+            endpoint: parent.endpoint,
+          },
+          position: { x: 0, y: 0 },
+          type: 'serviceNode',
+        })
+        nodeSet.add(nodeId)
+      }
+      const edgeId = nodeId + '-' + contactServiceEndpoint(current.service, current.endpoint)
+      if (!edgeSet.has(edgeId)) {
+        const targetId = contactServiceEndpoint(current.service, current.endpoint)
+        edges.push({
+          id: edgeId,
+          source: nodeId,
+          target: targetId,
+          type: nodeId === targetId ? 'loop' : 'smart',
+          markerEnd: 'url(#arrowhead)',
+        })
+        edgeSet.add(edgeId)
+      }
     })
     data.childRelations?.forEach((child, index) => {
       const nodeId = contactServiceEndpoint(child.service, child.endpoint)
@@ -108,17 +113,24 @@ export default function TopologyModal(props) {
         })
         nodeSet.add(nodeId)
       }
-      edges.push({
-        id: contactServiceEndpoint(child.parentService, child.parentEndpoint) + '-' + nodeId,
-        source: contactServiceEndpoint(child.parentService, child.parentEndpoint),
-        target: nodeId,
-        type: 'smart',
-      })
+
+      const edgeId =
+        contactServiceEndpoint(child.parentService, child.parentEndpoint) + '-' + nodeId
+      if (!edgeSet.has(edgeId)) {
+        const sourceId = contactServiceEndpoint(child.parentService, child.parentEndpoint)
+        edges.push({
+          id: edgeId,
+          source: sourceId,
+          target: nodeId,
+          type: nodeId === sourceId ? 'loop' : 'smart',
+        })
+        edgeSet.add(edgeId)
+      }
     })
 
     setAllTopologyData({ nodes: [...nodes], edges })
-    // //console.log({ nodes: [...nodes], edges })
-    // //console.log('全拓扑图整理完毕', new Date())
+    // console.log({ nodes: [...nodes], edges: [...edges] })
+    // console.log('全拓扑图整理完毕', new Date())
 
     // return { nodes: [...nodes], edges }
   }
@@ -132,7 +144,7 @@ export default function TopologyModal(props) {
       }
       edgesMap[edge.target].push(edge.source)
     })
-    //console.log(edgesMap)
+    // console.log(edgesMap)
     return edgesMap
   }
   const edgesMap = useMemo(
@@ -141,12 +153,13 @@ export default function TopologyModal(props) {
   )
   function findUpstreamNodes(nodeId) {
     const upstreamNodes = new Set()
-
     function findParents(currentNodeId) {
       if (edgesMap[currentNodeId]) {
         edgesMap[currentNodeId].forEach((source) => {
-          upstreamNodes.add(source)
-          findParents(source)
+          if (!upstreamNodes.has(source)) {
+            upstreamNodes.add(source)
+            if (source !== currentNodeId) findParents(source)
+          }
         })
       }
     }
@@ -157,15 +170,17 @@ export default function TopologyModal(props) {
 
   // 找出所有需要展示的节点和边
   function getNodesAndEdgesToDisplay(selectedNodeIds, allNodes, allEdges) {
-    //console.log(selectedNodeIds, allNodes, allEdges)
+    selectedNodeIds = Array.from(new Set(selectedNodeIds))
     const nodesToDisplay = new Set()
     const edgesToDisplay = new Set()
+    // console.log(selectedNodeIds, allNodes, allEdges)
 
     selectedNodeIds.forEach((nodeId) => {
       nodesToDisplay.add(nodeId)
 
       // 找到该节点的所有上游节点
       const upstreamNodes = findUpstreamNodes(nodeId)
+      // console.log(upstreamNodes)
       upstreamNodes.forEach((upNodeId) => nodesToDisplay.add(upNodeId))
 
       // 添加相关的边
@@ -200,7 +215,7 @@ export default function TopologyModal(props) {
           source: node.id,
           target: node.id + '-child',
           type: 'smart',
-          // markerEnd: markerEnd,
+          markerEnd: 'url(#arrowhead)',
           // style:{
           //   stroke: '#6293FF'
           // }

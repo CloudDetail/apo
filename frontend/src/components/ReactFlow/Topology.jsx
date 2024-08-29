@@ -17,11 +17,13 @@ import { SmartBezierEdge } from '@tisoap/react-flow-smart-edge'
 import 'reactflow/dist/style.css'
 import { AiOutlineRollback } from 'react-icons/ai'
 import { Tooltip } from 'antd'
+import CustomSelfLoopEdge from './LoopEdges'
 const nodeWidth = 200
 const nodeHeight = 60
 const nodeTypes = { serviceNode: ServiceNode, moreNode: MoreNode } // 定义在组件外部
 const edgeTypes = {
   smart: SmartBezierEdge, // 或者使用 SmartBezierEdge 等
+  loop: CustomSelfLoopEdge,
 }
 const LayoutFlow = (props) => {
   const { data } = props
@@ -93,6 +95,16 @@ const LayoutFlow = (props) => {
       node.position.x -= xMin - nodeWidth / 2
       node.position.y -= yMin - nodeHeight / 2
     })
+    edges.map((edge) => {
+      const sourceNode = nodes.find((node) => node.id === edge.source)
+      const targetNode = nodes.find((node) => node.id === edge.target)
+      if (
+        sourceNode.position.x > targetNode.position.x &&
+        Math.abs(sourceNode.position.y - targetNode.position.y) < nodeHeight
+      ) {
+        edge.type = 'loop'
+      }
+    })
     return { nodes, edges }
   }
   const clickNode = (e, node) => {
@@ -117,7 +129,7 @@ const LayoutFlow = (props) => {
       if (reactFlowInstance.current) {
         setTimeout(() => {
           fitView({
-            padding: layoutedNodes.length > 1 ? 0.1 : 0.2,
+            padding: layoutedNodes.length > 2 ? 0.1 : 0.2,
             includeHiddenNodes: true,
           })
         }, 20)
@@ -128,7 +140,7 @@ const LayoutFlow = (props) => {
     <ReactFlow
       nodes={nodes}
       edges={edges}
-      // edgeTypes={edgeTypes}
+      edgeTypes={edgeTypes}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       nodeTypes={nodeTypes}
@@ -146,7 +158,6 @@ function FlowWithProvider(props) {
   const rollback = (value) => {
     dispatch({ type: 'rollback', payload: value })
   }
-  console.log(modalDataUrl, modalDataUrl[modalDataUrl.length - 2])
 
   return (
     <>
@@ -170,14 +181,16 @@ function FlowWithProvider(props) {
           <defs>
             <marker
               id="arrowhead"
-              viewBox="0 0 10 10"
-              refX="5"
-              refY="5"
-              markerWidth="6"
-              markerHeight="6"
-              orient="auto"
+              viewBox="0 0 74.4539794921875 67"
+              refX="37.227"
+              refY="33.5"
+              markerWidth="16"
+              markerHeight="16"
             >
-              <path d="M0,0 L10,5 L0,10" fill="#6293ff" stroke="#6293ff" />
+              <path
+                d="M45.4542 4.75L73.167 52.75C76.8236 59.0833 72.2529 67 64.9398 67L9.51418 67C2.20107 67 -2.36962 59.0833 1.28693 52.75L28.9997 4.75C32.6563 -1.58334 41.7977 -1.58334 45.4542 4.75Z"
+                fill="#6293ff"
+              />
             </marker>
           </defs>
         </svg>
