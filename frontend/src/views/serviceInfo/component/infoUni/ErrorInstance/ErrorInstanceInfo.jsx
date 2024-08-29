@@ -154,25 +154,27 @@ export default function ErrorInstanceInfo(props) {
     },
   ]
   const getData = () => {
-    setLoading(true)
-    getServiceErrorInstancesApi({
-      startTime: startTime,
-      endTime: endTime,
-      service: serviceName,
-      endpoint: endpoint,
-      step: getStep(startTime, endTime),
-    })
-      .then((res) => {
-        setStatus(res.status)
-        handlePanelStatus(res.status)
-        setData(res?.instances)
-        setLoading(false)
+    if (startTime && endTime) {
+      setLoading(true)
+      getServiceErrorInstancesApi({
+        startTime: startTime,
+        endTime: endTime,
+        service: serviceName,
+        endpoint: endpoint,
+        step: getStep(startTime, endTime),
       })
-      .catch((error) => {
-        setData([])
-        handlePanelStatus('unknown')
-        setLoading(false)
-      })
+        .then((res) => {
+          setStatus(res.status)
+          handlePanelStatus(res.status)
+          setData(res?.instances)
+          setLoading(false)
+        })
+        .catch((error) => {
+          setData([])
+          handlePanelStatus('unknown')
+          setLoading(false)
+        })
+    }
   }
   useEffect(() => {
     getData()

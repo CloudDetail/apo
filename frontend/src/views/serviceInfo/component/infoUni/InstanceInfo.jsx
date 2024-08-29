@@ -117,25 +117,27 @@ export default function InstanceInfo(props) {
     },
   ]
   const getData = () => {
-    setLoading(true)
-    getServiceInstancesApi({
-      startTime: startTime,
-      endTime: endTime,
-      serviceName: serviceName,
-      endpoint: endpoint,
-      step: getStep(startTime, endTime),
-    })
-      .then((res) => {
-        setData(res.data ?? [])
-        setStatus(res.status)
-        setLoading(false)
-        handlePanelStatus(res.status)
+    if (startTime && endTime) {
+      setLoading(true)
+      getServiceInstancesApi({
+        startTime: startTime,
+        endTime: endTime,
+        serviceName: serviceName,
+        endpoint: endpoint,
+        step: getStep(startTime, endTime),
       })
-      .catch((error) => {
-        setData([])
-        handlePanelStatus('unknown')
-        setLoading(false)
-      })
+        .then((res) => {
+          setData(res.data ?? [])
+          setStatus(res.status)
+          setLoading(false)
+          handlePanelStatus(res.status)
+        })
+        .catch((error) => {
+          setData([])
+          handlePanelStatus('unknown')
+          setLoading(false)
+        })
+    }
   }
   useEffect(() => {
     getData()

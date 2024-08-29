@@ -85,22 +85,23 @@ const ServiceInfo = () => {
   }
   useEffect(() => {
     setLoading(true)
-
-    getServiceTopologyApi({
-      startTime: startTime,
-      endTime: endTime,
-      service: serviceName,
-      endpoint: endpoint,
-    })
-      .then((res) => {
-        const { nodes, edges } = prepareTopologyData(res)
-        setTopologyData({ nodes, edges })
-        setLoading(false)
+    if (startTime && endTime) {
+      getServiceTopologyApi({
+        startTime: startTime,
+        endTime: endTime,
+        service: serviceName,
+        endpoint: endpoint,
       })
-      .catch((error) => {
-        setTopologyData({ nodes: [], edges: [] })
-        setLoading(false)
-      })
+        .then((res) => {
+          const { nodes, edges } = prepareTopologyData(res)
+          setTopologyData({ nodes, edges })
+          setLoading(false)
+        })
+        .catch((error) => {
+          setTopologyData({ nodes: [], edges: [] })
+          setLoading(false)
+        })
+    }
   }, [serviceName, startTime, endTime])
   return (
     <>

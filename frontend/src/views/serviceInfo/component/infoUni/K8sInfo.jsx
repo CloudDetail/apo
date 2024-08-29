@@ -1,11 +1,11 @@
-import { CAccordionBody, CCol,  CRow } from '@coreui/react'
-import React, {useState, useEffect} from 'react'
+import { CAccordionBody, CCol, CRow } from '@coreui/react'
+import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { getK8sEventApi } from 'src/api/serviceInfo'
 import { usePropsContext } from 'src/contexts/PropsContext'
 import { selectProcessedTimeRange } from 'src/store/reducers/timeRangeReducer'
 function K8sInfo(props) {
-  const {handlePanelStatus} = props
+  const { handlePanelStatus } = props
   const [data, setData] = useState({})
   const { serviceName } = usePropsContext()
   const [colList, setColList] = useState([])
@@ -98,56 +98,58 @@ function K8sInfo(props) {
     },
   ]
   const getData = () => {
-    setLoading(true)
-    getK8sEventApi({
-      startTime: startTime,
-      endTime: endTime,
-      service: serviceName,
-    })
-      .then((res) => {
-        setData(res.data??{})
-        setLoading(false)
-        handlePanelStatus(res.status)
+    if (startTime && endTime) {
+      setLoading(true)
+      getK8sEventApi({
+        startTime: startTime,
+        endTime: endTime,
+        service: serviceName,
       })
-      .catch((error) => {
-        setData([])
-        handlePanelStatus('unknown')
-        setLoading(false)
-      })
+        .then((res) => {
+          setData(res.data ?? {})
+          setLoading(false)
+          handlePanelStatus(res.status)
+        })
+        .catch((error) => {
+          setData([])
+          handlePanelStatus('unknown')
+          setLoading(false)
+        })
+    }
   }
   useEffect(() => {
     getData()
   }, [serviceName, startTime, endTime])
   return (
     <>
-    {/* <CAccordionHeader onClick={() => handleToggle('instance')}>
+      {/* <CAccordionHeader onClick={() => handleToggle('instance')}>
     {status && <StatusInfo status={status} />}
     <span className="ml-2">{serviceName}的k8s事件</span>
   </CAccordionHeader> */}
-    <CAccordionBody>
-      <CRow xs={{ cols: 6 }}>
-        {Object.keys(data).map((key) => {
-          const item = data[key]
-          return (
-            <CCol key={key} className="text-center py-3.5">
-              <div className="text-sm mb-2">{item.displayName}</div>
-              <div
-                className="text-lg mb-2 text-[#467ffc] font-bold"
-                style={{ color: item.Severity === 'Warning' ? '#dc2625' : '#467ffc' }}
-              >
-                {item.counts.current??0}
-              </div>
-              <div className="text-xs mb-1" style={{ color: 'rgba(248, 249, 250, 0.45)' }}>
-                次数(7天):{item.counts.lastWeek}
-              </div>
-              <div className="text-xs" style={{ color: 'rgba(248, 249, 250, 0.45)' }}>
-                次数(30天):{item.counts.lastMonth}
-              </div>
-            </CCol>
-          )
-        })}
-      </CRow>
-    </CAccordionBody>
+      <CAccordionBody>
+        <CRow xs={{ cols: 6 }}>
+          {Object.keys(data).map((key) => {
+            const item = data[key]
+            return (
+              <CCol key={key} className="text-center py-3.5">
+                <div className="text-sm mb-2">{item.displayName}</div>
+                <div
+                  className="text-lg mb-2 text-[#467ffc] font-bold"
+                  style={{ color: item.Severity === 'Warning' ? '#dc2625' : '#467ffc' }}
+                >
+                  {item.counts.current ?? 0}
+                </div>
+                <div className="text-xs mb-1" style={{ color: 'rgba(248, 249, 250, 0.45)' }}>
+                  次数(7天):{item.counts.lastWeek}
+                </div>
+                <div className="text-xs" style={{ color: 'rgba(248, 249, 250, 0.45)' }}>
+                  次数(30天):{item.counts.lastMonth}
+                </div>
+              </CCol>
+            )
+          })}
+        </CRow>
+      </CAccordionBody>
     </>
   )
 }

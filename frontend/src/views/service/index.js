@@ -236,35 +236,37 @@ export default function ServiceView() {
   ]
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const getTableData = () => {
-    setLoading(true)
-    // 记录请求的时间范围，以便后续趋势图补0
-    setRequestTimeRange({
-      startTime: startTime,
-      endTime: endTime,
-    })
-    getServicesEndpointsApi({
-      startTime: startTime,
-      endTime: endTime,
-      step: getStep(startTime, endTime),
-      serviceName: serachServiceName,
-      endpointName: serachEndpointName,
-      namespace: serachNamespace,
-      sortRule: 1,
-    })
-      .then((res) => {
-        if (res && res?.length > 0) {
-          setData(res)
-        } else {
+    if (startTime && endTime) {
+      setLoading(true)
+      // 记录请求的时间范围，以便后续趋势图补0
+      setRequestTimeRange({
+        startTime: startTime,
+        endTime: endTime,
+      })
+      getServicesEndpointsApi({
+        startTime: startTime,
+        endTime: endTime,
+        step: getStep(startTime, endTime),
+        serviceName: serachServiceName,
+        endpointName: serachEndpointName,
+        namespace: serachNamespace,
+        sortRule: 1,
+      })
+        .then((res) => {
+          if (res && res?.length > 0) {
+            setData(res)
+          } else {
+            setData([])
+          }
+          setPageIndex(1)
+          setLoading(false)
+        })
+        .catch(() => {
+          setPageIndex(1)
           setData([])
-        }
-        setPageIndex(1)
-        setLoading(false)
-      })
-      .catch(() => {
-        setPageIndex(1)
-        setData([])
-        setLoading(false)
-      })
+          setLoading(false)
+        })
+    }
   }
   useEffect(() => {
     getTableData()

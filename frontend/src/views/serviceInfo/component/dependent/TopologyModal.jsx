@@ -269,7 +269,7 @@ export default function TopologyModal(props) {
   }, [allTopologyData, displayData])
 
   useEffect(() => {
-    if (modalService && modalEndpoint) {
+    if (modalService && modalEndpoint && startTime && endTime) {
       setLoading(true)
       setData(null)
       setAllTopologyData(null)

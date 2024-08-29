@@ -88,22 +88,24 @@ function TraceInfo() {
     },
   ]
   const getData = () => {
-    setLoading(true)
-    getTraceMetricsApi({
-      startTime: startTime,
-      endTime: endTime,
-      service: serviceName,
-      endpoint: endpoint,
-      step: getStep(startTime, endTime),
-    })
-      .then((res) => {
-        setData(res ?? [])
-        setLoading(false)
+    if (startTime && endTime) {
+      setLoading(true)
+      getTraceMetricsApi({
+        startTime: startTime,
+        endTime: endTime,
+        service: serviceName,
+        endpoint: endpoint,
+        step: getStep(startTime, endTime),
       })
-      .catch((error) => {
-        setData([])
-        setLoading(false)
-      })
+        .then((res) => {
+          setData(res ?? [])
+          setLoading(false)
+        })
+        .catch((error) => {
+          setData([])
+          setLoading(false)
+        })
+    }
   }
   useEffect(() => {
     getData()

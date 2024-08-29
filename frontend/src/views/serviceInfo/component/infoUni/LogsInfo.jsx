@@ -5,7 +5,7 @@ import DelayLineChart from './DelayLineChart'
 import Timeline from './TimeLine'
 import { usePropsContext } from 'src/contexts/PropsContext'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
-import { getLogMetricsApi, getServiceLogLogsApi } from 'src/api/serviceInfo'
+import { getLogMetricsApi } from 'src/api/serviceInfo'
 import { getStep } from 'src/utils/step'
 import { selectSecondsTimeRange } from 'src/store/reducers/timeRangeReducer'
 import { useSelector } from 'react-redux'
@@ -89,22 +89,24 @@ function LogsInfo() {
     },
   ]
   const getData = () => {
-    setLoading(true)
-    getLogMetricsApi({
-      startTime: startTime,
-      endTime: endTime,
-      service: serviceName,
-      endpoint: endpoint,
-      step: getStep(startTime, endTime),
-    })
-      .then((res) => {
-        setData(res ?? [])
-        setLoading(false)
+    if (startTime && endTime) {
+      setLoading(true)
+      getLogMetricsApi({
+        startTime: startTime,
+        endTime: endTime,
+        service: serviceName,
+        endpoint: endpoint,
+        step: getStep(startTime, endTime),
       })
-      .catch((error) => {
-        setData([])
-        setLoading(false)
-      })
+        .then((res) => {
+          setData(res ?? [])
+          setLoading(false)
+        })
+        .catch((error) => {
+          setData([])
+          setLoading(false)
+        })
+    }
   }
   useEffect(() => {
     getData()

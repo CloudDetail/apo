@@ -5,8 +5,8 @@ import { createSelector } from 'reselect'
 
 //
 export const initialTimeRangeState = {
-  startTime: new Date().getTime() * 1000 - 15 * 60 * 1000000,
-  endTime: new Date().getTime() * 1000,
+  startTime: null,
+  endTime: null,
   rangeType: null,
 }
 export function GetInitalTimeRange() {

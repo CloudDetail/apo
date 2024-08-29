@@ -187,7 +187,7 @@ const TimelapseLineChart = (props) => {
   }
   useEffect(() => {
     // console.log(serviceName, startTime, endTime, endpoint)
-    if (serviceName && endpoint) {
+    if (serviceName && endpoint && startTime && endTime) {
       setLoading(true)
       getChartData()
     }

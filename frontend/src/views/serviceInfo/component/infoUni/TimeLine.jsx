@@ -35,7 +35,7 @@ const Timeline = (props) => {
   useEffect(() => {
     if (activeKey > -1 && chronoList.length > 0) {
       const item = chronoList[activeKey]
-      if (item && !item.list) {
+      if (item && !item.list && startTime && endTime) {
         setLoading(true)
         const params = nodeName
           ? {

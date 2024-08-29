@@ -32,25 +32,27 @@ function DependentTable(props) {
     dispatch({ type: 'setDisplayData', payload: value })
   }
   const getTableData = () => {
-    setLoading(true)
+    if (startTime && endTime) {
+      setLoading(true)
 
-    getServiceDsecendantRelevanceApi({
-      startTime: startTime,
-      endTime: endTime,
-      service: serviceName,
-      endpoint: endpoint,
-      step: getStep(startTime, endTime),
-    })
-      .then((res) => {
-        setData(res ?? [])
-        setLoading(false)
-        // console.log(res.slice(0, 5))
-        if (storeDisplayData) setDisplayData((res ?? []).slice(0, 5))
+      getServiceDsecendantRelevanceApi({
+        startTime: startTime,
+        endTime: endTime,
+        service: serviceName,
+        endpoint: endpoint,
+        step: getStep(startTime, endTime),
       })
-      .catch((error) => {
-        setData([])
-        setLoading(false)
-      })
+        .then((res) => {
+          setData(res ?? [])
+          setLoading(false)
+          // console.log(res.slice(0, 5))
+          if (storeDisplayData) setDisplayData((res ?? []).slice(0, 5))
+        })
+        .catch((error) => {
+          setData([])
+          setLoading(false)
+        })
+    }
   }
   useEffect(() => {
     return () => {

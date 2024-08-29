@@ -8,17 +8,12 @@ import {
   CTabPanel,
   CTabs,
 } from '@coreui/react'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import DependentTable from './DependentTable'
 import { usePropsContext } from 'src/contexts/PropsContext'
 import TimelapseLineChart from './TimelapseLineChart'
-import { serviceMock } from 'src/components/ReactFlow/mock'
-import { getServiceDsecendantMetricsApi } from 'src/api/serviceInfo'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/store/reducers/timeRangeReducer'
-import { getStep } from 'src/utils/step'
-import { showToast } from 'src/utils/toast'
-import TopologyModal from './TopologyModal'
 
 function DependentTabs() {
   const { serviceName, endpoint } = usePropsContext()

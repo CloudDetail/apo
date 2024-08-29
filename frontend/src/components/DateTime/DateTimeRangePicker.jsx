@@ -88,7 +88,6 @@ const DateTimeRangePicker = React.memo((props) => {
     const to = searchParams.get('to')
     if (!from || !to) {
       updataUrlTimeRange()
-      return
     }
 
     const fromTimestamp = ISOToTimestamp(from)

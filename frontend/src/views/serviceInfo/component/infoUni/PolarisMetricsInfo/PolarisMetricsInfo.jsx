@@ -19,22 +19,24 @@ function PolarisMetricsInfo() {
   window.global = window
   const global = window
   const getData = () => {
-    setLoading(true)
-    getPolarisInferApi({
-      startTime: startTime,
-      endTime: endTime,
-      service: serviceName,
-      endpoint: endpoint,
-      step: getStep(startTime, endTime),
-    })
-      .then((res) => {
-        setImage(res?.inferMetricsPng)
-        setInferCause(res?.inferCause)
-        setLoading(false)
+    if (startTime && endTime) {
+      setLoading(true)
+      getPolarisInferApi({
+        startTime: startTime,
+        endTime: endTime,
+        service: serviceName,
+        endpoint: endpoint,
+        step: getStep(startTime, endTime),
       })
-      .catch((error) => {
-        setLoading(false)
-      })
+        .then((res) => {
+          setImage(res?.inferMetricsPng)
+          setInferCause(res?.inferCause)
+          setLoading(false)
+        })
+        .catch((error) => {
+          setLoading(false)
+        })
+    }
   }
   const handleImageClick = () => {
     setIsOpen(true)
