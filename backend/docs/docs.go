@@ -2394,7 +2394,8 @@ const docTemplate = `{
                         "logs",
                         "trace",
                         "k8s",
-                        "other"
+                        "other",
+                        "topology"
                     ]
                 },
                 "day": {
@@ -2586,7 +2587,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "logsStatus": {
-                    "description": "TODO 各类型告警状态",
+                    "description": "日志指标告警",
                     "type": "string"
                 },
                 "netStatus": {
@@ -3068,7 +3069,12 @@ const docTemplate = `{
                     "$ref": "#/definitions/response.TempChartObject"
                 },
                 "tps": {
-                    "$ref": "#/definitions/response.TempChartObject"
+                    "description": "FIXME 名称为tps,实际为每分钟请求数",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.TempChartObject"
+                        }
+                    ]
                 }
             }
         },
@@ -3077,6 +3083,13 @@ const docTemplate = `{
             "properties": {
                 "endpointCount": {
                     "type": "integer"
+                },
+                "namespaces": {
+                    "description": "应用所属命名空间,可能为空",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "serviceDetails": {
                     "type": "array",

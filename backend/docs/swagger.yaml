@@ -293,6 +293,7 @@ definitions:
         - trace
         - k8s
         - other
+        - topology
         type: string
       day:
         description: 保存数据周期天数
@@ -429,7 +430,7 @@ definitions:
         description: 日志告警原因
         type: string
       logsStatus:
-        description: TODO 各类型告警状态
+        description: 日志指标告警
         type: string
       netStatus:
         description: 网络告警
@@ -751,12 +752,19 @@ definitions:
       latency:
         $ref: '#/definitions/response.TempChartObject'
       tps:
-        $ref: '#/definitions/response.TempChartObject'
+        allOf:
+        - $ref: '#/definitions/response.TempChartObject'
+        description: FIXME 名称为tps,实际为每分钟请求数
     type: object
   response.ServiceEndPointsRes:
     properties:
       endpointCount:
         type: integer
+      namespaces:
+        description: 应用所属命名空间,可能为空
+        items:
+          type: string
+        type: array
       serviceDetails:
         items:
           $ref: '#/definitions/response.ServiceDetail'
