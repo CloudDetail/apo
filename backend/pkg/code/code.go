@@ -41,7 +41,10 @@ const (
 
 	SetTTLError            = "B0601"
 	GetTTLError            = "B0602"
-	SetSingleTableTTLError = "BP603"
+	SetSingleTableTTLError = "B0603"
+
+	GetAlertEventsError       = "B0701"
+	GetAlertEventsSampleError = "B0702"
 )
 
 func Text(code string) string {

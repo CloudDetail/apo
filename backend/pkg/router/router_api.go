@@ -50,6 +50,9 @@ func setApiRouter(r *resource) {
 		serviceApi.GET("/instance/options", serviceHandler.GetServiceInstanceOptions())
 		serviceApi.GET("/endpoint/list", serviceHandler.GetServiceEndPointList())
 		serviceApi.GET("/k8s/events/count", serviceHandler.CountK8sEvents())
+
+		serviceApi.GET("/alert/events", serviceHandler.GetAlertEvents())
+		serviceApi.GET("/alert/sample/events", serviceHandler.GetAlertEventsSample())
 	}
 
 	logApi := r.mux.Group("/api/log")
@@ -77,6 +80,7 @@ func setApiRouter(r *resource) {
 		configApi.POST("/setSingleTableTTL", configHandler.SetSingleTableTTL())
 		configApi.GET("/getTTL", configHandler.GetTTL())
 	}
+
 }
 
 func SetMetaServerRouter(srv *Server, meta source.MetaSource) {

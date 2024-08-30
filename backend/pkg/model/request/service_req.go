@@ -114,3 +114,36 @@ type GetEndPointsDataRequest struct {
 	Step      int64 `form:"step" binding:"required"`                      // 步长
 	SortRule  int   `form:"sortRule" binding:"required"`                  //排序逻辑
 }
+
+type GetAlertEventsRequest struct {
+	StartTime int64 `form:"startTime" binding:"required"`                 // 查询开始时间
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+
+	AlertFilter // 过滤参数
+	*PageParam  // 分页参数
+}
+
+type AlertFilter struct {
+	Service string `form:"service"`
+
+	Source   string `form:"source"`
+	Group    string `form:"group"`
+	Name     string `form:"name"`
+	ID       string `form:"id"`
+	Severity string `form:"severity"`
+	Status   string `form:"status"`
+}
+
+type PageParam struct {
+	CurrentPage int `form:"currentPage"`
+	PageSize    int `form:"pageSize"`
+}
+
+type GetAlertEventsSampleRequest struct {
+	StartTime int64 `form:"startTime" binding:"required"`                 // 查询开始时间
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+
+	AlertFilter // 过滤参数
+
+	SampleCount int `form:"sampleCount"` // 采样数量
+}

@@ -1,5 +1,36 @@
 basePath: /
 definitions:
+  clickhouse.AlertEventSample:
+    properties:
+      alarm_count:
+        type: integer
+      createTime:
+        type: string
+      detail:
+        type: string
+      endTime:
+        type: string
+      group:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      receivedTime:
+        type: string
+      severity:
+        type: string
+      source:
+        type: string
+      status:
+        type: string
+      tags:
+        additionalProperties:
+          type: string
+        type: object
+      updateTime:
+        type: string
+    type: object
   clickhouse.FaultLogResult:
     properties:
       containerId:
@@ -37,6 +68,35 @@ definitions:
           $ref: '#/definitions/clickhouse.LogContent'
         type: array
       source:
+        type: string
+    type: object
+  clickhouse.PagedAlertEvent:
+    properties:
+      createTime:
+        type: string
+      detail:
+        type: string
+      endTime:
+        type: string
+      group:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      receivedTime:
+        type: string
+      severity:
+        type: string
+      source:
+        type: string
+      status:
+        type: string
+      tags:
+        additionalProperties:
+          type: string
+        type: object
+      updateTime:
         type: string
     type: object
   clickhouse.QueryTraceResult:
@@ -382,6 +442,26 @@ definitions:
       traceId:
         description: TraceId
         type: string
+    type: object
+  response.GetAlertEventsResponse:
+    properties:
+      events:
+        items:
+          $ref: '#/definitions/clickhouse.PagedAlertEvent'
+        type: array
+      totalCount:
+        type: integer
+    type: object
+  response.GetAlertEventsSampleResponse:
+    properties:
+      events:
+        additionalProperties:
+          additionalProperties:
+            items:
+              $ref: '#/definitions/clickhouse.AlertEventSample'
+            type: array
+          type: object
+        type: object
     type: object
   response.GetDescendantMetricsResponse:
     properties:
@@ -1038,6 +1118,92 @@ paths:
       summary: xx详情
       tags:
       - API.mock
+  /api/service/alert/events:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取告警事件
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询告警类型
+        in: query
+        name: group
+        type: string
+      - description: 分页参数,当前页数
+        in: query
+        name: currentPage
+        type: integer
+      - description: 分页参数, 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAlertEventsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取告警事件
+      tags:
+      - API.service
+  /api/service/alert/sample/events:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取采样告警事件
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询告警类型
+        in: query
+        name: group
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAlertEventsSampleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取采样告警事件
+      tags:
+      - API.service
   /api/service/descendant/metrics:
     get:
       consumes:

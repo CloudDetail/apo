@@ -6,13 +6,18 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/logger"
+	"github.com/spf13/viper"
 )
 
 func NewTestRepo(t *testing.T) Repo {
-	address := "192.168.1.6:30189"
-	username := "admin"
-	password := "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
-	database := "apo"
+	viper.SetConfigFile("testdata/config.yml")
+	viper.ReadInConfig()
+
+	address := viper.GetString("clickhouse.address")
+	database := viper.GetString("clickhouse.database")
+	username := viper.GetString("clickhouse.username")
+	password := viper.GetString("clickhouse.password")
+
 	zapLog := logger.NewLogger(logger.WithLevel("debug"))
 	repo, err := New(zapLog, []string{address}, database, username, password)
 	if err != nil {

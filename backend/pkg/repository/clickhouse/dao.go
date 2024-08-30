@@ -58,6 +58,12 @@ type Repo interface {
 	//config
 	ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTableTTLMap) error
 	GetTables(blackTableNames []string, whiteTableNames []string) ([]model.TablesQuery, error)
+
+	// ========== alarm events ==========
+	// 查询按name采样的告警事件,sampleCount为每个Name采样的数量
+	GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]AlertEventSample, error)
+	// 查询按pageParam分页的告警事件
+	GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance, pageParam *request.PageParam) ([]PagedAlertEvent, int, error)
 }
 
 type chRepo struct {

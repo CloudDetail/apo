@@ -39,4 +39,7 @@ var enText = map[string]string{
 	SetTTLError:                         "Failed to set ttl",
 	GetTTLError:                         "Failed to get ttl",
 	SetSingleTableTTLError:              "Failed to set single table ttl",
+
+	GetAlertEventsError:       "Failed to get alert events",
+	GetAlertEventsSampleError: "Failed to get sample alert events",
 }

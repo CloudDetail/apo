@@ -45,6 +45,11 @@ type Service interface {
 	GetServiceEndPointList(req *request.GetServiceEndPointListRequest) ([]string, error)
 	// CountK8sEvents 获取K8s事件数量
 	CountK8sEvents(req *request.GetK8sEventsRequest) (*response.GetK8sEventsResponse, error)
+	// GetAlertEvents 获取告警事件
+	GetAlertEvents(req *request.GetAlertEventsRequest) (*response.GetAlertEventsResponse, error)
+
+	// GetAlertEventsSample 获取告警事件
+	GetAlertEventsSample(req *request.GetAlertEventsSampleRequest) (*response.GetAlertEventsSampleResponse, error)
 }
 
 type service struct {

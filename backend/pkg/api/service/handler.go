@@ -91,6 +91,16 @@ type Handler interface {
 	// @Tags API.service
 	// @Router /api/service/k8s/events/count [get]
 	CountK8sEvents() core.HandlerFunc
+
+	// GetAlertEventsSample 获取采样告警事件
+	// @Tags API.service
+	// @Router /api/service/alert/sample/events [get]
+	GetAlertEventsSample() core.HandlerFunc
+
+	// GetAlertEvents 获取告警事件
+	// @Tags API.service
+	// @Router /api/service/alert/events [get]
+	GetAlertEvents() core.HandlerFunc
 }
 
 type handler struct {

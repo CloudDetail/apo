@@ -195,3 +195,13 @@ func (v *K8sEventCountValues) AddCount(dao clickhouse.K8sEventsCount) {
 		v.LastMonth += dao.Count
 	}
 }
+
+type GetAlertEventsResponse struct {
+	TotalCount int `json:"totalCount"`
+
+	EventList []clickhouse.PagedAlertEvent `json:"events"`
+}
+
+type GetAlertEventsSampleResponse struct {
+	EventMap map[string]map[string][]clickhouse.AlertEventSample `json:"events"`
+}

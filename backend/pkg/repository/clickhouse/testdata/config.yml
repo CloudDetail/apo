@@ -1,0 +1,5 @@
+clickhouse:
+  address: "localhost:9000"
+  username: admin
+  password: Apo@123456
+  database: apo

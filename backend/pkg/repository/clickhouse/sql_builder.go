@@ -1,6 +1,11 @@
 package clickhouse
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/ClickHouse/clickhouse-go/v2"
+)
 
 type FieldBuilder struct {
 	fields []string
@@ -71,6 +76,146 @@ func (builder *QueryBuilder) Between(key string, from int64, to int64) *QueryBui
 func (builder *QueryBuilder) Equals(key string, value interface{}) *QueryBuilder {
 	builder.where = append(builder.where, fmt.Sprintf("%s = ?", key))
 	builder.values = append(builder.values, value)
+	return builder
+}
+
+// 组合生成SQL中的 key in (values) 语句, values内部为值数组
+func (builder *QueryBuilder) In(key string, values clickhouse.GroupSet) *QueryBuilder {
+	if len(values.Value) > 0 {
+		builder.where = append(builder.where, fmt.Sprintf("%s in ?", key))
+		builder.values = append(builder.values, values)
+	}
+	return builder
+}
+
+// ValueInGroups 用于在OrInGroups中传入多组InGroups参数并做OR连接
+// 每个ValueInGroups生成如下SQL,x是EqualIfNotEmpty中的每个值
+// (keys) IN (ValueGroups)
+type ValueInGroups struct {
+	Keys        []string
+	ValueGroups []clickhouse.GroupSet
+}
+
+// whereSQL SQL片段
+// !!! nil有特殊的含义,后续And或OR合并时, nil等价于ALWAYS_TRUE
+type whereSQL struct {
+	Wheres string
+	Values []any
+}
+
+var (
+	ALWAYS_TRUE = &whereSQL{
+		Wheres: "TRUE",
+	}
+
+	ALWAYS_FALSE = &whereSQL{
+		Wheres: "FALSE",
+	}
+)
+
+func In(key string, values clickhouse.ArraySet) *whereSQL {
+	if len(key) <= 0 {
+		return ALWAYS_TRUE
+	}
+	if len(values) <= 0 {
+		return ALWAYS_FALSE
+	}
+	if len(values) > 0 {
+		return &whereSQL{
+			Wheres: fmt.Sprintf("%s IN ?", key),
+			Values: []any{values},
+		}
+	}
+	return ALWAYS_FALSE
+}
+
+func InGroup(vgs ValueInGroups) *whereSQL {
+	if len(vgs.Keys) <= 0 {
+		return ALWAYS_TRUE
+	}
+	if len(vgs.ValueGroups) <= 0 {
+		return ALWAYS_FALSE
+	}
+	return &whereSQL{
+		Wheres: fmt.Sprintf("(%s) IN ?", strings.Join(vgs.Keys, ",")),
+		Values: []any{clickhouse.GroupSet{
+			Value: []any{vgs.ValueGroups},
+		}},
+	}
+}
+
+// EqualsIfNotEmpty value长度为0时,返回always true
+func EqualsIfNotEmpty(key string, value string) *whereSQL {
+	if len(key) <= 0 {
+		return ALWAYS_TRUE
+	}
+	if len(value) > 0 {
+		return &whereSQL{
+			Wheres: fmt.Sprintf("%s = ?", key),
+			Values: []any{value},
+		}
+	}
+	return ALWAYS_TRUE
+}
+
+func Equals(key string, value string) *whereSQL {
+	if len(key) <= 0 {
+		return ALWAYS_TRUE
+	}
+	return &whereSQL{
+		Wheres: fmt.Sprintf("%s = ?", key),
+		Values: []any{value},
+	}
+}
+
+type MergeSep string
+
+const (
+	AndSep MergeSep = " AND "
+	OrSep  MergeSep = " OR "
+)
+
+// MergeWheres 合并多个条件
+func MergeWheres(sep MergeSep, whereSQLs ...*whereSQL) *whereSQL {
+	var wheres []string
+	var values []any
+	for _, where := range whereSQLs {
+		if where == nil || where == ALWAYS_FALSE {
+			if sep == AndSep {
+				return ALWAYS_FALSE
+			} else {
+				continue
+			}
+		} else if where == ALWAYS_TRUE {
+			if sep == AndSep {
+				continue
+			} else {
+				return ALWAYS_TRUE
+			}
+		}
+
+		wheres = append(wheres, where.Wheres)
+		values = append(values, where.Values...)
+	}
+
+	if len(wheres) <= 0 {
+		return ALWAYS_TRUE
+	}
+
+	return &whereSQL{
+		Wheres: fmt.Sprintf("(%s)", strings.Join(wheres, string(sep))),
+		Values: values,
+	}
+}
+
+// And 将一系列条件whereSQL以And方式加入到QueryBuilder
+func (builder *QueryBuilder) And(where *whereSQL) *QueryBuilder {
+	if where == nil || where == ALWAYS_FALSE {
+		builder.where = append(builder.where, "FALSE")
+		return builder
+	}
+	builder.where = append(builder.where, where.Wheres)
+	builder.values = append(builder.values, where.Values...)
 	return builder
 }
 

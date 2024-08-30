@@ -38,4 +38,7 @@ var zhCnText = map[string]string{
 	SetTTLError:                         "配置存储周期失败",
 	GetTTLError:                         "获取存储周期失败",
 	SetSingleTableTTLError:              "配置单个存储周期失败",
+
+	GetAlertEventsError:       "获取告警事件失败",
+	GetAlertEventsSampleError: "获取采样告警事件失败",
 }

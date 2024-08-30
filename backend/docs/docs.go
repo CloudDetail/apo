@@ -395,6 +395,134 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/service/alert/events": {
+            "get": {
+                "description": "获取告警事件",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.service"
+                ],
+                "summary": "获取告警事件",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "查询开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询服务名",
+                        "name": "service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询告警类型",
+                        "name": "group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "分页参数,当前页数",
+                        "name": "currentPage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "分页参数, 每页数量",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetAlertEventsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/service/alert/sample/events": {
+            "get": {
+                "description": "获取采样告警事件",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.service"
+                ],
+                "summary": "获取采样告警事件",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "查询开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询服务名",
+                        "name": "service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询告警类型",
+                        "name": "group",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetAlertEventsSampleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/service/descendant/metrics": {
             "get": {
                 "description": "获取所有下游服务的延时曲线数据",
@@ -1964,6 +2092,53 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "clickhouse.AlertEventSample": {
+            "type": "object",
+            "properties": {
+                "alarm_count": {
+                    "type": "integer"
+                },
+                "createTime": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "receivedTime": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "updateTime": {
+                    "type": "string"
+                }
+            }
+        },
         "clickhouse.FaultLogResult": {
             "type": "object",
             "properties": {
@@ -2020,6 +2195,50 @@ const docTemplate = `{
                     }
                 },
                 "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "clickhouse.PagedAlertEvent": {
+            "type": "object",
+            "properties": {
+                "createTime": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "receivedTime": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "updateTime": {
                     "type": "string"
                 }
             }
@@ -2520,6 +2739,37 @@ const docTemplate = `{
                 "traceId": {
                     "description": "TraceId",
                     "type": "string"
+                }
+            }
+        },
+        "response.GetAlertEventsResponse": {
+            "type": "object",
+            "properties": {
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/clickhouse.PagedAlertEvent"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.GetAlertEventsSampleResponse": {
+            "type": "object",
+            "properties": {
+                "events": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/clickhouse.AlertEventSample"
+                            }
+                        }
+                    }
                 }
             }
         },
