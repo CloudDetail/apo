@@ -55,6 +55,7 @@ jobs:
   deploy-dev:
     runs-on: [self-hosted, dev]
     needs: [build-backend]
+    if: github.ref == 'refs/heads/main'
     steps:
     - name: Deploy to dev
       env: 
