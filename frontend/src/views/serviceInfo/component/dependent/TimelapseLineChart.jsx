@@ -117,7 +117,7 @@ const TimelapseLineChart = (props) => {
       },
       axisLabel: {
         formatter: function (value) {
-          return format(value, 'hh:mm')
+          return format(value, 'HH:mm')
         },
       },
     },
@@ -220,7 +220,7 @@ const TimelapseLineChart = (props) => {
         },
         axisLabel: {
           formatter: function (value) {
-            return format(value, 'hh:mm')
+            return format(value, 'HH:mm')
           },
         },
         min: startTime / 1000,

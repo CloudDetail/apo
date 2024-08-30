@@ -146,7 +146,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
       axisLabel: {
         hideOverlap: true,
         formatter: function (value) {
-          return format(value, 'hh:mm')
+          return format(value, 'HH:mm')
         },
       },
       // axisLine: {
@@ -233,7 +233,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
           },
           axisLabel: {
             formatter: function (value) {
-              return format(value, 'hh:mm')
+              return format(value, 'HH:mm')
             },
             hideOverlap: true,
           },

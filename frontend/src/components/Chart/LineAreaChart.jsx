@@ -80,6 +80,7 @@ const AreaChart = ({ type, data, timeRange }) => {
             backgroundColor: adjustAlpha(MetricsLineChartColor[type], 0.2),
             pointRadius: 0, // 不显示数据点
             borderWidth: 1,
+            pointHoverRadius: 0, // 隐藏悬停时的数据点
           },
         ],
       })
@@ -90,6 +91,9 @@ const AreaChart = ({ type, data, timeRange }) => {
     plugins: {
       legend: {
         display: false, // 不显示图例
+      },
+      tooltip: {
+        enabled: false, // 禁用 tooltip
       },
     },
     scales: {
