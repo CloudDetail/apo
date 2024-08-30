@@ -1,24 +1,10 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import StatusInfo from 'src/components/StatusInfo'
 import BasicTable from 'src/components/Table/basicTable'
-import {
-  CButton,
-  CCardBody,
-  CCardHeader,
-  CModal,
-  CModalBody,
-  CModalHeader,
-  CModalTitle,
-} from '@coreui/react'
-import { FaChartLine } from 'react-icons/fa6'
 import { useNavigate } from 'react-router-dom'
-import { serviceMock } from 'src/components/ReactFlow/mock'
-import { usePropsContext } from 'src/contexts/PropsContext'
-import DelayLineChart from '../infoUni/DelayLineChart'
 import { convertTime } from 'src/utils/time'
 import { getServiceDsecendantRelevanceApi } from 'src/api/serviceInfo'
-import { useDispatch, useSelector } from 'react-redux'
-import { selectSecondsTimeRange } from 'src/store/reducers/timeRangeReducer'
+import { useDispatch } from 'react-redux'
 import { getStep } from 'src/utils/step'
 
 function DependentTable(props) {

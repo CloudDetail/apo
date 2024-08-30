@@ -1,6 +1,4 @@
-import { color } from 'd3'
 import React, { useEffect, useState, useRef } from 'react'
-import { usePropsContext } from 'src/contexts/PropsContext'
 import ReactECharts from 'echarts-for-react'
 import { convertTime } from 'src/utils/time'
 import { format } from 'date-fns'
@@ -9,10 +7,16 @@ import { ChartColorList } from 'src/constants'
 import { getServiceDsecendantMetricsApi } from 'src/api/serviceInfo'
 import { getStep } from 'src/utils/step'
 import LoadingSpinner from 'src/components/Spinner'
+import { useDispatch } from 'react-redux'
 
 const TimelapseLineChart = (props) => {
   const { startTime, endTime, serviceName, endpoint } = props
   const chartRef = useRef(null)
+  const dispatch = useDispatch()
+  const setStoreTimeRange = (value) => {
+    dispatch({ type: 'SET_TIMERANGE', payload: value })
+  }
+
   const [option, setOption] = useState({
     title: {},
     color: ChartColorList,
@@ -133,6 +137,17 @@ const TimelapseLineChart = (props) => {
       // }
     },
     series: [],
+    toolbox: {
+      show: false, // 隐藏 toolbox
+    },
+    brush: {
+      toolbox: ['lineX'],
+      brushStyle: {
+        borderWidth: 1,
+        color: 'rgba(120,140,180,0.3)',
+        borderColor: 'rgba(0,0,0,0.5)',
+      },
+    },
   })
   const [activeSeries, setActiveSeries] = useState(null)
   const [chartData, setChartData] = useState([])
@@ -196,6 +211,21 @@ const TimelapseLineChart = (props) => {
     // console.log(chartData)
     const newOption = {
       ...option,
+      xAxis: {
+        type: 'time',
+        boundaryGap: false,
+        axisPointer: {
+          type: 'line',
+          // snap: true
+        },
+        axisLabel: {
+          formatter: function (value) {
+            return format(value, 'hh:mm')
+          },
+        },
+        min: startTime / 1000,
+        max: endTime / 1000,
+      },
       color: ChartColorList,
       series: chartData.map((item) => {
         return {
@@ -209,10 +239,40 @@ const TimelapseLineChart = (props) => {
     if (chartRef.current) {
       const chartInstance = chartRef.current.getEchartsInstance()
       chartInstance.setOption(newOption, true) // 这里通过true来确保完全更新
+      onChartReady(chartInstance)
     }
     setOption(newOption)
   }, [chartData])
+  const onChartReady = (chart) => {
+    setTimeout(() => {
+      chart.dispatchAction({
+        type: 'takeGlobalCursor',
+        key: 'brush',
+        brushOption: {
+          brushType: 'lineX',
+          brushMode: 'single',
+        },
+      })
+    }, 100)
+    chart.on('brushEnd', function (params) {
+      if (params.areas && params.areas.length > 0) {
+        // 获取 brush 选中的区域
+        const brushArea = params.areas[0]
+        if (brushArea.brushType === 'lineX' && brushArea.range) {
+          const range = brushArea.range
 
+          // 获取时间轴的起始和结束时间
+          const startTime = chart.convertFromPixel({ xAxisIndex: 0 }, range[0])
+          const endTime = chart.convertFromPixel({ xAxisIndex: 0 }, range[1])
+          setStoreTimeRange({
+            rangeType: null,
+            startTime: Math.round(startTime * 1000),
+            endTime: Math.round(endTime * 1000),
+          })
+        }
+      }
+    })
+  }
   return (
     <>
       <LoadingSpinner loading={loading} />

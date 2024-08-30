@@ -104,7 +104,7 @@ const ServiceInfo = () => {
     }
   }, [serviceName, startTime, endTime])
   return (
-    <>
+    <div className="h-full relative">
       <LoadingSpinner loading={loading} />
       <PropsProvider value={{ serviceName, endpoint }}>
         <>
@@ -124,7 +124,7 @@ const ServiceInfo = () => {
           <InfoUni />
         </>
       </PropsProvider>
-    </>
+    </div>
   )
 }
 

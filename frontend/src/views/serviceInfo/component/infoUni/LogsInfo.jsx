@@ -1,7 +1,7 @@
 import { CAccordionBody, CToast, CToastBody } from '@coreui/react'
 import React, { useState, useEffect, useMemo } from 'react'
 import BasicTable from 'src/components/Table/basicTable'
-import DelayLineChart from './DelayLineChart'
+import DelayLineChart from 'components/Chart/DelayLineChart'
 import Timeline from './TimeLine'
 import { usePropsContext } from 'src/contexts/PropsContext'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
@@ -27,14 +27,7 @@ function LogsInfo() {
       accessor: 'logs',
       Cell: (props) => {
         const { value } = props
-        return (
-          <DelayLineChart
-            color="rgba(255, 158, 64, 1)"
-            data={value}
-            timeRange={{ startTime, endTime }}
-            type={'logs'}
-          />
-        )
+        return <DelayLineChart data={value} timeRange={{ startTime, endTime }} type={'logs'} />
       },
     },
     {
@@ -42,14 +35,7 @@ function LogsInfo() {
       accessor: 'latency',
       Cell: (props) => {
         const { value } = props
-        return (
-          <DelayLineChart
-            color="rgba(154, 102, 255, 1)"
-            data={value}
-            timeRange={{ startTime, endTime }}
-            type={'latency'}
-          />
-        )
+        return <DelayLineChart data={value} timeRange={{ startTime, endTime }} type={'p90'} />
       },
     },
     {
@@ -57,14 +43,7 @@ function LogsInfo() {
       accessor: 'errorRate',
       Cell: (props) => {
         const { value } = props
-        return (
-          <DelayLineChart
-            color="rgba(46, 99, 255, 1)"
-            data={value}
-            timeRange={{ startTime, endTime }}
-            type={'errorRate'}
-          />
-        )
+        return <DelayLineChart data={value} timeRange={{ startTime, endTime }} type={'errorRate'} />
       },
     },
     {

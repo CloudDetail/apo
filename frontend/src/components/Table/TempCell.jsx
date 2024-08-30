@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import AreaChart from '../Chart/LineAreaChart'
 import { BsArrowDown, BsArrowUp } from 'react-icons/bs'
-import { MetricsLineChartColor } from 'src/constants'
-import { convertTime } from 'src/utils/time'
 
 const ArrowComponent = ({ value }) => {
   if (value === null || value === 0) {
@@ -18,7 +16,6 @@ const TempCell = (props) => {
   // const ArrowIcon = (props) =>{
   //   return props.type === 'up' ?
   // }
-  const color = MetricsLineChartColor[type]
   const displayRatio = (value) => {
     if (value === null) {
       return '--'
@@ -87,7 +84,7 @@ const TempCell = (props) => {
         </div>
 
         <div className="felx h-[30px] items-center flex-1">
-          <AreaChart color={color} data={data.chartData} timeRange={timeRange} />
+          <AreaChart type={type} data={data.chartData} timeRange={timeRange} />
         </div>
 
         <div className="h-full text-[10px] text-neutral-400 w-full">

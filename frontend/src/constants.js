@@ -11,6 +11,7 @@ export const DelaySourceTimeUnit = {
 
 export const MetricsLineChartColor = {
   latency: 'rgba(212, 164, 235, 1)',
+  p90: 'rgba(212, 164, 235, 1)',
   successRate: 'rgba(144, 202, 140, 1)',
   errorRate: 'rgba(255, 99, 132, 1)',
   tps: 'rgba(55, 162,235, 1)',
@@ -40,15 +41,19 @@ export const TimeLineTypeTitleMap = {
 }
 
 export const DelayLineChartTitleMap = {
-  latency: '90分位数',
+  latency: '平均响应时间',
+  p90: '90分位数',
   errorRate: '错误率',
   logs: '日志错误数量',
+  tps: '吞吐量',
 }
 
 export const YValueMinInterval = {
   latency: 0.01,
+  p90: 0.01,
   errorRate: 0.01,
   logs: 1,
+  tps: 0.01,
 }
 export const ChartColorList = [
   '#4992ff',

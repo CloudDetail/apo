@@ -13,7 +13,10 @@ import {
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
 import { getStep } from 'src/utils/step'
-import { AiOutlineLineChart } from "react-icons/ai";
+import { AiOutlineLineChart } from 'react-icons/ai'
+import { Popover } from 'antd'
+import DelayLineChart from './DelayLineChart'
+import { MetricsLineChartColor } from 'src/constants'
 
 ChartJS.register(
   Filler,
@@ -32,7 +35,7 @@ export const adjustAlpha = (color, alpha) => {
   return `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${alpha})`
 }
 
-const AreaChart = ({ color, data, timeRange }) => {
+const AreaChart = ({ type, data, timeRange }) => {
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: [
@@ -40,8 +43,8 @@ const AreaChart = ({ color, data, timeRange }) => {
         label: 'My Dataset',
         data: [],
         fill: true, // 填充区域
-        borderColor: color,
-        backgroundColor: adjustAlpha(color, 0.2),
+        borderColor: MetricsLineChartColor[type],
+        backgroundColor: adjustAlpha(MetricsLineChartColor[type], 0.2),
         pointRadius: 0, // 不显示数据点
         borderWidth: 1,
       },
@@ -73,8 +76,8 @@ const AreaChart = ({ color, data, timeRange }) => {
             label: 'My Dataset',
             data: filledData.map((d) => d.value),
             fill: true, // 填充区域
-            borderColor: color,
-            backgroundColor: adjustAlpha(color, 0.2),
+            borderColor: MetricsLineChartColor[type],
+            backgroundColor: adjustAlpha(MetricsLineChartColor[type], 0.2),
             pointRadius: 0, // 不显示数据点
             borderWidth: 1,
           },
@@ -105,6 +108,14 @@ const AreaChart = ({ color, data, timeRange }) => {
     },
   }
 
-  return chartData && data ? <Line data={chartData} options={options} /> : <div className="w-full h-full flex items-center"><AiOutlineLineChart size={30} color='#98a2b3'/></div>
+  return chartData && data ? (
+    <Popover content={<DelayLineChart data={data} timeRange={timeRange} type={type} />} title="">
+      <Line data={chartData} options={options} />
+    </Popover>
+  ) : (
+    <div className="w-full h-full flex items-center">
+      <AiOutlineLineChart size={30} color="#98a2b3" />
+    </div>
+  )
 }
 export default AreaChart

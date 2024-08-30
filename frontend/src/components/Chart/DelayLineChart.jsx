@@ -1,36 +1,48 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import ReactECharts from 'echarts-for-react'
-import { useLocation } from 'react-router-dom'
 import { getStep } from 'src/utils/step'
 import { convertTime } from 'src/utils/time'
 import { format } from 'date-fns'
 import { DelayLineChartTitleMap, MetricsLineChartColor, YValueMinInterval } from 'src/constants'
+import { useDispatch } from 'react-redux'
 
 export const adjustAlpha = (color, alpha) => {
   const rgba = color.match(/\d+/g)
   return `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${alpha})`
 }
 
-const DelayLineChart = ({ color, multiple = false, data, timeRange, type }) => {
-  const location = useLocation()
-  const searchParams = new URLSearchParams(location.search)
-
-  const serviceName = searchParams.get('service-name')
+const DelayLineChart = ({ data, timeRange, type }) => {
+  const chartRef = useRef(null)
+  const dispatch = useDispatch()
+  const setStoreTimeRange = (value) => {
+    dispatch({ type: 'SET_TIMERANGE', payload: value })
+  }
   const convertYValue = (value) => {
     switch (type) {
       case 'logs':
         return Math.floor(value) + '个'
       case 'latency':
-        let result = convertTime(value, 'ms', 2)
-        if (result > 0 && result < 0.01) {
-          return '< 0.01ms'
+        if (value > 0 && value < 10) {
+          return '< 0.01 ms'
+        } else {
+          return convertTime(value, 'ms', 2) + 'ms'
         }
-        return result + 'ms'
+      case 'p90':
+        if (value > 0 && value < 10) {
+          return '< 0.01 ms'
+        } else {
+          return convertTime(value, 'ms', 2) + 'ms'
+        }
       case 'errorRate':
         if (value > 0 && value < 0.01) {
           return '< 0.01%'
         }
         return parseFloat(value.toFixed(2)) + '%'
+      case 'tps':
+        if (value > 0 && value < 0.01) {
+          return '< 0.01次/分'
+        }
+        return parseFloat((Math.floor(value * 100) / 100).toString()) + '次/分'
     }
   }
   const [option, setOption] = useState({
@@ -159,7 +171,11 @@ const DelayLineChart = ({ color, multiple = false, data, timeRange, type }) => {
               return value
             case 'latency':
               return convertTime(value, 'ms', 2)
+            case 'p90':
+              return convertTime(value, 'ms', 2)
             case 'errorRate':
+              return value
+            case 'tps':
               return value
           }
         },
@@ -174,6 +190,17 @@ const DelayLineChart = ({ color, multiple = false, data, timeRange, type }) => {
       // }
     },
     series: [],
+    toolbox: {
+      show: false, // 隐藏 toolbox
+    },
+    brush: {
+      toolbox: ['lineX'],
+      brushStyle: {
+        borderWidth: 1,
+        color: 'rgba(120,140,180,0.3)',
+        borderColor: 'rgba(0,0,0,0.5)',
+      },
+    },
   })
 
   // 处理缺少数据的时间点并补0
@@ -197,6 +224,22 @@ const DelayLineChart = ({ color, multiple = false, data, timeRange, type }) => {
 
       setOption({
         ...option,
+        xAxis: {
+          type: 'time',
+          boundaryGap: false,
+          axisPointer: {
+            type: 'line',
+            interval: 0,
+          },
+          axisLabel: {
+            formatter: function (value) {
+              return format(value, 'hh:mm')
+            },
+            hideOverlap: true,
+          },
+          min: timeRange.startTime / 1000,
+          max: timeRange.endTime / 1000,
+        },
         series: [
           {
             data: filledData.map((i) => [i.timestamp / 1000, i.value]),
@@ -211,9 +254,49 @@ const DelayLineChart = ({ color, multiple = false, data, timeRange, type }) => {
         ],
       })
     }
+    if (chartRef.current) {
+      const chartInstance = chartRef.current.getEchartsInstance()
+      onChartReady(chartInstance)
+    }
   }, [data])
+  const onChartReady = (chart) => {
+    setTimeout(() => {
+      chart.dispatchAction({
+        type: 'takeGlobalCursor',
+        key: 'brush',
+        brushOption: {
+          brushType: 'lineX',
+          brushMode: 'single',
+        },
+      })
+    }, 100)
+    chart.on('brushEnd', function (params) {
+      if (params.areas && params.areas.length > 0) {
+        // 获取 brush 选中的区域
+        const brushArea = params.areas[0]
+        if (brushArea.brushType === 'lineX' && brushArea.range) {
+          const range = brushArea.range
 
-  return <ReactECharts theme="dark" option={option} style={{ height: '200px', width: '250px' }} />
+          // 获取时间轴的起始和结束时间
+          const startTime = chart.convertFromPixel({ xAxisIndex: 0 }, range[0])
+          const endTime = chart.convertFromPixel({ xAxisIndex: 0 }, range[1])
+          setStoreTimeRange({
+            rangeType: null,
+            startTime: Math.round(startTime * 1000),
+            endTime: Math.round(endTime * 1000),
+          })
+        }
+      }
+    })
+  }
+  return (
+    <ReactECharts
+      ref={chartRef}
+      theme="dark"
+      option={option}
+      style={{ height: '200px', width: '250px' }}
+    />
+  )
 }
 
 export default DelayLineChart

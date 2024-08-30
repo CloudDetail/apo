@@ -1,7 +1,7 @@
 import { CAccordionBody } from '@coreui/react'
 import React, { useMemo, useState, useEffect, useRef } from 'react'
 import BasicTable from 'src/components/Table/basicTable'
-import DelayLineChart from '../DelayLineChart'
+import DelayLineChart from 'components/Chart/DelayLineChart'
 import { usePropsContext } from 'src/contexts/PropsContext'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/store/reducers/timeRangeReducer'
@@ -10,7 +10,6 @@ import { getServiceErrorInstancesApi } from 'src/api/serviceInfo'
 import ErrorCell from './ErrorCell'
 import { ErrotChain } from './ErrorChain'
 import Timeline from '../TimeLine'
-import Empty from 'src/components/Empty/Empty'
 
 export default function ErrorInstanceInfo(props) {
   const { handlePanelStatus } = props
@@ -123,12 +122,7 @@ export default function ErrorInstanceInfo(props) {
         const { value } = props
         return (
           <div className="h-52 w-80">
-            <DelayLineChart
-              color="rgba(255, 158, 64, 1)"
-              data={value}
-              timeRange={{ startTime, endTime }}
-              type="logs"
-            />
+            <DelayLineChart data={value} timeRange={{ startTime, endTime }} type="logs" />
           </div>
         )
       },
