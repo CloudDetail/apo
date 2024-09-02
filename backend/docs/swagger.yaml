@@ -1137,11 +1137,26 @@ paths:
       - description: 查询服务名
         in: query
         name: service
-        required: true
+        type: string
+      - description: 查询告警来源
+        in: query
+        name: source
         type: string
       - description: 查询告警类型
         in: query
         name: group
+        type: string
+      - description: 查询告警名称
+        in: query
+        name: name
+        type: string
+      - description: 查询告警ID
+        in: query
+        name: id
+        type: string
+      - description: 查询告警状态
+        in: query
+        name: status
         type: string
       - description: 分页参数,当前页数
         in: query
@@ -1186,10 +1201,30 @@ paths:
         name: service
         required: true
         type: string
+      - description: 查询告警来源
+        in: query
+        name: source
+        type: string
       - description: 查询告警类型
         in: query
         name: group
         type: string
+      - description: 查询告警名称
+        in: query
+        name: name
+        type: string
+      - description: 查询告警ID
+        in: query
+        name: id
+        type: string
+      - description: 查询告警状态
+        in: query
+        name: status
+        type: string
+      - description: 采样告警数量
+        in: query
+        name: sampleCount
+        type: integer
       produces:
       - application/json
       responses:

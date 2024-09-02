@@ -19,7 +19,12 @@ import (
 // @Param startTime query int64 true "查询开始时间"
 // @Param endTime query int64 true "查询结束时间"
 // @Param service query string true "查询服务名"
+// @Param source query string false "查询告警来源"
 // @Param group query string false "查询告警类型"
+// @Param name query string false "查询告警名称"
+// @Param id query string false "查询告警ID"
+// @Param status query string false "查询告警状态"
+// @Param sampleCount query int false "采样告警数量"
 // @Success 200 {object} response.GetAlertEventsSampleResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/service/alert/sample/events [get]

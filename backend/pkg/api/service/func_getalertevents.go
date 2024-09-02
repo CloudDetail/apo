@@ -19,8 +19,12 @@ import (
 // @Produce json
 // @Param startTime query int64 true "查询开始时间"
 // @Param endTime query int64 true "查询结束时间"
-// @Param service query string true "查询服务名"
+// @Param service query string false "查询服务名"
+// @Param source query string false "查询告警来源"
 // @Param group query string false "查询告警类型"
+// @Param name query string false "查询告警名称"
+// @Param id query string false "查询告警ID"
+// @Param status query string false "查询告警状态"
 // @Param currentPage query int false "分页参数,当前页数"
 // @Param pageSize query int false "分页参数, 每页数量"
 // @Success 200 {object} response.GetAlertEventsResponse

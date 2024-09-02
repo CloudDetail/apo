@@ -427,13 +427,36 @@ const docTemplate = `{
                         "type": "string",
                         "description": "查询服务名",
                         "name": "service",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询告警来源",
+                        "name": "source",
+                        "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "查询告警类型",
                         "name": "group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询告警名称",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询告警ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询告警状态",
+                        "name": "status",
                         "in": "query"
                     },
                     {
@@ -502,8 +525,38 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "查询告警来源",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "查询告警类型",
                         "name": "group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询告警名称",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询告警ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询告警状态",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "采样告警数量",
+                        "name": "sampleCount",
                         "in": "query"
                     }
                 ],
