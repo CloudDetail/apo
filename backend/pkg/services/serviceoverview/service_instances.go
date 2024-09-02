@@ -1,10 +1,12 @@
 package serviceoverview
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 
@@ -292,9 +294,11 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 		}
 		if len(InfrastructureAlertNames) > 0 {
 			var isAlert bool
-			isAlert, err = s.chRepo.InfrastructureAlert(startTime, endTime, InfrastructureAlertNames)
-			if isAlert {
+			var event *clickhouse.AlertEvent
+			event, isAlert, err = s.chRepo.InfrastructureAlert(startTime, endTime, InfrastructureAlertNames)
+			if isAlert && event != nil {
 				newInstance.InfrastructureStatus = model.STATUS_CRITICAL
+				newInstance.AlertReason.Infra = fmt.Sprintf("%s:%s", event.Name, event.Detail)
 			}
 		}
 		if len(Pods) > 0 || (len(NodeNames) > 0 && len(Pids) > 0) {

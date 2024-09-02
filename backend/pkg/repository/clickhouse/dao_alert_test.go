@@ -70,7 +70,7 @@ func TestChRepo_InfrastructureAlert(t *testing.T) {
 	// 获取1小时前的时间
 	oneHourAgo := currentTime.Add(-1 * time.Hour)
 	instances := []string{"ts-travel2-service-7d9bb6cfb9-pxz5r"}
-	InfrastructureAlert, err := repo.InfrastructureAlert(oneHourAgo, currentTime, instances)
+	_, InfrastructureAlert, err := repo.InfrastructureAlert(oneHourAgo, currentTime, instances)
 	if err != nil {
 		t.Fatalf("Error to get InfrastructureAlert: %v", err)
 	}

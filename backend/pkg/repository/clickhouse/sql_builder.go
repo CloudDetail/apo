@@ -81,10 +81,14 @@ func (builder *QueryBuilder) Equals(key string, value interface{}) *QueryBuilder
 
 // 组合生成SQL中的 key in (values) 语句, values内部为值数组
 func (builder *QueryBuilder) In(key string, values clickhouse.GroupSet) *QueryBuilder {
-	if len(values.Value) > 0 {
-		builder.where = append(builder.where, fmt.Sprintf("%s in ?", key))
-		builder.values = append(builder.values, values)
-	}
+	builder.where = append(builder.where, fmt.Sprintf("%s in ?", key))
+	builder.values = append(builder.values, values)
+	return builder
+}
+
+func (builder *QueryBuilder) InStrings(key string, values []string) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s in ?", key))
+	builder.values = append(builder.values, values)
 	return builder
 }
 
@@ -212,6 +216,8 @@ func MergeWheres(sep MergeSep, whereSQLs ...*whereSQL) *whereSQL {
 func (builder *QueryBuilder) And(where *whereSQL) *QueryBuilder {
 	if where == nil || where == ALWAYS_FALSE {
 		builder.where = append(builder.where, "FALSE")
+		return builder
+	} else if where == ALWAYS_TRUE {
 		return builder
 	}
 	builder.where = append(builder.where, where.Wheres)

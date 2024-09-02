@@ -35,30 +35,32 @@ const (
 	SELECT *
 	FROM paginatedEvent
 	%s ORDER BY rn`
+
+	SQL_GET_ALERT_EVENT = `SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,status
+	FROM alert_event
+	%s,%s`
 )
 
-// InfrastructureAlert 查询基础设施告警，按节点名称区分，如果有数据返回true，没有数据返回false
-func (ch *chRepo) InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (bool, error) {
-	// 构建查询语句
-	query := `
-		SELECT 1
-		FROM alert_event
-		WHERE received_time BETWEEN $1 AND $2 AND tags['nodename'] IN $3
-		  AND group='infra' AND status='firing'
-		LIMIT 1
-	`
+func (ch *chRepo) InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (*AlertEvent, bool, error) {
+	builder := NewQueryBuilder().
+		Between("received_time", startTime.Unix(), endTime.Unix()).
+		InStrings("tags['nodename']", nodeNames).
+		Equals("group", "infra").
+		Equals("status", "firing")
 
-	// 执行查询
-	rows, err := ch.conn.Query(context.Background(), query, startTime.Unix(), endTime.Unix(), nodeNames)
-	if err != nil {
-		return false, err
-	}
-	// 检查是否有查询结果
-	if rows.Next() {
-		return true, nil
+	byLimit := NewByLimitBuilder().
+		Limit(1).
+		OrderBy("received_time", false)
+
+	sql := fmt.Sprintf(SQL_GET_ALERT_EVENT, builder.String(), byLimit.String())
+
+	var events []AlertEvent
+	err := ch.conn.Select(context.Background(), &events, sql, builder.values...)
+	if err != nil || len(events) == 0 {
+		return nil, false, err
 	}
 
-	return false, nil
+	return &events[0], true, nil
 }
 
 // NetworkAlert   查网络告警

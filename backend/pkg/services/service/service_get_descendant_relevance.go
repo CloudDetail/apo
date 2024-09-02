@@ -152,12 +152,13 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 		}
 
 		if len(searchName) > 0 {
-			isAlert, err := s.chRepo.InfrastructureAlert(startTime, endTime, searchName)
+			event, isAlert, err := s.chRepo.InfrastructureAlert(startTime, endTime, searchName)
 			if err != nil {
 				log.Printf("Failed to query InfrastructureAlert: %v", err)
 			}
-			if isAlert {
+			if isAlert && event != nil {
 				descendantResp.InfrastructureStatus = model.STATUS_CRITICAL
+				descendantResp.AlertReason.Infra = fmt.Sprintf("%s:%s", event.Name, event.Detail)
 			}
 			isAlert, err = s.chRepo.K8sAlert(startTime, endTime, searchName)
 			if err != nil {

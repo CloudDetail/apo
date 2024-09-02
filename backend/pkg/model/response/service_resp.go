@@ -38,6 +38,8 @@ type GetDescendantRelevanceResponse struct {
 	NetStatus            string  `json:"netStatus"`            // 网络告警
 	K8sStatus            string  `json:"k8sStatus"`            // K8s状态告警
 	LastUpdateTime       *int64  `json:"timestamp"`            // 末次部署时间
+
+	AlertReason AlertReason `json:"alertReason"`
 }
 
 type GetPolarisInferResponse = polarisanalyzer.PolarisInferRes
@@ -134,6 +136,8 @@ type ServiceAlertRes struct {
 	NetStatus            string          `json:"netStatus"`
 	K8sStatus            string          `json:"k8sStatus"`
 	Timestamp            *int64          `json:"timestamp"`
+
+	AlertReason AlertReason `json:"alertReason"`
 }
 type ServiceEndPointsRes struct {
 	ServiceName    string          `json:"serviceName"`
@@ -153,7 +157,16 @@ type InstanceData struct {
 	ErrorRate            TempChartObject `json:"errorRate"`
 	Tps                  TempChartObject `json:"tps"`
 	Logs                 TempChartObject `json:"logs"`
+
+	AlertReason AlertReason `json:"alertReason"`
 }
+
+type AlertReason struct {
+	Infra    string `json:"k8sInfra"`
+	Net      string `json:"net"`
+	K8sEvent string `json:"k8sEvent"`
+}
+
 type InstancesRes struct {
 	Status string         `json:"status"`
 	Data   []InstanceData `json:"data"`

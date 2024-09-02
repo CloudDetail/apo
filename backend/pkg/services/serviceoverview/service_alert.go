@@ -1,11 +1,13 @@
 package serviceoverview
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 )
 
 func contains(arr []string, str string) bool {
@@ -219,9 +221,11 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		if len(NodeNames) > 0 {
 			var isAlert bool
 			if returnData == nil || contains(returnData, "infraStatus") {
-				isAlert, err = s.chRepo.InfrastructureAlert(startTime, endTime, NodeNames)
-				if isAlert {
+				var event *clickhouse.AlertEvent
+				event, isAlert, err = s.chRepo.InfrastructureAlert(startTime, endTime, NodeNames)
+				if isAlert && event != nil {
 					newServiceRes.InfrastructureStatus = model.STATUS_CRITICAL
+					newServiceRes.AlertReason.Infra = fmt.Sprintf("%s:%s", event.Name, event.Detail)
 				}
 			}
 
