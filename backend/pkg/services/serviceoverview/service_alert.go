@@ -31,7 +31,7 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		var duration string
 		var stepNS = endTime.Sub(startTime).Nanoseconds()
 		duration = strconv.FormatInt(stepNS/int64(time.Minute), 10) + "m"
-		for i, _ := range Services {
+		for i := range Services {
 			var Pods []string
 			for j := range Services[i].Instances {
 				if Services[i].Instances[j].InstanceType == POD {
@@ -69,7 +69,7 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		//
 		//	}
 		//}
-		for i, _ := range Services {
+		for i := range Services {
 			var ContainerIds []string
 			for j := range Services[i].Instances {
 				if Services[i].Instances[j].InstanceType == NODE {
@@ -81,7 +81,7 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 			_, err = s.LogWOWByContainerId(&Services[i].Instances, ContainerIds, endTime, duration)
 			_, err = s.ServiceLogRangeDataByContainerId(&Services[i], ContainerIds, startTime, endTime, duration, step)
 		}
-		for i, _ := range Services {
+		for i := range Services {
 			var Pids []string
 			for j := range Services[i].Instances {
 				if Services[i].Instances[j].InstanceType == VM {
@@ -165,9 +165,10 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 			K8sStatus:            model.STATUS_NORMAL,
 		}
 		var alertNames []string
-		var NodeNames []string
-		var Pids []string
-		var Pods []string
+		var nodeNames []string
+		var pids []string
+		var pods []string
+		var containerIds []string
 		for _, instance := range service.Instances {
 			var networkNodeNames []string
 			var networkPids []string
@@ -176,16 +177,19 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 				alertNames = append(alertNames, instance.ConvertName)
 			}
 			if instance.NodeName != "" {
-				NodeNames = append(NodeNames, instance.NodeName)
+				nodeNames = append(nodeNames, instance.NodeName)
 				networkNodeNames = append(networkNodeNames, instance.NodeName)
 			}
 			if instance.Pod != "" {
-				Pods = append(Pods, instance.Pod)
+				pods = append(pods, instance.Pod)
 				networkPods = append(networkPods, instance.Pod)
 			}
 			if instance.Pid != "" {
-				Pids = append(Pids, instance.Pid)
+				pids = append(pids, instance.Pid)
 				networkPids = append(networkPids, instance.Pid)
+			}
+			if instance.ContainerId != "" {
+				containerIds = append(containerIds, instance.ContainerId)
 			}
 
 			var isAlert bool
@@ -196,10 +200,9 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 				}
 			}
 		}
-		if len(Pids) > 0 {
-
+		if len(pids) > 0 || len(containerIds) > 0 {
 			if returnData == nil || contains(returnData, "lastStartTime") {
-				startTimeMap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, step, Pids)
+				startTimeMap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, step, pids, containerIds)
 				latestStartTime, found := GetLatestStartTime(startTimeMap, service.Instances)
 				if found {
 					newServiceRes.Timestamp = new(int64)
@@ -216,17 +219,17 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 				}
 			}
 		}
-		if len(NodeNames) > 0 {
+		if len(nodeNames) > 0 {
 			var isAlert bool
 			if returnData == nil || contains(returnData, "infraStatus") {
-				isAlert, err = s.chRepo.InfrastructureAlert(startTime, endTime, NodeNames)
+				isAlert, err = s.chRepo.InfrastructureAlert(startTime, endTime, nodeNames)
 				if isAlert {
 					newServiceRes.InfrastructureStatus = model.STATUS_CRITICAL
 				}
 			}
 
 			if returnData == nil || contains(returnData, "k8sStatus") {
-				isAlert, err = s.chRepo.K8sAlert(startTime, endTime, NodeNames)
+				isAlert, err = s.chRepo.K8sAlert(startTime, endTime, nodeNames)
 				if isAlert {
 					newServiceRes.K8sStatus = model.STATUS_CRITICAL
 				}
@@ -241,10 +244,21 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 func GetLatestStartTime(startTimeMap map[model.ServiceInstance]int64, instances []Instance) (int64, bool) {
 	var latestStartTime int64
 	for _, instance := range instances {
-		pidInt, _ := strconv.Atoi(instance.Pid)
-		queryInstance := model.ServiceInstance{
-			Pid:      int64(pidInt),
-			NodeName: instance.NodeName,
+		// 容器只能采用containerId进行查询，采集到的容器Pid通常是1
+		containerId := instance.ContainerId
+		nodeName := instance.NodeName
+		var queryInstance model.ServiceInstance
+		if containerId != "" {
+			queryInstance = model.ServiceInstance{
+				ContainerId: containerId,
+				NodeName:    nodeName,
+			}
+		} else {
+			pidInt, _ := strconv.Atoi(instance.Pid)
+			queryInstance = model.ServiceInstance{
+				Pid:      int64(pidInt),
+				NodeName: nodeName,
+			}
 		}
 		if startTime, found := startTimeMap[queryInstance]; found {
 			if startTime > latestStartTime {

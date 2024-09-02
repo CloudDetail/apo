@@ -42,41 +42,38 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 	_, err = s.InstanceWOWByPid(&Instances, serviceName, endPoint, endTime, duration)
 	_, err = s.InstanceRangeDataByPid(&Instances, endPoint, serviceName, startTime, endTime, duration, step)
 	var allPids []string
+	var containerIds []string
+	var pods []string
 	for _, instance := range Instances {
 		allPids = append(allPids, instance.Pid)
-	}
-	pidStartTimeMap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, step, allPids)
-	var Pods []string
-	for i := range Instances {
-		if Instances[i].InstanceType == POD {
-			Pods = append(Pods, Instances[i].ConvertName)
+		if instance.ContainerId != "" {
+			containerIds = append(containerIds, instance.ContainerId)
+		}
+		if instance.Pod != "" {
+			pods = append(pods, instance.Pod)
 		}
 	}
-	_, err = s.AvgLogByPod(&Instances, Pods, endTime, duration)
-	_, err = s.LogDODByPod(&Instances, Pods, endTime, duration)
-	_, err = s.LogWOWByPod(&Instances, Pods, endTime, duration)
-	_, err = s.LogRangeDataByPod(&Instances, Pods, startTime, endTime, duration, step)
+	instanceStartTimeMap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, step, allPids, containerIds)
 
-	var ContainerIds []string
-	for i := range Instances {
-		if Instances[i].InstanceType == NODE {
-			ContainerIds = append(ContainerIds, Instances[i].ConvertName)
-		}
-	}
-	_, err = s.AvgLogByContainerId(&Instances, ContainerIds, endTime, duration)
-	_, err = s.LogDODByContainerId(&Instances, ContainerIds, endTime, duration)
-	_, err = s.LogWOWByContainerId(&Instances, ContainerIds, endTime, duration)
-	_, err = s.LogRangeDataByContainerId(&Instances, ContainerIds, startTime, endTime, duration, step)
-	var Pids []string
+	_, err = s.AvgLogByPod(&Instances, pods, endTime, duration)
+	_, err = s.LogDODByPod(&Instances, pods, endTime, duration)
+	_, err = s.LogWOWByPod(&Instances, pods, endTime, duration)
+	_, err = s.LogRangeDataByPod(&Instances, pods, startTime, endTime, duration, step)
+
+	_, err = s.AvgLogByContainerId(&Instances, containerIds, endTime, duration)
+	_, err = s.LogDODByContainerId(&Instances, containerIds, endTime, duration)
+	_, err = s.LogWOWByContainerId(&Instances, containerIds, endTime, duration)
+	_, err = s.LogRangeDataByContainerId(&Instances, containerIds, startTime, endTime, duration, step)
+	var vmPids []string
 	for i := range Instances {
 		if Instances[i].InstanceType == VM {
-			Pids = append(Pids, Instances[i].Pid)
+			vmPids = append(vmPids, Instances[i].Pid)
 		}
 	}
-	_, err = s.AvgLogByPid(&Instances, Pids, endTime, duration)
-	_, err = s.LogDODByPid(&Instances, Pids, endTime, duration)
-	_, err = s.LogWOWByPid(&Instances, Pids, endTime, duration)
-	_, err = s.LogRangeDataByPid(&Instances, Pids, startTime, endTime, duration, step)
+	_, err = s.AvgLogByPid(&Instances, vmPids, endTime, duration)
+	_, err = s.LogDODByPid(&Instances, vmPids, endTime, duration)
+	_, err = s.LogWOWByPid(&Instances, vmPids, endTime, duration)
+	_, err = s.LogRangeDataByPid(&Instances, vmPids, startTime, endTime, duration, step)
 	res.Status = model.STATUS_NORMAL
 	for i := range Instances {
 		if Instances[i].ErrorRateDayOverDay != nil && *Instances[i].ErrorRateDayOverDay > errorThreshold {
@@ -311,13 +308,23 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 				newInstance.K8sStatus = model.STATUS_CRITICAL
 			}
 		}
-		if InstanceTmp.Pid != "" && InstanceTmp.NodeName != "" {
+		if InstanceTmp.ContainerId != "" && InstanceTmp.NodeName != "" {
+			tmpInstance := model.ServiceInstance{
+				ContainerId: InstanceTmp.ContainerId,
+				NodeName:    InstanceTmp.NodeName,
+			}
+			startTime, ok := instanceStartTimeMap[tmpInstance]
+			if ok {
+				newInstance.Timestamp = new(int64)
+				*newInstance.Timestamp = startTime * 1e6
+			}
+		} else if InstanceTmp.Pid != "" && InstanceTmp.NodeName != "" {
 			pidInt, _ := strconv.Atoi(InstanceTmp.Pid)
 			tmpInstance := model.ServiceInstance{
 				Pid:      int64(pidInt),
 				NodeName: InstanceTmp.NodeName,
 			}
-			startTime, ok := pidStartTimeMap[tmpInstance]
+			startTime, ok := instanceStartTimeMap[tmpInstance]
 			if ok {
 				newInstance.Timestamp = new(int64)
 				*newInstance.Timestamp = startTime * 1e6

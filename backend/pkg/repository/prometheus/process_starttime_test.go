@@ -19,7 +19,7 @@ func TestQueryProcessStartTime(t *testing.T) {
 
 	endTime := time.Now()
 	startTime := endTime.Add(-time.Minute * 30)
-	ret, err := repo.QueryProcessStartTime(startTime, endTime, time.Minute, []string{"1"})
+	ret, err := repo.QueryProcessStartTime(startTime, endTime, time.Minute, []string{}, []string{"1e77a6527b4b"})
 	if err != nil {
 		t.Fatalf("QueryProcessStartTime failed, err: %v", err)
 	}
@@ -27,8 +27,8 @@ func TestQueryProcessStartTime(t *testing.T) {
 		t.Logf("QueryProcessStartTime result key: %v, %v", k, v)
 	}
 	queryInstance := model.ServiceInstance{
-		Pid:      1,
-		NodeName: "worker-23",
+		ContainerId: "1e77a6527b4b",
+		NodeName:    "worker-23",
 	}
 	t.Logf("worker-23 pid 1 start time: %v", ret[queryInstance])
 }

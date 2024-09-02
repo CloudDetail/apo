@@ -115,39 +115,36 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 			nodeName := result.Metric.NodeName
 			pod := result.Metric.POD
 			pid := result.Metric.PID
-			found := false
-			for _, Instance := range instances {
-				if Instance.ContentKey == contentKey && Instance.SvcName == serviceName {
-					found = true
-					break
-				}
+			containerId := result.Metric.ContainerID
+			newInstance := serviceoverview.Instance{
+				ContentKey:  contentKey,
+				SvcName:     serviceName,
+				Pod:         pod,
+				NodeName:    nodeName,
+				Pid:         pid,
+				ContainerId: containerId,
 			}
-			if !found && contentKey == descendant.Endpoint && serviceName == descendant.Service {
-				newInstance := serviceoverview.Instance{
-					ContentKey: contentKey,
-					SvcName:    serviceName,
-					Pod:        pod,
-					NodeName:   nodeName,
-					Pid:        pid,
-				}
-				instances = append(instances, newInstance)
-			}
+			instances = append(instances, newInstance)
 		}
 		var searchName []string
-		var NodeNames []string
-		var Pids []string
-		var Pods []string
+		var nodeNames []string
+		var pids []string
+		var pods []string
+		var containerIds []string
 		for _, instance := range instances {
 			if instance.Pod != "" {
 				searchName = append(searchName, instance.Pod)
-				Pods = append(Pods, instance.Pod)
+				pods = append(pods, instance.Pod)
 			}
 			if instance.NodeName != "" {
 				searchName = append(searchName, instance.NodeName)
-				NodeNames = append(NodeNames, instance.NodeName)
+				nodeNames = append(nodeNames, instance.NodeName)
 			}
 			if instance.Pid != "" {
-				Pids = append(Pids, instance.Pid)
+				pids = append(pids, instance.Pid)
+			}
+			if instance.ContainerId != "" {
+				containerIds = append(containerIds, instance.ContainerId)
 			}
 		}
 
@@ -167,8 +164,8 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 				descendantResp.K8sStatus = model.STATUS_CRITICAL
 			}
 		}
-		if len(Pods) > 0 || len(Pids) > 0 {
-			isAlert, err := s.chRepo.NetworkAlert(startTime, endTime, Pods, NodeNames, Pids)
+		if len(pods) > 0 || len(pids) > 0 {
+			isAlert, err := s.chRepo.NetworkAlert(startTime, endTime, pods, nodeNames, pids)
 			if err != nil {
 				log.Printf("Failed to query NetworkAlert: %v", err)
 			}
@@ -176,8 +173,8 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 				descendantResp.NetStatus = model.STATUS_CRITICAL
 			}
 		}
-		if len(Pids) > 0 {
-			startTimeMap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, step, Pids)
+		if len(pids) > 0 || len(containerIds) > 0 {
+			startTimeMap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, step, pids, containerIds)
 			latestStartTime, found := serviceoverview.GetLatestStartTime(startTimeMap, instances)
 			if found {
 				descendantResp.LastUpdateTime = new(int64)
