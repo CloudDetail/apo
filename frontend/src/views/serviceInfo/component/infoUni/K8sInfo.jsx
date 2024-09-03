@@ -2,6 +2,8 @@ import { CAccordionBody, CCol, CRow } from '@coreui/react'
 import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { getK8sEventApi } from 'src/api/serviceInfo'
+import Empty from 'src/components/Empty/Empty'
+import LoadingSpinner from 'src/components/Spinner'
 import { usePropsContext } from 'src/contexts/PropsContext'
 import { selectProcessedTimeRange } from 'src/store/reducers/timeRangeReducer'
 function K8sInfo(props) {
@@ -111,7 +113,7 @@ function K8sInfo(props) {
           handlePanelStatus(res.status)
         })
         .catch((error) => {
-          setData([])
+          setData({})
           handlePanelStatus('unknown')
           setLoading(false)
         })
@@ -122,10 +124,6 @@ function K8sInfo(props) {
   }, [serviceName, startTime, endTime])
   return (
     <>
-      {/* <CAccordionHeader onClick={() => handleToggle('instance')}>
-    {status && <StatusInfo status={status} />}
-    <span className="ml-2">{serviceName}的k8s事件</span>
-  </CAccordionHeader> */}
       <CAccordionBody>
         <CRow xs={{ cols: 6 }}>
           {Object.keys(data).map((key) => {
@@ -148,6 +146,8 @@ function K8sInfo(props) {
               </CCol>
             )
           })}
+          <LoadingSpinner loading={loading} />
+          {!loading && (!data || Object.keys(data).length === 0) && <Empty />}
         </CRow>
       </CAccordionBody>
     </>
