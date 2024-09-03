@@ -41,7 +41,7 @@ const (
 	%s,%s`
 )
 
-func (ch *chRepo) InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (*AlertEvent, bool, error) {
+func (ch *chRepo) InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (*model.AlertEvent, bool, error) {
 	builder := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
 		InStrings("tags['nodename']", nodeNames).
@@ -54,7 +54,7 @@ func (ch *chRepo) InfrastructureAlert(startTime time.Time, endTime time.Time, no
 
 	sql := fmt.Sprintf(SQL_GET_ALERT_EVENT, builder.String(), byLimit.String())
 
-	var events []AlertEvent
+	var events []model.AlertEvent
 	err := ch.conn.Select(context.Background(), &events, sql, builder.values...)
 	if err != nil || len(events) == 0 {
 		return nil, false, err
@@ -303,38 +303,8 @@ func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstanc
 	return MergeWheres(OrSep, whereInstance...)
 }
 
-type IAlertEvent interface {
-	GetGroup() string
-	GetName() string
-}
-
-type AlertEvent struct {
-	Source string `ch:"source" json:"source"`
-	Group  string `ch:"group" json:"group"`
-	Id     string `ch:"id" json:"id"`
-	Name   string `ch:"name" json:"name"`
-
-	Detail       string    `ch:"detail" json:"detail"`
-	CreateTime   time.Time `ch:"create_time" json:"createTime"`
-	UpdateTime   time.Time `ch:"update_time" json:"updateTime"`
-	EndTime      time.Time `ch:"end_time" json:"endTime"`
-	ReceivedTime time.Time `ch:"received_time" json:"receivedTime"`
-	Severity     string    `ch:"severity" json:"severity"`
-
-	Tags   map[string]string `ch:"tags" json:"tags"`
-	Status string            `ch:"status" json:"status"`
-}
-
-func (e AlertEvent) GetName() string {
-	return e.Name
-}
-
-func (e AlertEvent) GetGroup() string {
-	return e.Group
-}
-
 type AlertEventSample struct {
-	AlertEvent
+	model.AlertEvent
 
 	// 记录行号
 	Rn         uint64 `ch:"rn" json:"-"`
@@ -342,7 +312,7 @@ type AlertEventSample struct {
 }
 
 type PagedAlertEvent struct {
-	AlertEvent
+	model.AlertEvent
 
 	// 记录行号
 	Rn         uint64 `ch:"rn" json:"-"`

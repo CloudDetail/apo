@@ -7,7 +7,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 )
 
 func contains(arr []string, str string) bool {
@@ -45,32 +44,7 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 			_, err = s.LogWOWByPod(&Services[i].Instances, Pods, endTime, duration)
 			_, err = s.ServiceLogRangeDataByPod(&Services[i], Pods, startTime, endTime, duration, step)
 		}
-		//var Pods []string
-		//var Instances []Instance
-		//for i, _ := range Services {
-		//	for j := range Services[i].Instances {
-		//		if Services[i].Instances[j].InstanceType == POD {
-		//			Pods = append(Pods, Services[i].Instances[j].ConvertName)
-		//			Instances = append(Instances, Services[i].Instances[j])
-		//		}
-		//	}
-		//	_, err = s.ServiceLogRangeDataByPod(&Services[i], Pods, startTime, endTime, duration, step)
-		//}
-		//_, err = s.AvgLogByPod(&Instances, Pods, endTime, duration)
-		//_, err = s.LogDODByPod(&Instances, Pods, endTime, duration)
-		//_, err = s.LogWOWByPod(&Instances, Pods, endTime, duration)
-		//for i := range Services {
-		//	for j := range Services[i].Instances {
-		//		for k := range Instances {
-		//			if Services[i].Instances[j].SvcName == Instances[k].SvcName && Services[i].Instances[j].InstanceType == POD && Services[i].Instances[j].ConvertName == Instances[k].ConvertName && Instances[k].Pod != "" {
-		//				Services[i].Instances[j].AvgLog = Instances[k].AvgLog
-		//				Services[i].Instances[j].LogDayOverDay = Instances[k].LogDayOverDay
-		//				Services[i].Instances[j].LogWeekOverWeek = Instances[k].LogWeekOverWeek
-		//			}
-		//		}
-		//
-		//	}
-		//}
+		
 		for i, _ := range Services {
 			var ContainerIds []string
 			for j := range Services[i].Instances {
@@ -221,7 +195,7 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		if len(NodeNames) > 0 {
 			var isAlert bool
 			if returnData == nil || contains(returnData, "infraStatus") {
-				var event *clickhouse.AlertEvent
+				var event *model.AlertEvent
 				event, isAlert, err = s.chRepo.InfrastructureAlert(startTime, endTime, NodeNames)
 				if isAlert && event != nil {
 					newServiceRes.InfrastructureStatus = model.STATUS_CRITICAL

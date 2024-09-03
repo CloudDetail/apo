@@ -38,8 +38,8 @@ type Repo interface {
 	// 分页Trace列表
 	GetTracePageList(req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error)
 
-	InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (*AlertEvent, bool, error)
-	NetworkAlert(startTime time.Time, endTime time.Time, pods []string, nodeNames []string, pids []string) (bool, error)
+	// InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (*model.AlertEvent, bool, error)
+	// NetworkAlert(startTime time.Time, endTime time.Time, pods []string, nodeNames []string, pids []string) (bool, error)
 	K8sAlert(startTime time.Time, endTime time.Time, pods []string) (bool, error)
 	RebootTime(endTime int64, podsOrNodeNames []string) (*time.Time, error)
 

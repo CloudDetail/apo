@@ -48,38 +48,3 @@ func TestChRepo_K8sAlert(t *testing.T) {
 	}
 	log.Printf("k8sAlert is: %v", k8sAlert)
 }
-
-func TestChRepo_NetworkAlert(t *testing.T) {
-	repo := NewTestRepo(t)
-	currentTime := time.Now()
-	// 获取1小时前的时间
-	oneHourAgo := currentTime.Add(-24 * time.Hour)
-	pods := []string{"train-ticket-mysql-master-0", "ts-station-service-5bc59b4494-drm7w"}
-	nodeNames := []string{"worker-23"}
-	pids := []string{"123", "22147", "22187"}
-	NetworkAlert, err := repo.NetworkAlert(oneHourAgo, currentTime, pods, nodeNames, pids)
-	if err != nil {
-		t.Fatalf("Error to get NetworkAlert: %v", err)
-	}
-	log.Printf("NetworkAlert is: %v", NetworkAlert)
-}
-
-func TestChRepo_InfrastructureAlert(t *testing.T) {
-	repo := NewTestRepo(t)
-	currentTime := time.Now()
-	// 获取1小时前的时间
-	oneHourAgo := currentTime.Add(-1 * time.Hour)
-	instances := []string{"ts-travel2-service-7d9bb6cfb9-pxz5r"}
-	_, InfrastructureAlert, err := repo.InfrastructureAlert(oneHourAgo, currentTime, instances)
-	if err != nil {
-		t.Fatalf("Error to get InfrastructureAlert: %v", err)
-	}
-	log.Printf("k8sAlert is: %v", InfrastructureAlert)
-}
-
-func TestZeroTime(t *testing.T) {
-	zeroTime := time.Unix(0, 0)
-	t.Logf("zeroTime: %v", zeroTime)
-	t.Logf("zeroTime: %v", zeroTime.UnixMicro())
-	t.Logf("zeroTime is Zero: %v", zeroTime.IsZero())
-}
