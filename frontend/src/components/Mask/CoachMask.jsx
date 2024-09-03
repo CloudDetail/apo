@@ -107,7 +107,7 @@ export default function CoachMask() {
     <>
       <QuestionCircleOutlined className="text-lg text-[#6261cc] px-3" onClick={setPopupShown} />
       <Modal
-        title={'Service Info指南'}
+        title={'服务详情指南'}
         open={visible}
         // footer={null}
         // style={{ width: '100vw', height: '100vh' }}
