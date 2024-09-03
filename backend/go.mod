@@ -6,7 +6,7 @@ toolchain go1.21.5
 
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.26.0
-	github.com/CloudDetail/metadata v0.0.0-20240809080233-394951895115
+	github.com/CloudDetail/metadata v0.0.0-20240903055919-f0487c96aa95
 	github.com/dave/dst v0.27.3
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.6.0

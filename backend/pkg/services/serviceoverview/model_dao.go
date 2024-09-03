@@ -51,7 +51,7 @@ type serviceDetail struct {
 
 const (
 	POD = iota
-	NODE
+	CONTAINER
 	VM
 )
 
@@ -62,7 +62,6 @@ type Instance struct {
 	SvcName                string //url所属的服务名
 	Count                  int
 	InstanceType           int
-	ServerAddress          string
 	ContainerId            string
 	Pid                    string
 	DelaySource            *float64 //延时主要来源

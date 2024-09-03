@@ -5,8 +5,9 @@ import (
 	"math"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/pkg/errors"
+
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 func (s *service) InstanceAVGByContainerId(Instances *[]Instance, serviceName string, contentKey string, endTime time.Time, duration string) (*[]Instance, error) {
@@ -38,7 +39,7 @@ func (s *service) InstanceAVGByContainerId(Instances *[]Instance, serviceName st
 				SvcName:      serviceName,
 				InstanceName: instanceName,
 				ContainerId:  containerId,
-				InstanceType: NODE,
+				InstanceType: CONTAINER,
 				ConvertName:  nodeName,
 				NodeName:     nodeName,
 				Pid:          pid,
@@ -77,7 +78,7 @@ func (s *service) InstanceAVGByContainerId(Instances *[]Instance, serviceName st
 				SvcName:      serviceName,
 				InstanceName: instanceName,
 				ContainerId:  containerId,
-				InstanceType: NODE,
+				InstanceType: CONTAINER,
 				ConvertName:  nodeName,
 				NodeName:     nodeName,
 				Pid:          pid,
@@ -116,7 +117,7 @@ func (s *service) InstanceAVGByContainerId(Instances *[]Instance, serviceName st
 				SvcName:      serviceName,
 				InstanceName: instanceName,
 				ContainerId:  containerId,
-				InstanceType: NODE,
+				InstanceType: CONTAINER,
 				ConvertName:  nodeName,
 				NodeName:     nodeName,
 				Pid:          pid,
@@ -157,7 +158,7 @@ func (s *service) InstanceDODByContainerId(Instances *[]Instance, serviceName st
 				SvcName:      serviceName,
 				InstanceName: instanceName,
 				ContainerId:  containerId,
-				InstanceType: NODE,
+				InstanceType: CONTAINER,
 				ConvertName:  nodeName,
 				NodeName:     nodeName,
 				Pid:          pid,
@@ -202,7 +203,7 @@ func (s *service) InstanceDODByContainerId(Instances *[]Instance, serviceName st
 				SvcName:      serviceName,
 				InstanceName: instanceName,
 				ContainerId:  containerId,
-				InstanceType: NODE,
+				InstanceType: CONTAINER,
 				ConvertName:  nodeName,
 				NodeName:     nodeName,
 				Pid:          pid,
@@ -240,7 +241,7 @@ func (s *service) InstanceDODByContainerId(Instances *[]Instance, serviceName st
 				SvcName:      serviceName,
 				InstanceName: instanceName,
 				ContainerId:  containerId,
-				InstanceType: NODE,
+				InstanceType: CONTAINER,
 				ConvertName:  nodeName,
 				NodeName:     nodeName,
 				Pid:          pid,
@@ -283,7 +284,7 @@ func (s *service) InstanceWOWByContainerId(Instances *[]Instance, serviceName st
 				SvcName:      serviceName,
 				InstanceName: instanceName,
 				ContainerId:  containerId,
-				InstanceType: NODE,
+				InstanceType: CONTAINER,
 				ConvertName:  nodeName,
 				NodeName:     nodeName,
 				Pid:          pid,
@@ -322,7 +323,7 @@ func (s *service) InstanceWOWByContainerId(Instances *[]Instance, serviceName st
 				SvcName:      serviceName,
 				InstanceName: instanceName,
 				ContainerId:  containerId,
-				InstanceType: NODE,
+				InstanceType: CONTAINER,
 				ConvertName:  nodeName,
 				NodeName:     nodeName,
 				Pid:          pid,
@@ -366,7 +367,7 @@ func (s *service) InstanceWOWByContainerId(Instances *[]Instance, serviceName st
 				SvcName:      serviceName,
 				InstanceName: instanceName,
 				ContainerId:  containerId,
-				InstanceType: NODE,
+				InstanceType: CONTAINER,
 				ConvertName:  nodeName,
 				NodeName:     nodeName,
 				Pid:          pid,

@@ -48,7 +48,7 @@ const (
     }
   )
 
-) by(content_key,svc_name,pod,node_name,pid) 
+) by(content_key,svc_name,pod,node_name,pid,container_id) 
 `
 )
 

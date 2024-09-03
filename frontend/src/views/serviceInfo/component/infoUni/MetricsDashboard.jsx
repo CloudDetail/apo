@@ -28,11 +28,7 @@ function MetricsDashboard({ variable }) {
   }, [variable])
   return (
     <CAccordionBody className="text-xs h-[800px]">
-      {/* {src && (
-        <IframeDashboard
-          src={src}
-        />
-      )} */}
+      {src && <IframeDashboard src={src} />}
     </CAccordionBody>
   )
 }

@@ -38,6 +38,8 @@ github.com/ClickHouse/clickhouse-go/v2 v2.26.0 h1:j4/y6NYaCcFkJwN/TU700ebW+nmsIy
 github.com/ClickHouse/clickhouse-go/v2 v2.26.0/go.mod h1:iDTViXk2Fgvf1jn2dbJd1ys+fBkdD1UMRnXlwmhijhQ=
 github.com/CloudDetail/metadata v0.0.0-20240809080233-394951895115 h1:6O9/rBmqa5Ig1n0xFTOqKoYT/7aGkzs2OYUmCr5PMg4=
 github.com/CloudDetail/metadata v0.0.0-20240809080233-394951895115/go.mod h1:YpCyr1yI2rybhXMo7STmU7qVvkRp6EDVaDRnU9Wf8ls=
+github.com/CloudDetail/metadata v0.0.0-20240903055919-f0487c96aa95 h1:52seV0rUftzIronLQOHOHbnlz4YHS4/dAB9rSHa+24M=
+github.com/CloudDetail/metadata v0.0.0-20240903055919-f0487c96aa95/go.mod h1:YpCyr1yI2rybhXMo7STmU7qVvkRp6EDVaDRnU9Wf8ls=
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
 github.com/NYTimes/gziphandler v0.0.0-20170623195520-56545f4a5d46/go.mod h1:3wb06e3pkSAbeQ52E9H9iFoQsEEwGN64994WTCIhntQ=

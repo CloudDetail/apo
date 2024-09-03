@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/logger"
 	"github.com/spf13/viper"
+
+	"github.com/CloudDetail/apo/backend/pkg/logger"
 )
 
 func NewTestRepo(t *testing.T) Repo {
