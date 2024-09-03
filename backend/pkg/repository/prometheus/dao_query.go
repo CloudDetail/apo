@@ -50,8 +50,6 @@ func (repo *promRepo) QueryData(searchTime time.Time, query string) ([]MetricRes
 				metric.PID = string(value)
 			case "pod_name":
 				metric.PodName = string(value)
-			case "server_address":
-				metric.ServerAddress = string(value)
 			case "namespace":
 				metric.Namespace = string(value)
 			}
@@ -116,8 +114,6 @@ func (repo *promRepo) QueryRangeData(startTime time.Time, endTime time.Time, que
 				metric.PID = string(value)
 			case "pod_name":
 				metric.PodName = string(value)
-			case "server_address":
-				metric.ServerAddress = string(value)
 			case "namespace":
 				metric.Namespace = string(value)
 			}
@@ -179,8 +175,6 @@ func (repo *promRepo) QueryLatencyData(searchTime time.Time, query string) ([]Me
 				metric.PID = string(value)
 			case "pod_name":
 				metric.PodName = string(value)
-			case "server_address":
-				metric.ServerAddress = string(value)
 			case "namespace":
 				metric.Namespace = string(value)
 			}
@@ -246,8 +240,6 @@ func (repo *promRepo) QueryRangeLatencyData(startTime time.Time, endTime time.Ti
 				metric.PID = string(value)
 			case "pod_name":
 				metric.PodName = string(value)
-			case "server_address":
-				metric.ServerAddress = string(value)
 			case "namespace":
 				metric.Namespace = string(value)
 			}
@@ -308,8 +300,6 @@ func (repo *promRepo) QueryErrorRateData(searchTime time.Time, query string) ([]
 				metric.PID = string(value)
 			case "pod_name":
 				metric.PodName = string(value)
-			case "server_address":
-				metric.ServerAddress = string(value)
 			case "namespace":
 				metric.Namespace = string(value)
 			}
@@ -375,8 +365,6 @@ func (repo *promRepo) QueryRangeErrorData(startTime time.Time, endTime time.Time
 				metric.PID = string(value)
 			case "pod_name":
 				metric.PodName = string(value)
-			case "server_address":
-				metric.ServerAddress = string(value)
 			case "namespace":
 				metric.Namespace = string(value)
 			}

@@ -270,42 +270,24 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 			Logs:                 newlogs,
 		}
 
-		var names []string
-		var NodeNames []string
-		var Pids []string
-		var Pods []string
-		var InfrastructureAlertNames []string
 		if InstanceTmp.NodeName != "" {
-			names = append(names, InstanceTmp.NodeName)
-			InfrastructureAlertNames = append(InfrastructureAlertNames, InstanceTmp.NodeName)
-			NodeNames = append(NodeNames, InstanceTmp.NodeName)
-		}
-		if InstanceTmp.Pod != "" {
-			names = append(names, InstanceTmp.Pod)
-			Pods = append(Pods, InstanceTmp.Pod)
-		}
-		if InstanceTmp.Pid != "" {
-			Pids = append(Pids, InstanceTmp.Pid)
-		}
-		if len(InfrastructureAlertNames) > 0 {
 			var isAlert bool
-			isAlert, err = s.chRepo.InfrastructureAlert(startTime, endTime, InfrastructureAlertNames)
+			isAlert, err = s.chRepo.InfrastructureAlert(startTime, endTime, []string{InstanceTmp.NodeName})
 			if isAlert {
 				newInstance.InfrastructureStatus = model.STATUS_CRITICAL
+			} else {
+				isAlert, err = s.chRepo.K8sAlert(startTime, endTime, []string{InstanceTmp.NodeName})
+				if isAlert {
+					newInstance.InfrastructureStatus = model.STATUS_CRITICAL
+				}
 			}
 		}
-		if len(Pods) > 0 || (len(NodeNames) > 0 && len(Pids) > 0) {
+		if InstanceTmp.Pod != "" || (InstanceTmp.NodeName != "" && InstanceTmp.Pid != "") {
 			var isAlert bool
-			isAlert, err = s.chRepo.NetworkAlert(startTime, endTime, Pods, NodeNames, Pids)
+			isAlert, err = s.chRepo.NetworkAlert(startTime, endTime,
+				[]string{InstanceTmp.Pod}, []string{InstanceTmp.NodeName}, []string{InstanceTmp.Pid})
 			if isAlert {
 				newInstance.NetStatus = model.STATUS_CRITICAL
-			}
-		}
-		if len(names) > 0 {
-			var isAlert bool
-			isAlert, err = s.chRepo.K8sAlert(startTime, endTime, names)
-			if isAlert {
-				newInstance.K8sStatus = model.STATUS_CRITICAL
 			}
 		}
 		if InstanceTmp.ContainerId != "" && InstanceTmp.NodeName != "" {

@@ -123,13 +123,13 @@ func (s *service) AvgLogByContainerId(Instances *[]Instance, containerIds []stri
 	queryLog := prometheus.QueryLogByContainerIdPromql(duration, prometheus.AvgLog, containerIds)
 	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
 	for _, result := range LogRateRes {
-		contianerId := result.Metric.ContainerID
-		if contianerId == "" {
+		containerId := result.Metric.ContainerID
+		if containerId == "" {
 			continue
 		}
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
-			if Instance.ConvertName == contianerId {
+			if Instance.ConvertName == containerId {
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
 					(*Instances)[i].AvgLog = &value
 				}
@@ -314,105 +314,6 @@ func (s *service) LogRangeDataByPid(Instances *[]Instance, pods []string, startT
 	return Instances, err
 }
 
-func (s *service) QueryServicesInstanceByPod(Services *[]serviceDetail, startTime time.Time, endTime time.Time, step time.Duration) (*[]serviceDetail, error) {
-	var SvcNames []string
-	for _, svc := range *Services {
-		SvcNames = append(SvcNames, svc.ServiceName)
-	}
-	var Res []prometheus.MetricResult
-	queryLog := prometheus.QueryServiceInstancePromql(prometheus.ServiceInstancePod, SvcNames)
-	Res, err := s.promRepo.QueryRangeData(startTime, endTime, queryLog, step)
-	for _, result := range Res {
-		pod := result.Metric.POD
-		SvcName := result.Metric.SvcName
-		nodeName := result.Metric.NodeName
-		serverAddress := result.Metric.ServerAddress
-		pid := result.Metric.PID
-		if pod == "" {
-			continue
-		}
-		for i, svc := range *Services {
-			if svc.ServiceName == SvcName {
-				newInstance := Instance{
-					ConvertName:   pod,
-					InstanceType:  POD,
-					NodeName:      nodeName,
-					Pod:           pod,
-					ServerAddress: serverAddress,
-					SvcName:       SvcName,
-					Pid:           pid,
-				}
-				(*Services)[i].Instances = append((*Services)[i].Instances, newInstance)
-				break
-			}
-		}
-	}
-	return Services, err
-}
-
-func (s *service) QueryServicesInstanceByContainerId(Services *[]serviceDetail, startTime time.Time, endTime time.Time, step time.Duration) (*[]serviceDetail, error) {
-	var SvcNames []string
-	for _, svc := range *Services {
-		SvcNames = append(SvcNames, svc.ServiceName)
-	}
-	var Res []prometheus.MetricResult
-	queryLog := prometheus.QueryServiceInstancePromql(prometheus.ServiceInstanceContainer, SvcNames)
-	Res, err := s.promRepo.QueryRangeData(startTime, endTime, queryLog, step)
-	for _, result := range Res {
-		containerId := result.Metric.ContainerID
-		SvcName := result.Metric.SvcName
-		nodeName := result.Metric.NodeName
-		pid := result.Metric.PID
-		if containerId == "" {
-			continue
-		}
-		for i, svc := range *Services {
-			if svc.ServiceName == SvcName {
-				newInstance := Instance{
-					ConvertName:  containerId,
-					InstanceType: NODE,
-					NodeName:     nodeName,
-					SvcName:      SvcName,
-					Pid:          pid,
-				}
-				(*Services)[i].Instances = append((*Services)[i].Instances, newInstance)
-				break
-			}
-		}
-	}
-	return Services, err
-}
-func (s *service) QueryServicesInstanceByPid(Services *[]serviceDetail, startTime time.Time, endTime time.Time, step time.Duration) (*[]serviceDetail, error) {
-	var SvcNames []string
-	for _, svc := range *Services {
-		SvcNames = append(SvcNames, svc.ServiceName)
-	}
-	var Res []prometheus.MetricResult
-	queryLog := prometheus.QueryServiceInstancePromql(prometheus.ServiceInstancePid, SvcNames)
-	Res, err := s.promRepo.QueryRangeData(startTime, endTime, queryLog, step)
-	for _, result := range Res {
-		Pid := result.Metric.PID
-		SvcName := result.Metric.SvcName
-		nodeName := result.Metric.NodeName
-		if Pid == "" {
-			continue
-		}
-		for i, svc := range *Services {
-			if svc.ServiceName == SvcName {
-				newInstance := Instance{
-					ConvertName:  Pid,
-					InstanceType: VM,
-					NodeName:     nodeName,
-					SvcName:      SvcName,
-					Pid:          Pid,
-				}
-				(*Services)[i].Instances = append((*Services)[i].Instances, newInstance)
-				break
-			}
-		}
-	}
-	return Services, err
-}
 func (s *service) ServiceLogRangeDataByPod(Service *serviceDetail, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*serviceDetail, error) {
 	if Service == nil {
 		return nil, errors.New("service is nil")

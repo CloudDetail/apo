@@ -17,16 +17,44 @@ func contains(arr []string, str string) bool {
 	return false
 }
 func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error) {
-
 	var Services []serviceDetail
 	for i := 0; i < len(serviceNames); i++ {
 		Services = append(Services, serviceDetail{
 			ServiceName: serviceNames[i],
 		})
 	}
-	_, err = s.QueryServicesInstanceByPod(&Services, startTime, endTime, step)
-	_, err = s.QueryServicesInstanceByContainerId(&Services, startTime, endTime, step)
-	_, err = s.QueryServicesInstanceByPid(&Services, startTime, endTime, step)
+	instances, err := s.promRepo.GetMultiServicesInstanceList(startTime.UnixMicro(), endTime.UnixMicro(), serviceNames)
+	if err != nil {
+		return nil, err
+	}
+	for i, svc := range serviceNames {
+		serviceInstances := instances[svc]
+		for _, instance := range serviceInstances.GetInstances() {
+			var convertName string
+			var instanceType int
+			if instance.PodName != "" {
+				convertName = instance.PodName
+				instanceType = POD
+			} else if instance.ContainerId != "" {
+				convertName = instance.ContainerId
+				instanceType = CONTAINER
+			} else {
+				convertName = strconv.FormatInt(instance.Pid, 10)
+				instanceType = VM
+			}
+			newInstance := Instance{
+				ConvertName:  convertName,
+				InstanceType: instanceType,
+				NodeName:     instance.NodeName,
+				Pod:          instance.PodName,
+				ContainerId:  instance.ContainerId,
+				SvcName:      instance.ServiceName,
+				Pid:          strconv.FormatInt(instance.Pid, 10),
+			}
+			Services[i].Instances = append(Services[i].Instances, newInstance)
+		}
+	}
+
 	if returnData == nil || contains(returnData, "logMetrics") {
 		var duration string
 		var stepNS = endTime.Sub(startTime).Nanoseconds()
@@ -43,36 +71,10 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 			_, err = s.LogWOWByPod(&Services[i].Instances, Pods, endTime, duration)
 			_, err = s.ServiceLogRangeDataByPod(&Services[i], Pods, startTime, endTime, duration, step)
 		}
-		//var Pods []string
-		//var Instances []Instance
-		//for i, _ := range Services {
-		//	for j := range Services[i].Instances {
-		//		if Services[i].Instances[j].InstanceType == POD {
-		//			Pods = append(Pods, Services[i].Instances[j].ConvertName)
-		//			Instances = append(Instances, Services[i].Instances[j])
-		//		}
-		//	}
-		//	_, err = s.ServiceLogRangeDataByPod(&Services[i], Pods, startTime, endTime, duration, step)
-		//}
-		//_, err = s.AvgLogByPod(&Instances, Pods, endTime, duration)
-		//_, err = s.LogDODByPod(&Instances, Pods, endTime, duration)
-		//_, err = s.LogWOWByPod(&Instances, Pods, endTime, duration)
-		//for i := range Services {
-		//	for j := range Services[i].Instances {
-		//		for k := range Instances {
-		//			if Services[i].Instances[j].SvcName == Instances[k].SvcName && Services[i].Instances[j].InstanceType == POD && Services[i].Instances[j].ConvertName == Instances[k].ConvertName && Instances[k].Pod != "" {
-		//				Services[i].Instances[j].AvgLog = Instances[k].AvgLog
-		//				Services[i].Instances[j].LogDayOverDay = Instances[k].LogDayOverDay
-		//				Services[i].Instances[j].LogWeekOverWeek = Instances[k].LogWeekOverWeek
-		//			}
-		//		}
-		//
-		//	}
-		//}
 		for i := range Services {
 			var ContainerIds []string
 			for j := range Services[i].Instances {
-				if Services[i].Instances[j].InstanceType == NODE {
+				if Services[i].Instances[j].InstanceType == CONTAINER {
 					ContainerIds = append(ContainerIds, Services[i].Instances[j].ConvertName)
 				}
 			}
@@ -164,40 +166,29 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 			NetStatus:            model.STATUS_NORMAL,
 			K8sStatus:            model.STATUS_NORMAL,
 		}
-		var alertNames []string
 		var nodeNames []string
 		var pids []string
 		var pods []string
 		var containerIds []string
 		for _, instance := range service.Instances {
-			var networkNodeNames []string
-			var networkPids []string
-			var networkPods []string
-			if instance.ConvertName != "" {
-				alertNames = append(alertNames, instance.ConvertName)
-			}
 			if instance.NodeName != "" {
 				nodeNames = append(nodeNames, instance.NodeName)
-				networkNodeNames = append(networkNodeNames, instance.NodeName)
 			}
 			if instance.Pod != "" {
 				pods = append(pods, instance.Pod)
-				networkPods = append(networkPods, instance.Pod)
 			}
 			if instance.Pid != "" {
 				pids = append(pids, instance.Pid)
-				networkPids = append(networkPids, instance.Pid)
 			}
 			if instance.ContainerId != "" {
 				containerIds = append(containerIds, instance.ContainerId)
 			}
-
-			var isAlert bool
-			if returnData == nil || contains(returnData, "netStatus") {
-				isAlert, err = s.chRepo.NetworkAlert(startTime, endTime, networkPods, networkNodeNames, networkPids)
-				if isAlert {
-					newServiceRes.NetStatus = model.STATUS_CRITICAL
-				}
+		}
+		var isAlert bool
+		if returnData == nil || contains(returnData, "netStatus") {
+			isAlert, err = s.chRepo.NetworkAlert(startTime, endTime, pods, nodeNames, pids)
+			if isAlert {
+				newServiceRes.NetStatus = model.STATUS_CRITICAL
 			}
 		}
 		if len(pids) > 0 || len(containerIds) > 0 {
@@ -210,10 +201,10 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 				}
 			}
 		}
-		if len(alertNames) > 0 {
+		if len(pods) > 0 {
 			var isAlert bool
 			if returnData == nil || contains(returnData, "k8sStatus") {
-				isAlert, err = s.chRepo.K8sAlert(startTime, endTime, alertNames)
+				isAlert, err = s.chRepo.K8sAlert(startTime, endTime, pods)
 				if isAlert {
 					newServiceRes.K8sStatus = model.STATUS_CRITICAL
 				}
@@ -225,13 +216,11 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 				isAlert, err = s.chRepo.InfrastructureAlert(startTime, endTime, nodeNames)
 				if isAlert {
 					newServiceRes.InfrastructureStatus = model.STATUS_CRITICAL
-				}
-			}
-
-			if returnData == nil || contains(returnData, "k8sStatus") {
-				isAlert, err = s.chRepo.K8sAlert(startTime, endTime, nodeNames)
-				if isAlert {
-					newServiceRes.K8sStatus = model.STATUS_CRITICAL
+				} else {
+					isAlert, err = s.chRepo.K8sAlert(startTime, endTime, nodeNames)
+					if isAlert {
+						newServiceRes.InfrastructureStatus = model.STATUS_CRITICAL
+					}
 				}
 			}
 		}

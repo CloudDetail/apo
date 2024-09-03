@@ -104,19 +104,18 @@ func (repo *promRepo) GetRange() string {
 }
 
 type Metric struct {
-	ContainerID   string `json:"container_id"`
-	ContentKey    string `json:"content_key"`
-	Instance      string `json:"instance"`
-	IsError       string `json:"is_error"`
-	Job           string `json:"job"`
-	NodeName      string `json:"node_name"`
-	POD           string `json:"pod"`
-	SvcName       string `json:"svc_name"`
-	TopSpan       string `json:"top_span"`
-	PID           string `json:"pid"`
-	PodName       string `json:"pod_name"`
-	Namespace     string `json:"namespace"`
-	ServerAddress string `json:"server_address"`
+	ContainerID string `json:"container_id"`
+	ContentKey  string `json:"content_key"`
+	Instance    string `json:"instance"`
+	IsError     string `json:"is_error"`
+	Job         string `json:"job"`
+	NodeName    string `json:"node_name"`
+	POD         string `json:"pod"`
+	SvcName     string `json:"svc_name"`
+	TopSpan     string `json:"top_span"`
+	PID         string `json:"pid"`
+	PodName     string `json:"pod_name"`
+	Namespace   string `json:"namespace"`
 }
 
 type MetricResult struct {
