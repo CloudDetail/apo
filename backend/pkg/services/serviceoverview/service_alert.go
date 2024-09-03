@@ -250,36 +250,36 @@ func GetAlertStatus(chRepo clickhouse.Repo,
 		K8sStatus:            model.STATUS_NORMAL,
 	}
 	alertReason = make(model.AlertReason)
-	for _, alertType := range alertTypes {
-		switch alertType {
-		case "infraStatus", "netStatus":
-			// 查询实例相关的告警信息
-			events, _ := chRepo.GetAlertEventsSample(1, startTime, endTime,
-				request.AlertFilter{Service: serviceName, Status: "firing"}, instances)
 
-			// 按告警原因修改告警状态/
-			for _, event := range events {
-				switch event.Group {
-				case clickhouse.INFRA_GROUP:
-					alertStatus.InfrastructureStatus = model.STATUS_CRITICAL
-					alertReason.Add("infra", fmt.Sprintf("%s: %s", event.ReceivedTime.Format("15:04:05"), event.Name))
-				case clickhouse.NETWORK_GROUP:
-					alertStatus.NetStatus = model.STATUS_CRITICAL
-					alertReason.Add("net", fmt.Sprintf("%s: %s", event.ReceivedTime.Format("15:04:05"), event.Name))
-				default:
-					// 忽略 app 和 container 告警
-					continue
-				}
+	if len(alertTypes) == 0 || contains(alertTypes, "infraStatus") || contains(alertTypes, "netStatus") {
+		// 查询实例相关的告警信息
+		events, _ := chRepo.GetAlertEventsSample(1, startTime, endTime,
+			request.AlertFilter{Service: serviceName, Status: "firing"}, instances)
+
+		// 按告警原因修改告警状态/
+		for _, event := range events {
+			switch event.Group {
+			case clickhouse.INFRA_GROUP:
+				alertStatus.InfrastructureStatus = model.STATUS_CRITICAL
+				alertReason.Add("infra", fmt.Sprintf("%s: %s", event.ReceivedTime.Format("15:04:05"), event.Name))
+			case clickhouse.NETWORK_GROUP:
+				alertStatus.NetStatus = model.STATUS_CRITICAL
+				alertReason.Add("net", fmt.Sprintf("%s: %s", event.ReceivedTime.Format("15:04:05"), event.Name))
+			default:
+				// 忽略 app 和 container 告警
+				continue
 			}
-		case "k8sStatus":
-			// 查询warning及以上级别的K8s事件
-			k8sEvents, _ := chRepo.GetK8sAlertEventsSample(startTime, endTime, instances)
-			if len(k8sEvents) > 0 {
-				alertStatus.K8sStatus = model.STATUS_CRITICAL
-				for _, event := range k8sEvents {
-					info := fmt.Sprintf("%s: %s %s:%s", event.Timestamp.Format("15:04:05"), event.GetObjName(), event.GetReason(), event.Body)
-					alertReason.Add("k8s", info)
-				}
+		}
+	}
+
+	if len(alertTypes) == 0 || contains(alertTypes, "k8sStatus") {
+		// 查询warning及以上级别的K8s事件
+		k8sEvents, _ := chRepo.GetK8sAlertEventsSample(startTime, endTime, instances)
+		if len(k8sEvents) > 0 {
+			alertStatus.K8sStatus = model.STATUS_CRITICAL
+			for _, event := range k8sEvents {
+				info := fmt.Sprintf("%s: %s %s:%s", event.Timestamp.Format("15:04:05"), event.GetObjName(), event.GetReason(), event.Body)
+				alertReason.Add("k8s", info)
 			}
 		}
 	}
