@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/logger"
 	"github.com/spf13/viper"
+
+	"github.com/CloudDetail/apo/backend/pkg/logger"
 )
 
 func NewTestRepo(t *testing.T) Repo {
@@ -24,16 +25,6 @@ func NewTestRepo(t *testing.T) Repo {
 		t.Fatalf("Error to connect clickhouse: %v", err)
 	}
 	return repo
-}
-func TestChRepo_RebootTime(t *testing.T) {
-	repo := NewTestRepo(t)
-	var endTime = time.Now().UnixMicro()
-	instances := []string{"stuck-demo-69b56fd6b6-8bkqr"}
-	lastUpdateTime, err := repo.RebootTime(endTime, instances)
-	if err != nil {
-		t.Fatalf("Error to get update time: %v", err)
-	}
-	log.Printf("lastUpdateTime: %v", lastUpdateTime)
 }
 
 func TestChRepo_K8sAlert(t *testing.T) {

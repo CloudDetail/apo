@@ -40,8 +40,7 @@ type Repo interface {
 
 	InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (bool, error)
 	NetworkAlert(startTime time.Time, endTime time.Time, pods []string, nodeNames []string, pids []string) (bool, error)
-	K8sAlert(startTime time.Time, endTime time.Time, pods []string) (bool, error)
-	RebootTime(endTime int64, podsOrNodeNames []string) (*time.Time, error)
+	K8sAlert(startTime time.Time, endTime time.Time, podsOrNodes []string) (bool, error)
 
 	CountK8sEvents(startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error)
 
