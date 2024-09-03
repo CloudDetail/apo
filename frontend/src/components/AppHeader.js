@@ -29,6 +29,7 @@ import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown } from './header/index'
 import DateTimeRangePicker from './DateTime/DateTimeRangePicker'
 import routes from 'src/routes'
+import CoachMask from './Mask/CoachMask'
 
 const AppHeader = () => {
   const location = useLocation()
@@ -92,6 +93,7 @@ const AppHeader = () => {
           </CNavItem>
         </CHeaderNav> */}
         <CHeaderNav>
+          {location.pathname === '/service/info' && <CoachMask />}
           {!routes.find((route) => route.path === location.pathname).hideSystemTimeRangePicker && (
             <DateTimeRangePicker />
           )}

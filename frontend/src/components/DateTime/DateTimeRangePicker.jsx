@@ -229,7 +229,7 @@ const DateTimeRangePicker = React.memo((props) => {
       >
         <CDropdownToggle
           color="dark"
-          className=""
+          className="dateTimeRangePicker flex items-center"
           size="sm"
           onClick={() => setDropdownVisible(true)}
         >
