@@ -52,7 +52,7 @@ type Repo interface {
 	QueryRangeAggMetricsWithFilter(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, step int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error)
 
 	// originx_process_start_time
-	QueryProcessStartTime(startTime time.Time, endTime time.Time, step time.Duration, pids []string) (map[model.ServiceInstance]int64, error)
+	QueryProcessStartTime(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) (map[model.ServiceInstance]int64, error)
 	GetApi() v1.API
 	GetRange() string
 }

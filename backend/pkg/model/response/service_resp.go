@@ -29,11 +29,8 @@ type GetDescendantRelevanceResponse struct {
 	Distance             float64 `json:"distance"`             // 延时曲线差异
 	DistanceType         string  `json:"distanceType"`         // 延时曲线差异计算方式, 有euclidean/pearson/dtw/failed/net_failed四种
 	DelaySource          string  `json:"delaySource"`          // 延时主要来源 self/dependency
-	DelayDistribution    string  `json:"delayDistribution"`    // 延时分布
 	REDMetricsStatus     string  `json:"REDStatus"`            // RED指标告警
-	REDAlarmReason       string  `json:"REDAlarmReason"`       // RED告警原因
 	LogMetricsStatus     string  `json:"logsStatus"`           // 日志指标告警
-	LogAlarmReason       string  `json:"logAlarmReason"`       // 日志告警原因
 	InfrastructureStatus string  `json:"infrastructureStatus"` // 基础设施告警
 	NetStatus            string  `json:"netStatus"`            // 网络告警
 	K8sStatus            string  `json:"k8sStatus"`            // K8s状态告警
@@ -161,10 +158,24 @@ type InstanceData struct {
 	AlertReason AlertReason `json:"alertReason"`
 }
 
-type AlertReason struct {
-	Infra    string `json:"k8sInfra"`
-	Net      string `json:"net"`
-	K8sEvent string `json:"k8sEvent"`
+type AlertReason map[string]string
+
+func (r AlertReason) Add(key, value string) {
+	if len(value) == 0 || len(key) == 0 {
+		return
+	}
+
+	if r == nil {
+		return
+	}
+
+	reason, find := r[key]
+	if !find {
+		r[key] = value
+		return
+	}
+
+	r[key] = reason + "\n" + value
 }
 
 type InstancesRes struct {

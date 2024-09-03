@@ -79,6 +79,12 @@ func (builder *QueryBuilder) Equals(key string, value interface{}) *QueryBuilder
 	return builder
 }
 
+func (builder *QueryBuilder) GreaterThan(key string, value any) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s > ?", key))
+	builder.values = append(builder.values, value)
+	return builder
+}
+
 // 组合生成SQL中的 key in (values) 语句, values内部为值数组
 func (builder *QueryBuilder) In(key string, values clickhouse.GroupSet) *QueryBuilder {
 	builder.where = append(builder.where, fmt.Sprintf("%s in ?", key))
