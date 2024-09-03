@@ -8,6 +8,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
+// DEPRECATED
 // GetServiceInstanceList 获取服务实例列表
 // @Summary 获取服务实例列表
 // @Description 获取服务实例列表
@@ -19,6 +20,7 @@ import (
 // @Param service query string true "查询服务名"
 // @Success 200 {object} []string
 // @Failure 400 {object} code.Failure
+// @Deprecated
 // @Router /api/service/instance/list [get]
 func (h *handler) GetServiceInstanceList() core.HandlerFunc {
 	return func(c core.Context) {

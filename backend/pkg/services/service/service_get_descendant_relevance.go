@@ -7,10 +7,10 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
 // GetDescendantRelevance implements Service.
@@ -72,17 +72,14 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 	}
 	for _, descendant := range sortResult {
 		var descendantResp = response.GetDescendantRelevanceResponse{
-			ServiceName:          descendant.Service,
-			EndPoint:             descendant.Endpoint,
-			Distance:             descendant.Relevance,
-			DistanceType:         sortType,
-			DelaySource:          "self",
-			REDMetricsStatus:     model.STATUS_NORMAL,
-			LogMetricsStatus:     model.STATUS_NORMAL,
-			InfrastructureStatus: model.STATUS_NORMAL,
-			NetStatus:            model.STATUS_NORMAL,
-			K8sStatus:            model.STATUS_NORMAL,
-			LastUpdateTime:       nil,
+			ServiceName:      descendant.Service,
+			EndPoint:         descendant.Endpoint,
+			Distance:         descendant.Relevance,
+			DistanceType:     sortType,
+			DelaySource:      "self",
+			REDMetricsStatus: model.STATUS_NORMAL,
+			LogMetricsStatus: model.STATUS_NORMAL,
+			LastUpdateTime:   nil,
 		}
 
 		// 填充延时源和RED告警 (DelaySource/REDMetricsStatus)
@@ -99,34 +96,13 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 		endTime := time.UnixMicro(req.EndTime)
 
 		instanceList := instances.GetInstances()
-		// 查询实例相关的告警信息
-		events, _ := s.chRepo.GetAlertEventsSample(1, startTime, endTime,
-			request.AlertFilter{Service: req.Service, Status: "firing"}, instanceList)
 
-		// 按告警原因修改告警状态/
-		for _, event := range events {
-			switch event.Group {
-			case clickhouse.INFRA_GROUP:
-				descendantResp.InfrastructureStatus = model.STATUS_CRITICAL
-				descendantResp.AlertReason.Add("infra", fmt.Sprintf("%s: %s", event.ReceivedTime.Format("15:04:05"), event.Name))
-			case clickhouse.NETWORK_GROUP:
-				descendantResp.NetStatus = model.STATUS_CRITICAL
-				descendantResp.AlertReason.Add("net", fmt.Sprintf("%s: %s", event.ReceivedTime.Format("15:04:05"), event.Name))
-			default:
-				// 忽略 app 和 container 告警
-				continue
-			}
-		}
-
-		// 查询warning及以上级别的K8s事件
-		k8sEvents, _ := s.chRepo.GetK8sAlertEventsSample(startTime, endTime, instanceList)
-		if len(k8sEvents) > 0 {
-			descendantResp.K8sStatus = model.STATUS_CRITICAL
-			for _, event := range k8sEvents {
-				info := fmt.Sprintf("%s: %s %s:%s", event.Timestamp.Format("15:04:05"), event.GetObjName(), event.GetReason(), event.Body)
-				descendantResp.AlertReason.Add("k8s", info)
-			}
-		}
+		// 填充告警状态
+		descendantResp.AlertStatus, descendantResp.AlertReason = serviceoverview.GetAlertStatus(
+			s.chRepo, []string{},
+			descendant.Service, instanceList,
+			startTime, endTime,
+		)
 
 		// 查询并填充进程启动时间
 		startTSmap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, instanceList)

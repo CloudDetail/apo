@@ -1,4 +1,4 @@
-package serviceoverview
+package service
 
 import (
 	"net/http"
@@ -31,7 +31,7 @@ type getServiceInstanceListRequest struct {
 // @Success 200 {object} response.InstancesRes
 // @Failure 400 {object} code.Failure
 // @Router /api/service/instances [get]
-func (h *handler) GetServiceInstanceList() core.HandlerFunc {
+func (h *handler) GetServiceInstance() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(getServiceInstanceListRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
@@ -53,7 +53,7 @@ func (h *handler) GetServiceInstanceList() core.HandlerFunc {
 		serviceName := req.ServiceName
 		endpoint := req.Endpoint
 		var res response.InstancesRes
-		data, err := h.serviceoverview.GetInstances(startTime, endTime, step, serviceName, endpoint)
+		data, err := h.serviceInfoService.GetInstances(startTime, endTime, step, serviceName, endpoint)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

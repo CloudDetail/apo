@@ -285,8 +285,8 @@ func sortByMutation(endpoints []*Endpoint) {
 
 }
 
-func fillServices(endpoints []*Endpoint) []serviceDetail {
-	var services []serviceDetail
+func fillServices(endpoints []*Endpoint) []ServiceDetail {
+	var services []ServiceDetail
 	for _, url := range endpoints {
 		//如果没有数据则不返回
 		if (url.AvgLatency == nil && url.AvgErrorRate == nil) || (url.AvgLatency == nil && url.AvgErrorRate != nil && *url.AvgErrorRate == 0 && url.AvgTPM == nil) {
@@ -306,7 +306,7 @@ func fillServices(endpoints []*Endpoint) []serviceDetail {
 			}
 		}
 		if !found {
-			newService := serviceDetail{
+			newService := ServiceDetail{
 				ServiceName:   serviceName,
 				ServiceSize:   1,
 				EndpointCount: 1,
@@ -319,8 +319,8 @@ func fillServices(endpoints []*Endpoint) []serviceDetail {
 	return services
 }
 
-func fillOneService(endpoints []*Endpoint) []serviceDetail {
-	var service []serviceDetail
+func fillOneService(endpoints []*Endpoint) []ServiceDetail {
+	var service []ServiceDetail
 	for _, url := range endpoints {
 		serviceName := url.SvcName
 		found := false
@@ -334,7 +334,7 @@ func fillOneService(endpoints []*Endpoint) []serviceDetail {
 			}
 		}
 		if !found {
-			newService := serviceDetail{
+			newService := ServiceDetail{
 				ServiceName:   serviceName,
 				ServiceSize:   1,
 				EndpointCount: 1,

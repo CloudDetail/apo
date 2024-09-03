@@ -12,7 +12,7 @@ import (
 	pmodel "github.com/prometheus/common/model"
 )
 
-const queryProcessStartPromQL = "max by (node_name,pid,containerId) (last_over_time(%s))"
+const queryProcessStartPromQL = "max by (node_name,pid,container_id) (last_over_time(%s))"
 
 const metricTimeseries = "originx_process_start_time{%s}[%s]"
 

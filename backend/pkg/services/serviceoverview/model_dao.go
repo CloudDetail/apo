@@ -36,7 +36,7 @@ type Endpoint struct {
 	TPMData         []prometheus.Points // TPM 时间段的数据
 
 }
-type serviceDetail struct {
+type ServiceDetail struct {
 	ServiceName          string
 	EndpointCount        int
 	ServiceSize          int

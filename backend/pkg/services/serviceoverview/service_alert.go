@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 )
 
 func contains(arr []string, str string) bool {
@@ -18,9 +20,9 @@ func contains(arr []string, str string) bool {
 	return false
 }
 func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error) {
-	var Services []serviceDetail
+	var Services []ServiceDetail
 	for i := 0; i < len(serviceNames); i++ {
-		Services = append(Services, serviceDetail{
+		Services = append(Services, ServiceDetail{
 			ServiceName: serviceNames[i],
 		})
 	}
@@ -99,7 +101,7 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		}
 	}
 
-	var ServicesAlertResMsg []response.ServiceAlertRes
+	var servicesAlertResMsg []response.ServiceAlertRes
 	for _, service := range Services {
 		if service.ServiceName == "" {
 			continue
@@ -167,68 +169,42 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 			NetStatus:            model.STATUS_NORMAL,
 			K8sStatus:            model.STATUS_NORMAL,
 		}
-		var nodeNames []string
-		var pids []string
-		var pods []string
-		var containerIds []string
+
+		var serviceInstances []*model.ServiceInstance
 		for _, instance := range service.Instances {
-			if instance.NodeName != "" {
-				nodeNames = append(nodeNames, instance.NodeName)
+			pidI64, err := strconv.ParseInt(instance.Pid, 10, 64)
+			if err != nil {
+				pidI64 = -1
 			}
-			if instance.Pod != "" {
-				pods = append(pods, instance.Pod)
-			}
-			if instance.Pid != "" {
-				pids = append(pids, instance.Pid)
-			}
-			if instance.ContainerId != "" {
-				containerIds = append(containerIds, instance.ContainerId)
-			}
+			serviceInstances = append(serviceInstances, &model.ServiceInstance{
+				ServiceName: service.ServiceName,
+				ContainerId: instance.ContainerId,
+				PodName:     instance.Pod,
+				Namespace:   instance.Namespace,
+				NodeName:    instance.NodeName,
+				Pid:         pidI64,
+			})
 		}
-		var isAlert bool
-		if returnData == nil || contains(returnData, "netStatus") {
-			isAlert, err = s.chRepo.NetworkAlert(startTime, endTime, pods, nodeNames, pids)
-			if isAlert {
-				newServiceRes.NetStatus = model.STATUS_CRITICAL
-			}
-		}
-		if len(pids) > 0 || len(containerIds) > 0 {
-			if returnData == nil || contains(returnData, "lastStartTime") {
-				startTimeMap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, step, pids, containerIds)
-				latestStartTime, found := GetLatestStartTime(startTimeMap, service.Instances)
-				if found {
-					newServiceRes.Timestamp = new(int64)
-					*newServiceRes.Timestamp = latestStartTime * 1e6
-				}
-			}
-		}
-		if len(pods) > 0 {
-			var isAlert bool
-			if returnData == nil || contains(returnData, "k8sStatus") {
-				isAlert, err = s.chRepo.K8sAlert(startTime, endTime, pods)
-				if isAlert {
-					newServiceRes.K8sStatus = model.STATUS_CRITICAL
-				}
-			}
-		}
-		if len(nodeNames) > 0 {
-			var isAlert bool
-			if returnData == nil || contains(returnData, "infraStatus") {
-				isAlert, err = s.chRepo.InfrastructureAlert(startTime, endTime, nodeNames)
-				if isAlert {
-					newServiceRes.InfrastructureStatus = model.STATUS_CRITICAL
-				} else {
-					isAlert, err = s.chRepo.K8sAlert(startTime, endTime, nodeNames)
-					if isAlert {
-						newServiceRes.InfrastructureStatus = model.STATUS_CRITICAL
-					}
-				}
+
+		// 填充告警状态
+		newServiceRes.AlertStatus, newServiceRes.AlertReason = GetAlertStatus(
+			s.chRepo, returnData,
+			service.ServiceName, serviceInstances,
+			startTime, endTime,
+		)
+
+		// 填充末次启动时间
+		if returnData == nil || contains(returnData, "lastStartTime") {
+			startTSmap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, serviceInstances)
+			latestStartTime := getLatestStartTime(startTSmap) * 1e6
+			if latestStartTime > 0 {
+				newServiceRes.Timestamp = &latestStartTime
 			}
 		}
 
-		ServicesAlertResMsg = append(ServicesAlertResMsg, newServiceRes)
+		servicesAlertResMsg = append(servicesAlertResMsg, newServiceRes)
 	}
-	return ServicesAlertResMsg, err
+	return servicesAlertResMsg, err
 }
 
 func GetLatestStartTime(startTimeMap map[model.ServiceInstance]int64, instances []Instance) (int64, bool) {
@@ -261,4 +237,62 @@ func GetLatestStartTime(startTimeMap map[model.ServiceInstance]int64, instances 
 	} else {
 		return latestStartTime, true
 	}
+}
+
+func GetAlertStatus(chRepo clickhouse.Repo,
+	alertTypes []string,
+	serviceName string, instances []*model.ServiceInstance,
+	startTime, endTime time.Time,
+) (alertStatus model.AlertStatus, alertReason model.AlertReason) {
+	alertStatus = model.AlertStatus{
+		InfrastructureStatus: model.STATUS_NORMAL,
+		NetStatus:            model.STATUS_NORMAL,
+		K8sStatus:            model.STATUS_NORMAL,
+	}
+	alertReason = make(model.AlertReason)
+	for _, alertType := range alertTypes {
+		switch alertType {
+		case "infraStatus", "netStatus":
+			// 查询实例相关的告警信息
+			events, _ := chRepo.GetAlertEventsSample(1, startTime, endTime,
+				request.AlertFilter{Service: serviceName, Status: "firing"}, instances)
+
+			// 按告警原因修改告警状态/
+			for _, event := range events {
+				switch event.Group {
+				case clickhouse.INFRA_GROUP:
+					alertStatus.InfrastructureStatus = model.STATUS_CRITICAL
+					alertReason.Add("infra", fmt.Sprintf("%s: %s", event.ReceivedTime.Format("15:04:05"), event.Name))
+				case clickhouse.NETWORK_GROUP:
+					alertStatus.NetStatus = model.STATUS_CRITICAL
+					alertReason.Add("net", fmt.Sprintf("%s: %s", event.ReceivedTime.Format("15:04:05"), event.Name))
+				default:
+					// 忽略 app 和 container 告警
+					continue
+				}
+			}
+		case "k8sStatus":
+			// 查询warning及以上级别的K8s事件
+			k8sEvents, _ := chRepo.GetK8sAlertEventsSample(startTime, endTime, instances)
+			if len(k8sEvents) > 0 {
+				alertStatus.K8sStatus = model.STATUS_CRITICAL
+				for _, event := range k8sEvents {
+					info := fmt.Sprintf("%s: %s %s:%s", event.Timestamp.Format("15:04:05"), event.GetObjName(), event.GetReason(), event.Body)
+					alertReason.Add("k8s", info)
+				}
+			}
+		}
+	}
+
+	return
+}
+
+func getLatestStartTime(startTSmap map[model.ServiceInstance]int64) int64 {
+	var latestStartTime int64 = -1
+	for _, startTime := range startTSmap {
+		if startTime > latestStartTime {
+			latestStartTime = startTime
+		}
+	}
+	return latestStartTime
 }

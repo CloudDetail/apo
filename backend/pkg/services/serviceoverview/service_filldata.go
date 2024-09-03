@@ -459,7 +459,7 @@ func (s *service) UrlWOW(Urls *[]Endpoint, serviceName string, endTime time.Time
 }
 
 // EndpointRangeREDChart 查询曲线图
-func (s *service) EndpointRangeREDChart(Services *[]serviceDetail, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]serviceDetail, error) {
+func (s *service) EndpointRangeREDChart(Services *[]ServiceDetail, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]ServiceDetail, error) {
 	var newUrls []Endpoint
 	var contentKeys []string
 	var stepToStr string

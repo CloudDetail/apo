@@ -22,10 +22,6 @@ type Handler interface {
 	// @Tags API.service
 	// @Router /api/service/moreUrl [get]
 	GetServiceMoreUrlList() core.HandlerFunc
-	// GetServiceInstanceList 获取服务的更多url列表
-	// @Tags API.service
-	// @Router /api/service/instances [get]
-	GetServiceInstanceList() core.HandlerFunc
 	// GetThreshold 获取单个阈值配置信息
 	// @Tags API.service
 	// @Router /api/service/getThreshold [get]

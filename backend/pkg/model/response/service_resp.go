@@ -1,6 +1,7 @@
 package response
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 )
@@ -24,19 +25,17 @@ type GetDescendantMetricsResponse struct {
 }
 
 type GetDescendantRelevanceResponse struct {
-	ServiceName          string  `json:"serviceName"`          // 服务名
-	EndPoint             string  `json:"endpoint"`             // Endpoint
-	Distance             float64 `json:"distance"`             // 延时曲线差异
-	DistanceType         string  `json:"distanceType"`         // 延时曲线差异计算方式, 有euclidean/pearson/dtw/failed/net_failed四种
-	DelaySource          string  `json:"delaySource"`          // 延时主要来源 self/dependency
-	REDMetricsStatus     string  `json:"REDStatus"`            // RED指标告警
-	LogMetricsStatus     string  `json:"logsStatus"`           // 日志指标告警
-	InfrastructureStatus string  `json:"infrastructureStatus"` // 基础设施告警
-	NetStatus            string  `json:"netStatus"`            // 网络告警
-	K8sStatus            string  `json:"k8sStatus"`            // K8s状态告警
-	LastUpdateTime       *int64  `json:"timestamp"`            // 末次部署时间
+	ServiceName      string  `json:"serviceName"`  // 服务名
+	EndPoint         string  `json:"endpoint"`     // Endpoint
+	Distance         float64 `json:"distance"`     // 延时曲线差异
+	DistanceType     string  `json:"distanceType"` // 延时曲线差异计算方式, 有euclidean/pearson/dtw/failed/net_failed四种
+	DelaySource      string  `json:"delaySource"`  // 延时主要来源 self/dependency
+	REDMetricsStatus string  `json:"REDStatus"`    // RED指标告警
+	LogMetricsStatus string  `json:"logsStatus"`   // 日志指标告警
+	LastUpdateTime   *int64  `json:"timestamp"`    // 末次部署时间
 
-	AlertReason AlertReason `json:"alertReason"`
+	model.AlertStatus
+	AlertReason model.AlertReason `json:"alertReason"`
 }
 
 type GetPolarisInferResponse = polarisanalyzer.PolarisInferRes
@@ -134,8 +133,10 @@ type ServiceAlertRes struct {
 	K8sStatus            string          `json:"k8sStatus"`
 	Timestamp            *int64          `json:"timestamp"`
 
-	AlertReason AlertReason `json:"alertReason"`
+	model.AlertStatus
+	AlertReason model.AlertReason `json:"alertReason"`
 }
+
 type ServiceEndPointsRes struct {
 	ServiceName    string          `json:"serviceName"`
 	Namespaces     []string        `json:"namespaces"` // 应用所属命名空间,可能为空
@@ -144,38 +145,16 @@ type ServiceEndPointsRes struct {
 }
 
 type InstanceData struct {
-	Name                 string          `json:"name"` //实例名
-	Namespace            string          `json:"namespace"`
-	InfrastructureStatus string          `json:"infrastructureStatus"`
-	NetStatus            string          `json:"netStatus"`
-	K8sStatus            string          `json:"k8sStatus"`
-	Timestamp            *int64          `json:"timestamp"`
-	Latency              TempChartObject `json:"latency"`
-	ErrorRate            TempChartObject `json:"errorRate"`
-	Tps                  TempChartObject `json:"tps"`
-	Logs                 TempChartObject `json:"logs"`
+	Name      string          `json:"name"` //实例名
+	Namespace string          `json:"namespace"`
+	Timestamp *int64          `json:"timestamp"`
+	Latency   TempChartObject `json:"latency"`
+	ErrorRate TempChartObject `json:"errorRate"`
+	Tps       TempChartObject `json:"tps"`
+	Logs      TempChartObject `json:"logs"`
 
-	AlertReason AlertReason `json:"alertReason"`
-}
-
-type AlertReason map[string]string
-
-func (r AlertReason) Add(key, value string) {
-	if len(value) == 0 || len(key) == 0 {
-		return
-	}
-
-	if r == nil {
-		return
-	}
-
-	reason, find := r[key]
-	if !find {
-		r[key] = value
-		return
-	}
-
-	r[key] = reason + "\n" + value
+	model.AlertStatus
+	AlertReason model.AlertReason `json:"alertReason"`
 }
 
 type InstancesRes struct {

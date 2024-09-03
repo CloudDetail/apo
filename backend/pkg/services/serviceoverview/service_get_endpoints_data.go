@@ -128,7 +128,7 @@ func (s *service) sortWithRule(sortRule SortType, endpointsMap *EndpointsMap) er
 	return nil
 }
 
-func (*service) extractDetail(service serviceDetail, startTime time.Time, endTime time.Time, step time.Duration) []response.ServiceDetail {
+func (*service) extractDetail(service ServiceDetail, startTime time.Time, endTime time.Time, step time.Duration) []response.ServiceDetail {
 	var newServiceDetails []response.ServiceDetail
 	for _, endpoint := range service.Endpoints {
 		newErrorRadio := response.Ratio{
