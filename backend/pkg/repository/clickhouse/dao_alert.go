@@ -45,8 +45,6 @@ const (
 	%s ORDER BY rn`
 )
 
-
-
 // GetAlarmsEvents 获取实例所有的告警事件
 func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]AlertEventSample, error) {
 	// 组合生成:
@@ -204,7 +202,7 @@ type AlertEventSample struct {
 
 	// 记录行号
 	Rn         uint64 `ch:"rn" json:"-"`
-	AlarmCount uint64 `ch:"alarm_count" json:"alarm_count"`
+	AlarmCount uint64 `ch:"alarm_count" json:"alarmCount"`
 }
 
 type PagedAlertEvent struct {

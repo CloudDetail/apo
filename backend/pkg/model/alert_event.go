@@ -13,13 +13,13 @@ type AlertEvent struct {
 	Source string    `ch:"source" json:"source,omitempty"`
 	ID     uuid.UUID `ch:"id" json:"id,omitempty"`
 	// 故障触发时间
-	CreateTime time.Time `ch:"create_time" json:"create_time"`
+	CreateTime time.Time `ch:"create_time" json:"createTime"`
 	// 故障最后一次发生时间
-	UpdateTime time.Time `ch:"update_time" json:"update_time"`
+	UpdateTime time.Time `ch:"update_time" json:"updateTime"`
 	// 故障恢复时间（仅恢复时存在）
-	EndTime time.Time `ch:"end_time" json:"end_time"`
+	EndTime time.Time `ch:"end_time" json:"endTime"`
 	// 故障事件接收时间（用于记录数据对接，无业务含义）
-	ReceivedTime time.Time     `ch:"received_time" json:"received_time"`
+	ReceivedTime time.Time     `ch:"received_time" json:"receivedTime"`
 	Severity     SeverityLevel `ch:"severity" json:"severity,omitempty"`
 	// 故障所属分组信息
 	Group  string            `ch:"group" json:"group,omitempty"`
