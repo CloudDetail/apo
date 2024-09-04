@@ -1,7 +1,6 @@
 package serviceoverview
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -261,10 +260,20 @@ func GetAlertStatus(chRepo clickhouse.Repo,
 			switch event.Group {
 			case clickhouse.INFRA_GROUP:
 				alertStatus.InfrastructureStatus = model.STATUS_CRITICAL
-				alertReason.Add("infra", fmt.Sprintf("%s: %s", event.ReceivedTime.Format("15:04:05"), event.Name))
+				alertReason.Add(model.InfrastructureAlert, model.AlertDetail{
+					Timestamp:    event.ReceivedTime.UnixMicro(),
+					AlertObject:  event.GetTargetObj(),
+					AlertReason:  event.Name,
+					AlertMessage: event.Detail,
+				})
 			case clickhouse.NETWORK_GROUP:
 				alertStatus.NetStatus = model.STATUS_CRITICAL
-				alertReason.Add("net", fmt.Sprintf("%s: %s", event.ReceivedTime.Format("15:04:05"), event.Name))
+				alertReason.Add(model.NetAlert, model.AlertDetail{
+					Timestamp:    event.ReceivedTime.UnixMicro(),
+					AlertObject:  event.GetTargetObj(),
+					AlertReason:  event.Name,
+					AlertMessage: event.Detail,
+				})
 			default:
 				// 忽略 app 和 container 告警
 				continue
@@ -278,8 +287,12 @@ func GetAlertStatus(chRepo clickhouse.Repo,
 		if len(k8sEvents) > 0 {
 			alertStatus.K8sStatus = model.STATUS_CRITICAL
 			for _, event := range k8sEvents {
-				info := fmt.Sprintf("%s: %s %s:%s", event.Timestamp.Format("15:04:05"), event.GetObjName(), event.GetReason(), event.Body)
-				alertReason.Add("k8s", info)
+				alertReason.Add(model.K8sEventAlert, model.AlertDetail{
+					Timestamp:    event.Timestamp.UnixMicro(),
+					AlertObject:  event.GetObjName(),
+					AlertReason:  event.GetReason(),
+					AlertMessage: event.Body,
+				})
 			}
 		}
 	}

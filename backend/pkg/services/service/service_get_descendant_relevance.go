@@ -220,6 +220,7 @@ type DescendantStatus struct {
 }
 
 func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRelevanceResponse, descendantStatus map[string]*DescendantStatus, threshold database.Threshold) {
+	ts := time.Now()
 	descendantKey := descendantResp.ServiceName + "_" + descendantResp.EndPoint
 	if status, ok := descendantStatus[descendantKey]; ok {
 		if status.DepLatency > 0 && status.Latency > 0 {
@@ -229,34 +230,74 @@ func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRel
 			} else {
 				descendantResp.DelaySource = "self"
 			}
-			delayDistribution := fmt.Sprintf("latency: %.2f, depLatency: %.2f(%.2f)", status.DepLatency, status.Latency, depRatio)
-			descendantResp.AlertReason.Add("delaySource", delayDistribution)
+			delayDistribution := fmt.Sprintf("总延时: %.2f, 外部依赖延时: %.2f(%.2f)", status.DepLatency, status.Latency, depRatio)
+			descendantResp.AlertReason.Add(model.DelaySourceAlert, model.AlertDetail{
+				Timestamp:    ts.UnixMicro(),
+				AlertObject:  descendantResp.ServiceName,
+				AlertReason:  "外部依赖延时占总延时超过50%",
+				AlertMessage: delayDistribution,
+			})
 		} else {
 			descendantResp.DelaySource = "self"
 		}
 
 		if status.RequestPerSecondDoD < 0 {
-			descendantResp.AlertReason.Add("RED", "TPS: 未采集到数据")
+			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
+				Timestamp:    ts.UnixMicro(),
+				AlertObject:  descendantResp.ServiceName,
+				AlertReason:  "TPS未采集到数据",
+				AlertMessage: "",
+			})
 		} else if threshold.Tps > 0 && status.RequestPerSecondDoD*100 > (100+threshold.Tps) {
 			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
-			descendantResp.AlertReason.Add("RED", fmt.Sprintf("TPS: 请求TPS日同比: %.2f 高于设定阈值 %.2f;", status.RequestPerSecondDoD, (100+threshold.Tps)/100))
+			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
+				Timestamp:    ts.UnixMicro(),
+				AlertObject:  descendantResp.ServiceName,
+				AlertReason:  "TPS变化超过日同比阈值",
+				AlertMessage: fmt.Sprintf("请求TPS日同比: %.2f 高于设定阈值 %.2f;", status.RequestPerSecondDoD, (100+threshold.Tps)/100),
+			})
 		}
 
 		if status.LatencyDoD < 0 {
-			descendantResp.AlertReason.Add("RED", "延迟: 未采集到数据")
+			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
+				Timestamp:    ts.UnixMicro(),
+				AlertObject:  descendantResp.ServiceName,
+				AlertReason:  "延迟未采集到数据",
+				AlertMessage: "",
+			})
 		} else if threshold.Latency > 0 && status.LatencyDoD*100 > (100+threshold.Latency) {
 			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
-			descendantResp.AlertReason.Add("RED", fmt.Sprintf("延迟: 延迟日同比: %.2f 高于设定阈值 %.2f;", status.LatencyDoD, (100+threshold.Latency)/100))
+			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
+				Timestamp:    ts.UnixMicro(),
+				AlertObject:  descendantResp.ServiceName,
+				AlertReason:  "延时变化超过日同比阈值",
+				AlertMessage: fmt.Sprintf("延迟日同比: %.2f 高于设定阈值 %.2f;", status.LatencyDoD, (100+threshold.Latency)/100),
+			})
 		}
 
 		if status.ErrorRateDoD < 0 {
-			descendantResp.AlertReason.Add("RED", "错误率: 未采集到数据")
+			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
+				Timestamp:    ts.UnixMicro(),
+				AlertObject:  descendantResp.ServiceName,
+				AlertReason:  "错误率未采集到数据",
+				AlertMessage: "",
+			})
 		} else if threshold.ErrorRate > 0 && status.ErrorRateDoD*100 < (100-threshold.ErrorRate) {
 			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
-			descendantResp.AlertReason.Add("RED", fmt.Sprintf("错误率: 错误率日同比: %.2f 低于设定阈值 %.2f;", status.ErrorRateDoD, (100-threshold.ErrorRate)/100))
+			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
+				Timestamp:    ts.UnixMicro(),
+				AlertObject:  descendantResp.ServiceName,
+				AlertReason:  "错误率变化超过日同比阈值",
+				AlertMessage: fmt.Sprintf("错误率日同比: %.2f 低于设定阈值 %.2f;", status.ErrorRateDoD, (100-threshold.ErrorRate)/100),
+			})
 		}
 	} else {
-		descendantResp.AlertReason.Add("RED", "时间段内未统计到应用延时,应用无请求或未监控,忽略RED告警;")
+		descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
+			Timestamp:    ts.UnixMicro(),
+			AlertObject:  descendantResp.ServiceName,
+			AlertReason:  "时间段内未统计到应用延时,应用无请求或未监控,忽略RED告警;",
+			AlertMessage: "",
+		})
 	}
 }
 
