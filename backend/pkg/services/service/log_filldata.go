@@ -1,4 +1,7 @@
-package serviceoverview
+// repeat from backend/pkg/services/serviceoverview/log_filldata.go
+// TODO move to public package
+
+package service
 
 import (
 	"math"
@@ -8,9 +11,10 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
-func (s *service) AvgLogByPod(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) AvgLogByPod(Instances *[]serviceoverview.Instance, pods []string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
 	var LogRateRes []prometheus.MetricResult
 	queryLog := prometheus.QueryLogPromql(duration, prometheus.AvgLog, pods)
 	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
@@ -32,7 +36,7 @@ func (s *service) AvgLogByPod(Instances *[]Instance, pods []string, endTime time
 	return Instances, err
 }
 
-func (s *service) LogDODByPod(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) LogDODByPod(Instances *[]serviceoverview.Instance, pods []string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
 	var LogRateRes []prometheus.MetricResult
 	queryLog := prometheus.QueryLogPromql(duration, prometheus.LogDOD, pods)
 	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
@@ -48,7 +52,7 @@ func (s *service) LogDODByPod(Instances *[]Instance, pods []string, endTime time
 					(*Instances)[i].LogDayOverDay = &value
 				} else {
 					var value float64
-					value = RES_MAX_VALUE
+					value = serviceoverview.RES_MAX_VALUE
 					pointer := &value
 					(*Instances)[i].LogDayOverDay = pointer
 				}
@@ -58,7 +62,7 @@ func (s *service) LogDODByPod(Instances *[]Instance, pods []string, endTime time
 	}
 	return Instances, err
 }
-func (s *service) LogWOWByPod(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) LogWOWByPod(Instances *[]serviceoverview.Instance, pods []string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
 	var LogRateRes []prometheus.MetricResult
 	queryLog := prometheus.QueryLogPromql(duration, prometheus.LogWOW, pods)
 	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
@@ -74,7 +78,7 @@ func (s *service) LogWOWByPod(Instances *[]Instance, pods []string, endTime time
 					(*Instances)[i].LogWeekOverWeek = &value
 				} else {
 					var value float64
-					value = RES_MAX_VALUE
+					value = serviceoverview.RES_MAX_VALUE
 					pointer := &value
 					(*Instances)[i].LogWeekOverWeek = pointer
 				}
@@ -87,7 +91,7 @@ func (s *service) LogWOWByPod(Instances *[]Instance, pods []string, endTime time
 
 // 查询曲线图
 
-func (s *service) LogRangeDataByPod(Instances *[]Instance, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]Instance, error) {
+func (s *service) LogRangeDataByPod(Instances *[]serviceoverview.Instance, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]serviceoverview.Instance, error) {
 	if Instances == nil {
 		return nil, errors.New("instances is nil")
 	}
@@ -118,7 +122,7 @@ func (s *service) LogRangeDataByPod(Instances *[]Instance, pods []string, startT
 	return Instances, err
 }
 
-func (s *service) AvgLogByContainerId(Instances *[]Instance, containerIds []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) AvgLogByContainerId(Instances *[]serviceoverview.Instance, containerIds []string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
 	var LogRateRes []prometheus.MetricResult
 	queryLog := prometheus.QueryLogByContainerIdPromql(duration, prometheus.AvgLog, containerIds)
 	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
@@ -140,7 +144,7 @@ func (s *service) AvgLogByContainerId(Instances *[]Instance, containerIds []stri
 	return Instances, err
 }
 
-func (s *service) LogDODByContainerId(Instances *[]Instance, containerIds []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) LogDODByContainerId(Instances *[]serviceoverview.Instance, containerIds []string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
 	var LogRateRes []prometheus.MetricResult
 	queryLog := prometheus.QueryLogByContainerIdPromql(duration, prometheus.LogDOD, containerIds)
 	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
@@ -161,7 +165,7 @@ func (s *service) LogDODByContainerId(Instances *[]Instance, containerIds []stri
 	}
 	return Instances, err
 }
-func (s *service) LogWOWByContainerId(Instances *[]Instance, containerIds []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) LogWOWByContainerId(Instances *[]serviceoverview.Instance, containerIds []string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
 	var LogRateRes []prometheus.MetricResult
 	queryLog := prometheus.QueryLogByContainerIdPromql(duration, prometheus.LogWOW, containerIds)
 	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
@@ -185,7 +189,7 @@ func (s *service) LogWOWByContainerId(Instances *[]Instance, containerIds []stri
 
 // 查询曲线图
 
-func (s *service) LogRangeDataByContainerId(Instances *[]Instance, containerIds []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]Instance, error) {
+func (s *service) LogRangeDataByContainerId(Instances *[]serviceoverview.Instance, containerIds []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]serviceoverview.Instance, error) {
 	if Instances == nil {
 		return nil, errors.New("instances is nil")
 	}
@@ -216,7 +220,7 @@ func (s *service) LogRangeDataByContainerId(Instances *[]Instance, containerIds 
 	return Instances, err
 }
 
-func (s *service) AvgLogByPid(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) AvgLogByPid(Instances *[]serviceoverview.Instance, pods []string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
 	var LogRateRes []prometheus.MetricResult
 	queryLog := prometheus.QueryLogByPidPromql(duration, prometheus.AvgLog, pods)
 	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
@@ -238,7 +242,7 @@ func (s *service) AvgLogByPid(Instances *[]Instance, pods []string, endTime time
 	return Instances, err
 }
 
-func (s *service) LogDODByPid(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) LogDODByPid(Instances *[]serviceoverview.Instance, pods []string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
 	var LogRateRes []prometheus.MetricResult
 	queryLog := prometheus.QueryLogByPidPromql(duration, prometheus.LogDOD, pods)
 	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
@@ -259,7 +263,7 @@ func (s *service) LogDODByPid(Instances *[]Instance, pods []string, endTime time
 	}
 	return Instances, err
 }
-func (s *service) LogWOWByPid(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) LogWOWByPid(Instances *[]serviceoverview.Instance, pods []string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
 	var LogRateRes []prometheus.MetricResult
 	queryLog := prometheus.QueryLogByPidPromql(duration, prometheus.LogWOW, pods)
 	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
@@ -283,7 +287,7 @@ func (s *service) LogWOWByPid(Instances *[]Instance, pods []string, endTime time
 
 // 查询曲线图
 
-func (s *service) LogRangeDataByPid(Instances *[]Instance, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]Instance, error) {
+func (s *service) LogRangeDataByPid(Instances *[]serviceoverview.Instance, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]serviceoverview.Instance, error) {
 	if Instances == nil {
 		return nil, errors.New("instances is nil")
 	}
@@ -314,7 +318,7 @@ func (s *service) LogRangeDataByPid(Instances *[]Instance, pods []string, startT
 	return Instances, err
 }
 
-func (s *service) ServiceLogRangeDataByPod(Service *ServiceDetail, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*ServiceDetail, error) {
+func (s *service) ServiceLogRangeDataByPod(Service *serviceoverview.ServiceDetail, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*serviceoverview.ServiceDetail, error) {
 	if Service == nil {
 		return nil, errors.New("service is nil")
 	}
@@ -340,7 +344,7 @@ func (s *service) ServiceLogRangeDataByPod(Service *ServiceDetail, pods []string
 	return Service, err
 }
 
-func (s *service) ServiceLogRangeDataByContainerId(Service *ServiceDetail, containerIds []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*ServiceDetail, error) {
+func (s *service) ServiceLogRangeDataByContainerId(Service *serviceoverview.ServiceDetail, containerIds []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*serviceoverview.ServiceDetail, error) {
 	if Service == nil {
 		return nil, errors.New("service is nil")
 	}
@@ -366,7 +370,7 @@ func (s *service) ServiceLogRangeDataByContainerId(Service *ServiceDetail, conta
 	return Service, err
 }
 
-func (s *service) ServiceLogRangeDataByPid(Service *ServiceDetail, pids []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*ServiceDetail, error) {
+func (s *service) ServiceLogRangeDataByPid(Service *serviceoverview.ServiceDetail, pids []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*serviceoverview.ServiceDetail, error) {
 	if Service == nil {
 		return nil, errors.New("service is nil")
 	}

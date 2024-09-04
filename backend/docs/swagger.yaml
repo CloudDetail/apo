@@ -4,31 +4,36 @@ definitions:
     properties:
       alarm_count:
         type: integer
-      createTime:
+      create_time:
+        description: 故障触发时间
         type: string
       detail:
         type: string
-      endTime:
+      end_time:
+        description: 故障恢复时间（仅恢复时存在）
         type: string
       group:
+        description: 故障所属分组信息
         type: string
       id:
         type: string
       name:
         type: string
-      receivedTime:
+      received_time:
+        description: 故障事件接收时间（用于记录数据对接，无业务含义）
         type: string
       severity:
-        type: string
+        $ref: '#/definitions/model.SeverityLevel'
       source:
         type: string
       status:
-        type: string
+        $ref: '#/definitions/model.Status'
       tags:
         additionalProperties:
           type: string
         type: object
-      updateTime:
+      update_time:
+        description: 故障最后一次发生时间
         type: string
     type: object
   clickhouse.FaultLogResult:
@@ -72,31 +77,36 @@ definitions:
     type: object
   clickhouse.PagedAlertEvent:
     properties:
-      createTime:
+      create_time:
+        description: 故障触发时间
         type: string
       detail:
         type: string
-      endTime:
+      end_time:
+        description: 故障恢复时间（仅恢复时存在）
         type: string
       group:
+        description: 故障所属分组信息
         type: string
       id:
         type: string
       name:
         type: string
-      receivedTime:
+      received_time:
+        description: 故障事件接收时间（用于记录数据对接，无业务含义）
         type: string
       severity:
-        type: string
+        $ref: '#/definitions/model.SeverityLevel'
       source:
         type: string
       status:
-        type: string
+        $ref: '#/definitions/model.Status'
       tags:
         additionalProperties:
           type: string
         type: object
-      updateTime:
+      update_time:
+        description: 故障最后一次发生时间
         type: string
     type: object
   clickhouse.QueryTraceResult:
@@ -147,6 +157,10 @@ definitions:
         description: 错误信息
         type: string
     type: object
+  model.AlertReason:
+    additionalProperties:
+      type: string
+    type: object
   model.ModifyTableTTLMap:
     properties:
       TTLExpression:
@@ -186,6 +200,28 @@ definitions:
         description: 服务名
         type: string
     type: object
+  model.SeverityLevel:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    type: integer
+    x-enum-varnames:
+    - SeverityLevelUnknown
+    - SeverityLevelInfo
+    - SeverityLevelWarning
+    - SeverityLevelError
+    - SeverityLevelCritical
+  model.Status:
+    enum:
+    - 0
+    - 1
+    type: integer
+    x-enum-varnames:
+    - StatusResolved
+    - StatusFiring
   request.Alert:
     properties:
       annotations:
@@ -479,15 +515,11 @@ definitions:
     type: object
   response.GetDescendantRelevanceResponse:
     properties:
-      REDAlarmReason:
-        description: RED告警原因
-        type: string
       REDStatus:
         description: RED指标告警
         type: string
-      delayDistribution:
-        description: 延时分布
-        type: string
+      alertReason:
+        $ref: '#/definitions/model.AlertReason'
       delaySource:
         description: 延时主要来源 self/dependency
         type: string
@@ -505,9 +537,6 @@ definitions:
         type: string
       k8sStatus:
         description: K8s状态告警
-        type: string
-      logAlarmReason:
-        description: 日志告警原因
         type: string
       logsStatus:
         description: 日志指标告警
@@ -699,11 +728,15 @@ definitions:
     type: object
   response.InstanceData:
     properties:
+      alertReason:
+        $ref: '#/definitions/model.AlertReason'
       errorRate:
         $ref: '#/definitions/response.TempChartObject'
       infrastructureStatus:
+        description: 基础设施告警
         type: string
       k8sStatus:
+        description: K8s状态告警
         type: string
       latency:
         $ref: '#/definitions/response.TempChartObject'
@@ -715,6 +748,7 @@ definitions:
       namespace:
         type: string
       netStatus:
+        description: 网络告警
         type: string
       timestamp:
         type: integer
@@ -808,13 +842,18 @@ definitions:
     type: object
   response.ServiceAlertRes:
     properties:
+      alertReason:
+        $ref: '#/definitions/model.AlertReason'
       infrastructureStatus:
+        description: 基础设施告警
         type: string
       k8sStatus:
+        description: K8s状态告警
         type: string
       logs:
         $ref: '#/definitions/response.TempChartObject'
       netStatus:
+        description: 网络告警
         type: string
       serviceName:
         type: string
@@ -1575,6 +1614,7 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
+      deprecated: true
       description: 获取服务实例列表
       parameters:
       - description: 查询开始时间

@@ -12,6 +12,13 @@ import (
 )
 
 const (
+	APP_GROUP       = "app"
+	NETWORK_GROUP   = "network"
+	CONTAINER_GROUP = "container"
+	INFRA_GROUP     = "infra"
+)
+
+const (
 	// SQL_GET_SAMPLE_ALERT_EVENT 按alarm_event的name分组,每组取发生事件最晚的记录,并在返回结果中记录同name的告警次数数量
 	SQL_GET_SAMPLE_ALERT_EVENT = `WITH grouped_alarm AS (
 		SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,status,
@@ -38,79 +45,7 @@ const (
 	%s ORDER BY rn`
 )
 
-// InfrastructureAlert 查询基础设施告警，按节点名称区分，如果有数据返回true，没有数据返回false
-func (ch *chRepo) InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (bool, error) {
-	// 构建查询语句
-	query := `
-		SELECT 1
-		FROM alert_event
-		WHERE received_time BETWEEN $1 AND $2 AND tags['nodename'] IN $3
-		  AND group='infra' AND status='firing'
-		LIMIT 1
-	`
 
-	// 执行查询
-	rows, err := ch.conn.Query(context.Background(), query, startTime.Unix(), endTime.Unix(), nodeNames)
-	if err != nil {
-		return false, err
-	}
-	// 检查是否有查询结果
-	if rows.Next() {
-		return true, nil
-	}
-
-	return false, nil
-}
-
-// NetworkAlert   查网络告警
-func (ch *chRepo) NetworkAlert(startTime time.Time, endTime time.Time, pods []string, nodeNames []string, pids []string) (bool, error) {
-	// 构建查询语句
-	query := `    SELECT 1
-    FROM alert_event
-    WHERE received_time BETWEEN toDateTime($1) AND toDateTime($2)
-      AND (
-          tags['src_pod'] IN $3 OR (
-          tags['src_node'] IN $4 AND
-          arrayExists(pid -> has(splitByChar(',', tags['pid']), toString(pid)), $5)
-      ))
-      AND group = 'network' AND status = 'firing'
-    LIMIT 1`
-
-	// 执行查询
-	rows, err := ch.conn.Query(context.Background(), query, startTime.Unix(), endTime.Unix(), pods, nodeNames, pids)
-	if err != nil {
-		return false, err
-	}
-	// 检查是否有查询结果
-	if rows.Next() {
-		return true, nil
-	}
-
-	return false, nil
-}
-
-// K8sAlert   查询K8S告警
-func (ch *chRepo) K8sAlert(startTime time.Time, endTime time.Time, podsOrNodes []string) (bool, error) {
-	// 构建查询语句
-	query := `
-		SELECT 1
-		FROM k8s_events
-		WHERE Timestamp BETWEEN toDateTime($1) AND toDateTime($2) AND ResourceAttributes['k8s.object.name'] IN $3 AND SeverityNumber>9
-		LIMIT 1
-	`
-
-	// 执行查询
-	rows, err := ch.conn.Query(context.Background(), query, startTime.Unix(), endTime.Unix(), podsOrNodes)
-	if err != nil {
-		return false, err
-	}
-	// 检查是否有查询结果
-	if rows.Next() {
-		return true, nil
-	}
-
-	return false, nil
-}
 
 // GetAlarmsEvents 获取实例所有的告警事件
 func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]AlertEventSample, error) {
@@ -264,38 +199,8 @@ func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstanc
 	return MergeWheres(OrSep, whereInstance...)
 }
 
-type IAlertEvent interface {
-	GetGroup() string
-	GetName() string
-}
-
-type AlertEvent struct {
-	Source string `ch:"source" json:"source"`
-	Group  string `ch:"group" json:"group"`
-	Id     string `ch:"id" json:"id"`
-	Name   string `ch:"name" json:"name"`
-
-	Detail       string    `ch:"detail" json:"detail"`
-	CreateTime   time.Time `ch:"create_time" json:"createTime"`
-	UpdateTime   time.Time `ch:"update_time" json:"updateTime"`
-	EndTime      time.Time `ch:"end_time" json:"endTime"`
-	ReceivedTime time.Time `ch:"received_time" json:"receivedTime"`
-	Severity     string    `ch:"severity" json:"severity"`
-
-	Tags   map[string]string `ch:"tags" json:"tags"`
-	Status string            `ch:"status" json:"status"`
-}
-
-func (e AlertEvent) GetName() string {
-	return e.Name
-}
-
-func (e AlertEvent) GetGroup() string {
-	return e.Group
-}
-
 type AlertEventSample struct {
-	AlertEvent
+	model.AlertEvent
 
 	// 记录行号
 	Rn         uint64 `ch:"rn" json:"-"`
@@ -303,7 +208,7 @@ type AlertEventSample struct {
 }
 
 type PagedAlertEvent struct {
-	AlertEvent
+	model.AlertEvent
 
 	// 记录行号
 	Rn         uint64 `ch:"rn" json:"-"`

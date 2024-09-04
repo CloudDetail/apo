@@ -28,7 +28,6 @@ func setApiRouter(r *resource) {
 		serviceApi.GET("/endpoints", serviceOverviewHandler.GetEndPointsData())
 		serviceApi.GET("/servicesAlert", serviceOverviewHandler.GetServicesAlert())
 		serviceApi.GET("/moreUrl", serviceOverviewHandler.GetServiceMoreUrlList())
-		serviceApi.GET("/instances", serviceOverviewHandler.GetServiceInstanceList())
 		serviceApi.GET("/getThreshold", serviceOverviewHandler.GetThreshold())
 		serviceApi.POST("/setThreshold", serviceOverviewHandler.SetThreshold())
 
@@ -46,6 +45,7 @@ func setApiRouter(r *resource) {
 		serviceApi.GET("/trace/logs", serviceHandler.GetTraceLogs())
 
 		serviceApi.GET("/list", serviceHandler.GetServiceList())
+		serviceApi.GET("/instances", serviceHandler.GetServiceInstance())
 		serviceApi.GET("/instance/list", serviceHandler.GetServiceInstanceList())
 		serviceApi.GET("/instance/options", serviceHandler.GetServiceInstanceOptions())
 		serviceApi.GET("/endpoint/list", serviceHandler.GetServiceEndPointList())

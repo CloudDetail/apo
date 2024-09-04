@@ -2,10 +2,7 @@ package service
 
 import (
 	"fmt"
-	"log"
 	"time"
-
-	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -13,6 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
 // GetDescendantRelevance implements Service.
@@ -38,25 +36,17 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 		endpoints = append(endpoints, node.Endpoint)
 	}
 
-	// TODO 新的polarisanalyzer不再需要把target添加到unsortedDescendant
-	// 下个版本移除
-	unsortedDescendantWithTarget := append(unsortedDescendant, polarisanalyzer.LatencyRelevance{
-		Service:  req.Service,
-		Endpoint: req.Endpoint,
-	})
-
 	// 按延时相似度排序
 	// sorted, unsorted, err :=
 	sortResp, err := s.polRepo.SortDescendantByLatencyRelevance(
 		req.StartTime, req.EndTime, prom.VecFromDuration(time.Duration(req.Step)*time.Microsecond),
 		req.Service, req.Endpoint,
-		unsortedDescendantWithTarget,
+		unsortedDescendant,
 	)
 
 	var sortResult []polarisanalyzer.LatencyRelevance
 	var sortType string
 	if err != nil || sortResp == nil {
-		// TODO 排序失败,输出日志,但正常继续返回
 		sortResult = unsortedDescendant
 		sortType = "net_failed"
 	} else {
@@ -82,106 +72,44 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 	}
 	for _, descendant := range sortResult {
 		var descendantResp = response.GetDescendantRelevanceResponse{
-			ServiceName:          descendant.Service,
-			EndPoint:             descendant.Endpoint,
-			Distance:             descendant.Relevance,
-			DistanceType:         sortType,
-			DelaySource:          "self",
-			REDMetricsStatus:     model.STATUS_NORMAL,
-			LogMetricsStatus:     model.STATUS_NORMAL,
-			InfrastructureStatus: model.STATUS_NORMAL,
-			NetStatus:            model.STATUS_NORMAL,
-			K8sStatus:            model.STATUS_NORMAL,
-			LastUpdateTime:       nil,
+			ServiceName:      descendant.Service,
+			EndPoint:         descendant.Endpoint,
+			Distance:         descendant.Relevance,
+			DistanceType:     sortType,
+			DelaySource:      "self",
+			REDMetricsStatus: model.STATUS_NORMAL,
+			LogMetricsStatus: model.STATUS_NORMAL,
+			LastUpdateTime:   nil,
 		}
 
 		// 填充延时源和RED告警 (DelaySource/REDMetricsStatus)
 		fillServiceDelaySourceAndREDAlarm(&descendantResp, descendantStatus, threshold)
 
 		// 获取每个endpoint下的所有实例
-		var instances []serviceoverview.Instance
-		startTime := time.Unix(req.StartTime/1000000, 0)
-		endTime := time.Unix(req.EndTime/1000000, 0)
-		step := time.Duration(req.Step * 1000)
-		var Res []prom.MetricResult
-		query := prom.QueryNodeName(descendant.Service, descendant.Endpoint)
-		Res, err := s.promRepo.QueryData(endTime, query)
-		if err != nil || Res == nil {
+		instances, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
+		if err != nil {
+			// TODO deal error
 			continue
 		}
-		for _, result := range Res {
-			contentKey := result.Metric.ContentKey
-			serviceName := result.Metric.SvcName
-			nodeName := result.Metric.NodeName
-			pod := result.Metric.POD
-			pid := result.Metric.PID
-			containerId := result.Metric.ContainerID
-			newInstance := serviceoverview.Instance{
-				ContentKey:  contentKey,
-				SvcName:     serviceName,
-				Pod:         pod,
-				NodeName:    nodeName,
-				Pid:         pid,
-				ContainerId: containerId,
-			}
-			instances = append(instances, newInstance)
-		}
-		var searchName []string
-		var nodeNames []string
-		var pids []string
-		var pods []string
-		var containerIds []string
-		for _, instance := range instances {
-			if instance.Pod != "" {
-				searchName = append(searchName, instance.Pod)
-				pods = append(pods, instance.Pod)
-			}
-			if instance.NodeName != "" {
-				searchName = append(searchName, instance.NodeName)
-				nodeNames = append(nodeNames, instance.NodeName)
-			}
-			if instance.Pid != "" {
-				pids = append(pids, instance.Pid)
-			}
-			if instance.ContainerId != "" {
-				containerIds = append(containerIds, instance.ContainerId)
-			}
-		}
 
-		if len(searchName) > 0 {
-			isAlert, err := s.chRepo.InfrastructureAlert(startTime, endTime, searchName)
-			if err != nil {
-				log.Printf("Failed to query InfrastructureAlert: %v", err)
-			}
-			if isAlert {
-				descendantResp.InfrastructureStatus = model.STATUS_CRITICAL
-			}
-			isAlert, err = s.chRepo.K8sAlert(startTime, endTime, searchName)
-			if err != nil {
-				log.Printf("Failed to query K8sAlert: %v", err)
-			}
-			if isAlert {
-				descendantResp.K8sStatus = model.STATUS_CRITICAL
-			}
-		}
-		if len(pods) > 0 || len(pids) > 0 {
-			isAlert, err := s.chRepo.NetworkAlert(startTime, endTime, pods, nodeNames, pids)
-			if err != nil {
-				log.Printf("Failed to query NetworkAlert: %v", err)
-			}
-			if isAlert {
-				descendantResp.NetStatus = model.STATUS_CRITICAL
-			}
-		}
-		if len(pids) > 0 || len(containerIds) > 0 {
-			startTimeMap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, step, pids, containerIds)
-			latestStartTime, found := serviceoverview.GetLatestStartTime(startTimeMap, instances)
-			if found {
-				descendantResp.LastUpdateTime = new(int64)
-				*descendantResp.LastUpdateTime = latestStartTime * 1e6
-			}
-		}
+		startTime := time.UnixMicro(req.StartTime)
+		endTime := time.UnixMicro(req.EndTime)
 
+		instanceList := instances.GetInstances()
+
+		// 填充告警状态
+		descendantResp.AlertStatus, descendantResp.AlertReason = serviceoverview.GetAlertStatus(
+			s.chRepo, []string{},
+			descendant.Service, instanceList,
+			startTime, endTime,
+		)
+
+		// 查询并填充进程启动时间
+		startTSmap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, instanceList)
+		latestStartTime := getLatestStartTime(startTSmap) * 1e6
+		if latestStartTime > 0 {
+			descendantResp.LastUpdateTime = &latestStartTime
+		}
 		resp = append(resp, descendantResp)
 	}
 
@@ -298,36 +226,46 @@ func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRel
 			var depRatio = status.DepLatency / status.Latency
 			if depRatio > 0.5 {
 				descendantResp.DelaySource = "dependency"
-				descendantResp.DelayDistribution = fmt.Sprintf("latency: %.2f, depLatency: %.2f(%.2f)", status.DepLatency, status.Latency, depRatio)
 			} else {
 				descendantResp.DelaySource = "self"
-				descendantResp.DelayDistribution = fmt.Sprintf("latency: %.2f, depLatency: %.2f(%.2f)", status.DepLatency, status.Latency, depRatio)
 			}
+			delayDistribution := fmt.Sprintf("latency: %.2f, depLatency: %.2f(%.2f)", status.DepLatency, status.Latency, depRatio)
+			descendantResp.AlertReason.Add("delaySource", delayDistribution)
 		} else {
 			descendantResp.DelaySource = "self"
 		}
 
 		if status.RequestPerSecondDoD < 0 {
-			descendantResp.REDAlarmReason = "未统计到TPS日同比,忽略TPS告警;"
+			descendantResp.AlertReason.Add("RED", "TPS: 未采集到数据")
 		} else if threshold.Tps > 0 && status.RequestPerSecondDoD*100 > (100+threshold.Tps) {
 			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
-			descendantResp.REDAlarmReason = fmt.Sprintf("%s 请求TPS日同比: %.2f 高于设定阈值 %.2f;", descendantResp.REDAlarmReason, status.RequestPerSecondDoD, (100+threshold.Latency)/100)
+			descendantResp.AlertReason.Add("RED", fmt.Sprintf("TPS: 请求TPS日同比: %.2f 高于设定阈值 %.2f;", status.RequestPerSecondDoD, (100+threshold.Tps)/100))
 		}
 
 		if status.LatencyDoD < 0 {
-			descendantResp.REDAlarmReason = descendantResp.REDAlarmReason + "未统计到延迟日同比,忽略延迟告警"
+			descendantResp.AlertReason.Add("RED", "延迟: 未采集到数据")
 		} else if threshold.Latency > 0 && status.LatencyDoD*100 > (100+threshold.Latency) {
 			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
-			descendantResp.REDAlarmReason = fmt.Sprintf("%s 延迟日同比: %.2f 高于设定阈值 %.2f;", descendantResp.REDAlarmReason, status.LatencyDoD, (100+threshold.Latency)/100)
+			descendantResp.AlertReason.Add("RED", fmt.Sprintf("延迟: 延迟日同比: %.2f 高于设定阈值 %.2f;", status.LatencyDoD, (100+threshold.Latency)/100))
 		}
 
 		if status.ErrorRateDoD < 0 {
-			descendantResp.REDAlarmReason = descendantResp.REDAlarmReason + "未统计错误率日同比,忽略错误率告警;"
+			descendantResp.AlertReason.Add("RED", "错误率: 未采集到数据")
 		} else if threshold.ErrorRate > 0 && status.ErrorRateDoD*100 < (100-threshold.ErrorRate) {
 			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
-			descendantResp.REDAlarmReason = fmt.Sprintf("%s 错误率日同比: %.2f 低于设定阈值 %.2f;", descendantResp.REDAlarmReason, status.ErrorRateDoD, (100-threshold.ErrorRate)/100)
+			descendantResp.AlertReason.Add("RED", fmt.Sprintf("错误率: 错误率日同比: %.2f 低于设定阈值 %.2f;", status.ErrorRateDoD, (100-threshold.ErrorRate)/100))
 		}
 	} else {
-		descendantResp.REDAlarmReason = "时间段内未统计到应用延时,应用无请求或未监控,忽略RED告警;"
+		descendantResp.AlertReason.Add("RED", "时间段内未统计到应用延时,应用无请求或未监控,忽略RED告警;")
 	}
+}
+
+func getLatestStartTime(startTSmap map[model.ServiceInstance]int64) int64 {
+	var latestStartTime int64 = -1
+	for _, startTime := range startTSmap {
+		if startTime > latestStartTime {
+			latestStartTime = startTime
+		}
+	}
+	return latestStartTime
 }

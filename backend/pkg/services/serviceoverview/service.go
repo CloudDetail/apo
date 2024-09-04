@@ -14,7 +14,6 @@ var _ Service = (*service)(nil)
 
 type Service interface {
 	GetServiceMoreUrl(startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule SortType) (res []response.ServiceDetail, err error)
-	GetInstances(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error)
 	GetThreshold(level string, serviceName string, endPoint string) (res response.GetThresholdResponse, err error)
 	SetThreshold(level string, serviceName string, endPoint string, latency float64, errorRate float64, tps float64, log float64) (res response.SetThresholdResponse, err error)
 	GetServicesAlert(startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error)

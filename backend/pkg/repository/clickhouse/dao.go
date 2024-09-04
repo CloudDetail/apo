@@ -38,9 +38,10 @@ type Repo interface {
 	// 分页Trace列表
 	GetTracePageList(req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error)
 
-	InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (bool, error)
-	NetworkAlert(startTime time.Time, endTime time.Time, pods []string, nodeNames []string, pids []string) (bool, error)
-	K8sAlert(startTime time.Time, endTime time.Time, podsOrNodes []string) (bool, error)
+	// InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (*model.AlertEvent, bool, error)
+	// NetworkAlert(startTime time.Time, endTime time.Time, pods []string, nodeNames []string, pids []string) (bool, error)
+
+	RebootTime(endTime int64, podsOrNodeNames []string) (*time.Time, error)
 
 	CountK8sEvents(startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error)
 
@@ -58,11 +59,15 @@ type Repo interface {
 	ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTableTTLMap) error
 	GetTables(blackTableNames []string, whiteTableNames []string) ([]model.TablesQuery, error)
 
-	// ========== alarm events ==========
+	// ========== alert events ==========
 	// 查询按name采样的告警事件,sampleCount为每个Name采样的数量
 	GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]AlertEventSample, error)
 	// 查询按pageParam分页的告警事件
 	GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance, pageParam *request.PageParam) ([]PagedAlertEvent, int, error)
+
+	// ========== k8s events ============
+	// SeverityNumber > 9 (warning)
+	GetK8sAlertEventsSample(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) ([]K8sEvents, error)
 }
 
 type chRepo struct {

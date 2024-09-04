@@ -84,19 +84,19 @@ func splitByGroupAndName(events []clickhouse.AlertEventSample) map[string]map[st
 	for i := 0; i < len(events); i++ {
 		event := events[i]
 
-		if lastGroup == event.GetGroup() && lastName == event.GetName() {
+		if lastGroup == event.Group && lastName == event.Name {
 			continue
 		}
 		if lastGroup != event.Group {
 			if i > 0 {
 				res[lastGroup][lastName] = events[from:i]
 			}
-			lastGroup = event.GetGroup()
-			lastName = event.GetName()
+			lastGroup = event.Group
+			lastName = event.Name
 			res[lastGroup] = make(map[string][]clickhouse.AlertEventSample)
-		} else if lastName != event.GetName() {
+		} else if lastName != event.Name {
 			res[lastGroup][lastName] = events[from:i]
-			lastName = event.GetName()
+			lastName = event.Name
 		}
 		from = i
 	}

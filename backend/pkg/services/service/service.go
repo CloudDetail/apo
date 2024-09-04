@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -38,6 +40,9 @@ type Service interface {
 	// 获取服务列表
 	GetServiceList(req *request.GetServiceListRequest) ([]string, error)
 	// 获取服务实例列表
+	GetInstances(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error)
+	// 获取服务实例列表
+	// DEPRECATED
 	GetServiceInstanceList(req *request.GetServiceInstanceListRequest) ([]string, error)
 	// 获取服务实例下拉列表
 	GetServiceInstanceOptions(req *request.GetServiceInstanceOptionsRequest) (map[string]*model.ServiceInstance, error)

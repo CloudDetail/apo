@@ -74,7 +74,13 @@ type Handler interface {
 
 	// GetServiceInstanceList 获取服务实例列表
 	// @Tags API.service
-	// @Router /api/service/instance/list [get]
+	// @Router /api/service/instance [get]
+	GetServiceInstance() core.HandlerFunc
+
+	// GetServiceInstanceList 获取服务的更多url列表
+	// @Tags API.service
+	// @DEPRECATED
+	// @Router /api/service/instances/list [get]
 	GetServiceInstanceList() core.HandlerFunc
 
 	// GetServiceInstanceOptions 获取服务下拉实例列表

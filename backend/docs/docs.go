@@ -1081,6 +1081,7 @@ const docTemplate = `{
                     "API.service"
                 ],
                 "summary": "获取服务实例列表",
+                "deprecated": true,
                 "parameters": [
                     {
                         "type": "integer",
@@ -2151,16 +2152,19 @@ const docTemplate = `{
                 "alarm_count": {
                     "type": "integer"
                 },
-                "createTime": {
+                "create_time": {
+                    "description": "故障触发时间",
                     "type": "string"
                 },
                 "detail": {
                     "type": "string"
                 },
-                "endTime": {
+                "end_time": {
+                    "description": "故障恢复时间（仅恢复时存在）",
                     "type": "string"
                 },
                 "group": {
+                    "description": "故障所属分组信息",
                     "type": "string"
                 },
                 "id": {
@@ -2169,17 +2173,18 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "receivedTime": {
+                "received_time": {
+                    "description": "故障事件接收时间（用于记录数据对接，无业务含义）",
                     "type": "string"
                 },
                 "severity": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.SeverityLevel"
                 },
                 "source": {
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.Status"
                 },
                 "tags": {
                     "type": "object",
@@ -2187,7 +2192,8 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "updateTime": {
+                "update_time": {
+                    "description": "故障最后一次发生时间",
                     "type": "string"
                 }
             }
@@ -2255,16 +2261,19 @@ const docTemplate = `{
         "clickhouse.PagedAlertEvent": {
             "type": "object",
             "properties": {
-                "createTime": {
+                "create_time": {
+                    "description": "故障触发时间",
                     "type": "string"
                 },
                 "detail": {
                     "type": "string"
                 },
-                "endTime": {
+                "end_time": {
+                    "description": "故障恢复时间（仅恢复时存在）",
                     "type": "string"
                 },
                 "group": {
+                    "description": "故障所属分组信息",
                     "type": "string"
                 },
                 "id": {
@@ -2273,17 +2282,18 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "receivedTime": {
+                "received_time": {
+                    "description": "故障事件接收时间（用于记录数据对接，无业务含义）",
                     "type": "string"
                 },
                 "severity": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.SeverityLevel"
                 },
                 "source": {
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.Status"
                 },
                 "tags": {
                     "type": "object",
@@ -2291,7 +2301,8 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "updateTime": {
+                "update_time": {
+                    "description": "故障最后一次发生时间",
                     "type": "string"
                 }
             }
@@ -2369,6 +2380,12 @@ const docTemplate = `{
                 }
             }
         },
+        "model.AlertReason": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
         "model.ModifyTableTTLMap": {
             "type": "object",
             "properties": {
@@ -2424,6 +2441,34 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "model.SeverityLevel": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4
+            ],
+            "x-enum-varnames": [
+                "SeverityLevelUnknown",
+                "SeverityLevelInfo",
+                "SeverityLevelWarning",
+                "SeverityLevelError",
+                "SeverityLevelCritical"
+            ]
+        },
+        "model.Status": {
+            "type": "integer",
+            "enum": [
+                0,
+                1
+            ],
+            "x-enum-varnames": [
+                "StatusResolved",
+                "StatusFiring"
+            ]
         },
         "request.Alert": {
             "type": "object",
@@ -2849,17 +2894,12 @@ const docTemplate = `{
         "response.GetDescendantRelevanceResponse": {
             "type": "object",
             "properties": {
-                "REDAlarmReason": {
-                    "description": "RED告警原因",
-                    "type": "string"
-                },
                 "REDStatus": {
                     "description": "RED指标告警",
                     "type": "string"
                 },
-                "delayDistribution": {
-                    "description": "延时分布",
-                    "type": "string"
+                "alertReason": {
+                    "$ref": "#/definitions/model.AlertReason"
                 },
                 "delaySource": {
                     "description": "延时主要来源 self/dependency",
@@ -2883,10 +2923,6 @@ const docTemplate = `{
                 },
                 "k8sStatus": {
                     "description": "K8s状态告警",
-                    "type": "string"
-                },
-                "logAlarmReason": {
-                    "description": "日志告警原因",
                     "type": "string"
                 },
                 "logsStatus": {
@@ -3172,13 +3208,18 @@ const docTemplate = `{
         "response.InstanceData": {
             "type": "object",
             "properties": {
+                "alertReason": {
+                    "$ref": "#/definitions/model.AlertReason"
+                },
                 "errorRate": {
                     "$ref": "#/definitions/response.TempChartObject"
                 },
                 "infrastructureStatus": {
+                    "description": "基础设施告警",
                     "type": "string"
                 },
                 "k8sStatus": {
+                    "description": "K8s状态告警",
                     "type": "string"
                 },
                 "latency": {
@@ -3195,6 +3236,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "netStatus": {
+                    "description": "网络告警",
                     "type": "string"
                 },
                 "timestamp": {
@@ -3336,16 +3378,22 @@ const docTemplate = `{
         "response.ServiceAlertRes": {
             "type": "object",
             "properties": {
+                "alertReason": {
+                    "$ref": "#/definitions/model.AlertReason"
+                },
                 "infrastructureStatus": {
+                    "description": "基础设施告警",
                     "type": "string"
                 },
                 "k8sStatus": {
+                    "description": "K8s状态告警",
                     "type": "string"
                 },
                 "logs": {
                     "$ref": "#/definitions/response.TempChartObject"
                 },
                 "netStatus": {
+                    "description": "网络告警",
                     "type": "string"
                 },
                 "serviceName": {
