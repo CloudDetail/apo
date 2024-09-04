@@ -153,7 +153,8 @@ export default function AlertsPage() {
             仅展示告警规则，如需配置请参考
             <a
               className="underline text-sky-500"
-              href="https://originx.kindlingx.com/docs/APO%20%E5%90%91%E5%AF%BC%E5%BC%8F%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E4%B8%AD%E5%BF%83/%E9%85%8D%E7%BD%AE%E6%8C%87%E5%8D%97/%E9%85%8D%E7%BD%AE%E5%91%8A%E8%AD%A6%E8%A7%84%E5%88%99/"
+              target="_blank"
+              href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置告警规则"
             >
               文档
             </a>
