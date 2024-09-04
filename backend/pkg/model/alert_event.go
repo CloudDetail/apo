@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/google/uuid"
@@ -64,6 +65,33 @@ const (
 	SeverityLevelCritical
 )
 
+// Scan implements sql.Scanner so SeverityLevel can be read from databases transparently.
+// Currently, database types that map to uint8 and []byte are supported.
+func (s *SeverityLevel) Scan(src interface{}) error {
+	switch v := src.(type) {
+	case uint8:
+		*s = SeverityLevel(v)
+	case uint64:
+		*s = SeverityLevel(v)
+	case string:
+		switch v {
+		case "info":
+			*s = SeverityLevelInfo
+		case "warning":
+			*s = SeverityLevelWarning
+		case "error":
+			*s = SeverityLevelError
+		case "critical":
+			*s = SeverityLevelCritical
+		default:
+			*s = SeverityLevelUnknown
+		}
+	default:
+		return fmt.Errorf("can not covert %v to SeverityLevel", reflect.TypeOf(src))
+	}
+	return nil
+}
+
 func (s SeverityLevel) toString() string {
 	switch s {
 	case SeverityLevelUnknown:
@@ -88,3 +116,24 @@ const (
 	StatusResolved Status = iota
 	StatusFiring
 )
+
+func (s *Status) Scan(src interface{}) error {
+	switch v := src.(type) {
+	case uint8:
+		*s = Status(v)
+	case uint64:
+		*s = Status(v)
+	case string:
+		switch v {
+		case "resolved":
+			*s = StatusResolved
+		case "firing":
+			*s = StatusFiring
+		default:
+			*s = StatusResolved
+		}
+	default:
+		return fmt.Errorf("can not covert %v to Status", reflect.TypeOf(src))
+	}
+	return nil
+}
