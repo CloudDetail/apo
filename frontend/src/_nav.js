@@ -84,6 +84,17 @@ const _nav = [
   },
   {
     component: CNavItem,
+    name: '中间件大盘',
+    abbreviation: '中间件',
+    to: '/middleware-dashboard',
+    icon: <CIcon icon={cilSpeedometer} />,
+    badge: {
+      color: 'info',
+      // text: 'NEW',
+    },
+  },
+  {
+    component: CNavItem,
     name: '告警规则',
     to: '/alerts',
     icon: <CIcon icon={cilBell} />,
