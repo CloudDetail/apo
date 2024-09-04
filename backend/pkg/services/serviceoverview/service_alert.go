@@ -162,11 +162,10 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		}
 
 		newServiceRes := response.ServiceAlertRes{
-			ServiceName:          service.ServiceName,
-			Logs:                 newlogs,
-			InfrastructureStatus: model.STATUS_NORMAL,
-			NetStatus:            model.STATUS_NORMAL,
-			K8sStatus:            model.STATUS_NORMAL,
+			ServiceName: service.ServiceName,
+			Logs:        newlogs,
+			AlertStatus: model.NORMAL_ALERT_STATUS,
+			AlertReason: model.AlertReason{},
 		}
 
 		var serviceInstances []*model.ServiceInstance
@@ -186,8 +185,8 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		}
 
 		// 填充告警状态
-		newServiceRes.AlertStatus, newServiceRes.AlertReason = GetAlertStatus(
-			s.chRepo, returnData,
+		newServiceRes.AlertStatusCH = GetAlertStatusCH(
+			s.chRepo, &newServiceRes.AlertReason, returnData,
 			service.ServiceName, serviceInstances,
 			startTime, endTime,
 		)
@@ -238,17 +237,17 @@ func GetLatestStartTime(startTimeMap map[model.ServiceInstance]int64, instances 
 	}
 }
 
-func GetAlertStatus(chRepo clickhouse.Repo,
+// 填充来自Clickhouse的告警信息,并填充alertReason
+func GetAlertStatusCH(chRepo clickhouse.Repo, alertReason *model.AlertReason,
 	alertTypes []string,
 	serviceName string, instances []*model.ServiceInstance,
 	startTime, endTime time.Time,
-) (alertStatus model.AlertStatus, alertReason model.AlertReason) {
-	alertStatus = model.AlertStatus{
+) (alertStatus model.AlertStatusCH) {
+	alertStatus = model.AlertStatusCH{
 		InfrastructureStatus: model.STATUS_NORMAL,
 		NetStatus:            model.STATUS_NORMAL,
 		K8sStatus:            model.STATUS_NORMAL,
 	}
-	alertReason = make(model.AlertReason)
 
 	if len(alertTypes) == 0 || contains(alertTypes, "infraStatus") || contains(alertTypes, "netStatus") {
 		// 查询实例相关的告警信息

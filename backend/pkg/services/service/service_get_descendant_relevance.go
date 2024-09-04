@@ -78,7 +78,8 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 			DistanceType:     sortType,
 			DelaySource:      "self",
 			REDMetricsStatus: model.STATUS_NORMAL,
-			LogMetricsStatus: model.STATUS_NORMAL,
+			AlertStatus:      model.NORMAL_ALERT_STATUS,
+			AlertReason:      model.AlertReason{},
 			LastUpdateTime:   nil,
 		}
 
@@ -98,8 +99,8 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 		instanceList := instances.GetInstances()
 
 		// 填充告警状态
-		descendantResp.AlertStatus, descendantResp.AlertReason = serviceoverview.GetAlertStatus(
-			s.chRepo, []string{},
+		descendantResp.AlertStatusCH = serviceoverview.GetAlertStatusCH(
+			s.chRepo, &descendantResp.AlertReason, []string{},
 			descendant.Service, instanceList,
 			startTime, endTime,
 		)

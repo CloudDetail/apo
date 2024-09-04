@@ -259,13 +259,15 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 			newlogs.ChartData = values
 		}
 		newInstance := response.InstanceData{
-			Name:      instance.InstanceName,
-			Namespace: instance.Namespace,
-			Timestamp: nil,
-			Latency:   newlatencyRate,
-			Tps:       newtpsRate,
-			ErrorRate: newErrorRate,
-			Logs:      newlogs,
+			Name:        instance.InstanceName,
+			Namespace:   instance.Namespace,
+			Timestamp:   nil,
+			Latency:     newlatencyRate,
+			Tps:         newtpsRate,
+			ErrorRate:   newErrorRate,
+			Logs:        newlogs,
+			AlertStatus: model.NORMAL_ALERT_STATUS,
+			AlertReason: model.AlertReason{},
 		}
 
 		pidI64, err := strconv.ParseInt(instance.Pid, 10, 64)
@@ -284,8 +286,8 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 			},
 		}
 		// 填充告警状态
-		newInstance.AlertStatus, newInstance.AlertReason = serviceoverview.GetAlertStatus(
-			s.chRepo, nil,
+		newInstance.AlertStatusCH = serviceoverview.GetAlertStatusCH(
+			s.chRepo, &newInstance.AlertReason, nil,
 			serviceName, instanceSingleList,
 			startTime, endTime,
 		)

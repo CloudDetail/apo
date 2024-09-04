@@ -31,7 +31,6 @@ type GetDescendantRelevanceResponse struct {
 	DistanceType     string  `json:"distanceType"` // 延时曲线差异计算方式, 有euclidean/pearson/dtw/failed/net_failed四种
 	DelaySource      string  `json:"delaySource"`  // 延时主要来源 self/dependency
 	REDMetricsStatus string  `json:"REDStatus"`    // RED指标告警
-	LogMetricsStatus string  `json:"logsStatus"`   // 日志指标告警
 	LastUpdateTime   *int64  `json:"timestamp"`    // 末次部署时间
 
 	model.AlertStatus
@@ -126,12 +125,10 @@ type ServiceRes struct {
 	Timestamp            *int64          `json:"timestamp"`
 }
 type ServiceAlertRes struct {
-	ServiceName          string          `json:"serviceName"`
-	Logs                 TempChartObject `json:"logs"`
-	InfrastructureStatus string          `json:"infrastructureStatus"`
-	NetStatus            string          `json:"netStatus"`
-	K8sStatus            string          `json:"k8sStatus"`
-	Timestamp            *int64          `json:"timestamp"`
+	ServiceName string          `json:"serviceName"`
+	Logs        TempChartObject `json:"logs"`
+
+	Timestamp *int64 `json:"timestamp"`
 
 	model.AlertStatus
 	AlertReason model.AlertReason `json:"alertReason"`
