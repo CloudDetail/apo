@@ -115,7 +115,7 @@ func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstanc
 			AndSep,
 			whereGroup,
 			Equals("tags['svc_name']", filter.Service),
-			Equals("tags['content_key']", filter.Endpoint),
+			EqualsIfNotEmpty("tags['content_key']", filter.Endpoint),
 		))
 	}
 
