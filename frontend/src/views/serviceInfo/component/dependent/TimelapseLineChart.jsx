@@ -289,6 +289,7 @@ const TimelapseLineChart = (props) => {
               <div
                 className={'flex break-all p-1 cursor-pointer '}
                 onClick={() => handleActiveServices(item)}
+                key={index}
               >
                 <div
                   className="w-4 h-2 m-1 rounded flex-shrink-0 "

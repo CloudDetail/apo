@@ -180,10 +180,11 @@ export default function ServiceView() {
           accessor: `infrastructureStatus`,
           Cell: (props) => {
             // eslint-disable-next-line react/prop-types
-            const { value } = props
+            const { value, trs, column } = props
+            const alertReason = trs?.alertReason?.[column.accessor]
             return (
               <>
-                <StatusInfo status={value} />
+                <StatusInfo status={value} alertReason={alertReason} title={column.title} />
               </>
             )
           },
@@ -193,10 +194,11 @@ export default function ServiceView() {
           accessor: `netStatus`,
           Cell: (/** @type {{ value: any; }} */ props) => {
             // eslint-disable-next-line react/prop-types
-            const { value } = props
+            const { value, trs, column } = props
+            const alertReason = trs?.alertReason?.[column.accessor]
             return (
               <>
-                <StatusInfo status={value} />
+                <StatusInfo status={value} alertReason={alertReason} title={column.title} />
               </>
             )
           },
@@ -206,10 +208,11 @@ export default function ServiceView() {
           accessor: `k8sStatus`,
           Cell: (props) => {
             // eslint-disable-next-line react/prop-types
-            const { value } = props
+            const { value, trs, column } = props
+            const alertReason = trs?.alertReason?.[column.accessor]
             return (
               <>
-                <StatusInfo status={value} />
+                <StatusInfo status={value} alertReason={alertReason} title={column.title} />
               </>
             )
           },

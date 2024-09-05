@@ -90,8 +90,13 @@ function DependentTable(props) {
 
       Cell: (props) => {
         // eslint-disable-next-line react/prop-types
-        const { value } = props
-        return <StatusInfo status={value} />
+        const { value, row, column } = props
+        const alertReason = row.original?.alertReason?.[column.id]
+        return (
+          <>
+            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
+          </>
+        )
       },
     },
     {
@@ -99,8 +104,13 @@ function DependentTable(props) {
       accessor: `logsStatus`,
       Cell: (props) => {
         // eslint-disable-next-line react/prop-types
-        const { value } = props
-        return <StatusInfo status={value} />
+        const { value, row, column } = props
+        const alertReason = row.original?.alertReason?.[column.id]
+        return (
+          <>
+            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
+          </>
+        )
       },
     },
     {
@@ -108,10 +118,11 @@ function DependentTable(props) {
       accessor: `infrastructureStatus`,
       Cell: (props) => {
         // eslint-disable-next-line react/prop-types
-        const { value } = props
+        const { value, row, column } = props
+        const alertReason = row.original?.alertReason?.[column.id]
         return (
           <>
-            <StatusInfo status={value} />
+            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
           </>
         )
       },
@@ -121,10 +132,11 @@ function DependentTable(props) {
       accessor: `netStatus`,
       Cell: (props) => {
         // eslint-disable-next-line react/prop-types
-        const { value } = props
+        const { value, row, column } = props
+        const alertReason = row.original?.alertReason?.[column.id]
         return (
           <>
-            <StatusInfo status={value} />
+            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
           </>
         )
       },
@@ -134,10 +146,11 @@ function DependentTable(props) {
       accessor: `k8sStatus`,
       Cell: (props) => {
         // eslint-disable-next-line react/prop-types
-        const { value } = props
+        const { value, row, column } = props
+        const alertReason = row.original?.alertReason?.[column.id]
         return (
           <>
-            <StatusInfo status={value} />
+            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
           </>
         )
       },

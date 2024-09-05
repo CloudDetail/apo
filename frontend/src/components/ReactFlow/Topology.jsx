@@ -22,7 +22,7 @@ const nodeWidth = 200
 const nodeHeight = 60
 const nodeTypes = { serviceNode: ServiceNode, moreNode: MoreNode } // 定义在组件外部
 const edgeTypes = {
-  smart: SmartBezierEdge, // 或者使用 SmartBezierEdge 等
+  // smart: SmartBezierEdge, // 或者使用 SmartBezierEdge 等
   loop: CustomSelfLoopEdge,
 }
 const LayoutFlow = (props) => {

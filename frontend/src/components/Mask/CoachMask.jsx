@@ -130,7 +130,7 @@ export default function CoachMask() {
       >
         <div className="h-[700px] overflow-y-scroll">
           {list.map((item, index) => (
-            <div className="flex w-full justify-center ">
+            <div className="flex w-full justify-center " key={index}>
               <div className="w-[400px] text-left p-1">
                 <span className="text-[#46A5F7] font-bold text-xl">{item.scene}</span>
                 <div className="w-[500px] text-base">{item.name}</div>
@@ -139,7 +139,7 @@ export default function CoachMask() {
               <div className="flex-shrink-0 flex justify-center w-[800px] h-[100px] overflow-hidden relative ">
                 {item.img ? (
                   item.img.map((src) => (
-                    <div className="flex-1 ">
+                    <div className="flex-1 " key={src}>
                       <Image
                         src={src}
                         width={'auto'}

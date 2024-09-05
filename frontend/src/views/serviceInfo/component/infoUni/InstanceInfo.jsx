@@ -67,10 +67,11 @@ export default function InstanceInfo(props) {
       title: '基础设施状态',
       accessor: 'infrastructureStatus',
       Cell: (props) => {
-        const { value } = props
+        const { value, row, column } = props
+        const alertReason = row.original?.alertReason?.[column.id]
         return (
           <>
-            <StatusInfo status={value} />
+            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
           </>
         )
       },
@@ -79,10 +80,11 @@ export default function InstanceInfo(props) {
       title: '网络质量状态',
       accessor: 'netStatus',
       Cell: (props) => {
-        const { value } = props
+        const { value, row, column } = props
+        const alertReason = row.original?.alertReason?.[column.id]
         return (
           <>
-            <StatusInfo status={value} />
+            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
           </>
         )
       },
@@ -91,10 +93,11 @@ export default function InstanceInfo(props) {
       title: 'K8s事件状态',
       accessor: 'k8sStatus',
       Cell: (props) => {
-        const { value } = props
+        const { value, row, column } = props
+        const alertReason = row.original?.alertReason?.[column.id]
         return (
           <>
-            <StatusInfo status={value} />
+            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
           </>
         )
       },

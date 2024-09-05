@@ -164,7 +164,11 @@ export default function InfoUni() {
                 style={{ backgroundColor: item.status === 'error' ? '' : '' }}
                 onClick={() => handleToggle(item.key)}
               >
-                {statusPanels[item.key] && <StatusInfo status={statusPanels[item.key]} />}
+                {statusPanels[item.key] && (
+                  <div className="w-[32px] h-[32px]">
+                    <StatusInfo status={statusPanels[item.key]} />
+                  </div>
+                )}
                 {item.icon && item.icon}
                 <span className="ml-2">{item.name}</span>
               </CAccordionHeader>
