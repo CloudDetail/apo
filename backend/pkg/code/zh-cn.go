@@ -28,7 +28,10 @@ var zhCnText = map[string]string{
 	GetFaultLogPageListError: "获取故障现场日志分页列表失败",
 	GetFaultLogContentError:  "获取故障现场日志内容失败",
 
-	GetTracePageListError:               "获取Trace分页列表失败",
+	GetTracePageListError:    "获取Trace分页列表失败",
+	GetTraceFiltersError:     "获取Trace过滤条件失败",
+	GetTraceFilterValueError: "获取Trace过滤条件值失败",
+
 	GetOverviewServiceInstanceListError: "获取实例列表失败",
 	GetServiceMoreUrlListError:          "获取更多服务端点失败",
 	GetThresholdError:                   "获取阈值信息失败",

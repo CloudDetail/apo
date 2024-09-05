@@ -8,6 +8,14 @@ import (
 )
 
 type Handler interface {
+	// GetTraceFilters 查询Trace列表可用的过滤器
+	// @Tags API.trace
+	// @Router /api/trace/pagelist/filters [get]
+	GetTraceFilters() core.HandlerFunc
+	// GetTraceFilterValue 查询指定过滤器的可用数值
+	// @Tags API.trace
+	// @Router /api/trace/pagelist/filter/value [post]
+	GetTraceFilterValue() core.HandlerFunc
 	// GetTracePageList 查询Trace分页列表
 	// @Tags API.trace
 	// @Router /api/trace/pagelist [post]

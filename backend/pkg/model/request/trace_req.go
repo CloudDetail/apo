@@ -12,4 +12,6 @@ type GetTracePageListRequest struct {
 	TraceId     string `json:"traceId"`                                      // TraceId
 	PageNum     int    `json:"pageNum"`                                      // 第几页
 	PageSize    int    `json:"pageSize"`
+
+	Filters []*SpanTraceFilter `json:"filters"` // 过滤器
 }

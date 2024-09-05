@@ -33,6 +33,9 @@ type Repo interface {
 	ListErrorPropagation(req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error)
 
 	// ========== span_trace ==========
+	GetAvailableFilterKey(startTime, endTime time.Time, needUpdate bool) ([]request.SpanTraceFilter, error)
+	UpdateFilterKey(startTime, endTime time.Time) ([]request.SpanTraceFilter, error)
+	GetFieldValues(searchText string, filter *request.SpanTraceFilter, startTime, endTime time.Time) (*SpanTraceOptions, error)
 	// 分页查询故障现场日志列表
 	GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, int64, error)
 	// 分页Trace列表
@@ -72,6 +75,8 @@ type Repo interface {
 
 type chRepo struct {
 	conn driver.Conn
+
+	AvailableFilters []request.SpanTraceFilter
 }
 
 func New(logger *zap.Logger, address []string, database string, username string, password string) (Repo, error) {

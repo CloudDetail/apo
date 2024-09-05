@@ -37,7 +37,9 @@ const (
 	GetFaultLogPageListError            = "B0401"
 	GetFaultLogContentError             = "B0402"
 
-	GetTracePageListError = "B0501"
+	GetTracePageListError    = "B0501"
+	GetTraceFiltersError     = "B0502"
+	GetTraceFilterValueError = "B0503"
 
 	SetTTLError            = "B0601"
 	GetTTLError            = "B0602"

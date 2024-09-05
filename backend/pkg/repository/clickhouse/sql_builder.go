@@ -79,16 +79,68 @@ func (builder *QueryBuilder) Equals(key string, value interface{}) *QueryBuilder
 	return builder
 }
 
+func (builder *QueryBuilder) NotEquals(key string, value interface{}) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s != ?", key))
+	builder.values = append(builder.values, value)
+	return builder
+}
+
 func (builder *QueryBuilder) GreaterThan(key string, value any) *QueryBuilder {
 	builder.where = append(builder.where, fmt.Sprintf("%s > ?", key))
 	builder.values = append(builder.values, value)
 	return builder
 }
 
+func (builder *QueryBuilder) LessThan(key string, value any) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s < ?", key))
+	builder.values = append(builder.values, value)
+	return builder
+}
+
 // 组合生成SQL中的 key in (values) 语句, values内部为值数组
-func (builder *QueryBuilder) In(key string, values clickhouse.GroupSet) *QueryBuilder {
-	builder.where = append(builder.where, fmt.Sprintf("%s in ?", key))
+func (builder *QueryBuilder) In(key string, values any) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s IN ?", key))
 	builder.values = append(builder.values, values)
+	return builder
+}
+
+func (builder *QueryBuilder) NotIn(key string, values any) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s NOT IN ?", key))
+	builder.values = append(builder.values, values)
+	return builder
+}
+
+func (builder *QueryBuilder) Like(key string, values any) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s LIKE ?", key))
+	builder.values = append(builder.values, values)
+	return builder
+}
+
+func (builder *QueryBuilder) NotLike(key string, values any) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s NOT LIKE ?", key))
+	builder.values = append(builder.values, values)
+	return builder
+}
+
+func (builder *QueryBuilder) Exists(key string) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s EXISTS", key))
+	return builder
+}
+
+func (builder *QueryBuilder) NotExists(key string) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s NOT EXISTS", key))
+	return builder
+}
+
+func (builder *QueryBuilder) Contains(key string, value any) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s contains ?", key))
+	builder.values = append(builder.values, value)
+	return builder
+}
+
+func (builder *QueryBuilder) NotContains(key string, value any) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s not contains ?", key))
+	builder.values = append(builder.values, value)
 	return builder
 }
 

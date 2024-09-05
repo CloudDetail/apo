@@ -3,6 +3,9 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"log"
+	"strconv"
+	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -10,6 +13,23 @@ import (
 const (
 	TEMPLATE_COUNT_SPAN_TRACE = "SELECT count(1) as total FROM span_trace %s"
 	TEMPLATE_QUERY_SPAN_TRACE = "SELECT %s FROM span_trace %s %s"
+
+	SQL_GET_LABEL_FILTER_KEYS = `SELECT DISTINCT
+    key, 'string' as data_type , 'labels' as parent_field
+	FROM span_trace st
+	ARRAY JOIN mapKeys(labels) AS key
+	%s %s`
+
+	SQL_GET_FLAGS_FILTER_KEYS = `SELECT DISTINCT
+    key, 'bool' as data_type , 'flags' as parent_field
+	FROM span_trace st
+	ARRAY JOIN mapKeys(flags) AS key
+	%s %s`
+
+	SQL_GET_FILTER_VALUES = `SELECT DISTINCT
+	%s as label_value
+	FROM span_trace st
+	%s %s`
 )
 
 func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, int64, error) {
@@ -71,6 +91,28 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 	return result, count, nil
 }
 
+func (ch *chRepo) GetAvailableFilterKey(startTime, endTime time.Time, needUpdate bool) ([]request.SpanTraceFilter, error) {
+	if needUpdate {
+		filers, err := ch.UpdateFilterKey(startTime, endTime)
+		if err != nil {
+			return []request.SpanTraceFilter{}, err
+		}
+		return filers, nil
+	}
+
+	if len(ch.AvailableFilters) == 0 {
+		now := time.Now()
+		filers, err := ch.UpdateFilterKey(now.Add(-72*time.Hour), now)
+		if err != nil {
+			return []request.SpanTraceFilter{}, err
+		}
+		ch.AvailableFilters = filers
+		return ch.AvailableFilters, nil
+	}
+
+	return ch.AvailableFilters, nil
+}
+
 func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
@@ -78,10 +120,14 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 		EqualsNotEmpty("labels['content_key']", req.EndPoint).
 		EqualsNotEmpty("labels['instance_id']", req.Instance).
 		EqualsNotEmpty("labels['node_name']", req.NodeName).
-		EqualsNotEmpty("trace_id", req.TraceId)
-	if len(req.ContainerId) > 0 {
-		queryBuilder.Equals("labels['container_id']", req.ContainerId)
-	} else if req.Pid > 0 {
+		EqualsNotEmpty("trace_id", req.TraceId).
+		EqualsNotEmpty("labels['container_id']", req.ContainerId)
+
+	for _, filter := range req.Filters {
+		AppendToBuilder(queryBuilder, filter)
+	}
+
+	if req.Pid > 0 {
 		queryBuilder.Equals("pid", req.Pid)
 	}
 	whereClause := queryBuilder.String()
@@ -106,6 +152,8 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 		Alias("labels['service_name']", "service_name").
 		Alias("labels['instance_id']", "instance_id").
 		Alias("flags['is_error']", "is_error").
+		Alias("flags", "flags").
+		Alias("labels", "labels").
 		String()
 	bySql := NewByLimitBuilder().
 		OrderBy("timestamp", false).
@@ -161,4 +209,222 @@ type QueryTraceResult struct {
 	EndPoint    string `ch:"endpoint" json:"endpoint"`
 	InstanceId  string `ch:"instance_id" json:"instanceId"`
 	IsError     bool   `ch:"is_error" json:"isError"`
+
+	Labels map[string]string `ch:"labels" json:"labels"`
+	Flags  map[string]bool   `ch:"flags"  json:"flags"`
+}
+
+func AppendToBuilder(builder *QueryBuilder, f *request.SpanTraceFilter) error {
+	// TODO 检查key合法性
+	var param []any
+	switch f.DataType {
+	case request.U32Column, request.U64Column:
+		for _, v := range f.Value {
+			i, err := strconv.ParseUint(v, 10, 64)
+			if err != nil {
+				return err
+			}
+			param = append(param, i)
+		}
+	case request.I64Column:
+		for _, v := range f.Value {
+			i, err := strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				return err
+			}
+			param = append(param, i)
+		}
+	case request.StringColumn:
+		for _, v := range f.Value {
+			param = append(param, v)
+		}
+	case request.BoolColumn:
+		for _, v := range f.Value {
+			b, err := strconv.ParseBool(v)
+			if err != nil {
+				return err
+			}
+			param = append(param, b)
+		}
+	}
+
+	key := f.Key
+	if f.ParentField == request.PF_Flags {
+		key = fmt.Sprintf("flags['%s']", key)
+	} else if f.ParentField == request.PF_Labels {
+		key = fmt.Sprintf("labels['%s']", key)
+	} else if len(f.ParentField) > 0 {
+		return fmt.Errorf("missing columns: '%s' while handle parent field", f.ParentField)
+	}
+
+	if len(param) == 0 {
+		if f.Operation != request.OpExists && f.Operation != request.OpNotExists {
+			return fmt.Errorf("failed to parse filter %+v, missing param for operation %s", f, f.Operation)
+		}
+	}
+
+	switch f.Operation {
+	case request.OpEqual:
+		builder.Equals(key, param[0])
+	case request.OpNotEqual:
+		builder.NotEquals(key, param[0])
+	case request.OpIn:
+		builder.In(key, param)
+	case request.OpNotIn:
+		builder.NotIn(key, param)
+	case request.OpLike:
+		builder.Like(key, param[0])
+	case request.OpNotLike:
+		builder.NotLike(key, param[0])
+	case request.OpExists:
+		builder.Exists(key)
+	case request.OpNotExists:
+		builder.NotExists(key)
+	case request.OpContains:
+		builder.Contains(key, param[0])
+	case request.OpNotContains:
+		builder.NotContains(key, param[0])
+	case request.OpGreaterThan:
+		builder.GreaterThan(key, param[0])
+	case request.OpLessThan:
+		builder.LessThan(key, param[0])
+	}
+
+	return nil
+}
+
+type SpanTraceOptions struct {
+	request.SpanTraceFilter
+
+	Options any
+}
+
+var const_span_filter = []request.SpanTraceFilter{
+	{
+		Key:      "pid",
+		DataType: request.U32Column,
+	},
+	{
+		Key:      "tid",
+		DataType: request.U32Column,
+	},
+	{
+		Key:      "duration",
+		DataType: request.U64Column,
+	},
+	{
+		Key:      "end_time",
+		DataType: request.U64Column,
+	},
+	{
+		Key:      "start_time",
+		DataType: request.U64Column,
+	},
+}
+
+func (ch *chRepo) UpdateFilterKey(startTime, endTime time.Time) ([]request.SpanTraceFilter, error) {
+	builder := NewQueryBuilder().
+		Between("timestamp", startTime.Unix(), endTime.Unix())
+
+	byLimits := NewByLimitBuilder().
+		Limit(1000).
+		OrderBy("timestamp", false)
+
+	sql := fmt.Sprintf(SQL_GET_LABEL_FILTER_KEYS, builder.String(), byLimits.String())
+	var labelRes []request.SpanTraceFilter
+	err := ch.GetConn().Select(context.Background(), &labelRes, sql, builder.values...)
+	if err != nil {
+		return nil, err
+	}
+
+	sql = fmt.Sprintf(SQL_GET_FLAGS_FILTER_KEYS, builder.String(), byLimits.String())
+	var flagRes []request.SpanTraceFilter
+	err = ch.GetConn().Select(context.Background(), &flagRes, sql, builder.values...)
+	if err != nil {
+		return nil, err
+	}
+
+	filters := append(const_span_filter, labelRes...)
+	filters = append(filters, flagRes...)
+	return filters, nil
+}
+
+func (ch *chRepo) GetFieldValues(searchText string, filter *request.SpanTraceFilter, startTime, endTime time.Time) (*SpanTraceOptions, error) {
+	if filter.DataType == request.BoolColumn {
+		return &SpanTraceOptions{SpanTraceFilter: *filter, Options: []bool{true, false}}, nil
+	}
+
+	var field string
+	if len(filter.ParentField) > 0 {
+		field = fmt.Sprintf("%s['%s']", filter.ParentField, filter.Key)
+	} else {
+		field = filter.Key
+	}
+
+	builder := NewQueryBuilder().
+		Between("timestamp", startTime.Unix(), endTime.Unix())
+	if filter.DataType == request.StringColumn && len(searchText) > 0 {
+		builder.Like(field, searchText+"%")
+	}
+
+	byLimits := NewByLimitBuilder().
+		Limit(100).
+		OrderBy("label_value", false)
+
+	// TODO 检查key是否合法
+	sql := fmt.Sprintf(SQL_GET_FILTER_VALUES, field, builder.String(), byLimits.String())
+
+	rows, err := ch.GetConn().Query(context.Background(), sql, builder.values...)
+	if err != nil {
+		return nil, err
+	}
+
+	var res any
+	switch filter.DataType {
+	case request.U32Column:
+		var numOptions []uint32
+		for rows.Next() {
+			var value uint32
+			if err := rows.Scan(&value); err != nil {
+				log.Fatal(err)
+			}
+			numOptions = append(numOptions, value)
+			res = numOptions
+		}
+	case request.U64Column:
+		var numOptions []uint64
+		for rows.Next() {
+			var value uint64
+			if err := rows.Scan(&value); err != nil {
+				log.Fatal(err)
+			}
+			numOptions = append(numOptions, value)
+			res = numOptions
+		}
+	case request.I64Column:
+		var numOptions []int64
+		for rows.Next() {
+			var value int64
+			if err := rows.Scan(&value); err != nil {
+				log.Fatal(err)
+			}
+			numOptions = append(numOptions, value)
+			res = numOptions
+		}
+	case request.StringColumn:
+		var strOptions []string
+		for rows.Next() {
+			var value string
+			if err := rows.Scan(&value); err != nil {
+				log.Fatal(err)
+			}
+			strOptions = append(strOptions, value)
+			res = strOptions
+		}
+	}
+
+	return &SpanTraceOptions{
+		SpanTraceFilter: *filter,
+		Options:         res,
+	}, nil
 }

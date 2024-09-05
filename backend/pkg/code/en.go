@@ -28,7 +28,9 @@ var enText = map[string]string{
 	GetFaultLogPageListError: "Failed to get faultlog pagelist",
 	GetFaultLogContentError:  "Failed to get faultlog content",
 
-	GetTracePageListError: "Failed to get trace pagelist",
+	GetTracePageListError:    "Failed to get trace pagelist",
+	GetTraceFiltersError:     "Failed to get trace filters",
+	GetTraceFilterValueError: "Failed to get trace filter value",
 
 	GetOverviewServiceInstanceListError: "Failed to get overview service instance list",
 	GetServiceMoreUrlListError:          "Failed to get service more url list",
