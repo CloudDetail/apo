@@ -22,6 +22,12 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filter)
 	endpoints := endpointsMap.Endpoints
 
+	// step2 填充延时依赖关系
+	err = s.EndpointsDelaySource(endpointsMap, startTime, endTime, filter)
+	if err != nil {
+		// TODO 输出错误日志, DelaySource查询失败
+	}
+
 	if len(endpoints) == 0 {
 		// NOTE 通过moreUrl进入的请求,原则上不可能出现未查询到数据的情况
 		// 不应该进入该分支

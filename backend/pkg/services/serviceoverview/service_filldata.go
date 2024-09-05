@@ -220,9 +220,6 @@ func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTi
 	}
 
 	for _, metricResult := range metricResults {
-		if len(metricResult.Values) < 0 {
-			continue
-		}
 		key := metricResult.Metric.SvcName + "_" + metricResult.Metric.ContentKey
 		// 所有合并值均只包含最新时间点的结果,直接取metricResult.Values[0]
 		value := metricResult.Values[0].Value
@@ -233,7 +230,6 @@ func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTi
 
 	// 因为float64默认初始值为0,即表示外部依赖延时占比为0
 	// 符合预期,所以不再初始化未查询到DepLatencyRadio的Endpoint
-
 	return nil
 }
 
@@ -731,6 +727,7 @@ func (m *EndpointsMap) MergeMetricResults(metricGroup, metricName string, metric
 			endpoint = &Endpoint{
 				ContentKey: metricResult.Metric.ContentKey,
 				SvcName:    metricResult.Metric.SvcName,
+				
 			}
 			m.Endpoints = append(m.Endpoints, endpoint)
 			m.EndpointsMap[key] = endpoint
