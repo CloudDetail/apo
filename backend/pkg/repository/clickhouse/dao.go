@@ -44,8 +44,6 @@ type Repo interface {
 	// InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (*model.AlertEvent, bool, error)
 	// NetworkAlert(startTime time.Time, endTime time.Time, pods []string, nodeNames []string, pids []string) (bool, error)
 
-	RebootTime(endTime int64, podsOrNodeNames []string) (*time.Time, error)
-
 	CountK8sEvents(startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error)
 
 	// ========== application_logs ==========

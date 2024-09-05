@@ -56,42 +56,6 @@ func (ch *chRepo) GetK8sAlertEventsSample(startTime time.Time, endTime time.Time
 	return res, nil
 }
 
-// RebootTime 查询基础设施告警，按节点名称区分，返回最新的重启时间和错误
-func (ch *chRepo) RebootTime(endTime int64, podsOrNodeNames []string) (*time.Time, error) {
-	// 构建查询语句
-	query := `
-        SELECT LogAttributes['k8s.event.start_time'] AS start_time
-        FROM k8s_events
-        WHERE Timestamp <= $1
-            AND LogAttributes['k8s.event.reason'] = 'Started'
-            AND ResourceAttributes['k8s.object.name'] IN $2
-        ORDER BY start_time DESC
-        LIMIT 1
-    `
-
-	// 执行查询
-	rows, err := ch.conn.Query(context.Background(), query, endTime/1e6, podsOrNodeNames)
-	if err != nil {
-		return nil, err
-	}
-
-	// 检查是否有查询结果
-	if rows.Next() {
-		var rebootTimeStr string
-		if err := rows.Scan(&rebootTimeStr); err != nil {
-			return nil, err
-		}
-		// 解析时间字符串为 time.Time 类型
-		rebootTime, err := time.Parse(startTimeLayout, rebootTimeStr)
-		if err != nil {
-			return nil, err
-		}
-		return &rebootTime, nil
-	}
-
-	return nil, nil
-}
-
 type K8sEvents struct {
 	Timestamp          time.Time         `ch:"Timestamp" json:"timestamp"`
 	SeverityText       string            `ch:"SeverityText" json:"SeverityText"`
