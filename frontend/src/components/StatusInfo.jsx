@@ -71,7 +71,9 @@ function StatusInfo({ status, alertReason = [], title = null }) {
       }
     >
       <div className="p-2 w-full justify-center flex items-center h-full">
-        <FaCircle color={StatusColorMap[status]} />
+        <div>
+          <FaCircle color={StatusColorMap[status]} />
+        </div>
       </div>
     </Popover>
   )
