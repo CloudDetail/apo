@@ -218,12 +218,22 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 			newErrorRate.Ratio.WeekOverDay = new(float64)
 			*newErrorRate.Ratio.WeekOverDay = RES_MAX_VALUE
 		}
+
+		delaySource := "unknown"
+		if url.DelaySource == nil {
+			delaySource = "unknown"
+		} else if url.DelaySource != nil && *url.DelaySource > 0.5 {
+			delaySource = "dependency"
+		} else {
+			delaySource = "self"
+		}
+
 		newServiceDetail := response.ServiceDetail{
 			Endpoint:    url.ContentKey,
 			ErrorRate:   newErrorRate,
 			Tps:         newtpsRate,
 			Latency:     newlatencyRate,
-			DelaySource: "unknown",
+			DelaySource: delaySource,
 		}
 		newServiceDetails = append(newServiceDetails, newServiceDetail)
 	}
