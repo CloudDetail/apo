@@ -19,8 +19,8 @@ import (
 // @Param startTime query int64 true "查询开始时间"
 // @Param endTime query int64 true "查询结束时间"
 // @Param needUpdate query bool true "是否根据用户输入的时间立即更新可用过滤器"
-// @Param Request body request.getTraceFiltersRequest true "请求信息"
-// @Success 200 {object} response.getTraceFiltersResponse
+// @Param Request body request.GetTraceFiltersRequest true "请求信息"
+// @Success 200 {object} response.GetTraceFiltersResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/trace/pagelist/filters [get]
 func (h *handler) GetTraceFilters() core.HandlerFunc {

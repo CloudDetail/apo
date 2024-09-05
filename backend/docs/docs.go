@@ -2143,23 +2143,124 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/trace/pagelist/filter/value": {
+            "post": {
+                "description": "查询指定过滤器的可用数值",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.trace"
+                ],
+                "summary": "查询指定过滤器的可用数值",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetTraceFilterValueRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetTraceFilterValueResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/trace/pagelist/filters": {
+            "get": {
+                "description": "查询Trace列表可用的过滤器",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.trace"
+                ],
+                "summary": "查询Trace列表可用的过滤器",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "查询开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "是否根据用户输入的时间立即更新可用过滤器",
+                        "name": "needUpdate",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetTraceFiltersRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetTraceFiltersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
         "clickhouse.AlertEventSample": {
             "type": "object",
             "properties": {
-                "alarm_count": {
+                "alarmCount": {
                     "type": "integer"
                 },
-                "create_time": {
+                "createTime": {
                     "description": "故障触发时间",
                     "type": "string"
                 },
                 "detail": {
                     "type": "string"
                 },
-                "end_time": {
+                "endTime": {
                     "description": "故障恢复时间（仅恢复时存在）",
                     "type": "string"
                 },
@@ -2173,7 +2274,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "received_time": {
+                "receivedTime": {
                     "description": "故障事件接收时间（用于记录数据对接，无业务含义）",
                     "type": "string"
                 },
@@ -2192,7 +2293,7 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "update_time": {
+                "updateTime": {
                     "description": "故障最后一次发生时间",
                     "type": "string"
                 }
@@ -2261,14 +2362,14 @@ const docTemplate = `{
         "clickhouse.PagedAlertEvent": {
             "type": "object",
             "properties": {
-                "create_time": {
+                "createTime": {
                     "description": "故障触发时间",
                     "type": "string"
                 },
                 "detail": {
                     "type": "string"
                 },
-                "end_time": {
+                "endTime": {
                     "description": "故障恢复时间（仅恢复时存在）",
                     "type": "string"
                 },
@@ -2282,7 +2383,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "received_time": {
+                "receivedTime": {
                     "description": "故障事件接收时间（用于记录数据对接，无业务含义）",
                     "type": "string"
                 },
@@ -2301,7 +2402,7 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "update_time": {
+                "updateTime": {
                     "description": "故障最后一次发生时间",
                     "type": "string"
                 }
@@ -2316,11 +2417,23 @@ const docTemplate = `{
                 "endpoint": {
                     "type": "string"
                 },
+                "flags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
                 "instanceId": {
                     "type": "string"
                 },
                 "isError": {
                     "type": "boolean"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "serviceName": {
                     "type": "string"
@@ -2330,6 +2443,30 @@ const docTemplate = `{
                 },
                 "traceId": {
                     "type": "string"
+                }
+            }
+        },
+        "clickhouse.SpanTraceOptions": {
+            "type": "object",
+            "properties": {
+                "dataType": {
+                    "$ref": "#/definitions/request.DataType"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "operation": {
+                    "$ref": "#/definitions/request.Operation"
+                },
+                "options": {},
+                "parentField": {
+                    "$ref": "#/definitions/request.ParentField"
+                },
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -2380,10 +2517,30 @@ const docTemplate = `{
                 }
             }
         },
+        "model.AlertDetail": {
+            "type": "object",
+            "properties": {
+                "alertMessage": {
+                    "type": "string"
+                },
+                "alertObject": {
+                    "type": "string"
+                },
+                "alertReason": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.AlertReason": {
             "type": "object",
             "additionalProperties": {
-                "type": "string"
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/model.AlertDetail"
+                }
             }
         },
         "model.ModifyTableTTLMap": {
@@ -2502,6 +2659,23 @@ const docTemplate = `{
                 }
             }
         },
+        "request.DataType": {
+            "type": "string",
+            "enum": [
+                "int64",
+                "uint32",
+                "uint64",
+                "string",
+                "bool"
+            ],
+            "x-enum-varnames": [
+                "I64Column",
+                "U32Column",
+                "U64Column",
+                "StringColumn",
+                "BoolColumn"
+            ]
+        },
         "request.GetFaultLogContentRequest": {
             "type": "object",
             "properties": {
@@ -2590,6 +2764,51 @@ const docTemplate = `{
                 }
             }
         },
+        "request.GetTraceFilterValueRequest": {
+            "type": "object",
+            "required": [
+                "endTime"
+            ],
+            "properties": {
+                "endTime": {
+                    "description": "查询结束时间",
+                    "type": "integer"
+                },
+                "filter": {
+                    "$ref": "#/definitions/request.SpanTraceFilter"
+                },
+                "searchText": {
+                    "description": "查询关键字",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "查询开始时间",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "request.GetTraceFiltersRequest": {
+            "type": "object",
+            "required": [
+                "endTime"
+            ],
+            "properties": {
+                "endTime": {
+                    "description": "查询结束时间",
+                    "type": "integer"
+                },
+                "needUpdate": {
+                    "description": "是否需要立刻更新",
+                    "type": "boolean"
+                },
+                "startTime": {
+                    "description": "查询开始时间",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
         "request.GetTracePageListRequest": {
             "type": "object",
             "required": [
@@ -2607,6 +2826,13 @@ const docTemplate = `{
                 "endpoint": {
                     "description": "查询Endpoint",
                     "type": "string"
+                },
+                "filters": {
+                    "description": "过滤器",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.SpanTraceFilter"
+                    }
                 },
                 "instance": {
                     "description": "实例名",
@@ -2680,6 +2906,48 @@ const docTemplate = `{
                 }
             }
         },
+        "request.Operation": {
+            "type": "string",
+            "enum": [
+                "EQUAL",
+                "NOT_EQUAL",
+                "IN",
+                "NOT_IN",
+                "LIKE",
+                "NOT_LIKE",
+                "EXISTS",
+                "NOT_EXISTS",
+                "CONTAINS",
+                "NOT_CONTAINS",
+                "GREATER_THAN",
+                "LESS_THAN"
+            ],
+            "x-enum-varnames": [
+                "OpEqual",
+                "OpNotEqual",
+                "OpIn",
+                "OpNotIn",
+                "OpLike",
+                "OpNotLike",
+                "OpExists",
+                "OpNotExists",
+                "OpContains",
+                "OpNotContains",
+                "OpGreaterThan",
+                "OpLessThan"
+            ]
+        },
+        "request.ParentField": {
+            "type": "string",
+            "enum": [
+                "labels",
+                "flags"
+            ],
+            "x-enum-varnames": [
+                "PF_Labels",
+                "PF_Flags"
+            ]
+        },
         "request.SetSingleTTLRequest": {
             "type": "object",
             "required": [
@@ -2718,6 +2986,29 @@ const docTemplate = `{
                 "day": {
                     "description": "保存数据周期天数",
                     "type": "integer"
+                }
+            }
+        },
+        "request.SpanTraceFilter": {
+            "type": "object",
+            "properties": {
+                "dataType": {
+                    "$ref": "#/definitions/request.DataType"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "operation": {
+                    "$ref": "#/definitions/request.Operation"
+                },
+                "parentField": {
+                    "$ref": "#/definitions/request.ParentField"
+                },
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -3149,6 +3440,25 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetTraceFilterValueResponse": {
+            "type": "object",
+            "properties": {
+                "traceFilterOptions": {
+                    "$ref": "#/definitions/clickhouse.SpanTraceOptions"
+                }
+            }
+        },
+        "response.GetTraceFiltersResponse": {
+            "type": "object",
+            "properties": {
+                "traceFilters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.SpanTraceFilter"
+                    }
+                }
+            }
+        },
         "response.GetTraceMetricsResponse": {
             "type": "object",
             "properties": {
@@ -3227,6 +3537,10 @@ const docTemplate = `{
                 },
                 "logs": {
                     "$ref": "#/definitions/response.TempChartObject"
+                },
+                "logsStatus": {
+                    "description": "日志指标告警",
+                    "type": "string"
                 },
                 "name": {
                     "description": "实例名",
@@ -3391,6 +3705,10 @@ const docTemplate = `{
                 },
                 "logs": {
                     "$ref": "#/definitions/response.TempChartObject"
+                },
+                "logsStatus": {
+                    "description": "日志指标告警",
+                    "type": "string"
                 },
                 "netStatus": {
                     "description": "网络告警",

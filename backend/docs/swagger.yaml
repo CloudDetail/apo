@@ -2,14 +2,14 @@ basePath: /
 definitions:
   clickhouse.AlertEventSample:
     properties:
-      alarm_count:
+      alarmCount:
         type: integer
-      create_time:
+      createTime:
         description: 故障触发时间
         type: string
       detail:
         type: string
-      end_time:
+      endTime:
         description: 故障恢复时间（仅恢复时存在）
         type: string
       group:
@@ -19,7 +19,7 @@ definitions:
         type: string
       name:
         type: string
-      received_time:
+      receivedTime:
         description: 故障事件接收时间（用于记录数据对接，无业务含义）
         type: string
       severity:
@@ -32,7 +32,7 @@ definitions:
         additionalProperties:
           type: string
         type: object
-      update_time:
+      updateTime:
         description: 故障最后一次发生时间
         type: string
     type: object
@@ -77,12 +77,12 @@ definitions:
     type: object
   clickhouse.PagedAlertEvent:
     properties:
-      create_time:
+      createTime:
         description: 故障触发时间
         type: string
       detail:
         type: string
-      end_time:
+      endTime:
         description: 故障恢复时间（仅恢复时存在）
         type: string
       group:
@@ -92,7 +92,7 @@ definitions:
         type: string
       name:
         type: string
-      received_time:
+      receivedTime:
         description: 故障事件接收时间（用于记录数据对接，无业务含义）
         type: string
       severity:
@@ -105,7 +105,7 @@ definitions:
         additionalProperties:
           type: string
         type: object
-      update_time:
+      updateTime:
         description: 故障最后一次发生时间
         type: string
     type: object
@@ -115,16 +115,40 @@ definitions:
         type: integer
       endpoint:
         type: string
+      flags:
+        additionalProperties:
+          type: boolean
+        type: object
       instanceId:
         type: string
       isError:
         type: boolean
+      labels:
+        additionalProperties:
+          type: string
+        type: object
       serviceName:
         type: string
       timestamp:
         type: integer
       traceId:
         type: string
+    type: object
+  clickhouse.SpanTraceOptions:
+    properties:
+      dataType:
+        $ref: '#/definitions/request.DataType'
+      key:
+        type: string
+      operation:
+        $ref: '#/definitions/request.Operation'
+      options: {}
+      parentField:
+        $ref: '#/definitions/request.ParentField'
+      value:
+        items:
+          type: string
+        type: array
     type: object
   clickhouse.ToplogyRelation:
     properties:
@@ -157,9 +181,22 @@ definitions:
         description: 错误信息
         type: string
     type: object
+  model.AlertDetail:
+    properties:
+      alertMessage:
+        type: string
+      alertObject:
+        type: string
+      alertReason:
+        type: string
+      timestamp:
+        type: integer
+    type: object
   model.AlertReason:
     additionalProperties:
-      type: string
+      items:
+        $ref: '#/definitions/model.AlertDetail'
+      type: array
     type: object
   model.ModifyTableTTLMap:
     properties:
@@ -243,6 +280,20 @@ definitions:
       status:
         type: string
     type: object
+  request.DataType:
+    enum:
+    - int64
+    - uint32
+    - uint64
+    - string
+    - bool
+    type: string
+    x-enum-varnames:
+    - I64Column
+    - U32Column
+    - U64Column
+    - StringColumn
+    - BoolColumn
   request.GetFaultLogContentRequest:
     properties:
       containerId:
@@ -305,6 +356,38 @@ definitions:
     required:
     - endTime
     type: object
+  request.GetTraceFilterValueRequest:
+    properties:
+      endTime:
+        description: 查询结束时间
+        type: integer
+      filter:
+        $ref: '#/definitions/request.SpanTraceFilter'
+      searchText:
+        description: 查询关键字
+        type: string
+      startTime:
+        description: 查询开始时间
+        minimum: 0
+        type: integer
+    required:
+    - endTime
+    type: object
+  request.GetTraceFiltersRequest:
+    properties:
+      endTime:
+        description: 查询结束时间
+        type: integer
+      needUpdate:
+        description: 是否需要立刻更新
+        type: boolean
+      startTime:
+        description: 查询开始时间
+        minimum: 0
+        type: integer
+    required:
+    - endTime
+    type: object
   request.GetTracePageListRequest:
     properties:
       containerId:
@@ -316,6 +399,11 @@ definitions:
       endpoint:
         description: 查询Endpoint
         type: string
+      filters:
+        description: 过滤器
+        items:
+          $ref: '#/definitions/request.SpanTraceFilter'
+        type: array
       instance:
         description: 实例名
         type: string
@@ -368,6 +456,42 @@ definitions:
       truncatedAlerts:
         type: integer
     type: object
+  request.Operation:
+    enum:
+    - EQUAL
+    - NOT_EQUAL
+    - IN
+    - NOT_IN
+    - LIKE
+    - NOT_LIKE
+    - EXISTS
+    - NOT_EXISTS
+    - CONTAINS
+    - NOT_CONTAINS
+    - GREATER_THAN
+    - LESS_THAN
+    type: string
+    x-enum-varnames:
+    - OpEqual
+    - OpNotEqual
+    - OpIn
+    - OpNotIn
+    - OpLike
+    - OpNotLike
+    - OpExists
+    - OpNotExists
+    - OpContains
+    - OpNotContains
+    - OpGreaterThan
+    - OpLessThan
+  request.ParentField:
+    enum:
+    - labels
+    - flags
+    type: string
+    x-enum-varnames:
+    - PF_Labels
+    - PF_Flags
   request.SetSingleTTLRequest:
     properties:
       day:
@@ -397,6 +521,21 @@ definitions:
     required:
     - dataType
     - day
+    type: object
+  request.SpanTraceFilter:
+    properties:
+      dataType:
+        $ref: '#/definitions/request.DataType'
+      key:
+        type: string
+      operation:
+        $ref: '#/definitions/request.Operation'
+      parentField:
+        $ref: '#/definitions/request.ParentField'
+      value:
+        items:
+          type: string
+        type: array
     type: object
   response.CreateResponse:
     properties:
@@ -687,6 +826,18 @@ definitions:
           $ref: '#/definitions/model.ModifyTableTTLMap'
         type: array
     type: object
+  response.GetTraceFilterValueResponse:
+    properties:
+      traceFilterOptions:
+        $ref: '#/definitions/clickhouse.SpanTraceOptions'
+    type: object
+  response.GetTraceFiltersResponse:
+    properties:
+      traceFilters:
+        items:
+          $ref: '#/definitions/request.SpanTraceFilter'
+        type: array
+    type: object
   response.GetTraceMetricsResponse:
     properties:
       containerId:
@@ -742,6 +893,9 @@ definitions:
         $ref: '#/definitions/response.TempChartObject'
       logs:
         $ref: '#/definitions/response.TempChartObject'
+      logsStatus:
+        description: 日志指标告警
+        type: string
       name:
         description: 实例名
         type: string
@@ -852,6 +1006,9 @@ definitions:
         type: string
       logs:
         $ref: '#/definitions/response.TempChartObject'
+      logsStatus:
+        description: 日志指标告警
+        type: string
       netStatus:
         description: 网络告警
         type: string
@@ -2336,6 +2493,73 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 查询Trace分页列表
+      tags:
+      - API.trace
+  /api/trace/pagelist/filter/value:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 查询指定过滤器的可用数值
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetTraceFilterValueRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetTraceFilterValueResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 查询指定过滤器的可用数值
+      tags:
+      - API.trace
+  /api/trace/pagelist/filters:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 查询Trace列表可用的过滤器
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 是否根据用户输入的时间立即更新可用过滤器
+        in: query
+        name: needUpdate
+        required: true
+        type: boolean
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetTraceFiltersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetTraceFiltersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 查询Trace列表可用的过滤器
       tags:
       - API.trace
 swagger: "2.0"
