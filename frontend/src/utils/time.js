@@ -198,20 +198,20 @@ export const formatTime = (time, reserve = 2) => {
   }
 }
 
-export function convertUTCToBeijing(utcString) {
-  // 将 UTC 字符串转换为 Date 对象
-  const utcDate = new Date(utcString)
+export function convertUTCToBeijing(utcTimeString) {
+  // 将 UTC 时间字符串转换为 Date 对象
+  const utcDate = new Date(utcTimeString)
 
-  // 获取中国北京时间（UTC+8）的毫秒数
-  const beijingTime = new Date(utcDate.getTime() + 8 * 60 * 60 * 1000)
+  // 获取 UTC 时间
+  const beijingDate = new Date(utcDate.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }))
 
-  // 格式化输出为 yyyy-mm-dd hh:mm:ss
-  const year = beijingTime.getFullYear()
-  const month = String(beijingTime.getMonth() + 1).padStart(2, '0')
-  const day = String(beijingTime.getDate()).padStart(2, '0')
-  const hours = String(beijingTime.getHours()).padStart(2, '0')
-  const minutes = String(beijingTime.getMinutes()).padStart(2, '0')
-  const seconds = String(beijingTime.getSeconds()).padStart(2, '0')
+  // 格式化为 YYYY-MM-DD HH:mm:ss
+  const year = beijingDate.getFullYear()
+  const month = String(beijingDate.getMonth() + 1).padStart(2, '0')
+  const day = String(beijingDate.getDate()).padStart(2, '0')
+  const hours = String(beijingDate.getHours()).padStart(2, '0')
+  const minutes = String(beijingDate.getMinutes()).padStart(2, '0')
+  const seconds = String(beijingDate.getSeconds()).padStart(2, '0')
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
