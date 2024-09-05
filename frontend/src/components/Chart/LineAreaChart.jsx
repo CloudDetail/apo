@@ -113,7 +113,11 @@ const AreaChart = ({ type, data, timeRange }) => {
   }
 
   return chartData && data ? (
-    <Popover content={<DelayLineChart data={data} timeRange={timeRange} type={type} />} title="">
+    <Popover
+      content={<DelayLineChart data={data} timeRange={timeRange} type={type} />}
+      title=""
+      zIndex={1060}
+    >
       <Line data={chartData} options={options} />
     </Popover>
   ) : (
