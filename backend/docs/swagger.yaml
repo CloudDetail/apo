@@ -373,21 +373,6 @@ definitions:
     required:
     - endTime
     type: object
-  request.GetTraceFiltersRequest:
-    properties:
-      endTime:
-        description: 查询结束时间
-        type: integer
-      needUpdate:
-        description: 是否需要立刻更新
-        type: boolean
-      startTime:
-        description: 查询开始时间
-        minimum: 0
-        type: integer
-    required:
-    - endTime
-    type: object
   request.GetTracePageListRequest:
     properties:
       containerId:
@@ -2540,14 +2525,7 @@ paths:
       - description: 是否根据用户输入的时间立即更新可用过滤器
         in: query
         name: needUpdate
-        required: true
         type: boolean
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.GetTraceFiltersRequest'
       produces:
       - application/json
       responses:

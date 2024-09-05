@@ -2208,17 +2208,7 @@
                         "type": "boolean",
                         "description": "是否根据用户输入的时间立即更新可用过滤器",
                         "name": "needUpdate",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.GetTraceFiltersRequest"
-                        }
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2772,27 +2762,6 @@
                 "searchText": {
                     "description": "查询关键字",
                     "type": "string"
-                },
-                "startTime": {
-                    "description": "查询开始时间",
-                    "type": "integer",
-                    "minimum": 0
-                }
-            }
-        },
-        "request.GetTraceFiltersRequest": {
-            "type": "object",
-            "required": [
-                "endTime"
-            ],
-            "properties": {
-                "endTime": {
-                    "description": "查询结束时间",
-                    "type": "integer"
-                },
-                "needUpdate": {
-                    "description": "是否需要立刻更新",
-                    "type": "boolean"
                 },
                 "startTime": {
                     "description": "查询开始时间",
