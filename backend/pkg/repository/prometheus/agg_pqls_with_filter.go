@@ -36,6 +36,15 @@ func PQLDepLatencyRadioWithFilters(vector string, granularity string, filters []
 	return allDepNetworkLatency + "/" + allRequestLatencySum
 }
 
+// PQLIsPolarisMetricExitsWithFilters 采用北极星指标中的onCPU耗时判断是否存在北极星指标
+func PQLIsPolarisMetricExitsWithFilters(vector string, granularity string, filters []string) string {
+	filtersStr := strings.Join(filters, ",")
+	onCpuLatency := `sum by (` + granularity + `) (
+        increase(kindling_profiling_cpu_duration_nanoseconds_sum{` + filtersStr + `}[` + vector + `])
+	)`
+	return onCpuLatency
+}
+
 // PQLAvgLatencyWithFilters 查询自身平均耗时
 func PQLAvgLatencyWithFilters(vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")

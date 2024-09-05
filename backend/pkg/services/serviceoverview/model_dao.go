@@ -6,10 +6,12 @@ import "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 const RES_MAX_VALUE = 9999999
 
 type Endpoint struct {
-	ContentKey          string   // URL
-	SvcName             string   // url所属的服务名
-	NamespaceList       []string // 包含该端点的Namespace
-	Count               int
+	ContentKey    string   // URL
+	SvcName       string   // url所属的服务名
+	NamespaceList []string // 包含该端点的Namespace
+	Count         int
+	// TODO DelaySource值为nil和值为0是两种场景。
+	//  nil表示没有查询到数据（可能没有这个指标），显示未知；0表示无网络占比，显示自身
 	DelaySource         *float64 //延时主要来源
 	IsLatencyExceeded   bool
 	IsErrorRateExceeded bool
@@ -64,7 +66,6 @@ type Instance struct {
 	InstanceType           int
 	ContainerId            string
 	Pid                    string
-	DelaySource            *float64 //延时主要来源
 	IsLatencyDODExceeded   bool
 	IsErrorRateDODExceeded bool
 	IsTPSDODExceeded       bool

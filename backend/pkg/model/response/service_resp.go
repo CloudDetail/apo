@@ -29,7 +29,7 @@ type GetDescendantRelevanceResponse struct {
 	EndPoint         string  `json:"endpoint"`     // Endpoint
 	Distance         float64 `json:"distance"`     // 延时曲线差异
 	DistanceType     string  `json:"distanceType"` // 延时曲线差异计算方式, 有euclidean/pearson/dtw/failed/net_failed四种
-	DelaySource      string  `json:"delaySource"`  // 延时主要来源 self/dependency
+	DelaySource      string  `json:"delaySource"`  // 延时主要来源 unknown/self/dependency
 	REDMetricsStatus string  `json:"REDStatus"`    // RED指标告警
 	LastUpdateTime   *int64  `json:"timestamp"`    // 末次部署时间
 

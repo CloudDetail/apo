@@ -220,7 +220,7 @@ func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTi
 	}
 
 	for _, metricResult := range metricResults {
-		if len(metricResult.Values) <= 0 {
+		if len(metricResult.Values) < 0 {
 			continue
 		}
 		key := metricResult.Metric.SvcName + "_" + metricResult.Metric.ContentKey

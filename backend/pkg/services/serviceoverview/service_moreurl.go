@@ -217,7 +217,7 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 			ErrorRate:   newErrorRate,
 			Tps:         newtpsRate,
 			Latency:     newlatencyRate,
-			DelaySource: "dependency",
+			DelaySource: "unknown",
 		}
 		newServiceDetails = append(newServiceDetails, newServiceDetail)
 	}

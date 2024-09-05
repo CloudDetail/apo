@@ -76,7 +76,7 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 			EndPoint:         descendant.Endpoint,
 			Distance:         descendant.Relevance,
 			DistanceType:     sortType,
-			DelaySource:      "self",
+			DelaySource:      "unknown",
 			REDMetricsStatus: model.STATUS_NORMAL,
 			AlertStatus:      model.NORMAL_ALERT_STATUS,
 			AlertReason:      model.AlertReason{},
@@ -224,7 +224,7 @@ func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRel
 	ts := time.Now()
 	descendantKey := descendantResp.ServiceName + "_" + descendantResp.EndPoint
 	if status, ok := descendantStatus[descendantKey]; ok {
-		if status.DepLatency > 0 && status.Latency > 0 {
+		if status.DepLatency >= 0 && status.Latency > 0 {
 			var depRatio = status.DepLatency / status.Latency
 			if depRatio > 0.5 {
 				descendantResp.DelaySource = "dependency"
@@ -239,7 +239,7 @@ func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRel
 				AlertMessage: delayDistribution,
 			})
 		} else {
-			descendantResp.DelaySource = "self"
+			descendantResp.DelaySource = "unknown"
 		}
 
 		if status.RequestPerSecondDoD < 0 {

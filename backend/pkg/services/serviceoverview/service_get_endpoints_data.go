@@ -256,7 +256,9 @@ func (*service) extractDetail(service ServiceDetail, startTime time.Time, endTim
 			Tps:       newtpsRate,
 			Latency:   newlatencyRate,
 		}
-		if endpoint.DelaySource != nil && *endpoint.DelaySource > 0.5 {
+		if endpoint.DelaySource == nil {
+			newServiceDetail.DelaySource = "unknown"
+		} else if endpoint.DelaySource != nil && *endpoint.DelaySource > 0.5 {
 			newServiceDetail.DelaySource = "dependency"
 		} else {
 			newServiceDetail.DelaySource = "self"
