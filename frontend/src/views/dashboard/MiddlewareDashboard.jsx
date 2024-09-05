@@ -21,7 +21,7 @@ function MiddlewareDashboard() {
           </CToastBody>
         </div>
       </CToast>
-      <IframeDashboard src={'grafana/dashboards/f/edwu5b9rkv94wb'} />
+      <IframeDashboard src={'grafana/dashboards/f/edwu5b9rkv94wb/'} />
     </div>
   )
 }
