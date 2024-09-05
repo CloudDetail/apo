@@ -1,5 +1,7 @@
 import { CModal, CModalBody, CModalHeader, CModalTitle } from '@coreui/react'
+import { Tooltip } from 'antd'
 import React, { useState, useEffect, useMemo } from 'react'
+import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useNavigate } from 'react-router-dom'
 import { getEndpointTableApi } from 'src/api/service'
 import BasicTable from 'src/components/Table/basicTable'
@@ -48,13 +50,26 @@ function EndpointTableModal(props) {
     },
     {
       title: (
-        <div className="text-center">
-          延时主要来源<div className="block">(自身/依赖)</div>
-        </div>
+        <Tooltip
+          title={
+            <div>
+              <div>自身：服务自身延时占比50%以上</div>
+              <div>依赖：请求下游服务延时占比50%以上</div>
+              <div>未知：未找到相关指标</div>
+            </div>
+          }
+        >
+          <div className="flex flex-row ">
+            <AiOutlineInfoCircle size={16} />
+            <div className="text-center">
+              延时主要来源<div className="block text-[10px]">(自身/依赖/未知)</div>
+            </div>
+          </div>
+        </Tooltip>
       ),
       accessor: 'delaySource',
       canExpand: false,
-      customWidth: 100,
+      customWidth: 110,
       Cell: (props) => {
         const { value } = props
         return <>{DelaySourceTimeUnit[value]}</>

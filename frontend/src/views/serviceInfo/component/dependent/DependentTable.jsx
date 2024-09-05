@@ -6,6 +6,9 @@ import { convertTime } from 'src/utils/time'
 import { getServiceDsecendantRelevanceApi } from 'src/api/serviceInfo'
 import { useDispatch } from 'react-redux'
 import { getStep } from 'src/utils/step'
+import { DelaySourceTimeUnit } from 'src/constants'
+import { Tooltip } from 'antd'
+import { AiOutlineInfoCircle } from 'react-icons/ai'
 
 function DependentTable(props) {
   const { serviceName, endpoint, startTime, endTime, storeDisplayData = false } = props
@@ -73,15 +76,28 @@ function DependentTable(props) {
     },
     {
       title: (
-        <div className="text-center">
-          延时主要来源<div className="block">(自身/依赖)</div>
-        </div>
+        <Tooltip
+          title={
+            <div>
+              <div>自身：服务自身延时占比50%以上</div>
+              <div>依赖：请求下游服务延时占比50%以上</div>
+              <div>未知：未找到相关指标</div>
+            </div>
+          }
+        >
+          <div className="flex flex-row ">
+            <AiOutlineInfoCircle size={16} />
+            <div className="text-center">
+              延时主要来源<div className="block text-[10px]">(自身/依赖/未知)</div>
+            </div>
+          </div>
+        </Tooltip>
       ),
-      accessor: 'isLatencySelf',
+      accessor: 'delaySource',
       canExpand: false,
-      customWidth: 100,
-      Cell: (props) => {
-        return props.value ? '自身' : '依赖'
+      customWidth: 110,
+      Cell: ({ value }) => {
+        return <>{DelaySourceTimeUnit[value]}</>
       },
     },
     {

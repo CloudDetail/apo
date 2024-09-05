@@ -7,6 +7,7 @@ import {
 export const DelaySourceTimeUnit = {
   self: '自身',
   dependency: '依赖',
+  unknown: '未知',
 }
 
 export const MetricsLineChartColor = {

@@ -14,7 +14,8 @@ import { DelaySourceTimeUnit } from 'src/constants'
 import { convertTime } from 'src/utils/time'
 import EndpointTableModal from './component/EndpointTableModal'
 import LoadingSpinner from 'src/components/Spinner'
-import { Input } from 'antd'
+import { Input, Tooltip } from 'antd'
+import { AiOutlineInfoCircle } from 'react-icons/ai'
 export default function ServiceView() {
   const navigate = useNavigate()
   const [data, setData] = useState([])
@@ -87,13 +88,26 @@ export default function ServiceView() {
         },
         {
           title: (
-            <div className="text-center">
-              延时主要来源<div className="block">(自身/依赖)</div>
-            </div>
+            <Tooltip
+              title={
+                <div>
+                  <div>自身：服务自身延时占比50%以上</div>
+                  <div>依赖：请求下游服务延时占比50%以上</div>
+                  <div>未知：未找到相关指标</div>
+                </div>
+              }
+            >
+              <div className="flex flex-row ">
+                <AiOutlineInfoCircle size={16} />
+                <div className="text-center">
+                  延时主要来源<div className="block text-[10px]">(自身/依赖/未知)</div>
+                </div>
+              </div>
+            </Tooltip>
           ),
           accessor: 'delaySource',
           canExpand: false,
-          customWidth: 100,
+          customWidth: 110,
           Cell: (props) => {
             const { value } = props
             return <>{DelaySourceTimeUnit[value]}</>
