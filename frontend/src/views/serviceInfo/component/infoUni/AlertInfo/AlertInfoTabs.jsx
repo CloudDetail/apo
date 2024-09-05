@@ -42,7 +42,6 @@ export default function AlertInfoTabs() {
       startTime,
       endTime,
       service: serviceName,
-      sampleCount: 2,
     }).then((res) => {
       setLoading(false)
       prepareData(res)

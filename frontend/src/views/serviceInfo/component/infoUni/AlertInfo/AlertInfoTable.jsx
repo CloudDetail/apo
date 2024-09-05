@@ -18,7 +18,7 @@ export default function AlertInfoTable({ data }) {
       children: [
         {
           title: '最近告警时间',
-          accessor: 'createTime',
+          accessor: 'receivedTime',
           customWidth: 180,
           Cell: ({ value }) => {
             return convertUTCToBeijing(value)
