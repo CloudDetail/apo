@@ -100,17 +100,18 @@ func (ch *chRepo) GetAvailableFilterKey(startTime, endTime time.Time, needUpdate
 		return filers, nil
 	}
 
-	if len(ch.AvailableFilters) == 0 {
-		now := time.Now()
-		filers, err := ch.UpdateFilterKey(now.Add(-72*time.Hour), now)
+	now := time.Now()
+	if len(ch.Filters) == 0 || now.Sub(ch.FilterUpdateTime) > 48*time.Hour {
+		filers, err := ch.UpdateFilterKey(now.Add(-48*time.Hour), now)
 		if err != nil {
 			return []request.SpanTraceFilter{}, err
 		}
-		ch.AvailableFilters = filers
-		return ch.AvailableFilters, nil
+		ch.Filters = filers
+		ch.FilterUpdateTime = now
+		return ch.Filters, nil
 	}
 
-	return ch.AvailableFilters, nil
+	return ch.Filters, nil
 }
 
 func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error) {
@@ -296,7 +297,7 @@ func AppendToBuilder(builder *QueryBuilder, f *request.SpanTraceFilter) error {
 type SpanTraceOptions struct {
 	request.SpanTraceFilter
 
-	Options any
+	Options any `json:"options"`
 }
 
 var const_span_filter = []request.SpanTraceFilter{

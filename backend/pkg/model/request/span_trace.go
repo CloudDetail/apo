@@ -6,9 +6,9 @@ import (
 )
 
 type GetTraceFiltersRequest struct {
-	StartTime  int64 `json:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime    int64 `json:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	NeedUpdate bool  `json:"needUpdate"`                                   // 是否需要立刻更新
+	StartTime  int64 `form:"statTime" json:"startTime" binding:"min=0"`                   // 查询开始时间
+	EndTime    int64 `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+	NeedUpdate bool  `form:"needUpdate" json:"needUpdate"`                                // 是否需要立刻更新
 }
 
 type GetTraceFilterValueRequest struct {
@@ -75,6 +75,6 @@ type SpanTraceFilter struct {
 	Key         string      `ch:"key" json:"key"`
 	ParentField ParentField `ch:"parent_field" json:"parentField"`
 	DataType    DataType    `ch:"data_type" json:"dataType"`
-	Operation   Operation   `json:"operation"`
-	Value       []string    `json:"value"`
+	Operation   Operation   `json:"operation,omitempty"`
+	Value       []string    `json:"value,omitempty"`
 }

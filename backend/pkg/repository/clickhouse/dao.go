@@ -76,7 +76,12 @@ type Repo interface {
 type chRepo struct {
 	conn driver.Conn
 
-	AvailableFilters []request.SpanTraceFilter
+	AvailableFilters
+}
+
+type AvailableFilters struct {
+	Filters          []request.SpanTraceFilter
+	FilterUpdateTime time.Time
 }
 
 func New(logger *zap.Logger, address []string, database string, username string, password string) (Repo, error) {
@@ -98,19 +103,30 @@ func New(logger *zap.Logger, address []string, database string, username string,
 	if err = conn.Ping(context.Background()); err != nil {
 		return nil, fmt.Errorf("failed to connect to clickhouse: %s", err)
 	}
+
+	var repo *chRepo
 	// Debug 日志等级时使用包装的Conn，输出执行SQL的耗时
 	if logger.Level() == zap.DebugLevel {
-		return &chRepo{
+		repo = &chRepo{
 			conn: &WrappedConn{
 				Conn:   conn,
 				logger: logger,
 			},
-		}, nil
+		}
 	} else {
-		return &chRepo{
+		repo = &chRepo{
 			conn: conn,
-		}, nil
+		}
 	}
+
+	now := time.Now()
+	filters, err := repo.UpdateFilterKey(now.Add(-48*time.Hour), now)
+	if err == nil {
+		repo.Filters = filters
+		repo.FilterUpdateTime = now
+	}
+
+	return repo, nil
 }
 
 func (ch *chRepo) GetConn() driver.Conn {
