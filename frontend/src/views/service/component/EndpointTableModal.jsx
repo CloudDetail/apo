@@ -59,17 +59,18 @@ function EndpointTableModal(props) {
             </div>
           }
         >
-          <div className="flex flex-row ">
-            <AiOutlineInfoCircle size={16} />
-            <div className="text-center">
-              延时主要来源<div className="block text-[10px]">(自身/依赖/未知)</div>
+          <div className="flex flex-row justify-center items-center">
+            <div>
+              <div className="text-center flex flex-row ">延时主要来源</div>
+              <div className="block text-[10px] text-center">(自身/依赖/未知)</div>
             </div>
+            <AiOutlineInfoCircle size={16} className="ml-2" />
           </div>
         </Tooltip>
       ),
       accessor: 'delaySource',
       canExpand: false,
-      customWidth: 110,
+      customWidth: 132,
       Cell: (props) => {
         const { value } = props
         return <>{DelaySourceTimeUnit[value]}</>
