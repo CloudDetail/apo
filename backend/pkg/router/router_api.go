@@ -66,8 +66,8 @@ func setApiRouter(r *resource) {
 	{
 		traceHandler := trace.New(r.logger, r.ch)
 		traceApi.POST("/pagelist", traceHandler.GetTracePageList())
-		traceApi.GET("/filters", traceHandler.GetTraceFilters())
-		traceApi.POST("/filter/value", traceHandler.GetTraceFilterValue())
+		traceApi.GET("/pagelist/filters", traceHandler.GetTraceFilters())
+		traceApi.POST("/pagelist/filter/value", traceHandler.GetTraceFilterValue())
 	}
 
 	alertApi := r.mux.Group("/api/alerts")
