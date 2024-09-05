@@ -57,3 +57,8 @@ export const getServiceLogLogsApi = (params) => {
 export const getServiceTraceLogsApi = (params) => {
   return get(`/api/service/trace/logs`, params)
 }
+
+//告警列表
+export const getServiceAlertEventApi = (params) => {
+  return get(`/api/service/alert/sample/events`, params)
+}

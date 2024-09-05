@@ -1,64 +1,71 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { CAccordion, CAccordionHeader, CAccordionItem, CImage } from '@coreui/react';
-import StatusInfo from 'src/components/StatusInfo';
-import InstanceInfo from './InstanceInfo';
-import ErrorInstanceInfo from './ErrorInstance/ErrorInstanceInfo';
-import MetricsDashboard from './MetricsDashboard';
-import LogsInfo from './LogsInfo';
-import TraceInfo from './TraceInfo';
-import K8sInfo from './K8sInfo';
-import { LuLayoutDashboard } from 'react-icons/lu';
-import { TbNorthStar } from 'react-icons/tb';
-import { cilDescription } from '@coreui/icons';
-import CIcon from '@coreui/icons-react';
-import { PiPath } from 'react-icons/pi';
-import ThumbsUp from 'src/assets/icons/thumbsUp.svg';
+import React, { useEffect, useRef, useState, useMemo } from 'react'
+import { CAccordion, CAccordionHeader, CAccordionItem, CImage } from '@coreui/react'
+import StatusInfo from 'src/components/StatusInfo'
+import InstanceInfo from './InstanceInfo'
+import ErrorInstanceInfo from './ErrorInstance/ErrorInstanceInfo'
+import MetricsDashboard from './MetricsDashboard'
+import LogsInfo from './LogsInfo'
+import TraceInfo from './TraceInfo'
+import K8sInfo from './K8sInfo'
+import { LuLayoutDashboard } from 'react-icons/lu'
+import { TbNorthStar } from 'react-icons/tb'
+import { cilDescription } from '@coreui/icons'
+import CIcon from '@coreui/icons-react'
+import { PiPath } from 'react-icons/pi'
+import ThumbsUp from 'src/assets/icons/thumbsUp.svg'
 import { usePropsContext } from 'src/contexts/PropsContext'
-import PolarisMetricsInfo from './PolarisMetricsInfo/PolarisMetricsInfo';
-import { selectProcessedTimeRange } from 'src/store/reducers/timeRangeReducer';
-import { useSelector } from 'react-redux';
+import PolarisMetricsInfo from './PolarisMetricsInfo/PolarisMetricsInfo'
+import { selectProcessedTimeRange } from 'src/store/reducers/timeRangeReducer'
+import { useSelector } from 'react-redux'
+import AlertInfoTabs from './AlertInfo/AlertInfoTabs'
 
 export default function InfoUni() {
   const [openedPanels, setOpenedPanels] = useState({
     polarisMetrics: true,
-  });
+  })
   const [statusPanels, setStatusPanels] = useState({
     instance: '',
     k8s: '',
     error: '',
-  });
-  const [dashboardVariable, setDashboardVariable] = useState(null);
-  const { serviceName } = usePropsContext();
+  })
+  const [dashboardVariable, setDashboardVariable] = useState(null)
+  const { serviceName } = usePropsContext()
   const storeTimeRange = useSelector((state) => state.timeRange)
 
-  const refs = useRef({});
+  const refs = useRef({})
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
   const handleToggle = (key) => {
     if (!openedPanels[key]) {
       const buttonHtml = refs.current[key].querySelector('button')
       if (buttonHtml) {
         if (buttonHtml.getAttribute('aria-expanded') === 'true') {
-          buttonHtml.click();
+          buttonHtml.click()
         }
       }
     }
     setOpenedPanels((prev) => ({
       ...prev,
       [key]: true,
-    }));
-  };
+    }))
+  }
 
   const handlePanelStatus = (key, status) => {
     if (status !== 'normal') {
-      handleToggle(key);
+      handleToggle(key)
     }
     setStatusPanels((prev) => ({
       ...prev,
       [key]: status,
-    }));
-  };
+    }))
+  }
 
   const mockAccordionList = [
+    {
+      key: 'alert',
+      loadBeforeOpen: true,
+      name: `${serviceName}的告警事件`,
+      component: AlertInfoTabs,
+    },
     {
       key: 'instance',
       loadBeforeOpen: true,
@@ -98,7 +105,9 @@ export default function InfoUni() {
       component: MetricsDashboard,
       componentProps: {
         variable: dashboardVariable,
-        startTime, endTime,storeTimeRange
+        startTime,
+        endTime,
+        storeTimeRange,
       },
     },
     {
@@ -128,20 +137,20 @@ export default function InfoUni() {
       name: '链路追踪',
       component: TraceInfo,
     },
-  ];
+  ]
 
-  const [accordionList, setAccordionList] = useState(mockAccordionList);
+  const [accordionList, setAccordionList] = useState(mockAccordionList)
 
   useEffect(() => {
-    setAccordionList([]);
-    setAccordionList(mockAccordionList);
-  }, [serviceName]);
+    setAccordionList([])
+    setAccordionList(mockAccordionList)
+  }, [serviceName])
 
   return (
     <>
       {accordionList.map((item, index) => {
-        const MemoizedComponent = useMemo(() => item.component, [item.component]);
-        const componentProps = { ...item.componentProps, variable: dashboardVariable };
+        const MemoizedComponent = useMemo(() => item.component, [item.component])
+        const componentProps = { ...item.componentProps, variable: dashboardVariable }
 
         return (
           <CAccordion
@@ -162,8 +171,8 @@ export default function InfoUni() {
               <MemoizedComponent {...componentProps} />
             </CAccordionItem>
           </CAccordion>
-        );
+        )
       })}
     </>
-  );
+  )
 }

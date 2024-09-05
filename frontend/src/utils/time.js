@@ -197,3 +197,21 @@ export const formatTime = (time, reserve = 2) => {
     return flag ? '-' + time : time
   }
 }
+
+export function convertUTCToBeijing(utcString) {
+  // 将 UTC 字符串转换为 Date 对象
+  const utcDate = new Date(utcString)
+
+  // 获取中国北京时间（UTC+8）的毫秒数
+  const beijingTime = new Date(utcDate.getTime() + 8 * 60 * 60 * 1000)
+
+  // 格式化输出为 yyyy-mm-dd hh:mm:ss
+  const year = beijingTime.getFullYear()
+  const month = String(beijingTime.getMonth() + 1).padStart(2, '0')
+  const day = String(beijingTime.getDate()).padStart(2, '0')
+  const hours = String(beijingTime.getHours()).padStart(2, '0')
+  const minutes = String(beijingTime.getMinutes()).padStart(2, '0')
+  const seconds = String(beijingTime.getSeconds()).padStart(2, '0')
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}

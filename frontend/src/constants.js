@@ -98,3 +98,43 @@ export const TableType = {
   topology: '拓扑图',
   other: '其他',
 }
+
+export const RuleGroupMap = {
+  app: '应用指标',
+  infra: '主机相关',
+  network: '网络相关',
+  container: '容器相关',
+}
+
+export const AlertSeverityMapList = [
+  {
+    name: 'unknow',
+    color: '',
+  },
+  {
+    name: 'info',
+    color: '#24d160',
+  },
+  {
+    name: 'warning',
+    color: '#f9bb07',
+  },
+  {
+    name: 'error',
+    color: '#ff3366',
+  },
+  {
+    name: 'critical',
+    color: '#ff3366',
+  },
+]
+export const AlertStatusMapList = [
+  {
+    name: 'resolved',
+    color: '#24d160',
+  },
+  {
+    name: 'firing',
+    color: '#ff3366',
+  },
+]
