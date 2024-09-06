@@ -217,6 +217,10 @@ type QueryTraceResult struct {
 
 func AppendToBuilder(builder *QueryBuilder, f *request.SpanTraceFilter) error {
 	// TODO 检查key合法性
+	if !ValidCheckAndAdjust(f) {
+		return nil
+	}
+
 	var param []any
 	switch f.DataType {
 	case request.U32Column, request.U64Column:
@@ -428,4 +432,16 @@ func (ch *chRepo) GetFieldValues(searchText string, filter *request.SpanTraceFil
 		SpanTraceFilter: *filter,
 		Options:         res,
 	}, nil
+}
+
+func ValidCheckAndAdjust(f *request.SpanTraceFilter) bool {
+	// TODO 检查filter合法性
+
+	switch f.Key {
+	case "duration":
+		for i := 0; i < len(f.Value); i++ {
+			f.Value[i] += "000"
+		}
+	}
+	return true
 }
