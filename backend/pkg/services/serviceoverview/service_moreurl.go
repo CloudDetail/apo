@@ -20,7 +20,7 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	}
 
 	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filter)
-	endpoints := endpointsMap.Endpoints
+	endpoints := endpointsMap.MetricGroupList
 
 	// step2 填充延时依赖关系
 	err = s.EndpointsDelaySource(endpointsMap, startTime, endTime, filter)
@@ -44,26 +44,26 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	latencyThreshold := threshold.Latency
 	for i := range endpoints {
 		//填充错误率不等于0查不出同比，填充为最大值（通过判断是否有请求，有请求进行填充）
-		if endpoints[i].LatencyDayOverDay != nil && endpoints[i].ErrorRateDayOverDay == nil && endpoints[i].AvgErrorRate != nil && *endpoints[i].AvgErrorRate != 0 {
-			endpoints[i].ErrorRateDayOverDay = new(float64)
-			*endpoints[i].ErrorRateDayOverDay = RES_MAX_VALUE
+		if endpoints[i].DOD.Latency != nil && endpoints[i].DOD.ErrorRate == nil && endpoints[i].Avg.ErrorRate != nil && *endpoints[i].Avg.ErrorRate != 0 {
+			endpoints[i].DOD.ErrorRate = new(float64)
+			*endpoints[i].DOD.ErrorRate = RES_MAX_VALUE
 		}
-		if endpoints[i].LatencyWeekOverWeek != nil && endpoints[i].ErrorRateWeekOverWeek == nil && endpoints[i].AvgErrorRate != nil && *endpoints[i].AvgErrorRate != 0 {
-			endpoints[i].ErrorRateWeekOverWeek = new(float64)
-			*endpoints[i].ErrorRateWeekOverWeek = RES_MAX_VALUE
+		if endpoints[i].WOW.Latency != nil && endpoints[i].WOW.ErrorRate == nil && endpoints[i].Avg.ErrorRate != nil && *endpoints[i].Avg.ErrorRate != 0 {
+			endpoints[i].WOW.ErrorRate = new(float64)
+			*endpoints[i].WOW.ErrorRate = RES_MAX_VALUE
 		}
 
 		//过滤错误率
-		if endpoints[i].ErrorRateDayOverDay != nil && *endpoints[i].ErrorRateDayOverDay > errorThreshold {
+		if endpoints[i].DOD.ErrorRate != nil && *endpoints[i].DOD.ErrorRate > errorThreshold {
 			endpoints[i].IsErrorRateExceeded = true
-			endpoints[i].Count += ErrorCount
+			endpoints[i].AlertCount += ErrorCount
 		}
 
 		//过滤延时
 
-		if endpoints[i].LatencyDayOverDay != nil && *endpoints[i].LatencyDayOverDay > latencyThreshold {
+		if endpoints[i].DOD.Latency != nil && *endpoints[i].DOD.Latency > latencyThreshold {
 			endpoints[i].IsLatencyExceeded = true
-			endpoints[i].Count += LatencyCount
+			endpoints[i].AlertCount += LatencyCount
 		}
 		//不对吞吐量进行比较
 		////过滤TPS
@@ -98,15 +98,15 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	var newServiceDetails []response.ServiceDetail
 	for _, url := range service.Endpoints {
 		newErrorRadio := response.Ratio{
-			DayOverDay:  url.ErrorRateDayOverDay,
-			WeekOverDay: url.ErrorRateWeekOverWeek,
+			DayOverDay:  url.DOD.ErrorRate,
+			WeekOverDay: url.WOW.ErrorRate,
 		}
 		newErrorRate := response.TempChartObject{
 			//ChartData: map[int64]float64{},
 			Ratio: newErrorRadio,
 		}
-		if url.AvgErrorRate != nil && !math.IsInf(*url.AvgErrorRate, 0) { //为无穷大时则不赋值
-			newErrorRate.Value = url.AvgErrorRate
+		if url.Avg.ErrorRate != nil && !math.IsInf(*url.Avg.ErrorRate, 0) { //为无穷大时则不赋值
+			newErrorRate.Value = url.Avg.ErrorRate
 		}
 		if url.ErrorRateData != nil {
 			data := make(map[int64]float64)
@@ -136,15 +136,15 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 			newErrorRate.ChartData = values
 		}
 		newtpsRadio := response.Ratio{
-			DayOverDay:  url.TPMDayOverDay,
-			WeekOverDay: url.TPMWeekOverWeek,
+			DayOverDay:  url.DOD.TPM,
+			WeekOverDay: url.WOW.TPM,
 		}
 		newtpsRate := response.TempChartObject{
 			//ChartData: map[int64]float64{},
 			Ratio: newtpsRadio,
 		}
-		if url.AvgTPM != nil && !math.IsInf(*url.AvgTPM, 0) { //为无穷大时则不赋值
-			newtpsRate.Value = url.AvgTPM
+		if url.Avg.TPM != nil && !math.IsInf(*url.Avg.TPM, 0) { //为无穷大时则不赋值
+			newtpsRate.Value = url.Avg.TPM
 		}
 		//没有查询到数据，is_error=true，填充为0
 		if newErrorRate.Value == nil && newtpsRate.Value != nil {
@@ -178,15 +178,15 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 			*newErrorRate.Value = 0
 		}
 		newlatencyRadio := response.Ratio{
-			DayOverDay:  url.LatencyDayOverDay,
-			WeekOverDay: url.LatencyWeekOverWeek,
+			DayOverDay:  url.DOD.Latency,
+			WeekOverDay: url.WOW.Latency,
 		}
 		newlatencyRate := response.TempChartObject{
 			//ChartData: map[int64]float64{},
 			Ratio: newlatencyRadio,
 		}
-		if url.AvgLatency != nil && !math.IsInf(*url.AvgLatency, 0) { //为无穷大时则不赋值
-			newlatencyRate.Value = url.AvgLatency
+		if url.Avg.Latency != nil && !math.IsInf(*url.Avg.Latency, 0) { //为无穷大时则不赋值
+			newlatencyRate.Value = url.Avg.Latency
 		}
 		if url.LatencyData != nil {
 			data := make(map[int64]float64)
@@ -239,5 +239,4 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	}
 
 	return newServiceDetails, err
-
 }

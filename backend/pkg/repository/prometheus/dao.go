@@ -103,7 +103,7 @@ func (repo *promRepo) GetRange() string {
 	return repo.promRange
 }
 
-type Metric struct {
+type Labels struct {
 	ContainerID string `json:"container_id"`
 	ContentKey  string `json:"content_key"`
 	Instance    string `json:"instance"`
@@ -119,7 +119,7 @@ type Metric struct {
 }
 
 type MetricResult struct {
-	Metric Metric   `json:"metric"`
+	Metric Labels   `json:"metric"`
 	Values []Points `json:"values"`
 }
 

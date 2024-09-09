@@ -25,7 +25,7 @@ func (repo *promRepo) QueryData(searchTime time.Time, query string) ([]MetricRes
 	}
 
 	for _, sample := range vector {
-		metric := Metric{}
+		metric := Labels{}
 		for name, value := range sample.Metric {
 			switch string(name) {
 			case "container_id":
@@ -89,7 +89,7 @@ func (repo *promRepo) QueryRangeData(startTime time.Time, endTime time.Time, que
 
 	// Process the result matrix
 	for _, stream := range matrix {
-		metric := Metric{}
+		metric := Labels{}
 		for name, value := range stream.Metric {
 			switch string(name) {
 			case "container_id":
@@ -150,7 +150,7 @@ func (repo *promRepo) QueryLatencyData(searchTime time.Time, query string) ([]Me
 	}
 
 	for _, sample := range vector {
-		metric := Metric{}
+		metric := Labels{}
 		for name, value := range sample.Metric {
 			switch string(name) {
 			case "container_id":
@@ -215,7 +215,7 @@ func (repo *promRepo) QueryRangeLatencyData(startTime time.Time, endTime time.Ti
 
 	// Process the result matrix
 	for _, stream := range matrix {
-		metric := Metric{}
+		metric := Labels{}
 		for name, value := range stream.Metric {
 			switch string(name) {
 			case "container_id":
@@ -275,7 +275,7 @@ func (repo *promRepo) QueryErrorRateData(searchTime time.Time, query string) ([]
 	}
 
 	for _, sample := range vector {
-		metric := Metric{}
+		metric := Labels{}
 		for name, value := range sample.Metric {
 			switch string(name) {
 			case "container_id":
@@ -340,7 +340,7 @@ func (repo *promRepo) QueryRangeErrorData(startTime time.Time, endTime time.Time
 
 	// Process the result matrix
 	for _, stream := range matrix {
-		metric := Metric{}
+		metric := Labels{}
 		for name, value := range stream.Metric {
 			switch string(name) {
 			case "container_id":
