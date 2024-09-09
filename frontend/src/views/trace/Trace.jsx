@@ -42,9 +42,8 @@ function Trace() {
     instanceOption,
     endpoint,
     namespace,
-    duration,
-    isError,
-    isSlow,
+    minDuration,
+    maxDuration,
     faultTypeList,
   } = useSelector((state) => state.urlParamsReducer)
   const previousValues = useRef({
@@ -58,10 +57,9 @@ function Trace() {
     selectInstanceOption: {},
     //filter
     namespace: '',
-    duration: null,
     faultTypeList: null,
-    isSlow: null,
-    isError: null,
+    minDuration: '',
+    maxDuration: '',
   })
   useEffect(() => {
     const prev = previousValues.current
@@ -85,7 +83,10 @@ function Trace() {
     if (prev.namespace !== namespace) {
       paramsChange = true
     }
-    if (prev.duration !== duration) {
+    if (prev.minDuration !== minDuration) {
+      paramsChange = true
+    }
+    if (prev.maxDuration !== maxDuration) {
       paramsChange = true
     }
     // console.log(prev.isError, isError)
@@ -126,9 +127,8 @@ function Trace() {
       endpoint,
       selectInstanceOption,
       namespace,
-      duration,
-      isSlow,
-      isError,
+      minDuration,
+      maxDuration,
       faultTypeList,
     }
     if (startTime && endTime) {
@@ -152,9 +152,8 @@ function Trace() {
     pageIndex,
     instanceOption,
     namespace,
-    isError,
-    duration,
-    isSlow,
+    minDuration,
+    maxDuration,
     faultTypeList,
   ])
   const openJeagerModal = (traceId) => {
@@ -234,17 +233,19 @@ function Trace() {
       filter.value = [namespace]
       filters.push(filter)
     }
-    if (duration) {
-      let filter = DefaultTraceFilters.duration
+    let duration = DefaultTraceFilters.duration
+    if (minDuration) {
       filters.push({
-        ...filter,
+        ...duration,
         operation: 'GREATER_THAN',
-        value: [(duration[0] * 1000).toString()],
+        value: [(minDuration * 1000).toString()],
       })
+    }
+    if (maxDuration) {
       filters.push({
-        ...filter,
+        ...duration,
         operation: 'LESS_THAN',
-        value: [(duration[1] * 1000).toString()],
+        value: [(maxDuration * 1000).toString()],
       })
     }
     if (faultTypeList?.includes('normal')) {

@@ -7,10 +7,11 @@ import { CustomSelect } from 'src/components/Select'
 import { getTimestampRange, timeRangeList } from 'src/store/reducers/timeRangeReducer'
 import { ISOToTimestamp } from 'src/utils/time'
 import { useDispatch } from 'react-redux'
-import { Input, Segmented, Tooltip } from 'antd'
+import { Checkbox, Input, InputNumber, Segmented, Tooltip } from 'antd'
 import { swTraceIDToTraceID } from 'src/utils/trace'
 import { BsChevronDoubleDown } from 'react-icons/bs'
 import TraceMoreFilters from 'src/views/trace/TraceMoreFilters'
+import TraceErrorType from 'src/views/trace/component/TraceErrorType'
 
 const LogsTraceFilter = React.memo(({ type }) => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -29,6 +30,8 @@ const LogsTraceFilter = React.memo(({ type }) => {
   const [convertTraceId, setConvertSWTraceId] = useState('')
   // filter
   const [duration, setDuration] = useState([])
+  const [minDuration, setMinDuration] = useState(null)
+  const [maxDuration, setMaxDuration] = useState(null)
   const [namespace, setNamespace] = useState(null)
   const [isSlow, setIsSlow] = useState(null)
   const [isError, setIsError] = useState(null)
@@ -44,14 +47,17 @@ const LogsTraceFilter = React.memo(({ type }) => {
 
     //filter
     namespace: '',
-    duration: null,
-    isSlow: null,
-    isError: null,
+    minDuration: null,
+    maxDuration: null,
     faultTypeList: null,
   })
-
+  const options = [
+    { label: <TraceErrorType type="slow" />, value: 'slow' },
+    { label: <TraceErrorType type="error" />, value: 'error' },
+    { label: <TraceErrorType type="normal" />, value: 'normal' },
+  ]
   //trace more filter
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(true)
   const dispatch = useDispatch()
   const clearUrlParamsState = (value) => {
     dispatch({ type: 'clearUrlParamsState', payload: value })
@@ -100,6 +106,30 @@ const LogsTraceFilter = React.memo(({ type }) => {
       endpoint: event.target.value,
     })
   }
+  const onChangeMinDuration = (value) => {
+    setMinDuration(value)
+    updateUrlParamsState({
+      minDuration: value,
+    })
+  }
+  const onChangeMaxDuration = (value) => {
+    setMaxDuration(value)
+    updateUrlParamsState({
+      maxDuration: value,
+    })
+  }
+  const onChangeTypeList = (value) => {
+    setFaultTypeList(value)
+    updateUrlParamsState({
+      faultTypeList: value,
+    })
+  }
+  const onChangeNamespace = (event) => {
+    setNamespace(event.target.value)
+    updateUrlParamsState({
+      namespace: event.target.value,
+    })
+  }
   const getServiceListData = () => {
     getServiceListApi({ startTime, endTime })
       .then((res) => {
@@ -126,9 +156,8 @@ const LogsTraceFilter = React.memo(({ type }) => {
             traceId: inputTraceId,
             endpoint: inputEndpoint,
             namespace,
-            duration,
-            isSlow,
-            isError,
+            minDuration,
+            maxDuration,
           })
         } else if (selectServiceName === storeService) {
           getInstanceListData()
@@ -188,7 +217,8 @@ const LogsTraceFilter = React.memo(({ type }) => {
     const urlFrom = searchParams.get(type + '-from')
     const urlTo = searchParams.get(type + '-to')
     const namespace = searchParams.get('namespace') ?? ''
-    const duration = searchParams.get('duration') ?? ''
+    const minDuration = searchParams.get('minDuration') ?? ''
+    const maxDuration = searchParams.get('maxDuration') ?? ''
     const isSlow = searchParams.get('isSlow') ?? ''
     const isError = searchParams.get('isSlow') ?? ''
     const faultTypeList = searchParams.get('faultTypeList') ?? ''
@@ -217,9 +247,9 @@ const LogsTraceFilter = React.memo(({ type }) => {
     }
     setInputTraceId(urlTraceId)
     setInputEndpoint(urlEndpoint)
-    let durationList = duration ? duration.split(',').map(Number) : null
     let faultTypeListValue = faultTypeList ? faultTypeList.split(',') : null
-    setDuration(durationList)
+    setMinDuration(minDuration)
+    setMaxDuration(maxDuration)
     setNamespace(namespace)
     setIsSlow(isSlow === 'true' ? true : null)
     setIsError(isError === 'true' ? true : null)
@@ -231,14 +261,10 @@ const LogsTraceFilter = React.memo(({ type }) => {
       traceId: urlTraceId,
       endpoint: urlEndpoint,
       namespace,
-      duration: durationList,
-      isSlow: isSlow === 'true' ? true : null,
-      isError: isError === 'true' ? true : null,
+      minDuration,
+      maxDuration,
       faultTypeList: faultTypeListValue,
     })
-    if (durationList || faultTypeList || namespace) {
-      setVisible(true)
-    }
   }, [searchParams])
   useEffect(() => {
     if (selectServiceName) {
@@ -299,16 +325,12 @@ const LogsTraceFilter = React.memo(({ type }) => {
       params.set('namespace', props.namespace || '')
       needChangeUrl = true
     }
-    if ('duration' in props && props.duration !== urlParam.duration) {
-      params.set('duration', props.duration ?? [].join(','))
+    if ('minDuration' in props && props.minDuration !== urlParam.minDuration) {
+      params.set('minDuration', props.minDuration || '')
       needChangeUrl = true
     }
-    if ('isSlow' in props && props.isSlow !== urlParam.isSlow) {
-      params.set('isSlow', props.isSlow || '')
-      needChangeUrl = true
-    }
-    if ('isError' in props && props.isError !== urlParam.isError) {
-      params.set('isError', props.isError || '')
+    if ('maxDuration' in props && props.maxDuration !== urlParam.maxDuration) {
+      params.set('maxDuration', props.maxDuration || '')
       needChangeUrl = true
     }
 
@@ -400,12 +422,54 @@ const LogsTraceFilter = React.memo(({ type }) => {
               onClick={() => setVisible(!visible)}
               className="flex flex-row items-center cursor-pointer"
             >
-              <span className=" font-bold mr-2">更多筛选器</span> <BsChevronDoubleDown size={20} />
+              {/* <span className=" font-bold mr-2">更多筛选器</span> <BsChevronDoubleDown size={20} /> */}
             </div>
           )}
         </div>
       </div>
-      <TraceMoreFilters
+      {type === 'trace' && (
+        <div className="text-xs flex flex-row  flex-wrap w-full">
+          <div className="flex flex-row items-center mr-5">
+            <span className="text-nowrap">持续时间：</span>
+            <div className="flex-1 flex flex-row items-center">
+              <div className="pr-2">
+                <InputNumber
+                  addonBefore="MIN"
+                  addonAfter="ms"
+                  min={0}
+                  value={minDuration}
+                  onChange={onChangeMinDuration}
+                  className=" w-[150px]"
+                />
+              </div>
+              至
+              <div className="pl-2">
+                <InputNumber
+                  addonBefore="MAX"
+                  addonAfter="ms"
+                  min={0}
+                  value={maxDuration}
+                  onChange={onChangeMaxDuration}
+                  className=" w-[150px]"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-row items-center mr-5">
+            <span className="text-nowrap">命名空间：</span>
+            <Input value={namespace} placeholder="检索" onChange={onChangeNamespace} />
+          </div>
+          <div className="flex flex-row items-center mr-5">
+            <span className="text-nowrap">故障类型：</span>
+            <Checkbox.Group
+              onChange={onChangeTypeList}
+              options={options}
+              value={faultTypeList}
+            ></Checkbox.Group>
+          </div>
+        </div>
+      )}
+      {/* <TraceMoreFilters
         visible={visible}
         confirmFIlter={confirmFIlter}
         duration={duration}
@@ -413,7 +477,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
         isError={isError}
         isSlow={isSlow}
         faultTypeList={faultTypeList}
-      />
+      /> */}
     </>
   )
 })
