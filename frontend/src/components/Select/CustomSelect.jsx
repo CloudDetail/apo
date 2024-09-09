@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import Select from 'react-select';
+import { Select } from 'antd'
+import React, { useEffect, useState, useCallback } from 'react'
 
 const CustomSelect = React.memo((props) => {
-  const { options, value, onChange,defaultValue,isClearable=false } = props;
-  const [standardOptions, setStandardOptions] = useState([]);
-  const [selectedValue, setSelectedValue] = useState(null);
+  const { options, value, onChange, defaultValue, isClearable = false } = props
+  const [standardOptions, setStandardOptions] = useState([])
+  const [selectedValue, setSelectedValue] = useState(null)
 
   const darkThemeStyles = {
     indicatorSeparator: () => ({ display: 'none' }),
@@ -60,42 +60,52 @@ const CustomSelect = React.memo((props) => {
       whiteSpace: 'normal',
       wordBreak: 'break-word',
     }),
-  };
+  }
 
   useEffect(() => {
-    const updatedOptions = options.map(option => ({
+    const updatedOptions = options.map((option) => ({
       value: option,
       label: option,
-    }));
-    setStandardOptions(updatedOptions);
-  }, [options]);
+    }))
+    setStandardOptions(updatedOptions)
+  }, [options])
 
   useEffect(() => {
     if (value) {
-      const item = standardOptions.find(item => item.value === value);
+      const item = standardOptions.find((item) => item.value === value)
 
-      setSelectedValue(item);
-    } else{
+      setSelectedValue(item)
+    } else {
       setSelectedValue(null)
     }
-  }, [value, standardOptions]);
+  }, [value, standardOptions])
 
   const handleChange = (item) => {
-    onChange(item?.value??'');
-  };
+    onChange(item ?? '')
+  }
 
   return (
+    // <Select
+    //   options={standardOptions}
+    //   value={selectedValue}
+    //   className="w-full"
+    //   styles={darkThemeStyles}
+    //   onChange={handleChange}
+    //   defaultValue={defaultValue}
+    //   isClearable={isClearable}
+    //   placeholder={''}
+    // />
     <Select
       options={standardOptions}
       value={selectedValue}
-      className="w-full"
-      styles={darkThemeStyles}
       onChange={handleChange}
       defaultValue={defaultValue}
-      isClearable={isClearable}
-      placeholder={''}
+      allowClear={isClearable}
+      popupMatchSelectWidth={false}
+      className="w-full"
+      placeholder="请选择"
     />
-  );
-});
+  )
+})
 
-export default CustomSelect;
+export default CustomSelect

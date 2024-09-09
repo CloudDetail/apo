@@ -139,3 +139,26 @@ export const AlertStatusMapList = [
     color: '#ff3366',
   },
 ]
+// 故障现场trace
+export const DefaultTraceFilters = {
+  namespace: {
+    key: 'namespace',
+    parentField: 'labels',
+    dataType: 'string',
+  },
+  duration: {
+    key: 'duration',
+    parentField: '',
+    dataType: 'uint64',
+  },
+  slow: {
+    key: 'is_slow',
+    parentField: 'flags',
+    dataType: 'bool',
+  },
+  error: {
+    key: 'is_error',
+    parentField: 'flags',
+    dataType: 'bool',
+  },
+}

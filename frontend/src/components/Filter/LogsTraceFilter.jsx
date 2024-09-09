@@ -7,8 +7,10 @@ import { CustomSelect } from 'src/components/Select'
 import { getTimestampRange, timeRangeList } from 'src/store/reducers/timeRangeReducer'
 import { ISOToTimestamp } from 'src/utils/time'
 import { useDispatch } from 'react-redux'
-import { Segmented, Tooltip } from 'antd'
+import { Input, Segmented, Tooltip } from 'antd'
 import { swTraceIDToTraceID } from 'src/utils/trace'
+import { BsChevronDoubleDown } from 'react-icons/bs'
+import TraceMoreFilters from 'src/views/trace/TraceMoreFilters'
 
 const LogsTraceFilter = React.memo(({ type }) => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -25,6 +27,12 @@ const LogsTraceFilter = React.memo(({ type }) => {
   const [endTime, setEndTime] = useState(null)
   const [inputSWTraceId, setInputSWTraceId] = useState('')
   const [convertTraceId, setConvertSWTraceId] = useState('')
+  // filter
+  const [duration, setDuration] = useState([])
+  const [namespace, setNamespace] = useState(null)
+  const [isSlow, setIsSlow] = useState(null)
+  const [isError, setIsError] = useState(null)
+  const [faultTypeList, setFaultTypeList] = useState([])
   const [traceType, setTraceType] = useState('TraceId')
   const [urlParam, setUrlParam] = useState({
     service: '',
@@ -33,7 +41,17 @@ const LogsTraceFilter = React.memo(({ type }) => {
     endpoint: '',
     startTime: null,
     endTime: null,
+
+    //filter
+    namespace: '',
+    duration: null,
+    isSlow: null,
+    isError: null,
+    faultTypeList: null,
   })
+
+  //trace more filter
+  const [visible, setVisible] = useState(false)
   const dispatch = useDispatch()
   const clearUrlParamsState = (value) => {
     dispatch({ type: 'clearUrlParamsState', payload: value })
@@ -107,6 +125,10 @@ const LogsTraceFilter = React.memo(({ type }) => {
             instance: storeInstance,
             traceId: inputTraceId,
             endpoint: inputEndpoint,
+            namespace,
+            duration,
+            isSlow,
+            isError,
           })
         } else if (selectServiceName === storeService) {
           getInstanceListData()
@@ -144,6 +166,10 @@ const LogsTraceFilter = React.memo(({ type }) => {
             traceId: inputTraceId,
             endpoint: inputEndpoint,
             instanceOption: res,
+            namespace,
+            duration,
+            isSlow,
+            isError,
           })
         })
         .catch((error) => {
@@ -161,17 +187,11 @@ const LogsTraceFilter = React.memo(({ type }) => {
     const urlEndpoint = searchParams.get('endpoint') ?? ''
     const urlFrom = searchParams.get(type + '-from')
     const urlTo = searchParams.get(type + '-to')
-    console.log(
-      'url参数改变',
-      urlParam.service,
-      urlService,
-      urlInstance,
-      urlTraceId,
-      urlEndpoint,
-      urlFrom,
-      urlTo,
-    )
-
+    const namespace = searchParams.get('namespace') ?? ''
+    const duration = searchParams.get('duration') ?? ''
+    const isSlow = searchParams.get('isSlow') ?? ''
+    const isError = searchParams.get('isSlow') ?? ''
+    const faultTypeList = searchParams.get('faultTypeList') ?? ''
     if (urlFrom && urlTo) {
       const urlTimeRange = timeRangeList.find((item) => item.from === urlFrom && item.to === urlTo)
       if (urlTimeRange) {
@@ -197,13 +217,28 @@ const LogsTraceFilter = React.memo(({ type }) => {
     }
     setInputTraceId(urlTraceId)
     setInputEndpoint(urlEndpoint)
+    let durationList = duration ? duration.split(',').map(Number) : null
+    let faultTypeListValue = faultTypeList ? faultTypeList.split(',') : null
+    setDuration(durationList)
+    setNamespace(namespace)
+    setIsSlow(isSlow === 'true' ? true : null)
+    setIsError(isError === 'true' ? true : null)
+    setFaultTypeList(faultTypeListValue)
     setUrlParam({
       ...urlParam,
       service: urlService,
       instance: urlInstance,
       traceId: urlTraceId,
       endpoint: urlEndpoint,
+      namespace,
+      duration: durationList,
+      isSlow: isSlow === 'true' ? true : null,
+      isError: isError === 'true' ? true : null,
+      faultTypeList: faultTypeListValue,
     })
+    if (durationList || faultTypeList || namespace) {
+      setVisible(true)
+    }
   }, [searchParams])
   useEffect(() => {
     if (selectServiceName) {
@@ -260,6 +295,27 @@ const LogsTraceFilter = React.memo(({ type }) => {
       params.set('traceId', props.traceId || '')
       needChangeUrl = true
     }
+    if ('namespace' in props && props.namespace !== urlParam.namespace) {
+      params.set('namespace', props.namespace || '')
+      needChangeUrl = true
+    }
+    if ('duration' in props && props.duration !== urlParam.duration) {
+      params.set('duration', props.duration ?? [].join(','))
+      needChangeUrl = true
+    }
+    if ('isSlow' in props && props.isSlow !== urlParam.isSlow) {
+      params.set('isSlow', props.isSlow || '')
+      needChangeUrl = true
+    }
+    if ('isError' in props && props.isError !== urlParam.isError) {
+      params.set('isError', props.isError || '')
+      needChangeUrl = true
+    }
+
+    if ('faultTypeList' in props && props.faultTypeList.join(',') !== urlParam.faultTypeList) {
+      params.set('faultTypeList', props.faultTypeList.join(','))
+      needChangeUrl = true
+    }
     // // console.log(props)
     // // console.log(service,instance)
     if (needChangeUrl) {
@@ -267,57 +323,98 @@ const LogsTraceFilter = React.memo(({ type }) => {
       setSearchParams(params, { replace: true })
     }
   }
+
+  //filter
+  const confirmFIlter = (params) => {
+    setNamespace(params.namespace)
+    setDuration(params.duration)
+    setIsError(params.isError)
+    setIsSlow(params.isSlow)
+    setFaultTypeList(params.faultTypeList)
+    updateUrlParamsState({
+      namespace: params.namespace,
+      duration: params.duration ?? '',
+      isSlow: params.isSlow ?? null,
+      isError: params.isError ?? null,
+      faultTypeList: params.faultTypeList,
+    })
+  }
   return (
-    <div className="flex flex-row my-2 justify-between">
-      <div className="flex flex-row">
-        <div className="flex flex-row items-center mr-5">
-          <span className="text-nowrap">服务名：</span>
-          <CustomSelect
-            options={serviceList}
-            value={selectServiceName}
-            onChange={onChangeService}
-            isClearable
-          />
-        </div>
-        <div className="flex flex-row items-center mr-5">
-          <span className="text-nowrap">实例名：</span>
-          <CustomSelect
-            options={Object.keys(instanceList)}
-            value={selectInstance}
-            onChange={onChangeInstance}
-            isClearable
-          />
-        </div>
-        <div className="flex flex-row items-center mr-5">
-          {type === 'trace' ? (
-            <Segmented options={['TraceId', 'SWTraceId']} onChange={setTraceType} />
-          ) : (
-            <span className="text-nowrap">TraceId：</span>
-          )}
-          ：
-          {traceType === 'TraceId' ? (
-            <CFormInput size="sm" value={inputTraceId} onChange={onChangeTraceId} />
-          ) : (
-            <Tooltip
-              title={
-                convertTraceId
-                  ? '自动转换为TraceID：' + convertTraceId
-                  : '输入SkyWalking的traceid将自动转换'
-              }
-            >
-              <CFormInput size="sm" value={inputSWTraceId} onChange={onChangeSWTraceId} />
-            </Tooltip>
-          )}
-        </div>
-        {type === 'trace' && (
-          <div className="flex flex-row items-center mr-5">
-            <span className="text-nowrap">服务端点：</span>
-            <CFormInput size="sm" value={inputEndpoint} onChange={onChangeEndpoint} />
+    <>
+      <div className="flex flex-row my-2 justify-between">
+        <div className="flex flex-row  flex-wrap">
+          <div className="flex flex-row items-center mr-5 w-[150px]">
+            <span className="text-nowrap w-[60px]">服务名：</span>
+            <div className="flex-1 w-0">
+              <CustomSelect
+                options={serviceList}
+                value={selectServiceName}
+                onChange={onChangeService}
+                isClearable
+              />
+            </div>
           </div>
-        )}
+          <div className="flex flex-row items-center mr-5 w-[150px]">
+            <span className="text-nowrap">实例名：</span>
+            <div className="flex-1 w-0">
+              <CustomSelect
+                options={Object.keys(instanceList)}
+                value={selectInstance}
+                onChange={onChangeInstance}
+                isClearable
+              />
+            </div>
+          </div>
+          <div className="flex flex-row items-center mr-5 w-[300px] text-sm">
+            {type === 'trace' ? (
+              <Segmented options={['TraceId', 'SWTraceId']} onChange={setTraceType} />
+            ) : (
+              <span className="text-nowrap text-sm">TraceId：</span>
+            )}
+            ：
+            {traceType === 'TraceId' ? (
+              <Input placeholder="检索" value={inputTraceId} onChange={onChangeTraceId} />
+            ) : (
+              <Tooltip
+                title={
+                  convertTraceId
+                    ? '自动转换为TraceID：' + convertTraceId
+                    : '输入SkyWalking的traceid将自动转换'
+                }
+              >
+                <Input placeholder="检索" value={inputSWTraceId} onChange={onChangeSWTraceId} />
+              </Tooltip>
+            )}
+          </div>
+          {type === 'trace' && (
+            <div className="flex flex-row items-center mr-5  w-[150px]">
+              <span className="text-nowrap ">服务端点：</span>
+              <Input placeholder="检索" value={inputEndpoint} onChange={onChangeEndpoint} />
+            </div>
+          )}
+        </div>
+        <div className="flex-grow-0 flex-shrink-0 flex">
+          <DateTimeRangePickerCom type={type} />
+          {type === 'trace' && (
+            <div
+              onClick={() => setVisible(!visible)}
+              className="flex flex-row items-center cursor-pointer"
+            >
+              <span className=" font-bold mr-2">更多筛选器</span> <BsChevronDoubleDown size={20} />
+            </div>
+          )}
+        </div>
       </div>
-      <DateTimeRangePickerCom type={type} />
-    </div>
+      <TraceMoreFilters
+        visible={visible}
+        confirmFIlter={confirmFIlter}
+        duration={duration}
+        namespace={namespace}
+        isError={isError}
+        isSlow={isSlow}
+        faultTypeList={faultTypeList}
+      />
+    </>
   )
 })
 

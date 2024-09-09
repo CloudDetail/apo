@@ -53,7 +53,7 @@ const AppHeader = () => {
   }
 
   return (
-    <CHeader position="sticky" className="mb-4 p-0" ref={headerRef} style={vars}>
+    <CHeader position="sticky" className="mb-1 p-0" ref={headerRef} style={vars}>
       <CContainer className="px-4" fluid>
         {/* <CHeaderToggler
           onClick={() => dispatch({ type: 'set', sidebarShow: !sidebarShow })}

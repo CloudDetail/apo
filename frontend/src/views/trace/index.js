@@ -9,7 +9,7 @@ function LogsPage() {
   const [activeItemKey, setActiveItemKey] = useState('faultSite')
   return (
     <div
-      style={{ width: '100%', overflow: 'hidden', height: 'calc(100vh - 150px)' }}
+      style={{ width: '100%', overflow: 'hidden', height: 'calc(100vh - 100px)' }}
       className="text-xs"
     >
       <CTabs

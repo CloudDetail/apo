@@ -1,7 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react'
 import { traceTableMock } from './mock'
 import BasicTable from 'src/components/Table/basicTable'
-import TraceFilters from './TraceFilters'
 import { getTimestampRange, timeRangeList } from 'src/store/reducers/timeRangeReducer'
 import { convertTime, ISOToTimestamp } from 'src/utils/time'
 import { useLocation, useSearchParams } from 'react-router-dom'
@@ -11,6 +10,9 @@ import { PropsProvider } from 'src/contexts/PropsContext'
 import EndpointTableModal from './component/JaegerIframeModal'
 import { useSelector } from 'react-redux'
 import LoadingSpinner from 'src/components/Spinner'
+import LogsTraceFilter from 'src/components/Filter/LogsTraceFilter'
+import { DefaultTraceFilters } from 'src/constants'
+import TraceErrorType from './component/TraceErrorType'
 
 function Trace() {
   const [searchParams] = useSearchParams()
@@ -25,15 +27,26 @@ function Trace() {
   const [to, setTo] = useState(null)
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const [modalVisible, setModalVisible] = useState(false)
   // 传入modal的traceid
   const [selectTraceId, setSelectTraceId] = useState('')
 
-  const { startTime, endTime, service, instance, traceId, instanceOption, endpoint } = useSelector(
-    (state) => state.urlParamsReducer,
-  )
+  const {
+    startTime,
+    endTime,
+    service,
+    instance,
+    traceId,
+    instanceOption,
+    endpoint,
+    namespace,
+    duration,
+    isError,
+    isSlow,
+    faultTypeList,
+  } = useSelector((state) => state.urlParamsReducer)
   const previousValues = useRef({
     startTime: null,
     endTime: null,
@@ -43,6 +56,12 @@ function Trace() {
     endpoint: '',
     pageIndex: 1,
     selectInstanceOption: {},
+    //filter
+    namespace: '',
+    duration: null,
+    faultTypeList: null,
+    isSlow: null,
+    isError: null,
   })
   useEffect(() => {
     const prev = previousValues.current
@@ -63,18 +82,34 @@ function Trace() {
     if (prev.traceId !== traceId) {
       paramsChange = true
     }
+    if (prev.namespace !== namespace) {
+      paramsChange = true
+    }
+    if (prev.duration !== duration) {
+      paramsChange = true
+    }
+    // console.log(prev.isError, isError)
+    // if (prev.isError !== isError) {
+    //   paramsChange = true
+    // }
+    // if (prev.isSlow !== isSlow) {
+    //   paramsChange = true
+    // }
+    if (prev.faultTypeList !== faultTypeList) {
+      paramsChange = true
+    }
     if (prev.endpoint !== endpoint) {
-      console.log('endpoint -> pre:', prev.endpoint, 'now:', endpoint)
+      // console.log('endpoint -> pre:', prev.endpoint, 'now:', endpoint)
       paramsChange = true
     }
     const selectInstanceOption = instanceOption[instance]
     if (JSON.stringify(prev.selectInstanceOption) !== JSON.stringify(selectInstanceOption)) {
-      console.log(
-        'selectInstanceOption -> pre:',
-        prev.selectInstanceOption,
-        'now:',
-        selectInstanceOption,
-      )
+      // console.log(
+      //   'selectInstanceOption -> pre:',
+      //   prev.selectInstanceOption,
+      //   'now:',
+      //   selectInstanceOption,
+      // )
       paramsChange = true
     }
     if (instance && !selectInstanceOption) {
@@ -90,6 +125,11 @@ function Trace() {
       pageIndex,
       endpoint,
       selectInstanceOption,
+      namespace,
+      duration,
+      isSlow,
+      isError,
+      faultTypeList,
     }
     if (startTime && endTime) {
       if (paramsChange) {
@@ -102,7 +142,21 @@ function Trace() {
         getTraceData()
       }
     }
-  }, [startTime, endTime, service, instance, traceId, endpoint, pageIndex, instanceOption])
+  }, [
+    startTime,
+    endTime,
+    service,
+    instance,
+    traceId,
+    endpoint,
+    pageIndex,
+    instanceOption,
+    namespace,
+    isError,
+    duration,
+    isSlow,
+    faultTypeList,
+  ])
   const openJeagerModal = (traceId) => {
     setSelectTraceId(traceId)
     setModalVisible(true)
@@ -111,6 +165,13 @@ function Trace() {
     {
       title: '服务名',
       accessor: 'serviceName',
+    },
+    {
+      title: '命名空间',
+      accessor: 'labels',
+      Cell: ({ value }) => {
+        return value?.namespace ? value?.namespace : <span className="text-slate-400">N/A</span>
+      },
     },
     {
       title: '实例名',
@@ -135,10 +196,20 @@ function Trace() {
       },
     },
     {
-      title: '状态',
-      accessor: 'isError',
+      title: '故障状态',
+      accessor: 'flags',
       Cell: ({ value }) => {
-        return <StatusInfo status={value ? 'critical' : 'normal'} />
+        let typeList = []
+        if (value.is_slow) {
+          typeList.push('slow')
+        }
+        if (value.is_error) {
+          typeList.push('error')
+        }
+        if (typeList.length === 0) {
+          typeList.push('normal')
+        }
+        return typeList.map((type) => <TraceErrorType type={type} key={type} />)
       },
     },
     {
@@ -155,6 +226,72 @@ function Trace() {
       },
     },
   ]
+  const prepareFilter = () => {
+    let filters = []
+    if (namespace) {
+      let filter = DefaultTraceFilters.namespace
+      filter.operation = 'LIKE'
+      filter.value = [namespace]
+      filters.push(filter)
+    }
+    if (duration) {
+      let filter = DefaultTraceFilters.duration
+      filters.push({
+        ...filter,
+        operation: 'GREATER_THAN',
+        value: [(duration[0] * 1000).toString()],
+      })
+      filters.push({
+        ...filter,
+        operation: 'LESS_THAN',
+        value: [(duration[1] * 1000).toString()],
+      })
+    }
+    if (faultTypeList?.includes('normal')) {
+      if (faultTypeList.length === 2) {
+        let type = faultTypeList.includes('slow') ? 'error' : 'slow'
+        filters.push({
+          ...DefaultTraceFilters[type],
+          operation: 'IN',
+          value: ['false'],
+        })
+      } else if (faultTypeList.length === 1) {
+        filters.push({
+          ...DefaultTraceFilters['error'],
+          operation: 'IN',
+          value: ['false'],
+        })
+        filters.push({
+          ...DefaultTraceFilters['slow'],
+          operation: 'IN',
+          value: ['false'],
+        })
+      }
+    } else {
+      faultTypeList?.forEach((type) => {
+        filters.push({
+          ...DefaultTraceFilters[type],
+          operation: 'IN',
+          value: ['true'],
+        })
+      })
+    }
+    // if (isSlow) {
+    //   filters.push({
+    //     ...DefaultTraceFilters.isSlow,
+    //     operation: 'IN',
+    //     value: [isSlow.toString()],
+    //   })
+    // }
+    // if (isError) {
+    //   filters.push({
+    //     ...DefaultTraceFilters.isError,
+    //     operation: 'IN',
+    //     value: [isError.toString()],
+    //   })
+    // }
+    return filters
+  }
   const getTraceData = () => {
     const { containerId, nodeName, pid } = instanceOption[instance] ?? {}
     setLoading(true)
@@ -170,6 +307,7 @@ function Trace() {
       containerId,
       nodeName,
       pid,
+      filters: prepareFilter(),
     })
       .then((res) => {
         setLoading(false)
@@ -182,7 +320,8 @@ function Trace() {
         }
         //
       })
-      .catch(() => {
+      .catch((error) => {
+        console.log(error)
         setTracePageList([])
         setLoading(false)
       })
@@ -227,7 +366,7 @@ function Trace() {
       <LoadingSpinner loading={loading} />
       <div className="text-xs flex flex-col h-full overflow-hidden">
         <div className="flex-shrink-0 flex-grow">
-          <TraceFilters />
+          <LogsTraceFilter type="trace" />
         </div>
         {traceTableMock && <BasicTable {...tableProps} />}
       </div>
