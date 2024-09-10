@@ -1,6 +1,8 @@
 package prometheus
 
-import "math"
+import (
+	"math"
+)
 
 // metricGroup Name
 type MGroupName string
@@ -43,7 +45,11 @@ func (m *MetricGroupMap[K, V]) MergeMetricResults(metricGroup MGroupName, metric
 			continue
 		}
 		mg, find := m.MetricGroupMap[key]
-		if !find && mg.AppendGroupIfNotExist(metricGroup, metricName) {
+		var pMG = new(V)
+		if !find {
+			if !(*pMG).AppendGroupIfNotExist(metricGroup, metricName) {
+				continue
+			}
 			mg, ok = mg.InitEmptyGroup(key).(V)
 			if !ok {
 				// 通常不会发生,这意味着initEmptyGroup返回的结构不是它本身
@@ -51,8 +57,6 @@ func (m *MetricGroupMap[K, V]) MergeMetricResults(metricGroup MGroupName, metric
 			}
 			m.MetricGroupList = append(m.MetricGroupList, mg)
 			m.MetricGroupMap[key] = mg
-		} else if !find {
-			continue
 		}
 		// 所有合并值均只包含最新时间点的结果,直接取metricResult.Values[0]
 		value := metric.Values[0].Value

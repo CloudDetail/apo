@@ -9,7 +9,7 @@ import (
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-func (s *service) UrlAVG(Urls *[]EndpointMetrics, serviceName string, endTime time.Time, duration string) (*[]EndpointMetrics, error) {
+func (s *service) UrlAVG(Urls *[]prom.EndpointMetrics, serviceName string, endTime time.Time, duration string) (*[]prom.EndpointMetrics, error) {
 	var AvgErrorRateRes []prom.MetricResult
 	//AvgErrorRateRes, err = s.promRepo.QueryPrometheusError(searchTime)
 	queryAvgError := prom.QueryEndPointPromql(duration, prom.AvgError, serviceName)
@@ -23,20 +23,20 @@ func (s *service) UrlAVG(Urls *[]EndpointMetrics, serviceName string, endTime ti
 			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Urls)[i].Avg.ErrorRate = &value
+					(*Urls)[i].REDMetrics.Avg.ErrorRate = &value
 				}
 				break
 			}
 		}
 		if !found {
-			newUrl := EndpointMetrics{
+			newUrl := prom.EndpointMetrics{
 				EndpointKey: prom.EndpointKey{
 					ContentKey: contentKey,
 					SvcName:    serviceName,
 				},
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newUrl.Avg.ErrorRate = &value
+				newUrl.REDMetrics.Avg.ErrorRate = &value
 			}
 			*Urls = append(*Urls, newUrl)
 		}
@@ -54,20 +54,20 @@ func (s *service) UrlAVG(Urls *[]EndpointMetrics, serviceName string, endTime ti
 			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Urls)[i].Avg.Latency = &value
+					(*Urls)[i].REDMetrics.Avg.Latency = &value
 				}
 				break
 			}
 		}
 		if !found {
-			newUrl := EndpointMetrics{
+			newUrl := prom.EndpointMetrics{
 				EndpointKey: prom.EndpointKey{
 					ContentKey: contentKey,
 					SvcName:    serviceName,
 				},
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newUrl.Avg.Latency = &value
+				newUrl.REDMetrics.Avg.Latency = &value
 			}
 			*Urls = append(*Urls, newUrl)
 		}
@@ -85,20 +85,20 @@ func (s *service) UrlAVG(Urls *[]EndpointMetrics, serviceName string, endTime ti
 			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Urls)[i].Avg.TPM = &value
+					(*Urls)[i].REDMetrics.Avg.TPM = &value
 				}
 				break
 			}
 		}
 		if !found {
-			newUrl := EndpointMetrics{
+			newUrl := prom.EndpointMetrics{
 				EndpointKey: prom.EndpointKey{
 					ContentKey: contentKey,
 					SvcName:    serviceName,
 				},
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newUrl.Avg.TPM = &value
+				newUrl.REDMetrics.Avg.TPM = &value
 			}
 			*Urls = append(*Urls, newUrl)
 		}
@@ -109,8 +109,8 @@ func (s *service) UrlAVG(Urls *[]EndpointMetrics, serviceName string, endTime ti
 // EndpointsREDMetric 查询Endpoint级别的RED指标结果(包括平均值,日同比变化率,周同比变化率)
 func (s *service) EndpointsREDMetric(startTime, endTime time.Time, filter EndpointsFilter) *EndpointsMap {
 	var res = &EndpointsMap{
-		MetricGroupList: []*EndpointMetrics{},
-		MetricGroupMap:  map[prom.EndpointKey]*EndpointMetrics{},
+		MetricGroupList: []*prom.EndpointMetrics{},
+		MetricGroupMap:  map[prom.EndpointKey]*prom.EndpointMetrics{},
 	}
 
 	filters := extractFilters(filter)
@@ -277,7 +277,7 @@ func (s *service) EndpointsNamespaceInfo(endpoints *EndpointsMap, startTime, end
 	return nil
 }
 
-func (s *service) UrlDOD(Urls *[]EndpointMetrics, serviceName string, endTime time.Time, duration string) (*[]EndpointMetrics, error) {
+func (s *service) UrlDOD(Urls *[]prom.EndpointMetrics, serviceName string, endTime time.Time, duration string) (*[]prom.EndpointMetrics, error) {
 	latencyDODquery := prom.QueryEndPointPromql(duration, prom.LatencyDOD, serviceName)
 	latencyDoDres, err := s.promRepo.QueryData(endTime, latencyDODquery)
 	for _, result := range latencyDoDres {
@@ -289,20 +289,20 @@ func (s *service) UrlDOD(Urls *[]EndpointMetrics, serviceName string, endTime ti
 			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Urls)[i].DOD.Latency = &value
+					(*Urls)[i].REDMetrics.DOD.Latency = &value
 				}
 				break
 			}
 		}
 		if !found {
-			newUrl := EndpointMetrics{
+			newUrl := prom.EndpointMetrics{
 				EndpointKey: prom.EndpointKey{
 					ContentKey: contentKey,
 					SvcName:    serviceName,
 				},
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newUrl.DOD.Latency = &value
+				newUrl.REDMetrics.DOD.Latency = &value
 			}
 			*Urls = append(*Urls, newUrl)
 		}
@@ -320,25 +320,25 @@ func (s *service) UrlDOD(Urls *[]EndpointMetrics, serviceName string, endTime ti
 			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 				found = true
 				if !math.IsInf(value, 0) { //为无穷大时,错误率赋值为MaxFloat64
-					(*Urls)[i].DOD.ErrorRate = &value
+					(*Urls)[i].REDMetrics.DOD.ErrorRate = &value
 				} else {
 					var value float64
 					value = RES_MAX_VALUE
 					pointer := &value
-					(*Urls)[i].DOD.ErrorRate = pointer
+					(*Urls)[i].REDMetrics.DOD.ErrorRate = pointer
 				}
 				break
 			}
 		}
 		if !found {
-			newUrl := EndpointMetrics{
+			newUrl := prom.EndpointMetrics{
 				EndpointKey: prom.EndpointKey{
 					ContentKey: contentKey,
 					SvcName:    serviceName,
 				},
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newUrl.DOD.ErrorRate = &value
+				newUrl.REDMetrics.DOD.ErrorRate = &value
 			}
 			*Urls = append(*Urls, newUrl)
 		}
@@ -355,27 +355,27 @@ func (s *service) UrlDOD(Urls *[]EndpointMetrics, serviceName string, endTime ti
 			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Urls)[i].DOD.TPM = &value
+					(*Urls)[i].REDMetrics.DOD.TPM = &value
 				}
 				break
 			}
 		}
 		if !found {
-			newUrl := EndpointMetrics{
+			newUrl := prom.EndpointMetrics{
 				EndpointKey: prom.EndpointKey{
 					ContentKey: contentKey,
 					SvcName:    serviceName,
 				},
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newUrl.DOD.TPM = &value
+				newUrl.REDMetrics.DOD.TPM = &value
 			}
 			*Urls = append(*Urls, newUrl)
 		}
 	}
 	return Urls, err
 }
-func (s *service) UrlWOW(Urls *[]EndpointMetrics, serviceName string, endTime time.Time, duration string) (*[]EndpointMetrics, error) {
+func (s *service) UrlWOW(Urls *[]prom.EndpointMetrics, serviceName string, endTime time.Time, duration string) (*[]prom.EndpointMetrics, error) {
 
 	var LatencyWoWRes []prom.MetricResult
 	//LatencyWoWRes, err = s.promRepo.QueryPrometheusLatencyWeekOver(searchTime)
@@ -390,20 +390,20 @@ func (s *service) UrlWOW(Urls *[]EndpointMetrics, serviceName string, endTime ti
 			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Urls)[i].WOW.Latency = &value
+					(*Urls)[i].REDMetrics.WOW.Latency = &value
 				}
 				break
 			}
 		}
 		if !found {
-			newUrl := EndpointMetrics{
+			newUrl := prom.EndpointMetrics{
 				EndpointKey: prom.EndpointKey{
 					ContentKey: contentKey,
 					SvcName:    serviceName,
 				},
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newUrl.WOW.Latency = &value
+				newUrl.REDMetrics.WOW.Latency = &value
 			}
 			*Urls = append(*Urls, newUrl)
 		}
@@ -421,20 +421,20 @@ func (s *service) UrlWOW(Urls *[]EndpointMetrics, serviceName string, endTime ti
 			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Urls)[i].WOW.TPM = &value
+					(*Urls)[i].REDMetrics.WOW.TPM = &value
 				}
 				break
 			}
 		}
 		if !found {
-			newUrl := EndpointMetrics{
+			newUrl := prom.EndpointMetrics{
 				EndpointKey: prom.EndpointKey{
 					ContentKey: contentKey,
 					SvcName:    serviceName,
 				},
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newUrl.WOW.TPM = &value
+				newUrl.REDMetrics.WOW.TPM = &value
 			}
 			*Urls = append(*Urls, newUrl)
 		}
@@ -452,25 +452,25 @@ func (s *service) UrlWOW(Urls *[]EndpointMetrics, serviceName string, endTime ti
 			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 				found = true
 				if !math.IsInf(value, 0) { //为无穷大时,错误率赋值为MaxFloat64
-					(*Urls)[i].WOW.ErrorRate = &value
+					(*Urls)[i].REDMetrics.WOW.ErrorRate = &value
 				} else {
 					var value float64
 					value = RES_MAX_VALUE
 					pointer := &value
-					(*Urls)[i].WOW.ErrorRate = pointer
+					(*Urls)[i].REDMetrics.WOW.ErrorRate = pointer
 				}
 				break
 			}
 		}
 		if !found {
-			newUrl := EndpointMetrics{
+			newUrl := prom.EndpointMetrics{
 				EndpointKey: prom.EndpointKey{
 					ContentKey: contentKey,
 					SvcName:    serviceName,
 				},
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newUrl.WOW.ErrorRate = &value
+				newUrl.REDMetrics.WOW.ErrorRate = &value
 			}
 			*Urls = append(*Urls, newUrl)
 		}
@@ -480,7 +480,7 @@ func (s *service) UrlWOW(Urls *[]EndpointMetrics, serviceName string, endTime ti
 
 // EndpointRangeREDChart 查询曲线图
 func (s *service) EndpointRangeREDChart(Services *[]ServiceDetail, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]ServiceDetail, error) {
-	var newUrls []EndpointMetrics
+	var newUrls []prom.EndpointMetrics
 	var contentKeys []string
 	var stepToStr string
 
@@ -522,7 +522,7 @@ func (s *service) EndpointRangeREDChart(Services *[]ServiceDetail, startTime tim
 				}
 			}
 			if !found {
-				newUrl := EndpointMetrics{
+				newUrl := prom.EndpointMetrics{
 					EndpointKey: prom.EndpointKey{
 						ContentKey: contentKey,
 						SvcName:    serviceName,
@@ -556,7 +556,7 @@ func (s *service) EndpointRangeREDChart(Services *[]ServiceDetail, startTime tim
 				}
 			}
 			if !found {
-				newUrl := EndpointMetrics{
+				newUrl := prom.EndpointMetrics{
 					EndpointKey: prom.EndpointKey{
 						ContentKey: contentKey,
 						SvcName:    serviceName,
@@ -590,7 +590,7 @@ func (s *service) EndpointRangeREDChart(Services *[]ServiceDetail, startTime tim
 				}
 			}
 			if !found {
-				newUrl := EndpointMetrics{
+				newUrl := prom.EndpointMetrics{
 					EndpointKey: prom.EndpointKey{
 						ContentKey: contentKey,
 						SvcName:    serviceName,
@@ -622,7 +622,7 @@ func (s *service) EndpointRangeREDChart(Services *[]ServiceDetail, startTime tim
 }
 
 // UrlLatencySource 查询延迟主要依赖
-func (s *service) UrlLatencySource(Urls *[]EndpointMetrics, serviceName string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]EndpointMetrics, error) {
+func (s *service) UrlLatencySource(Urls *[]prom.EndpointMetrics, serviceName string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]prom.EndpointMetrics, error) {
 	var stepToStr string
 	if step >= time.Hour {
 		stepToStr = strconv.FormatInt(int64(step/time.Hour), 10) + "h"
@@ -654,7 +654,7 @@ func (s *service) UrlLatencySource(Urls *[]EndpointMetrics, serviceName string, 
 }
 
 // UrlAVG1min 查询最近一分钟之内的平均值
-func (s *service) UrlAVG1min(Urls *[]EndpointMetrics, serviceName string, endTime time.Time, duration string) (*[]EndpointMetrics, error) {
+func (s *service) UrlAVG1min(Urls *[]prom.EndpointMetrics, serviceName string, endTime time.Time, duration string) (*[]prom.EndpointMetrics, error) {
 	var Avg1minErrorRateRes []prom.MetricResult
 	//Avg1minErrorRateRes, err = s.promRepo.QueryPrometheusError(searchTime)
 	queryAvg1minError := prom.QueryEndPointPromql(duration, prom.Avg1minError, serviceName)
@@ -669,20 +669,20 @@ func (s *service) UrlAVG1min(Urls *[]EndpointMetrics, serviceName string, endTim
 			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Urls)[i].Realtime.ErrorRate = &value
+					(*Urls)[i].REDMetrics.Realtime.ErrorRate = &value
 				}
 				break
 			}
 		}
 		if !found {
-			newUrl := EndpointMetrics{
+			newUrl := prom.EndpointMetrics{
 				EndpointKey: prom.EndpointKey{
 					ContentKey: contentKey,
 					SvcName:    serviceName,
 				},
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newUrl.Realtime.ErrorRate = &value
+				newUrl.REDMetrics.Realtime.ErrorRate = &value
 			}
 			*Urls = append(*Urls, newUrl)
 		}
@@ -700,20 +700,20 @@ func (s *service) UrlAVG1min(Urls *[]EndpointMetrics, serviceName string, endTim
 			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
 				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Urls)[i].Realtime.Latency = &value
+					(*Urls)[i].REDMetrics.Realtime.Latency = &value
 				}
 				break
 			}
 		}
 		if !found {
-			newUrl := EndpointMetrics{
+			newUrl := prom.EndpointMetrics{
 				EndpointKey: prom.EndpointKey{
 					ContentKey: contentKey,
 					SvcName:    serviceName,
 				},
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newUrl.Realtime.Latency = &value
+				newUrl.REDMetrics.Realtime.Latency = &value
 			}
 			*Urls = append(*Urls, newUrl)
 		}
@@ -722,4 +722,4 @@ func (s *service) UrlAVG1min(Urls *[]EndpointMetrics, serviceName string, endTim
 }
 
 // EndpointsMap 用于存储相同粒度的多个指标的查询结果,使用MergeMetricResults合并
-type EndpointsMap = prom.MetricGroupMap[prom.EndpointKey, *EndpointMetrics]
+type EndpointsMap = prom.MetricGroupMap[prom.EndpointKey, *prom.EndpointMetrics]

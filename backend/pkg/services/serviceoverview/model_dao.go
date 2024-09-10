@@ -7,33 +7,11 @@ import (
 // RES_MAX_VALUE 返回前端的最大值，同比为该值时表示最大值
 const RES_MAX_VALUE = 9999999
 
-type EndpointMetrics struct {
-	prom.EndpointKey
-
-	DelaySource   *float64 //延时主要来源
-	AlertCount    int
-	NamespaceList []string // 包含该端点的Namespace
-
-	// TODO DelaySource值为nil和值为0是两种场景。
-	//  nil表示没有查询到数据（可能没有这个指标），显示未知；0表示无网络占比，显示自身
-	IsLatencyExceeded   bool
-	IsErrorRateExceeded bool
-	IsTPSExceeded       bool
-
-	Avg1MinLatencyMutationRate float64 //延时突变率
-	Avg1MinErrorMutationRate   float64 //错误率突变率
-
-	prom.REDMetrics
-
-	LatencyData   []prom.Points // 延时时间段的数据
-	ErrorRateData []prom.Points // 错误率时间段的数据
-	TPMData       []prom.Points // TPM 时间段的数据
-}
 type ServiceDetail struct {
 	ServiceName          string
 	EndpointCount        int
 	ServiceSize          int
-	Endpoints            []*EndpointMetrics
+	Endpoints            []*prom.EndpointMetrics
 	Instances            []Instance
 	LogData              []prom.Points // 日志告警次数 30min的数据
 	InfrastructureStatus string

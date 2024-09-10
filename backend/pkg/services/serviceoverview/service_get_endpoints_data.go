@@ -96,21 +96,21 @@ func (s *service) sortWithRule(sortRule SortType, endpointsMap *EndpointsMap) er
 			endpoint := endpointsMap.MetricGroupList[i]
 
 			//填充错误率不等于0，且有请求时查不出同比，填充为最大值（通过判断是否有请求，有请求进行填充）
-			if endpoint.DOD.Latency != nil && endpoint.DOD.ErrorRate == nil && endpoint.Avg.ErrorRate != nil && *endpoint.Avg.ErrorRate != 0 {
-				endpoint.DOD.ErrorRate = new(float64)
-				*endpoint.DOD.ErrorRate = RES_MAX_VALUE
+			if endpoint.REDMetrics.DOD.Latency != nil && endpoint.REDMetrics.DOD.ErrorRate == nil && endpoint.REDMetrics.Avg.ErrorRate != nil && *endpoint.REDMetrics.Avg.ErrorRate != 0 {
+				endpoint.REDMetrics.DOD.ErrorRate = new(float64)
+				*endpoint.REDMetrics.DOD.ErrorRate = RES_MAX_VALUE
 			}
-			if endpoint.WOW.Latency != nil && endpoint.WOW.ErrorRate == nil && endpoint.Avg.ErrorRate != nil && *endpoint.Avg.ErrorRate != 0 {
-				endpoint.WOW.ErrorRate = new(float64)
-				*endpoint.WOW.ErrorRate = RES_MAX_VALUE
+			if endpoint.REDMetrics.WOW.Latency != nil && endpoint.REDMetrics.WOW.ErrorRate == nil && endpoint.REDMetrics.Avg.ErrorRate != nil && *endpoint.REDMetrics.Avg.ErrorRate != 0 {
+				endpoint.REDMetrics.WOW.ErrorRate = new(float64)
+				*endpoint.REDMetrics.WOW.ErrorRate = RES_MAX_VALUE
 			}
 			//过滤错误率
-			if endpoint.DOD.ErrorRate != nil && *endpoint.DOD.ErrorRate > errorThreshold {
+			if endpoint.REDMetrics.DOD.ErrorRate != nil && *endpoint.REDMetrics.DOD.ErrorRate > errorThreshold {
 				endpoint.IsErrorRateExceeded = true
 				endpoint.AlertCount += ErrorCount
 			}
 			//过滤延时
-			if endpoint.DOD.Latency != nil && *endpoint.DOD.Latency > latencyThreshold {
+			if endpoint.REDMetrics.DOD.Latency != nil && *endpoint.REDMetrics.DOD.Latency > latencyThreshold {
 				endpoint.IsLatencyExceeded = true
 				endpoint.AlertCount += LatencyCount
 			}
@@ -132,15 +132,15 @@ func (*service) extractDetail(service ServiceDetail, startTime time.Time, endTim
 	var newServiceDetails []response.ServiceDetail
 	for _, endpoint := range service.Endpoints {
 		newErrorRadio := response.Ratio{
-			DayOverDay:  endpoint.DOD.ErrorRate,
-			WeekOverDay: endpoint.WOW.ErrorRate,
+			DayOverDay:  endpoint.REDMetrics.DOD.ErrorRate,
+			WeekOverDay: endpoint.REDMetrics.WOW.ErrorRate,
 		}
 		newErrorRate := response.TempChartObject{
 			//ChartData: map[int64]float64{},
 			Ratio: newErrorRadio,
 		}
-		if endpoint.Avg.ErrorRate != nil && !math.IsInf(*endpoint.Avg.ErrorRate, 0) { //为无穷大时则不赋值
-			newErrorRate.Value = endpoint.Avg.ErrorRate
+		if endpoint.REDMetrics.Avg.ErrorRate != nil && !math.IsInf(*endpoint.REDMetrics.Avg.ErrorRate, 0) { //为无穷大时则不赋值
+			newErrorRate.Value = endpoint.REDMetrics.Avg.ErrorRate
 		}
 		if endpoint.ErrorRateData != nil {
 			data := make(map[int64]float64)
@@ -169,15 +169,15 @@ func (*service) extractDetail(service ServiceDetail, startTime time.Time, endTim
 			newErrorRate.ChartData = values
 		}
 		newtpsRadio := response.Ratio{
-			DayOverDay:  endpoint.DOD.TPM,
-			WeekOverDay: endpoint.WOW.TPM,
+			DayOverDay:  endpoint.REDMetrics.DOD.TPM,
+			WeekOverDay: endpoint.REDMetrics.WOW.TPM,
 		}
 		newtpsRate := response.TempChartObject{
 			//ChartData: map[int64]float64{},
 			Ratio: newtpsRadio,
 		}
-		if endpoint.Avg.TPM != nil && !math.IsInf(*endpoint.Avg.TPM, 0) { //为无穷大时则不赋值
-			newtpsRate.Value = endpoint.Avg.TPM
+		if endpoint.REDMetrics.Avg.TPM != nil && !math.IsInf(*endpoint.REDMetrics.Avg.TPM, 0) { //为无穷大时则不赋值
+			newtpsRate.Value = endpoint.REDMetrics.Avg.TPM
 		}
 		if endpoint.TPMData != nil {
 			data := make(map[int64]float64)
@@ -210,15 +210,15 @@ func (*service) extractDetail(service ServiceDetail, startTime time.Time, endTim
 		}
 
 		newlatencyRadio := response.Ratio{
-			DayOverDay:  endpoint.DOD.Latency,
-			WeekOverDay: endpoint.WOW.Latency,
+			DayOverDay:  endpoint.REDMetrics.DOD.Latency,
+			WeekOverDay: endpoint.REDMetrics.WOW.Latency,
 		}
 		newlatencyRate := response.TempChartObject{
 			//ChartData: map[int64]float64{},
 			Ratio: newlatencyRadio,
 		}
-		if endpoint.Avg.Latency != nil && !math.IsInf(*endpoint.Avg.Latency, 0) { //为无穷大时则不赋值
-			newlatencyRate.Value = endpoint.Avg.Latency
+		if endpoint.REDMetrics.Avg.Latency != nil && !math.IsInf(*endpoint.REDMetrics.Avg.Latency, 0) { //为无穷大时则不赋值
+			newlatencyRate.Value = endpoint.REDMetrics.Avg.Latency
 		}
 		if endpoint.LatencyData != nil {
 			data := make(map[int64]float64)
