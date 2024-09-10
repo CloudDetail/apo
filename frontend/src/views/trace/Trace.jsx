@@ -180,20 +180,7 @@ function Trace() {
       title: '服务端点',
       accessor: 'endpoint',
     },
-    {
-      title: '持续时间',
-      accessor: 'duration',
-      Cell: ({ value }) => {
-        return convertTime(value, 'ms', 2) + 'ms'
-      },
-    },
-    {
-      title: '发生时间',
-      accessor: 'timestamp',
-      Cell: ({ value }) => {
-        return convertTime(value, 'yyyy-mm-dd hh:mm:ss')
-      },
-    },
+
     {
       title: '故障状态',
       accessor: 'flags',
@@ -209,6 +196,20 @@ function Trace() {
           typeList.push('normal')
         }
         return typeList.map((type) => <TraceErrorType type={type} key={type} />)
+      },
+    },
+    {
+      title: '持续时间',
+      accessor: 'duration',
+      Cell: ({ value }) => {
+        return convertTime(value, 'ms', 2) + 'ms'
+      },
+    },
+    {
+      title: '发生时间',
+      accessor: 'timestamp',
+      Cell: ({ value }) => {
+        return convertTime(value, 'yyyy-mm-dd hh:mm:ss')
       },
     },
     {
