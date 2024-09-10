@@ -44,4 +44,6 @@ var zhCnText = map[string]string{
 
 	GetAlertEventsError:       "获取告警事件失败",
 	GetAlertEventsSampleError: "获取采样告警事件失败",
+
+	GetSQLMetricError: "获取SQL关键指标失败",
 }

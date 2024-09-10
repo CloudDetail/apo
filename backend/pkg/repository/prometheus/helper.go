@@ -14,13 +14,15 @@ func EscapeRegexp(s string) string {
 }
 
 const (
-	ContentKeyPQLFilter      = "content_key="
+	ContentKeyPQLFilter  = "content_key="
+	ServicePQLFilter     = "svc_name="
+	NamespacePQLFilter   = "namespace="
+	ContainerIdPQLFilter = "container_id="
+	IsErrorPQLFilter     = "is_error="
+
 	ContentKeyRegexPQLFilter = "content_key=~"
-	ServicePQLFilter         = "svc_name="
 	ServiceRegexPQLFilter    = "svc_name=~"
-	NamespacePQLFilter       = "namespace="
-	ContainerIdPQLFilter     = "container_id="
-	IsErrorPQLFilter         = "is_error="
+	DBNameRegexPQLFilter     = "db_name=~"
 
 	ValueExistPQLValueFilter = ".+"
 	LabelExistPQLValueFilter = ".*"
@@ -33,6 +35,8 @@ const (
 	EndpointGranularity   Granularity = "svc_name, content_key"
 	NSEndpointGranularity Granularity = "namespace, svc_name, content_key"
 	InstanceGranularity   Granularity = "svc_name, content_key, container_id, node_name, pid"
+
+	DBOperationGranularity Granularity = "svc_name, db_system, db_name, name"
 )
 
 // AggPQLWithFilters 生成PQL语句

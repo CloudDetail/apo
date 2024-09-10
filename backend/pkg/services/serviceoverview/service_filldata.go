@@ -113,7 +113,7 @@ func (s *service) EndpointsREDMetric(startTime, endTime time.Time, filter Endpoi
 		MetricGroupMap:  map[prom.EndpointKey]*prom.EndpointMetrics{},
 	}
 
-	filters := extractFilters(filter)
+	filters := extractEndpointFilters(filter)
 
 	// 填充时间段内的平均RED指标
 	s.fillMetric(res, prom.AVG, startTime, endTime, filters)
@@ -125,9 +125,9 @@ func (s *service) EndpointsREDMetric(startTime, endTime time.Time, filter Endpoi
 	return res
 }
 
-// extractFilters 提取过滤条件
+// extractEndpointFilters 提取过滤条件
 // 返回一个长度为偶数的string数组, 奇数位为key, 偶数位为 value
-func extractFilters(filter EndpointsFilter) []string {
+func extractEndpointFilters(filter EndpointsFilter) []string {
 	var filters []string
 	if len(filter.ServiceName) > 0 {
 		filters = append(filters, prom.ServicePQLFilter, filter.ServiceName)
@@ -144,7 +144,7 @@ func extractFilters(filter EndpointsFilter) []string {
 }
 
 func (s *service) EndpointsRealtimeREDMetric(filter EndpointsFilter, endpointsMap *EndpointsMap, startTime time.Time, endTime time.Time) {
-	filters := extractFilters(filter)
+	filters := extractEndpointFilters(filter)
 	s.fillMetric(endpointsMap, prom.REALTIME, startTime, endTime, filters)
 }
 
@@ -210,7 +210,7 @@ func (s *service) fillMetric(res *EndpointsMap, metricGroup prom.MGroupName, sta
 // EndpointsDelaySource 填充延时来源
 // 基于输入的Endpoints填充, 会抛弃Endpoints中不存在的记录
 func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTime time.Time, filter EndpointsFilter) error {
-	filters := extractFilters(filter)
+	filters := extractEndpointFilters(filter)
 
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
@@ -243,7 +243,7 @@ func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTi
 }
 
 func (s *service) EndpointsNamespaceInfo(endpoints *EndpointsMap, startTime, endTime time.Time, filter EndpointsFilter) error {
-	filters := extractFilters(filter)
+	filters := extractEndpointFilters(filter)
 
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()

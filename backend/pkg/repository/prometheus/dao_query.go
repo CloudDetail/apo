@@ -52,6 +52,12 @@ func (repo *promRepo) QueryData(searchTime time.Time, query string) ([]MetricRes
 				metric.PodName = string(value)
 			case "namespace":
 				metric.Namespace = string(value)
+			case "db_system":
+				metric.DBSystem = string(value)
+			case "db_name":
+				metric.DBName = string(value)
+			case "name":
+				metric.Name = string(value)
 			}
 		}
 

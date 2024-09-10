@@ -8,7 +8,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"github.com/CloudDetail/apo/backend/pkg/model/response"
 
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -17,7 +16,7 @@ import (
 type Repo interface {
 	// ========== span_trace_duration_bucket Start ==========
 	// 基于服务列表、URL列表和时段、步长，查询P90曲线
-	QueryRangePercentile(startTime int64, endTime int64, step int64, services []string, endpoints []string) ([]response.GetDescendantMetricsResponse, error)
+	QueryRangePercentile(startTime int64, endTime int64, step int64, services []string, endpoints []string) ([]DescendantMetrics, error)
 	// 查询实例的P90延时曲线
 	QueryInstanceP90(startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error)
 	// ========== span_trace_duration_bucket END ==========
@@ -116,6 +115,12 @@ type Labels struct {
 	PID         string `json:"pid"`
 	PodName     string `json:"pod_name"`
 	Namespace   string `json:"namespace"`
+
+	DBSystem string `json:"db_system"`
+	DBName   string `json:"db_name"`
+	// Name, currently represents the Opertaion section in SQL
+	// e.g: SELECT trip
+	Name string `json:"name"`
 }
 
 type MetricResult struct {

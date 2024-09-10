@@ -24,9 +24,8 @@ var enText = map[string]string{
 	GetServiceInstanceOptionsError: "Failed to get service instance list",
 	GetK8sEventError:               "Failed to get k8s events",
 	GetServiceEndPointListError:    "Failed to get service endpoint list",
-
-	GetFaultLogPageListError: "Failed to get faultlog pagelist",
-	GetFaultLogContentError:  "Failed to get faultlog content",
+	GetSQLMetricError:              "Failed to get sql metric",
+	GetFaultLogContentError:        "Failed to get faultlog content",
 
 	GetTracePageListError:    "Failed to get trace pagelist",
 	GetTraceFiltersError:     "Failed to get trace filters",

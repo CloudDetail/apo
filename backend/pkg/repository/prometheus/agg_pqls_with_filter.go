@@ -47,16 +47,42 @@ func PQLIsPolarisMetricExitsWithFilters(vector string, granularity string, filte
 
 // PQLAvgLatencyWithFilters 查询自身平均耗时
 func PQLAvgLatencyWithFilters(vector string, granularity string, filters []string) string {
-	filtersStr := strings.Join(filters, ",")
+	return avgLatencyWithFilters(
+		"kindling_span_trace_duration_nanoseconds_sum",
+		"kindling_span_trace_duration_nanoseconds_count",
+		vector, granularity, filters)
+}
 
-	durationSum := `sum by (` + granularity + `) (increase(kindling_span_trace_duration_nanoseconds_sum{` + filtersStr + `}[` + vector + `]))`
-	requestCount := `sum by (` + granularity + `) (increase(kindling_span_trace_duration_nanoseconds_count{` + filtersStr + `}[` + vector + `]))`
+func PQLAvgSQLLatencyWithFilters(vector string, granularity string, filters []string) string {
+	return avgLatencyWithFilters(
+		"kindling_db_duration_nanoseconds_sum",
+		"kindling_db_duration_nanoseconds_count",
+		vector, granularity, filters)
+}
+
+func avgLatencyWithFilters(sumMetric string, countMetric string, vector string, granularity string, filters []string) string {
+	filtersStr := strings.Join(filters, ",")
+	durationSum := `sum by (` + granularity + `) (increase(` + sumMetric + `{` + filtersStr + `}[` + vector + `]))`
+	requestCount := `sum by (` + granularity + `) (increase(` + countMetric + `{` + filtersStr + `}[` + vector + `]))`
 
 	return durationSum + "/" + requestCount
 }
 
-// PQLAvgErrorRateWithFilters 查询平均错误率
+// PQLAvgErrorRateWithFilters 查询SQL请求的平均错误率
 func PQLAvgErrorRateWithFilters(vector string, granularity string, filters []string) string {
+	return avgErrorRateWithFilters(
+		"kindling_span_trace_duration_nanoseconds_count",
+		vector, granularity, filters)
+}
+
+// PQLAvgErrorRateWithFilters 查询SQL请求的平均错误率
+func PQLAvgSQLErrorRateWithFilters(vector string, granularity string, filters []string) string {
+	return avgErrorRateWithFilters(
+		"kindling_db_duration_nanoseconds_count",
+		vector, granularity, filters)
+}
+
+func avgErrorRateWithFilters(metric string, vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")
 
 	var filterWithError string
@@ -66,8 +92,8 @@ func PQLAvgErrorRateWithFilters(vector string, granularity string, filters []str
 		filterWithError = `is_error="true"`
 	}
 
-	errorCount := `sum by (` + granularity + `) (increase(kindling_span_trace_duration_nanoseconds_count{` + filterWithError + `}[` + vector + `]))`
-	requestCount := `sum by (` + granularity + `) (increase(kindling_span_trace_duration_nanoseconds_count{` + filtersStr + `}[` + vector + `]))`
+	errorCount := `sum by (` + granularity + `) (increase(` + metric + `{` + filterWithError + `}[` + vector + `]))`
+	requestCount := `sum by (` + granularity + `) (increase(` + metric + `{` + filtersStr + `}[` + vector + `]))`
 
 	// ( errorCount or requestCount * 0 ) / requestCount
 	// 用于保留requestCount中存在而errorCount中不存在的标签,记录该标签的请求失败率为0
@@ -76,6 +102,19 @@ func PQLAvgErrorRateWithFilters(vector string, granularity string, filters []str
 
 // PQLAvgTPSWithFilters 查询平均TPS
 func PQLAvgTPSWithFilters(vector string, granularity string, filters []string) string {
+	return avgTPSWithFilters(
+		"kindling_span_trace_duration_nanoseconds_count",
+		vector, granularity, filters)
+}
+
+// PQLAvgTPSWithFilters 查询平均TPS
+func PQLAvgSQLTPSWithFilters(vector string, granularity string, filters []string) string {
+	return avgTPSWithFilters(
+		"kindling_db_duration_nanoseconds_count",
+		vector, granularity, filters)
+}
+
+func avgTPSWithFilters(metric string, vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")
-	return `sum(rate(kindling_span_trace_duration_nanoseconds_count{` + filtersStr + `}[` + vector + `])) by(` + granularity + `)`
+	return `sum(rate(` + metric + `{` + filtersStr + `}[` + vector + `])) by(` + granularity + `)`
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 type GetServiceEndpointRelationResponse struct {
@@ -18,11 +19,7 @@ type GetServiceEndpointTopologyResponse struct {
 	Children []clickhouse.TopologyNode `json:"children"` // 下游节点列表
 }
 
-type GetDescendantMetricsResponse struct {
-	ServiceName string         `json:"serviceName"` // 服务名
-	EndPoint    string         `json:"endpoint"`    // Endpoint
-	LatencyP90  []MetricsPoint `json:"latencyP90"`  // P90曲线值
-}
+type GetDescendantMetricsResponse = prometheus.DescendantMetrics
 
 type GetDescendantRelevanceResponse struct {
 	ServiceName      string  `json:"serviceName"`  // 服务名
@@ -90,20 +87,20 @@ type AlarmStatus struct {
 	Status bool   // 是否告警 true: 告警 false: 未告警
 }
 
-type MetricsPoint struct {
-	Timestamp int64   `json:"timestamp"` // 时间(微秒)
-	Value     float64 `json:"value"`     // 值
-}
-
 type Ratio struct {
-	DayOverDay  *float64 `json:"dayOverDay"`
+	// DayOverDay 日同比变化率
+	DayOverDay *float64 `json:"dayOverDay"`
+	// WeekOverDay 周同比变化率
 	WeekOverDay *float64 `json:"weekOverDay"`
 }
 
 type TempChartObject struct {
+	// ChartData 图表数据
 	ChartData map[int64]float64 `json:"chartData"`
-	Value     *float64          `json:"value"`
-	Ratio     Ratio             `json:"ratio"`
+	// Value 指标平均值
+	Value *float64 `json:"value"`
+	// Ratio 指标同比变化率
+	Ratio Ratio `json:"ratio"`
 }
 
 type ServiceDetail struct {

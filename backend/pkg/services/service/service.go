@@ -35,6 +35,8 @@ type Service interface {
 	GetLogLogs(req *request.GetLogLogsRequest) ([]clickhouse.FaultLogResult, error)
 	// 获取Trace相关指标
 	GetTraceMetrics(req *request.GetTraceMetricsRequest) ([]*response.GetTraceMetricsResponse, error)
+	// 获取SQL相关指标
+	GetSQLMetrics(req *request.GetSQLMetricsRequest) (*response.GetSQLMetricsResponse, error)
 	// 获取Trace故障现场日志
 	GetTraceLogs(req *request.GetTraceLogsRequest) ([]clickhouse.FaultLogResult, error)
 	// 获取服务列表

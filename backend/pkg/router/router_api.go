@@ -53,6 +53,8 @@ func setApiRouter(r *resource) {
 
 		serviceApi.GET("/alert/events", serviceHandler.GetAlertEvents())
 		serviceApi.GET("/alert/sample/events", serviceHandler.GetAlertEventsSample())
+
+		serviceApi.GET("/sql/metrics", serviceHandler.GetSQLMetrics())
 	}
 
 	logApi := r.mux.Group("/api/log")

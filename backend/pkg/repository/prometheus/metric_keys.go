@@ -11,3 +11,22 @@ func (e EndpointKey) ConvertFromLabels(labels Labels) ConvertFromLabels {
 		ContentKey: labels.ContentKey,
 	}
 }
+
+type SQLKey struct {
+	Service string `json:"service"`
+	// DBSystem -> ${SQL Type}, e.g: Mysql
+	DBSystem string `json:"dbSystem"`
+	// DBName -> ${database}
+	DBName string `json:"dbName"`
+	// DBOperation -> ${operation} ${table}, e.g: SELECT trip
+	DBOperation string `json:"dbOperation"`
+}
+
+func (k SQLKey) ConvertFromLabels(labels Labels) ConvertFromLabels {
+	return SQLKey{
+		Service:     labels.SvcName,
+		DBSystem:    labels.DBSystem,
+		DBName:      labels.DBName,
+		DBOperation: labels.Name,
+	}
+}

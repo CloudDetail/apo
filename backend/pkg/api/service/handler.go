@@ -107,6 +107,11 @@ type Handler interface {
 	// @Tags API.service
 	// @Router /api/service/alert/events [get]
 	GetAlertEvents() core.HandlerFunc
+
+	// GetSQLMetrics 获取SQL指标
+	// @Tags API.service
+	// @Router /api/service/sql/metrics [get]
+	GetSQLMetrics() core.HandlerFunc
 }
 
 type handler struct {
