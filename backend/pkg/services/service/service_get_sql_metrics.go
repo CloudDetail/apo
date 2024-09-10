@@ -2,6 +2,7 @@ package service
 
 import (
 	"math"
+	"sort"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -10,21 +11,49 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	SortByLatency   = "latency"
+	SortByErrorRate = "errorRate"
+	SortByTps       = "tps"
+)
+
 func (s *service) GetSQLMetrics(req *request.GetSQLMetricsRequest) (*response.GetSQLMetricsResponse, error) {
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 	step := time.Duration(req.Step) * time.Microsecond
 
 	sqlMetricMap := s.SQLREDMetric(startTime, endTime, req.Service)
-
-	err := s.FillSQLREDChart(sqlMetricMap, req.Service, startTime, endTime, step)
-	if err != nil {
-
+	// 按平均延时/错误率/TPS 排序并分页
+	switch req.SortBy {
+	case SortByErrorRate:
+		sort.Slice(sqlMetricMap.MetricGroupList, func(i, j int) bool {
+			return compareValueWithNull(
+				sqlMetricMap.MetricGroupList[i].REDMetrics.Avg.ErrorRate,
+				sqlMetricMap.MetricGroupList[j].REDMetrics.Avg.ErrorRate)
+		})
+	case SortByTps:
+		sort.Slice(sqlMetricMap.MetricGroupList, func(i, j int) bool {
+			return compareValueWithNull(
+				sqlMetricMap.MetricGroupList[i].REDMetrics.Avg.TPM,
+				sqlMetricMap.MetricGroupList[j].REDMetrics.Avg.TPM)
+		})
+	default:
+		sort.Slice(sqlMetricMap.MetricGroupList, func(i, j int) bool {
+			return compareValueWithNull(
+				sqlMetricMap.MetricGroupList[i].REDMetrics.Avg.Latency,
+				sqlMetricMap.MetricGroupList[j].REDMetrics.Avg.Latency)
+		})
 	}
 
 	var res = &response.GetSQLMetricsResponse{
 		SQLOperationDetails: []response.SQLOperationDetail{},
 	}
+	// 分页
+	sqlMetricMap.MetricGroupList, res.TotalCount = pageByParam(sqlMetricMap.MetricGroupList, req.PageParam)
+
+	// 填充chart
+	_ = s.FillSQLREDChart(sqlMetricMap, req.Service, startTime, endTime, step)
+	// 转换格式
 	for _, metricGroups := range sqlMetricMap.MetricGroupList {
 		// 清理空值
 		metricGroups.REDMetrics.CleanUPNullValue()
@@ -59,6 +88,17 @@ func (s *service) GetSQLMetrics(req *request.GetSQLMetricsRequest) (*response.Ge
 	}
 
 	return res, nil
+}
+
+func compareValueWithNull(valueI *float64, valueJ *float64) bool {
+	if valueI == nil && valueJ == nil {
+		return true
+	} else if valueI == nil {
+		return false
+	} else if valueJ == nil {
+		return true
+	}
+	return *valueI > *valueJ
 }
 
 type SQLMetricMap = prom.MetricGroupMap[prom.SQLKey, *SQLMetricsWithChart]
@@ -255,4 +295,22 @@ func convertToChart(result prom.MetricResult) map[int64]float64 {
 		}
 	}
 	return data
+}
+
+func pageByParam(list []*SQLMetricsWithChart, param *request.PageParam) ([]*SQLMetricsWithChart, int) {
+	totalCount := len(list)
+	if param == nil {
+		return list, totalCount
+	}
+
+	if totalCount < param.PageSize {
+		return list, totalCount
+	}
+
+	startIdx := (param.CurrentPage - 1) * param.PageSize
+	endIdx := startIdx + param.PageSize
+	if endIdx > totalCount {
+		endIdx = totalCount
+	}
+	return list[startIdx:endIdx], totalCount
 }

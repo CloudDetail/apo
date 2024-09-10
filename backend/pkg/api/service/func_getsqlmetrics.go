@@ -18,6 +18,9 @@ import (
 // @Param endTime query int64 true "查询结束时间"
 // @Param service query string true "查询服务名"
 // @Param step query int64 true "查询步长(us)"
+// @Param sortBy query string true "排序方法(latency/errorRate/tps)"
+// @Param currentPage query int false "分页参数,当前页数"
+// @Param pageSize query int false "分页参数, 每页数量"
 // @Success 200 {object} response.GetSQLMetricsResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/service/sql/metrics [get]

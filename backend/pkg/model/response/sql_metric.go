@@ -3,8 +3,7 @@ package response
 import "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 
 type GetSQLMetricsResponse struct {
-
-	// TODO 限制返回的SQLOperationDetail总数
+	TotalCount          int                  `json:"totalCount"`
 	SQLOperationDetails []SQLOperationDetail `json:"sqlOperationDetails"`
 }
 
