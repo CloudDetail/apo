@@ -117,7 +117,7 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 	return resp, nil
 }
 
-func (s *service) queryDescendantStatus(services []string, endpoints []string, startTime, endTime int64) (map[string]*DescendantStatus, error) {
+func (s *service) queryDescendantStatus(services []string, endpoints []string, startTime, endTime int64) (*DescendantStatusMap, error) {
 	avgDepLatency, err := s.promRepo.QueryAggMetricsWithFilter(
 		prom.PQLAvgDepLatencyWithFilters,
 		startTime, endTime,
@@ -168,47 +168,58 @@ func (s *service) queryDescendantStatus(services []string, endpoints []string, s
 		return nil, err
 	}
 
-	var descendantStatusMap = make(map[string]*DescendantStatus)
-	for _, metric := range avgLatency {
-		status := &DescendantStatus{
-			DepLatency:          -1,
-			Latency:             metric.Values[0].Value,
-			LatencyDoD:          -1,
-			ErrorRateDoD:        -1,
-			RequestPerSecondDoD: -1,
-		}
-		descendantStatusMap[metric.Metric.SvcName+"_"+metric.Metric.ContentKey] = status
+	var descendantStatusMap = &DescendantStatusMap{
+		MetricGroupList: []*DescendantStatus{},
+		MetricGroupMap:  map[prom.EndpointKey]*DescendantStatus{},
 	}
 
-	for _, metric := range avgDepLatency {
-		status, find := descendantStatusMap[metric.Metric.SvcName+"_"+metric.Metric.ContentKey]
-		if find {
-			status.DepLatency = metric.Values[0].Value
-		}
-	}
-
-	for _, metric := range avgLatencyDoD {
-		status, find := descendantStatusMap[metric.Metric.SvcName+"_"+metric.Metric.ContentKey]
-		if find {
-			status.LatencyDoD = metric.Values[0].Value
-		}
-	}
-
-	for _, metric := range avgErrorRateDoD {
-		status, find := descendantStatusMap[metric.Metric.SvcName+"_"+metric.Metric.ContentKey]
-		if find {
-			status.ErrorRateDoD = metric.Values[0].Value
-		}
-	}
-
-	for _, metric := range avgRequestPerSecondDoD {
-		status, find := descendantStatusMap[metric.Metric.SvcName+"_"+metric.Metric.ContentKey]
-		if find {
-			status.RequestPerSecondDoD = metric.Values[0].Value
-		}
-	}
+	descendantStatusMap.MergeMetricResults(prom.AVG, prom.LATENCY, avgLatency)
+	descendantStatusMap.MergeMetricResults(prom.AVG, prom.DEP_LATENCY, avgDepLatency)
+	descendantStatusMap.MergeMetricResults(prom.DOD, prom.LATENCY, avgLatencyDoD)
+	descendantStatusMap.MergeMetricResults(prom.DOD, prom.ERROR_RATE, avgErrorRateDoD)
+	descendantStatusMap.MergeMetricResults(prom.DOD, prom.THROUGHPUT, avgRequestPerSecondDoD)
 
 	return descendantStatusMap, err
+}
+
+type DescendantStatusMap = prom.MetricGroupMap[prom.EndpointKey, *DescendantStatus]
+
+func (s *DescendantStatus) InitEmptyGroup(_ prom.ConvertFromLabels) prom.MetricGroup {
+	return &DescendantStatus{
+		DepLatency:          -1,
+		Latency:             -1,
+		LatencyDoD:          -1,
+		ErrorRateDoD:        -1,
+		RequestPerSecondDoD: -1,
+	}
+}
+
+func (s *DescendantStatus) AppendGroupIfNotExist(_ prom.MGroupName, metricName prom.MName) bool {
+	return metricName == prom.LATENCY
+}
+
+func (s *DescendantStatus) SetValue(metricGroup prom.MGroupName, metricName prom.MName, value float64) {
+	switch metricGroup {
+	case prom.AVG:
+		switch metricName {
+		case prom.LATENCY:
+			micros := value / 1e3
+			s.Latency = micros
+		case prom.DEP_LATENCY:
+			micros := value / 1e3
+			s.DepLatency = micros
+		}
+	case prom.DOD:
+		radio := (value - 1) * 100
+		switch metricName {
+		case prom.LATENCY:
+			s.LatencyDoD = radio
+		case prom.ERROR_RATE:
+			s.ErrorRateDoD = radio
+		case prom.THROUGHPUT:
+			s.RequestPerSecondDoD = radio
+		}
+	}
 }
 
 type DescendantStatus struct {
@@ -220,10 +231,13 @@ type DescendantStatus struct {
 	RequestPerSecondDoD float64 // 请求数日同比
 }
 
-func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRelevanceResponse, descendantStatus map[string]*DescendantStatus, threshold database.Threshold) {
+func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRelevanceResponse, descendantStatus *DescendantStatusMap, threshold database.Threshold) {
 	ts := time.Now()
-	descendantKey := descendantResp.ServiceName + "_" + descendantResp.EndPoint
-	if status, ok := descendantStatus[descendantKey]; ok {
+	descendantKey := prom.EndpointKey{
+		ContentKey: descendantResp.EndPoint,
+		SvcName:    descendantResp.ServiceName,
+	}
+	if status, ok := descendantStatus.MetricGroupMap[descendantKey]; ok {
 		if status.DepLatency >= 0 && status.Latency > 0 {
 			var depRatio = status.DepLatency / status.Latency
 			if depRatio > 0.5 {

@@ -168,7 +168,7 @@ func (s *service) fillMetric(res *EndpointsMap, metricGroup prom.MGroupName, sta
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
-	avgLatency, err := s.promRepo.QueryAggMetricsWithFilter(
+	latency, err := s.promRepo.QueryAggMetricsWithFilter(
 		decorator(prom.PQLAvgLatencyWithFilters),
 		startTS, endTS,
 		prom.EndpointGranularity,
@@ -177,9 +177,9 @@ func (s *service) fillMetric(res *EndpointsMap, metricGroup prom.MGroupName, sta
 	if err != nil {
 		// TODO 输出日志或记录错误到Endpoint中
 	}
-	res.MergeMetricResults(metricGroup, prom.LATENCY, avgLatency)
+	res.MergeMetricResults(metricGroup, prom.LATENCY, latency)
 
-	avgErrorRate, err := s.promRepo.QueryAggMetricsWithFilter(
+	errorRate, err := s.promRepo.QueryAggMetricsWithFilter(
 		decorator(prom.PQLAvgErrorRateWithFilters),
 		startTS, endTS,
 		prom.EndpointGranularity,
@@ -188,13 +188,13 @@ func (s *service) fillMetric(res *EndpointsMap, metricGroup prom.MGroupName, sta
 	if err != nil {
 		// TODO 输出日志或记录错误到Endpoint中
 	}
-	res.MergeMetricResults(metricGroup, prom.ERROR, avgErrorRate)
+	res.MergeMetricResults(metricGroup, prom.ERROR_RATE, errorRate)
 
 	if metricGroup == prom.REALTIME {
 		// 目前不计算TPS的实时值
 		return
 	}
-	avgTPS, err := s.promRepo.QueryAggMetricsWithFilter(
+	tps, err := s.promRepo.QueryAggMetricsWithFilter(
 		decorator(prom.PQLAvgTPSWithFilters),
 		startTS, endTS,
 		prom.EndpointGranularity,
@@ -204,7 +204,7 @@ func (s *service) fillMetric(res *EndpointsMap, metricGroup prom.MGroupName, sta
 		// TODO 输出日志或记录错误到Endpoint中
 	}
 
-	res.MergeMetricResults(metricGroup, prom.THROUGHPUT, avgTPS)
+	res.MergeMetricResults(metricGroup, prom.THROUGHPUT, tps)
 }
 
 // EndpointsDelaySource 填充延时来源
