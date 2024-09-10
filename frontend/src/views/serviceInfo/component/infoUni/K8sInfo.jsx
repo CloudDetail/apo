@@ -133,7 +133,7 @@ function K8sInfo(props) {
                 <div className="text-sm mb-2">{item.displayName}</div>
                 <div
                   className="text-lg mb-2 text-[#467ffc] font-bold"
-                  style={{ color: item.Severity === 'Warning' ? '#dc2625' : '#467ffc' }}
+                  style={{ color: item.severity === 'Warning' ? '#dc2625' : '#467ffc' }}
                 >
                   {item.counts.current ?? 0}
                 </div>
