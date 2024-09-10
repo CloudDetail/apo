@@ -1,9 +1,5 @@
 package prometheus
 
-import (
-	"math"
-)
-
 // metricGroup Name
 type MGroupName string
 
@@ -60,9 +56,6 @@ func (m *MetricGroupMap[K, V]) MergeMetricResults(metricGroup MGroupName, metric
 		}
 		// 所有合并值均只包含最新时间点的结果,直接取metricResult.Values[0]
 		value := metric.Values[0].Value
-		if math.IsInf(value, 0) {
-			continue
-		}
 		mg.SetValue(metricGroup, metricName, value)
 	}
 }

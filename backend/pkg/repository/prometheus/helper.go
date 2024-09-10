@@ -22,7 +22,7 @@ const (
 
 	ContentKeyRegexPQLFilter = "content_key=~"
 	ServiceRegexPQLFilter    = "svc_name=~"
-	DBNameRegexPQLFilter     = "db_name=~"
+	DBNameRegexPQLFilter     = "name=~"
 
 	ValueExistPQLValueFilter = ".+"
 	LabelExistPQLValueFilter = ".*"
@@ -36,7 +36,7 @@ const (
 	NSEndpointGranularity Granularity = "namespace, svc_name, content_key"
 	InstanceGranularity   Granularity = "svc_name, content_key, container_id, node_name, pid"
 
-	DBOperationGranularity Granularity = "svc_name, db_system, db_name, name"
+	DBOperationGranularity Granularity = "svc_name, db_system, db_name, name, db_url"
 )
 
 // AggPQLWithFilters 生成PQL语句

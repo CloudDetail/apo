@@ -120,7 +120,8 @@ type Labels struct {
 	DBName   string `json:"db_name"`
 	// Name, currently represents the Opertaion section in SQL
 	// e.g: SELECT trip
-	Name string `json:"name"`
+	Name  string `json:"name"`
+	DBUrl string `json:"db_url"`
 }
 
 type MetricResult struct {

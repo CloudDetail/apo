@@ -20,6 +20,7 @@ type SQLKey struct {
 	DBName string `json:"dbName"`
 	// DBOperation -> ${operation} ${table}, e.g: SELECT trip
 	DBOperation string `json:"dbOperation"`
+	DBUrl       string `json:"dbUrl"`
 }
 
 func (k SQLKey) ConvertFromLabels(labels Labels) ConvertFromLabels {
@@ -28,5 +29,6 @@ func (k SQLKey) ConvertFromLabels(labels Labels) ConvertFromLabels {
 		DBSystem:    labels.DBSystem,
 		DBName:      labels.DBName,
 		DBOperation: labels.Name,
+		DBUrl:       labels.DBUrl,
 	}
 }

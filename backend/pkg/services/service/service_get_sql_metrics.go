@@ -26,6 +26,9 @@ func (s *service) GetSQLMetrics(req *request.GetSQLMetricsRequest) (*response.Ge
 		SQLOperationDetails: []response.SQLOperationDetail{},
 	}
 	for _, metricGroups := range sqlMetricMap.MetricGroupList {
+		// 清理空值
+		metricGroups.REDMetrics.CleanUPNullValue()
+
 		res.SQLOperationDetails = append(res.SQLOperationDetails, response.SQLOperationDetail{
 			SQLKey: metricGroups.SQLKey,
 			Latency: response.TempChartObject{
@@ -102,7 +105,6 @@ func (s *service) SQLREDMetric(startTime, endTime time.Time, service string) *SQ
 	s.fillSQLMetric(res, prom.DOD, startTime, endTime, filters)
 	// 填充时间段内的RED指标周同比
 	s.fillSQLMetric(res, prom.WOW, startTime, endTime, filters)
-
 	return res
 }
 
