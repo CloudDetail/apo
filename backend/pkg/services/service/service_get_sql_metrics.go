@@ -5,6 +5,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -45,11 +46,23 @@ func (s *service) GetSQLMetrics(req *request.GetSQLMetricsRequest) (*response.Ge
 		})
 	}
 
+	// 分页
+	var totalCount int
+	if req.PageParam == nil {
+		req.PageParam = &request.PageParam{
+			CurrentPage: 1,
+			PageSize:    99,
+		}
+	}
+	sqlMetricMap.MetricGroupList, totalCount = pageByParam(sqlMetricMap.MetricGroupList, req.PageParam)
 	var res = &response.GetSQLMetricsResponse{
+		Pagination: model.Pagination{
+			Total:       int64(totalCount),
+			CurrentPage: req.PageParam.CurrentPage,
+			PageSize:    req.PageParam.PageSize,
+		},
 		SQLOperationDetails: []response.SQLOperationDetail{},
 	}
-	// 分页
-	sqlMetricMap.MetricGroupList, res.TotalCount = pageByParam(sqlMetricMap.MetricGroupList, req.PageParam)
 
 	// 填充chart
 	_ = s.FillSQLREDChart(sqlMetricMap, req.Service, startTime, endTime, step)

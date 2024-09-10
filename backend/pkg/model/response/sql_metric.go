@@ -1,9 +1,12 @@
 package response
 
-import "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+import (
+	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+)
 
 type GetSQLMetricsResponse struct {
-	TotalCount          int                  `json:"totalCount"`
+	Pagination          model.Pagination     `json:"pagination"`
 	SQLOperationDetails []SQLOperationDetail `json:"sqlOperationDetails"`
 }
 
