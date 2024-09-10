@@ -212,7 +212,7 @@ func (s *service) FillSQLREDChart(sqlMap *SQLMetricMap, service string, startTim
 		filters...,
 	)
 
-	if err != nil {
+	if err == nil {
 		for _, avgErrorRate := range avgErrorRates {
 			var sqlKey prom.SQLKey
 			sqlKey = sqlKey.ConvertFromLabels(avgErrorRate.Metric).(prom.SQLKey)
@@ -231,7 +231,7 @@ func (s *service) FillSQLREDChart(sqlMap *SQLMetricMap, service string, startTim
 		filters...,
 	)
 
-	if err != nil {
+	if err == nil {
 		for _, avgTPS := range avgTPSs {
 			var sqlKey prom.SQLKey
 			sqlKey = sqlKey.ConvertFromLabels(avgTPS.Metric).(prom.SQLKey)
