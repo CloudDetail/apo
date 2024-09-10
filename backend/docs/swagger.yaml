@@ -4,6 +4,8 @@ definitions:
     properties:
       alarmCount:
         type: integer
+      alertKey:
+        type: string
       createTime:
         description: 故障触发时间
         type: string
@@ -259,6 +261,15 @@ definitions:
     x-enum-varnames:
     - StatusResolved
     - StatusFiring
+  prometheus.MetricsPoint:
+    properties:
+      timestamp:
+        description: 时间(微秒)
+        type: integer
+      value:
+        description: 值
+        type: number
+    type: object
   request.Alert:
     properties:
       annotations:
@@ -631,7 +642,7 @@ definitions:
       latencyP90:
         description: P90曲线值
         items:
-          $ref: '#/definitions/response.MetricsPoint'
+          $ref: '#/definitions/prometheus.MetricsPoint'
         type: array
       serviceName:
         description: 服务名
@@ -645,7 +656,7 @@ definitions:
       alertReason:
         $ref: '#/definitions/model.AlertReason'
       delaySource:
-        description: 延时主要来源 self/dependency
+        description: 延时主要来源 unknown/self/dependency
         type: string
       distance:
         description: 延时曲线差异
@@ -753,6 +764,15 @@ definitions:
         type: string
       inferMetricsPng:
         type: string
+    type: object
+  response.GetSQLMetricsResponse:
+    properties:
+      sqlOperationDetails:
+        items:
+          $ref: '#/definitions/response.SQLOperationDetail'
+        type: array
+      totalCount:
+        type: integer
     type: object
   response.GetServiceEndpointRelationResponse:
     properties:
@@ -951,15 +971,6 @@ definitions:
       pagination:
         $ref: '#/definitions/response.Pagination'
     type: object
-  response.MetricsPoint:
-    properties:
-      timestamp:
-        description: 时间(微秒)
-        type: integer
-      value:
-        description: 值
-        type: number
-    type: object
   response.Pagination:
     properties:
       current_page:
@@ -975,9 +986,35 @@ definitions:
   response.Ratio:
     properties:
       dayOverDay:
+        description: DayOverDay 日同比变化率
         type: number
       weekOverDay:
+        description: WeekOverDay 周同比变化率
         type: number
+    type: object
+  response.SQLOperationDetail:
+    properties:
+      dbName:
+        description: DBName -> ${database}
+        type: string
+      dbOperation:
+        description: 'DBOperation -> ${operation} ${table}, e.g: SELECT trip'
+        type: string
+      dbSystem:
+        description: 'DBSystem -> ${SQL Type}, e.g: Mysql'
+        type: string
+      dbUrl:
+        type: string
+      errorRate:
+        $ref: '#/definitions/response.TempChartObject'
+      latency:
+        $ref: '#/definitions/response.TempChartObject'
+      service:
+        type: string
+      tps:
+        allOf:
+        - $ref: '#/definitions/response.TempChartObject'
+        description: FIXME Tps 名称为tps,实际为每分钟请求数
     type: object
   response.ServiceAlertRes:
     properties:
@@ -1038,10 +1075,14 @@ definitions:
       chartData:
         additionalProperties:
           type: number
+        description: ChartData 图表数据
         type: object
       ratio:
-        $ref: '#/definitions/response.Ratio'
+        allOf:
+        - $ref: '#/definitions/response.Ratio'
+        description: Ratio 指标同比变化率
       value:
+        description: Value 指标平均值
         type: number
     type: object
 info:
@@ -2291,6 +2332,59 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 配置单个阈值配置信息
+      tags:
+      - API.service
+  /api/service/sql/metrics:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取SQL指标
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询步长(us)
+        in: query
+        name: step
+        required: true
+        type: integer
+      - description: 排序方法(latency/errorRate/tps)
+        in: query
+        name: sortBy
+        required: true
+        type: string
+      - description: 分页参数,当前页数
+        in: query
+        name: currentPage
+        type: integer
+      - description: 分页参数, 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetSQLMetricsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取SQL指标
       tags:
       - API.service
   /api/service/topology:

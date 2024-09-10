@@ -1858,6 +1858,84 @@
                 }
             }
         },
+        "/api/service/sql/metrics": {
+            "get": {
+                "description": "获取SQL指标",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.service"
+                ],
+                "summary": "获取SQL指标",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "查询开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询服务名",
+                        "name": "service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询步长(us)",
+                        "name": "step",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序方法(latency/errorRate/tps)",
+                        "name": "sortBy",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "分页参数,当前页数",
+                        "name": "currentPage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "分页参数, 每页数量",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetSQLMetricsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/service/topology": {
             "get": {
                 "description": "获取服务上下游拓扑",
@@ -2235,6 +2313,9 @@
                 "alarmCount": {
                     "type": "integer"
                 },
+                "alertKey": {
+                    "type": "string"
+                },
                 "createTime": {
                     "description": "故障触发时间",
                     "type": "string"
@@ -2608,6 +2689,19 @@
                 "StatusResolved",
                 "StatusFiring"
             ]
+        },
+        "prometheus.MetricsPoint": {
+            "type": "object",
+            "properties": {
+                "timestamp": {
+                    "description": "时间(微秒)",
+                    "type": "integer"
+                },
+                "value": {
+                    "description": "值",
+                    "type": "number"
+                }
+            }
         },
         "request.Alert": {
             "type": "object",
@@ -3134,7 +3228,7 @@
                     "description": "P90曲线值",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.MetricsPoint"
+                        "$ref": "#/definitions/prometheus.MetricsPoint"
                     }
                 },
                 "serviceName": {
@@ -3154,7 +3248,7 @@
                     "$ref": "#/definitions/model.AlertReason"
                 },
                 "delaySource": {
-                    "description": "延时主要来源 self/dependency",
+                    "description": "延时主要来源 unknown/self/dependency",
                     "type": "string"
                 },
                 "distance": {
@@ -3309,6 +3403,20 @@
                 },
                 "inferMetricsPng": {
                     "type": "string"
+                }
+            }
+        },
+        "response.GetSQLMetricsResponse": {
+            "type": "object",
+            "properties": {
+                "sqlOperationDetails": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SQLOperationDetail"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
                 }
             }
         },
@@ -3609,19 +3717,6 @@
                 }
             }
         },
-        "response.MetricsPoint": {
-            "type": "object",
-            "properties": {
-                "timestamp": {
-                    "description": "时间(微秒)",
-                    "type": "integer"
-                },
-                "value": {
-                    "description": "值",
-                    "type": "number"
-                }
-            }
-        },
         "response.Pagination": {
             "type": "object",
             "properties": {
@@ -3643,10 +3738,49 @@
             "type": "object",
             "properties": {
                 "dayOverDay": {
+                    "description": "DayOverDay 日同比变化率",
                     "type": "number"
                 },
                 "weekOverDay": {
+                    "description": "WeekOverDay 周同比变化率",
                     "type": "number"
+                }
+            }
+        },
+        "response.SQLOperationDetail": {
+            "type": "object",
+            "properties": {
+                "dbName": {
+                    "description": "DBName -\u003e ${database}",
+                    "type": "string"
+                },
+                "dbOperation": {
+                    "description": "DBOperation -\u003e ${operation} ${table}, e.g: SELECT trip",
+                    "type": "string"
+                },
+                "dbSystem": {
+                    "description": "DBSystem -\u003e ${SQL Type}, e.g: Mysql",
+                    "type": "string"
+                },
+                "dbUrl": {
+                    "type": "string"
+                },
+                "errorRate": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "latency": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "tps": {
+                    "description": "FIXME Tps 名称为tps,实际为每分钟请求数",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.TempChartObject"
+                        }
+                    ]
                 }
             }
         },
@@ -3736,15 +3870,22 @@
             "type": "object",
             "properties": {
                 "chartData": {
+                    "description": "ChartData 图表数据",
                     "type": "object",
                     "additionalProperties": {
                         "type": "number"
                     }
                 },
                 "ratio": {
-                    "$ref": "#/definitions/response.Ratio"
+                    "description": "Ratio 指标同比变化率",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Ratio"
+                        }
+                    ]
                 },
                 "value": {
+                    "description": "Value 指标平均值",
                     "type": "number"
                 }
             }
