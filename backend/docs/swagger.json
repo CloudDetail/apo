@@ -890,13 +890,23 @@
                         "name": "endpoint",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询步长(us)",
+                        "name": "step",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.GetServiceEntryEndpointsResponse"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.GetServiceEntryEndpointsResponse"
+                            }
                         }
                     },
                     "400": {
@@ -3539,17 +3549,49 @@
         "response.GetServiceEntryEndpointsResponse": {
             "type": "object",
             "properties": {
-                "endpoints": {
+                "alertReason": {
+                    "$ref": "#/definitions/model.AlertReason"
+                },
+                "endpointCount": {
+                    "type": "integer"
+                },
+                "infrastructureStatus": {
+                    "description": "基础设施告警",
+                    "type": "string"
+                },
+                "k8sStatus": {
+                    "description": "K8s状态告警",
+                    "type": "string"
+                },
+                "logs": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "logsStatus": {
+                    "description": "日志指标告警",
+                    "type": "string"
+                },
+                "namespaces": {
+                    "description": "应用所属命名空间,可能为空",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "services": {
+                "netStatus": {
+                    "description": "网络告警",
+                    "type": "string"
+                },
+                "serviceDetails": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/response.ServiceDetail"
                     }
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
                 }
             }
         },

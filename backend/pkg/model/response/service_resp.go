@@ -205,6 +205,13 @@ type GetAlertEventsSampleResponse struct {
 }
 
 type GetServiceEntryEndpointsResponse struct {
-	Services  []string `json:"services"`
-	EndPoints []string `json:"endpoints"`
+	ServiceName    string          `json:"serviceName"`
+	Namespaces     []string        `json:"namespaces"` // 应用所属命名空间,可能为空
+	EndpointCount  int             `json:"endpointCount"`
+	ServiceDetails []ServiceDetail `json:"serviceDetails"`
+
+	Logs      TempChartObject `json:"logs"`
+	Timestamp *int64          `json:"timestamp"`
+	model.AlertStatus
+	AlertReason model.AlertReason `json:"alertReason"`
 }

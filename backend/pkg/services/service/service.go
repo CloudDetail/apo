@@ -51,7 +51,7 @@ type Service interface {
 	// 获取服务Endpoint列表
 	GetServiceEndPointList(req *request.GetServiceEndPointListRequest) ([]string, error)
 	// 获取服务入口Endpoint列表
-	GetServiceEntryEndpoints(req *request.GetServiceEntryEndpointsRequest) (*response.GetServiceEntryEndpointsResponse, error)
+	GetServiceEntryEndpoints(req *request.GetServiceEntryEndpointsRequest) ([]clickhouse.EntryNode, error)
 	// CountK8sEvents 获取K8s事件数量
 	CountK8sEvents(req *request.GetK8sEventsRequest) (*response.GetK8sEventsResponse, error)
 	// GetAlertEvents 获取告警事件

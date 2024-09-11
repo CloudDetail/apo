@@ -812,14 +812,37 @@ definitions:
     type: object
   response.GetServiceEntryEndpointsResponse:
     properties:
-      endpoints:
+      alertReason:
+        $ref: '#/definitions/model.AlertReason'
+      endpointCount:
+        type: integer
+      infrastructureStatus:
+        description: 基础设施告警
+        type: string
+      k8sStatus:
+        description: K8s状态告警
+        type: string
+      logs:
+        $ref: '#/definitions/response.TempChartObject'
+      logsStatus:
+        description: 日志指标告警
+        type: string
+      namespaces:
+        description: 应用所属命名空间,可能为空
         items:
           type: string
         type: array
-      services:
+      netStatus:
+        description: 网络告警
+        type: string
+      serviceDetails:
         items:
-          type: string
+          $ref: '#/definitions/response.ServiceDetail'
         type: array
+      serviceName:
+        type: string
+      timestamp:
+        type: integer
     type: object
   response.GetTTLResponse:
     properties:
@@ -1690,13 +1713,20 @@ paths:
         name: endpoint
         required: true
         type: string
+      - description: 查询步长(us)
+        in: query
+        name: step
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.GetServiceEntryEndpointsResponse'
+            items:
+              $ref: '#/definitions/response.GetServiceEntryEndpointsResponse'
+            type: array
         "400":
           description: Bad Request
           schema:

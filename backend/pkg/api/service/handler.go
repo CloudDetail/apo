@@ -9,6 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/service"
+	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
 type Handler interface {
@@ -120,13 +121,15 @@ type Handler interface {
 }
 
 type handler struct {
-	logger             *zap.Logger
-	serviceInfoService service.Service
+	logger                 *zap.Logger
+	serviceInfoService     service.Service
+	serviceoverviewService serviceoverview.Service
 }
 
 func New(logger *zap.Logger, chRepo clickhouse.Repo, promRepo prometheus.Repo, polRepo polarisanalyzer.Repo, dbRepo database.Repo) Handler {
 	return &handler{
-		logger:             logger,
-		serviceInfoService: service.New(chRepo, promRepo, polRepo, dbRepo),
+		logger:                 logger,
+		serviceInfoService:     service.New(chRepo, promRepo, polRepo, dbRepo),
+		serviceoverviewService: serviceoverview.New(chRepo, dbRepo, promRepo),
 	}
 }
