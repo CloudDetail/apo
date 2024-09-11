@@ -11,10 +11,6 @@ const initialState = {
   faultTypeList: null,
   minDuration: null,
   maxDuration: null,
-  // 待废弃
-  duration: null,
-  isSlow: null,
-  isError: null,
 }
 
 const urlParamsReducer = (state = initialState, action) => {

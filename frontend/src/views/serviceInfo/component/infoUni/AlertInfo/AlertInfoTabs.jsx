@@ -8,7 +8,8 @@ import { selectProcessedTimeRange } from 'src/store/reducers/timeRangeReducer'
 import AlertInfoTable from './AlertInfoTable'
 import Empty from 'src/components/Empty/Empty'
 
-export default function AlertInfoTabs() {
+export default function AlertInfoTabs(props) {
+  const { handlePanelStatus } = props
   const { serviceName, endpoint } = usePropsContext()
   const [loading, setLoading] = useState(true)
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
@@ -43,10 +44,17 @@ export default function AlertInfoTabs() {
       endTime,
       service: serviceName,
       endpoint: endpoint,
-    }).then((res) => {
-      setLoading(false)
-      prepareData(res)
     })
+      .then((res) => {
+        setLoading(false)
+        prepareData(res)
+        handlePanelStatus(res.status)
+      })
+      .catch((error) => {
+        setTabList([])
+        handlePanelStatus('unknown')
+        setLoading(false)
+      })
   }
   useEffect(() => {
     getAlertEvents()

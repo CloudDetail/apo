@@ -305,7 +305,7 @@ function Trace() {
       traceId: traceId,
       endpoint: endpoint,
       pageNum: pageIndex,
-      pageSize: 10,
+      pageSize: pageSize,
       containerId,
       nodeName,
       pid,
@@ -347,9 +347,9 @@ function Trace() {
       loading: false,
       onChange: handleTableChange,
       pagination: {
-        pageSize: 10,
+        pageSize: pageSize,
         pageIndex: pageIndex,
-        pageCount: Math.ceil(total / 10),
+        pageCount: Math.ceil(total / pageSize),
       },
     }
   }, [tracePageList])

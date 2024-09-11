@@ -1,5 +1,4 @@
-import { CFormInput } from '@coreui/react'
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getServiceInstancOptionsListApi, getServiceListApi } from 'src/api/service'
 import DateTimeRangePickerCom from 'src/components/DateTime/DateTimeRangePickerCom'
@@ -9,8 +8,6 @@ import { ISOToTimestamp } from 'src/utils/time'
 import { useDispatch } from 'react-redux'
 import { Checkbox, Input, InputNumber, Segmented, Tooltip } from 'antd'
 import { swTraceIDToTraceID } from 'src/utils/trace'
-import { BsChevronDoubleDown } from 'react-icons/bs'
-import TraceMoreFilters from 'src/views/trace/TraceMoreFilters'
 import TraceErrorType from 'src/views/trace/component/TraceErrorType'
 
 const LogsTraceFilter = React.memo(({ type }) => {
@@ -29,12 +26,9 @@ const LogsTraceFilter = React.memo(({ type }) => {
   const [inputSWTraceId, setInputSWTraceId] = useState('')
   const [convertTraceId, setConvertSWTraceId] = useState('')
   // filter
-  const [duration, setDuration] = useState([])
   const [minDuration, setMinDuration] = useState(null)
   const [maxDuration, setMaxDuration] = useState(null)
   const [namespace, setNamespace] = useState(null)
-  const [isSlow, setIsSlow] = useState(null)
-  const [isError, setIsError] = useState(null)
   const [faultTypeList, setFaultTypeList] = useState([])
   const [traceType, setTraceType] = useState('TraceId')
   const [urlParam, setUrlParam] = useState({
@@ -196,9 +190,6 @@ const LogsTraceFilter = React.memo(({ type }) => {
             endpoint: inputEndpoint,
             instanceOption: res,
             namespace,
-            duration,
-            isSlow,
-            isError,
           })
         })
         .catch((error) => {
@@ -219,8 +210,6 @@ const LogsTraceFilter = React.memo(({ type }) => {
     const namespace = searchParams.get('namespace') ?? ''
     const minDuration = searchParams.get('minDuration') ?? ''
     const maxDuration = searchParams.get('maxDuration') ?? ''
-    const isSlow = searchParams.get('isSlow') ?? ''
-    const isError = searchParams.get('isSlow') ?? ''
     const faultTypeList = searchParams.get('faultTypeList') ?? ''
     if (urlFrom && urlTo) {
       const urlTimeRange = timeRangeList.find((item) => item.from === urlFrom && item.to === urlTo)
@@ -251,8 +240,6 @@ const LogsTraceFilter = React.memo(({ type }) => {
     setMinDuration(minDuration)
     setMaxDuration(maxDuration)
     setNamespace(namespace)
-    setIsSlow(isSlow === 'true' ? true : null)
-    setIsError(isError === 'true' ? true : null)
     setFaultTypeList(faultTypeListValue)
     setUrlParam({
       ...urlParam,
@@ -344,22 +331,6 @@ const LogsTraceFilter = React.memo(({ type }) => {
       // // console.log('state改变url')
       setSearchParams(params, { replace: true })
     }
-  }
-
-  //filter
-  const confirmFIlter = (params) => {
-    setNamespace(params.namespace)
-    setDuration(params.duration)
-    setIsError(params.isError)
-    setIsSlow(params.isSlow)
-    setFaultTypeList(params.faultTypeList)
-    updateUrlParamsState({
-      namespace: params.namespace,
-      duration: params.duration ?? '',
-      isSlow: params.isSlow ?? null,
-      isError: params.isError ?? null,
-      faultTypeList: params.faultTypeList,
-    })
   }
   return (
     <>
@@ -469,15 +440,6 @@ const LogsTraceFilter = React.memo(({ type }) => {
           </div>
         </div>
       )}
-      {/* <TraceMoreFilters
-        visible={visible}
-        confirmFIlter={confirmFIlter}
-        duration={duration}
-        namespace={namespace}
-        isError={isError}
-        isSlow={isSlow}
-        faultTypeList={faultTypeList}
-      /> */}
     </>
   )
 })

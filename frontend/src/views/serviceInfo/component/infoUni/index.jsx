@@ -28,6 +28,7 @@ export default function InfoUni() {
     instance: '',
     k8s: '',
     error: '',
+    alert: '',
   })
   const [dashboardVariable, setDashboardVariable] = useState(null)
   const { serviceName } = usePropsContext()
@@ -66,6 +67,9 @@ export default function InfoUni() {
       loadBeforeOpen: true,
       name: `${serviceName}的告警事件`,
       component: AlertInfoTabs,
+      componentProps: {
+        handlePanelStatus: (status) => handlePanelStatus('alert', status),
+      },
     },
     {
       key: 'instance',
