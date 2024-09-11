@@ -18,6 +18,7 @@ import PolarisMetricsInfo from './PolarisMetricsInfo/PolarisMetricsInfo'
 import { selectProcessedTimeRange } from 'src/store/reducers/timeRangeReducer'
 import { useSelector } from 'react-redux'
 import AlertInfoTabs from './AlertInfo/AlertInfoTabs'
+import SqlMetrics from './SqlMetrics'
 
 export default function InfoUni() {
   const [openedPanels, setOpenedPanels] = useState({
@@ -96,6 +97,12 @@ export default function InfoUni() {
         handleToggle,
         handlePanelStatus: (status) => handlePanelStatus('error', status),
       },
+    },
+    {
+      key: 'sql',
+      loadBeforeOpen: true,
+      name: `${serviceName}的数据库调用`,
+      component: SqlMetrics,
     },
     {
       key: 'metrics',

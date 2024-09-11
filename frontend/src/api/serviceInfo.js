@@ -62,3 +62,8 @@ export const getServiceTraceLogsApi = (params) => {
 export const getServiceAlertEventApi = (params) => {
   return get(`/api/service/alert/sample/events`, params)
 }
+
+//获取SQL指标Tab
+export const getServiceSqlMetrics = (params) => {
+  return get(`/api/service/sql/metrics`, params)
+}
