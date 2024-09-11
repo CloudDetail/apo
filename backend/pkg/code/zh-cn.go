@@ -22,6 +22,7 @@ var zhCnText = map[string]string{
 	GetTraceLogsError:              "获取Trace故障现场日志失败",
 	GetServiceListError:            "获取服务名列表失败",
 	GetServiceInstanceOptionsError: "获取服务实例名列表失败",
+	GetServiceEntryEndpointsError:  "获取服务入口Endpoint列表失败",
 	GetK8sEventError:               "无法获取k8s事件",
 	GetServiceEndPointListError:    "获取服务Endpoint列表失败",
 

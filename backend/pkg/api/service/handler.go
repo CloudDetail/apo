@@ -112,6 +112,11 @@ type Handler interface {
 	// @Tags API.service
 	// @Router /api/service/sql/metrics [get]
 	GetSQLMetrics() core.HandlerFunc
+
+	// GetServiceEntryEndpoints 获取服务入口Endpoint列表
+	// @Tags API.service
+	// @Router /api/service/entry/endpoints [get]
+	GetServiceEntryEndpoints() core.HandlerFunc
 }
 
 type handler struct {

@@ -32,6 +32,7 @@ func setApiRouter(r *resource) {
 		serviceApi.POST("/setThreshold", serviceOverviewHandler.SetThreshold())
 
 		serviceHandler := service.New(r.logger, r.ch, r.prom, r.pol, r.pkg_db)
+		serviceApi.GET("/entry/endpoints", serviceHandler.GetServiceEntryEndpoints())
 		serviceApi.GET("/relation", serviceHandler.GetServiceEndpointRelation())
 		serviceApi.GET("/topology", serviceHandler.GetServiceEndpointTopology())
 		serviceApi.GET("/descendant/metrics", serviceHandler.GetDescendantMetrics())

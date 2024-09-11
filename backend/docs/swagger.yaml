@@ -633,6 +633,8 @@ definitions:
             type: array
           type: object
         type: object
+      status:
+        type: string
     type: object
   response.GetDescendantMetricsResponse:
     properties:
@@ -767,12 +769,12 @@ definitions:
     type: object
   response.GetSQLMetricsResponse:
     properties:
+      pagination:
+        $ref: '#/definitions/model.Pagination'
       sqlOperationDetails:
         items:
           $ref: '#/definitions/response.SQLOperationDetail'
         type: array
-      totalCount:
-        type: integer
     type: object
   response.GetServiceEndpointRelationResponse:
     properties:
@@ -806,6 +808,17 @@ definitions:
         description: 上游节点列表
         items:
           $ref: '#/definitions/clickhouse.TopologyNode'
+        type: array
+    type: object
+  response.GetServiceEntryEndpointsResponse:
+    properties:
+      endpoints:
+        items:
+          type: string
+        type: array
+      services:
+        items:
+          type: string
         type: array
     type: object
   response.GetTTLResponse:
@@ -1649,6 +1662,46 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取endpoints服务列表
+      tags:
+      - API.service
+  /api/service/entry/endpoints:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取服务入口Endpoint列表
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetServiceEntryEndpointsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取服务入口Endpoint列表
       tags:
       - API.service
   /api/service/error/instance:

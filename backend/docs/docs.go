@@ -857,6 +857,65 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/service/entry/endpoints": {
+            "get": {
+                "description": "获取服务入口Endpoint列表",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.service"
+                ],
+                "summary": "获取服务入口Endpoint列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "查询开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询服务名",
+                        "name": "service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询Endpoint",
+                        "name": "endpoint",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetServiceEntryEndpointsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/service/error/instance": {
             "get": {
                 "description": "获取错误实例",
@@ -3222,6 +3281,9 @@ const docTemplate = `{
                             }
                         }
                     }
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
@@ -3417,14 +3479,14 @@ const docTemplate = `{
         "response.GetSQLMetricsResponse": {
             "type": "object",
             "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                },
                 "sqlOperationDetails": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.SQLOperationDetail"
                     }
-                },
-                "totalCount": {
-                    "type": "integer"
                 }
             }
         },
@@ -3478,6 +3540,23 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/clickhouse.TopologyNode"
+                    }
+                }
+            }
+        },
+        "response.GetServiceEntryEndpointsResponse": {
+            "type": "object",
+            "properties": {
+                "endpoints": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }

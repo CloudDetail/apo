@@ -27,6 +27,8 @@ type Repo interface {
 	ListDescendantNodes(req *request.GetDescendantMetricsRequest) ([]TopologyNode, error)
 	// 查询所有子孙节点的调用关系
 	ListDescendantRelations(req *request.GetServiceEndpointTopologyRequest) ([]ToplogyRelation, error)
+	// 查询入口节点列表
+	ListEntryEndpoints(req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error)
 
 	// ========== error_propagation ==========
 	// 查询实例相关的错误传播链

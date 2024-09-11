@@ -35,6 +35,7 @@ const (
 	GetServiceEndPointListError         = "B0320"
 	GetServicesAlertError               = "B0321"
 	GetSQLMetricError                   = "B0322"
+	GetServiceEntryEndpointsError       = "B0323"
 	GetFaultLogPageListError            = "B0401"
 	GetFaultLogContentError             = "B0402"
 
