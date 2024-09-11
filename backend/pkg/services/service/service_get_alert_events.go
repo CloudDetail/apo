@@ -3,6 +3,7 @@ package service
 import (
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -34,8 +35,13 @@ func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest)
 
 	groupedEvents := splitByGroupAndName(events)
 
+	var status = model.STATUS_NORMAL
+	if len(groupedEvents) > 0 {
+		status = model.STATUS_CRITICAL
+	}
 	return &response.GetAlertEventsSampleResponse{
 		EventMap: groupedEvents,
+		Status:   status,
 	}, nil
 }
 

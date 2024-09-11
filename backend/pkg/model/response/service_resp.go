@@ -201,4 +201,5 @@ type GetAlertEventsResponse struct {
 
 type GetAlertEventsSampleResponse struct {
 	EventMap map[string]map[string][]clickhouse.AlertEventSample `json:"events"`
+	Status   string                                              `json:"status"`
 }
