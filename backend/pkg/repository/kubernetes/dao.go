@@ -22,12 +22,11 @@ const (
 )
 
 type Repo interface {
-	GetAlertManagerRule() error
-	UpdateAlertManagerRule() error
+	GetAlertManagerRule() (string, error)
+	UpdateAlertManagerRule(alertRules string) error
 }
 
 func New(logger *zap.Logger, authType string, authFilePath string) (Repo, error) {
-
 	restConfig, err := createRestConfig(authType, authFilePath)
 	if err != nil {
 		return nil, err
