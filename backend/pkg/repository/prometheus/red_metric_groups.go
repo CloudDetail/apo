@@ -99,41 +99,6 @@ func (m *REDMetrics) SetValue(metricGroup MGroupName, metricName MName, value fl
 	}
 }
 
-func (m *REDMetrics) CleanUPNullValue() {
-	if m.Avg.Latency != nil && *m.Avg.Latency > 0 {
-		if m.DOD.Latency == nil {
-			value := RES_MAX_VALUE
-			m.DOD.Latency = &value
-		}
-		if m.WOW.Latency == nil {
-			value := RES_MAX_VALUE
-			m.WOW.Latency = &value
-		}
-	}
-
-	if m.Avg.ErrorRate != nil && *m.Avg.ErrorRate > 0 {
-		if m.DOD.ErrorRate == nil {
-			value := RES_MAX_VALUE
-			m.DOD.ErrorRate = &value
-		}
-		if m.WOW.ErrorRate == nil {
-			value := RES_MAX_VALUE
-			m.WOW.ErrorRate = &value
-		}
-	}
-
-	if m.Avg.TPM != nil && *m.Avg.TPM > 0 {
-		if m.DOD.TPM == nil {
-			value := RES_MAX_VALUE
-			m.DOD.TPM = &value
-		}
-		if m.WOW.TPM == nil {
-			value := RES_MAX_VALUE
-			m.WOW.TPM = &value
-		}
-	}
-}
-
 type REDMetric struct {
 	Latency   *float64
 	ErrorRate *float64

@@ -68,9 +68,6 @@ func (s *service) GetSQLMetrics(req *request.GetSQLMetricsRequest) (*response.Ge
 	_ = s.FillSQLREDChart(sqlMetricMap, req.Service, startTime, endTime, step)
 	// 转换格式
 	for _, metricGroups := range sqlMetricMap.MetricGroupList {
-		// 清理空值
-		metricGroups.REDMetrics.CleanUPNullValue()
-
 		res.SQLOperationDetails = append(res.SQLOperationDetails, response.SQLOperationDetail{
 			SQLKey: metricGroups.SQLKey,
 			Latency: response.TempChartObject{
