@@ -44,14 +44,13 @@ function GlossaryTable() {
     return {
       columns: column,
       data: data,
-      showBorder: true,
+
       loading: false,
     }
   }, [])
   return (
     <CCard>
       <BasicTable {...tableProps}></BasicTable>
-
     </CCard>
   )
 }

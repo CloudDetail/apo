@@ -1,5 +1,7 @@
 import { Image, Empty, Modal } from 'antd'
 import React, { useEffect, useRef, useState } from 'react'
+import AlertPng from 'src/assets/snapshot/alert.png'
+import EntryPng from 'src/assets/snapshot/entry.png'
 import DashboardImg from 'src/assets/snapshot/dashboard.jpg'
 import ExceptionPng from 'src/assets/snapshot/exception.png'
 import InstancePng from 'src/assets/snapshot/instance.png'
@@ -16,10 +18,12 @@ export default function CoachMask() {
     {
       name: '接口自身的告警信息、应用层告警和资源层告警',
       scene: '告警分析',
+      img: [AlertPng],
     },
     {
       name: '接口的影响业务入口黄金指标',
       scene: '影响面分析',
+      img: [EntryPng],
     },
     {
       name: '接口的下游依赖告警关联',

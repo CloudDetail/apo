@@ -340,7 +340,7 @@ export default function ServiceView() {
     return {
       columns: column,
       data: paginatedData,
-      showBorder: true,
+
       loading: false,
       onChange: handleTableChange,
       pagination: {

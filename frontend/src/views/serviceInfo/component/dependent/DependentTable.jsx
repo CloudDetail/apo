@@ -199,7 +199,7 @@ function DependentTable(props) {
     return {
       columns: column,
       data: data ?? [],
-      showBorder: true,
+
       loading: loading,
       clickRow: toServiceInfoPage,
     }

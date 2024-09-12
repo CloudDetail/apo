@@ -19,16 +19,18 @@ import { selectProcessedTimeRange } from 'src/store/reducers/timeRangeReducer'
 import { useSelector } from 'react-redux'
 import AlertInfoTabs from './AlertInfo/AlertInfoTabs'
 import SqlMetrics from './SqlMetrics'
+import EntryImpact from './EntryImpact'
 
 export default function InfoUni() {
   const [openedPanels, setOpenedPanels] = useState({
     polarisMetrics: true,
   })
   const [statusPanels, setStatusPanels] = useState({
-    instance: '',
-    k8s: '',
-    error: '',
-    alert: '',
+    instance: 'unknown',
+    k8s: 'unknown',
+    error: 'unknown',
+    alert: 'unknown',
+    impact: 'unknown',
   })
   const [dashboardVariable, setDashboardVariable] = useState(null)
   const { serviceName } = usePropsContext()
@@ -69,6 +71,16 @@ export default function InfoUni() {
       component: AlertInfoTabs,
       componentProps: {
         handlePanelStatus: (status) => handlePanelStatus('alert', status),
+      },
+    },
+    {
+      key: 'impact',
+      loadBeforeOpen: true,
+      name: `${serviceName}的影响面分析`,
+      component: EntryImpact,
+
+      componentProps: {
+        handlePanelStatus: (status) => handlePanelStatus('impact', status),
       },
     },
     {

@@ -45,7 +45,7 @@ export default function AlertInfoTable({ data }) {
     return {
       columns: column,
       data: data,
-      showBorder: true,
+
       loading: false,
     }
   }, [data])

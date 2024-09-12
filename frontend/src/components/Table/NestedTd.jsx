@@ -33,7 +33,7 @@ export const NestedTrs = React.memo(function NestedTrs(props) {
   return (
     <>
       <tr
-        style={{ width: '100%', flexGrow: 1 }}
+        style={{ width: '100%', flexGrow: 1, borderBottom: 0 }}
         onClick={() => cell.column.clickCell(props)}
         className={cell.column.clickCell ? 'cursor-pointer' : ''}
       >
@@ -123,6 +123,8 @@ export const NestedTd = React.memo(function NestedTd(props) {
         ...commonStyle(cell),
         display: 'flex',
         flexDirection: 'column',
+        borderLeft: '1px solid var(--cui-border-color)',
+        borderRight: '1px solid var(--cui-border-color)',
         // flexDirection: 'column', padding: 0, display: 'inline-flex', boxSizing: 'content-box', flexWrap: 'nowrap'
       }}
       className="nested-td relative"

@@ -67,3 +67,7 @@ export const getServiceAlertEventApi = (params) => {
 export const getServiceSqlMetrics = (params) => {
   return get(`/api/service/sql/metrics`, params)
 }
+//获取获取当前service endpoint的入口影响
+export const getServiceEntryEndpoints = (params) => {
+  return get(`/api/service/entry/endpoints`, params)
+}

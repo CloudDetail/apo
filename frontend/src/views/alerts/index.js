@@ -139,7 +139,7 @@ export default function AlertsPage() {
     return {
       columns: column,
       data: data,
-      showBorder: true,
+
       loading: false,
     }
   }, [data])

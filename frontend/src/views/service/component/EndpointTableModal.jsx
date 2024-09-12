@@ -138,7 +138,7 @@ function EndpointTableModal(props) {
     return {
       columns: column,
       data: paginatedData,
-      showBorder: true,
+
       loading: loading,
       onChange: handleTableChange,
       clickRow: toServiceInfoPage,
