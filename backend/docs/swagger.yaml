@@ -291,6 +291,29 @@ definitions:
       status:
         type: string
     type: object
+  request.AlertRule:
+    properties:
+      alert:
+        type: string
+      annotations:
+        additionalProperties:
+          type: string
+        type: object
+      expr:
+        type: string
+      for:
+        type: string
+      group:
+        type: string
+      keep_firing_for:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      record:
+        type: string
+    type: object
   request.DataType:
     enum:
     - int64
@@ -305,6 +328,20 @@ definitions:
     - U64Column
     - StringColumn
     - BoolColumn
+  request.DeleteAlertRuleRequest:
+    properties:
+      alert:
+        type: string
+      alertRuleFile:
+        type: string
+      group:
+        type: string
+    type: object
+  request.GetAlertRuleRequest:
+    properties:
+      alertRuleFile:
+        type: string
+    type: object
   request.GetFaultLogContentRequest:
     properties:
       containerId:
@@ -535,10 +572,10 @@ definitions:
     type: object
   request.UpdateAlertRuleRequest:
     properties:
-      alertRules:
-        additionalProperties:
-          type: string
-        type: object
+      alertRule:
+        $ref: '#/definitions/request.AlertRule'
+      alertRuleFile:
+        type: string
     type: object
   response.CreateResponse:
     properties:
@@ -643,12 +680,19 @@ definitions:
       status:
         type: string
     type: object
-  response.GetAlertRuleResponse:
+  response.GetAlertRuleFileResponse:
     properties:
       alertRules:
         additionalProperties:
           type: string
         type: object
+    type: object
+  response.GetAlertRulesResponse:
+    properties:
+      alertRules:
+        items:
+          $ref: '#/definitions/request.AlertRule'
+        type: array
     type: object
   response.GetDescendantMetricsResponse:
     properties:
@@ -1169,30 +1213,88 @@ paths:
       summary: 获取 AlertManager 的告警事件
       tags:
       - API.alerts
-  /api/alerts/rules:
-    get:
+  /api/alerts/rule:
+    delete:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取基础告警规则
+      description: 删除告警规则
       parameters:
-      - description: 查询告警规则文件名,为空返回所有
-        in: query
-        name: alertRuleFile
-        type: string
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteAlertRuleRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.GetAlertRuleResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取基础告警规则
+      summary: 删除告警规则
       tags:
       - API.alerts
+    post:
+      consumes:
+      - application/json
+      description: 更新告警规则
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateAlertRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 更新告警规则
+      tags:
+      - API.alerts
+  /api/alerts/rules:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 列出告警规则
+      parameters:
+      - description: 告警规则文件名,为空返回默认告警文件
+        in: query
+        name: alertRuleFile
+        type: string
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetAlertRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAlertRulesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 列出告警规则
+      tags:
+      - API.alerts
+  /api/alerts/rules/file:
     post:
       consumes:
       - application/json

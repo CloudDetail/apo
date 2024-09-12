@@ -62,11 +62,19 @@ func New(logger *zap.Logger, authType, authFilePath string, setting config.Metad
 		setting.AlertRuleFileName = DefaultAlertRuleFile
 	}
 
-	return &k8sApi{
+	api := &k8sApi{
 		logger:           logger,
 		cli:              cli,
 		MetadataSettings: setting,
-	}, nil
+
+		Metadata: Metadata{
+			AlertRulesMap: map[string]*AlertRules{},
+		},
+	}
+
+	api.SyncNow()
+
+	return api, nil
 }
 
 type k8sApi struct {
