@@ -26,7 +26,7 @@ func NewTestRepo(t *testing.T) Repo {
 func Test_k8sApi_GetAlertManagerRule(t *testing.T) {
 	repo := NewTestRepo(t)
 
-	cm, err := repo.GetAlertManagerRule()
+	cm, err := repo.GetAlertManagerRule("alert-rules.yaml")
 	if err != nil {
 		t.Errorf("Error to get alert manager rule: %v", err)
 	}

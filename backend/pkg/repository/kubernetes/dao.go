@@ -22,8 +22,8 @@ const (
 )
 
 type Repo interface {
-	GetAlertManagerRule() (string, error)
-	UpdateAlertManagerRule(alertRules string) error
+	GetAlertManagerRule(alertRuleFile string) (map[string]string, error)
+	UpdateAlertManagerRule(alertRules map[string]string) error
 }
 
 func New(logger *zap.Logger, authType string, authFilePath string) (Repo, error) {

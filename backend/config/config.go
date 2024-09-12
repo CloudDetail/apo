@@ -48,6 +48,10 @@ type Config struct {
 		Address string `mapstructure:"address"`
 		Storage string `mapstructure:"storage"`
 	} `mapstructure:"promethues"`
+	Kubernetes struct {
+		AuthType     string `mapstructure:"auth_type"`
+		AuthFilePath string `mapstructure:"auth_file_path"`
+	} `mapstructure:"kubernetes"`
 	Language struct {
 		Local string `mapstructure:"local"`
 	} `mapstructure:"language"`

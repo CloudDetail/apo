@@ -59,6 +59,81 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/rules": {
+            "get": {
+                "description": "获取基础告警规则",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "获取基础告警规则",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "查询告警规则文件名,为空返回所有",
+                        "name": "alertRuleFile",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetAlertRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "更新基础告警规则",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "更新基础告警规则",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateAlertRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/config/getTTL": {
             "get": {
                 "description": "获取TTL",
@@ -3144,6 +3219,17 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateAlertRuleRequest": {
+            "type": "object",
+            "properties": {
+                "alertRules": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "response.CreateResponse": {
             "type": "object",
             "properties": {
@@ -3294,6 +3380,17 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "response.GetAlertRuleResponse": {
+            "type": "object",
+            "properties": {
+                "alertRules": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 }
             }
         },

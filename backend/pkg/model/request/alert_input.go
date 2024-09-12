@@ -19,3 +19,11 @@ type Alert struct {
 	GeneratorURL string            `json:"generatorURL"`
 	Fingerprint  string            `json:"fingerprint"`
 }
+
+type GetAlertRuleRequest struct {
+	AlertRuleFile string `form:"alertRuleFile" json:"alertRuleFile"`
+}
+
+type UpdateAlertRuleRequest struct {
+	AlertRules map[string]string `json:"alertRules"`
+}

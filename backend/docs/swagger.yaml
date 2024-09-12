@@ -533,6 +533,13 @@ definitions:
           type: string
         type: array
     type: object
+  request.UpdateAlertRuleRequest:
+    properties:
+      alertRules:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
   response.CreateResponse:
     properties:
       id:
@@ -635,6 +642,13 @@ definitions:
         type: object
       status:
         type: string
+    type: object
+  response.GetAlertRuleResponse:
+    properties:
+      alertRules:
+        additionalProperties:
+          type: string
+        type: object
     type: object
   response.GetDescendantMetricsResponse:
     properties:
@@ -1153,6 +1167,55 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取 AlertManager 的告警事件
+      tags:
+      - API.alerts
+  /api/alerts/rules:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取基础告警规则
+      parameters:
+      - description: 查询告警规则文件名,为空返回所有
+        in: query
+        name: alertRuleFile
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAlertRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取基础告警规则
+      tags:
+      - API.alerts
+    post:
+      consumes:
+      - application/json
+      description: 更新基础告警规则
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateAlertRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 更新基础告警规则
       tags:
       - API.alerts
   /api/config/getTTL:
