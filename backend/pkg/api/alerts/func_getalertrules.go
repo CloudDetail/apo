@@ -15,13 +15,13 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param alertRuleFile query string false "告警规则文件名,为空返回默认告警文件"
-// @Param Request body request.listAlertRulesRequest true "请求信息"
-// @Success 200 {object} response.listAlertRulesResponse
+// @Param Request body request.GetAlertRuleRequest true "请求信息"
+// @Success 200 {object} response.GetAlertRulesResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/rules [get]
 func (h *handler) GetAlertRules() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.GetAlertRuleConfigRequest)
+		req := new(request.GetAlertRuleRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

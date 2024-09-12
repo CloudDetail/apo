@@ -44,8 +44,8 @@ func Parse(strContent string) (*AlertRules, error) {
 
 				Alert:         ruleNode.Alert.Value,
 				Expr:          ruleNode.Expr.Value,
-				For:           ruleNode.For,
-				KeepFiringFor: ruleNode.KeepFiringFor,
+				For:           ruleNode.For.String(),
+				KeepFiringFor: ruleNode.KeepFiringFor.String(),
 				Labels:        ruleNode.Labels,
 				Annotations:   ruleNode.Annotations,
 			}

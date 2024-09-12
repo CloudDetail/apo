@@ -1,6 +1,11 @@
 package kubernetes
 
-import "github.com/CloudDetail/apo/backend/pkg/model/request"
+import (
+	"fmt"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/prometheus/common/model"
+)
 
 func (k *k8sApi) SyncNow() error {
 	// Update All AlertRule
@@ -31,7 +36,17 @@ func (k *k8sApi) AddOrUpdateAlertRule(configFile string, alertRule request.Alert
 		configFile = k.MetadataSettings.AlertRuleFileName
 	}
 
-	err := k.Metadata.AddorUpdateAlertRule(configFile, alertRule)
+	// check Before update
+	_, err := model.ParseDuration(alertRule.KeepFiringFor)
+	if err != nil {
+		return fmt.Errorf("'keepFiringFor' in alertRule is illegal: %s", alertRule.KeepFiringFor)
+	}
+	_, err = model.ParseDuration(alertRule.For)
+	if err != nil {
+		return fmt.Errorf("'For' in alertRule is illegal: %s", alertRule.KeepFiringFor)
+	}
+
+	err = k.Metadata.AddorUpdateAlertRule(configFile, alertRule)
 	if err != nil {
 		return err
 	}

@@ -1,7 +1,5 @@
 package request
 
-import "github.com/prometheus/common/model"
-
 type InputAlertManagerRequest struct {
 	Receiver          string            `json:"receiver"`
 	Status            string            `json:"status"`
@@ -25,6 +23,8 @@ type Alert struct {
 type GetAlertRuleConfigRequest struct {
 	AlertRuleFile string `form:"alertRuleFile" json:"alertRuleFile"`
 }
+
+type GetAlertRuleRequest = GetAlertRuleConfigRequest
 
 type UpdateAlertRuleConfigRequest struct {
 	AlertRuleFile string `json:"alertRuleFile"`
@@ -50,8 +50,8 @@ type AlertRule struct {
 	Record        string            `json:"record"`
 	Alert         string            `json:"alert"`
 	Expr          string            `json:"expr"`
-	For           model.Duration    `json:"for,omitempty"`
-	KeepFiringFor model.Duration    `json:"keep_firing_for,omitempty"`
+	For           string            `json:"for,omitempty"`
+	KeepFiringFor string            `json:"keep_firing_for,omitempty"`
 	Labels        map[string]string `json:"labels,omitempty"`
 	Annotations   map[string]string `json:"annotations,omitempty"`
 }

@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/prometheus/common/model"
 	promfmt "github.com/prometheus/prometheus/model/rulefmt"
 	"gopkg.in/yaml.v3"
 )
@@ -94,8 +95,7 @@ func (m *Metadata) MarshalToYaml(configFile string) ([]byte, error) {
 	defer m.alertRulesLock.Unlock()
 	alertRules, find := m.AlertRulesMap[configFile]
 	if !find {
-		// TODO return error
-		return nil, nil
+		return nil, fmt.Errorf("configfile %s is not found", configFile)
 	}
 
 	var content = promfmt.RuleGroups{}
@@ -104,10 +104,17 @@ func (m *Metadata) MarshalToYaml(configFile string) ([]byte, error) {
 		var rules []promfmt.RuleNode
 		for _, rule := range alertRules.Rules {
 			if rule.Group == group.Name {
-
+				forDuration, err := model.ParseDuration(rule.For)
+				if err != nil {
+					return nil, err
+				}
+				keepFiringFor, err := model.ParseDuration(rule.KeepFiringFor)
+				if err != nil {
+					return nil, err
+				}
 				ruleNode := promfmt.RuleNode{
-					For:           rule.For,
-					KeepFiringFor: rule.KeepFiringFor,
+					For:           forDuration,
+					KeepFiringFor: keepFiringFor,
 					Labels:        rule.Labels,
 					Annotations:   rule.Annotations,
 				}

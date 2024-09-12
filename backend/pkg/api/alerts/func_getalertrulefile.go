@@ -16,7 +16,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param alertRuleFile query string false "查询告警规则文件名,为空返回所有"
-// @Success 200 {object} response.GetAlertRuleResponse
+// @Success 200 {object} response.GetAlertRuleFileResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/rules [get]
 func (h *handler) GetAlertRuleFile() core.HandlerFunc {
