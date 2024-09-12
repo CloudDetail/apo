@@ -69,6 +69,10 @@ func convertReason(reason string) string {
 		return "容器启动失败重试"
 	case ContainerUnhealthy:
 		return "容器健康检查失败"
+	case NodeReady:
+		return "节点已就绪"
+	case NodeNotReady:
+		return "节点未就绪"
 	default:
 		return reason
 	}
