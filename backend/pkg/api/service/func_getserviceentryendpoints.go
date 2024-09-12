@@ -62,11 +62,13 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 				if err == nil {
 					for _, endpointResp := range endpointResps {
 						if serviceResp, found := result[endpointResp.ServiceName]; found {
+							serviceResp.Namespaces = endpointResp.Namespaces
 							serviceResp.EndpointCount += endpointResp.EndpointCount
-							serviceResp.ServiceDetails = append(serviceResp.ServiceDetails, endpointResp.ServiceDetails...)
+							serviceResp.AddNamespaces(endpointResp.Namespaces)
 						} else {
 							result[endpointResp.ServiceName] = &response.GetServiceEntryEndpointsResponse{
 								ServiceName:    endpointResp.ServiceName,
+								Namespaces:     endpointResp.Namespaces,
 								EndpointCount:  endpointResp.EndpointCount,
 								ServiceDetails: endpointResp.ServiceDetails,
 							}

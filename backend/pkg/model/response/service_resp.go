@@ -5,6 +5,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 type GetServiceEndpointRelationResponse struct {
@@ -214,4 +215,19 @@ type GetServiceEntryEndpointsResponse struct {
 	Timestamp *int64          `json:"timestamp"`
 	model.AlertStatus
 	AlertReason model.AlertReason `json:"alertReason"`
+}
+
+func (entryEndPointResp *GetServiceEntryEndpointsResponse) AddNamespaces(namespaces []string) {
+	if len(namespaces) == 0 {
+		return
+	}
+	if len(entryEndPointResp.Namespaces) == 0 {
+		entryEndPointResp.Namespaces = namespaces
+	} else {
+		for _, namespace := range namespaces {
+			if !util.ContainsStr(entryEndPointResp.Namespaces, namespace) {
+				entryEndPointResp.Namespaces = append(entryEndPointResp.Namespaces, namespace)
+			}
+		}
+	}
 }
