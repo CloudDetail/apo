@@ -16,7 +16,7 @@ func NewTestRepo(t *testing.T) Repo {
 	authFilePath := viper.GetString("kubernetes.authFilePath")
 
 	zapLog := logger.NewLogger(logger.WithLevel("debug"))
-	repo, err := New(zapLog, authType, authFilePath)
+	repo, err := New(zapLog, authType, authFilePath, DefaultAPONS, DefaultCMNAME)
 	if err != nil {
 		t.Fatalf("Error to connect clickhouse: %v", err)
 	}

@@ -9,19 +9,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const DefaultAPONS = "apo"
-const DefaultCMNAME = "apo-victoria-metrics-alert-server-alert-rules-config"
-const DefaultAlertRuleFile = "alert-rules.yaml"
 
-var DefaultConfigMapKey = client.ObjectKey{
-	Namespace: DefaultAPONS,
-	Name:      DefaultCMNAME,
-}
 
 // GetAlertManagerRule implements Repo.
 func (k *k8sApi) GetAlertManagerRule(alertRuleFile string) (map[string]string, error) {
 	obj := &v1.ConfigMap{}
-	key := DefaultConfigMapKey
+	key := client.ObjectKey{
+		Namespace: k.Namespace,
+		Name:      k.ConfigMapName,
+	}
 	err := k.cli.Get(context.Background(), key, obj)
 	if err != nil {
 		return nil, err
@@ -39,8 +35,8 @@ func (k *k8sApi) GetAlertManagerRule(alertRuleFile string) (map[string]string, e
 func (k *k8sApi) UpdateAlertManagerRule(alertRules map[string]string) error {
 	obj := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      DefaultCMNAME,
-			Namespace: DefaultAPONS,
+			Name:      k.ConfigMapName,
+			Namespace: k.Namespace,
 		},
 	}
 

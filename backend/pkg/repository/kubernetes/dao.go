@@ -19,6 +19,11 @@ const (
 
 	// DefaultKubeConfigPath Default kubeconfig path
 	DefaultKubeConfigPath string = "~/.kube/config"
+
+	// DefaultMetaSetting
+	DefaultAPONS         string = "apo"
+	DefaultCMNAME        string = "apo-victoria-metrics-alert-server-alert-rules-config"
+	DefaultAlertRuleFile string = "alert-rules.yaml"
 )
 
 type Repo interface {
@@ -26,7 +31,7 @@ type Repo interface {
 	UpdateAlertManagerRule(alertRules map[string]string) error
 }
 
-func New(logger *zap.Logger, authType string, authFilePath string) (Repo, error) {
+func New(logger *zap.Logger, authType, authFilePath, namespace, configMapName string) (Repo, error) {
 	restConfig, err := createRestConfig(authType, authFilePath)
 	if err != nil {
 		return nil, err
@@ -37,13 +42,25 @@ func New(logger *zap.Logger, authType string, authFilePath string) (Repo, error)
 		return nil, err
 	}
 
+	if len(namespace) == 0 {
+		namespace = DefaultAPONS
+	}
+	if len(configMapName) == 0 {
+		configMapName = DefaultCMNAME
+	}
+
 	return &k8sApi{
-		cli: cli,
+		cli:           cli,
+		Namespace:     namespace,
+		ConfigMapName: configMapName,
 	}, nil
 }
 
 type k8sApi struct {
 	cli client.Client
+
+	Namespace     string
+	ConfigMapName string
 }
 
 // createRestConfig creates an Kubernetes API config from user configuration.

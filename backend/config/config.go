@@ -51,6 +51,11 @@ type Config struct {
 	Kubernetes struct {
 		AuthType     string `mapstructure:"auth_type"`
 		AuthFilePath string `mapstructure:"auth_file_path"`
+
+		MetadataSettings struct {
+			Namespace              string `mapstructure:"namespace"`
+			AlertRuleConfigMapName string `mapstructure:"alert_rule_configmap_name"`
+		} `mapstructure:"metadata_settings"`
 	} `mapstructure:"kubernetes"`
 	Language struct {
 		Local string `mapstructure:"local"`
