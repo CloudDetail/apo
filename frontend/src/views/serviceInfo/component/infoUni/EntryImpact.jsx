@@ -57,6 +57,7 @@ export default function EntryImpact(props) {
         navigate(
           `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}`,
         )
+        console.log(props)
         window.scrollTo(0, 0)
       },
       children: [
@@ -144,8 +145,8 @@ export default function EntryImpact(props) {
       accessor: `infrastructureStatus`,
       Cell: (props) => {
         // eslint-disable-next-line react/prop-types
-        const { value, trs, column } = props
-        const alertReason = trs?.alertReason?.[column.accessor]
+        const { value, row, column } = props
+        const alertReason = row.original?.alertReason?.[column.id]
         return (
           <>
             <StatusInfo status={value} alertReason={alertReason} title={column.title} />
@@ -158,8 +159,8 @@ export default function EntryImpact(props) {
       accessor: `netStatus`,
       Cell: (/** @type {{ value: any; }} */ props) => {
         // eslint-disable-next-line react/prop-types
-        const { value, trs, column } = props
-        const alertReason = trs?.alertReason?.[column.accessor]
+        const { value, row, column } = props
+        const alertReason = row.original?.alertReason?.[column.id]
         return (
           <>
             <StatusInfo status={value} alertReason={alertReason} title={column.title} />
@@ -172,8 +173,8 @@ export default function EntryImpact(props) {
       accessor: `k8sStatus`,
       Cell: (props) => {
         // eslint-disable-next-line react/prop-types
-        const { value, trs, column } = props
-        const alertReason = trs?.alertReason?.[column.accessor]
+        const { value, row, column } = props
+        const alertReason = row.original?.alertReason?.[column.id]
         return (
           <>
             <StatusInfo status={value} alertReason={alertReason} title={column.title} />
