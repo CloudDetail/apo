@@ -8,19 +8,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// UpdateAlertRule 更新告警规则
-// @Summary 更新告警规则
-// @Description 更新告警规则
+// UpdateAlertRuleFile 更新基础告警规则
+// @Summary 更新基础告警规则
+// @Description 更新基础告警规则
 // @Tags API.alerts
 // @Accept json
 // @Produce json
 // @Param Request body request.UpdateAlertRuleRequest true "请求信息"
 // @Success 200 string ok
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/rule [post]
-func (h *handler) UpdateAlertRule() core.HandlerFunc {
+// @Router /api/alerts/rules/file [post]
+func (h *handler) UpdateAlertRuleFile() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.UpdateAlertRuleRequest)
+		req := new(request.UpdateAlertRuleConfigRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -30,7 +30,7 @@ func (h *handler) UpdateAlertRule() core.HandlerFunc {
 			return
 		}
 
-		err := h.alertService.UpdateAlertRule(req)
+		err := h.alertService.UpdateAlertRuleFile(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

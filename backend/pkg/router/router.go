@@ -84,8 +84,7 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	k8sCfg := config.Get().Kubernetes
 	k8sApi, err := kubernetes.New(logger,
 		k8sCfg.AuthType, k8sCfg.AuthFilePath,
-		k8sCfg.MetadataSettings.Namespace,
-		k8sCfg.MetadataSettings.AlertRuleConfigMapName)
+		k8sCfg.MetadataSettings)
 	if err != nil {
 		logger.Fatal("new kubernetes api err", zap.Error(err))
 	}

@@ -13,19 +13,20 @@ type Service interface {
 	// InputAlertManager 接收 AlertManager 的告警事件
 	InputAlertManager(req *request.InputAlertManagerRequest) error
 
-	// GetAlertRule 获取基础告警规则
-	GetAlertRule(req *request.GetAlertRuleRequest) (*response.GetAlertRuleResponse, error)
+	// GetAlertRuleFile 获取基础告警规则
+	GetAlertRuleFile(req *request.GetAlertRuleConfigRequest) (*response.GetAlertRuleFileResponse, error)
+	// UpdateAlertRuleFile 更新告警基础规则
+	UpdateAlertRuleFile(req *request.UpdateAlertRuleConfigRequest) error
 
-	// UpdateAlertRule 更新告警基础规则
+	GetAlertRules(configFile string) response.GetAlertRulesResponse
 	UpdateAlertRule(req *request.UpdateAlertRuleRequest) error
+	DeleteAlertRule(req *request.DeleteAlertRuleRequest) error
 }
 
 type service struct {
 	chRepo clickhouse.Repo
 	k8sApi kubernetes.Repo
 }
-
-
 
 func New(chRepo clickhouse.Repo, k8sApi kubernetes.Repo) Service {
 	return &service{

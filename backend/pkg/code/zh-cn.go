@@ -49,4 +49,5 @@ var zhCnText = map[string]string{
 	GetSQLMetricError:    "获取SQL关键指标失败",
 	GetAlertRuleError:    "获取告警规则失败",
 	UpdateAlertRuleError: "更新告警规则失败",
+	DeleteAlertRuleError: "删除告警规则失败",
 }

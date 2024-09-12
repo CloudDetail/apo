@@ -46,4 +46,5 @@ var enText = map[string]string{
 	GetAlertEventsSampleError: "Failed to get sample alert events",
 	GetAlertRuleError:         "Failed to get alert rule",
 	UpdateAlertRuleError:      "Failed to update alert rule",
+	DeleteAlertRuleError:      "Failed to delete alert rule",
 }

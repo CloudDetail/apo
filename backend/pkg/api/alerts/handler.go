@@ -15,15 +15,30 @@ type Handler interface {
 	// @Router /api/alerts/inputs/alertmanager [post]
 	InputAlertManager() core.HandlerFunc
 
-	// GetAlertRule 获取基础告警规则
+	// GetAlertRuleFile 获取基础告警规则
+	// @Tags API.alerts
+	// @Router /api/alerts/rules/file [get]
+	GetAlertRuleFile() core.HandlerFunc
+
+	// UpdateAlertRuleFile 更新基础告警规则
+	// @Tags API.alerts
+	// @Router /api/alerts/rules/file [post]
+	UpdateAlertRuleFile() core.HandlerFunc
+
+	// GetAlertRules 列出告警规则
 	// @Tags API.alerts
 	// @Router /api/alerts/rules [get]
-	GetAlertRule() core.HandlerFunc
+	GetAlertRules() core.HandlerFunc
 
-	// UpdateAlertRule 更新基础告警规则
+	// UpdateAlertRule 更新告警规则
 	// @Tags API.alerts
-	// @Router /api/alerts/rules [post]
+	// @Router /api/alerts/rule [post]
 	UpdateAlertRule() core.HandlerFunc
+
+	// DeleteAlertRule 删除告警规则
+	// @Tags API.alerts
+	// @Router /api/alerts/rule [delete]
+	DeleteAlertRule() core.HandlerFunc
 }
 
 type handler struct {

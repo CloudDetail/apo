@@ -9,14 +9,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-
-
-// GetAlertManagerRule implements Repo.
-func (k *k8sApi) GetAlertManagerRule(alertRuleFile string) (map[string]string, error) {
+// GetAlertRuleConfigFile implements Repo.
+func (k *k8sApi) GetAlertRuleConfigFile(alertRuleFile string) (map[string]string, error) {
 	obj := &v1.ConfigMap{}
 	key := client.ObjectKey{
 		Namespace: k.Namespace,
-		Name:      k.ConfigMapName,
+		Name:      k.AlertRuleCMName,
 	}
 	err := k.cli.Get(context.Background(), key, obj)
 	if err != nil {
@@ -32,22 +30,19 @@ func (k *k8sApi) GetAlertManagerRule(alertRuleFile string) (map[string]string, e
 	return obj.Data, nil
 }
 
-func (k *k8sApi) UpdateAlertManagerRule(alertRules map[string]string) error {
+func (k *k8sApi) UpdateAlertRuleConfigFile(configFile string, content []byte) error {
 	obj := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      k.ConfigMapName,
+			Name:      k.AlertRuleCMName,
 			Namespace: k.Namespace,
 		},
 	}
 
-	// TODO 处理未更新的情况
 	_, err := controllerutil.CreateOrUpdate(context.Background(), k.cli, obj, func() error {
-		for k, v := range alertRules {
-			if len(v) > 0 {
-				obj.Data[k] = v
-			} else {
-				delete(obj.Data, k)
-			}
+		if content == nil {
+			delete(obj.Data, configFile)
+		} else {
+			obj.Data[configFile] = string(content)
 		}
 		return nil
 	})

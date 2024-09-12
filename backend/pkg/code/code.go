@@ -51,6 +51,7 @@ const (
 	GetAlertEventsSampleError = "B0702"
 	GetAlertRuleError         = "B0703"
 	UpdateAlertRuleError      = "B0704"
+	DeleteAlertRuleError      = "B0705"
 )
 
 func Text(code string) string {

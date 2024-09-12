@@ -8,19 +8,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetAlertRule 获取基础告警规则
-// @Summary 获取基础告警规则
-// @Description 获取基础告警规则
+// DeleteAlertRule 删除告警规则
+// @Summary 删除告警规则
+// @Description 删除告警规则
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param alertRuleFile query string false "查询告警规则文件名,为空返回所有"
-// @Success 200 {object} response.GetAlertRuleResponse
+// @Param Request body request.DeleteAlertRuleRequest true "请求信息"
+// @Success 200 string ok
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/rules [get]
-func (h *handler) GetAlertRule() core.HandlerFunc {
+// @Router /api/alerts/rule [delete]
+func (h *handler) DeleteAlertRule() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.GetAlertRuleRequest)
+		req := new(request.DeleteAlertRuleRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -30,15 +30,16 @@ func (h *handler) GetAlertRule() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.alertService.GetAlertRule(req)
+		err := h.alertService.DeleteAlertRule(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.GetAlertRuleError,
-				code.Text(code.GetAlertRuleError)).WithError(err),
+				code.DeleteAlertRuleError,
+				code.Text(code.DeleteAlertRuleError)).WithError(err),
 			)
 			return
 		}
-		c.Payload(resp)
+
+		c.Payload("ok")
 	}
 }

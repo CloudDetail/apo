@@ -10,6 +10,9 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/CloudDetail/apo/backend/config"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 const (
@@ -27,11 +30,18 @@ const (
 )
 
 type Repo interface {
-	GetAlertManagerRule(alertRuleFile string) (map[string]string, error)
-	UpdateAlertManagerRule(alertRules map[string]string) error
+	// Sync with K8sAPIServer
+	SyncNow() error
+
+	GetAlertRuleConfigFile(alertRuleFile string) (map[string]string, error)
+	UpdateAlertRuleConfigFile(configFile string, content []byte) error
+
+	GetAlertRules(configFile string) []request.AlertRule
+	AddOrUpdateAlertRule(configFile string, alertRule request.AlertRule) error
+	DeleteAlertRule(configFile string, group, alert string) error
 }
 
-func New(logger *zap.Logger, authType, authFilePath, namespace, configMapName string) (Repo, error) {
+func New(logger *zap.Logger, authType, authFilePath string, setting config.MetadataSettings) (Repo, error) {
 	restConfig, err := createRestConfig(authType, authFilePath)
 	if err != nil {
 		return nil, err
@@ -42,25 +52,29 @@ func New(logger *zap.Logger, authType, authFilePath, namespace, configMapName st
 		return nil, err
 	}
 
-	if len(namespace) == 0 {
-		namespace = DefaultAPONS
+	if len(setting.Namespace) == 0 {
+		setting.Namespace = DefaultAPONS
 	}
-	if len(configMapName) == 0 {
-		configMapName = DefaultCMNAME
+	if len(setting.AlertRuleCMName) == 0 {
+		setting.AlertRuleCMName = DefaultCMNAME
+	}
+	if len(setting.AlertRuleFileName) == 0 {
+		setting.AlertRuleFileName = DefaultAlertRuleFile
 	}
 
 	return &k8sApi{
-		cli:           cli,
-		Namespace:     namespace,
-		ConfigMapName: configMapName,
+		logger:           logger,
+		cli:              cli,
+		MetadataSettings: setting,
 	}, nil
 }
 
 type k8sApi struct {
-	cli client.Client
+	logger *zap.Logger
+	cli    client.Client
 
-	Namespace     string
-	ConfigMapName string
+	config.MetadataSettings
+	Metadata
 }
 
 // createRestConfig creates an Kubernetes API config from user configuration.

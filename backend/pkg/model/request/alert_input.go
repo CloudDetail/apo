@@ -1,5 +1,7 @@
 package request
 
+import "github.com/prometheus/common/model"
+
 type InputAlertManagerRequest struct {
 	Receiver          string            `json:"receiver"`
 	Status            string            `json:"status"`
@@ -20,10 +22,36 @@ type Alert struct {
 	Fingerprint  string            `json:"fingerprint"`
 }
 
-type GetAlertRuleRequest struct {
+type GetAlertRuleConfigRequest struct {
 	AlertRuleFile string `form:"alertRuleFile" json:"alertRuleFile"`
 }
 
+type UpdateAlertRuleConfigRequest struct {
+	AlertRuleFile string `json:"alertRuleFile"`
+	Content       string `json:"content"`
+}
+
 type UpdateAlertRuleRequest struct {
-	AlertRules map[string]string `json:"alertRules"`
+	AlertRuleFile string `json:"alertRuleFile"`
+
+	AlertRule AlertRule `json:"alertRule"`
+}
+
+type DeleteAlertRuleRequest struct {
+	AlertRuleFile string `form:"alertRuleFile" json:"alertRuleFile"`
+
+	Group string `form:"group" json:"group"`
+	Alert string `form:"alert" json:"alert"`
+}
+
+type AlertRule struct {
+	Group string `json:"group"`
+
+	Record        string            `json:"record"`
+	Alert         string            `json:"alert"`
+	Expr          string            `json:"expr"`
+	For           model.Duration    `json:"for,omitempty"`
+	KeepFiringFor model.Duration    `json:"keep_firing_for,omitempty"`
+	Labels        map[string]string `json:"labels,omitempty"`
+	Annotations   map[string]string `json:"annotations,omitempty"`
 }
