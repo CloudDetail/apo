@@ -206,6 +206,11 @@ type GetAlertEventsSampleResponse struct {
 }
 
 type GetServiceEntryEndpointsResponse struct {
+	Status string               `json:"status"`
+	Data   []*EntryInstanceData `json:"data"`
+}
+
+type EntryInstanceData struct {
 	ServiceName    string          `json:"serviceName"`
 	Namespaces     []string        `json:"namespaces"` // 应用所属命名空间,可能为空
 	EndpointCount  int             `json:"endpointCount"`
@@ -217,16 +222,16 @@ type GetServiceEntryEndpointsResponse struct {
 	AlertReason model.AlertReason `json:"alertReason"`
 }
 
-func (entryEndPointResp *GetServiceEntryEndpointsResponse) AddNamespaces(namespaces []string) {
+func (entryInstanceData *EntryInstanceData) AddNamespaces(namespaces []string) {
 	if len(namespaces) == 0 {
 		return
 	}
-	if len(entryEndPointResp.Namespaces) == 0 {
-		entryEndPointResp.Namespaces = namespaces
+	if len(entryInstanceData.Namespaces) == 0 {
+		entryInstanceData.Namespaces = namespaces
 	} else {
 		for _, namespace := range namespaces {
-			if !util.ContainsStr(entryEndPointResp.Namespaces, namespace) {
-				entryEndPointResp.Namespaces = append(entryEndPointResp.Namespaces, namespace)
+			if !util.ContainsStr(entryInstanceData.Namespaces, namespace) {
+				entryInstanceData.Namespaces = append(entryInstanceData.Namespaces, namespace)
 			}
 		}
 	}

@@ -6,6 +6,8 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -40,17 +42,26 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 
 		var (
 			err           error
+			threshold     response.GetThresholdResponse
 			endpointResps []response.ServiceEndPointsRes
 			alertResps    []response.ServiceAlertRes
 		)
 
-		result := make(map[string]*response.GetServiceEntryEndpointsResponse, 0)
+		result := make(map[string]*response.EntryInstanceData, 0)
+		resp := response.GetServiceEntryEndpointsResponse{
+			Status: model.STATUS_NORMAL,
+			Data:   make([]*response.EntryInstanceData, 0),
+		}
 		entryNodes, err := h.serviceInfoService.GetServiceEntryEndpoints(req)
-		step := time.Duration(req.Step * 1000)
+		if err == nil {
+			// TODO 先默认全局Threshold，后续调整为具体服务的Threshold
+			threshold, err = h.serviceoverviewService.GetThreshold(database.GLOBAL, "", "")
+		}
 		if err == nil {
 			startTime := time.UnixMicro(req.StartTime)
 			endTime := time.UnixMicro(req.EndTime)
 			sortRule := serviceoverview.DODThreshold
+			step := time.Duration(req.Step * 1000)
 
 			for _, entryNode := range entryNodes {
 				filter := serviceoverview.EndpointsFilter{
@@ -66,11 +77,32 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 							serviceResp.EndpointCount += endpointResp.EndpointCount
 							serviceResp.AddNamespaces(endpointResp.Namespaces)
 						} else {
-							result[endpointResp.ServiceName] = &response.GetServiceEntryEndpointsResponse{
+							result[endpointResp.ServiceName] = &response.EntryInstanceData{
 								ServiceName:    endpointResp.ServiceName,
 								Namespaces:     endpointResp.Namespaces,
 								EndpointCount:  endpointResp.EndpointCount,
 								ServiceDetails: endpointResp.ServiceDetails,
+							}
+						}
+
+						for _, detail := range endpointResp.ServiceDetails {
+							if detail.Latency.Ratio.DayOverDay != nil && *detail.Latency.Ratio.DayOverDay > threshold.Latency {
+								resp.Status = model.STATUS_CRITICAL
+							}
+							if detail.Latency.Ratio.WeekOverDay != nil && *detail.Latency.Ratio.WeekOverDay > threshold.Latency {
+								resp.Status = model.STATUS_CRITICAL
+							}
+							if detail.ErrorRate.Ratio.DayOverDay != nil && *detail.ErrorRate.Ratio.DayOverDay > threshold.ErrorRate {
+								resp.Status = model.STATUS_CRITICAL
+							}
+							if detail.ErrorRate.Ratio.WeekOverDay != nil && *detail.ErrorRate.Ratio.WeekOverDay > threshold.ErrorRate {
+								resp.Status = model.STATUS_CRITICAL
+							}
+							if detail.Tps.Ratio.DayOverDay != nil && *detail.Tps.Ratio.DayOverDay > threshold.Tps {
+								resp.Status = model.STATUS_CRITICAL
+							}
+							if detail.Tps.Ratio.WeekOverDay != nil && *detail.Tps.Ratio.WeekOverDay > threshold.Tps {
+								resp.Status = model.STATUS_CRITICAL
 							}
 						}
 					}
@@ -79,11 +111,11 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 				}
 			}
 		}
-
 		if err == nil {
 			// 补全日志错误数等信息
 			startTime := time.Unix(req.StartTime/1000000, 0)
 			endTime := time.Unix(req.EndTime/1000000, 0)
+			step := time.Duration(req.Step * 1000)
 			serviceNames := make([]string, 0)
 			for serviceName := range result {
 				serviceNames = append(serviceNames, serviceName)
@@ -96,6 +128,18 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 						serviceResp.Timestamp = alertResp.Timestamp
 						serviceResp.AlertStatus = alertResp.AlertStatus
 						serviceResp.AlertReason = alertResp.AlertReason
+					}
+
+					if alertResp.Logs.Ratio.DayOverDay != nil && *alertResp.Logs.Ratio.DayOverDay > threshold.Log {
+						resp.Status = model.STATUS_CRITICAL
+					}
+					if alertResp.Logs.Ratio.WeekOverDay != nil && *alertResp.Logs.Ratio.WeekOverDay > threshold.Log {
+						resp.Status = model.STATUS_CRITICAL
+					}
+					if alertResp.AlertStatusCH.InfrastructureStatus == model.STATUS_CRITICAL ||
+						alertResp.AlertStatusCH.NetStatus == model.STATUS_CRITICAL ||
+						alertResp.AlertStatusCH.K8sStatus == model.STATUS_CRITICAL {
+						resp.Status = model.STATUS_CRITICAL
 					}
 				}
 			}
@@ -110,9 +154,8 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			return
 		}
 
-		resp := make([]*response.GetServiceEntryEndpointsResponse, 0)
 		for _, endpointsResp := range result {
-			resp = append(resp, endpointsResp)
+			resp.Data = append(resp.Data, endpointsResp)
 		}
 		c.Payload(resp)
 	}
