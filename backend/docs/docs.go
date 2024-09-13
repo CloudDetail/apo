@@ -59,201 +59,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/alerts/rule": {
-            "post": {
-                "description": "更新告警规则",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.alerts"
-                ],
-                "summary": "更新告警规则",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateAlertRuleRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "删除告警规则",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.alerts"
-                ],
-                "summary": "删除告警规则",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.DeleteAlertRuleRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/alerts/rule/list": {
-            "post": {
-                "description": "列出告警规则",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.alerts"
-                ],
-                "summary": "列出告警规则",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.GetAlertRuleRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.GetAlertRulesResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/alerts/rules": {
-            "get": {
-                "description": "获取基础告警规则",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.alerts"
-                ],
-                "summary": "获取基础告警规则",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "查询告警规则文件名,为空返回所有",
-                        "name": "alertRuleFile",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.GetAlertRuleFileResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/alerts/rules/file": {
-            "post": {
-                "description": "更新基础告警规则",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.alerts"
-                ],
-                "summary": "更新基础告警规则",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateAlertRuleRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
         "/api/config/getTTL": {
             "get": {
                 "description": "获取TTL",
@@ -3007,41 +2812,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.AlertRule": {
-            "type": "object",
-            "properties": {
-                "alert": {
-                    "type": "string"
-                },
-                "annotations": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "expr": {
-                    "type": "string"
-                },
-                "for": {
-                    "type": "string"
-                },
-                "group": {
-                    "type": "string"
-                },
-                "keep_firing_for": {
-                    "type": "string"
-                },
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "record": {
-                    "type": "string"
-                }
-            }
-        },
         "request.DataType": {
             "type": "string",
             "enum": [
@@ -3058,50 +2828,6 @@ const docTemplate = `{
                 "StringColumn",
                 "BoolColumn"
             ]
-        },
-        "request.DeleteAlertRuleRequest": {
-            "type": "object",
-            "properties": {
-                "alert": {
-                    "type": "string"
-                },
-                "alertRuleFile": {
-                    "type": "string"
-                },
-                "group": {
-                    "type": "string"
-                }
-            }
-        },
-        "request.GetAlertRuleRequest": {
-            "type": "object",
-            "properties": {
-                "alert": {
-                    "type": "string"
-                },
-                "alertRuleFile": {
-                    "type": "string"
-                },
-                "currentPage": {
-                    "type": "integer"
-                },
-                "group": {
-                    "type": "string"
-                },
-                "keyword": {
-                    "type": "string"
-                },
-                "pageSize": {
-                    "type": "integer"
-                },
-                "severity": {
-                    "description": "告警级别 info warning ...",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
         },
         "request.GetFaultLogContentRequest": {
             "type": "object",
@@ -3418,17 +3144,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.UpdateAlertRuleRequest": {
-            "type": "object",
-            "properties": {
-                "alertRule": {
-                    "$ref": "#/definitions/request.AlertRule"
-                },
-                "alertRuleFile": {
-                    "type": "string"
-                }
-            }
-        },
         "response.CreateResponse": {
             "type": "object",
             "properties": {
@@ -3579,31 +3294,6 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
-                }
-            }
-        },
-        "response.GetAlertRuleFileResponse": {
-            "type": "object",
-            "properties": {
-                "alertRules": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "response.GetAlertRulesResponse": {
-            "type": "object",
-            "properties": {
-                "alertRules": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/request.AlertRule"
-                    }
-                },
-                "pagination": {
-                    "$ref": "#/definitions/model.Pagination"
                 }
             }
         },

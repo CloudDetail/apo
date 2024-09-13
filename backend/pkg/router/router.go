@@ -10,7 +10,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	pkg_database "github.com/CloudDetail/apo/backend/pkg/repository/database"
-	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
@@ -23,8 +22,6 @@ type resource struct {
 	pol         polarisanalyzer.Repo
 	internal_db internal_database.Repo
 	pkg_db      pkg_database.Repo
-
-	k8sApi kubernetes.Repo
 }
 
 type Server struct {
@@ -80,15 +77,6 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 		logger.Fatal("new polarisanalyzer err", zap.Error(err))
 	}
 	r.pol = polRepo
-
-	k8sCfg := config.Get().Kubernetes
-	k8sApi, err := kubernetes.New(logger,
-		k8sCfg.AuthType, k8sCfg.AuthFilePath,
-		k8sCfg.MetadataSettings)
-	if err != nil {
-		logger.Fatal("new kubernetes api err", zap.Error(err))
-	}
-	r.k8sApi = k8sApi
 
 	// 设置 API 路由
 	setApiRouter(r)
