@@ -339,8 +339,23 @@ definitions:
     type: object
   request.GetAlertRuleRequest:
     properties:
+      alert:
+        type: string
       alertRuleFile:
         type: string
+      currentPage:
+        type: integer
+      group:
+        type: string
+      keyword:
+        type: string
+      pageSize:
+        type: integer
+      severity:
+        description: 告警级别 info warning ...
+        items:
+          type: string
+        type: array
     type: object
   request.GetFaultLogContentRequest:
     properties:
@@ -693,6 +708,8 @@ definitions:
         items:
           $ref: '#/definitions/request.AlertRule'
         type: array
+      pagination:
+        $ref: '#/definitions/model.Pagination'
     type: object
   response.GetDescendantMetricsResponse:
     properties:
@@ -1264,16 +1281,12 @@ paths:
       summary: 更新告警规则
       tags:
       - API.alerts
-  /api/alerts/rules:
-    get:
+  /api/alerts/rule/list:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: 列出告警规则
       parameters:
-      - description: 告警规则文件名,为空返回默认告警文件
-        in: query
-        name: alertRuleFile
-        type: string
       - description: 请求信息
         in: body
         name: Request
@@ -1292,6 +1305,30 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 列出告警规则
+      tags:
+      - API.alerts
+  /api/alerts/rules:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取基础告警规则
+      parameters:
+      - description: 查询告警规则文件名,为空返回所有
+        in: query
+        name: alertRuleFile
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAlertRuleFileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取基础告警规则
       tags:
       - API.alerts
   /api/alerts/rules/file:

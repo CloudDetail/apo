@@ -137,11 +137,11 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/alerts/rules": {
-            "get": {
+        "/api/alerts/rule/list": {
+            "post": {
                 "description": "列出告警规则",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -151,12 +151,6 @@ const docTemplate = `{
                 ],
                 "summary": "列出告警规则",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "告警规则文件名,为空返回默认告警文件",
-                        "name": "alertRuleFile",
-                        "in": "query"
-                    },
                     {
                         "description": "请求信息",
                         "name": "Request",
@@ -172,6 +166,43 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.GetAlertRulesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/rules": {
+            "get": {
+                "description": "获取基础告警规则",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "获取基础告警规则",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "查询告警规则文件名,为空返回所有",
+                        "name": "alertRuleFile",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetAlertRuleFileResponse"
                         }
                     },
                     "400": {
@@ -3045,8 +3076,30 @@ const docTemplate = `{
         "request.GetAlertRuleRequest": {
             "type": "object",
             "properties": {
+                "alert": {
+                    "type": "string"
+                },
                 "alertRuleFile": {
                     "type": "string"
+                },
+                "currentPage": {
+                    "type": "integer"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "keyword": {
+                    "type": "string"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "severity": {
+                    "description": "告警级别 info warning ...",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -3548,6 +3601,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/request.AlertRule"
                     }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
                 }
             }
         },

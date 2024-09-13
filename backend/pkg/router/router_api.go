@@ -79,7 +79,7 @@ func setApiRouter(r *resource) {
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.GET("/rules/file", alertHandler.GetAlertRuleFile())
 		alertApi.POST("/rules/file", alertHandler.UpdateAlertRuleFile())
-		alertApi.GET("/rules", alertHandler.GetAlertRules())
+		alertApi.POST("/rule/list", alertHandler.GetAlertRules())
 		alertApi.POST("/rule", alertHandler.UpdateAlertRule())
 		alertApi.DELETE("/rule", alertHandler.DeleteAlertRule())
 	}

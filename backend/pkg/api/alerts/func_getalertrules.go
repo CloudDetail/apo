@@ -17,7 +17,7 @@ import (
 // @Param Request body request.GetAlertRuleRequest true "请求信息"
 // @Success 200 {object} response.GetAlertRulesResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/rules [get]
+// @Router /api/alerts/rule/list [post]
 func (h *handler) GetAlertRules() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAlertRuleRequest)

@@ -31,7 +31,7 @@ func (m *Metadata) GetAlertRules(configFile string, filter *request.AlertRuleFil
 		return []*request.AlertRule{}, 0
 	}
 
-	var res []*request.AlertRule
+	var res []*request.AlertRule = make([]*request.AlertRule, 0)
 	var totalCount int
 
 	if filter == nil {
@@ -46,7 +46,7 @@ func (m *Metadata) GetAlertRules(configFile string, filter *request.AlertRuleFil
 		totalCount = len(res)
 	}
 
-	if pageParam != nil {
+	if pageParam == nil {
 		return res, totalCount
 	}
 
@@ -173,11 +173,18 @@ func matchFilter(filter *request.AlertRuleFilter, rule *request.AlertRule) bool 
 	if len(filter.Keyword) > 0 {
 		var isFind bool
 
-		for k, v := range rule.Labels {
-			if strings.Contains(k, filter.Keyword) ||
-				strings.Contains(v, filter.Keyword) {
-				isFind = true
-				break
+		if strings.Contains(rule.Alert, filter.Keyword) ||
+			strings.Contains(rule.Group, filter.Keyword) {
+			isFind = true
+		}
+
+		if !isFind {
+			for k, v := range rule.Labels {
+				if strings.Contains(k, filter.Keyword) ||
+					strings.Contains(v, filter.Keyword) {
+					isFind = true
+					break
+				}
 			}
 		}
 
