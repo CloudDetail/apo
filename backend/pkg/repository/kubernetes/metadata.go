@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -21,15 +22,35 @@ func (m *Metadata) SetAlertRules(configFile string, rules *AlertRules) {
 	m.AlertRulesMap[configFile] = rules
 }
 
-func (m *Metadata) GetAlertRules(configFile string) []request.AlertRule {
+func (m *Metadata) GetAlertRules(configFile string, filter *request.AlertRuleFilter, pageParam *request.PageParam) ([]*request.AlertRule, int) {
 	m.alertRulesLock.RLock()
 	defer m.alertRulesLock.RUnlock()
 
 	alertRules, find := m.AlertRulesMap[configFile]
 	if !find {
-		return []request.AlertRule{}
+		return []*request.AlertRule{}, 0
 	}
-	return alertRules.Rules
+
+	var res []*request.AlertRule
+	var totalCount int
+
+	if filter == nil {
+		res = alertRules.Rules
+		totalCount = len(alertRules.Rules)
+	} else {
+		for _, rule := range alertRules.Rules {
+			if matchFilter(filter, rule) {
+				res = append(res, rule)
+			}
+		}
+		totalCount = len(res)
+	}
+
+	if pageParam != nil {
+		return res, totalCount
+	}
+
+	return pageByParam(res, pageParam)
 }
 
 func (m *Metadata) AddorUpdateAlertRule(configFile string, alertRule request.AlertRule) error {
@@ -58,12 +79,12 @@ func (m *Metadata) AddorUpdateAlertRule(configFile string, alertRule request.Ale
 	for i := 0; i < len(alertRules.Rules); i++ {
 		if alertRules.Rules[i].Alert == alertRule.Alert &&
 			alertRules.Rules[i].Group == alertRule.Group {
-			alertRules.Rules[i] = alertRule
+			alertRules.Rules[i] = &alertRule
 			return nil
 		}
 	}
 
-	alertRules.Rules = append(alertRules.Rules, alertRule)
+	alertRules.Rules = append(alertRules.Rules, &alertRule)
 	return nil
 }
 
@@ -86,7 +107,7 @@ func (m *Metadata) DeleteAlertRule(configFile string, group, alert string) bool 
 	return false
 }
 
-func removeElement(slice []request.AlertRule, index int) []request.AlertRule {
+func removeElement(slice []*request.AlertRule, index int) []*request.AlertRule {
 	return append(slice[:index], slice[index+1:]...)
 }
 
@@ -134,4 +155,69 @@ func (m *Metadata) MarshalToYaml(configFile string) ([]byte, error) {
 	}
 
 	return yaml.Marshal(content)
+}
+
+func matchFilter(filter *request.AlertRuleFilter, rule *request.AlertRule) bool {
+	if len(filter.Alert) > 0 {
+		if !strings.Contains(rule.Alert, filter.Alert) {
+			return false
+		}
+	}
+
+	if len(filter.Group) > 0 {
+		if !strings.Contains(rule.Group, filter.Group) {
+			return false
+		}
+	}
+
+	if len(filter.Keyword) > 0 {
+		var isFind bool
+
+		for k, v := range rule.Labels {
+			if strings.Contains(k, filter.Keyword) ||
+				strings.Contains(v, filter.Keyword) {
+				isFind = true
+				break
+			}
+		}
+
+		if !isFind {
+			return false
+		}
+	}
+
+	if len(filter.Severity) > 0 {
+		severity := rule.Labels["severity"]
+		if !ContainsIn(filter.Severity, severity) {
+			return false
+		}
+	}
+	return true
+}
+
+func ContainsIn(slices []string, expected string) bool {
+	for _, item := range slices {
+		if item == expected {
+			return true
+		}
+	}
+	return false
+}
+
+func pageByParam(list []*request.AlertRule, param *request.PageParam) ([]*request.AlertRule, int) {
+	totalCount := len(list)
+	if param == nil {
+		return list, totalCount
+	}
+
+	if totalCount < param.PageSize {
+		return list, totalCount
+	}
+
+	startIdx := (param.CurrentPage - 1) * param.PageSize
+	endIdx := startIdx + param.PageSize
+	if endIdx > totalCount {
+		endIdx = totalCount
+	}
+	return list[startIdx:endIdx], totalCount
 }

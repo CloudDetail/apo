@@ -24,7 +24,19 @@ type GetAlertRuleConfigRequest struct {
 	AlertRuleFile string `form:"alertRuleFile" json:"alertRuleFile"`
 }
 
-type GetAlertRuleRequest = GetAlertRuleConfigRequest
+type GetAlertRuleRequest struct {
+	AlertRuleFile string `form:"alertRuleFile" json:"alertRuleFile"`
+
+	*AlertRuleFilter
+	*PageParam
+}
+
+type AlertRuleFilter struct {
+	Group    string   `form:"group" json:"group"`
+	Alert    string   `form:"alert" json:"alert"`
+	Severity []string `form:"severity" json:"severity"` // 告警级别 info warning ...
+	Keyword  string   `form:"keyword" json:"keyword"`
+}
 
 type UpdateAlertRuleConfigRequest struct {
 	AlertRuleFile string `json:"alertRuleFile"`

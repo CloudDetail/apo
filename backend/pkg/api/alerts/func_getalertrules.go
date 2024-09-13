@@ -12,9 +12,8 @@ import (
 // @Summary 列出告警规则
 // @Description 列出告警规则
 // @Tags API.alerts
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
-// @Param alertRuleFile query string false "告警规则文件名,为空返回默认告警文件"
 // @Param Request body request.GetAlertRuleRequest true "请求信息"
 // @Success 200 {object} response.GetAlertRulesResponse
 // @Failure 400 {object} code.Failure
@@ -22,7 +21,7 @@ import (
 func (h *handler) GetAlertRules() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAlertRuleRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -31,7 +30,7 @@ func (h *handler) GetAlertRules() core.HandlerFunc {
 			return
 		}
 
-		resp := h.alertService.GetAlertRules(req.AlertRuleFile)
+		resp := h.alertService.GetAlertRules(req)
 		c.Payload(resp)
 	}
 }

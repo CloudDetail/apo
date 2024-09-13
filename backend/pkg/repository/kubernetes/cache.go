@@ -24,11 +24,11 @@ func (k *k8sApi) SyncNow() error {
 	return nil
 }
 
-func (k *k8sApi) GetAlertRules(configFile string) []request.AlertRule {
+func (k *k8sApi) GetAlertRules(configFile string, filter *request.AlertRuleFilter, pageParam *request.PageParam) ([]*request.AlertRule, int) {
 	if len(configFile) == 0 {
 		configFile = k.MetadataSettings.AlertRuleFileName
 	}
-	return k.Metadata.GetAlertRules(configFile)
+	return k.Metadata.GetAlertRules(configFile, filter, pageParam)
 }
 
 func (k *k8sApi) AddOrUpdateAlertRule(configFile string, alertRule request.AlertRule) error {

@@ -18,7 +18,7 @@ type Service interface {
 	// UpdateAlertRuleFile 更新告警基础规则
 	UpdateAlertRuleFile(req *request.UpdateAlertRuleConfigRequest) error
 
-	GetAlertRules(configFile string) response.GetAlertRulesResponse
+	GetAlertRules(req *request.GetAlertRuleRequest) response.GetAlertRulesResponse
 	UpdateAlertRule(req *request.UpdateAlertRuleRequest) error
 	DeleteAlertRule(req *request.DeleteAlertRuleRequest) error
 }

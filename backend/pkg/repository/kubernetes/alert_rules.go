@@ -7,7 +7,7 @@ import (
 )
 
 type AlertRules struct {
-	Rules []request.AlertRule
+	Rules []*request.AlertRule
 
 	Groups []AlertGroup
 }
@@ -27,7 +27,7 @@ func Parse(strContent string) (*AlertRules, error) {
 	}
 
 	groups := make([]AlertGroup, 0)
-	rules := make([]request.AlertRule, 0)
+	rules := make([]*request.AlertRule, 0)
 
 	for i := 0; i < len(ruleGroups.Groups); i++ {
 		ruleGroup := ruleGroups.Groups[i]
@@ -39,7 +39,7 @@ func Parse(strContent string) (*AlertRules, error) {
 		})
 		for s := 0; s < len(ruleGroup.Rules); s++ {
 			ruleNode := ruleGroup.Rules[s]
-			alertRule := request.AlertRule{
+			alertRule := &request.AlertRule{
 				Group: ruleGroup.Name,
 
 				Alert:         ruleNode.Alert.Value,
