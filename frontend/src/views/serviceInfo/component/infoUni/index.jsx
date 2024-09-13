@@ -67,11 +67,7 @@ export default function InfoUni() {
     {
       key: 'alert',
       loadBeforeOpen: true,
-      name: (
-        <>
-          {serviceName}的告警事件<span className="text-sm">(受该接口影响的服务入口分析)</span>
-        </>
-      ),
+      name: <>{serviceName}的告警事件</>,
       component: AlertInfoTabs,
       componentProps: {
         handlePanelStatus: (status) => handlePanelStatus('alert', status),
@@ -92,7 +88,11 @@ export default function InfoUni() {
     {
       key: 'impact',
       loadBeforeOpen: true,
-      name: `${serviceName}的影响面分析`,
+      name: (
+        <>
+          {serviceName}的影响面分析<span className="text-sm">(受该接口影响的服务入口分析)</span>
+        </>
+      ),
       component: EntryImpact,
 
       componentProps: {
