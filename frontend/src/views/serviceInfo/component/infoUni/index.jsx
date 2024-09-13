@@ -67,10 +67,26 @@ export default function InfoUni() {
     {
       key: 'alert',
       loadBeforeOpen: true,
-      name: `${serviceName}的告警事件`,
+      name: (
+        <>
+          {serviceName}的告警事件<span className="text-sm">(受该接口影响的服务入口分析)</span>
+        </>
+      ),
       component: AlertInfoTabs,
       componentProps: {
         handlePanelStatus: (status) => handlePanelStatus('alert', status),
+      },
+    },
+
+    {
+      key: 'instance',
+      loadBeforeOpen: true,
+      name: `${serviceName}的服务端点实例`,
+      component: InstanceInfo,
+      componentProps: {
+        handleToggle,
+        handlePanelStatus: (status) => handlePanelStatus('instance', status),
+        prepareVariable: (props) => setDashboardVariable(props),
       },
     },
     {
@@ -81,17 +97,6 @@ export default function InfoUni() {
 
       componentProps: {
         handlePanelStatus: (status) => handlePanelStatus('impact', status),
-      },
-    },
-    {
-      key: 'instance',
-      loadBeforeOpen: true,
-      name: `${serviceName}的服务端点实例`,
-      component: InstanceInfo,
-      componentProps: {
-        handleToggle,
-        handlePanelStatus: (status) => handlePanelStatus('instance', status),
-        prepareVariable: (props) => setDashboardVariable(props),
       },
     },
     {

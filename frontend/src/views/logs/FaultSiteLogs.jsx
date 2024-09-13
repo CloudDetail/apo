@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { CTab, CTabList, CTabs, CRow, CCol, CCard } from '@coreui/react'
+import { CTab, CTabList, CTabs, CRow, CCol, CCard, CToast, CToastBody } from '@coreui/react'
 import { convertTime } from 'src/utils/time'
 import { getLogContentApi, getLogPageListApi } from 'src/api/logs'
 import { useSearchParams } from 'react-router-dom'
@@ -10,6 +10,7 @@ import Empty from 'src/components/Empty/Empty'
 import LoadingSpinner from 'src/components/Spinner'
 import LogsTraceFilter from 'src/components/Filter/LogsTraceFilter'
 import { useSelector } from 'react-redux'
+import { IoMdInformationCircleOutline } from 'react-icons/io'
 function FaultSiteLogs(props) {
   const { startTime, endTime, service, instance, traceId, instanceOption } = useSelector(
     (state) => state.urlParamsReducer,
@@ -179,6 +180,21 @@ function FaultSiteLogs(props) {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <LoadingSpinner loading={loading} />
+      <CToast autohide={false} visible={true} className="align-items-center w-full my-2">
+        <div className="d-flex">
+          <CToastBody className=" flex flex-row items-center text-xs">
+            <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
+            默认采集控制台日志，从文件中采集日志的配置方式请参考
+            <a
+              className="underline text-sky-500"
+              target="_blank"
+              href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置采集日志/"
+            >
+              文档
+            </a>
+          </CToastBody>
+        </div>
+      </CToast>
       <div className="flex-grow-0 flex-shrink-0">
         <LogsTraceFilter type="logs" />
       </div>

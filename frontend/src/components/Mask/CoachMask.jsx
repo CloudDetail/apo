@@ -21,7 +21,7 @@ export default function CoachMask() {
       img: [AlertPng],
     },
     {
-      name: '接口的影响业务入口黄金指标',
+      name: '受该接口影响的服务入口分析',
       scene: '影响面分析',
       img: [EntryPng],
     },

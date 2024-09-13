@@ -26,7 +26,7 @@ export default function EntryImpact(props) {
   const [modalServiceName, setModalServiceName] = useState()
   const column = [
     {
-      title: '应用名称',
+      title: '入口应用名称',
       accessor: 'serviceName',
       customWidth: 150,
     },
@@ -57,12 +57,11 @@ export default function EntryImpact(props) {
         navigate(
           `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}`,
         )
-        console.log(props)
         window.scrollTo(0, 0)
       },
       children: [
         {
-          title: '服务端点',
+          title: '入口服务端点',
           accessor: 'endpoint',
           canExpand: false,
         },
