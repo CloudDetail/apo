@@ -17,6 +17,9 @@ type AlertGroup struct {
 	Interval    model.Duration  `json:"interval,omitempty"`
 	QueryOffset *model.Duration `json:"query_offset,omitempty"`
 	Limit       int             `json:"limit,omitempty"`
+
+	// TODO record alert group label
+	// e.g 应用指标 -> group: app
 }
 
 func Parse(strContent string) (*AlertRules, error) {
