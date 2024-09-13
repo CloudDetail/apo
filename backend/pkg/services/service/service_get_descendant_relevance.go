@@ -186,11 +186,11 @@ type DescendantStatusMap = prom.MetricGroupMap[prom.EndpointKey, *DescendantStat
 
 func (s *DescendantStatus) InitEmptyGroup(_ prom.ConvertFromLabels) prom.MetricGroup {
 	return &DescendantStatus{
-		DepLatency:          -1,
-		Latency:             -1,
-		LatencyDoD:          -1,
-		ErrorRateDoD:        -1,
-		RequestPerSecondDoD: -1,
+		DepLatency:          nil,
+		Latency:             nil,
+		LatencyDoD:          nil,
+		ErrorRateDoD:        nil,
+		RequestPerSecondDoD: nil,
 	}
 }
 
@@ -204,31 +204,31 @@ func (s *DescendantStatus) SetValue(metricGroup prom.MGroupName, metricName prom
 		switch metricName {
 		case prom.LATENCY:
 			micros := value / 1e3
-			s.Latency = micros
+			s.Latency = &micros
 		case prom.DEP_LATENCY:
 			micros := value / 1e3
-			s.DepLatency = micros
+			s.DepLatency = &micros
 		}
 	case prom.DOD:
 		radio := (value - 1) * 100
 		switch metricName {
 		case prom.LATENCY:
-			s.LatencyDoD = radio
+			s.LatencyDoD = &radio
 		case prom.ERROR_RATE:
-			s.ErrorRateDoD = radio
+			s.ErrorRateDoD = &radio
 		case prom.THROUGHPUT:
-			s.RequestPerSecondDoD = radio
+			s.RequestPerSecondDoD = &radio
 		}
 	}
 }
 
 type DescendantStatus struct {
-	DepLatency float64
-	Latency    float64
+	DepLatency *float64
+	Latency    *float64
 
-	LatencyDoD          float64 // 延迟日同比
-	ErrorRateDoD        float64 // 错误率日同比
-	RequestPerSecondDoD float64 // 请求数日同比
+	LatencyDoD          *float64 // 延迟日同比
+	ErrorRateDoD        *float64 // 错误率日同比
+	RequestPerSecondDoD *float64 // 请求数日同比
 }
 
 func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRelevanceResponse, descendantStatus *DescendantStatusMap, threshold database.Threshold) {
@@ -238,72 +238,77 @@ func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRel
 		SvcName:    descendantResp.ServiceName,
 	}
 	if status, ok := descendantStatus.MetricGroupMap[descendantKey]; ok {
-		if status.DepLatency >= 0 && status.Latency > 0 {
-			var depRatio = status.DepLatency / status.Latency
+		if status.DepLatency != nil && status.Latency != nil {
+			var depRatio = *status.DepLatency / *status.Latency
 			if depRatio > 0.5 {
 				descendantResp.DelaySource = "dependency"
+				delayDistribution := fmt.Sprintf("总延时: %.2f, 外部依赖延时: %.2f(%.2f)", *status.Latency, *status.DepLatency, depRatio)
+				descendantResp.AlertReason.Add(model.DelaySourceAlert, model.AlertDetail{
+					Timestamp:    ts.UnixMicro(),
+					AlertObject:  descendantResp.ServiceName,
+					AlertReason:  "外部依赖延时占总延时超过50%",
+					AlertMessage: delayDistribution,
+				})
 			} else {
 				descendantResp.DelaySource = "self"
 			}
-			delayDistribution := fmt.Sprintf("总延时: %.2f, 外部依赖延时: %.2f(%.2f)", status.DepLatency, status.Latency, depRatio)
-			descendantResp.AlertReason.Add(model.DelaySourceAlert, model.AlertDetail{
-				Timestamp:    ts.UnixMicro(),
-				AlertObject:  descendantResp.ServiceName,
-				AlertReason:  "外部依赖延时占总延时超过50%",
-				AlertMessage: delayDistribution,
-			})
+		} else if status.Latency != nil {
+			// TODO DepLatency 为空, 检查cpu北极星指标是否存在
+			// 若存在,为 self
+			descendantResp.DelaySource = "self"
+			// 若不存在,为 unknown
 		} else {
 			descendantResp.DelaySource = "unknown"
 		}
 
-		if status.RequestPerSecondDoD < 0 {
+		if status.RequestPerSecondDoD == nil {
 			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
 				Timestamp:    ts.UnixMicro(),
 				AlertObject:  descendantResp.ServiceName,
 				AlertReason:  "TPS未采集到数据",
 				AlertMessage: "",
 			})
-		} else if threshold.Tps > 0 && status.RequestPerSecondDoD*100 > (100+threshold.Tps) {
+		} else if threshold.Tps > 0 && *status.RequestPerSecondDoD > threshold.Tps {
 			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
 			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
 				Timestamp:    ts.UnixMicro(),
 				AlertObject:  descendantResp.ServiceName,
 				AlertReason:  "TPS变化超过日同比阈值",
-				AlertMessage: fmt.Sprintf("请求TPS日同比: %.2f 高于设定阈值 %.2f;", status.RequestPerSecondDoD, (100+threshold.Tps)/100),
+				AlertMessage: fmt.Sprintf("请求TPS日同比增长: %.2f%% 高于设定阈值 %.2f%%;", *status.RequestPerSecondDoD, threshold.Tps),
 			})
 		}
 
-		if status.LatencyDoD < 0 {
+		if status.LatencyDoD == nil {
 			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
 				Timestamp:    ts.UnixMicro(),
 				AlertObject:  descendantResp.ServiceName,
 				AlertReason:  "延迟未采集到数据",
 				AlertMessage: "",
 			})
-		} else if threshold.Latency > 0 && status.LatencyDoD*100 > (100+threshold.Latency) {
+		} else if threshold.Latency > 0 && *status.LatencyDoD > threshold.Latency {
 			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
 			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
 				Timestamp:    ts.UnixMicro(),
 				AlertObject:  descendantResp.ServiceName,
 				AlertReason:  "延时变化超过日同比阈值",
-				AlertMessage: fmt.Sprintf("延迟日同比: %.2f 高于设定阈值 %.2f;", status.LatencyDoD, (100+threshold.Latency)/100),
+				AlertMessage: fmt.Sprintf("延迟日同比增长: %.2f%% 高于设定阈值 %.2f%%;", *status.LatencyDoD, threshold.Latency),
 			})
 		}
 
-		if status.ErrorRateDoD < 0 {
+		if status.ErrorRateDoD == nil {
 			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
 				Timestamp:    ts.UnixMicro(),
 				AlertObject:  descendantResp.ServiceName,
 				AlertReason:  "错误率未采集到数据",
 				AlertMessage: "",
 			})
-		} else if threshold.ErrorRate > 0 && status.ErrorRateDoD*100 < (100-threshold.ErrorRate) {
+		} else if threshold.ErrorRate > 0 && *status.ErrorRateDoD > threshold.ErrorRate {
 			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
 			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
 				Timestamp:    ts.UnixMicro(),
 				AlertObject:  descendantResp.ServiceName,
 				AlertReason:  "错误率变化超过日同比阈值",
-				AlertMessage: fmt.Sprintf("错误率日同比: %.2f 低于设定阈值 %.2f;", status.ErrorRateDoD, (100-threshold.ErrorRate)/100),
+				AlertMessage: fmt.Sprintf("错误率日同比增长: %.2f%% 高于设定阈值 %.2f%%;", *status.ErrorRateDoD, threshold.ErrorRate),
 			})
 		}
 	} else {
