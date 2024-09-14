@@ -14,7 +14,6 @@ function isJSONString(str) {
   }
 }
 function StatusInfo({ status, alertReason = [], title = null }) {
-  console.log(title, alertReason.slice(0, 3))
   return (
     <Popover
       content={

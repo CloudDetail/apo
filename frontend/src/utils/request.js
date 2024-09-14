@@ -79,8 +79,7 @@ instance.interceptors.response.use(
 
 // 封装GET请求
 const get = (url, params = {}, config = {}) => {
-  console.log(params)
-  return instance.get(url, { params, ...config })
+  return instance.get(url, { params, ...config }).catch((error) => {
 }
 
 // 封装POST请求
