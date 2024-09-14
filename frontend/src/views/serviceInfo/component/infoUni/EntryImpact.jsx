@@ -1,7 +1,8 @@
-import { CAccordionBody, CButton } from '@coreui/react'
+import { CAccordionBody, CButton, CToast, CToastBody } from '@coreui/react'
 import { Tooltip } from 'antd'
 import React, { useMemo, useEffect, useState } from 'react'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
+import { IoMdInformationCircleOutline } from 'react-icons/io'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { getServiceEntryEndpoints } from 'src/api/serviceInfo'
@@ -238,6 +239,14 @@ export default function EntryImpact(props) {
   return (
     <CAccordionBody className="text-xs relative">
       <LoadingSpinner loading={loading} />
+      <CToast autohide={false} visible={true} className="align-items-center w-full mb-2">
+        <div className="d-flex">
+          <CToastBody className=" flex flex-row items-center text-xs">
+            <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
+            可能受该接口影响的所有服务入口分析，其中“服务入口”是指业务被访问时调用的第一个服务端点，是调用链路中的最上游。
+          </CToastBody>
+        </div>
+      </CToast>
       <BasicTable {...tableProps} />
       <EndpointTableModal
         visible={modalVisible}
