@@ -80,11 +80,16 @@ instance.interceptors.response.use(
 // 封装GET请求
 const get = (url, params = {}, config = {}) => {
   return instance.get(url, { params, ...config }).catch((error) => {
+    throw error
+  })
 }
 
 // 封装POST请求
 const post = (url, data = {}, config = {}) => {
-  return instance.post(url, data, { ...config })
+  return instance.post(url, data, { ...config }).catch((error) => {
+    // 在此处可以捕获到错误信息
+    throw error
+  })
 }
 
 // 导出axios实例和封装的请求方法
