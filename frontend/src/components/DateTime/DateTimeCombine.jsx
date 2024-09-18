@@ -27,7 +27,7 @@ function ShareLink() {
     }
 
     setCopyUrl(url)
-  }, [shareType])
+  }, [shareType, rangeTypeKey])
   return (
     <>
       <Popover
