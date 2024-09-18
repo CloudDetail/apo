@@ -48,6 +48,12 @@ type Config struct {
 		Address string `mapstructure:"address"`
 		Storage string `mapstructure:"storage"`
 	} `mapstructure:"promethues"`
+	Kubernetes struct {
+		AuthType     string `mapstructure:"auth_type"`
+		AuthFilePath string `mapstructure:"auth_file_path"`
+
+		MetadataSettings MetadataSettings `mapstructure:"metadata_settings"`
+	} `mapstructure:"kubernetes"`
 	Language struct {
 		Local string `mapstructure:"local"`
 	} `mapstructure:"language"`
@@ -55,6 +61,12 @@ type Config struct {
 		Enable           bool                     `mapstructure:"enable"`
 		MetaSourceConfig configs.MetaSourceConfig `mapstructure:"meta_source_config"`
 	} `mapstructure:"meta_server"`
+}
+
+type MetadataSettings struct {
+	Namespace         string `mapstructure:"namespace"`
+	AlertRuleCMName   string `mapstructure:"alert_rule_configmap_name"`
+	AlertRuleFileName string `mapstructure:"alert_rule_file_name"`
 }
 
 func Get() *Config {

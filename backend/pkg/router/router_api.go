@@ -75,8 +75,13 @@ func setApiRouter(r *resource) {
 
 	alertApi := r.mux.Group("/api/alerts")
 	{
-		alertHandler := alerts.New(r.logger, r.ch)
+		alertHandler := alerts.New(r.logger, r.ch, r.k8sApi)
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
+		alertApi.GET("/rules/file", alertHandler.GetAlertRuleFile())
+		alertApi.POST("/rules/file", alertHandler.UpdateAlertRuleFile())
+		alertApi.POST("/rule/list", alertHandler.GetAlertRules())
+		alertApi.POST("/rule", alertHandler.UpdateAlertRule())
+		alertApi.DELETE("/rule", alertHandler.DeleteAlertRule())
 	}
 	configApi := r.mux.Group("/api/config")
 	{
