@@ -7,7 +7,7 @@ OneAgent 用于收集被监控环境中的各类可观测性数据，包括链�
 - sdk-auto: 基于 [opentelemetry-go-instrumentation](https://github.com/open-telemetry/opentelemetry-go-instrumentation) 实现无侵入获取 Go 语言的链路数据
 - 基于 eBPF 技术，采集北极星因果指标，并实现链路数据的[回溯采样算法](https://www.usenix.org/conference/nsdi23/presentation/zhang-lei)
 - 通过 [ilogtail](https://github.com/alibaba/ilogtail) 采集故障现场日志，依据回溯算法采样结果保留故障现场日志
-- 通过 [Grafana Alloy](https://grafana.com/docs/alloy/latest/) 采集指标，在容器环境中会采集全量日志，全量日志功能不支持虚拟机
+- 通过 [Grafana Alloy](https://grafana.com/docs/alloy/latest/) 采集指标，通过配置的方式能够扩展采集各类指标
 - 集成 [node-agent](https://github.com/CloudDetail/node-agent) 探针，获取网络延时指标和进程状态指标
 
 在 OneAgent 中，链路数据、日志数据直接发送至 OpenTelemetry Collector，指标数据经 Alloy 采集之后发送至 OpenTelemetry Collector。
