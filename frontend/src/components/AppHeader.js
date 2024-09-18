@@ -30,6 +30,7 @@ import { AppHeaderDropdown } from './header/index'
 import DateTimeRangePicker from './DateTime/DateTimeRangePicker'
 import routes from 'src/routes'
 import CoachMask from './Mask/CoachMask'
+import DateTimeCombine from './DateTime/DateTimeCombine'
 
 const AppHeader = () => {
   const location = useLocation()
@@ -95,7 +96,7 @@ const AppHeader = () => {
         <CHeaderNav>
           {location.pathname === '/service/info' && <CoachMask />}
           {!routes.find((route) => route.path === location.pathname).hideSystemTimeRangePicker && (
-            <DateTimeRangePicker />
+            <DateTimeCombine />
           )}
           {/* <li className="nav-item py-1">
             <div className="vr h-100 mx-2 text-body text-opacity-75"></div>

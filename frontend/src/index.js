@@ -10,6 +10,7 @@ import { ConfigProvider, theme } from 'antd'
 
 import posthog from 'posthog-js'
 import { PostHogProvider } from 'posthog-js/react'
+import { MessageProvider } from './contexts/MessageContext'
 const apiHost = import.meta.env.VITE_PUBLIC_POSTHOG_HOST
 const apiKey = import.meta.env.VITE_PUBLIC_POSTHOG_KEY
 
@@ -17,16 +18,28 @@ posthog.init(apiKey, {
   api_host: apiHost,
   person_profiles: 'identified_only',
 })
-
-const AppWrapper = () => (
-  <Provider store={store}>
-    <ToastProvider>
-      <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
-        <App />
-      </ConfigProvider>
-    </ToastProvider>
-  </Provider>
-)
+const AppWrapper = () => {
+  return (
+    <Provider store={store}>
+      <ToastProvider>
+        <ConfigProvider
+          theme={{
+            algorithm: theme.darkAlgorithm,
+            components: {
+              Segmented: {
+                itemSelectedBg: '#4096ff',
+              },
+            },
+          }}
+        >
+          <MessageProvider>
+            <App />
+          </MessageProvider>
+        </ConfigProvider>
+      </ToastProvider>
+    </Provider>
+  )
+}
 createRoot(document.getElementById('root')).render(
   apiKey && apiHost ? (
     <PostHogProvider client={posthog}>

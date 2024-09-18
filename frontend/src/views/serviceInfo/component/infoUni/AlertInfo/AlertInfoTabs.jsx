@@ -38,23 +38,25 @@ export default function AlertInfoTabs(props) {
     setTabList(tabList)
   }
   const getAlertEvents = () => {
-    setLoading(true)
-    getServiceAlertEventApi({
-      startTime,
-      endTime,
-      service: serviceName,
-      endpoint: endpoint,
-    })
-      .then((res) => {
-        setLoading(false)
-        prepareData(res)
-        handlePanelStatus(res.status)
+    if (startTime && endTime) {
+      setLoading(true)
+      getServiceAlertEventApi({
+        startTime,
+        endTime,
+        service: serviceName,
+        endpoint: endpoint,
       })
-      .catch((error) => {
-        setTabList([])
-        handlePanelStatus('unknown')
-        setLoading(false)
-      })
+        .then((res) => {
+          setLoading(false)
+          prepareData(res)
+          handlePanelStatus(res.status)
+        })
+        .catch((error) => {
+          setTabList([])
+          handlePanelStatus('unknown')
+          setLoading(false)
+        })
+    }
   }
   useEffect(() => {
     getAlertEvents()

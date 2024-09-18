@@ -1,5 +1,4 @@
 // 默认近15分钟
-// rangeValue: number/ string/ null 空的情况下直接用指定的starttime endtime
 
 import { createSelector } from 'reselect'
 
@@ -8,6 +7,10 @@ export const initialTimeRangeState = {
   startTime: null,
   endTime: null,
   rangeType: null,
+  rangeTypeKey: null,
+  //末次刷新时间
+  refreshTimestamp: null,
+  refreshInInterval: null,
 }
 export function GetInitalTimeRange() {
   return {
@@ -16,22 +19,24 @@ export function GetInitalTimeRange() {
     rangeType: null,
   }
 }
-
-export function getTimestampRange(rangeType, convertToSecond = false) {
+export function GetInitalTimeRangeState() {
+  return {
+    rangeTypeKey: '15m',
+  }
+}
+export function getTimestampRange(rangeTypeKey, convertToSecond = false) {
   const now = new Date()
   const nowMicroseconds = now.getTime() * 1000 // 当前时间的时间戳（微秒）
 
   let startTime, endTime
   endTime = nowMicroseconds
-  if (!rangeType) {
+  if (!rangeTypeKey) {
     startTime = new Date()
-  } else if (typeof rangeType === 'number') {
+  } else if (typeof timeRangeMap[rangeTypeKey].rangeType === 'number') {
     // 处理数字分钟数
-    console.log(rangeType)
-    startTime = endTime - rangeType * 60 * 1000000
-    console.log(startTime)
+    startTime = endTime - timeRangeMap[rangeTypeKey].rangeType * 60 * 1000000
   } else {
-    switch (rangeType) {
+    switch (rangeTypeKey) {
       case 'today':
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
         startTime = startOfDay * 1000
@@ -46,7 +51,7 @@ export function getTimestampRange(rangeType, convertToSecond = false) {
         startTime = startOfYesterday * 1000
         endTime = endOfYesterday * 1000
         break
-      case 'this week':
+      case 'thisWeek':
         const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay())).setHours(0, 0, 0, 0)
         startTime = startOfWeek * 1000
         break
@@ -60,16 +65,47 @@ export function getTimestampRange(rangeType, convertToSecond = false) {
 
   return { startTime, endTime }
 }
-
 const timeRangeReducer = (state = initialTimeRangeState, action) => {
   switch (action.type) {
     case 'SET_TIMERANGE':
+      if (action.payload.rangeTypeKey) {
+        const { startTime, endTime } = getTimestampRange(action.payload.rangeTypeKey)
+        return {
+          ...state,
+          startTime: startTime,
+          endTime: endTime,
+          rangeTypeKey: action.payload.rangeTypeKey,
+          refreshTimestamp: Date.now() * 1000,
+        }
+      } else {
+        return {
+          ...state,
+          startTime: action.payload.startTime,
+          endTime: action.payload.endTime,
+          rangeTypeKey: null,
+          refreshTimestamp: null,
+        }
+      }
+    case 'INIT_TIMERANGE': {
+      const { startTime, endTime } = getTimestampRange('15m')
       return {
         ...state,
-        startTime: action.payload.startTime,
-        endTime: action.payload.endTime,
-        rangeType: action.payload.rangeType,
+        startTime: startTime,
+        endTime: endTime,
+        rangeTypeKey: '15m',
+        refreshTimestamp: Date.now() * 1000,
       }
+    }
+    case 'REFRESH_TIMERANGE': {
+      const { startTime, endTime } = getTimestampRange(state.rangeTypeKey)
+      return {
+        ...state,
+        startTime: startTime,
+        endTime: endTime,
+        refreshTimestamp: Date.now() * 1000,
+      }
+    }
+
     default:
       return state
   }
@@ -171,3 +207,66 @@ export const timeRangeList = [
     to: 'now/w',
   },
 ]
+
+export const timeRangeMap = {
+  '5m': {
+    name: 'Last 5 minutes',
+    rangeType: 5,
+    from: 'now-5m',
+    to: 'now',
+  },
+  '15m': {
+    name: 'Last 15 minutes',
+    rangeType: 15,
+    from: 'now-15m',
+    to: 'now',
+  },
+  '30m': {
+    name: 'Last 30 minutes',
+    rangeType: 30,
+    from: 'now-30m',
+    to: 'now',
+  },
+  '1h': {
+    name: 'Last 1 hours',
+    rangeType: 60,
+    from: 'now-1h',
+    to: 'now',
+  },
+  '3h': {
+    name: 'Last 3 hours',
+    rangeType: 180,
+    from: 'now-3h',
+    to: 'now',
+  },
+  '6h': {
+    name: 'Last 6 hours',
+    rangeType: 360,
+    from: 'now-6h',
+    to: 'now',
+  },
+  '12h': {
+    name: 'Last 12 hours',
+    rangeType: 720,
+    from: 'now-12h',
+    to: 'now',
+  },
+  today: {
+    name: 'Today',
+    rangeType: 'today',
+    from: 'now/d',
+    to: 'now/d',
+  },
+  yesterday: {
+    name: 'Yesterday',
+    rangeType: 'yesterday',
+    from: 'now-1d/d',
+    to: 'now-1d/d',
+  },
+  thisWeek: {
+    name: 'This week',
+    rangeType: 'this week',
+    from: 'now/w',
+    to: 'now/w',
+  },
+}

@@ -12,7 +12,6 @@ import {
   CFormLabel,
   CInputGroup,
   CInputGroupText,
-  CPopover,
 } from '@coreui/react'
 import { endOfDay, format, startOfDay } from 'date-fns'
 import React, { useState, useEffect } from 'react'
@@ -22,11 +21,7 @@ import 'react-date-range/dist/styles.css' // main style file
 import 'react-date-range/dist/theme/default.css' // theme css file
 import './index.css'
 import { useDispatch, useSelector } from 'react-redux'
-import {
-  GetInitalTimeRange,
-  getTimestampRange,
-  timeRangeList,
-} from 'src/store/reducers/timeRangeReducer'
+import { timeRangeMap } from 'src/store/reducers/timeRangeReducer'
 import { convertTime, ISOToTimestamp, TimestampToISO } from 'src/utils/time'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { useUpdateEffect } from 'react-use'
@@ -55,6 +50,9 @@ const DateTimeRangePicker = React.memo((props) => {
   const setStoreTimeRange = (value) => {
     dispatch({ type: 'SET_TIMERANGE', payload: value })
   }
+  const initStorageTimeRange = (value) => {
+    dispatch({ type: 'INIT_TIMERANGE', payload: value })
+  }
 
   const initTimeRange = () => {
     setStartTime(convertTime(storeTimeRange.startTime, 'yyyy-mm-dd hh:mm:ss'))
@@ -64,19 +62,32 @@ const DateTimeRangePicker = React.memo((props) => {
     const params = new URLSearchParams(searchParams)
     const from = searchParams.get('from')
     const to = searchParams.get('to')
+    const relativeTime = searchParams.get('to')
 
     let needChangeUrl = false
-    if (storeTimeRange.startTime !== ISOToTimestamp(from)) {
-      params.set('from', TimestampToISO(storeTimeRange.startTime))
-      needChangeUrl = true
-    }
-    if (storeTimeRange.endTime !== ISOToTimestamp(to)) {
-      params.set('to', TimestampToISO(storeTimeRange.endTime))
-      needChangeUrl = true
+    if (storeTimeRange.rangeTypeKey) {
+      if (storeTimeRange.rangeTypeKey !== relativeTime) {
+        params.set('relativeTime', storeTimeRange.rangeTypeKey)
+        params.delete('from')
+        params.delete('to')
+        needChangeUrl = true
+      }
+    } else {
+      if (storeTimeRange.startTime !== ISOToTimestamp(from)) {
+        params.set('from', TimestampToISO(storeTimeRange.startTime))
+        params.delete('relativeTime')
+        needChangeUrl = true
+      }
+      if (storeTimeRange.endTime !== ISOToTimestamp(to)) {
+        params.set('to', TimestampToISO(storeTimeRange.endTime))
+        params.delete('relativeTime')
+        needChangeUrl = true
+      }
     }
     if (needChangeUrl) {
       let url = new URL(window.location.href)
       if (url.hash) {
+        // setSearchParams(params, { replace: true })
         const newUrl = `${url.origin}/${url.hash.split('?')[0]}?${params.toString()}`
         window.history.replaceState(null, '', newUrl)
       }
@@ -86,27 +97,52 @@ const DateTimeRangePicker = React.memo((props) => {
   useEffect(() => {
     const from = searchParams.get('from')
     const to = searchParams.get('to')
-    if (!from || !to) {
-      if (storeTimeRange?.startTime && storeTimeRange?.endTime) {
-        updataUrlTimeRange()
-        return
-      }
-    }
+    const relativeTime = searchParams.get('relativeTime')
+    // 判断url参数是否合法
 
     const fromTimestamp = ISOToTimestamp(from)
     const toTimestamp = ISOToTimestamp(to)
+    const rangeTypeKey = timeRangeMap.hasOwnProperty(relativeTime) ? relativeTime : null
+
+    if (rangeTypeKey) {
+      setStoreTimeRange({
+        rangeTypeKey: rangeTypeKey,
+      })
+      return
+    }
     if (fromTimestamp && toTimestamp) {
       if (storeTimeRange.startTime !== fromTimestamp || storeTimeRange.endTime !== toTimestamp) {
-        // console.log('url发现参数和store不符，更新精确时间')
         setStoreTimeRange({
-          rangeType: null,
+          rangeTypeKey: null,
           startTime: fromTimestamp,
           endTime: toTimestamp,
         })
       }
+      return
+    }
+    if (storeTimeRange.startTime && storeTimeRange.endTime) {
+      updataUrlTimeRange()
+      return
+    }
+    if (rangeTypeKey) {
+      setStoreTimeRange({
+        rangeTypeKey: relativeTime,
+      })
     } else {
-      const initTimeRange = GetInitalTimeRange()
-      setStoreTimeRange(initTimeRange)
+      const fromTimestamp = ISOToTimestamp(from)
+      const toTimestamp = ISOToTimestamp(to)
+      if (fromTimestamp && toTimestamp) {
+        if (storeTimeRange.startTime !== fromTimestamp || storeTimeRange.endTime !== toTimestamp) {
+          // console.log('url发现参数和store不符，更新精确时间')
+          setStoreTimeRange({
+            rangeTypeKey: null,
+            startTime: fromTimestamp,
+            endTime: toTimestamp,
+          })
+        }
+      } else {
+        initStorageTimeRange()
+      }
     }
   }, [searchParams, location])
   // 打开下拉面板初始化该组件的数据
@@ -151,15 +187,14 @@ const DateTimeRangePicker = React.memo((props) => {
   const changeEndTime = (event) => {
     setEndTime(event.target.value)
   }
-  const selectTimeRange = (item) => {
-    const { startTime, endTime } = getTimestampRange(item.rangeType)
-    setStartTime(convertTime(startTime, 'yyyy-mm-dd hh:mm:ss'))
-    setEndTime(convertTime(endTime, 'yyyy-mm-dd hh:mm:ss'))
+  const selectTimeRange = (key) => {
+    let timeRangeItem = timeRangeMap[key]
+    setStartTime(timeRangeItem.from)
+    setEndTime(timeRangeItem.to)
+
     setDropdownVisible(false)
     setStoreTimeRange({
-      rangeType: null,
-      startTime: startTime,
-      endTime: endTime,
+      rangeTypeKey: key,
     })
   }
   const confirmTimeRange = (event) => {
@@ -169,7 +204,7 @@ const DateTimeRangePicker = React.memo((props) => {
       return
     }
     setStoreTimeRange({
-      rangeType: null,
+      rangeTypeKey: null,
       startTime: new Date(startTime).getTime() * 1000,
       endTime: new Date(endTime).getTime() * 1000,
     })
@@ -235,8 +270,11 @@ const DateTimeRangePicker = React.memo((props) => {
         >
           <CIcon icon={cilClock} className="mr-2" />
           <span className="text-sm">
-            {convertTime(storeTimeRange?.startTime, 'yyyy-mm-dd hh:mm:ss')} to{' '}
-            {convertTime(storeTimeRange?.endTime, 'yyyy-mm-dd hh:mm:ss')}
+            {storeTimeRange?.rangeTypeKey
+              ? timeRangeMap[storeTimeRange?.rangeTypeKey].name
+              : convertTime(storeTimeRange?.startTime, 'yyyy-mm-dd hh:mm:ss') +
+                ' to ' +
+                convertTime(storeTimeRange?.endTime, 'yyyy-mm-dd hh:mm:ss')}
           </span>
         </CDropdownToggle>
         <CDropdownMenu className="m-0 p-0">
@@ -292,10 +330,14 @@ const DateTimeRangePicker = React.memo((props) => {
             <div className="w-2/5">
               <div className="p-2">快速范围</div>
               <CDropdownMenu className="w-2/5 border-0">
-                {timeRangeList.map((item) => {
+                {Object.keys(timeRangeMap).map((key) => {
                   return (
-                    <CDropdownItem key={item.rangeType} onClick={() => selectTimeRange(item)}>
-                      {item.name}
+                    <CDropdownItem
+                      key={key}
+                      onClick={() => selectTimeRange(key)}
+                      active={storeTimeRange.rangeTypeKey === key}
+                    >
+                      {timeRangeMap[key].name}
                     </CDropdownItem>
                   )
                 })}

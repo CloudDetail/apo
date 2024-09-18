@@ -1,9 +1,16 @@
-.rdrCalendarWrapper{
+.rdrCalendarWrapper {
     background: none;
 }
+
 .rdrDayNumber span {
     color: #CCCCDC;
 }
-.rdrMonthAndYearPickers select{
+
+.rdrMonthAndYearPickers select {
     color: #CCCCDC;
+}
+
+.refresh-date-time .ant-dropdown-button .ant-dropdown-trigger {
+    width: auto;
+    padding: 0 10px;
 }
