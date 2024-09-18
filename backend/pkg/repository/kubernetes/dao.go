@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -44,12 +45,13 @@ type Repo interface {
 func New(logger *zap.Logger, authType, authFilePath string, setting config.MetadataSettings) (Repo, error) {
 	restConfig, err := createRestConfig(authType, authFilePath)
 	if err != nil {
-		return nil, err
+		logger.Info("failed to setup kubernetes repository, skip init", zap.Error(err))
+		return NoneRepo, nil
 	}
 
 	cli, err := client.New(restConfig, client.Options{})
 	if err != nil {
-		return nil, err
+		return NoneRepo, err
 	}
 
 	if len(setting.Namespace) == 0 {
@@ -123,6 +125,8 @@ func createRestConfig(authType string, authFilePath string) (*rest.Config, error
 		if err != nil {
 			return nil, err
 		}
+	default:
+		return nil, fmt.Errorf("none of kubernetes auth config is set, ignore kubernetes repository")
 	}
 
 	authConf.WrapTransport = func(rt http.RoundTripper) http.RoundTripper {
@@ -135,4 +139,38 @@ func createRestConfig(authType string, authFilePath string) (*rest.Config, error
 	}
 
 	return authConf, nil
+}
+
+var NoneRepo Repo = &NoneAPI{}
+
+type NoneAPI struct{}
+
+var ErrKubernetesRepoNotReady = errors.New("kubernetes repo is not ready")
+
+func (n *NoneAPI) AddOrUpdateAlertRule(configFile string, alertRule request.AlertRule) error {
+	return ErrKubernetesRepoNotReady
+}
+
+func (n *NoneAPI) DeleteAlertRule(configFile string, group string, alert string) error {
+	return ErrKubernetesRepoNotReady
+}
+
+// GetAlertRuleConfigFile implements Repo.
+func (n *NoneAPI) GetAlertRuleConfigFile(alertRuleFile string) (map[string]string, error) {
+	return nil, ErrKubernetesRepoNotReady
+}
+
+// GetAlertRules implements Repo.
+func (n *NoneAPI) GetAlertRules(configFile string, filter *request.AlertRuleFilter, pageParam *request.PageParam) ([]*request.AlertRule, int) {
+	return []*request.AlertRule{}, 0
+}
+
+// SyncNow implements Repo.
+func (n *NoneAPI) SyncNow() error {
+	return ErrKubernetesRepoNotReady
+}
+
+// UpdateAlertRuleConfigFile implements Repo.
+func (n *NoneAPI) UpdateAlertRuleConfigFile(configFile string, content []byte) error {
+	return ErrKubernetesRepoNotReady
 }
