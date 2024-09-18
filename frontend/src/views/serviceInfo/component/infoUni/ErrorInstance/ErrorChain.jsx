@@ -6,6 +6,8 @@ import nodeRed from 'src/assets/images/hexagon-red.svg'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { usePropsContext } from 'src/contexts/PropsContext'
 import Empty from 'src/components/Empty/Empty'
+import { useSelector } from 'react-redux'
+import { TimestampToISO } from 'src/utils/time'
 function escapeId(id) {
   return id.replace(/[^a-zA-Z0-9-_]/g, '_')
 }
@@ -37,6 +39,7 @@ export const ErrotChain = React.memo(function ErrotChain(props) {
   // const mutatedRef = useRef(props.instance)
   // mutatedRef.current = props.instance
   const navigate = useNavigate()
+  const { startTime, endTime } = useSelector((state) => state.timeRange)
   function draw() {
     const container = d3.select(`#${escapeId(chartId)}`)
     // 清除之前的内容
@@ -193,9 +196,9 @@ export const ErrotChain = React.memo(function ErrotChain(props) {
           // console.log(`${nodeName} 被点击了`)
           const nodeData = g.node(nodeName)
           // console.log('节点数据:', nodeData)
-          const from = searchParams.get('from')
-          const to = searchParams.get('to')
-          console.log(from)
+          const from = TimestampToISO(startTime)
+          const to = TimestampToISO(endTime)
+
           navigate(
             `/logs?service=${nodeData.service}&endpoint=${endpoint}&instance=${nodeName}&logs-from=${from}&logs-to=${to}`,
           )

@@ -24,11 +24,13 @@ import {
   getTimestampRange,
   initialTimeRangeState,
   timeRangeList,
+  timeRangeMap,
 } from 'src/store/reducers/timeRangeReducer'
 import { convertTime, DateToISO, ISOToTimestamp, TimestampToISO, ValidDate } from 'src/utils/time'
 import './index.css'
 import 'react-date-range/dist/styles.css' // main style file
 import 'react-date-range/dist/theme/default.css' // theme css file
+import { useSelector } from 'react-redux'
 // logs: logsFrom, logsTo
 // traces: traceFrom, traceTo
 const TypeUrlParamMap = {
@@ -53,7 +55,7 @@ export default function DateTimeRangePickerCom(props) {
   const [endTimeFeedback, setEndTimeFeedback] = useState()
   const [inputStartTime, setInputStartTime] = useState()
   const [inputEndTime, setInputEndTime] = useState()
-
+  const storeTimeRange = useSelector((state) => state.timeRange)
   const [dateRange, setDateRange] = useState({
     startDate: startOfDay(new Date()),
     endDate: endOfDay(new Date()),
@@ -108,8 +110,8 @@ export default function DateTimeRangePickerCom(props) {
     setInputEndTime(format(endOfDay(state.endDate), 'yyyy-MM-dd HH:mm:ss'))
   }
 
-  const handleTimeRange = (item) => {
-    const { startTime, endTime } = getTimestampRange(item.rangeType)
+  const handleTimeRange = (key) => {
+    const { startTime, endTime } = getTimestampRange(key)
     const fromString = convertTime(startTime, 'yyyy-mm-dd hh:mm:ss')
     const toString = convertTime(endTime, 'yyyy-mm-dd hh:mm:ss')
     setInputStartTime(fromString)
@@ -150,9 +152,16 @@ export default function DateTimeRangePickerCom(props) {
     return result
   }
   const initTimeRange = () => {
-    const initTimeRange = GetInitalTimeRange()
-    const initFromString = convertTime(initTimeRange.startTime, 'yyyy-mm-dd hh:mm:ss')
-    const initToString = convertTime(initTimeRange.endTime, 'yyyy-mm-dd hh:mm:ss')
+    let initFromString, initToString
+    if (storeTimeRange.startTime && storeTimeRange.endTime) {
+      initFromString = TimestampToISO(storeTimeRange.startTime)
+      initToString = TimestampToISO(storeTimeRange.endTime)
+    } else {
+      const initTimeRange = GetInitalTimeRange()
+      initFromString = convertTime(initTimeRange.startTime, 'yyyy-mm-dd hh:mm:ss')
+      initToString = convertTime(initTimeRange.endTime, 'yyyy-mm-dd hh:mm:ss')
+    }
+
     setInputStartTime(initFromString, 'yyyy-mm-dd hh:mm:ss')
     setInputEndTime(initToString, 'yyyy-mm-dd hh:mm:ss')
     updataUrlTimeRange(initFromString, initToString)
@@ -260,10 +269,10 @@ export default function DateTimeRangePickerCom(props) {
           <div className="w-2/5">
             <div className="p-2">快速范围</div>
             <CDropdownMenu className="w-2/5 border-0 text-base">
-              {timeRangeList.map((item) => {
+              {Object.keys(timeRangeMap).map((key) => {
                 return (
-                  <CDropdownItem key={item.rangeType} onClick={() => handleTimeRange(item)}>
-                    {item.name}
+                  <CDropdownItem key={key} onClick={() => handleTimeRange(key)}>
+                    {timeRangeMap[key].name}
                   </CDropdownItem>
                 )
               })}
