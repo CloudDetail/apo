@@ -30,7 +30,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
   const [maxDuration, setMaxDuration] = useState(null)
   const [namespace, setNamespace] = useState(null)
   const [faultTypeList, setFaultTypeList] = useState([])
-  const [traceType, setTraceType] = useState('TraceId')
+  const [traceType, setTraceType] = useState('TraceID')
   const [urlParam, setUrlParam] = useState({
     service: '',
     instance: '',
@@ -360,12 +360,12 @@ const LogsTraceFilter = React.memo(({ type }) => {
           </div>
           <div className="flex flex-row items-center mr-5 w-[300px] text-sm">
             {type === 'trace' ? (
-              <Segmented options={['TraceId', 'SWTraceId']} onChange={setTraceType} />
+              <Segmented options={['TraceID', 'SWTraceId']} onChange={setTraceType} />
             ) : (
               <span className="text-nowrap text-sm">TraceId：</span>
             )}
             ：
-            {traceType === 'TraceId' ? (
+            {traceType === 'TraceID' ? (
               <Input placeholder="检索" value={inputTraceId} onChange={onChangeTraceId} />
             ) : (
               <Tooltip
@@ -401,7 +401,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
       {type === 'trace' && (
         <div className="text-xs flex flex-row  flex-wrap w-full">
           <div className="flex flex-row items-center mr-5">
-            <span className="text-nowrap">持续时间：</span>
+            <span className="text-nowrap">响应时间：</span>
             <div className="flex-1 flex flex-row items-center">
               <div className="pr-2">
                 <InputNumber
@@ -431,7 +431,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
             <Input value={namespace} placeholder="检索" onChange={onChangeNamespace} />
           </div>
           <div className="flex flex-row items-center mr-5">
-            <span className="text-nowrap">故障类型：</span>
+            <span className="text-nowrap">故障状态：</span>
             <Checkbox.Group
               onChange={onChangeTypeList}
               options={options}

@@ -2,10 +2,11 @@ import { Dropdown } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { LuRefreshCw } from 'react-icons/lu'
 import { MdArrowDropDown } from 'react-icons/md'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 export default function RefreshDateTime() {
   const [refreshKey, setRefreshKey] = useState(null)
+  const { refreshTimestamp } = useSelector((state) => state.timeRange)
   const dispatch = useDispatch()
   const refreshTime = (value) => {
     dispatch({ type: 'REFRESH_TIMERANGE', payload: value })
@@ -24,9 +25,9 @@ export default function RefreshDateTime() {
       key: '关',
     },
     {
-      label: '5s',
-      value: 5000,
-      key: '5s',
+      label: '15s',
+      value: 15000,
+      key: '15s',
     },
     {
       label: '1m',
@@ -74,7 +75,7 @@ export default function RefreshDateTime() {
       }, time)
     }
     return () => clearInterval(intervalId)
-  }, [refreshKey])
+  }, [refreshKey, refreshTimestamp])
 
   // 刷新函数
   const handleRefresh = () => {

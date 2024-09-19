@@ -13,6 +13,8 @@ import LoadingSpinner from 'src/components/Spinner'
 import LogsTraceFilter from 'src/components/Filter/LogsTraceFilter'
 import { DefaultTraceFilters } from 'src/constants'
 import TraceErrorType from './component/TraceErrorType'
+import { AiOutlineInfoCircle } from 'react-icons/ai'
+import { Tooltip } from 'antd'
 
 function Trace() {
   const [searchParams] = useSearchParams()
@@ -182,7 +184,22 @@ function Trace() {
     },
 
     {
-      title: '故障状态',
+      title: (
+        <Tooltip
+          title={
+            <div>
+              <div>慢故障：响应时间超过历史基线</div>
+              <div>错误故障：存在错误状态码或代码异常</div>
+              <div>无异常：被采样的正常数据</div>
+            </div>
+          }
+        >
+          <div className="flex flex-row justify-center items-center">
+            故障状态
+            <AiOutlineInfoCircle size={16} className="ml-2" />
+          </div>
+        </Tooltip>
+      ),
       accessor: 'flags',
       Cell: ({ value }) => {
         let typeList = []
@@ -199,7 +216,7 @@ function Trace() {
       },
     },
     {
-      title: '持续时间',
+      title: '响应时间',
       accessor: 'duration',
       Cell: ({ value }) => {
         return convertTime(value, 'ms', 2) + 'ms'
@@ -213,13 +230,13 @@ function Trace() {
       },
     },
     {
-      title: 'TraceId',
+      title: 'TraceID',
       accessor: 'traceId',
       Cell: (props) => {
         const { value } = props
 
         return (
-          <a className=" cursor-pointer" onClick={() => openJeagerModal(value)}>
+          <a className=" cursor-pointer text-blue-500" onClick={() => openJeagerModal(value)}>
             {value}
           </a>
         )
