@@ -110,7 +110,6 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 		})
 	}
 
-	// TODO LogScore limit
 	logErrorCountScore := ScoreFromDoD(s.LogErrorCountDoD, 5, 10, 20)
 	if logErrorCountScore >= 0 {
 		res.Score += logErrorCountScore
