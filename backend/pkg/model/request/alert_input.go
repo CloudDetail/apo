@@ -63,7 +63,7 @@ type AlertRule struct {
 	Alert         string            `json:"alert"`
 	Expr          string            `json:"expr"`
 	For           string            `json:"for,omitempty"`
-	KeepFiringFor string            `json:"keep_firing_for,omitempty"`
+	KeepFiringFor string            `json:"keepFiringFor,omitempty"`
 	Labels        map[string]string `json:"labels,omitempty"`
 	Annotations   map[string]string `json:"annotations,omitempty"`
 }
