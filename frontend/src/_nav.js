@@ -120,10 +120,6 @@ const _nav = [
     abbreviation: '服务健康',
     to: '/service-healthy',
     icon: <TbWaveSawTool />,
-    badge: {
-      color: 'info',
-      text: 'NEW',
-    },
   },
   // {
   //   component: CNavTitle,

@@ -27,7 +27,7 @@ export default function EntryImpact(props) {
   const [modalServiceName, setModalServiceName] = useState()
   const column = [
     {
-      title: '入口应用名称',
+      title: '入口服务名称',
       accessor: 'serviceName',
       customWidth: 150,
     },

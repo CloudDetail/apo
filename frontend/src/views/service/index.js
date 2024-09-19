@@ -33,7 +33,7 @@ export default function ServiceView() {
   const [pageSize, setPageSize] = useState(10)
   const column = [
     {
-      title: '应用名称',
+      title: '服务名称',
       accessor: 'serviceName',
       customWidth: 150,
     },
@@ -363,7 +363,7 @@ export default function ServiceView() {
       </CToast>
       <div className="p-2 my-2 flex flex-row">
         <div className="flex flex-row items-center mr-5 text-sm">
-          <span className="text-nowrap">应用名称：</span>
+          <span className="text-nowrap">服务名称：</span>
           <Input
             id="serviceName"
             placeholder="检索"

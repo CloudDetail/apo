@@ -53,7 +53,7 @@ function DependentTable(props) {
   }, [startTime, endTime, serviceName, endpoint])
   const column = [
     {
-      title: '应用名称',
+      title: '服务名称',
       accessor: 'serviceName',
       customWidth: 150,
     },
