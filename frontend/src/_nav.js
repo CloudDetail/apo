@@ -17,6 +17,7 @@ import {
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 import { PiPath } from 'react-icons/pi'
 import { CiServer } from 'react-icons/ci'
+import { TbWaveSawTool } from 'react-icons/tb'
 
 const _nav = [
   {
@@ -113,16 +114,17 @@ const _nav = [
       // text: 'NEW',
     },
   },
-  // {
-  //   component: CNavItem,
-  //   name: 'Dashboard',
-  //   to: '/dashboard',
-  //   icon: <CIcon icon={cilSpeedometer} />,
-  //   badge: {
-  //     color: 'info',
-  //     text: 'NEW',
-  //   },
-  // },
+  {
+    component: CNavItem,
+    name: '服务健康状态',
+    abbreviation: '服务健康',
+    to: '/service-healthy',
+    icon: <TbWaveSawTool />,
+    badge: {
+      color: 'info',
+      text: 'NEW',
+    },
+  },
   // {
   //   component: CNavTitle,
   //   name: 'Theme',

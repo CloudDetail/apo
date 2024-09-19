@@ -10,6 +10,7 @@ const LogsPage = React.lazy(() => import('./views/logs/index.js'))
 const TracePage = React.lazy(() => import('./views/trace/index.js'))
 const Alerts = React.lazy(() => import('./views/alerts/index.js'))
 const ConfigPage = React.lazy(() => import('./views/config/index'))
+const ServiceHealthy = React.lazy(() => import('./views/serviceHealthy/index.js'))
 
 const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -23,6 +24,11 @@ const routes = [
   { path: '/middleware-dashboard', name: '中间件大盘', element: MiddlewareDashboard },
   { path: '/alerts', name: '告警规则', element: Alerts },
   { path: '/config', name: '配置中心', element: ConfigPage, hideSystemTimeRangePicker: true },
+  {
+    path: '/service-healthy',
+    name: '服务健康状态',
+    element: ServiceHealthy,
+  },
 ]
 
 export default routes

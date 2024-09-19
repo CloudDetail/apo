@@ -125,6 +125,7 @@ export const NestedTd = React.memo(function NestedTd(props) {
         flexDirection: 'column',
         borderLeft: '1px solid var(--cui-border-color)',
         borderRight: '1px solid var(--cui-border-color)',
+        padding: 0,
         // flexDirection: 'column', padding: 0, display: 'inline-flex', boxSizing: 'content-box', flexWrap: 'nowrap'
       }}
       className="nested-td relative"
