@@ -7,9 +7,11 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-logr/zapr"
 	"go.uber.org/zap"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/CloudDetail/apo/backend/config"
@@ -48,6 +50,8 @@ func New(logger *zap.Logger, authType, authFilePath string, setting config.Metad
 		logger.Info("failed to setup kubernetes repository, skip init", zap.Error(err))
 		return NoneRepo, nil
 	}
+
+	ctrl.SetLogger(zapr.NewLogger(logger))
 
 	cli, err := client.New(restConfig, client.Options{})
 	if err != nil {
