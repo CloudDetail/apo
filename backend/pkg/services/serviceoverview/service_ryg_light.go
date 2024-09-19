@@ -132,10 +132,10 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 	}
 
 	if len(s.Instances) < 2 {
-		res.Score += 1
+		res.Score += 3
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
 			Key:    "replica",
-			Score:  1,
+			Score:  3,
 			Detail: "应用实例数小于2, 存在服务不可用风险",
 		})
 	}
