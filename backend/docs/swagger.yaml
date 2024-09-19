@@ -305,7 +305,7 @@ definitions:
         type: string
       group:
         type: string
-      keep_firing_for:
+      keepFiringFor:
         type: string
       labels:
         additionalProperties:
@@ -418,6 +418,27 @@ definitions:
         type: string
     required:
     - endTime
+    type: object
+  request.GetRygLightRequest:
+    properties:
+      endTime:
+        description: 查询结束时间
+        type: integer
+      endpointName:
+        description: 端点名,包含匹配
+        type: string
+      namespace:
+        description: 指定命名空间,完全匹配
+        type: string
+      serviceName:
+        description: 筛选条件
+        type: string
+      startTime:
+        description: 查询条件
+        type: integer
+    required:
+    - endTime
+    - startTime
     type: object
   request.GetTraceFilterValueRequest:
     properties:
@@ -611,6 +632,46 @@ definitions:
       name:
         type: string
     type: object
+  response.EntryInstanceData:
+    properties:
+      alertReason:
+        $ref: '#/definitions/model.AlertReason'
+      appStatus:
+        description: 应用告警
+        type: string
+      containerStatus:
+        description: 容器告警
+        type: string
+      endpointCount:
+        type: integer
+      infrastructureStatus:
+        description: 基础设施告警
+        type: string
+      k8sStatus:
+        description: K8s状态告警
+        type: string
+      logs:
+        $ref: '#/definitions/response.TempChartObject'
+      logsStatus:
+        description: 日志指标告警
+        type: string
+      namespaces:
+        description: 应用所属命名空间,可能为空
+        items:
+          type: string
+        type: array
+      netStatus:
+        description: 网络告警
+        type: string
+      serviceDetails:
+        items:
+          $ref: '#/definitions/response.ServiceDetail'
+        type: array
+      serviceName:
+        type: string
+      timestamp:
+        type: integer
+    type: object
   response.ErrorInfo:
     properties:
       message:
@@ -732,6 +793,12 @@ definitions:
         type: string
       alertReason:
         $ref: '#/definitions/model.AlertReason'
+      appStatus:
+        description: 应用告警
+        type: string
+      containerStatus:
+        description: 容器告警
+        type: string
       delaySource:
         description: 延时主要来源 unknown/self/dependency
         type: string
@@ -887,37 +954,12 @@ definitions:
     type: object
   response.GetServiceEntryEndpointsResponse:
     properties:
-      alertReason:
-        $ref: '#/definitions/model.AlertReason'
-      endpointCount:
-        type: integer
-      infrastructureStatus:
-        description: 基础设施告警
-        type: string
-      k8sStatus:
-        description: K8s状态告警
-        type: string
-      logs:
-        $ref: '#/definitions/response.TempChartObject'
-      logsStatus:
-        description: 日志指标告警
-        type: string
-      namespaces:
-        description: 应用所属命名空间,可能为空
+      data:
         items:
-          type: string
+          $ref: '#/definitions/response.EntryInstanceData'
         type: array
-      netStatus:
-        description: 网络告警
+      status:
         type: string
-      serviceDetails:
-        items:
-          $ref: '#/definitions/response.ServiceDetail'
-        type: array
-      serviceName:
-        type: string
-      timestamp:
-        type: integer
     type: object
   response.GetTTLResponse:
     properties:
@@ -997,6 +1039,12 @@ definitions:
     properties:
       alertReason:
         $ref: '#/definitions/model.AlertReason'
+      appStatus:
+        description: 应用告警
+        type: string
+      containerStatus:
+        description: 容器告警
+        type: string
       errorRate:
         $ref: '#/definitions/response.TempChartObject'
       infrastructureStatus:
@@ -1094,6 +1142,25 @@ definitions:
         description: 总记录数
         type: integer
     type: object
+  response.RYGScoreDetail:
+    properties:
+      detail:
+        type: string
+      key:
+        type: string
+      score:
+        type: integer
+    type: object
+  response.RYGStatus:
+    enum:
+    - red
+    - yellow
+    - green
+    type: string
+    x-enum-varnames:
+    - RED
+    - YELLOW
+    - GREEN
   response.Ratio:
     properties:
       dayOverDay:
@@ -1131,6 +1198,12 @@ definitions:
     properties:
       alertReason:
         $ref: '#/definitions/model.AlertReason'
+      appStatus:
+        description: 应用告警
+        type: string
+      containerStatus:
+        description: 容器告警
+        type: string
       infrastructureStatus:
         description: 基础设施告警
         type: string
@@ -1180,6 +1253,27 @@ definitions:
         type: array
       serviceName:
         type: string
+    type: object
+  response.ServiceRYGLightRes:
+    properties:
+      serviceList:
+        items:
+          $ref: '#/definitions/response.ServiceRYGResult'
+        type: array
+    type: object
+  response.ServiceRYGResult:
+    properties:
+      score:
+        description: 总分
+        type: integer
+      scoreDetail:
+        items:
+          $ref: '#/definitions/response.RYGScoreDetail'
+        type: array
+      serviceName:
+        type: string
+      status:
+        $ref: '#/definitions/response.RYGStatus'
     type: object
   response.TempChartObject:
     properties:
@@ -2516,6 +2610,32 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取服务上下游调用关系
+      tags:
+      - API.service
+  /api/service/ryglight:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取红绿灯结果
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetRygLightRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ServiceRYGLightRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取红绿灯结果
       tags:
       - API.service
   /api/service/servicesAlert:

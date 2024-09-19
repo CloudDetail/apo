@@ -139,6 +139,37 @@ type ServiceEndPointsRes struct {
 	ServiceDetails []ServiceDetail `json:"serviceDetails"`
 }
 
+type ServiceRYGLightRes struct {
+	ServiceList []*ServiceRYGResult `json:"serviceList"`
+}
+
+type RYGStatus string
+
+const (
+	RED    RYGStatus = "red"
+	YELLOW RYGStatus = "yellow"
+	GREEN  RYGStatus = "green"
+)
+
+type ServiceRYGResult struct {
+	ServiceName string `json:"serviceName"`
+
+	RYGResult
+}
+
+type RYGResult struct {
+	Score  int       `json:"score"` // 总分
+	Status RYGStatus `json:"status"`
+
+	ScoreDetail []RYGScoreDetail `json:"scoreDetail"`
+}
+
+type RYGScoreDetail struct {
+	Key    string `json:"key"`
+	Score  int    `json:"score"`
+	Detail string `json:"detail"`
+}
+
 type InstanceData struct {
 	Name      string          `json:"name"` //实例名
 	Namespace string          `json:"namespace"`

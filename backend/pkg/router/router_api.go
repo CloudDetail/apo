@@ -30,6 +30,7 @@ func setApiRouter(r *resource) {
 		serviceApi.GET("/moreUrl", serviceOverviewHandler.GetServiceMoreUrlList())
 		serviceApi.GET("/getThreshold", serviceOverviewHandler.GetThreshold())
 		serviceApi.POST("/setThreshold", serviceOverviewHandler.SetThreshold())
+		serviceApi.GET("/ryglight", serviceOverviewHandler.GetRYGLight())
 
 		serviceHandler := service.New(r.logger, r.ch, r.prom, r.pol, r.pkg_db)
 		serviceApi.GET("/entry/endpoints", serviceHandler.GetServiceEntryEndpoints())

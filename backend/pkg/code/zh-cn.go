@@ -25,6 +25,7 @@ var zhCnText = map[string]string{
 	GetServiceEntryEndpointsError:  "获取服务入口Endpoint列表失败",
 	GetK8sEventError:               "无法获取k8s事件",
 	GetServiceEndPointListError:    "获取服务Endpoint列表失败",
+	GetServiceRYGLightError:        "获取服务的红绿灯失败",
 
 	GetFaultLogPageListError: "获取故障现场日志分页列表失败",
 	GetFaultLogContentError:  "获取故障现场日志内容失败",

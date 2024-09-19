@@ -1982,6 +1982,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/service/ryglight": {
+            "get": {
+                "description": "获取红绿灯结果",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.service"
+                ],
+                "summary": "获取红绿灯结果",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetRygLightRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ServiceRYGLightRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/service/servicesAlert": {
             "get": {
                 "description": "获取Service的日志告警和状态灯信息",
@@ -3028,7 +3068,7 @@ const docTemplate = `{
                 "group": {
                     "type": "string"
                 },
-                "keep_firing_for": {
+                "keepFiringFor": {
                     "type": "string"
                 },
                 "labels": {
@@ -3188,6 +3228,35 @@ const docTemplate = `{
                 "traceId": {
                     "description": "TraceId",
                     "type": "string"
+                }
+            }
+        },
+        "request.GetRygLightRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "startTime"
+            ],
+            "properties": {
+                "endTime": {
+                    "description": "查询结束时间",
+                    "type": "integer"
+                },
+                "endpointName": {
+                    "description": "端点名,包含匹配",
+                    "type": "string"
+                },
+                "namespace": {
+                    "description": "指定命名空间,完全匹配",
+                    "type": "string"
+                },
+                "serviceName": {
+                    "description": "筛选条件",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "查询条件",
+                    "type": "integer"
                 }
             }
         },
@@ -3458,6 +3527,63 @@ const docTemplate = `{
                 }
             }
         },
+        "response.EntryInstanceData": {
+            "type": "object",
+            "properties": {
+                "alertReason": {
+                    "$ref": "#/definitions/model.AlertReason"
+                },
+                "appStatus": {
+                    "description": "应用告警",
+                    "type": "string"
+                },
+                "containerStatus": {
+                    "description": "容器告警",
+                    "type": "string"
+                },
+                "endpointCount": {
+                    "type": "integer"
+                },
+                "infrastructureStatus": {
+                    "description": "基础设施告警",
+                    "type": "string"
+                },
+                "k8sStatus": {
+                    "description": "K8s状态告警",
+                    "type": "string"
+                },
+                "logs": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "logsStatus": {
+                    "description": "日志指标告警",
+                    "type": "string"
+                },
+                "namespaces": {
+                    "description": "应用所属命名空间,可能为空",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "netStatus": {
+                    "description": "网络告警",
+                    "type": "string"
+                },
+                "serviceDetails": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ServiceDetail"
+                    }
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.ErrorInfo": {
             "type": "object",
             "properties": {
@@ -3636,6 +3762,14 @@ const docTemplate = `{
                 },
                 "alertReason": {
                     "$ref": "#/definitions/model.AlertReason"
+                },
+                "appStatus": {
+                    "description": "应用告警",
+                    "type": "string"
+                },
+                "containerStatus": {
+                    "description": "容器告警",
+                    "type": "string"
                 },
                 "delaySource": {
                     "description": "延时主要来源 unknown/self/dependency",
@@ -3867,49 +4001,14 @@ const docTemplate = `{
         "response.GetServiceEntryEndpointsResponse": {
             "type": "object",
             "properties": {
-                "alertReason": {
-                    "$ref": "#/definitions/model.AlertReason"
-                },
-                "endpointCount": {
-                    "type": "integer"
-                },
-                "infrastructureStatus": {
-                    "description": "基础设施告警",
-                    "type": "string"
-                },
-                "k8sStatus": {
-                    "description": "K8s状态告警",
-                    "type": "string"
-                },
-                "logs": {
-                    "$ref": "#/definitions/response.TempChartObject"
-                },
-                "logsStatus": {
-                    "description": "日志指标告警",
-                    "type": "string"
-                },
-                "namespaces": {
-                    "description": "应用所属命名空间,可能为空",
+                "data": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/response.EntryInstanceData"
                     }
                 },
-                "netStatus": {
-                    "description": "网络告警",
+                "status": {
                     "type": "string"
-                },
-                "serviceDetails": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.ServiceDetail"
-                    }
-                },
-                "serviceName": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
                 }
             }
         },
@@ -4028,6 +4127,14 @@ const docTemplate = `{
             "properties": {
                 "alertReason": {
                     "$ref": "#/definitions/model.AlertReason"
+                },
+                "appStatus": {
+                    "description": "应用告警",
+                    "type": "string"
+                },
+                "containerStatus": {
+                    "description": "容器告警",
+                    "type": "string"
                 },
                 "errorRate": {
                     "$ref": "#/definitions/response.TempChartObject"
@@ -4173,6 +4280,33 @@ const docTemplate = `{
                 }
             }
         },
+        "response.RYGScoreDetail": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.RYGStatus": {
+            "type": "string",
+            "enum": [
+                "red",
+                "yellow",
+                "green"
+            ],
+            "x-enum-varnames": [
+                "RED",
+                "YELLOW",
+                "GREEN"
+            ]
+        },
         "response.Ratio": {
             "type": "object",
             "properties": {
@@ -4228,6 +4362,14 @@ const docTemplate = `{
             "properties": {
                 "alertReason": {
                     "$ref": "#/definitions/model.AlertReason"
+                },
+                "appStatus": {
+                    "description": "应用告警",
+                    "type": "string"
+                },
+                "containerStatus": {
+                    "description": "容器告警",
+                    "type": "string"
                 },
                 "infrastructureStatus": {
                     "description": "基础设施告警",
@@ -4302,6 +4444,38 @@ const docTemplate = `{
                 },
                 "serviceName": {
                     "type": "string"
+                }
+            }
+        },
+        "response.ServiceRYGLightRes": {
+            "type": "object",
+            "properties": {
+                "serviceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ServiceRYGResult"
+                    }
+                }
+            }
+        },
+        "response.ServiceRYGResult": {
+            "type": "object",
+            "properties": {
+                "score": {
+                    "description": "总分",
+                    "type": "integer"
+                },
+                "scoreDetail": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.RYGScoreDetail"
+                    }
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/response.RYGStatus"
                 }
             }
         },

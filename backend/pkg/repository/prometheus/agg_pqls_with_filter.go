@@ -118,3 +118,20 @@ func avgTPSWithFilters(metric string, vector string, granularity string, filters
 	filtersStr := strings.Join(filters, ",")
 	return `sum(rate(` + metric + `{` + filtersStr + `}[` + vector + `])) by(` + granularity + `)`
 }
+
+func PQLAvgLogErrorCountWithFilters(vector string, granularity string, filters []string) string {
+	filtersStr := strings.Join(filters, ",")
+
+	var filterWithError string
+	if len(filters) > 0 {
+		filterWithError = filtersStr + `, level=~"error|critical"`
+	} else {
+		filterWithError = `level=~"error|critical"`
+	}
+
+	errorLevelCount := `sum by (` + granularity + `) (increase(originx_logparser_level_count_total{` + filterWithError + `}[` + vector + `]))`
+	exceptionCount := `sum by (` + granularity + `) (increase(originx_logparser_exception_count_total{` + filtersStr + `}[` + vector + `]))`
+
+	// ( errorLevelCount + exceptionCount ) or errorLevelCount or exceptionCount
+	return "((" + errorLevelCount + ") + (" + exceptionCount + ")) or (" + errorLevelCount + ") or (" + exceptionCount + ")"
+}

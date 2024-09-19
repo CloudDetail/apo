@@ -30,6 +30,11 @@ type Handler interface {
 	// @Tags API.service
 	// @Router /api/service/setThreshold [post]
 	SetThreshold() core.HandlerFunc
+
+	// GetRYGLight 获取红绿灯结果
+	// @Tags API.service
+	// @Router /api/service/ryglight [get]
+	GetRYGLight() core.HandlerFunc
 }
 
 type handler struct {

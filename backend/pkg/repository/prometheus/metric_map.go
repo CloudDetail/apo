@@ -14,10 +14,11 @@ const (
 	WOW      MGroupName = "wow"      // start~endpoint时段和上周周同比
 
 	// metricName
-	DEP_LATENCY MName = "dep_latency"
-	LATENCY     MName = "latency"
-	ERROR_RATE  MName = "error"
-	THROUGHPUT  MName = "throughput"
+	DEP_LATENCY     MName = "dep_latency"
+	LATENCY         MName = "latency"
+	ERROR_RATE      MName = "error"
+	THROUGHPUT      MName = "throughput"
+	LOG_ERROR_COUNT MName = "log_error_count"
 )
 
 type MetricGroupMap[K interface {

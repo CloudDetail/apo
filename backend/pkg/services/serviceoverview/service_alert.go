@@ -186,8 +186,8 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 
 		// 填充告警状态
 		newServiceRes.AlertStatusCH = GetAlertStatusCH(
-			s.chRepo, &newServiceRes.AlertReason, returnData,
-			service.ServiceName, serviceInstances,
+			s.chRepo, &newServiceRes.AlertReason, nil,
+			returnData, service.ServiceName, serviceInstances,
 			startTime, endTime,
 		)
 
@@ -238,9 +238,9 @@ func GetLatestStartTime(startTimeMap map[model.ServiceInstance]int64, instances 
 }
 
 // 填充来自Clickhouse的告警信息,并填充alertReason
-func GetAlertStatusCH(chRepo clickhouse.Repo, alertReason *model.AlertReason,
-	alertTypes []string,
-	serviceName string, instances []*model.ServiceInstance,
+func GetAlertStatusCH(chRepo clickhouse.Repo,
+	alertReason *model.AlertReason, alertEventsCountMap *model.AlertEventLevelCountMap,
+	alertTypes []string, serviceName string, instances []*model.ServiceInstance, // filter
 	startTime, endTime time.Time,
 ) (alertStatus model.AlertStatusCH) {
 	alertStatus = model.AlertStatusCH{
@@ -249,33 +249,42 @@ func GetAlertStatusCH(chRepo clickhouse.Repo, alertReason *model.AlertReason,
 		K8sStatus:            model.STATUS_NORMAL,
 	}
 
-	if len(alertTypes) == 0 || contains(alertTypes, "infraStatus") || contains(alertTypes, "netStatus") {
+	if len(alertTypes) == 0 ||
+		contains(alertTypes, "infraStatus") ||
+		contains(alertTypes, "netStatus") ||
+		contains(alertTypes, "appStatus") ||
+		contains(alertTypes, "containerStatus") {
 		// 查询实例相关的告警信息
 		events, _ := chRepo.GetAlertEventsSample(1, startTime, endTime,
 			request.AlertFilter{Service: serviceName, Status: "firing"}, instances)
 
 		// 按告警原因修改告警状态/
 		for _, event := range events {
-			switch event.Group {
+			alertGroup := clickhouse.AlertGroup(event.Group)
+			switch alertGroup {
 			case clickhouse.INFRA_GROUP:
 				alertStatus.InfrastructureStatus = model.STATUS_CRITICAL
-				alertReason.Add(model.InfrastructureAlert, model.AlertDetail{
-					Timestamp:    event.ReceivedTime.UnixMicro(),
-					AlertObject:  event.GetTargetObj(),
-					AlertReason:  event.Name,
-					AlertMessage: event.Detail,
-				})
 			case clickhouse.NETWORK_GROUP:
 				alertStatus.NetStatus = model.STATUS_CRITICAL
-				alertReason.Add(model.NetAlert, model.AlertDetail{
+			case clickhouse.APP_GROUP:
+				alertStatus.AppStatus = model.STATUS_CRITICAL
+			case clickhouse.CONTAINER_GROUP:
+				alertStatus.ContainerStatus = model.STATUS_CRITICAL
+			default:
+				// 忽略 未知 告警
+				continue
+			}
+
+			if alertReason != nil {
+				alertReason.Add(alertGroup.GetAlertType(), model.AlertDetail{
 					Timestamp:    event.ReceivedTime.UnixMicro(),
 					AlertObject:  event.GetTargetObj(),
 					AlertReason:  event.Name,
 					AlertMessage: event.Detail,
 				})
-			default:
-				// 忽略 app 和 container 告警
-				continue
+			}
+			if alertEventsCountMap != nil {
+				alertEventsCountMap.Add(alertGroup.GetAlertType(), event.Severity)
 			}
 		}
 	}

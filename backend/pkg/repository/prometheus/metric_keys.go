@@ -32,3 +32,13 @@ func (k SQLKey) ConvertFromLabels(labels Labels) ConvertFromLabels {
 		DBUrl:       labels.DBUrl,
 	}
 }
+
+type ServiceKey struct {
+	SvcName string // url所属的服务名
+}
+
+func (S ServiceKey) ConvertFromLabels(labels Labels) ConvertFromLabels {
+	return ServiceKey{
+		SvcName: labels.SvcName,
+	}
+}

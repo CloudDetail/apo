@@ -11,12 +11,29 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
+type AlertGroup string
+
 const (
-	APP_GROUP       = "app"
-	NETWORK_GROUP   = "network"
-	CONTAINER_GROUP = "container"
-	INFRA_GROUP     = "infra"
+	APP_GROUP       AlertGroup = "app"
+	NETWORK_GROUP   AlertGroup = "network"
+	CONTAINER_GROUP AlertGroup = "container"
+	INFRA_GROUP     AlertGroup = "infra"
 )
+
+func (g AlertGroup) GetAlertType() string {
+	switch g {
+	case INFRA_GROUP:
+		return model.InfrastructureAlert
+	case NETWORK_GROUP:
+		return model.NetAlert
+	case APP_GROUP:
+		return model.AppAlert
+	case CONTAINER_GROUP:
+		return model.ContainerAlert
+	}
+
+	return model.UndefinedAlert
+}
 
 const (
 	// SQL_GET_SAMPLE_ALERT_EVENT 按alarm_event的name分组,每组取发生事件最晚的记录,并在返回结果中记录同name的告警次数数量

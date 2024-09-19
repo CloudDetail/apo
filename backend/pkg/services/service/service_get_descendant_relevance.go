@@ -100,8 +100,8 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 
 		// 填充告警状态
 		descendantResp.AlertStatusCH = serviceoverview.GetAlertStatusCH(
-			s.chRepo, &descendantResp.AlertReason, []string{},
-			descendant.Service, instanceList,
+			s.chRepo, &descendantResp.AlertReason, nil,
+			[]string{}, descendant.Service, instanceList,
 			startTime, endTime,
 		)
 

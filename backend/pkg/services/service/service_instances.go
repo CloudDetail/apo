@@ -288,7 +288,7 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 		// 填充告警状态
 		newInstance.AlertStatusCH = serviceoverview.GetAlertStatusCH(
 			s.chRepo, &newInstance.AlertReason, nil,
-			serviceName, instanceSingleList,
+			nil, serviceName, instanceSingleList,
 			startTime, endTime,
 		)
 
