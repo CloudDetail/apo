@@ -419,27 +419,6 @@ definitions:
     required:
     - endTime
     type: object
-  request.GetRygLightRequest:
-    properties:
-      endTime:
-        description: 查询结束时间
-        type: integer
-      endpointName:
-        description: 端点名,包含匹配
-        type: string
-      namespace:
-        description: 指定命名空间,完全匹配
-        type: string
-      serviceName:
-        description: 筛选条件
-        type: string
-      startTime:
-        description: 查询条件
-        type: integer
-    required:
-    - endTime
-    - startTime
-    type: object
   request.GetTraceFilterValueRequest:
     properties:
       endTime:
@@ -2618,12 +2597,28 @@ paths:
       - application/x-www-form-urlencoded
       description: 获取红绿灯结果
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
+      - description: 查询开始时间
+        in: query
+        name: startTime
         required: true
-        schema:
-          $ref: '#/definitions/request.GetRygLightRequest'
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 服务名称
+        in: query
+        name: serviceName
+        type: string
+      - description: 接口名称
+        in: query
+        name: endpointName
+        type: string
+      - description: 命名空间
+        in: query
+        name: namespace
+        type: string
       produces:
       - application/json
       responses:

@@ -92,6 +92,21 @@ func (s *SeverityLevel) Scan(src interface{}) error {
 	return nil
 }
 
+func Str2SeverityLevel(levelText string) SeverityLevel {
+	switch levelText {
+	case "info":
+		return SeverityLevelInfo
+	case "warning":
+		return SeverityLevelWarning
+	case "error":
+		return SeverityLevelError
+	case "critical":
+		return SeverityLevelCritical
+	default:
+		return SeverityLevelUnknown
+	}
+}
+
 func (s SeverityLevel) toString() string {
 	switch s {
 	case SeverityLevelUnknown:
@@ -136,4 +151,13 @@ func (s *Status) Scan(src interface{}) error {
 		return fmt.Errorf("can not covert %v to Status", reflect.TypeOf(src))
 	}
 	return nil
+}
+
+type AlertEventCount struct {
+	Severity SeverityLevel     `ch:"severity" json:"severity,omitempty"`
+	Group    string            `ch:"group" json:"group,omitempty"`
+	Tags     map[string]string `ch:"tags" json:"tags,omitempty"`
+
+	Rn         uint64 `ch:"rn" json:"-"`
+	AlarmCount uint64 `ch:"alarm_count" json:"alarmCount"`
 }

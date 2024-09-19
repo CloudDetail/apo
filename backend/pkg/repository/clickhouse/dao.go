@@ -63,7 +63,9 @@ type Repo interface {
 	GetTables(blackTableNames []string, whiteTableNames []string) ([]model.TablesQuery, error)
 
 	// ========== alert events ==========
-	// 查询按name采样的告警事件,sampleCount为每个Name采样的数量
+	// 查询按group和级别采样的告警事件,sampleCount为每个group和级别采样的数量
+	GetAlertEventCountGroupByInstance(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]model.AlertEventCount, error)
+	// 查询按labels采样的告警事件,sampleCount为每个labels采样的数量
 	GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]AlertEventSample, error)
 	// 查询按pageParam分页的告警事件
 	GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance, pageParam *request.PageParam) ([]PagedAlertEvent, int, error)

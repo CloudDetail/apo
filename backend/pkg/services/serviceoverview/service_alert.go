@@ -284,7 +284,7 @@ func GetAlertStatusCH(chRepo clickhouse.Repo,
 				})
 			}
 			if alertEventsCountMap != nil {
-				alertEventsCountMap.Add(alertGroup.GetAlertType(), event.Severity)
+				alertEventsCountMap.Add(alertGroup.GetAlertType(), event.Severity, 1)
 			}
 		}
 	}

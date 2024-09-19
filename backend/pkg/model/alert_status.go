@@ -89,24 +89,24 @@ func (r AlertReason) Add(key string, detail AlertDetail) {
 
 type AlertEventLevelCountMap map[string]AlertEventLevelCount
 
-type AlertEventLevelCount map[SeverityLevel]int
+type AlertEventLevelCount map[SeverityLevel]uint64
 
-func (m AlertEventLevelCountMap) Add(key string, level SeverityLevel) {
+func (m AlertEventLevelCountMap) Add(key string, level SeverityLevel, eventCount uint64) {
 	counts, find := m[key]
 	if !find {
 		counts := make(AlertEventLevelCount)
-		counts[level] = 1
+		counts[level] = eventCount
 		m[key] = counts
 		return
 	}
 
 	count, find := counts[level]
 	if !find {
-		counts[level] = 1
+		counts[level] = eventCount
 		m[key] = counts
 		return
 	}
 
-	counts[level] = count + 1
+	counts[level] = count + eventCount
 	m[key] = counts
 }

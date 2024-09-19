@@ -16,7 +16,11 @@ import (
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.GetRygLightRequest true "请求信息"
+// @Param startTime query int64 true "查询开始时间"
+// @Param endTime query int64 true "查询结束时间"
+// @Param serviceName query string false "服务名称"
+// @Param endpointName query string false "接口名称"
+// @Param namespace query string false "命名空间"
 // @Success 200 {object} response.ServiceRYGLightRes
 // @Failure 400 {object} code.Failure
 // @Router /api/service/ryglight [get]

@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
@@ -47,20 +49,19 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 	var resp = response.ServiceRYGLightRes{
 		ServiceList: []*response.ServiceRYGResult{},
 	}
+
+	alertEventCount, _ := s.chRepo.GetAlertEventCountGroupByInstance(startTime, endTime, request.AlertFilter{Status: "firing"}, nil)
 	for svcKey, status := range servicesMap.MetricGroupMap {
 		instances, err := s.promRepo.GetInstanceList(startMicroTS, endMicroTs, svcKey.SvcName, "")
 		if err != nil {
 			continue
 		}
 
-		instanceList := instances.GetInstances()
+		status.Instances = instances.GetInstances()
 
-		status.AlertEventLevelCountMap = make(model.AlertEventLevelCountMap)
-		status.AlertStatus.AlertStatusCH = GetAlertStatusCH(
-			s.chRepo, nil, &status.AlertEventLevelCountMap,
-			[]string{}, svcKey.SvcName, instanceList,
-			startTime, endTime,
-		)
+		if alertEventCount != nil {
+			status.AlertEventLevelCountMap = GroupAlertEventCountListByInstance(alertEventCount, status.Instances)
+		}
 
 		resp.ServiceList = append(resp.ServiceList, &response.ServiceRYGResult{
 			ServiceName: svcKey.SvcName,
@@ -78,6 +79,8 @@ type RYGLightStatus struct {
 	LatencyDoD       *float64 // 延迟日同比
 	ErrorRateDoD     *float64 // 错误率日同比
 	LogErrorCountDoD *float64 // 日志错误数日同比
+
+	Instances []*model.ServiceInstance
 
 	// From Clickhouse
 	model.AlertStatus             // 告警状态
@@ -97,7 +100,7 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 		})
 	}
 
-	errorRateScore := ScoreFromDoD(s.LatencyDoD, 5, 10, 20)
+	errorRateScore := ScoreFromDoD(s.ErrorRateDoD, 5, 10, 20)
 	if errorRateScore >= 0 {
 		res.Score += errorRateScore
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
@@ -128,8 +131,22 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 		})
 	}
 
-	// TODO 实例数量
+	if len(s.Instances) < 2 {
+		res.Score += 1
+		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
+			Key:    "replica",
+			Score:  1,
+			Detail: "应用实例数小于2, 存在服务不可用风险",
+		})
+	}
 
+	if res.Score > 10 {
+		res.Status = response.RED
+	} else if res.Score > 3 {
+		res.Status = response.YELLOW
+	} else {
+		res.Status = response.GREEN
+	}
 	return res
 }
 
@@ -214,4 +231,18 @@ func (s *RYGLightStatus) SetValue(_ prom.MGroupName, metricName prom.MName, valu
 	case prom.LOG_ERROR_COUNT:
 		s.LogErrorCountDoD = &radio
 	}
+}
+
+func GroupAlertEventCountListByInstance(events []model.AlertEventCount, instances []*model.ServiceInstance) model.AlertEventLevelCountMap {
+	var res = make(model.AlertEventLevelCountMap)
+	for _, event := range events {
+		for _, instance := range instances {
+			if instance.MatchSvcTags(event.Group, event.Tags) {
+				res.Add(clickhouse.GetAlertType(event.Group), event.Severity, event.AlarmCount)
+				break
+			}
+		}
+	}
+
+	return res
 }

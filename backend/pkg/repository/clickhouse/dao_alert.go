@@ -35,6 +35,11 @@ func (g AlertGroup) GetAlertType() string {
 	return model.UndefinedAlert
 }
 
+func GetAlertType(g string) string {
+	group := AlertGroup(g)
+	return group.GetAlertType()
+}
+
 const (
 	// SQL_GET_SAMPLE_ALERT_EVENT 按alarm_event的name分组,每组取发生事件最晚的记录,并在返回结果中记录同name的告警次数数量
 	SQL_GET_SAMPLE_ALERT_EVENT = `WITH grouped_alarm AS (
@@ -49,6 +54,17 @@ const (
 	FROM grouped_alarm
 	WHERE rn <= %d %s`
 
+	SQL_GET_GROUP_COUNTS_ALERT_EVENT = `WITH grouped_alarm AS (
+	SELECT group,severity,tags,
+		ROW_NUMBER() OVER (PARTITION BY %s) AS rn,
+		COUNT(*) OVER (PARTITION BY %s) AS alarm_count
+	FROM alert_event
+	%s
+	)
+	SELECT *
+	FROM grouped_alarm
+	WHERE rn <= 1`
+
 	// SQL_GET_PAGED_ALERT_EVENT 分页取出所有满足条件的告警事件
 	SQL_GET_PAGED_ALERT_EVENT = `WITH paginatedEvent AS (
 		SELECT
@@ -62,6 +78,36 @@ const (
 	FROM paginatedEvent
 	%s ORDER BY rn`
 )
+
+// GetAlertEventCountGroupByInstance 快速查询每个Instance关联的告警数量(按告警级别分别计数)
+func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]model.AlertEventCount, error) {
+	builder := NewQueryBuilder().
+		Between("received_time", startTime.Unix(), endTime.Unix()).
+		EqualsNotEmpty("source", filter.Source).
+		EqualsNotEmpty("group", filter.Group).
+		EqualsNotEmpty("name", filter.Name).
+		EqualsNotEmpty("id", filter.ID).
+		EqualsNotEmpty("severity", filter.Severity).
+		EqualsNotEmpty("status", filter.Status)
+
+	if len(instances) > 0 {
+		// 组合生成:
+		//  1. group = 'app' AND svc = svc_name
+		//  2. group = 'container' AND ((namespace,pod) in (...))
+		//  3. group = 'network' AND ((src_namespace,pod) in (...) OR (src_node,pid) in (...))
+		//  4. group = 'infra' AND ((instance_name) in (...))
+		whereInstance := extractFilter(filter, instances)
+		builder.And(whereInstance)
+	}
+
+	groupByInstance := `group,severity,tags['svc_name'],tags['content_key'],tags['namespace'],tags['pod'],tags['src_namespace'], tags['src_pod'],tags['src_node'],tags['pid'],tags['instance_name']`
+
+	sql := fmt.Sprintf(SQL_GET_GROUP_COUNTS_ALERT_EVENT, groupByInstance, groupByInstance, builder.String())
+
+	var events []model.AlertEventCount
+	err := ch.conn.Select(context.Background(), &events, sql, builder.values...)
+	return events, err
+}
 
 // GetAlarmsEvents 获取实例所有的告警事件
 func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]AlertEventSample, error) {

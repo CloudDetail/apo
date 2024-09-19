@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"sort"
+	"strconv"
 )
 
 type ServiceInstances struct {
@@ -96,6 +97,59 @@ type ServiceInstance struct {
 	Namespace   string `json:"-"`
 	NodeName    string `json:"nodeName"` // 主机名
 	Pid         int64  `json:"pid"`      // 进程号
+}
+
+func (i *ServiceInstance) MatchSvcTags(group string, tags map[string]string) bool {
+	switch group {
+	case "app":
+		if len(i.ServiceName) > 0 {
+			return i.ServiceName == tags["svc_name"]
+		}
+	case "container":
+		if len(i.PodName) > 0 {
+			pod, find := tags["pod"]
+			if !find {
+				return false
+			}
+			namespace, find := tags["namespace"]
+			if !find {
+				return false
+			}
+			return i.PodName == pod && i.Namespace == namespace
+		}
+	case "network":
+		if len(i.PodName) > 0 {
+			pod, find := tags["src_pod"]
+			if !find {
+				return false
+			}
+			namespace, find := tags["src_namespace"]
+			if !find {
+				return false
+			}
+			return i.PodName == pod && i.Namespace == namespace
+		} else if i.Pid > 0 {
+			pid, find := tags["pid"]
+			if !find {
+				return false
+			}
+			node, find := tags["src_node"]
+			if !find {
+				return false
+			}
+
+			return strconv.Itoa(int(i.Pid)) == pid && i.NodeName == node
+		}
+	case "infra":
+		if len(i.NodeName) > 0 {
+			node, find := tags["instance_name"]
+			if !find {
+				return false
+			}
+			return node == i.NodeName
+		}
+	}
+	return false
 }
 
 func (instance *ServiceInstance) GetInstanceId() string {

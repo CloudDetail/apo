@@ -1989,13 +1989,36 @@
                 "summary": "获取红绿灯结果",
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.GetRygLightRequest"
-                        }
+                        "type": "integer",
+                        "description": "查询开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "服务名称",
+                        "name": "serviceName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "接口名称",
+                        "name": "endpointName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "命名空间",
+                        "name": "namespace",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -3220,35 +3243,6 @@
                 "traceId": {
                     "description": "TraceId",
                     "type": "string"
-                }
-            }
-        },
-        "request.GetRygLightRequest": {
-            "type": "object",
-            "required": [
-                "endTime",
-                "startTime"
-            ],
-            "properties": {
-                "endTime": {
-                    "description": "查询结束时间",
-                    "type": "integer"
-                },
-                "endpointName": {
-                    "description": "端点名,包含匹配",
-                    "type": "string"
-                },
-                "namespace": {
-                    "description": "指定命名空间,完全匹配",
-                    "type": "string"
-                },
-                "serviceName": {
-                    "description": "筛选条件",
-                    "type": "string"
-                },
-                "startTime": {
-                    "description": "查询条件",
-                    "type": "integer"
                 }
             }
         },
