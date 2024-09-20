@@ -22,6 +22,15 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 
 	filters := extractEndpointFilters(filter)
 
+	// FIX 用于展示没有LatencyDOD的服务
+	avgLatency, err := s.promRepo.QueryAggMetricsWithFilter(
+		prom.PQLAvgLatencyWithFilters,
+		startMicroTS, endMicroTs,
+		prom.SVCGranularity, filters...)
+	if err == nil {
+		servicesMap.MergeMetricResults(prom.AVG, prom.LATENCY, avgLatency)
+	}
+
 	avgLatencyDoD, err := s.promRepo.QueryAggMetricsWithFilter(
 		prom.DayOnDay(prom.PQLAvgLatencyWithFilters),
 		startMicroTS, endMicroTs,
@@ -76,6 +85,8 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 // Red/Green/Yellow Status
 type RYGLightStatus struct {
 	// From Prometheus
+	LatencyAvg *float64 // 平均延时 用于统计服务
+
 	LatencyDoD       *float64 // 延迟日同比
 	ErrorRateDoD     *float64 // 错误率日同比
 	LogErrorCountDoD *float64 // 日志错误数日同比
@@ -220,7 +231,15 @@ func (s *RYGLightStatus) InitEmptyGroup(key prom.ConvertFromLabels) prom.MetricG
 	return &RYGLightStatus{}
 }
 
-func (s *RYGLightStatus) SetValue(_ prom.MGroupName, metricName prom.MName, value float64) {
+func (s *RYGLightStatus) SetValue(groupName prom.MGroupName, metricName prom.MName, value float64) {
+	if groupName == prom.AVG {
+		if metricName == prom.LATENCY {
+			micro := value / 1e3
+			s.LatencyAvg = &micro
+		}
+		return
+	}
+
 	radio := (value - 1) * 100
 	switch metricName {
 	case prom.LATENCY:
