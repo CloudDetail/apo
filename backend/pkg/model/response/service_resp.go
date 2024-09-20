@@ -173,6 +173,7 @@ type RYGScoreDetail struct {
 type InstanceData struct {
 	Name      string          `json:"name"` //实例名
 	Namespace string          `json:"namespace"`
+	NodeName  string          `json:"nodeName"`
 	Timestamp *int64          `json:"timestamp"`
 	Latency   TempChartObject `json:"latency"`
 	ErrorRate TempChartObject `json:"errorRate"`

@@ -1047,6 +1047,8 @@ definitions:
       netStatus:
         description: 网络告警
         type: string
+      nodeName:
+        type: string
       timestamp:
         type: integer
       tps:
