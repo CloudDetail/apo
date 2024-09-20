@@ -1,5 +1,7 @@
 package request
 
+import promcfg "github.com/prometheus/alertmanager/config"
+
 type InputAlertManagerRequest struct {
 	Receiver          string            `json:"receiver"`
 	Status            string            `json:"status"`
@@ -38,6 +40,11 @@ type AlertRuleFilter struct {
 	Keyword  string   `form:"keyword" json:"keyword"`
 }
 
+type AMConfigReceiverFilter struct {
+	Name  string `form:"name" json:"name"`
+	RType string `form:"rType" json:"rType"`
+}
+
 type UpdateAlertRuleConfigRequest struct {
 	AlertRuleFile string `json:"alertRuleFile"`
 	Content       string `json:"content"`
@@ -66,4 +73,10 @@ type AlertRule struct {
 	KeepFiringFor string            `json:"keepFiringFor,omitempty"`
 	Labels        map[string]string `json:"labels,omitempty"`
 	Annotations   map[string]string `json:"annotations,omitempty"`
+}
+
+type AMConfigReceiver struct {
+	*promcfg.Receiver
+
+	RType string `json:"rType"`
 }

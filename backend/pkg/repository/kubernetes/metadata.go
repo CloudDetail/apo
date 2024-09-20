@@ -14,12 +14,21 @@ import (
 type Metadata struct {
 	alertRulesLock sync.RWMutex
 	AlertRulesMap  map[string]*AlertRules
+
+	amConfigLock           sync.RWMutex
+	AlertManagerConfigsMap map[string]*AlertManagerConfig
 }
 
 func (m *Metadata) SetAlertRules(configFile string, rules *AlertRules) {
 	m.alertRulesLock.Lock()
 	defer m.alertRulesLock.Unlock()
 	m.AlertRulesMap[configFile] = rules
+}
+
+func (m *Metadata) SetAMConfig(configFile string, configs *AlertManagerConfig) {
+	m.amConfigLock.Lock()
+	defer m.amConfigLock.Unlock()
+	m.AlertManagerConfigsMap[configFile] = configs
 }
 
 func (m *Metadata) GetAlertRules(configFile string, filter *request.AlertRuleFilter, pageParam *request.PageParam) ([]*request.AlertRule, int) {
@@ -32,25 +41,74 @@ func (m *Metadata) GetAlertRules(configFile string, filter *request.AlertRuleFil
 	}
 
 	var res []*request.AlertRule = make([]*request.AlertRule, 0)
-	var totalCount int
 
 	if filter == nil {
 		res = alertRules.Rules
-		totalCount = len(alertRules.Rules)
 	} else {
 		for _, rule := range alertRules.Rules {
-			if matchFilter(filter, rule) {
+			if matchAlertRuleFilter(filter, rule) {
 				res = append(res, rule)
 			}
 		}
-		totalCount = len(res)
 	}
 
 	if pageParam == nil {
-		return res, totalCount
+		return res, len(res)
 	}
 
 	return pageByParam(res, pageParam)
+}
+
+func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]*request.AMConfigReceiver, int) {
+	m.amConfigLock.RLock()
+	defer m.amConfigLock.RUnlock()
+
+	amConfig, find := m.AlertManagerConfigsMap[configFile]
+	if !find {
+		return []*request.AMConfigReceiver{}, 0
+	}
+
+	var res []*request.AMConfigReceiver = make([]*request.AMConfigReceiver, 0)
+	if filter == nil {
+		res = amConfig.ReceiverList
+	} else {
+		for i := 0; i < len(amConfig.ReceiverList); i++ {
+			receiver := amConfig.ReceiverList[i]
+			if matchAMConfigReceiverFilter(filter, receiver) {
+				res = append(res, receiver)
+			}
+		}
+	}
+
+	if pageParam == nil {
+		return res, len(res)
+	}
+
+	return pageByParam(res, pageParam)
+}
+
+func (m *Metadata) AddorUpdateAMConfigReceiver(configFile string, receiver request.AMConfigReceiver) error {
+	m.amConfigLock.Lock()
+	defer m.alertRulesLock.Unlock()
+
+	amConfig, find := m.AlertManagerConfigsMap[configFile]
+	if !find {
+		return fmt.Errorf("configfile %s is not found", configFile)
+	}
+
+	r, find := amConfig.ReceiverMap[receiver.Name]
+	if !find && receiver.Receiver != nil {
+		amConfig.Ref.Receivers = append(amConfig.Ref.Receivers, *receiver.Receiver)
+		amConfig.ReceiverList = append(amConfig.ReceiverList, &receiver)
+		amConfig.ReceiverMap[receiver.Name] = &receiver
+		return nil
+	}
+
+	// Update Exist receiver
+	r.Receiver = receiver.Receiver
+	r.RType = receiver.RType
+
+	return nil
 }
 
 func (m *Metadata) AddorUpdateAlertRule(configFile string, alertRule request.AlertRule) error {
@@ -58,8 +116,7 @@ func (m *Metadata) AddorUpdateAlertRule(configFile string, alertRule request.Ale
 	defer m.alertRulesLock.Unlock()
 	alertRules, find := m.AlertRulesMap[configFile]
 	if !find {
-		// TODO return error
-		return fmt.Errorf("")
+		return fmt.Errorf("configfile %s is not found", configFile)
 	}
 	// check if group exists
 	var isGroupExist bool = false
@@ -88,12 +145,32 @@ func (m *Metadata) AddorUpdateAlertRule(configFile string, alertRule request.Ale
 	return nil
 }
 
+func (m *Metadata) DeleteAMConfigReceiver(configFile string, name string) bool {
+	m.amConfigLock.Lock()
+	defer m.amConfigLock.Unlock()
+
+	amConfig, find := m.AlertManagerConfigsMap[configFile]
+	if !find {
+		return false
+	}
+
+	for i := 0; i < len(amConfig.Ref.Receivers); i++ {
+		if amConfig.Ref.Receivers[i].Name == name {
+			amConfig.Ref.Receivers = removeElement(amConfig.Ref.Receivers, i)
+			amConfig.ReceiverList = removeElement(amConfig.ReceiverList, i)
+			delete(amConfig.ReceiverMap, name)
+			return true
+		}
+	}
+
+	return false
+}
+
 func (m *Metadata) DeleteAlertRule(configFile string, group, alert string) bool {
 	m.alertRulesLock.Lock()
 	defer m.alertRulesLock.Unlock()
 	alertRules, find := m.AlertRulesMap[configFile]
 	if !find {
-		// TODO return error
 		return false
 	}
 
@@ -107,11 +184,11 @@ func (m *Metadata) DeleteAlertRule(configFile string, group, alert string) bool 
 	return false
 }
 
-func removeElement(slice []*request.AlertRule, index int) []*request.AlertRule {
+func removeElement[T any](slice []T, index int) []T {
 	return append(slice[:index], slice[index+1:]...)
 }
 
-func (m *Metadata) MarshalToYaml(configFile string) ([]byte, error) {
+func (m *Metadata) AlertRuleMarshalToYaml(configFile string) ([]byte, error) {
 	m.alertRulesLock.Lock()
 	defer m.alertRulesLock.Unlock()
 	alertRules, find := m.AlertRulesMap[configFile]
@@ -157,7 +234,35 @@ func (m *Metadata) MarshalToYaml(configFile string) ([]byte, error) {
 	return yaml.Marshal(content)
 }
 
-func matchFilter(filter *request.AlertRuleFilter, rule *request.AlertRule) bool {
+func (m *Metadata) AlertManagerConfigMarshalToYaml(configFile string) ([]byte, error) {
+	m.amConfigLock.RLock()
+	defer m.amConfigLock.RUnlock()
+
+	amConfig, find := m.AlertManagerConfigsMap[configFile]
+	if !find {
+		return nil, fmt.Errorf("configfile %s is not found", configFile)
+	}
+
+	return yaml.Marshal(amConfig.Ref)
+}
+
+func matchAMConfigReceiverFilter(filter *request.AMConfigReceiverFilter, receiver *request.AMConfigReceiver) bool {
+	if len(filter.Name) > 0 {
+		if !strings.Contains(receiver.Name, filter.Name) {
+			return false
+		}
+	}
+
+	if len(filter.RType) > 0 {
+		if !strings.Contains(receiver.RType, filter.RType) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func matchAlertRuleFilter(filter *request.AlertRuleFilter, rule *request.AlertRule) bool {
 	if len(filter.Alert) > 0 {
 		if !strings.Contains(rule.Alert, filter.Alert) {
 			return false
@@ -211,7 +316,7 @@ func ContainsIn(slices []string, expected string) bool {
 	return false
 }
 
-func pageByParam(list []*request.AlertRule, param *request.PageParam) ([]*request.AlertRule, int) {
+func pageByParam[T any](list []T, param *request.PageParam) ([]T, int) {
 	totalCount := len(list)
 	if param == nil {
 		return list, totalCount
