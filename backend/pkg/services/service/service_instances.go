@@ -261,6 +261,7 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 		newInstance := response.InstanceData{
 			Name:        instance.InstanceName,
 			Namespace:   instance.Namespace,
+			NodeName:    instance.NodeName,
 			Timestamp:   nil,
 			Latency:     newlatencyRate,
 			Tps:         newtpsRate,
