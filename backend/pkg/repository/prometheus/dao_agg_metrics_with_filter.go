@@ -2,6 +2,7 @@ package prometheus
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -23,7 +24,7 @@ func DayOnDay(pqlTemplate AggPQLWithFilters) AggPQLWithFilters {
 	return func(vector string, granularity string, filterKVs []string) string {
 		nowPql := pqlTemplate(vector, granularity, filterKVs)
 
-		return `(` + nowPql + `) / ` + `((` + nowPql + `) offset 24h )`
+		return `(` + nowPql + `) / ((` + nowPql + `) offset 24h )`
 	}
 }
 
@@ -32,6 +33,15 @@ func WeekOnWeek(pqlTemplate AggPQLWithFilters) AggPQLWithFilters {
 	return func(vector string, granularity string, filterKVs []string) string {
 		nowPql := pqlTemplate(vector, granularity, filterKVs)
 
-		return `(` + nowPql + `) / ` + `((` + nowPql + `) offset 7d )`
+		return `(` + nowPql + `) / ((` + nowPql + `) offset 7d )`
+	}
+}
+
+func WithDefaultIFPolarisMetricExits(pqlTemplate AggPQLWithFilters, defaultValue int64) AggPQLWithFilters {
+	return func(vector string, granularity string, filterKVs []string) string {
+		pql := pqlTemplate(vector, granularity, filterKVs)
+		checkPql := PQLIsPolarisMetricExitsWithFilters(vector, granularity, filterKVs)
+		defaultV := strconv.FormatInt(defaultValue, 10)
+		return `(` + pql + `) or ( ` + checkPql + ` * 0 + ` + defaultV + `)`
 	}
 }
