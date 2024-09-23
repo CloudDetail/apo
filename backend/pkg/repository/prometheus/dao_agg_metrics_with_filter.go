@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const DefaultDepLatency int64 = -1
+
 func (repo *promRepo) QueryAggMetricsWithFilter(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error) {
 	if len(filterKVs)%2 != 0 {
 		return nil, fmt.Errorf("size of filterKVs is not even: %d", len(filterKVs))

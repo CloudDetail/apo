@@ -13,8 +13,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
-const defaultDepLatency int64 = -1
-
 // GetDescendantRelevance implements Service.
 func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
 	// 查询所有子孙节点
@@ -119,7 +117,7 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 
 func (s *service) queryDescendantStatus(services []string, endpoints []string, startTime, endTime int64) (*DescendantStatusMap, error) {
 	avgDepLatency, err := s.promRepo.QueryAggMetricsWithFilter(
-		prom.WithDefaultIFPolarisMetricExits(prom.PQLAvgDepLatencyWithFilters, defaultDepLatency),
+		prom.WithDefaultIFPolarisMetricExits(prom.PQLAvgDepLatencyWithFilters, prom.DefaultDepLatency),
 		startTime, endTime,
 		prom.EndpointGranularity,
 		prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
@@ -255,7 +253,7 @@ func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRel
 			}
 		} else if status.Latency != nil {
 			// 外部延时不存在但是存在北极星指标
-			if *status.DepLatency == float64(defaultDepLatency) {
+			if *status.DepLatency < 0 {
 				descendantResp.DelaySource = "self"
 			} else {
 				descendantResp.DelaySource = "unknown"
