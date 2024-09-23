@@ -157,9 +157,15 @@ type ServiceRYGResult struct {
 	RYGResult
 }
 
+const (
+	// latency/error_rate/log_error_count/alert/replica
+	MAX_RYG_SCORE = 3 * 5
+)
+
 type RYGResult struct {
-	Score  int       `json:"score"` // 总分
-	Status RYGStatus `json:"status"`
+	PercentScore int       `json:"percentScore"` // 百分比总分
+	Score        int       `json:"score"`        // 总分
+	Status       RYGStatus `json:"status"`
 
 	ScoreDetail []RYGScoreDetail `json:"scoreDetail"`
 }

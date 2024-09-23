@@ -148,14 +148,22 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 			Score:  3,
 			Detail: "应用实例数小于2, 存在服务不可用风险",
 		})
+	} else {
+		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
+			Key:    "replica",
+			Score:  0,
+			Detail: "应用实例数大于2, 服务有可用副本",
+		})
 	}
 
-	if res.Score > 10 {
-		res.Status = response.RED
-	} else if res.Score > 3 {
-		res.Status = response.YELLOW
-	} else {
+	res.PercentScore = 100 - (res.Score * 100 / response.MAX_RYG_SCORE)
+
+	if res.PercentScore >= 80 {
 		res.Status = response.GREEN
+	} else if res.PercentScore < 80 && res.PercentScore >= 60 {
+		res.Status = response.YELLOW
+	} else if res.PercentScore < 60 {
+		res.Status = response.RED
 	}
 	return res
 }
