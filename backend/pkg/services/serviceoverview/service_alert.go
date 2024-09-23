@@ -51,6 +51,7 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 				Pod:          instance.PodName,
 				ContainerId:  instance.ContainerId,
 				SvcName:      instance.ServiceName,
+				Namespace:    instance.Namespace,
 				Pid:          strconv.FormatInt(instance.Pid, 10),
 			}
 			Services[i].Instances = append(Services[i].Instances, newInstance)
@@ -203,38 +204,6 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		servicesAlertResMsg = append(servicesAlertResMsg, newServiceRes)
 	}
 	return servicesAlertResMsg, err
-}
-
-func GetLatestStartTime(startTimeMap map[model.ServiceInstance]int64, instances []Instance) (int64, bool) {
-	var latestStartTime int64
-	for _, instance := range instances {
-		// 容器只能采用containerId进行查询，采集到的容器Pid通常是1
-		containerId := instance.ContainerId
-		nodeName := instance.NodeName
-		var queryInstance model.ServiceInstance
-		if containerId != "" {
-			queryInstance = model.ServiceInstance{
-				ContainerId: containerId,
-				NodeName:    nodeName,
-			}
-		} else {
-			pidInt, _ := strconv.Atoi(instance.Pid)
-			queryInstance = model.ServiceInstance{
-				Pid:      int64(pidInt),
-				NodeName: nodeName,
-			}
-		}
-		if startTime, found := startTimeMap[queryInstance]; found {
-			if startTime > latestStartTime {
-				latestStartTime = startTime
-			}
-		}
-	}
-	if latestStartTime == 0 {
-		return 0, false
-	} else {
-		return latestStartTime, true
-	}
 }
 
 // 填充来自Clickhouse的告警信息,并填充alertReason
