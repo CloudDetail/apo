@@ -85,7 +85,9 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 // Red/Green/Yellow Status
 type RYGLightStatus struct {
 	// From Prometheus
-	LatencyAvg *float64 // 平均延时 用于统计服务
+	LatencyAvg       *float64 // 平均延时 用于统计服务
+	ErrorRateAvg     *float64 // 平均错误率 用于获得当前错误情况
+	LogErrorCountAvg *float64 // 平均日志错误数 用于获取当前日志错误情况
 
 	LatencyDoD       *float64 // 延迟日同比
 	ErrorRateDoD     *float64 // 错误率日同比
@@ -119,6 +121,19 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 			Score:  errorRateScore,
 			Detail: fmt.Sprintf("errorRate 同比增长 %.2f%%", *s.ErrorRateDoD),
 		})
+	} else if s.ErrorRateAvg != nil && *s.ErrorRateAvg > 0 {
+		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
+			Key:    "errorRate",
+			Score:  0,
+			Detail: fmt.Sprintf("errorRate 昨日同时期无错误,今日错误率: %.2f%%", *s.ErrorRateAvg),
+		})
+	} else {
+		res.Score += 3
+		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
+			Key:    "errorRate",
+			Score:  3,
+			Detail: "errorRate 今日未发生错误",
+		})
 	}
 
 	logErrorCountScore := ScoreFromDoD(s.LogErrorCountDoD, 5, 10, 20)
@@ -128,6 +143,19 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 			Key:    "logErrorCount",
 			Score:  logErrorCountScore,
 			Detail: fmt.Sprintf("logErrorCount 同比增长 %.2f%%", *s.LogErrorCountDoD),
+		})
+	} else if s.LogErrorCountAvg != nil && *s.LogErrorCountAvg > 0 {
+		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
+			Key:    "logErrorCount",
+			Score:  0,
+			Detail: fmt.Sprintf("logErrorCount 昨日同时期无错误,今日日志错误数: %.0f%%", *s.ErrorRateAvg),
+		})
+	} else {
+		res.Score += 3
+		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
+			Key:    "logErrorCount",
+			Score:  3,
+			Detail: "logErrorCount 今日未产生错误日志",
 		})
 	}
 
@@ -142,41 +170,41 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 	}
 
 	if len(s.Instances) < 2 {
+		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
+			Key:    "replica",
+			Score:  0,
+			Detail: "应用实例数小于2, 存在服务不可用风险",
+		})
+	} else {
 		res.Score += 3
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
 			Key:    "replica",
 			Score:  3,
-			Detail: "应用实例数小于2, 存在服务不可用风险",
-		})
-	} else {
-		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
-			Key:    "replica",
-			Score:  0,
 			Detail: "应用实例数大于2, 服务有可用副本",
 		})
 	}
 
-	res.PercentScore = 100 - (res.Score * 100 / response.MAX_RYG_SCORE)
+	res.PercentScore = res.Score * 100 / response.MAX_RYG_SCORE
 
 	if res.PercentScore >= 80 {
 		res.Status = response.GREEN
-	} else if res.PercentScore < 80 && res.PercentScore >= 60 {
+	} else if res.PercentScore < 80 && res.PercentScore >= 40 {
 		res.Status = response.YELLOW
-	} else if res.PercentScore < 60 {
+	} else if res.PercentScore < 40 {
 		res.Status = response.RED
 	}
 	return res
 }
 
-func ScoreFromDoD(value *float64, l3, l2, l1 float64) int {
+func ScoreFromDoD(value *float64, l1, l2, l3 float64) int {
 	if value == nil {
 		return -1
 	}
-	if *value > l1 {
+	if *value < l1 {
 		return 3
-	} else if *value > l2 {
+	} else if *value < l2 {
 		return 2
-	} else if *value > l3 {
+	} else if *value < l3 {
 		return 1
 	}
 	return 0
@@ -184,22 +212,22 @@ func ScoreFromDoD(value *float64, l3, l2, l1 float64) int {
 
 func AlertScore(status *model.AlertStatus, eventLevelCountMap *model.AlertEventLevelCountMap) int {
 	if status == nil || status.IsAllNormal() {
-		return 0
+		return 3
 	}
 
 	if eventLevelCountMap == nil {
-		return 0
+		return 3
 	}
 
 	var warningCount int
 	for _, eventLevelCounts := range *eventLevelCountMap {
 		count, find := eventLevelCounts[model.SeverityLevelCritical]
 		if find && count > 0 {
-			return 3
+			return 0
 		}
 		count, find = eventLevelCounts[model.SeverityLevelError]
 		if find && count > 0 {
-			return 3
+			return 0
 		}
 
 		count, find = eventLevelCounts[model.SeverityLevelWarning]
@@ -208,19 +236,19 @@ func AlertScore(status *model.AlertStatus, eventLevelCountMap *model.AlertEventL
 		}
 	}
 	if warningCount >= 2 {
-		return 2
-	} else if warningCount >= 1 {
 		return 1
+	} else if warningCount >= 1 {
+		return 2
 	}
-	return 0
+	return 3
 }
 
 func getAlertScoreDetail(score int) string {
-	if score >= 3 {
+	if score <= 0 {
 		return "存在高优先级告警,系统存在严重问题"
-	} else if score >= 2 {
+	} else if score <= 1 {
 		return "存在不同种类的低优先级告警"
-	} else if score >= 1 {
+	} else if score <= 2 {
 		return "存在低优先级告警,无明显影响"
 	} else {
 		return "无告警,系统运行正常"
@@ -241,21 +269,27 @@ func (s *RYGLightStatus) InitEmptyGroup(key prom.ConvertFromLabels) prom.MetricG
 
 func (s *RYGLightStatus) SetValue(groupName prom.MGroupName, metricName prom.MName, value float64) {
 	if groupName == prom.AVG {
-		if metricName == prom.LATENCY {
+		switch metricName {
+		case prom.LATENCY:
 			micro := value / 1e3
 			s.LatencyAvg = &micro
+		case prom.ERROR_RATE:
+			errorRate := value * 100
+			s.ErrorRateAvg = &errorRate
+		case prom.LOG_ERROR_COUNT:
+			s.LogErrorCountAvg = &value
 		}
 		return
-	}
-
-	radio := (value - 1) * 100
-	switch metricName {
-	case prom.LATENCY:
-		s.LatencyDoD = &radio
-	case prom.ERROR_RATE:
-		s.ErrorRateDoD = &radio
-	case prom.LOG_ERROR_COUNT:
-		s.LogErrorCountDoD = &radio
+	} else if groupName == prom.DOD {
+		radio := (value - 1) * 100
+		switch metricName {
+		case prom.LATENCY:
+			s.LatencyDoD = &radio
+		case prom.ERROR_RATE:
+			s.ErrorRateDoD = &radio
+		case prom.LOG_ERROR_COUNT:
+			s.LogErrorCountDoD = &radio
+		}
 	}
 }
 
