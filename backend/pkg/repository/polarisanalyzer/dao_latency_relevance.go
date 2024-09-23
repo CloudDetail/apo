@@ -41,6 +41,7 @@ func (p *polRepo) SortDescendantByLatencyRelevance(
 	if err != nil {
 		return nil, err
 	}
+
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := p.client.Do(req)
 	if err != nil {
