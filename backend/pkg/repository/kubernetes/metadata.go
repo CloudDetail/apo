@@ -5,9 +5,6 @@ import (
 	"strings"
 	"sync"
 
-	"strings"
-	"sync"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/prometheus/common/model"
