@@ -72,9 +72,7 @@ func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConf
 	var res []amconfig.Receiver = make([]amconfig.Receiver, 0)
 	for i := 0; i < len(amConfig.Receivers); i++ {
 		receiver := amConfig.Receivers[i]
-		rType := amconfig.GetRTypeFromReceiver(amConfig.Receivers[i])
-		if rType != "webhook" && rType != "email" {
-			// not support to manager other kind of receiver now
+		if !amconfig.HasEmailOrWebhookConfig(receiver) {
 			continue
 		}
 		if matchAMConfigReceiverFilter(filter, receiver) {
@@ -101,7 +99,8 @@ func (m *Metadata) AddorUpdateAMConfigReceiver(configFile string, receiver amcon
 	// Update Exist receiver
 	for i := range amConfig.Receivers {
 		if amConfig.Receivers[i].Name == receiver.Name {
-			amConfig.Receivers[i] = receiver
+			amConfig.Receivers[i].WebhookConfigs = receiver.WebhookConfigs
+			amConfig.Receivers[i].EmailConfigs = receiver.EmailConfigs
 			return nil
 		}
 	}
