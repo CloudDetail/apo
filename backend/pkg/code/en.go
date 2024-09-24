@@ -48,4 +48,8 @@ var enText = map[string]string{
 	GetAlertRuleError:         "Failed to get alert rule",
 	UpdateAlertRuleError:      "Failed to update alert rule",
 	DeleteAlertRuleError:      "Failed to delete alert rule",
+
+	GetAMConfigReceiverError:    "Failed to get alertManager config receiver",
+	UpdateAMConfigReceiverError: "Failed to update alertManager config receiver",
+	DeleteConfigReceiverError:   "Failed to delete alertManager config receiver",
 }

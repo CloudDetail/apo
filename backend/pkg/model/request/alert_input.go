@@ -1,5 +1,7 @@
 package request
 
+import "github.com/CloudDetail/apo/backend/pkg/model/amconfig"
+
 type InputAlertManagerRequest struct {
 	Receiver          string            `json:"receiver"`
 	Status            string            `json:"status"`
@@ -31,11 +33,23 @@ type GetAlertRuleRequest struct {
 	*PageParam
 }
 
+type GetAlertManagerConfigReceverRequest struct {
+	AMConfigFile string `form:"amConfigFile" json:"amConfigFile"`
+
+	*AMConfigReceiverFilter
+	*PageParam
+}
+
 type AlertRuleFilter struct {
 	Group    string   `form:"group" json:"group"`
 	Alert    string   `form:"alert" json:"alert"`
 	Severity []string `form:"severity" json:"severity"` // 告警级别 info warning ...
 	Keyword  string   `form:"keyword" json:"keyword"`
+}
+
+type AMConfigReceiverFilter struct {
+	Name  string `form:"name" json:"name"`
+	RType string `form:"rType" json:"rType"`
 }
 
 type UpdateAlertRuleConfigRequest struct {
@@ -49,11 +63,23 @@ type UpdateAlertRuleRequest struct {
 	AlertRule AlertRule `json:"alertRule"`
 }
 
+type UpdateAlertManagerConfigReceiver struct {
+	AMConfigFile string `form:"amConfigFile" json:"amConfigFile"`
+
+	AMConfigReceiver amconfig.Receiver `json:"amConfigReceiver"`
+}
+
 type DeleteAlertRuleRequest struct {
 	AlertRuleFile string `form:"alertRuleFile" json:"alertRuleFile"`
 
 	Group string `form:"group" json:"group"`
 	Alert string `form:"alert" json:"alert"`
+}
+
+type DeleteAlertManagerConfigReceiverRequest struct {
+	AMConfigFile string `form:"amConfigFile" json:"amConfigFile"`
+
+	Name string `form:"name" json:"name" binding:"required"`
 }
 
 type AlertRule struct {

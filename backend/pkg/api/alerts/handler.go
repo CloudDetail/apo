@@ -40,6 +40,20 @@ type Handler interface {
 	// @Router /api/alerts/rule [delete]
 	DeleteAlertRule() core.HandlerFunc
 
+	// GetAlertManagerConfigReceiver 列出告警通知对象
+	// @Tags API.alerts
+	// @Router /api/alerts/alertmanager/receiver/list [post]
+	GetAlertManagerConfigReceiver() core.HandlerFunc
+
+	// UpdateAlertManagerConfigReceiver 更新告警通知对象
+	// @Tags API.alerts
+	// @Router /api/alerts/alertmanager/receiver [post]
+	UpdateAlertManagerConfigReceiver() core.HandlerFunc
+
+	// DeleteAlertManagerConfigReceiver 删除告警通知对象
+	// @Tags API.alerts
+	// @Router /api/alerts/alertmanager/receiver [delete]
+	DeleteAlertManagerConfigReceiver() core.HandlerFunc
 	// GetGroupList 获取group和label对应接口
 	// @Tags API.alerts
 	// @Router /api/alerts/rule/groups

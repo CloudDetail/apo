@@ -19,6 +19,127 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/alerts/alertmanager/receiver": {
+            "post": {
+                "description": "更新告警通知对象",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "更新告警通知对象",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateAlertManagerConfigReceiver"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除告警通知对象",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "删除告警通知对象",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "告警通知配置文件名",
+                        "name": "amConfigFile",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "告警通知配置名称",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/alertmanager/receiver/list": {
+            "post": {
+                "description": "列出告警通知对象",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "列出告警通知对象",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetAlertManagerConfigReceverRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetAlertManagerConfigReceiverResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/inputs/alertmanager": {
             "post": {
                 "description": "获取 AlertManager 的告警事件",
@@ -112,13 +233,22 @@ const docTemplate = `{
                 "summary": "删除告警规则",
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.DeleteAlertRuleRequest"
-                        }
+                        "type": "string",
+                        "description": "告警规则文件名",
+                        "name": "alertRuleFile",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "告警规则组",
+                        "name": "group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "告警规则名",
+                        "name": "alert",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2700,6 +2830,121 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "amconfig.EmailConfig": {
+            "type": "object",
+            "properties": {
+                "authIdentity": {
+                    "type": "string"
+                },
+                "authPassword": {
+                    "type": "string"
+                },
+                "authPasswordFile": {
+                    "type": "string"
+                },
+                "authSecret": {
+                    "type": "string"
+                },
+                "authUsername": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "headers": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "hello": {
+                    "type": "string"
+                },
+                "html": {
+                    "type": "string"
+                },
+                "requireTls": {
+                    "type": "boolean"
+                },
+                "sendResolved": {
+                    "type": "boolean"
+                },
+                "smarthost": {
+                    "$ref": "#/definitions/amconfig.HostPort"
+                },
+                "text": {
+                    "type": "string"
+                },
+                "tlsConfig": {
+                    "$ref": "#/definitions/httpconfig.TLSConfig"
+                },
+                "to": {
+                    "description": "Email address to notify.",
+                    "type": "string"
+                }
+            }
+        },
+        "amconfig.HostPort": {
+            "type": "object",
+            "properties": {
+                "host": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "string"
+                }
+            }
+        },
+        "amconfig.Receiver": {
+            "type": "object",
+            "properties": {
+                "emailConfigs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/amconfig.EmailConfig"
+                    }
+                },
+                "name": {
+                    "description": "A unique identifier for this receiver.",
+                    "type": "string"
+                },
+                "webhookConfigs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/amconfig.WebhookConfig"
+                    }
+                }
+            }
+        },
+        "amconfig.URL": {
+            "type": "object"
+        },
+        "amconfig.WebhookConfig": {
+            "type": "object",
+            "properties": {
+                "httpConfig": {
+                    "$ref": "#/definitions/httpconfig.HTTPClientConfig"
+                },
+                "maxAlerts": {
+                    "description": "MaxAlerts is the maximum number of alerts to be sent per webhook message.\nAlerts exceeding this threshold will be truncated. Setting this to 0\nallows an unlimited number of alerts.",
+                    "type": "integer"
+                },
+                "sendResolved": {
+                    "type": "boolean"
+                },
+                "url": {
+                    "description": "URL to send POST request to.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/amconfig.URL"
+                        }
+                    ]
+                },
+                "urlFile": {
+                    "type": "string"
+                }
+            }
+        },
         "clickhouse.AlertEventSample": {
             "type": "object",
             "properties": {
@@ -2973,6 +3218,297 @@ const docTemplate = `{
                 }
             }
         },
+        "httpconfig.Authorization": {
+            "type": "object",
+            "properties": {
+                "credentials": {
+                    "type": "string"
+                },
+                "credentialsFile": {
+                    "type": "string"
+                },
+                "credentialsRef": {
+                    "description": "CredentialsRef is the name of the secret within the secret manager to use as credentials.",
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpconfig.BasicAuth": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "passwordFile": {
+                    "type": "string"
+                },
+                "passwordRef": {
+                    "description": "PasswordRef is the name of the secret within the secret manager to use as the password.",
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "usernameFile": {
+                    "type": "string"
+                },
+                "usernameRef": {
+                    "description": "UsernameRef is the name of the secret within the secret manager to use as the username.",
+                    "type": "string"
+                }
+            }
+        },
+        "httpconfig.HTTPClientConfig": {
+            "type": "object",
+            "properties": {
+                "authorization": {
+                    "description": "The HTTP authorization credentials for the targets.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/httpconfig.Authorization"
+                        }
+                    ]
+                },
+                "basicAuth": {
+                    "description": "The HTTP basic authentication credentials for the targets.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/httpconfig.BasicAuth"
+                        }
+                    ]
+                },
+                "bearerToken": {
+                    "description": "The bearer token for the targets. Deprecated in favour of\nAuthorization.Credentials.",
+                    "type": "string"
+                },
+                "bearerTokenFile": {
+                    "description": "The bearer token file for the targets. Deprecated in favour of\nAuthorization.CredentialsFile.",
+                    "type": "string"
+                },
+                "enableHttp2": {
+                    "description": "EnableHTTP2 specifies whether the client should configure HTTP2.\nThe omitempty flag is not set, because it would be hidden from the\nmarshalled configuration when set to false.",
+                    "type": "boolean"
+                },
+                "followRedirects": {
+                    "description": "FollowRedirects specifies whether the client should follow HTTP 3xx redirects.\nThe omitempty flag is not set, because it would be hidden from the\nmarshalled configuration when set to false.",
+                    "type": "boolean"
+                },
+                "httpHeaders": {
+                    "description": "HTTPHeaders specify headers to inject in the requests. Those headers\ncould be marshalled back to the users.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/httpconfig.Headers"
+                        }
+                    ]
+                },
+                "noProxy": {
+                    "description": "NoProxy contains addresses that should not use a proxy.",
+                    "type": "string"
+                },
+                "oauth2": {
+                    "description": "The OAuth2 client credentials used to fetch a token for the targets.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/httpconfig.OAuth2"
+                        }
+                    ]
+                },
+                "proxyConnectHeader": {
+                    "description": "ProxyConnectHeader optionally specifies headers to send to\nproxies during CONNECT requests. Assume that at least _some_ of\nthese headers are going to contain secrets and use Secret as the\nvalue type instead of string.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/httpconfig.ProxyHeader"
+                        }
+                    ]
+                },
+                "proxyFromEnvironment": {
+                    "description": "ProxyFromEnvironment makes use of net/http ProxyFromEnvironment function\nto determine proxies.",
+                    "type": "boolean"
+                },
+                "proxyUrl": {
+                    "description": "HTTP proxy server to use to connect to the targets.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/httpconfig.URL"
+                        }
+                    ]
+                },
+                "tlsConfig": {
+                    "description": "TLSConfig to use to connect to the targets.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/httpconfig.TLSConfig"
+                        }
+                    ]
+                }
+            }
+        },
+        "httpconfig.Header": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "secrets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "httpconfig.Headers": {
+            "type": "object",
+            "properties": {
+                "headers": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/httpconfig.Header"
+                    }
+                }
+            }
+        },
+        "httpconfig.OAuth2": {
+            "type": "object",
+            "properties": {
+                "clientId": {
+                    "type": "string"
+                },
+                "clientSecret": {
+                    "type": "string"
+                },
+                "clientSecretFile": {
+                    "type": "string"
+                },
+                "clientSecretRef": {
+                    "description": "ClientSecretRef is the name of the secret within the secret manager to use as the client\nsecret.",
+                    "type": "string"
+                },
+                "endpointParams": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "noProxy": {
+                    "description": "NoProxy contains addresses that should not use a proxy.",
+                    "type": "string"
+                },
+                "proxyConnectHeader": {
+                    "description": "ProxyConnectHeader optionally specifies headers to send to\nproxies during CONNECT requests. Assume that at least _some_ of\nthese headers are going to contain secrets and use Secret as the\nvalue type instead of string.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/httpconfig.ProxyHeader"
+                        }
+                    ]
+                },
+                "proxyFromEnvironment": {
+                    "description": "ProxyFromEnvironment makes use of net/http ProxyFromEnvironment function\nto determine proxies.",
+                    "type": "boolean"
+                },
+                "proxyUrl": {
+                    "description": "HTTP proxy server to use to connect to the targets.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/httpconfig.URL"
+                        }
+                    ]
+                },
+                "scopes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tlsconfig": {
+                    "$ref": "#/definitions/httpconfig.TLSConfig"
+                },
+                "tokenUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpconfig.ProxyHeader": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpconfig.TLSConfig": {
+            "type": "object",
+            "properties": {
+                "ca": {
+                    "description": "Text of the CA cert to use for the targets.",
+                    "type": "string"
+                },
+                "caFile": {
+                    "description": "The CA cert to use for the targets.",
+                    "type": "string"
+                },
+                "caRef": {
+                    "description": "CARef is the name of the secret within the secret manager to use as the CA cert for the\ntargets.",
+                    "type": "string"
+                },
+                "cert": {
+                    "description": "Text of the client cert file for the targets.",
+                    "type": "string"
+                },
+                "certFile": {
+                    "description": "The client cert file for the targets.",
+                    "type": "string"
+                },
+                "certRef": {
+                    "description": "CertRef is the name of the secret within the secret manager to use as the client cert for\nthe targets.",
+                    "type": "string"
+                },
+                "insecureSkipVerify": {
+                    "description": "Disable target certificate validation.",
+                    "type": "boolean"
+                },
+                "key": {
+                    "description": "Text of the client key file for the targets.",
+                    "type": "string"
+                },
+                "keyFile": {
+                    "description": "The client key file for the targets.",
+                    "type": "string"
+                },
+                "keyRef": {
+                    "description": "KeyRef is the name of the secret within the secret manager to use as the client key for\nthe targets.",
+                    "type": "string"
+                },
+                "maxVersion": {
+                    "description": "Maximum TLS version.",
+                    "type": "integer"
+                },
+                "minVersion": {
+                    "description": "Minimum TLS version.",
+                    "type": "integer"
+                },
+                "serverName": {
+                    "description": "Used to verify the hostname for the targets.",
+                    "type": "string"
+                }
+            }
+        },
+        "httpconfig.URL": {
+            "type": "object"
+        },
         "model.AlertDetail": {
             "type": "object",
             "properties": {
@@ -3203,16 +3739,22 @@ const docTemplate = `{
                 "BoolColumn"
             ]
         },
-        "request.DeleteAlertRuleRequest": {
+        "request.GetAlertManagerConfigReceverRequest": {
             "type": "object",
             "properties": {
-                "alert": {
+                "amConfigFile": {
                     "type": "string"
                 },
-                "alertRuleFile": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "name": {
                     "type": "string"
                 },
-                "group": {
+                "pageSize": {
+                    "type": "integer"
+                },
+                "rType": {
                     "type": "string"
                 }
             }
@@ -3562,6 +4104,17 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateAlertManagerConfigReceiver": {
+            "type": "object",
+            "properties": {
+                "amConfigFile": {
+                    "type": "string"
+                },
+                "amConfigReceiver": {
+                    "$ref": "#/definitions/amconfig.Receiver"
+                }
+            }
+        },
         "request.UpdateAlertRuleRequest": {
             "type": "object",
             "properties": {
@@ -3780,6 +4333,20 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "response.GetAlertManagerConfigReceiverResponse": {
+            "type": "object",
+            "properties": {
+                "amConfigReceivers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/amconfig.Receiver"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
                 }
             }
         },

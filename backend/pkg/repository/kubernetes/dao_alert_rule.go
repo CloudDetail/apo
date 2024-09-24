@@ -7,15 +7,13 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-func (k *k8sApi) SyncNow() error {
-	// Update All AlertRule
+func (k *k8sApi) syncAlertRule() error {
 	res, err := k.GetAlertRuleConfigFile("")
 	if err != nil {
 		return err
 	}
-
 	for key, config := range res {
-		alertRules, err := Parse(config)
+		alertRules, err := ParseAlertRules(config)
 		if err != nil {
 			continue
 		}
@@ -53,7 +51,7 @@ func (k *k8sApi) AddOrUpdateAlertRule(configFile string, alertRule request.Alert
 		return err
 	}
 
-	content, err := k.Metadata.MarshalToYaml(configFile)
+	content, err := k.Metadata.AlertRuleMarshalToYaml(configFile)
 	if err != nil {
 		return err
 	}
@@ -70,10 +68,18 @@ func (k *k8sApi) DeleteAlertRule(configFile string, group, alert string) error {
 		return nil
 	}
 
-	content, err := k.Metadata.MarshalToYaml(configFile)
+	content, err := k.Metadata.AlertRuleMarshalToYaml(configFile)
 	if err != nil {
 		return err
 	}
 
 	return k.UpdateAlertRuleConfigFile(configFile, content)
+}
+
+func (k *k8sApi) GetAlertRuleConfigFile(alertRuleFile string) (map[string]string, error) {
+	return k.getConfigMap(k.AlertRuleCMName, alertRuleFile)
+}
+
+func (k *k8sApi) UpdateAlertRuleConfigFile(configFile string, content []byte) error {
+	return k.updateConfigMap(k.AlertRuleCMName, configFile, content)
 }

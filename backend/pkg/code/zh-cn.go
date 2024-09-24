@@ -51,4 +51,8 @@ var zhCnText = map[string]string{
 	GetAlertRuleError:    "获取告警规则失败",
 	UpdateAlertRuleError: "更新告警规则失败",
 	DeleteAlertRuleError: "删除告警规则失败",
+
+	GetAMConfigReceiverError:    "获取告警通知对象失败",
+	UpdateAMConfigReceiverError: "更新告警通知对象失败",
+	DeleteConfigReceiverError:   "删除告警通知对象失败",
 }
