@@ -42,8 +42,13 @@ type Handler interface {
 
 	// GetGroupList 获取group和label对应接口
 	// @Tags API.alerts
-	// @Router /api/alerts/rule/groups
+	// @Router /api/alerts/rule/groups [get]
 	GetGroupList() core.HandlerFunc
+
+	// GetMetricPQL 获取告警规则中指标和PQL
+	// @Tags API.alerts
+	// @Router /api/alerts/rule/metrics [get]
+	GetMetricPQL() core.HandlerFunc
 }
 
 type handler struct {

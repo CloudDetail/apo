@@ -22,6 +22,7 @@ type Service interface {
 	UpdateAlertRule(req *request.UpdateAlertRuleRequest) error
 	DeleteAlertRule(req *request.DeleteAlertRuleRequest) error
 	GetGroupList() response.GetGroupListResponse
+	GetMetricPQL() response.GetMetricPQLResponse
 }
 
 type service struct {

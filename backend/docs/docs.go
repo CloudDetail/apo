@@ -206,6 +206,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/rule/metrics": {
+            "get": {
+                "description": "获取告警规则中指标和PQL",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "获取告警规则中指标和PQL",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetMetricPQLResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/rules": {
             "get": {
                 "description": "获取基础告警规则",
@@ -2961,6 +2990,23 @@ const docTemplate = `{
                 }
             }
         },
+        "model.AlertMetricsData": {
+            "type": "object",
+            "properties": {
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "pql": {
+                    "type": "string"
+                }
+            }
+        },
         "model.AlertReason": {
             "type": "object",
             "additionalProperties": {
@@ -3101,6 +3147,9 @@ const docTemplate = `{
         },
         "request.AlertRule": {
             "type": "object",
+            "required": [
+                "group"
+            ],
             "properties": {
                 "alert": {
                     "type": "string"
@@ -3950,6 +3999,17 @@ const docTemplate = `{
                 "pid": {
                     "description": "进程号",
                     "type": "integer"
+                }
+            }
+        },
+        "response.GetMetricPQLResponse": {
+            "type": "object",
+            "properties": {
+                "alertMetricsData": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.AlertMetricsData"
+                    }
                 }
             }
         },

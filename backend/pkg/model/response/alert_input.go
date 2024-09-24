@@ -18,3 +18,7 @@ type GetAlertRulesResponse struct {
 type GetGroupListResponse struct {
 	GroupsLabel map[string]string `json:"groupsLabel"`
 }
+
+type GetMetricPQLResponse struct {
+	AlertMetricsData []model.AlertMetricsData `json:"alertMetricsData"`
+}
