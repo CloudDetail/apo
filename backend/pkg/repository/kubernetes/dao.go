@@ -22,6 +22,8 @@ const (
 	DefaultAPONS         string = "apo"
 	DefaultCMNAME        string = "apo-victoria-metrics-alert-server-alert-rules-config"
 	DefaultAlertRuleFile string = "alert-rules.yaml"
+	DefaultAMCMName      string = "apo-alertmanager-config"
+	DefaultAMConfigFile  string = "alertmanager.yaml"
 )
 
 var _ Repo = &k8sApi{}
@@ -64,6 +66,12 @@ func New(logger *zap.Logger, authType, authFilePath string, setting config.Metad
 	}
 	if len(setting.AlertRuleFileName) == 0 {
 		setting.AlertRuleFileName = DefaultAlertRuleFile
+	}
+	if len(setting.AlertManagerCMName) == 0 {
+		setting.AlertManagerCMName = DefaultAMCMName
+	}
+	if len(setting.AlertManagerFileName) == 0 {
+		setting.AlertManagerFileName = DefaultAMConfigFile
 	}
 
 	api := &k8sApi{

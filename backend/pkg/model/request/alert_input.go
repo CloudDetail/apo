@@ -1,6 +1,9 @@
 package request
 
-import promcfg "github.com/prometheus/alertmanager/config"
+import (
+	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
+	"gopkg.in/yaml.v3"
+)
 
 type InputAlertManagerRequest struct {
 	Receiver          string            `json:"receiver"`
@@ -33,6 +36,13 @@ type GetAlertRuleRequest struct {
 	*PageParam
 }
 
+type GetAlertManagerConfigReceverRequest struct {
+	AMConfigFile string `form:"amConfigFile" json:"amConfigFile"`
+
+	*AMConfigReceiverFilter
+	*PageParam
+}
+
 type AlertRuleFilter struct {
 	Group    string   `form:"group" json:"group"`
 	Alert    string   `form:"alert" json:"alert"`
@@ -56,11 +66,23 @@ type UpdateAlertRuleRequest struct {
 	AlertRule AlertRule `json:"alertRule"`
 }
 
+type UpdateAlertManagerConfigReceiver struct {
+	AMConfigFile string `form:"amConfigFile" json:"amConfigFile"`
+
+	AMConfigReceiver AMConfigReceiver `json:"amConfigReceiver"`
+}
+
 type DeleteAlertRuleRequest struct {
 	AlertRuleFile string `form:"alertRuleFile" json:"alertRuleFile"`
 
 	Group string `form:"group" json:"group"`
 	Alert string `form:"alert" json:"alert"`
+}
+
+type DeleteAlertManagerConfigReceiverRequest struct {
+	AMConfigFile string `form:"amConfigFile" json:"amConfigFile"`
+
+	Name string `form:"name" json:"name" binding:"required"`
 }
 
 type AlertRule struct {
@@ -76,7 +98,56 @@ type AlertRule struct {
 }
 
 type AMConfigReceiver struct {
-	*promcfg.Receiver
-
+	// A unique identifier for this receiver.
+	Name  string `json:"name" binding:"required"`
 	RType string `json:"rType"`
+
+	// Configs
+	WebhookConfigs []*amconfig.WebhookConfig `yaml:"webhook_configs,omitempty" json:"webhookConfigs,omitempty"`
+	EmailConfigs   []*amconfig.EmailConfig   `yaml:"email_configs,omitempty" json:"email_configs,omitempty"`
+}
+
+func (r *AMConfigReceiver) ToReceiverDef() *amconfig.Receiver {
+	if r == nil {
+		return nil
+	}
+
+	switch r.RType {
+	case "webhook":
+		data, err := yaml.Marshal(r.WebhookConfigs)
+		if err != nil {
+			// TODO
+			return nil
+		}
+
+		var configs []*amconfig.WebhookConfig
+		err = yaml.Unmarshal(data, configs)
+		if err != nil {
+			return nil
+		}
+
+		return &amconfig.Receiver{
+			Name:           r.Name,
+			WebhookConfigs: configs,
+		}
+	case "email":
+		data, err := yaml.Marshal(r.EmailConfigs)
+		if err != nil {
+			// TODO
+			return nil
+		}
+
+		var configs []*amconfig.EmailConfig
+		err = yaml.Unmarshal(data, configs)
+		if err != nil {
+			return nil
+		}
+
+		return &amconfig.Receiver{
+			Name:         r.Name,
+			EmailConfigs: configs,
+		}
+	}
+	// TODO unsupport yet
+	return nil
 }

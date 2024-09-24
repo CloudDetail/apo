@@ -14,3 +14,9 @@ type GetAlertRulesResponse struct {
 
 	Pagination *model.Pagination `json:"pagination"`
 }
+
+type GetAlertManagerConfigReceiverResponse struct {
+	AMConfigReceivers []*request.AMConfigReceiver `json:"amConfigReceivers"`
+
+	Pagination *model.Pagination `json:"pagination"`
+}

@@ -27,7 +27,7 @@ type Handler interface {
 
 	// GetAlertRules 列出告警规则
 	// @Tags API.alerts
-	// @Router /api/alerts/rules [get]
+	// @Router /api/alerts/rule/list [post]
 	GetAlertRules() core.HandlerFunc
 
 	// UpdateAlertRule 更新告警规则
@@ -39,6 +39,21 @@ type Handler interface {
 	// @Tags API.alerts
 	// @Router /api/alerts/rule [delete]
 	DeleteAlertRule() core.HandlerFunc
+
+	// GetAlertManagerConfigReceiver 列出告警通知对象
+	// @Tags API.alerts
+	// @Router /api/alerts/alertmanager/receiver/list [post]
+	GetAlertManagerConfigReceiver() core.HandlerFunc
+
+	// UpdateAlertManagerConfigReceiver 更新告警通知对象
+	// @Tags API.alerts
+	// @Router /api/alerts/alertmanager/receiver [post]
+	UpdateAlertManagerConfigReceiver() core.HandlerFunc
+
+	// DeleteAlertManagerConfigReceiver 删除告警通知对象
+	// @Tags API.alerts
+	// @Router /api/alerts/alertmanager/receiver [delete]
+	DeleteAlertManagerConfigReceiver() core.HandlerFunc
 }
 
 type handler struct {

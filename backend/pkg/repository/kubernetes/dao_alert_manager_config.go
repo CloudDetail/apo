@@ -35,8 +35,8 @@ func (k *k8sApi) AddOrUpdateAMConfigReceiver(configFile string, receiver request
 	}
 
 	// check Before update
-	if receiver.Receiver == nil || GetRTypeFromReceiver(*receiver.Receiver) == "unknown" {
-		return fmt.Errorf("receiver config is not set")
+	if rDef := receiver.ToReceiverDef(); rDef == nil {
+		return fmt.Errorf("dont't support to add receiver as %s now", receiver.RType)
 	}
 
 	err := k.Metadata.AddorUpdateAMConfigReceiver(configFile, receiver)

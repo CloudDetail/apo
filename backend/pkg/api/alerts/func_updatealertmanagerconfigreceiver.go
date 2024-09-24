@@ -8,21 +8,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// DeleteAlertRule 删除告警规则
-// @Summary 删除告警规则
-// @Description 删除告警规则
+// UpdateAlertManagerConfigReceiver 更新告警通知对象
+// @Summary 更新告警通知对象
+// @Description 更新告警通知对象
 // @Tags API.alerts
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
-// @Param alertRuleFile query string false "告警规则文件名"
-// @Param group query string false "告警规则组"
-// @Param alert query string false "告警规则名"
+// @Param Request body request.UpdateAlertManagerConfigReceiver true "请求信息"
 // @Success 200 string ok
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/rule [delete]
-func (h *handler) DeleteAlertRule() core.HandlerFunc {
+// @Router /api/alerts/alertmanager/receiver [post]
+func (h *handler) UpdateAlertManagerConfigReceiver() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.DeleteAlertRuleRequest)
+		req := new(request.UpdateAlertManagerConfigReceiver)
 		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -32,16 +30,15 @@ func (h *handler) DeleteAlertRule() core.HandlerFunc {
 			return
 		}
 
-		err := h.alertService.DeleteAlertRule(req)
+		err := h.alertService.UpdateAMConfigReceiver(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.DeleteAlertRuleError,
-				code.Text(code.DeleteAlertRuleError)).WithError(err),
+				code.UpdateAMConfigReceiverError,
+				code.Text(code.UpdateAMConfigReceiverError)).WithError(err),
 			)
 			return
 		}
-
 		c.Payload("ok")
 	}
 }

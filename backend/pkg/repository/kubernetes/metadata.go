@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/prometheus/common/model"
 	promfmt "github.com/prometheus/prometheus/model/rulefmt"
@@ -96,18 +97,15 @@ func (m *Metadata) AddorUpdateAMConfigReceiver(configFile string, receiver reque
 		return fmt.Errorf("configfile %s is not found", configFile)
 	}
 
-	r, find := amConfig.ReceiverMap[receiver.Name]
-	if !find && receiver.Receiver != nil {
-		amConfig.Ref.Receivers = append(amConfig.Ref.Receivers, *receiver.Receiver)
-		amConfig.ReceiverList = append(amConfig.ReceiverList, &receiver)
-		amConfig.ReceiverMap[receiver.Name] = &receiver
-		return nil
+	// Update Exist receiver
+	for i := range amConfig.ReceiverList {
+		if amConfig.ReceiverList[i].Name == receiver.Name {
+			amConfig.ReceiverList[i] = &receiver
+			return nil
+		}
 	}
 
-	// Update Exist receiver
-	r.Receiver = receiver.Receiver
-	r.RType = receiver.RType
-
+	amConfig.ReceiverList = append(amConfig.ReceiverList, &receiver)
 	return nil
 }
 
@@ -154,11 +152,9 @@ func (m *Metadata) DeleteAMConfigReceiver(configFile string, name string) bool {
 		return false
 	}
 
-	for i := 0; i < len(amConfig.Ref.Receivers); i++ {
-		if amConfig.Ref.Receivers[i].Name == name {
-			amConfig.Ref.Receivers = removeElement(amConfig.Ref.Receivers, i)
+	for i := 0; i < len(amConfig.ReceiverList); i++ {
+		if amConfig.ReceiverList[i].Name == name {
 			amConfig.ReceiverList = removeElement(amConfig.ReceiverList, i)
-			delete(amConfig.ReceiverMap, name)
 			return true
 		}
 	}
@@ -243,7 +239,18 @@ func (m *Metadata) AlertManagerConfigMarshalToYaml(configFile string) ([]byte, e
 		return nil, fmt.Errorf("configfile %s is not found", configFile)
 	}
 
-	return yaml.Marshal(amConfig.Ref)
+	amConfigDef := amconfig.Config{}
+	for _, receiver := range amConfig.ReceiverList {
+		if rDef := receiver.ToReceiverDef(); rDef != nil {
+			amConfigDef.Receivers = append(amConfigDef.Receivers, *rDef)
+		}
+	}
+
+	for _, receiver := range amConfig.UnsupportReceiver {
+		amConfigDef.Receivers = append(amConfigDef.Receivers, *receiver)
+	}
+
+	return yaml.Marshal(amConfigDef)
 }
 
 func matchAMConfigReceiverFilter(filter *request.AMConfigReceiverFilter, receiver *request.AMConfigReceiver) bool {

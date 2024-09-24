@@ -1,8 +1,10 @@
 package kubernetes
 
 import (
+	"encoding/json"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	promcfg "github.com/prometheus/alertmanager/config"
 )
 
 const (
@@ -11,33 +13,73 @@ const (
 )
 
 type AlertManagerConfig struct {
-	Ref *promcfg.Config
-
-	ReceiverMap  map[string]*request.AMConfigReceiver
 	ReceiverList []*request.AMConfigReceiver
+
+	UnsupportReceiver []*amconfig.Receiver
 }
 
 func ParseAlertManagerConfig(strContent string) (*AlertManagerConfig, error) {
-	cfg, err := promcfg.Load(strContent)
+	cfg, err := amconfig.Load(strContent)
 	if err != nil {
 		return nil, err
 	}
 
-	var receiverMap = make(map[string]*request.AMConfigReceiver)
+	var receiverList = make([]*request.AMConfigReceiver, 0)
+	var unsupportList = make([]*amconfig.Receiver, 0)
 	for i := 0; i < len(cfg.Receivers); i++ {
-		receiverMap[cfg.Receivers[i].Name] = &request.AMConfigReceiver{
-			Receiver: &cfg.Receivers[i],
-			RType:    GetRTypeFromReceiver(cfg.Receivers[i]),
+		r := GetReceiverVOFromReceiverDef(cfg.Receivers[i])
+		if r == nil {
+			unsupportList = append(unsupportList, &cfg.Receivers[i])
+		} else {
+			receiverList = append(receiverList, r)
 		}
 	}
 
 	return &AlertManagerConfig{
-		Ref:         cfg,
-		ReceiverMap: receiverMap,
+		ReceiverList:      receiverList,
+		UnsupportReceiver: unsupportList,
 	}, nil
 }
 
-func GetRTypeFromReceiver(r promcfg.Receiver) string {
+func GetReceiverVOFromReceiverDef(r amconfig.Receiver) *request.AMConfigReceiver {
+	rType := GetRTypeFromReceiver(r)
+	switch rType {
+	case "webhook":
+		data, err := json.Marshal(r.WebhookConfigs)
+		if err != nil {
+			return nil
+		}
+		var cfgs []*amconfig.WebhookConfig
+		err = json.Unmarshal(data, &cfgs)
+		if err != nil {
+			return nil
+		}
+		return &request.AMConfigReceiver{
+			Name:           r.Name,
+			RType:          rType,
+			WebhookConfigs: cfgs,
+		}
+	case "email":
+		data, err := json.Marshal(r.WebhookConfigs)
+		if err != nil {
+			return nil
+		}
+		var cfgs []*amconfig.EmailConfig
+		err = json.Unmarshal(data, &cfgs)
+		if err != nil {
+			return nil
+		}
+		return &request.AMConfigReceiver{
+			Name:         r.Name,
+			RType:        rType,
+			EmailConfigs: cfgs,
+		}
+	default:
+		return nil
+	}
+}
+
+func GetRTypeFromReceiver(r amconfig.Receiver) string {
 	if r.DiscordConfigs != nil {
 		return "discord"
 	} else if r.EmailConfigs != nil {

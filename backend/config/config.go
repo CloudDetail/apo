@@ -69,7 +69,7 @@ type MetadataSettings struct {
 	AlertRuleFileName string `mapstructure:"alert_rule_file_name"`
 
 	AlertManagerCMName   string `mapstructure:"alert_manager_confignap"`
-	AlertManagerFileName string `mapstructure:"alert_file_namewss"`
+	AlertManagerFileName string `mapstructure:"alert_file_name"`
 }
 
 func Get() *Config {
