@@ -48,14 +48,15 @@ const (
 	GetTTLError            = "B0602"
 	SetSingleTableTTLError = "B0603"
 
-	GetAlertEventsError         = "B0701"
-	GetAlertEventsSampleError   = "B0702"
-	GetAlertRuleError           = "B0703"
-	UpdateAlertRuleError        = "B0704"
-	DeleteAlertRuleError        = "B0705"
-	GetAMConfigReceiverError    = "B0706"
-	UpdateAMConfigReceiverError = "B0707"
-	DeleteConfigReceiverError   = "B0708"
+	GetAlertEventsError          = "B0701"
+	GetAlertEventsSampleError    = "B0702"
+	GetAlertRuleError            = "B0703"
+	UpdateAlertRuleError         = "B0704"
+	DeleteAlertRuleError         = "B0705"
+	GetAMConfigReceiverError     = "B0706"
+	UpdateAMConfigReceiverError  = "B0707"
+	DeleteConfigReceiverError    = "B0708"
+	UpdateAlertRuleValidateError = "B0709"
 )
 
 func Text(code string) string {

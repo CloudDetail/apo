@@ -43,11 +43,12 @@ var enText = map[string]string{
 	GetTTLError:                         "Failed to get ttl",
 	SetSingleTableTTLError:              "Failed to set single table ttl",
 
-	GetAlertEventsError:       "Failed to get alert events",
-	GetAlertEventsSampleError: "Failed to get sample alert events",
-	GetAlertRuleError:         "Failed to get alert rule",
-	UpdateAlertRuleError:      "Failed to update alert rule",
-	DeleteAlertRuleError:      "Failed to delete alert rule",
+	GetAlertEventsError:          "Failed to get alert events",
+	GetAlertEventsSampleError:    "Failed to get sample alert events",
+	GetAlertRuleError:            "Failed to get alert rule",
+	UpdateAlertRuleError:         "Failed to update alert rule",
+	DeleteAlertRuleError:         "Failed to delete alert rule",
+	UpdateAlertRuleValidateError: "Failed to validate alertRule, usually expr is illegle",
 
 	GetAMConfigReceiverError:    "Failed to get alertManager config receiver",
 	UpdateAMConfigReceiverError: "Failed to update alertManager config receiver",

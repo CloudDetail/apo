@@ -47,10 +47,11 @@ var zhCnText = map[string]string{
 	GetAlertEventsError:       "获取告警事件失败",
 	GetAlertEventsSampleError: "获取采样告警事件失败",
 
-	GetSQLMetricError:    "获取SQL关键指标失败",
-	GetAlertRuleError:    "获取告警规则失败",
-	UpdateAlertRuleError: "更新告警规则失败",
-	DeleteAlertRuleError: "删除告警规则失败",
+	GetSQLMetricError:            "获取SQL关键指标失败",
+	GetAlertRuleError:            "获取告警规则失败",
+	UpdateAlertRuleError:         "更新告警规则失败",
+	DeleteAlertRuleError:         "删除告警规则失败",
+	UpdateAlertRuleValidateError: "验证告警规则失败,通常为规则中的expr非法",
 
 	GetAMConfigReceiverError:    "获取告警通知对象失败",
 	UpdateAMConfigReceiverError: "更新告警通知对象失败",
