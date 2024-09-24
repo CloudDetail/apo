@@ -21,6 +21,7 @@ type Service interface {
 	GetAlertRules(req *request.GetAlertRuleRequest) response.GetAlertRulesResponse
 	UpdateAlertRule(req *request.UpdateAlertRuleRequest) error
 	DeleteAlertRule(req *request.DeleteAlertRuleRequest) error
+	GetGroupList() response.GetGroupListResponse
 }
 
 type service struct {

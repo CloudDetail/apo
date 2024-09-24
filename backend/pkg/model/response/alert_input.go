@@ -14,3 +14,7 @@ type GetAlertRulesResponse struct {
 
 	Pagination *model.Pagination `json:"pagination"`
 }
+
+type GetGroupListResponse struct {
+	GroupsLabel map[string]string `json:"groupsLabel"`
+}

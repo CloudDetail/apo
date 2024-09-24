@@ -838,6 +838,13 @@ definitions:
       pagination:
         $ref: '#/definitions/model.Pagination'
     type: object
+  response.GetGroupListResponse:
+    properties:
+      groupsLabel:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
   response.GetK8sEventsResponse:
     properties:
       data:
@@ -1244,6 +1251,9 @@ definitions:
     type: object
   response.ServiceRYGResult:
     properties:
+      percentScore:
+        description: 百分比总分
+        type: integer
       score:
         description: 总分
         type: integer
@@ -1354,6 +1364,25 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 更新告警规则
+      tags:
+      - API.alerts
+  /api/alerts/rule/groups:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取group和label对应接口
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetGroupListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取group和label对应接口
       tags:
       - API.alerts
   /api/alerts/rule/list:

@@ -27,7 +27,7 @@ type Handler interface {
 
 	// GetAlertRules 列出告警规则
 	// @Tags API.alerts
-	// @Router /api/alerts/rules [get]
+	// @Router /api/alerts/rule/list [post]
 	GetAlertRules() core.HandlerFunc
 
 	// UpdateAlertRule 更新告警规则
@@ -39,6 +39,11 @@ type Handler interface {
 	// @Tags API.alerts
 	// @Router /api/alerts/rule [delete]
 	DeleteAlertRule() core.HandlerFunc
+
+	// GetGroupList 获取group和label对应接口
+	// @Tags API.alerts
+	// @Router /api/alerts/rule/groups
+	GetGroupList() core.HandlerFunc
 }
 
 type handler struct {

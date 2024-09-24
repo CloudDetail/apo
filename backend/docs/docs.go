@@ -137,6 +137,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/rule/groups": {
+            "get": {
+                "description": "获取group和label对应接口",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "获取group和label对应接口",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetGroupListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/rule/list": {
             "post": {
                 "description": "列出告警规则",
@@ -3851,6 +3880,17 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetGroupListResponse": {
+            "type": "object",
+            "properties": {
+                "groupsLabel": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "response.GetK8sEventsResponse": {
             "type": "object",
             "properties": {
@@ -4458,6 +4498,10 @@ const docTemplate = `{
         "response.ServiceRYGResult": {
             "type": "object",
             "properties": {
+                "percentScore": {
+                    "description": "百分比总分",
+                    "type": "integer"
+                },
                 "score": {
                     "description": "总分",
                     "type": "integer"
