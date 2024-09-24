@@ -26,6 +26,7 @@ type Service interface {
 	UpdateAMConfigReceiver(req *request.UpdateAlertManagerConfigReceiver) error
 	DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigReceiverRequest) error
 	GetGroupList() response.GetGroupListResponse
+	GetMetricPQL() response.GetMetricPQLResponse
 }
 
 type service struct {
