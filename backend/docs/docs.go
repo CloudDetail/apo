@@ -3637,6 +3637,9 @@ const docTemplate = `{
         },
         "request.AlertRule": {
             "type": "object",
+            "required": [
+                "group"
+            ],
             "properties": {
                 "alert": {
                     "type": "string"

@@ -614,6 +614,8 @@ definitions:
         type: object
       record:
         type: string
+    required:
+    - group
     type: object
   request.DataType:
     enum:
