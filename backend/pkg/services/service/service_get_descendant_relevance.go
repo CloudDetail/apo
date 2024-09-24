@@ -37,13 +37,11 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 	}
 
 	// 按延时相似度排序
-	// sorted, unsorted, err :=
 	sortResp, err := s.polRepo.SortDescendantByLatencyRelevance(
 		req.StartTime, req.EndTime, prom.VecFromDuration(time.Duration(req.Step)*time.Microsecond),
 		req.Service, req.Endpoint,
 		unsortedDescendant,
 	)
-
 	var sortResult []polarisanalyzer.LatencyRelevance
 	var sortType string
 	if err != nil || sortResp == nil {
@@ -119,7 +117,7 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 
 func (s *service) queryDescendantStatus(services []string, endpoints []string, startTime, endTime int64) (*DescendantStatusMap, error) {
 	avgDepLatency, err := s.promRepo.QueryAggMetricsWithFilter(
-		prom.PQLAvgDepLatencyWithFilters,
+		prom.WithDefaultIFPolarisMetricExits(prom.PQLAvgDepLatencyWithFilters, prom.DefaultDepLatency),
 		startTime, endTime,
 		prom.EndpointGranularity,
 		prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
@@ -237,6 +235,7 @@ func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRel
 		ContentKey: descendantResp.EndPoint,
 		SvcName:    descendantResp.ServiceName,
 	}
+
 	if status, ok := descendantStatus.MetricGroupMap[descendantKey]; ok {
 		if status.DepLatency != nil && status.Latency != nil {
 			var depRatio = *status.DepLatency / *status.Latency
@@ -253,10 +252,12 @@ func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRel
 				descendantResp.DelaySource = "self"
 			}
 		} else if status.Latency != nil {
-			// TODO DepLatency 为空, 检查cpu北极星指标是否存在
-			// 若存在,为 self
-			descendantResp.DelaySource = "self"
-			// 若不存在,为 unknown
+			// 外部延时不存在但是存在北极星指标
+			if *status.DepLatency < 0 {
+				descendantResp.DelaySource = "self"
+			} else {
+				descendantResp.DelaySource = "unknown"
+			}
 		} else {
 			descendantResp.DelaySource = "unknown"
 		}

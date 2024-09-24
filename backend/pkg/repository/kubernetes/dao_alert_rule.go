@@ -34,10 +34,12 @@ func (k *k8sApi) AddOrUpdateAlertRule(configFile string, alertRule request.Alert
 		configFile = k.MetadataSettings.AlertRuleFileName
 	}
 
-	// check Before update
-	_, err := model.ParseDuration(alertRule.KeepFiringFor)
-	if err != nil {
-		return fmt.Errorf("'keepFiringFor' in alertRule is illegal: %s", alertRule.KeepFiringFor)
+	var err error
+	if len(alertRule.KeepFiringFor) > 0 {
+		_, err = model.ParseDuration(alertRule.KeepFiringFor)
+		if err != nil {
+			return fmt.Errorf("'keepFiringFor' in alertRule is illegal: %s", alertRule.KeepFiringFor)
+		}
 	}
 	_, err = model.ParseDuration(alertRule.For)
 	if err != nil {

@@ -5,6 +5,9 @@ import (
 	"strings"
 	"sync"
 
+	"strings"
+	"sync"
+
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/prometheus/common/model"
@@ -203,10 +206,15 @@ func (m *Metadata) AlertRuleMarshalToYaml(configFile string) ([]byte, error) {
 				if err != nil {
 					return nil, err
 				}
-				keepFiringFor, err := model.ParseDuration(rule.KeepFiringFor)
-				if err != nil {
-					return nil, err
+
+				var keepFiringFor model.Duration
+				if len(rule.KeepFiringFor) > 0 {
+					keepFiringFor, err = model.ParseDuration(rule.KeepFiringFor)
+					if err != nil {
+						return nil, err
+					}
 				}
+
 				ruleNode := promfmt.RuleNode{
 					For:           forDuration,
 					KeepFiringFor: keepFiringFor,

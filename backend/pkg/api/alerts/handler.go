@@ -54,6 +54,10 @@ type Handler interface {
 	// @Tags API.alerts
 	// @Router /api/alerts/alertmanager/receiver [delete]
 	DeleteAlertManagerConfigReceiver() core.HandlerFunc
+	// GetGroupList 获取group和label对应接口
+	// @Tags API.alerts
+	// @Router /api/alerts/rule/groups
+	GetGroupList() core.HandlerFunc
 }
 
 type handler struct {
