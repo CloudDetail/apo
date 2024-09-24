@@ -7,6 +7,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/CloudDetail/apo/backend/config"
+	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -39,8 +40,8 @@ type Repo interface {
 	AddOrUpdateAlertRule(configFile string, alertRule request.AlertRule) error
 	DeleteAlertRule(configFile string, group, alert string) error
 
-	GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]*request.AMConfigReceiver, int)
-	AddOrUpdateAMConfigReceiver(configFile string, receiver request.AMConfigReceiver) error
+	GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
+	AddOrUpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error
 	DeleteAMConfigReceiver(configFile string, name string) error
 }
 
@@ -81,6 +82,7 @@ func New(logger *zap.Logger, authType, authFilePath string, setting config.Metad
 
 		Metadata: Metadata{
 			AlertRulesMap: map[string]*AlertRules{},
+			AMConfigMap:   map[string]*amconfig.Config{},
 		},
 	}
 

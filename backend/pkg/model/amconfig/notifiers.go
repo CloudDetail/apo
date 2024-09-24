@@ -188,11 +188,11 @@ func (nc *NotifierConfig) SendResolved() bool {
 // WebexConfig configures notifications via Webex.
 type WebexConfig struct {
 	NotifierConfig `yaml:",inline" json:",inline"`
-	HTTPConfig     *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
-	APIURL         *URL                         `yaml:"api_url,omitempty" json:"api_url,omitempty"`
+	HTTPConfig     *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"httpConfig,omitempty"`
+	APIURL         *URL                         `yaml:"api_url,omitempty" json:"apiUrl,omitempty"`
 
 	Message string `yaml:"message,omitempty" json:"message,omitempty"`
-	RoomID  string `yaml:"room_id" json:"room_id"`
+	RoomID  string `yaml:"room_id" json:"roomId"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface.
@@ -218,9 +218,9 @@ func (c *WebexConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 type DiscordConfig struct {
 	NotifierConfig `yaml:",inline" json:",inline"`
 
-	HTTPConfig     *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
-	WebhookURL     *URL                         `yaml:"webhook_url,omitempty" json:"webhook_url,omitempty"`
-	WebhookURLFile string                       `yaml:"webhook_url_file,omitempty" json:"webhook_url_file,omitempty"`
+	HTTPConfig     *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"httpConfig,omitempty"`
+	WebhookURL     *URL                         `yaml:"webhook_url,omitempty" json:"webhookUrl,omitempty"`
+	WebhookURLFile string                       `yaml:"webhook_url_file,omitempty" json:"webhookUrlFile,omitempty"`
 
 	Title   string `yaml:"title,omitempty" json:"title,omitempty"`
 	Message string `yaml:"message,omitempty" json:"message,omitempty"`
@@ -254,16 +254,16 @@ type EmailConfig struct {
 	From             string               `yaml:"from,omitempty" json:"from,omitempty"`
 	Hello            string               `yaml:"hello,omitempty" json:"hello,omitempty"`
 	Smarthost        HostPort             `yaml:"smarthost,omitempty" json:"smarthost,omitempty"`
-	AuthUsername     string               `yaml:"auth_username,omitempty" json:"auth_username,omitempty"`
-	AuthPassword     Secret               `yaml:"auth_password,omitempty" json:"auth_password,omitempty"`
-	AuthPasswordFile string               `yaml:"auth_password_file,omitempty" json:"auth_password_file,omitempty"`
-	AuthSecret       Secret               `yaml:"auth_secret,omitempty" json:"auth_secret,omitempty"`
-	AuthIdentity     string               `yaml:"auth_identity,omitempty" json:"auth_identity,omitempty"`
+	AuthUsername     string               `yaml:"auth_username,omitempty" json:"authUsername,omitempty"`
+	AuthPassword     Secret               `yaml:"auth_password,omitempty" json:"authPassword,omitempty"`
+	AuthPasswordFile string               `yaml:"auth_password_file,omitempty" json:"authPasswordFile,omitempty"`
+	AuthSecret       Secret               `yaml:"auth_secret,omitempty" json:"authSecret,omitempty"`
+	AuthIdentity     string               `yaml:"auth_identity,omitempty" json:"authIdentity,omitempty"`
 	Headers          map[string]string    `yaml:"headers,omitempty" json:"headers,omitempty"`
 	HTML             string               `yaml:"html,omitempty" json:"html,omitempty"`
 	Text             string               `yaml:"text,omitempty" json:"text,omitempty"`
-	RequireTLS       *bool                `yaml:"require_tls,omitempty" json:"require_tls,omitempty"`
-	TLSConfig        httpconfig.TLSConfig `yaml:"tls_config,omitempty" json:"tls_config,omitempty"`
+	RequireTLS       *bool                `yaml:"require_tls,omitempty" json:"requireTls,omitempty"`
+	TLSConfig        httpconfig.TLSConfig `yaml:"tls_config,omitempty" json:"tlsConfig,omitempty"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface.
@@ -294,15 +294,15 @@ func (c *EmailConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 type PagerdutyConfig struct {
 	NotifierConfig `yaml:",inline" json:",inline"`
 
-	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
+	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"httpConfig,omitempty"`
 
-	ServiceKey     Secret            `yaml:"service_key,omitempty" json:"service_key,omitempty"`
-	ServiceKeyFile string            `yaml:"service_key_file,omitempty" json:"service_key_file,omitempty"`
-	RoutingKey     Secret            `yaml:"routing_key,omitempty" json:"routing_key,omitempty"`
-	RoutingKeyFile string            `yaml:"routing_key_file,omitempty" json:"routing_key_file,omitempty"`
+	ServiceKey     Secret            `yaml:"service_key,omitempty" json:"serviceKey,omitempty"`
+	ServiceKeyFile string            `yaml:"service_key_file,omitempty" json:"serviceKeyFile,omitempty"`
+	RoutingKey     Secret            `yaml:"routing_key,omitempty" json:"routingKey,omitempty"`
+	RoutingKeyFile string            `yaml:"routing_key_file,omitempty" json:"routingKeyFile,omitempty"`
 	URL            *URL              `yaml:"url,omitempty" json:"url,omitempty"`
 	Client         string            `yaml:"client,omitempty" json:"client,omitempty"`
-	ClientURL      string            `yaml:"client_url,omitempty" json:"client_url,omitempty"`
+	ClientURL      string            `yaml:"client_url,omitempty" json:"clientUrl,omitempty"`
 	Description    string            `yaml:"description,omitempty" json:"description,omitempty"`
 	Details        map[string]string `yaml:"details,omitempty" json:"details,omitempty"`
 	Images         []PagerdutyImage  `yaml:"images,omitempty" json:"images,omitempty"`
@@ -401,8 +401,8 @@ func (c *SlackAction) UnmarshalYAML(unmarshal func(interface{}) error) error {
 type SlackConfirmationField struct {
 	Text        string `yaml:"text,omitempty"  json:"text,omitempty"`
 	Title       string `yaml:"title,omitempty"  json:"title,omitempty"`
-	OkText      string `yaml:"ok_text,omitempty"  json:"ok_text,omitempty"`
-	DismissText string `yaml:"dismiss_text,omitempty"  json:"dismiss_text,omitempty"`
+	OkText      string `yaml:"ok_text,omitempty"  json:"okText,omitempty"`
+	DismissText string `yaml:"dismiss_text,omitempty"  json:"dismissText,omitempty"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for SlackConfirmationField.
@@ -446,10 +446,10 @@ func (c *SlackField) UnmarshalYAML(unmarshal func(interface{}) error) error {
 type SlackConfig struct {
 	NotifierConfig `yaml:",inline" json:",inline"`
 
-	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
+	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"httpConfig,omitempty"`
 
-	APIURL     *URL   `yaml:"api_url,omitempty" json:"api_url,omitempty"`
-	APIURLFile string `yaml:"api_url_file,omitempty" json:"api_url_file,omitempty"`
+	APIURL     *URL   `yaml:"api_url,omitempty" json:"apiUrl,omitempty"`
+	APIURLFile string `yaml:"api_url_file,omitempty" json:"apiUrlFile,omitempty"`
 
 	// Slack channel override, (like #other-channel or @username).
 	Channel  string `yaml:"channel,omitempty" json:"channel,omitempty"`
@@ -457,20 +457,20 @@ type SlackConfig struct {
 	Color    string `yaml:"color,omitempty" json:"color,omitempty"`
 
 	Title       string         `yaml:"title,omitempty" json:"title,omitempty"`
-	TitleLink   string         `yaml:"title_link,omitempty" json:"title_link,omitempty"`
+	TitleLink   string         `yaml:"title_link,omitempty" json:"titleLink,omitempty"`
 	Pretext     string         `yaml:"pretext,omitempty" json:"pretext,omitempty"`
 	Text        string         `yaml:"text,omitempty" json:"text,omitempty"`
 	Fields      []*SlackField  `yaml:"fields,omitempty" json:"fields,omitempty"`
-	ShortFields bool           `yaml:"short_fields" json:"short_fields,omitempty"`
+	ShortFields bool           `yaml:"short_fields" json:"shortFields,omitempty"`
 	Footer      string         `yaml:"footer,omitempty" json:"footer,omitempty"`
 	Fallback    string         `yaml:"fallback,omitempty" json:"fallback,omitempty"`
-	CallbackID  string         `yaml:"callback_id,omitempty" json:"callback_id,omitempty"`
-	IconEmoji   string         `yaml:"icon_emoji,omitempty" json:"icon_emoji,omitempty"`
-	IconURL     string         `yaml:"icon_url,omitempty" json:"icon_url,omitempty"`
-	ImageURL    string         `yaml:"image_url,omitempty" json:"image_url,omitempty"`
-	ThumbURL    string         `yaml:"thumb_url,omitempty" json:"thumb_url,omitempty"`
-	LinkNames   bool           `yaml:"link_names" json:"link_names,omitempty"`
-	MrkdwnIn    []string       `yaml:"mrkdwn_in,omitempty" json:"mrkdwn_in,omitempty"`
+	CallbackID  string         `yaml:"callback_id,omitempty" json:"callbackId,omitempty"`
+	IconEmoji   string         `yaml:"icon_emoji,omitempty" json:"iconEmoji,omitempty"`
+	IconURL     string         `yaml:"icon_url,omitempty" json:"iconUrl,omitempty"`
+	ImageURL    string         `yaml:"image_url,omitempty" json:"imageUrl,omitempty"`
+	ThumbURL    string         `yaml:"thumb_url,omitempty" json:"thumbUrl,omitempty"`
+	LinkNames   bool           `yaml:"link_names" json:"linkNames,omitempty"`
+	MrkdwnIn    []string       `yaml:"mrkdwn_in,omitempty" json:"mrkdwnIn,omitempty"`
 	Actions     []*SlackAction `yaml:"actions,omitempty" json:"actions,omitempty"`
 }
 
@@ -525,17 +525,17 @@ func (c *WebhookConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 type WechatConfig struct {
 	NotifierConfig `yaml:",inline" json:",inline"`
 
-	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
+	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"httpConfig,omitempty"`
 
-	APISecret   Secret `yaml:"api_secret,omitempty" json:"api_secret,omitempty"`
-	CorpID      string `yaml:"corp_id,omitempty" json:"corp_id,omitempty"`
+	APISecret   Secret `yaml:"api_secret,omitempty" json:"apiSecret,omitempty"`
+	CorpID      string `yaml:"corp_id,omitempty" json:"corpId,omitempty"`
 	Message     string `yaml:"message,omitempty" json:"message,omitempty"`
-	APIURL      *URL   `yaml:"api_url,omitempty" json:"api_url,omitempty"`
-	ToUser      string `yaml:"to_user,omitempty" json:"to_user,omitempty"`
-	ToParty     string `yaml:"to_party,omitempty" json:"to_party,omitempty"`
-	ToTag       string `yaml:"to_tag,omitempty" json:"to_tag,omitempty"`
-	AgentID     string `yaml:"agent_id,omitempty" json:"agent_id,omitempty"`
-	MessageType string `yaml:"message_type,omitempty" json:"message_type,omitempty"`
+	APIURL      *URL   `yaml:"api_url,omitempty" json:"apiUrl,omitempty"`
+	ToUser      string `yaml:"to_user,omitempty" json:"toUser,omitempty"`
+	ToParty     string `yaml:"to_party,omitempty" json:"toParty,omitempty"`
+	ToTag       string `yaml:"to_tag,omitempty" json:"toTag,omitempty"`
+	AgentID     string `yaml:"agent_id,omitempty" json:"agentId,omitempty"`
+	MessageType string `yaml:"message_type,omitempty" json:"messageType,omitempty"`
 }
 
 const wechatValidTypesRe = `^(text|markdown)$`
@@ -565,11 +565,11 @@ func (c *WechatConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 type OpsGenieConfig struct {
 	NotifierConfig `yaml:",inline" json:",inline"`
 
-	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
+	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"httpConfig,omitempty"`
 
-	APIKey       Secret                    `yaml:"api_key,omitempty" json:"api_key,omitempty"`
-	APIKeyFile   string                    `yaml:"api_key_file,omitempty" json:"api_key_file,omitempty"`
-	APIURL       *URL                      `yaml:"api_url,omitempty" json:"api_url,omitempty"`
+	APIKey       Secret                    `yaml:"api_key,omitempty" json:"apiKey,omitempty"`
+	APIKeyFile   string                    `yaml:"api_key_file,omitempty" json:"apiKeyFile,omitempty"`
+	APIURL       *URL                      `yaml:"api_url,omitempty" json:"apiUrl,omitempty"`
 	Message      string                    `yaml:"message,omitempty" json:"message,omitempty"`
 	Description  string                    `yaml:"description,omitempty" json:"description,omitempty"`
 	Source       string                    `yaml:"source,omitempty" json:"source,omitempty"`
@@ -580,7 +580,7 @@ type OpsGenieConfig struct {
 	Tags         string                    `yaml:"tags,omitempty" json:"tags,omitempty"`
 	Note         string                    `yaml:"note,omitempty" json:"note,omitempty"`
 	Priority     string                    `yaml:"priority,omitempty" json:"priority,omitempty"`
-	UpdateAlerts bool                      `yaml:"update_alerts,omitempty" json:"update_alerts,omitempty"`
+	UpdateAlerts bool                      `yaml:"update_alerts,omitempty" json:"updateAlerts,omitempty"`
 }
 
 const opsgenieValidTypesRe = `^(team|teams|user|escalation|schedule)$`
@@ -634,17 +634,17 @@ type OpsGenieConfigResponder struct {
 type VictorOpsConfig struct {
 	NotifierConfig `yaml:",inline" json:",inline"`
 
-	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
+	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"httpConfig,omitempty"`
 
-	APIKey            Secret            `yaml:"api_key,omitempty" json:"api_key,omitempty"`
-	APIKeyFile        string            `yaml:"api_key_file,omitempty" json:"api_key_file,omitempty"`
-	APIURL            *URL              `yaml:"api_url" json:"api_url"`
-	RoutingKey        string            `yaml:"routing_key" json:"routing_key"`
-	MessageType       string            `yaml:"message_type" json:"message_type"`
-	StateMessage      string            `yaml:"state_message" json:"state_message"`
-	EntityDisplayName string            `yaml:"entity_display_name" json:"entity_display_name"`
-	MonitoringTool    string            `yaml:"monitoring_tool" json:"monitoring_tool"`
-	CustomFields      map[string]string `yaml:"custom_fields,omitempty" json:"custom_fields,omitempty"`
+	APIKey            Secret            `yaml:"api_key,omitempty" json:"apiKey,omitempty"`
+	APIKeyFile        string            `yaml:"api_key_file,omitempty" json:"apiKeyFile,omitempty"`
+	APIURL            *URL              `yaml:"api_url" json:"apiUrl"`
+	RoutingKey        string            `yaml:"routing_key" json:"routingKey"`
+	MessageType       string            `yaml:"message_type" json:"messageType"`
+	StateMessage      string            `yaml:"state_message" json:"stateMessage"`
+	EntityDisplayName string            `yaml:"entity_display_name" json:"entityDisplay_name"`
+	MonitoringTool    string            `yaml:"monitoring_tool" json:"monitoringTool"`
+	CustomFields      map[string]string `yaml:"custom_fields,omitempty" json:"customFields,omitempty"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface.
@@ -689,16 +689,16 @@ func (d duration) MarshalText() ([]byte, error) {
 type PushoverConfig struct {
 	NotifierConfig `yaml:",inline" json:",inline"`
 
-	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
+	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"httpConfig,omitempty"`
 
-	UserKey     Secret   `yaml:"user_key,omitempty" json:"user_key,omitempty"`
-	UserKeyFile string   `yaml:"user_key_file,omitempty" json:"user_key_file,omitempty"`
+	UserKey     Secret   `yaml:"user_key,omitempty" json:"userKey,omitempty"`
+	UserKeyFile string   `yaml:"user_key_file,omitempty" json:"userKeyFile,omitempty"`
 	Token       Secret   `yaml:"token,omitempty" json:"token,omitempty"`
-	TokenFile   string   `yaml:"token_file,omitempty" json:"token_file,omitempty"`
+	TokenFile   string   `yaml:"token_file,omitempty" json:"tokenFile,omitempty"`
 	Title       string   `yaml:"title,omitempty" json:"title,omitempty"`
 	Message     string   `yaml:"message,omitempty" json:"message,omitempty"`
 	URL         string   `yaml:"url,omitempty" json:"url,omitempty"`
-	URLTitle    string   `yaml:"url_title,omitempty" json:"url_title,omitempty"`
+	URLTitle    string   `yaml:"url_title,omitempty" json:"urlTitle,omitempty"`
 	Device      string   `yaml:"device,omitempty" json:"device,omitempty"`
 	Sound       string   `yaml:"sound,omitempty" json:"sound,omitempty"`
 	Priority    string   `yaml:"priority,omitempty" json:"priority,omitempty"`
@@ -733,13 +733,13 @@ func (c *PushoverConfig) UnmarshalYAML(unmarshal func(interface{}) error) error 
 type SNSConfig struct {
 	NotifierConfig `yaml:",inline" json:",inline"`
 
-	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
+	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"httpConfig,omitempty"`
 
-	APIUrl      string            `yaml:"api_url,omitempty" json:"api_url,omitempty"`
+	APIUrl      string            `yaml:"api_url,omitempty" json:"apiUrl,omitempty"`
 	Sigv4       sigv4.SigV4Config `yaml:"sigv4" json:"sigv4"`
-	TopicARN    string            `yaml:"topic_arn,omitempty" json:"topic_arn,omitempty"`
-	PhoneNumber string            `yaml:"phone_number,omitempty" json:"phone_number,omitempty"`
-	TargetARN   string            `yaml:"target_arn,omitempty" json:"target_arn,omitempty"`
+	TopicARN    string            `yaml:"topic_arn,omitempty" json:"topicArn,omitempty"`
+	PhoneNumber string            `yaml:"phone_number,omitempty" json:"phoneNumber,omitempty"`
+	TargetARN   string            `yaml:"target_arn,omitempty" json:"targetArn,omitempty"`
 	Subject     string            `yaml:"subject,omitempty" json:"subject,omitempty"`
 	Message     string            `yaml:"message,omitempty" json:"message,omitempty"`
 	Attributes  map[string]string `yaml:"attributes,omitempty" json:"attributes,omitempty"`
@@ -762,15 +762,15 @@ func (c *SNSConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 type TelegramConfig struct {
 	NotifierConfig `yaml:",inline" json:",inline"`
 
-	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
+	HTTPConfig *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"httpConfig,omitempty"`
 
-	APIUrl               *URL   `yaml:"api_url" json:"api_url,omitempty"`
+	APIUrl               *URL   `yaml:"api_url" json:"apiUrl,omitempty"`
 	BotToken             Secret `yaml:"bot_token,omitempty" json:"token,omitempty"`
-	BotTokenFile         string `yaml:"bot_token_file,omitempty" json:"token_file,omitempty"`
+	BotTokenFile         string `yaml:"bot_token_file,omitempty" json:"tokenFile,omitempty"`
 	ChatID               int64  `yaml:"chat_id,omitempty" json:"chat,omitempty"`
 	Message              string `yaml:"message,omitempty" json:"message,omitempty"`
-	DisableNotifications bool   `yaml:"disable_notifications,omitempty" json:"disable_notifications,omitempty"`
-	ParseMode            string `yaml:"parse_mode,omitempty" json:"parse_mode,omitempty"`
+	DisableNotifications bool   `yaml:"disable_notifications,omitempty" json:"disableNotifications,omitempty"`
+	ParseMode            string `yaml:"parse_mode,omitempty" json:"parseMode,omitempty"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface.
@@ -800,9 +800,9 @@ func (c *TelegramConfig) UnmarshalYAML(unmarshal func(interface{}) error) error 
 
 type MSTeamsConfig struct {
 	NotifierConfig `yaml:",inline" json:",inline"`
-	HTTPConfig     *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
-	WebhookURL     *URL                         `yaml:"webhook_url,omitempty" json:"webhook_url,omitempty"`
-	WebhookURLFile string                       `yaml:"webhook_url_file,omitempty" json:"webhook_url_file,omitempty"`
+	HTTPConfig     *httpconfig.HTTPClientConfig `yaml:"http_config,omitempty" json:"httpConfig,omitempty"`
+	WebhookURL     *URL                         `yaml:"webhook_url,omitempty" json:"webhookUrl,omitempty"`
+	WebhookURLFile string                       `yaml:"webhook_url_file,omitempty" json:"webhookUrlFile,omitempty"`
 
 	Title   string `yaml:"title,omitempty" json:"title,omitempty"`
 	Summary string `yaml:"summary,omitempty" json:"summary,omitempty"`

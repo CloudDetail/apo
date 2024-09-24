@@ -1,9 +1,6 @@
 package request
 
-import (
-	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
-	"gopkg.in/yaml.v3"
-)
+import "github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 
 type InputAlertManagerRequest struct {
 	Receiver          string            `json:"receiver"`
@@ -69,7 +66,7 @@ type UpdateAlertRuleRequest struct {
 type UpdateAlertManagerConfigReceiver struct {
 	AMConfigFile string `form:"amConfigFile" json:"amConfigFile"`
 
-	AMConfigReceiver AMConfigReceiver `json:"amConfigReceiver"`
+	AMConfigReceiver amconfig.Receiver `json:"amConfigReceiver"`
 }
 
 type DeleteAlertRuleRequest struct {
@@ -95,59 +92,4 @@ type AlertRule struct {
 	KeepFiringFor string            `json:"keepFiringFor,omitempty"`
 	Labels        map[string]string `json:"labels,omitempty"`
 	Annotations   map[string]string `json:"annotations,omitempty"`
-}
-
-type AMConfigReceiver struct {
-	// A unique identifier for this receiver.
-	Name  string `json:"name" binding:"required"`
-	RType string `json:"rType"`
-
-	// Configs
-	WebhookConfigs []*amconfig.WebhookConfig `yaml:"webhook_configs,omitempty" json:"webhookConfigs,omitempty"`
-	EmailConfigs   []*amconfig.EmailConfig   `yaml:"email_configs,omitempty" json:"email_configs,omitempty"`
-}
-
-func (r *AMConfigReceiver) ToReceiverDef() *amconfig.Receiver {
-	if r == nil {
-		return nil
-	}
-
-	switch r.RType {
-	case "webhook":
-		data, err := yaml.Marshal(r.WebhookConfigs)
-		if err != nil {
-			// TODO
-			return nil
-		}
-
-		var configs []*amconfig.WebhookConfig
-		err = yaml.Unmarshal(data, configs)
-		if err != nil {
-			return nil
-		}
-
-		return &amconfig.Receiver{
-			Name:           r.Name,
-			WebhookConfigs: configs,
-		}
-	case "email":
-		data, err := yaml.Marshal(r.EmailConfigs)
-		if err != nil {
-			// TODO
-			return nil
-		}
-
-		var configs []*amconfig.EmailConfig
-		err = yaml.Unmarshal(data, configs)
-		if err != nil {
-			return nil
-		}
-
-		return &amconfig.Receiver{
-			Name:         r.Name,
-			EmailConfigs: configs,
-		}
-	}
-	// TODO unsupport yet
-	return nil
 }

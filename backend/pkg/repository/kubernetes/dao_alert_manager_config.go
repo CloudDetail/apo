@@ -1,8 +1,7 @@
 package kubernetes
 
 import (
-	"fmt"
-
+	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -12,7 +11,7 @@ func (k *k8sApi) syncAMConfig() error {
 		return err
 	}
 	for key, config := range res {
-		amConfig, err := ParseAlertManagerConfig(config)
+		amConfig, err := amconfig.Load(config)
 		if err != nil {
 			continue
 		}
@@ -22,21 +21,16 @@ func (k *k8sApi) syncAMConfig() error {
 	return nil
 }
 
-func (k *k8sApi) GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]*request.AMConfigReceiver, int) {
+func (k *k8sApi) GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int) {
 	if len(configFile) == 0 {
 		configFile = k.MetadataSettings.AlertManagerFileName
 	}
 	return k.Metadata.GetAMConfigReceiver(configFile, filter, pageParam)
 }
 
-func (k *k8sApi) AddOrUpdateAMConfigReceiver(configFile string, receiver request.AMConfigReceiver) error {
+func (k *k8sApi) AddOrUpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
 	if len(configFile) == 0 {
 		configFile = k.MetadataSettings.AlertManagerFileName
-	}
-
-	// check Before update
-	if rDef := receiver.ToReceiverDef(); rDef == nil {
-		return fmt.Errorf("dont't support to add receiver as %s now", receiver.RType)
 	}
 
 	err := k.Metadata.AddorUpdateAMConfigReceiver(configFile, receiver)

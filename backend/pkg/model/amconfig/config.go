@@ -136,7 +136,7 @@ func resolveFilepaths(baseDir string, cfg *Config) {
 // MuteTimeInterval represents a named set of time intervals for which a route should be muted.
 type MuteTimeInterval struct {
 	Name          string                      `yaml:"name" json:"name"`
-	TimeIntervals []timeinterval.TimeInterval `yaml:"time_intervals" json:"time_intervals"`
+	TimeIntervals []timeinterval.TimeInterval `yaml:"time_intervals" json:"timeIntervals"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for MuteTimeInterval.
@@ -154,7 +154,7 @@ func (mt *MuteTimeInterval) UnmarshalYAML(unmarshal func(interface{}) error) err
 // TimeInterval represents a named set of time intervals for which a route should be muted.
 type TimeInterval struct {
 	Name          string                      `yaml:"name" json:"name"`
-	TimeIntervals []timeinterval.TimeInterval `yaml:"time_intervals" json:"time_intervals"`
+	TimeIntervals []timeinterval.TimeInterval `yaml:"time_intervals" json:"timeIntervals"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for MuteTimeInterval.
@@ -603,14 +603,14 @@ type GlobalConfig struct {
 	SMTPFrom             string   `yaml:"smtp_from,omitempty" json:"smtpFrom,omitempty"`
 	SMTPHello            string   `yaml:"smtp_hello,omitempty" json:"smtpHello,omitempty"`
 	SMTPSmarthost        HostPort `yaml:"smtp_smarthost,omitempty" json:"smtpSmarthost,omitempty"`
-	SMTPAuthUsername     string   `yaml:"smtp_auth_username,omitempty" json:"smtpAuth_username,omitempty"`
-	SMTPAuthPassword     Secret   `yaml:"smtp_auth_password,omitempty" json:"smtpAuth_password,omitempty"`
-	SMTPAuthPasswordFile string   `yaml:"smtp_auth_password_file,omitempty" json:"smtpAuth_password_file,omitempty"`
+	SMTPAuthUsername     string   `yaml:"smtp_auth_username,omitempty" json:"smtpAuthUsername,omitempty"`
+	SMTPAuthPassword     Secret   `yaml:"smtp_auth_password,omitempty" json:"smtpAuthPassword,omitempty"`
+	SMTPAuthPasswordFile string   `yaml:"smtp_auth_password_file,omitempty" json:"smtpAuthPassword_file,omitempty"`
 	SMTPAuthSecret       Secret   `yaml:"smtp_auth_secret,omitempty" json:"smtpAuthSecret,omitempty"`
 	SMTPAuthIdentity     string   `yaml:"smtp_auth_identity,omitempty" json:"smtpAuthIdentity,omitempty"`
 	SMTPRequireTLS       bool     `yaml:"smtp_require_tls" json:"smtpRequireTls,omitempty"`
 	SlackAPIURL          *URL     `yaml:"slack_api_url,omitempty" json:"slackApiUrl,omitempty"`
-	SlackAPIURLFile      string   `yaml:"slack_api_url_file,omitempty" json:"slackApiUrl_file,omitempty"`
+	SlackAPIURLFile      string   `yaml:"slack_api_url_file,omitempty" json:"slackApiUrlFile,omitempty"`
 	PagerdutyURL         *URL     `yaml:"pagerduty_url,omitempty" json:"pagerdutyUrl,omitempty"`
 	OpsGenieAPIURL       *URL     `yaml:"opsgenie_api_url,omitempty" json:"opsgenieApiUrl,omitempty"`
 	OpsGenieAPIKey       Secret   `yaml:"opsgenie_api_key,omitempty" json:"opsgenieApiKey,omitempty"`
@@ -636,22 +636,22 @@ func (c *GlobalConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 type Route struct {
 	Receiver string `yaml:"receiver,omitempty" json:"receiver,omitempty"`
 
-	GroupByStr []string          `yaml:"group_by,omitempty" json:"group_by,omitempty"`
+	GroupByStr []string          `yaml:"group_by,omitempty" json:"groupBy,omitempty"`
 	GroupBy    []model.LabelName `yaml:"-" json:"-"`
 	GroupByAll bool              `yaml:"-" json:"-"`
 	// Deprecated. Remove before v1.0 release.
 	Match map[string]string `yaml:"match,omitempty" json:"match,omitempty"`
 	// Deprecated. Remove before v1.0 release.
-	MatchRE             MatchRegexps `yaml:"match_re,omitempty" json:"match_re,omitempty"`
+	MatchRE             MatchRegexps `yaml:"match_re,omitempty" json:"matchRe,omitempty"`
 	Matchers            Matchers     `yaml:"matchers,omitempty" json:"matchers,omitempty"`
-	MuteTimeIntervals   []string     `yaml:"mute_time_intervals,omitempty" json:"mute_time_intervals,omitempty"`
-	ActiveTimeIntervals []string     `yaml:"active_time_intervals,omitempty" json:"active_time_intervals,omitempty"`
+	MuteTimeIntervals   []string     `yaml:"mute_time_intervals,omitempty" json:"muteTimeIntervals,omitempty"`
+	ActiveTimeIntervals []string     `yaml:"active_time_intervals,omitempty" json:"activeTimeIntervals,omitempty"`
 	Continue            bool         `yaml:"continue" json:"continue,omitempty"`
 	Routes              []*Route     `yaml:"routes,omitempty" json:"routes,omitempty"`
 
-	GroupWait      *model.Duration `yaml:"group_wait,omitempty" json:"group_wait,omitempty"`
-	GroupInterval  *model.Duration `yaml:"group_interval,omitempty" json:"group_interval,omitempty"`
-	RepeatInterval *model.Duration `yaml:"repeat_interval,omitempty" json:"repeat_interval,omitempty"`
+	GroupWait      *model.Duration `yaml:"group_wait,omitempty" json:"groupWait,omitempty"`
+	GroupInterval  *model.Duration `yaml:"group_interval,omitempty" json:"groupInterval,omitempty"`
+	RepeatInterval *model.Duration `yaml:"repeat_interval,omitempty" json:"repeatInterval,omitempty"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for Route.
@@ -708,20 +708,20 @@ func (r *Route) UnmarshalYAML(unmarshal func(interface{}) error) error {
 type InhibitRule struct {
 	// SourceMatch defines a set of labels that have to equal the given
 	// value for source alerts. Deprecated. Remove before v1.0 release.
-	SourceMatch map[string]string `yaml:"source_match,omitempty" json:"source_match,omitempty"`
+	SourceMatch map[string]string `yaml:"source_match,omitempty" json:"sourceMatch,omitempty"`
 	// SourceMatchRE defines pairs like SourceMatch but does regular expression
 	// matching. Deprecated. Remove before v1.0 release.
-	SourceMatchRE MatchRegexps `yaml:"source_match_re,omitempty" json:"source_match_re,omitempty"`
+	SourceMatchRE MatchRegexps `yaml:"source_match_re,omitempty" json:"sourceMatchRe,omitempty"`
 	// SourceMatchers defines a set of label matchers that have to be fulfilled for source alerts.
-	SourceMatchers Matchers `yaml:"source_matchers,omitempty" json:"source_matchers,omitempty"`
+	SourceMatchers Matchers `yaml:"source_matchers,omitempty" json:"sourceMatchers,omitempty"`
 	// TargetMatch defines a set of labels that have to equal the given
 	// value for target alerts. Deprecated. Remove before v1.0 release.
-	TargetMatch map[string]string `yaml:"target_match,omitempty" json:"target_match,omitempty"`
+	TargetMatch map[string]string `yaml:"target_match,omitempty" json:"targetMatch,omitempty"`
 	// TargetMatchRE defines pairs like TargetMatch but does regular expression
 	// matching. Deprecated. Remove before v1.0 release.
-	TargetMatchRE MatchRegexps `yaml:"target_match_re,omitempty" json:"target_match_re,omitempty"`
+	TargetMatchRE MatchRegexps `yaml:"target_match_re,omitempty" json:"targetMatchRe,omitempty"`
 	// TargetMatchers defines a set of label matchers that have to be fulfilled for target alerts.
-	TargetMatchers Matchers `yaml:"target_matchers,omitempty" json:"target_matchers,omitempty"`
+	TargetMatchers Matchers `yaml:"target_matchers,omitempty" json:"targetMatchers,omitempty"`
 	// A set of labels that must be equal between the source and target alert
 	// for them to be a match.
 	Equal model.LabelNames `yaml:"equal,omitempty" json:"equal,omitempty"`
@@ -754,19 +754,19 @@ type Receiver struct {
 	// A unique identifier for this receiver.
 	Name string `yaml:"name" json:"name"`
 
-	EmailConfigs     []*EmailConfig     `yaml:"email_configs,omitempty" json:"email_configs,omitempty"`
-	WebhookConfigs   []*WebhookConfig   `yaml:"webhook_configs,omitempty" json:"webhook_configs,omitempty"`
-	DiscordConfigs   []*DiscordConfig   `yaml:"discord_configs,omitempty" json:"discord_configs,omitempty"`
-	PagerdutyConfigs []*PagerdutyConfig `yaml:"pagerduty_configs,omitempty" json:"pagerduty_configs,omitempty"`
-	SlackConfigs     []*SlackConfig     `yaml:"slack_configs,omitempty" json:"slack_configs,omitempty"`
-	OpsGenieConfigs  []*OpsGenieConfig  `yaml:"opsgenie_configs,omitempty" json:"opsgenie_configs,omitempty"`
-	WechatConfigs    []*WechatConfig    `yaml:"wechat_configs,omitempty" json:"wechat_configs,omitempty"`
-	PushoverConfigs  []*PushoverConfig  `yaml:"pushover_configs,omitempty" json:"pushover_configs,omitempty"`
-	VictorOpsConfigs []*VictorOpsConfig `yaml:"victorops_configs,omitempty" json:"victorops_configs,omitempty"`
-	SNSConfigs       []*SNSConfig       `yaml:"sns_configs,omitempty" json:"sns_configs,omitempty"`
-	TelegramConfigs  []*TelegramConfig  `yaml:"telegram_configs,omitempty" json:"telegram_configs,omitempty"`
-	WebexConfigs     []*WebexConfig     `yaml:"webex_configs,omitempty" json:"webex_configs,omitempty"`
-	MSTeamsConfigs   []*MSTeamsConfig   `yaml:"msteams_configs,omitempty" json:"msteams_configs,omitempty"`
+	EmailConfigs     []*EmailConfig     `yaml:"email_configs,omitempty" json:"emailConfigs,omitempty"`
+	WebhookConfigs   []*WebhookConfig   `yaml:"webhook_configs,omitempty" json:"webhookConfigs,omitempty"`
+	DiscordConfigs   []*DiscordConfig   `yaml:"discord_configs,omitempty" json:"-"`
+	PagerdutyConfigs []*PagerdutyConfig `yaml:"pagerduty_configs,omitempty" json:"-"`
+	SlackConfigs     []*SlackConfig     `yaml:"slack_configs,omitempty" json:"-"`
+	OpsGenieConfigs  []*OpsGenieConfig  `yaml:"opsgenie_configs,omitempty" json:"-"`
+	WechatConfigs    []*WechatConfig    `yaml:"wechat_configs,omitempty" json:"-"`
+	PushoverConfigs  []*PushoverConfig  `yaml:"pushover_configs,omitempty" json:"-"`
+	VictorOpsConfigs []*VictorOpsConfig `yaml:"victorops_configs,omitempty" json:"-"`
+	SNSConfigs       []*SNSConfig       `yaml:"sns_configs,omitempty" json:"-"`
+	TelegramConfigs  []*TelegramConfig  `yaml:"telegram_configs,omitempty" json:"-"`
+	WebexConfigs     []*WebexConfig     `yaml:"webex_configs,omitempty" json:"-"`
+	MSTeamsConfigs   []*MSTeamsConfig   `yaml:"msteams_configs,omitempty" json:"-"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for Receiver.

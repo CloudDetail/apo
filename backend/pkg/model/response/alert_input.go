@@ -2,6 +2,7 @@ package response
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -16,7 +17,7 @@ type GetAlertRulesResponse struct {
 }
 
 type GetAlertManagerConfigReceiverResponse struct {
-	AMConfigReceivers []*request.AMConfigReceiver `json:"amConfigReceivers"`
+	AMConfigReceivers []amconfig.Receiver `json:"amConfigReceivers"`
 
 	Pagination *model.Pagination `json:"pagination"`
 }

@@ -2,15 +2,15 @@ basePath: /
 definitions:
   amconfig.EmailConfig:
     properties:
-      auth_identity:
+      authIdentity:
         type: string
-      auth_password:
+      authPassword:
         type: string
-      auth_password_file:
+      authPasswordFile:
         type: string
-      auth_secret:
+      authSecret:
         type: string
-      auth_username:
+      authUsername:
         type: string
       from:
         type: string
@@ -22,15 +22,15 @@ definitions:
         type: string
       html:
         type: string
-      require_tls:
+      requireTls:
         type: boolean
-      send_resolved:
+      sendResolved:
         type: boolean
       smarthost:
         $ref: '#/definitions/amconfig.HostPort'
       text:
         type: string
-      tls_config:
+      tlsConfig:
         $ref: '#/definitions/httpconfig.TLSConfig'
       to:
         description: Email address to notify.
@@ -43,25 +43,39 @@ definitions:
       port:
         type: string
     type: object
+  amconfig.Receiver:
+    properties:
+      emailConfigs:
+        items:
+          $ref: '#/definitions/amconfig.EmailConfig'
+        type: array
+      name:
+        description: A unique identifier for this receiver.
+        type: string
+      webhookConfigs:
+        items:
+          $ref: '#/definitions/amconfig.WebhookConfig'
+        type: array
+    type: object
   amconfig.URL:
     type: object
   amconfig.WebhookConfig:
     properties:
-      http_config:
+      httpConfig:
         $ref: '#/definitions/httpconfig.HTTPClientConfig'
-      max_alerts:
+      maxAlerts:
         description: |-
           MaxAlerts is the maximum number of alerts to be sent per webhook message.
           Alerts exceeding this threshold will be truncated. Setting this to 0
           allows an unlimited number of alerts.
         type: integer
-      send_resolved:
+      sendResolved:
         type: boolean
       url:
         allOf:
         - $ref: '#/definitions/amconfig.URL'
         description: URL to send POST request to.
-      url_file:
+      urlFile:
         type: string
     type: object
   clickhouse.AlertEventSample:
@@ -557,25 +571,6 @@ definitions:
         description: 值
         type: number
     type: object
-  request.AMConfigReceiver:
-    properties:
-      email_configs:
-        items:
-          $ref: '#/definitions/amconfig.EmailConfig'
-        type: array
-      name:
-        description: A unique identifier for this receiver.
-        type: string
-      rType:
-        type: string
-      webhookConfigs:
-        description: Configs
-        items:
-          $ref: '#/definitions/amconfig.WebhookConfig'
-        type: array
-    required:
-    - name
-    type: object
   request.Alert:
     properties:
       annotations:
@@ -900,7 +895,7 @@ definitions:
       amConfigFile:
         type: string
       amConfigReceiver:
-        $ref: '#/definitions/request.AMConfigReceiver'
+        $ref: '#/definitions/amconfig.Receiver'
     type: object
   request.UpdateAlertRuleRequest:
     properties:
@@ -1056,7 +1051,7 @@ definitions:
     properties:
       amConfigReceivers:
         items:
-          $ref: '#/definitions/request.AMConfigReceiver'
+          $ref: '#/definitions/amconfig.Receiver'
         type: array
       pagination:
         $ref: '#/definitions/model.Pagination'

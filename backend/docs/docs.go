@@ -2775,19 +2775,19 @@ const docTemplate = `{
         "amconfig.EmailConfig": {
             "type": "object",
             "properties": {
-                "auth_identity": {
+                "authIdentity": {
                     "type": "string"
                 },
-                "auth_password": {
+                "authPassword": {
                     "type": "string"
                 },
-                "auth_password_file": {
+                "authPasswordFile": {
                     "type": "string"
                 },
-                "auth_secret": {
+                "authSecret": {
                     "type": "string"
                 },
-                "auth_username": {
+                "authUsername": {
                     "type": "string"
                 },
                 "from": {
@@ -2805,10 +2805,10 @@ const docTemplate = `{
                 "html": {
                     "type": "string"
                 },
-                "require_tls": {
+                "requireTls": {
                     "type": "boolean"
                 },
-                "send_resolved": {
+                "sendResolved": {
                     "type": "boolean"
                 },
                 "smarthost": {
@@ -2817,7 +2817,7 @@ const docTemplate = `{
                 "text": {
                     "type": "string"
                 },
-                "tls_config": {
+                "tlsConfig": {
                     "$ref": "#/definitions/httpconfig.TLSConfig"
                 },
                 "to": {
@@ -2837,20 +2837,41 @@ const docTemplate = `{
                 }
             }
         },
+        "amconfig.Receiver": {
+            "type": "object",
+            "properties": {
+                "emailConfigs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/amconfig.EmailConfig"
+                    }
+                },
+                "name": {
+                    "description": "A unique identifier for this receiver.",
+                    "type": "string"
+                },
+                "webhookConfigs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/amconfig.WebhookConfig"
+                    }
+                }
+            }
+        },
         "amconfig.URL": {
             "type": "object"
         },
         "amconfig.WebhookConfig": {
             "type": "object",
             "properties": {
-                "http_config": {
+                "httpConfig": {
                     "$ref": "#/definitions/httpconfig.HTTPClientConfig"
                 },
-                "max_alerts": {
+                "maxAlerts": {
                     "description": "MaxAlerts is the maximum number of alerts to be sent per webhook message.\nAlerts exceeding this threshold will be truncated. Setting this to 0\nallows an unlimited number of alerts.",
                     "type": "integer"
                 },
-                "send_resolved": {
+                "sendResolved": {
                     "type": "boolean"
                 },
                 "url": {
@@ -2861,7 +2882,7 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "url_file": {
+                "urlFile": {
                     "type": "string"
                 }
             }
@@ -3553,34 +3574,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.AMConfigReceiver": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "email_configs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/amconfig.EmailConfig"
-                    }
-                },
-                "name": {
-                    "description": "A unique identifier for this receiver.",
-                    "type": "string"
-                },
-                "rType": {
-                    "type": "string"
-                },
-                "webhookConfigs": {
-                    "description": "Configs",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/amconfig.WebhookConfig"
-                    }
-                }
-            }
-        },
         "request.Alert": {
             "type": "object",
             "properties": {
@@ -4037,7 +4030,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "amConfigReceiver": {
-                    "$ref": "#/definitions/request.AMConfigReceiver"
+                    "$ref": "#/definitions/amconfig.Receiver"
                 }
             }
         },
@@ -4268,7 +4261,7 @@ const docTemplate = `{
                 "amConfigReceivers": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/request.AMConfigReceiver"
+                        "$ref": "#/definitions/amconfig.Receiver"
                     }
                 },
                 "pagination": {

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/hashicorp/go-multierror"
 	"go.uber.org/zap"
@@ -166,7 +167,7 @@ func (n *NoneAPI) UpdateAlertRuleConfigFile(configFile string, content []byte) e
 }
 
 // AddOrUpdateAMConfigReceiver implements Repo.
-func (n *NoneAPI) AddOrUpdateAMConfigReceiver(configFile string, receiver request.AMConfigReceiver) error {
+func (n *NoneAPI) AddOrUpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
 	return ErrKubernetesRepoNotReady
 }
 
@@ -176,6 +177,6 @@ func (n *NoneAPI) DeleteAMConfigReceiver(configFile string, name string) error {
 }
 
 // GetAMConfigReceiver implements Repo.
-func (n *NoneAPI) GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]*request.AMConfigReceiver, int) {
-	return []*request.AMConfigReceiver{}, 0
+func (n *NoneAPI) GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int) {
+	return []amconfig.Receiver{}, 0
 }

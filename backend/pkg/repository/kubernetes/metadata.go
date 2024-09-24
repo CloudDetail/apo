@@ -16,8 +16,8 @@ type Metadata struct {
 	alertRulesLock sync.RWMutex
 	AlertRulesMap  map[string]*AlertRules
 
-	amConfigLock           sync.RWMutex
-	AlertManagerConfigsMap map[string]*AlertManagerConfig
+	amConfigLock sync.RWMutex
+	AMConfigMap  map[string]*amconfig.Config
 }
 
 func (m *Metadata) SetAlertRules(configFile string, rules *AlertRules) {
@@ -26,10 +26,10 @@ func (m *Metadata) SetAlertRules(configFile string, rules *AlertRules) {
 	m.AlertRulesMap[configFile] = rules
 }
 
-func (m *Metadata) SetAMConfig(configFile string, configs *AlertManagerConfig) {
+func (m *Metadata) SetAMConfig(configFile string, configs *amconfig.Config) {
 	m.amConfigLock.Lock()
 	defer m.amConfigLock.Unlock()
-	m.AlertManagerConfigsMap[configFile] = configs
+	m.AMConfigMap[configFile] = configs
 }
 
 func (m *Metadata) GetAlertRules(configFile string, filter *request.AlertRuleFilter, pageParam *request.PageParam) ([]*request.AlertRule, int) {
@@ -60,24 +60,25 @@ func (m *Metadata) GetAlertRules(configFile string, filter *request.AlertRuleFil
 	return pageByParam(res, pageParam)
 }
 
-func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]*request.AMConfigReceiver, int) {
+func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int) {
 	m.amConfigLock.RLock()
 	defer m.amConfigLock.RUnlock()
 
-	amConfig, find := m.AlertManagerConfigsMap[configFile]
+	amConfig, find := m.AMConfigMap[configFile]
 	if !find {
-		return []*request.AMConfigReceiver{}, 0
+		return []amconfig.Receiver{}, 0
 	}
 
-	var res []*request.AMConfigReceiver = make([]*request.AMConfigReceiver, 0)
-	if filter == nil {
-		res = amConfig.ReceiverList
-	} else {
-		for i := 0; i < len(amConfig.ReceiverList); i++ {
-			receiver := amConfig.ReceiverList[i]
-			if matchAMConfigReceiverFilter(filter, receiver) {
-				res = append(res, receiver)
-			}
+	var res []amconfig.Receiver = make([]amconfig.Receiver, 0)
+	for i := 0; i < len(amConfig.Receivers); i++ {
+		receiver := amConfig.Receivers[i]
+		rType := amconfig.GetRTypeFromReceiver(amConfig.Receivers[i])
+		if rType != "webhook" && rType != "email" {
+			// not support to manager other kind of receiver now
+			continue
+		}
+		if matchAMConfigReceiverFilter(filter, receiver) {
+			res = append(res, receiver)
 		}
 	}
 
@@ -88,24 +89,24 @@ func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConf
 	return pageByParam(res, pageParam)
 }
 
-func (m *Metadata) AddorUpdateAMConfigReceiver(configFile string, receiver request.AMConfigReceiver) error {
+func (m *Metadata) AddorUpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
 	m.amConfigLock.Lock()
 	defer m.alertRulesLock.Unlock()
 
-	amConfig, find := m.AlertManagerConfigsMap[configFile]
+	amConfig, find := m.AMConfigMap[configFile]
 	if !find {
 		return fmt.Errorf("configfile %s is not found", configFile)
 	}
 
 	// Update Exist receiver
-	for i := range amConfig.ReceiverList {
-		if amConfig.ReceiverList[i].Name == receiver.Name {
-			amConfig.ReceiverList[i] = &receiver
+	for i := range amConfig.Receivers {
+		if amConfig.Receivers[i].Name == receiver.Name {
+			amConfig.Receivers[i] = receiver
 			return nil
 		}
 	}
 
-	amConfig.ReceiverList = append(amConfig.ReceiverList, &receiver)
+	amConfig.Receivers = append(amConfig.Receivers, receiver)
 	return nil
 }
 
@@ -147,14 +148,14 @@ func (m *Metadata) DeleteAMConfigReceiver(configFile string, name string) bool {
 	m.amConfigLock.Lock()
 	defer m.amConfigLock.Unlock()
 
-	amConfig, find := m.AlertManagerConfigsMap[configFile]
+	amConfig, find := m.AMConfigMap[configFile]
 	if !find {
 		return false
 	}
 
-	for i := 0; i < len(amConfig.ReceiverList); i++ {
-		if amConfig.ReceiverList[i].Name == name {
-			amConfig.ReceiverList = removeElement(amConfig.ReceiverList, i)
+	for i := 0; i < len(amConfig.Receivers); i++ {
+		if amConfig.Receivers[i].Name == name {
+			amConfig.Receivers = removeElement(amConfig.Receivers, i)
 			return true
 		}
 	}
@@ -234,35 +235,29 @@ func (m *Metadata) AlertManagerConfigMarshalToYaml(configFile string) ([]byte, e
 	m.amConfigLock.RLock()
 	defer m.amConfigLock.RUnlock()
 
-	amConfig, find := m.AlertManagerConfigsMap[configFile]
+	amConfig, find := m.AMConfigMap[configFile]
 	if !find {
 		return nil, fmt.Errorf("configfile %s is not found", configFile)
 	}
 
-	amConfigDef := amconfig.Config{}
-	for _, receiver := range amConfig.ReceiverList {
-		if rDef := receiver.ToReceiverDef(); rDef != nil {
-			amConfigDef.Receivers = append(amConfigDef.Receivers, *rDef)
-		}
-	}
-
-	for _, receiver := range amConfig.UnsupportReceiver {
-		amConfigDef.Receivers = append(amConfigDef.Receivers, *receiver)
-	}
-
-	return yaml.Marshal(amConfigDef)
+	return yaml.Marshal(amConfig)
 }
 
-func matchAMConfigReceiverFilter(filter *request.AMConfigReceiverFilter, receiver *request.AMConfigReceiver) bool {
+func matchAMConfigReceiverFilter(filter *request.AMConfigReceiverFilter, receiver amconfig.Receiver) bool {
+	if filter == nil {
+		return true
+	}
+
 	if len(filter.Name) > 0 {
-		if !strings.Contains(receiver.Name, filter.Name) {
-			return false
-		}
+		return receiver.Name == filter.Name
 	}
 
 	if len(filter.RType) > 0 {
-		if !strings.Contains(receiver.RType, filter.RType) {
-			return false
+		switch filter.RType {
+		case "webhook":
+			return len(receiver.WebhookConfigs) > 0
+		case "email":
+			return len(receiver.EmailConfigs) > 0
 		}
 	}
 
