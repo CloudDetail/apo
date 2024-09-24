@@ -204,6 +204,8 @@ definitions:
         type: string
       pql:
         type: string
+      unit:
+        type: string
     type: object
   model.AlertReason:
     additionalProperties:
