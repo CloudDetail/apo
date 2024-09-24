@@ -194,6 +194,17 @@ definitions:
       timestamp:
         type: integer
     type: object
+  model.AlertMetricsData:
+    properties:
+      labels:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      pql:
+        type: string
+    type: object
   model.AlertReason:
     additionalProperties:
       items:
@@ -313,6 +324,8 @@ definitions:
         type: object
       record:
         type: string
+    required:
+    - group
     type: object
   request.DataType:
     enum:
@@ -888,6 +901,13 @@ definitions:
         description: 进程号
         type: integer
     type: object
+  response.GetMetricPQLResponse:
+    properties:
+      alertMetricsData:
+        items:
+          $ref: '#/definitions/model.AlertMetricsData'
+        type: array
+    type: object
   response.GetPolarisInferResponse:
     properties:
       inferCause:
@@ -1409,6 +1429,25 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 列出告警规则
+      tags:
+      - API.alerts
+  /api/alerts/rule/metrics:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取告警规则中指标和PQL
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetMetricPQLResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取告警规则中指标和PQL
       tags:
       - API.alerts
   /api/alerts/rules:
