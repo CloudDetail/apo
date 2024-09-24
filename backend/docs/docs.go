@@ -3004,6 +3004,9 @@ const docTemplate = `{
                 },
                 "pql": {
                     "type": "string"
+                },
+                "unit": {
+                    "type": "string"
                 }
             }
         },

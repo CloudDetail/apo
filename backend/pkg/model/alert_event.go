@@ -167,4 +167,5 @@ type AlertMetricsData struct {
 	Name   string   `json:"name"`
 	PQL    string   `json:"pql"`
 	Labels []string `json:"labels"`
+	Unit   string   `json:"unit"`
 }
