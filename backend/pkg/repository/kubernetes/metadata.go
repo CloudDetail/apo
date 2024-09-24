@@ -2,13 +2,12 @@ package kubernetes
 
 import (
 	"fmt"
-	"strings"
-	"sync"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/prometheus/common/model"
 	promfmt "github.com/prometheus/prometheus/model/rulefmt"
 	"gopkg.in/yaml.v3"
+	"strings"
+	"sync"
 )
 
 type Metadata struct {
@@ -129,10 +128,15 @@ func (m *Metadata) MarshalToYaml(configFile string) ([]byte, error) {
 				if err != nil {
 					return nil, err
 				}
-				keepFiringFor, err := model.ParseDuration(rule.KeepFiringFor)
-				if err != nil {
-					return nil, err
+
+				var keepFiringFor model.Duration
+				if len(rule.KeepFiringFor) > 0 {
+					keepFiringFor, err = model.ParseDuration(rule.KeepFiringFor)
+					if err != nil {
+						return nil, err
+					}
 				}
+
 				ruleNode := promfmt.RuleNode{
 					For:           forDuration,
 					KeepFiringFor: keepFiringFor,
