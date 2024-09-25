@@ -14,7 +14,7 @@ const (
 		(
 			SELECT error_propagation.timestamp as timestamp, error_propagation.trace_id as trace_id, error_propagation.entry_span_id as entry_span_id,
 				nodes.service as service, nodes.instance as instance_id, nodes.path as path, nodes.depth as depth, nodes.error_types as error_types, nodes.error_msgs as error_msgs
-			FROM error_propagation
+			FROM %s.error_propagation
 			ARRAY JOIN nodes
 			%s %s
 		)
@@ -26,7 +26,7 @@ const (
 			SELECT error_propagation.trace_id as trace_id, groupArray(nodes.service) as parent_services, groupArray(nodes.instance) as parent_instances, groupArray(nodes.is_traced) as parent_traced
 			FROM error_propagation
 			ARRAY JOIN nodes
-			JOIN found_trace_ids ON error_propagation.trace_id = found_trace_ids.trace_id AND error_propagation.entry_span_id = found_trace_ids.entry_span_id
+			GLOBAL JOIN found_trace_ids ON error_propagation.trace_id = found_trace_ids.trace_id AND error_propagation.entry_span_id = found_trace_ids.entry_span_id
 			WHERE timestamp BETWEEN %d AND %d AND startsWith(found_trace_ids.path, nodes.path) AND nodes.depth=found_trace_ids.depth - 1 AND nodes.is_error = true
 			GROUP BY trace_id
 		) AS parent_node ON parent_node.trace_id = found_trace_ids.trace_id
@@ -34,7 +34,7 @@ const (
 			SELECT error_propagation.trace_id as trace_id, groupArray(nodes.service) as child_services, groupArray(nodes.instance) as child_instances, groupArray(nodes.is_traced) as child_traced
 			FROM error_propagation
 			ARRAY JOIN nodes
-			JOIN found_trace_ids ON error_propagation.trace_id = found_trace_ids.trace_id AND error_propagation.entry_span_id = found_trace_ids.entry_span_id
+			GLOBAL JOIN found_trace_ids ON error_propagation.trace_id = found_trace_ids.trace_id AND error_propagation.entry_span_id = found_trace_ids.entry_span_id
 			WHERE timestamp BETWEEN %d AND %d AND startsWith(nodes.path, found_trace_ids.path) AND nodes.depth=found_trace_ids.depth+1 AND nodes.is_error = true
 			GROUP BY trace_id
 		) AS child_node on child_node.trace_id = found_trace_ids.trace_id
@@ -58,7 +58,7 @@ func (ch *chRepo) ListErrorPropagation(req *request.GetErrorInstanceRequest) ([]
 		OrderBy("timestamp", false).
 		Limit(2000).String()
 	var results []ErrorInstancePropagation
-	sql := fmt.Sprintf(SQL_GET_INSTANCE_ERROR_PROPAGATION, queryBuilder.String(), bySql, startTime, endTime, startTime, endTime)
+	sql := fmt.Sprintf(SQL_GET_INSTANCE_ERROR_PROPAGATION, ch.database, queryBuilder.String(), bySql, startTime, endTime, startTime, endTime)
 	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
