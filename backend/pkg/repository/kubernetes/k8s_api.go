@@ -142,7 +142,7 @@ func (n *NoneAPI) SyncNow() error {
 	return ErrKubernetesRepoNotReady
 }
 
-func (n *NoneAPI) GetAlertRules(configFile string, filter *request.AlertRuleFilter, pageParam *request.PageParam) ([]*request.AlertRule, int) {
+func (n *NoneAPI) GetAlertRules(configFile string, filter *request.AlertRuleFilter, pageParam *request.PageParam, syncNow bool) ([]*request.AlertRule, int) {
 	return []*request.AlertRule{}, 0
 }
 
