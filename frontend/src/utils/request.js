@@ -91,6 +91,13 @@ const post = (url, data = {}, config = {}) => {
     throw error
   })
 }
+// 封装DELETE请求
+const del = (url, data = {}, config = {}) => {
+  return instance.delete(url, { data, ...config }).catch((error) => {
+    // 在此处可以捕获到错误信息
+    throw error
+  })
+}
 
 // 导出axios实例和封装的请求方法
-export { instance as axiosInstance, get, post }
+export { instance as axiosInstance, get, post, del }
