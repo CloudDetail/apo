@@ -180,9 +180,9 @@ export default function ModifyAlertRuleModal({
         alert: ruleInfo.alert,
         for: time,
         labels: formatterLabelsToList(ruleInfo.labels),
-        annotations: formatterAnnotationsToFormState(ruleInfo.annotations),
-        description: ruleInfo.annotations.description,
-        severity: ruleInfo.labels.severity,
+        annotations: formatterAnnotationsToFormState(ruleInfo.annotations ?? {}),
+        description: ruleInfo.annotations?.description,
+        severity: ruleInfo.labels?.severity,
       })
     } else {
       form.resetFields()
@@ -203,9 +203,9 @@ export default function ModifyAlertRuleModal({
         maskClosable={false}
         onOk={saveRule}
         width={1000}
-        bodyStyle={{ maxHeight: 700, overflowY: 'auto', overflowX: 'hidden' }}
+        bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden' }}
       >
-        <Form layout={'vertical'} form={form}>
+        <Form layout={'vertical'} form={form} preserve={false}>
           <Form.Item
             label="组名"
             name="group"
@@ -221,6 +221,7 @@ export default function ModifyAlertRuleModal({
             <Select
               options={convertGroupLabel()}
               labelInValue
+              placeholder="选择组名"
               onChange={(value) => changeGroupLabel('group', value?.key)}
             />
           </Form.Item>
@@ -232,9 +233,9 @@ export default function ModifyAlertRuleModal({
           </Form.Item>
           <Form.Item label="告警级别" name="severity" layout="horizontal">
             <Radio.Group onChange={(e) => changeGroupLabel('severity', e.target.value)}>
-              <Radio value="critical">一级告警</Radio>
-              <Radio value="warning">二级告警</Radio>
-              <Radio value="info">三级告警</Radio>
+              <Radio value="critical">critical</Radio>
+              <Radio value="warning">warning</Radio>
+              <Radio value="info">info</Radio>
             </Radio.Group>
           </Form.Item>
           {/* <Form.Item label="查询语句" name="expr">
