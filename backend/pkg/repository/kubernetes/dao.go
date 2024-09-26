@@ -37,7 +37,8 @@ type Repo interface {
 	UpdateAlertRuleConfigFile(configFile string, content []byte) error
 
 	GetAlertRules(configFile string, filter *request.AlertRuleFilter, pageParam *request.PageParam, syncNow bool) ([]*request.AlertRule, int)
-	AddOrUpdateAlertRule(configFile string, alertRule request.AlertRule) error
+	UpdateAlertRule(configFile string, alertRule request.AlertRule, oldGroup, oldAlert string) error
+	AddAlertRule(configFile string, alertRule request.AlertRule) error
 	DeleteAlertRule(configFile string, group, alert string) error
 
 	GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)

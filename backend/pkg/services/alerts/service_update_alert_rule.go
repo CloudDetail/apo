@@ -2,6 +2,7 @@ package alerts
 
 import (
 	"fmt"
+
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -10,7 +11,7 @@ func (s *service) UpdateAlertRule(req *request.UpdateAlertRuleRequest) error {
 		return fmt.Errorf("group name and group label mismatch")
 	}
 
-	return s.k8sApi.AddOrUpdateAlertRule(req.AlertRuleFile, req.AlertRule)
+	return s.k8sApi.UpdateAlertRule(req.AlertRuleFile, req.AlertRule, req.OldGroup, req.OldAlert)
 }
 
 func (s *service) DeleteAlertRule(req *request.DeleteAlertRuleRequest) error {

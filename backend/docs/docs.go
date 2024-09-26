@@ -258,6 +258,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/rule/add": {
+            "post": {
+                "description": "新增告警规则",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "新增告警规则",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AddAlertRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/rule/groups": {
             "get": {
                 "description": "获取group和label对应接口",
@@ -3643,6 +3680,17 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AddAlertRuleRequest": {
+            "type": "object",
+            "properties": {
+                "alertRule": {
+                    "$ref": "#/definitions/request.AlertRule"
+                },
+                "alertRuleFile": {
+                    "type": "string"
+                }
+            }
+        },
         "request.Alert": {
             "type": "object",
             "properties": {
@@ -4134,6 +4182,12 @@ const docTemplate = `{
                     "$ref": "#/definitions/request.AlertRule"
                 },
                 "alertRuleFile": {
+                    "type": "string"
+                },
+                "oldAlert": {
+                    "type": "string"
+                },
+                "oldGroup": {
                     "type": "string"
                 }
             }

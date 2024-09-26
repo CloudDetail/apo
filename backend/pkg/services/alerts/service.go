@@ -21,6 +21,7 @@ type Service interface {
 	GetAlertRules(req *request.GetAlertRuleRequest) response.GetAlertRulesResponse
 	UpdateAlertRule(req *request.UpdateAlertRuleRequest) error
 	DeleteAlertRule(req *request.DeleteAlertRuleRequest) error
+	AddAlertRule(req *request.AddAlertRuleRequest) error
 
 	GetAMConfigReceivers(req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse
 	UpdateAMConfigReceiver(req *request.UpdateAlertManagerConfigReceiver) error

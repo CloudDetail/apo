@@ -53,6 +53,7 @@ const (
 	GetAlertRuleError            = "B0703"
 	UpdateAlertRuleError         = "B0704"
 	DeleteAlertRuleError         = "B0705"
+	AddAlertRuleError            = "B0710"
 	GetAMConfigReceiverError     = "B0706"
 	UpdateAMConfigReceiverError  = "B0707"
 	DeleteConfigReceiverError    = "B0708"

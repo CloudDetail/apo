@@ -61,6 +61,8 @@ type UpdateAlertRuleConfigRequest struct {
 type UpdateAlertRuleRequest struct {
 	AlertRuleFile string `json:"alertRuleFile"`
 
+	OldGroup  string    `json:"oldGroup"`
+	OldAlert  string    `json:"oldAlert"`
 	AlertRule AlertRule `json:"alertRule"`
 }
 
@@ -93,4 +95,10 @@ type AlertRule struct {
 	KeepFiringFor string            `json:"keepFiringFor,omitempty"`
 	Labels        map[string]string `json:"labels,omitempty"`
 	Annotations   map[string]string `json:"annotations,omitempty"`
+}
+
+type AddAlertRuleRequest struct {
+	AlertRuleFile string `json:"alertRuleFile"`
+
+	AlertRule AlertRule `json:"alertRule"`
 }

@@ -109,34 +109,101 @@ func (m *Metadata) AddorUpdateAMConfigReceiver(configFile string, receiver amcon
 	return nil
 }
 
-func (m *Metadata) AddorUpdateAlertRule(configFile string, alertRule request.AlertRule) error {
+func (m *Metadata) UpdateAlertRule(configFile string, alertRule request.AlertRule, oldGroup, oldAlert string) error {
+	var remove = true
+	if oldGroup == alertRule.Group && oldAlert == alertRule.Alert {
+		remove = false
+	}
+
 	m.alertRulesLock.Lock()
 	defer m.alertRulesLock.Unlock()
+
 	alertRules, find := m.AlertRulesMap[configFile]
 	if !find {
-		return fmt.Errorf("configfile %s is not found", configFile)
+		return fmt.Errorf("can not find specific config: %s", configFile)
 	}
-	// check if group exists
-	var isGroupExist bool = false
+
+	// 先检查旧告警的存在性
+	if !checkGroupExists(oldGroup, *alertRules) {
+		return fmt.Errorf("old group not exists: %s", oldGroup)
+	}
+
+	if !checkAlertExists(oldGroup, oldAlert, *alertRules) {
+		return fmt.Errorf("old alert not exists: %s", oldAlert)
+	}
+
+	// 如果是移动操作，需要检查新告警的存在性
+	if remove {
+		if !checkGroupExists(alertRule.Group, *alertRules) {
+			return fmt.Errorf("can not find specific group: %s", alertRule.Group)
+		}
+
+		if checkAlertExists(alertRule.Group, alertRule.Alert, *alertRules) {
+			return fmt.Errorf("target alert already exists: %s", alertRule.Alert)
+		}
+
+	}
+
+	// 前面已经检查了旧告警的存在性
+	checkAndRemoveAlertRule(oldGroup, oldAlert, alertRules)
+	alertRules.Rules = append(alertRules.Rules, &alertRule)
+
+	return nil
+}
+
+func checkGroupExists(group string, alertRules AlertRules) bool {
+	for _, g := range alertRules.Groups {
+		if g.Name == group {
+			return true
+		}
+	}
+
+	return false
+}
+
+func checkAlertExists(group, alert string, alertRules AlertRules) bool {
+	for i := 0; i < len(alertRules.Rules); i++ {
+		if alertRules.Rules[i].Alert == alert &&
+			alertRules.Rules[i].Group == group {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (m *Metadata) AddAlertRule(configFile string, alertRule request.AlertRule) error {
+	m.alertRulesLock.Lock()
+	defer m.alertRulesLock.Unlock()
+
+	alertRules, find := m.AlertRulesMap[configFile]
+	if !find {
+		return fmt.Errorf("can not find specific config: %s", configFile)
+	}
+
+	// 检查group是否存在
+	var isGroupExists bool
 	for _, group := range alertRules.Groups {
 		if group.Name == alertRule.Group {
-			isGroupExist = true
+			isGroupExists = true
 			break
 		}
 	}
-
-	if !isGroupExist {
-		alertRules.Groups = append(alertRules.Groups, AlertGroup{
-			Name: alertRule.Group,
-		})
+	if !isGroupExists {
+		return fmt.Errorf("can not find specific group: %s", alertRule.Group)
 	}
 
+	// 检查alert是否可用
+	var isAlertExist bool
 	for i := 0; i < len(alertRules.Rules); i++ {
 		if alertRules.Rules[i].Alert == alertRule.Alert &&
 			alertRules.Rules[i].Group == alertRule.Group {
-			alertRules.Rules[i] = &alertRule
-			return nil
+			isAlertExist = true
 		}
+	}
+
+	if isAlertExist {
+		return fmt.Errorf("alert already exists: %s", alertRule.Alert)
 	}
 
 	alertRules.Rules = append(alertRules.Rules, &alertRule)
@@ -177,6 +244,18 @@ func (m *Metadata) DeleteAlertRule(configFile string, group, alert string) bool 
 			return true
 		}
 	}
+	return false
+}
+
+func checkAndRemoveAlertRule(group, alert string, alertRules *AlertRules) bool {
+	for i := 0; i < len(alertRules.Rules); i++ {
+		if alertRules.Rules[i].Alert == alert &&
+			alertRules.Rules[i].Group == group {
+			alertRules.Rules = removeElement(alertRules.Rules, i)
+			return true
+		}
+	}
+
 	return false
 }
 

@@ -63,6 +63,11 @@ type Handler interface {
 	// @Tags API.alerts
 	// @Router /api/alerts/rule/metrics [get]
 	GetMetricPQL() core.HandlerFunc
+
+	// AddAlertRule 新增告警规则
+	// @Tags API.alerts
+	// @Router /api/alerts/rule/add [post]
+	AddAlertRule() core.HandlerFunc
 }
 
 type handler struct {
