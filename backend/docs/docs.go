@@ -233,22 +233,13 @@ const docTemplate = `{
                 "summary": "删除告警规则",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "告警规则文件名",
-                        "name": "alertRuleFile",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "告警规则组",
-                        "name": "group",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "告警规则名",
-                        "name": "alert",
-                        "in": "query"
+                        "description": "删除对象",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteAlertRuleRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -3787,6 +3778,24 @@ const docTemplate = `{
                 "BoolColumn"
             ]
         },
+        "request.DeleteAlertRuleRequest": {
+            "type": "object",
+            "required": [
+                "alert",
+                "group"
+            ],
+            "properties": {
+                "alert": {
+                    "type": "string"
+                },
+                "alertRuleFile": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                }
+            }
+        },
         "request.GetAlertManagerConfigReceverRequest": {
             "type": "object",
             "properties": {
@@ -3827,6 +3836,9 @@ const docTemplate = `{
                 },
                 "pageSize": {
                     "type": "integer"
+                },
+                "refreshCache": {
+                    "type": "boolean"
                 },
                 "severity": {
                     "description": "告警级别 info warning ...",

@@ -24,9 +24,14 @@ func (k *k8sApi) syncAlertRule() error {
 	return nil
 }
 
-func (k *k8sApi) GetAlertRules(configFile string, filter *request.AlertRuleFilter, pageParam *request.PageParam) ([]*request.AlertRule, int) {
+func (k *k8sApi) GetAlertRules(configFile string, filter *request.AlertRuleFilter, pageParam *request.PageParam, syncNow bool) ([]*request.AlertRule, int) {
 	if len(configFile) == 0 {
 		configFile = k.MetadataSettings.AlertRuleFileName
+	}
+
+	if syncNow {
+		// TODO handler error
+		_ = k.syncAlertRule()
 	}
 	return k.Metadata.GetAlertRules(configFile, filter, pageParam)
 }

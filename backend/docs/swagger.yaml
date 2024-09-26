@@ -651,6 +651,18 @@ definitions:
     - U64Column
     - StringColumn
     - BoolColumn
+  request.DeleteAlertRuleRequest:
+    properties:
+      alert:
+        type: string
+      alertRuleFile:
+        type: string
+      group:
+        type: string
+    required:
+    - alert
+    - group
+    type: object
   request.GetAlertManagerConfigReceverRequest:
     properties:
       amConfigFile:
@@ -678,6 +690,8 @@ definitions:
         type: string
       pageSize:
         type: integer
+      refreshCache:
+        type: boolean
       severity:
         description: 告警级别 info warning ...
         items:
@@ -1750,18 +1764,12 @@ paths:
       - application/x-www-form-urlencoded
       description: 删除告警规则
       parameters:
-      - description: 告警规则文件名
-        in: query
-        name: alertRuleFile
-        type: string
-      - description: 告警规则组
-        in: query
-        name: group
-        type: string
-      - description: 告警规则名
-        in: query
-        name: alert
-        type: string
+      - description: 删除对象
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteAlertRuleRequest'
       produces:
       - application/json
       responses:

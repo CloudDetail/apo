@@ -21,7 +21,7 @@ const routes = [
   { path: '/system-dashboard', name: '全局资源大盘', element: SystemDashboard },
   { path: '/application-dashboard', name: '应用指标大盘', element: ApplicationDashboard },
   { path: '/middleware-dashboard', name: '中间件大盘', element: MiddlewareDashboard },
-  { path: '/alerts', name: '告警规则', element: Alerts },
+  { path: '/alerts', name: '告警规则', element: Alerts, hideSystemTimeRangePicker: true },
   { path: '/config', name: '配置中心', element: ConfigPage, hideSystemTimeRangePicker: true },
 ]
 

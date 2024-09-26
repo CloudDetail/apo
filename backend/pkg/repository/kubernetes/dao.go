@@ -36,15 +36,15 @@ type Repo interface {
 	GetAlertRuleConfigFile(alertRuleFile string) (map[string]string, error)
 	UpdateAlertRuleConfigFile(configFile string, content []byte) error
 
-	GetAlertRules(configFile string, filter *request.AlertRuleFilter, pageParam *request.PageParam) ([]*request.AlertRule, int)
+	GetAlertRules(configFile string, filter *request.AlertRuleFilter, pageParam *request.PageParam, syncNow bool) ([]*request.AlertRule, int)
 	UpdateAlertRule(configFile string, alertRule request.AlertRule) error
+	AddAlertRule(configFile string, alertRule request.AlertRule) error
 	DeleteAlertRule(configFile string, group, alert string) error
 
 	GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
 	AddOrUpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error
 	DeleteAMConfigReceiver(configFile string, name string) error
-	AddAlertRule(configFile string, alertRule request.AlertRule) error
-}
+	}
 
 func New(logger *zap.Logger, authType, authFilePath string, setting config.MetadataSettings) (Repo, error) {
 	restConfig, err := createRestConfig(authType, authFilePath)

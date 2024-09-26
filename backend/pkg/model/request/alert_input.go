@@ -28,6 +28,7 @@ type GetAlertRuleConfigRequest struct {
 
 type GetAlertRuleRequest struct {
 	AlertRuleFile string `form:"alertRuleFile" json:"alertRuleFile"`
+	RefreshCache  bool   `form:"refreshCache" json:"refreshCache"`
 
 	*AlertRuleFilter
 	*PageParam
@@ -72,8 +73,8 @@ type UpdateAlertManagerConfigReceiver struct {
 type DeleteAlertRuleRequest struct {
 	AlertRuleFile string `form:"alertRuleFile" json:"alertRuleFile"`
 
-	Group string `form:"group" json:"group"`
-	Alert string `form:"alert" json:"alert"`
+	Group string `form:"group" json:"group" binding:"required"`
+	Alert string `form:"alert" json:"alert" binding:"required"`
 }
 
 type DeleteAlertManagerConfigReceiverRequest struct {

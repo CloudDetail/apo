@@ -9,48 +9,51 @@ import (
 
 const (
 	SQL_GET_DESCENDANT_NODES = `
-WITH found_trace_ids AS
-(
-	SELECT trace_id, nodes.path as path
-	FROM service_topology
-	ARRAY JOIN nodes
-	%s
-	GROUP BY trace_id, path
-	LIMIT 10000
-)
-SELECT nodes.service as service, nodes.url as endpoint, sum(case when nodes.is_traced then 1 else 0 end) > 0 as traced
-FROM service_topology
-ARRAY JOIN nodes
-JOIN found_trace_ids ON service_topology.trace_id = found_trace_ids.trace_id
-WHERE timestamp BETWEEN %d AND %d AND startsWith(nodes.path, found_trace_ids.path)
-AND nodes.path != found_trace_ids.path
-GROUP BY nodes.service, nodes.url`
+		WITH found_trace_ids AS
+		(
+			SELECT trace_id, nodes.path as path
+			FROM %s.service_topology
+			ARRAY JOIN nodes
+			%s
+			GROUP BY trace_id, path
+			LIMIT 10000
+		)
+		SELECT nodes.service as service, nodes.url as endpoint, sum(case when nodes.is_traced then 1 else 0 end) > 0 as traced
+		FROM service_topology
+		ARRAY JOIN nodes
+		GLOBAL JOIN found_trace_ids ON service_topology.trace_id = found_trace_ids.trace_id
+		WHERE timestamp BETWEEN %d AND %d AND startsWith(nodes.path, found_trace_ids.path)
+		AND nodes.path != found_trace_ids.path
+		GROUP BY nodes.service, nodes.url
+	`
 
 	SQL_GET_DESCENDANT_TOPOLOGY = `
-WITH found_trace_ids AS
-(
-	SELECT trace_id, nodes.path as path
-	FROM service_topology
-	ARRAY JOIN nodes
-	%s
-	GROUP BY trace_id, path
-	LIMIT 10000
-)
-SELECT nodes.service as service, nodes.url as endpoint, nodes.parent_service as p_service, nodes.parent_url as p_endpoint, sum(case when nodes.is_traced then 1 else 0 end) > 0 as traced
-FROM service_topology
-ARRAY JOIN nodes
-JOIN found_trace_ids ON service_topology.trace_id = found_trace_ids.trace_id
-WHERE timestamp BETWEEN %d AND %d AND startsWith(nodes.path, found_trace_ids.path)
-AND nodes.path != found_trace_ids.path
-AND nodes.parent_service != ''
-GROUP BY nodes.service, nodes.url, nodes.parent_service, nodes.parent_url`
+		WITH found_trace_ids AS
+		(
+			SELECT trace_id, nodes.path as path
+			FROM %s.service_topology
+			ARRAY JOIN nodes
+			%s
+			GROUP BY trace_id, path
+			LIMIT 10000
+		)
+		SELECT nodes.service as service, nodes.url as endpoint, nodes.parent_service as p_service, nodes.parent_url as p_endpoint, sum(case when nodes.is_traced then 1 else 0 end) > 0 as traced
+		FROM service_topology
+		ARRAY JOIN nodes
+		GLOBAL JOIN found_trace_ids ON service_topology.trace_id = found_trace_ids.trace_id
+		WHERE timestamp BETWEEN %d AND %d AND startsWith(nodes.path, found_trace_ids.path)
+		AND nodes.path != found_trace_ids.path
+		AND nodes.parent_service != ''
+		GROUP BY nodes.service, nodes.url, nodes.parent_service, nodes.parent_url
+	`
 
 	SQL_GET_ENTRY_NODES = `
-SELECT entry_service as service, entry_url as endpoint
-	FROM service_topology
-	ARRAY JOIN nodes
-	%s
-	GROUP BY entry_service, entry_url`
+		SELECT entry_service as service, entry_url as endpoint
+			FROM service_topology
+			ARRAY JOIN nodes
+			%s
+			GROUP BY entry_service, entry_url
+	`
 )
 
 // 查询所有子孙节点列表
@@ -63,7 +66,7 @@ func (ch *chRepo) ListDescendantNodes(req *request.GetDescendantMetricsRequest) 
 		Equals("nodes.url", req.Endpoint).
 		EqualsNotEmpty("entry_service", req.EntryService).
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
-	sql := fmt.Sprintf(SQL_GET_DESCENDANT_NODES, queryBuilder.String(), startTime, endTime)
+	sql := fmt.Sprintf(SQL_GET_DESCENDANT_NODES, ch.database, queryBuilder.String(), startTime, endTime)
 	results := []TopologyNode{}
 	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
@@ -81,7 +84,7 @@ func (ch *chRepo) ListDescendantRelations(req *request.GetServiceEndpointTopolog
 		Equals("nodes.url", req.Endpoint).
 		EqualsNotEmpty("entry_service", req.EntryService).
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
-	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, queryBuilder.String(), startTime, endTime)
+	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, ch.database, queryBuilder.String(), startTime, endTime)
 	results := []ToplogyRelation{}
 	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
