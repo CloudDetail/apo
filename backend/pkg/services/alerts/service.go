@@ -19,7 +19,7 @@ type Service interface {
 	UpdateAlertRuleFile(req *request.UpdateAlertRuleConfigRequest) error
 
 	GetAlertRules(req *request.GetAlertRuleRequest) response.GetAlertRulesResponse
-	UpdateAlertRule(req *request.UpdateAlertRuleRequest) error
+	UpdateAlertRule(req *request.UpdateAlertRuleRequest) (*response.UpdateAlertRuleResponse, error)
 	DeleteAlertRule(req *request.DeleteAlertRuleRequest) error
 
 	GetAMConfigReceivers(req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse
@@ -27,6 +27,7 @@ type Service interface {
 	DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigReceiverRequest) error
 	GetGroupList() response.GetGroupListResponse
 	GetMetricPQL() response.GetMetricPQLResponse
+	AddAlertRule(req *request.AddAlertRuleRequest) error
 }
 
 type service struct {

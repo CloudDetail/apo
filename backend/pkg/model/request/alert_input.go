@@ -93,3 +93,9 @@ type AlertRule struct {
 	Labels        map[string]string `json:"labels,omitempty"`
 	Annotations   map[string]string `json:"annotations,omitempty"`
 }
+
+type AddAlertRuleRequest struct {
+	AlertRuleFile string `json:"alertRuleFile"`
+
+	AlertRule AlertRule `json:"alertRule"`
+}

@@ -17,7 +17,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param Request body request.UpdateAlertRuleRequest true "请求信息"
-// @Success 200 string ok
+// @Success 200 string ok response.UpdateAlertRuleResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/rule [post]
 func (h *handler) UpdateAlertRule() core.HandlerFunc {
@@ -32,7 +32,8 @@ func (h *handler) UpdateAlertRule() core.HandlerFunc {
 			return
 		}
 
-		err := h.alertService.UpdateAlertRule(req)
+		resp, err := h.alertService.UpdateAlertRule(req)
+		// TODO 修改err msg
 		if err != nil {
 			var vErr kubernetes.ErrAlertRuleValidate
 			if errors.As(err, &vErr) {
@@ -50,6 +51,6 @@ func (h *handler) UpdateAlertRule() core.HandlerFunc {
 			}
 			return
 		}
-		c.Payload("ok")
+		c.Payload(resp)
 	}
 }

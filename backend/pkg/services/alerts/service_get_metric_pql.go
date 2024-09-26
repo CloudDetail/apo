@@ -11,7 +11,7 @@ var metricData = response.GetMetricPQLResponse{
 			Name:   "平均请求延时",
 			PQL:    "sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_sum[1m]))/ sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_count[1m]))/1000000",
 			Labels: []string{"content_key", "svc_name", "group", "severity"},
-			Unit:   "s",
+			Unit:   "秒",
 		},
 		{
 			Name:   "请求错误率",

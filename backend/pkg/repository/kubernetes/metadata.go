@@ -109,26 +109,38 @@ func (m *Metadata) AddorUpdateAMConfigReceiver(configFile string, receiver amcon
 	return nil
 }
 
-func (m *Metadata) AddorUpdateAlertRule(configFile string, alertRule request.AlertRule) error {
+func (m *Metadata) UpdateAlertRule(configFile string, alertRule request.AlertRule) error {
 	m.alertRulesLock.Lock()
 	defer m.alertRulesLock.Unlock()
+
 	alertRules, find := m.AlertRulesMap[configFile]
 	if !find {
-		return fmt.Errorf("configfile %s is not found", configFile)
+		return fmt.Errorf("can not find specific config: %s", configFile)
 	}
-	// check if group exists
-	var isGroupExist bool = false
+
+	// 检查group是否存在
+	var isGroupExists bool
 	for _, group := range alertRules.Groups {
 		if group.Name == alertRule.Group {
-			isGroupExist = true
+			isGroupExists = true
 			break
 		}
 	}
+	if !isGroupExists {
+		return fmt.Errorf("can not find specific group: %s", alertRule.Group)
+	}
 
-	if !isGroupExist {
-		alertRules.Groups = append(alertRules.Groups, AlertGroup{
-			Name: alertRule.Group,
-		})
+	// 检查alert是否存在
+	var isAlertExist bool
+	for i := 0; i < len(alertRules.Rules); i++ {
+		if alertRules.Rules[i].Alert == alertRule.Alert &&
+			alertRules.Rules[i].Group == alertRule.Group {
+			isAlertExist = true
+		}
+	}
+
+	if !isAlertExist {
+		return fmt.Errorf("can not find specific group: %s", alertRule.Alert)
 	}
 
 	for i := 0; i < len(alertRules.Rules); i++ {
@@ -137,6 +149,43 @@ func (m *Metadata) AddorUpdateAlertRule(configFile string, alertRule request.Ale
 			alertRules.Rules[i] = &alertRule
 			return nil
 		}
+	}
+
+	return nil
+}
+
+func (m *Metadata) AddAlertRule(configFile string, alertRule request.AlertRule) error {
+	m.alertRulesLock.Lock()
+	defer m.alertRulesLock.Unlock()
+
+	alertRules, find := m.AlertRulesMap[configFile]
+	if !find {
+		return fmt.Errorf("can not find specific config: %s", configFile)
+	}
+
+	// 检查group是否存在
+	var isGroupExists bool
+	for _, group := range alertRules.Groups {
+		if group.Name == alertRule.Group {
+			isGroupExists = true
+			break
+		}
+	}
+	if !isGroupExists {
+		return fmt.Errorf("can not find specific group: %s", alertRule.Group)
+	}
+
+	// 检查alert是否可用
+	var isAlertExist bool
+	for i := 0; i < len(alertRules.Rules); i++ {
+		if alertRules.Rules[i].Alert == alertRule.Alert &&
+			alertRules.Rules[i].Group == alertRule.Group {
+			isAlertExist = true
+		}
+	}
+
+	if isAlertExist {
+		return fmt.Errorf("alert already exists: %s", alertRule.Alert)
 	}
 
 	alertRules.Rules = append(alertRules.Rules, &alertRule)

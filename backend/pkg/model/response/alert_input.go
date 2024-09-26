@@ -29,3 +29,8 @@ type GetGroupListResponse struct {
 type GetMetricPQLResponse struct {
 	AlertMetricsData []model.AlertMetricsData `json:"alertMetricsData"`
 }
+
+type UpdateAlertRuleResponse struct {
+	Group string `json:"group"`
+	Alert string `json:"alert"`
+}
