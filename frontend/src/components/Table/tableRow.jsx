@@ -78,9 +78,9 @@ function TableRow({ row, clickRow }) {
     >
       {cellPropsArray.map((props, idx) => {
         return props.isNested ? (
-          <NestedTd {...props} key={`body_td_${idx}`} />
+          <NestedTd {...props} key={`${row.id}_body_td_${idx}`} />
         ) : (
-          <Td {...props} key={`body_td_${idx}`} />
+          <Td {...props} key={`${row.id}_body_td_${idx}`} />
         )
       })}
     </tr>

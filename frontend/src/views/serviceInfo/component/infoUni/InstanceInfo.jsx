@@ -103,6 +103,12 @@ export default function InstanceInfo(props) {
         )
       },
     },
+
+    {
+      title: '主机节点',
+      accessor: 'nodeName',
+      customWidth: 150,
+    },
     {
       title: '末次部署或重启时间',
       accessor: `timestamp`,

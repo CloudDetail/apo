@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef,useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useSortBy, useTable, usePagination } from 'react-table'
 import './index.css'
 import _ from 'lodash'
@@ -17,12 +17,14 @@ const BasicTable = React.memo((props) => {
     rowKey,
     noHeader,
     showBorder,
-    clickRow
+    clickRow,
+    emptyContent = '暂无数据',
+    showLoading = true,
   } = props
   const tableRef = useRef(null)
   const getSortByColumns = (columns) => {
     let sortByColumns = []
-    _.forEach(columns, (column) => { 
+    _.forEach(columns, (column) => {
       if (column.defaultSortBy) {
         sortByColumns.push({
           id: column.accessor,
@@ -31,7 +33,6 @@ const BasicTable = React.memo((props) => {
       }
     })
     return sortByColumns
-
   }
   const [paginationLoading, setPaginationLoading] = useState(false)
   const {
@@ -63,7 +64,6 @@ const BasicTable = React.memo((props) => {
     },
     useSortBy,
     usePagination,
-    
   )
   useEffect(() => {
     setPaginationLoading(true)
@@ -80,10 +80,13 @@ const BasicTable = React.memo((props) => {
       prepareRow: prepareRow,
       rowKey: rowKey,
       loading: loading,
-      pageIndex, pageSize, clickRow
+      pageIndex,
+      pageSize,
+      clickRow,
+      emptyContent,
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }),
-    [page, data,pageIndex,pageSize],
+    [page, data, pageIndex, pageSize],
   )
   return (
     <div className={showBorder ? 'basic-table border-table' : 'basic-table'}>
@@ -126,7 +129,7 @@ const BasicTable = React.memo((props) => {
                     >
                       {column.hide &&
                         column.isNested &&
-                        column.children.map((item) => {
+                        column.children.map((item, index) => {
                           return (
                             <th
                               style={{
@@ -139,7 +142,7 @@ const BasicTable = React.memo((props) => {
 
                                 minWidth: item.minWidth,
                               }}
-                              key={item}
+                              key={index}
                             >
                               {item.title}
                             </th>
@@ -165,11 +168,11 @@ const BasicTable = React.memo((props) => {
               </tr>
             ))}
         </thead>
-        <LoadingSpinner loading={loading || paginationLoading} />
-        <TableBody {...getTableBodyProps()} props={tableBodyProps}></TableBody>
+        {showLoading && <LoadingSpinner loading={loading || paginationLoading} />}
+        <TableBody {...getTableBodyProps()} tableBodyProps={tableBodyProps}></TableBody>
       </table>
-      {
-          pagination?.pageSize && <BasicPagination
+      {pagination?.pageSize && (
+        <BasicPagination
           pageSize={pageSize}
           pageIndex={pageIndex}
           page={page}
@@ -179,8 +182,8 @@ const BasicTable = React.memo((props) => {
           nextPage={nextPage}
           setPageSize={setPageSize}
         />
-        }
-        {/* <CPagination className="flex justify-end">
+      )}
+      {/* <CPagination className="flex justify-end">
   <CPaginationItem >
     <span >&laquo;</span>
   </CPaginationItem>
