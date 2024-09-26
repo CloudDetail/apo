@@ -90,7 +90,27 @@ func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConf
 	return pageByParam(res, pageParam)
 }
 
-func (m *Metadata) AddorUpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
+func (m *Metadata) AddAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
+	m.amConfigLock.Lock()
+	defer m.alertRulesLock.Unlock()
+
+	amConfig, find := m.AMConfigMap[configFile]
+	if !find {
+		return fmt.Errorf("configfile %s is not found", configFile)
+	}
+
+	// Update Exist receiver
+	for i := range amConfig.Receivers {
+		if amConfig.Receivers[i].Name == receiver.Name {
+			return fmt.Errorf("receiver %s already exists", receiver.Name)
+		}
+	}
+
+	amConfig.Receivers = append(amConfig.Receivers, receiver)
+	return nil
+}
+
+func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
 	m.amConfigLock.Lock()
 	defer m.alertRulesLock.Unlock()
 
@@ -108,8 +128,7 @@ func (m *Metadata) AddorUpdateAMConfigReceiver(configFile string, receiver amcon
 		}
 	}
 
-	amConfig.Receivers = append(amConfig.Receivers, receiver)
-	return nil
+	return fmt.Errorf("receiver %s not found", receiver.Name)
 }
 
 func (m *Metadata) UpdateAlertRule(configFile string, alertRule request.AlertRule, oldGroup, oldAlert string) error {

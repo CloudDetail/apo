@@ -45,6 +45,11 @@ type Handler interface {
 	// @Router /api/alerts/alertmanager/receiver/list [post]
 	GetAlertManagerConfigReceiver() core.HandlerFunc
 
+	// AddAlertManagerConfigReceiver 新增告警通知对象
+	// @Tags API.alerts
+	// @Router /api/alerts/alertmanager/receiver/add [post]
+	AddAlertManagerConfigReceiver() core.HandlerFunc
+
 	// UpdateAlertManagerConfigReceiver 更新告警通知对象
 	// @Tags API.alerts
 	// @Router /api/alerts/alertmanager/receiver [post]

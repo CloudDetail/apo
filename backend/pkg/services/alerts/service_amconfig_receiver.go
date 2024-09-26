@@ -24,8 +24,12 @@ func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigRecever
 	}
 }
 
+func (s *service) AddAMConfigReceiver(req *request.AddAlertManagerConfigReceiver) error {
+	return s.k8sApi.AddAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver)
+}
+
 func (s *service) UpdateAMConfigReceiver(req *request.UpdateAlertManagerConfigReceiver) error {
-	return s.k8sApi.AddOrUpdateAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver)
+	return s.k8sApi.UpdateAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver)
 }
 
 func (s *service) DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigReceiverRequest) error {

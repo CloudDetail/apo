@@ -100,6 +100,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/alertmanager/receiver/add": {
+            "post": {
+                "description": "新增告警通知对象",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "新增告警通知对象",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AddAlertManagerConfigReceiver"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/alertmanager/receiver/list": {
             "post": {
                 "description": "列出告警通知对象",
@@ -3728,6 +3768,17 @@ const docTemplate = `{
                 "value": {
                     "description": "值",
                     "type": "number"
+                }
+            }
+        },
+        "request.AddAlertManagerConfigReceiver": {
+            "type": "object",
+            "properties": {
+                "amConfigFile": {
+                    "type": "string"
+                },
+                "amConfigReceiver": {
+                    "$ref": "#/definitions/amconfig.Receiver"
                 }
             }
         },

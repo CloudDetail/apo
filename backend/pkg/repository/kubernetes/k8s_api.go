@@ -170,8 +170,12 @@ func (n *NoneAPI) UpdateAlertRuleConfigFile(configFile string, content []byte) e
 	return ErrKubernetesRepoNotReady
 }
 
-// AddOrUpdateAMConfigReceiver implements Repo.
-func (n *NoneAPI) AddOrUpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
+func (n *NoneAPI) AddAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
+	return ErrKubernetesRepoNotReady
+}
+
+// UpdateAMConfigReceiver implements Repo.
+func (n *NoneAPI) UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
 	return ErrKubernetesRepoNotReady
 }
 

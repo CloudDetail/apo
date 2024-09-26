@@ -584,6 +584,13 @@ definitions:
         description: 值
         type: number
     type: object
+  request.AddAlertManagerConfigReceiver:
+    properties:
+      amConfigFile:
+        type: string
+      amConfigReceiver:
+        $ref: '#/definitions/amconfig.Receiver'
+    type: object
   request.AddAlertRuleRequest:
     properties:
       alertRule:
@@ -1716,6 +1723,32 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 更新告警通知对象
+      tags:
+      - API.alerts
+  /api/alerts/alertmanager/receiver/add:
+    post:
+      consumes:
+      - application/json
+      description: 新增告警通知对象
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.AddAlertManagerConfigReceiver'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 新增告警通知对象
       tags:
       - API.alerts
   /api/alerts/alertmanager/receiver/list:

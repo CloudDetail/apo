@@ -66,6 +66,8 @@ type UpdateAlertRuleRequest struct {
 	AlertRule AlertRule `json:"alertRule"`
 }
 
+type AddAlertManagerConfigReceiver UpdateAlertManagerConfigReceiver
+
 type UpdateAlertManagerConfigReceiver struct {
 	AMConfigFile string `form:"amConfigFile" json:"amConfigFile"`
 
