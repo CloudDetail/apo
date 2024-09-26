@@ -94,7 +94,7 @@ func (k *k8sApi) UpdateAlertRuleConfigFile(configFile string, content []byte) er
 }
 
 func ValidateAlertRule(rule request.AlertRule) error {
-	var err errmodel.ErrorWithMessage
+	var err errmodel.ErrWithMessage
 	var e error
 	var keepFiringFor model.Duration
 	if len(rule.KeepFiringFor) > 0 {

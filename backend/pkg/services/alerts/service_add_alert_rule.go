@@ -9,8 +9,8 @@ import (
 
 func (s *service) AddAlertRule(req *request.AddAlertRuleRequest) error {
 	if !checkOrFillGroupsLabel(req.AlertRule.Group, req.AlertRule.Labels) {
-		return model.ErrorWithMessage{
-			Err:  fmt.Errorf("gourp and group label mismatch"),
+		return model.ErrWithMessage{
+			Err:  fmt.Errorf("group and group label mismatch"),
 			Code: code.AlertGroupAndLabelMismatchError,
 		}
 	}

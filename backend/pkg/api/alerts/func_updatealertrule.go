@@ -34,7 +34,7 @@ func (h *handler) UpdateAlertRule() core.HandlerFunc {
 
 		err := h.alertService.UpdateAlertRule(req)
 		if err != nil {
-			var vErr model.ErrorWithMessage
+			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
