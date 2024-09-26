@@ -251,13 +251,6 @@ func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRel
 			} else {
 				descendantResp.DelaySource = "self"
 			}
-		} else if status.Latency != nil {
-			// 外部延时不存在但是存在北极星指标
-			if *status.DepLatency < 0 {
-				descendantResp.DelaySource = "self"
-			} else {
-				descendantResp.DelaySource = "unknown"
-			}
 		} else {
 			descendantResp.DelaySource = "unknown"
 		}
