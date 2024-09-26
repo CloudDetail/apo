@@ -11,6 +11,7 @@ import { getServiceTopologyApi } from 'src/api/serviceInfo'
 import { useSelector } from 'react-redux'
 import { selectProcessedTimeRange } from 'src/store/reducers/timeRangeReducer'
 import TopologyModal from './component/dependent/TopologyModal'
+import { useDebounce } from 'react-use'
 const ServiceInfo = () => {
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
@@ -83,7 +84,7 @@ const ServiceInfo = () => {
     })
     return { nodes, edges }
   }
-  useEffect(() => {
+  const getServiceTopology = () => {
     setLoading(true)
     if (startTime && endTime) {
       getServiceTopologyApi({
@@ -102,7 +103,17 @@ const ServiceInfo = () => {
           setLoading(false)
         })
     }
-  }, [serviceName, startTime, endTime])
+  }
+
+  //防抖避免跳转使用旧时间
+  useDebounce(
+    () => {
+      getServiceTopology()
+    },
+    300, // 延迟时间 300ms
+    [serviceName, startTime, endTime, endpoint],
+  )
+
   return (
     <div className="h-full relative">
       <LoadingSpinner loading={loading} />

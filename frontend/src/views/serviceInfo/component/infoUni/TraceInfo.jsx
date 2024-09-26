@@ -9,6 +9,7 @@ import { selectSecondsTimeRange } from 'src/store/reducers/timeRangeReducer'
 import { useSelector } from 'react-redux'
 import { getStep } from 'src/utils/step'
 import { getTraceMetricsApi } from 'src/api/serviceInfo'
+import { useDebounce } from 'react-use'
 function TraceInfo() {
   const [data, setData] = useState()
   const [loading, setLoading] = useState(false)
@@ -85,9 +86,16 @@ function TraceInfo() {
         })
     }
   }
-  useEffect(() => {
-    getData()
-  }, [serviceName, startTime, endTime])
+  // useEffect(() => {
+  //   getData()
+  // }, [serviceName, startTime, endTime])
+  useDebounce(
+    () => {
+      getData()
+    },
+    300, // 延迟时间 300ms
+    [startTime, endTime, serviceName, endpoint],
+  )
   const tableProps = useMemo(() => {
     return {
       columns: column,

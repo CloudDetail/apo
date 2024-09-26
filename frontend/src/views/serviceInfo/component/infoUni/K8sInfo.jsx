@@ -1,6 +1,7 @@
 import { CAccordionBody, CCol, CRow } from '@coreui/react'
 import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
+import { useDebounce } from 'react-use'
 import { getK8sEventApi } from 'src/api/serviceInfo'
 import Empty from 'src/components/Empty/Empty'
 import LoadingSpinner from 'src/components/Spinner'
@@ -119,9 +120,17 @@ function K8sInfo(props) {
         })
     }
   }
-  useEffect(() => {
-    getData()
-  }, [serviceName, startTime, endTime])
+  // useEffect(() => {
+  //   getData()
+  // }, [serviceName, startTime, endTime])
+  //防抖避免跳转使用旧时间
+  useDebounce(
+    () => {
+      getData()
+    },
+    300, // 延迟时间 300ms
+    [startTime, endTime, serviceName],
+  )
   return (
     <>
       <CAccordionBody>

@@ -8,6 +8,7 @@ import { getServiceDsecendantMetricsApi } from 'src/api/serviceInfo'
 import { getStep } from 'src/utils/step'
 import LoadingSpinner from 'src/components/Spinner'
 import { useDispatch } from 'react-redux'
+import { useDebounce } from 'react-use'
 
 const TimelapseLineChart = (props) => {
   const { startTime, endTime, serviceName, endpoint } = props
@@ -200,13 +201,17 @@ const TimelapseLineChart = (props) => {
         setLoading(false)
       })
   }
-  useEffect(() => {
-    // console.log(serviceName, startTime, endTime, endpoint)
-    if (serviceName && endpoint && startTime && endTime) {
-      setLoading(true)
-      getChartData()
-    }
-  }, [serviceName, startTime, endTime, endpoint])
+  //防抖避免跳转使用旧时间
+  useDebounce(
+    () => {
+      if (serviceName && endpoint && startTime && endTime) {
+        setLoading(true)
+        getChartData()
+      }
+    },
+    300, // 延迟时间 300ms
+    [serviceName, startTime, endTime, endpoint],
+  )
   useEffect(() => {
     // console.log(chartData)
     const newOption = {

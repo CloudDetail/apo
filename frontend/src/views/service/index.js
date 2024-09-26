@@ -16,6 +16,7 @@ import EndpointTableModal from './component/EndpointTableModal'
 import LoadingSpinner from 'src/components/Spinner'
 import { Input, Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
+import { useDebounce } from 'react-use'
 export default function ServiceView() {
   const navigate = useNavigate()
   const [data, setData] = useState([])
@@ -286,9 +287,14 @@ export default function ServiceView() {
         })
     }
   }
-  useEffect(() => {
-    getTableData()
-  }, [startTime, endTime])
+  //防抖避免跳转使用旧时间
+  useDebounce(
+    () => {
+      getTableData()
+    },
+    300, // 延迟时间 300ms
+    [startTime, endTime],
+  )
 
   const handleKeyDown = (event) => {
     getTableData()

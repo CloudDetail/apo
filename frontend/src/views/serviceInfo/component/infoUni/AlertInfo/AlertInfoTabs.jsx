@@ -7,6 +7,7 @@ import { usePropsContext } from 'src/contexts/PropsContext'
 import { selectProcessedTimeRange } from 'src/store/reducers/timeRangeReducer'
 import AlertInfoTable from './AlertInfoTable'
 import Empty from 'src/components/Empty/Empty'
+import { useDebounce } from 'react-use'
 
 export default function AlertInfoTabs(props) {
   const { handlePanelStatus } = props
@@ -58,10 +59,18 @@ export default function AlertInfoTabs(props) {
         })
     }
   }
-  useEffect(() => {
-    getAlertEvents()
-  }, [startTime, endTime, serviceName])
+  // useEffect(() => {
+  //   getAlertEvents()
+  // }, [startTime, endTime, serviceName])
 
+  //防抖避免跳转使用旧时间
+  useDebounce(
+    () => {
+      getAlertEvents()
+    },
+    300, // 延迟时间 300ms
+    [serviceName, startTime, endTime, endpoint],
+  )
   return (
     <CAccordionBody>
       {tabList?.length > 0 && (

@@ -9,6 +9,7 @@ import { getLogMetricsApi } from 'src/api/serviceInfo'
 import { getStep } from 'src/utils/step'
 import { selectSecondsTimeRange } from 'src/store/reducers/timeRangeReducer'
 import { useSelector } from 'react-redux'
+import { useDebounce } from 'react-use'
 
 function LogsInfo() {
   const [data, setData] = useState()
@@ -87,9 +88,17 @@ function LogsInfo() {
         })
     }
   }
-  useEffect(() => {
-    getData()
-  }, [serviceName, endpoint, startTime, endTime])
+  // useEffect(() => {
+  //   getData()
+  // }, [serviceName, endpoint, startTime, endTime])
+  //防抖避免跳转使用旧时间
+  useDebounce(
+    () => {
+      getData()
+    },
+    300, // 延迟时间 300ms
+    [startTime, endTime, serviceName, endpoint],
+  )
   const tableProps = useMemo(() => {
     return {
       columns: column,

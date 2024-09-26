@@ -10,6 +10,7 @@ import { selectSecondsTimeRange } from 'src/store/reducers/timeRangeReducer'
 import { useSelector } from 'react-redux'
 import { getStep } from 'src/utils/step'
 import { convertTime } from 'src/utils/time'
+import { useDebounce } from 'react-use'
 
 export default function InstanceInfo(props) {
   const { handlePanelStatus, prepareVariable } = props
@@ -142,10 +143,17 @@ export default function InstanceInfo(props) {
         })
     }
   }
-  useEffect(() => {
-    getData()
-  }, [serviceName, startTime, endTime])
-
+  // useEffect(() => {
+  //   getData()
+  // }, [serviceName, startTime, endTime])
+  //防抖避免跳转使用旧时间
+  useDebounce(
+    () => {
+      getData()
+    },
+    300, // 延迟时间 300ms
+    [startTime, endTime, serviceName, endpoint],
+  )
   useEffect(() => {
     const namespaceList = [
       ...new Set(data?.map((obj) => obj.namespace).filter((namespace) => namespace !== '')),

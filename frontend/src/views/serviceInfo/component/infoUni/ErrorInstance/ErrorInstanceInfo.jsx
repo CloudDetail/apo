@@ -10,6 +10,7 @@ import { getServiceErrorInstancesApi } from 'src/api/serviceInfo'
 import ErrorCell from './ErrorCell'
 import { ErrotChain } from './ErrorChain'
 import Timeline from '../TimeLine'
+import { useDebounce } from 'react-use'
 
 export default function ErrorInstanceInfo(props) {
   const { handlePanelStatus } = props
@@ -170,9 +171,17 @@ export default function ErrorInstanceInfo(props) {
         })
     }
   }
-  useEffect(() => {
-    getData()
-  }, [serviceName, startTime, endTime])
+  // useEffect(() => {
+  //   getData()
+  // }, [serviceName, startTime, endTime])
+  //防抖避免跳转使用旧时间
+  useDebounce(
+    () => {
+      getData()
+    },
+    300, // 延迟时间 300ms
+    [serviceName, startTime, endTime, endpoint],
+  )
   const tableProps = useMemo(() => {
     return {
       columns: column,

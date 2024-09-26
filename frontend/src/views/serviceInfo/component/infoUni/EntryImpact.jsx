@@ -5,6 +5,7 @@ import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import { useDebounce } from 'react-use'
 import { getServiceEntryEndpoints } from 'src/api/serviceInfo'
 import LoadingSpinner from 'src/components/Spinner'
 import StatusInfo from 'src/components/StatusInfo'
@@ -224,10 +225,16 @@ export default function EntryImpact(props) {
         })
     }
   }
-  useEffect(() => {
-    getTableData()
-  }, [startTime, endTime, serviceName, endpoint])
-
+  // useEffect(() => {
+  //   getTableData()
+  // }, [startTime, endTime, serviceName, endpoint])
+  useDebounce(
+    () => {
+      getTableData()
+    },
+    300, // 延迟时间 300ms
+    [startTime, endTime, serviceName, endpoint],
+  )
   const tableProps = useMemo(() => {
     return {
       columns: column,

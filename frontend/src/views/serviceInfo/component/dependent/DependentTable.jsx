@@ -9,6 +9,7 @@ import { getStep } from 'src/utils/step'
 import { DelaySourceTimeUnit } from 'src/constants'
 import { Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
+import { useDebounce } from 'react-use'
 
 function DependentTable(props) {
   const { serviceName, endpoint, startTime, endTime, storeDisplayData = false } = props
@@ -48,9 +49,14 @@ function DependentTable(props) {
       if (storeDisplayData) setDisplayData(null)
     }
   }, [])
-  useEffect(() => {
-    if (serviceName && endpoint) getTableData()
-  }, [startTime, endTime, serviceName, endpoint])
+  //防抖避免跳转使用旧时间
+  useDebounce(
+    () => {
+      if (serviceName && endpoint) getTableData()
+    },
+    300, // 延迟时间 300ms
+    [startTime, endTime, serviceName, endpoint],
+  )
   const column = [
     {
       title: '应用名称',

@@ -8,6 +8,7 @@ import 'react-image-lightbox/style.css'
 import Lightbox from 'react-image-lightbox'
 import { getStep } from 'src/utils/step'
 import GlossaryTable from './GlossaryTable'
+import { useDebounce } from 'react-use'
 
 function PolarisMetricsInfo() {
   const [image, setImage] = useState()
@@ -41,9 +42,17 @@ function PolarisMetricsInfo() {
   const handleImageClick = () => {
     setIsOpen(true)
   }
-  useEffect(() => {
-    getData()
-  }, [startTime, endTime, serviceName, endpoint])
+  // useEffect(() => {
+  //   getData()
+  // }, [startTime, endTime, serviceName, endpoint])
+  //防抖避免跳转使用旧时间
+  useDebounce(
+    () => {
+      getData()
+    },
+    300, // 延迟时间 300ms
+    [startTime, endTime, serviceName, endpoint],
+  )
   return (
     // {
 
