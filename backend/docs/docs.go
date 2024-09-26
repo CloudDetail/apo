@@ -4183,6 +4183,12 @@ const docTemplate = `{
                 },
                 "alertRuleFile": {
                     "type": "string"
+                },
+                "oldAlert": {
+                    "type": "string"
+                },
+                "oldGroup": {
+                    "type": "string"
                 }
             }
         },

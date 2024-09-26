@@ -3,19 +3,14 @@ package alerts
 import (
 	"fmt"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) UpdateAlertRule(req *request.UpdateAlertRuleRequest) (*response.UpdateAlertRuleResponse, error) {
-	if !CheckOrFillGroupsLabel(req.AlertRule.Group, req.AlertRule.Labels) {
-		return nil, fmt.Errorf("group name and group label mismatch")
+func (s *service) UpdateAlertRule(req *request.UpdateAlertRuleRequest) error {
+	if !checkOrFillGroupsLabel(req.AlertRule.Group, req.AlertRule.Labels) {
+		return fmt.Errorf("group name and group label mismatch")
 	}
 
-	if err := s.k8sApi.UpdateAlertRule(req.AlertRuleFile, req.AlertRule); err != nil {
-		return nil, err
-	}
-
-	return &response.UpdateAlertRuleResponse{Group: req.AlertRule.Group, Alert: req.AlertRule.Alert}, nil
+	return s.k8sApi.UpdateAlertRule(req.AlertRuleFile, req.AlertRule, req.OldGroup, req.OldAlert)
 }
 
 func (s *service) DeleteAlertRule(req *request.DeleteAlertRuleRequest) error {
@@ -27,7 +22,7 @@ func (s *service) UpdateAlertRuleFile(req *request.UpdateAlertRuleConfigRequest)
 }
 
 // CheckOrFillGroupsLabel 检查group与label的对应关系，如果label为空则填充
-func CheckOrFillGroupsLabel(group string, labels map[string]string) bool {
+func checkOrFillGroupsLabel(group string, labels map[string]string) bool {
 	groupLabel := labels["group"]
 	switch group {
 	case appLabelVal:

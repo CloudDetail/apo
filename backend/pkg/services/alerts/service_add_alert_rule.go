@@ -6,7 +6,7 @@ import (
 )
 
 func (s *service) AddAlertRule(req *request.AddAlertRuleRequest) error {
-	if !CheckOrFillGroupsLabel(req.AlertRule.Group, req.AlertRule.Labels) {
+	if !checkOrFillGroupsLabel(req.AlertRule.Group, req.AlertRule.Labels) {
 		return fmt.Errorf("group name and group label mismatch")
 	}
 

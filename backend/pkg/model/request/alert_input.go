@@ -61,6 +61,8 @@ type UpdateAlertRuleConfigRequest struct {
 type UpdateAlertRuleRequest struct {
 	AlertRuleFile string `json:"alertRuleFile"`
 
+	OldGroup  string    `json:"oldGroup"`
+	OldAlert  string    `json:"oldAlert"`
 	AlertRule AlertRule `json:"alertRule"`
 }
 

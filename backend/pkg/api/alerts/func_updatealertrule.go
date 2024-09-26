@@ -32,7 +32,7 @@ func (h *handler) UpdateAlertRule() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.alertService.UpdateAlertRule(req)
+		err := h.alertService.UpdateAlertRule(req)
 		// TODO 修改err msg
 		if err != nil {
 			var vErr kubernetes.ErrAlertRuleValidate
@@ -51,6 +51,6 @@ func (h *handler) UpdateAlertRule() core.HandlerFunc {
 			}
 			return
 		}
-		c.Payload(resp)
+		c.Payload("ok")
 	}
 }

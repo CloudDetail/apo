@@ -44,7 +44,7 @@ func (e ErrAlertRuleValidate) Error() string {
 	return e.err.Error()
 }
 
-func (k *k8sApi) UpdateAlertRule(configFile string, alertRule request.AlertRule) error {
+func (k *k8sApi) UpdateAlertRule(configFile string, alertRule request.AlertRule, oldGroup, oldAlert string) error {
 	if len(configFile) == 0 {
 		configFile = k.MetadataSettings.AlertRuleFileName
 	}
@@ -54,7 +54,7 @@ func (k *k8sApi) UpdateAlertRule(configFile string, alertRule request.AlertRule)
 		return ErrAlertRuleValidate{err: err}
 	}
 
-	err = k.Metadata.UpdateAlertRule(configFile, alertRule)
+	err = k.Metadata.UpdateAlertRule(configFile, alertRule, oldGroup, oldAlert)
 	if err != nil {
 		return err
 	}

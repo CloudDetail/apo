@@ -939,6 +939,10 @@ definitions:
         $ref: '#/definitions/request.AlertRule'
       alertRuleFile:
         type: string
+      oldAlert:
+        type: string
+      oldGroup:
+        type: string
     type: object
   response.CreateResponse:
     properties:

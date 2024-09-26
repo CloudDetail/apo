@@ -146,15 +146,19 @@ func (n *NoneAPI) GetAlertRules(configFile string, filter *request.AlertRuleFilt
 	return []*request.AlertRule{}, 0
 }
 
-func (n *NoneAPI) UpdateAlertRule(configFile string, alertRule request.AlertRule) error {
+func (n *NoneAPI) UpdateAlertRule(configFile string, alertRule request.AlertRule, oldGroup, oldAlert string) error {
 	return ErrKubernetesRepoNotReady
 }
 
-func (n *NoneAPI) DeleteAlertRule(configFile string, group string, alert string) error {
+func (n *NoneAPI) AddAlertRule(configFile string, alertRule request.AlertRule) error {
 	return ErrKubernetesRepoNotReady
 }
 
 // GetAlertRules implements Repo.
+
+func (n *NoneAPI) DeleteAlertRule(configFile string, group string, alert string) error {
+	return ErrKubernetesRepoNotReady
+}
 
 // GetAlertRuleConfigFile implements Repo.
 func (n *NoneAPI) GetAlertRuleConfigFile(alertRuleFile string) (map[string]string, error) {
@@ -179,8 +183,4 @@ func (n *NoneAPI) DeleteAMConfigReceiver(configFile string, name string) error {
 // GetAMConfigReceiver implements Repo.
 func (n *NoneAPI) GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int) {
 	return []amconfig.Receiver{}, 0
-}
-
-func (n *NoneAPI) AddAlertRule(configFile string, alertRule request.AlertRule) error {
-	return ErrKubernetesRepoNotReady
 }
