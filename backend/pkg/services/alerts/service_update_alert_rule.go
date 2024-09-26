@@ -2,6 +2,7 @@ package alerts
 
 import (
 	"fmt"
+
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -21,7 +22,7 @@ func (s *service) UpdateAlertRuleFile(req *request.UpdateAlertRuleConfigRequest)
 	return s.k8sApi.UpdateAlertRuleConfigFile(req.AlertRuleFile, []byte(req.Content))
 }
 
-// CheckOrFillGroupsLabel 检查group与label的对应关系，如果label为空则填充
+// checkOrFillGroupsLabel 检查group与label的对应关系，如果label为空则填充
 func checkOrFillGroupsLabel(group string, labels map[string]string) bool {
 	groupLabel := labels["group"]
 	switch group {
