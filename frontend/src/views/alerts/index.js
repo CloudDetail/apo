@@ -1,14 +1,16 @@
 import { CCard, CToast, CToastBody } from '@coreui/react'
-import { Button, Popconfirm } from 'antd'
+import { Button, Input, Popconfirm, Select, Space } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
-import { deleteRuleApi, getAlertRulesApi } from 'src/api/alerts'
+import { deleteRuleApi, getAlertRulesApi, getAlertRulesStatusApi } from 'src/api/alerts'
 import LoadingSpinner from 'src/components/Spinner'
 import BasicTable from 'src/components/Table/basicTable'
 import { showToast } from 'src/utils/toast'
 import { MdAdd, MdOutlineEdit } from 'react-icons/md'
 import ModifyAlertRuleModal from './modal/ModifyAlertRuleModal'
+import Tag from 'src/components/Tag/Tag'
+import { useSelector } from 'react-redux'
 
 export default function AlertsPage() {
   const [data, setData] = useState([])
@@ -18,24 +20,37 @@ export default function AlertsPage() {
   const [total, setTotal] = useState(0)
   const [modalVisible, setModalVisible] = useState(false)
   const [modalInfo, setModalInfo] = useState(null)
-  const getAlertsRule = () => {
-    setLoading(true)
-    getAlertRulesApi({
-      currentPage: 1,
-      pageSize: 10000,
-    })
-      .then((res) => {
-        setLoading(false)
-        setData(res.alertRules)
-        setTotal(res.pagination.total)
-      })
-      .catch(() => {
-        setData([])
-        setLoading(false)
-      })
-      .finally(() => {
-        setLoading(false)
-      })
+  const [alertStateMap, setAlertStateMap] = useState(null)
+  const { groupLabelSelectOptions } = useSelector((state) => state.groupLabelReducer)
+  const [searchGroup, setSearchGroup] = useState([])
+  const [searchAlert, setSearchAlert] = useState(null)
+  const changeSearchGroup = (value) => {
+    setSearchGroup(value)
+    setPageIndex(1)
+  }
+  const getStateTagItem = (state) => {
+    switch (state) {
+      case 'firing':
+        return {
+          type: 'error',
+          context: '告警中',
+        }
+      case 'pending':
+        return {
+          type: 'warning',
+          context: '准备告警',
+        }
+      case 'inactive':
+        return {
+          type: 'success',
+          context: '正常',
+        }
+      default:
+        return {
+          type: 'default',
+          context: '未知',
+        }
+    }
   }
   const deleteAlertRule = (rule) => {
     deleteRuleApi({
@@ -57,7 +72,7 @@ export default function AlertsPage() {
       justifyContent: 'left',
     },
     {
-      title: '名称',
+      title: '告警规则名',
       accessor: 'alert',
       justifyContent: 'left',
       customWidth: 300,
@@ -77,29 +92,20 @@ export default function AlertsPage() {
       },
     },
 
-    // {
-    //   title: '告警级别',
-    //   accessor: 'labels',
-    //   customWidth: 150,
-    //   Cell: ({ value }) => {
-    //     // 告警中 准备告警 正常
-    //     const stateMap = {
-    //       warning: {
-    //         type: 'error',
-    //         context: '告警中',
-    //       },
-    //       pending: {
-    //         type: 'warning',
-    //         context: '准备告警',
-    //       },
-    //       info: {
-    //         type: 'success',
-    //         context: '正常',
-    //       },
-    //     }
-    //     return <Tag type={stateMap[value.severity].type}>{stateMap[value.severity].context}</Tag>
-    //   },
-    // },
+    {
+      title: '告警状态',
+      accessor: 'state',
+      customWidth: 150,
+      Cell: (props) => {
+        const row = props.row.original
+        let state
+        if (alertStateMap) {
+          state = alertStateMap[row.group + '-' + row.alert]
+        }
+        const tagConfig = getStateTagItem(state)
+        return <Tag type={tagConfig.type}>{tagConfig.context}</Tag>
+      },
+    },
     {
       title: '操作',
       accessor: 'action',
@@ -148,19 +154,59 @@ export default function AlertsPage() {
     setModalVisible(true)
   }
   useEffect(() => {
-    getAlertsRule()
+    fetchData()
   }, [])
+  async function fetchData() {
+    try {
+      setLoading(true)
+      const [res1, res2] = await Promise.all([
+        getAlertRulesApi({
+          currentPage: 1,
+          pageSize: 10000,
+        }),
+        getAlertRulesStatusApi({
+          type: 'alert',
+          exclude_alerts: true,
+        }),
+      ])
+      setLoading(false)
+      setData(res1.alertRules)
+      setTotal(res1.pagination.total)
+      let alertStateMap = {}
+      res2.data.groups.forEach((group) => {
+        group.rules.forEach((rule) => {
+          // alertStateMap[rule.labels.group + '-' + rule.name] = rule.state
+          alertStateMap[group.name + '-' + rule.name] = rule.state
+        })
+      })
+      setAlertStateMap(alertStateMap)
+      setLoading(false)
+    } catch (error) {
+      setLoading(false)
+      console.error('请求出错:', error)
+    }
+  }
   const handleTableChange = (props) => {
     if (props.pageSize && props.pageIndex) {
       setPageSize(props.pageSize), setPageIndex(props.pageIndex)
     }
   }
   const refreshTable = () => {
-    getAlertsRule()
+    fetchData()
     setPageIndex(1)
   }
   const tableProps = useMemo(() => {
-    const paginatedData = data.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)
+    let paginatedData = data
+
+    let groupNameList = (searchGroup ?? []).map((item) => item.label)
+    paginatedData = paginatedData.filter((item) => {
+      const matchSearchGroup = groupNameList.length > 0 ? groupNameList.includes(item.group) : true
+      const matchAlertName = searchAlert ? item.alert.includes(searchAlert) : true
+      return matchAlertName && matchSearchGroup
+    })
+    let total = paginatedData.length
+    // 分页处理
+    paginatedData = paginatedData.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)
     return {
       columns: column,
       data: paginatedData,
@@ -172,7 +218,7 @@ export default function AlertsPage() {
       },
       loading: false,
     }
-  }, [data, pageIndex, pageSize])
+  }, [data, pageIndex, pageSize, searchAlert, searchGroup])
   return (
     <>
       <LoadingSpinner loading={loading} />
@@ -192,19 +238,47 @@ export default function AlertsPage() {
           </CToastBody>
         </div>
       </CToast> */}
+      <div className="flex items-center justify-betweeen text-sm p-2 my-2">
+        <Space className="flex-grow">
+          <Space className="flex-1">
+            <span className="text-nowrap">组名：</span>
+            <Select
+              options={groupLabelSelectOptions}
+              labelInValue
+              placeholder="选择组名"
+              mode="multiple"
+              allowClear
+              className=" min-w-[200px]"
+              value={searchGroup}
+              onChange={changeSearchGroup}
+            />
+          </Space>
+          <div className="flex flex-row items-center mr-5 text-sm">
+            <span className="text-nowrap">告警规则名：</span>
+            <Input
+              value={searchAlert}
+              onChange={(e) => {
+                setSearchAlert(e.target.value)
+                setPageIndex(1)
+              }}
+            />
+          </div>
+        </Space>
+
+        <Button
+          type="primary"
+          icon={<MdAdd size={20} />}
+          onClick={clickAddRule}
+          className="flex-grow-0 flex-shrink-0"
+        >
+          <span className="text-xs">新增告警规则</span>
+        </Button>
+      </div>
       <CCard className="text-sm p-2">
         <div
           className="mb-4 h-full p-2 text-xs justify-between"
           style={{ height: 'calc(100vh - 210px)' }}
         >
-          <div className="text-right">
-            <Button type="primary" icon={<MdAdd size={20} />} onClick={clickAddRule}>
-              <span className="text-xs">新增告警规则</span>
-            </Button>
-            {/* <CButton color="primary" size="sm" onClick={reloadRule}>
-              重载规则
-            </CButton> */}
-          </div>
           <BasicTable {...tableProps} />
         </div>
       </CCard>

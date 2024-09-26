@@ -4,7 +4,7 @@ import _ from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
 import { useSelector } from 'react-redux'
-import { updateRuleApi } from 'src/api/alerts'
+import { addRuleApi, updateRuleApi } from 'src/api/alerts'
 import { showToast } from 'src/utils/toast'
 import ALertConditionCom from './ALertConditionCom'
 function isValidKeyValue(str) {
@@ -48,14 +48,7 @@ export default function ModifyAlertRuleModal({
     { value: 'h', label: 'h（小时）' },
     { value: 'd', label: 'd（天）' },
   ]
-  const { groupLabel } = useSelector((state) => state.groupLabelReducer)
-  const convertGroupLabel = () => {
-    return Object.entries(groupLabel).map(([key, value]) => ({
-      label: value,
-      value: key,
-      group: value,
-    }))
-  }
+  const { groupLabelSelectOptions } = useSelector((state) => state.groupLabelReducer)
   const labelsTag = ({ value }) => {
     return isValidKeyValue(value) ? (
       <Tag closeIcon>{value}</Tag>
@@ -126,6 +119,25 @@ export default function ModifyAlertRuleModal({
     }
     form.setFieldValue('labels', labelsList)
   }
+  const updateRule = (alertRule) => {
+    let api = addRuleApi
+    let params = {
+      alertRule,
+    }
+    if (ruleInfo) {
+      api = updateRuleApi
+      params.oldGroup = ruleInfo.group
+      params.oldAlert = ruleInfo.alert
+    }
+    api(params).then(() => {
+      showToast({
+        title: '保存告警规则成功',
+        color: 'success',
+      })
+      closeModal()
+      refresh()
+    })
+  }
   const saveRule = () => {
     form
       .validateFields({ validateOnly: true })
@@ -148,16 +160,7 @@ export default function ModifyAlertRuleModal({
         if (formState.description) {
           alertRule.annotations['description'] = formState.description
         }
-        updateRuleApi({
-          alertRule,
-        }).then(() => {
-          showToast({
-            title: '保存告警规则成功',
-            color: 'success',
-          })
-          closeModal()
-          refresh()
-        })
+        updateRule(alertRule)
       })
       .catch((error) => console.log(error))
   }
@@ -219,7 +222,7 @@ export default function ModifyAlertRuleModal({
             ]}
           >
             <Select
-              options={convertGroupLabel()}
+              options={groupLabelSelectOptions}
               labelInValue
               placeholder="选择组名"
               onChange={(value) => changeGroupLabel('group', value?.key)}

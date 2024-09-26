@@ -4,18 +4,22 @@ import { get, post, del } from 'src/utils/request'
 export const getAlertRulesApi = (params) => {
   return post(`api/alerts/rule/list`, params)
 }
-// // 旧获取故障现场分页日志
-// export const getAlertRulesApi = (params) => {
-//   return get(`/alert/api/v1/rules`, params)
-// }
+// 获取远程告警规则状态信息
+export const getAlertRulesStatusApi = (params) => {
+  return get(`/alert/api/v1/rules`, params)
+}
 // 重载
 export const reloadAlertRulesApi = (params) => {
   return get(`/alert/-/reload`, params)
 }
 
-//更新或新增告警规则
+//更新告警规则
 export const updateRuleApi = (params) => {
   return post(`api/alerts/rule`, params)
+}
+//新增告警规则
+export const addRuleApi = (params) => {
+  return post(`/api/alerts/rule/add`, params)
 }
 //删除告警规则
 export const deleteRuleApi = (params) => {
