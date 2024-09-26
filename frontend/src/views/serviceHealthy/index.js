@@ -7,6 +7,7 @@ import { Input } from 'antd'
 import { getServiceHealthyApi } from 'src/api/serviceHealthy'
 import { FaCircle } from 'react-icons/fa'
 import LoadingSpinner from 'src/components/Spinner'
+import BorderTag from 'src/components/Tag/BorderTag'
 export default function ServiceHealthyPage() {
   const [data, setData] = useState([])
   const [serachServiceName, setSerachServiceName] = useState()
@@ -18,6 +19,12 @@ export default function ServiceHealthyPage() {
     green: '#24d160',
     red: '#ff3366',
   }
+  const scoreMapList = [
+    { name: '严重异常', type: 'error' },
+    { name: '中度异常', type: 'magenta' },
+    { name: '轻微异常', type: 'warning' },
+    { name: '健康', type: 'success' },
+  ]
   const column = [
     {
       title: '服务名称',
@@ -40,7 +47,7 @@ export default function ServiceHealthyPage() {
     },
     {
       title: '服务健康总分',
-      accessor: 'score',
+      accessor: 'percentScore',
       customWidth: 120,
     },
     {
@@ -50,17 +57,20 @@ export default function ServiceHealthyPage() {
       isNested: true,
       children: [
         {
-          title: '得分原因',
+          title: '检查项',
           accessor: 'key',
           customWidth: 120,
         },
         {
-          title: '得分',
+          title: '健康状态',
           accessor: `score`,
           customWidth: 120,
+          Cell: ({ value }) => {
+            return <BorderTag {...scoreMapList[value]} />
+          },
         },
         {
-          title: '得分详情',
+          title: '状态详情',
           accessor: `detail`,
           justifyContent: 'left',
         },
