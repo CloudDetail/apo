@@ -96,6 +96,17 @@ const _nav = [
   },
   {
     component: CNavItem,
+    name: 'MySQL 大盘',
+    abbreviation: 'MySQL',
+    to: '/mysql-dashboard',
+    icon: <CIcon icon={cilSpeedometer} />,
+    badge: {
+      color: 'info',
+      // text: 'NEW',
+    },
+  },
+  {
+    component: CNavItem,
     name: '告警规则',
     to: '/alerts',
     icon: <CIcon icon={cilBell} />,
