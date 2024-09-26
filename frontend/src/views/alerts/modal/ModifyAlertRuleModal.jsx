@@ -48,7 +48,7 @@ export default function ModifyAlertRuleModal({
     { value: 'h', label: 'h（小时）' },
     { value: 'd', label: 'd（天）' },
   ]
-  const { groupLabelSelectOptions } = useSelector((state) => state.groupLabelReducer)
+  const { groupLabelSelectOptions, groupLabel } = useSelector((state) => state.groupLabelReducer)
   const labelsTag = ({ value }) => {
     return isValidKeyValue(value) ? (
       <Tag closeIcon>{value}</Tag>
