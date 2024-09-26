@@ -68,6 +68,11 @@ type Handler interface {
 	// @Tags API.alerts
 	// @Router /api/alerts/rule/add [post]
 	AddAlertRule() core.HandlerFunc
+
+	// CheckAlertRule 检查告警规则名是否可用
+	// @Tags API.alerts
+	// @Router /api/alerts/rule/available/file/group/alert [get]
+	CheckAlertRule() core.HandlerFunc
 }
 
 type handler struct {

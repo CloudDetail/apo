@@ -295,6 +295,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/rule/available": {
+            "get": {
+                "description": "检查告警规则名是否可用",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "检查告警规则名是否可用",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "查询告警规则文件名",
+                        "name": "alertRuleFile",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "组名",
+                        "name": "group",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "告警规则名",
+                        "name": "alert",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.CheckAlertRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/rule/groups": {
             "get": {
                 "description": "获取group和label对应接口",
@@ -4177,6 +4228,10 @@ const docTemplate = `{
         },
         "request.UpdateAlertRuleRequest": {
             "type": "object",
+            "required": [
+                "oldAlert",
+                "oldGroup"
+            ],
             "properties": {
                 "alertRule": {
                     "$ref": "#/definitions/request.AlertRule"
@@ -4189,6 +4244,14 @@ const docTemplate = `{
                 },
                 "oldGroup": {
                     "type": "string"
+                }
+            }
+        },
+        "response.CheckAlertRuleResponse": {
+            "type": "object",
+            "properties": {
+                "available": {
+                    "type": "boolean"
                 }
             }
         },

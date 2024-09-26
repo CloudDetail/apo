@@ -184,3 +184,7 @@ func (n *NoneAPI) DeleteAMConfigReceiver(configFile string, name string) error {
 func (n *NoneAPI) GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int) {
 	return []amconfig.Receiver{}, 0
 }
+
+func (n *NoneAPI) CheckAlertRule(configFile, group, alert string) (bool, error) {
+	return false, ErrKubernetesRepoNotReady
+}

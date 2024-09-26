@@ -40,6 +40,7 @@ type Repo interface {
 	UpdateAlertRule(configFile string, alertRule request.AlertRule, oldGroup, oldAlert string) error
 	AddAlertRule(configFile string, alertRule request.AlertRule) error
 	DeleteAlertRule(configFile string, group, alert string) error
+	CheckAlertRule(configFile, group, alert string) (bool, error)
 
 	GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
 	AddOrUpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error

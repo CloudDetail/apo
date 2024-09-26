@@ -2,9 +2,11 @@ package kubernetes
 
 import (
 	"fmt"
+	"github.com/CloudDetail/apo/backend/pkg/code"
 	"strings"
 	"sync"
 
+	errmodel "github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/prometheus/common/model"
@@ -114,32 +116,43 @@ func (m *Metadata) UpdateAlertRule(configFile string, alertRule request.AlertRul
 	if oldGroup == alertRule.Group && oldAlert == alertRule.Alert {
 		remove = false
 	}
+	var err errmodel.ErrorWithMessage
 
 	m.alertRulesLock.Lock()
 	defer m.alertRulesLock.Unlock()
 
 	alertRules, find := m.AlertRulesMap[configFile]
 	if !find {
-		return fmt.Errorf("can not find specific config: %s", configFile)
+		err.Err = fmt.Errorf("can not find specific config: %s", configFile)
+		err.Code = code.AlertConfigFileNotExistError
+		return err
 	}
 
 	// 先检查旧告警的存在性
 	if !checkGroupExists(oldGroup, *alertRules) {
-		return fmt.Errorf("old group not exists: %s", oldGroup)
+		err.Err = fmt.Errorf("old group not exists: %s", oldGroup)
+		err.Code = code.AlertOldGroupNotExistError
+		return err
 	}
 
 	if !checkAlertExists(oldGroup, oldAlert, *alertRules) {
-		return fmt.Errorf("old alert not exists: %s", oldAlert)
+		err.Err = fmt.Errorf("old alert not exists: %s", oldAlert)
+		err.Code = code.AlertAlertNotExistError
+		return err
 	}
 
 	// 如果是移动操作，需要检查新告警的存在性
 	if remove {
 		if !checkGroupExists(alertRule.Group, *alertRules) {
-			return fmt.Errorf("can not find specific group: %s", alertRule.Group)
+			err.Err = fmt.Errorf("can not find specific group: %s", alertRule.Group)
+			err.Code = code.AlertTargetGroupNotExistError
+			return err
 		}
 
 		if checkAlertExists(alertRule.Group, alertRule.Alert, *alertRules) {
-			return fmt.Errorf("target alert already exists: %s", alertRule.Alert)
+			err.Err = fmt.Errorf("target alert already exists: %s", alertRule.Alert)
+			err.Code = code.AlertAlertAlreadyExistError
+			return err
 		}
 
 	}
@@ -172,13 +185,44 @@ func checkAlertExists(group, alert string, alertRules AlertRules) bool {
 	return false
 }
 
+func (m *Metadata) CheckAlertRule(configFile, group, alert string) (bool, error) {
+	m.alertRulesLock.RLock()
+	defer m.alertRulesLock.RUnlock()
+
+	var err errmodel.ErrorWithMessage
+	alertRules, find := m.AlertRulesMap[configFile]
+	if !find {
+		err.Err = fmt.Errorf("configfile %s is not found", configFile)
+		err.Code = code.AlertConfigFileNotExistError
+		return false, err
+	}
+
+	find = checkGroupExists(group, *alertRules)
+	if !find {
+		err.Err = fmt.Errorf("can not find specific group: %s", group)
+		err.Code = code.AlertTargetGroupNotExistError
+		return false, err
+	}
+
+	find = checkAlertExists(group, alert, *alertRules)
+	if find {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 func (m *Metadata) AddAlertRule(configFile string, alertRule request.AlertRule) error {
 	m.alertRulesLock.Lock()
 	defer m.alertRulesLock.Unlock()
 
+	var err errmodel.ErrorWithMessage
+
 	alertRules, find := m.AlertRulesMap[configFile]
 	if !find {
-		return fmt.Errorf("can not find specific config: %s", configFile)
+		err.Err = fmt.Errorf("can not find specific config: %s", configFile)
+		err.Code = code.AlertConfigFileNotExistError
+		return err
 	}
 
 	// 检查group是否存在
@@ -190,7 +234,9 @@ func (m *Metadata) AddAlertRule(configFile string, alertRule request.AlertRule) 
 		}
 	}
 	if !isGroupExists {
-		return fmt.Errorf("can not find specific group: %s", alertRule.Group)
+		err.Err = fmt.Errorf("can not find specific group: %s", alertRule.Group)
+		err.Code = code.AlertTargetGroupNotExistError
+		return err
 	}
 
 	// 检查alert是否可用
@@ -203,7 +249,8 @@ func (m *Metadata) AddAlertRule(configFile string, alertRule request.AlertRule) 
 	}
 
 	if isAlertExist {
-		return fmt.Errorf("alert already exists: %s", alertRule.Alert)
+		err.Err = fmt.Errorf("alert already exists: %s", alertRule.Alert)
+		err.Code = code.AlertAlertNotExistError
 	}
 
 	alertRules.Rules = append(alertRules.Rules, &alertRule)

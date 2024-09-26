@@ -1,8 +1,8 @@
 package kubernetes
 
 import (
-	"fmt"
-
+	"github.com/CloudDetail/apo/backend/pkg/code"
+	errmodel "github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/common/model"
@@ -30,7 +30,7 @@ func (k *k8sApi) GetAlertRules(configFile string, filter *request.AlertRuleFilte
 	}
 
 	if syncNow {
-		// TODO handler error
+		// TODO handle error
 		_ = k.syncAlertRule()
 	}
 	return k.Metadata.GetAlertRules(configFile, filter, pageParam)
@@ -38,6 +38,7 @@ func (k *k8sApi) GetAlertRules(configFile string, filter *request.AlertRuleFilte
 
 type ErrAlertRuleValidate struct {
 	err error
+	msg string
 }
 
 func (e ErrAlertRuleValidate) Error() string {
@@ -51,7 +52,7 @@ func (k *k8sApi) UpdateAlertRule(configFile string, alertRule request.AlertRule,
 
 	err := ValidateAlertRule(alertRule)
 	if err != nil {
-		return ErrAlertRuleValidate{err: err}
+		return err
 	}
 
 	err = k.Metadata.UpdateAlertRule(configFile, alertRule, oldGroup, oldAlert)
@@ -93,19 +94,23 @@ func (k *k8sApi) UpdateAlertRuleConfigFile(configFile string, content []byte) er
 }
 
 func ValidateAlertRule(rule request.AlertRule) error {
-	var err error
-
+	var err errmodel.ErrorWithMessage
+	var e error
 	var keepFiringFor model.Duration
 	if len(rule.KeepFiringFor) > 0 {
-		keepFiringFor, err = model.ParseDuration(rule.KeepFiringFor)
-		if err != nil {
-			return fmt.Errorf("'keepFiringFor' in alertRule is illegal: %s", rule.KeepFiringFor)
+		keepFiringFor, e = model.ParseDuration(rule.KeepFiringFor)
+		if e != nil {
+			err.Err = e
+			err.Code = code.AlertKeepFiringForIllegalError
+			return err
 		}
 	}
 
-	forDuration, err := model.ParseDuration(rule.For)
-	if err != nil {
-		return fmt.Errorf("'for' in alertRule is illegal: %s", rule.KeepFiringFor)
+	forDuration, e := model.ParseDuration(rule.For)
+	if e != nil {
+		err.Err = e
+		err.Code = code.AlertForIllegalError
+		return err
 	}
 	ruleNode := promfmt.RuleNode{
 		For:           forDuration,
@@ -151,4 +156,12 @@ func (k *k8sApi) AddAlertRule(configFile string, alertRules request.AlertRule) e
 	}
 
 	return k.UpdateAlertRuleConfigFile(configFile, content)
+}
+
+func (k *k8sApi) CheckAlertRule(configFile, group, alert string) (bool, error) {
+	if len(configFile) == 0 {
+		configFile = k.MetadataSettings.AlertRuleFileName
+	}
+
+	return k.Metadata.CheckAlertRule(configFile, group, alert)
 }

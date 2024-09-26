@@ -2,13 +2,18 @@ package alerts
 
 import (
 	"fmt"
+	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 func (s *service) UpdateAlertRule(req *request.UpdateAlertRuleRequest) error {
 	if !checkOrFillGroupsLabel(req.AlertRule.Group, req.AlertRule.Labels) {
-		return fmt.Errorf("group name and group label mismatch")
+		return model.ErrorWithMessage{
+			Err:  fmt.Errorf("gourp and group label mismatch"),
+			Code: code.AlertGroupAndLabelMismatchError,
+		}
 	}
 
 	return s.k8sApi.UpdateAlertRule(req.AlertRuleFile, req.AlertRule, req.OldGroup, req.OldAlert)

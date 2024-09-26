@@ -2,12 +2,12 @@ package alerts
 
 import (
 	"errors"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 )
 
 // UpdateAlertRule 更新告警规则
@@ -17,7 +17,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param Request body request.UpdateAlertRuleRequest true "请求信息"
-// @Success 200 string ok response.UpdateAlertRuleResponse
+// @Success 200 string ok
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/rule [post]
 func (h *handler) UpdateAlertRule() core.HandlerFunc {
@@ -33,14 +33,13 @@ func (h *handler) UpdateAlertRule() core.HandlerFunc {
 		}
 
 		err := h.alertService.UpdateAlertRule(req)
-		// TODO 修改err msg
 		if err != nil {
-			var vErr kubernetes.ErrAlertRuleValidate
+			var vErr model.ErrorWithMessage
 			if errors.As(err, &vErr) {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
-					code.UpdateAlertRuleValidateError,
-					code.Text(code.UpdateAlertRuleValidateError)).WithError(err),
+					vErr.Code,
+					code.Text(vErr.Code)).WithError(err),
 				)
 			} else {
 				c.AbortWithError(core.Error(

@@ -943,6 +943,14 @@ definitions:
         type: string
       oldGroup:
         type: string
+    required:
+    - oldAlert
+    - oldGroup
+    type: object
+  response.CheckAlertRuleResponse:
+    properties:
+      available:
+        type: boolean
     type: object
   response.CreateResponse:
     properties:
@@ -1835,6 +1843,40 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 新增告警规则
+      tags:
+      - API.alerts
+  /api/alerts/rule/available:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 检查告警规则名是否可用
+      parameters:
+      - description: 查询告警规则文件名
+        in: query
+        name: alertRuleFile
+        type: string
+      - description: 组名
+        in: query
+        name: group
+        required: true
+        type: string
+      - description: 告警规则名
+        in: query
+        name: alert
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CheckAlertRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 检查告警规则名是否可用
       tags:
       - API.alerts
   /api/alerts/rule/groups:
