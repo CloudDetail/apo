@@ -53,7 +53,7 @@ var metricData = response.GetMetricPQLResponse{
 			Name:   "CPU IO Wait",
 			PQL:    "(avg by (instance_name) (rate(node_cpu_seconds_total{mode=\"iowait\"}[5m])) * 100) * on(instance_name) group_left (nodename) node_uname_info{nodename=~\".+\"}",
 			Labels: []string{"instance_name", "nodename"},
-			Unit:   "core",
+			Unit:   "%",
 		},
 		{
 			Name:   "磁盘IO利用率",
