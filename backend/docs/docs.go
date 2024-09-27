@@ -61,7 +61,7 @@ const docTemplate = `{
             "delete": {
                 "description": "删除告警通知对象",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -72,16 +72,13 @@ const docTemplate = `{
                 "summary": "删除告警通知对象",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "告警通知配置文件名",
-                        "name": "amConfigFile",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "告警通知配置名称",
-                        "name": "name",
-                        "in": "query"
+                        "description": "删除对象",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteAlertManagerConfigReceiverRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -3879,6 +3876,20 @@ const docTemplate = `{
                 "StringColumn",
                 "BoolColumn"
             ]
+        },
+        "request.DeleteAlertManagerConfigReceiverRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "amConfigFile": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
         },
         "request.DeleteAlertRuleRequest": {
             "type": "object",

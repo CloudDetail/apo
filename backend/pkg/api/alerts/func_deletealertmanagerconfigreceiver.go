@@ -12,17 +12,16 @@ import (
 // @Summary 删除告警通知对象
 // @Description 删除告警通知对象
 // @Tags API.alerts
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
-// @Param amConfigFile query string false "告警通知配置文件名"
-// @Param name query string false "告警通知配置名称"
+// @Param Request body request.DeleteAlertManagerConfigReceiverRequest true "删除对象"
 // @Success 200 string ok
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/alertmanager/receiver [delete]
 func (h *handler) DeleteAlertManagerConfigReceiver() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.DeleteAlertManagerConfigReceiverRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,

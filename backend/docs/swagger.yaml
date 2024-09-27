@@ -658,6 +658,15 @@ definitions:
     - U64Column
     - StringColumn
     - BoolColumn
+  request.DeleteAlertManagerConfigReceiverRequest:
+    properties:
+      amConfigFile:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
   request.DeleteAlertRuleRequest:
     properties:
       alert:
@@ -1675,17 +1684,15 @@ paths:
   /api/alerts/alertmanager/receiver:
     delete:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: 删除告警通知对象
       parameters:
-      - description: 告警通知配置文件名
-        in: query
-        name: amConfigFile
-        type: string
-      - description: 告警通知配置名称
-        in: query
-        name: name
-        type: string
+      - description: 删除对象
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteAlertManagerConfigReceiverRequest'
       produces:
       - application/json
       responses:
