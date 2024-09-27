@@ -28,7 +28,7 @@ export default function InstanceInfo(props) {
     {
       title: '平均响应时间',
       accessor: 'latency',
-      minWidth: 200,
+      minWidth: 150,
       Cell: (props) => {
         const { value } = props
         return <TempCell type="latency" data={value} timeRange={{ startTime, endTime }} />
@@ -37,7 +37,7 @@ export default function InstanceInfo(props) {
     {
       title: '错误率',
       accessor: 'errorRate',
-      minWidth: 200,
+      minWidth: 150,
 
       Cell: (props) => {
         const { value } = props
@@ -48,7 +48,7 @@ export default function InstanceInfo(props) {
       title: '吞吐量',
       accessor: 'tps',
 
-      minWidth: 200,
+      minWidth: 150,
       Cell: (props) => {
         const { value } = props
         return <TempCell type="tps" timeRange={{ startTime, endTime }} data={value} />
@@ -58,7 +58,7 @@ export default function InstanceInfo(props) {
       title: '日志错误数量',
       accessor: 'logs',
 
-      minWidth: 200,
+      minWidth: 150,
       Cell: (props) => {
         const { value } = props
         return <TempCell type="logs" timeRange={{ startTime, endTime }} data={value} />
@@ -105,9 +105,23 @@ export default function InstanceInfo(props) {
     },
 
     {
-      title: '主机节点',
+      title: '主机节点信息',
       accessor: 'nodeName',
-      customWidth: 150,
+      minWidth: 150,
+      Cell: (props) => {
+        return (
+          <div>
+            <div className="flex ">
+              <span className="text-gray-400 flex-shrink-0 flex-grow-0">主机名：</span>
+              {props.value}
+            </div>
+            <div className="flex">
+              <span className="text-gray-400 flex-shrink-0 flex-grow-0">主机IP：</span>
+              {props.row.original.nodeIP}
+            </div>
+          </div>
+        )
+      },
     },
     {
       title: '末次部署或重启时间',
