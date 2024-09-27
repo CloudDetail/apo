@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/CloudDetail/apo/backend/config"
 	"log"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -15,19 +16,36 @@ func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTa
 
 	for _, table := range mapResult {
 		go func(table model.ModifyTableTTLMap) {
+			cluster := getClusterName()
 			escapedTableName := fmt.Sprintf("`%s`", table.Name)
-			finalQuery := fmt.Sprintf(`
+			var finalQuery string
+
+			log.Println("cluster: ", cluster)
+			if len(cluster) > 0 {
+				finalQuery = fmt.Sprintf(`
+				ALTER TABLE %s
+				ON CLUSTER %s
+				MODIFY TTL %s;`,
+					escapedTableName, cluster, table.TTLExpression)
+			} else {
+				finalQuery = fmt.Sprintf(`
 				ALTER TABLE %s
 				MODIFY TTL %s;`,
-				escapedTableName, table.TTLExpression)
+					escapedTableName, table.TTLExpression)
+			}
 
 			if err := ch.conn.Exec(ctx, finalQuery); err != nil {
-				fmt.Printf("failed to modify TTL for table %s: %v\n", table.Name, err)
+				log.Printf("failed to modify TTL for table %s: %v\n", table.Name, err)
 			}
 		}(table)
 	}
 
 	return nil
+}
+
+func getClusterName() string {
+	cfg := config.Get()
+	return cfg.ClickHouse.Cluster
 }
 
 func (ch *chRepo) GetTables(blackTableNames []string, whiteTableNames []string) ([]model.TablesQuery, error) {
