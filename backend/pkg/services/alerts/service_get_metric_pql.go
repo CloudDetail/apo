@@ -11,7 +11,7 @@ var metricData = response.GetMetricPQLResponse{
 			Name:   "平均请求延时",
 			PQL:    "sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_sum[1m]))/ sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_count[1m]))/1000000",
 			Labels: []string{"content_key", "svc_name", "group", "severity"},
-			Unit:   "秒",
+			Unit:   "s",
 		},
 		{
 			Name:   "请求错误率",
@@ -53,7 +53,7 @@ var metricData = response.GetMetricPQLResponse{
 			Name:   "CPU IO Wait",
 			PQL:    "(avg by (instance_name) (rate(node_cpu_seconds_total{mode=\"iowait\"}[5m])) * 100) * on(instance_name) group_left (nodename) node_uname_info{nodename=~\".+\"}",
 			Labels: []string{"instance_name", "nodename"},
-			Unit:   "s",
+			Unit:   "core",
 		},
 		{
 			Name:   "磁盘IO利用率",

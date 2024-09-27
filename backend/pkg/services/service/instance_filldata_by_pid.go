@@ -46,52 +46,15 @@ func (s *service) QueryInstancesNodeName(Instances *[]serviceoverview.Instance, 
 }
 
 func (s *service) InstanceAVGByPid(Instances *[]serviceoverview.Instance, serviceName string, contentKey string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
-	var AvgErrorRateRes []prometheus.MetricResult
-	queryAvgError := prometheus.QueryPidPromql(duration, prometheus.AvgError, serviceName, contentKey)
-	AvgErrorRateRes, err := s.promRepo.QueryErrorRateData(endTime, queryAvgError)
-	for _, result := range AvgErrorRateRes {
-		contentKey := result.Metric.ContentKey
-		serviceName := result.Metric.SvcName
-		nodeName := result.Metric.NodeName
-		pid := result.Metric.PID
-		instanceName := serviceName + "@" + nodeName + "@" + pid
-		//log.Printf("%v", pod)
-		found := false
-		value := result.Values[0].Value
-		for i, Instance := range *Instances {
-			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == instanceName {
-				found = true
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Instances)[i].AvgErrorRate = &value
-				}
-				break
-			}
-		}
-		if !found {
-			newInstance := serviceoverview.Instance{
-				ContentKey:   contentKey,
-				SvcName:      serviceName,
-				InstanceName: instanceName,
-				Pid:          pid,
-				InstanceType: serviceoverview.VM,
-				ConvertName:  pid,
-				NodeName:     nodeName,
-			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newInstance.AvgErrorRate = &value
-			}
-			*Instances = append(*Instances, newInstance)
-		}
-	}
 	var AvgLatencyRes []prometheus.MetricResult
-	//AvgLatencyRes, err = s.promRepo.QueryPrometheusLatency(searchTime)
 	queryAvgLatency := prometheus.QueryPidPromql(duration, prometheus.AvgLatency, serviceName, contentKey)
-	AvgLatencyRes, err = s.promRepo.QueryLatencyData(endTime, queryAvgLatency)
+	AvgLatencyRes, err := s.promRepo.QueryLatencyData(endTime, queryAvgLatency)
 	for _, result := range AvgLatencyRes {
 		contentKey := result.Metric.ContentKey
 		serviceName := result.Metric.SvcName
 		nodeName := result.Metric.NodeName
 		pid := result.Metric.PID
+		nodeIp := result.Metric.NodeIP
 		instanceName := serviceName + "@" + nodeName + "@" + pid
 		found := false
 		value := result.Values[0].Value
@@ -113,6 +76,7 @@ func (s *service) InstanceAVGByPid(Instances *[]serviceoverview.Instance, servic
 				InstanceType: serviceoverview.VM,
 				ConvertName:  pid,
 				NodeName:     nodeName,
+				NodeIP:       nodeIp,
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
 				newInstance.AvgLatency = &value
@@ -120,8 +84,28 @@ func (s *service) InstanceAVGByPid(Instances *[]serviceoverview.Instance, servic
 			*Instances = append(*Instances, newInstance)
 		}
 	}
+
+	var AvgErrorRateRes []prometheus.MetricResult
+	queryAvgError := prometheus.QueryPidPromql(duration, prometheus.AvgError, serviceName, contentKey)
+	AvgErrorRateRes, err = s.promRepo.QueryErrorRateData(endTime, queryAvgError)
+	for _, result := range AvgErrorRateRes {
+		contentKey := result.Metric.ContentKey
+		serviceName := result.Metric.SvcName
+		nodeName := result.Metric.NodeName
+		pid := result.Metric.PID
+		instanceName := serviceName + "@" + nodeName + "@" + pid
+		value := result.Values[0].Value
+		for i, Instance := range *Instances {
+			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == instanceName {
+				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+					(*Instances)[i].AvgErrorRate = &value
+				}
+				break
+			}
+		}
+	}
+
 	var AvgTPSRes []prometheus.MetricResult
-	//AvgTPSRes, err = s.promRepo.QueryPrometheusTPS(searchTime)
 	queryAvgTPS := prometheus.QueryPidPromql(duration, prometheus.AvgTPS, serviceName, contentKey)
 	AvgTPSRes, err = s.promRepo.QueryData(endTime, queryAvgTPS)
 	for _, result := range AvgTPSRes {
@@ -130,31 +114,14 @@ func (s *service) InstanceAVGByPid(Instances *[]serviceoverview.Instance, servic
 		nodeName := result.Metric.NodeName
 		pid := result.Metric.PID
 		instanceName := serviceName + "@" + nodeName + "@" + pid
-		found := false
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == instanceName {
-				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
 					(*Instances)[i].AvgTPS = &value
 				}
 				break
 			}
-		}
-		if !found {
-			newInstance := serviceoverview.Instance{
-				ContentKey:   contentKey,
-				SvcName:      serviceName,
-				InstanceName: instanceName,
-				Pid:          pid,
-				InstanceType: serviceoverview.VM,
-				ConvertName:  pid,
-				NodeName:     nodeName,
-			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newInstance.AvgTPS = &value
-			}
-			*Instances = append(*Instances, newInstance)
 		}
 	}
 	return Instances, err
@@ -169,6 +136,7 @@ func (s *service) InstanceDODByPid(Instances *[]serviceoverview.Instance, servic
 		serviceName := result.Metric.SvcName
 		nodeName := result.Metric.NodeName
 		pid := result.Metric.PID
+		nodeIP := result.Metric.NodeIP
 		instanceName := serviceName + "@" + nodeName + "@" + pid
 		found := false
 		value := result.Values[0].Value
@@ -190,6 +158,7 @@ func (s *service) InstanceDODByPid(Instances *[]serviceoverview.Instance, servic
 				InstanceType: serviceoverview.VM,
 				ConvertName:  pid,
 				NodeName:     nodeName,
+				NodeIP:       nodeIP,
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
 				newInstance.LatencyDayOverDay = &value
@@ -197,10 +166,9 @@ func (s *service) InstanceDODByPid(Instances *[]serviceoverview.Instance, servic
 			*Instances = append(*Instances, newInstance)
 		}
 	}
-	//errorDoDres, err := s.promRepo.QueryPrometheusErrorDayOver(searchTime)
+
 	errorDODquery := prometheus.QueryPidPromql(duration, prometheus.ErrorDOD, serviceName, contentKey)
 	errorDoDres, err := s.promRepo.QueryData(endTime, errorDODquery)
-
 	// 更新wrongUrls中的内容
 	for _, result := range errorDoDres {
 		contentKey := result.Metric.ContentKey
@@ -208,11 +176,9 @@ func (s *service) InstanceDODByPid(Instances *[]serviceoverview.Instance, servic
 		nodeName := result.Metric.NodeName
 		pid := result.Metric.PID
 		instanceName := serviceName + "@" + nodeName + "@" + pid
-		found := false
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == instanceName {
-				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则赋值MaxInt64
 					(*Instances)[i].ErrorRateDayOverDay = &value
 				} else {
@@ -224,73 +190,38 @@ func (s *service) InstanceDODByPid(Instances *[]serviceoverview.Instance, servic
 				break
 			}
 		}
-		if !found {
-			newInstance := serviceoverview.Instance{
-				ContentKey:   contentKey,
-				SvcName:      serviceName,
-				InstanceName: instanceName,
-				Pid:          pid,
-				InstanceType: serviceoverview.VM,
-				ConvertName:  pid,
-				NodeName:     nodeName,
-			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newInstance.ErrorRateDayOverDay = &value
-			}
-			*Instances = append(*Instances, newInstance)
-		}
 	}
-	//tpsResults, err := s.promRepo.QueryPrometheusTPSDayOver(searchTime)
+
 	tpsDODquery := prometheus.QueryPidPromql(duration, prometheus.TPSDOD, serviceName, contentKey)
 	tpsResults, err := s.promRepo.QueryData(endTime, tpsDODquery)
-
 	for _, result := range tpsResults {
 		contentKey := result.Metric.ContentKey
 		serviceName := result.Metric.SvcName
 		nodeName := result.Metric.NodeName
 		pid := result.Metric.PID
 		instanceName := serviceName + "@" + nodeName + "@" + pid
-		found := false
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == instanceName {
-				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
 					(*Instances)[i].TPSDayOverDay = &value
 				}
 				break
 			}
 		}
-		if !found {
-			newInstance := serviceoverview.Instance{
-				ContentKey:   contentKey,
-				SvcName:      serviceName,
-				InstanceName: instanceName,
-				Pid:          pid,
-				InstanceType: serviceoverview.VM,
-				ConvertName:  pid,
-				NodeName:     nodeName,
-			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newInstance.TPSDayOverDay = &value
-			}
-			*Instances = append(*Instances, newInstance)
-		}
 	}
 	return Instances, err
 }
 func (s *service) InstanceWOWByPid(Instances *[]serviceoverview.Instance, serviceName string, contentKey string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
-
 	var LatencyWoWRes []prometheus.MetricResult
-	//LatencyWoWRes, err = s.promRepo.QueryPrometheusLatencyWeekOver(searchTime)
 	latencyWOWquery := prometheus.QueryPidPromql(duration, prometheus.LatencyWOW, serviceName, contentKey)
 	LatencyWoWRes, err := s.promRepo.QueryData(endTime, latencyWOWquery)
-
 	for _, result := range LatencyWoWRes {
 		contentKey := result.Metric.ContentKey
 		serviceName := result.Metric.SvcName
 		nodeName := result.Metric.NodeName
 		pid := result.Metric.PID
+		nodeIP := result.Metric.NodeIP
 		instanceName := serviceName + "@" + nodeName + "@" + pid
 		found := false
 		value := result.Values[0].Value
@@ -311,6 +242,7 @@ func (s *service) InstanceWOWByPid(Instances *[]serviceoverview.Instance, servic
 				Pid:          pid,
 				InstanceType: serviceoverview.VM,
 				ConvertName:  pid,
+				NodeIP:       nodeIP,
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
 				newInstance.LatencyWeekOverWeek = &value
@@ -318,59 +250,39 @@ func (s *service) InstanceWOWByPid(Instances *[]serviceoverview.Instance, servic
 			*Instances = append(*Instances, newInstance)
 		}
 	}
+
 	var TPSWoWRes []prometheus.MetricResult
-	//TPSWoWRes, err = s.promRepo.QueryPrometheusTPSWeekOver(searchTime)
 	TPSWOWquery := prometheus.QueryPidPromql(duration, prometheus.TPSWOW, serviceName, contentKey)
 	TPSWoWRes, err = s.promRepo.QueryData(endTime, TPSWOWquery)
-
 	for _, result := range TPSWoWRes {
 		contentKey := result.Metric.ContentKey
 		serviceName := result.Metric.SvcName
 		nodeName := result.Metric.NodeName
 		pid := result.Metric.PID
 		instanceName := serviceName + "@" + nodeName + "@" + pid
-		found := false
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == instanceName {
-				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
 					(*Instances)[i].TPSWeekOverWeek = &value
 				}
 				break
 			}
 		}
-		if !found {
-			newInstance := serviceoverview.Instance{
-				ContentKey:   contentKey,
-				SvcName:      serviceName,
-				InstanceName: instanceName,
-				Pid:          pid,
-				InstanceType: serviceoverview.VM,
-				ConvertName:  pid,
-			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newInstance.TPSWeekOverWeek = &value
-			}
-			*Instances = append(*Instances, newInstance)
-		}
 	}
+
 	var ErrorWoWRes []prometheus.MetricResult
-	//ErrorWoWRes, err = s.promRepo.QueryPrometheusErrorWeekOver(searchTime)
 	errorWoWquery := prometheus.QueryPidPromql(duration, prometheus.ErrorWOW, serviceName, contentKey)
 	ErrorWoWRes, err = s.promRepo.QueryData(endTime, errorWoWquery)
-
 	for _, result := range ErrorWoWRes {
 		contentKey := result.Metric.ContentKey
 		serviceName := result.Metric.SvcName
 		nodeName := result.Metric.NodeName
 		pid := result.Metric.PID
 		instanceName := serviceName + "@" + nodeName + "@" + pid
-		found := false
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == instanceName {
-				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则赋值MaxInt64
 					(*Instances)[i].ErrorRateWeekOverWeek = &value
 				} else {
@@ -381,20 +293,6 @@ func (s *service) InstanceWOWByPid(Instances *[]serviceoverview.Instance, servic
 				}
 				break
 			}
-		}
-		if !found {
-			newInstance := serviceoverview.Instance{
-				ContentKey:   contentKey,
-				SvcName:      serviceName,
-				InstanceName: instanceName,
-				Pid:          pid,
-				InstanceType: serviceoverview.VM,
-				ConvertName:  pid,
-			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newInstance.ErrorRateWeekOverWeek = &value
-			}
-			*Instances = append(*Instances, newInstance)
 		}
 	}
 	return Instances, err
