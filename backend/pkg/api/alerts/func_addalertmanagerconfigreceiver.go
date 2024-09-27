@@ -44,8 +44,8 @@ func (h *handler) AddAlertManagerConfigReceiver() core.HandlerFunc {
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
-					code.AddAlertRuleError,
-					code.Text(code.UpdateAlertRuleError),
+					code.AddAMConfigReceiverError,
+					code.Text(code.AddAMConfigReceiverError),
 				).WithError(err))
 			}
 			return
