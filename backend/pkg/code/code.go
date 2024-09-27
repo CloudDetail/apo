@@ -48,16 +48,23 @@ const (
 	GetTTLError            = "B0602"
 	SetSingleTableTTLError = "B0603"
 
-	GetAlertEventsError             = "B0701"
-	GetAlertEventsSampleError       = "B0702"
-	GetAlertRuleError               = "B0703"
-	UpdateAlertRuleError            = "B0704"
-	DeleteAlertRuleError            = "B0705"
-	GetAMConfigReceiverError        = "B0706"
-	UpdateAMConfigReceiverError     = "B0707"
-	DeleteConfigReceiverError       = "B0708"
-	UpdateAlertRuleValidateError    = "B0709"
-	AlertAddAlertRuleError          = "B0710"
+	GetAlertEventsError = "B0701"
+
+	// Alert Rule configure
+	GetAlertEventsSampleError = "B0702"
+	GetAlertRuleError         = "B0703"
+	AddAlertRuleError         = "B0710"
+	UpdateAlertRuleError      = "B0704"
+	DeleteAlertRuleError      = "B0705"
+
+	// AlertManager Receiver configure
+	GetAMConfigReceiverError     = "B0706"
+	AddAMConfigReceiverError     = "B0720"
+	UpdateAMConfigReceiverError  = "B0707"
+	DeleteConfigReceiverError    = "B0708"
+	UpdateAlertRuleValidateError = "B0709"
+
+	// Alert Rule Check
 	AlertGroupAndLabelMismatchError = "B0711"
 	AlertKeepFiringForIllegalError  = "B0712"
 	AlertForIllegalError            = "B0713"
@@ -67,6 +74,10 @@ const (
 	AlertConfigFileNotExistError    = "B0717"
 	AlertTargetGroupNotExistError   = "B0718"
 	AlertCheckRuleError             = "B0719"
+
+	// AlertManagerReceiver Check
+	AlertManagerReceiverAlreadyExistsError = "B0721"
+	AlertManagerReceiverNotExistsError     = "B0722"
 )
 
 func Text(code string) string {

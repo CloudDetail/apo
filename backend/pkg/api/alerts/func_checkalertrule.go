@@ -2,9 +2,10 @@ package alerts
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -47,7 +48,7 @@ func (h *handler) CheckAlertRule() core.HandlerFunc {
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
-					code.AlertAddAlertRuleError,
+					code.AddAlertRuleError,
 					code.Text(code.UpdateAlertRuleError),
 				).WithError(err),
 				)

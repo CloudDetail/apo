@@ -43,12 +43,14 @@ var enText = map[string]string{
 	GetTTLError:                         "Failed to get ttl",
 	SetSingleTableTTLError:              "Failed to set single table ttl",
 
-	GetAlertEventsError:             "Failed to get alert events",
-	GetAlertEventsSampleError:       "Failed to get sample alert events",
-	GetAlertRuleError:               "Failed to get alert rule",
-	AlertAddAlertRuleError:          "Failed to add alert rule",
-	UpdateAlertRuleError:            "Failed to update alert rule",
-	DeleteAlertRuleError:            "Failed to delete alert rule",
+	GetAlertEventsError:       "Failed to get alert events",
+	GetAlertEventsSampleError: "Failed to get sample alert events",
+
+	GetAlertRuleError:    "Failed to get alert rule",
+	AddAlertRuleError:    "Failed to add alert rule",
+	UpdateAlertRuleError: "Failed to update alert rule",
+	DeleteAlertRuleError: "Failed to delete alert rule",
+
 	UpdateAlertRuleValidateError:    "Failed to validate alertRule, usually expr is illegle",
 	AlertGroupAndLabelMismatchError: "Group and group field in label mismatch",
 	AlertKeepFiringForIllegalError:  "'keepFiringFor' illegal",
@@ -60,6 +62,10 @@ var enText = map[string]string{
 	AlertTargetGroupNotExistError:   "target group does not exist",
 
 	GetAMConfigReceiverError:    "Failed to get alertManager config receiver",
+	AddAMConfigReceiverError:    "Failed to add alertManager config receiver",
 	UpdateAMConfigReceiverError: "Failed to update alertManager config receiver",
 	DeleteConfigReceiverError:   "Failed to delete alertManager config receiver",
+
+	AlertManagerReceiverAlreadyExistsError: "alertManager receiver name already exists",
+	AlertManagerReceiverNotExistsError:     "alertManager receiver name not exists",
 }

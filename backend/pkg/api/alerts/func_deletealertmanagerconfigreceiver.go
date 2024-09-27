@@ -30,7 +30,16 @@ func (h *handler) DeleteAlertManagerConfigReceiver() core.HandlerFunc {
 			return
 		}
 
-		resp := h.alertService.DeleteAMConfigReceiver(req)
-		c.Payload(resp)
+		err := h.alertService.DeleteAMConfigReceiver(req)
+		if err != nil {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.DeleteAlertRuleError,
+				code.Text(code.DeleteAlertRuleError)).WithError(err),
+			)
+			return
+		}
+
+		c.Payload("ok")
 	}
 }

@@ -47,7 +47,7 @@ func (h *handler) AddAlertRule() core.HandlerFunc {
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
-					code.AlertAddAlertRuleError,
+					code.AddAlertRuleError,
 					code.Text(code.UpdateAlertRuleError),
 				).WithError(err),
 				)

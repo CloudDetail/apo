@@ -96,13 +96,12 @@ func (m *Metadata) AddAMConfigReceiver(configFile string, receiver amconfig.Rece
 
 	amConfig, find := m.AMConfigMap[configFile]
 	if !find {
-		return fmt.Errorf("configfile %s is not found", configFile)
+		return model.NewErrWithMessage(fmt.Errorf("configfile %s is not found", configFile), code.AlertConfigFileNotExistError)
 	}
 
-	// Update Exist receiver
 	for i := range amConfig.Receivers {
 		if amConfig.Receivers[i].Name == receiver.Name {
-			return fmt.Errorf("receiver %s already exists", receiver.Name)
+			return model.NewErrWithMessage(fmt.Errorf("add receiver failed,receiver '%s' already exists", receiver.Name), code.AlertManagerReceiverAlreadyExistsError)
 		}
 	}
 
@@ -116,7 +115,7 @@ func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.R
 
 	amConfig, find := m.AMConfigMap[configFile]
 	if !find {
-		return fmt.Errorf("configfile %s is not found", configFile)
+		return model.NewErrWithMessage(fmt.Errorf("configfile %s is not found", configFile), code.AlertConfigFileNotExistError)
 	}
 
 	// Update Exist receiver
@@ -128,7 +127,7 @@ func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.R
 		}
 	}
 
-	return fmt.Errorf("receiver %s not found", receiver.Name)
+	return model.NewErrWithMessage(fmt.Errorf("update receiver failed, '%s' not found", receiver.Name), code.AlertManagerReceiverNotExistsError)
 }
 
 func (m *Metadata) UpdateAlertRule(configFile string, alertRule request.AlertRule, oldGroup, oldAlert string) error {
