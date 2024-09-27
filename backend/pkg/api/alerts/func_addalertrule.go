@@ -2,16 +2,14 @@ package alerts
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
-
-type addAlertRuleResponse struct {
-}
 
 // AddAlertRule 新增告警规则
 // @Summary 新增告警规则

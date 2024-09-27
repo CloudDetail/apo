@@ -9,7 +9,7 @@ func (e ErrWithMessage) Error() string {
 	return e.Err.Error()
 }
 
-func New(err error, code string) ErrWithMessage {
+func NewErrWithMessage(err error, code string) ErrWithMessage {
 	return ErrWithMessage{
 		Err:  err,
 		Code: code,

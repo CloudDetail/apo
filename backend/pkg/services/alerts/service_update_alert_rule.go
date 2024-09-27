@@ -2,6 +2,7 @@ package alerts
 
 import (
 	"fmt"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -10,7 +11,7 @@ import (
 
 func (s *service) UpdateAlertRule(req *request.UpdateAlertRuleRequest) error {
 	if !checkOrFillGroupsLabel(req.AlertRule.Group, req.AlertRule.Labels) {
-		return model.New(
+		return model.NewErrWithMessage(
 			fmt.Errorf("gourp and group label mismatch"),
 			code.AlertGroupAndLabelMismatchError)
 	}
