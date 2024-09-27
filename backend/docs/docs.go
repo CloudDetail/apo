@@ -5023,6 +5023,9 @@ const docTemplate = `{
                     "description": "网络告警",
                     "type": "string"
                 },
+                "nodeIP": {
+                    "type": "string"
+                },
                 "nodeName": {
                     "type": "string"
                 },

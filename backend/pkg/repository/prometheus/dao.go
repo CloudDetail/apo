@@ -115,6 +115,7 @@ type Labels struct {
 	PID         string `json:"pid"`
 	PodName     string `json:"pod_name"`
 	Namespace   string `json:"namespace"`
+	NodeIP      string `json:"node_ip"`
 
 	DBSystem string `json:"db_system"`
 	DBName   string `json:"db_name"`

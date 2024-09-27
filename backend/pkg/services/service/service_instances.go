@@ -262,6 +262,7 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 			Name:        instance.InstanceName,
 			Namespace:   instance.Namespace,
 			NodeName:    instance.NodeName,
+			NodeIP:      instance.NodeIP,
 			Timestamp:   nil,
 			Latency:     newlatencyRate,
 			Tps:         newtpsRate,
