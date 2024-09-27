@@ -31,6 +31,6 @@ var reversedGroupsLabel = map[string]string{
 }
 
 func GetLabel(group string) (string, bool) {
-	label, ok := GroupsLabel[group]
+	label, ok := reversedGroupsLabel[group]
 	return label, ok
 }
