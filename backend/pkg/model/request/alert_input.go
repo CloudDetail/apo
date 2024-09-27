@@ -61,10 +61,12 @@ type UpdateAlertRuleConfigRequest struct {
 type UpdateAlertRuleRequest struct {
 	AlertRuleFile string `json:"alertRuleFile"`
 
-	OldGroup  string    `json:"oldGroup"`
-	OldAlert  string    `json:"oldAlert"`
+	OldGroup  string    `json:"oldGroup" binding:"required"`
+	OldAlert  string    `json:"oldAlert" binding:"required"`
 	AlertRule AlertRule `json:"alertRule"`
 }
+
+type AddAlertManagerConfigReceiver UpdateAlertManagerConfigReceiver
 
 type UpdateAlertManagerConfigReceiver struct {
 	AMConfigFile string `form:"amConfigFile" json:"amConfigFile"`
@@ -89,7 +91,7 @@ type AlertRule struct {
 	Group string `json:"group" binding:"required"`
 
 	Record        string            `json:"record"`
-	Alert         string            `json:"alert"`
+	Alert         string            `json:"alert" binding:"require"`
 	Expr          string            `json:"expr"`
 	For           string            `json:"for,omitempty"`
 	KeepFiringFor string            `json:"keepFiringFor,omitempty"`
@@ -101,4 +103,10 @@ type AddAlertRuleRequest struct {
 	AlertRuleFile string `json:"alertRuleFile"`
 
 	AlertRule AlertRule `json:"alertRule"`
+}
+
+type CheckAlertRuleRequest struct {
+	AlertRuleFile string `form:"alertRuleFile,omitempty"`
+	Group         string `form:"group" binding:"required"`
+	Alert         string `form:"alert" binding:"required"`
 }

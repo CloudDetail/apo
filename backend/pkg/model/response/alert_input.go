@@ -29,3 +29,7 @@ type GetGroupListResponse struct {
 type GetMetricPQLResponse struct {
 	AlertMetricsData []model.AlertMetricsData `json:"alertMetricsData"`
 }
+
+type CheckAlertRuleResponse struct {
+	Available bool `json:"available"`
+}

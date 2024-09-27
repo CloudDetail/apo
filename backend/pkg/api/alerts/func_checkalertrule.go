@@ -2,30 +2,30 @@ package alerts
 
 import (
 	"errors"
-	"net/http"
-
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
-
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// AddAlertRule 新增告警规则
-// @Summary 新增告警规则
-// @Description 新增告警规则
+// CheckAlertRule 检查告警规则名是否可用
+// @Summary 检查告警规则名是否可用
+// @Description 检查告警规则名是否可用
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.AddAlertRuleRequest true "请求信息"
-// @Success 200
+// @Param alertRuleFile query string false "查询告警规则文件名"
+// @Param group query string true "组名"
+// @Param alert query string true "告警规则名"
+// @Success 200 {object} response.CheckAlertRuleResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/rule/add [post]
-func (h *handler) AddAlertRule() core.HandlerFunc {
+// @Router /api/alerts/rule/available  [get]
+func (h *handler) CheckAlertRule() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.AddAlertRuleRequest)
-		if err := c.ShouldBindJSON(req); err != nil {
+		req := new(request.CheckAlertRuleRequest)
+		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -34,7 +34,7 @@ func (h *handler) AddAlertRule() core.HandlerFunc {
 			return
 		}
 
-		err := h.alertService.AddAlertRule(req)
+		resp, err := h.alertService.CheckAlertRule(req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {
@@ -54,6 +54,7 @@ func (h *handler) AddAlertRule() core.HandlerFunc {
 			}
 			return
 		}
-		c.Payload("ok")
+
+		c.Payload(resp)
 	}
 }

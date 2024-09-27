@@ -28,12 +28,29 @@ func (k *k8sApi) GetAMConfigReceiver(configFile string, filter *request.AMConfig
 	return k.Metadata.GetAMConfigReceiver(configFile, filter, pageParam)
 }
 
-func (k *k8sApi) AddOrUpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
+func (k *k8sApi) AddAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
 	if len(configFile) == 0 {
 		configFile = k.MetadataSettings.AlertManagerFileName
 	}
 
-	err := k.Metadata.AddorUpdateAMConfigReceiver(configFile, receiver)
+	err := k.Metadata.AddAMConfigReceiver(configFile, receiver)
+	if err != nil {
+		return err
+	}
+
+	content, err := k.Metadata.AlertManagerConfigMarshalToYaml(configFile)
+	if err != nil {
+		return err
+	}
+	return k.UpdateAlertManagerConfigFile(configFile, content)
+}
+
+func (k *k8sApi) UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
+	if len(configFile) == 0 {
+		configFile = k.MetadataSettings.AlertManagerFileName
+	}
+
+	err := k.Metadata.UpdateAMConfigReceiver(configFile, receiver)
 	if err != nil {
 		return err
 	}

@@ -5,9 +5,12 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/CloudDetail/apo/backend/pkg/code"
+
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"github.com/prometheus/common/model"
+	prommodel "github.com/prometheus/common/model"
 	promfmt "github.com/prometheus/prometheus/model/rulefmt"
 	"gopkg.in/yaml.v3"
 )
@@ -87,7 +90,27 @@ func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConf
 	return pageByParam(res, pageParam)
 }
 
-func (m *Metadata) AddorUpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
+func (m *Metadata) AddAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
+	m.amConfigLock.Lock()
+	defer m.alertRulesLock.Unlock()
+
+	amConfig, find := m.AMConfigMap[configFile]
+	if !find {
+		return fmt.Errorf("configfile %s is not found", configFile)
+	}
+
+	// Update Exist receiver
+	for i := range amConfig.Receivers {
+		if amConfig.Receivers[i].Name == receiver.Name {
+			return fmt.Errorf("receiver %s already exists", receiver.Name)
+		}
+	}
+
+	amConfig.Receivers = append(amConfig.Receivers, receiver)
+	return nil
+}
+
+func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
 	m.amConfigLock.Lock()
 	defer m.alertRulesLock.Unlock()
 
@@ -105,43 +128,46 @@ func (m *Metadata) AddorUpdateAMConfigReceiver(configFile string, receiver amcon
 		}
 	}
 
-	amConfig.Receivers = append(amConfig.Receivers, receiver)
-	return nil
+	return fmt.Errorf("receiver %s not found", receiver.Name)
 }
 
 func (m *Metadata) UpdateAlertRule(configFile string, alertRule request.AlertRule, oldGroup, oldAlert string) error {
-	var remove = true
-	if oldGroup == alertRule.Group && oldAlert == alertRule.Alert {
-		remove = false
-	}
 
 	m.alertRulesLock.Lock()
 	defer m.alertRulesLock.Unlock()
 
 	alertRules, find := m.AlertRulesMap[configFile]
 	if !find {
-		return fmt.Errorf("can not find specific config: %s", configFile)
+		return model.NewErrWithMessage(
+			fmt.Errorf("can not find specific config: %s", configFile),
+			code.AlertConfigFileNotExistError)
 	}
 
 	// 先检查旧告警的存在性
 	if !checkGroupExists(oldGroup, *alertRules) {
-		return fmt.Errorf("old group not exists: %s", oldGroup)
+		return model.NewErrWithMessage(
+			fmt.Errorf("old group not exists: %s", oldGroup),
+			code.AlertOldGroupNotExistError)
 	}
 
 	if !checkAlertExists(oldGroup, oldAlert, *alertRules) {
-		return fmt.Errorf("old alert not exists: %s", oldAlert)
+		return model.NewErrWithMessage(
+			fmt.Errorf("old alert not exists: %s", oldAlert),
+			code.AlertAlertNotExistError)
 	}
 
 	// 如果是移动操作，需要检查新告警的存在性
-	if remove {
-		if !checkGroupExists(alertRule.Group, *alertRules) {
-			return fmt.Errorf("can not find specific group: %s", alertRule.Group)
-		}
-
+	if oldGroup != alertRule.Group || oldAlert != alertRule.Alert {
+		// 组中存在这个告警
 		if checkAlertExists(alertRule.Group, alertRule.Alert, *alertRules) {
-			return fmt.Errorf("target alert already exists: %s", alertRule.Alert)
+			return model.NewErrWithMessage(
+				fmt.Errorf("alert already exists: %s", alertRule.Alert),
+				code.AlertAlertAlreadyExistError)
+		} else if !checkGroupExists(alertRule.Group, *alertRules) {
+			// 新增一个组
+			name, _ := GetLabel(alertRule.Group)
+			alertRules.Groups = append(alertRules.Groups, AlertGroup{Name: name})
 		}
-
 	}
 
 	// 前面已经检查了旧告警的存在性
@@ -151,6 +177,7 @@ func (m *Metadata) UpdateAlertRule(configFile string, alertRule request.AlertRul
 	return nil
 }
 
+// checkGroupExists 检查在alertRules中group是否存在，调用时默认已经取锁
 func checkGroupExists(group string, alertRules AlertRules) bool {
 	for _, g := range alertRules.Groups {
 		if g.Name == group {
@@ -161,15 +188,35 @@ func checkGroupExists(group string, alertRules AlertRules) bool {
 	return false
 }
 
+// checkAlertExists 检查alertRules中group下alert是否存在，调用时默认已经取锁
+// group不存在或者group中的alert不存在返回false
 func checkAlertExists(group, alert string, alertRules AlertRules) bool {
 	for i := 0; i < len(alertRules.Rules); i++ {
-		if alertRules.Rules[i].Alert == alert &&
-			alertRules.Rules[i].Group == group {
+		if alertRules.Rules[i].Alert == alert && alertRules.Rules[i].Group == group {
 			return true
 		}
 	}
 
 	return false
+}
+
+func (m *Metadata) CheckAlertRuleExists(configFile, group, alert string) (bool, error) {
+	m.alertRulesLock.RLock()
+	defer m.alertRulesLock.RUnlock()
+
+	var err model.ErrWithMessage
+	alertRules, find := m.AlertRulesMap[configFile]
+	if !find {
+		err.Err = fmt.Errorf("configfile %s is not found", configFile)
+		err.Code = code.AlertConfigFileNotExistError
+		return false, err
+	}
+
+	if checkGroupExists(group, *alertRules) && checkAlertExists(group, alert, *alertRules) {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func (m *Metadata) AddAlertRule(configFile string, alertRule request.AlertRule) error {
@@ -178,32 +225,22 @@ func (m *Metadata) AddAlertRule(configFile string, alertRule request.AlertRule) 
 
 	alertRules, find := m.AlertRulesMap[configFile]
 	if !find {
-		return fmt.Errorf("can not find specific config: %s", configFile)
+		return model.NewErrWithMessage(
+			fmt.Errorf("can not find specific config: %s", configFile),
+			code.AlertConfigFileNotExistError)
 	}
 
 	// 检查group是否存在
-	var isGroupExists bool
-	for _, group := range alertRules.Groups {
-		if group.Name == alertRule.Group {
-			isGroupExists = true
-			break
+	if checkGroupExists(alertRule.Group, *alertRules) {
+		// 组存在, 检查alert是否可用
+		if checkAlertExists(alertRule.Group, alertRule.Alert, *alertRules) {
+			return model.NewErrWithMessage(
+				fmt.Errorf("alert already exists: %s", alertRule.Alert),
+				code.AlertAlertAlreadyExistError)
 		}
-	}
-	if !isGroupExists {
-		return fmt.Errorf("can not find specific group: %s", alertRule.Group)
-	}
-
-	// 检查alert是否可用
-	var isAlertExist bool
-	for i := 0; i < len(alertRules.Rules); i++ {
-		if alertRules.Rules[i].Alert == alertRule.Alert &&
-			alertRules.Rules[i].Group == alertRule.Group {
-			isAlertExist = true
-		}
-	}
-
-	if isAlertExist {
-		return fmt.Errorf("alert already exists: %s", alertRule.Alert)
+	} else {
+		name, _ := GetLabel(alertRule.Group)
+		alertRules.Groups = append(alertRules.Groups, AlertGroup{Name: name})
 	}
 
 	alertRules.Rules = append(alertRules.Rules, &alertRule)
@@ -277,14 +314,14 @@ func (m *Metadata) AlertRuleMarshalToYaml(configFile string) ([]byte, error) {
 		var rules []promfmt.RuleNode
 		for _, rule := range alertRules.Rules {
 			if rule.Group == group.Name {
-				forDuration, err := model.ParseDuration(rule.For)
+				forDuration, err := prommodel.ParseDuration(rule.For)
 				if err != nil {
 					return nil, err
 				}
 
-				var keepFiringFor model.Duration
+				var keepFiringFor prommodel.Duration
 				if len(rule.KeepFiringFor) > 0 {
-					keepFiringFor, err = model.ParseDuration(rule.KeepFiringFor)
+					keepFiringFor, err = prommodel.ParseDuration(rule.KeepFiringFor)
 					if err != nil {
 						return nil, err
 					}
