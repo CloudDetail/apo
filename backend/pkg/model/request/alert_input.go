@@ -91,7 +91,7 @@ type AlertRule struct {
 	Group string `json:"group" binding:"required"`
 
 	Record        string            `json:"record"`
-	Alert         string            `json:"alert" binding:"require"`
+	Alert         string            `json:"alert" binding:"required"`
 	Expr          string            `json:"expr"`
 	For           string            `json:"for,omitempty"`
 	KeepFiringFor string            `json:"keepFiringFor,omitempty"`
