@@ -16,16 +16,19 @@ export default function EmailConfigsFormList() {
       label: '发送通知邮箱地址',
       name: 'from',
       placeholder: '发送告警通知邮件的发件人地址',
+      required: true,
     },
     {
       label: 'SMTP服务器Host',
       name: 'smarthost',
       placeholder: 'SMTP服务器Host',
+      required: true,
     },
     {
       label: 'SMTP服务器Port',
       name: 'smarthostPort',
       placeholder: 'SMTP服务器Port',
+      required: true,
     },
     {
       label: 'SMTP用户名',

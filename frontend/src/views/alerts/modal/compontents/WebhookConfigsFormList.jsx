@@ -141,7 +141,17 @@ export default function WebhookConfigsFormList() {
                 <Row gutter={12}>
                   <>
                     <Col span={24}>
-                      <Form.Item {...field} name={[field.name, 'url']} label="URL" required>
+                      <Form.Item
+                        {...field}
+                        name={[field.name, 'url']}
+                        label="URL"
+                        rules={[
+                          {
+                            required: true,
+                            message: 'URL不可为空',
+                          },
+                        ]}
+                      >
                         <Input placeholder="Webhook URL" />
                       </Form.Item>
                     </Col>

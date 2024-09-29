@@ -144,6 +144,7 @@ export default function ModifyAlertNotifyModal({
           authType,
           basicAuthUsername: config?.httpConfig?.basicAuth?.username,
           basicAuthPassword: config?.httpConfig?.basicAuth?.password,
+          bearerToken: config?.httpConfig.bearerToken,
           // webhookConfigsHeader: webhookConfigsHeader,
         }
       })
