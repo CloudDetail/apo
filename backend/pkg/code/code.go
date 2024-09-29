@@ -76,11 +76,12 @@ const (
 	AlertCheckRuleError             = "B0719"
 
 	// AlertManagerReceiver Check
-	AlertManagerReceiverAlreadyExistsError = "B0721"
-	AlertManagerReceiverNotExistsError     = "B0722"
-	AlertManagerReceiverEmailHostMissing   = "B0723"
-	AlertManagerReceiverEmailFromMissing   = "B0724"
-	AlertManagerEmptyReceiver              = "B0725"
+	AlertManagerReceiverAlreadyExistsError  = "B0721"
+	AlertManagerReceiverNotExistsError      = "B0722"
+	AlertManagerReceiverEmailHostMissing    = "B0723"
+	AlertManagerReceiverEmailFromMissing    = "B0724"
+	AlertManagerEmptyReceiver               = "B0725"
+	AlertManagerDefaultReceiverCannotDelete = "B0726"
 )
 
 func Text(code string) string {

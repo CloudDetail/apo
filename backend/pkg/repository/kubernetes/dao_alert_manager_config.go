@@ -84,9 +84,10 @@ func (k *k8sApi) DeleteAMConfigReceiver(configFile string, name string) error {
 	if len(configFile) == 0 {
 		configFile = k.MetadataSettings.AlertManagerFileName
 	}
-	isDeleted := k.Metadata.DeleteAMConfigReceiver(configFile, name)
+
+	isDeleted, err := k.Metadata.DeleteAMConfigReceiver(configFile, name)
 	if !isDeleted {
-		return nil
+		return err
 	}
 
 	content, err := k.Metadata.AlertManagerConfigMarshalToYaml(configFile)

@@ -66,9 +66,10 @@ var enText = map[string]string{
 	UpdateAMConfigReceiverError: "Failed to update alertManager config receiver",
 	DeleteConfigReceiverError:   "Failed to delete alertManager config receiver",
 
-	AlertManagerReceiverAlreadyExistsError: "alertManager receiver name already exists",
-	AlertManagerReceiverNotExistsError:     "alertManager receiver name not exists",
-	AlertManagerReceiverEmailHostMissing:   "alertManager receiver email 'smarthost' missing",
-	AlertManagerReceiverEmailFromMissing:   "alertManager receiver email 'from' missing",
-	AlertManagerEmptyReceiver:              "alertManager receiver neither set webhook nor set email config",
+	AlertManagerReceiverAlreadyExistsError:  "alertManager receiver name already exists",
+	AlertManagerReceiverNotExistsError:      "alertManager receiver name not exists",
+	AlertManagerReceiverEmailHostMissing:    "alertManager receiver email 'smarthost' missing",
+	AlertManagerReceiverEmailFromMissing:    "alertManager receiver email 'from' missing",
+	AlertManagerEmptyReceiver:               "alertManager receiver neither set webhook nor set email config",
+	AlertManagerDefaultReceiverCannotDelete: "alertManager default receiver cannot be deleted",
 }

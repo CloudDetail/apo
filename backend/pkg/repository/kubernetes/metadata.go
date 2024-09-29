@@ -99,6 +99,10 @@ func (m *Metadata) AddAMConfigReceiver(configFile string, receiver amconfig.Rece
 		return model.NewErrWithMessage(fmt.Errorf("configfile %s is not found", configFile), code.AlertConfigFileNotExistError)
 	}
 
+	if !amConfig.Route.Continue {
+		amConfig.Route.Continue = true
+	}
+
 	for i := range amConfig.Receivers {
 		if amConfig.Receivers[i].Name == receiver.Name {
 			return model.NewErrWithMessage(fmt.Errorf("add receiver failed,receiver '%s' already exists", receiver.Name), code.AlertManagerReceiverAlreadyExistsError)
@@ -173,13 +177,17 @@ func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.R
 	return nil
 }
 
-func (m *Metadata) DeleteAMConfigReceiver(configFile string, name string) bool {
+func (m *Metadata) DeleteAMConfigReceiver(configFile string, name string) (bool, error) {
 	m.amConfigLock.Lock()
 	defer m.amConfigLock.Unlock()
 
 	amConfig, find := m.AMConfigMap[configFile]
 	if !find {
-		return false
+		return false, model.NewErrWithMessage(fmt.Errorf("configfile %s is not found", configFile), code.AlertConfigFileNotExistError)
+	}
+
+	if name == amConfig.Route.Receiver {
+		return false, model.NewErrWithMessage(fmt.Errorf("delete receiver failed, '%s' is the default receiver", name), code.AlertManagerDefaultReceiverCannotDelete)
 	}
 
 	for i := 0; i < len(amConfig.Receivers); i++ {
@@ -193,11 +201,11 @@ func (m *Metadata) DeleteAMConfigReceiver(configFile string, name string) bool {
 					break
 				}
 			}
-			return true
+			return true, nil
 		}
 	}
 
-	return false
+	return false, model.NewErrWithMessage(fmt.Errorf("delete receiver failed, '%s' not found", name), code.AlertManagerReceiverNotExistsError)
 }
 
 func (m *Metadata) AddAlertRule(configFile string, alertRule request.AlertRule) error {
