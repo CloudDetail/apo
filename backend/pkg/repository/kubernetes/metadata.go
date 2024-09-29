@@ -99,10 +99,6 @@ func (m *Metadata) AddAMConfigReceiver(configFile string, receiver amconfig.Rece
 		return model.NewErrWithMessage(fmt.Errorf("configfile %s is not found", configFile), code.AlertConfigFileNotExistError)
 	}
 
-	if !amConfig.Route.Continue {
-		amConfig.Route.Continue = true
-	}
-
 	for i := range amConfig.Receivers {
 		if amConfig.Receivers[i].Name == receiver.Name {
 			return model.NewErrWithMessage(fmt.Errorf("add receiver failed,receiver '%s' already exists", receiver.Name), code.AlertManagerReceiverAlreadyExistsError)
