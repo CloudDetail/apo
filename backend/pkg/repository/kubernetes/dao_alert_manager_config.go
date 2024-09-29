@@ -118,6 +118,11 @@ func ValidateAMConfigReceiver(receiver amconfig.Receiver) error {
 		return model.NewErrWithMessage(fmt.Errorf("receiver %s has no webhook or email config", receiver.Name), code.AlertManagerEmptyReceiver)
 	}
 
+	for _, receiver := range receiver.WebhookConfigs {
+		// HACK 丢弃接口中设置的HEADER
+		receiver.HTTPConfig.HTTPHeaders = nil
+	}
+
 	if receiver.EmailConfigs != nil {
 		for _, cfg := range receiver.EmailConfigs {
 			if len(cfg.From) == 0 {
