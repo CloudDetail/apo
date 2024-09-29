@@ -90,3 +90,7 @@ func Get() *Config {
 	}
 	return config
 }
+
+func GetCHCluster() string {
+	return config.ClickHouse.Cluster
+}
