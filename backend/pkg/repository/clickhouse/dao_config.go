@@ -17,7 +17,7 @@ func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTa
 
 	for _, table := range mapResult {
 		go func(table model.ModifyTableTTLMap) {
-			cluster := getCluster()
+			cluster := GetCluster()
 			escapedTableName := fmt.Sprintf("`%s`", table.Name)
 			var finalQuery string
 			if len(cluster) > 0 {
@@ -41,20 +41,21 @@ func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTa
 	return nil
 }
 
-func getCluster() string {
+func GetCluster() string {
 	cfg := config.Get()
 	return cfg.ClickHouse.Cluster
 }
 
 func (ch *chRepo) GetTables(tableNames []string) ([]model.TablesQuery, error) {
 	result := make([]model.TablesQuery, 0)
-	if len(getCluster()) > 0 {
+	if len(GetCluster()) > 0 {
 		for i := range tableNames {
 			if !strings.HasSuffix(tableNames[i], "_local") {
 				tableNames[i] += "_local"
 			}
 		}
 	}
+
 	query := "SELECT name, create_table_query FROM system.tables WHERE database=(SELECT currentDatabase()) AND name NOT LIKE '.%'"
 
 	args := []interface{}{}
