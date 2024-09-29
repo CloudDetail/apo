@@ -38,8 +38,8 @@ type GetAlertManagerConfigReceverRequest struct {
 	AMConfigFile string `form:"amConfigFile" json:"amConfigFile"`
 	RefreshCache bool   `form:"refreshCache" json:"refreshCache"`
 
-	*AMConfigReceiverFilter `json:",inline"`
-	*PageParam              `json:",inline"`
+	*AMConfigReceiverFilter
+	*PageParam
 }
 
 type AlertRuleFilter struct {

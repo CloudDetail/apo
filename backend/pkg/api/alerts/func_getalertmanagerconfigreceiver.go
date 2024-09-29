@@ -21,7 +21,7 @@ import (
 func (h *handler) GetAlertManagerConfigReceiver() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAlertManagerConfigReceverRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
