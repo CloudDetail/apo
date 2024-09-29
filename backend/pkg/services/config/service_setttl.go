@@ -14,13 +14,15 @@ import (
 
 var typeRules = map[string][]string{
 	"logs":     {"ilogtail_logs"},
-	"trace":    {"span_trace", "jaeger_index_local", "jaeger_spans_archive_local", "jaeger_spans_local", "jaeger_operations_local"},
+	"trace":    {"span_trace", "jaeger_index_local", "jaeger_spans_archive_local", "jaeger_spans_local"},
 	"k8s":      {"k8s_events"},
 	"topology": {"service_relation", "service_topology"},
+	"other": {"agent_log", "alert_event", "error_propagation", "error_report", "jvm_gc", "onoff_metric", "onstack_profiling",
+		"profiling_event", "report_metric", "slo_record", "slow_report"},
 }
 
 // 包级别的正则表达式变量
-var ttlRegex = regexp.MustCompile(`TTL\s+([^\s]+(?:\s*\+\s*toIntervalDay\((\d+)\))?)`)
+var ttlRegex = regexp.MustCompile(`TTL\s+(\S+(?:\s*\+\s*toIntervalDay\((\d+)\))?)`)
 var toIntervalDayRegex = regexp.MustCompile(`toIntervalDay\((\d+)\)`)
 
 func prepareTTLInfo(tables []model.TablesQuery) []model.ModifyTableTTLMap {
@@ -47,8 +49,9 @@ func prepareTTLInfo(tables []model.TablesQuery) []model.ModifyTableTTLMap {
 	}
 	return mapResult
 }
-func (s *service) SetTableTTL(blackTableNames []string, whiteTableNames []string, day int) error {
-	tables, err := s.chRepo.GetTables(blackTableNames, whiteTableNames)
+
+func (s *service) SetTableTTL(tableNames []string, day int) error {
+	tables, err := s.chRepo.GetTables(tableNames)
 	if err != nil {
 		log.Println("[SetSingleTableTTL] Error getting tables: ", err)
 		return err
@@ -67,7 +70,6 @@ func (s *service) SetTableTTL(blackTableNames []string, whiteTableNames []string
 }
 
 func convertModifyTableTTLMap(tables []model.TablesQuery, day int) ([]model.ModifyTableTTLMap, error) {
-
 	mapResult := prepareTTLInfo(tables)
 	for i := range mapResult {
 		newInterval := fmt.Sprintf("toIntervalDay(%d)", day)
@@ -80,18 +82,11 @@ func (s *service) SetTTL(req *request.SetTTLRequest) error {
 	if req.Day <= 0 {
 		return errors.New("[SetTTL] Error : day should > 0  ")
 	}
-	blackTableNames := []string{}
-	whiteTableNames := []string{}
-	if req.DataType == "other" {
-		types := []string{"logs", "trace", "k8s", "topology"}
-		for _, t := range types {
-			convertedNames := typeRules[t]
-			blackTableNames = append(blackTableNames, convertedNames...)
-		}
-	} else {
-		whiteTableNames = typeRules[req.DataType]
-	}
-	err := s.SetTableTTL(blackTableNames, whiteTableNames, req.Day)
+
+	tableNames := make([]string, len(typeRules[req.DataType]))
+	copy(tableNames, typeRules[req.DataType])
+
+	err := s.SetTableTTL(tableNames, req.Day)
 	return err
 }
 
@@ -99,6 +94,6 @@ func (s *service) SetSingleTableTTL(req *request.SetSingleTTLRequest) error {
 	if req.Day <= 0 {
 		return errors.New("[SetSingleTableTTL] Error : day should > 0  ")
 	}
-	err := s.SetTableTTL([]string{}, []string{req.Name}, req.Day)
+	err := s.SetTableTTL([]string{req.Name}, req.Day)
 	return err
 }

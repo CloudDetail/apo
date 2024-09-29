@@ -60,7 +60,7 @@ type Repo interface {
 
 	//config
 	ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTableTTLMap) error
-	GetTables(blackTableNames []string, whiteTableNames []string) ([]model.TablesQuery, error)
+	GetTables(tables []string) ([]model.TablesQuery, error)
 
 	// ========== alert events ==========
 	// 查询按group和级别采样的告警事件,sampleCount为每个group和级别采样的数量

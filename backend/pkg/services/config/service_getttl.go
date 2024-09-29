@@ -8,7 +8,7 @@ import (
 )
 
 func (s *service) GetTTL() (*response.GetTTLResponse, error) {
-	tables, err := s.chRepo.GetTables([]string{}, []string{})
+	tables, err := s.chRepo.GetTables([]string{})
 	if err != nil {
 		log.Println("[GetTTL] Error getting tables: ", err)
 		return nil, err
@@ -30,8 +30,6 @@ func (s *service) GetTTL() (*response.GetTTLResponse, error) {
 	for _, item := range tableInfo {
 		if typ, found := tableToType[item.Name]; found {
 			result[typ] = append(result[typ], item)
-		} else {
-			result["other"] = append(result["other"], item)
 		}
 	}
 	return &response.GetTTLResponse{
