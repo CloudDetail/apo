@@ -13,7 +13,7 @@ func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigRecever
 			PageSize:    999,
 		}
 	}
-	receivers, totalCount := s.k8sApi.GetAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiverFilter, req.PageParam)
+	receivers, totalCount := s.k8sApi.GetAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiverFilter, req.PageParam, req.RefreshCache)
 	return response.GetAlertManagerConfigReceiverResponse{
 		AMConfigReceivers: receivers,
 		Pagination: &model.Pagination{

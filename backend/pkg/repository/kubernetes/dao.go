@@ -42,7 +42,7 @@ type Repo interface {
 	DeleteAlertRule(configFile string, group, alert string) error
 	CheckAlertRule(configFile, group, alert string) (bool, error)
 
-	GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
+	GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam, syncNow bool) ([]amconfig.Receiver, int)
 	AddAMConfigReceiver(configFile string, receiver amconfig.Receiver) error
 	UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver, oldName string) error
 	DeleteAMConfigReceiver(configFile string, name string) error

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/common/model"
 	promfmt "github.com/prometheus/prometheus/model/rulefmt"
+	"go.uber.org/zap"
 )
 
 func (k *k8sApi) syncAlertRule() error {
@@ -30,8 +31,10 @@ func (k *k8sApi) GetAlertRules(configFile string, filter *request.AlertRuleFilte
 	}
 
 	if syncNow {
-		// TODO handle error
-		_ = k.syncAlertRule()
+		err := k.syncAlertRule()
+		if err != nil {
+			k.logger.Error("failed to sync alertRule with k8sAPI", zap.Error(err))
+		}
 	}
 	return k.Metadata.GetAlertRules(configFile, filter, pageParam)
 }

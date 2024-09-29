@@ -3922,6 +3922,9 @@
                 },
                 "rType": {
                     "type": "string"
+                },
+                "refreshCache": {
+                    "type": "boolean"
                 }
             }
         },

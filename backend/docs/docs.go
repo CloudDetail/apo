@@ -3930,6 +3930,9 @@ const docTemplate = `{
                 },
                 "rType": {
                     "type": "string"
+                },
+                "refreshCache": {
+                    "type": "boolean"
                 }
             }
         },

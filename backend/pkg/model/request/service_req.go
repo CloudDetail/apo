@@ -147,8 +147,8 @@ type AlertFilter struct {
 }
 
 type PageParam struct {
-	CurrentPage int `form:"currentPage"`
-	PageSize    int `form:"pageSize"`
+	CurrentPage int `form:"currentPage" json:"currentPage"`
+	PageSize    int `form:"pageSize" json:"pageSize"`
 }
 
 type GetAlertEventsSampleRequest struct {

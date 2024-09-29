@@ -28,9 +28,16 @@ func (k *k8sApi) syncAMConfig() error {
 	return nil
 }
 
-func (k *k8sApi) GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int) {
+func (k *k8sApi) GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam, syncNow bool) ([]amconfig.Receiver, int) {
 	if len(configFile) == 0 {
 		configFile = k.MetadataSettings.AlertManagerFileName
+	}
+
+	if syncNow {
+		err := k.syncAMConfig()
+		if err != nil {
+			k.logger.Error("failed to sync amConfig with k8sAPI", zap.Error(err))
+		}
 	}
 	return k.Metadata.GetAMConfigReceiver(configFile, filter, pageParam)
 }

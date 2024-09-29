@@ -30,15 +30,16 @@ type GetAlertRuleRequest struct {
 	AlertRuleFile string `form:"alertRuleFile" json:"alertRuleFile"`
 	RefreshCache  bool   `form:"refreshCache" json:"refreshCache"`
 
-	*AlertRuleFilter
-	*PageParam
+	*AlertRuleFilter `json:",inline"`
+	*PageParam       `json:",inline"`
 }
 
 type GetAlertManagerConfigReceverRequest struct {
 	AMConfigFile string `form:"amConfigFile" json:"amConfigFile"`
+	RefreshCache bool   `form:"refreshCache" json:"refreshCache"`
 
-	*AMConfigReceiverFilter
-	*PageParam
+	*AMConfigReceiverFilter `json:",inline"`
+	*PageParam              `json:",inline"`
 }
 
 type AlertRuleFilter struct {
@@ -71,8 +72,8 @@ type AddAlertManagerConfigReceiver UpdateAlertManagerConfigReceiver
 type UpdateAlertManagerConfigReceiver struct {
 	AMConfigFile string `form:"amConfigFile" json:"amConfigFile"`
 
-	OldName          string            `json:"oldName"`
-	AMConfigReceiver amconfig.Receiver `json:"amConfigReceiver"`
+	OldName          string            `form:"oldName" json:"oldName"`
+	AMConfigReceiver amconfig.Receiver `form:"amConfigReceiver" json:"amConfigReceiver"`
 }
 
 type DeleteAlertRuleRequest struct {

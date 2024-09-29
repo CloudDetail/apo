@@ -185,7 +185,7 @@ func (n *NoneAPI) DeleteAMConfigReceiver(configFile string, name string) error {
 }
 
 // GetAMConfigReceiver implements Repo.
-func (n *NoneAPI) GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int) {
+func (n *NoneAPI) GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam, syncNow bool) ([]amconfig.Receiver, int) {
 	return []amconfig.Receiver{}, 0
 }
 
