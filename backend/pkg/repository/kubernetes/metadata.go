@@ -105,11 +105,26 @@ func (m *Metadata) AddAMConfigReceiver(configFile string, receiver amconfig.Rece
 		}
 	}
 
+	routeIsExist := false
+	for _, route := range amConfig.Route.Routes {
+		if route.Receiver == receiver.Name {
+			routeIsExist = true
+			break
+		}
+	}
+
+	if !routeIsExist {
+		amConfig.Route.Routes = append(amConfig.Route.Routes, &amconfig.Route{
+			Receiver: receiver.Name,
+			Continue: true,
+		})
+	}
+
 	amConfig.Receivers = append(amConfig.Receivers, receiver)
 	return nil
 }
 
-func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
+func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver, oldName string) error {
 	m.amConfigLock.Lock()
 	defer m.amConfigLock.Unlock()
 
@@ -118,16 +133,44 @@ func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.R
 		return model.NewErrWithMessage(fmt.Errorf("configfile %s is not found", configFile), code.AlertConfigFileNotExistError)
 	}
 
-	// Update Exist receiver
+	if len(oldName) > 0 && oldName != receiver.Name {
+		// Update Exist receiver
+		var receiverIsExist bool
+		for i := range amConfig.Receivers {
+			if amConfig.Receivers[i].Name == oldName {
+				receiverIsExist = true
+				amConfig.Receivers[i].Name = receiver.Name
+				amConfig.Receivers[i].WebhookConfigs = receiver.WebhookConfigs
+				amConfig.Receivers[i].EmailConfigs = receiver.EmailConfigs
+
+				for _, route := range amConfig.Route.Routes {
+					if route.Receiver == oldName {
+						route.Receiver = receiver.Name
+					}
+				}
+				return nil
+			}
+		}
+		if !receiverIsExist {
+			return model.NewErrWithMessage(fmt.Errorf("update receiver failed, '%s' not found", oldName), code.AlertManagerReceiverNotExistsError)
+		}
+
+	}
+
+	var receiverIsExist bool
 	for i := range amConfig.Receivers {
 		if amConfig.Receivers[i].Name == receiver.Name {
+			receiverIsExist = true
 			amConfig.Receivers[i].WebhookConfigs = receiver.WebhookConfigs
 			amConfig.Receivers[i].EmailConfigs = receiver.EmailConfigs
 			return nil
 		}
 	}
+	if !receiverIsExist {
+		return model.NewErrWithMessage(fmt.Errorf("update receiver failed, '%s' not found", oldName), code.AlertManagerReceiverNotExistsError)
+	}
 
-	return model.NewErrWithMessage(fmt.Errorf("update receiver failed, '%s' not found", receiver.Name), code.AlertManagerReceiverNotExistsError)
+	return nil
 }
 
 func (m *Metadata) DeleteAMConfigReceiver(configFile string, name string) bool {

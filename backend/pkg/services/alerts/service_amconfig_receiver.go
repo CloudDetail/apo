@@ -29,7 +29,7 @@ func (s *service) AddAMConfigReceiver(req *request.AddAlertManagerConfigReceiver
 }
 
 func (s *service) UpdateAMConfigReceiver(req *request.UpdateAlertManagerConfigReceiver) error {
-	return s.k8sApi.UpdateAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver)
+	return s.k8sApi.UpdateAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver, req.OldName)
 }
 
 func (s *service) DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigReceiverRequest) error {

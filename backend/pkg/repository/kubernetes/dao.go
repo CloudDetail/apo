@@ -44,7 +44,7 @@ type Repo interface {
 
 	GetAMConfigReceiver(configFile string, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
 	AddAMConfigReceiver(configFile string, receiver amconfig.Receiver) error
-	UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error
+	UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver, oldName string) error
 	DeleteAMConfigReceiver(configFile string, name string) error
 }
 

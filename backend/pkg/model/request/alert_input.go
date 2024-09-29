@@ -71,6 +71,7 @@ type AddAlertManagerConfigReceiver UpdateAlertManagerConfigReceiver
 type UpdateAlertManagerConfigReceiver struct {
 	AMConfigFile string `form:"amConfigFile" json:"amConfigFile"`
 
+	OldName          string            `json:"oldName"`
 	AMConfigReceiver amconfig.Receiver `json:"amConfigReceiver"`
 }
 

@@ -7,6 +7,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+
+	"go.uber.org/zap"
 )
 
 func (k *k8sApi) syncAMConfig() error {
@@ -17,6 +19,7 @@ func (k *k8sApi) syncAMConfig() error {
 	for key, config := range res {
 		amConfig, err := amconfig.Load(config)
 		if err != nil {
+			k.logger.Error("failed to load amConfig", zap.String("key", key), zap.Error(err))
 			continue
 		}
 
@@ -54,7 +57,7 @@ func (k *k8sApi) AddAMConfigReceiver(configFile string, receiver amconfig.Receiv
 	return k.UpdateAlertManagerConfigFile(configFile, content)
 }
 
-func (k *k8sApi) UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
+func (k *k8sApi) UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver, oldName string) error {
 	if len(configFile) == 0 {
 		configFile = k.MetadataSettings.AlertManagerFileName
 	}
@@ -64,7 +67,7 @@ func (k *k8sApi) UpdateAMConfigReceiver(configFile string, receiver amconfig.Rec
 		return err
 	}
 
-	err = k.Metadata.UpdateAMConfigReceiver(configFile, receiver)
+	err = k.Metadata.UpdateAMConfigReceiver(configFile, receiver, oldName)
 	if err != nil {
 		return err
 	}

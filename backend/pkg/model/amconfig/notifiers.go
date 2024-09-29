@@ -177,26 +177,9 @@ var (
 	}
 )
 
-type VSendResolved bool
-
-// MarshalJSON implements the json.Unmarshaler interface for TLSVersion.
-func (v *VSendResolved) UnmarshalJSON(data []byte) error {
-	if data == nil {
-		defaultTrue := VSendResolved(true)
-		v = &defaultTrue
-	}
-
-	var ops bool
-	if err := json.Unmarshal(data, &ops); err != nil {
-		return err
-	}
-	*v = VSendResolved(ops)
-	return nil
-}
-
 // NotifierConfig contains base options common across all notifier configurations.
 type NotifierConfig struct {
-	VSendResolved VSendResolved `yaml:"send_resolved" json:"sendResolved"`
+	VSendResolved bool `yaml:"send_resolved" json:"sendResolved"`
 }
 
 func (nc *NotifierConfig) SendResolved() bool {
@@ -305,6 +288,15 @@ func (c *EmailConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	c.Headers = normalizedHeaders
 
+	return nil
+}
+
+func (c *EmailConfig) UnmarshalJSON(data []byte) error {
+	*c = DefaultEmailConfig
+	type plain EmailConfig
+	if err := json.Unmarshal(data, (*plain)(c)); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -535,6 +527,15 @@ func (c *WebhookConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	if c.URL != nil && c.URLFile != "" {
 		return fmt.Errorf("at most one of url & url_file must be configured")
+	}
+	return nil
+}
+
+func (c *WebhookConfig) UnmarshalJSON(data []byte) error {
+	*c = DefaultWebhookConfig
+	type plain WebhookConfig
+	if err := json.Unmarshal(data, (*plain)(c)); err != nil {
+		return err
 	}
 	return nil
 }

@@ -175,7 +175,7 @@ func (n *NoneAPI) AddAMConfigReceiver(configFile string, receiver amconfig.Recei
 }
 
 // UpdateAMConfigReceiver implements Repo.
-func (n *NoneAPI) UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
+func (n *NoneAPI) UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver, oldName string) error {
 	return ErrKubernetesRepoNotReady
 }
 
