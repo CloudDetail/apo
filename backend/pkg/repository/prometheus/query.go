@@ -981,93 +981,34 @@ sum(
         increase(kindling_span_trace_duration_nanoseconds_count{content_key=~"%s",svc_name=~"%s",pod=~"",container_id=~".+"}[%s])
     )`
 	TPS_DATA_BY_POD = `
-    (sum by (content_key, svc_name,pod,container_id, node_name, namespace, node_ip) (increase(kindling_span_trace_duration_nanoseconds_count{content_key=~"%s",svc_name=~"%s",pod=~".+"}[%s])))/%s
+    (sum by (content_key, svc_name,pod, node_name, namespace, node_ip) (increase(kindling_span_trace_duration_nanoseconds_count{content_key=~"%s",svc_name=~"%s",pod=~".+"}[%s])))/%s
 `
 	LATENCY_DATA_BY_POD = `
 sum(
   increase(kindling_span_trace_duration_nanoseconds_sum{content_key=~"%s",svc_name=~"%s",pod=~".+"}[%s])
-) by(content_key, svc_name,pod,container_id,node_name, namespace)
+) by(content_key, svc_name,pod,node_name, namespace)
   /
 sum(
   increase(
     kindling_span_trace_duration_nanoseconds_count{content_key=~"%s",svc_name=~"%s",pod=~".+"}[%s]
   )
-) by(content_key, svc_name,pod,container_id,node_name, namespace)`
+) by(content_key, svc_name,pod,node_name, namespace)`
 
 	ERROR_DATA_BY_POD = `
 (
   (
     sum(increase(kindling_span_trace_duration_nanoseconds_count{content_key=~"%s",svc_name=~"%s", is_error="true",pod=~".+"}[%s])) 
-    by (content_key, svc_name, pod, container_id, node_name, namespace, node_ip)
+    by (content_key, svc_name, pod, node_name, namespace, node_ip)
     or 0
   ) 
   / 
   sum(increase(kindling_span_trace_duration_nanoseconds_count{content_key=~"%s",svc_name=~"%s",pod=~".+"}[%s])) 
-  by (content_key, svc_name, pod, container_id, node_name, namespace, node_ip)
+  by (content_key, svc_name, pod, node_name, namespace, node_ip)
 ) 
 or 
 (
   sum(increase(kindling_span_trace_duration_nanoseconds_count{content_key=~"%s",svc_name=~"%s",pod=~".+"}[%s])) 
-  by (content_key, svc_name, pod, container_id, node_name, namespace, node_ip) * 0
-)`
-	AVG_LOG_BY_CONTAINERID = `(
-  sum by (container_id) (increase(originx_logparser_level_count_total{container_id=~"%s", level=~"error|critical"}[%s]))
-  or
-  vector(0)
-) + (
-  sum by (container_id) (increase(originx_logparser_exception_count_total{container_id=~"%s"}[%s]))
-  or
-  vector(0)
-)`
-	LOG_DOD_BY_CONTAINERID = `((
-  sum by (container_id) (increase(originx_logparser_level_count_total{container_id=~"%s", level=~"error|critical"}[%s]))
-  or
-  vector(0)
-) + (
-  sum by (container_id) (increase(originx_logparser_exception_count_total{container_id=~"%s"}[%s]))
-  or
-  vector(0)
-)-(
-  sum by (container_id) (increase(originx_logparser_level_count_total{container_id=~"%s", level=~"error|critical"}[%s] offset 24h))
-  or
-  vector(0)
-) + (
-  sum by (container_id) (increase(originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 24h))
-  or
-  vector(0)
-))/(
-  sum by (container_id) (increase(originx_logparser_level_count_total{container_id=~"%s", level=~"error|critical"}[%s] offset 24h))
-  or
-  vector(0)
-) + (
-  sum by (container_id) (increase(originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 24h))
-  or
-  vector(0)
-)`
-	LOG_WOW_BY_CONTAINERID = `((
-  sum by (container_id) (increase(originx_logparser_level_count_total{container_id=~"%s", level=~"error|critical"}[%s]))
-  or
-  vector(0)
-) + (
-  sum by (container_id) (increase(originx_logparser_exception_count_total{container_id=~"%s"}[%s]))
-  or
-  vector(0)
-)-(
-  sum by (container_id) (increase(originx_logparser_level_count_total{container_id=~"%s", level=~"error|critical"}[%s] offset 24h))
-  or
-  vector(0)
-) + (
-  sum by (container_id) (increase(originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 24h))
-  or
-  vector(0)
-))/(
-  sum by (container_id) (increase(originx_logparser_level_count_total{container_id=~"%s", level=~"error|critical"}[%s] offset 24h))
-  or
-  vector(0)
-) + (
-  sum by (container_id) (increase(originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 24h))
-  or
-  vector(0)
+  by (content_key, svc_name, pod, node_name, namespace, node_ip) * 0
 )`
 )
 

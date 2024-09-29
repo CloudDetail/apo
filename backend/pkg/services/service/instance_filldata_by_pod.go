@@ -12,6 +12,8 @@ import (
 )
 
 func (s *service) InstanceAVGByPod(Instances *[]serviceoverview.Instance, serviceName string, contentKey string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
+	// TODO: Even if there are multiple containers with the same service_name in one Pod, only the pod is considered as the instance.
+	//       But now the containers may overwrite the metrics each other. This is not as expected.
 	var AvgLatencyRes []prometheus.MetricResult
 	queryAvgLatency := prometheus.QueryPodPromql(duration, prometheus.AvgLatency, serviceName, contentKey)
 	AvgLatencyRes, err := s.promRepo.QueryLatencyData(endTime, queryAvgLatency)
