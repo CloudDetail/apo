@@ -154,8 +154,8 @@ sum(
   ) by(content_key, svc_name,pid,node_name,node_ip)
     /
   sum(
-    increase(kindling_span_trace_duration_nanoseconds_count[%s] {svc_name=~"%s",
-				content_key=~"%s",pod=~"",container_id=~""}offset 24h)
+    increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~"%s",
+				content_key=~"%s",pod=~"",container_id=~""}[%s] offset 24h)
   ) by(content_key, svc_name,pid,node_name,node_ip)
 )-1)*100`
 
@@ -183,8 +183,8 @@ sum(
   ) by(content_key, svc_name,container_id,node_name)
     /
   sum(
-    increase(kindling_span_trace_duration_nanoseconds_count[%s] {svc_name=~"%s",
-				content_key=~"%s",pod=~"",container_id=~".+"}offset 24h)
+    increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~"%s",
+				content_key=~"%s",pod=~"",container_id=~".+"}[%s] offset 24h)
   ) by(content_key, svc_name,container_id,node_name)
 )-1)*100`
 	ERROR_DOD_BY_POD = `
@@ -208,11 +208,11 @@ sum(
       kindling_span_trace_duration_nanoseconds_count{is_error="true",svc_name=~"%s",
 				content_key=~"%s",pod=~".+"}[%s] offset 24h
     )
-  ) by(content_key, svc_name,pod,container_id, node_name, namespace, node_ip
+  ) by(content_key, svc_name,pod,container_id, node_name, namespace, node_ip)
     /
   sum(
-    increase(kindling_span_trace_duration_nanoseconds_count[%s] {svc_name=~"%s",
-				content_key=~"%s",pod=~".+"}offset 24h)
+    increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~"%s",
+				content_key=~"%s",pod=~".+"}[%s] offset 24h)
   ) by(content_key, svc_name,pod,container_id, node_name, namespace, node_ip)
 )-1)*100`
 	ERROR_DOD_BY_SERVICE = ` 
@@ -237,7 +237,7 @@ sum(
   ) by(svc_name,content_key)
     /
   sum(
-    increase(kindling_span_trace_duration_nanoseconds_count[%s] {svc_name=~"%s"}offset 24h)
+    increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~"%s"}[%s] offset 24h)
   ) by(svc_name,content_key)
 )-1)*100`
 
@@ -289,8 +289,8 @@ sum(
   ) by(content_key, svc_name,pid,node_name,node_ip)
     /
   sum(
-    increase(kindling_span_trace_duration_nanoseconds_count[%s] {svc_name=~"%s",
-				content_key=~"%s",pod=~"",container_id=~""}offset 7d)
+    increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~"%s",
+				content_key=~"%s",pod=~"",container_id=~""}[%s] offset 7d)
   ) by(content_key, svc_name,pid,node_name,node_ip)
 )-1)*100`
 	ERROR_WOW_BY_CONTAINERID = `((
@@ -316,8 +316,8 @@ sum(
   ) by(content_key, svc_name,container_id,node_name,node_ip)
     /
   sum(
-    increase(kindling_span_trace_duration_nanoseconds_count[%s] {svc_name=~"%s",
-				content_key=~"%s",pod=~"",container_id=~".+"}offset 7d)
+    increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~"%s",
+				content_key=~"%s",pod=~"",container_id=~".+"}[%s] offset 7d)
   ) by(content_key, svc_name,container_id,node_name,node_ip)
 )-1)*100`
 	ERROR_WOW_BY_POD = `((
@@ -343,8 +343,8 @@ sum(
   ) by(content_key, svc_name,pod,container_id, node_name, namespace, node_ip)
     /
   sum(
-    increase(kindling_span_trace_duration_nanoseconds_count[%s] {svc_name=~"%s",
-				content_key=~"%s",pod=~".+"}offset 7d)
+    increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~"%s",
+				content_key=~"%s",pod=~".+"}[%s] offset 7d)
   ) by(content_key, svc_name,pod,container_id, node_name, namespace, node_ip)
 )-1)*100`
 	ERROR_WOW_BY_SERVICE = `
@@ -369,7 +369,7 @@ sum(
   ) by(svc_name,content_key)
     /
   sum(
-    increase(kindling_span_trace_duration_nanoseconds_count[%s] {svc_name=~"%s"}offset 7d)
+    increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~"%s"}[%s] offset 7d)
   ) by(svc_name,content_key)
 )-1)*100`
 	ERROR_WOW = `
