@@ -68,4 +68,7 @@ var enText = map[string]string{
 
 	AlertManagerReceiverAlreadyExistsError: "alertManager receiver name already exists",
 	AlertManagerReceiverNotExistsError:     "alertManager receiver name not exists",
+	AlertManagerReceiverEmailHostMissing:   "alertManager receiver email 'smarthost' missing",
+	AlertManagerReceiverEmailFromMissing:   "alertManager receiver email 'from' missing",
+	AlertManagerEmptyReceiver:              "alertManager receiver neither set webhook nor set email config",
 }

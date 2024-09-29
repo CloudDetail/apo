@@ -1,6 +1,10 @@
 package kubernetes
 
 import (
+	"fmt"
+
+	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -33,7 +37,12 @@ func (k *k8sApi) AddAMConfigReceiver(configFile string, receiver amconfig.Receiv
 		configFile = k.MetadataSettings.AlertManagerFileName
 	}
 
-	err := k.Metadata.AddAMConfigReceiver(configFile, receiver)
+	err := ValidateAMConfigReceiver(receiver)
+	if err != nil {
+		return err
+	}
+
+	err = k.Metadata.AddAMConfigReceiver(configFile, receiver)
 	if err != nil {
 		return err
 	}
@@ -50,7 +59,12 @@ func (k *k8sApi) UpdateAMConfigReceiver(configFile string, receiver amconfig.Rec
 		configFile = k.MetadataSettings.AlertManagerFileName
 	}
 
-	err := k.Metadata.UpdateAMConfigReceiver(configFile, receiver)
+	err := ValidateAMConfigReceiver(receiver)
+	if err != nil {
+		return err
+	}
+
+	err = k.Metadata.UpdateAMConfigReceiver(configFile, receiver)
 	if err != nil {
 		return err
 	}
@@ -86,4 +100,23 @@ func (k *k8sApi) GetAlertManagerConfigFile(alertManagerConfig string) (map[strin
 
 func (k *k8sApi) UpdateAlertManagerConfigFile(alertManagerConfig string, content []byte) error {
 	return k.updateConfigMap(k.AlertManagerCMName, alertManagerConfig, content)
+}
+
+func ValidateAMConfigReceiver(receiver amconfig.Receiver) error {
+	if len(receiver.WebhookConfigs) == 0 && len(receiver.EmailConfigs) == 0 {
+		return model.NewErrWithMessage(fmt.Errorf("receiver %s has no webhook or email config", receiver.Name), code.AlertManagerEmptyReceiver)
+	}
+
+	if receiver.EmailConfigs != nil {
+		for _, cfg := range receiver.EmailConfigs {
+			if len(cfg.From) == 0 {
+				return model.NewErrWithMessage(fmt.Errorf("receiver %s email config has no from", receiver.Name), code.AlertManagerReceiverEmailFromMissing)
+			}
+			if len(cfg.Smarthost.String()) == 0 {
+				return model.NewErrWithMessage(fmt.Errorf("receiver %s email config has no smarthost", receiver.Name), code.AlertManagerReceiverEmailHostMissing)
+			}
+		}
+	}
+
+	return nil
 }

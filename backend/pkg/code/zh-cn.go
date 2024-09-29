@@ -72,4 +72,7 @@ var zhCnText = map[string]string{
 
 	AlertManagerReceiverAlreadyExistsError: "告警通知对象名称已存在",
 	AlertManagerReceiverNotExistsError:     "告警通知对象名称不存在",
+	AlertManagerReceiverEmailHostMissing:   "告警通知对象 email 'smarthost' 配置缺失",
+	AlertManagerReceiverEmailFromMissing:   "告警通知对象 email 'from' 配置缺失",
+	AlertManagerEmptyReceiver:              "告警通知对象没有设置任何 webhook 或 email 配置",
 }
