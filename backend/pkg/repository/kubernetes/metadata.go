@@ -92,7 +92,7 @@ func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConf
 
 func (m *Metadata) AddAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
 	m.amConfigLock.Lock()
-	defer m.alertRulesLock.Unlock()
+	defer m.amConfigLock.Unlock()
 
 	amConfig, find := m.AMConfigMap[configFile]
 	if !find {
@@ -111,7 +111,7 @@ func (m *Metadata) AddAMConfigReceiver(configFile string, receiver amconfig.Rece
 
 func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver) error {
 	m.amConfigLock.Lock()
-	defer m.alertRulesLock.Unlock()
+	defer m.amConfigLock.Unlock()
 
 	amConfig, find := m.AMConfigMap[configFile]
 	if !find {
@@ -128,6 +128,53 @@ func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.R
 	}
 
 	return model.NewErrWithMessage(fmt.Errorf("update receiver failed, '%s' not found", receiver.Name), code.AlertManagerReceiverNotExistsError)
+}
+
+func (m *Metadata) DeleteAMConfigReceiver(configFile string, name string) bool {
+	m.amConfigLock.Lock()
+	defer m.amConfigLock.Unlock()
+
+	amConfig, find := m.AMConfigMap[configFile]
+	if !find {
+		return false
+	}
+
+	for i := 0; i < len(amConfig.Receivers); i++ {
+		if amConfig.Receivers[i].Name == name {
+			amConfig.Receivers = removeElement(amConfig.Receivers, i)
+			return true
+		}
+	}
+
+	return false
+}
+
+func (m *Metadata) AddAlertRule(configFile string, alertRule request.AlertRule) error {
+	m.alertRulesLock.Lock()
+	defer m.alertRulesLock.Unlock()
+
+	alertRules, find := m.AlertRulesMap[configFile]
+	if !find {
+		return model.NewErrWithMessage(
+			fmt.Errorf("can not find specific config: %s", configFile),
+			code.AlertConfigFileNotExistError)
+	}
+
+	// 检查group是否存在
+	if checkGroupExists(alertRule.Group, *alertRules) {
+		// 组存在, 检查alert是否可用
+		if checkAlertExists(alertRule.Group, alertRule.Alert, *alertRules) {
+			return model.NewErrWithMessage(
+				fmt.Errorf("alert already exists: %s", alertRule.Alert),
+				code.AlertAlertAlreadyExistError)
+		}
+	} else {
+		name, _ := GetLabel(alertRule.Group)
+		alertRules.Groups = append(alertRules.Groups, AlertGroup{Name: name})
+	}
+
+	alertRules.Rules = append(alertRules.Rules, &alertRule)
+	return nil
 }
 
 func (m *Metadata) UpdateAlertRule(configFile string, alertRule request.AlertRule, oldGroup, oldAlert string) error {
@@ -176,26 +223,21 @@ func (m *Metadata) UpdateAlertRule(configFile string, alertRule request.AlertRul
 	return nil
 }
 
-// checkGroupExists 检查在alertRules中group是否存在，调用时默认已经取锁
-func checkGroupExists(group string, alertRules AlertRules) bool {
-	for _, g := range alertRules.Groups {
-		if g.Name == group {
-			return true
-		}
+func (m *Metadata) DeleteAlertRule(configFile string, group, alert string) bool {
+	m.alertRulesLock.Lock()
+	defer m.alertRulesLock.Unlock()
+	alertRules, find := m.AlertRulesMap[configFile]
+	if !find {
+		return false
 	}
 
-	return false
-}
-
-// checkAlertExists 检查alertRules中group下alert是否存在，调用时默认已经取锁
-// group不存在或者group中的alert不存在返回false
-func checkAlertExists(group, alert string, alertRules AlertRules) bool {
 	for i := 0; i < len(alertRules.Rules); i++ {
-		if alertRules.Rules[i].Alert == alert && alertRules.Rules[i].Group == group {
+		if alertRules.Rules[i].Alert == alert &&
+			alertRules.Rules[i].Group == group {
+			alertRules.Rules = removeElement(alertRules.Rules, i)
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -216,87 +258,6 @@ func (m *Metadata) CheckAlertRuleExists(configFile, group, alert string) (bool, 
 	}
 
 	return true, nil
-}
-
-func (m *Metadata) AddAlertRule(configFile string, alertRule request.AlertRule) error {
-	m.alertRulesLock.Lock()
-	defer m.alertRulesLock.Unlock()
-
-	alertRules, find := m.AlertRulesMap[configFile]
-	if !find {
-		return model.NewErrWithMessage(
-			fmt.Errorf("can not find specific config: %s", configFile),
-			code.AlertConfigFileNotExistError)
-	}
-
-	// 检查group是否存在
-	if checkGroupExists(alertRule.Group, *alertRules) {
-		// 组存在, 检查alert是否可用
-		if checkAlertExists(alertRule.Group, alertRule.Alert, *alertRules) {
-			return model.NewErrWithMessage(
-				fmt.Errorf("alert already exists: %s", alertRule.Alert),
-				code.AlertAlertAlreadyExistError)
-		}
-	} else {
-		name, _ := GetLabel(alertRule.Group)
-		alertRules.Groups = append(alertRules.Groups, AlertGroup{Name: name})
-	}
-
-	alertRules.Rules = append(alertRules.Rules, &alertRule)
-	return nil
-}
-
-func (m *Metadata) DeleteAMConfigReceiver(configFile string, name string) bool {
-	m.amConfigLock.Lock()
-	defer m.amConfigLock.Unlock()
-
-	amConfig, find := m.AMConfigMap[configFile]
-	if !find {
-		return false
-	}
-
-	for i := 0; i < len(amConfig.Receivers); i++ {
-		if amConfig.Receivers[i].Name == name {
-			amConfig.Receivers = removeElement(amConfig.Receivers, i)
-			return true
-		}
-	}
-
-	return false
-}
-
-func (m *Metadata) DeleteAlertRule(configFile string, group, alert string) bool {
-	m.alertRulesLock.Lock()
-	defer m.alertRulesLock.Unlock()
-	alertRules, find := m.AlertRulesMap[configFile]
-	if !find {
-		return false
-	}
-
-	for i := 0; i < len(alertRules.Rules); i++ {
-		if alertRules.Rules[i].Alert == alert &&
-			alertRules.Rules[i].Group == group {
-			alertRules.Rules = removeElement(alertRules.Rules, i)
-			return true
-		}
-	}
-	return false
-}
-
-func checkAndRemoveAlertRule(group, alert string, alertRules *AlertRules) bool {
-	for i := 0; i < len(alertRules.Rules); i++ {
-		if alertRules.Rules[i].Alert == alert &&
-			alertRules.Rules[i].Group == group {
-			alertRules.Rules = removeElement(alertRules.Rules, i)
-			return true
-		}
-	}
-
-	return false
-}
-
-func removeElement[T any](slice []T, index int) []T {
-	return append(slice[:index], slice[index+1:]...)
 }
 
 func (m *Metadata) AlertRuleMarshalToYaml(configFile string) ([]byte, error) {
@@ -453,4 +414,43 @@ func pageByParam[T any](list []T, param *request.PageParam) ([]T, int) {
 		endIdx = totalCount
 	}
 	return list[startIdx:endIdx], totalCount
+}
+
+// checkGroupExists 检查在alertRules中group是否存在，调用时默认已经取锁
+func checkGroupExists(group string, alertRules AlertRules) bool {
+	for _, g := range alertRules.Groups {
+		if g.Name == group {
+			return true
+		}
+	}
+
+	return false
+}
+
+// checkAlertExists 检查alertRules中group下alert是否存在，调用时默认已经取锁
+// group不存在或者group中的alert不存在返回false
+func checkAlertExists(group, alert string, alertRules AlertRules) bool {
+	for i := 0; i < len(alertRules.Rules); i++ {
+		if alertRules.Rules[i].Alert == alert && alertRules.Rules[i].Group == group {
+			return true
+		}
+	}
+
+	return false
+}
+
+func checkAndRemoveAlertRule(group, alert string, alertRules *AlertRules) bool {
+	for i := 0; i < len(alertRules.Rules); i++ {
+		if alertRules.Rules[i].Alert == alert &&
+			alertRules.Rules[i].Group == group {
+			alertRules.Rules = removeElement(alertRules.Rules, i)
+			return true
+		}
+	}
+
+	return false
+}
+
+func removeElement[T any](slice []T, index int) []T {
+	return append(slice[:index], slice[index+1:]...)
 }

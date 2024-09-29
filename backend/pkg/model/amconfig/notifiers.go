@@ -16,6 +16,7 @@
 package amconfig
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/textproto"
 	"regexp"
@@ -176,13 +177,30 @@ var (
 	}
 )
 
+type VSendResolved bool
+
+// MarshalJSON implements the json.Unmarshaler interface for TLSVersion.
+func (v *VSendResolved) UnmarshalJSON(data []byte) error {
+	if data == nil {
+		defaultTrue := VSendResolved(true)
+		v = &defaultTrue
+	}
+
+	var ops bool
+	if err := json.Unmarshal(data, &ops); err != nil {
+		return err
+	}
+	*v = VSendResolved(ops)
+	return nil
+}
+
 // NotifierConfig contains base options common across all notifier configurations.
 type NotifierConfig struct {
-	VSendResolved bool `yaml:"send_resolved" json:"sendResolved"`
+	VSendResolved VSendResolved `yaml:"send_resolved" json:"sendResolved"`
 }
 
 func (nc *NotifierConfig) SendResolved() bool {
-	return nc.VSendResolved
+	return bool(nc.VSendResolved)
 }
 
 // WebexConfig configures notifications via Webex.
