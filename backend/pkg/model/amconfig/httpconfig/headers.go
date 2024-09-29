@@ -51,7 +51,7 @@ var reservedHeaders = map[string]struct{}{
 
 // Headers represents the configuration for HTTP headers.
 type Headers struct {
-	Headers map[string]Header `yaml:",inline" json:"headers"`
+	Headers map[string]Header `yaml:",inline"`
 	dir     string
 }
 
