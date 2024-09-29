@@ -590,6 +590,8 @@ definitions:
         type: string
       amConfigReceiver:
         $ref: '#/definitions/amconfig.Receiver'
+      oldName:
+        type: string
     type: object
   request.AddAlertRuleRequest:
     properties:
@@ -642,6 +644,7 @@ definitions:
       record:
         type: string
     required:
+    - alert
     - group
     type: object
   request.DataType:
@@ -948,6 +951,8 @@ definitions:
         type: string
       amConfigReceiver:
         $ref: '#/definitions/amconfig.Receiver'
+      oldName:
+        type: string
     type: object
   request.UpdateAlertRuleRequest:
     properties:

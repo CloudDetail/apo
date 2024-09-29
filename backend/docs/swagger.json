@@ -3768,6 +3768,9 @@
                 },
                 "amConfigReceiver": {
                     "$ref": "#/definitions/amconfig.Receiver"
+                },
+                "oldName": {
+                    "type": "string"
                 }
             }
         },
@@ -3817,6 +3820,7 @@
         "request.AlertRule": {
             "type": "object",
             "required": [
+                "alert",
                 "group"
             ],
             "properties": {
@@ -4277,6 +4281,9 @@
                 },
                 "amConfigReceiver": {
                     "$ref": "#/definitions/amconfig.Receiver"
+                },
+                "oldName": {
+                    "type": "string"
                 }
             }
         },

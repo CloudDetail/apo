@@ -3776,6 +3776,9 @@ const docTemplate = `{
                 },
                 "amConfigReceiver": {
                     "$ref": "#/definitions/amconfig.Receiver"
+                },
+                "oldName": {
+                    "type": "string"
                 }
             }
         },
@@ -3825,6 +3828,7 @@ const docTemplate = `{
         "request.AlertRule": {
             "type": "object",
             "required": [
+                "alert",
                 "group"
             ],
             "properties": {
@@ -4285,6 +4289,9 @@ const docTemplate = `{
                 },
                 "amConfigReceiver": {
                     "$ref": "#/definitions/amconfig.Receiver"
+                },
+                "oldName": {
+                    "type": "string"
                 }
             }
         },
