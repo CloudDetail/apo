@@ -185,6 +185,14 @@ func (m *Metadata) DeleteAMConfigReceiver(configFile string, name string) bool {
 	for i := 0; i < len(amConfig.Receivers); i++ {
 		if amConfig.Receivers[i].Name == name {
 			amConfig.Receivers = removeElement(amConfig.Receivers, i)
+
+			// 移除不存在的路由
+			for i, route := range amConfig.Route.Routes {
+				if route.Receiver == name {
+					amConfig.Route.Routes = removeElement(amConfig.Route.Routes, i)
+					break
+				}
+			}
 			return true
 		}
 	}
