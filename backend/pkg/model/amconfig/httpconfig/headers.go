@@ -51,7 +51,7 @@ var reservedHeaders = map[string]struct{}{
 
 // Headers represents the configuration for HTTP headers.
 type Headers struct {
-	Headers map[string]Header `yaml:",inline"`
+	Headers map[string]Header `yaml:",inline" json:"headers"`
 	dir     string
 }
 
@@ -65,6 +65,11 @@ type Header struct {
 func (h Headers) MarshalJSON() ([]byte, error) {
 	// Inline the Headers map when serializing JSON because json encoder doesn't support "inline" directive.
 	return json.Marshal(h.Headers)
+}
+
+func (h *Headers) UnmarshalJSON(data []byte) error {
+	// Inline the Headers map when serializing JSON because json encoder doesn't support "inline" directive.
+	return json.Unmarshal(data, &h.Headers)
 }
 
 // SetDirectory records the directory to make headers file relative to the
