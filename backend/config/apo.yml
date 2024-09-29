@@ -33,6 +33,7 @@ clickhouse:
   username: admin
   password: admin
   database: apo
+  cluster:
 
 promethues:
   address: http://localhost:9090
