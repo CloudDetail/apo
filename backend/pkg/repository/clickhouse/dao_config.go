@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/CloudDetail/apo/backend/config"
 	"log"
+	"strings"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
@@ -49,7 +50,9 @@ func (ch *chRepo) GetTables(tableNames []string) ([]model.TablesQuery, error) {
 	result := make([]model.TablesQuery, 0)
 	if len(getCluster()) > 0 {
 		for i := range tableNames {
-			tableNames[i] += "_local"
+			if !strings.HasSuffix(tableNames[i], "_local") {
+				tableNames[i] += "_local"
+			}
 		}
 	}
 	query := "SELECT name, create_table_query FROM system.tables WHERE database=(SELECT currentDatabase()) AND name NOT LIKE '.%'"

@@ -14,7 +14,7 @@ import (
 
 var typeRules = map[string][]string{
 	"logs":     {"ilogtail_logs"},
-	"trace":    {"span_trace", "jaeger_index", "jaeger_spans_archive", "jaeger_spans", "jaeger_operations"},
+	"trace":    {"span_trace", "jaeger_index_local", "jaeger_spans_archive_local", "jaeger_spans_local"},
 	"k8s":      {"k8s_events"},
 	"topology": {"service_relation", "service_topology"},
 	"other": {"agent_log", "alert_event", "error_propagation", "error_report", "jvm_gc", "onoff_metric", "onstack_profiling",
@@ -75,7 +75,7 @@ func convertModifyTableTTLMap(tables []model.TablesQuery, day int) ([]model.Modi
 		newInterval := fmt.Sprintf("toIntervalDay(%d)", day)
 		mapResult[i].TTLExpression = toIntervalDayRegex.ReplaceAllString(mapResult[i].TTLExpression, newInterval)
 	}
-	fmt.Println("converted tables", day, mapResult)
+
 	return mapResult, nil
 }
 func (s *service) SetTTL(req *request.SetTTLRequest) error {
