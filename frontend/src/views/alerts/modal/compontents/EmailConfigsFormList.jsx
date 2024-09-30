@@ -55,7 +55,6 @@ export default function EmailConfigsFormList() {
       name: 'html',
       type: 'textarea',
       placeholder: '告警邮件的 HTML 格式的正文内容',
-      defaultValue: defaultHtml,
     },
     {
       label: '告警邮件文本正文',
@@ -66,7 +65,7 @@ export default function EmailConfigsFormList() {
   ]
 
   return (
-    <Form.List name="emailConfigs" initialValue={[{ to: '' }]}>
+    <Form.List name="emailConfigs" initialValue={[{ html: defaultHtml }]}>
       {(fields, { add, remove }, { errors }) => (
         <>
           <Card
