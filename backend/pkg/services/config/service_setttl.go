@@ -43,6 +43,7 @@ func getAllTables() []string {
 	} else {
 		for _, table := range typeRules {
 			newTable := make([]string, len(table))
+			copy(newTable, table)
 			tables = append(tables, newTable...)
 		}
 	}
