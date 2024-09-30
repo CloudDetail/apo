@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/CloudDetail/apo/backend/config"
-	"log"
-	"strings"
-
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"log"
 )
 
 func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTableTTLMap) error {
@@ -17,7 +15,7 @@ func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTa
 
 	for _, table := range mapResult {
 		go func(table model.ModifyTableTTLMap) {
-			cluster := GetCluster()
+			cluster := config.GetCHCluster()
 			escapedTableName := fmt.Sprintf("`%s`", table.Name)
 			var finalQuery string
 			if len(cluster) > 0 {
@@ -41,29 +39,20 @@ func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTa
 	return nil
 }
 
-func GetCluster() string {
-	cfg := config.Get()
-	return cfg.ClickHouse.Cluster
-}
-
-func (ch *chRepo) GetTables(tableNames []string) ([]model.TablesQuery, error) {
+func (ch *chRepo) GetTables(tables []model.Table) ([]model.TablesQuery, error) {
 	result := make([]model.TablesQuery, 0)
-	if len(GetCluster()) > 0 {
-		for i := range tableNames {
-			if !strings.HasSuffix(tableNames[i], "_local") {
-				tableNames[i] += "_local"
-			}
-		}
-	}
-
 	query := "SELECT name, create_table_query FROM system.tables WHERE database=(SELECT currentDatabase()) AND name NOT LIKE '.%'"
-
-	args := []interface{}{}
+	var args []interface{}
 	argIndex := 1
 
-	if len(tableNames) > 0 {
+	names := make([]string, len(tables))
+	for i := range tables {
+		names = append(names, tables[i].TableName())
+	}
+
+	if len(tables) > 0 {
 		query += fmt.Sprintf(" AND name IN ($%d)", argIndex)
-		args = append(args, tableNames)
+		args = append(args, names)
 		argIndex++
 	}
 
