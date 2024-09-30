@@ -384,7 +384,7 @@ func matchAMConfigReceiverFilter(filter *request.AMConfigReceiverFilter, receive
 	}
 
 	if len(filter.Name) > 0 {
-		return receiver.Name == filter.Name
+		return strings.Contains(receiver.Name, filter.Name)
 	}
 
 	if len(filter.RType) > 0 {
