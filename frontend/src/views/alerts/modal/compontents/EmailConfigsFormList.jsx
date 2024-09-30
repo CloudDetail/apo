@@ -31,13 +31,6 @@ export default function EmailConfigsFormList() {
       placeholder: 'SMTP服务器端口',
       required: true,
       type: 'number',
-      rules: [
-        {
-          validator: async (_, value) => {
-            if (!value) return Promise.reject(new Error('告警通知名不可为空'))
-          },
-        },
-      ],
     },
     {
       label: 'SMTP用户名',
