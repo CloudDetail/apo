@@ -111,6 +111,13 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 			Score:  latencyScore,
 			Detail: fmt.Sprintf("latency 同比增长 %.2f%%", *s.LatencyDoD),
 		})
+	} else if latencyScore == -1 {
+		res.Score += latencyScore
+		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
+			Key:    "latency",
+			Score:  3,
+			Detail: "未获取到昨日延时,跳过检查",
+		})
 	}
 
 	errorRateScore := ScoreFromDoD(s.ErrorRateDoD, 5, 10, 20)
