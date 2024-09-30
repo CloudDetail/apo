@@ -65,7 +65,7 @@ export default function EmailConfigsFormList() {
   ]
 
   return (
-    <Form.List name="emailConfigs" initialValue={[{ html: defaultHtml }]}>
+    <Form.List name="emailConfigs" initialValue={[{ html: defaultHtml, requireTls: false }]}>
       {(fields, { add, remove }, { errors }) => (
         <>
           <Card

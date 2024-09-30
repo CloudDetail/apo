@@ -32,10 +32,12 @@ export default function ModifyAlertNotifyModal({
     })
   }
   const saveRule = () => {
+    console.log(form.getFieldsValue(true))
     form
       .validateFields()
       .then(() => {
         const formState = form.getFieldsValue(true)
+
         let amConfigReceiver = {
           name: formState.name,
         }
@@ -53,6 +55,7 @@ export default function ModifyAlertNotifyModal({
             config.tlsConfig = {
               insecureSkipVerify: true,
             }
+            config.requireTls = item.requireTls
             return config
           })
         } else if (formState.notifyType === 'webhook') {
