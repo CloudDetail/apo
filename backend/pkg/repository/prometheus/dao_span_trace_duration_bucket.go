@@ -34,7 +34,7 @@ func (repo *promRepo) QueryRangePercentile(startTime int64, endTime int64, step 
 
 	filters := []string{}
 	if len(endpoints) > 0 {
-		filters = append(filters, fmt.Sprintf(TEMPLATE_FILTER_ENDPOINT, strings.Join(endpoints, "|")))
+		filters = append(filters, fmt.Sprintf(TEMPLATE_FILTER_ENDPOINT, RegexMultipleValue(endpoints...)))
 	}
 	if len(services) > 0 {
 		filters = append(filters, fmt.Sprintf(TEMPLATE_FILTER_SVC, strings.Join(services, "|")))
@@ -126,7 +126,7 @@ func (repo *promRepo) QueryInstanceP90(startTime int64, endTime int64, step int6
 	query := fmt.Sprintf(TEMPLATE_INSTANCE_HISTO_P90_LATENCY,
 		repo.GetRange(),
 		queryCondition,
-		endpoint,
+		EscapeRegexp(endpoint),
 		getDurationFromStep(tRange.Step),
 	)
 	res, _, err := repo.GetApi().QueryRange(context.Background(), query, tRange)
