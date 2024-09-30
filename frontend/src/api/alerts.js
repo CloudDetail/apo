@@ -25,6 +25,7 @@ export const addRuleApi = (params) => {
 export const deleteRuleApi = (params) => {
   return del(`api/alerts/rule`, params)
 }
+
 //获取group和对应的label
 export const getRuleGroupLabelApi = (params) => {
   return get(`api/alerts/rule/groups`, params)
@@ -32,4 +33,22 @@ export const getRuleGroupLabelApi = (params) => {
 //获取告警规则中指标和PQl
 export const getRuleMetricsApi = (params) => {
   return get(`api/alerts/rule/metrics`, params)
+}
+
+// 通知类
+//告警通知规则获取
+export const getAlertmanagerListApi = (params) => {
+  return post(`/api/alerts/alertmanager/receiver/list`, params)
+}
+//添加告警通知规则获取
+export const addAlertNotifyApi = (params) => {
+  return post(`/api/alerts/alertmanager/receiver/add`, params)
+}
+//更新告警通知规则获取
+export const updateAlertNotifyApi = (params) => {
+  return post(`/api/alerts/alertmanager/receiver`, params)
+}
+//删除告警通知规则
+export const deleteAlertNotifyApi = (params) => {
+  return del(`/api/alerts/alertmanager/receiver`, params)
 }

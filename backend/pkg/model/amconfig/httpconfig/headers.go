@@ -67,6 +67,11 @@ func (h Headers) MarshalJSON() ([]byte, error) {
 	return json.Marshal(h.Headers)
 }
 
+func (h *Headers) UnmarshalJSON(data []byte) error {
+	// Inline the Headers map when serializing JSON because json encoder doesn't support "inline" directive.
+	return json.Unmarshal(data, &h.Headers)
+}
+
 // SetDirectory records the directory to make headers file relative to the
 // configuration file.
 func (h *Headers) SetDirectory(dir string) {

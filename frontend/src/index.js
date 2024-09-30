@@ -11,6 +11,7 @@ import { ConfigProvider, theme } from 'antd'
 import posthog from 'posthog-js'
 import { PostHogProvider } from 'posthog-js/react'
 import { MessageProvider } from './contexts/MessageContext'
+import ErrorBoundary from './components/ErrorBoundary'
 const apiHost = import.meta.env.VITE_PUBLIC_POSTHOG_HOST
 const apiKey = import.meta.env.VITE_PUBLIC_POSTHOG_KEY
 
@@ -20,24 +21,26 @@ posthog.init(apiKey, {
 })
 const AppWrapper = () => {
   return (
-    <Provider store={store}>
-      <ToastProvider>
-        <ConfigProvider
-          theme={{
-            algorithm: theme.darkAlgorithm,
-            components: {
-              Segmented: {
-                itemSelectedBg: '#4096ff',
+    <ErrorBoundary>
+      <Provider store={store}>
+        <ToastProvider>
+          <ConfigProvider
+            theme={{
+              algorithm: theme.darkAlgorithm,
+              components: {
+                Segmented: {
+                  itemSelectedBg: '#4096ff',
+                },
               },
-            },
-          }}
-        >
-          <MessageProvider>
-            <App />
-          </MessageProvider>
-        </ConfigProvider>
-      </ToastProvider>
-    </Provider>
+            }}
+          >
+            <MessageProvider>
+              <App />
+            </MessageProvider>
+          </ConfigProvider>
+        </ToastProvider>
+      </Provider>
+    </ErrorBoundary>
   )
 }
 createRoot(document.getElementById('root')).render(

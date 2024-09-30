@@ -166,7 +166,7 @@ export default function ModifyAlertRuleModal({
   }
   useEffect(() => {
     // console.log(ruleInfo)
-    if (ruleInfo) {
+    if (ruleInfo && modalVisible) {
       setExpr(ruleInfo.expr)
       const { time, unit } = splitTimeUnit(ruleInfo.for)
       if (unit) {
@@ -192,7 +192,7 @@ export default function ModifyAlertRuleModal({
       setExpr()
       setForUnit('s')
     }
-  }, [ruleInfo])
+  }, [modalVisible, ruleInfo])
   return (
     <>
       <Modal
@@ -274,18 +274,7 @@ export default function ModifyAlertRuleModal({
             />
           </Form.Item>
           {/* <Input placeholder="input placeholder" value={annotations} /> */}
-          <Form.List
-            name="annotations"
-            // rules={[
-            //   {
-            //     validator: async (_, names) => {
-            //       if (!names || names.length < 2) {
-            //         return Promise.reject(new Error('At least 2 passengers'))
-            //       }
-            //     },
-            //   },
-            // ]}
-          >
+          <Form.List name="annotations">
             {(fields, { add, remove }, { errors }) => (
               <>
                 <Form.Item
