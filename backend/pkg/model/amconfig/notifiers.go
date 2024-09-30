@@ -11,8 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// copy from github.com/prometheus/alertmanager@v0.27.0/config/config.go
-
 package amconfig
 
 import (

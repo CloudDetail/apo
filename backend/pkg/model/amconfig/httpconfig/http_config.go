@@ -11,7 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// repeated from github.com/prometheus/common@v0.55.0/config/http_config.go
 package httpconfig
 
 import (
@@ -377,7 +376,7 @@ func (c *HTTPClientConfig) Validate() error {
 			return fmt.Errorf("at most one of authorization credentials & credentials_file must be configured")
 		}
 	} else {
-		
+
 	}
 	if c.OAuth2 != nil {
 		if c.BasicAuth != nil {

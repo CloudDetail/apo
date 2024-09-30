@@ -14,7 +14,6 @@
 // This package no longer handles safe yaml parsing. In order to
 // ensure correct yaml unmarshalling, use "yaml.UnmarshalStrict()".
 
-// repeated from github.com/prometheus/common@v0.55.0/config/config.go
 package httpconfig
 
 import (
