@@ -1,7 +1,8 @@
-import { Card, Col, Form, Input, Row, Segmented, Switch } from 'antd'
+import { Card, Col, Form, Input, InputNumber, Row, Segmented, Switch } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
 import React, { useState } from 'react'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
+import { defaultHtml } from './defaultHTMLcontext'
 
 export default function EmailConfigsFormList() {
   const labelCol = { span: 8 }
@@ -19,16 +20,24 @@ export default function EmailConfigsFormList() {
       required: true,
     },
     {
-      label: 'SMTP服务器Host',
+      label: 'SMTP服务器域名',
       name: 'smarthost',
-      placeholder: 'SMTP服务器Host',
+      placeholder: 'SMTP服务器域名',
       required: true,
     },
     {
-      label: 'SMTP服务器Port',
+      label: 'SMTP服务器端口',
       name: 'smarthostPort',
-      placeholder: 'SMTP服务器Port',
+      placeholder: 'SMTP服务器端口',
       required: true,
+      type: 'number',
+      rules: [
+        {
+          validator: async (_, value) => {
+            if (!value) return Promise.reject(new Error('告警通知名不可为空'))
+          },
+        },
+      ],
     },
     {
       label: 'SMTP用户名',
@@ -41,10 +50,9 @@ export default function EmailConfigsFormList() {
       placeholder: 'SMTP密码',
     },
     {
-      label: '强制启用 TLS 安全传输',
+      label: '启用 TLS 安全传输',
       name: 'requireTls',
       type: 'boolean',
-      disabled: true,
       layout: 'horizontal',
       valuePropName: 'checked',
       span: 24,
@@ -54,6 +62,7 @@ export default function EmailConfigsFormList() {
       name: 'html',
       type: 'textarea',
       placeholder: '告警邮件的 HTML 格式的正文内容',
+      defaultValue: defaultHtml,
     },
     {
       label: '告警邮件文本正文',
@@ -97,6 +106,7 @@ export default function EmailConfigsFormList() {
                             required: item.required,
                             message: item.label + '不可为空',
                           },
+                          ...(item.rules ?? []),
                         ]}
                         layout={item.layout}
                         valuePropName={item.valuePropName}
@@ -104,9 +114,14 @@ export default function EmailConfigsFormList() {
                         {item.children ? (
                           item.children
                         ) : item.type === 'boolean' ? (
-                          <Switch defaultChecked disabled={item.disabled} />
+                          <Switch disabled={item.disabled} />
                         ) : item.type === 'textarea' ? (
-                          <TextArea placeholder={item.placeholder} />
+                          <TextArea
+                            placeholder={item.placeholder}
+                            defaultValue={item.defaultValue}
+                          />
+                        ) : item.type === 'number' ? (
+                          <InputNumber placeholder={item.placeholder} className="w-full" />
                         ) : (
                           <Input placeholder={item.placeholder} />
                         )}

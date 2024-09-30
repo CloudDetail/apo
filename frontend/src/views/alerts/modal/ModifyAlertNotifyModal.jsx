@@ -107,6 +107,7 @@ export default function ModifyAlertNotifyModal({
           authPassword: config.authPassword,
           html: config.html,
           text: config.text,
+          requireTls: config.requireTls,
         }
       })
       const webhookConfigs = notifyInfo?.webhookConfigs?.map((config) => {
