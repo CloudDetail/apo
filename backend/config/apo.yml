@@ -29,9 +29,9 @@ database:
     charset: "utf8mb4"
 
 clickhouse:
-  address: localhost:9000
+  address: 192.168.1.6:30124
   username: admin
-  password: admin
+  password: WPKf-e9U.X)K)ezTDo9#
   database: apo
   cluster:
 

@@ -54,6 +54,10 @@ type Repo interface {
 	// 查询故障现场日志内容可用的来源
 	QueryApplicationLogsAvailableSource(faultLog FaultLogResult) ([]string, error)
 
+	CreateLogTable(req *request.LogTableRequest) ([]string, error)
+	DropLogTable(req *request.LogTableRequest) ([]string, error)
+	UpdateLogTable(req *request.LogTableRequest, new, old []request.Field) ([]string, error)
+
 	InsertBatchAlertEvents(ctx context.Context, events []*model.AlertEvent) error
 	ReadAlertEvent(ctx context.Context, id uuid.UUID) (*model.AlertEvent, error)
 	GetConn() driver.Conn
