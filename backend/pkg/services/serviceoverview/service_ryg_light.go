@@ -112,7 +112,7 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 			Detail: fmt.Sprintf("latency 同比增长 %.2f%%", *s.LatencyDoD),
 		})
 	} else if latencyScore == -1 {
-		res.Score += latencyScore
+		res.Score += 3
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
 			Key:    "latency",
 			Score:  3,
