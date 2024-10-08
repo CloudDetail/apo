@@ -12,7 +12,7 @@ const (
 	SQL_GET_APP_LOG_SOURCE = `SELECT LogAttributes['_source_'] as LogSource
 		FROM ilogtail_logs
 		%s %s`
-	SQL_GET_APP_LOG = `SELECT toUnixTimestamp64Micro(Timestamp) as ts,Body,
+	SQL_GET_APP_LOG = `SELECT toUnixTimestamp64Micro(Timestamp) as ts,Body
 		FROM ilogtail_logs
 		%s %s`
 )
