@@ -30,7 +30,7 @@ const (
 	SQL_GET_DESCENDANT_TOPOLOGY = `
 		WITH found_trace_ids AS
 		(
-			SELECT trace_id, nodes.path as path
+			SELECT trace_id, nodes.path as path , '' as empty_path
 			FROM %s.service_topology
 			ARRAY JOIN nodes
 			%s
@@ -43,7 +43,7 @@ const (
 		GLOBAL JOIN found_trace_ids ON service_topology.trace_id = found_trace_ids.trace_id
 		WHERE timestamp BETWEEN %d AND %d AND startsWith(nodes.path, found_trace_ids.path)
 		AND nodes.path != found_trace_ids.path
-		AND nodes.parent_service != ''
+		AND nodes.parent_service != found_trace_ids.empty_path
 		GROUP BY nodes.service, nodes.url, nodes.parent_service, nodes.parent_url
 	`
 
