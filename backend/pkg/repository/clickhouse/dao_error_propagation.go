@@ -13,7 +13,7 @@ const (
 		WITH found_trace_ids AS
 		(
 			SELECT error_propagation.timestamp as timestamp, error_propagation.trace_id as trace_id, error_propagation.entry_span_id as entry_span_id,
-				nodes.service as service, nodes.instance as instance_id, nodes.path as path, nodes.depth as depth, nodes.error_types as error_types, nodes.error_msgs as error_msgs
+				nodes.service as service, nodes.instance as instance_id, nodes.path as path, nodes.depth as depth, nodes.error_types as error_types, nodes.error_msgs as error_msgs,true as is_error
 			FROM %s.error_propagation
 			ARRAY JOIN nodes
 			%s %s
@@ -27,7 +27,7 @@ const (
 			FROM error_propagation
 			ARRAY JOIN nodes
 			GLOBAL JOIN found_trace_ids ON error_propagation.trace_id = found_trace_ids.trace_id AND error_propagation.entry_span_id = found_trace_ids.entry_span_id
-			WHERE timestamp BETWEEN %d AND %d AND startsWith(found_trace_ids.path, nodes.path) AND nodes.depth=found_trace_ids.depth - 1 AND nodes.is_error = true
+			WHERE timestamp BETWEEN %d AND %d AND startsWith(found_trace_ids.path, nodes.path) AND nodes.depth=found_trace_ids.depth - 1 AND nodes.is_error = found_trace_ids.is_error
 			GROUP BY trace_id
 		) AS parent_node ON parent_node.trace_id = found_trace_ids.trace_id
 		LEFT JOIN(
@@ -35,7 +35,7 @@ const (
 			FROM error_propagation
 			ARRAY JOIN nodes
 			GLOBAL JOIN found_trace_ids ON error_propagation.trace_id = found_trace_ids.trace_id AND error_propagation.entry_span_id = found_trace_ids.entry_span_id
-			WHERE timestamp BETWEEN %d AND %d AND startsWith(nodes.path, found_trace_ids.path) AND nodes.depth=found_trace_ids.depth+1 AND nodes.is_error = true
+			WHERE timestamp BETWEEN %d AND %d AND startsWith(nodes.path, found_trace_ids.path) AND nodes.depth=found_trace_ids.depth+1 AND nodes.is_error = found_trace_ids.is_error
 			GROUP BY trace_id
 		) AS child_node on child_node.trace_id = found_trace_ids.trace_id
 	`
