@@ -33,7 +33,8 @@ var zhCnText = map[string]string{
 	DropLogTableError:        "删除全量日志表出错",
 	UpateLogTableError:       "更新全量日志表出错",
 
-	QueryLogError: "查询全量日志失败",
+	QueryLogError:    "查询全量日志失败",
+	GetLogChartError: "获取全量日志图表数据失败",
 
 	GetTracePageListError:    "获取Trace分页列表失败",
 	GetTraceFiltersError:     "获取Trace过滤条件失败",

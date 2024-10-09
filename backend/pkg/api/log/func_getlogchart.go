@@ -26,8 +26,8 @@ func (h *handler) GetLogChart() core.HandlerFunc {
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.QueryLogError,
-				code.Text(code.QueryLogError)).WithError(err),
+				code.GetLogChartError,
+				code.Text(code.GetLogChartError)).WithError(err),
 			)
 			return
 		}

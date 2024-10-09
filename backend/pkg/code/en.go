@@ -33,7 +33,8 @@ var enText = map[string]string{
 	DropLogTableError:   "Failed to drop log table",
 	UpateLogTableError:  "Failed to update log table",
 
-	QueryLogError: "Failed to query all logs",
+	QueryLogError:    "Failed to query all logs",
+	GetLogChartError: "Failed to get log chart",
 
 	GetTracePageListError:    "Failed to get trace pagelist",
 	GetTraceFiltersError:     "Failed to get trace filters",

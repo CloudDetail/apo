@@ -43,7 +43,8 @@ const (
 	DropLogTableError                   = "B0404"
 	UpateLogTableError                  = "B0405"
 
-	QueryLogError = "B0406"
+	QueryLogError    = "B0406"
+	GetLogChartError = "B0407"
 
 	GetTracePageListError    = "B0501"
 	GetTraceFiltersError     = "B0502"
