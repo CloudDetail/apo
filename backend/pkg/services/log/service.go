@@ -25,6 +25,8 @@ type Service interface {
 
 	// 查询全量日志
 	QueryLog(req *request.LogQueryRequest) (*response.LogQueryResponse, error)
+	// 日志趋势图
+	GetLogChart(req *request.LogQueryRequest) (*response.LogChartResponse, error)
 }
 
 type service struct {

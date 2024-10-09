@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	querySQl = `SELECT * FROM %s.%s %s %s %s`
+	querySQl = `SELECT * FROM %s.%s %s %s`
 )
 
 func (ch *chRepo) queryLogs(sql string) ([]map[string]any, error) {
@@ -49,7 +49,7 @@ func (ch *chRepo) QueryAllLogs(req *request.LogQueryRequest) ([]map[string]any, 
 		Limit(req.PageSize).
 		Offset((req.PageNum - 1) * req.PageSize).
 		String()
-	sql := fmt.Sprintf(querySQl, req.DataBase, req.TableName, condition, req.Query, bySql)
+	sql := fmt.Sprintf(querySQl, req.DataBase, req.TableName, condition, bySql)
 
 	results, err := ch.queryLogs(sql)
 	if err != nil {

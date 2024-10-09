@@ -30,6 +30,8 @@ type Handler interface {
 
 	//GetLogTableInfo() core.HandlerFunc
 	QueryLog() core.HandlerFunc
+
+	GetLogChart() core.HandlerFunc
 }
 
 type handler struct {
