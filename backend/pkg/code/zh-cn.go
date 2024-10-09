@@ -29,6 +29,11 @@ var zhCnText = map[string]string{
 
 	GetFaultLogPageListError: "获取故障现场日志分页列表失败",
 	GetFaultLogContentError:  "获取故障现场日志内容失败",
+	CreateLogTableError:      "创建全量日志表出错",
+	DropLogTableError:        "删除全量日志表出错",
+	UpateLogTableError:       "更新全量日志表出错",
+
+	QueryLogError: "查询全量日志失败",
 
 	GetTracePageListError:    "获取Trace分页列表失败",
 	GetTraceFiltersError:     "获取Trace过滤条件失败",

@@ -28,7 +28,8 @@ type Handler interface {
 
 	UpdateLogTable() core.HandlerFunc
 
-	GetLogTableInfo() core.HandlerFunc
+	//GetLogTableInfo() core.HandlerFunc
+	QueryLog() core.HandlerFunc
 }
 
 type handler struct {

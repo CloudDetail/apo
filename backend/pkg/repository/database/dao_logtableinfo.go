@@ -27,11 +27,11 @@ func (repo *daoRepo) OperateLogTableInfo(model *LogTableInfo, op Operator) error
 	case INSERT:
 		err = repo.db.Create(model).Error
 	case QUERY:
-		err = repo.db.Where("database=? AND tablename=? AND cluster", model.DataBase, model.Table, model.Cluster).First(model).Error
+		err = repo.db.Where("database=? AND tablename=?", model.DataBase, model.Table).First(model).Error
 	case UPDATE:
-		err = repo.db.Model(&LogTableInfo{}).Where("database=? AND tablename=? AND cluster", model.DataBase, model.Table, model.Cluster).Update("fields", model.Fields).Error
+		err = repo.db.Model(&LogTableInfo{}).Where("database=? AND tablename=?", model.DataBase, model.Table).Update("fields", model.Fields).Error
 	case DELETE:
-		return repo.db.Where("database=? AND tablename=? AND cluster", model.DataBase, model.Table, model.Cluster).Delete(&LogTableInfo{}).Error
+		return repo.db.Where("database=? AND tablename=?", model.DataBase, model.Table).Delete(&LogTableInfo{}).Error
 	}
 	return err
 }

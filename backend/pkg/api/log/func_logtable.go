@@ -23,8 +23,8 @@ func (h *handler) CreateLogTable() core.HandlerFunc {
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.GetFaultLogContentError,
-				code.Text(code.GetFaultLogContentError)).WithError(err),
+				code.CreateLogTableError,
+				code.Text(code.CreateLogTableError)).WithError(err),
 			)
 			return
 		}
@@ -47,8 +47,8 @@ func (h *handler) DropLogTable() core.HandlerFunc {
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.GetFaultLogContentError,
-				code.Text(code.GetFaultLogContentError)).WithError(err),
+				code.DropLogTableError,
+				code.Text(code.DropLogTableError)).WithError(err),
 			)
 			return
 		}
@@ -71,8 +71,8 @@ func (h *handler) UpdateLogTable() core.HandlerFunc {
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.GetFaultLogContentError,
-				code.Text(code.GetFaultLogContentError)).WithError(err),
+				code.UpateLogTableError,
+				code.Text(code.UpateLogTableError)).WithError(err),
 			)
 			return
 		}

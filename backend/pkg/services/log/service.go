@@ -22,6 +22,9 @@ type Service interface {
 	UpdateLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error)
 
 	GetLogTableInfo(req *request.LogTableRequest) (*response.LogTableResponse, error)
+
+	// 查询全量日志
+	QueryLog(req *request.LogQueryRequest) (*response.LogQueryResponse, error)
 }
 
 type service struct {
