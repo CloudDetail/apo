@@ -211,7 +211,7 @@ func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstanc
 			Keys: []string{"tags['src_namespace']", "tags['src_pod']"},
 		}
 		var vmPods ValueInGroups = ValueInGroups{
-			Keys: []string{"tags['src_node']", "tags['pid']"},
+			Keys: []string{"tags['node_name']", "tags['pid']"},
 		}
 
 		for _, instance := range instances {
