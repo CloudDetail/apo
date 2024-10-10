@@ -8,6 +8,16 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
+// GetLogIndex 分析字段索引
+// @Summary 分析字段索引
+// @Description 分析字段索引
+// @Tags API.log
+// @Accept json
+// @Produce json
+// @Param Request body request.LogIndexRequest true "请求信息"
+// @Success 200 {object} response.LogIndexResponse
+// @Failure 400 {object} code.Failure
+// @Router /api/log/index [post]
 func (h *handler) GetLogIndex() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.LogIndexRequest)

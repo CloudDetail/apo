@@ -8,6 +8,16 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
+// QueryLog 查询全量日志
+// @Summary 查询全量日志日志
+// @Description 查询全量日志
+// @Tags API.log
+// @Accept json
+// @Produce json
+// @Param Request body request.LogQueryRequest true "请求信息"
+// @Success 200 {object} response.LogQueryResponse
+// @Failure 400 {object} code.Failure
+// @Router /api/log/query [post]
 func (h *handler) QueryLog() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.LogQueryRequest)
