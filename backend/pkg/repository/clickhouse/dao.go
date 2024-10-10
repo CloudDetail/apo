@@ -60,8 +60,11 @@ type Repo interface {
 	DropLogTable(req *request.LogTableRequest) ([]string, error)
 	UpdateLogTable(req *request.LogTableRequest, new, old []request.Field) ([]string, error)
 
+	queryRowsData(sql string) ([]map[string]any, error)
+
 	QueryAllLogs(req *request.LogQueryRequest) ([]map[string]any, string, error)
 	GetLogChart(req *request.LogQueryRequest) ([]map[string]any, int64, error)
+	GetLogIndex(req *request.LogIndexRequest) (map[string]uint64, uint64, error)
 
 	InsertBatchAlertEvents(ctx context.Context, events []*model.AlertEvent) error
 	ReadAlertEvent(ctx context.Context, id uuid.UUID) (*model.AlertEvent, error)

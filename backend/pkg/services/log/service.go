@@ -27,6 +27,8 @@ type Service interface {
 	QueryLog(req *request.LogQueryRequest) (*response.LogQueryResponse, error)
 	// 日志趋势图
 	GetLogChart(req *request.LogQueryRequest) (*response.LogChartResponse, error)
+	// 字段分析
+	GetLogIndex(req *request.LogIndexRequest) (*response.LogIndexResponse, error)
 }
 
 type service struct {

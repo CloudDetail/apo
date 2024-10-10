@@ -28,10 +28,20 @@ type Handler interface {
 
 	UpdateLogTable() core.HandlerFunc
 
-	//GetLogTableInfo() core.HandlerFunc
+	// QueryLog 查询全量日志
+	// @Tags API.log
+	// @Router /api/log/query [post]
 	QueryLog() core.HandlerFunc
 
+	// GetLogChart 获取日志趋势图
+	// @Tags API.log
+	// @Router /api/log/chart [post]
 	GetLogChart() core.HandlerFunc
+
+	// GetLogIndex 分析字段索引
+	// @Tags API.log
+	// @Router /api/log/index [post]
+	GetLogIndex() core.HandlerFunc
 }
 
 type handler struct {

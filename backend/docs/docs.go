@@ -655,6 +655,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/log/chart": {
+            "post": {
+                "description": "获取日志趋势图",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "获取日志趋势图",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.LogQueryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.LogChartResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/log/fault/content": {
             "post": {
                 "description": "获取故障现场日志内容",
@@ -721,6 +761,86 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.GetFaultLogPageListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/log/index": {
+            "post": {
+                "description": "分析字段索引",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "分析字段索引",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.LogIndexRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.LogIndexResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/log/query": {
+            "post": {
+                "description": "查询全量日志",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "查询全量日志日志",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.LogQueryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.LogQueryResponse"
                         }
                     },
                     "400": {
@@ -4178,6 +4298,63 @@ const docTemplate = `{
                 }
             }
         },
+        "request.LogIndexRequest": {
+            "type": "object",
+            "required": [
+                "endTime"
+            ],
+            "properties": {
+                "cloumn": {
+                    "type": "string"
+                },
+                "dataBase": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "integer"
+                },
+                "query": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "tableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.LogQueryRequest": {
+            "type": "object",
+            "required": [
+                "endTime"
+            ],
+            "properties": {
+                "dataBase": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "integer"
+                },
+                "pageNum": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "query": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "tableName": {
+                    "type": "string"
+                }
+            }
+        },
         "request.Operation": {
             "type": "string",
             "enum": [
@@ -4987,6 +5164,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.IndexItem": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "indexName": {
+                    "type": "string"
+                },
+                "percent": {
+                    "type": "number"
+                }
+            }
+        },
         "response.InstanceData": {
             "type": "object",
             "properties": {
@@ -5131,6 +5322,84 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/response.Pagination"
+                }
+            }
+        },
+        "response.LogChartResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "histograms": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.LogHistogram"
+                    }
+                },
+                "progress": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.LogHistogram": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "from": {
+                    "type": "integer"
+                },
+                "progress": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.LogIndexResponse": {
+            "type": "object",
+            "properties": {
+                "indexs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.IndexItem"
+                    }
+                }
+            }
+        },
+        "response.LogQueryResponse": {
+            "type": "object",
+            "properties": {
+                "cost": {
+                    "type": "integer"
+                },
+                "defaultFields": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "hiddenFields": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "limited": {
+                    "type": "integer"
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                    }
+                },
+                "query": {
+                    "type": "string"
                 }
             }
         },
