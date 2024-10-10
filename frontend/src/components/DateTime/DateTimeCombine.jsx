@@ -25,9 +25,8 @@ function ShareLink() {
       searchParams.set('to', TimestampToISO(endTime))
       url = currentUrl.origin + '/#' + location.pathname + '?' + searchParams.toString()
     }
-
     setCopyUrl(url)
-  }, [shareType, rangeTypeKey])
+  }, [shareType, rangeTypeKey, location])
   return (
     <>
       <Popover

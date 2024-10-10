@@ -16,13 +16,14 @@ import EndpointTableModal from './component/EndpointTableModal'
 import LoadingSpinner from 'src/components/Spinner'
 import { Input, Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
+import { useDebounce } from 'react-use'
 export default function ServiceView() {
   const navigate = useNavigate()
   const [data, setData] = useState([])
   const [serachServiceName, setSerachServiceName] = useState()
   const [serachEndpointName, setSerachEndpointName] = useState()
   const [serachNamespace, setSerachNamespace] = useState()
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [modalVisible, setModalVisible] = useState(false)
   const [modalServiceName, setModalServiceName] = useState()
   const [requestTimeRange, setRequestTimeRange] = useState({
@@ -286,9 +287,14 @@ export default function ServiceView() {
         })
     }
   }
-  useEffect(() => {
-    getTableData()
-  }, [startTime, endTime])
+  //防抖避免跳转使用旧时间
+  useDebounce(
+    () => {
+      getTableData()
+    },
+    300, // 延迟时间 300ms
+    [startTime, endTime],
+  )
 
   const handleKeyDown = (event) => {
     getTableData()
@@ -340,16 +346,45 @@ export default function ServiceView() {
     return {
       columns: column,
       data: paginatedData,
+      // data: [],
 
-      loading: false,
+      loading: loading,
       onChange: handleTableChange,
       pagination: {
         pageSize: pageSize,
         pageIndex: pageIndex,
         pageCount: Math.ceil(data.length / pageSize),
       },
+      emptyContent: (
+        <div className="text-center">
+          暂无数据
+          <div className="text-left p-2">
+            <div className="py-2">
+              1. 如尚未监控应用，请参阅
+              <a
+                className="underline text-sky-500"
+                target="_blank"
+                href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/监控%20Kubernetes%20集群中的服务器和应用使用OneAgent默认OTEL探针版本/"
+              >
+                监控手册
+              </a>
+            </div>
+            <div>
+              2. 如已监控应用但仍无数据，请参阅
+              <a
+                className="underline text-sky-500"
+                target="_blank"
+                href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/运维与故障排除/APO%20服务概览无数据排查文档/#常见基础问题排查"
+              >
+                故障排除手册
+              </a>
+            </div>
+          </div>
+        </div>
+      ),
+      showLoading: false,
     }
-  }, [data, pageIndex, pageSize])
+  }, [data, pageIndex, pageSize, loading])
   return (
     <div style={{ width: '100%', overflow: 'hidden' }}>
       <LoadingSpinner loading={loading} />

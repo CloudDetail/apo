@@ -8,7 +8,7 @@ import { useSelector } from 'react-redux'
 import { getStep } from 'src/utils/step'
 import { getServiceSqlMetrics } from 'src/api/serviceInfo'
 import LoadingSpinner from 'src/components/Spinner'
-import { useUpdateEffect } from 'react-use'
+import { useDebounce, useUpdateEffect } from 'react-use'
 
 export default function SqlMetrics() {
   const [data, setData] = useState()
@@ -100,13 +100,25 @@ export default function SqlMetrics() {
         })
     }
   }
-  useEffect(() => {
-    if (pageIndex === 1) {
-      getData()
-    } else {
-      setPageIndex(1)
-    }
-  }, [serviceName, startTime, endTime])
+  // useEffect(() => {
+  //   if (pageIndex === 1) {
+  //     getData()
+  //   } else {
+  //     setPageIndex(1)
+  //   }
+  // }, [serviceName, startTime, endTime])
+
+  useDebounce(
+    () => {
+      if (pageIndex === 1) {
+        getData()
+      } else {
+        setPageIndex(1)
+      }
+    },
+    300, // 延迟时间 300ms
+    [startTime, endTime, serviceName],
+  )
   useUpdateEffect(() => {
     getData()
   }, [pageIndex, pageSize])

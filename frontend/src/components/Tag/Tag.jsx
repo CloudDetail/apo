@@ -3,7 +3,7 @@ import React from 'react'
 export default function Tag(props) {
   const { type = 'default', color, children } = props
   const typeColorMap = {
-    default: { color: '#fafafa', borderColor: '#fafafa', backgroundColor: '#2a1215' },
+    default: { color: '#a1a1a1', borderColor: '#fafafa' },
     success: { color: '#6abe39', borderColor: '#274916', backgroundColor: '#162312' },
     error: { color: '#e84749', borderColor: '#58181c', backgroundColor: '#2a1215' },
     warning: { color: '#e89a3c', background: '#2b1d11', borderColor: '#593815' },
