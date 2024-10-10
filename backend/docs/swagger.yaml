@@ -866,6 +866,44 @@ definitions:
       truncatedAlerts:
         type: integer
     type: object
+  request.LogIndexRequest:
+    properties:
+      cloumn:
+        type: string
+      dataBase:
+        type: string
+      endTime:
+        type: integer
+      query:
+        type: string
+      startTime:
+        minimum: 0
+        type: integer
+      tableName:
+        type: string
+    required:
+    - endTime
+    type: object
+  request.LogQueryRequest:
+    properties:
+      dataBase:
+        type: string
+      endTime:
+        type: integer
+      pageNum:
+        type: integer
+      pageSize:
+        type: integer
+      query:
+        type: string
+      startTime:
+        minimum: 0
+        type: integer
+      tableName:
+        type: string
+    required:
+    - endTime
+    type: object
   request.Operation:
     enum:
     - EQUAL
@@ -1420,6 +1458,15 @@ definitions:
       pagination:
         $ref: '#/definitions/model.Pagination'
     type: object
+  response.IndexItem:
+    properties:
+      count:
+        type: integer
+      indexName:
+        type: string
+      percent:
+        type: number
+    type: object
   response.InstanceData:
     properties:
       alertReason:
@@ -1518,6 +1565,57 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/response.Pagination'
+    type: object
+  response.LogChartResponse:
+    properties:
+      count:
+        type: integer
+      histograms:
+        items:
+          $ref: '#/definitions/response.LogHistogram'
+        type: array
+      progress:
+        type: string
+    type: object
+  response.LogHistogram:
+    properties:
+      count:
+        type: integer
+      from:
+        type: integer
+      progress:
+        type: string
+      to:
+        type: integer
+    type: object
+  response.LogIndexResponse:
+    properties:
+      indexs:
+        items:
+          $ref: '#/definitions/response.IndexItem'
+        type: array
+    type: object
+  response.LogQueryResponse:
+    properties:
+      cost:
+        type: integer
+      defaultFields:
+        items:
+          type: string
+        type: array
+      hiddenFields:
+        items:
+          type: string
+        type: array
+      limited:
+        type: integer
+      logs:
+        items:
+          additionalProperties: true
+          type: object
+        type: array
+      query:
+        type: string
     type: object
   response.Pagination:
     properties:
@@ -2105,6 +2203,32 @@ paths:
       summary: 配置TTL
       tags:
       - Api.config
+  /api/log/chart:
+    post:
+      consumes:
+      - application/json
+      description: 获取日志趋势图
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.LogQueryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.LogChartResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取日志趋势图
+      tags:
+      - API.log
   /api/log/fault/content:
     post:
       description: 获取故障现场日志内容
@@ -2153,6 +2277,58 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取故障现场分页日志
+      tags:
+      - API.log
+  /api/log/index:
+    post:
+      consumes:
+      - application/json
+      description: 分析字段索引
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.LogIndexRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.LogIndexResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 分析字段索引
+      tags:
+      - API.log
+  /api/log/query:
+    post:
+      consumes:
+      - application/json
+      description: 查询全量日志
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.LogQueryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.LogQueryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 查询全量日志日志
       tags:
       - API.log
   /api/mock:
