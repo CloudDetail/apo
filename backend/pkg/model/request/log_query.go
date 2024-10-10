@@ -9,3 +9,12 @@ type LogQueryRequest struct {
 	PageNum   int    `json:"pageNum"`
 	PageSize  int    `json:"pageSize"`
 }
+
+type LogIndexRequest struct {
+	StartTime int64  `json:"startTime" binding:"min=0"`
+	EndTime   int64  `json:"endTime" binding:"required,gtfield=StartTime"`
+	TableName string `json:"tableName"`
+	DataBase  string `json:"dataBase"`
+	Cloumn    string `json:"cloumn"`
+	Query     string `json:"query"`
+}

@@ -39,33 +39,9 @@ func chartSQL(req *request.LogQueryRequest) (string, int64) {
 
 func (ch *chRepo) GetLogChart(req *request.LogQueryRequest) ([]map[string]any, int64, error) {
 	sql, interval := chartSQL(req)
-	rows, err := ch.db.Query(sql)
+	results, err := ch.queryRowsData(sql)
 	if err != nil {
 		return nil, interval, err
-	}
-	defer rows.Close()
-
-	columns, err := rows.Columns()
-	if err != nil {
-		return nil, interval, err
-	}
-	results := make([]map[string]interface{}, 0)
-	for rows.Next() {
-		values := make([]interface{}, len(columns))
-		valuePtrs := make([]interface{}, len(columns))
-		for i := range values {
-			valuePtrs[i] = &values[i]
-		}
-		if err := rows.Scan(valuePtrs...); err != nil {
-			return nil, interval, err
-		}
-
-		entry := make(map[string]interface{})
-
-		for i, col := range columns {
-			entry[col] = values[i]
-		}
-		results = append(results, entry)
 	}
 	return results, interval, nil
 }

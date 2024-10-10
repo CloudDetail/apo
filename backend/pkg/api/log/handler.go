@@ -32,6 +32,8 @@ type Handler interface {
 	QueryLog() core.HandlerFunc
 
 	GetLogChart() core.HandlerFunc
+
+	GetLogIndex() core.HandlerFunc
 }
 
 type handler struct {
