@@ -29,11 +29,11 @@ database:
     charset: "utf8mb4"
 
 clickhouse:
-  address: 192.168.1.6:30666
+  address: localhost:9000
   username: admin
-  password: WPKf-e9U.X)K)ezTDo9#
+  password: admin
   database: apo
-  cluster: cluster
+  cluster:
 
 promethues:
   address: http://localhost:9090
