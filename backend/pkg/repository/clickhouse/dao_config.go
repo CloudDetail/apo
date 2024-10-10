@@ -3,9 +3,9 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"log"
-
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"log"
 )
 
 func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTableTTLMap) error {
@@ -15,14 +15,23 @@ func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTa
 
 	for _, table := range mapResult {
 		go func(table model.ModifyTableTTLMap) {
+			cluster := config.GetCHCluster()
 			escapedTableName := fmt.Sprintf("`%s`", table.Name)
-			finalQuery := fmt.Sprintf(`
+			var finalQuery string
+			if len(cluster) > 0 {
+				finalQuery = fmt.Sprintf(`
+				ALTER TABLE %s ON CLUSTER %s
+				MODIFY TTL %s`,
+					escapedTableName, cluster, table.TTLExpression)
+			} else {
+				finalQuery = fmt.Sprintf(`
 				ALTER TABLE %s
-				MODIFY TTL %s;`,
-				escapedTableName, table.TTLExpression)
+				MODIFY TTL %s`,
+					escapedTableName, table.TTLExpression)
+			}
 
 			if err := ch.conn.Exec(ctx, finalQuery); err != nil {
-				fmt.Printf("failed to modify TTL for table %s: %v\n", table.Name, err)
+				log.Printf("failed to modify TTL for table %s: %v\n\n", table.Name, err)
 			}
 		}(table)
 	}
@@ -30,22 +39,20 @@ func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTa
 	return nil
 }
 
-func (ch *chRepo) GetTables(blackTableNames []string, whiteTableNames []string) ([]model.TablesQuery, error) {
+func (ch *chRepo) GetTables(tables []model.Table) ([]model.TablesQuery, error) {
 	result := make([]model.TablesQuery, 0)
 	query := "SELECT name, create_table_query FROM system.tables WHERE database=(SELECT currentDatabase()) AND name NOT LIKE '.%'"
-
-	args := []interface{}{}
+	var args []interface{}
 	argIndex := 1
 
-	if len(blackTableNames) > 0 {
-		query += fmt.Sprintf(" AND name NOT IN ($%d)", argIndex)
-		args = append(args, blackTableNames)
-		argIndex++
+	names := make([]string, len(tables))
+	for i := range tables {
+		names = append(names, tables[i].TableName())
 	}
 
-	if len(whiteTableNames) > 0 {
+	if len(tables) > 0 {
 		query += fmt.Sprintf(" AND name IN ($%d)", argIndex)
-		args = append(args, whiteTableNames)
+		args = append(args, names)
 		argIndex++
 	}
 

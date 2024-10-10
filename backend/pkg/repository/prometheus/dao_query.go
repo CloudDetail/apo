@@ -193,6 +193,8 @@ func (repo *promRepo) QueryLatencyData(searchTime time.Time, query string) ([]Me
 				metric.PodName = string(value)
 			case "namespace":
 				metric.Namespace = string(value)
+			case "node_ip":
+				metric.NodeIP = string(value)
 			}
 		}
 

@@ -12,15 +12,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-var typeRules = map[string][]string{
-	"logs":     {"ilogtail_logs"},
-	"trace":    {"span_trace", "jaeger_index_local", "jaeger_spans_archive_local", "jaeger_spans_local", "jaeger_operations_local"},
-	"k8s":      {"k8s_events"},
-	"topology": {"service_relation", "service_topology"},
-}
-
 // 包级别的正则表达式变量
-var ttlRegex = regexp.MustCompile(`TTL\s+([^\s]+(?:\s*\+\s*toIntervalDay\((\d+)\))?)`)
+var ttlRegex = regexp.MustCompile(`TTL\s+(\S+(?:\s*\+\s*toIntervalDay\((\d+)\))?)`)
 var toIntervalDayRegex = regexp.MustCompile(`toIntervalDay\((\d+)\)`)
 
 func prepareTTLInfo(tables []model.TablesQuery) []model.ModifyTableTTLMap {
@@ -47,8 +40,9 @@ func prepareTTLInfo(tables []model.TablesQuery) []model.ModifyTableTTLMap {
 	}
 	return mapResult
 }
-func (s *service) SetTableTTL(blackTableNames []string, whiteTableNames []string, day int) error {
-	tables, err := s.chRepo.GetTables(blackTableNames, whiteTableNames)
+
+func (s *service) SetTableTTL(tableNames []model.Table, day int) error {
+	tables, err := s.chRepo.GetTables(tableNames)
 	if err != nil {
 		log.Println("[SetSingleTableTTL] Error getting tables: ", err)
 		return err
@@ -80,25 +74,26 @@ func (s *service) SetTTL(req *request.SetTTLRequest) error {
 	if req.Day <= 0 {
 		return errors.New("[SetTTL] Error : day should > 0  ")
 	}
-	blackTableNames := []string{}
-	whiteTableNames := []string{}
-	if req.DataType == "other" {
-		types := []string{"logs", "trace", "k8s", "topology"}
-		for _, t := range types {
-			convertedNames := typeRules[t]
-			blackTableNames = append(blackTableNames, convertedNames...)
-		}
-	} else {
-		whiteTableNames = typeRules[req.DataType]
+
+	tables := model.GetTables(req.DataType)
+	if len(tables) == 0 {
+		return fmt.Errorf("type: %s does not have tables", req.DataType)
 	}
-	err := s.SetTableTTL(blackTableNames, whiteTableNames, req.Day)
+	err := s.SetTableTTL(tables, req.Day)
 	return err
 }
 
 func (s *service) SetSingleTableTTL(req *request.SetSingleTTLRequest) error {
 	if req.Day <= 0 {
-		return errors.New("[SetSingleTableTTL] Error : day should > 0  ")
+		return errors.New("[SetSingleTableTTL] Error: day should > 0  ")
 	}
-	err := s.SetTableTTL([]string{}, []string{req.Name}, req.Day)
+	if !model.IsTableExists(req.Name) {
+		return fmt.Errorf("[SetSingleTableTTL] Error: table %s does not exists", req.Name)
+	}
+
+	tables := []model.Table{
+		{Name: req.Name},
+	}
+	err := s.SetTableTTL(tables, req.Day)
 	return err
 }

@@ -22,11 +22,11 @@ type AlertGroup struct {
 	// e.g 应用指标 -> group: app
 }
 
-func Parse(strContent string) (*AlertRules, error) {
+func ParseAlertRules(strContent string) (*AlertRules, error) {
 	data := []byte(strContent)
 	ruleGroups, errs := promfmt.Parse(data)
 	if errs != nil {
-		// TODO
+		return nil, errs[0]
 	}
 
 	groups := make([]AlertGroup, 0)

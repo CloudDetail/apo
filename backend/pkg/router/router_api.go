@@ -61,9 +61,15 @@ func setApiRouter(r *resource) {
 
 	logApi := r.mux.Group("/api/log")
 	{
-		logHandler := log.New(r.logger, r.ch)
+		logHandler := log.New(r.logger, r.ch, r.pkg_db)
 		logApi.POST("/fault/pagelist", logHandler.GetFaultLogPageList())
 		logApi.POST("/fault/content", logHandler.GetFaultLogContent())
+		logApi.POST("/create", logHandler.CreateLogTable())
+		logApi.POST("/update", logHandler.UpdateLogTable())
+		logApi.POST("/drop", logHandler.DropLogTable())
+
+		logApi.GET("/query", logHandler.QueryLog())
+		logApi.GET("/chart", logHandler.GetLogChart())
 	}
 
 	traceApi := r.mux.Group("/api/trace")
@@ -80,10 +86,22 @@ func setApiRouter(r *resource) {
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.GET("/rules/file", alertHandler.GetAlertRuleFile())
 		alertApi.POST("/rules/file", alertHandler.UpdateAlertRuleFile())
+
+		alertApi.GET("/rule/groups", alertHandler.GetGroupList())
+		alertApi.GET("/rule/metrics", alertHandler.GetMetricPQL())
+
 		alertApi.POST("/rule/list", alertHandler.GetAlertRules())
 		alertApi.POST("/rule", alertHandler.UpdateAlertRule())
 		alertApi.DELETE("/rule", alertHandler.DeleteAlertRule())
+		alertApi.POST("/rule/add", alertHandler.AddAlertRule())
+		alertApi.GET("/rule/available", alertHandler.CheckAlertRule())
+
+		alertApi.POST("/alertmanager/receiver/list", alertHandler.GetAlertManagerConfigReceiver())
+		alertApi.POST("/alertmanager/receiver/add", alertHandler.AddAlertManagerConfigReceiver())
+		alertApi.POST("/alertmanager/receiver", alertHandler.UpdateAlertManagerConfigReceiver())
+		alertApi.DELETE("/alertmanager/receiver", alertHandler.DeleteAlertManagerConfigReceiver())
 	}
+
 	configApi := r.mux.Group("/api/config")
 	{
 		configHandler := config.New(r.logger, r.ch)

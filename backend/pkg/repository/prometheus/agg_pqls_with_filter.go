@@ -5,7 +5,7 @@ import (
 )
 
 // PQLAvgDepLatencyWithFilters 查询来自外部依赖的平均耗时
-// 返回结果为 外部依赖的评价耗时
+// 返回结果为 外部依赖的平均耗时
 func PQLAvgDepLatencyWithFilters(vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")
 	allDepNetworkLatency := `sum by (` + granularity + `) (
@@ -42,6 +42,7 @@ func PQLIsPolarisMetricExitsWithFilters(vector string, granularity string, filte
 	onCpuLatency := `sum by (` + granularity + `) (
         increase(kindling_profiling_cpu_duration_nanoseconds_sum{` + filtersStr + `}[` + vector + `])
 	)`
+
 	return onCpuLatency
 }
 
@@ -75,7 +76,7 @@ func PQLAvgErrorRateWithFilters(vector string, granularity string, filters []str
 		vector, granularity, filters)
 }
 
-// PQLAvgErrorRateWithFilters 查询SQL请求的平均错误率
+// PQLAvgSQLErrorRateWithFilters 查询SQL请求的平均错误率
 func PQLAvgSQLErrorRateWithFilters(vector string, granularity string, filters []string) string {
 	return avgErrorRateWithFilters(
 		"kindling_db_duration_nanoseconds_count",

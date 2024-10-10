@@ -29,6 +29,12 @@ var zhCnText = map[string]string{
 
 	GetFaultLogPageListError: "获取故障现场日志分页列表失败",
 	GetFaultLogContentError:  "获取故障现场日志内容失败",
+	CreateLogTableError:      "创建全量日志表出错",
+	DropLogTableError:        "删除全量日志表出错",
+	UpateLogTableError:       "更新全量日志表出错",
+
+	QueryLogError:    "查询全量日志失败",
+	GetLogChartError: "获取全量日志图表数据失败",
 
 	GetTracePageListError:    "获取Trace分页列表失败",
 	GetTraceFiltersError:     "获取Trace过滤条件失败",
@@ -50,5 +56,30 @@ var zhCnText = map[string]string{
 	GetSQLMetricError:    "获取SQL关键指标失败",
 	GetAlertRuleError:    "获取告警规则失败",
 	UpdateAlertRuleError: "更新告警规则失败",
+	AddAlertRuleError:    "添加告警规则失败",
 	DeleteAlertRuleError: "删除告警规则失败",
+
+	UpdateAlertRuleValidateError: "验证告警规则失败,通常为规则中的expr非法",
+
+	GetAMConfigReceiverError:    "获取告警通知对象失败",
+	AddAMConfigReceiverError:    "添加告警通知对象失败",
+	UpdateAMConfigReceiverError: "更新告警通知对象失败",
+	DeleteConfigReceiverError:   "删除告警通知对象失败",
+
+	AlertGroupAndLabelMismatchError: "组名和label中的组名不匹配",
+	AlertKeepFiringForIllegalError:  "'keepFiringFor' 不合法",
+	AlertForIllegalError:            "'for' 不合法",
+	AlertOldGroupNotExistError:      "选择的告警规则所在组不存在",
+	AlertAlertNotExistError:         "选择的告警规则不存在",
+	AlertAlertAlreadyExistError:     "告警规则已存在",
+	AlertConfigFileNotExistError:    "告警规则配置文件不存在",
+	AlertTargetGroupNotExistError:   "目标组不存在",
+	AlertCheckRuleError:             "查看告警规则名是否占用失败",
+
+	AlertManagerReceiverAlreadyExistsError:  "告警通知对象名称已存在",
+	AlertManagerReceiverNotExistsError:      "告警通知对象名称不存在",
+	AlertManagerReceiverEmailHostMissing:    "告警通知对象 email 'smarthost' 配置缺失",
+	AlertManagerReceiverEmailFromMissing:    "告警通知对象 email 'from' 配置缺失",
+	AlertManagerEmptyReceiver:               "告警通知对象没有设置任何 webhook 或 email 配置",
+	AlertManagerDefaultReceiverCannotDelete: "默认告警通知对象不能被删除",
 }

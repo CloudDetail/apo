@@ -31,6 +31,10 @@ type Instance struct {
 	ContentKey             string // URL
 	ConvertName            string
 	SvcName                string //url所属的服务名
+	Pod                    string
+	Namespace              string
+	NodeName               string
+	NodeIP                 string
 	Count                  int
 	InstanceType           int
 	ContainerId            string
@@ -41,9 +45,6 @@ type Instance struct {
 	IsLatencyWOWExceeded   bool
 	IsErrorRateWOWExceeded bool
 	IsTPSWOWExceeded       bool
-	Pod                    string
-	Namespace              string
-	NodeName               string
 	AvgLatency             *float64      // 30min内的平均延时时间
 	LatencyDayOverDay      *float64      // 延时日同比
 	LatencyWeekOverWeek    *float64      // 延时周同比

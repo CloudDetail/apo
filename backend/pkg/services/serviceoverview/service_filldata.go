@@ -216,7 +216,7 @@ func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTi
 	endTS := endTime.UnixMicro()
 
 	metricResults, err := s.promRepo.QueryAggMetricsWithFilter(
-		prom.PQLDepLatencyRadioWithFilters,
+		prom.WithDefaultIFPolarisMetricExits(prom.PQLDepLatencyRadioWithFilters, prom.DefaultDepLatency),
 		startTS, endTS,
 		prom.EndpointGranularity,
 		filters...,

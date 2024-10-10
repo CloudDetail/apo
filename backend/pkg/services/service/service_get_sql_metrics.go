@@ -1,7 +1,6 @@
 package service
 
 import (
-	"math"
 	"sort"
 	"time"
 
@@ -251,7 +250,7 @@ func (s *service) FillSQLREDChart(sqlMap *SQLMetricMap, service string, startTim
 			if !find {
 				continue
 			}
-			operation.LatencyChartData = convertToChart(avgLatency, true, false)
+			operation.LatencyChartData = convertToChart(avgLatency, prom.AVG, prom.LATENCY)
 		}
 	}
 
@@ -270,7 +269,7 @@ func (s *service) FillSQLREDChart(sqlMap *SQLMetricMap, service string, startTim
 			if !find {
 				continue
 			}
-			operation.ErrorRateChartData = convertToChart(avgErrorRate, false, false)
+			operation.ErrorRateChartData = convertToChart(avgErrorRate, prom.AVG, prom.ERROR_RATE)
 		}
 	}
 
@@ -289,26 +288,17 @@ func (s *service) FillSQLREDChart(sqlMap *SQLMetricMap, service string, startTim
 			if !find {
 				continue
 			}
-			operation.TpsChartData = convertToChart(avgTPS, false, true)
+			operation.TpsChartData = convertToChart(avgTPS, prom.AVG, prom.THROUGHPUT)
 		}
 	}
 	return nil
 }
 
-func convertToChart(result prom.MetricResult, transfromNano2Micro bool, transfromTPS2TPM bool) map[int64]float64 {
+func convertToChart(result prom.MetricResult, metricGroup prom.MGroupName, metricName prom.MName) map[int64]float64 {
 	var data = make(map[int64]float64)
 	for _, point := range result.Values {
-		timestamp := point.TimeStamp
-		value := point.Value
-		if transfromNano2Micro {
-			value = point.Value / 1e3
-		}
-		if transfromTPS2TPM {
-			value = point.Value * 60
-		}
-		if !math.IsInf(value, 0) { //为无穷大时则不赋值
-			data[timestamp] = value
-		}
+		adjustValue := prom.AdjustREDValue(metricGroup, metricName, point.Value)
+		data[point.TimeStamp] = adjustValue
 	}
 	return data
 }

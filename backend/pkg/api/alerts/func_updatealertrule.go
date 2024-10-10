@@ -1,6 +1,8 @@
 package alerts
 
 import (
+	"errors"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -32,11 +34,20 @@ func (h *handler) UpdateAlertRule() core.HandlerFunc {
 
 		err := h.alertService.UpdateAlertRule(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
-				http.StatusBadRequest,
-				code.UpdateAlertRuleError,
-				code.Text(code.UpdateAlertRuleError)).WithError(err),
-			)
+			var vErr model.ErrWithMessage
+			if errors.As(err, &vErr) {
+				c.AbortWithError(core.Error(
+					http.StatusBadRequest,
+					vErr.Code,
+					code.Text(vErr.Code)).WithError(err),
+				)
+			} else {
+				c.AbortWithError(core.Error(
+					http.StatusBadRequest,
+					code.UpdateAlertRuleError,
+					code.Text(code.UpdateAlertRuleError)).WithError(err),
+				)
+			}
 			return
 		}
 		c.Payload("ok")

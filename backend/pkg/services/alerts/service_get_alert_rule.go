@@ -13,7 +13,8 @@ func (s *service) GetAlertRules(req *request.GetAlertRuleRequest) response.GetAl
 			PageSize:    999,
 		}
 	}
-	rules, totalCount := s.k8sApi.GetAlertRules(req.AlertRuleFile, req.AlertRuleFilter, req.PageParam)
+
+	rules, totalCount := s.k8sApi.GetAlertRules(req.AlertRuleFile, req.AlertRuleFilter, req.PageParam, req.RefreshCache)
 	return response.GetAlertRulesResponse{
 		AlertRules: rules,
 		Pagination: &model.Pagination{

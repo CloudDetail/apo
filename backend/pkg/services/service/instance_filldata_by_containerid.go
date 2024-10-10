@@ -12,54 +12,15 @@ import (
 )
 
 func (s *service) InstanceAVGByContainerId(Instances *[]serviceoverview.Instance, serviceName string, contentKey string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
-	var AvgErrorRateRes []prometheus.MetricResult
-	queryAvgError := prometheus.QueryContainerIdPromql(duration, prometheus.AvgError, serviceName, contentKey)
-	AvgErrorRateRes, err := s.promRepo.QueryErrorRateData(endTime, queryAvgError)
-	for _, result := range AvgErrorRateRes {
-		contentKey := result.Metric.ContentKey
-		serviceName := result.Metric.SvcName
-		nodeName := result.Metric.NodeName
-		containerId := result.Metric.ContainerID
-		pid := result.Metric.PID
-		instanceName := serviceName + "@" + nodeName + "@" + containerId
-		//log.Printf("%v", pod)
-		found := false
-		value := result.Values[0].Value
-		for i, Instance := range *Instances {
-			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == instanceName {
-				found = true
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Instances)[i].AvgErrorRate = &value
-				}
-				break
-			}
-		}
-		if !found {
-			newInstance := serviceoverview.Instance{
-				ContentKey:   contentKey,
-				SvcName:      serviceName,
-				InstanceName: instanceName,
-				ContainerId:  containerId,
-				InstanceType: serviceoverview.CONTAINER,
-				ConvertName:  nodeName,
-				NodeName:     nodeName,
-				Pid:          pid,
-			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newInstance.AvgErrorRate = &value
-			}
-			*Instances = append(*Instances, newInstance)
-		}
-	}
 	var AvgLatencyRes []prometheus.MetricResult
-	//AvgLatencyRes, err = s.promRepo.QueryPrometheusLatency(searchTime)
 	queryAvgLatency := prometheus.QueryContainerIdPromql(duration, prometheus.AvgLatency, serviceName, contentKey)
-	AvgLatencyRes, err = s.promRepo.QueryLatencyData(endTime, queryAvgLatency)
+	AvgLatencyRes, err := s.promRepo.QueryLatencyData(endTime, queryAvgLatency)
 	for _, result := range AvgLatencyRes {
 		contentKey := result.Metric.ContentKey
 		serviceName := result.Metric.SvcName
 		nodeName := result.Metric.NodeName
 		containerId := result.Metric.ContainerID
+		nodeIP := result.Metric.NodeIP
 		pid := result.Metric.PID
 		instanceName := serviceName + "@" + nodeName + "@" + containerId
 		found := false
@@ -83,6 +44,7 @@ func (s *service) InstanceAVGByContainerId(Instances *[]serviceoverview.Instance
 				ConvertName:  nodeName,
 				NodeName:     nodeName,
 				Pid:          pid,
+				NodeIP:       nodeIP,
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
 				newInstance.AvgLatency = &value
@@ -90,8 +52,28 @@ func (s *service) InstanceAVGByContainerId(Instances *[]serviceoverview.Instance
 			*Instances = append(*Instances, newInstance)
 		}
 	}
+
+	var AvgErrorRateRes []prometheus.MetricResult
+	queryAvgError := prometheus.QueryContainerIdPromql(duration, prometheus.AvgError, serviceName, contentKey)
+	AvgErrorRateRes, err = s.promRepo.QueryErrorRateData(endTime, queryAvgError)
+	for _, result := range AvgErrorRateRes {
+		contentKey := result.Metric.ContentKey
+		serviceName := result.Metric.SvcName
+		nodeName := result.Metric.NodeName
+		containerId := result.Metric.ContainerID
+		instanceName := serviceName + "@" + nodeName + "@" + containerId
+		value := result.Values[0].Value
+		for i, Instance := range *Instances {
+			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == instanceName {
+				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+					(*Instances)[i].AvgErrorRate = &value
+				}
+				break
+			}
+		}
+	}
+
 	var AvgTPSRes []prometheus.MetricResult
-	//AvgTPSRes, err = s.promRepo.QueryPrometheusTPS(searchTime)
 	queryAvgTPS := prometheus.QueryContainerIdPromql(duration, prometheus.AvgTPS, serviceName, contentKey)
 	AvgTPSRes, err = s.promRepo.QueryData(endTime, queryAvgTPS)
 	for _, result := range AvgTPSRes {
@@ -99,34 +81,15 @@ func (s *service) InstanceAVGByContainerId(Instances *[]serviceoverview.Instance
 		serviceName := result.Metric.SvcName
 		nodeName := result.Metric.NodeName
 		containerId := result.Metric.ContainerID
-		pid := result.Metric.PID
 		instanceName := serviceName + "@" + nodeName + "@" + containerId
-		found := false
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == instanceName {
-				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
 					(*Instances)[i].AvgTPS = &value
 				}
 				break
 			}
-		}
-		if !found {
-			newInstance := serviceoverview.Instance{
-				ContentKey:   contentKey,
-				SvcName:      serviceName,
-				InstanceName: instanceName,
-				ContainerId:  containerId,
-				InstanceType: serviceoverview.CONTAINER,
-				ConvertName:  nodeName,
-				NodeName:     nodeName,
-				Pid:          pid,
-			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newInstance.AvgTPS = &value
-			}
-			*Instances = append(*Instances, newInstance)
 		}
 	}
 	return Instances, err
@@ -141,6 +104,7 @@ func (s *service) InstanceDODByContainerId(Instances *[]serviceoverview.Instance
 		nodeName := result.Metric.NodeName
 		containerId := result.Metric.ContainerID
 		pid := result.Metric.PID
+		nodeIP := result.Metric.NodeIP
 		instanceName := serviceName + "@" + nodeName + "@" + containerId
 		found := false
 		value := result.Values[0].Value
@@ -163,6 +127,7 @@ func (s *service) InstanceDODByContainerId(Instances *[]serviceoverview.Instance
 				ConvertName:  nodeName,
 				NodeName:     nodeName,
 				Pid:          pid,
+				NodeIP:       nodeIP,
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
 				newInstance.LatencyDayOverDay = &value
@@ -170,7 +135,7 @@ func (s *service) InstanceDODByContainerId(Instances *[]serviceoverview.Instance
 			*Instances = append(*Instances, newInstance)
 		}
 	}
-	//errorDoDres, err := s.promRepo.QueryPrometheusErrorDayOver(searchTime)
+
 	errorDODquery := prometheus.QueryContainerIdPromql(duration, prometheus.ErrorDOD, serviceName, contentKey)
 	errorDoDres, err := s.promRepo.QueryData(endTime, errorDODquery)
 	// 更新wrongUrls中的内容
@@ -179,13 +144,10 @@ func (s *service) InstanceDODByContainerId(Instances *[]serviceoverview.Instance
 		serviceName := result.Metric.SvcName
 		nodeName := result.Metric.NodeName
 		containerId := result.Metric.ContainerID
-		pid := result.Metric.PID
 		instanceName := serviceName + "@" + nodeName + "@" + containerId
-		found := false
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == instanceName {
-				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则赋值MaxFloat64
 					(*Instances)[i].ErrorRateDayOverDay = &value
 				} else {
@@ -198,24 +160,8 @@ func (s *service) InstanceDODByContainerId(Instances *[]serviceoverview.Instance
 				break
 			}
 		}
-		if !found {
-			newInstance := serviceoverview.Instance{
-				ContentKey:   contentKey,
-				SvcName:      serviceName,
-				InstanceName: instanceName,
-				ContainerId:  containerId,
-				InstanceType: serviceoverview.CONTAINER,
-				ConvertName:  nodeName,
-				NodeName:     nodeName,
-				Pid:          pid,
-			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newInstance.ErrorRateDayOverDay = &value
-			}
-			*Instances = append(*Instances, newInstance)
-		}
 	}
-	//tpsResults, err := s.promRepo.QueryPrometheusTPSDayOver(searchTime)
+
 	tpsDODquery := prometheus.QueryContainerIdPromql(duration, prometheus.TPSDOD, serviceName, contentKey)
 	tpsResults, err := s.promRepo.QueryData(endTime, tpsDODquery)
 	for _, result := range tpsResults {
@@ -223,42 +169,22 @@ func (s *service) InstanceDODByContainerId(Instances *[]serviceoverview.Instance
 		serviceName := result.Metric.SvcName
 		nodeName := result.Metric.NodeName
 		containerId := result.Metric.ContainerID
-		pid := result.Metric.PID
 		instanceName := serviceName + "@" + nodeName + "@" + containerId
-		found := false
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == instanceName {
-				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
 					(*Instances)[i].TPSDayOverDay = &value
 				}
 				break
 			}
 		}
-		if !found {
-			newInstance := serviceoverview.Instance{
-				ContentKey:   contentKey,
-				SvcName:      serviceName,
-				InstanceName: instanceName,
-				ContainerId:  containerId,
-				InstanceType: serviceoverview.CONTAINER,
-				ConvertName:  nodeName,
-				NodeName:     nodeName,
-				Pid:          pid,
-			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newInstance.TPSDayOverDay = &value
-			}
-			*Instances = append(*Instances, newInstance)
-		}
 	}
 	return Instances, err
 }
-func (s *service) InstanceWOWByContainerId(Instances *[]serviceoverview.Instance, serviceName string, contentKey string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
 
+func (s *service) InstanceWOWByContainerId(Instances *[]serviceoverview.Instance, serviceName string, contentKey string, endTime time.Time, duration string) (*[]serviceoverview.Instance, error) {
 	var LatencyWoWRes []prometheus.MetricResult
-	//LatencyWoWRes, err = s.promRepo.QueryPrometheusLatencyWeekOver(searchTime)
 	latencyWOWquery := prometheus.QueryContainerIdPromql(duration, prometheus.LatencyWOW, serviceName, contentKey)
 	LatencyWoWRes, err := s.promRepo.QueryData(endTime, latencyWOWquery)
 	for _, result := range LatencyWoWRes {
@@ -267,6 +193,7 @@ func (s *service) InstanceWOWByContainerId(Instances *[]serviceoverview.Instance
 		nodeName := result.Metric.NodeName
 		containerId := result.Metric.ContainerID
 		pid := result.Metric.PID
+		nodeIP := result.Metric.NodeIP
 		instanceName := serviceName + "@" + nodeName + "@" + containerId
 		found := false
 		value := result.Values[0].Value
@@ -289,6 +216,7 @@ func (s *service) InstanceWOWByContainerId(Instances *[]serviceoverview.Instance
 				ConvertName:  nodeName,
 				NodeName:     nodeName,
 				Pid:          pid,
+				NodeIP:       nodeIP,
 			}
 			if !math.IsInf(value, 0) { //为无穷大时则不赋值
 				newInstance.LatencyWeekOverWeek = &value
@@ -296,8 +224,8 @@ func (s *service) InstanceWOWByContainerId(Instances *[]serviceoverview.Instance
 			*Instances = append(*Instances, newInstance)
 		}
 	}
+
 	var TPSWoWRes []prometheus.MetricResult
-	//TPSWoWRes, err = s.promRepo.QueryPrometheusTPSWeekOver(searchTime)
 	TPSWOWquery := prometheus.QueryContainerIdPromql(duration, prometheus.TPSWOW, serviceName, contentKey)
 	TPSWoWRes, err = s.promRepo.QueryData(endTime, TPSWOWquery)
 	for _, result := range TPSWoWRes {
@@ -305,38 +233,19 @@ func (s *service) InstanceWOWByContainerId(Instances *[]serviceoverview.Instance
 		serviceName := result.Metric.SvcName
 		nodeName := result.Metric.NodeName
 		containerId := result.Metric.ContainerID
-		pid := result.Metric.PID
 		instanceName := serviceName + "@" + nodeName + "@" + containerId
-		found := false
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == instanceName {
-				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则不赋值
 					(*Instances)[i].TPSWeekOverWeek = &value
 				}
 				break
 			}
 		}
-		if !found {
-			newInstance := serviceoverview.Instance{
-				ContentKey:   contentKey,
-				SvcName:      serviceName,
-				InstanceName: instanceName,
-				ContainerId:  containerId,
-				InstanceType: serviceoverview.CONTAINER,
-				ConvertName:  nodeName,
-				NodeName:     nodeName,
-				Pid:          pid,
-			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newInstance.TPSWeekOverWeek = &value
-			}
-			*Instances = append(*Instances, newInstance)
-		}
 	}
+
 	var ErrorWoWRes []prometheus.MetricResult
-	//ErrorWoWRes, err = s.promRepo.QueryPrometheusErrorWeekOver(searchTime)
 	errorWoWquery := prometheus.QueryContainerIdPromql(duration, prometheus.ErrorWOW, serviceName, contentKey)
 	ErrorWoWRes, err = s.promRepo.QueryData(endTime, errorWoWquery)
 	for _, result := range ErrorWoWRes {
@@ -344,13 +253,10 @@ func (s *service) InstanceWOWByContainerId(Instances *[]serviceoverview.Instance
 		serviceName := result.Metric.SvcName
 		nodeName := result.Metric.NodeName
 		containerId := result.Metric.ContainerID
-		pid := result.Metric.PID
 		instanceName := serviceName + "@" + nodeName + "@" + containerId
-		found := false
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == instanceName {
-				found = true
 				if !math.IsInf(value, 0) { //为无穷大时则赋值MaxInt64
 					(*Instances)[i].ErrorRateWeekOverWeek = &value
 				} else {
@@ -361,22 +267,6 @@ func (s *service) InstanceWOWByContainerId(Instances *[]serviceoverview.Instance
 				}
 				break
 			}
-		}
-		if !found {
-			newInstance := serviceoverview.Instance{
-				ContentKey:   contentKey,
-				SvcName:      serviceName,
-				InstanceName: instanceName,
-				ContainerId:  containerId,
-				InstanceType: serviceoverview.CONTAINER,
-				ConvertName:  nodeName,
-				NodeName:     nodeName,
-				Pid:          pid,
-			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
-				newInstance.ErrorRateWeekOverWeek = &value
-			}
-			*Instances = append(*Instances, newInstance)
 		}
 	}
 	return Instances, err
@@ -393,7 +283,6 @@ func (s *service) InstanceRangeDataByContainerId(Instances *[]serviceoverview.In
 	// 格式化为字符串，保留一位小数
 	stepToStr = fmt.Sprintf("%.1fm", stepMinutes)
 
-	//errorDataRes, err = s.promRepo.QueryRangePrometheusErrorLast30min(searchTime)
 	errorDataQuery := prometheus.QueryContainerIdRangePromql(stepToStr, prometheus.ErrorData, contentKey, serviceName)
 	errorDataRes, err := s.promRepo.QueryRangeErrorData(startTime, endTime, errorDataQuery, step)
 	for _, result := range errorDataRes {

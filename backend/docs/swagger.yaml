@@ -1,5 +1,83 @@
 basePath: /
 definitions:
+  amconfig.EmailConfig:
+    properties:
+      authIdentity:
+        type: string
+      authPassword:
+        type: string
+      authPasswordFile:
+        type: string
+      authSecret:
+        type: string
+      authUsername:
+        type: string
+      from:
+        type: string
+      headers:
+        additionalProperties:
+          type: string
+        type: object
+      hello:
+        type: string
+      html:
+        type: string
+      requireTls:
+        type: boolean
+      sendResolved:
+        type: boolean
+      smarthost:
+        $ref: '#/definitions/amconfig.HostPort'
+      text:
+        type: string
+      tlsConfig:
+        $ref: '#/definitions/httpconfig.TLSConfig'
+      to:
+        description: Email address to notify.
+        type: string
+    type: object
+  amconfig.HostPort:
+    properties:
+      host:
+        type: string
+      port:
+        type: string
+    type: object
+  amconfig.Receiver:
+    properties:
+      emailConfigs:
+        items:
+          $ref: '#/definitions/amconfig.EmailConfig'
+        type: array
+      name:
+        description: A unique identifier for this receiver.
+        type: string
+      webhookConfigs:
+        items:
+          $ref: '#/definitions/amconfig.WebhookConfig'
+        type: array
+    type: object
+  amconfig.URL:
+    type: object
+  amconfig.WebhookConfig:
+    properties:
+      httpConfig:
+        $ref: '#/definitions/httpconfig.HTTPClientConfig'
+      maxAlerts:
+        description: |-
+          MaxAlerts is the maximum number of alerts to be sent per webhook message.
+          Alerts exceeding this threshold will be truncated. Setting this to 0
+          allows an unlimited number of alerts.
+        type: integer
+      sendResolved:
+        type: boolean
+      url:
+        allOf:
+        - $ref: '#/definitions/amconfig.URL'
+        description: URL to send POST request to.
+      urlFile:
+        type: string
+    type: object
   clickhouse.AlertEventSample:
     properties:
       alarmCount:
@@ -183,6 +261,229 @@ definitions:
         description: 错误信息
         type: string
     type: object
+  httpconfig.Authorization:
+    properties:
+      credentials:
+        type: string
+      credentialsFile:
+        type: string
+      credentialsRef:
+        description: CredentialsRef is the name of the secret within the secret manager
+          to use as credentials.
+        type: string
+      type:
+        type: string
+    type: object
+  httpconfig.BasicAuth:
+    properties:
+      password:
+        type: string
+      passwordFile:
+        type: string
+      passwordRef:
+        description: PasswordRef is the name of the secret within the secret manager
+          to use as the password.
+        type: string
+      username:
+        type: string
+      usernameFile:
+        type: string
+      usernameRef:
+        description: UsernameRef is the name of the secret within the secret manager
+          to use as the username.
+        type: string
+    type: object
+  httpconfig.HTTPClientConfig:
+    properties:
+      authorization:
+        allOf:
+        - $ref: '#/definitions/httpconfig.Authorization'
+        description: The HTTP authorization credentials for the targets.
+      basicAuth:
+        allOf:
+        - $ref: '#/definitions/httpconfig.BasicAuth'
+        description: The HTTP basic authentication credentials for the targets.
+      bearerToken:
+        description: |-
+          The bearer token for the targets. Deprecated in favour of
+          Authorization.Credentials.
+        type: string
+      bearerTokenFile:
+        description: |-
+          The bearer token file for the targets. Deprecated in favour of
+          Authorization.CredentialsFile.
+        type: string
+      enableHttp2:
+        description: |-
+          EnableHTTP2 specifies whether the client should configure HTTP2.
+          The omitempty flag is not set, because it would be hidden from the
+          marshalled configuration when set to false.
+        type: boolean
+      followRedirects:
+        description: |-
+          FollowRedirects specifies whether the client should follow HTTP 3xx redirects.
+          The omitempty flag is not set, because it would be hidden from the
+          marshalled configuration when set to false.
+        type: boolean
+      httpHeaders:
+        allOf:
+        - $ref: '#/definitions/httpconfig.Headers'
+        description: |-
+          HTTPHeaders specify headers to inject in the requests. Those headers
+          could be marshalled back to the users.
+      noProxy:
+        description: NoProxy contains addresses that should not use a proxy.
+        type: string
+      oauth2:
+        allOf:
+        - $ref: '#/definitions/httpconfig.OAuth2'
+        description: The OAuth2 client credentials used to fetch a token for the targets.
+      proxyConnectHeader:
+        allOf:
+        - $ref: '#/definitions/httpconfig.ProxyHeader'
+        description: |-
+          ProxyConnectHeader optionally specifies headers to send to
+          proxies during CONNECT requests. Assume that at least _some_ of
+          these headers are going to contain secrets and use Secret as the
+          value type instead of string.
+      proxyFromEnvironment:
+        description: |-
+          ProxyFromEnvironment makes use of net/http ProxyFromEnvironment function
+          to determine proxies.
+        type: boolean
+      proxyUrl:
+        allOf:
+        - $ref: '#/definitions/httpconfig.URL'
+        description: HTTP proxy server to use to connect to the targets.
+      tlsConfig:
+        allOf:
+        - $ref: '#/definitions/httpconfig.TLSConfig'
+        description: TLSConfig to use to connect to the targets.
+    type: object
+  httpconfig.Header:
+    properties:
+      files:
+        items:
+          type: string
+        type: array
+      secrets:
+        items:
+          type: string
+        type: array
+      values:
+        items:
+          type: string
+        type: array
+    type: object
+  httpconfig.Headers:
+    properties:
+      headers:
+        additionalProperties:
+          $ref: '#/definitions/httpconfig.Header'
+        type: object
+    type: object
+  httpconfig.OAuth2:
+    properties:
+      clientId:
+        type: string
+      clientSecret:
+        type: string
+      clientSecretFile:
+        type: string
+      clientSecretRef:
+        description: |-
+          ClientSecretRef is the name of the secret within the secret manager to use as the client
+          secret.
+        type: string
+      endpointParams:
+        additionalProperties:
+          type: string
+        type: object
+      noProxy:
+        description: NoProxy contains addresses that should not use a proxy.
+        type: string
+      proxyConnectHeader:
+        allOf:
+        - $ref: '#/definitions/httpconfig.ProxyHeader'
+        description: |-
+          ProxyConnectHeader optionally specifies headers to send to
+          proxies during CONNECT requests. Assume that at least _some_ of
+          these headers are going to contain secrets and use Secret as the
+          value type instead of string.
+      proxyFromEnvironment:
+        description: |-
+          ProxyFromEnvironment makes use of net/http ProxyFromEnvironment function
+          to determine proxies.
+        type: boolean
+      proxyUrl:
+        allOf:
+        - $ref: '#/definitions/httpconfig.URL'
+        description: HTTP proxy server to use to connect to the targets.
+      scopes:
+        items:
+          type: string
+        type: array
+      tlsconfig:
+        $ref: '#/definitions/httpconfig.TLSConfig'
+      tokenUrl:
+        type: string
+    type: object
+  httpconfig.ProxyHeader:
+    additionalProperties:
+      items:
+        type: string
+      type: array
+    type: object
+  httpconfig.TLSConfig:
+    properties:
+      ca:
+        description: Text of the CA cert to use for the targets.
+        type: string
+      caFile:
+        description: The CA cert to use for the targets.
+        type: string
+      caRef:
+        description: |-
+          CARef is the name of the secret within the secret manager to use as the CA cert for the
+          targets.
+        type: string
+      cert:
+        description: Text of the client cert file for the targets.
+        type: string
+      certFile:
+        description: The client cert file for the targets.
+        type: string
+      certRef:
+        description: |-
+          CertRef is the name of the secret within the secret manager to use as the client cert for
+          the targets.
+        type: string
+      insecureSkipVerify:
+        description: Disable target certificate validation.
+        type: boolean
+      key:
+        description: Text of the client key file for the targets.
+        type: string
+      keyFile:
+        description: The client key file for the targets.
+        type: string
+      keyRef:
+        description: |-
+          KeyRef is the name of the secret within the secret manager to use as the client key for
+          the targets.
+        type: string
+      maxVersion:
+        description: Maximum TLS version.
+        type: integer
+      minVersion:
+        description: Minimum TLS version.
+        type: integer
+      serverName:
+        description: Used to verify the hostname for the targets.
+        type: string
+    type: object
+  httpconfig.URL:
+    type: object
   model.AlertDetail:
     properties:
       alertMessage:
@@ -193,6 +494,19 @@ definitions:
         type: string
       timestamp:
         type: integer
+    type: object
+  model.AlertMetricsData:
+    properties:
+      labels:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      pql:
+        type: string
+      unit:
+        type: string
     type: object
   model.AlertReason:
     additionalProperties:
@@ -270,6 +584,22 @@ definitions:
         description: 值
         type: number
     type: object
+  request.AddAlertManagerConfigReceiver:
+    properties:
+      amConfigFile:
+        type: string
+      amConfigReceiver:
+        $ref: '#/definitions/amconfig.Receiver'
+      oldName:
+        type: string
+    type: object
+  request.AddAlertRuleRequest:
+    properties:
+      alertRule:
+        $ref: '#/definitions/request.AlertRule'
+      alertRuleFile:
+        type: string
+    type: object
   request.Alert:
     properties:
       annotations:
@@ -313,6 +643,9 @@ definitions:
         type: object
       record:
         type: string
+    required:
+    - alert
+    - group
     type: object
   request.DataType:
     enum:
@@ -328,6 +661,15 @@ definitions:
     - U64Column
     - StringColumn
     - BoolColumn
+  request.DeleteAlertManagerConfigReceiverRequest:
+    properties:
+      amConfigFile:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
   request.DeleteAlertRuleRequest:
     properties:
       alert:
@@ -336,6 +678,24 @@ definitions:
         type: string
       group:
         type: string
+    required:
+    - alert
+    - group
+    type: object
+  request.GetAlertManagerConfigReceverRequest:
+    properties:
+      amConfigFile:
+        type: string
+      currentPage:
+        type: integer
+      name:
+        type: string
+      pageSize:
+        type: integer
+      rType:
+        type: string
+      refreshCache:
+        type: boolean
     type: object
   request.GetAlertRuleRequest:
     properties:
@@ -351,6 +711,8 @@ definitions:
         type: string
       pageSize:
         type: integer
+      refreshCache:
+        type: boolean
       severity:
         description: 告警级别 info warning ...
         items:
@@ -585,12 +947,33 @@ definitions:
           type: string
         type: array
     type: object
+  request.UpdateAlertManagerConfigReceiver:
+    properties:
+      amConfigFile:
+        type: string
+      amConfigReceiver:
+        $ref: '#/definitions/amconfig.Receiver'
+      oldName:
+        type: string
+    type: object
   request.UpdateAlertRuleRequest:
     properties:
       alertRule:
         $ref: '#/definitions/request.AlertRule'
       alertRuleFile:
         type: string
+      oldAlert:
+        type: string
+      oldGroup:
+        type: string
+    required:
+    - oldAlert
+    - oldGroup
+    type: object
+  response.CheckAlertRuleResponse:
+    properties:
+      available:
+        type: boolean
     type: object
   response.CreateResponse:
     properties:
@@ -735,6 +1118,15 @@ definitions:
       status:
         type: string
     type: object
+  response.GetAlertManagerConfigReceiverResponse:
+    properties:
+      amConfigReceivers:
+        items:
+          $ref: '#/definitions/amconfig.Receiver'
+        type: array
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+    type: object
   response.GetAlertRuleFileResponse:
     properties:
       alertRules:
@@ -838,6 +1230,13 @@ definitions:
       pagination:
         $ref: '#/definitions/model.Pagination'
     type: object
+  response.GetGroupListResponse:
+    properties:
+      groupsLabel:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
   response.GetK8sEventsResponse:
     properties:
       data:
@@ -880,6 +1279,13 @@ definitions:
       pid:
         description: 进程号
         type: integer
+    type: object
+  response.GetMetricPQLResponse:
+    properties:
+      alertMetricsData:
+        items:
+          $ref: '#/definitions/model.AlertMetricsData'
+        type: array
     type: object
   response.GetPolarisInferResponse:
     properties:
@@ -1046,6 +1452,10 @@ definitions:
         type: string
       netStatus:
         description: 网络告警
+        type: string
+      nodeIP:
+        type: string
+      nodeName:
         type: string
       timestamp:
         type: integer
@@ -1242,6 +1652,9 @@ definitions:
     type: object
   response.ServiceRYGResult:
     properties:
+      percentScore:
+        description: 百分比总分
+        type: integer
       score:
         description: 总分
         type: integer
@@ -1277,6 +1690,109 @@ info:
   title: swagger 接口文档
   version: "2.0"
 paths:
+  /api/alerts/alertmanager/receiver:
+    delete:
+      consumes:
+      - application/json
+      description: 删除告警通知对象
+      parameters:
+      - description: 删除对象
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteAlertManagerConfigReceiverRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 删除告警通知对象
+      tags:
+      - API.alerts
+    post:
+      consumes:
+      - application/json
+      description: 更新告警通知对象
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateAlertManagerConfigReceiver'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 更新告警通知对象
+      tags:
+      - API.alerts
+  /api/alerts/alertmanager/receiver/add:
+    post:
+      consumes:
+      - application/json
+      description: 新增告警通知对象
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.AddAlertManagerConfigReceiver'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 新增告警通知对象
+      tags:
+      - API.alerts
+  /api/alerts/alertmanager/receiver/list:
+    post:
+      consumes:
+      - application/json
+      description: 列出告警通知对象
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetAlertManagerConfigReceverRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAlertManagerConfigReceiverResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 列出告警通知对象
+      tags:
+      - API.alerts
   /api/alerts/inputs/alertmanager:
     post:
       consumes:
@@ -1309,7 +1825,7 @@ paths:
       - application/x-www-form-urlencoded
       description: 删除告警规则
       parameters:
-      - description: 请求信息
+      - description: 删除对象
         in: body
         name: Request
         required: true
@@ -1354,6 +1870,83 @@ paths:
       summary: 更新告警规则
       tags:
       - API.alerts
+  /api/alerts/rule/add:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 新增告警规则
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.AddAlertRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 新增告警规则
+      tags:
+      - API.alerts
+  /api/alerts/rule/available:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 检查告警规则名是否可用
+      parameters:
+      - description: 查询告警规则文件名
+        in: query
+        name: alertRuleFile
+        type: string
+      - description: 组名
+        in: query
+        name: group
+        required: true
+        type: string
+      - description: 告警规则名
+        in: query
+        name: alert
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CheckAlertRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 检查告警规则名是否可用
+      tags:
+      - API.alerts
+  /api/alerts/rule/groups:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取group和label对应接口
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetGroupListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取group和label对应接口
+      tags:
+      - API.alerts
   /api/alerts/rule/list:
     post:
       consumes:
@@ -1378,6 +1971,25 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 列出告警规则
+      tags:
+      - API.alerts
+  /api/alerts/rule/metrics:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取告警规则中指标和PQL
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetMetricPQLResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取告警规则中指标和PQL
       tags:
       - API.alerts
   /api/alerts/rules:

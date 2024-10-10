@@ -98,12 +98,6 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 							if detail.ErrorRate.Ratio.WeekOverDay != nil && *detail.ErrorRate.Ratio.WeekOverDay > threshold.ErrorRate {
 								resp.Status = model.STATUS_CRITICAL
 							}
-							if detail.Tps.Ratio.DayOverDay != nil && *detail.Tps.Ratio.DayOverDay > threshold.Tps {
-								resp.Status = model.STATUS_CRITICAL
-							}
-							if detail.Tps.Ratio.WeekOverDay != nil && *detail.Tps.Ratio.WeekOverDay > threshold.Tps {
-								resp.Status = model.STATUS_CRITICAL
-							}
 						}
 					}
 				} else {

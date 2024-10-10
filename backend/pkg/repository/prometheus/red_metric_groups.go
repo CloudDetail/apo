@@ -22,80 +22,63 @@ func (m *REDMetrics) AppendGroupIfNotExist(_ MGroupName, metricName MName) bool 
 	return metricName == LATENCY
 }
 
-func (m *REDMetrics) SetValue(metricGroup MGroupName, metricName MName, value float64) {
+func AdjustREDValue(metricGroup MGroupName, metricName MName, value float64) float64 {
+	switch metricGroup {
+	case REALTIME, AVG:
+		if math.IsInf(value, 1) {
+			return RES_MAX_VALUE
+		} else if math.IsInf(value, -1) {
+			return -RES_MAX_VALUE
+		}
+		switch metricName {
+		case LATENCY:
+			micros := value / 1e3
+			return micros
+		case ERROR_RATE:
+			errorRatePercent := value * 100
+			return errorRatePercent
+		case THROUGHPUT:
+			tpm := value * 60
+			return tpm
+		}
+	case DOD, WOW:
+		var radio float64
+		if math.IsInf(value, 1) {
+			radio = RES_MAX_VALUE
+		} else if math.IsInf(value, -1) {
+			radio = -RES_MAX_VALUE
+		} else {
+			radio = (value - 1) * 100
+		}
+		return radio
+	}
+	return value
+}
 
+func (m *REDMetrics) SetValue(metricGroup MGroupName, metricName MName, value float64) {
+	adjustedValue := AdjustREDValue(metricGroup, metricName, value)
+
+	var mg *REDMetric
 	switch metricGroup {
 	case REALTIME:
-		switch metricName {
-		case LATENCY:
-			if math.IsInf(value, 1) {
-				value = RES_MAX_VALUE
-			} else {
-				micros := value / 1e3
-				m.Realtime.Latency = &micros
-			}
-		case ERROR_RATE:
-			if math.IsInf(value, 1) {
-				value = RES_MAX_VALUE
-			} else {
-				errorRatePercent := value * 100
-				m.Realtime.ErrorRate = &errorRatePercent
-			}
-		}
+		mg = &m.Realtime
 	case AVG:
-		switch metricName {
-		case LATENCY:
-			if math.IsInf(value, 1) {
-				value = RES_MAX_VALUE
-			} else {
-				micros := value / 1e3
-				m.Avg.Latency = &micros
-			}
-		case ERROR_RATE:
-			if math.IsInf(value, 1) {
-				value = RES_MAX_VALUE
-			} else {
-				errorRatePercent := value * 100
-				m.Avg.ErrorRate = &errorRatePercent
-			}
-		case THROUGHPUT:
-			if math.IsInf(value, 1) {
-				value = RES_MAX_VALUE
-			} else {
-				tpm := value * 60
-				m.Avg.TPM = &tpm
-			}
-		}
+		mg = &m.Avg
 	case DOD:
-		var radio float64
-		if math.IsInf(value, 1) {
-			radio = RES_MAX_VALUE
-		} else {
-			radio = (value - 1) * 100
-		}
-		switch metricName {
-		case LATENCY:
-			m.DOD.Latency = &radio
-		case ERROR_RATE:
-			m.DOD.ErrorRate = &radio
-		case THROUGHPUT:
-			m.DOD.TPM = &radio
-		}
+		mg = &m.DOD
 	case WOW:
-		var radio float64
-		if math.IsInf(value, 1) {
-			radio = RES_MAX_VALUE
-		} else {
-			radio = (value - 1) * 100
-		}
-		switch metricName {
-		case LATENCY:
-			m.WOW.Latency = &radio
-		case ERROR_RATE:
-			m.WOW.ErrorRate = &radio
-		case THROUGHPUT:
-			m.WOW.TPM = &radio
-		}
+		mg = &m.WOW
+	default:
+		return
+	}
+
+	switch metricName {
+	case LATENCY:
+		mg.Latency = &adjustedValue
+	case ERROR_RATE:
+		mg.ErrorRate = &adjustedValue
+	case THROUGHPUT:
+		mg.TPM = &adjustedValue
 	}
 }
 

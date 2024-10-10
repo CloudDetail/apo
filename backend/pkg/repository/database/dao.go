@@ -17,6 +17,7 @@ type Repo interface {
 	CreateOrUpdateThreshold(model *Threshold) error
 	GetOrCreateThreshold(serviceName string, endPoint string, level string) (Threshold, error)
 	DeleteThreshold(serviceName string, endPoint string) error
+	OperateLogTableInfo(model *LogTableInfo, op Operator) error
 }
 
 type daoRepo struct {
@@ -60,6 +61,13 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	sqlDb.SetConnMaxLifetime(time.Duration(databaseCfg.MaxLife) * time.Second)
 	////创建阈值表
 	err = database.AutoMigrate(&Threshold{})
+	if err != nil {
+		return nil, err
+	}
+	err = database.AutoMigrate(&LogTableInfo{})
+	if err != nil {
+		return nil, err
+	}
 	return &daoRepo{
 		db:    database,
 		sqlDB: sqlDb,

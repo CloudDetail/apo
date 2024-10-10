@@ -29,6 +29,13 @@ var enText = map[string]string{
 	GetSQLMetricError:              "Failed to get sql metric",
 	GetFaultLogContentError:        "Failed to get faultlog content",
 
+	CreateLogTableError: "Failed to create log table",
+	DropLogTableError:   "Failed to drop log table",
+	UpateLogTableError:  "Failed to update log table",
+
+	QueryLogError:    "Failed to query all logs",
+	GetLogChartError: "Failed to get log chart",
+
 	GetTracePageListError:    "Failed to get trace pagelist",
 	GetTraceFiltersError:     "Failed to get trace filters",
 	GetTraceFilterValueError: "Failed to get trace filter value",
@@ -45,7 +52,31 @@ var enText = map[string]string{
 
 	GetAlertEventsError:       "Failed to get alert events",
 	GetAlertEventsSampleError: "Failed to get sample alert events",
-	GetAlertRuleError:         "Failed to get alert rule",
-	UpdateAlertRuleError:      "Failed to update alert rule",
-	DeleteAlertRuleError:      "Failed to delete alert rule",
+
+	GetAlertRuleError:    "Failed to get alert rule",
+	AddAlertRuleError:    "Failed to add alert rule",
+	UpdateAlertRuleError: "Failed to update alert rule",
+	DeleteAlertRuleError: "Failed to delete alert rule",
+
+	UpdateAlertRuleValidateError:    "Failed to validate alertRule, usually expr is illegle",
+	AlertGroupAndLabelMismatchError: "Group and group field in label mismatch",
+	AlertKeepFiringForIllegalError:  "'keepFiringFor' illegal",
+	AlertForIllegalError:            "'for' illegal",
+	AlertOldGroupNotExistError:      "chosen group does not exist",
+	AlertAlertNotExistError:         "chosen alert does not exist",
+	AlertAlertAlreadyExistError:     "alert already exist",
+	AlertConfigFileNotExistError:    "config file does not exist",
+	AlertTargetGroupNotExistError:   "target group does not exist",
+
+	GetAMConfigReceiverError:    "Failed to get alertManager config receiver",
+	AddAMConfigReceiverError:    "Failed to add alertManager config receiver",
+	UpdateAMConfigReceiverError: "Failed to update alertManager config receiver",
+	DeleteConfigReceiverError:   "Failed to delete alertManager config receiver",
+
+	AlertManagerReceiverAlreadyExistsError:  "alertManager receiver name already exists",
+	AlertManagerReceiverNotExistsError:      "alertManager receiver name not exists",
+	AlertManagerReceiverEmailHostMissing:    "alertManager receiver email 'smarthost' missing",
+	AlertManagerReceiverEmailFromMissing:    "alertManager receiver email 'from' missing",
+	AlertManagerEmptyReceiver:               "alertManager receiver neither set webhook nor set email config",
+	AlertManagerDefaultReceiverCannotDelete: "alertManager default receiver cannot be deleted",
 }

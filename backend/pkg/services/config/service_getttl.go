@@ -8,7 +8,7 @@ import (
 )
 
 func (s *service) GetTTL() (*response.GetTTLResponse, error) {
-	tables, err := s.chRepo.GetTables([]string{}, []string{})
+	tables, err := s.chRepo.GetTables(model.GetAllTables())
 	if err != nil {
 		log.Println("[GetTTL] Error getting tables: ", err)
 		return nil, err
@@ -21,19 +21,14 @@ func (s *service) GetTTL() (*response.GetTTLResponse, error) {
 		"topology": {},
 		"other":    {},
 	}
-	tableToType := make(map[string]string)
-	for typ, tables := range typeRules {
-		for _, table := range tables {
-			tableToType[table] = typ
-		}
-	}
+	TableToType := model.TableToType()
+
 	for _, item := range tableInfo {
-		if typ, found := tableToType[item.Name]; found {
+		if typ, found := TableToType[item.Name]; found {
 			result[typ] = append(result[typ], item)
-		} else {
-			result["other"] = append(result["other"], item)
 		}
 	}
+
 	return &response.GetTTLResponse{
 		Logs:     result["logs"],
 		Trace:    result["trace"],

@@ -33,11 +33,15 @@ clickhouse:
   username: admin
   password: admin
   database: apo
+  cluster:
 
 promethues:
   address: http://localhost:9090
   # vm / prom
   storage: "vm"
+
+kubernetes:
+  auth_type: serviceAccount
 
 language:
   # 返回错误的语言，en - 英文，zh-cn: 简体中文.
