@@ -117,8 +117,10 @@ func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResp
 				fillCharts[0].From = st * SecondToMirco
 				fillCharts[0].To = fillCharts[1].From * SecondToMirco
 			} else if i == l-1 {
+				fillCharts[i].From = fillCharts[i].From * SecondToMirco
 				fillCharts[i].To = et * SecondToMirco
 			} else {
+				fillCharts[i].From = fillCharts[i].From * SecondToMirco
 				fillCharts[i].To = fillCharts[i+1].From * SecondToMirco
 			}
 		}
