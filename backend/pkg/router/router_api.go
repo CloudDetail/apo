@@ -68,9 +68,9 @@ func setApiRouter(r *resource) {
 		logApi.POST("/update", logHandler.UpdateLogTable())
 		logApi.POST("/drop", logHandler.DropLogTable())
 
-		logApi.GET("/query", logHandler.QueryLog())
-		logApi.GET("/chart", logHandler.GetLogChart())
-		logApi.GET("/index", logHandler.GetLogIndex())
+		logApi.POST("/query", logHandler.QueryLog())
+		logApi.POST("/chart", logHandler.GetLogChart())
+		logApi.POST("/index", logHandler.GetLogIndex())
 	}
 
 	traceApi := r.mux.Group("/api/trace")
