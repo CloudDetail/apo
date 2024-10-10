@@ -2,9 +2,10 @@ package clickhouse
 
 import (
 	"context"
+	"time"
+
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"go.uber.org/zap"
-	"time"
 )
 
 type WrappedConn struct {

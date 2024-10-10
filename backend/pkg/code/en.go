@@ -29,6 +29,13 @@ var enText = map[string]string{
 	GetSQLMetricError:              "Failed to get sql metric",
 	GetFaultLogContentError:        "Failed to get faultlog content",
 
+	CreateLogTableError: "Failed to create log table",
+	DropLogTableError:   "Failed to drop log table",
+	UpateLogTableError:  "Failed to update log table",
+
+	QueryLogError:    "Failed to query all logs",
+	GetLogChartError: "Failed to get log chart",
+
 	GetTracePageListError:    "Failed to get trace pagelist",
 	GetTraceFiltersError:     "Failed to get trace filters",
 	GetTraceFilterValueError: "Failed to get trace filter value",

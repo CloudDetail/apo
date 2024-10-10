@@ -2,7 +2,9 @@ package clickhouse
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/google/uuid"
@@ -54,6 +56,13 @@ type Repo interface {
 	// 查询故障现场日志内容可用的来源
 	QueryApplicationLogsAvailableSource(faultLog FaultLogResult) ([]string, error)
 
+	CreateLogTable(req *request.LogTableRequest) ([]string, error)
+	DropLogTable(req *request.LogTableRequest) ([]string, error)
+	UpdateLogTable(req *request.LogTableRequest, new, old []request.Field) ([]string, error)
+
+	QueryAllLogs(req *request.LogQueryRequest) ([]map[string]any, string, error)
+	GetLogChart(req *request.LogQueryRequest) ([]map[string]any, int64, error)
+
 	InsertBatchAlertEvents(ctx context.Context, events []*model.AlertEvent) error
 	ReadAlertEvent(ctx context.Context, id uuid.UUID) (*model.AlertEvent, error)
 	GetConn() driver.Conn
@@ -79,6 +88,7 @@ type chRepo struct {
 	conn     driver.Conn
 	database string
 	AvailableFilters
+	db *sql.DB
 }
 
 type AvailableFilters struct {
@@ -106,6 +116,11 @@ func New(logger *zap.Logger, address []string, database string, username string,
 		return nil, fmt.Errorf("failed to connect to clickhouse: %s", err)
 	}
 
+	dsn := fmt.Sprintf("clickhouse://%s:%s@%s/%s", username, url.QueryEscape(password), address[0], database)
+	db, err := sql.Open("clickhouse", dsn)
+	if err != nil {
+		return nil, err
+	}
 	var repo *chRepo
 	// Debug 日志等级时使用包装的Conn，输出执行SQL的耗时
 	if logger.Level() == zap.DebugLevel {
@@ -115,11 +130,13 @@ func New(logger *zap.Logger, address []string, database string, username string,
 				Conn:   conn,
 				logger: logger,
 			},
+			db: db,
 		}
 	} else {
 		repo = &chRepo{
 			database: database,
 			conn:     conn,
+			db:       db,
 		}
 	}
 
