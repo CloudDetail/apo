@@ -46,6 +46,7 @@ export default function AlertInfoTabs(props) {
         endTime,
         service: serviceName,
         endpoint: endpoint,
+        status: 'firing',
       })
         .then((res) => {
           setLoading(false)
