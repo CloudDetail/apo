@@ -9,6 +9,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
+const SecondToMirco = 1000000
+
 func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResponse, error) {
 	rows, interval, err := s.chRepo.GetLogChart(req)
 	if err != nil {
@@ -107,17 +109,17 @@ func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResp
 	})
 	l := len(fillCharts)
 	if l == 1 {
-		fillCharts[0].From = st
-		fillCharts[0].To = et
+		fillCharts[0].From = st * SecondToMirco
+		fillCharts[0].To = et * SecondToMirco
 	} else if l > 1 {
 		for i := range fillCharts {
 			if i == 0 {
-				fillCharts[0].From = st
-				fillCharts[0].To = fillCharts[1].From
+				fillCharts[0].From = st * SecondToMirco
+				fillCharts[0].To = fillCharts[1].From * SecondToMirco
 			} else if i == l-1 {
-				fillCharts[i].To = et
+				fillCharts[i].To = et * SecondToMirco
 			} else {
-				fillCharts[i].To = fillCharts[i+1].From
+				fillCharts[i].To = fillCharts[i+1].From * SecondToMirco
 			}
 		}
 	}
