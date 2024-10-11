@@ -5,7 +5,7 @@ import { useLogsContext } from 'src/contexts/LogsContext'
 import { ISOToTimestamp } from 'src/utils/time'
 
 const IndexCollapseItem = ({ field }) => {
-  const { query, updateQuery, fieldIndexMap, getFieldIndexData } = useLogsContext()
+  const { query = '', updateQuery, fieldIndexMap, getFieldIndexData } = useLogsContext()
 
   const [searchParams] = useSearchParams()
   const startTime = ISOToTimestamp(searchParams.get('log-from'))
