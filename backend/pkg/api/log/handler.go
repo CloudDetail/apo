@@ -42,6 +42,13 @@ type Handler interface {
 	// @Tags API.log
 	// @Router /api/log/index [post]
 	GetLogIndex() core.HandlerFunc
+
+	// GetLogTableInfo 获取日志表信息
+	// @Tags API.log
+	// @Router /api/log/table [post]
+	GetLogTableInfo() core.HandlerFunc
+
+	GetLogParseRule() core.HandlerFunc
 }
 
 type handler struct {

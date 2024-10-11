@@ -21,7 +21,7 @@ type Service interface {
 
 	UpdateLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error)
 
-	GetLogTableInfo(req *request.LogTableRequest) (*response.LogTableResponse, error)
+	GetLogTableInfo(req *request.LogTableInfoRequest) (*response.LogTableInfoResponse, error)
 
 	// 查询全量日志
 	QueryLog(req *request.LogQueryRequest) (*response.LogQueryResponse, error)
@@ -29,6 +29,8 @@ type Service interface {
 	GetLogChart(req *request.LogQueryRequest) (*response.LogChartResponse, error)
 	// 字段分析
 	GetLogIndex(req *request.LogIndexRequest) (*response.LogIndexResponse, error)
+
+	GetLogParseRule(req *request.LogParseRequest) (*response.LogParseResponse, error)
 }
 
 type service struct {

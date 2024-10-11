@@ -18,6 +18,7 @@ type Repo interface {
 	GetOrCreateThreshold(serviceName string, endPoint string, level string) (Threshold, error)
 	DeleteThreshold(serviceName string, endPoint string) error
 	OperateLogTableInfo(model *LogTableInfo, op Operator) error
+	GetAllLogTable() ([]LogTableInfo, error)
 }
 
 type daoRepo struct {

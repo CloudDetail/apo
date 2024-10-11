@@ -1,11 +1,14 @@
 package database
 
 type LogTableInfo struct {
-	ID       uint   `gorm:"primaryKey;autoIncrement"`
-	DataBase string `gorm:"type:varchar(100);column:database"`
-	Table    string `gorm:"type:varchar(100);column:tablename"`
-	Cluster  string `gorm:"type:varchar(100)"`
-	Fields   string `gorm:"type:varchar(100)"`
+	ID        uint   `gorm:"primaryKey;autoIncrement"`
+	DataBase  string `gorm:"type:varchar(100);column:database"`
+	Table     string `gorm:"type:varchar(100);column:tablename"`
+	Cluster   string `gorm:"type:varchar(100)"`
+	Fields    string `gorm:"type:varchar(100)"`
+	ParseName string `gorm:"type:varchar(100);column:parsename"`
+	RouteRule string `gorm:"type:varchar(100);column:routerule"`
+	ParseRule string `gorm:"type:varchar(100);column:parserule"`
 }
 
 func (LogTableInfo) TableName() string {
@@ -34,4 +37,10 @@ func (repo *daoRepo) OperateLogTableInfo(model *LogTableInfo, op Operator) error
 		return repo.db.Where("database=? AND tablename=?", model.DataBase, model.Table).Delete(&LogTableInfo{}).Error
 	}
 	return err
+}
+
+func (repo *daoRepo) GetAllLogTable() ([]LogTableInfo, error) {
+	var logTableInfo []LogTableInfo
+	err := repo.db.Find(&logTableInfo).Error
+	return logTableInfo, err
 }

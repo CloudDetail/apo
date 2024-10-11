@@ -19,6 +19,7 @@ func (h *handler) CreateLogTable() core.HandlerFunc {
 			)
 			return
 		}
+		req.FillerValue()
 		resp, err := h.logService.CreateLogTable(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
@@ -73,30 +74,6 @@ func (h *handler) UpdateLogTable() core.HandlerFunc {
 				http.StatusBadRequest,
 				code.UpateLogTableError,
 				code.Text(code.UpateLogTableError)).WithError(err),
-			)
-			return
-		}
-		c.Payload(resp)
-	}
-}
-
-func (h *handler) GetLogTableInfo() core.HandlerFunc {
-	return func(c core.Context) {
-		req := new(request.LogTableRequest)
-		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
-				http.StatusBadRequest,
-				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
-			)
-			return
-		}
-		resp, err := h.logService.GetLogTableInfo(req)
-		if err != nil {
-			c.AbortWithError(core.Error(
-				http.StatusBadRequest,
-				code.GetFaultLogContentError,
-				code.Text(code.GetFaultLogContentError)).WithError(err),
 			)
 			return
 		}
