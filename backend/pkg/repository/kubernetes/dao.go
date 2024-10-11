@@ -26,7 +26,7 @@ const (
 	DefaultAMCMName      string = "apo-alertmanager-config"
 	DefaultAMConfigFile  string = "alertmanager.yaml"
 	DefaultVCNAME        string = "apo-vector-config"
-	DefaultVCConfigFile  string = "vector.yaml"
+	DefaultVCConfigFile  string = "aggregator.yaml"
 )
 
 var _ Repo = &k8sApi{}
@@ -37,6 +37,8 @@ type Repo interface {
 
 	GetAlertRuleConfigFile(alertRuleFile string) (map[string]string, error)
 	UpdateAlertRuleConfigFile(configFile string, content []byte) error
+	GetVectorConfigFile() (map[string]string, error)
+	UpdateVectorConfigFile(content []byte) error
 
 	GetAlertRules(configFile string, filter *request.AlertRuleFilter, pageParam *request.PageParam, syncNow bool) ([]*request.AlertRule, int)
 	UpdateAlertRule(configFile string, alertRule request.AlertRule, oldGroup, oldAlert string) error

@@ -19,6 +19,7 @@ type Repo interface {
 	DeleteThreshold(serviceName string, endPoint string) error
 	OperateLogTableInfo(model *LogTableInfo, op Operator) error
 	GetAllLogTable() ([]LogTableInfo, error)
+	UpdateLogPaseRule(model *LogTableInfo) error
 }
 
 type daoRepo struct {

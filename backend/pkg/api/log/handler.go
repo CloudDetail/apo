@@ -4,6 +4,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 	"github.com/CloudDetail/apo/backend/pkg/services/log"
 	"go.uber.org/zap"
 )
@@ -48,7 +49,15 @@ type Handler interface {
 	// @Router /api/log/table [post]
 	GetLogTableInfo() core.HandlerFunc
 
+	// GetLogParseRule 获取日志表解析规则
+	// @Tags API.log
+	// @Router /api/log/rule/get [post]
 	GetLogParseRule() core.HandlerFunc
+
+	// UpdateLogParseRule 更新日志表解析规则
+	// @Tags API.log
+	// @Router /api/log/rule/update [post]
+	UpdateLogParseRule() core.HandlerFunc
 }
 
 type handler struct {
@@ -56,9 +65,9 @@ type handler struct {
 	logService log.Service
 }
 
-func New(logger *zap.Logger, chRepo clickhouse.Repo, dbRepo database.Repo) Handler {
+func New(logger *zap.Logger, chRepo clickhouse.Repo, dbRepo database.Repo, k8sApi kubernetes.Repo) Handler {
 	return &handler{
 		logger:     logger,
-		logService: log.New(chRepo, dbRepo),
+		logService: log.New(chRepo, dbRepo, k8sApi),
 	}
 }

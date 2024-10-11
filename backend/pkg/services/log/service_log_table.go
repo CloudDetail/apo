@@ -33,7 +33,7 @@ func (s *service) CreateLogTable(req *request.LogTableRequest) (*response.LogTab
 		Fields:    string(fieldsJSON),
 		Table:     req.TableName,
 		ParseName: defaultParseName,
-		RouteRule: defaultParseName,
+		RouteRule: defaultRouteRule,
 		ParseRule: defaultParseRule,
 	}
 	err = s.dbRepo.OperateLogTableInfo(logtable, database.INSERT)

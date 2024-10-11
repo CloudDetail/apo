@@ -5,6 +5,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 )
 
 var _ Service = (*service)(nil)
@@ -30,17 +31,21 @@ type Service interface {
 	// 字段分析
 	GetLogIndex(req *request.LogIndexRequest) (*response.LogIndexResponse, error)
 
-	GetLogParseRule(req *request.LogParseRequest) (*response.LogParseResponse, error)
+	GetLogParseRule(req *request.QueryLogParseRequest) (*response.LogParseResponse, error)
+
+	UpdateLogParseRule(req *request.UpdateLogParseRequest) (*response.LogParseResponse, error)
 }
 
 type service struct {
 	chRepo clickhouse.Repo
 	dbRepo database.Repo
+	k8sApi kubernetes.Repo
 }
 
-func New(chRepo clickhouse.Repo, dbRepo database.Repo) Service {
+func New(chRepo clickhouse.Repo, dbRepo database.Repo, k8sApi kubernetes.Repo) Service {
 	return &service{
 		chRepo: chRepo,
 		dbRepo: dbRepo,
+		k8sApi: k8sApi,
 	}
 }

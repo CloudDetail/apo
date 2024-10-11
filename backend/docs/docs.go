@@ -852,6 +852,86 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/log/rule/get": {
+            "post": {
+                "description": "获取日志表解析规则",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "获取日志表解析规则",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.QueryLogParseRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.LogParseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/log/rule/update": {
+            "post": {
+                "description": "更新日志表解析规则",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "更新日志表解析规则",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateLogParseRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.LogParseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/log/table": {
             "post": {
                 "description": "获取日志表信息",
@@ -4440,6 +4520,17 @@ const docTemplate = `{
                 "PF_Flags"
             ]
         },
+        "request.QueryLogParseRequest": {
+            "type": "object",
+            "properties": {
+                "dataBase": {
+                    "type": "string"
+                },
+                "tableName": {
+                    "type": "string"
+                }
+            }
+        },
         "request.SetSingleTTLRequest": {
             "type": "object",
             "required": [
@@ -4535,6 +4626,26 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "oldGroup": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateLogParseRequest": {
+            "type": "object",
+            "properties": {
+                "dataBase": {
+                    "type": "string"
+                },
+                "parseName": {
+                    "type": "string"
+                },
+                "parseRule": {
+                    "type": "string"
+                },
+                "routeRule": {
+                    "type": "string"
+                },
+                "tableName": {
                     "type": "string"
                 }
             }
@@ -5410,6 +5521,20 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/response.IndexItem"
                     }
+                }
+            }
+        },
+        "response.LogParseResponse": {
+            "type": "object",
+            "properties": {
+                "parseName": {
+                    "type": "string"
+                },
+                "parseRule": {
+                    "type": "string"
+                },
+                "routeRule": {
+                    "type": "string"
                 }
             }
         },

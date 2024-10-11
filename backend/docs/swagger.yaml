@@ -942,6 +942,13 @@ definitions:
     x-enum-varnames:
     - PF_Labels
     - PF_Flags
+  request.QueryLogParseRequest:
+    properties:
+      dataBase:
+        type: string
+      tableName:
+        type: string
+    type: object
   request.SetSingleTTLRequest:
     properties:
       day:
@@ -1009,6 +1016,19 @@ definitions:
     required:
     - oldAlert
     - oldGroup
+    type: object
+  request.UpdateLogParseRequest:
+    properties:
+      dataBase:
+        type: string
+      parseName:
+        type: string
+      parseRule:
+        type: string
+      routeRule:
+        type: string
+      tableName:
+        type: string
     type: object
   response.CheckAlertRuleResponse:
     properties:
@@ -1596,6 +1616,15 @@ definitions:
         items:
           $ref: '#/definitions/response.IndexItem'
         type: array
+    type: object
+  response.LogParseResponse:
+    properties:
+      parseName:
+        type: string
+      parseRule:
+        type: string
+      routeRule:
+        type: string
     type: object
   response.LogQueryResponse:
     properties:
@@ -2347,6 +2376,58 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 查询全量日志日志
+      tags:
+      - API.log
+  /api/log/rule/get:
+    post:
+      consumes:
+      - application/json
+      description: 获取日志表解析规则
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.QueryLogParseRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.LogParseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取日志表解析规则
+      tags:
+      - API.log
+  /api/log/rule/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新日志表解析规则
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateLogParseRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.LogParseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 更新日志表解析规则
       tags:
       - API.log
   /api/log/table:
