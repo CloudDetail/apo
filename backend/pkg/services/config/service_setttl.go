@@ -64,12 +64,12 @@ func convertModifyTableTTLMap(tables []model.TablesQuery, day int) ([]model.Modi
 	mapResult := prepareTTLInfo(tables)
 	for i := range mapResult {
 		newInterval := fmt.Sprintf("toIntervalDay(%d)", day)
-		log.Printf("TTL statement: %s", mapResult[i].TTLExpression)
 		mapResult[i].TTLExpression = toIntervalDayRegex.ReplaceAllString(mapResult[i].TTLExpression, newInterval)
 	}
 
 	return mapResult, nil
 }
+
 func (s *service) SetTTL(req *request.SetTTLRequest) error {
 	if req.Day <= 0 {
 		return errors.New("[SetTTL] Error : day should > 0  ")
