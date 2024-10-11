@@ -78,13 +78,13 @@ const Timeline = (props) => {
   }
 
   const toPage = (item) => {
-    let url = '/logs?'
+    let url = '/logs/fault-site?'
     switch (type) {
       case 'errorLogs':
-        url = `/logs?service=${item.serviceName}&endpoint=${item.endpoint}&instance=${item.instanceId}&traceId=${item.traceId}&logs-from=${TimestampToISO(chronoList[activeKey].start)}&logs-to=${TimestampToISO(chronoList[activeKey].end)}`
+        url = `/logs/fault-site?service=${item.serviceName}&endpoint=${item.endpoint}&instance=${item.instanceId}&traceId=${item.traceId}&logs-from=${TimestampToISO(chronoList[activeKey].start)}&logs-to=${TimestampToISO(chronoList[activeKey].end)}`
         break
       case 'logsInfo':
-        url = `/logs?service=${item.serviceName}&endpoint=${item.endpoint}&instance=${item.instanceId}&traceId=${item.traceId}&logs-from=${TimestampToISO(chronoList[activeKey].start)}&logs-to=${TimestampToISO(chronoList[activeKey].end)}`
+        url = `/logs/fault-site?service=${item.serviceName}&endpoint=${item.endpoint}&instance=${item.instanceId}&traceId=${item.traceId}&logs-from=${TimestampToISO(chronoList[activeKey].start)}&logs-to=${TimestampToISO(chronoList[activeKey].end)}`
         break
       case 'traceLogs':
         url = `/trace?service=${item.serviceName}&endpoint=${item.endpoint}&instance=${item.instanceId}&traceId=${item.traceId}&trace-from=${TimestampToISO(chronoList[activeKey].start)}&trace-to=${TimestampToISO(chronoList[activeKey].end)}`

@@ -200,7 +200,7 @@ export const ErrotChain = React.memo(function ErrotChain(props) {
           const to = TimestampToISO(endTime)
 
           navigate(
-            `/logs?service=${nodeData.service}&endpoint=${endpoint}&instance=${nodeName}&logs-from=${from}&logs-to=${to}`,
+            `/logs/fault-site?service=${nodeData.service}&endpoint=${endpoint}&instance=${nodeName}&logs-from=${from}&logs-to=${to}`,
           )
         })
         .on('mouseover', function (d) {
