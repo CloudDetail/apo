@@ -18,7 +18,7 @@ type BufferEngineConfig struct {
 }
 
 type LogTableRequest struct {
-	DataBase  string             `json:"database"`
+	DataBase  string             `json:"dataBase"`
 	TableName string             `json:"tableName"`
 	Cluster   string             `json:"cluster"`
 	TTL       uint               `json:"ttl"`
@@ -63,5 +63,12 @@ func (q *LogTableRequest) FillerValue() {
 	}
 	if q.Buffer.MaxBytes == 0 {
 		q.Buffer.MaxBytes = 100000000
+	}
+	if len(q.Fields) == 0 {
+		q.Fields = []Field{
+			{Name: "level", Type: "String"},
+			{Name: "thread", Type: "String"},
+			{Name: "method", Type: "String"},
+		}
 	}
 }

@@ -25,6 +25,8 @@ const (
 	DefaultAlertRuleFile string = "alert-rules.yaml"
 	DefaultAMCMName      string = "apo-alertmanager-config"
 	DefaultAMConfigFile  string = "alertmanager.yaml"
+	DefaultVCNAME        string = "apo-vector-config"
+	DefaultVCConfigFile  string = "vector.yaml"
 )
 
 var _ Repo = &k8sApi{}
@@ -76,6 +78,12 @@ func New(logger *zap.Logger, authType, authFilePath string, setting config.Metad
 	}
 	if len(setting.AlertManagerFileName) == 0 {
 		setting.AlertManagerFileName = DefaultAMConfigFile
+	}
+	if len(setting.VectorCMName) == 0 {
+		setting.VectorCMName = DefaultVCNAME
+	}
+	if len(setting.VectorFileName) == 0 {
+		setting.VectorFileName = DefaultVCConfigFile
 	}
 
 	api := &k8sApi{

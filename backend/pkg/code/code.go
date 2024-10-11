@@ -47,6 +47,8 @@ const (
 	GetLogChartError = "B0407"
 	GetLogIndexError = "B0408"
 
+	GetLogTableInfoError = "B0409"
+
 	GetTracePageListError    = "B0501"
 	GetTraceFiltersError     = "B0502"
 	GetTraceFilterValueError = "B0503"

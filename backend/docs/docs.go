@@ -852,6 +852,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/log/table": {
+            "post": {
+                "description": "获取日志表信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "获取日志表信息",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.LogTableInfoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.LogTableInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/mock": {
             "get": {
                 "description": "xx列表",
@@ -4355,6 +4395,9 @@ const docTemplate = `{
                 }
             }
         },
+        "request.LogTableInfoRequest": {
+            "type": "object"
+        },
         "request.Operation": {
             "type": "string",
             "enum": [
@@ -5400,6 +5443,31 @@ const docTemplate = `{
                 },
                 "query": {
                     "type": "string"
+                }
+            }
+        },
+        "response.LogTable": {
+            "type": "object",
+            "properties": {
+                "cluster": {
+                    "type": "string"
+                },
+                "tableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.LogTableInfoResponse": {
+            "type": "object",
+            "properties": {
+                "logTables": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/response.LogTable"
+                        }
+                    }
                 }
             }
         },

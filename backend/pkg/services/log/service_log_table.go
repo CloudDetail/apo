@@ -8,6 +8,16 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
+const (
+	defaultParseName = "default_java"
+	defaultRouteRule = `."k8s.namespace.name" != "apo"`
+	defaultParseRule = `.msg, err = parse_regex(.content, r'\[(?P<thread>.*?)\] (?P<level>.*?)  (?P<method>.*?) - (?P<msg>.*)')
+if err == null {
+	.content = encode_json(.msg)
+}
+del(.msg)`
+)
+
 func (s *service) CreateLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error) {
 	sqls, err := s.chRepo.CreateLogTable(req)
 	if err != nil {
@@ -18,10 +28,13 @@ func (s *service) CreateLogTable(req *request.LogTableRequest) (*response.LogTab
 		return nil, err
 	}
 	logtable := &database.LogTableInfo{
-		Cluster:  req.Cluster,
-		DataBase: req.DataBase,
-		Fields:   string(fieldsJSON),
-		Table:    req.TableName,
+		Cluster:   req.Cluster,
+		DataBase:  req.DataBase,
+		Fields:    string(fieldsJSON),
+		Table:     req.TableName,
+		ParseName: defaultParseName,
+		RouteRule: defaultParseName,
+		ParseRule: defaultParseRule,
 	}
 	err = s.dbRepo.OperateLogTableInfo(logtable, database.INSERT)
 	if err != nil {
@@ -86,22 +99,4 @@ func (s *service) UpdateLogTable(req *request.LogTableRequest) (*response.LogTab
 		return nil, err
 	}
 	return &response.LogTableResponse{Sqls: sqls}, nil
-}
-
-func (s *service) GetLogTableInfo(req *request.LogTableRequest) (*response.LogTableResponse, error) {
-	logtable := &database.LogTableInfo{
-		Cluster:  req.Cluster,
-		DataBase: req.DataBase,
-		Table:    req.TableName,
-	}
-	err := s.dbRepo.OperateLogTableInfo(logtable, database.QUERY)
-	if err != nil {
-		return nil, err
-	}
-	var fields []request.Field
-	err = json.Unmarshal([]byte(logtable.Fields), &fields)
-	if err != nil {
-		return nil, err
-	}
-	return &response.LogTableResponse{Sqls: []string{}}, nil
 }

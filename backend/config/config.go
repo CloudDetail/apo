@@ -71,6 +71,8 @@ type MetadataSettings struct {
 
 	AlertManagerCMName   string `mapstructure:"alert_manager_configmap"`
 	AlertManagerFileName string `mapstructure:"alert_manager_file_name"`
+	VectorCMName         string `mapstructure:"vector_configmap"`
+	VectorFileName       string `mapstructure:"vector_file_name"`
 }
 
 func Get() *Config {
