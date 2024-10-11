@@ -1,4 +1,4 @@
-import { Collapse, ConfigProvider, List } from 'antd'
+import { Collapse, ConfigProvider, Empty, List } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useLogsContext } from 'src/contexts/LogsContext'
 import IndexCollapseItem from './IndexCollapseItem'
@@ -12,35 +12,25 @@ const IndexCollapse = (props) => {
   useEffect(() => {
     const fields = type === 'base' ? defaultFields : hiddenFields
     setItems(
-      // (fields ?? []).map((item) => {
-      //   return { key: item, label: item, children: <IndexCollapseItem /> }
-      // }),
-      fields,
+      (fields ?? []).map((item) => {
+        return { key: item, label: item, children: <IndexCollapseItem field={item} /> }
+      }),
     )
   }, [type, defaultFields, hiddenFields])
 
-  const changeCollapse = (e) => {
-    console.log(e)
-  }
-  const clickIndex = (e) => {
-    let newQuery = query
-    if (query.length > 0) {
-      newQuery += ' And `' + e + '` ='
-    } else {
-      newQuery += '`' + e + '` ='
-    }
-    updateQuery(newQuery)
-  }
   return (
     <>
-      {/* <Collapse
+      <Collapse
         items={items}
         bordered={false}
         expandIconPosition="end"
-        onChange={changeCollapse}
+        ghost
+        className="h-full overflow-y-auto overflow-x-hidden"
+        style={{ maxHeight: 'calc((100vh - 265px) / 2)', overflowY: 'hidden' }}
         expandIcon={({ isActive }) => (isActive ? <AiFillCaretUp /> : <AiFillCaretDown />)}
-      /> */}
-      <List
+      />
+      {items.length === 0 && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}
+      {/* <List
         dataSource={items}
         bordered={false}
         renderItem={(item) => (
@@ -48,7 +38,7 @@ const IndexCollapse = (props) => {
             {item}
           </List.Item>
         )}
-      />
+      /> */}
     </>
   )
 }

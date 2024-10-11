@@ -17,13 +17,21 @@ const IndexList = () => {
       key: 'log',
       label: '日志字段',
       children: <IndexCollapse type="log" />,
+
+      style: {
+        maxHeight: '50%',
+        overflow: 'hidden',
+      },
     },
   ]
   return (
     <>
-      <div className="indexList h-full bg-[#141414] ">
-        <Collapse items={items} defaultActiveKey={['base']} size="small" />
-      </div>
+      <Collapse
+        items={items}
+        defaultActiveKey={['base']}
+        size="small"
+        className="indexList h-full overflow-hidden"
+      />
     </>
   )
 }

@@ -29,3 +29,7 @@ export const getLogRuleApi = (params) => {
 export const updateLogRuleApi = (params) => {
   return get(`/api/log/rule/update`, params)
 }
+//索引分析(百分比)
+export const getLogIndexApi = (params) => {
+  return post(`/api/log/index`, params)
+}

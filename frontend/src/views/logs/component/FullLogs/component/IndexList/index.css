@@ -1,3 +1,10 @@
 .indexList .ant-collapse-content-box {
-    padding: 0 10px !important;
+    padding: 0 !important;
+}
+
+.ant-collapse-header-text {
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: left;
+    text-overflow: ellipsis;
 }

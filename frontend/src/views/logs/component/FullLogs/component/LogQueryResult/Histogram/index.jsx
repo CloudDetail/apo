@@ -85,12 +85,8 @@ const BarChart = () => {
     setOption(newOption)
   }, [logsChartData])
   return (
-    <div className="h-[100px">
-      {logsChartData?.length > 0 ? (
-        <ReactECharts option={option} style={{ height: 100, width: '100%' }} />
-      ) : (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无直方图数据" />
-      )}
+    <div className="h-[100px]">
+      <ReactECharts option={option} style={{ height: 100, width: '100%' }} />
     </div>
   )
 }

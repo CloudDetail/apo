@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo, useReducer } from 'react'
-import { getFullLogApi, getFullLogChartApi, getLogRuleApi } from 'src/api/logs'
+import { getFullLogApi, getFullLogChartApi, getLogIndexApi, getLogRuleApi } from 'src/api/logs'
 import logsReducer, { logsInitialState } from 'src/store/reducers/logsReducer'
 import { ISOToTimestamp } from 'src/utils/time'
 
@@ -28,12 +28,14 @@ export const LogsProvider = ({ children }) => {
         getFullLogChartApi(params),
         // getLogRuleApi({ tableName: 'test_logs', dataBase: 'default' }),
       ])
+      let defaultFields = (res1?.defaultFields ?? []).sort()
+      let hiddenFields = (res1?.hiddenFields ?? []).sort()
       dispatch({
         type: 'setLogState',
         payload: {
           logs: res1?.logs ?? [],
-          defaultFields: res1?.defaultFields ?? [],
-          hiddenFields: res1?.hiddenFields ?? [],
+          defaultFields: defaultFields,
+          hiddenFields: hiddenFields,
           logsChartData: res2?.histograms ?? [],
           pagination: {
             total: res2?.count ?? 0,
@@ -45,8 +47,48 @@ export const LogsProvider = ({ children }) => {
       })
     } catch (error) {
       console.error('请求出错:', error)
+      dispatch({
+        type: 'setLogState',
+        payload: {
+          logs: [],
+          defaultFields: [],
+          hiddenFields: [],
+          logsChartData: [],
+          pagination: {
+            total: 0,
+            pageIndex: state.pagination.pageIndex,
+            pageSize: state.pagination.pageSize,
+          },
+          // logRule: res3,
+        },
+      })
     } finally {
       dispatch({ type: 'updateLoading', payload: false })
+    }
+  }
+
+  const getFieldIndexData = async ({ startTime, endTime, column }) => {
+    try {
+      const res = await getLogIndexApi({
+        startTime,
+        endTime,
+        column,
+        tableName: 'test_logs',
+        dataBase: 'default',
+        query: state.query,
+      })
+
+      dispatch({
+        type: 'updateFieldIndexMap',
+        payload: {
+          [column]: res.indexs,
+        },
+      })
+
+      return res // 返回响应结果，方便调用方处理
+    } catch (error) {
+      console.error('Error fetching field index data:', error)
+      throw error // 如果发生错误，可以抛出异常让调用方处理
     }
   }
 
@@ -59,14 +101,18 @@ export const LogsProvider = ({ children }) => {
       hiddenFields: state.hiddenFields,
       query: state.query,
       loading: state.loading,
+      fieldIndexMap: state.fieldIndexMap,
       fetchData,
+      getFieldIndexData,
       updateLogs: (logs) => dispatch({ type: 'setLogs', payload: logs }),
       updateLogsPagination: (pagination) =>
-        dispatch({ type: 'setPagination', payload: pagination }),
+        dispatch({ type: 'setPagination', payload: { ...state.pagination, ...pagination } }),
       updateLogsChartData: (data) => dispatch({ type: 'setLogsChartData', payload: data }),
       updateDefaultFields: (data) => dispatch({ type: 'updateDefaultFields', payload: data }),
       updateHiddenFields: (data) => dispatch({ type: 'updateHiddenFields', payload: data }),
       updateQuery: (data) => dispatch({ type: 'updateQuery', payload: data }),
+      updateTableName: (data) => dispatch({ type: 'updateTableName', payload: data }),
+      clearFieldIndexMap: () => dispatch({ type: 'clearFieldIndexMap' }),
     }),
     [
       state.logs,
@@ -76,6 +122,7 @@ export const LogsProvider = ({ children }) => {
       state.hiddenFields,
       state.query,
       state.loading,
+      state.fieldIndexMap,
     ],
   )
 

@@ -20,10 +20,11 @@ const RawLogQuery = () => {
 
   const [searchParams] = useSearchParams()
   useEffect(() => {
-    if (queryKeyword) {
-      setSearchValue(queryKeyword)
-      setIsDefault(false)
-    }
+    // if (queryKeyword) {
+    setSearchValue(queryKeyword)
+    setIsDefault(false)
+    updateQuery(searchValue)
+    // }
   }, [queryKeyword, isDefault])
   useEffect(() => {
     setSearchValue(query)

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { CCard } from '@coreui/react'
 import { getFullLogApi, getFullLogChartApi } from 'src/api/logs'
 import { useSearchParams } from 'react-router-dom'
@@ -8,23 +8,37 @@ import SearchBar from './component/SerarchBar'
 import IndexList from './component/IndexList'
 import LogQueryResult from './component/LogQueryResult'
 import { useLogsContext } from 'src/contexts/LogsContext'
+import { useUpdateEffect } from 'react-use'
 function FullLogs() {
-  const { query, pagination, fetchData, loading } = useLogsContext()
+  const { query, pagination, fetchData, loading, clearFieldIndexMap, updateLogsPagination } =
+    useLogsContext()
 
   const [searchParams] = useSearchParams()
 
-  useEffect(() => {
-    const startTime = ISOToTimestamp(searchParams.get('log-from'))
-    const endTime = ISOToTimestamp(searchParams.get('log-to'))
-    if (startTime && endTime) {
-      fetchData({
-        startTime,
-        endTime,
-      })
-    }
+  useUpdateEffect(() => {
+    fetchData({
+      startTime: ISOToTimestamp(searchParams.get('log-from')),
+      endTime: ISOToTimestamp(searchParams.get('log-to')),
+    })
   }, [
     pagination.pageIndex,
     pagination.pageSize,
+    //先隐藏 后续加上字段筛选了再放开，目前只支持搜索按钮和初始化
+    // query,
+  ])
+  useEffect(() => {
+    clearFieldIndexMap()
+    if (pagination.pageIndex === 1) {
+      fetchData({
+        startTime: ISOToTimestamp(searchParams.get('log-from')),
+        endTime: ISOToTimestamp(searchParams.get('log-to')),
+      })
+    } else {
+      updateLogsPagination({
+        pageIndex: 1,
+      })
+    }
+  }, [
     searchParams.get('log-from'),
     searchParams.get('log-to'),
     //先隐藏 后续加上字段筛选了再放开，目前只支持搜索按钮和初始化
