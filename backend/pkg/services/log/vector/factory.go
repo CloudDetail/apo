@@ -21,16 +21,16 @@ type ParseInfo struct {
 
 func (p *ParseInfo) UpdateParseRule(config VectorConfig) ([]byte, error) {
 	// 更新 route_logs 的 route 字段
-	routeLogs, ok := config.Transforms["route_logs"].(map[interface{}]interface{})
+	routeLogs, ok := config.Transforms["route_logs"].(map[string]interface{})
 	if ok {
-		route := routeLogs["route"].(map[interface{}]interface{})
+		route := routeLogs["route"].(map[string]interface{})
 		route[p.ParseName+"_route"] = p.RouteRule
 	} else {
 		return nil, errors.New("route_logs not found")
 	}
 
 	// 更新 parse_test 的 source 字段
-	parseTest, ok := config.Transforms["parse_"+p.ParseName].(map[interface{}]interface{})
+	parseTest, ok := config.Transforms["parse_"+p.ParseName].(map[string]interface{})
 	if ok {
 		parseTest["source"] = p.ParseRule
 	} else {
