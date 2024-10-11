@@ -44,3 +44,7 @@ func (repo *daoRepo) GetAllLogTable() ([]LogTableInfo, error) {
 	err := repo.db.Find(&logTableInfo).Error
 	return logTableInfo, err
 }
+
+func (repo *daoRepo) UpdateLogPaseRule(model *LogTableInfo) error {
+	return repo.db.Model(&LogTableInfo{}).Where("database=? AND tablename=?", model.DataBase, model.Table).Updates(LogTableInfo{ParseRule: model.ParseRule, RouteRule: model.RouteRule}).Error
+}

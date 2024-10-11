@@ -39,15 +39,19 @@ const (
 	GetServiceRYGLightError             = "B0324"
 	GetFaultLogPageListError            = "B0401"
 	GetFaultLogContentError             = "B0402"
-	CreateLogTableError                 = "B0403"
-	DropLogTableError                   = "B0404"
-	UpateLogTableError                  = "B0405"
+
+	CreateLogTableError = "B0403"
+	DropLogTableError   = "B0404"
+	UpateLogTableError  = "B0405"
 
 	QueryLogError    = "B0406"
 	GetLogChartError = "B0407"
 	GetLogIndexError = "B0408"
 
 	GetLogTableInfoError = "B0409"
+
+	GetLogParseRuleError    = "B0410"
+	UpdateLogParseRuleError = "B0411"
 
 	GetTracePageListError    = "B0501"
 	GetTraceFiltersError     = "B0502"

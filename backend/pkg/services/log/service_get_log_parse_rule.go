@@ -6,14 +6,18 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) GetLogParseRule(req *request.LogParseRequest) (*response.LogParseResponse, error) {
+func (s *service) GetLogParseRule(req *request.QueryLogParseRequest) (*response.LogParseResponse, error) {
 	model := &database.LogTableInfo{
 		DataBase: req.DataBase,
 		Table:    req.TableName,
 	}
 	err := s.dbRepo.OperateLogTableInfo(model, database.QUERY)
 	if err != nil {
-		return nil, err
+		return &response.LogParseResponse{
+			ParseName: defaultParseName,
+			ParseRule: defaultParseRule,
+			RouteRule: defaultRouteRule,
+		}, err
 	}
 	return &response.LogParseResponse{
 		ParseName: model.ParseName,

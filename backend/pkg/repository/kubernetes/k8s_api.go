@@ -135,6 +135,16 @@ var NoneRepo Repo = &NoneAPI{}
 
 type NoneAPI struct{}
 
+// GetVectorConfigFile implements Repo.
+func (n *NoneAPI) GetVectorConfigFile() (map[string]string, error) {
+	return nil, ErrKubernetesRepoNotReady
+}
+
+// UpdateVectorConfigFile implements Repo.
+func (n *NoneAPI) UpdateVectorConfigFile(content []byte) error {
+	return ErrKubernetesRepoNotReady
+}
+
 var ErrKubernetesRepoNotReady = errors.New("kubernetes repo is not ready")
 
 // SyncNow implements Repo.
