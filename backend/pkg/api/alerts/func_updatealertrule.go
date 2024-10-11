@@ -4,8 +4,6 @@ import (
 	"errors"
 	"net/http"
 
-	"net/http"
-
 	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
