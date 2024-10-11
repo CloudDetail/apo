@@ -5,12 +5,6 @@ import (
 	"strings"
 )
 
-// type TableTTLMap struct {
-// 	Name          string
-// 	TTLExpression string
-// 	OriginalDays  int
-// }
-
 type ModifyTableTTLMap struct {
 	Name          string `json:"name"`
 	TTLExpression string `json:"TTLExpression"`
@@ -27,8 +21,7 @@ type TableType struct {
 	Tables []Table
 }
 type Table struct {
-	IsMaterialView bool // 暂时没用
-	Name           string
+	Name string
 }
 
 var tableType = map[string][]Table{
@@ -89,7 +82,7 @@ func GetAllTables() []Table {
 
 func IsTableExists(tableName string) bool {
 	for _, table := range GetAllTables() {
-		if table.Name == tableName {
+		if table.TableName() == tableName {
 			return true
 		}
 	}

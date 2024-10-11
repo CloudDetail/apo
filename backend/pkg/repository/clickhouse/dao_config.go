@@ -19,10 +19,11 @@ func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTa
 			escapedTableName := fmt.Sprintf("`%s`", table.Name)
 			var finalQuery string
 			if len(cluster) > 0 {
+				escapedClusterName := fmt.Sprintf("`%s`", cluster)
 				finalQuery = fmt.Sprintf(`
 				ALTER TABLE %s ON CLUSTER %s
 				MODIFY TTL %s`,
-					escapedTableName, cluster, table.TTLExpression)
+					escapedTableName, escapedClusterName, table.TTLExpression)
 			} else {
 				finalQuery = fmt.Sprintf(`
 				ALTER TABLE %s

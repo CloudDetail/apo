@@ -13,7 +13,7 @@ import (
 )
 
 // 包级别的正则表达式变量
-var ttlRegex = regexp.MustCompile(`TTL\s+(\S+(?:\s*\+\s*toIntervalDay\((\d+)\))?)`)
+var ttlRegex = regexp.MustCompile(`TTL\s+((?:[^\s()]+\s*)+\(\s*[^)]+\s*\)\s*\+\s*toIntervalDay\((\d+)\))`)
 var toIntervalDayRegex = regexp.MustCompile(`toIntervalDay\((\d+)\)`)
 
 func prepareTTLInfo(tables []model.TablesQuery) []model.ModifyTableTTLMap {
@@ -61,7 +61,6 @@ func (s *service) SetTableTTL(tableNames []model.Table, day int) error {
 }
 
 func convertModifyTableTTLMap(tables []model.TablesQuery, day int) ([]model.ModifyTableTTLMap, error) {
-
 	mapResult := prepareTTLInfo(tables)
 	for i := range mapResult {
 		newInterval := fmt.Sprintf("toIntervalDay(%d)", day)
@@ -70,6 +69,7 @@ func convertModifyTableTTLMap(tables []model.TablesQuery, day int) ([]model.Modi
 
 	return mapResult, nil
 }
+
 func (s *service) SetTTL(req *request.SetTTLRequest) error {
 	if req.Day <= 0 {
 		return errors.New("[SetTTL] Error : day should > 0  ")
