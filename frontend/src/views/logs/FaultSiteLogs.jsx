@@ -178,7 +178,7 @@ function FaultSiteLogs(props) {
     }
   }, [source])
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden text-xs">
       <LoadingSpinner loading={loading} />
       <CToast autohide={false} visible={true} className="align-items-center w-full my-2">
         <div className="d-flex">

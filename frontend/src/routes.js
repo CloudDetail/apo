@@ -6,7 +6,8 @@ const ApplicationDashboard = React.lazy(() => import('./views/dashboard/Applicat
 const MiddlewareDashboard = React.lazy(() => import('./views/dashboard/MiddlewareDashboard'))
 const Service = React.lazy(() => import('./views/service/index.js'))
 const ServiceInfo = React.lazy(() => import('./views/serviceInfo/index.js'))
-const LogsPage = React.lazy(() => import('./views/logs/index.js'))
+const FaultSiteLogsPage = React.lazy(() => import('./views/logs/FaultSiteLogs'))
+const FullLogsPage = React.lazy(() => import('./views/logs/FullLogsPage'))
 const TracePage = React.lazy(() => import('./views/trace/index.js'))
 const Alerts = React.lazy(() => import('./views/alerts/index.js'))
 const ConfigPage = React.lazy(() => import('./views/config/index'))
@@ -15,7 +16,18 @@ const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/service', exact: true, name: '服务概览', element: Service },
   { path: '/service/info', name: '服务详情', element: ServiceInfo },
-  { path: '/logs', name: '日志检索', element: LogsPage, hideSystemTimeRangePicker: true },
+  {
+    path: '/logs/fault-site',
+    name: '故障现场日志',
+    element: FaultSiteLogsPage,
+    hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/logs/full',
+    name: '全量日志',
+    element: FullLogsPage,
+    hideSystemTimeRangePicker: true,
+  },
   { path: '/trace', name: '链路追踪', element: TracePage, hideSystemTimeRangePicker: true },
   { path: '/basic-dashboard', name: '应用基础设施大盘', element: BasicDashboard },
   { path: '/system-dashboard', name: '全局资源大盘', element: SystemDashboard },

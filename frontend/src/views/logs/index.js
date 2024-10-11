@@ -2,7 +2,7 @@ import { CTab, CTabContent, CTabList, CTabPanel, CTabs } from '@coreui/react'
 import React, { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import FaultSiteLogs from './FaultSiteLogs'
-import FullLogs from './FullLogs'
+import FullLogs from './component/FullLogs'
 import Empty from 'src/components/Empty/Empty'
 function LogsPage() {
   const location = useLocation()
@@ -26,8 +26,7 @@ function LogsPage() {
             {activeItemKey === 'faultSite' && <FaultSiteLogs />}
           </CTabPanel>
           <CTabPanel className="p-3 h-full" itemKey="full">
-            {activeItemKey === 'full' && <Empty context="敬请期待" />}
-            {/* <FullLogs logsList={logsList} /> */}
+            {activeItemKey === 'full' && <FullLogs />}
           </CTabPanel>
         </CTabContent>
       </CTabs>

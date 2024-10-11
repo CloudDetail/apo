@@ -1,64 +1,75 @@
-import React from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-
-import {
-  CCloseButton,
-  CImage,
-  CSidebar,
-  CSidebarBrand,
-  CSidebarFooter,
-  CSidebarHeader,
-  CSidebarToggler,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-
-import { AppSidebarNav } from './AppSidebarNav'
-
-import logo from 'src/assets/brand/logo.svg'
-import { sygnet } from 'src/assets/brand/sygnet'
+import React, { useEffect, useState } from 'react'
 
 // sidebar nav config
 import navigation from '../_nav'
+import { ConfigProvider, Menu } from 'antd'
+import { useLocation, useNavigate } from 'react-router-dom'
 
-const AppSidebar = () => {
-  const dispatch = useDispatch()
-  const unfoldable = useSelector((state) => state.sidebarUnfoldable)
-  const sidebarShow = useSelector((state) => state.sidebarShow)
-
+const AppSidebarMenuIcon = (menuItem) => {
   return (
-    <CSidebar
-      unfoldable
-      className="border-end"
-      colorScheme="dark"
-      position="fixed"
-      // unfoldable={unfoldable}
-      visible={sidebarShow}
-      onVisibleChange={(visible) => {
-        dispatch({ type: 'set', sidebarShow: visible })
+    <div className="appSidebarMenuIcon">
+      <div>{menuItem.icon}</div>
+      <span className="text-xs ">
+        {menuItem.abbreviation ? menuItem.abbreviation : menuItem.label}
+      </span>
+    </div>
+  )
+}
+const AppSidebar = ({ collapsed }) => {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [selectedKeys, setSelectedKeys] = useState([])
+  const [openKeys, setOpenKeys] = useState([])
+  const getItems = () => {
+    return navigation.map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) }))
+  }
+  const onClick = ({ item, key, keyPath, domEvent }) => {
+    navigate(item.props.to)
+  }
+  const getItemKey = (navList) => {
+    let result = []
+    navList.forEach((item) => {
+      if (location.pathname.startsWith(item.to)) {
+        result.push(item.key)
+      }
+      if (item.children) {
+        result = result.concat(getItemKey(item.children))
+      }
+    })
+    return result
+  }
+  useEffect(() => {
+    const result = getItemKey(navigation)
+    setSelectedKeys(result)
+  }, [location.pathname])
+  useEffect(() => {
+    if (!collapsed) {
+      setOpenKeys(['logs'])
+    } else {
+      setOpenKeys([])
+    }
+  }, [collapsed])
+  return (
+    <ConfigProvider
+      theme={{
+        components: {
+          Menu: {
+            itemHeight: 55,
+            darkItemBg: '#1d222b',
+          },
+        },
       }}
-      style={{ zIndex: 999 }}
     >
-      <CSidebarHeader className="border-bottom">
-        <CSidebarBrand to="/">
-          <CImage src={logo} className="w-[32px] sidebar-brand-narrow" alt="CoreuiVue" />
-          <div className="sidebar-brand-full flex flex-row justify-center items-center">
-            <CImage src={logo} className="w-[32px]" alt="CoreuiVue" />
-            <span className="w-[32px] sidebar-brand-full">向导式可观测平台</span>
-          </div>
-        </CSidebarBrand>
-        <CCloseButton
-          className="d-lg-none"
-          dark
-          onClick={() => dispatch({ type: 'set', sidebarShow: false })}
-        />
-      </CSidebarHeader>
-      <AppSidebarNav items={navigation} />
-      {/* <CSidebarFooter className="border-top d-none d-lg-flex">
-        <CSidebarToggler
-          onClick={() => dispatch({ type: 'set', sidebarUnfoldable: !unfoldable })}
-        />
-      </CSidebarFooter> */}
-    </CSidebar>
+      <Menu
+        mode="inline"
+        theme="dark"
+        inlineCollapsed={true}
+        items={getItems()}
+        onClick={onClick}
+        selectedKeys={selectedKeys}
+        openKeys={openKeys}
+      ></Menu>
+    </ConfigProvider>
   )
 }
 

@@ -12,6 +12,7 @@ import posthog from 'posthog-js'
 import { PostHogProvider } from 'posthog-js/react'
 import { MessageProvider } from './contexts/MessageContext'
 import ErrorBoundary from './components/ErrorBoundary'
+import zhCN from 'antd/es/locale/zh_CN' // 引入中文包
 const apiHost = import.meta.env.VITE_PUBLIC_POSTHOG_HOST
 const apiKey = import.meta.env.VITE_PUBLIC_POSTHOG_KEY
 
@@ -25,11 +26,16 @@ const AppWrapper = () => {
       <Provider store={store}>
         <ToastProvider>
           <ConfigProvider
+            locale={zhCN}
             theme={{
               algorithm: theme.darkAlgorithm,
               components: {
                 Segmented: {
                   itemSelectedBg: '#4096ff',
+                },
+                Layout: {
+                  bodyBg: '#1d222b',
+                  siderBg: '#1d222b',
                 },
               },
             }}

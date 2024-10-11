@@ -17,8 +17,68 @@ import {
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 import { PiPath } from 'react-icons/pi'
 import { CiServer } from 'react-icons/ci'
+import { LuFileText } from 'react-icons/lu'
+import { AiOutlineDashboard } from 'react-icons/ai'
+import { FaRegBell } from 'react-icons/fa'
+import { MdOutlineSettings } from 'react-icons/md'
+import { IoMdCloudOutline } from 'react-icons/io'
 
 const _nav = [
+  { key: 'service', icon: <IoMdCloudOutline />, label: '服务概览', to: '/service' },
+  {
+    key: 'logs',
+    label: '日志检索',
+    to: '/logs',
+    icon: <LuFileText />,
+    children: [
+      { key: 'faultSite', label: '故障现场日志', to: '/logs/fault-site' },
+      { key: 'full', label: '全量日志', to: '/logs/full' },
+    ],
+  },
+  { key: 'trace', icon: <PiPath />, label: '链路追踪', to: '/trace' },
+  {
+    key: 'system',
+    icon: <AiOutlineDashboard />,
+    label: '全局资源大盘',
+    abbreviation: '全局资源',
+    to: '/system-dashboard',
+  },
+  {
+    key: 'basic',
+    icon: <AiOutlineDashboard />,
+    label: '应用基础设施大盘',
+    abbreviation: '基础设施',
+    to: '/basic-dashboard',
+  },
+  {
+    key: 'application',
+    icon: <AiOutlineDashboard />,
+    label: '应用指标大盘',
+    abbreviation: '应用指标',
+    to: '/application-dashboard',
+  },
+  {
+    key: 'middleware',
+    icon: <AiOutlineDashboard />,
+    label: '中间件大盘',
+    abbreviation: '中间件',
+    to: '/middleware-dashboard',
+  },
+  {
+    key: 'alerts',
+    icon: <FaRegBell />,
+    label: '告警规则',
+    to: '/alerts',
+  },
+  {
+    key: 'config',
+    icon: <MdOutlineSettings />,
+    label: '配置中心',
+    title: '11',
+    to: '/config',
+  },
+]
+const _nav1 = [
   {
     component: CNavItem,
     name: '服务概览',
@@ -30,7 +90,7 @@ const _nav = [
     },
   },
   {
-    component: CNavItem,
+    component: CNavGroup,
     name: '日志检索',
     to: '/logs',
     icon: <CIcon icon={cilDescription} />,
@@ -38,6 +98,20 @@ const _nav = [
       color: 'info',
       // text: 'NEW',
     },
+    items: [
+      {
+        component: CNavItem,
+        name: '故障现场日志',
+        to: '/logs/full',
+        icon: <CIcon icon={cilDescription} />,
+      },
+      {
+        component: CNavItem,
+        name: '全量日志',
+        to: '/logs/fault-site',
+        icon: <CIcon icon={cilDescription} />,
+      },
+    ],
   },
   {
     component: CNavItem,
@@ -54,7 +128,7 @@ const _nav = [
     name: '全局资源大盘',
     abbreviation: '全局资源',
     to: '/system-dashboard',
-    icon: <CIcon icon={cilSpeedometer} />,
+    icon: <AiOutlineDashboard />,
     badge: {
       color: 'info',
       // text: 'NEW',
@@ -65,7 +139,7 @@ const _nav = [
     name: '应用基础设施大盘',
     abbreviation: '基础设施',
     to: '/basic-dashboard',
-    icon: <CIcon icon={cilSpeedometer} />,
+    icon: <AiOutlineDashboard />,
     badge: {
       color: 'info',
       // text: 'NEW',
@@ -76,7 +150,7 @@ const _nav = [
     name: '应用指标大盘',
     abbreviation: '应用指标',
     to: '/application-dashboard',
-    icon: <CIcon icon={cilSpeedometer} />,
+    icon: <AiOutlineDashboard />,
     badge: {
       color: 'info',
       // text: 'NEW',
@@ -87,7 +161,7 @@ const _nav = [
     name: '中间件大盘',
     abbreviation: '中间件',
     to: '/middleware-dashboard',
-    icon: <CIcon icon={cilSpeedometer} />,
+    icon: <AiOutlineDashboard />,
     badge: {
       color: 'info',
       // text: 'NEW',
@@ -117,7 +191,7 @@ const _nav = [
   //   component: CNavItem,
   //   name: 'Dashboard',
   //   to: '/dashboard',
-  //   icon: <CIcon icon={cilSpeedometer} />,
+  //   icon: <AiOutlineDashboard />,
   //   badge: {
   //     color: 'info',
   //     text: 'NEW',

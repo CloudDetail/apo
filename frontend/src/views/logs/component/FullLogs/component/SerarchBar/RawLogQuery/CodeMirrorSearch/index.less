@@ -1,0 +1,164 @@
+.editors {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+
+  .codemirrorInput {
+    display: flex;
+    width: calc(100% - 60px);
+    background-color: #212121;
+    border: 1px solid #424242;
+    border-radius: 8px;
+
+    .editorsDom {
+      width: 100%;
+      height: 100%;
+      font-size: 16px;
+      line-height: 26px;
+    }
+    .CodeMirror {
+      border: 1px solid #424242;
+      border-radius: 0 7px 7px 7px;
+    }
+    .CodeMirror-cursor {
+      width: 1px !important;
+      background-color: #000 !important;
+    }
+  }
+}
+
+.oneLine {
+  overflow: hidden;
+
+  .codemirrorInput {
+    padding-right: 60px;
+    padding-left: 10px;
+    &:focus-within {
+      border-color: #424242;
+      outline: 0;
+      box-shadow: 0 0 0 2px rgb(238 114 47 / 20%);
+    }
+
+    &:hover {
+      border-color: #3c89e8;
+    }
+    .editorsErrTxext {
+      position: absolute;
+      bottom: -24px;
+      left: 0;
+      clear: both;
+      min-height: 24px;
+      margin-top: -2px;
+      color: rgba(0, 0, 0, 0.45);
+      font-size: 15px;
+      line-height: 1.5;
+      transition: color 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+    .CodeMirror {
+      height: auto !important;
+      min-height: 32px !important;
+      max-height: 400px !important;
+      border: none !important;
+    }
+    .CodeMirror-scroll {
+      width: calc(100%);
+      height: auto !important;
+      min-height: 32px !important;
+      max-height: 32px !important;
+      padding-bottom: 0 !important;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+
+      > div:nth-child(2) {
+        display: none;
+      }
+    }
+
+    .CodeMirror-gutter-wrapper {
+      left: -55px !important;
+    }
+
+    :global .CodeMirror-placeholder {
+      color: #bbb !important;
+      font-size: 14px !important;
+      transform: translateY(2px) translateX(-2px);
+    }
+
+    .CodeMirror-line {
+      padding: 0;
+    }
+
+    .afterBox {
+      width: 60px;
+      background-color: #212121;
+    }
+  }
+}
+
+.CodeMirror-hints {
+  width: 800px !important;
+  overflow-x: scroll;
+}
+
+.autocomplete-div{
+  display: flex;
+}
+
+.autocomplete-icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.autocomplete-text{
+  flex: 1;
+  padding: 0 15px 0 10px;
+  overflow: hidden;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.autocomplete-collectionText{
+  flex: 1;
+  padding: 0 15px 0 10px;
+  overflow: hidden;
+  color: #2fabee;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.autocomplete-info{
+  width: 50px;
+  margin-right: 40px;
+  color: #aaa;
+  font-weight: 600;
+}
+
+.autocomplete-delete{
+  position: absolute;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 18px;
+}
+
+.CodeMirror-hint-active{
+  .autocomplete-info{
+    color: #fff;
+  }
+}
+
+li.CodeMirror-hint-active{
+  background-color: #bbb;
+}
