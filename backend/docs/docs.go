@@ -4344,7 +4344,7 @@ const docTemplate = `{
                 "endTime"
             ],
             "properties": {
-                "cloumn": {
+                "column": {
                     "type": "string"
                 },
                 "dataBase": {

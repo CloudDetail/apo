@@ -15,6 +15,6 @@ type LogIndexRequest struct {
 	EndTime   int64  `json:"endTime" binding:"required,gtfield=StartTime"`
 	TableName string `json:"tableName"`
 	DataBase  string `json:"dataBase"`
-	Cloumn    string `json:"cloumn"`
+	Column    string `json:"column"`
 	Query     string `json:"query"`
 }

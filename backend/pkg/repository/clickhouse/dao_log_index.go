@@ -9,11 +9,11 @@ import (
 func groupBySQL(req *request.LogIndexRequest) string {
 	condition := fmt.Sprintf("timestamp >= toDateTime64(%d, 3) AND timestamp < toDateTime64(%d, 3) AND %s", req.StartTime/1000000, req.EndTime/1000000, req.Query)
 	sql := fmt.Sprintf("SELECT count(*) as count, `%s` as f FROM %s.%s WHERE %s GROUP BY %s ORDER BY count DESC LIMIT 10",
-		req.Cloumn,
+		req.Column,
 		req.DataBase,
 		req.TableName,
 		condition,
-		req.Cloumn,
+		req.Column,
 	)
 	return sql
 }

@@ -868,7 +868,7 @@ definitions:
     type: object
   request.LogIndexRequest:
     properties:
-      cloumn:
+      column:
         type: string
       dataBase:
         type: string

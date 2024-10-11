@@ -4336,7 +4336,7 @@
                 "endTime"
             ],
             "properties": {
-                "cloumn": {
+                "column": {
                     "type": "string"
                 },
                 "dataBase": {
