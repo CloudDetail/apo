@@ -35,6 +35,11 @@ var zhCnText = map[string]string{
 
 	QueryLogError:    "查询全量日志失败",
 	GetLogChartError: "获取全量日志图表数据失败",
+	GetLogIndexError: "获取全量日志索引失败",
+
+	GetLogTableInfoError:    "获取日志表信息失败",
+	GetLogParseRuleError:    "获取日志表解析规则失败",
+	UpdateLogParseRuleError: "更新日志表解析规则失败",
 
 	GetTracePageListError:    "获取Trace分页列表失败",
 	GetTraceFiltersError:     "获取Trace过滤条件失败",

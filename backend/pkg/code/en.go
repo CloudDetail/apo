@@ -35,6 +35,11 @@ var enText = map[string]string{
 
 	QueryLogError:    "Failed to query all logs",
 	GetLogChartError: "Failed to get log chart",
+	GetLogIndexError: "Failed to get log index",
+
+	GetLogTableInfoError:    "Failed to get log table info",
+	GetLogParseRuleError:    "Failed to get log parse rule",
+	UpdateLogParseRuleError: "Failed to update log parse rule",
 
 	GetTracePageListError:    "Failed to get trace pagelist",
 	GetTraceFiltersError:     "Failed to get trace filters",

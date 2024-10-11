@@ -48,8 +48,7 @@ const (
 	GetLogChartError = "B0407"
 	GetLogIndexError = "B0408"
 
-	GetLogTableInfoError = "B0409"
-
+	GetLogTableInfoError    = "B0409"
 	GetLogParseRuleError    = "B0410"
 	UpdateLogParseRuleError = "B0411"
 
