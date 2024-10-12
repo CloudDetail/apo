@@ -53,7 +53,7 @@ function FullLogs() {
       }
     },
     300, // 延迟时间 300ms
-    [searchParams.get('log-from'), searchParams.get('log-to'), tableInfo],
+    [searchParams.get('log-from'), searchParams.get('log-to'), tableInfo, query],
   )
   return (
     <>
