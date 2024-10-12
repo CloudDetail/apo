@@ -67,7 +67,7 @@ function FullLogs() {
           <div className="w-[220px] flex-shrink-0 flex-grow-0">
             <IndexList />
           </div>
-          <div className=" h-full flex-1">
+          <div className=" h-full flex-1 verflow-hidden">
             <LogQueryResult />
           </div>
         </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { AiFillCaretDown, AiFillCaretRight } from 'react-icons/ai'
-import LogItemFold from './LogItemFold'
-import LogItemDetail from './LogItemDetail'
+import LogItemFold from './component/LogItemFold'
+import LogItemDetail from './component/LogItemDetail'
 import { Button } from 'antd'
 const LogItem = (props) => {
   const { log, foldingChecked } = props

@@ -1,6 +1,7 @@
 import { Tag } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useLogsContext } from 'src/contexts/LogsContext'
+import LogTag from './LogTag'
 const LogItemDetail = ({ log }) => {
   const [contentInfo, setContentInfo] = useState({})
   useEffect(() => {
@@ -17,12 +18,7 @@ const LogItemDetail = ({ log }) => {
   return (
     <div className=" ">
       {Object.entries(contentInfo).map(([key, value]) => (
-        <div className="flex">
-          <div>
-            <Tag className="cursor-pointer  text-gray-200">{key}</Tag>
-          </div>
-          ：{value}
-        </div>
+        <LogTag key={key} title={key} description={value} />
       ))}
     </div>
   )

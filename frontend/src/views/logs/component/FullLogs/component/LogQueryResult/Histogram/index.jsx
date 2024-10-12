@@ -2,20 +2,24 @@ import React, { useEffect, useRef, useState } from 'react'
 import ReactECharts from 'echarts-for-react'
 import dayjs from 'dayjs' // 用来格式化时间
 import { useLogsContext } from 'src/contexts/LogsContext'
-import { convertTime } from 'src/utils/time'
+import { convertTime, TimestampToISO } from 'src/utils/time'
 import { Empty } from 'antd'
+import { useSearchParams } from 'react-router-dom'
 
 const BarChart = () => {
   const chartRef = useRef(null)
-
+  const [searchParams, setSearchParams] = useSearchParams()
   const { logsChartData } = useLogsContext()
   const [option, setOption] = useState({
     tooltip: {
       show: true,
       confine: 'true',
       trigger: 'axis',
+      // axisPointer: {
+      //   type: 'none', // 禁用坐标辅助线
+      // },
       axisPointer: {
-        type: 'none', // 禁用坐标辅助线
+        type: 'shadow', // makes entire x-axis area clickable
       },
       textStyle: {
         overflow: 'breakAll',
@@ -45,6 +49,9 @@ const BarChart = () => {
       xAxis: {
         type: 'category',
         data: logsChartData.map((item) => convertTime(item.from, 'yyyy-mm-dd hh:mm:ss')), // 格式化时间显示
+        axisPointer: {
+          type: 'shadow', // 让整个x轴区域响应点击
+        },
         axisLabel: {
           formatter: (value) => {
             const time = dayjs(value)
@@ -84,9 +91,58 @@ const BarChart = () => {
     }
     setOption(newOption)
   }, [logsChartData])
+  const onChartReady = (chartInstance) => {
+    const zr = chartInstance.getZr()
+
+    const handleZrClick = (params) => {
+      const pointInPixel = [params.offsetX, params.offsetY]
+      const pointInGrid = chartInstance.convertFromPixel('grid', pointInPixel)
+
+      if (pointInGrid) {
+        const categoryIndex = Math.round(pointInGrid[0]) // 获取x轴索引
+        const chartOption = chartInstance.getOption() // 获取当前图表的所有数据
+        const seriesData = chartOption.series[0].data[categoryIndex] // 获取点击的对象数据
+
+        const params = new URLSearchParams(searchParams)
+        const from = searchParams.get('log-from')
+        const to = searchParams.get('log-to')
+        let needChangeUrl = false
+        const fromStringToISO = TimestampToISO(seriesData.from)
+        const toStringToISO = TimestampToISO(seriesData.to)
+        if (fromStringToISO !== from) {
+          params.set('log-from', fromStringToISO)
+          needChangeUrl = true
+        }
+        if (toStringToISO !== to) {
+          params.set('log-to', toStringToISO)
+          needChangeUrl = true
+        }
+        if (needChangeUrl) {
+          setSearchParams(params, { replace: true })
+        }
+      }
+    }
+
+    zr.on('click', handleZrClick)
+
+    // 确保在组件卸载时移除事件监听
+    return () => {
+      zr.off('click', handleZrClick)
+    }
+  }
+
   return (
     <div className="h-[100px]">
-      <ReactECharts option={option} style={{ height: 100, width: '100%' }} />
+      {logsChartData?.length > 0 ? (
+        <ReactECharts
+          ref={chartRef}
+          option={option}
+          style={{ height: 100, width: '100%' }}
+          onChartReady={onChartReady}
+        />
+      ) : (
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无直方图数据" />
+      )}
     </div>
   )
 }
