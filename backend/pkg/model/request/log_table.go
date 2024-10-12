@@ -1,6 +1,10 @@
 package request
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/CloudDetail/apo/backend/config"
+)
 
 type Field struct {
 	Name string `json:"name"`
@@ -38,10 +42,13 @@ func (q *LogTableRequest) FillerValue() {
 		q.TTL = 7
 	}
 	if q.TableName == "" {
-		q.TableName = "apo_logs"
+		q.TableName = "raw_logs"
 	}
 	if q.DataBase == "" {
-		q.DataBase = "default"
+		q.DataBase = "apo"
+	}
+	if q.Cluster == "" {
+		q.Cluster = config.Get().ClickHouse.Cluster
 	}
 	if q.Buffer.NumLayers == 0 {
 		q.Buffer.NumLayers = 16

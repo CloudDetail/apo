@@ -8,22 +8,25 @@ import (
 )
 
 func (s *service) GetLogIndex(req *request.LogIndexRequest) (*response.LogIndexResponse, error) {
+	res := &response.LogIndexResponse{}
 	list, sum, err := s.chRepo.GetLogIndex(req)
 	if err != nil {
-		return nil, err
+		res.Err = err.Error()
+		return res, nil
 	}
-	res := make([]response.IndexItem, 0)
+	indexs := make([]response.IndexItem, 0)
 	var count uint64
 	for k, v := range list {
 		count += v
-		res = append(res, response.IndexItem{
+		indexs = append(indexs, response.IndexItem{
 			IndexName: k,
 			Count:     v,
 			Percent:   float64(v) * 100 / float64(sum),
 		})
 	}
-	sort.Slice(res, func(i, j int) bool {
-		return res[i].Count > res[j].Count
+	sort.Slice(indexs, func(i, j int) bool {
+		return indexs[i].Count > indexs[j].Count
 	})
-	return &response.LogIndexResponse{Indexs: res}, nil
+	res.Indexs = indexs
+	return res, nil
 }

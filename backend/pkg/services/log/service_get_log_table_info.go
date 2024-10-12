@@ -7,8 +7,10 @@ import (
 
 func (s *service) GetLogTableInfo(req *request.LogTableInfoRequest) (*response.LogTableInfoResponse, error) {
 	rows, err := s.dbRepo.GetAllLogTable()
+	res := &response.LogTableInfoResponse{}
 	if err != nil {
-		return nil, err
+		res.Err = err.Error()
+		return res, nil
 	}
 	logtables := make(map[string][]response.LogTable)
 	for _, row := range rows {
@@ -17,8 +19,6 @@ func (s *service) GetLogTableInfo(req *request.LogTableInfoRequest) (*response.L
 			TableName: row.Table,
 		})
 	}
-	res := &response.LogTableInfoResponse{
-		LogTables: logtables,
-	}
-	return res, err
+	res.LogTables = logtables
+	return res, nil
 }

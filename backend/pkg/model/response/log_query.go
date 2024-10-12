@@ -7,6 +7,7 @@ type LogQueryResponse struct {
 	Logs          []LogItem `json:"logs"`
 	Query         string    `json:"query"`
 	Cost          int64     `json:"cost"`
+	Err           string    `json:"error"`
 }
 
 type LogItem struct {

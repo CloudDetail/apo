@@ -1,7 +1,6 @@
 package log
 
 import (
-	"errors"
 	"sort"
 	"time"
 
@@ -12,9 +11,11 @@ import (
 const SecondToMirco = 1000000
 
 func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResponse, error) {
+	res := &response.LogChartResponse{}
 	rows, interval, err := s.chRepo.GetLogChart(req)
 	if err != nil {
-		return nil, err
+		res.Err = err.Error()
+		return res, nil
 	}
 	charts := make([]*response.LogHistogram, 0, len(rows))
 
@@ -36,7 +37,7 @@ func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResp
 		}
 		charts = append(charts, &chart)
 	}
-	res := &response.LogChartResponse{}
+
 	chartMap := make(map[int64]*response.LogHistogram)
 	// get key info
 	var firstFrom int64
@@ -52,7 +53,8 @@ func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResp
 	// fill charts
 	st, et := req.StartTime/1000000, req.EndTime/1000000
 	if (firstFrom < st-interval || firstFrom > et+interval) || (latestFrom < st-interval || latestFrom > et+interval) {
-		return nil, errors.New("invalid time range")
+		res.Err = "日志时间范围超出范围"
+		return res, nil
 	}
 	// fill head
 	if st+interval < firstFrom {

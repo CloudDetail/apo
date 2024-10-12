@@ -10,6 +10,11 @@ import (
 
 func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*response.LogParseResponse, error) {
 	// 更新k8s configmap
+	res := &response.LogParseResponse{
+		ParseName: req.ParseName,
+		ParseRule: req.ParseRule,
+		RouteRule: req.RouteRule,
+	}
 	data, err := s.k8sApi.GetVectorConfigFile()
 	if err != nil {
 		return nil, err
@@ -26,7 +31,8 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 	}
 	newData, err := p.UpdateParseRule(vectorCfg)
 	if err != nil {
-		return nil, err
+		res.Err = err.Error()
+		return res, nil
 	}
 	err = s.k8sApi.UpdateVectorConfigFile(newData)
 	if err != nil {
@@ -44,9 +50,5 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 		return nil, err
 	}
 
-	return &response.LogParseResponse{
-		ParseName: req.ParseName,
-		ParseRule: req.ParseRule,
-		RouteRule: req.RouteRule,
-	}, nil
+	return res, nil
 }

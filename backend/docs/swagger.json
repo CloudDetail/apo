@@ -5477,6 +5477,9 @@
                 "count": {
                     "type": "integer"
                 },
+                "error": {
+                    "type": "string"
+                },
                 "histograms": {
                     "type": "array",
                     "items": {
@@ -5508,6 +5511,9 @@
         "response.LogIndexResponse": {
             "type": "object",
             "properties": {
+                "error": {
+                    "type": "string"
+                },
                 "indexs": {
                     "type": "array",
                     "items": {
@@ -5529,6 +5535,9 @@
         "response.LogParseResponse": {
             "type": "object",
             "properties": {
+                "error": {
+                    "type": "string"
+                },
                 "parseName": {
                     "type": "string"
                 },
@@ -5551,6 +5560,9 @@
                     "items": {
                         "type": "string"
                     }
+                },
+                "error": {
+                    "type": "string"
                 },
                 "hiddenFields": {
                     "type": "array",
@@ -5586,6 +5598,9 @@
         "response.LogTableInfoResponse": {
             "type": "object",
             "properties": {
+                "error": {
+                    "type": "string"
+                },
                 "logTables": {
                     "type": "object",
                     "additionalProperties": {
