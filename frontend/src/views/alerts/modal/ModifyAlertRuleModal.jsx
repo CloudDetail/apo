@@ -232,7 +232,14 @@ export default function ModifyAlertRuleModal({
         width={1000}
         bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden' }}
       >
-        <Form layout={'vertical'} form={form} preserve={false}>
+        <Form
+          layout={'vertical'}
+          form={form}
+          preserve={false}
+          initialValues={{
+            description: 'LABELS = {{ $labels }}\nVALUE = {{ $value }}',
+          }}
+        >
           <Form.Item
             label="组名"
             name="group"
@@ -288,10 +295,16 @@ export default function ModifyAlertRuleModal({
           </Form.Item>
           {!ruleInfo && (
             <div className="flex mb-4">
-              <Checkbox onChange={(e) => updateDescription(e, 'VALUE = {{ $value }}')}>
+              <Checkbox
+                onChange={(e) => updateDescription(e, 'VALUE = {{ $value }}')}
+                defaultChecked
+              >
                 包含指标值
               </Checkbox>
-              <Checkbox onChange={(e) => updateDescription(e, 'LABELS = {{ $labels }}')}>
+              <Checkbox
+                onChange={(e) => updateDescription(e, 'LABELS = {{ $labels }}')}
+                defaultChecked
+              >
                 包含指标标签
               </Checkbox>
             </div>
