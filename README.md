@@ -62,14 +62,12 @@ APO 利用 eBPF 技术为原始数据生成并保存了“索引”数据，“�
 ## 文档
 请查看[官方文档](https://originx.kindlingx.com/docs/APO%20%E5%90%91%E5%AF%BC%E5%BC%8F%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E4%B8%AD%E5%BF%83/%E4%BA%A7%E5%93%81%E4%BB%8B%E7%BB%8D).
 ## 架构
+下图为 APO 组件的数据流图：
 
-- 灰色部分的组件是 APO 集成的开源标准化组件。APO 对 Jaeger 1.58 版本进行了改造，支持将链路数据存储到 ClickHouse 中。
-- 紫蓝色部分的组件是 APO 额外的能力：
-   - 保留故障现场数据
-   - eBPF采集的北极星因果指标
-   - 故障现场日志与链路的极速关联
+![architecture](./docs/img/apo-data-flow.jpg)
 
-![architecture](./docs/img/architecture.png)
+详细的架构与组件介绍请查看[架构文档](https://originx.kindlingx.com/docs/APO%20%E5%90%91%E5%AF%BC%E5%BC%8F%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E4%B8%AD%E5%BF%83/%E6%8A%80%E6%9C%AF%E5%8E%9F%E7%90%86/%E6%9E%B6%E6%9E%84)。
+
 ## 社区 & 支持
 如果您在使用过程中有任何问题，欢迎通过下方的方式联系我们：
 
