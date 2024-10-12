@@ -31,10 +31,10 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 	}
 	s.dbRepo.OperateLogTableInfo(model, database.QUERY)
 	var fields []request.Field
-	err = json.Unmarshal([]byte(model.Fields), &fields)
-	if err != nil {
-		return nil, err
-	}
+	_ = json.Unmarshal([]byte(model.Fields), &fields)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	for _, field := range fields {
 		hiddenFields = append(hiddenFields, field.Name)
@@ -48,10 +48,19 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 	var defaultFields []string
 	for _, item := range allFileds {
 		if _, exists := hMap[item]; !exists {
-			if item == "timestamp" {
+			if item == "timestamp" || item == "content" {
 				continue
 			}
 			defaultFields = append(defaultFields, item)
+		}
+	}
+	logitems := make([]response.LogItem, len(logs))
+	for i, log := range logs {
+		content := log["content"]
+		delete(log, "content")
+		logitems[i] = response.LogItem{
+			Content: content,
+			Tags:    log,
 		}
 	}
 
@@ -59,7 +68,7 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 		Limited:       req.PageSize,
 		HiddenFields:  hiddenFields,
 		DefaultFields: defaultFields,
-		Logs:          logs,
+		Logs:          logitems,
 		Query:         sql,
 	}
 

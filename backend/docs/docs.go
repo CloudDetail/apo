@@ -5524,6 +5524,16 @@ const docTemplate = `{
                 }
             }
         },
+        "response.LogItem": {
+            "type": "object",
+            "properties": {
+                "content": {},
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
         "response.LogParseResponse": {
             "type": "object",
             "properties": {
@@ -5562,8 +5572,7 @@ const docTemplate = `{
                 "logs": {
                     "type": "array",
                     "items": {
-                        "type": "object",
-                        "additionalProperties": true
+                        "$ref": "#/definitions/response.LogItem"
                     }
                 },
                 "query": {

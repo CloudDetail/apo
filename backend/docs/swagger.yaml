@@ -1617,6 +1617,13 @@ definitions:
           $ref: '#/definitions/response.IndexItem'
         type: array
     type: object
+  response.LogItem:
+    properties:
+      content: {}
+      tags:
+        additionalProperties: true
+        type: object
+    type: object
   response.LogParseResponse:
     properties:
       parseName:
@@ -1642,8 +1649,7 @@ definitions:
         type: integer
       logs:
         items:
-          additionalProperties: true
-          type: object
+          $ref: '#/definitions/response.LogItem'
         type: array
       query:
         type: string
