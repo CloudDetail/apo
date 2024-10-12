@@ -11,7 +11,7 @@ import (
 const (
 	defaultParseName = "default_java"
 	defaultRouteRule = `."k8s.namespace.name" != "apo"`
-	defaultParseRule = `.msg, err = parse_regex(.content, r'\[ (?P<level>.*?)\] \[(?P<thread>.*?)\] \[(?P<method>.*?)\(.*?\)\] - (?P<msg>.*)')
+	defaultParseRule = `.msg, err = parse_regex(.content, r' \[(?P<level>.*?)\] \[(?P<thread>.*?)\] \[(?P<method>.*?)\(.*?\)\] - (?P<msg>.*)')
 if err == null {
 	.content = encode_json(.msg)
 }
