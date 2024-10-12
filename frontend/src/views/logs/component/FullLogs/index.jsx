@@ -10,8 +10,15 @@ import LogQueryResult from './component/LogQueryResult'
 import { useLogsContext } from 'src/contexts/LogsContext'
 import { useDebounce, useUpdateEffect } from 'react-use'
 function FullLogs() {
-  const { query, pagination, fetchData, loading, clearFieldIndexMap, updateLogsPagination } =
-    useLogsContext()
+  const {
+    query,
+    pagination,
+    fetchData,
+    loading,
+    clearFieldIndexMap,
+    updateLogsPagination,
+    tableInfo,
+  } = useLogsContext()
 
   const [searchParams] = useSearchParams()
 
@@ -46,7 +53,7 @@ function FullLogs() {
       }
     },
     300, // 延迟时间 300ms
-    [searchParams.get('log-from'), searchParams.get('log-to')],
+    [searchParams.get('log-from'), searchParams.get('log-to'), tableInfo],
   )
   return (
     <>

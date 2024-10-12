@@ -17,7 +17,7 @@ const IndexCollapseItem = ({ field }) => {
     if (!query.includes(newQueryPart)) {
       let newQuery = query
       if (newQuery.length > 0) {
-        newQuery += ' And '
+        newQuery += ' AND '
       }
       newQuery += newQueryPart
       updateQuery(newQuery) // 更新查询

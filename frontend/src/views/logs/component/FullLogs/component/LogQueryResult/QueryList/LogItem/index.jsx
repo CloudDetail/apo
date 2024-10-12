@@ -16,20 +16,22 @@ const LogItem = (props) => {
     <div className="flex overflow-hidden px-2">
       {/* icon 和 时间 */}
       <div className="flex-grow-0 flex-shrink-0  w-[360px]">
-        <div className="flex items-center">
-          <Button
+        <div className="flex items-center pl-3">
+          {/* <Button
             color="primary"
             type="text"
             onClick={() => setIsFold(!isFold)}
             className="mx-2"
             icon={isFold ? <AiFillCaretRight /> : <AiFillCaretDown />}
-          ></Button>
-          {log?.timestamp}
+          ></Button> */}
+          {log?.tags.timestamp}
         </div>
       </div>
       {/* 具体日志 */}
       <div className="flex-1 overflow-hidden">
-        {isFold ? <LogItemFold log={log} /> : <LogItemDetail log={log} />}
+        <LogItemFold log={log} />
+        <LogItemDetail log={log} />
+        {/* {isFold ? <LogItemFold log={log} /> : <LogItemDetail log={log} />} */}
       </div>
     </div>
   )

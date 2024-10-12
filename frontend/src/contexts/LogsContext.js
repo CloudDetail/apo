@@ -1,7 +1,12 @@
-import React, { createContext, useContext, useMemo, useReducer } from 'react'
-import { getFullLogApi, getFullLogChartApi, getLogIndexApi, getLogRuleApi } from 'src/api/logs'
+import React, { createContext, useContext, useEffect, useMemo, useReducer } from 'react'
+import {
+  getFullLogApi,
+  getFullLogChartApi,
+  getLogIndexApi,
+  getLogRuleApi,
+  getLogTableInfoAPi,
+} from 'src/api/logs'
 import logsReducer, { logsInitialState } from 'src/store/reducers/logsReducer'
-import { ISOToTimestamp } from 'src/utils/time'
 
 const LogsContext = createContext(logsInitialState)
 
@@ -18,8 +23,8 @@ export const LogsProvider = ({ children }) => {
         endTime: endTime,
         pageNum: state.pagination.pageIndex,
         pageSize: state.pagination.pageSize,
-        tableName: 'test_logs',
-        dataBase: 'default',
+        tableName: state.tableInfo?.tableName,
+        dataBase: state.tableInfo?.dataBase,
         query: state.query,
       }
 
@@ -73,8 +78,8 @@ export const LogsProvider = ({ children }) => {
         startTime,
         endTime,
         column,
-        tableName: 'test_logs',
-        dataBase: 'default',
+        tableName: state.tableInfo?.tableName,
+        dataBase: state.tableInfo?.dataBase,
         query: state.query,
       })
 
@@ -92,6 +97,24 @@ export const LogsProvider = ({ children }) => {
     }
   }
 
+  const getLogTableInfo = () => {
+    getLogTableInfoAPi().then((res) => {
+      const dataBase = Object.keys(res.logTables)[0]
+      const tableList = res.logTables[dataBase][0]
+      dispatch({
+        type: 'updateTableInfo',
+        payload: {
+          dataBase: dataBase,
+          tableName: tableList?.tableName,
+          cluster: tableList?.cluster,
+        },
+      })
+    })
+  }
+  useEffect(() => {
+    console.log('获取database')
+    getLogTableInfo()
+  }, [])
   const memoizedValue = useMemo(
     () => ({
       logs: state.logs,
@@ -102,6 +125,7 @@ export const LogsProvider = ({ children }) => {
       query: state.query,
       loading: state.loading,
       fieldIndexMap: state.fieldIndexMap,
+      tableInfo: state.tableInfo,
       fetchData,
       getFieldIndexData,
       updateLogs: (logs) => dispatch({ type: 'setLogs', payload: logs }),
@@ -123,6 +147,7 @@ export const LogsProvider = ({ children }) => {
       state.query,
       state.loading,
       state.fieldIndexMap,
+      state.tableInfo,
     ],
   )
 

@@ -23,7 +23,7 @@ const RawLogQuery = () => {
     // if (queryKeyword) {
     setSearchValue(queryKeyword)
     setIsDefault(false)
-    updateQuery(searchValue)
+    updateQuery(queryKeyword)
     // }
   }, [queryKeyword, isDefault])
   useEffect(() => {
@@ -37,7 +37,12 @@ const RawLogQuery = () => {
           <CodeMirrorSearch
             title="logInput"
             value={searchValue}
-            // onPressEnter={() => doSearchLog.run()}
+            onPressEnter={() =>
+              fetchData({
+                startTime: ISOToTimestamp(searchParams.get('log-from')),
+                endTime: ISOToTimestamp(searchParams.get('log-to')),
+              })
+            }
             onChange={setQueryKeyword}
             tables={analysisFieldTips}
             historicalRecord={historicalRecord}

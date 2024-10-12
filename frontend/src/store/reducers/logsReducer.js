@@ -1,6 +1,9 @@
 export const logsInitialState = {
-  database: '',
-  tableName: '',
+  tableInfo: {
+    dataBase: '',
+    tableName: '',
+    cluster: '',
+  },
   logRule: {},
   logs: [],
   pagination: {
@@ -38,8 +41,8 @@ const logsReducer = (state = logsInitialState, action) => {
       return { ...state, loading: action.payload }
     case 'updateDataBase':
       return { ...state, database: action.payload }
-    case 'updateTableName':
-      return { ...state, tableName: action.payload }
+    case 'updateTableInfo':
+      return { ...state, tableInfo: action.payload }
     case 'setLogState':
       return { ...state, ...action.payload }
     case 'updateFieldIndexMap':

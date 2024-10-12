@@ -33,3 +33,8 @@ export const updateLogRuleApi = (params) => {
 export const getLogIndexApi = (params) => {
   return post(`/api/log/index`, params)
 }
+
+//获取日志表信息
+export const getLogTableInfoAPi = (params) => {
+  return post(`/api/log/table`, params)
+}
