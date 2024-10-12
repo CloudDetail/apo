@@ -237,7 +237,7 @@ export default function ModifyAlertRuleModal({
           form={form}
           preserve={false}
           initialValues={{
-            description: 'LABELS = {{ $labels }}\nVALUE = {{ $value }}',
+            description: 'VALUE = {{ $value }}\nLABELS = {{ $labels }}',
           }}
         >
           <Form.Item
