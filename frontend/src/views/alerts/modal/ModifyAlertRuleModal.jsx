@@ -1,4 +1,4 @@
-import { Flex, Form, Input, InputNumber, Modal, Radio, Select, Tag, Tooltip } from 'antd'
+import { Checkbox, Flex, Form, Input, InputNumber, Modal, Radio, Select, Tag, Tooltip } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
 import _ from 'lodash'
 import React, { useEffect, useState } from 'react'
@@ -193,6 +193,30 @@ export default function ModifyAlertRuleModal({
       setForUnit('s')
     }
   }, [modalVisible, ruleInfo])
+  const updateDescription = (e, value) => {
+    let description = _.cloneDeep(form.getFieldValue('description') ?? '')
+    const isExists = description.includes(value)
+    if (e.target.checked) {
+      if (!isExists) {
+        // 如果不包含，则在最后添加该 value
+        description = description ? description + '\n' + value : value
+      }
+    } else {
+      // 检查有无 有则删去
+      if (isExists) {
+        // 如果包含，则删除该 value
+        description = description
+          .split('\n')
+          .filter((line) => line.trim() !== value)
+          .join('\n')
+      }
+    }
+
+    // 更新表单的字段值
+    form.setFieldsValue({
+      description: description,
+    })
+  }
   return (
     <>
       <Modal
@@ -262,6 +286,16 @@ export default function ModifyAlertRuleModal({
           <Form.Item label="告警信息" name="description">
             <TextArea placeholder="告警信息" rows={2} />
           </Form.Item>
+          {!ruleInfo && (
+            <div className="flex mb-4">
+              <Checkbox onChange={(e) => updateDescription(e, 'VALUE = {{ $value }}')}>
+                包含指标值
+              </Checkbox>
+              <Checkbox onChange={(e) => updateDescription(e, 'LABELS = {{ $labels }}')}>
+                包含指标标签
+              </Checkbox>
+            </div>
+          )}
           <Form.Item label="附加标签" name="labels" rules={[{ validator: labelsValidator }]}>
             <Select
               mode="tags"
