@@ -8,7 +8,7 @@ const LogTag = (props) => {
       <div>
         <Tag className="cursor-pointer  text-gray-200">{title}</Tag>
       </div>
-      ：<span className=" break-words">{description}</span>
+      ：<span className="break-all">{description}</span>
     </div>
   )
 }
