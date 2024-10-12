@@ -2,6 +2,7 @@ package log
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
@@ -66,8 +67,15 @@ type handler struct {
 }
 
 func New(logger *zap.Logger, chRepo clickhouse.Repo, dbRepo database.Repo, k8sApi kubernetes.Repo) Handler {
+	logservice := log.New(chRepo, dbRepo, k8sApi)
+	req := &request.LogTableRequest{}
+	req.FillerValue()
+	_, err := logservice.CreateLogTable(req)
+	if err != nil {
+		logger.Error("create default log table failed", zap.Error(err))
+	}
 	return &handler{
 		logger:     logger,
-		logService: log.New(chRepo, dbRepo, k8sApi),
+		logService: logservice,
 	}
 }
