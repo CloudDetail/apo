@@ -2,6 +2,7 @@ package response
 
 type LogTableInfoResponse struct {
 	LogTables map[string][]LogTable `json:"logTables"`
+	Err       string                `json:"error"`
 }
 
 type LogTable struct {

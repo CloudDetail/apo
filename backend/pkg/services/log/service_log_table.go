@@ -20,12 +20,15 @@ del(.msg)`
 
 func (s *service) CreateLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error) {
 	sqls, err := s.chRepo.CreateLogTable(req)
+	res := &response.LogTableResponse{Sqls: sqls}
 	if err != nil {
-		return nil, err
+		res.Err = err.Error()
+		return res, nil
 	}
 	fieldsJSON, err := json.Marshal(req.Fields)
 	if err != nil {
-		return nil, err
+		res.Err = err.Error()
+		return res, nil
 	}
 	logtable := &database.LogTableInfo{
 		Cluster:   req.Cluster,
@@ -36,17 +39,26 @@ func (s *service) CreateLogTable(req *request.LogTableRequest) (*response.LogTab
 		RouteRule: defaultRouteRule,
 		ParseRule: defaultParseRule,
 	}
-	err = s.dbRepo.OperateLogTableInfo(logtable, database.INSERT)
+	// 不存在才去插入logtableinfo
+	err = s.dbRepo.OperateLogTableInfo(logtable, database.QUERY)
 	if err != nil {
-		return nil, err
+		err = s.dbRepo.OperateLogTableInfo(logtable, database.INSERT)
+		if err != nil {
+			res.Err = err.Error()
+			return res, nil
+		}
 	}
-	return &response.LogTableResponse{Sqls: sqls}, nil
+
+	return res, nil
 }
 
 func (s *service) DropLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error) {
+
 	sqls, err := s.chRepo.DropLogTable(req)
+	res := &response.LogTableResponse{Sqls: sqls}
 	if err != nil {
-		return nil, err
+		res.Err = err.Error()
+		return res, nil
 	}
 	logtable := &database.LogTableInfo{
 		Cluster:  req.Cluster,
@@ -55,12 +67,13 @@ func (s *service) DropLogTable(req *request.LogTableRequest) (*response.LogTable
 	}
 	err = s.dbRepo.OperateLogTableInfo(logtable, database.DELETE)
 	if err != nil {
-		return nil, err
+		res.Err = err.Error()
 	}
-	return &response.LogTableResponse{Sqls: sqls}, nil
+	return res, nil
 }
 
 func (s *service) UpdateLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error) {
+	res := &response.LogTableResponse{}
 	logtable := &database.LogTableInfo{
 		Cluster:  req.Cluster,
 		DataBase: req.DataBase,
@@ -68,12 +81,14 @@ func (s *service) UpdateLogTable(req *request.LogTableRequest) (*response.LogTab
 	}
 	err := s.dbRepo.OperateLogTableInfo(logtable, database.QUERY)
 	if err != nil {
-		return nil, err
+		res.Err = err.Error()
+		return res, nil
 	}
 	var fields []request.Field
 	err = json.Unmarshal([]byte(logtable.Fields), &fields)
 	if err != nil {
-		return nil, err
+		res.Err = err.Error()
+		return res, nil
 	}
 	fieldsname := map[string]struct{}{}
 	newFields := []request.Field{}
@@ -86,17 +101,21 @@ func (s *service) UpdateLogTable(req *request.LogTableRequest) (*response.LogTab
 		}
 	}
 	sqls, err := s.chRepo.UpdateLogTable(req, newFields, fields)
+	res.Sqls = sqls
 	if err != nil {
-		return nil, err
+		res.Err = err.Error()
+		return res, nil
 	}
 	fieldsJSON, err := json.Marshal(req.Fields)
 	if err != nil {
-		return nil, err
+		res.Err = err.Error()
+		return res, nil
 	}
 	logtable.Fields = string(fieldsJSON)
 	err = s.dbRepo.OperateLogTableInfo(logtable, database.UPDATE)
 	if err != nil {
-		return nil, err
+		res.Err = err.Error()
+		return res, nil
 	}
-	return &response.LogTableResponse{Sqls: sqls}, nil
+	return res, nil
 }

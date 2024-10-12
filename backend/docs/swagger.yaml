@@ -1592,6 +1592,8 @@ definitions:
     properties:
       count:
         type: integer
+      error:
+        type: string
       histograms:
         items:
           $ref: '#/definitions/response.LogHistogram'
@@ -1612,6 +1614,8 @@ definitions:
     type: object
   response.LogIndexResponse:
     properties:
+      error:
+        type: string
       indexs:
         items:
           $ref: '#/definitions/response.IndexItem'
@@ -1626,6 +1630,8 @@ definitions:
     type: object
   response.LogParseResponse:
     properties:
+      error:
+        type: string
       parseName:
         type: string
       parseRule:
@@ -1641,6 +1647,8 @@ definitions:
         items:
           type: string
         type: array
+      error:
+        type: string
       hiddenFields:
         items:
           type: string
@@ -1663,6 +1671,8 @@ definitions:
     type: object
   response.LogTableInfoResponse:
     properties:
+      error:
+        type: string
       logTables:
         additionalProperties:
           items:

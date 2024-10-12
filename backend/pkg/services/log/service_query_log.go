@@ -2,7 +2,6 @@ package log
 
 import (
 	"encoding/json"
-	"errors"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -11,11 +10,14 @@ import (
 
 func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResponse, error) {
 	logs, sql, err := s.chRepo.QueryAllLogs(req)
+	res := &response.LogQueryResponse{Query: sql}
 	if err != nil {
-		return nil, err
+		res.Err = err.Error()
+		return res, nil
 	}
 	if len(logs) == 0 {
-		return nil, errors.New("no found logs")
+		res.Err = "未查询到任何日志数据"
+		return res, nil
 	}
 	allFileds := []string{}
 	if len(logs) > 0 {
@@ -64,13 +66,10 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 		}
 	}
 
-	res := &response.LogQueryResponse{
-		Limited:       req.PageSize,
-		HiddenFields:  hiddenFields,
-		DefaultFields: defaultFields,
-		Logs:          logitems,
-		Query:         sql,
-	}
-
+	res.Limited = req.PageSize
+	res.HiddenFields = hiddenFields
+	res.DefaultFields = defaultFields
+	res.Logs = logitems
+	res.Query = sql
 	return res, nil
 }

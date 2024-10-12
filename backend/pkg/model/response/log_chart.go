@@ -4,6 +4,7 @@ type LogChartResponse struct {
 	Histograms []*LogHistogram `json:"histograms"`
 	Count      uint64          `json:"count"`
 	Progress   string          `json:"progress"`
+	Err        string          `json:"error"`
 }
 
 type LogHistogram struct {

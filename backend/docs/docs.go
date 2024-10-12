@@ -5485,6 +5485,9 @@ const docTemplate = `{
                 "count": {
                     "type": "integer"
                 },
+                "error": {
+                    "type": "string"
+                },
                 "histograms": {
                     "type": "array",
                     "items": {
@@ -5516,6 +5519,9 @@ const docTemplate = `{
         "response.LogIndexResponse": {
             "type": "object",
             "properties": {
+                "error": {
+                    "type": "string"
+                },
                 "indexs": {
                     "type": "array",
                     "items": {
@@ -5537,6 +5543,9 @@ const docTemplate = `{
         "response.LogParseResponse": {
             "type": "object",
             "properties": {
+                "error": {
+                    "type": "string"
+                },
                 "parseName": {
                     "type": "string"
                 },
@@ -5559,6 +5568,9 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "error": {
+                    "type": "string"
                 },
                 "hiddenFields": {
                     "type": "array",
@@ -5594,6 +5606,9 @@ const docTemplate = `{
         "response.LogTableInfoResponse": {
             "type": "object",
             "properties": {
+                "error": {
+                    "type": "string"
+                },
                 "logTables": {
                     "type": "object",
                     "additionalProperties": {
