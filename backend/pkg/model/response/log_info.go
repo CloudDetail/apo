@@ -10,6 +10,7 @@ type Parse struct {
 	DataBase  string `json:"dataBase"`
 	TableName string `json:"tableName"`
 	ParseName string `json:"parseName"`
+	ParseInfo string `json:"parseInfo"`
 }
 
 type Instance struct {

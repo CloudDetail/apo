@@ -5692,6 +5692,9 @@ const docTemplate = `{
                 "dataBase": {
                     "type": "string"
                 },
+                "parseInfo": {
+                    "type": "string"
+                },
                 "parseName": {
                     "type": "string"
                 },
