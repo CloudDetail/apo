@@ -26,6 +26,7 @@ type LogTableRequest struct {
 	TableName string             `json:"tableName"`
 	Cluster   string             `json:"cluster"`
 	TTL       uint               `json:"ttl"`
+	Replica   bool               `json:"replica"`
 	Fields    []Field            `json:"fields"`
 	Buffer    BufferEngineConfig `json:"buffer"`
 }
@@ -49,6 +50,9 @@ func (q *LogTableRequest) FillerValue() {
 	}
 	if q.Cluster == "" {
 		q.Cluster = config.Get().ClickHouse.Cluster
+	}
+	if !q.Replica {
+		q.Replica = config.Get().ClickHouse.Replica
 	}
 	if q.Buffer.NumLayers == 0 {
 		q.Buffer.NumLayers = 16
