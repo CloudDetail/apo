@@ -13,17 +13,11 @@ func (s *service) GetLogTableInfo(req *request.LogTableInfoRequest) (*response.L
 		return res, nil
 	}
 	parses := make([]response.Parse, 0)
-	parsesMap := make(map[string][]response.ParseInfo)
 	for _, row := range rows {
-		parsesMap[row.DataBase] = append(parsesMap[row.DataBase], response.ParseInfo{
+		parses = append(parses, response.Parse{
+			DataBase:  row.DataBase,
 			ParseName: row.ParseName,
 			TableName: row.Table,
-		})
-	}
-	for dataBase, parseInfos := range parsesMap {
-		parses = append(parses, response.Parse{
-			DataBase:   dataBase,
-			ParseInfos: parseInfos,
 		})
 	}
 
@@ -32,15 +26,37 @@ func (s *service) GetLogTableInfo(req *request.LogTableInfoRequest) (*response.L
 		res.Err = err.Error()
 		return res, nil
 	}
-	logTables := make([]response.LogTable, 0)
+	instances := make([]response.Instance, 0)
+	instanceMap := make(map[string]map[string][]response.LogTableInfo)
 	for _, other := range others {
-		logTables = append(logTables, response.LogTable{
-			Cluster:  other.Cluster,
-			DataBase: other.DataBase,
-			Tables:   []response.LogTableInfo{{LogField: other.LogField, TableName: other.Table, TimeField: other.TimeField}},
+		instance, ok := instanceMap[other.Instance]
+		if !ok {
+			instance = make(map[string][]response.LogTableInfo)
+			instanceMap[other.Instance] = instance
+		}
+		instance[other.DataBase] = append(instance[other.DataBase], response.LogTableInfo{
+			LogField:  other.LogField,
+			TableName: other.Table,
+			TimeField: other.TimeField,
+			Cluster:   other.Cluster,
 		})
+		instanceMap[other.Instance] = instance
 	}
+	for instance, DataBases := range instanceMap {
+		for dataBase, tables := range DataBases {
+			instances = append(instances, response.Instance{
+				InstanceName: instance,
+				DataBases: []response.DBInfo{
+					{
+						DataBase: dataBase,
+						Tables:   tables,
+					},
+				},
+			})
+		}
+	}
+
 	res.Parses = parses
-	res.LogTables = logTables
+	res.Instances = instances
 	return res, nil
 }

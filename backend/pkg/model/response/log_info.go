@@ -2,26 +2,28 @@ package response
 
 type LogTableInfoResponse struct {
 	Parses    []Parse    `json:"parses"`
-	LogTables []LogTable `json:"logTables"`
+	Instances []Instance `json:"instances"`
 	Err       string     `json:"error"`
 }
 
 type Parse struct {
-	DataBase   string      `json:"dataBase"`
-	ParseInfos []ParseInfo `json:"parseInfos"`
-}
-type ParseInfo struct {
+	DataBase  string `json:"dataBase"`
 	TableName string `json:"tableName"`
 	ParseName string `json:"parseName"`
 }
 
-type LogTable struct {
+type Instance struct {
+	InstanceName string   `json:"instanceName"`
+	DataBases    []DBInfo `json:"dataBases"`
+}
+
+type DBInfo struct {
 	DataBase string         `json:"dataBase"`
-	Cluster  string         `json:"cluster"`
-	Tables   []LogTableInfo `json:"tableInfos"`
+	Tables   []LogTableInfo `json:"tables"`
 }
 
 type LogTableInfo struct {
+	Cluster   string `json:"cluster"`
 	TableName string `json:"tableName"`
 	TimeField string `json:"timeField"`
 	LogField  string `json:"logField"`

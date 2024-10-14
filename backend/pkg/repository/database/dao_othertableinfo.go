@@ -7,6 +7,7 @@ type OtherLogTable struct {
 	Cluster   string `gorm:"type:varchar(100)"`
 	TimeField string `gorm:"type:varchar(100);column:timefield"`
 	LogField  string `gorm:"type:varchar(100);column:logfield"`
+	Instance  string `gorm:"type:varchar(100)"`
 }
 
 func (OtherLogTable) TableName() string {

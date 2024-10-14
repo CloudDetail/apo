@@ -4679,6 +4679,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.DBInfo": {
+            "type": "object",
+            "properties": {
+                "dataBase": {
+                    "type": "string"
+                },
+                "tables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.LogTableInfo"
+                    }
+                }
+            }
+        },
         "response.DeleteResponse": {
             "type": "object",
             "properties": {
@@ -5344,6 +5358,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.Instance": {
+            "type": "object",
+            "properties": {
+                "dataBases": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DBInfo"
+                    }
+                },
+                "instanceName": {
+                    "type": "string"
+                }
+            }
+        },
         "response.InstanceData": {
             "type": "object",
             "properties": {
@@ -5604,26 +5632,12 @@ const docTemplate = `{
                 }
             }
         },
-        "response.LogTable": {
+        "response.LogTableInfo": {
             "type": "object",
             "properties": {
                 "cluster": {
                     "type": "string"
                 },
-                "dataBase": {
-                    "type": "string"
-                },
-                "tableInfos": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.LogTableInfo"
-                    }
-                }
-            }
-        },
-        "response.LogTableInfo": {
-            "type": "object",
-            "properties": {
                 "logField": {
                     "type": "string"
                 },
@@ -5641,10 +5655,10 @@ const docTemplate = `{
                 "error": {
                     "type": "string"
                 },
-                "logTables": {
+                "instances": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.LogTable"
+                        "$ref": "#/definitions/response.Instance"
                     }
                 },
                 "parses": {
@@ -5678,17 +5692,6 @@ const docTemplate = `{
                 "dataBase": {
                     "type": "string"
                 },
-                "parseInfos": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.ParseInfo"
-                    }
-                }
-            }
-        },
-        "response.ParseInfo": {
-            "type": "object",
-            "properties": {
                 "parseName": {
                     "type": "string"
                 },

@@ -1049,6 +1049,15 @@ definitions:
         description: 主键ID
         type: integer
     type: object
+  response.DBInfo:
+    properties:
+      dataBase:
+        type: string
+      tables:
+        items:
+          $ref: '#/definitions/response.LogTableInfo'
+        type: array
+    type: object
   response.DeleteResponse:
     properties:
       id:
@@ -1497,6 +1506,15 @@ definitions:
       percent:
         type: number
     type: object
+  response.Instance:
+    properties:
+      dataBases:
+        items:
+          $ref: '#/definitions/response.DBInfo'
+        type: array
+      instanceName:
+        type: string
+    type: object
   response.InstanceData:
     properties:
       alertReason:
@@ -1670,19 +1688,10 @@ definitions:
       query:
         type: string
     type: object
-  response.LogTable:
+  response.LogTableInfo:
     properties:
       cluster:
         type: string
-      dataBase:
-        type: string
-      tableInfos:
-        items:
-          $ref: '#/definitions/response.LogTableInfo'
-        type: array
-    type: object
-  response.LogTableInfo:
-    properties:
       logField:
         type: string
       tableName:
@@ -1694,9 +1703,9 @@ definitions:
     properties:
       error:
         type: string
-      logTables:
+      instances:
         items:
-          $ref: '#/definitions/response.LogTable'
+          $ref: '#/definitions/response.Instance'
         type: array
       parses:
         items:
@@ -1719,13 +1728,6 @@ definitions:
     properties:
       dataBase:
         type: string
-      parseInfos:
-        items:
-          $ref: '#/definitions/response.ParseInfo'
-        type: array
-    type: object
-  response.ParseInfo:
-    properties:
       parseName:
         type: string
       tableName:
