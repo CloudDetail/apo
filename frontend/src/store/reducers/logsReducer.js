@@ -8,7 +8,7 @@ export const logsInitialState = {
   logs: [],
   pagination: {
     pageIndex: 1,
-    pageSize: 10,
+    pageSize: 50,
     total: 0,
   },
 
