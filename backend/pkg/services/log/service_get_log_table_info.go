@@ -12,13 +12,35 @@ func (s *service) GetLogTableInfo(req *request.LogTableInfoRequest) (*response.L
 		res.Err = err.Error()
 		return res, nil
 	}
-	logtables := make(map[string][]response.LogTable)
+	parses := make([]response.Parse, 0)
+	parsesMap := make(map[string][]response.ParseInfo)
 	for _, row := range rows {
-		logtables[row.DataBase] = append(logtables[row.DataBase], response.LogTable{
-			Cluster:   row.Cluster,
+		parsesMap[row.DataBase] = append(parsesMap[row.DataBase], response.ParseInfo{
+			ParseName: row.ParseName,
 			TableName: row.Table,
 		})
 	}
-	res.LogTables = logtables
+	for dataBase, parseInfos := range parsesMap {
+		parses = append(parses, response.Parse{
+			DataBase:   dataBase,
+			ParseInfos: parseInfos,
+		})
+	}
+
+	others, err := s.dbRepo.GetAllOtherLogTable()
+	if err != nil {
+		res.Err = err.Error()
+		return res, nil
+	}
+	logTables := make([]response.LogTable, 0)
+	for _, other := range others {
+		logTables = append(logTables, response.LogTable{
+			Cluster:  other.Cluster,
+			DataBase: other.DataBase,
+			Tables:   []response.LogTableInfo{{LogField: other.LogField, TableName: other.Table, TimeField: other.TimeField}},
+		})
+	}
+	res.Parses = parses
+	res.LogTables = logTables
 	return res, nil
 }

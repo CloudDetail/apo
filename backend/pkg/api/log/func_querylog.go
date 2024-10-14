@@ -38,6 +38,12 @@ func (h *handler) QueryLog() core.HandlerFunc {
 		if req.Query == "" {
 			req.Query = "(1='1')"
 		}
+		if req.TimeField == "" {
+			req.TimeField = "timestamp"
+		}
+		if req.LogField == "" {
+			req.LogField = "content"
+		}
 		resp, err := h.logService.QueryLog(req)
 		if err != nil {
 			c.AbortWithError(core.Error(

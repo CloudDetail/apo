@@ -4433,6 +4433,9 @@ const docTemplate = `{
                 "endTime": {
                     "type": "integer"
                 },
+                "logField": {
+                    "type": "string"
+                },
                 "query": {
                     "type": "string"
                 },
@@ -4441,6 +4444,9 @@ const docTemplate = `{
                     "minimum": 0
                 },
                 "tableName": {
+                    "type": "string"
+                },
+                "timeField": {
                     "type": "string"
                 }
             }
@@ -4457,6 +4463,9 @@ const docTemplate = `{
                 "endTime": {
                     "type": "integer"
                 },
+                "logField": {
+                    "type": "string"
+                },
                 "pageNum": {
                     "type": "integer"
                 },
@@ -4471,6 +4480,9 @@ const docTemplate = `{
                     "minimum": 0
                 },
                 "tableName": {
+                    "type": "string"
+                },
+                "timeField": {
                     "type": "string"
                 }
             }
@@ -5598,7 +5610,27 @@ const docTemplate = `{
                 "cluster": {
                     "type": "string"
                 },
+                "dataBase": {
+                    "type": "string"
+                },
+                "tableInfos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.LogTableInfo"
+                    }
+                }
+            }
+        },
+        "response.LogTableInfo": {
+            "type": "object",
+            "properties": {
+                "logField": {
+                    "type": "string"
+                },
                 "tableName": {
+                    "type": "string"
+                },
+                "timeField": {
                     "type": "string"
                 }
             }
@@ -5610,12 +5642,15 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "logTables": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.LogTable"
-                        }
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.LogTable"
+                    }
+                },
+                "parses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.Parse"
                     }
                 }
             }
@@ -5634,6 +5669,31 @@ const docTemplate = `{
                 "total": {
                     "description": "总记录数",
                     "type": "integer"
+                }
+            }
+        },
+        "response.Parse": {
+            "type": "object",
+            "properties": {
+                "dataBase": {
+                    "type": "string"
+                },
+                "parseInfos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ParseInfo"
+                    }
+                }
+            }
+        },
+        "response.ParseInfo": {
+            "type": "object",
+            "properties": {
+                "parseName": {
+                    "type": "string"
+                },
+                "tableName": {
+                    "type": "string"
                 }
             }
         },

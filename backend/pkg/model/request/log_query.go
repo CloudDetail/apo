@@ -8,6 +8,8 @@ type LogQueryRequest struct {
 	Query     string `json:"query"`
 	PageNum   int    `json:"pageNum"`
 	PageSize  int    `json:"pageSize"`
+	TimeField string `json:"timeField"`
+	LogField  string `json:"logField"`
 }
 
 type LogIndexRequest struct {
@@ -16,5 +18,7 @@ type LogIndexRequest struct {
 	TableName string `json:"tableName"`
 	DataBase  string `json:"dataBase"`
 	Column    string `json:"column"`
+	TimeField string `json:"timeField"`
+	LogField  string `json:"logField"`
 	Query     string `json:"query"`
 }

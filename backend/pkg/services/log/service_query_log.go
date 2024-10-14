@@ -50,7 +50,7 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 	var defaultFields []string
 	for _, item := range allFileds {
 		if _, exists := hMap[item]; !exists {
-			if item == "timestamp" || item == "content" {
+			if item == req.TimeField || item == req.LogField {
 				continue
 			}
 			defaultFields = append(defaultFields, item)
@@ -58,8 +58,8 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 	}
 	logitems := make([]response.LogItem, len(logs))
 	for i, log := range logs {
-		content := log["content"]
-		delete(log, "content")
+		content := log[req.LogField]
+		delete(log, req.LogField)
 		logitems[i] = response.LogItem{
 			Content: content,
 			Tags:    log,

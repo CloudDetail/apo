@@ -32,6 +32,12 @@ func (h *handler) GetLogChart() core.HandlerFunc {
 		if req.Query == "" {
 			req.Query = "(1='1')"
 		}
+		if req.TimeField == "" {
+			req.TimeField = "timestamp"
+		}
+		if req.LogField == "" {
+			req.LogField = "content"
+		}
 		resp, err := h.logService.GetLogChart(req)
 		if err != nil {
 			c.AbortWithError(core.Error(

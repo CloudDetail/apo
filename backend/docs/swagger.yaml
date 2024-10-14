@@ -874,12 +874,16 @@ definitions:
         type: string
       endTime:
         type: integer
+      logField:
+        type: string
       query:
         type: string
       startTime:
         minimum: 0
         type: integer
       tableName:
+        type: string
+      timeField:
         type: string
     required:
     - endTime
@@ -890,6 +894,8 @@ definitions:
         type: string
       endTime:
         type: integer
+      logField:
+        type: string
       pageNum:
         type: integer
       pageSize:
@@ -900,6 +906,8 @@ definitions:
         minimum: 0
         type: integer
       tableName:
+        type: string
+      timeField:
         type: string
     required:
     - endTime
@@ -1666,7 +1674,20 @@ definitions:
     properties:
       cluster:
         type: string
+      dataBase:
+        type: string
+      tableInfos:
+        items:
+          $ref: '#/definitions/response.LogTableInfo'
+        type: array
+    type: object
+  response.LogTableInfo:
+    properties:
+      logField:
+        type: string
       tableName:
+        type: string
+      timeField:
         type: string
     type: object
   response.LogTableInfoResponse:
@@ -1674,11 +1695,13 @@ definitions:
       error:
         type: string
       logTables:
-        additionalProperties:
-          items:
-            $ref: '#/definitions/response.LogTable'
-          type: array
-        type: object
+        items:
+          $ref: '#/definitions/response.LogTable'
+        type: array
+      parses:
+        items:
+          $ref: '#/definitions/response.Parse'
+        type: array
     type: object
   response.Pagination:
     properties:
@@ -1691,6 +1714,22 @@ definitions:
       total:
         description: 总记录数
         type: integer
+    type: object
+  response.Parse:
+    properties:
+      dataBase:
+        type: string
+      parseInfos:
+        items:
+          $ref: '#/definitions/response.ParseInfo'
+        type: array
+    type: object
+  response.ParseInfo:
+    properties:
+      parseName:
+        type: string
+      tableName:
+        type: string
     type: object
   response.RYGScoreDetail:
     properties:
