@@ -8,19 +8,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// UpdateLogTable 更新日志表
-// @Summary 更新日志表
-// @Description 更新日志表
+// AddOtherTable 移除外部日志表
+// @Summary 移除外部日志表
+// @Description 移除外部日志表
 // @Tags API.log
 // @Accept json
 // @Produce json
-// @Param Request body request.LogTableRequest true "请求信息"
-// @Success 200 {object} response.LogTableResponse
+// @Param Request body request.DeleteOtherTableRequest true "请求信息"
+// @Success 200 {object} response.DeleteOtherTableResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/log/update [post]
-func (h *handler) UpdateLogTable() core.HandlerFunc {
+// @Router /api/log/other/delete [post]
+func (h *handler) DeleteOtherTable() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.LogTableRequest)
+		req := new(request.DeleteOtherTableRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -29,12 +29,12 @@ func (h *handler) UpdateLogTable() core.HandlerFunc {
 			)
 			return
 		}
-		resp, err := h.logService.UpdateLogTable(req)
+		resp, err := h.logService.DeleteOtherTable(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.UpateLogTableError,
-				code.Text(code.UpateLogTableError)).WithError(err),
+				code.DeleteOtherLogTableError,
+				code.Text(code.DeleteOtherLogTableError)).WithError(err),
 			)
 			return
 		}

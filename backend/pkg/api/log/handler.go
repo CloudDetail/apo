@@ -21,10 +21,6 @@ type Handler interface {
 	// @Router /api/log/fault/content [post]
 	GetFaultLogContent() core.HandlerFunc
 
-	CreateLogTable() core.HandlerFunc
-
-	DropLogTable() core.HandlerFunc
-
 	// UpdateLogTable 更新日志表
 	// @Tags API.log
 	// @Router /api/log/update [post]
@@ -69,6 +65,26 @@ type Handler interface {
 	// @Tags API.log
 	// @Router /api/log/rule/delete [post]
 	DeleteLogParseRule() core.HandlerFunc
+
+	// OtherTable 获取外部日志表
+	// @Tags API.log
+	// @Router /api/log/other [post]
+	OtherTable() core.HandlerFunc
+
+	// OtherTableInfo 获取外部日志表信息
+	// @Tags API.log
+	// @Router /api/log/other/table [post]
+	OtherTableInfo() core.HandlerFunc
+
+	// AddOtherTable 添加外部日志表
+	// @Tags API.log
+	// @Router /api/log/other/add [post]
+	AddOtherTable() core.HandlerFunc
+
+	// DeleteOtherTable 移除外部日志表
+	// @Tags API.log
+	// @Router /api/log/other/delete [post]
+	DeleteOtherTable() core.HandlerFunc
 }
 
 type handler struct {

@@ -1,0 +1,21 @@
+package log
+
+import (
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+)
+
+func (s *service) DeleteOtherTable(req *request.DeleteOtherTableRequest) (*response.DeleteOtherTableResponse, error) {
+	res := &response.DeleteOtherTableResponse{}
+	model := &database.OtherLogTable{
+		DataBase: req.DataBase,
+		Instance: req.Instance,
+		Table:    req.TableName,
+	}
+	err := s.dbRepo.OperatorOtherLogTable(model, database.DELETE)
+	if err != nil {
+		res.Err = err.Error()
+	}
+	return res, nil
+}

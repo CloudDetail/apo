@@ -31,13 +31,6 @@ type LogTableRequest struct {
 	Buffer    BufferEngineConfig `json:"buffer"`
 }
 
-type UpdateLogTableRequest struct {
-	TableName string  `json:"tableName"`
-	DataBase  string  `json:"dataBase"`
-	Cluster   string  `json:"cluster"`
-	Fields    []Field `json:"fields"`
-}
-
 func (q *LogTableRequest) ClusterString() string {
 	if q.Cluster == "" {
 		return ""

@@ -21,6 +21,7 @@ type Repo interface {
 	GetAllLogTable() ([]LogTableInfo, error)
 	UpdateLogPaseRule(model *LogTableInfo) error
 	GetAllOtherLogTable() ([]OtherLogTable, error)
+	OperatorOtherLogTable(model *OtherLogTable, op Operator) error
 }
 
 type daoRepo struct {

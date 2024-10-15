@@ -812,6 +812,166 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/log/other": {
+            "post": {
+                "description": "获取外部日志表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "获取外部日志表",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OtherTableRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.OtherTableResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/log/other/add": {
+            "post": {
+                "description": "添加外部日志表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "添加外部日志表",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AddOtherTableRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AddOtherTableResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/log/other/delete": {
+            "post": {
+                "description": "移除外部日志表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "移除外部日志表",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteOtherTableRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.DeleteOtherTableResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/log/other/table": {
+            "post": {
+                "description": "获取外部日志表信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "获取外部日志表信息",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OtherTableInfoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.OtherTableInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/log/query": {
             "post": {
                 "description": "查询全量日志",
@@ -4218,6 +4378,29 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AddOtherTableRequest": {
+            "type": "object",
+            "properties": {
+                "cluster": {
+                    "type": "string"
+                },
+                "dataBase": {
+                    "type": "string"
+                },
+                "instance": {
+                    "type": "string"
+                },
+                "logField": {
+                    "type": "string"
+                },
+                "tableName": {
+                    "type": "string"
+                },
+                "timeField": {
+                    "type": "string"
+                }
+            }
+        },
         "request.Alert": {
             "type": "object",
             "properties": {
@@ -4371,6 +4554,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "parseName": {
+                    "type": "string"
+                },
+                "tableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.DeleteOtherTableRequest": {
+            "type": "object",
+            "properties": {
+                "dataBase": {
+                    "type": "string"
+                },
+                "instance": {
                     "type": "string"
                 },
                 "tableName": {
@@ -4803,6 +5000,20 @@ const docTemplate = `{
                 "OpLessThan"
             ]
         },
+        "request.OtherTableInfoRequest": {
+            "type": "object",
+            "properties": {
+                "dataBase": {
+                    "type": "string"
+                },
+                "tableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.OtherTableRequest": {
+            "type": "object"
+        },
         "request.ParentField": {
             "type": "string",
             "enum": [
@@ -4944,11 +5155,30 @@ const docTemplate = `{
                 }
             }
         },
+        "response.AddOtherTableResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
         "response.CheckAlertRuleResponse": {
             "type": "object",
             "properties": {
                 "available": {
                     "type": "boolean"
+                }
+            }
+        },
+        "response.Column": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
                 }
             }
         },
@@ -4972,6 +5202,14 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/response.LogTableInfo"
                     }
+                }
+            }
+        },
+        "response.DeleteOtherTableResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
                 }
             }
         },
@@ -5419,6 +5657,17 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.AlertMetricsData"
+                    }
+                }
+            }
+        },
+        "response.GetMonitorStatusResponse": {
+            "type": "object",
+            "properties": {
+                "monitorList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.MonitorStatus"
                     }
                 }
             }
@@ -5973,6 +6222,56 @@ const docTemplate = `{
                 },
                 "monitorName": {
                     "type": "string"
+                }
+            }
+        },
+        "response.OtherDB": {
+            "type": "object",
+            "properties": {
+                "dataBase": {
+                    "type": "string"
+                },
+                "tables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.OtherTable"
+                    }
+                }
+            }
+        },
+        "response.OtherTable": {
+            "type": "object",
+            "properties": {
+                "tableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.OtherTableInfoResponse": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.Column"
+                    }
+                },
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.OtherTableResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "otherTables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.OtherDB"
+                    }
                 }
             }
         },

@@ -38,6 +38,14 @@ type Service interface {
 	AddLogParseRule(req *request.AddLogParseRequest) (*response.LogParseResponse, error)
 
 	DeleteLogParseRule(req *request.DeleteLogParseRequest) (*response.LogParseResponse, error)
+
+	OtherTable(req *request.OtherTableRequest) (*response.OtherTableResponse, error)
+
+	OtherTableInfo(req *request.OtherTableInfoRequest) (*response.OtherTableInfoResponse, error)
+
+	AddOtherTable(req *request.AddOtherTableRequest) (*response.AddOtherTableResponse, error)
+
+	DeleteOtherTable(req *request.DeleteOtherTableRequest) (*response.DeleteOtherTableResponse, error)
 }
 
 type service struct {

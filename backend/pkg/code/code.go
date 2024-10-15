@@ -48,13 +48,17 @@ const (
 	GetLogChartError = "B0407"
 	GetLogIndexError = "B0408"
 
-	GetLogTableInfoError    = "B0409"
+	GetLogTableInfoError = "B0409"
+
 	GetLogParseRuleError    = "B0410"
 	UpdateLogParseRuleError = "B0411"
 	AddLogParseRuleError    = "B0412"
 	DeleteLogParseRuleError = "B0413"
 
-	GetMonitorStatusError = "B0412"
+	GetAllOtherLogTableError = "B0414"
+	GetOtherLogTableError    = "B0415"
+	AddOtherLogTableError    = "B0416"
+	DeleteOtherLogTableError = "B0417"
 
 	GetTracePageListError    = "B0501"
 	GetTraceFiltersError     = "B0502"
@@ -98,6 +102,8 @@ const (
 	AlertManagerReceiverEmailFromMissing    = "B0724"
 	AlertManagerEmptyReceiver               = "B0725"
 	AlertManagerDefaultReceiverCannotDelete = "B0726"
+
+	GetMonitorStatusError = "B0801"
 )
 
 func Text(code string) string {
