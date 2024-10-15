@@ -13,7 +13,7 @@ import (
 )
 
 // 包级别的正则表达式变量
-var ttlRegex = regexp.MustCompile(`TTL\s+((?:[^\s()]+\s*)+\(\s*[^)]+\s*\)\s*\+\s*toIntervalDay\((\d+)\))`)
+var ttlRegex = regexp.MustCompile(`TTL\s+(toDateTime\(([^)]+)\)|([^+\s]+))\s*\+\s*toIntervalDay\((\d+)\)`)
 var toIntervalDayRegex = regexp.MustCompile(`toIntervalDay\((\d+)\)`)
 
 func prepareTTLInfo(tables []model.TablesQuery) []model.ModifyTableTTLMap {
@@ -22,15 +22,17 @@ func prepareTTLInfo(tables []model.TablesQuery) []model.ModifyTableTTLMap {
 		matches := ttlRegex.FindStringSubmatch(t.CreateTableQuery)
 		originalTTLExpression := ""
 		var originalDays *int
-		if len(matches) >= 2 {
-			originalTTLExpression = matches[1]
-			if len(matches) >= 3 && matches[2] != "" {
-				days, err := strconv.Atoi(matches[2])
+		if len(matches) >= 1 {
+			originalTTLExpression = matches[0]
+
+			if len(matches) >= 4 {
+				days, err := strconv.Atoi(matches[4])
 				if err == nil {
 					originalDays = &days
 				}
 			}
 		}
+
 		item := model.ModifyTableTTLMap{
 			Name:          t.Name,
 			TTLExpression: originalTTLExpression,
@@ -38,6 +40,7 @@ func prepareTTLInfo(tables []model.TablesQuery) []model.ModifyTableTTLMap {
 		}
 		mapResult = append(mapResult, item)
 	}
+
 	return mapResult
 }
 
