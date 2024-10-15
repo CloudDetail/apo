@@ -13,7 +13,7 @@ const (
 		WITH found_trace_ids AS
 		(
 			SELECT error_propagation.timestamp as timestamp, error_propagation.trace_id as trace_id, error_propagation.entry_span_id as entry_span_id,
-				nodes.service as service, nodes.instance as instance_id, nodes.path as path, nodes.depth as depth, nodes.error_types as error_types, nodes.error_msgs as error_msgs,true as is_error
+				nodes.service as service, nodes.instance as instance_id, nodes.path as path, nodes.depth as depth, nodes.error_types as error_types, nodes.error_msgs as error_msgs, nodes.is_error as is_error
 			FROM %s.error_propagation
 			ARRAY JOIN nodes
 			%s %s
