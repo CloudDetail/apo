@@ -28,7 +28,7 @@ const IndexList = () => {
     <>
       <Collapse
         items={items}
-        defaultActiveKey={['base']}
+        defaultActiveKey={['base', 'log']}
         size="small"
         className="indexList h-full overflow-hidden"
       />

@@ -1,8 +1,8 @@
 import { Tag } from 'antd'
 import React from 'react'
 import LogTagDropDown from './LogTagDropdown'
-
-const LogTag = (props) => {
+//Key 作为log内容
+const LogKeyTag = (props) => {
   const { title, description } = props
   return (
     <div className="flex">
@@ -18,4 +18,4 @@ const LogTag = (props) => {
     </div>
   )
 }
-export default LogTag
+export default LogKeyTag

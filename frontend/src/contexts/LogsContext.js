@@ -3,6 +3,7 @@ import {
   getFullLogApi,
   getFullLogChartApi,
   getLogIndexApi,
+  // @ts-ignore
   getLogRuleApi,
   getLogTableInfoAPi,
 } from 'src/api/logs'
@@ -15,6 +16,7 @@ export const useLogsContext = () => useContext(LogsContext)
 export const LogsProvider = ({ children }) => {
   const [state, dispatch] = useReducer(logsReducer, logsInitialState)
   const fetchData = async ({ startTime, endTime }) => {
+    // @ts-ignore
     dispatch({ type: 'updateLoading', payload: true })
 
     try {
@@ -25,6 +27,7 @@ export const LogsProvider = ({ children }) => {
         pageSize: state.pagination.pageSize,
         tableName: state.tableInfo?.tableName,
         dataBase: state.tableInfo?.dataBase,
+        timeField: state.tableInfo?.timeField,
         query: state.query,
       }
 
@@ -33,16 +36,22 @@ export const LogsProvider = ({ children }) => {
         getFullLogChartApi(params),
         // getLogRuleApi({ tableName: 'test_logs', dataBase: 'default' }),
       ])
+      // @ts-ignore
       let defaultFields = (res1?.defaultFields ?? []).sort()
+      // @ts-ignore
       let hiddenFields = (res1?.hiddenFields ?? []).sort()
+      // @ts-ignore
       dispatch({
         type: 'setLogState',
         payload: {
+          // @ts-ignore
           logs: res1?.logs ?? [],
           defaultFields: defaultFields,
           hiddenFields: hiddenFields,
+          // @ts-ignore
           logsChartData: res2?.histograms ?? [],
           pagination: {
+            // @ts-ignore
             total: res2?.count ?? 0,
             pageIndex: state.pagination.pageIndex,
             pageSize: state.pagination.pageSize,
@@ -52,6 +61,7 @@ export const LogsProvider = ({ children }) => {
       })
     } catch (error) {
       console.error('请求出错:', error)
+      // @ts-ignore
       dispatch({
         type: 'setLogState',
         payload: {
@@ -68,6 +78,7 @@ export const LogsProvider = ({ children }) => {
         },
       })
     } finally {
+      // @ts-ignore
       dispatch({ type: 'updateLoading', payload: false })
     }
   }
@@ -83,9 +94,11 @@ export const LogsProvider = ({ children }) => {
         query: state.query,
       })
 
+      // @ts-ignore
       dispatch({
         type: 'updateFieldIndexMap',
         payload: {
+          // @ts-ignore
           [column]: res.indexs,
         },
       })
@@ -99,16 +112,22 @@ export const LogsProvider = ({ children }) => {
 
   const getLogTableInfo = () => {
     getLogTableInfoAPi().then((res) => {
-      const dataBase = Object.keys(res.logTables)[0]
-      const tableList = res.logTables[dataBase][0]
-      dispatch({
-        type: 'updateTableInfo',
-        payload: {
-          dataBase: dataBase,
-          tableName: tableList?.tableName,
-          cluster: tableList?.cluster,
-        },
-      })
+      // @ts-ignore
+      dispatch({ type: 'setLogRules', payload: res.parses ?? [] })
+      // @ts-ignore
+
+      dispatch({ type: 'setInstances', payload: res.instances ?? [] })
+      if (res?.parses?.length > 0) {
+        // @ts-ignore
+        dispatch({
+          type: 'updateTableInfo',
+          payload: {
+            dataBase: res.parses[0].dataBase,
+            tableName: res.parses[0].tableName,
+            parseName: res.parses[0]?.parseName,
+          },
+        })
+      }
     })
   }
   useEffect(() => {
@@ -126,16 +145,30 @@ export const LogsProvider = ({ children }) => {
       loading: state.loading,
       fieldIndexMap: state.fieldIndexMap,
       tableInfo: state.tableInfo,
+      logRules: state.logRules,
+      instances: state.instances,
       fetchData,
       getFieldIndexData,
+      // @ts-ignore
       updateLogs: (logs) => dispatch({ type: 'setLogs', payload: logs }),
       updateLogsPagination: (pagination) =>
+        // @ts-ignore
         dispatch({ type: 'setPagination', payload: { ...state.pagination, ...pagination } }),
+      // @ts-ignore
       updateLogsChartData: (data) => dispatch({ type: 'setLogsChartData', payload: data }),
+      // @ts-ignore
       updateDefaultFields: (data) => dispatch({ type: 'updateDefaultFields', payload: data }),
+      // @ts-ignore
       updateHiddenFields: (data) => dispatch({ type: 'updateHiddenFields', payload: data }),
+      // @ts-ignore
       updateQuery: (data) => dispatch({ type: 'updateQuery', payload: data }),
-      updateTableName: (data) => dispatch({ type: 'updateTableName', payload: data }),
+      // @ts-ignore
+      updateTableInfo: (data) => dispatch({ type: 'updateTableInfo', payload: data }),
+      // @ts-ignore
+      setLogRules: (data) => dispatch({ type: 'setLogRules', payload: data }),
+      // @ts-ignore
+      setInstances: (data) => dispatch({ type: 'setInstances', payload: data }),
+      // @ts-ignore
       clearFieldIndexMap: () => dispatch({ type: 'clearFieldIndexMap' }),
     }),
     [
@@ -148,8 +181,11 @@ export const LogsProvider = ({ children }) => {
       state.loading,
       state.fieldIndexMap,
       state.tableInfo,
+      state.logRules,
+      state.instances,
     ],
   )
 
+  // @ts-ignore
   return <LogsContext.Provider value={memoizedValue}>{children}</LogsContext.Provider>
 }

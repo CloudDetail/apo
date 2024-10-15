@@ -2,9 +2,14 @@ export const logsInitialState = {
   tableInfo: {
     dataBase: '',
     tableName: '',
+    parseName: '',
+
     cluster: '',
+    instanceName: '',
+    timeField: '',
   },
-  logRule: {},
+  logRules: [],
+  instances: [],
   logs: [],
   pagination: {
     pageIndex: 1,
@@ -48,6 +53,10 @@ const logsReducer = (state = logsInitialState, action) => {
     case 'updateFieldIndexMap':
       //增量更新
       return { ...state, fieldIndexMap: { ...state.fieldIndexMap, ...action.payload } }
+    case 'setLogRules':
+      return { ...state, logRules: action.payload }
+    case 'setInstances':
+      return { ...state, instances: action.payload }
     case 'clearFieldIndexMap':
       return { ...state, fieldIndexMap: {} }
     default:

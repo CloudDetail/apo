@@ -9,6 +9,12 @@ import IndexList from './component/IndexList'
 import LogQueryResult from './component/LogQueryResult'
 import { useLogsContext } from 'src/contexts/LogsContext'
 import { useDebounce, useUpdateEffect } from 'react-use'
+import FullLogSider from './component/Sider'
+import { Button, Layout } from 'antd'
+import Sider from 'antd/es/layout/Sider'
+import { Content } from 'antd/es/layout/layout'
+import { AiOutlineCaretLeft, AiOutlineCaretRight } from 'react-icons/ai'
+import './index.css'
 function FullLogs() {
   const {
     query,
@@ -21,6 +27,7 @@ function FullLogs() {
   } = useLogsContext()
 
   const [searchParams] = useSearchParams()
+  const [collapsed, setCollapsed] = useState(false)
 
   useUpdateEffect(() => {
     if (searchParams.get('log-from') && searchParams.get('log-to')) {
@@ -59,18 +66,43 @@ function FullLogs() {
     <>
       <LoadingSpinner loading={loading} />
       {/* 顶部筛选 */}
-      <CCard style={{ height: 'calc(100vh - 120px)' }} className="flex flex-col ">
-        <div className="flex-grow-0 flex-shrink-0">
-          <SearchBar />
-        </div>
-        <div className="flex-1 flex overflow-hidden">
-          <div className="w-[220px] flex-shrink-0 flex-grow-0">
-            <IndexList />
+      <CCard style={{ height: 'calc(100vh - 120px)' }}>
+        <Layout className="relative ">
+          <div
+            onClick={() => setCollapsed(!collapsed)}
+            className={`logSiderButton ${collapsed ? ' closeButton ' : 'openButton'}`}
+          >
+            {collapsed ? (
+              <AiOutlineCaretRight color="#1a83fe" />
+            ) : (
+              <AiOutlineCaretLeft color="#1a83fe" />
+            )}
           </div>
-          <div className=" h-full flex-1 overflow-hidden">
-            <LogQueryResult />
-          </div>
-        </div>
+          <Sider
+            trigger={null}
+            collapsible
+            collapsed={collapsed}
+            className="p-2 "
+            collapsedWidth={0}
+          >
+            <FullLogSider />
+          </Sider>
+          <Content className="h-full relative p-2">
+            <div className="flex flex-col flex-1 h-full">
+              <div className="flex-grow-0 flex-shrink-0">
+                <SearchBar />
+              </div>
+              <div className="flex-1 flex overflow-hidden">
+                <div className="w-[220px] flex-shrink-0 flex-grow-0">
+                  <IndexList />
+                </div>
+                <div className=" h-full flex-1 overflow-hidden">
+                  <LogQueryResult />
+                </div>
+              </div>
+            </div>
+          </Content>
+        </Layout>
       </CCard>
     </>
   )

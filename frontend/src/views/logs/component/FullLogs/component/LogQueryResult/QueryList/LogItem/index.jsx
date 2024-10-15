@@ -3,12 +3,13 @@ import { AiFillCaretDown, AiFillCaretRight } from 'react-icons/ai'
 import LogItemFold from './component/LogItemFold'
 import LogItemDetail from './component/LogItemDetail'
 import { Button } from 'antd'
+import { useLogsContext } from 'src/contexts/LogsContext'
 const LogItem = (props) => {
   const { log, foldingChecked } = props
+  const { tableInfo } = useLogsContext()
   // 是否折叠日志，true 为是，false 为否
   const [isFold, setIsFold] = useState(true)
 
-  const handleFoldClick = () => setIsFold(() => !isFold)
   useEffect(() => {
     setIsFold(foldingChecked ?? true)
   }, [foldingChecked])
@@ -17,21 +18,22 @@ const LogItem = (props) => {
       {/* icon 和 时间 */}
       <div className="flex-grow-0 flex-shrink-0  w-[360px]">
         <div className="flex items-center pl-3">
-          {/* <Button
+          <Button
             color="primary"
             type="text"
             onClick={() => setIsFold(!isFold)}
             className="mx-2"
             icon={isFold ? <AiFillCaretRight /> : <AiFillCaretDown />}
-          ></Button> */}
-          {log?.tags.timestamp}
+          ></Button>
+          {log?.tags?.[tableInfo?.timeField ? tableInfo?.timeField : 'timestamp']}
         </div>
       </div>
       {/* 具体日志 */}
       <div className="flex-1 overflow-hidden">
-        <LogItemFold log={log} />
-        <LogItemDetail log={log} />
-        {/* {isFold ? <LogItemFold log={log} /> : <LogItemDetail log={log} />} */}
+        {/* <LogItemFold log={log} isFold={isFold} />
+        <LogItemDetail log={log} isFold={isFold} /> */}
+        {/* <LogItemFold tags={!tableInfo?.timeField || isFold ? log.tags : []} /> */}
+        {isFold ? <LogItemFold tags={log.tags} /> : <LogItemDetail log={log} />}
       </div>
     </div>
   )

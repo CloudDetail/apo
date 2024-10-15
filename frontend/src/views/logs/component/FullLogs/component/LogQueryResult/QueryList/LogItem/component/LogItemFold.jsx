@@ -1,28 +1,25 @@
 import { Tag, Tooltip } from 'antd'
 import React, { useEffect, useState } from 'react'
 import LogTagDropDown from './LogTagDropdown'
-const LogItemFold = ({ log }) => {
+import { useLogsContext } from 'src/contexts/LogsContext'
+import LogValueTag from './LogValueTag'
+const LogItemFold = ({ tags }) => {
+  const { tableInfo } = useLogsContext()
   return (
-    <div className=" overflow-hidden whitespace-nowrap text-ellipsis text-wrap line-clamp-2 flex">
-      {Object.entries(log.tags).map(
-        ([key, value]) =>
-          value &&
-          key !== 'timestamp' && (
-            <div key={key}>
-              <LogTagDropDown
-                objKey={key}
-                value={value}
-                children={
-                  <Tooltip title={key + '= "' + value + '"'} key={key}>
-                    <Tag className="max-w-[200px] overflow-hidden whitespace-nowrap text-ellipsis cursor-pointer text-gray-400">
-                      {value}
-                    </Tag>
-                  </Tooltip>
-                }
-              ></LogTagDropDown>
-            </div>
-          ),
-      )}
+    <div
+      className=" overflow-hidden text-ellipsis text-wrap line-clamp-2 flex"
+      style={{ display: '-webkit-box' }}
+    >
+      {Object.entries(tags).map(([key, value]) => {
+        if (
+          value !== '' && // 确保 value 存在且非空
+          key !== (tableInfo?.timeField || 'timestamp') && // 排除与 timeField 相同的键
+          typeof value !== 'object' // 确保 value 不是对象
+        ) {
+          return <LogValueTag key={key} objKey={key} value={value} />
+        }
+        return null // 不符合条件时返回 null
+      })}
     </div>
   )
 }

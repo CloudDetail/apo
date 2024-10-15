@@ -1,0 +1,24 @@
+.logSiderButton {
+    top: 50%;
+    position: absolute;
+    transform: translate(0, -50%);
+    z-index: 100;
+    background: #ffffff1a;
+    height: 40px;
+    border-radius: 0px 100% 100% 0px / 50%;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.openButton {
+    left: 190px;
+    transition: left 0.2s ease;
+    /* 添加 transition */
+}
+
+.closeButton {
+    left: -1px;
+    transition: left 0.2s ease;
+    /* 添加 transition */
+}
