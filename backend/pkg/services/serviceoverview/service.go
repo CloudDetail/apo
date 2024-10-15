@@ -20,6 +20,7 @@ type Service interface {
 	GetServicesEndPointData(startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule SortType) (res []response.ServiceEndPointsRes, err error)
 
 	GetServicesRYGLightStatus(startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error)
+	GetMonitorStatus(startTime time.Time, endTime time.Time) (response.GetMonitorStatusResponse, error)
 }
 
 type service struct {

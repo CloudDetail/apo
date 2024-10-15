@@ -52,6 +52,8 @@ const (
 	GetLogParseRuleError    = "B0410"
 	UpdateLogParseRuleError = "B0411"
 
+	GetMonitorStatusError = "B0412"
+
 	GetTracePageListError    = "B0501"
 	GetTraceFiltersError     = "B0502"
 	GetTraceFilterValueError = "B0503"

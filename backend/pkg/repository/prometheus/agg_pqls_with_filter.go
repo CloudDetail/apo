@@ -136,3 +136,9 @@ func PQLAvgLogErrorCountWithFilters(vector string, granularity string, filters [
 	// ( errorLevelCount + exceptionCount ) or errorLevelCount or exceptionCount
 	return "((" + errorLevelCount + ") + (" + exceptionCount + ")) or (" + errorLevelCount + ") or (" + exceptionCount + ")"
 }
+
+// PQLMonitorStatus uptime-kuma监控项状态
+func PQLMonitorStatus(vector string, granularity string, filters []string) string {
+	filtersStr := strings.Join(filters, ",")
+	return `last_over_time(monitor_status{` + filtersStr + `}[` + vector + `])`
+}

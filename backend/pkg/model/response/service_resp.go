@@ -275,3 +275,12 @@ func (entryInstanceData *EntryInstanceData) AddNamespaces(namespaces []string) {
 		}
 	}
 }
+
+type GetMonitorStatusResponse struct {
+	MonitorList []MonitorStatus `json:"monitorList"`
+}
+
+type MonitorStatus struct {
+	MonitorName string `json:"monitorName"`
+	IsAlive     bool   `json:"isAlive"`
+}

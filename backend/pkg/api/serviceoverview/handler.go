@@ -35,6 +35,11 @@ type Handler interface {
 	// @Tags API.service
 	// @Router /api/service/ryglight [get]
 	GetRYGLight() core.HandlerFunc
+
+	// GetMonitorStatus 获取kuma监控的服务状态
+	// @Tags API.service
+	// @Router /api/service/monitor/status [get]
+	GetMonitorStatus() core.HandlerFunc
 }
 
 type handler struct {
