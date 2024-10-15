@@ -84,6 +84,7 @@ function FullLogs() {
             collapsed={collapsed}
             className="p-2 "
             collapsedWidth={0}
+            width={300}
           >
             <FullLogSider />
           </Sider>

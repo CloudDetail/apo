@@ -1,18 +1,80 @@
-import { Card, Tree } from 'antd'
+import { Button, Card, Popconfirm, Tree } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useLogsContext } from 'src/contexts/LogsContext'
+import ConfigLogRuleModal from '../../ConfigLogRuleModal'
+import { MdAdd, MdDeleteOutline, MdModeEdit } from 'react-icons/md'
+import './index.css'
+import { deleteLogRuleApi } from 'src/api/logs'
+import { showToast } from 'src/utils/toast'
 
 const LogRuleList = () => {
-  const { logRules, tableInfo, updateTableInfo } = useLogsContext()
+  const { logRules, tableInfo, updateTableInfo, getLogTableInfo, updateLoading } = useLogsContext()
   const [treeData, setTreeData] = useState([])
-
+  const [modalVisible, setModalVisible] = useState(false)
   const [selectedKeys, setSelectedKeys] = useState([])
-
-  const menuLabel = (parseName, parseInfo) => {
+  const [logRuleInfo, setLogRuleInfo] = useState(null)
+  const editLogRule = (rule) => {
+    setLogRuleInfo(rule)
+    setModalVisible(true)
+  }
+  const deleteLogRule = (rule) => {
+    updateLoading(true)
+    deleteLogRuleApi({
+      dataBase: rule.dataBase,
+      parseName: rule.parseName,
+      tableName: rule.tableName,
+    }).then((res) => {
+      showToast({
+        title: '删除日志规则成功',
+        color: 'success',
+      })
+      getLogTableInfo()
+    })
+  }
+  const menuLabel = (nodeData) => {
     return (
-      <div className="flex flex-col">
-        <div>{parseName}</div>
-        <div className="text-xs text-gray-400">{parseInfo}</div>
+      <div className="logRuleItem">
+        <div className="flex flex-col">
+          <div>{nodeData.title}</div>
+          <div className="text-xs text-gray-400">{nodeData.parseInfo}</div>
+        </div>
+        {!nodeData.isDefault && (
+          <div className="action">
+            <Button
+              color="primary"
+              variant="filled"
+              icon={<MdModeEdit />}
+              className="pr-1"
+              onClick={(e) => {
+                e.stopPropagation()
+                editLogRule(nodeData)
+              }}
+            ></Button>
+            <Popconfirm
+              title={
+                <>
+                  是否确定删除名为“<span className="font-bold ">{nodeData.parseName}</span>
+                  ”的日志规则
+                </>
+              }
+              onConfirm={(e) => {
+                e.stopPropagation()
+                deleteLogRule(nodeData)
+              }}
+              okText="确定"
+              cancelText="取消"
+            >
+              <Button
+                color="danger"
+                variant="filled"
+                icon={<MdDeleteOutline />}
+                onClick={(e) => {
+                  e.stopPropagation()
+                }}
+              ></Button>
+            </Popconfirm>
+          </div>
+        )}
       </div>
     )
   }
@@ -20,8 +82,9 @@ const LogRuleList = () => {
     setTreeData(
       logRules.map((rule, index) => ({
         key: rule.dataBase + rule.tableName,
-        title: menuLabel(rule.parseName, rule.parseInfo),
+        title: rule.parseName,
         ...rule,
+        isDefault: index === 0,
       })),
     )
   }, [logRules])
@@ -43,13 +106,33 @@ const LogRuleList = () => {
       classNames={{
         body: 'p-0 pr-2',
       }}
+      style={{ display: 'flex', flexDirection: 'column' }} // 设置 Card 的高度，使用 flexbox
+      bodyStyle={{ flexGrow: 1, overflow: 'auto' }}
+      extra={
+        <Button
+          type="primary"
+          size="small"
+          icon={<MdAdd size={20} />}
+          onClick={() => setModalVisible(true)}
+          className="flex-grow-0 flex-shrink-0"
+        >
+          {/* <span className="text-xs"></span> */}
+        </Button>
+      }
     >
       <Tree
         selectedKeys={selectedKeys}
         onSelect={onSelect}
         // onCheck={onCheck}
         treeData={treeData}
-        className="pr-3"
+        titleRender={menuLabel}
+        className="pr-3 h-full"
+        blockNode
+      />
+      <ConfigLogRuleModal
+        modalVisible={modalVisible}
+        closeModal={() => setModalVisible(false)}
+        logRuleInfo={logRuleInfo}
       />
     </Card>
   )

@@ -84,8 +84,10 @@ const DataSourceTree = () => {
       className="overflow-y-auto h-1/2 w-full overflow-x-hidden"
       title="接入数据库列表"
       classNames={{
-        body: 'p-0 ',
+        body: 'p-0',
       }}
+      style={{ display: 'flex', flexDirection: 'column' }} // 设置 Card 的高度，使用 flexbox
+      bodyStyle={{ flexGrow: 1, overflow: 'auto' }}
     >
       <Tree
         selectedKeys={selectedKeys}
@@ -95,7 +97,7 @@ const DataSourceTree = () => {
         // onCheck={onCheck}
         treeData={treeData}
         // showIcon
-        className="pr-2"
+        className="pr-2 h-full"
       />
     </Card>
   )

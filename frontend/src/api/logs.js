@@ -23,11 +23,7 @@ export const getFullLogChartApi = (params) => {
 
 //查询当前日志规则
 export const getLogRuleApi = (params) => {
-  return get(`/api/log/rule/get`, params)
-}
-//更新当前日志规则
-export const updateLogRuleApi = (params) => {
-  return get(`/api/log/rule/update`, params)
+  return post(`/api/log/rule/get`, params)
 }
 //索引分析(百分比)
 export const getLogIndexApi = (params) => {
@@ -37,4 +33,18 @@ export const getLogIndexApi = (params) => {
 //获取日志表信息
 export const getLogTableInfoAPi = (params) => {
   return post(`/api/log/table`, params)
+}
+
+// ————全量日志->日志规则
+//添加
+export const addLogRuleApi = (params) => {
+  return post(`/api/log/rule/add`, params)
+}
+//更新
+export const updateLogRuleApi = (params) => {
+  return post(`/api/log/rule/update`, params)
+}
+//删除
+export const deleteLogRuleApi = (params) => {
+  return post(`/api/log/rule/delete`, params)
 }

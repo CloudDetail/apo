@@ -6,10 +6,7 @@ import LogValueTag from './LogValueTag'
 const LogItemFold = ({ tags }) => {
   const { tableInfo } = useLogsContext()
   return (
-    <div
-      className=" overflow-hidden text-ellipsis text-wrap line-clamp-2 flex"
-      style={{ display: '-webkit-box' }}
-    >
+    <div className="text-ellipsis text-wrap flex" style={{ display: '-webkit-box' }}>
       {Object.entries(tags).map(([key, value]) => {
         if (
           value !== '' && // 确保 value 存在且非空

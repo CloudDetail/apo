@@ -26,9 +26,10 @@ const LogItemDetail = ({ log }) => {
       {Object.entries(contentInfo).map(([key, value]) => (
         <LogKeyTag key={key} title={key} description={value} />
       ))}
-      {Object.entries(log.tags).map(([key, value]) => (
-        <LogKeyTag key={key} title={key} description={value} />
-      ))}
+      {tableInfo.timeField &&
+        Object.entries(log.tags).map(([key, value]) => (
+          <LogKeyTag key={key} title={key} description={value} />
+        ))}
     </div>
   )
 }

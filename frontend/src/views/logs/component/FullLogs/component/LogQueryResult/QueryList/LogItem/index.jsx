@@ -4,6 +4,9 @@ import LogItemFold from './component/LogItemFold'
 import LogItemDetail from './component/LogItemDetail'
 import { Button } from 'antd'
 import { useLogsContext } from 'src/contexts/LogsContext'
+
+// 自配类规则日志默认展开不可收起，tag+铺平（仅content）
+// 接入类数据库规则默认收起可展开，收起展示所有tag，展开展示所有（content + tag）
 const LogItem = (props) => {
   const { log, foldingChecked } = props
   const { tableInfo } = useLogsContext()
@@ -18,13 +21,15 @@ const LogItem = (props) => {
       {/* icon 和 时间 */}
       <div className="flex-grow-0 flex-shrink-0  w-[360px]">
         <div className="flex items-center pl-3">
-          <Button
-            color="primary"
-            type="text"
-            onClick={() => setIsFold(!isFold)}
-            className="mx-2"
-            icon={isFold ? <AiFillCaretRight /> : <AiFillCaretDown />}
-          ></Button>
+          {tableInfo.timeField && (
+            <Button
+              color="primary"
+              type="text"
+              onClick={() => setIsFold(!isFold)}
+              className="mx-2"
+              icon={isFold ? <AiFillCaretRight /> : <AiFillCaretDown />}
+            ></Button>
+          )}
           {log?.tags?.[tableInfo?.timeField ? tableInfo?.timeField : 'timestamp']}
         </div>
       </div>
@@ -33,7 +38,18 @@ const LogItem = (props) => {
         {/* <LogItemFold log={log} isFold={isFold} />
         <LogItemDetail log={log} isFold={isFold} /> */}
         {/* <LogItemFold tags={!tableInfo?.timeField || isFold ? log.tags : []} /> */}
-        {isFold ? <LogItemFold tags={log.tags} /> : <LogItemDetail log={log} />}
+        {tableInfo.timeField ? (
+          isFold ? (
+            <LogItemFold tags={log.tags} />
+          ) : (
+            <LogItemDetail log={log} />
+          )
+        ) : (
+          <>
+            <LogItemFold tags={log.tags} />
+            <LogItemDetail log={log} />
+          </>
+        )}
       </div>
     </div>
   )

@@ -1,0 +1,17 @@
+.logRuleItem {
+    position: relative;
+
+    .action {
+        visibility: hidden;
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    &:hover .action {
+        visibility: visible;
+
+
+    }
+}

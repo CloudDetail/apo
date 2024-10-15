@@ -148,6 +148,7 @@ export const LogsProvider = ({ children }) => {
       logRules: state.logRules,
       instances: state.instances,
       fetchData,
+      getLogTableInfo,
       getFieldIndexData,
       // @ts-ignore
       updateLogs: (logs) => dispatch({ type: 'setLogs', payload: logs }),
@@ -168,6 +169,8 @@ export const LogsProvider = ({ children }) => {
       setLogRules: (data) => dispatch({ type: 'setLogRules', payload: data }),
       // @ts-ignore
       setInstances: (data) => dispatch({ type: 'setInstances', payload: data }),
+      // @ts-ignore
+      updateLoading: (data) => dispatch({ type: 'updateLoading', payload: data }),
       // @ts-ignore
       clearFieldIndexMap: () => dispatch({ type: 'clearFieldIndexMap' }),
     }),

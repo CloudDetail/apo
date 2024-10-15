@@ -41,7 +41,7 @@ const LogTagDropDown = ({ objKey, value, children }) => {
   return (
     <>
       <Dropdown menu={{ items }} trigger={['click']} overlayStyle={{ minWidth: 'auto' }}>
-        <>{children}</>
+        <span>{children}</span>
       </Dropdown>
     </>
   )
