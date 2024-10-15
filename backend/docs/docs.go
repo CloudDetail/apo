@@ -852,6 +852,86 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/log/rule/add": {
+            "post": {
+                "description": "新增日志表解析规则",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "新增日志表解析规则",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AddLogParseRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.LogParseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/log/rule/delete": {
+            "post": {
+                "description": "删除日志表解析规则",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "删除日志表解析规则",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteLogParseRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.LogParseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/log/rule/get": {
             "post": {
                 "description": "获取日志表解析规则",
@@ -961,6 +1041,46 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.LogTableInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/log/update": {
+            "post": {
+                "description": "更新日志表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "更新日志表",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.LogTableRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.LogTableResponse"
                         }
                     },
                     "400": {
@@ -4033,6 +4153,26 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AddLogParseRequest": {
+            "type": "object",
+            "properties": {
+                "logTable": {
+                    "$ref": "#/definitions/request.LogTable"
+                },
+                "parseInfo": {
+                    "type": "string"
+                },
+                "parseName": {
+                    "type": "string"
+                },
+                "parseRule": {
+                    "type": "string"
+                },
+                "routeRule": {
+                    "type": "string"
+                }
+            }
+        },
         "request.Alert": {
             "type": "object",
             "properties": {
@@ -4104,6 +4244,32 @@ const docTemplate = `{
                 }
             }
         },
+        "request.BufferEngineConfig": {
+            "type": "object",
+            "properties": {
+                "maxBytes": {
+                    "type": "integer"
+                },
+                "maxRows": {
+                    "type": "integer"
+                },
+                "maxTime": {
+                    "type": "integer"
+                },
+                "minBytes": {
+                    "type": "integer"
+                },
+                "minRows": {
+                    "type": "integer"
+                },
+                "minTime": {
+                    "type": "integer"
+                },
+                "numLayers": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.DataType": {
             "type": "string",
             "enum": [
@@ -4149,6 +4315,31 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "group": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.DeleteLogParseRequest": {
+            "type": "object",
+            "properties": {
+                "dataBase": {
+                    "type": "string"
+                },
+                "parseName": {
+                    "type": "string"
+                },
+                "tableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.Field": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }
@@ -4487,8 +4678,54 @@ const docTemplate = `{
                 }
             }
         },
+        "request.LogTable": {
+            "type": "object",
+            "properties": {
+                "buffer": {
+                    "$ref": "#/definitions/request.BufferEngineConfig"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.Field"
+                    }
+                },
+                "ttl": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.LogTableInfoRequest": {
             "type": "object"
+        },
+        "request.LogTableRequest": {
+            "type": "object",
+            "properties": {
+                "buffer": {
+                    "$ref": "#/definitions/request.BufferEngineConfig"
+                },
+                "cluster": {
+                    "type": "string"
+                },
+                "dataBase": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.Field"
+                    }
+                },
+                "replica": {
+                    "type": "boolean"
+                },
+                "tableName": {
+                    "type": "string"
+                },
+                "ttl": {
+                    "type": "integer"
+                }
+            }
         },
         "request.Operation": {
             "type": "string",
@@ -5665,6 +5902,20 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.Parse"
+                    }
+                }
+            }
+        },
+        "response.LogTableResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "sqls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }

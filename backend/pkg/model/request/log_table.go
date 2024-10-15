@@ -31,6 +31,13 @@ type LogTableRequest struct {
 	Buffer    BufferEngineConfig `json:"buffer"`
 }
 
+type UpdateLogTableRequest struct {
+	TableName string  `json:"tableName"`
+	DataBase  string  `json:"dataBase"`
+	Cluster   string  `json:"cluster"`
+	Fields    []Field `json:"fields"`
+}
+
 func (q *LogTableRequest) ClusterString() string {
 	if q.Cluster == "" {
 		return ""
@@ -75,7 +82,7 @@ func (q *LogTableRequest) FillerValue() {
 	if q.Buffer.MaxBytes == 0 {
 		q.Buffer.MaxBytes = 100000000
 	}
-	if len(q.Fields) == 0 {
+	if q.TableName == "raw_logs" && len(q.Fields) == 0 {
 		q.Fields = []Field{
 			{Name: "level", Type: "String"},
 			{Name: "thread", Type: "String"},
