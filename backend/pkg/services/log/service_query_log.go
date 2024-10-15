@@ -60,6 +60,17 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 	for i, log := range logs {
 		content := log[req.LogField]
 		delete(log, req.LogField)
+
+		for k, v := range log {
+			vMap, ok := v.(map[string]string)
+			if ok {
+				for k2, v2 := range vMap {
+					log[k+"."+k2] = v2
+				}
+				delete(log, k)
+			}
+		}
+
 		logitems[i] = response.LogItem{
 			Content: content,
 			Tags:    log,
