@@ -25,11 +25,6 @@ const (
 	AvgLog
 	LogDOD
 	LogWOW
-	ServiceAvgLog
-	ServiceInstancePod
-	ServiceInstanceContainer
-	ServiceInstancePid
-	AvgDependencyLatency // 平均外部依赖耗时
 	Avg1minError
 	Avg1minLatency
 )
@@ -1013,7 +1008,6 @@ or
 )
 
 func QueryEndPointPromql(duration string, queryType QueryType, serviceNames string) string {
-
 	switch queryType {
 	//突变排序的1m平均指标数据
 	case Avg1minError:
@@ -1102,9 +1096,9 @@ func QueryEndPointPromql(duration string, queryType QueryType, serviceNames stri
 		} else {
 			return fmt.Sprintf(DELAY_SOURCE, duration, duration, duration, duration, duration, duration)
 		}
+	default:
+		return ""
 	}
-
-	return ""
 }
 
 func QueryEndPointRangePromql(step string, duration string, queryType QueryType, contentKeys []string) string {
@@ -1150,9 +1144,9 @@ func QueryPodPromql(duration string, queryType QueryType, serviceName string, co
 		return fmt.Sprintf(TPS_DOD_BY_POD, contentKey, serviceName, duration, contentKey, serviceName, duration, contentKey, serviceName, duration)
 	case TPSWOW:
 		return fmt.Sprintf(TPS_WOW_BY_POD, contentKey, serviceName, duration, contentKey, serviceName, duration, contentKey, serviceName, duration)
-
+	default:
+		return ""
 	}
-	return ""
 }
 func QueryPodRangePromql(duration string, queryType QueryType, contentKey string, serviceName string) string {
 	contentKey = EscapeRegexp(contentKey)
@@ -1192,9 +1186,9 @@ func QueryContainerIdPromql(duration string, queryType QueryType, serviceName st
 		return fmt.Sprintf(TPS_DOD_BY_CONTAINERID, contentKey, serviceName, duration, contentKey, serviceName, duration, contentKey, serviceName, duration)
 	case TPSWOW:
 		return fmt.Sprintf(TPS_WOW_BY_CONTAINERID, contentKey, serviceName, duration, contentKey, serviceName, duration, contentKey, serviceName, duration)
-
+	default:
+		return ""
 	}
-	return ""
 }
 func QueryContainerIdRangePromql(duration string, queryType QueryType, contentKey string, serviceName string) string {
 	contentKey = EscapeRegexp(contentKey)
@@ -1234,9 +1228,9 @@ func QueryPidPromql(duration string, queryType QueryType, serviceName string, co
 		return fmt.Sprintf(TPS_DOD_BY_PID, contentKey, serviceName, duration, contentKey, serviceName, duration, contentKey, serviceName, duration)
 	case TPSWOW:
 		return fmt.Sprintf(TPS_WOW_BY_PID, contentKey, serviceName, duration, contentKey, serviceName, duration, contentKey, serviceName, duration)
-
+	default:
+		return ""
 	}
-	return ""
 }
 func QueryPidRangePromql(duration string, queryType QueryType, contentKey string, serviceName string) string {
 	contentKey = EscapeRegexp(contentKey)
@@ -1254,9 +1248,18 @@ func QueryPidRangePromql(duration string, queryType QueryType, contentKey string
 
 }
 
-func QueryLogPromql(duration string, queryType QueryType, containerIds []string) string {
-	escapedKeys := make([]string, len(containerIds))
-	for i, key := range containerIds {
+const queryPodLogCountTemplate = `(
+  (sum(increase(originx_logparser_level_count_total{pod_name=~"%s",level=~"error|critical"}[%s]) offset %s) by(pod_name)
+    +
+  sum(increase(originx_logparser_exception_count_total{pod_name=~"%s"}[%s]) offset %s) by(pod_name))
+  or 
+  sum(increase(originx_logparser_level_count_total{pod_name=~"%s",level=~"error|critical"}[%s] offset %s)) by(pod_name)
+  or
+  sum(increase(originx_logparser_exception_count_total{pod_name=~"%s"}[%s] offset %s)) by(pod_name))`
+
+func QueryLogPromql(duration string, queryType QueryType, pods []string) string {
+	escapedKeys := make([]string, len(pods))
+	for i, key := range pods {
 		escapedKeys[i] = EscapeRegexp(key)
 	}
 	// 使用 strings.Join 生成正则表达式模式
@@ -1264,208 +1267,35 @@ func QueryLogPromql(duration string, queryType QueryType, containerIds []string)
 
 	switch queryType {
 	case AvgLog:
-		return fmt.Sprintf(`(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pod_name=~"%s",level=~"error|critical"
-      }[%s]
-    )
-  ) by(pod_name)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pod_name=~"%s"}[%s]
-      )
-    ) by(pod_name)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pod_name=~"%s"}[%s]
-  )
-) by(pod_name)`, regexPattern, duration, regexPattern, duration, regexPattern, duration)
+		return fmt.Sprintf(queryPodLogCountTemplate,
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "0", regexPattern, duration, "0")
 	case LogDOD:
-		return fmt.Sprintf(`((
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pod_name=~"%s",level=~"error|critical"
-      }[%s]
-    )
-  ) by(pod_name)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pod_name=~"%s"}[%s]
-      )
-    ) by(pod_name)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pod_name=~"%s"}[%s]
-  )
-) by(pod_name) -(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pod_name=~"%s",level=~"error|critical"
-      }[%s] offset 24h
-    )
-  ) by(pod_name)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pod_name=~"%s"}[%s] offset 24h
-      )
-    ) by(pod_name)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pod_name=~"%s"}[%s]offset 24h
-  )
-) by(pod_name))/(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pod_name=~"%s",level=~"error|critical"
-      }[%s]offset 24h
-    )
-  ) by(pod_name)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pod_name=~"%s"}[%s]offset 24h
-      )
-    ) by(pod_name)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pod_name=~"%s"}[%s]offset 24h
-  )
-) by(pod_name)`, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration)
+		return fmt.Sprintf(queryPodLogCountTemplate+"/"+queryPodLogCountTemplate+"-1",
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "24h", regexPattern, duration, "24h",
+			regexPattern, duration, "24h", regexPattern, duration, "24h")
 	case LogWOW:
-		return fmt.Sprintf(`((
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pod_name=~"%s",level=~"error|critical"
-      }[%s]
-    )
-  ) by(pod_name)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pod_name=~"%s"}[%s]
-      )
-    ) by(pod_name)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pod_name=~"%s"}[%s]
-  )
-) by(pod_name) -(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pod_name=~"%s",level=~"error|critical"
-      }[%s] offset 7d
-    )
-  ) by(pod_name)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pod_name=~"%s"}[%s] offset 7d
-      )
-    ) by(pod_name)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pod_name=~"%s"}[%s]offset 7d
-  )
-) by(pod_name))/(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pod_name=~"%s",level=~"error|critical"
-      }[%s]offset 7d
-    )
-  ) by(pod_name)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pod_name=~"%s"}[%s]offset 7d
-      )
-    ) by(pod_name)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pod_name=~"%s"}[%s]offset 7d
-  )
-) by(pod_name)`, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration)
-	case ServiceAvgLog:
-		return fmt.Sprintf(`(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pod_name=~"%s",level=~"error|critical"
-      }[%s]
-    )
-  ) by(pod_name)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pod_name=~"%s"}[%s]
-      )
-    ) by(pod_name)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pod_name=~"%s"}[%s]
-  )
-)or 0 `, regexPattern, duration, regexPattern, duration, regexPattern, duration)
+		return fmt.Sprintf(queryPodLogCountTemplate+"/"+queryPodLogCountTemplate+"-1",
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "7d", regexPattern, duration, "7d",
+			regexPattern, duration, "7d", regexPattern, duration, "7d")
+	default:
+		return ""
 	}
-	return ""
 }
+
+const queryContainerLogCountTemplate = `(
+  (sum(increase(originx_logparser_level_count_total{container_id=~"%s",level=~"error|critical"}[%s]) offset %s) by(container_id)
+    +
+  sum(increase(originx_logparser_exception_count_total{container_id=~"%s"}[%s]) offset %s) by(container_id))
+  or 
+  sum(increase(originx_logparser_level_count_total{container_id=~"%s",level=~"error|critical"}[%s] offset %s)) by(container_id)
+  or
+  sum(increase(originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset %s)) by(container_id))`
+
 func QueryLogByContainerIdPromql(duration string, queryType QueryType, containerIds []string) string {
 	escapedKeys := make([]string, len(containerIds))
 	for i, key := range containerIds {
@@ -1476,389 +1306,56 @@ func QueryLogByContainerIdPromql(duration string, queryType QueryType, container
 
 	switch queryType {
 	case AvgLog:
-		return fmt.Sprintf(`(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        container_id=~"%s"
-      }[%s]
-    )
-  ) by(container_id)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{container_id=~"%s"}[%s]
-      )
-    ) by(container_id)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{container_id=~"%s"}[%s]
-  )
-) by(container_id)or 0`, regexPattern, duration, regexPattern, duration, regexPattern, duration)
+		return fmt.Sprintf(queryContainerLogCountTemplate,
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "0", regexPattern, duration, "0")
 	case LogDOD:
-		return fmt.Sprintf(`((
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        container_id=~"%s"
-      }[%s]
-    )
-  ) by(container_id)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{container_id=~"%s"}[%s]
-      )
-    ) by(container_id)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{container_id=~"%s"}[%s]
-  )
-) by(container_id) -(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        container_id=~"%s"
-      }[%s] offset 24h
-    )
-  ) by(container_id)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 24h
-      )
-    ) by(container_id)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 24h
-  )
-) by(container_id))/(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        container_id=~"%s"
-      }[%s] offset 24h
-    )
-  ) by(container_id)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 24h
-      )
-    ) by(container_id)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 24h
-  )
-) by(container_id)`, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration)
+		return fmt.Sprintf(queryContainerLogCountTemplate+"/"+queryContainerLogCountTemplate+"-1",
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "24h", regexPattern, duration, "24h",
+			regexPattern, duration, "24h", regexPattern, duration, "24h")
 	case LogWOW:
-		return fmt.Sprintf(`((
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        container_id=~"%s"
-      }[%s]
-    )
-  ) by(container_id)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{container_id=~"%s"}[%s]
-      )
-    ) by(container_id)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{container_id=~"%s"}[%s]
-  )
-) by(container_id) -(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        container_id=~"%s"
-      }[%s] offset 7d
-    )
-  ) by(container_id)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 7d
-      )
-    ) by(container_id)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 7d
-  )
-) by(container_id))/(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        container_id=~"%s"
-      }[%s] offset 7d
-    )
-  ) by(container_id)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 7d
-      )
-    ) by(container_id)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset 7d
-  )
-) by(container_id)`, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration)
+		return fmt.Sprintf(queryContainerLogCountTemplate+"/"+queryContainerLogCountTemplate+"-1",
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "7d", regexPattern, duration, "7d",
+			regexPattern, duration, "7d", regexPattern, duration, "7d")
+	default:
+		return ""
 	}
-	return ""
 }
-func QueryLogByPidPromql(duration string, queryType QueryType, containerIds []string) string {
-	escapedKeys := make([]string, len(containerIds))
-	for i, key := range containerIds {
-		escapedKeys[i] = EscapeRegexp(key)
-	}
-	// 使用 strings.Join 生成正则表达式模式
-	regexPattern := strings.Join(escapedKeys, "|")
 
+const queryPidLogCountTemplate = `(
+  (sum(increase(originx_logparser_level_count_total{pid=~"%s",level=~"error|critical"}[%s]) offset %s) by(pid)
+    +
+  sum(increase(originx_logparser_exception_count_total{pid=~"%s"}[%s]) offset %s) by(pid))
+  or 
+  sum(increase(originx_logparser_level_count_total{pid=~"%s",level=~"error|critical"}[%s] offset %s)) by(pid)
+  or
+  sum(increase(originx_logparser_exception_count_total{pid=~"%s"}[%s] offset %s)) by(pid))`
+
+func QueryLogByPidPromql(duration string, queryType QueryType, pids []string) string {
+	// 使用 strings.Join 生成正则表达式模式
+	regexPattern := strings.Join(pids, "|")
 	switch queryType {
 	case AvgLog:
-		return fmt.Sprintf(`(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pid=~"%s",level=~"error|critical"
-      }[%s]
-    )
-  ) by(pid)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pid=~"%s"}[%s]
-      )
-    ) by(pid)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pid=~"%s"}[%s]
-  )
-) by(pid) or 0`, regexPattern, duration, regexPattern, duration, regexPattern, duration)
+		return fmt.Sprintf(queryPidLogCountTemplate,
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "0", regexPattern, duration, "0")
 	case LogDOD:
-		return fmt.Sprintf(`((
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pid=~"%s",level=~"error|critical"
-      }[%s]
-    )
-  ) by(pid)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pid=~"%s"}[%s]
-      )
-    ) by(pid)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pid=~"%s"}[%s]
-  )
-) by(pid) -(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pid=~"%s",level=~"error|critical"
-      }[%s] offset 24h
-    )
-  ) by(pid)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pid=~"%s"}[%s] offset 24h
-      )
-    ) by(pid)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pid=~"%s"}[%s]offset 24h
-  )
-) by(pid))/(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pid=~"%s",level=~"error|critical"
-      }[%s]offset 24h
-    )
-  ) by(pid)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pid=~"%s"}[%s]offset 24h
-      )
-    ) by(pid)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pid=~"%s"}[%s]offset 24h
-  )
-) by(pid)`, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration)
+		return fmt.Sprintf(queryPidLogCountTemplate+"/"+queryPidLogCountTemplate+"-1",
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "24h", regexPattern, duration, "24h",
+			regexPattern, duration, "24h", regexPattern, duration, "24h")
 	case LogWOW:
-		return fmt.Sprintf(`((
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pid=~"%s",level=~"error|critical"
-      }[%s]
-    )
-  ) by(pid)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pid=~"%s"}[%s]
-      )
-    ) by(pid)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pid=~"%s"}[%s]
-  )
-) by(pid) -(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pid=~"%s",level=~"error|critical"
-      }[%s] offset 7d
-    )
-  ) by(pid)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pid=~"%s"}[%s] offset 7d
-      )
-    ) by(pid)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pid=~"%s"}[%s]offset 7d
-  )
-) by(pid))/(
-  sum(
-    increase(
-      originx_logparser_level_count_total{
-        pid=~"%s",level=~"error|critical"
-      }[%s]offset 7d
-    )
-  ) by(pid)
-    +
-  (
-    sum(
-      increase(
-        originx_logparser_exception_count_total{pid=~"%s"}[%s]offset 7d
-      )
-    ) by(pid)
-      or
-    0
-  )
-)
-  or
-sum(
-  increase(
-    originx_logparser_exception_count_total{pid=~"%s"}[%s]offset 7d
-  )
-) by(pid)`, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration, regexPattern, duration)
+		return fmt.Sprintf(queryPidLogCountTemplate+"/"+queryPidLogCountTemplate+"-1",
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "7d", regexPattern, duration, "7d",
+			regexPattern, duration, "7d", regexPattern, duration, "7d")
+	default:
+		return ""
 	}
-	return ""
-}
-
-const SERVICES_POD_INSTANCE = `sum(kindling_span_trace_duration_nanoseconds_count{svc_name=~"%s"}) by (pod,svc_name,node_name,pid)`
-
-const SERVICES_CONTAINER_INSTANCE = `sum(kindling_span_trace_duration_nanoseconds_count{svc_name=~"%s",pod=""}) by (container_id,svc_name,node_name,pid)`
-
-const SERVICES_PID_INSTANCE = `sum(kindling_span_trace_duration_nanoseconds_count{svc_name=~"%s",pod="",container_id=""}) by (pid,svc_name,node_name)`
-
-func QueryServiceInstancePromql(queryType QueryType, svcNames []string) string {
-	escapedKeys := make([]string, len(svcNames))
-	for i, key := range svcNames {
-		escapedKeys[i] = EscapeRegexp(key)
-	}
-	// 使用 strings.Join 生成正则表达式模式
-	regexPattern := strings.Join(escapedKeys, "|")
-	switch queryType {
-	case ServiceInstancePod:
-		return fmt.Sprintf(SERVICES_POD_INSTANCE, regexPattern)
-	case ServiceInstanceContainer:
-		return fmt.Sprintf(SERVICES_CONTAINER_INSTANCE, regexPattern)
-	case ServiceInstancePid:
-		return fmt.Sprintf(SERVICES_PID_INSTANCE, regexPattern)
-	}
-	return ""
 }
