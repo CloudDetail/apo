@@ -26,43 +26,7 @@ func (repo *promRepo) QueryData(searchTime time.Time, query string) ([]MetricRes
 
 	for _, sample := range vector {
 		metric := Labels{}
-		for name, value := range sample.Metric {
-			switch string(name) {
-			case "container_id":
-				metric.ContainerID = string(value)
-			case "content_key":
-				metric.ContentKey = string(value)
-			case "instance":
-				metric.Instance = string(value)
-			case "is_error":
-				metric.IsError = string(value)
-			case "job":
-				metric.Job = string(value)
-			case "node_name":
-				metric.NodeName = string(value)
-			case "pod":
-				metric.POD = string(value)
-			case "svc_name":
-				metric.SvcName = string(value)
-			case "top_span":
-				metric.TopSpan = string(value)
-			case "pid":
-				metric.PID = string(value)
-			case "pod_name":
-				metric.PodName = string(value)
-			case "namespace":
-				metric.Namespace = string(value)
-			case "db_system":
-				metric.DBSystem = string(value)
-			case "db_name":
-				metric.DBName = string(value)
-			case "name":
-				metric.Name = string(value)
-			case "db_url":
-				metric.DBUrl = string(value)
-			}
-		}
-
+		metric.Extract(sample.Metric)
 		values := []Points{
 			{sample.Timestamp.UnixNano() / 1e3, float64(sample.Value)},
 		}
@@ -98,42 +62,7 @@ func (repo *promRepo) QueryRangeData(startTime time.Time, endTime time.Time, que
 	// Process the result matrix
 	for _, stream := range matrix {
 		metric := Labels{}
-		for name, value := range stream.Metric {
-			switch string(name) {
-			case "container_id":
-				metric.ContainerID = string(value)
-			case "content_key":
-				metric.ContentKey = string(value)
-			case "instance":
-				metric.Instance = string(value)
-			case "is_error":
-				metric.IsError = string(value)
-			case "job":
-				metric.Job = string(value)
-			case "node_name":
-				metric.NodeName = string(value)
-			case "pod":
-				metric.POD = string(value)
-			case "svc_name":
-				metric.SvcName = string(value)
-			case "top_span":
-				metric.TopSpan = string(value)
-			case "pid":
-				metric.PID = string(value)
-			case "pod_name":
-				metric.PodName = string(value)
-			case "namespace":
-				metric.Namespace = string(value)
-			case "db_system":
-				metric.DBSystem = string(value)
-			case "db_name":
-				metric.DBName = string(value)
-			case "name":
-				metric.Name = string(value)
-			case "db_url":
-				metric.DBUrl = string(value)
-			}
-		}
+		metric.Extract(stream.Metric)
 
 		var values []Points
 		for _, point := range stream.Values {
@@ -167,36 +96,7 @@ func (repo *promRepo) QueryLatencyData(searchTime time.Time, query string) ([]Me
 
 	for _, sample := range vector {
 		metric := Labels{}
-		for name, value := range sample.Metric {
-			switch string(name) {
-			case "container_id":
-				metric.ContainerID = string(value)
-			case "content_key":
-				metric.ContentKey = string(value)
-			case "instance":
-				metric.Instance = string(value)
-			case "is_error":
-				metric.IsError = string(value)
-			case "job":
-				metric.Job = string(value)
-			case "node_name":
-				metric.NodeName = string(value)
-			case "pod":
-				metric.POD = string(value)
-			case "svc_name":
-				metric.SvcName = string(value)
-			case "top_span":
-				metric.TopSpan = string(value)
-			case "pid":
-				metric.PID = string(value)
-			case "pod_name":
-				metric.PodName = string(value)
-			case "namespace":
-				metric.Namespace = string(value)
-			case "node_ip":
-				metric.NodeIP = string(value)
-			}
-		}
+		metric.Extract(sample.Metric)
 
 		values := []Points{
 			{sample.Timestamp.UnixNano() / 1e3, float64(sample.Value) / 1e3},
@@ -234,34 +134,7 @@ func (repo *promRepo) QueryRangeLatencyData(startTime time.Time, endTime time.Ti
 	// Process the result matrix
 	for _, stream := range matrix {
 		metric := Labels{}
-		for name, value := range stream.Metric {
-			switch string(name) {
-			case "container_id":
-				metric.ContainerID = string(value)
-			case "content_key":
-				metric.ContentKey = string(value)
-			case "instance":
-				metric.Instance = string(value)
-			case "is_error":
-				metric.IsError = string(value)
-			case "job":
-				metric.Job = string(value)
-			case "node_name":
-				metric.NodeName = string(value)
-			case "pod":
-				metric.POD = string(value)
-			case "svc_name":
-				metric.SvcName = string(value)
-			case "top_span":
-				metric.TopSpan = string(value)
-			case "pid":
-				metric.PID = string(value)
-			case "pod_name":
-				metric.PodName = string(value)
-			case "namespace":
-				metric.Namespace = string(value)
-			}
-		}
+		metric.Extract(stream.Metric)
 
 		var values []Points
 		for _, point := range stream.Values {
@@ -294,34 +167,7 @@ func (repo *promRepo) QueryErrorRateData(searchTime time.Time, query string) ([]
 
 	for _, sample := range vector {
 		metric := Labels{}
-		for name, value := range sample.Metric {
-			switch string(name) {
-			case "container_id":
-				metric.ContainerID = string(value)
-			case "content_key":
-				metric.ContentKey = string(value)
-			case "instance":
-				metric.Instance = string(value)
-			case "is_error":
-				metric.IsError = string(value)
-			case "job":
-				metric.Job = string(value)
-			case "node_name":
-				metric.NodeName = string(value)
-			case "pod":
-				metric.POD = string(value)
-			case "svc_name":
-				metric.SvcName = string(value)
-			case "top_span":
-				metric.TopSpan = string(value)
-			case "pid":
-				metric.PID = string(value)
-			case "pod_name":
-				metric.PodName = string(value)
-			case "namespace":
-				metric.Namespace = string(value)
-			}
-		}
+		metric.Extract(sample.Metric)
 
 		values := []Points{
 			{sample.Timestamp.UnixNano() / 1e3, float64(sample.Value) * 100},
@@ -359,34 +205,7 @@ func (repo *promRepo) QueryRangeErrorData(startTime time.Time, endTime time.Time
 	// Process the result matrix
 	for _, stream := range matrix {
 		metric := Labels{}
-		for name, value := range stream.Metric {
-			switch string(name) {
-			case "container_id":
-				metric.ContainerID = string(value)
-			case "content_key":
-				metric.ContentKey = string(value)
-			case "instance":
-				metric.Instance = string(value)
-			case "is_error":
-				metric.IsError = string(value)
-			case "job":
-				metric.Job = string(value)
-			case "node_name":
-				metric.NodeName = string(value)
-			case "pod":
-				metric.POD = string(value)
-			case "svc_name":
-				metric.SvcName = string(value)
-			case "top_span":
-				metric.TopSpan = string(value)
-			case "pid":
-				metric.PID = string(value)
-			case "pod_name":
-				metric.PodName = string(value)
-			case "namespace":
-				metric.Namespace = string(value)
-			}
-		}
+		metric.Extract(stream.Metric)
 
 		var values []Points
 		for _, point := range stream.Values {

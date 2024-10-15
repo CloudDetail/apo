@@ -2440,6 +2440,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/service/monitor/status": {
+            "get": {
+                "description": "获取kuma监控的服务状态",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.service"
+                ],
+                "summary": "获取kuma监控的服务状态",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "查询开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetMonitorStatusResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/service/moreUrl": {
             "get": {
                 "description": "获取服务的更多url列表",
@@ -5917,6 +5962,17 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "response.MonitorStatus": {
+            "type": "object",
+            "properties": {
+                "isAlive": {
+                    "type": "boolean"
+                },
+                "monitorName": {
+                    "type": "string"
                 }
             }
         },

@@ -27,7 +27,8 @@ var enText = map[string]string{
 	GetServiceEndPointListError:    "Failed to get service endpoint list",
 	GetServiceRYGLightError:        "Failed to get service RYG light",
 	GetSQLMetricError:              "Failed to get sql metric",
-	GetFaultLogContentError:        "Failed to get faultlog content",
+	GetFaultLogContentError:        "Failed to get fault log content",
+	GetMonitorStatusError:          "Failed to get monitor status",
 
 	CreateLogTableError: "Failed to create log table",
 	DropLogTableError:   "Failed to drop log table",

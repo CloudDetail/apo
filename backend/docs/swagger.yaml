@@ -1440,6 +1440,13 @@ definitions:
           $ref: '#/definitions/model.AlertMetricsData'
         type: array
     type: object
+  response.GetMonitorStatusResponse:
+    properties:
+      monitorList:
+        items:
+          $ref: '#/definitions/response.MonitorStatus'
+        type: array
+    type: object
   response.GetPolarisInferResponse:
     properties:
       inferCause:
@@ -1796,6 +1803,13 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  response.MonitorStatus:
+    properties:
+      isAlive:
+        type: boolean
+      monitorName:
+        type: string
     type: object
   response.Pagination:
     properties:
@@ -3584,6 +3598,36 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取日志相关指标
+      tags:
+      - API.service
+  /api/service/monitor/status:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取kuma监控的服务状态
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetMonitorStatusResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取kuma监控的服务状态
       tags:
       - API.service
   /api/service/moreUrl:
