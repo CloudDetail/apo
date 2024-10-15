@@ -29,7 +29,7 @@ func (p *ParseInfo) AddParseRule(config VectorConfig) ([]byte, error) {
 
 	_, ok = config.Transforms["parse_"+p.ParseName].(map[string]interface{})
 	if ok {
-		return nil, errors.New("parseName found")
+		return nil, errors.New("规则解析名已存在，请确保唯一")
 	} else {
 		new_transform := map[string]interface{}{
 			"type":   "remap",
@@ -90,7 +90,7 @@ func (p *ParseInfo) DeleteParseRule(config VectorConfig) ([]byte, error) {
 	delete(config.Sinks, "to_"+p.ParseName)
 	updatedData, err := yaml.Marshal(&config)
 	if err != nil {
-		return nil, errors.New("marshal failed")
+		return nil, errors.New("配置文件更新出错")
 	}
 	return updatedData, nil
 }

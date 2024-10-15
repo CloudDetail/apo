@@ -6,19 +6,19 @@ type QueryLogParseRequest struct {
 }
 
 type UpdateLogParseRequest struct {
-	DataBase  string `json:"dataBase"`
-	TableName string `json:"tableName"`
-	ParseName string `json:"parseName"`
-	RouteRule string `json:"routeRule"`
-	ParseRule string `json:"parseRule"`
+	DataBase  string            `json:"dataBase"`
+	TableName string            `json:"tableName"`
+	ParseName string            `json:"parseName"`
+	RouteRule map[string]string `json:"routeRule"`
+	ParseRule string            `json:"parseRule"`
 }
 
 type AddLogParseRequest struct {
-	ParseName string   `json:"parseName"`
-	ParseInfo string   `json:"parseInfo"`
-	RouteRule string   `json:"routeRule"`
-	ParseRule string   `json:"parseRule"`
-	LogTable  LogTable `json:"logTable"`
+	ParseName string            `json:"parseName"`
+	ParseInfo string            `json:"parseInfo"`
+	RouteRule map[string]string `json:"routeRule"`
+	ParseRule string            `json:"parseRule"`
+	LogTable  LogTable          `json:"logTable"`
 }
 
 type LogTable struct {

@@ -2,6 +2,7 @@ package log
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -9,6 +10,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/services/log/vector"
 	"gopkg.in/yaml.v3"
 )
+
+func getRouteRule(routeMap map[string]string) string {
+	var res string
+	for k, v := range routeMap {
+		res += fmt.Sprintf(".\"%s\" == \"%s\"\n", k, v)
+	}
+	return res
+}
 
 func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.LogParseResponse, error) {
 	// 先去建表
@@ -24,7 +33,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 	res := &response.LogParseResponse{
 		ParseName: req.ParseName,
 		ParseRule: req.ParseRule,
-		RouteRule: req.RouteRule,
+		RouteRule: getRouteRule(req.RouteRule),
 	}
 	data, err := s.k8sApi.GetVectorConfigFile()
 	if err != nil {
@@ -39,7 +48,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 		ParseName: req.ParseName,
 		TableName: req.ParseName,
 		ParseRule: req.ParseRule,
-		RouteRule: req.RouteRule,
+		RouteRule: getRouteRule(req.RouteRule),
 	}
 	newData, err := p.AddParseRule(vectorCfg)
 	if err != nil {
@@ -65,7 +74,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 		ParseInfo: req.ParseInfo,
 		ParseName: req.ParseName,
 		ParseRule: req.ParseRule,
-		RouteRule: req.RouteRule,
+		RouteRule: getRouteRule(req.RouteRule),
 		Table:     req.ParseName,
 		DataBase:  logReq.DataBase,
 		Cluster:   logReq.Cluster,

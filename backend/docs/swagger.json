@@ -4366,7 +4366,10 @@
                     "type": "string"
                 },
                 "routeRule": {
-                    "type": "string"
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -5140,7 +5143,10 @@
                     "type": "string"
                 },
                 "routeRule": {
-                    "type": "string"
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "tableName": {
                     "type": "string"

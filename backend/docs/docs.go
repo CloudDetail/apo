@@ -4374,7 +4374,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "routeRule": {
-                    "type": "string"
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -5148,7 +5151,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "routeRule": {
-                    "type": "string"
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "tableName": {
                     "type": "string"
