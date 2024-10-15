@@ -21,13 +21,13 @@ type Handler interface {
 	// @Router /api/log/fault/content [post]
 	GetFaultLogContent() core.HandlerFunc
 
-	// CreateLogTable 创建日志表
-	// @Tags API.log
-	// @Router /api/log/create [post]
 	CreateLogTable() core.HandlerFunc
 
 	DropLogTable() core.HandlerFunc
 
+	// UpdateLogTable 更新日志表
+	// @Tags API.log
+	// @Router /api/log/update [post]
 	UpdateLogTable() core.HandlerFunc
 
 	// QueryLog 查询全量日志
@@ -59,6 +59,16 @@ type Handler interface {
 	// @Tags API.log
 	// @Router /api/log/rule/update [post]
 	UpdateLogParseRule() core.HandlerFunc
+
+	// AddLogParseRule 新增日志表解析规则
+	// @Tags API.log
+	// @Router /api/log/rule/add [post]
+	AddLogParseRule() core.HandlerFunc
+
+	// DeleteLogParseRule 删除日志表解析规则
+	// @Tags API.log
+	// @Router /api/log/rule/delete [post]
+	DeleteLogParseRule() core.HandlerFunc
 }
 
 type handler struct {

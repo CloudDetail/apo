@@ -178,7 +178,10 @@ function FaultSiteLogs(props) {
     }
   }, [source])
   return (
-    <div className="h-full flex flex-col overflow-hidden text-xs">
+    <CCard
+      className="h-full flex flex-col overflow-hidden text-xs px-2"
+      style={{ height: 'calc(100vh - 120px)' }}
+    >
       <LoadingSpinner loading={loading} />
       <CToast autohide={false} visible={true} className="align-items-center w-full my-2">
         <div className="d-flex">
@@ -284,7 +287,7 @@ function FaultSiteLogs(props) {
         )}
         {(!logsPageList || logsPageList?.length === 0) && <Empty />}
       </div>
-    </div>
+    </CCard>
   )
 }
 export default FaultSiteLogs

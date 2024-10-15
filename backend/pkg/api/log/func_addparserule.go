@@ -8,19 +8,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// UpdateLogParseRule 更新日志表解析规则
-// @Summary 更新日志表解析规则
-// @Description 更新日志表解析规则
+// AddLogParseRule 新增日志表解析规则
+// @Summary 新增日志表解析规则
+// @Description 新增日志表解析规则
 // @Tags API.log
 // @Accept json
 // @Produce json
-// @Param Request body request.UpdateLogParseRequest true "请求信息"
+// @Param Request body request.AddLogParseRequest true "请求信息"
 // @Success 200 {object} response.LogParseResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/log/rule/update [post]
-func (h *handler) UpdateLogParseRule() core.HandlerFunc {
+// @Router /api/log/rule/add [post]
+func (h *handler) AddLogParseRule() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.UpdateLogParseRequest)
+		req := new(request.AddLogParseRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -29,12 +29,12 @@ func (h *handler) UpdateLogParseRule() core.HandlerFunc {
 			)
 			return
 		}
-		resp, err := h.logService.UpdateLogParseRule(req)
+		resp, err := h.logService.AddLogParseRule(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.UpdateLogParseRuleError,
-				code.Text(code.UpdateLogParseRuleError)).WithError(err),
+				code.AddLogParseRuleError,
+				code.Text(code.AddLogParseRuleError)).WithError(err),
 			)
 			return
 		}

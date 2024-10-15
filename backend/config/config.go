@@ -44,6 +44,7 @@ type Config struct {
 		Password string `mapstructure:"password"`
 		Database string `mapstructure:"database"`
 		Cluster  string `mapstructure:"cluster"`
+		Replica  bool   `mapstructure:"replica"`
 	} `mapstructure:"clickhouse"`
 	Promethues struct {
 		Address string `mapstructure:"address"`

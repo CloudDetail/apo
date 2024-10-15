@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	defaultParseInfo = "默认Java日志解析, 从日志字段中解析出level、thread、method信息"
 	defaultParseName = "default_java"
 	defaultRouteRule = `."k8s.namespace.name" != "apo"`
 	defaultParseRule = `.msg, err = parse_regex(.content, r' \[(?P<level>.*?)\] \[(?P<thread>.*?)\] \[(?P<method>.*?)\(.*?\)\] - (?P<msg>.*)')
@@ -38,6 +39,7 @@ func (s *service) CreateLogTable(req *request.LogTableRequest) (*response.LogTab
 		ParseName: defaultParseName,
 		RouteRule: defaultRouteRule,
 		ParseRule: defaultParseRule,
+		ParseInfo: defaultParseInfo,
 	}
 	// 不存在才去插入logtableinfo
 	err = s.dbRepo.OperateLogTableInfo(logtable, database.QUERY)

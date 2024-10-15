@@ -25,9 +25,17 @@ type LogTableRequest struct {
 	DataBase  string             `json:"dataBase"`
 	TableName string             `json:"tableName"`
 	Cluster   string             `json:"cluster"`
+	Replica   bool               `json:"replica"`
 	TTL       uint               `json:"ttl"`
 	Fields    []Field            `json:"fields"`
 	Buffer    BufferEngineConfig `json:"buffer"`
+}
+
+type UpdateLogTableRequest struct {
+	TableName string  `json:"tableName"`
+	DataBase  string  `json:"dataBase"`
+	Cluster   string  `json:"cluster"`
+	Fields    []Field `json:"fields"`
 }
 
 func (q *LogTableRequest) ClusterString() string {
@@ -50,6 +58,9 @@ func (q *LogTableRequest) FillerValue() {
 	if q.Cluster == "" {
 		q.Cluster = config.Get().ClickHouse.Cluster
 	}
+	if !q.Replica {
+		q.Replica = config.Get().ClickHouse.Replica
+	}
 	if q.Buffer.NumLayers == 0 {
 		q.Buffer.NumLayers = 16
 	}
@@ -71,7 +82,7 @@ func (q *LogTableRequest) FillerValue() {
 	if q.Buffer.MaxBytes == 0 {
 		q.Buffer.MaxBytes = 100000000
 	}
-	if len(q.Fields) == 0 {
+	if q.TableName == "raw_logs" && len(q.Fields) == 0 {
 		q.Fields = []Field{
 			{Name: "level", Type: "String"},
 			{Name: "thread", Type: "String"},

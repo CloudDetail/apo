@@ -34,6 +34,10 @@ type Service interface {
 	GetLogParseRule(req *request.QueryLogParseRequest) (*response.LogParseResponse, error)
 
 	UpdateLogParseRule(req *request.UpdateLogParseRequest) (*response.LogParseResponse, error)
+
+	AddLogParseRule(req *request.AddLogParseRequest) (*response.LogParseResponse, error)
+
+	DeleteLogParseRule(req *request.DeleteLogParseRequest) (*response.LogParseResponse, error)
 }
 
 type service struct {

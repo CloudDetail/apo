@@ -126,7 +126,7 @@ func (repo *promRepo) QueryInstanceP90(startTime int64, endTime int64, step int6
 	query := fmt.Sprintf(TEMPLATE_INSTANCE_HISTO_P90_LATENCY,
 		repo.GetRange(),
 		queryCondition,
-		EscapeRegexp(endpoint),
+		endpoint,
 		getDurationFromStep(tRange.Step),
 	)
 	res, _, err := repo.GetApi().QueryRange(context.Background(), query, tRange)

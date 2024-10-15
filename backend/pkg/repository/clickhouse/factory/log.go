@@ -84,6 +84,11 @@ func (l *LogTableFactory) CreateTableSQL(params *request.LogTableRequest) string
 	} else {
 		engine = mergeTreeEngine
 	}
+
+	if !params.Replica {
+		engine = mergeTreeEngine
+	}
+
 	return fmt.Sprintf(logSQL, params.DataBase, tablename, cluster,
 		AnalyzerFiles, engine, ttlExpr)
 }

@@ -51,6 +51,8 @@ const (
 	GetLogTableInfoError    = "B0409"
 	GetLogParseRuleError    = "B0410"
 	UpdateLogParseRuleError = "B0411"
+	AddLogParseRuleError    = "B0412"
+	DeleteLogParseRuleError = "B0413"
 
 	GetMonitorStatusError = "B0412"
 
