@@ -74,6 +74,8 @@ func setApiRouter(r *resource) {
 
 		logApi.GET("/table", logHandler.GetLogTableInfo())
 
+		logApi.GET("/rule/service", logHandler.GetServiceRoute())
+
 		logApi.GET("/rule/get", logHandler.GetLogParseRule())
 		logApi.POST("/rule/update", logHandler.UpdateLogParseRule())
 		logApi.POST("/rule/add", logHandler.AddLogParseRule())

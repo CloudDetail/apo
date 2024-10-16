@@ -27,7 +27,7 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 	p := vector.ParseInfo{
 		ParseName: req.ParseName,
 		ParseRule: req.ParseRule,
-		RouteRule: getRouteRule(req.RouteRule, ""),
+		RouteRule: getRouteRule(req.RouteRule),
 	}
 	newData, err := p.UpdateParseRule(vectorCfg)
 	if err != nil {
@@ -41,7 +41,7 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 	log := database.LogTableInfo{
 		ParseRule: req.ParseRule,
 		ParseInfo: req.ParseInfo,
-		RouteRule: getRouteRule(req.RouteRule, ""),
+		RouteRule: getRouteRule(req.RouteRule),
 		Table:     req.TableName,
 		DataBase:  req.DataBase,
 	}

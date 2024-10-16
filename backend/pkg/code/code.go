@@ -60,6 +60,8 @@ const (
 	AddOtherLogTableError    = "B0416"
 	DeleteOtherLogTableError = "B0417"
 
+	GetServiceRouteError = "B0418"
+
 	GetTracePageListError    = "B0501"
 	GetTraceFiltersError     = "B0502"
 	GetTraceFilterValueError = "B0503"

@@ -32,6 +32,8 @@ type Service interface {
 	// 字段分析
 	GetLogIndex(req *request.LogIndexRequest) (*response.LogIndexResponse, error)
 
+	GetServiceRoute(req *request.GetServiceRouteRequest) (*response.GetServiceRouteResponse, error)
+
 	GetLogParseRule(req *request.QueryLogParseRequest) (*response.LogParseResponse, error)
 
 	UpdateLogParseRule(req *request.UpdateLogParseRequest) (*response.LogParseResponse, error)

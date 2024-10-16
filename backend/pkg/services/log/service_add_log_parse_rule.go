@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -13,13 +12,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func getRouteRule(routeMap map[string]string, service string) string {
+func getRouteRule(routeMap map[string]string) string {
 	var res []string
 	for k, v := range routeMap {
 		res = append(res, fmt.Sprintf(`starts_with(string!(."%s"), "%s")`, k, v))
-	}
-	if service != "" {
-		res = append(res, fmt.Sprintf(`starts_with(string!(."k8s.pod.name"), "%s")`, service))
 	}
 	return strings.Join(res, " && ")
 }
@@ -33,25 +29,6 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 	logReq.Fields = req.LogTable.Fields
 	logReq.Buffer = req.LogTable.Buffer
 	logReq.FillerValue()
-
-	// 获取当前时间
-	now := time.Now()
-	currentTimestamp := now.UnixMicro()
-	sevenDaysAgo := now.AddDate(0, 0, -7)
-	sevenDaysAgoTimestamp := sevenDaysAgo.UnixMicro()
-
-	instances, err := s.promRepo.GetActiveInstanceList(sevenDaysAgoTimestamp, currentTimestamp, req.Service)
-	if err != nil {
-		return nil, err
-	}
-	var deployName string
-	for instanceName, _ := range instances.GetInstanceIdMap() {
-		parts := strings.Split(instanceName, "-")
-		if len(parts) >= 3 {
-			deployName = strings.Join(parts[:len(parts)-2], "-")
-			break
-		}
-	}
 
 	// 更新k8s configmap
 	res := &response.LogParseResponse{
@@ -72,7 +49,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 		ParseName: req.ParseName,
 		TableName: req.ParseName,
 		ParseRule: req.ParseRule,
-		RouteRule: getRouteRule(req.RouteRule, deployName),
+		RouteRule: getRouteRule(req.RouteRule),
 	}
 	newData, err := p.AddParseRule(vectorCfg)
 	if err != nil {
@@ -96,7 +73,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 		ParseInfo: req.ParseInfo,
 		ParseName: req.ParseName,
 		ParseRule: req.ParseRule,
-		RouteRule: getRouteRule(req.RouteRule, deployName),
+		RouteRule: getRouteRule(req.RouteRule),
 		Table:     req.ParseName,
 		DataBase:  logReq.DataBase,
 		Cluster:   logReq.Cluster,

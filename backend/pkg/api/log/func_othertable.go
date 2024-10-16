@@ -12,7 +12,7 @@ import (
 // @Summary 获取外部日志表
 // @Description 获取外部日志表
 // @Tags API.log
-// @Accept json
+// @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Request body request.OtherTableRequest true "请求信息"
 // @Success 200 {object} response.OtherTableResponse

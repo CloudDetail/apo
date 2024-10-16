@@ -23,6 +23,10 @@ type AddLogParseRequest struct {
 	LogTable  LogTable          `json:"logTable"`
 }
 
+type GetServiceRouteRequest struct {
+	Service string `form:"serviceName"`
+}
+
 type LogTable struct {
 	TTL    uint               `json:"ttl"`
 	Fields []Field            `json:"fields"`

@@ -816,7 +816,7 @@ const docTemplate = `{
             "get": {
                 "description": "获取外部日志表",
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "application/json"
@@ -1096,7 +1096,7 @@ const docTemplate = `{
             "get": {
                 "description": "获取日志表解析规则",
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "application/json"
@@ -1121,6 +1121,46 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.LogParseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/log/rule/service": {
+            "get": {
+                "description": "获取服务对应的应用日志",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "获取服务对应的应用日志",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetServiceRouteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetServiceRouteResponse"
                         }
                     },
                     "400": {
@@ -1176,7 +1216,7 @@ const docTemplate = `{
             "get": {
                 "description": "获取日志表信息",
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "application/json"
@@ -4736,6 +4776,14 @@ const docTemplate = `{
                 }
             }
         },
+        "request.GetServiceRouteRequest": {
+            "type": "object",
+            "properties": {
+                "serviceName": {
+                    "type": "string"
+                }
+            }
+        },
         "request.GetTraceFilterValueRequest": {
             "type": "object",
             "required": [
@@ -5774,6 +5822,17 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "response.GetServiceRouteResponse": {
+            "type": "object",
+            "properties": {
+                "routeRule": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 }
             }
         },

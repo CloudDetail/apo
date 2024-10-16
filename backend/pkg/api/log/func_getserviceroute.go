@@ -8,19 +8,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetLogTableInfo
-// @Summary 获取日志表信息
-// @Description 获取日志表信息
+// GetServiceRoute 获取服务对应的应用日志
+// @Summary 获取服务对应的应用日志
+// @Description 获取服务对应的应用日志
 // @Tags API.log
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.LogTableInfoRequest true "请求信息"
-// @Success 200 {object} response.LogTableInfoResponse
+// @Param Request body request.GetServiceRouteRequest true "请求信息"
+// @Success 200 {object} response.GetServiceRouteResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/log/table [get]
-func (h *handler) GetLogTableInfo() core.HandlerFunc {
+// @Router /api/log/rule/service [get]
+func (h *handler) GetServiceRoute() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.LogTableInfoRequest)
+		req := new(request.GetServiceRouteRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -29,12 +29,12 @@ func (h *handler) GetLogTableInfo() core.HandlerFunc {
 			)
 			return
 		}
-		resp, err := h.logService.GetLogTableInfo(req)
+		resp, err := h.logService.GetServiceRoute(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.GetLogTableInfoError,
-				code.Text(code.GetLogTableInfoError)+err.Error()).WithError(err),
+				code.GetServiceRouteError,
+				code.Text(code.GetServiceRouteError)+err.Error()).WithError(err),
 			)
 			return
 		}

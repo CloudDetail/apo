@@ -6,3 +6,7 @@ type LogParseResponse struct {
 	RouteRule map[string]string `json:"routeRule"`
 	ParseRule string            `json:"parseRule"`
 }
+
+type GetServiceRouteResponse struct {
+	RouteRule map[string]string `json:"routeRule"`
+}

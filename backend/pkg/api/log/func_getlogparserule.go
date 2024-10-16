@@ -12,7 +12,7 @@ import (
 // @Summary 获取日志表解析规则
 // @Description 获取日志表解析规则
 // @Tags API.log
-// @Accept json
+// @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Request body request.QueryLogParseRequest true "请求信息"
 // @Success 200 {object} response.LogParseResponse

@@ -47,6 +47,11 @@ type Handler interface {
 	// @Router /api/log/table get
 	GetLogTableInfo() core.HandlerFunc
 
+	// GetServiceRoute 获取服务对应的应用日志
+	// @Tags API.log
+	// @Router /api/log/rule/service get
+	GetServiceRoute() core.HandlerFunc
+
 	// GetLogParseRule 获取日志表解析规则
 	// @Tags API.log
 	// @Router /api/log/rule/get [get]

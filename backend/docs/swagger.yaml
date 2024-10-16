@@ -855,6 +855,11 @@ definitions:
     required:
     - endTime
     type: object
+  request.GetServiceRouteRequest:
+    properties:
+      serviceName:
+        type: string
+    type: object
   request.GetTraceFilterValueRequest:
     properties:
       endTime:
@@ -1563,6 +1568,13 @@ definitions:
         type: array
       status:
         type: string
+    type: object
+  response.GetServiceRouteResponse:
+    properties:
+      routeRule:
+        additionalProperties:
+          type: string
+        type: object
     type: object
   response.GetTTLResponse:
     properties:
@@ -2601,7 +2613,7 @@ paths:
   /api/log/other:
     get:
       consumes:
-      - application/json
+      - application/x-www-form-urlencoded
       description: 获取外部日志表
       parameters:
       - description: 请求信息
@@ -2783,7 +2795,7 @@ paths:
   /api/log/rule/get:
     get:
       consumes:
-      - application/json
+      - application/x-www-form-urlencoded
       description: 获取日志表解析规则
       parameters:
       - description: 请求信息
@@ -2804,6 +2816,32 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取日志表解析规则
+      tags:
+      - API.log
+  /api/log/rule/service:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取服务对应的应用日志
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetServiceRouteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetServiceRouteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取服务对应的应用日志
       tags:
       - API.log
   /api/log/rule/update:
@@ -2835,7 +2873,7 @@ paths:
   /api/log/table:
     get:
       consumes:
-      - application/json
+      - application/x-www-form-urlencoded
       description: 获取日志表信息
       parameters:
       - description: 请求信息
