@@ -6,6 +6,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/log"
 	"go.uber.org/zap"
 )
@@ -92,8 +93,8 @@ type handler struct {
 	logService log.Service
 }
 
-func New(logger *zap.Logger, chRepo clickhouse.Repo, dbRepo database.Repo, k8sApi kubernetes.Repo) Handler {
-	logservice := log.New(chRepo, dbRepo, k8sApi)
+func New(logger *zap.Logger, chRepo clickhouse.Repo, dbRepo database.Repo, k8sApi kubernetes.Repo, promRepo prometheus.Repo) Handler {
+	logservice := log.New(chRepo, dbRepo, k8sApi, promRepo)
 	req := &request.LogTableRequest{}
 	req.FillerValue()
 	_, err := logservice.CreateLogTable(req)

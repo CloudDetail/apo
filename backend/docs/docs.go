@@ -4378,6 +4378,9 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
+                },
+                "serviceName": {
+                    "type": "string"
                 }
             }
         },
@@ -6134,6 +6137,9 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
+                },
+                "serviceName": {
+                    "type": "string"
                 }
             }
         },

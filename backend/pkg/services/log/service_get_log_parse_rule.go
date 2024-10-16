@@ -43,6 +43,7 @@ func (s *service) GetLogParseRule(req *request.QueryLogParseRequest) (*response.
 	}
 
 	return &response.LogParseResponse{
+		Service:   model.Service,
 		ParseName: model.ParseName,
 		ParseRule: model.ParseRule,
 		RouteRule: getRouteRuleMap(model.RouteRule),

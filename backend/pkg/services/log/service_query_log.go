@@ -15,16 +15,20 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 		res.Err = err.Error()
 		return res, nil
 	}
-	if len(logs) == 0 {
-		res.Err = "未查询到任何日志数据"
+
+	rows, err := s.chRepo.OtherLogTableInfo(&request.OtherTableInfoRequest{
+		DataBase:  req.DataBase,
+		TableName: req.TableName,
+	})
+	if err != nil {
+		res.Err = err.Error()
 		return res, nil
 	}
 	allFileds := []string{}
-	if len(logs) > 0 {
-		for k := range logs[0] {
-			allFileds = append(allFileds, k)
-		}
+	for _, row := range rows {
+		allFileds = append(allFileds, row["name"].(string))
 	}
+	res.DefaultFields = allFileds
 
 	hiddenFields := []string{}
 	model := &database.LogTableInfo{
@@ -56,6 +60,15 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 			defaultFields = append(defaultFields, item)
 		}
 	}
+	res.Limited = req.PageSize
+	res.HiddenFields = hiddenFields
+	res.DefaultFields = defaultFields
+
+	if len(logs) == 0 {
+		res.Err = "未查询到任何日志数据"
+		return res, nil
+	}
+
 	logitems := make([]response.LogItem, len(logs))
 	for i, log := range logs {
 		content := log[req.LogField]
@@ -77,9 +90,6 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 		}
 	}
 
-	res.Limited = req.PageSize
-	res.HiddenFields = hiddenFields
-	res.DefaultFields = defaultFields
 	res.Logs = logitems
 	res.Query = sql
 	return res, nil

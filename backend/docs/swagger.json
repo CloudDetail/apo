@@ -4370,6 +4370,9 @@
                     "additionalProperties": {
                         "type": "string"
                     }
+                },
+                "serviceName": {
+                    "type": "string"
                 }
             }
         },
@@ -6126,6 +6129,9 @@
                     "additionalProperties": {
                         "type": "string"
                     }
+                },
+                "serviceName": {
+                    "type": "string"
                 }
             }
         },

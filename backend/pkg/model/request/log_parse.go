@@ -15,6 +15,7 @@ type UpdateLogParseRequest struct {
 
 type AddLogParseRequest struct {
 	ParseName string            `json:"parseName"`
+	Service   string            `json:"serviceName"`
 	ParseInfo string            `json:"parseInfo"`
 	RouteRule map[string]string `json:"routeRule"`
 	ParseRule string            `json:"parseRule"`

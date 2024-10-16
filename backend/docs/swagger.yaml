@@ -614,6 +614,8 @@ definitions:
         additionalProperties:
           type: string
         type: object
+      serviceName:
+        type: string
     type: object
   request.AddOtherTableRequest:
     properties:
@@ -1803,6 +1805,8 @@ definitions:
         additionalProperties:
           type: string
         type: object
+      serviceName:
+        type: string
     type: object
   response.LogQueryResponse:
     properties:

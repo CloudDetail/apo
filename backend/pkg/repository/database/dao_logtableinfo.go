@@ -10,6 +10,7 @@ type LogTableInfo struct {
 	RouteRule string `gorm:"type:varchar(100);column:routerule"`
 	ParseRule string `gorm:"type:varchar(100);column:parserule"`
 	ParseInfo string `gorm:"type:varchar(100);column:parseinfo"`
+	Service   string `gorm:"type:varchar(100)"`
 }
 
 func (LogTableInfo) TableName() string {
