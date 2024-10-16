@@ -17,11 +17,11 @@ import (
 // @Param Request body request.QueryLogParseRequest true "请求信息"
 // @Success 200 {object} response.LogParseResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/log/rule/get [post]
+// @Router /api/log/rule/get [get]
 func (h *handler) GetLogParseRule() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.QueryLogParseRequest)
-		if err := c.ShouldBindJSON(req); err != nil {
+		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,

@@ -1,10 +1,32 @@
 package log
 
 import (
+	"regexp"
+	"strings"
+
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
+
+var routeReg = regexp.MustCompile(`\"(.*?)\"`)
+
+func getRouteRuleMap(routeRule string) map[string]string {
+	res := make(map[string]string)
+	lines := strings.Split(routeRule, "\n")
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		matches := routeReg.FindAllStringSubmatch(line, -1)
+		if len(matches) == 2 {
+			key := matches[0][1]
+			value := matches[1][1]
+			res[key] = value
+		}
+	}
+	return res
+}
 
 func (s *service) GetLogParseRule(req *request.QueryLogParseRequest) (*response.LogParseResponse, error) {
 	model := &database.LogTableInfo{
@@ -16,12 +38,13 @@ func (s *service) GetLogParseRule(req *request.QueryLogParseRequest) (*response.
 		return &response.LogParseResponse{
 			ParseName: defaultParseName,
 			ParseRule: defaultParseRule,
-			RouteRule: defaultRouteRule,
+			RouteRule: defaultRouteRuleMap,
 		}, err
 	}
+
 	return &response.LogParseResponse{
 		ParseName: model.ParseName,
 		ParseRule: model.ParseRule,
-		RouteRule: model.RouteRule,
+		RouteRule: getRouteRuleMap(model.RouteRule),
 	}, nil
 }

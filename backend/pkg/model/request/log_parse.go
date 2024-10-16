@@ -1,8 +1,8 @@
 package request
 
 type QueryLogParseRequest struct {
-	DataBase  string `json:"dataBase"`
-	TableName string `json:"tableName"`
+	DataBase  string `form:"dataBase" json:"dataBase"`
+	TableName string `form:"tableName" json:"tableName"`
 }
 
 type UpdateLogParseRequest struct {
@@ -18,6 +18,7 @@ type AddLogParseRequest struct {
 	ParseInfo string            `json:"parseInfo"`
 	RouteRule map[string]string `json:"routeRule"`
 	ParseRule string            `json:"parseRule"`
+	TableName string            `json:"tableName"`
 	LogTable  LogTable          `json:"logTable"`
 }
 

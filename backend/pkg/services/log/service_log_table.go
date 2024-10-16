@@ -10,14 +10,19 @@ import (
 
 const (
 	defaultParseInfo = "默认Java日志解析, 从日志字段中解析出level、thread、method信息"
-	defaultParseName = "default_java"
+	defaultParseName = "默认JAVA日志解析"
 	defaultRouteRule = `."k8s.namespace.name" != "apo"`
 	defaultParseRule = `.msg, err = parse_regex(.content, r' \[(?P<level>.*?)\] \[(?P<thread>.*?)\] \[(?P<method>.*?)\(.*?\)\] - (?P<msg>.*)')
 if err == null {
 	.content = encode_json(.msg)
 }
-del(.msg)`
+del(.msg)
+`
 )
+
+var defaultRouteRuleMap = map[string]string{
+	"k8s.namespace.name": "apo",
+}
 
 func (s *service) CreateLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error) {
 	sqls, err := s.chRepo.CreateLogTable(req)

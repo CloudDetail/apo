@@ -1085,7 +1085,7 @@
             }
         },
         "/api/log/rule/get": {
-            "post": {
+            "get": {
                 "description": "获取日志表解析规则",
                 "consumes": [
                     "application/json"
@@ -4370,6 +4370,9 @@
                     "additionalProperties": {
                         "type": "string"
                     }
+                },
+                "tableName": {
+                    "type": "string"
                 }
             }
         },
@@ -6122,7 +6125,10 @@
                     "type": "string"
                 },
                 "routeRule": {
-                    "type": "string"
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 }
             }
         },

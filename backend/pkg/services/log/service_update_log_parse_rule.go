@@ -13,7 +13,7 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 	res := &response.LogParseResponse{
 		ParseName: req.ParseName,
 		ParseRule: req.ParseRule,
-		RouteRule: getRouteRule(req.RouteRule),
+		RouteRule: req.RouteRule,
 	}
 	data, err := s.k8sApi.GetVectorConfigFile()
 	if err != nil {

@@ -48,7 +48,7 @@ type Handler interface {
 
 	// GetLogParseRule 获取日志表解析规则
 	// @Tags API.log
-	// @Router /api/log/rule/get [post]
+	// @Router /api/log/rule/get [get]
 	GetLogParseRule() core.HandlerFunc
 
 	// UpdateLogParseRule 更新日志表解析规则

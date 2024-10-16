@@ -1093,7 +1093,7 @@ const docTemplate = `{
             }
         },
         "/api/log/rule/get": {
-            "post": {
+            "get": {
                 "description": "获取日志表解析规则",
                 "consumes": [
                     "application/json"
@@ -4378,6 +4378,9 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
+                },
+                "tableName": {
+                    "type": "string"
                 }
             }
         },
@@ -6130,7 +6133,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "routeRule": {
-                    "type": "string"
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 }
             }
         },

@@ -614,6 +614,8 @@ definitions:
         additionalProperties:
           type: string
         type: object
+      tableName:
+        type: string
     type: object
   request.AddOtherTableRequest:
     properties:
@@ -1800,7 +1802,9 @@ definitions:
       parseRule:
         type: string
       routeRule:
-        type: string
+        additionalProperties:
+          type: string
+        type: object
     type: object
   response.LogQueryResponse:
     properties:
@@ -2779,7 +2783,7 @@ paths:
       tags:
       - API.log
   /api/log/rule/get:
-    post:
+    get:
       consumes:
       - application/json
       description: 获取日志表解析规则
