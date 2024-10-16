@@ -67,7 +67,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   function addLogRule(logRuleParams) {
     addLogRuleApi(logRuleParams).then((res) => {
       showToast({
-        title: '日志规则配置成功',
+        title: '日志解析规则配置成功',
         color: 'success',
       })
     })
@@ -81,7 +81,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       tableName: logRuleInfo.tableName,
     }).then((res) => {
       showToast({
-        title: '日志规则配置成功',
+        title: '日志解析规则配置成功',
         color: 'success',
       })
 
@@ -123,7 +123,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   }
   return (
     <Modal
-      title={'日志规则配置'}
+      title={'日志解析规则配置'}
       open={modalVisible}
       onCancel={closeModal}
       destroyOnClose
@@ -161,17 +161,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
             disabled={logRuleInfo?.parseName}
           />
         </Form.Item>
-        <Form.Item
-          label="规则描述"
-          name="parseInfo"
-          required
-          rules={[
-            {
-              required: true,
-              message: '请输入规则描述',
-            },
-          ]}
-        >
+        <Form.Item label="规则描述" name="parseInfo">
           <Input placeholder="规则描述" />
         </Form.Item>
         <Form.Item label="执行应用" name="serviceName">
@@ -190,31 +180,43 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
                 </a>
                 语言，查看
                 <Tooltip
-                  title={`.msg, err = parse_regex(.content, r' \[(?P<level>.*?)\] \[(?P<thread>.*?)\] \[(?P<method>.*?)\(.*?\)\] - (?P<msg>.*)')
+                  title={
+                    <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {`.msg, err = parse_regex(.content, r' \\[(?P<level>.*?)\\] \\[(?P<thread>.*?)\\] \\[(?P<method>.*?)\\(.*?\\)\\] - (?P<msg>.*)')
 if err == null {
-	.content = encode_json(.msg)
+    .content = encode_json(.msg)
 }
 del(.msg)`}
+                    </div>
+                  }
                 >
                   <span className="px-1 underline cursor-pointer">JAVA</span>
                 </Tooltip>
                 、
                 <Tooltip
-                  title={`.msg, err = parse_regex(.content, r' \[(?P<level>.*?)\] \[(?P<thread>.*?)\] \[(?P<method>.*?)\(.*?\)\] - (?P<msg>.*)')
+                  title={
+                    <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {`.msg, err = parse_regex(.content, r' \\[(?P<level>.*?)\\] \\[(?P<thread>.*?)\\] \\[(?P<method>.*?)\\(.*?\\)\\] - (?P<msg>.*)')
 if err == null {
-	.content = encode_json(.msg)
+    .content = encode_json(.msg)
 }
 del(.msg)`}
+                    </div>
+                  }
                 >
                   <span className="px-1 underline cursor-pointer">Go</span>
                 </Tooltip>
                 、
                 <Tooltip
-                  title={`.msg, err = parse_regex(.content, r' \[(?P<level>.*?)\] \[(?P<thread>.*?)\] \[(?P<method>.*?)\(.*?\)\] - (?P<msg>.*)')
+                  title={
+                    <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {`.msg, err = parse_regex(.content, r' \\[(?P<level>.*?)\\] \\[(?P<thread>.*?)\\] \\[(?P<method>.*?)\\(.*?\\)\\] - (?P<msg>.*)')
 if err == null {
-	.content = encode_json(.msg)
+    .content = encode_json(.msg)
 }
 del(.msg)`}
+                    </div>
+                  }
                 >
                   <span className="px-1 underline cursor-pointer">Nginx</span>
                 </Tooltip>

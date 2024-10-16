@@ -32,7 +32,7 @@ export const getLogIndexApi = (params) => {
 
 //获取日志表信息
 export const getLogTableInfoAPi = (params) => {
-  return post(`/api/log/table`, params)
+  return get(`/api/log/table`, params)
 }
 
 // ————全量日志->日志规则
@@ -52,7 +52,7 @@ export const deleteLogRuleApi = (params) => {
 //——————全量日志->接入外部表
 // 获取所有外部表
 export const getLogOtherTableListApi = (params) => {
-  return post(`/api/log/other`, params)
+  return get(`/api/log/other`, params)
 }
 //获取外部日志表信息
 export const getLogOtherTableInfoApi = (params) => {

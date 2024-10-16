@@ -104,7 +104,7 @@ const LogRuleList = () => {
   return (
     <Card
       className="overflow-y-auto h-1/2 w-full overflow-x-hidden"
-      title="日志规则列表"
+      title="日志解析规则"
       classNames={{
         body: 'p-0 pr-2',
       }}

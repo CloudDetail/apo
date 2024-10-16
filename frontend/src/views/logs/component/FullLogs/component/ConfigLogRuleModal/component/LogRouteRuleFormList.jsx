@@ -57,14 +57,16 @@ export default function LogRouteRuleFormList() {
                       name={[field.name, 'key']}
                       required
                       rules={[
-                        { required: true, message: '请选择匹配规则Key' },
                         {
                           validator: async (_, value) => {
                             // 获取当前表单中所有的routeRule项
                             const routeRule = form.getFieldValue('routeRule') || []
                             // 检查是否有重复的key
+                            if (!value) {
+                              return Promise.reject('匹配规则key不可为空')
+                            }
                             const duplicate = routeRule.filter(
-                              (item, i) => item.key.key === value.key && i !== index,
+                              (item, i) => item?.key?.key === value.key && i !== index,
                             )
                             if (duplicate.length) {
                               return Promise.reject('已存在相同的Key')

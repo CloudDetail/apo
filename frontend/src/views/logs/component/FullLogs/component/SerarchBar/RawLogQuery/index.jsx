@@ -7,6 +7,7 @@ import { IoSearch } from 'react-icons/io5'
 import { useLogsContext } from 'src/contexts/LogsContext'
 import { ISOToTimestamp } from 'src/utils/time'
 import { useSearchParams } from 'react-router-dom'
+import FullTextSearch from './FullTextSearch'
 const RawLogQuery = () => {
   const { query, updateQuery, fetchData } = useLogsContext()
   // 分析字段的代码提示
@@ -32,6 +33,7 @@ const RawLogQuery = () => {
   return (
     <>
       <div className="searchBarMain">
+        <FullTextSearch />
         <div className="inputBox" style={{ overflowX: isMultipleLines ? 'visible' : 'hidden' }}>
           <CodeMirrorSearch
             title="logInput"
