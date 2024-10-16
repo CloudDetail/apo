@@ -58,9 +58,10 @@ const ConfigTableModal = ({ modalVisible, closeModal }) => {
         title: '接入日志表配置成功',
         color: 'success',
       })
+
+      getLogTableInfo()
+      closeModal()
     })
-    getLogTableInfo()
-    closeModal()
   }
   function saveLogRule() {
     form

@@ -1,7 +1,12 @@
 import { Form, Input, Modal, Select, Tooltip } from 'antd'
 import React, { useEffect, useState } from 'react'
 import LogRouteRuleFormList from './component/LogRouteRuleFormList'
-import { addLogRuleApi, getLogRuleApi, updateLogRuleApi } from 'src/api/logs'
+import {
+  addLogRuleApi,
+  getLogRuleApi,
+  getLogRuleServiceRouteRuleApi,
+  updateLogRuleApi,
+} from 'src/api/logs'
 import { showToast } from 'src/utils/toast'
 import { useLogsContext } from 'src/contexts/LogsContext'
 import { getServiceListApi } from 'src/api/service'
@@ -70,9 +75,10 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         title: '日志解析规则配置成功',
         color: 'success',
       })
+
+      getLogTableInfo()
+      closeModal()
     })
-    getLogTableInfo()
-    closeModal()
   }
   function updateLogRule(logRuleParams) {
     updateLogRuleApi({
@@ -84,7 +90,6 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         title: '日志解析规则配置成功',
         color: 'success',
       })
-
       closeModal()
       getLogTableInfo()
     })
@@ -120,6 +125,26 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         }
       })
       .catch((error) => console.log(error))
+  }
+  const getServiceRouteRule = (serviceName) => {
+    getLogRuleServiceRouteRuleApi({
+      serviceName: serviceName,
+    }).then((res) => {
+      let result = form.getFieldValue('routeRule') || []
+
+      Object.entries(res?.routeRule)?.forEach(([key, value]) => {
+        result.push({
+          key: {
+            key: key,
+            value: key,
+            label: key,
+          },
+          value: value,
+        })
+      })
+      result = result.filter((item) => item.key && item.value)
+      form.setFieldValue('routeRule', result)
+    })
   }
   return (
     <Modal
@@ -165,7 +190,11 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
           <Input placeholder="规则描述" />
         </Form.Item>
         <Form.Item label="执行应用" name="serviceName">
-          <Select options={serviceList} placeholder="请选择执行规则的应用"></Select>
+          <Select
+            options={serviceList}
+            placeholder="请选择执行规则的应用"
+            onChange={(value) => getServiceRouteRule(value)}
+          ></Select>
         </Form.Item>
         <LogRouteRuleFormList />
 

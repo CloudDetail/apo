@@ -48,6 +48,10 @@ export const updateLogRuleApi = (params) => {
 export const deleteLogRuleApi = (params) => {
   return post(`/api/log/rule/delete`, params)
 }
+//获取指定service的route map
+export const getLogRuleServiceRouteRuleApi = (params) => {
+  return get(`/api/log/rule/service`, params)
+}
 
 //——————全量日志->接入外部表
 // 获取所有外部表
