@@ -79,12 +79,12 @@ func setApiRouter(r *resource) {
 		logApi.GET("/rule/get", logHandler.GetLogParseRule())
 		logApi.POST("/rule/update", logHandler.UpdateLogParseRule())
 		logApi.POST("/rule/add", logHandler.AddLogParseRule())
-		logApi.POST("/rule/delete", logHandler.DeleteLogParseRule())
+		logApi.DELETE("/rule/delete", logHandler.DeleteLogParseRule())
 
 		logApi.GET("/other", logHandler.OtherTable())
-		logApi.POST("/other/table", logHandler.OtherTableInfo())
+		logApi.GET("/other/table", logHandler.OtherTableInfo())
 		logApi.POST("/other/add", logHandler.AddOtherTable())
-		logApi.POST("/other/delete", logHandler.DeleteOtherTable())
+		logApi.DELETE("/other/delete", logHandler.DeleteOtherTable())
 	}
 
 	traceApi := r.mux.Group("/api/trace")

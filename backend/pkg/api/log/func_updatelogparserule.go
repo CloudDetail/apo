@@ -34,7 +34,7 @@ func (h *handler) UpdateLogParseRule() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.UpdateLogParseRuleError,
-				code.Text(code.UpdateLogParseRuleError)).WithError(err),
+				code.Text(code.UpdateLogParseRuleError)+": "+err.Error()).WithError(err),
 			)
 			return
 		}
