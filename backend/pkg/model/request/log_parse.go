@@ -18,7 +18,6 @@ type AddLogParseRequest struct {
 	ParseInfo string            `json:"parseInfo"`
 	RouteRule map[string]string `json:"routeRule"`
 	ParseRule string            `json:"parseRule"`
-	TableName string            `json:"tableName"`
 	LogTable  LogTable          `json:"logTable"`
 }
 

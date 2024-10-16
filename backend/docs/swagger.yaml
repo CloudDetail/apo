@@ -614,8 +614,6 @@ definitions:
         additionalProperties:
           type: string
         type: object
-      tableName:
-        type: string
     type: object
   request.AddOtherTableRequest:
     properties:

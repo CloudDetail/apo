@@ -4378,9 +4378,6 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
-                },
-                "tableName": {
-                    "type": "string"
                 }
             }
         },

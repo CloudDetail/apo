@@ -22,7 +22,7 @@ func getRouteRule(routeMap map[string]string) string {
 func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.LogParseResponse, error) {
 	// 先去建表
 	logReq := &request.LogTableRequest{
-		TableName: req.TableName,
+		TableName: req.ParseName,
 	}
 	logReq.TTL = req.LogTable.TTL
 	logReq.Fields = req.LogTable.Fields
@@ -45,8 +45,8 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 		return nil, err
 	}
 	p := vector.ParseInfo{
-		ParseName: req.TableName,
-		TableName: req.TableName,
+		ParseName: req.ParseName,
+		TableName: req.ParseName,
 		ParseRule: req.ParseRule,
 		RouteRule: getRouteRule(req.RouteRule),
 	}
@@ -75,7 +75,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 		ParseName: req.ParseName,
 		ParseRule: req.ParseRule,
 		RouteRule: getRouteRule(req.RouteRule),
-		Table:     req.TableName,
+		Table:     req.ParseName,
 		DataBase:  logReq.DataBase,
 		Cluster:   logReq.Cluster,
 		Fields:    string(fieldsJSON),

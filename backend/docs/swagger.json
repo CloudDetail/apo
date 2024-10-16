@@ -4370,9 +4370,6 @@
                     "additionalProperties": {
                         "type": "string"
                     }
-                },
-                "tableName": {
-                    "type": "string"
                 }
             }
         },
