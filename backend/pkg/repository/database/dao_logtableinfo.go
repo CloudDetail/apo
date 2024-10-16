@@ -48,5 +48,11 @@ func (repo *daoRepo) GetAllLogTable() ([]LogTableInfo, error) {
 }
 
 func (repo *daoRepo) UpdateLogPaseRule(model *LogTableInfo) error {
-	return repo.db.Model(&LogTableInfo{}).Where("database=? AND tablename=?", model.DataBase, model.Table).Updates(LogTableInfo{ParseInfo: model.ParseInfo, ParseRule: model.ParseRule, RouteRule: model.RouteRule}).Error
+	return repo.db.Model(&LogTableInfo{}).Where("database=? AND tablename=?", model.DataBase, model.Table).Updates(LogTableInfo{
+		ParseInfo: model.ParseInfo,
+		ParseRule: model.ParseRule,
+		RouteRule: model.RouteRule,
+		Service:   model.Service,
+		Fields:    model.Fields,
+	}).Error
 }

@@ -105,6 +105,9 @@ func (s *service) UpdateLogTable(req *request.LogTableRequest) (*response.LogTab
 			newFields = append(newFields, field)
 		}
 	}
+	if len(newFields) == 0 {
+		return res, nil
+	}
 	sqls, err := s.chRepo.UpdateLogTable(req, newFields, fields)
 	res.Sqls = sqls
 	if err != nil {

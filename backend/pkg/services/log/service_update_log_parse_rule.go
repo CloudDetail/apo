@@ -1,6 +1,9 @@
 package log
 
 import (
+	"encoding/json"
+	"strings"
+
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -64,10 +67,17 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 
 	// 调整整个表结构
 
+	fieldsJSON, err := json.Marshal(logReq.Fields)
+	if err != nil {
+		return nil, err
+	}
+
 	log := database.LogTableInfo{
+		Service:   strings.Join(req.Service, ","),
 		ParseRule: req.ParseRule,
 		ParseInfo: req.ParseInfo,
 		RouteRule: getRouteRule(req.RouteRule),
+		Fields:    string(fieldsJSON),
 		Table:     req.TableName,
 		DataBase:  req.DataBase,
 	}
