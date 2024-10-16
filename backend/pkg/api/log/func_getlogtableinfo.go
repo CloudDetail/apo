@@ -17,11 +17,11 @@ import (
 // @Param Request body request.LogTableInfoRequest true "请求信息"
 // @Success 200 {object} response.LogTableInfoResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/log/table [post]
+// @Router /api/log/table [get]
 func (h *handler) GetLogTableInfo() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.LogTableInfoRequest)
-		if err := c.ShouldBindJSON(req); err != nil {
+		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -34,7 +34,7 @@ func (h *handler) GetLogTableInfo() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetLogTableInfoError,
-				code.Text(code.GetLogTableInfoError)).WithError(err),
+				code.Text(code.GetLogTableInfoError)+err.Error()).WithError(err),
 			)
 			return
 		}

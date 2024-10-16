@@ -17,11 +17,11 @@ import (
 // @Param Request body request.OtherTableRequest true "请求信息"
 // @Success 200 {object} response.OtherTableResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/log/other [post]
+// @Router /api/log/other [get]
 func (h *handler) OtherTable() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.OtherTableRequest)
-		if err := c.ShouldBindJSON(req); err != nil {
+		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,

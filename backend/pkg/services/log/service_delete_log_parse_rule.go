@@ -34,8 +34,7 @@ func (s *service) DeleteLogParseRule(req *request.DeleteLogParseRequest) (*respo
 	}
 	newData, err := p.DeleteParseRule(vectorCfg)
 	if err != nil {
-		res.Err = err.Error()
-		return res, nil
+		return nil, err
 	}
 	err = s.k8sApi.UpdateVectorConfigFile(newData)
 	if err != nil {

@@ -2,7 +2,6 @@ package response
 
 type OtherTableResponse struct {
 	OtherTables []OtherDB `json:"otherTables"`
-	Err         string    `json:"error"`
 }
 
 type OtherDB struct {

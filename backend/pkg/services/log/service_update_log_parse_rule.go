@@ -31,8 +31,7 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 	}
 	newData, err := p.UpdateParseRule(vectorCfg)
 	if err != nil {
-		res.Err = err.Error()
-		return res, nil
+		return nil, err
 	}
 	err = s.k8sApi.UpdateVectorConfigFile(newData)
 	if err != nil {
@@ -41,6 +40,7 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 	// 更新sqlite表信息
 	log := database.LogTableInfo{
 		ParseRule: req.ParseRule,
+		ParseInfo: req.ParseInfo,
 		RouteRule: getRouteRule(req.RouteRule, ""),
 		Table:     req.TableName,
 		DataBase:  req.DataBase,

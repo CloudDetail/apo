@@ -3,7 +3,6 @@ package response
 type LogTableInfoResponse struct {
 	Parses    []Parse    `json:"parses"`
 	Instances []Instance `json:"instances"`
-	Err       string     `json:"error"`
 }
 
 type Parse struct {

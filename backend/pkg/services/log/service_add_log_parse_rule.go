@@ -76,8 +76,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 	}
 	newData, err := p.AddParseRule(vectorCfg)
 	if err != nil {
-		res.Err = err.Error()
-		return res, nil
+		return nil, err
 	}
 	err = s.k8sApi.UpdateVectorConfigFile(newData)
 	if err != nil {
@@ -89,8 +88,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 	}
 	fieldsJSON, err := json.Marshal(logReq.Fields)
 	if err != nil {
-		res.Err = err.Error()
-		return res, nil
+		return nil, err
 	}
 
 	// 更新sqlite表信息

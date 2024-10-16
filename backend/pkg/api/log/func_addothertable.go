@@ -35,7 +35,7 @@ func (h *handler) AddOtherTable() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.AddOtherLogTableError,
-				code.Text(code.AddOtherLogTableError)).WithError(err),
+				code.Text(code.AddOtherLogTableError)+err.Error()).WithError(err),
 			)
 			return
 		}

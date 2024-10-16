@@ -8,6 +8,7 @@ type QueryLogParseRequest struct {
 type UpdateLogParseRequest struct {
 	DataBase  string            `json:"dataBase"`
 	TableName string            `json:"tableName"`
+	ParseInfo string            `json:"parseInfo"`
 	ParseName string            `json:"parseName"`
 	RouteRule map[string]string `json:"routeRule"`
 	ParseRule string            `json:"parseRule"`

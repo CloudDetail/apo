@@ -9,8 +9,7 @@ func (s *service) OtherTable(req *request.OtherTableRequest) (*response.OtherTab
 	res := &response.OtherTableResponse{}
 	rows, err := s.chRepo.OtherLogTable()
 	if err != nil {
-		res.Err = err.Error()
-		return res, nil
+		return nil, err
 	}
 	resMap := make(map[string][]string)
 	for _, row := range rows {

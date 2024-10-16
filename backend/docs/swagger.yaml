@@ -1142,6 +1142,8 @@ definitions:
     properties:
       dataBase:
         type: string
+      parseInfo:
+        type: string
       parseName:
         type: string
       parseRule:
@@ -1795,8 +1797,6 @@ definitions:
     type: object
   response.LogParseResponse:
     properties:
-      error:
-        type: string
       parseName:
         type: string
       parseRule:
@@ -1844,8 +1844,6 @@ definitions:
     type: object
   response.LogTableInfoResponse:
     properties:
-      error:
-        type: string
       instances:
         items:
           $ref: '#/definitions/response.Instance'
@@ -1896,8 +1894,6 @@ definitions:
     type: object
   response.OtherTableResponse:
     properties:
-      error:
-        type: string
       otherTables:
         items:
           $ref: '#/definitions/response.OtherDB'
@@ -2603,7 +2599,7 @@ paths:
       tags:
       - API.log
   /api/log/other:
-    post:
+    get:
       consumes:
       - application/json
       description: 获取外部日志表
@@ -2837,7 +2833,7 @@ paths:
       tags:
       - API.log
   /api/log/table:
-    post:
+    get:
       consumes:
       - application/json
       description: 获取日志表信息

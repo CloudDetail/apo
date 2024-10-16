@@ -72,14 +72,14 @@ func setApiRouter(r *resource) {
 		logApi.POST("/chart", logHandler.GetLogChart())
 		logApi.POST("/index", logHandler.GetLogIndex())
 
-		logApi.POST("/table", logHandler.GetLogTableInfo())
+		logApi.GET("/table", logHandler.GetLogTableInfo())
 
 		logApi.GET("/rule/get", logHandler.GetLogParseRule())
 		logApi.POST("/rule/update", logHandler.UpdateLogParseRule())
 		logApi.POST("/rule/add", logHandler.AddLogParseRule())
 		logApi.POST("/rule/delete", logHandler.DeleteLogParseRule())
 
-		logApi.POST("/other", logHandler.OtherTable())
+		logApi.GET("/other", logHandler.OtherTable())
 		logApi.POST("/other/table", logHandler.OtherTableInfo())
 		logApi.POST("/other/add", logHandler.AddOtherTable())
 		logApi.POST("/other/delete", logHandler.DeleteOtherTable())

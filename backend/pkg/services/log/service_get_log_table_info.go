@@ -9,8 +9,7 @@ func (s *service) GetLogTableInfo(req *request.LogTableInfoRequest) (*response.L
 	rows, err := s.dbRepo.GetAllLogTable()
 	res := &response.LogTableInfoResponse{}
 	if err != nil {
-		res.Err = err.Error()
-		return res, nil
+		return nil, err
 	}
 	parses := make([]response.Parse, 0)
 	for _, row := range rows {
@@ -27,8 +26,7 @@ func (s *service) GetLogTableInfo(req *request.LogTableInfoRequest) (*response.L
 
 	others, err := s.dbRepo.GetAllOtherLogTable()
 	if err != nil {
-		res.Err = err.Error()
-		return res, nil
+		return nil, err
 	}
 	instances := make([]response.Instance, 0)
 	instanceMap := make(map[string]map[string][]response.LogTableInfo)
@@ -47,17 +45,17 @@ func (s *service) GetLogTableInfo(req *request.LogTableInfoRequest) (*response.L
 		instanceMap[other.Instance] = instance
 	}
 	for instance, DataBases := range instanceMap {
+		databases := make([]response.DBInfo, 0)
 		for dataBase, tables := range DataBases {
-			instances = append(instances, response.Instance{
-				InstanceName: instance,
-				DataBases: []response.DBInfo{
-					{
-						DataBase: dataBase,
-						Tables:   tables,
-					},
-				},
+			databases = append(databases, response.DBInfo{
+				DataBase: dataBase,
+				Tables:   tables,
 			})
 		}
+		instances = append(instances, response.Instance{
+			InstanceName: instance,
+			DataBases:    databases,
+		})
 	}
 
 	res.Parses = parses

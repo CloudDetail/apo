@@ -813,7 +813,7 @@ const docTemplate = `{
             }
         },
         "/api/log/other": {
-            "post": {
+            "get": {
                 "description": "获取外部日志表",
                 "consumes": [
                     "application/json"
@@ -1173,7 +1173,7 @@ const docTemplate = `{
             }
         },
         "/api/log/table": {
-            "post": {
+            "get": {
                 "description": "获取日志表信息",
                 "consumes": [
                     "application/json"
@@ -5147,6 +5147,9 @@ const docTemplate = `{
                 "dataBase": {
                     "type": "string"
                 },
+                "parseInfo": {
+                    "type": "string"
+                },
                 "parseName": {
                     "type": "string"
                 },
@@ -6123,9 +6126,6 @@ const docTemplate = `{
         "response.LogParseResponse": {
             "type": "object",
             "properties": {
-                "error": {
-                    "type": "string"
-                },
                 "parseName": {
                     "type": "string"
                 },
@@ -6198,9 +6198,6 @@ const docTemplate = `{
         "response.LogTableInfoResponse": {
             "type": "object",
             "properties": {
-                "error": {
-                    "type": "string"
-                },
                 "instances": {
                     "type": "array",
                     "items": {
@@ -6279,9 +6276,6 @@ const docTemplate = `{
         "response.OtherTableResponse": {
             "type": "object",
             "properties": {
-                "error": {
-                    "type": "string"
-                },
                 "otherTables": {
                     "type": "array",
                     "items": {

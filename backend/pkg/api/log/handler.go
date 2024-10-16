@@ -44,7 +44,7 @@ type Handler interface {
 
 	// GetLogTableInfo 获取日志表信息
 	// @Tags API.log
-	// @Router /api/log/table [post]
+	// @Router /api/log/table get
 	GetLogTableInfo() core.HandlerFunc
 
 	// GetLogParseRule 获取日志表解析规则
@@ -69,7 +69,7 @@ type Handler interface {
 
 	// OtherTable 获取外部日志表
 	// @Tags API.log
-	// @Router /api/log/other [post]
+	// @Router /api/log/other get
 	OtherTable() core.HandlerFunc
 
 	// OtherTableInfo 获取外部日志表信息

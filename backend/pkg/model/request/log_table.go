@@ -61,7 +61,7 @@ func (q *LogTableRequest) FillerValue() {
 		q.Buffer.MinTime = 10
 	}
 	if q.Buffer.MaxTime == 0 {
-		q.Buffer.MaxTime = 100
+		q.Buffer.MaxTime = 10
 	}
 	if q.Buffer.MinRows == 0 {
 		q.Buffer.MinRows = 1000000

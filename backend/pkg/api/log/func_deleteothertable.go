@@ -34,7 +34,7 @@ func (h *handler) DeleteOtherTable() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.DeleteOtherLogTableError,
-				code.Text(code.DeleteOtherLogTableError)).WithError(err),
+				code.Text(code.DeleteOtherLogTableError)+err.Error()).WithError(err),
 			)
 			return
 		}
