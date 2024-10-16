@@ -105,7 +105,7 @@ const (
 
 	GetMonitorStatusError = "B0801"
 
-	GetAnomalySpanError = "B0801"
+	GetAnomalySpanError = "B0802"
 )
 
 func Text(code string) string {
