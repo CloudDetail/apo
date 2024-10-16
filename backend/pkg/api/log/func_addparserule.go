@@ -34,7 +34,7 @@ func (h *handler) AddLogParseRule() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.AddLogParseRuleError,
-				code.Text(code.AddLogParseRuleError)).WithError(err),
+				code.Text(code.AddLogParseRuleError)+err.Error()).WithError(err),
 			)
 			return
 		}

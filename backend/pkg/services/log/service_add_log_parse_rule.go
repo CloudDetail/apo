@@ -16,10 +16,10 @@ import (
 func getRouteRule(routeMap map[string]string, service string) string {
 	var res []string
 	for k, v := range routeMap {
-		res = append(res, fmt.Sprintf(`starts_with(string!(."%s"), %s)`, k, v))
+		res = append(res, fmt.Sprintf(`starts_with(string!(."%s"), "%s")`, k, v))
 	}
 	if service != "" {
-		res = append(res, fmt.Sprintf(`starts_with(string!(."k8s.pod.name"), %s)`, service))
+		res = append(res, fmt.Sprintf(`starts_with(string!(."k8s.pod.name"), "%s")`, service))
 	}
 	return strings.Join(res, " && ")
 }
