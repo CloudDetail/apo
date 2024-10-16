@@ -1,4 +1,4 @@
-import { get, post } from 'src/utils/request'
+import { del, get, post } from 'src/utils/request'
 
 // 获取故障现场分页日志
 export const getLogPageListApi = (params) => {
@@ -46,7 +46,7 @@ export const updateLogRuleApi = (params) => {
 }
 //删除
 export const deleteLogRuleApi = (params) => {
-  return post(`/api/log/rule/delete`, params)
+  return del(`/api/log/rule/delete`, params)
 }
 //获取指定service的route map
 export const getLogRuleServiceRouteRuleApi = (params) => {
@@ -66,7 +66,7 @@ export const getLogOtherTableInfoApi = (params) => {
 export const addLogOtherTableApi = (params) => {
   return post(`/api/log/other/add`, params)
 }
-//新增外部日志表信息
+//删除外部日志表信息
 export const deleteLogOtherTableApi = (params) => {
-  return post(`/api/log/other/delete`, params)
+  return del(`/api/log/other/delete`, params)
 }

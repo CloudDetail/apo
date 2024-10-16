@@ -133,16 +133,17 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       let result = form.getFieldValue('routeRule') || []
 
       Object.entries(res?.routeRule)?.forEach(([key, value]) => {
-        result.push({
-          key: {
-            key: key,
-            value: key,
-            label: key,
-          },
-          value: value,
-        })
+        if (result)
+          result.push({
+            key: {
+              key: key,
+              value: key,
+              label: key,
+            },
+            value: value,
+          })
       })
-      result = result.filter((item) => item.key && item.value)
+      result = result.filter((item) => item?.key && item.value)
       form.setFieldValue('routeRule', result)
     })
   }

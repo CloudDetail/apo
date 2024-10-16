@@ -1,14 +1,6 @@
-import { Form, Input, Modal, Select, TreeSelect } from 'antd'
-import React, { Children, useEffect, useState } from 'react'
-import LogRouteRuleFormList from './component/LogRouteRuleFormList'
-import {
-  addLogOtherTableApi,
-  addLogRuleApi,
-  getLogOtherTableInfoApi,
-  getLogOtherTableListApi,
-  getLogRuleApi,
-  updateLogRuleApi,
-} from 'src/api/logs'
+import { Form, Modal, Select, TreeSelect } from 'antd'
+import React, { useEffect, useState } from 'react'
+import { addLogOtherTableApi, getLogOtherTableInfoApi, getLogOtherTableListApi } from 'src/api/logs'
 import { showToast } from 'src/utils/toast'
 import { useLogsContext } from 'src/contexts/LogsContext'
 

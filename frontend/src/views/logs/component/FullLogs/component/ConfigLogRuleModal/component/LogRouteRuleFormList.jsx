@@ -50,7 +50,7 @@ export default function LogRouteRuleFormList() {
             }
           >
             {fields.map((field, index) => (
-              <div key={field.key} className=" px-3 pt-3 pb-0 rounded relative">
+              <div key={field.name} className=" px-3 pt-3 pb-0 rounded relative">
                 <Row gutter={12}>
                   <Col span={11} key={index}>
                     <Form.Item
@@ -87,7 +87,9 @@ export default function LogRouteRuleFormList() {
                     <IoIosRemoveCircleOutline
                       size={20}
                       className="mt-1 cursor-pointer"
-                      onClick={() => remove(field.name)}
+                      onClick={() => {
+                        remove(field.name)
+                      }}
                     />
                   </Col>
                 </Row>

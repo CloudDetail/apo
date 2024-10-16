@@ -109,8 +109,9 @@ export const LogsProvider = ({ children }) => {
       throw error // 如果发生错误，可以抛出异常让调用方处理
     }
   }
-
   const getLogTableInfo = () => {
+    // @ts-ignore
+    dispatch({ type: 'updateLoading', payload: true })
     getLogTableInfoAPi().then((res) => {
       // @ts-ignore
       dispatch({ type: 'setLogRules', payload: res.parses ?? [] })
