@@ -209,6 +209,10 @@ definitions:
         type: object
       serviceName:
         type: string
+      spanId:
+        type: string
+      thresholdValuee:
+        type: number
       timestamp:
         type: integer
       traceId:
@@ -791,6 +795,33 @@ definitions:
           type: string
         type: array
     type: object
+  request.GetAnomalySpanRequest:
+    properties:
+      contentKey:
+        type: string
+      currentPage:
+        type: integer
+      endTime:
+        type: integer
+      isError:
+        type: string
+      isSlow:
+        type: string
+      pageSize:
+        type: integer
+      reason:
+        type: string
+      service:
+        type: string
+      startTime:
+        type: integer
+    required:
+    - contentKey
+    - endTime
+    - reason
+    - service
+    - startTime
+    type: object
   request.GetFaultLogContentRequest:
     properties:
       containerId:
@@ -1346,6 +1377,15 @@ definitions:
       alertRules:
         items:
           $ref: '#/definitions/request.AlertRule'
+        type: array
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetAnomalySpanResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/clickhouse.QueryTraceResult'
         type: array
       pagination:
         $ref: '#/definitions/model.Pagination'
@@ -3111,6 +3151,32 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取采样告警事件
+      tags:
+      - API.service
+  /api/service/anomaly-span/list:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取服务和根因类型的故障报告
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetAnomalySpanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAnomalySpanResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取服务和根因类型的故障报告
       tags:
       - API.service
   /api/service/descendant/metrics:

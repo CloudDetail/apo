@@ -59,6 +59,8 @@ type Service interface {
 
 	// GetAlertEventsSample 获取告警事件
 	GetAlertEventsSample(req *request.GetAlertEventsSampleRequest) (*response.GetAlertEventsSampleResponse, error)
+
+	GetAnomalySpan(req *request.GetAnomalySpanRequest) (response.GetAnomalySpanResponse, error)
 }
 
 type service struct {

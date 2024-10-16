@@ -23,6 +23,13 @@ type ByLimitBuilder struct {
 	offset  int
 }
 
+// FuncBuilder 用于构造函数或需要动态拼接的表达式
+// eg:mapContains(xx, yy) map['%s']
+// Expr需要包含完整的函数表达式筛选条件
+type FuncBuilder struct {
+	Expr []string
+}
+
 func NewFieldBuilder() *FieldBuilder {
 	return &FieldBuilder{
 		fields: make([]string, 0),
@@ -43,6 +50,29 @@ func NewByLimitBuilder() *ByLimitBuilder {
 		limit:   0,
 		offset:  0,
 	}
+}
+
+func NewFuncBuilder() *FuncBuilder {
+	return &FuncBuilder{
+		Expr: make([]string, 0),
+	}
+}
+
+func (builder *FuncBuilder) AddFunc(expr string) *FuncBuilder {
+	builder.Expr = append(builder.Expr, expr)
+	return builder
+}
+
+// String 返回表达式，sep用于契合query或field
+func (builder *FuncBuilder) String(sep string) string {
+	query := ""
+	for i := range builder.Expr {
+		if i > 0 {
+			query += fmt.Sprintf(" %s ", sep)
+		}
+		query += builder.Expr[i]
+	}
+	return query
 }
 
 func (builder *FieldBuilder) Alias(key string, alias string) *FieldBuilder {

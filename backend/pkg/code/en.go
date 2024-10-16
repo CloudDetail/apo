@@ -85,4 +85,6 @@ var enText = map[string]string{
 	AlertManagerReceiverEmailFromMissing:    "alertManager receiver email 'from' missing",
 	AlertManagerEmptyReceiver:               "alertManager receiver neither set webhook nor set email config",
 	AlertManagerDefaultReceiverCannotDelete: "alertManager default receiver cannot be deleted",
+
+	GetAnomalySpanError: "get anomaly span failed",
 }

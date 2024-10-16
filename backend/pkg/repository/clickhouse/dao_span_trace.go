@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"log"
 	"strconv"
 	"time"
@@ -203,16 +204,20 @@ type FaultLogResult struct {
 }
 
 type QueryTraceResult struct {
-	Timestamp   int64  `ch:"ts" json:"timestamp"`
-	Duration    uint64 `ch:"duration_us" json:"duration"`
-	ServiceName string `ch:"service_name" json:"serviceName"`
-	TraceId     string `ch:"trace_id" json:"traceId"`
-	EndPoint    string `ch:"endpoint" json:"endpoint"`
-	InstanceId  string `ch:"instance_id" json:"instanceId"`
-	IsError     bool   `ch:"is_error" json:"isError"`
+	Timestamp      int64   `ch:"ts" json:"timestamp"`
+	Duration       uint64  `ch:"duration_us" json:"duration"`
+	ServiceName    string  `ch:"service_name" json:"serviceName"`
+	TraceId        string  `ch:"trace_id" json:"traceId"`
+	EndPoint       string  `ch:"endpoint" json:"endpoint"`
+	InstanceId     string  `ch:"instance_id" json:"instanceId"`
+	SpanId         string  `ch:"span_id" json:"spanId"`
+	IsError        bool    `ch:"is_error" json:"isError"`
+	ThresholdValue float64 `ch:"threshold_value" json:"thresholdValue"`
+	MetricsValue   uint64  `ch:"metrics_value" json:"metricsValue"`
 
-	Labels map[string]string `ch:"labels" json:"labels"`
-	Flags  map[string]bool   `ch:"flags"  json:"flags"`
+	Labels  map[string]string `ch:"labels" json:"labels"`
+	Flags   map[string]bool   `ch:"flags"  json:"flags"`
+	Metrics map[string]uint64 `ch:"metrics" json:"metrics"`
 }
 
 func AppendToBuilder(builder *QueryBuilder, f *request.SpanTraceFilter) error {
@@ -444,4 +449,79 @@ func ValidCheckAndAdjust(f *request.SpanTraceFilter) bool {
 		}
 	}
 	return true
+}
+
+func (ch *chRepo) GetAnomalyTrace(req *request.GetAnomalySpanRequest) ([]QueryTraceResult, int64, error) {
+	// 构造where
+	queryBuilder := NewQueryBuilder().
+		Between("start_time", req.StartTime*1000, req.EndTime*1000).
+		Between("end_time", req.StartTime*1000, req.EndTime*1000).
+		EqualsNotEmpty("labels['service_name']", req.Service).
+		EqualsNotEmpty("labels['content_key']", req.ContentKey)
+	if req.IsError == "true" {
+		queryBuilder = queryBuilder.Equals("flags['is_error']", true)
+	} else if req.IsError == "false" {
+		queryBuilder = queryBuilder.Equals("flags['is_error']", false)
+	}
+	if req.IsSlow == "true" {
+		queryBuilder = queryBuilder.Equals("is_slow", true)
+	} else if req.IsSlow == "false" {
+		queryBuilder = queryBuilder.Equals("is_slow", false)
+	}
+
+	metrics := model.GetPolarisMetrics(req.Reason)
+	queryFuncBuilder := NewFuncBuilder()
+	for i := range metrics {
+		queryFuncBuilder.AddFunc(fmt.Sprintf("mapContains(metrics, '%s')", metrics[i]))
+	}
+	querySql := queryBuilder.String() + " AND " + queryFuncBuilder.String("AND")
+
+	// 构造select
+	fieldBuilder := NewFieldBuilder().Fields("trace_id", "threshold_value", "metrics").
+		Alias("apm_span_id", "span_id").
+		Alias("toUnixTimestamp64Nano(timestamp) / 1000", "ts").
+		Alias("intDiv(duration, 1000)", "duration_us")
+
+	keys := ""
+	for i := range metrics {
+		if i > 0 {
+			keys += ", "
+		}
+		keys += fmt.Sprintf("'%s'", metrics[i])
+	}
+	fieldBuilder = fieldBuilder.Alias(fmt.Sprintf("mapFilter((k, v) -> k IN (%s), metrics)", keys), "metrics")
+	fieldSql := fieldBuilder.String()
+
+	// 构造order by limit offset
+	orderSqlBuilder := NewFuncBuilder()
+	for i := range metrics {
+		orderSqlBuilder.AddFunc(fmt.Sprintf("metrics['%s']", metrics[i]))
+	}
+	orderSql := orderSqlBuilder.String("+")
+	byLimitSql := NewByLimitBuilder().
+		OrderBy(orderSql, false).
+		Offset((req.CurrentPage - 1) * req.PageSize).
+		Limit(req.PageSize).String()
+
+	sql := fmt.Sprintf(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, querySql, byLimitSql)
+
+	var countResults []QueryCount
+	result := []QueryTraceResult{}
+	err := ch.conn.Select(context.Background(), &countResults, fmt.Sprintf(TEMPLATE_COUNT_SPAN_TRACE, querySql), queryBuilder.values...)
+	if err != nil {
+		log.Println("get total count error", err)
+		return nil, 0, err
+	}
+
+	count := int64(countResults[0].Total)
+	if count == 0 {
+		return result, 0, nil
+	}
+	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
+	if err != nil {
+		log.Println("query error", err)
+		return result, 0, err
+	}
+
+	return result, count, nil
 }

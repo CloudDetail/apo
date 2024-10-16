@@ -104,6 +104,8 @@ const (
 	AlertManagerDefaultReceiverCannotDelete = "B0726"
 
 	GetMonitorStatusError = "B0801"
+
+	GetAnomalySpanError = "B0801"
 )
 
 func Text(code string) string {

@@ -50,6 +50,7 @@ type Repo interface {
 
 	CountK8sEvents(startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error)
 
+	GetAnomalyTrace(req *request.GetAnomalySpanRequest) ([]QueryTraceResult, int64, error)
 	// ========== application_logs ==========
 	// 查询故障现场日志内容, sourceFrom 可为空, 将返回可查到的第一个来源中的日志
 	QueryApplicationLogs(req *request.GetFaultLogContentRequest) (logContents *Logs, availableSource []string, err error)

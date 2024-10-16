@@ -41,6 +41,7 @@ func (h *handler) GetMonitorStatus() core.HandlerFunc {
 				http.StatusBadRequest,
 				code.GetMonitorStatusError,
 				code.Text(code.GetMonitorStatusError)))
+			return
 		}
 		c.Payload(resp)
 	}

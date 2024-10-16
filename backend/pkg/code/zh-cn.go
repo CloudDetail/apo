@@ -88,4 +88,6 @@ var zhCnText = map[string]string{
 	AlertManagerReceiverEmailFromMissing:    "告警通知对象 email 'from' 配置缺失",
 	AlertManagerEmptyReceiver:               "告警通知对象没有设置任何 webhook 或 email 配置",
 	AlertManagerDefaultReceiverCannotDelete: "默认告警通知对象不能被删除",
+
+	GetAnomalySpanError: "获取故障报告失败",
 }
