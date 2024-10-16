@@ -4412,7 +4412,10 @@
                     }
                 },
                 "serviceName": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -4771,7 +4774,7 @@
         "request.GetServiceRouteRequest": {
             "type": "object",
             "properties": {
-                "serviceNames": {
+                "serviceName": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -5202,6 +5205,12 @@
                 "routeRule": {
                     "type": "object",
                     "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "serviceName": {
+                    "type": "array",
+                    "items": {
                         "type": "string"
                     }
                 },
@@ -6180,6 +6189,9 @@
         "response.LogParseResponse": {
             "type": "object",
             "properties": {
+                "parseInfo": {
+                    "type": "string"
+                },
                 "parseName": {
                     "type": "string"
                 },
@@ -6193,7 +6205,10 @@
                     }
                 },
                 "serviceName": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

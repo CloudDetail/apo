@@ -615,7 +615,9 @@ definitions:
           type: string
         type: object
       serviceName:
-        type: string
+        items:
+          type: string
+        type: array
     type: object
   request.AddOtherTableRequest:
     properties:
@@ -857,7 +859,7 @@ definitions:
     type: object
   request.GetServiceRouteRequest:
     properties:
-      serviceNames:
+      serviceName:
         items:
           type: string
         type: array
@@ -1159,6 +1161,10 @@ definitions:
         additionalProperties:
           type: string
         type: object
+      serviceName:
+        items:
+          type: string
+        type: array
       tableName:
         type: string
     type: object
@@ -1811,6 +1817,8 @@ definitions:
     type: object
   response.LogParseResponse:
     properties:
+      parseInfo:
+        type: string
       parseName:
         type: string
       parseRule:
@@ -1820,7 +1828,9 @@ definitions:
           type: string
         type: object
       serviceName:
-        type: string
+        items:
+          type: string
+        type: array
     type: object
   response.LogQueryResponse:
     properties:

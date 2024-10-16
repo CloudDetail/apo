@@ -9,6 +9,30 @@ import (
 )
 
 func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*response.LogParseResponse, error) {
+	//更新日志表
+	matchesFields := fieldsRegexp.FindAllStringSubmatch(req.ParseRule, -1)
+
+	fields := make([]request.Field, 0)
+	for _, match := range matchesFields {
+		if match[1] == "msg" {
+			continue
+		}
+		fields = append(fields, request.Field{
+			Name: match[1],
+			Type: "String",
+		})
+	}
+	logReq := &request.LogTableRequest{
+		DataBase:  req.DataBase,
+		TableName: req.TableName,
+		Fields:    fields,
+	}
+	logReq.FillerValue()
+	_, err := s.UpdateLogTable(logReq)
+	if err != nil {
+		return nil, err
+	}
+
 	// 更新k8s configmap
 	res := &response.LogParseResponse{
 		ParseName: req.ParseName,
@@ -37,7 +61,9 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 	if err != nil {
 		return nil, err
 	}
-	// 更新sqlite表信息
+
+	// 调整整个表结构
+
 	log := database.LogTableInfo{
 		ParseRule: req.ParseRule,
 		ParseInfo: req.ParseInfo,

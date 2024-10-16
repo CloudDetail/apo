@@ -3,6 +3,7 @@ package log
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -26,13 +27,28 @@ func getRouteRule(routeMap map[string]string) string {
 	return strings.Join(res, " || ")
 }
 
+var fieldsRegexp = regexp.MustCompile(`\?P<(?P<name>\w+)>`)
+
 func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.LogParseResponse, error) {
 	// 先去建表
 	logReq := &request.LogTableRequest{
 		TableName: req.ParseName,
 	}
+	matchesFields := fieldsRegexp.FindAllStringSubmatch(req.ParseRule, -1)
+
+	fields := make([]request.Field, 0)
+	for _, match := range matchesFields {
+		if match[1] == "msg" {
+			continue
+		}
+		fields = append(fields, request.Field{
+			Name: match[1],
+			Type: "String",
+		})
+	}
+
 	logReq.TTL = req.LogTable.TTL
-	logReq.Fields = req.LogTable.Fields
+	logReq.Fields = fields
 	logReq.Buffer = req.LogTable.Buffer
 	logReq.FillerValue()
 
@@ -84,7 +100,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 		DataBase:  logReq.DataBase,
 		Cluster:   logReq.Cluster,
 		Fields:    string(fieldsJSON),
-		Service:   req.Service,
+		Service:   strings.Join(req.Service, ","),
 	}
 	err = s.dbRepo.OperateLogTableInfo(&log, database.INSERT)
 	if err != nil {

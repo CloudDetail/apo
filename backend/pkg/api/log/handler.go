@@ -22,11 +22,6 @@ type Handler interface {
 	// @Router /api/log/fault/content [post]
 	GetFaultLogContent() core.HandlerFunc
 
-	// UpdateLogTable 更新日志表
-	// @Tags API.log
-	// @Router /api/log/update [post]
-	UpdateLogTable() core.HandlerFunc
-
 	// QueryLog 查询全量日志
 	// @Tags API.log
 	// @Router /api/log/query [post]

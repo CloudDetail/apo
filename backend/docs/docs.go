@@ -4420,7 +4420,10 @@ const docTemplate = `{
                     }
                 },
                 "serviceName": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -4779,7 +4782,7 @@ const docTemplate = `{
         "request.GetServiceRouteRequest": {
             "type": "object",
             "properties": {
-                "serviceNames": {
+                "serviceName": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -5210,6 +5213,12 @@ const docTemplate = `{
                 "routeRule": {
                     "type": "object",
                     "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "serviceName": {
+                    "type": "array",
+                    "items": {
                         "type": "string"
                     }
                 },
@@ -6188,6 +6197,9 @@ const docTemplate = `{
         "response.LogParseResponse": {
             "type": "object",
             "properties": {
+                "parseInfo": {
+                    "type": "string"
+                },
                 "parseName": {
                     "type": "string"
                 },
@@ -6201,7 +6213,10 @@ const docTemplate = `{
                     }
                 },
                 "serviceName": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

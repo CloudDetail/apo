@@ -88,14 +88,12 @@ func (s *service) UpdateLogTable(req *request.LogTableRequest) (*response.LogTab
 	}
 	err := s.dbRepo.OperateLogTableInfo(logtable, database.QUERY)
 	if err != nil {
-		res.Err = err.Error()
-		return res, nil
+		return nil, err
 	}
 	var fields []request.Field
 	err = json.Unmarshal([]byte(logtable.Fields), &fields)
 	if err != nil {
-		res.Err = err.Error()
-		return res, nil
+		return nil, err
 	}
 	fieldsname := map[string]struct{}{}
 	newFields := []request.Field{}
@@ -110,19 +108,16 @@ func (s *service) UpdateLogTable(req *request.LogTableRequest) (*response.LogTab
 	sqls, err := s.chRepo.UpdateLogTable(req, newFields, fields)
 	res.Sqls = sqls
 	if err != nil {
-		res.Err = err.Error()
-		return res, nil
+		return nil, err
 	}
 	fieldsJSON, err := json.Marshal(req.Fields)
 	if err != nil {
-		res.Err = err.Error()
-		return res, nil
+		return nil, err
 	}
 	logtable.Fields = string(fieldsJSON)
 	err = s.dbRepo.OperateLogTableInfo(logtable, database.UPDATE)
 	if err != nil {
-		res.Err = err.Error()
-		return res, nil
+		return nil, err
 	}
 	return res, nil
 }
