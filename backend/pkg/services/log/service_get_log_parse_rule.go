@@ -13,7 +13,7 @@ var routeReg = regexp.MustCompile(`\"(.*?)\"`)
 
 func getRouteRuleMap(routeRule string) map[string]string {
 	res := make(map[string]string)
-	lines := strings.Split(routeRule, "\n")
+	lines := strings.Split(routeRule, "&&")
 	for _, line := range lines {
 		if line == "" {
 			continue
