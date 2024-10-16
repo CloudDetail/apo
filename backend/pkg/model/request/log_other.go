@@ -6,8 +6,8 @@ type OtherTableRequest struct {
 }
 
 type OtherTableInfoRequest struct {
-	DataBase  string `json:"dataBase"`
-	TableName string `json:"tableName"`
+	DataBase  string `form:"dataBase" json:"dataBase"`
+	TableName string `form:"tableName" json:"tableName"`
 }
 
 type AddOtherTableRequest struct {

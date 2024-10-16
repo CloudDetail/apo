@@ -69,7 +69,7 @@ type Handler interface {
 
 	// DeleteLogParseRule 删除日志表解析规则
 	// @Tags API.log
-	// @Router /api/log/rule/delete [post]
+	// @Router /api/log/rule/delete [delete]
 	DeleteLogParseRule() core.HandlerFunc
 
 	// OtherTable 获取外部日志表
@@ -79,7 +79,7 @@ type Handler interface {
 
 	// OtherTableInfo 获取外部日志表信息
 	// @Tags API.log
-	// @Router /api/log/other/table [post]
+	// @Router /api/log/other/table [get]
 	OtherTableInfo() core.HandlerFunc
 
 	// AddOtherTable 添加外部日志表
@@ -89,7 +89,7 @@ type Handler interface {
 
 	// DeleteOtherTable 移除外部日志表
 	// @Tags API.log
-	// @Router /api/log/other/delete [post]
+	// @Router /api/log/other/delete [delete]
 	DeleteOtherTable() core.HandlerFunc
 }
 

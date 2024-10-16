@@ -12,16 +12,16 @@ import (
 // @Summary 获取外部日志表信息
 // @Description 获取外部日志表信息
 // @Tags API.log
-// @Accept json
+// @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Request body request.OtherTableInfoRequest true "请求信息"
 // @Success 200 {object} response.OtherTableInfoResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/log/other/table [post]
+// @Router /api/log/other/table [get]
 func (h *handler) OtherTableInfo() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.OtherTableInfoRequest)
-		if err := c.ShouldBindJSON(req); err != nil {
+		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,

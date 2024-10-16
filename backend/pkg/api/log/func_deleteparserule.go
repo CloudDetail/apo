@@ -17,7 +17,7 @@ import (
 // @Param Request body request.DeleteLogParseRequest true "请求信息"
 // @Success 200 {object} response.LogParseResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/log/rule/delete [post]
+// @Router /api/log/rule/delete [delete]
 func (h *handler) DeleteLogParseRule() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.DeleteLogParseRequest)

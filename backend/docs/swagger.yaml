@@ -2663,7 +2663,7 @@ paths:
       tags:
       - API.log
   /api/log/other/delete:
-    post:
+    delete:
       consumes:
       - application/json
       description: 移除外部日志表
@@ -2689,9 +2689,9 @@ paths:
       tags:
       - API.log
   /api/log/other/table:
-    post:
+    get:
       consumes:
-      - application/json
+      - application/x-www-form-urlencoded
       description: 获取外部日志表信息
       parameters:
       - description: 请求信息
@@ -2767,7 +2767,7 @@ paths:
       tags:
       - API.log
   /api/log/rule/delete:
-    post:
+    delete:
       consumes:
       - application/json
       description: 删除日志表解析规则

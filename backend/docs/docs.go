@@ -893,7 +893,7 @@ const docTemplate = `{
             }
         },
         "/api/log/other/delete": {
-            "post": {
+            "delete": {
                 "description": "移除外部日志表",
                 "consumes": [
                     "application/json"
@@ -933,10 +933,10 @@ const docTemplate = `{
             }
         },
         "/api/log/other/table": {
-            "post": {
+            "get": {
                 "description": "获取外部日志表信息",
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "application/json"
@@ -1053,7 +1053,7 @@ const docTemplate = `{
             }
         },
         "/api/log/rule/delete": {
-            "post": {
+            "delete": {
                 "description": "删除日志表解析规则",
                 "consumes": [
                     "application/json"

@@ -17,7 +17,7 @@ import (
 // @Param Request body request.DeleteOtherTableRequest true "请求信息"
 // @Success 200 {object} response.DeleteOtherTableResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/log/other/delete [post]
+// @Router /api/log/other/delete [delete]
 func (h *handler) DeleteOtherTable() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.DeleteOtherTableRequest)
