@@ -24,7 +24,7 @@ type AddLogParseRequest struct {
 }
 
 type GetServiceRouteRequest struct {
-	Service string `form:"serviceName"`
+	Service []string `form:"serviceNames"`
 }
 
 type LogTable struct {

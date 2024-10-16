@@ -4779,8 +4779,11 @@ const docTemplate = `{
         "request.GetServiceRouteRequest": {
             "type": "object",
             "properties": {
-                "serviceName": {
-                    "type": "string"
+                "serviceNames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

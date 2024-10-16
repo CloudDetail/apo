@@ -857,8 +857,10 @@ definitions:
     type: object
   request.GetServiceRouteRequest:
     properties:
-      serviceName:
-        type: string
+      serviceNames:
+        items:
+          type: string
+        type: array
     type: object
   request.GetTraceFilterValueRequest:
     properties:

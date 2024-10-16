@@ -9,26 +9,27 @@ import (
 )
 
 func (s *service) GetServiceRoute(req *request.GetServiceRouteRequest) (*response.GetServiceRouteResponse, error) {
+	serviceNames := []string{}
 	now := time.Now()
 	currentTimestamp := now.UnixMicro()
 	sevenDaysAgo := now.AddDate(0, 0, -7)
 	sevenDaysAgoTimestamp := sevenDaysAgo.UnixMicro()
-
-	instances, err := s.promRepo.GetActiveInstanceList(sevenDaysAgoTimestamp, currentTimestamp, req.Service)
-	if err != nil {
-		return nil, err
-	}
-	var deployName string
-	for instanceName, _ := range instances.GetInstanceIdMap() {
-		parts := strings.Split(instanceName, "-")
-		if len(parts) >= 3 {
-			deployName = strings.Join(parts[:len(parts)-2], "-")
-			break
+	for _, service := range req.Service {
+		instances, err := s.promRepo.GetActiveInstanceList(sevenDaysAgoTimestamp, currentTimestamp, service)
+		if err != nil {
+			return nil, err
+		}
+		for instanceName, _ := range instances.GetInstanceIdMap() {
+			parts := strings.Split(instanceName, "-")
+			if len(parts) >= 3 {
+				serviceNames = append(serviceNames, strings.Join(parts[:len(parts)-2], "-"))
+				break
+			}
 		}
 	}
 
 	return &response.GetServiceRouteResponse{
-		RouteRule: map[string]string{"k8s.pod.name": deployName},
+		RouteRule: map[string]string{"k8s.pod.name": strings.Join(serviceNames, ",")},
 	}, nil
 
 }

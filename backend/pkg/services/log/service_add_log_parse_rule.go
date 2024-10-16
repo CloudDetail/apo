@@ -15,9 +15,15 @@ import (
 func getRouteRule(routeMap map[string]string) string {
 	var res []string
 	for k, v := range routeMap {
+		if k == "k8s.pod.name" {
+			strValues := strings.Split(v, ",")
+			for _, vv := range strValues {
+				res = append(res, fmt.Sprintf(`starts_with(string!(."%s"), "%s")`, k, vv))
+			}
+		}
 		res = append(res, fmt.Sprintf(`starts_with(string!(."%s"), "%s")`, k, v))
 	}
-	return strings.Join(res, " && ")
+	return strings.Join(res, " || ")
 }
 
 func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.LogParseResponse, error) {

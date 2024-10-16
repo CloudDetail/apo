@@ -12,8 +12,8 @@ import (
 var routeReg = regexp.MustCompile(`\"(.*?)\"`)
 
 func getRouteRuleMap(routeRule string) map[string]string {
-	res := make(map[string]string)
-	lines := strings.Split(routeRule, "&&")
+	res := make(map[string][]string)
+	lines := strings.Split(routeRule, "||")
 	for _, line := range lines {
 		if line == "" {
 			continue
@@ -22,10 +22,14 @@ func getRouteRuleMap(routeRule string) map[string]string {
 		if len(matches) == 2 {
 			key := matches[0][1]
 			value := matches[1][1]
-			res[key] = value
+			res[key] = append(res[key], value)
 		}
 	}
-	return res
+	rc := make(map[string]string)
+	for k, v := range res {
+		rc[k] = strings.Join(v, ",")
+	}
+	return rc
 }
 
 func (s *service) GetLogParseRule(req *request.QueryLogParseRequest) (*response.LogParseResponse, error) {
