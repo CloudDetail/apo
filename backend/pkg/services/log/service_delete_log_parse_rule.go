@@ -9,9 +9,9 @@ import (
 )
 
 func (s *service) DeleteLogParseRule(req *request.DeleteLogParseRequest) (*response.LogParseResponse, error) {
-	// 先去建表
 	logReq := &request.LogTableRequest{
-		TableName: req.ParseName,
+		TableName: req.TableName,
+		DataBase:  req.DataBase,
 	}
 	logReq.FillerValue()
 
@@ -30,7 +30,7 @@ func (s *service) DeleteLogParseRule(req *request.DeleteLogParseRequest) (*respo
 	}
 	p := vector.ParseInfo{
 		ParseName: req.ParseName,
-		TableName: req.ParseName,
+		TableName: req.TableName,
 	}
 	newData, err := p.DeleteParseRule(vectorCfg)
 	if err != nil {
@@ -49,7 +49,7 @@ func (s *service) DeleteLogParseRule(req *request.DeleteLogParseRequest) (*respo
 	// 更新sqlite表信息
 	log := database.LogTableInfo{
 		ParseName: req.ParseName,
-		Table:     req.ParseName,
+		Table:     req.TableName,
 		DataBase:  logReq.DataBase,
 		Cluster:   logReq.Cluster,
 	}
