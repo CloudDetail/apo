@@ -1,6 +1,5 @@
 import { Col, Form, Input, Row, Select } from 'antd'
 import React from 'react'
-import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
 const routeKeyList = [
   { label: '_container_id_', value: '_container_id_' },
@@ -25,7 +24,6 @@ function isValidKey(str) {
   return regex.test(str)
 }
 export default function LogRouteRuleFormList() {
-  const form = Form.useFormInstance()
   return (
     <Form.List name={'routeRule'}>
       {(fields, { add, remove }, { errors }) => (
@@ -34,18 +32,8 @@ export default function LogRouteRuleFormList() {
             required
             label={
               <>
-                {/* <div className="flex flex-row"> */}
-                匹配规则{' '}
-                <IoMdAddCircleOutline
-                  onClick={() => add()}
-                  size={20}
-                  className="mx-2 cursor-pointer"
-                />
-                {/* </div>
-                <div className="flex flex-row"> */}
-                <AiOutlineInfoCircle size={16} className="ml-1" />
-                <span className="text-xs text-gray-400">解析规则只应用于满足匹配规则的日志</span>
-                {/* </div> */}
+                匹配日志规则{' '}
+                <IoMdAddCircleOutline onClick={() => add()} size={20} className="mx-2" />
               </>
             }
           >
@@ -53,38 +41,24 @@ export default function LogRouteRuleFormList() {
               <div key={field.key} className=" px-3 pt-3 pb-0 rounded relative">
                 <Row gutter={12}>
                   <Col span={11} key={index}>
-                    <Form.Item
-                      name={[field.name, 'key']}
-                      required
-                      rules={[
-                        { required: true, message: '请选择匹配规则Key' },
-                        {
-                          validator: async (_, value) => {
-                            // 获取当前表单中所有的routeRule项
-                            const routeRule = form.getFieldValue('routeRule') || []
-                            // 检查是否有重复的key
-                            const duplicate = routeRule.filter(
-                              (item, i) => item.key.key === value.key && i !== index,
-                            )
-                            if (duplicate.length) {
-                              return Promise.reject('已存在相同的Key')
-                            }
-                          },
-                        },
-                      ]}
-                    >
-                      <Select options={routeKeyList} labelInValue placeholder="选择匹配规则Key" />
+                    <Form.Item noStyle name={[field.name, 'key']} required>
+                      <Select
+                        options={routeKeyList}
+                        labelInValue
+                        placeholder="选择匹配规则Key"
+                        // onChange={(value) => changeGroupLabel('group', value?.key)}
+                      />
                     </Form.Item>
                   </Col>
                   <Col span={11} key={index}>
                     <Form.Item noStyle name={[field.name, 'value']} required>
-                      <Input placeholder="匹配规则value，可输入正则" />
+                      <Input placeholder="value" />
                     </Form.Item>
                   </Col>
                   <Col span={1}>
                     <IoIosRemoveCircleOutline
                       size={20}
-                      className="mt-1 cursor-pointer"
+                      className="mt-1"
                       onClick={() => remove(field.name)}
                     />
                   </Col>

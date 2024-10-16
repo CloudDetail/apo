@@ -37,6 +37,9 @@ const AppWrapper = () => {
                   bodyBg: '#1d222b',
                   siderBg: '#1d222b',
                 },
+                Tree: {
+                  nodeSelectedBg: '#33415580',
+                },
               },
             }}
           >

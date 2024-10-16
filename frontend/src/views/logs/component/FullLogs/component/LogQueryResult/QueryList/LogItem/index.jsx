@@ -19,7 +19,7 @@ const LogItem = (props) => {
   return (
     <div className="flex overflow-hidden px-2">
       {/* icon 和 时间 */}
-      <div className="flex-grow-0 flex-shrink-0  w-[360px]">
+      <div className="flex-grow-0 flex-shrink-0  w-[230px]">
         <div className="flex items-center pl-3">
           {tableInfo.timeField && (
             <Button

@@ -31,7 +31,7 @@ const LogRuleList = () => {
       getLogTableInfo()
     })
   }
-  const menuLabel = (nodeData) => {
+  const titleRender = (nodeData) => {
     return (
       <div className="logRuleItem">
         <div className="flex flex-col">
@@ -44,7 +44,8 @@ const LogRuleList = () => {
               color="primary"
               variant="filled"
               icon={<MdModeEdit />}
-              className="pr-1"
+              className="mr-2"
+              size="small"
               onClick={(e) => {
                 e.stopPropagation()
                 editLogRule(nodeData)
@@ -65,6 +66,7 @@ const LogRuleList = () => {
               cancelText="取消"
             >
               <Button
+                size="small"
                 color="danger"
                 variant="filled"
                 icon={<MdDeleteOutline />}
@@ -125,13 +127,16 @@ const LogRuleList = () => {
         onSelect={onSelect}
         // onCheck={onCheck}
         treeData={treeData}
-        titleRender={menuLabel}
+        titleRender={titleRender}
         className="pr-3 h-full"
         blockNode
       />
       <ConfigLogRuleModal
         modalVisible={modalVisible}
-        closeModal={() => setModalVisible(false)}
+        closeModal={() => {
+          setLogRuleInfo(null)
+          setModalVisible(false)
+        }}
         logRuleInfo={logRuleInfo}
       />
     </Card>
