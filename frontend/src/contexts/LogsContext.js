@@ -69,6 +69,7 @@ export const LogsProvider = ({ children }) => {
           defaultFields: [],
           hiddenFields: [],
           logsChartData: [],
+          loading: false,
           pagination: {
             total: 0,
             pageIndex: state.pagination.pageIndex,
