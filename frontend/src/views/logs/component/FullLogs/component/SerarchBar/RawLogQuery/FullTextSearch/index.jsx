@@ -1,9 +1,7 @@
 import { Button, Col, Form, Input, Popover, Row } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { useLogsContext } from 'src/contexts/LogsContext'
 
-const FullTextSearch = () => {
-  const { query, updateQuery } = useLogsContext()
+const FullTextSearch = ({ searchValue, setSearchValue }) => {
   const [form] = Form.useForm()
   const [open, setOpen] = useState(false)
 
@@ -18,12 +16,12 @@ const FullTextSearch = () => {
   const clickSubmit = () => {
     form.validateFields().then(() => {
       const formState = form.getFieldsValue(true)
-      let newQuery = query
+      let newQuery = searchValue
       if (newQuery.length > 0) {
         newQuery += ' AND '
       }
-      newQuery += '`' + formState.key + '` like ' + `'` + formState.value + `'`
-      updateQuery(newQuery)
+      newQuery += '`' + formState.key + '` LIKE ' + `'%` + formState.value + `%'`
+      setSearchValue(newQuery)
       hide()
     })
   }

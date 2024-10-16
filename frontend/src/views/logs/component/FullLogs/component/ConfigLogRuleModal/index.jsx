@@ -99,7 +99,6 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       .validateFields({})
       .then(() => {
         const formState = form.getFieldsValue(true)
-        // console.log(formState)
         const logRuleParams = {
           ...formState,
         }
@@ -133,7 +132,14 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       let result = form.getFieldValue('routeRule') || []
 
       Object.entries(res?.routeRule)?.forEach(([key, value]) => {
-        if (result)
+        // 检查当前 result 中是否已经存在该 key
+        const existingIndex = result.findIndex((item) => item?.key?.key === key)
+
+        if (existingIndex > -1) {
+          // 如果已存在，替换对应的 value
+          result[existingIndex].value = value
+        } else {
+          // 如果不存在，则新增项
           result.push({
             key: {
               key: key,
@@ -142,8 +148,13 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
             },
             value: value,
           })
+        }
       })
+
+      // 过滤掉无效项
       result = result.filter((item) => item?.key && item.value)
+
+      // 更新表单值
       form.setFieldValue('routeRule', result)
     })
   }
@@ -194,6 +205,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
           <Select
             options={serviceList}
             placeholder="请选择执行规则的应用"
+            mode="multiple"
             onChange={(value) => getServiceRouteRule(value)}
           ></Select>
         </Form.Item>
@@ -204,7 +216,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
             <div className="flex items-center">
               解析规则 <AiOutlineInfoCircle size={16} className="ml-1" />
               <span className="text-xs text-gray-400">
-                用于将日志文本解析为独立的字段，加快检索速度。请使用
+                点击规则查询对应服务的日志。请使用
                 <a href="https://playground.vrl.dev/" className="underline" target="_blank">
                   VRL
                 </a>

@@ -8,8 +8,9 @@ import { useLogsContext } from 'src/contexts/LogsContext'
 import { ISOToTimestamp } from 'src/utils/time'
 import { useSearchParams } from 'react-router-dom'
 import FullTextSearch from './FullTextSearch'
+import { LuRefreshCw } from 'react-icons/lu'
 const RawLogQuery = () => {
-  const { query, updateQuery, fetchData } = useLogsContext()
+  const { query, updateQuery, getLogTableInfo } = useLogsContext()
   // 分析字段的代码提示
   const [analysisFieldTips, setAnalysisFieldTips] = useState([])
   // 输入框自动填充历史记录
@@ -30,10 +31,15 @@ const RawLogQuery = () => {
     setSearchValue(query)
   }, [query])
 
+  const clickFullTextSearch = (value) => {
+    setSearchValue(value)
+    updateQuery(value)
+  }
+
   return (
     <>
       <div className="searchBarMain">
-        <FullTextSearch />
+        <FullTextSearch searchValue={searchValue} setSearchValue={clickFullTextSearch} />
         <div className="inputBox" style={{ overflowX: isMultipleLines ? 'visible' : 'hidden' }}>
           <CodeMirrorSearch
             title="logInput"
@@ -57,6 +63,12 @@ const RawLogQuery = () => {
           icon={<IoSearch />}
           onClick={() => updateQuery(queryKeyword)}
         ></Button>
+        {/* <Button
+          type="primary"
+          icon={<LuRefreshCw />}
+          className="ml-2"
+          onClick={() => getLogTableInfo()}
+        ></Button> */}
       </div>
     </>
   )

@@ -60,7 +60,7 @@ export const getLogOtherTableListApi = (params) => {
 }
 //获取外部日志表信息
 export const getLogOtherTableInfoApi = (params) => {
-  return post(`/api/log/other/table`, params)
+  return get(`/api/log/other/table`, params)
 }
 //新增外部日志表信息
 export const addLogOtherTableApi = (params) => {
