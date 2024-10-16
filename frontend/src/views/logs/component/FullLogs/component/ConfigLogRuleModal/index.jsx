@@ -216,7 +216,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
             <div className="flex items-center">
               解析规则 <AiOutlineInfoCircle size={16} className="ml-1" />
               <span className="text-xs text-gray-400">
-                点击规则查询对应服务的日志。请使用
+                请使用
                 <a href="https://playground.vrl.dev/" className="underline" target="_blank">
                   VRL
                 </a>

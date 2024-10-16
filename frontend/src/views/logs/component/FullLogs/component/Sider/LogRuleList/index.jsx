@@ -101,10 +101,19 @@ const LogRuleList = () => {
   useEffect(() => {
     setSelectedKeys([tableInfo.dataBase + tableInfo.tableName])
   }, [tableInfo])
+
   return (
     <Card
       className="overflow-y-auto h-1/2 w-full overflow-x-hidden"
-      title="日志解析规则"
+      title={
+        <>
+          <span>日志解析规则</span>
+          <div className="flex flex-row">
+            {/* <AiOutlineInfoCircle size={16} className="ml-1" /> */}
+            <span className="text-xs text-gray-400">点击规则查询对应服务的日志</span>
+          </div>
+        </>
+      }
       classNames={{
         body: 'p-0 pr-2',
       }}
