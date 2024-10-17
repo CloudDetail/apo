@@ -40,6 +40,7 @@ const RawLogQuery = () => {
           <CodeMirrorSearch
             title="logInput"
             value={searchValue}
+            placeholder="请输入查询语句"
             onPressEnter={() => updateQuery(queryKeyword)}
             onChange={setQueryKeyword}
             tables={analysisFieldTips}

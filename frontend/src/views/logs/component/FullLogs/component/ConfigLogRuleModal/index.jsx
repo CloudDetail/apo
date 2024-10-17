@@ -252,9 +252,9 @@ del(.msg)`}
                 <Tooltip
                   title={
                     <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {`.msg, err = parse_regex(.content, r' \\[(?P<level>.*?)\\] \\[(?P<thread>.*?)\\] \\[(?P<method>.*?)\\(.*?\\)\\] - (?P<msg>.*)')
+                      {`.msg, err = parse_regex!(.content, r'^(?P<ip>\d+\.\d+\.\d+\.\d+) \- (?P<date>\d+\-\d+\-\d+)T(?P<time>\d+:\d+:\d+).+?"(?P<url>.+?)" (?P<status>\d+) (?P<size>\d+) "(?P<agent>.+?)"$')
 if err == null {
-    .content = encode_json(.msg)
+	.content = encode_json(.msg)
 }
 del(.msg)`}
                     </div>

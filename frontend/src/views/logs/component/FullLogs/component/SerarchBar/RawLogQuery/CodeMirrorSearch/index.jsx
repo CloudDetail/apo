@@ -4,7 +4,7 @@ import 'codemirror/theme/material-darker.css' // material-darker 主题
 import 'codemirror/mode/sql/sql' // MySQL 语法高亮
 import 'codemirror/addon/hint/show-hint' // 引入 show-hint 插件
 import 'codemirror/addon/hint/show-hint.css' // 引入 show-hint 样式
-
+import 'codemirror/addon/display/placeholder.js'
 import { UnControlled as CodeMirror } from 'react-codemirror2'
 import './index.less'
 // 白色主题
@@ -417,7 +417,7 @@ const Editors = (props) => {
     indentUnit: 2,
     // 光标高度
     cursorHeight: 1,
-    placeholder: placeholder || '111',
+    placeholder: placeholder || '',
     // tab缩进
     tabSize: 2,
     // 滚动条样式
