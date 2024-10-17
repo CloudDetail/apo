@@ -92,6 +92,7 @@ export const LogsProvider = ({ children }) => {
         column,
         tableName: state.tableInfo?.tableName,
         dataBase: state.tableInfo?.dataBase,
+        timeField: state.tableInfo?.timeField,
         query: state.query,
       })
 
