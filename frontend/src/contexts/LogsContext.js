@@ -100,12 +100,19 @@ export const LogsProvider = ({ children }) => {
         type: 'updateFieldIndexMap',
         payload: {
           // @ts-ignore
-          [column]: res.indexs,
+          [column]: res.indexs ?? [],
         },
       })
 
       return res // 返回响应结果，方便调用方处理
     } catch (error) {
+      dispatch({
+        type: 'updateFieldIndexMap',
+        payload: {
+          // @ts-ignore
+          [column]: [],
+        },
+      })
       console.error('Error fetching field index data:', error)
       throw error // 如果发生错误，可以抛出异常让调用方处理
     }
