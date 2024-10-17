@@ -17,7 +17,7 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 
 	fields := make([]request.Field, 0)
 	for _, match := range matchesFields {
-		if match[1] == "msg" {
+		if match[1] == "msg" || match[1] == "ts" {
 			continue
 		}
 		fields = append(fields, request.Field{

@@ -22,9 +22,9 @@ func getRouteRuleMap(routeRule string) map[string]string {
 		if len(matches) == 2 {
 			key := matches[0][1]
 			value := matches[1][1]
-			if key == "k8s.pod.name" {
-				continue
-			}
+			// if key == "k8s.pod.name" {
+			// 	continue
+			// }
 			res[key] = append(res[key], value)
 		}
 	}
