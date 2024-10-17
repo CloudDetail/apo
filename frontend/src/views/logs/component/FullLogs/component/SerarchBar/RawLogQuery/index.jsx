@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import CodeMirrorSearch from './CodeMirrorSearch'
 import './index.less'
-import DateTimeRangePickerCom from 'src/components/DateTime/DateTimeRangePickerCom'
 import { Button } from 'antd'
 import { IoSearch } from 'react-icons/io5'
 import { useLogsContext } from 'src/contexts/LogsContext'
-import { ISOToTimestamp } from 'src/utils/time'
 import { useSearchParams } from 'react-router-dom'
 import FullTextSearch from './FullTextSearch'
-import { LuRefreshCw } from 'react-icons/lu'
 const RawLogQuery = () => {
   const { query, updateQuery, getLogTableInfo } = useLogsContext()
   // 分析字段的代码提示
@@ -57,7 +54,7 @@ const RawLogQuery = () => {
             onChangeIsDefault={setIsDefault}
           />
         </div>
-        <DateTimeRangePickerCom type="log" />
+        {/* <DateTimeRangePickerCom type="log" /> */}
         <Button
           type="primary"
           icon={<IoSearch />}

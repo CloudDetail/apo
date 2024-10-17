@@ -15,6 +15,8 @@ import Sider from 'antd/es/layout/Sider'
 import { Content } from 'antd/es/layout/layout'
 import { AiOutlineCaretLeft, AiOutlineCaretRight } from 'react-icons/ai'
 import './index.css'
+import { useSelector } from 'react-redux'
+import { selectProcessedTimeRange } from 'src/store/reducers/timeRangeReducer'
 function FullLogs() {
   const {
     query,
@@ -28,13 +30,10 @@ function FullLogs() {
 
   const [searchParams] = useSearchParams()
   const [collapsed, setCollapsed] = useState(false)
-
+  const { startTime, endTime } = useSelector(selectProcessedTimeRange)
   useUpdateEffect(() => {
-    if (searchParams.get('log-from') && searchParams.get('log-to')) {
-      fetchData({
-        startTime: ISOToTimestamp(searchParams.get('log-from')),
-        endTime: ISOToTimestamp(searchParams.get('log-to')),
-      })
+    if (startTime && endTime) {
+      fetchData({ startTime, endTime })
     }
   }, [
     pagination.pageIndex,
@@ -46,12 +45,9 @@ function FullLogs() {
   useDebounce(
     () => {
       clearFieldIndexMap()
-      if (searchParams.get('log-from') && searchParams.get('log-to')) {
+      if (startTime && endTime) {
         if (pagination.pageIndex === 1) {
-          fetchData({
-            startTime: ISOToTimestamp(searchParams.get('log-from')),
-            endTime: ISOToTimestamp(searchParams.get('log-to')),
-          })
+          fetchData({ startTime, endTime })
         } else {
           updateLogsPagination({
             pageIndex: 1,
@@ -60,7 +56,7 @@ function FullLogs() {
       }
     },
     300, // 延迟时间 300ms
-    [searchParams.get('log-from'), searchParams.get('log-to'), tableInfo, query],
+    [startTime, endTime, tableInfo, query],
   )
   return (
     <>

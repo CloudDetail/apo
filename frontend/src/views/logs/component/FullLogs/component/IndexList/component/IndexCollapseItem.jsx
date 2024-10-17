@@ -1,15 +1,16 @@
 import { Collapse, List, Progress, Tag, Tooltip } from 'antd'
 import React, { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { useSearchParams } from 'react-router-dom'
 import { useLogsContext } from 'src/contexts/LogsContext'
+import { selectProcessedTimeRange } from 'src/store/reducers/timeRangeReducer'
 import { ISOToTimestamp } from 'src/utils/time'
 
 const IndexCollapseItem = ({ field }) => {
   const { query = '', updateQuery, fieldIndexMap, getFieldIndexData } = useLogsContext()
 
   const [searchParams] = useSearchParams()
-  const startTime = ISOToTimestamp(searchParams.get('log-from'))
-  const endTime = ISOToTimestamp(searchParams.get('log-to'))
+  const { startTime, endTime } = useSelector(selectProcessedTimeRange)
   const [loading, setLoading] = useState(false)
   const clickIndex = (index) => {
     let newQueryPart = '`' + field + '` =' + "'" + index.indexName + "'"

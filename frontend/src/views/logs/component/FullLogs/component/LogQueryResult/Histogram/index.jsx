@@ -2,14 +2,18 @@ import React, { useEffect, useRef, useState } from 'react'
 import ReactECharts from 'echarts-for-react'
 import dayjs from 'dayjs' // 用来格式化时间
 import { useLogsContext } from 'src/contexts/LogsContext'
-import { convertTime, TimestampToISO } from 'src/utils/time'
+import { convertTime } from 'src/utils/time'
 import { Empty } from 'antd'
-import { useSearchParams } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
 
 const BarChart = () => {
   const chartRef = useRef(null)
-  const [searchParams, setSearchParams] = useSearchParams()
   const { logsChartData } = useLogsContext()
+  const dispatch = useDispatch()
+  const setStoreTimeRange = (value) => {
+    dispatch({ type: 'SET_TIMERANGE', payload: value })
+  }
+
   const [option, setOption] = useState({
     tooltip: {
       show: true,
@@ -103,23 +107,11 @@ const BarChart = () => {
         const chartOption = chartInstance.getOption() // 获取当前图表的所有数据
         const seriesData = chartOption.series[0].data[categoryIndex] // 获取点击的对象数据
 
-        const params = new URLSearchParams(searchParams)
-        const from = searchParams.get('log-from')
-        const to = searchParams.get('log-to')
-        let needChangeUrl = false
-        const fromStringToISO = TimestampToISO(seriesData.from)
-        const toStringToISO = TimestampToISO(seriesData.to)
-        if (fromStringToISO !== from) {
-          params.set('log-from', fromStringToISO)
-          needChangeUrl = true
-        }
-        if (toStringToISO !== to) {
-          params.set('log-to', toStringToISO)
-          needChangeUrl = true
-        }
-        if (needChangeUrl) {
-          setSearchParams(params, { replace: true })
-        }
+        setStoreTimeRange({
+          rangeType: null,
+          startTime: Math.round(seriesData.from),
+          endTime: Math.round(seriesData.to),
+        })
       }
     }
 
