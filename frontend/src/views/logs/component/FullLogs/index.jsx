@@ -84,18 +84,16 @@ function FullLogs() {
           >
             <FullLogSider />
           </Sider>
-          <Content className="h-full relative p-2">
-            <div className="flex flex-col flex-1 h-full">
+          <Content className="h-full relative flex overflow-hidden px-2">
+            <div className="w-[250px] h-full">
+              <IndexList />
+            </div>
+            <div className="flex flex-col flex-1 overflow-hidden">
               <div className="flex-grow-0 flex-shrink-0">
                 <SearchBar />
               </div>
-              <div className="flex-1 flex overflow-hidden">
-                <div className="w-[220px] flex-shrink-0 flex-grow-0">
-                  <IndexList />
-                </div>
-                <div className=" h-full flex-1 overflow-hidden">
-                  <LogQueryResult />
-                </div>
+              <div className="flex-1 h-full overflow-hidden">
+                <LogQueryResult />
               </div>
             </div>
           </Content>

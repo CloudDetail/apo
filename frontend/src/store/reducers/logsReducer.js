@@ -21,7 +21,10 @@ export const logsInitialState = {
   defaultFields: [],
 
   hiddenFields: [],
+  //最终的query 会触发查询
   query: '',
+  //searchValue 当前框值，不处罚查询
+  searchValue: '',
   loading: true,
 
   // 保存字段和index索引map 当dataBase、时间改变清空
@@ -57,6 +60,8 @@ const logsReducer = (state = logsInitialState, action) => {
       return { ...state, logRules: action.payload }
     case 'setInstances':
       return { ...state, instances: action.payload }
+    case 'setSearchValue':
+      return { ...state, searchValue: action.payload }
     case 'clearFieldIndexMap':
       return { ...state, fieldIndexMap: {} }
     default:

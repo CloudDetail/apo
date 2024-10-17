@@ -7,14 +7,13 @@ import { useLogsContext } from 'src/contexts/LogsContext'
 import { useSearchParams } from 'react-router-dom'
 import FullTextSearch from './FullTextSearch'
 const RawLogQuery = () => {
-  const { query, updateQuery, getLogTableInfo } = useLogsContext()
+  const { searchValue, setSearchValue, query, updateQuery, getLogTableInfo } = useLogsContext()
   // 分析字段的代码提示
   const [analysisFieldTips, setAnalysisFieldTips] = useState([])
   // 输入框自动填充历史记录
   const [historicalRecord, setHistoricalRecord] = useState([])
   const [isDefault, setIsDefault] = useState(true)
   const [queryKeyword, setQueryKeyword] = useState()
-  const [searchValue, setSearchValue] = useState('')
   const [isMultipleLines, setIsMultipleLines] = useState(false)
 
   const [searchParams] = useSearchParams()
@@ -36,7 +35,7 @@ const RawLogQuery = () => {
   return (
     <>
       <div className="searchBarMain">
-        <FullTextSearch searchValue={searchValue} setSearchValue={clickFullTextSearch} />
+        {/* <FullTextSearch searchValue={searchValue} setSearchValue={clickFullTextSearch} /> */}
         <div className="inputBox" style={{ overflowX: isMultipleLines ? 'visible' : 'hidden' }}>
           <CodeMirrorSearch
             title="logInput"

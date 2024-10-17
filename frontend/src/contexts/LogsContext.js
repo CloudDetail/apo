@@ -157,6 +157,7 @@ export const LogsProvider = ({ children }) => {
       tableInfo: state.tableInfo,
       logRules: state.logRules,
       instances: state.instances,
+      searchValue: state.searchValue,
       fetchData,
       getLogTableInfo,
       getFieldIndexData,
@@ -182,6 +183,8 @@ export const LogsProvider = ({ children }) => {
       // @ts-ignore
       updateLoading: (data) => dispatch({ type: 'updateLoading', payload: data }),
       // @ts-ignore
+      setSearchValue: (data) => dispatch({ type: 'setSearchValue', payload: data }),
+      // @ts-ignore
       clearFieldIndexMap: () => dispatch({ type: 'clearFieldIndexMap' }),
     }),
     [
@@ -196,6 +199,7 @@ export const LogsProvider = ({ children }) => {
       state.tableInfo,
       state.logRules,
       state.instances,
+      state.searchValue,
     ],
   )
 

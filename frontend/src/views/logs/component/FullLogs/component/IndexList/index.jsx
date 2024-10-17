@@ -2,6 +2,7 @@ import { Card, Collapse } from 'antd'
 import React from 'react'
 import IndexCollapse from './component/IndexCollapse'
 import './index.css'
+import FullTextSearch from '../SerarchBar/RawLogQuery/FullTextSearch'
 const IndexList = () => {
   const IndexType = {
     base: '基础字段',
@@ -25,14 +26,17 @@ const IndexList = () => {
     },
   ]
   return (
-    <>
+    <div className="flex flex-col h-full">
+      <div className="flex-shrink-0 py-2">
+        <FullTextSearch />
+      </div>
       <Collapse
         items={items}
         defaultActiveKey={['base', 'log']}
         size="small"
-        className="indexList h-full overflow-hidden"
+        className=" flex-1 indexList h-full overflow-hidden mb-2"
       />
-    </>
+    </div>
   )
 }
 export default IndexList

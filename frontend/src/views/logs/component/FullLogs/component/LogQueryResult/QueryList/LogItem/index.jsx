@@ -4,6 +4,7 @@ import LogItemFold from './component/LogItemFold'
 import LogItemDetail from './component/LogItemDetail'
 import { Button } from 'antd'
 import { useLogsContext } from 'src/contexts/LogsContext'
+import { convertTime } from 'src/utils/time'
 
 // 自配类规则日志默认展开不可收起，tag+铺平（仅content）
 // 接入类数据库规则默认收起可展开，收起展示所有tag，展开展示所有（content + tag）
@@ -30,7 +31,7 @@ const LogItem = (props) => {
               icon={isFold ? <AiFillCaretRight /> : <AiFillCaretDown />}
             ></Button>
           )}
-          {log?.tags?.[tableInfo?.timeField ? tableInfo?.timeField : 'timestamp']}
+          {convertTime(log?.timestamp, 'yyyy-mm-dd hh:mm:ss')}
         </div>
       </div>
       {/* 具体日志 */}
