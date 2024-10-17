@@ -13,4 +13,5 @@ type LogQueryResponse struct {
 type LogItem struct {
 	Content interface{}            `json:"content"`
 	Tags    map[string]interface{} `json:"tags"`
+	Time    int64                  `json:"timestamp"`
 }

@@ -6104,9 +6104,6 @@ const docTemplate = `{
         "response.LogIndexResponse": {
             "type": "object",
             "properties": {
-                "error": {
-                    "type": "string"
-                },
                 "indexs": {
                     "type": "array",
                     "items": {
@@ -6122,6 +6119,9 @@ const docTemplate = `{
                 "tags": {
                     "type": "object",
                     "additionalProperties": true
+                },
+                "timestamp": {
+                    "type": "integer"
                 }
             }
         },

@@ -6096,9 +6096,6 @@
         "response.LogIndexResponse": {
             "type": "object",
             "properties": {
-                "error": {
-                    "type": "string"
-                },
                 "indexs": {
                     "type": "array",
                     "items": {
@@ -6114,6 +6111,9 @@
                 "tags": {
                     "type": "object",
                     "additionalProperties": true
+                },
+                "timestamp": {
+                    "type": "integer"
                 }
             }
         },

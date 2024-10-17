@@ -2,6 +2,8 @@ package log
 
 import (
 	"encoding/json"
+	"errors"
+	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -69,12 +71,22 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 		return res, nil
 	}
 
+	var timestamp int64
 	logitems := make([]response.LogItem, len(logs))
 	for i, log := range logs {
 		content := log[req.LogField]
 		delete(log, req.LogField)
 
 		for k, v := range log {
+			if k == req.TimeField {
+				ts, ok := v.(time.Time)
+				if ok {
+					timestamp = ts.UnixMicro()
+				} else {
+					return nil, errors.New("timestamp type error")
+				}
+				delete(log, k)
+			}
 			vMap, ok := v.(map[string]string)
 			if ok {
 				for k2, v2 := range vMap {
@@ -87,6 +99,7 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 		logitems[i] = response.LogItem{
 			Content: content,
 			Tags:    log,
+			Time:    timestamp,
 		}
 	}
 
