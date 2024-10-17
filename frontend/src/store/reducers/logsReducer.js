@@ -50,7 +50,14 @@ const logsReducer = (state = logsInitialState, action) => {
     case 'updateDataBase':
       return { ...state, database: action.payload }
     case 'updateTableInfo':
-      return { ...state, tableInfo: action.payload }
+      // 选择库变了 indexmapp必须变
+      return {
+        ...state,
+        tableInfo: action.payload,
+        fieldIndexMap: {},
+        defaultFields: [],
+        hiddenFields: [],
+      }
     case 'setLogState':
       return { ...state, ...action.payload }
     case 'updateFieldIndexMap':
@@ -63,7 +70,7 @@ const logsReducer = (state = logsInitialState, action) => {
     case 'setSearchValue':
       return { ...state, searchValue: action.payload }
     case 'clearFieldIndexMap':
-      return { ...state, fieldIndexMap: {} }
+      return { ...state, fieldIndexMap: {}, defaultFields: [], hiddenFields: [] }
     default:
       return state
   }

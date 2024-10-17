@@ -7,7 +7,14 @@ import { selectProcessedTimeRange } from 'src/store/reducers/timeRangeReducer'
 import { ISOToTimestamp } from 'src/utils/time'
 
 const IndexCollapseItem = ({ field }) => {
-  const { query = '', updateQuery, fieldIndexMap, getFieldIndexData } = useLogsContext()
+  const {
+    query = '',
+    updateQuery,
+    fieldIndexMap,
+    getFieldIndexData,
+    defaultFields,
+    hiddenFields,
+  } = useLogsContext()
 
   const [searchParams] = useSearchParams()
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
@@ -25,7 +32,7 @@ const IndexCollapseItem = ({ field }) => {
     }
   }
   useEffect(() => {
-    if (!fieldIndexMap[field]) {
+    if ((defaultFields.includes(field) || hiddenFields.includes(field)) && !fieldIndexMap[field]) {
       setLoading(true)
 
       getFieldIndexData({
@@ -36,7 +43,7 @@ const IndexCollapseItem = ({ field }) => {
         setLoading(false)
       })
     }
-  }, [field, fieldIndexMap])
+  }, [field, defaultFields, hiddenFields, fieldIndexMap])
   return (
     <List
       loading={loading}
