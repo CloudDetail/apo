@@ -107,8 +107,8 @@ const DataSourceTree = () => {
     setExpandedKeys(expandedKeys) // 更新defaultExpandedKeys
   }, [instances])
 
-  const onSelect = (selectedKeys, { selectedNodes }) => {
-    if (selectedNodes[0].tableName) {
+  const onSelect = (selectedKeys, { selected, selectedNodes }) => {
+    if (selected && selectedNodes[0]?.tableName) {
       updateTableInfo({
         dataBase: selectedNodes[0].dataBase,
         tableName: selectedNodes[0].tableName,
