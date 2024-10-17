@@ -167,6 +167,8 @@ func (l *Labels) Extract(metric prommodel.Metric) {
 			l.DBUrl = string(value)
 		case "monitor_name":
 			l.MonitorName = string(value)
+		case "node_ip":
+			l.NodeIP = string(value)
 		}
 	}
 }
