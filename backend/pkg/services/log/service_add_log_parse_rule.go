@@ -21,8 +21,9 @@ func getRouteRule(routeMap map[string]string) string {
 			for _, vv := range strValues {
 				res = append(res, fmt.Sprintf(`starts_with(string!(."%s"), "%s")`, k, vv))
 			}
+		} else {
+			res = append(res, fmt.Sprintf(`starts_with(string!(."%s"), "%s")`, k, v))
 		}
-		res = append(res, fmt.Sprintf(`starts_with(string!(."%s"), "%s")`, k, v))
 	}
 	return strings.Join(res, " || ")
 }
