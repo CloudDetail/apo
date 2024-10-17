@@ -107,10 +107,10 @@ const LogRuleList = () => {
       className="overflow-y-auto h-1/2 w-full overflow-x-hidden"
       title={
         <>
-          <span>日志解析规则</span>
+          <span>日志库</span>
           <div className="flex flex-row">
             {/* <AiOutlineInfoCircle size={16} className="ml-1" /> */}
-            <span className="text-xs text-gray-400">点击规则查询对应服务的日志</span>
+            {/* <span className="text-xs text-gray-400">点击规则查询对应服务的日志</span> */}
           </div>
         </>
       }

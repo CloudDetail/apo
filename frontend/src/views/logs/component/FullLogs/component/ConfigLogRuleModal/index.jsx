@@ -72,7 +72,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   function addLogRule(logRuleParams) {
     addLogRuleApi(logRuleParams).then((res) => {
       showToast({
-        title: '日志解析规则配置成功',
+        title: '日志库配置成功',
         color: 'success',
       })
 
@@ -87,7 +87,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       tableName: logRuleInfo.tableName,
     }).then((res) => {
       showToast({
-        title: '日志解析规则配置成功',
+        title: '日志库配置成功',
         color: 'success',
       })
       closeModal()
@@ -160,7 +160,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   }
   return (
     <Modal
-      title={'日志解析规则配置'}
+      title={'日志库配置'}
       open={modalVisible}
       onCancel={closeModal}
       destroyOnClose
@@ -179,27 +179,27 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         initialValues={{ routeRule: [{ key: null, value: '' }] }}
       >
         <Form.Item
-          label="规则名"
+          label="日志库名"
           name="parseName"
           required
           rules={[
             {
               pattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/, // 仅允许英文字符
-              message: '规则名只能包含英文字符、数字、下划线',
+              message: '日志库名只能包含英文字符、数字、下划线',
             },
             {
               required: true,
-              message: '请输入规则名',
+              message: '请输入日志库名',
             },
           ]}
         >
           <Input
-            placeholder="请输入规则名，一经创建暂不支持修改"
+            placeholder="请输入日志库名，一经创建暂不支持修改"
             disabled={logRuleInfo?.parseName}
           />
         </Form.Item>
-        <Form.Item label="规则描述" name="parseInfo">
-          <Input placeholder="规则描述" />
+        <Form.Item label="日志库描述" name="parseInfo">
+          <Input placeholder="日志库描述" />
         </Form.Item>
         <Form.Item label="执行应用" name="serviceName">
           <Select

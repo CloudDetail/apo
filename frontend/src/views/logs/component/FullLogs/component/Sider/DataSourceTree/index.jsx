@@ -127,7 +127,7 @@ const DataSourceTree = () => {
   return (
     <Card
       className="overflow-y-auto h-1/2 w-full overflow-x-hidden"
-      title="接入数据库列表"
+      title="接入数据库"
       classNames={{
         body: 'p-0',
       }}
