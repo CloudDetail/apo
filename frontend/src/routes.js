@@ -26,7 +26,7 @@ const routes = [
     path: '/logs/full',
     name: '全量日志',
     element: FullLogsPage,
-    hideSystemTimeRangePicker: true,
+    // hideSystemTimeRangePicker: true,
   },
   { path: '/trace', name: '链路追踪', element: TracePage, hideSystemTimeRangePicker: true },
   { path: '/basic-dashboard', name: '应用基础设施大盘', element: BasicDashboard },
