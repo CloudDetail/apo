@@ -1008,25 +1008,6 @@ definitions:
     type: object
   request.LogTableInfoRequest:
     type: object
-  request.LogTableRequest:
-    properties:
-      buffer:
-        $ref: '#/definitions/request.BufferEngineConfig'
-      cluster:
-        type: string
-      dataBase:
-        type: string
-      fields:
-        items:
-          $ref: '#/definitions/request.Field'
-        type: array
-      replica:
-        type: boolean
-      tableName:
-        type: string
-      ttl:
-        type: integer
-    type: object
   request.Operation:
     enum:
     - EQUAL
@@ -1875,15 +1856,6 @@ definitions:
       parses:
         items:
           $ref: '#/definitions/response.Parse'
-        type: array
-    type: object
-  response.LogTableResponse:
-    properties:
-      error:
-        type: string
-      sqls:
-        items:
-          type: string
         type: array
     type: object
   response.MonitorStatus:
@@ -2906,32 +2878,6 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取日志表信息
-      tags:
-      - API.log
-  /api/log/update:
-    post:
-      consumes:
-      - application/json
-      description: 更新日志表
-      parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.LogTableRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.LogTableResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: 更新日志表
       tags:
       - API.log
   /api/mock:

@@ -11,8 +11,7 @@ func (s *service) GetLogIndex(req *request.LogIndexRequest) (*response.LogIndexR
 	res := &response.LogIndexResponse{}
 	list, sum, err := s.chRepo.GetLogIndex(req)
 	if err != nil {
-		res.Err = err.Error()
-		return res, nil
+		return nil, err
 	}
 	indexs := make([]response.IndexItem, 0)
 	var count uint64

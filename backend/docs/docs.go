@@ -1252,46 +1252,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/log/update": {
-            "post": {
-                "description": "更新日志表",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.log"
-                ],
-                "summary": "更新日志表",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.LogTableRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.LogTableResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
         "/api/mock": {
             "get": {
                 "description": "xx列表",
@@ -5000,35 +4960,6 @@ const docTemplate = `{
         "request.LogTableInfoRequest": {
             "type": "object"
         },
-        "request.LogTableRequest": {
-            "type": "object",
-            "properties": {
-                "buffer": {
-                    "$ref": "#/definitions/request.BufferEngineConfig"
-                },
-                "cluster": {
-                    "type": "string"
-                },
-                "dataBase": {
-                    "type": "string"
-                },
-                "fields": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/request.Field"
-                    }
-                },
-                "replica": {
-                    "type": "boolean"
-                },
-                "tableName": {
-                    "type": "string"
-                },
-                "ttl": {
-                    "type": "integer"
-                }
-            }
-        },
         "request.Operation": {
             "type": "string",
             "enum": [
@@ -6285,20 +6216,6 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.Parse"
-                    }
-                }
-            }
-        },
-        "response.LogTableResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
-                },
-                "sqls": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
                     }
                 }
             }

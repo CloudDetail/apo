@@ -2,7 +2,6 @@ package response
 
 type LogIndexResponse struct {
 	Indexs []IndexItem `json:"indexs"`
-	Err    string      `json:"error"`
 }
 
 type IndexItem struct {

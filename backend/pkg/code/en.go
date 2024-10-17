@@ -30,10 +30,6 @@ var enText = map[string]string{
 	GetFaultLogContentError:        "Failed to get fault log content",
 	GetMonitorStatusError:          "Failed to get monitor status",
 
-	CreateLogTableError: "Failed to create log table",
-	DropLogTableError:   "Failed to drop log table",
-	UpateLogTableError:  "Failed to update log table",
-
 	QueryLogError:    "Failed to query all logs",
 	GetLogChartError: "Failed to get log chart",
 	GetLogIndexError: "Failed to get log index",

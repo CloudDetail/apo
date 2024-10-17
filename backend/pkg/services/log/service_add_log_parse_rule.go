@@ -32,7 +32,7 @@ var fieldsRegexp = regexp.MustCompile(`\?P<(?P<name>\w+)>`)
 func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.LogParseResponse, error) {
 	// 先去建表
 	logReq := &request.LogTableRequest{
-		TableName: req.ParseName,
+		TableName: "logs_" + req.ParseName,
 	}
 	matchesFields := fieldsRegexp.FindAllStringSubmatch(req.ParseRule, -1)
 
@@ -69,7 +69,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 	}
 	p := vector.ParseInfo{
 		ParseName: req.ParseName,
-		TableName: req.ParseName,
+		TableName: "logs_" + req.ParseName,
 		ParseRule: req.ParseRule,
 		RouteRule: getRouteRule(req.RouteRule),
 	}
@@ -96,7 +96,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 		ParseName: req.ParseName,
 		ParseRule: req.ParseRule,
 		RouteRule: getRouteRule(req.RouteRule),
-		Table:     req.ParseName,
+		Table:     "logs_" + req.ParseName,
 		DataBase:  logReq.DataBase,
 		Cluster:   logReq.Cluster,
 		Fields:    string(fieldsJSON),
