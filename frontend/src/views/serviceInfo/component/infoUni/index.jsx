@@ -65,6 +65,16 @@ export default function InfoUni() {
 
   const mockAccordionList = [
     {
+      key: 'impact',
+      loadBeforeOpen: true,
+      name: <>{serviceName}的影响面分析</>,
+      component: EntryImpact,
+
+      componentProps: {
+        handlePanelStatus: (status) => handlePanelStatus('impact', status),
+      },
+    },
+    {
       key: 'alert',
       loadBeforeOpen: true,
       name: <>{serviceName}的告警事件</>,
@@ -83,16 +93,6 @@ export default function InfoUni() {
         handleToggle,
         handlePanelStatus: (status) => handlePanelStatus('instance', status),
         prepareVariable: (props) => setDashboardVariable(props),
-      },
-    },
-    {
-      key: 'impact',
-      loadBeforeOpen: true,
-      name: <>{serviceName}的影响面分析</>,
-      component: EntryImpact,
-
-      componentProps: {
-        handlePanelStatus: (status) => handlePanelStatus('impact', status),
       },
     },
     {
