@@ -216,53 +216,14 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
             <div className="flex items-center">
               解析规则 <AiOutlineInfoCircle size={16} className="ml-1" />
               <span className="text-xs text-gray-400">
-                请使用
-                <a href="https://playground.vrl.dev/" className="underline" target="_blank">
-                  VRL
+                将符合规则的日志进行结构化并加快查询速度，查看
+                <a
+                  href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/日志解析规则配置/"
+                  className="underline"
+                  target="_blank"
+                >
+                  帮助文档
                 </a>
-                语言，查看
-                <Tooltip
-                  title={
-                    <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {`.msg, err = parse_regex(.content, r' \\[(?P<level>.*?)\\] \\[(?P<thread>.*?)\\] \\[(?P<method>.*?)\\(.*?\\)\\] - (?P<msg>.*)')
-if err == null {
-    .content = encode_json(.msg)
-}
-del(.msg)`}
-                    </div>
-                  }
-                >
-                  <span className="px-1 underline cursor-pointer">JAVA</span>
-                </Tooltip>
-                、
-                <Tooltip
-                  title={
-                    <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {`.msg, err = parse_regex(.content, r' \\[(?P<level>.*?)\\] \\[(?P<thread>.*?)\\] \\[(?P<method>.*?)\\(.*?\\)\\] - (?P<msg>.*)')
-if err == null {
-    .content = encode_json(.msg)
-}
-del(.msg)`}
-                    </div>
-                  }
-                >
-                  <span className="px-1 underline cursor-pointer">Go</span>
-                </Tooltip>
-                、
-                <Tooltip
-                  title={
-                    <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {`.msg, err = parse_regex!(.content, r'^(?P<ip>\d+\.\d+\.\d+\.\d+) \- (?P<date>\d+\-\d+\-\d+)T(?P<time>\d+:\d+:\d+).+?"(?P<url>.+?)" (?P<status>\d+) (?P<size>\d+) "(?P<agent>.+?)"$')
-if err == null {
-	.content = encode_json(.msg)
-}
-del(.msg)`}
-                    </div>
-                  }
-                >
-                  <span className="px-1 underline cursor-pointer">Nginx</span>
-                </Tooltip>
-                默认规则
               </span>
             </div>
           }
