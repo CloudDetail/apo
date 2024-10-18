@@ -138,7 +138,6 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 			}
 			newErrorRate.ChartData = data
 		}
-		// 如果平均错误率等于100，则搞一个新图表 ？
 		if newErrorRate.Value != nil && *newErrorRate.Value == 100 {
 			values := make(map[int64]float64)
 			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {
@@ -146,7 +145,6 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 			}
 			newErrorRate.ChartData = values
 		}
-		// 同上
 		if newErrorRate.Value != nil && *newErrorRate.Value == 0 {
 			values := make(map[int64]float64)
 			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {

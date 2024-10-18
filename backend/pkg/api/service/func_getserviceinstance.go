@@ -1,9 +1,10 @@
 package service
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -41,7 +42,7 @@ func (h *handler) GetServiceInstance() core.HandlerFunc {
 		startTime = time.Unix(req.StartTime, 0)
 		endTime = time.Unix(req.EndTime, 0)
 		// 		step := time.Duration(req.Step * 1000)
-		step := time.Duration(req.Step)
+		step := time.Duration(req.Step * 1000)
 		serviceName := req.ServiceName
 		endpoint := req.Endpoint
 		data, err := h.serviceInfoService.GetInstancesNew(startTime, endTime, step, serviceName, endpoint)

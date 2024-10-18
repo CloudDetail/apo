@@ -1,9 +1,10 @@
 package service
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"strings"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 const (
@@ -61,6 +62,7 @@ func (f InstancesFilter) ExtractFilterStr() []string {
 		filters = append(filters, prometheus.ContentKeyPQLFilter, f.ContentKey)
 	}
 
+	// TODO Pod可能不存在
 	filters = append(filters, prometheus.PodRegexPQLFilter, prometheus.ValueExistPQLValueFilter)
 	filters = append(filters, prometheus.ContainerIdRegexPQLFilter, prometheus.ValueExistPQLValueFilter)
 	return filters
@@ -85,11 +87,13 @@ func (s *service) InstanceRangeData(instances *InstanceMap, startTime, endTime t
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
+	// TODO 用 multierror 合并error返回
+	// step时间单位使用微秒传入
 	latencyRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(
 		prometheus.PQLAvgLatencyWithFilters,
 		startTS,
 		endTS,
-		int64(step),
+		step.Microseconds(),
 		prometheus.InstanceGranularity,
 		filters...,
 	)
@@ -159,6 +163,7 @@ func (s *service) InstanceLog(instances *InstanceMap, startTime, endTime time.Ti
 	endTS := endTime.UnixMicro()
 
 	var pods []string
+	// TODO 支持非K8s实例的日志指标查询
 	for key := range instances.MetricGroupMap {
 		if len(key.Pod) > 0 {
 			pods = append(pods, key.Pod)
