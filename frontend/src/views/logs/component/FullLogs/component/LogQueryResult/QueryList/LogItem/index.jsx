@@ -9,7 +9,7 @@ import { convertTime } from 'src/utils/time'
 // 自配类规则日志默认展开不可收起，tag+铺平（仅content）
 // 接入类数据库规则默认收起可展开，收起展示所有tag，展开展示所有（content + tag）
 const LogItem = (props) => {
-  const { log, foldingChecked } = props
+  const { log, foldingChecked, openContextModal } = props
   const { tableInfo } = useLogsContext()
   // 是否折叠日志，true 为是，false 为否
   const [isFold, setIsFold] = useState(true)
@@ -21,17 +21,29 @@ const LogItem = (props) => {
     <div className="flex overflow-hidden px-2">
       {/* icon 和 时间 */}
       <div className="flex-grow-0 flex-shrink-0  w-[230px]">
-        <div className="flex items-center pl-3">
-          {tableInfo.timeField && (
+        <div className="items-center pl-2 j">
+          <div className="flex-shrink-0 flex-grow-0 flex items-center">
+            {tableInfo.timeField && (
+              <Button
+                color="primary"
+                type="text"
+                onClick={() => setIsFold(!isFold)}
+                icon={isFold ? <AiFillCaretRight /> : <AiFillCaretDown />}
+              ></Button>
+            )}
+            <span>{convertTime(log?.timestamp, 'yyyy-mm-dd hh:mm:ss.SSS')}</span>
+          </div>
+          {openContextModal && !tableInfo.timeField && (
             <Button
               color="primary"
-              type="text"
-              onClick={() => setIsFold(!isFold)}
-              className="mx-2"
-              icon={isFold ? <AiFillCaretRight /> : <AiFillCaretDown />}
-            ></Button>
+              variant="filled"
+              size="small"
+              onClick={() => openContextModal(log)}
+              className="text-xs"
+            >
+              查看上下文
+            </Button>
           )}
-          {convertTime(log?.timestamp, 'yyyy-mm-dd hh:mm:ss')}
         </div>
       </div>
       {/* 具体日志 */}

@@ -108,7 +108,7 @@ const DataSourceTree = () => {
   }, [instances])
 
   const onSelect = (selectedKeys, { selected, selectedNodes }) => {
-    if (selected && selectedNodes[0]?.tableName) {
+    if (selected && selectedNodes?.[0]?.tableName) {
       updateTableInfo({
         dataBase: selectedNodes[0].dataBase,
         tableName: selectedNodes[0].tableName,
