@@ -1,6 +1,8 @@
 package prometheus
 
-import "math"
+import (
+	"math"
+)
 
 // RES_MAX_VALUE 返回前端的最大值，同比为该值时表示最大值
 const RES_MAX_VALUE float64 = 9999999
@@ -80,6 +82,7 @@ func (m *REDMetrics) SetValue(metricGroup MGroupName, metricName MName, value fl
 	case THROUGHPUT:
 		mg.TPM = &adjustedValue
 	}
+
 }
 
 type REDMetric struct {

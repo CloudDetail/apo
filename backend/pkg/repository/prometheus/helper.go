@@ -26,6 +26,10 @@ const (
 
 	ValueExistPQLValueFilter = ".+"
 	LabelExistPQLValueFilter = ".*"
+
+	PodRegexPQLFilter          = "pod=~"
+	LogMetricPodRegexPQLFilter = "pod_name=~"
+	ContainerIdRegexPQLFilter  = "container_id=~"
 )
 
 type Granularity string
@@ -34,8 +38,9 @@ const (
 	SVCGranularity        Granularity = "svc_name"
 	EndpointGranularity   Granularity = "svc_name, content_key"
 	NSEndpointGranularity Granularity = "namespace, svc_name, content_key"
-	InstanceGranularity   Granularity = "svc_name, content_key, container_id, node_name, pid"
+	InstanceGranularity   Granularity = "svc_name, content_key, container_id, node_name, pid, pod, namespace, node_ip"
 
+	LogGranularity         Granularity = "pid,host_name,host_ip,container_id,pod_name,namespace"
 	DBOperationGranularity Granularity = "svc_name, db_system, db_name, name, db_url"
 )
 

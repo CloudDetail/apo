@@ -34,6 +34,7 @@ type Repo interface {
 	GetMultiServicesInstanceList(startTime int64, endTime int64, services []string) (map[string]*model.ServiceInstances, error)
 	// 查询服务实例失败率
 	QueryInstanceErrorRate(startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error)
+	FillMetric(res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filters []string, granularity Granularity)
 	// ========== span_trace_duration_count END ==========
 
 	QueryData(searchTime time.Time, query string) ([]MetricResult, error)
@@ -114,7 +115,7 @@ type Labels struct {
 	SvcName     string `json:"svc_name"`
 	TopSpan     string `json:"top_span"`
 	PID         string `json:"pid"`
-	PodName     string `json:"pod_name"`
+	PodName     string `json:"pod_name"` // TODO 统一为pod之后可以删除
 	Namespace   string `json:"namespace"`
 	NodeIP      string `json:"node_ip"`
 
@@ -153,8 +154,6 @@ func (l *Labels) Extract(metric prommodel.Metric) {
 			l.TopSpan = string(value)
 		case "pid":
 			l.PID = string(value)
-		case "pod_name":
-			l.PodName = string(value)
 		case "namespace":
 			l.Namespace = string(value)
 		case "db_system":
@@ -169,6 +168,12 @@ func (l *Labels) Extract(metric prommodel.Metric) {
 			l.MonitorName = string(value)
 		case "node_ip":
 			l.NodeIP = string(value)
+		case "host_ip":
+			l.NodeIP = string(value)
+		case "host_name":
+			l.NodeName = string(value)
+		case "pod_name":
+			l.POD = string(value)
 		}
 	}
 }

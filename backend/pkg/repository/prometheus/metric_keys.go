@@ -5,6 +5,39 @@ type EndpointKey struct {
 	SvcName    string // url所属的服务名
 }
 
+type InstanceKey struct {
+	PID         string
+	ContainerId string
+	Pod         string
+	Namespace   string
+	NodeName    string
+	NodeIP      string
+}
+
+func (i InstanceKey) ConvertFromLabels(labels Labels) ConvertFromLabels {
+	return InstanceKey{
+		PID:         labels.PID,
+		ContainerId: labels.ContainerID,
+		Pod:         labels.POD,
+		Namespace:   labels.Namespace,
+		NodeName:    labels.NodeName,
+		NodeIP:      labels.NodeIP,
+	}
+}
+
+func (i InstanceKey) GenInstanceName() string {
+	name := ""
+	if len(i.Pod) > 0 {
+		name = i.Pod
+	} else if len(i.ContainerId) > 0 {
+		name += i.NodeName + "@" + i.ContainerId
+	} else if len(i.PID) > 0 {
+		name += i.NodeName + "@" + i.PID
+	}
+
+	return name
+}
+
 func (e EndpointKey) ConvertFromLabels(labels Labels) ConvertFromLabels {
 	return EndpointKey{
 		SvcName:    labels.SvcName,
