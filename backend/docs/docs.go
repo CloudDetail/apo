@@ -695,6 +695,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/log/context": {
+            "post": {
+                "description": "获取日志上下文",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.log"
+                ],
+                "summary": "获取日志上下文",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.LogQueryContextRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.LogQueryContextResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/log/fault/content": {
             "post": {
                 "description": "获取故障现场日志内容",
@@ -4904,6 +4944,26 @@ const docTemplate = `{
                 }
             }
         },
+        "request.LogQueryContextRequest": {
+            "type": "object",
+            "properties": {
+                "dataBase": {
+                    "type": "string"
+                },
+                "tableName": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.LogQueryRequest": {
             "type": "object",
             "required": [
@@ -6147,6 +6207,23 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "type": "string"
+                    }
+                }
+            }
+        },
+        "response.LogQueryContextResponse": {
+            "type": "object",
+            "properties": {
+                "back": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.LogItem"
+                    }
+                },
+                "front": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.LogItem"
                     }
                 }
             }

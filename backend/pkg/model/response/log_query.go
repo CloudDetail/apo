@@ -15,3 +15,8 @@ type LogItem struct {
 	Tags    map[string]interface{} `json:"tags"`
 	Time    int64                  `json:"timestamp"`
 }
+
+type LogQueryContextResponse struct {
+	Front []LogItem `json:"front"`
+	Back  []LogItem `json:"back"`
+}

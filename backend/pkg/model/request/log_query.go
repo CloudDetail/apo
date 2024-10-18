@@ -22,3 +22,10 @@ type LogIndexRequest struct {
 	LogField  string `json:"logField"`
 	Query     string `json:"query"`
 }
+
+type LogQueryContextRequest struct {
+	TableName string            `json:"tableName"`
+	DataBase  string            `json:"dataBase"`
+	Tags      map[string]string `json:"tags"`
+	Time      int64             `json:"timestamp"`
+}

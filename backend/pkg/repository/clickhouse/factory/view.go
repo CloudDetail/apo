@@ -22,7 +22,7 @@ k8s_namespace_name LowCardinality(String) CODEC(ZSTD(1)),
 k8s_pod_name       LowCardinality(String) CODEC(ZSTD(1))%s
 )
 AS SELECT
-toDateTime64(parseDateTimeBestEffort(timestamp), 9) AS timestamp,
+parseDateTime64BestEffort(timestamp, 9) AS timestamp,
 content AS content,
 _source_ AS source,
 _container_id_ AS container_id,

@@ -971,6 +971,19 @@ definitions:
     required:
     - endTime
     type: object
+  request.LogQueryContextRequest:
+    properties:
+      dataBase:
+        type: string
+      tableName:
+        type: string
+      tags:
+        additionalProperties:
+          type: string
+        type: object
+      timestamp:
+        type: integer
+    type: object
   request.LogQueryRequest:
     properties:
       dataBase:
@@ -1813,6 +1826,17 @@ definitions:
           type: string
         type: array
     type: object
+  response.LogQueryContextResponse:
+    properties:
+      back:
+        items:
+          $ref: '#/definitions/response.LogItem'
+        type: array
+      front:
+        items:
+          $ref: '#/definitions/response.LogItem'
+        type: array
+    type: object
   response.LogQueryResponse:
     properties:
       cost:
@@ -2516,6 +2540,32 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取日志趋势图
+      tags:
+      - API.log
+  /api/log/context:
+    post:
+      consumes:
+      - application/json
+      description: 获取日志上下文
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.LogQueryContextRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.LogQueryContextResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取日志上下文
       tags:
       - API.log
   /api/log/fault/content:

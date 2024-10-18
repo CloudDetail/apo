@@ -86,6 +86,11 @@ type Handler interface {
 	// @Tags API.log
 	// @Router /api/log/other/delete [delete]
 	DeleteOtherTable() core.HandlerFunc
+
+	// QueryLogContext 获取日志上下文
+	// @Tags API.log
+	// @Router /api/log/context [post]
+	QueryLogContext() core.HandlerFunc
 }
 
 type handler struct {

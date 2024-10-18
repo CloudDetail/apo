@@ -42,7 +42,7 @@ INDEX idx_content content TYPE tokenbf_v1(32768, 3, 0) GRANULARITY 1
 )
 %s
 PARTITION BY toDate(timestamp)
-ORDER BY (host_ip, toUnixTimestamp(timestamp))
+ORDER BY (host_ip, timestamp)
 %s
 SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
 `

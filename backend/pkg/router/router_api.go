@@ -66,7 +66,7 @@ func setApiRouter(r *resource) {
 		logApi.POST("/fault/pagelist", logHandler.GetFaultLogPageList())
 		logApi.POST("/fault/content", logHandler.GetFaultLogContent())
 
-		//logApi.POST("/update", logHandler.UpdateLogTable())
+		logApi.POST("/context", logHandler.QueryLogContext())
 
 		logApi.POST("/query", logHandler.QueryLog())
 		logApi.POST("/chart", logHandler.GetLogChart())

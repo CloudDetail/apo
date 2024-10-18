@@ -30,9 +30,10 @@ var zhCnText = map[string]string{
 	GetFaultLogPageListError: "获取故障现场日志分页列表失败",
 	GetFaultLogContentError:  "获取故障现场日志内容失败",
 
-	QueryLogError:    "查询全量日志失败",
-	GetLogChartError: "获取全量日志图表数据失败",
-	GetLogIndexError: "获取全量日志索引失败",
+	QueryLogContextError: "查询日志上下文失败",
+	QueryLogError:        "查询全量日志失败",
+	GetLogChartError:     "获取全量日志图表数据失败",
+	GetLogIndexError:     "获取全量日志索引失败",
 
 	GetLogTableInfoError:    "获取日志表信息失败",
 	GetLogParseRuleError:    "获取日志表解析规则失败",

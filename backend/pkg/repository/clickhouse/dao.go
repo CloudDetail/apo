@@ -63,6 +63,7 @@ type Repo interface {
 	queryRowsData(sql string) ([]map[string]any, error)
 
 	QueryAllLogs(req *request.LogQueryRequest) ([]map[string]any, string, error)
+	QueryLogContext(req *request.LogQueryContextRequest) ([]map[string]any, []map[string]any, error)
 	GetLogChart(req *request.LogQueryRequest) ([]map[string]any, int64, error)
 	GetLogIndex(req *request.LogIndexRequest) (map[string]uint64, uint64, error)
 

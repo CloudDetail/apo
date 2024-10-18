@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	defaultParseInfo = "默认Java日志解析, 从日志字段中解析出level、thread、method信息"
+	defaultParseInfo = "默认应用Java格式的日志解析规则, 从满足条件的日志中解析出level、thread、method信息"
 	defaultParseName = "all_logs"
-	defaultRouteRule = `!starts_with(string!(."k8s.pod.name"), "apo")`
+	defaultRouteRule = `starts_with(string!(."k8s.pod.name"), "apo")`
 	defaultParseRule = `.msg, err = parse_regex(.content, r' \[(?P<level>.*?)\] \[(?P<thread>.*?)\] \[(?P<method>.*?)\(.*?\)\] - (?P<msg>.*)')
 if err == null {
 	.content = encode_json(.msg)
