@@ -70,3 +70,7 @@ export const addLogOtherTableApi = (params) => {
 export const deleteLogOtherTableApi = (params) => {
   return del(`/api/log/other/delete`, params)
 }
+//查看上下文
+export const getLogContextApi = (params) => {
+  return post('/api/log/context', params)
+}
