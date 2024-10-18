@@ -42,6 +42,9 @@ type Service interface {
 	// 获取服务列表
 	GetServiceList(req *request.GetServiceListRequest) ([]string, error)
 	// 获取服务实例列表
+	// 新接口
+	GetInstancesNew(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error)
+	// 旧接口
 	GetInstances(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error)
 	// 获取服务实例列表
 	// DEPRECATED

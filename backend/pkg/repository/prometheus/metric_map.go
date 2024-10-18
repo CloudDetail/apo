@@ -31,6 +31,10 @@ type MetricGroupMap[K interface {
 	MetricGroupMap map[K]V
 }
 
+type MetricGroupInterface interface {
+	MergeMetricResults(metricGroup MGroupName, metricName MName, metricResults []MetricResult)
+}
+
 func (m *MetricGroupMap[K, V]) MergeMetricResults(metricGroup MGroupName, metricName MName, metricResults []MetricResult) {
 	for _, metric := range metricResults {
 		if len(metric.Values) <= 0 {
@@ -49,7 +53,6 @@ func (m *MetricGroupMap[K, V]) MergeMetricResults(metricGroup MGroupName, metric
 			}
 			mg, ok = mg.InitEmptyGroup(key).(V)
 			if !ok {
-				// 通常不会发生,这意味着initEmptyGroup返回的结构不是它本身
 				continue
 			}
 			m.MetricGroupList = append(m.MetricGroupList, mg)

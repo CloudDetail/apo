@@ -66,7 +66,7 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	}
 	r.ch = chRepo
 
-	// 初始化 Promethues
+	// 初始化 Prometheus
 	promCfg := config.Get().Promethues
 	promRepo, err := prometheus.New(logger, promCfg.Address, promCfg.Storage)
 	if err != nil {

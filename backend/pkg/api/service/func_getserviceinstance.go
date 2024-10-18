@@ -4,20 +4,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-type getServiceInstanceListRequest struct {
-	StartTime   int64  `form:"startTime" binding:"required"`                 // 查询开始时间
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Step        int64  `form:"step" binding:"required"`                      // 步长
-	ServiceName string `form:"serviceName" binding:"required"`               // 应用名
-	Endpoint    string `form:"endpoint" binding:"required"`
-}
-
-// GetServiceInstanceList 获取service对应url实例
+// GetServiceInstance 获取service对应url实例
 // @Summary 获取service对应url实例
 // @Description 获取service对应url实例
 // @Tags API.service
@@ -33,7 +26,7 @@ type getServiceInstanceListRequest struct {
 // @Router /api/service/instances [get]
 func (h *handler) GetServiceInstance() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(getServiceInstanceListRequest)
+		req := new(request.GetServiceInstanceRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -48,12 +41,11 @@ func (h *handler) GetServiceInstance() core.HandlerFunc {
 		req.EndTime = req.EndTime / 1000000     //接收的微秒级别的startTime和endTime需要先转成秒级别
 		startTime = time.Unix(req.StartTime, 0)
 		endTime = time.Unix(req.EndTime, 0)
+		// 		step := time.Duration(req.Step * 1000)
 		step := time.Duration(req.Step * 1000)
-		//step := time.Minute
 		serviceName := req.ServiceName
 		endpoint := req.Endpoint
-		var res response.InstancesRes
-		data, err := h.serviceInfoService.GetInstances(startTime, endTime, step, serviceName, endpoint)
+		data, err := h.serviceInfoService.GetInstancesNew(startTime, endTime, step, serviceName, endpoint)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -62,7 +54,6 @@ func (h *handler) GetServiceInstance() core.HandlerFunc {
 			)
 			return
 		}
-		res = data
-		c.Payload(res)
+		c.Payload(data)
 	}
 }
