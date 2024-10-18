@@ -12,7 +12,7 @@ const ContextModal = ({ modalVisible, closeModal, logParams }) => {
       .then((res) => {
         const back = res?.back ?? []
         const front = res?.front ?? []
-        setContext(back.concat(front))
+        setContext(front.concat(back))
       })
       .catch(() => {
         setContext([])
