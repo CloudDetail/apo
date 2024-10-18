@@ -1161,7 +1161,6 @@ func QueryPodRangePromql(duration string, queryType QueryType, contentKey string
 	default:
 		return ""
 	}
-
 }
 
 func QueryContainerIdPromql(duration string, queryType QueryType, serviceName string, contentKey string) string {

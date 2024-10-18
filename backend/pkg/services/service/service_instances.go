@@ -16,16 +16,17 @@ import (
 func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error) {
 	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
 	if err != nil {
-
 		return res, err
 	}
 	errorThreshold := threshold.ErrorRate
 	tpsThreshold := threshold.Tps
 	latencyThreshold := threshold.Latency
+
 	var duration string
 	var instances []serviceoverview.Instance
 	var stepNS = endTime.Sub(startTime).Nanoseconds()
 	duration = strconv.FormatInt(stepNS/int64(time.Minute), 10) + "m"
+
 	serviceName = prom.EscapeRegexp(serviceName)
 	// 查询 Prometheus 数据 svc_name 和 content_key 对应的 node_name 的日同比，周同比，平均值，曲线图
 	_, err = s.InstanceAVGByPod(&instances, serviceName, endPoint, endTime, duration)
@@ -76,6 +77,7 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 	_, err = s.LogWOWByPid(&instances, vmPids, endTime, duration)
 	_, err = s.LogRangeDataByPid(&instances, vmPids, startTime, endTime, duration, step)
 	res.Status = model.STATUS_NORMAL
+	// 填充instance的状态
 	for i := range instances {
 		if instances[i].ErrorRateDayOverDay != nil && *instances[i].ErrorRateDayOverDay > errorThreshold {
 			instances[i].IsErrorRateDODExceeded = true
@@ -113,12 +115,12 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 		if (instance.AvgLatency == nil && instance.AvgTPS == nil) || (instance.AvgLatency == nil && instance.AvgTPS != nil && *instance.AvgTPS == 0) {
 			continue
 		}
+		// error的日同比和周同比
 		newErrorRadio := response.Ratio{
 			DayOverDay:  instance.ErrorRateDayOverDay,
 			WeekOverDay: instance.ErrorRateWeekOverWeek,
 		}
 		newErrorRate := response.TempChartObject{
-			//ChartData: map[int64]float64{},
 			Ratio: newErrorRadio,
 		}
 		if instance.AvgErrorRate != nil && !math.IsInf(*instance.AvgErrorRate, 0) { //为无穷大时则不赋值
@@ -136,6 +138,7 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 			}
 			newErrorRate.ChartData = data
 		}
+		// 如果平均错误率等于100，则搞一个新图表 ？
 		if newErrorRate.Value != nil && *newErrorRate.Value == 100 {
 			values := make(map[int64]float64)
 			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {
@@ -143,6 +146,7 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 			}
 			newErrorRate.ChartData = values
 		}
+		// 同上
 		if newErrorRate.Value != nil && *newErrorRate.Value == 0 {
 			values := make(map[int64]float64)
 			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {
@@ -189,7 +193,6 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 			WeekOverDay: instance.LatencyWeekOverWeek,
 		}
 		newlatencyRate := response.TempChartObject{
-			//ChartData: map[int64]float64{},
 			Ratio: newlatencyRadio,
 		}
 		if instance.AvgLatency != nil && !math.IsInf(*instance.AvgLatency, 0) { //为无穷大时则不赋值
