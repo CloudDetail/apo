@@ -80,7 +80,7 @@ export default function LogRouteRuleFormList() {
                   </Col>
                   <Col span={11} key={index}>
                     <Form.Item noStyle name={[field.name, 'value']} required>
-                      <Input placeholder="匹配规则value，可输入正则" />
+                      <Input placeholder="匹配值，按照前缀匹配" />
                     </Form.Item>
                   </Col>
                   <Col span={1}>
