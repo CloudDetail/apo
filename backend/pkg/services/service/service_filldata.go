@@ -140,7 +140,7 @@ func adjustValue(value *float64) {
 func mergeLogMetrics(instances *InstanceMap, results []prometheus.MetricResult, metricName string) {
 	for _, res := range results {
 		for key, value := range instances.MetricGroupMap {
-			if key.Pod == res.Metric.POD || (key.PID == res.Metric.PID && key.NodeIP == res.Metric.NodeIP) {
+			if key.Pod == res.Metric.POD || (key.PID == res.Metric.PID && key.NodeName == res.Metric.NodeName) {
 				switch metricName {
 				case metricLog:
 					value.LogAVGData = &res.Values[0].Value
@@ -164,13 +164,13 @@ func (s *service) InstanceLog(instances *InstanceMap, startTime, endTime time.Ti
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
-	var pods, nodeIP, pid []string
+	var pods, nodeName, pid []string
 	for key := range instances.MetricGroupMap {
 		if len(key.Pod) > 0 {
 			pods = append(pods, key.Pod)
 		}
-		if len(key.NodeIP) > 0 {
-			nodeIP = append(nodeIP, key.NodeIP)
+		if len(key.NodeName) > 0 {
+			nodeName = append(nodeName, key.NodeName)
 		}
 		if len(key.PID) > 0 {
 			pid = append(pid)
@@ -182,7 +182,7 @@ func (s *service) InstanceLog(instances *InstanceMap, startTime, endTime time.Ti
 	podFilter[1] = prometheus.RegexMultipleValue(pods...)
 	vmFilter := make([]string, 4)
 	vmFilter[0] = prometheus.LogMetricNodeRegexPQLFilter
-	vmFilter[1] = prometheus.RegexMultipleValue(nodeIP...)
+	vmFilter[1] = prometheus.RegexMultipleValue(nodeName...)
 	vmFilter[2] = prometheus.LogMetricPidRegexPQLFilter
 	vmFilter[3] = prometheus.RegexMultipleValue(pid...)
 	pql, pqlErr := prometheus.PQLInstanceLog(
