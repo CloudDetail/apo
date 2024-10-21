@@ -4250,11 +4250,8 @@ const docTemplate = `{
         "model.AlertMetricsData": {
             "type": "object",
             "properties": {
-                "labels": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "group": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
