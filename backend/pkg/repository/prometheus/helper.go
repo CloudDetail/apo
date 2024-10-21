@@ -29,7 +29,7 @@ const (
 
 	PodRegexPQLFilter           = "pod=~"
 	LogMetricPodRegexPQLFilter  = "pod_name=~"
-	LogMetricNodeRegexPQLFilter = "host_ip=~"
+	LogMetricNodeRegexPQLFilter = "host_name=~"
 	LogMetricPidRegexPQLFilter  = "pid=~"
 	ContainerIdRegexPQLFilter   = "container_id=~"
 )
