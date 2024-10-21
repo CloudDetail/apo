@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/hashicorp/go-multierror"
+	"math"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -126,25 +127,29 @@ func (s *service) InstanceRangeData(instances *InstanceMap, startTime, endTime t
 	return err
 }
 
+func adjustValue(value *float64) {
+	if math.IsInf(*value, 1) {
+		*value = prometheus.RES_MAX_VALUE
+	} else if math.IsInf(*value, -1) {
+		*value = -prometheus.RES_MAX_VALUE
+	} else {
+		*value = (*value - 1) * 100
+	}
+}
+
 func mergeLogMetrics(instances *InstanceMap, results []prometheus.MetricResult, metricName string) {
 	for _, res := range results {
 		for key, value := range instances.MetricGroupMap {
 			if key.Pod == res.Metric.POD {
 				switch metricName {
 				case metricLog:
-					if &res.Values[0].Value != nil {
-						value.LogAVGData = &res.Values[0].Value
-					}
+					value.LogAVGData = &res.Values[0].Value
 				case metricLogDOD:
-					if &res.Values[0].Value != nil {
-						res.Values[0].Value = (res.Values[0].Value - 1) * 100
-						value.LogDayOverDay = &res.Values[0].Value
-					}
+					adjustValue(&res.Values[0].Value)
+					value.LogDayOverDay = &res.Values[0].Value
 				case metricLogWOW:
-					if &res.Values[0].Value != nil {
-						res.Values[0].Value = (res.Values[0].Value - 1) * 100
-						value.LogWeekOverWeek = &res.Values[0].Value
-					}
+					adjustValue(&res.Values[0].Value)
+					value.LogWeekOverWeek = &res.Values[0].Value
 				case metricLogData:
 					value.LogData = res.Values
 				}
