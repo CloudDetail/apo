@@ -363,5 +363,5 @@ func (builder *ByLimitBuilder) String() string {
 }
 
 func NewQueryCondition(st, et int64, timeField, query string) string {
-	return fmt.Sprintf("toUnixTimestamp(%s) >= %d AND toUnixTimestamp(%s) < %d AND %s", timeField, st/1000000, timeField, et/1000000, query)
+	return fmt.Sprintf("toUnixTimestamp(`%s`) >= %d AND toUnixTimestamp(`%s`) < %d AND %s", timeField, st/1000000, timeField, et/1000000, query)
 }

@@ -8,7 +8,7 @@ import (
 
 func groupBySQL(req *request.LogIndexRequest) string {
 	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
-	sql := fmt.Sprintf("SELECT count(*) as count, `%s` as f FROM %s.%s WHERE %s GROUP BY %s ORDER BY count DESC LIMIT 10",
+	sql := fmt.Sprintf("SELECT count(*) as count, `%s` as f FROM `%s`.`%s` WHERE %s GROUP BY %s ORDER BY count DESC LIMIT 10",
 		req.Column,
 		req.DataBase,
 		req.TableName,
@@ -20,7 +20,7 @@ func groupBySQL(req *request.LogIndexRequest) string {
 
 func countSQL(req *request.LogIndexRequest) string {
 	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
-	sql := fmt.Sprintf("SELECT count(*) as count FROM %s.%s WHERE %s",
+	sql := fmt.Sprintf("SELECT count(*) as count FROM `%s`.`%s` WHERE %s",
 		req.DataBase,
 		req.TableName,
 		condition,
