@@ -41,7 +41,6 @@ func (h *handler) GetServiceInstance() core.HandlerFunc {
 		req.EndTime = req.EndTime / 1000000     //接收的微秒级别的startTime和endTime需要先转成秒级别
 		startTime = time.Unix(req.StartTime, 0)
 		endTime = time.Unix(req.EndTime, 0)
-		// 		step := time.Duration(req.Step * 1000)
 		step := time.Duration(req.Step * 1000)
 		serviceName := req.ServiceName
 		endpoint := req.Endpoint

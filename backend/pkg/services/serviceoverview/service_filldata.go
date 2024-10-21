@@ -2,7 +2,6 @@ package serviceoverview
 
 import (
 	"fmt"
-	"github.com/CloudDetail/apo/backend/pkg/services/utils"
 	"math"
 	"strconv"
 	"time"
@@ -108,13 +107,11 @@ func (s *service) UrlAVG(Urls *[]prom.EndpointMetrics, serviceName string, endTi
 }
 
 // EndpointsREDMetric 查询Endpoint级别的RED指标结果(包括平均值,日同比变化率,周同比变化率)
-func (s *service) EndpointsREDMetric(startTime, endTime time.Time, filter utils.Filter) *EndpointsMap {
+func (s *service) EndpointsREDMetric(startTime, endTime time.Time, filters []string) *EndpointsMap {
 	var res = &EndpointsMap{
 		MetricGroupList: []*prom.EndpointMetrics{},
 		MetricGroupMap:  map[prom.EndpointKey]*prom.EndpointMetrics{},
 	}
-
-	filters := filter.ExtractFilterStr()
 
 	// 填充时间段内的平均RED指标
 	s.promRepo.FillMetric(res, prom.AVG, startTime, endTime, filters, prom.EndpointGranularity)
@@ -126,7 +123,7 @@ func (s *service) EndpointsREDMetric(startTime, endTime time.Time, filter utils.
 	return res
 }
 
-// Extract 提取过滤条件
+// EndpointsFilter 提取过滤条件
 // 返回一个长度为偶数的string数组, 奇数位为key, 偶数位为 value
 func (f EndpointsFilter) ExtractFilterStr() []string {
 	var filters []string
@@ -151,8 +148,7 @@ func (s *service) EndpointsRealtimeREDMetric(filter EndpointsFilter, endpointsMa
 
 // EndpointsDelaySource 填充延时来源
 // 基于输入的Endpoints填充, 会抛弃Endpoints中不存在的记录
-func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTime time.Time, filter EndpointsFilter) error {
-	filters := filter.ExtractFilterStr()
+func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTime time.Time, filters []string) error {
 
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
@@ -184,9 +180,7 @@ func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTi
 	return nil
 }
 
-func (s *service) EndpointsNamespaceInfo(endpoints *EndpointsMap, startTime, endTime time.Time, filter EndpointsFilter) error {
-	filters := filter.ExtractFilterStr()
-
+func (s *service) EndpointsNamespaceInfo(endpoints *EndpointsMap, startTime, endTime time.Time, filters []string) error {
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 

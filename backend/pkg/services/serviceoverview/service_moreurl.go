@@ -19,11 +19,12 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 		ServiceName: serviceNames,
 	}
 
-	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filter)
+	filters := filter.ExtractFilterStr()
+	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filters)
 	endpoints := endpointsMap.MetricGroupList
 
 	// step2 填充延时依赖关系
-	err = s.EndpointsDelaySource(endpointsMap, startTime, endTime, filter)
+	err = s.EndpointsDelaySource(endpointsMap, startTime, endTime, filters)
 	if err != nil {
 		// TODO 输出错误日志, DelaySource查询失败
 	}

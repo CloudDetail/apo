@@ -1,7 +1,7 @@
 package service
 
 import (
-	"strings"
+	"github.com/hashicorp/go-multierror"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -19,11 +19,11 @@ const (
 
 type InstanceMap = prometheus.MetricGroupMap[prometheus.InstanceKey, *prometheus.InstanceMetrics]
 
-// mergeMetrics 用于将指标结果合并到map中
+// mergeChartMetrics 用于将指标结果合并到map中
 // 功能上与MetricGroup.MergeMetricResults类似但是MergeMetricResults并不能完全复用
 // TODO 修改MergeMetricResults，为所有指标提供setValue方法。使其能复用到所有结果的赋值
 // TODO 无法合并指标labels中不含instanceKey的情况
-func mergeMetrics(instances *InstanceMap, results []prometheus.MetricResult, metricName string) {
+func mergeChartMetrics(instances *InstanceMap, results []prometheus.MetricResult, metricName string) {
 	for _, res := range results {
 		var kType prometheus.InstanceKey
 		key := kType.ConvertFromLabels(res.Metric).(prometheus.InstanceKey)
@@ -35,11 +35,16 @@ func mergeMetrics(instances *InstanceMap, results []prometheus.MetricResult, met
 		}
 		switch metricName {
 		case metricLatencyData:
+			for i := range res.Values {
+				res.Values[i].Value /= 1e3
+			}
 			instance.LatencyData = res.Values
 		case metricErrorData:
+			for i := range res.Values {
+				res.Values[i].Value *= 100
+			}
 			instance.ErrorRateData = res.Values
 		case metricTPMData:
-			// 计算结果为每秒次数，转为分钟
 			for i := range res.Values {
 				res.Values[i].Value *= 60
 			}
@@ -62,9 +67,8 @@ func (f InstancesFilter) ExtractFilterStr() []string {
 		filters = append(filters, prometheus.ContentKeyPQLFilter, f.ContentKey)
 	}
 
-	// TODO Pod可能不存在
-	filters = append(filters, prometheus.PodRegexPQLFilter, prometheus.ValueExistPQLValueFilter)
-	filters = append(filters, prometheus.ContainerIdRegexPQLFilter, prometheus.ValueExistPQLValueFilter)
+	filters = append(filters, prometheus.PodRegexPQLFilter, prometheus.LabelExistPQLValueFilter)
+	filters = append(filters, prometheus.ContainerIdRegexPQLFilter, prometheus.LabelExistPQLValueFilter)
 	return filters
 }
 
@@ -83,13 +87,11 @@ func (s *service) InstanceRED(startTime, endTime time.Time, filters []string) *I
 }
 
 // InstanceRangeData 获取instance粒度的RED指标的图表数据
-func (s *service) InstanceRangeData(instances *InstanceMap, startTime, endTime time.Time, step time.Duration, filters []string) error {
+func (s *service) InstanceRangeData(instances *InstanceMap, startTime, endTime time.Time, step time.Duration, filters []string) *multierror.Error {
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
-	// TODO 用 multierror 合并error返回
-	// step时间单位使用微秒传入
-	latencyRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(
+	latencyRes, latencyErr := s.promRepo.QueryRangeAggMetricsWithFilter(
 		prometheus.PQLAvgLatencyWithFilters,
 		startTS,
 		endTS,
@@ -97,38 +99,31 @@ func (s *service) InstanceRangeData(instances *InstanceMap, startTime, endTime t
 		prometheus.InstanceGranularity,
 		filters...,
 	)
-	if err != nil {
-		return err
-	}
-	mergeMetrics(instances, latencyRes, metricLatencyData)
+	mergeChartMetrics(instances, latencyRes, metricLatencyData)
 
-	errorRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(
+	errorRes, rateErr := s.promRepo.QueryRangeAggMetricsWithFilter(
 		prometheus.PQLAvgErrorRateWithFilters,
 		startTS,
 		endTS,
-		int64(step),
+		step.Microseconds(),
 		prometheus.InstanceGranularity,
 		filters...,
 	)
-	if err != nil {
-		return err
-	}
-	mergeMetrics(instances, errorRes, metricErrorData)
+	mergeChartMetrics(instances, errorRes, metricErrorData)
 
-	tpmRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(
+	tpmRes, tmpErr := s.promRepo.QueryRangeAggMetricsWithFilter(
 		prometheus.PQLAvgTPSWithFilters,
 		startTS,
 		endTS,
-		int64(step),
+		step.Microseconds(),
 		prometheus.InstanceGranularity,
 		filters...,
 	)
-	if err != nil {
-		return err
-	}
-	mergeMetrics(instances, tpmRes, metricTPMData)
+	mergeChartMetrics(instances, tpmRes, metricTPMData)
 
-	return nil
+	var err *multierror.Error
+	err = multierror.Append(err, latencyErr, rateErr, tmpErr)
+	return err
 }
 
 func mergeLogMetrics(instances *InstanceMap, results []prometheus.MetricResult, metricName string) {
@@ -142,10 +137,12 @@ func mergeLogMetrics(instances *InstanceMap, results []prometheus.MetricResult, 
 					}
 				case metricLogDOD:
 					if &res.Values[0].Value != nil {
+						res.Values[0].Value = (res.Values[0].Value - 1) * 100
 						value.LogDayOverDay = &res.Values[0].Value
 					}
 				case metricLogWOW:
 					if &res.Values[0].Value != nil {
+						res.Values[0].Value = (res.Values[0].Value - 1) * 100
 						value.LogWeekOverWeek = &res.Values[0].Value
 					}
 				case metricLogData:
@@ -158,72 +155,64 @@ func mergeLogMetrics(instances *InstanceMap, results []prometheus.MetricResult, 
 }
 
 // InstanceLog 填充instance级别的log指标的均值、日同比、周同比、图表
-func (s *service) InstanceLog(instances *InstanceMap, startTime, endTime time.Time, step time.Duration) error {
+func (s *service) InstanceLog(instances *InstanceMap, startTime, endTime time.Time, step time.Duration) *multierror.Error {
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
-	var pods []string
-	// TODO 支持非K8s实例的日志指标查询
+	var pods, nodeIP, pid []string
 	for key := range instances.MetricGroupMap {
 		if len(key.Pod) > 0 {
 			pods = append(pods, key.Pod)
 		}
+		if len(key.NodeIP) > 0 {
+			nodeIP = append(nodeIP, key.NodeIP)
+		}
+		if len(key.PID) > 0 {
+			pid = append(pid)
+		}
 	}
 
-	escapedKeys := make([]string, len(pods))
-	for i, key := range pods {
-		escapedKeys[i] = prometheus.EscapeRegexp(key)
-	}
-	// 使用 strings.Join 生成正则表达式模式
-	regexPattern := strings.Join(escapedKeys, "|")
-	filter := make([]string, 2)
-	filter[0] = prometheus.LogMetricPodRegexPQLFilter
-	filter[1] = regexPattern
-	logDataRes, err := s.promRepo.QueryAggMetricsWithFilter(
+	podFilter := make([]string, 2)
+	podFilter[0] = prometheus.LogMetricPodRegexPQLFilter
+	podFilter[1] = prometheus.RegexMultipleValue(pods...)
+	vmFilter := make([]string, 4)
+	vmFilter[0] = prometheus.LogMetricNodeRegexPQLFilter
+	vmFilter[1] = prometheus.RegexMultipleValue(nodeIP...)
+	vmFilter[2] = prometheus.LogMetricPidRegexPQLFilter
+	vmFilter[3] = prometheus.RegexMultipleValue(pid...)
+	pql, pqlErr := prometheus.PQLInstanceLog(
 		prometheus.PQLAvgLogErrorCountWithFilters,
-		startTS,
-		endTS,
+		startTS, endTS,
 		prometheus.LogGranularity,
-		filter...)
-	if err != nil {
+		podFilter, vmFilter)
+
+	var err *multierror.Error
+	if pqlErr != nil {
+		err = multierror.Append(err, pqlErr)
 		return err
 	}
+
+	logDataRes, avgErr := s.promRepo.QueryData(endTime, pql)
 	mergeLogMetrics(instances, logDataRes, metricLog)
 
-	logDODRes, err := s.promRepo.QueryAggMetricsWithFilter(
-		prometheus.DayOnDay(prometheus.PQLAvgLogErrorCountWithFilters),
-		startTS,
-		endTS,
-		prometheus.LogGranularity,
-		filter...)
-	if err != nil {
-		return err
-	}
+	pqlDOD := `(` + pql + `) / ((` + pql + `) offset 24h )`
+	logDODRes, dodErr := s.promRepo.QueryData(endTime, pqlDOD)
 	mergeLogMetrics(instances, logDODRes, metricLogDOD)
 
-	logWOWRes, err := s.promRepo.QueryAggMetricsWithFilter(
-		prometheus.WeekOnWeek(prometheus.PQLAvgLogErrorCountWithFilters),
-		startTS,
-		endTS,
-		prometheus.LogGranularity,
-		filter...)
-	if err != nil {
-		return err
-	}
+	pqlWOW := `(` + pql + `) / ((` + pql + `) offset 7d )`
+	logWOWRes, wowErr := s.promRepo.QueryData(endTime, pqlWOW)
 	mergeLogMetrics(instances, logWOWRes, metricLogWOW)
 
-	logData, err := s.promRepo.QueryRangeAggMetricsWithFilter(
+	logData, chartErr := s.promRepo.QueryInstanceLogRangeData(
 		prometheus.PQLAvgLogErrorCountWithFilters,
 		startTS,
 		endTS,
-		int64(step),
+		step.Microseconds(),
 		prometheus.LogGranularity,
-		filter...,
+		podFilter, vmFilter,
 	)
-	if err != nil {
-		return err
-	}
 	mergeLogMetrics(instances, logData, metricLogData)
 
-	return nil
+	err = multierror.Append(err, avgErr, dodErr, wowErr, chartErr)
+	return err
 }

@@ -47,11 +47,12 @@ type Repo interface {
 	// ========== originx_logparser_level_count_total Start ==========
 	// 查询实例日志Error数
 	QueryLogCountByInstanceId(instance *model.ServiceInstance, startTime int64, endTime int64, step int64) (map[int64]float64, error)
+	// QueryInstanceLogRangeData 查询实例级别的日志曲线图
+	QueryInstanceLogRangeData(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, stepMicroS int64, granularity Granularity, podFilterKVs, vmFilterKVs []string) ([]MetricResult, error)
 	// ========== originx_logparser_level_count_total END ==========
 
 	QueryAggMetricsWithFilter(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error)
 	QueryRangeAggMetricsWithFilter(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, step int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error)
-
 	// originx_process_start_time
 	QueryProcessStartTime(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) (map[model.ServiceInstance]int64, error)
 	GetApi() v1.API

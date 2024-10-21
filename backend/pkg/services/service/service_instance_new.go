@@ -21,49 +21,43 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 	tpsThreshold := threshold.Tps
 	latencyThreshold := threshold.Latency
 
-	filters := InstancesFilter{SrvName: serviceName, ContentKey: endPoint}.ExtractFilterStr()
+	filter := InstancesFilter{SrvName: serviceName, ContentKey: endPoint}
+	filters := filter.ExtractFilterStr()
 
 	// 获取RED指标
 	instances := s.InstanceRED(startTime, endTime, filters)
 
 	// 填充图表数据
-	err = s.InstanceRangeData(instances, startTime, endTime, step, filters)
-	if err != nil {
-		log.Println("get instance range data error: ", err)
+	chartErr := s.InstanceRangeData(instances, startTime, endTime, step, filters)
+	if chartErr.ErrorOrNil() != nil {
+		log.Println("get instance range data error: ", chartErr)
 	}
-
 	// 填充日志数据
-	err = s.InstanceLog(instances, startTime, endTime, step)
-	if err != nil {
-		log.Println("get instance log data error: ", err)
+	logErr := s.InstanceLog(instances, startTime, endTime, step)
+	if logErr.ErrorOrNil() != nil {
+		log.Println("get instance log data error: ", logErr)
 	}
 	resData := []response.InstanceData{}
 	res.Status = model.STATUS_NORMAL
 	// 填充instance和RED指标的状态
 	for _, instance := range instances.MetricGroupList {
 		if instance.REDMetrics.DOD.ErrorRate != nil && *instance.REDMetrics.DOD.ErrorRate > errorThreshold {
-			instance.IsErrorRateExceeded = true
 			res.Status = model.STATUS_CRITICAL
 		}
 		if instance.REDMetrics.DOD.Latency != nil && *instance.REDMetrics.DOD.Latency > latencyThreshold {
-			instance.IsLatencyExceeded = true
 			res.Status = model.STATUS_CRITICAL
 		}
 		if instance.REDMetrics.DOD.TPM != nil && *instance.REDMetrics.DOD.TPM > tpsThreshold {
-			instance.IsTPSExceeded = true
 			res.Status = model.STATUS_CRITICAL
 		}
 
 		if instance.REDMetrics.WOW.ErrorRate != nil && *instance.REDMetrics.WOW.ErrorRate > errorThreshold {
-			instance.IsErrorRateExceeded = true
 			res.Status = model.STATUS_CRITICAL
 		}
 		if instance.REDMetrics.WOW.Latency != nil && *instance.REDMetrics.WOW.Latency > latencyThreshold {
-			instance.IsLatencyExceeded = true
 			res.Status = model.STATUS_CRITICAL
 		}
 		if instance.REDMetrics.WOW.TPM != nil && *instance.REDMetrics.WOW.TPM > tpsThreshold {
-			instance.IsTPSExceeded = true
 			res.Status = model.STATUS_CRITICAL
 		}
 	}

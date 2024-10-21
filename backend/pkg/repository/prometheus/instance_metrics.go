@@ -4,15 +4,12 @@ package prometheus
 type InstanceMetrics struct {
 	InstanceKey
 
-	IsLatencyExceeded   bool
-	IsErrorRateExceeded bool
-	IsTPSExceeded       bool
+	REDMetrics REDMetrics
 
-	REDMetrics      REDMetrics
 	LogDayOverDay   *float64
 	LogWeekOverWeek *float64
+	LogAVGData      *float64
 
-	LogAVGData    *float64
 	LatencyData   []Points
 	ErrorRateData []Points
 	TPMData       []Points

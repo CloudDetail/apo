@@ -27,9 +27,11 @@ const (
 	ValueExistPQLValueFilter = ".+"
 	LabelExistPQLValueFilter = ".*"
 
-	PodRegexPQLFilter          = "pod=~"
-	LogMetricPodRegexPQLFilter = "pod_name=~"
-	ContainerIdRegexPQLFilter  = "container_id=~"
+	PodRegexPQLFilter           = "pod=~"
+	LogMetricPodRegexPQLFilter  = "pod_name=~"
+	LogMetricNodeRegexPQLFilter = "host_ip=~"
+	LogMetricPidRegexPQLFilter  = "pid=~"
+	ContainerIdRegexPQLFilter   = "container_id=~"
 )
 
 type Granularity string

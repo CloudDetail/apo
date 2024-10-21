@@ -22,3 +22,28 @@ func (repo *promRepo) QueryRangeAggMetricsWithFilter(pqlTemplate AggPQLWithFilte
 		pql,
 		step)
 }
+
+func (repo *promRepo) QueryInstanceLogRangeData(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, stepMicroS int64, granularity Granularity, podFilterKVs, vmFilterKVs []string) ([]MetricResult, error) {
+	if len(podFilterKVs)%2 != 0 {
+		return nil, fmt.Errorf("size of podFilterKVs is not even: %d", len(podFilterKVs))
+	}
+
+	if len(vmFilterKVs)%2 != 0 {
+		return nil, fmt.Errorf("size of vmFilterKVs is not even: %d", len(vmFilterKVs))
+	}
+	var podFilters []string
+	for i := 0; i+1 < len(podFilterKVs); i += 2 {
+		podFilters = append(podFilters, fmt.Sprintf("%s\"%s\"", podFilterKVs[i], podFilterKVs[i+1]))
+	}
+	var vmFilters []string
+	for i := 0; i+1 < len(vmFilterKVs); i += 2 {
+		vmFilters = append(vmFilters, fmt.Sprintf("%s\"%s\"", vmFilterKVs[i], vmFilterKVs[i+1]))
+	}
+
+	step := time.Duration(stepMicroS) * time.Microsecond
+	vector := VecFromDuration(step)
+	podPql := pqlTemplate(vector, string(granularity), podFilters)
+	vmPql := pqlTemplate(vector, string(granularity), vmFilters)
+	pql := `(` + podPql + `) or (` + vmPql + `)`
+	return repo.QueryRangeData(time.UnixMicro(startTime), time.UnixMicro(endTime), pql, step)
+}
