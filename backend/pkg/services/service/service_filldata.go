@@ -140,7 +140,7 @@ func adjustValue(value *float64) {
 func mergeLogMetrics(instances *InstanceMap, results []prometheus.MetricResult, metricName string) {
 	for _, res := range results {
 		for key, value := range instances.MetricGroupMap {
-			if key.Pod == res.Metric.POD {
+			if key.Pod == res.Metric.POD || (key.PID == res.Metric.PID && key.NodeIP == res.Metric.NodeIP) {
 				switch metricName {
 				case metricLog:
 					value.LogAVGData = &res.Values[0].Value
