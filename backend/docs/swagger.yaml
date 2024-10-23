@@ -497,10 +497,8 @@ definitions:
     type: object
   model.AlertMetricsData:
     properties:
-      labels:
-        items:
-          type: string
-        type: array
+      group:
+        type: string
       name:
         type: string
       pql:

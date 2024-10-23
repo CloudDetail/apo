@@ -162,10 +162,10 @@ type AlertEventCount struct {
 	AlarmCount uint64 `ch:"alarm_count" json:"alarmCount"`
 }
 
-// AlertMetricsData 提供用户可选择的指标对应的PQL和labels
+// AlertMetricsData 提供用户可选择的指标对应的PQL
 type AlertMetricsData struct {
-	Name   string   `json:"name"`
-	PQL    string   `json:"pql"`
-	Labels []string `json:"labels"`
-	Unit   string   `json:"unit"`
+	Name  string `json:"name"`
+	PQL   string `json:"pql"`
+	Unit  string `json:"unit"`
+	Group string `json:"group"`
 }
