@@ -3380,10 +3380,9 @@ paths:
         name: step
         required: true
         type: integer
-      - description: 过滤缺失入口
+      - description: 显示缺失入口
         in: query
-        name: filterMissTop
-        required: true
+        name: showMissTop
         type: boolean
       produces:
       - application/json

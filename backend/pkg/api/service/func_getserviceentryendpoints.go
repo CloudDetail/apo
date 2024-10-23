@@ -25,7 +25,7 @@ import (
 // @Param service query string true "查询服务名"
 // @Param endpoint query string true "查询Endpoint"
 // @Param step query int64 true "查询步长(us)"
-// @Param filterMissTop query bool true "过滤缺失入口"
+// @Param showMissTop query bool false "显示缺失入口"
 // @Success 200 {object} []response.GetServiceEntryEndpointsResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/service/entry/endpoints [get]

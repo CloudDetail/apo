@@ -161,12 +161,12 @@ type GetAlertEventsSampleRequest struct {
 }
 
 type GetServiceEntryEndpointsRequest struct {
-	StartTime     int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Service       string `form:"service" binding:"required"`                   // 查询服务名
-	Endpoint      string `form:"endpoint" binding:"required"`                  // 查询Endpoint
-	Step          int64  `form:"step" binding:"required"`                      // 查询步长(us)
-	FilterMissTop bool   `form:"filterMissTop" binding:"required"`             // 是否过滤非入口服务
+	StartTime   int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+	Service     string `form:"service" binding:"required"`                   // 查询服务名
+	Endpoint    string `form:"endpoint" binding:"required"`                  // 查询Endpoint
+	Step        int64  `form:"step" binding:"required"`                      // 查询步长(us)
+	ShowMissTop bool   `form:"showMissTop"`                                  // 是否显示丢失后的非入口服务
 }
 
 type GetMonitorStatusRequest struct {

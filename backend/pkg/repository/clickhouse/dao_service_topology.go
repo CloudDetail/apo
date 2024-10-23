@@ -100,7 +100,7 @@ func (ch *chRepo) ListEntryEndpoints(req *request.GetServiceEntryEndpointsReques
 		Between("timestamp", startTime, endTime).
 		Equals("nodes.service", req.Service).
 		Equals("nodes.url", req.Endpoint)
-	if req.FilterMissTop {
+	if !req.ShowMissTop {
 		queryBuilder.Equals("miss_top", false)
 	}
 	results := []EntryNode{}

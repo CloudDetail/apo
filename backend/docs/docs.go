@@ -1967,10 +1967,9 @@ const docTemplate = `{
                     },
                     {
                         "type": "boolean",
-                        "description": "过滤缺失入口",
-                        "name": "filterMissTop",
-                        "in": "query",
-                        "required": true
+                        "description": "显示缺失入口",
+                        "name": "showMissTop",
+                        "in": "query"
                     }
                 ],
                 "responses": {
