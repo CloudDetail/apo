@@ -38,6 +38,7 @@ func (repo *promRepo) QueryData(searchTime time.Time, query string) ([]MetricRes
 	}
 	return results, nil
 }
+
 func (repo *promRepo) QueryRangeData(startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error) {
 	r := v1.Range{
 		Start: startTime,

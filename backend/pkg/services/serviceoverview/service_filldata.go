@@ -107,110 +107,48 @@ func (s *service) UrlAVG(Urls *[]prom.EndpointMetrics, serviceName string, endTi
 }
 
 // EndpointsREDMetric 查询Endpoint级别的RED指标结果(包括平均值,日同比变化率,周同比变化率)
-func (s *service) EndpointsREDMetric(startTime, endTime time.Time, filter EndpointsFilter) *EndpointsMap {
+func (s *service) EndpointsREDMetric(startTime, endTime time.Time, filters []string) *EndpointsMap {
 	var res = &EndpointsMap{
 		MetricGroupList: []*prom.EndpointMetrics{},
 		MetricGroupMap:  map[prom.EndpointKey]*prom.EndpointMetrics{},
 	}
 
-	filters := extractEndpointFilters(filter)
-
 	// 填充时间段内的平均RED指标
-	s.fillMetric(res, prom.AVG, startTime, endTime, filters)
+	s.promRepo.FillMetric(res, prom.AVG, startTime, endTime, filters, prom.EndpointGranularity)
 	// 填充时间段内的RED指标日同比
-	s.fillMetric(res, prom.DOD, startTime, endTime, filters)
+	s.promRepo.FillMetric(res, prom.DOD, startTime, endTime, filters, prom.EndpointGranularity)
 	// 填充时间段内的RED指标周同比
-	s.fillMetric(res, prom.WOW, startTime, endTime, filters)
+	s.promRepo.FillMetric(res, prom.WOW, startTime, endTime, filters, prom.EndpointGranularity)
 
 	return res
 }
 
-// extractEndpointFilters 提取过滤条件
+// EndpointsFilter 提取过滤条件
 // 返回一个长度为偶数的string数组, 奇数位为key, 偶数位为 value
-func extractEndpointFilters(filter EndpointsFilter) []string {
+func (f EndpointsFilter) ExtractFilterStr() []string {
 	var filters []string
-	if len(filter.ServiceName) > 0 {
-		filters = append(filters, prom.ServicePQLFilter, filter.ServiceName)
-	} else if len(filter.ContainsSvcName) > 0 {
-		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(filter.ContainsSvcName))
+	if len(f.ServiceName) > 0 {
+		filters = append(filters, prom.ServicePQLFilter, f.ServiceName)
+	} else if len(f.ContainsSvcName) > 0 {
+		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexContainsValue(f.ContainsSvcName))
 	}
-	if len(filter.ContainsEndpointName) > 0 {
-		filters = append(filters, prom.ContentKeyRegexPQLFilter, prom.RegexContainsValue(filter.ContainsEndpointName))
+	if len(f.ContainsEndpointName) > 0 {
+		filters = append(filters, prom.ContentKeyRegexPQLFilter, prom.RegexContainsValue(f.ContainsEndpointName))
 	}
-	if len(filter.Namespace) > 0 {
-		filters = append(filters, prom.NamespacePQLFilter, filter.Namespace)
+	if len(f.Namespace) > 0 {
+		filters = append(filters, prom.NamespacePQLFilter, f.Namespace)
 	}
 	return filters
 }
 
 func (s *service) EndpointsRealtimeREDMetric(filter EndpointsFilter, endpointsMap *EndpointsMap, startTime time.Time, endTime time.Time) {
-	filters := extractEndpointFilters(filter)
-	s.fillMetric(endpointsMap, prom.REALTIME, startTime, endTime, filters)
-}
-
-func (s *service) fillMetric(res *EndpointsMap, metricGroup prom.MGroupName, startTime, endTime time.Time, filters []string) {
-	// 装饰器,默认不修改PQL语句,用于AVG或REALTIME两个metricGroup
-	var decorator = func(apf prom.AggPQLWithFilters) prom.AggPQLWithFilters {
-		return apf
-	}
-
-	switch metricGroup {
-	case prom.REALTIME:
-		// 实时值使用当前时间往前3分钟作为时间间隔
-		// 时间单位为microsecond
-		startTime = endTime.Add(-3 * time.Minute)
-	case prom.DOD:
-		decorator = prom.DayOnDay
-	case prom.WOW:
-		decorator = prom.WeekOnWeek
-	}
-
-	startTS := startTime.UnixMicro()
-	endTS := endTime.UnixMicro()
-
-	latency, err := s.promRepo.QueryAggMetricsWithFilter(
-		decorator(prom.PQLAvgLatencyWithFilters),
-		startTS, endTS,
-		prom.EndpointGranularity,
-		filters...,
-	)
-	if err != nil {
-		// TODO 输出日志或记录错误到Endpoint中
-	}
-	res.MergeMetricResults(metricGroup, prom.LATENCY, latency)
-
-	errorRate, err := s.promRepo.QueryAggMetricsWithFilter(
-		decorator(prom.PQLAvgErrorRateWithFilters),
-		startTS, endTS,
-		prom.EndpointGranularity,
-		filters...,
-	)
-	if err != nil {
-		// TODO 输出日志或记录错误到Endpoint中
-	}
-	res.MergeMetricResults(metricGroup, prom.ERROR_RATE, errorRate)
-
-	if metricGroup == prom.REALTIME {
-		// 目前不计算TPS的实时值
-		return
-	}
-	tps, err := s.promRepo.QueryAggMetricsWithFilter(
-		decorator(prom.PQLAvgTPSWithFilters),
-		startTS, endTS,
-		prom.EndpointGranularity,
-		filters...,
-	)
-	if err != nil {
-		// TODO 输出日志或记录错误到Endpoint中
-	}
-
-	res.MergeMetricResults(metricGroup, prom.THROUGHPUT, tps)
+	filters := filter.ExtractFilterStr()
+	s.promRepo.FillMetric(endpointsMap, prom.REALTIME, startTime, endTime, filters, prom.EndpointGranularity)
 }
 
 // EndpointsDelaySource 填充延时来源
 // 基于输入的Endpoints填充, 会抛弃Endpoints中不存在的记录
-func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTime time.Time, filter EndpointsFilter) error {
-	filters := extractEndpointFilters(filter)
+func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTime time.Time, filters []string) error {
 
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
@@ -242,9 +180,7 @@ func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTi
 	return nil
 }
 
-func (s *service) EndpointsNamespaceInfo(endpoints *EndpointsMap, startTime, endTime time.Time, filter EndpointsFilter) error {
-	filters := extractEndpointFilters(filter)
-
+func (s *service) EndpointsNamespaceInfo(endpoints *EndpointsMap, startTime, endTime time.Time, filters []string) error {
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
@@ -494,7 +430,7 @@ func (s *service) EndpointRangeREDChart(Services *[]ServiceDetail, startTime tim
 			contentKeys = append(contentKeys, Url.ContentKey)
 		}
 	}
-	//fmt.Printf("contentKeys: %d", len(contentKeys))
+
 	var err error
 	var errorDataRes []prom.MetricResult
 	//每300个url查询一次
@@ -506,7 +442,6 @@ func (s *service) EndpointRangeREDChart(Services *[]ServiceDetail, startTime tim
 			end = len(contentKeys)
 		}
 		batch := contentKeys[i:end]
-		//errorDataRes, err = s.promRepo.QueryRangePrometheusErrorLast30min(searchTime)
 		errorDataQuery := prom.QueryEndPointRangePromql(stepToStr, duration, prom.ErrorData, batch)
 		errorDataRes, err = s.promRepo.QueryRangeErrorData(startTime, endTime, errorDataQuery, step)
 		for _, result := range errorDataRes {

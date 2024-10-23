@@ -1,6 +1,7 @@
 package prometheus
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -141,4 +142,29 @@ func PQLAvgLogErrorCountWithFilters(vector string, granularity string, filters [
 func PQLMonitorStatus(vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")
 	return `last_over_time(monitor_status{` + filtersStr + `}[` + vector + `])`
+}
+
+// PQLInstanceLog 获取instance级别log指标的pql pod or vm
+func PQLInstanceLog(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, granularity Granularity, podFilterKVs, vmFilterKVs []string) (string, error) {
+	if len(podFilterKVs)%2 != 0 {
+		return "", fmt.Errorf("size of podFilterKVs is not even: %d", len(podFilterKVs))
+	}
+
+	if len(vmFilterKVs)%2 != 0 {
+		return "", fmt.Errorf("size of vmFilterKVs is not even: %d", len(vmFilterKVs))
+	}
+	var podFilters []string
+	for i := 0; i+1 < len(podFilterKVs); i += 2 {
+		podFilters = append(podFilters, fmt.Sprintf("%s\"%s\"", podFilterKVs[i], podFilterKVs[i+1]))
+	}
+
+	var vmFilters []string
+	for i := 0; i+1 < len(vmFilterKVs); i += 2 {
+		vmFilters = append(vmFilters, fmt.Sprintf("%s\"%s\"", vmFilterKVs[i], vmFilterKVs[i+1]))
+	}
+
+	vector := VecFromS2E(startTime, endTime)
+	podPql := pqlTemplate(vector, string(granularity), podFilters)
+	vmPql := pqlTemplate(vector, string(granularity), vmFilters)
+	return `(` + podPql + `) or (` + vmPql + `)`, nil
 }

@@ -13,19 +13,19 @@ func (s *service) GetServicesEndPointData(startTime time.Time, endTime time.Time
 	var duration string
 	var stepNS = endTime.Sub(startTime).Nanoseconds()
 	duration = strconv.FormatInt(stepNS/int64(time.Minute), 10) + "m"
-
+	filters := filter.ExtractFilterStr()
 	// step1 查询满足Filter的Endpoint,并返回对应的RED指标
 	// RED指标包含了选定时间段内的平均值,日同比变化率和周同比变化率
-	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filter)
+	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filters)
 
 	// step2 填充延时依赖关系
-	err = s.EndpointsDelaySource(endpointsMap, startTime, endTime, filter)
+	err = s.EndpointsDelaySource(endpointsMap, startTime, endTime, filters)
 	if err != nil {
 		// TODO 输出错误日志, DelaySource查询失败
 	}
 
 	// step2.. 填充Namespace信息
-	err = s.EndpointsNamespaceInfo(endpointsMap, startTime, endTime, filter)
+	err = s.EndpointsNamespaceInfo(endpointsMap, startTime, endTime, filters)
 	if err != nil {
 		// TODO 输出错误日志, Namespace查询失败
 	}

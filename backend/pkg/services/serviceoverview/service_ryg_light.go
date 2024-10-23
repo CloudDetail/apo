@@ -20,7 +20,7 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 	startMicroTS := startTime.UnixMicro()
 	endMicroTs := endTime.UnixMicro()
 
-	filters := extractEndpointFilters(filter)
+	filters := filter.ExtractFilterStr()
 
 	// FIX 用于展示没有LatencyDOD的服务
 	avgLatency, err := s.promRepo.QueryAggMetricsWithFilter(
