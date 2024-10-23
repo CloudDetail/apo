@@ -1964,6 +1964,13 @@ const docTemplate = `{
                         "name": "step",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "过滤缺失入口",
+                        "name": "filterMissTop",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
