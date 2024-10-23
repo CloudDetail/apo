@@ -189,6 +189,19 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 		resData = append(resData, newInstance)
 	}
 	res.Data = resData
+
+	for _, data := range res.Data {
+		if data.InfrastructureStatus == model.STATUS_CRITICAL {
+			res.Status = model.STATUS_CRITICAL
+			break
+		}
+		if data.NetStatus == model.STATUS_CRITICAL {
+			res.Status = model.STATUS_CRITICAL
+		}
+		if data.K8sStatus == model.STATUS_CRITICAL {
+			res.Status = model.STATUS_CRITICAL
+		}
+	}
 	return
 }
 
