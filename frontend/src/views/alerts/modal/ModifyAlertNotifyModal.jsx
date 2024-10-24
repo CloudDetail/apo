@@ -100,7 +100,7 @@ export default function ModifyAlertNotifyModal({
       .catch((error) => console.log(error))
   }
   useEffect(() => {
-    console.log(notifyInfo)
+    //console.log(notifyInfo)
     if (notifyInfo && modalVisible) {
       const emailConfigs = notifyInfo?.emailConfigs?.map((config) => {
         //编辑的时候就校验 端口号不允许冒号存在
