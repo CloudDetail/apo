@@ -1,6 +1,7 @@
 package serviceoverview
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"strconv"
 	"time"
 
@@ -34,10 +35,10 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		for _, instance := range serviceInstances.GetInstances() {
 			var convertName string
 			var instanceType int
-			if instance.PodName != "" {
+			if len(instance.PodName) > 0 {
 				convertName = instance.PodName
 				instanceType = POD
-			} else if instance.ContainerId != "" {
+			} else if len(instance.ContainerId) > 0 {
 				convertName = instance.ContainerId
 				instanceType = CONTAINER
 			} else {
@@ -97,7 +98,6 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 			_, err = s.LogDODByPid(&Services[i].Instances, Pids, endTime, duration)
 			_, err = s.LogWOWByPid(&Services[i].Instances, Pids, endTime, duration)
 			_, err = s.ServiceLogRangeDataByPid(&Services[i], Pids, startTime, endTime, duration, step)
-
 		}
 	}
 
@@ -119,8 +119,7 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 				data[timestamp] = value
 			}
 			newlogs.ChartData = data
-		}
-		if service.LogData == nil {
+		} else {
 			values := make(map[int64]float64)
 			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {
 				values[ts] = 0
@@ -128,19 +127,12 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 			newlogs.ChartData = values
 		}
 		for _, instance := range service.Instances {
+			calculateRate(&instance)
 			if instance.LogDayOverDay != nil {
-				if newlogs.Ratio.DayOverDay == nil {
-					// 如果 newlogs.Ratio.DayOverDay 是 nil，需要先初始化
-					newlogs.Ratio.DayOverDay = new(float64)
-				}
-				*newlogs.Ratio.DayOverDay += *instance.LogDayOverDay
+				newlogs.Ratio.DayOverDay = instance.LogDayOverDay
 			}
 			if instance.LogWeekOverWeek != nil {
-				if newlogs.Ratio.WeekOverDay == nil {
-					// 如果 newlogs.Ratio.WeekOverDay 是 nil，需要先初始化
-					newlogs.Ratio.WeekOverDay = new(float64)
-				}
-				*newlogs.Ratio.WeekOverDay += *instance.LogWeekOverWeek
+				newlogs.Ratio.WeekOverDay = instance.LogWeekOverWeek
 			}
 			if instance.AvgLog != nil {
 				if newlogs.Value == nil {
@@ -285,4 +277,59 @@ func getLatestStartTime(startTSmap map[model.ServiceInstance]int64) int64 {
 		}
 	}
 	return latestStartTime
+}
+
+// getNormalLog 查询service下所有实例是否有正常log指标
+func (s *service) getNormalLog(service ServiceDetail, startTime, endTime time.Time) []prometheus.MetricResult {
+	startTS, endTS := startTime.UnixMicro(), endTime.UnixMicro()
+	var pods, pids, nodeNames []string
+	for _, instance := range service.Instances {
+		if len(instance.Pod) > 0 {
+			pods = append(pods, instance.Pod)
+		} else if len(instance.Pid) > 0 && len(instance.NodeName) > 0 {
+			pids = append(pids, instance.NodeName)
+			nodeNames = append(nodeNames, instance.NodeName)
+		}
+	}
+
+	podFilter := make([]string, 2)
+	podFilter[0] = prometheus.LogMetricPodRegexPQLFilter
+	podFilter[1] = prometheus.RegexMultipleValue(pods...)
+	vmFilter := make([]string, 4)
+	vmFilter[0] = prometheus.LogMetricNodeRegexPQLFilter
+	vmFilter[1] = prometheus.RegexMultipleValue(nodeNames...)
+	vmFilter[2] = prometheus.LogMetricPidRegexPQLFilter
+	vmFilter[3] = prometheus.RegexMultipleValue(pids...)
+	pql, err := prometheus.PQLInstanceLog(
+		prometheus.PQLNormalLogCountWithFilters,
+		startTS, endTS,
+		prometheus.LogGranularity,
+		podFilter, vmFilter)
+	if err != nil {
+		return nil
+	}
+	normalLog, _ := s.promRepo.QueryData(endTime, pql)
+	return normalLog
+}
+
+// calculateRate 计算instance的同比
+func calculateRate(instance *Instance) {
+	if instance.LogNow == nil {
+		return
+	}
+
+	maxVal := new(float64)
+	*maxVal = prometheus.RES_MAX_VALUE
+	if instance.LogYesterday == nil && *instance.LogNow > 0 {
+		instance.LogDayOverDay = maxVal
+	} else {
+		dod := (*instance.LogNow / *instance.LogYesterday - 1) * 100
+		instance.LogDayOverDay = &dod
+	}
+	if instance.LogLastWeek == nil && *instance.LogNow > 0 {
+		instance.LogDayOverDay = maxVal
+	} else {
+		wow := (*instance.LogNow / *instance.LogLastWeek - 1) * 100
+		instance.LogDayOverDay = &wow
+	}
 }

@@ -25,6 +25,9 @@ const (
 	AvgLog
 	LogDOD
 	LogWOW
+	LogNow
+	LogYesterday
+	LogLastWeek
 	Avg1minError
 	Avg1minLatency
 )
@@ -1281,6 +1284,18 @@ func QueryLogPromql(duration string, queryType QueryType, pods []string) string 
 			regexPattern, duration, "0", regexPattern, duration, "0",
 			regexPattern, duration, "7d", regexPattern, duration, "7d",
 			regexPattern, duration, "7d", regexPattern, duration, "7d")
+	case LogNow:
+		return fmt.Sprintf(queryPodLogCountTemplate,
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "0", regexPattern, duration, "0")
+	case LogYesterday:
+		return fmt.Sprintf(queryPodLogCountTemplate,
+			regexPattern, duration, "24h", regexPattern, duration, "24h",
+			regexPattern, duration, "24h", regexPattern, duration, "24h")
+	case LogLastWeek:
+		return fmt.Sprintf(queryPodLogCountTemplate,
+			regexPattern, duration, "7d", regexPattern, duration, "7d",
+			regexPattern, duration, "7d", regexPattern, duration, "7d")
 	default:
 		return ""
 	}
@@ -1320,6 +1335,18 @@ func QueryLogByContainerIdPromql(duration string, queryType QueryType, container
 			regexPattern, duration, "0", regexPattern, duration, "0",
 			regexPattern, duration, "7d", regexPattern, duration, "7d",
 			regexPattern, duration, "7d", regexPattern, duration, "7d")
+	case LogNow:
+		return fmt.Sprintf(queryContainerLogCountTemplate,
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "0", regexPattern, duration, "0")
+	case LogYesterday:
+		return fmt.Sprintf(queryContainerLogCountTemplate,
+			regexPattern, duration, "24h", regexPattern, duration, "24h",
+			regexPattern, duration, "24h", regexPattern, duration, "24h")
+	case LogLastWeek:
+		return fmt.Sprintf(queryContainerLogCountTemplate,
+			regexPattern, duration, "7d", regexPattern, duration, "7d",
+			regexPattern, duration, "7d", regexPattern, duration, "7d")
 	default:
 		return ""
 	}
@@ -1352,6 +1379,18 @@ func QueryLogByPidPromql(duration string, queryType QueryType, pids []string) st
 		return fmt.Sprintf(queryPidLogCountTemplate+"/"+queryPidLogCountTemplate+"-1",
 			regexPattern, duration, "0", regexPattern, duration, "0",
 			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "7d", regexPattern, duration, "7d",
+			regexPattern, duration, "7d", regexPattern, duration, "7d")
+	case LogNow:
+		return fmt.Sprintf(queryContainerLogCountTemplate,
+			regexPattern, duration, "0", regexPattern, duration, "0",
+			regexPattern, duration, "0", regexPattern, duration, "0")
+	case LogYesterday:
+		return fmt.Sprintf(queryContainerLogCountTemplate,
+			regexPattern, duration, "24h", regexPattern, duration, "24h",
+			regexPattern, duration, "24h", regexPattern, duration, "24h")
+	case LogLastWeek:
+		return fmt.Sprintf(queryContainerLogCountTemplate,
 			regexPattern, duration, "7d", regexPattern, duration, "7d",
 			regexPattern, duration, "7d", regexPattern, duration, "7d")
 	default:

@@ -138,6 +138,22 @@ func PQLAvgLogErrorCountWithFilters(vector string, granularity string, filters [
 	return "((" + errorLevelCount + ") + (" + exceptionCount + ")) or (" + errorLevelCount + ") or (" + exceptionCount + ")"
 }
 
+// PQLNormalLogCountWithFilters 检查有无正常日志
+func PQLNormalLogCountWithFilters(vector string, granularity string, filters []string) string {
+	filtersStr := strings.Join(filters, ",")
+
+	var filterWithLevel string
+	if len(filters) > 0 {
+		filterWithLevel = filtersStr + `, level=~".*"`
+	} else {
+		filterWithLevel = `level=~".*"`
+	}
+	errorLevelCount := `sum by (` + granularity + `) (increase(originx_logparser_level_count_total{` + filterWithLevel + `}[` + vector + `]))`
+	exceptionCount := `sum by (` + granularity + `) (increase(originx_logparser_exception_count_total{` + filtersStr + `}[` + vector + `]))`
+
+	return "((" + errorLevelCount + ") + (" + exceptionCount + ")) or (" + errorLevelCount + ") or (" + exceptionCount + ")"
+}
+
 // PQLMonitorStatus uptime-kuma监控项状态
 func PQLMonitorStatus(vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")
