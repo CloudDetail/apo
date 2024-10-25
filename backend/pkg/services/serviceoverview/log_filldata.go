@@ -14,7 +14,7 @@ func (s *service) AvgLogByPod(Instances *[]Instance, pods []string, endTime time
 	queryLog := prometheus.QueryLogPromql(duration, prometheus.AvgLog, pods)
 	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
 	for _, result := range LogRateRes {
-		podName := result.Metric.PodName
+		podName := result.Metric.POD
 		if podName == "" {
 			continue
 		}
@@ -41,7 +41,7 @@ func (s *service) LogDODByPod(Instances *[]Instance, pods []string, endTime time
 		return Instances, err
 	}
 	for _, result := range logNow {
-		podName := result.Metric.PodName
+		podName := result.Metric.POD
 		if podName == "" {
 			continue
 		}
@@ -49,7 +49,7 @@ func (s *service) LogDODByPod(Instances *[]Instance, pods []string, endTime time
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == podName {
 				if Instance.LogNow == nil {
-					Instance.LogNow = new(float64)
+					(*Instances)[i].LogNow = new(float64)
 				}
 				*(*Instances)[i].LogNow += value
 				break
@@ -58,7 +58,7 @@ func (s *service) LogDODByPod(Instances *[]Instance, pods []string, endTime time
 	}
 
 	for _, result := range logYesterday {
-		podName := result.Metric.PodName
+		podName := result.Metric.POD
 		if podName == "" {
 			continue
 		}
@@ -66,7 +66,7 @@ func (s *service) LogDODByPod(Instances *[]Instance, pods []string, endTime time
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == podName {
 				if Instance.LogYesterday == nil {
-					Instance.LogYesterday = new(float64)
+					(*Instances)[i].LogYesterday = new(float64)
 				}
 				*(*Instances)[i].LogYesterday += value
 				break
@@ -83,7 +83,7 @@ func (s *service) LogWOWByPod(Instances *[]Instance, pods []string, endTime time
 		return Instances, err
 	}
 	for _, result := range logLastWeek {
-		podName := result.Metric.PodName
+		podName := result.Metric.POD
 		if podName == "" {
 			continue
 		}
@@ -91,7 +91,7 @@ func (s *service) LogWOWByPod(Instances *[]Instance, pods []string, endTime time
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == podName {
 				if Instance.LogLastWeek == nil {
-					Instance.LogLastWeek = new(float64)
+					(*Instances)[i].LogLastWeek = new(float64)
 				}
 				(*Instances)[i].LogLastWeek = &value
 				break
@@ -119,7 +119,7 @@ func (s *service) LogRangeDataByPod(Instances *[]Instance, pods []string, startT
 	LogDataQuery := prometheus.QueryLogPromql(stepToStr, prometheus.AvgLog, pods)
 	LogDataRes, err := s.promRepo.QueryRangeData(startTime, endTime, LogDataQuery, step)
 	for _, result := range LogDataRes {
-		podName := result.Metric.PodName
+		podName := result.Metric.POD
 		if podName == "" {
 			continue
 		}
@@ -174,7 +174,7 @@ func (s *service) LogDODByContainerId(Instances *[]Instance, containerIds []stri
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == containerId {
 				if Instance.LogNow == nil {
-					Instance.LogNow = new(float64)
+					(*Instances)[i].LogNow = new(float64)
 				}
 				*(*Instances)[i].LogNow += value
 				break
@@ -191,7 +191,7 @@ func (s *service) LogDODByContainerId(Instances *[]Instance, containerIds []stri
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == containerId {
 				if Instance.LogYesterday == nil {
-					Instance.LogYesterday = new(float64)
+					(*Instances)[i].LogYesterday = new(float64)
 				}
 				*(*Instances)[i].LogYesterday += value
 				break
@@ -217,7 +217,7 @@ func (s *service) LogWOWByContainerId(Instances *[]Instance, containerIds []stri
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == containerId {
 				if Instance.LogLastWeek == nil {
-					Instance.LogLastWeek = new(float64)
+					(*Instances)[i].LogLastWeek = new(float64)
 				}
 				*(*Instances)[i].LogLastWeek += value
 				break
@@ -300,7 +300,7 @@ func (s *service) LogDODByPid(Instances *[]Instance, pids []string, endTime time
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == pid {
 				if Instance.LogNow == nil {
-					Instance.LogNow = new(float64)
+					(*Instances)[i].LogNow = new(float64)
 				}
 				*(*Instances)[i].LogNow += value
 				break
@@ -317,7 +317,7 @@ func (s *service) LogDODByPid(Instances *[]Instance, pids []string, endTime time
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == pid {
 				if Instance.LogYesterday == nil {
-					Instance.LogYesterday = new(float64)
+					(*Instances)[i].LogYesterday = new(float64)
 				}
 				*(*Instances)[i].LogYesterday += value
 				break
@@ -342,7 +342,7 @@ func (s *service) LogWOWByPid(Instances *[]Instance, pids []string, endTime time
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == pid {
 				if Instance.LogLastWeek == nil {
-					Instance.LogLastWeek = new(float64)
+					(*Instances)[i].LogLastWeek = new(float64)
 				}
 				*(*Instances)[i].LogLastWeek += value
 				break
