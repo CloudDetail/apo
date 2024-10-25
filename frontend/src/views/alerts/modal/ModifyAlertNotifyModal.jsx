@@ -15,25 +15,27 @@ export default function ModifyAlertNotifyModal({
   refresh,
 }) {
   const [form] = Form.useForm()
-  const updateAlertNotify = (amConfigReceiver,type) => {
-    let api = addAlertNotifyApi
-    let params = {
-      amConfigReceiver,
-      type
-    }
+  const updateAlertNotify = (amConfigReceiver, type) => {
+    let api = addAlertNotifyApi;
+    let params = typeof type === 'undefined'
+      ? { amConfigReceiver }
+      : { amConfigReceiver, type };
+
     if (notifyInfo) {
-      api = updateAlertNotifyApi
-      params.oldName = notifyInfo.name
+      api = updateAlertNotifyApi;
+      params.oldName = notifyInfo.name;
     }
+
     api(params).then(() => {
       showToast({
         title: '保存告警通知配置成功',
         color: 'success',
-      })
-      closeModal()
-      refresh()
-    })
-  }
+      });
+      closeModal();
+      refresh();
+    });
+  };
+
   const saveRule = () => {
     console.log(form.getFieldsValue(true))
     form
@@ -95,7 +97,7 @@ export default function ModifyAlertNotifyModal({
             return config
           })
         }
-        updateAlertNotify(amConfigReceiver,formState.notifyType)
+        updateAlertNotify(amConfigReceiver, formState.notifyType)
       })
       .catch((error) => console.log(error))
   }
@@ -175,7 +177,7 @@ export default function ModifyAlertNotifyModal({
     <>
       <Modal
         title={'告警通知配置'}
-        open={modalVisible} 
+        open={modalVisible}
         onCancel={closeModal}
         destroyOnClose
         centered
@@ -216,10 +218,10 @@ export default function ModifyAlertNotifyModal({
               ]}
             >
               <Select
-                options={[  
+                options={[
                   { label: '邮件通知', value: 'email' },
                   { label: 'Webhook通知', value: 'webhook' },
-                  { label:'钉钉', value:'dingtalk'}
+                  { label: '钉钉', value: 'dingtalk' }
                 ]}
                 disabled={notifyInfo}
               />
