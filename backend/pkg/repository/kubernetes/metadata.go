@@ -74,12 +74,12 @@ func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConf
 
 	var res []amconfig.Receiver = make([]amconfig.Receiver, 0)
 	for i := 0; i < len(amConfig.Receivers); i++ {
-		receiver := amConfig.Receivers[i]
-		if !amconfig.HasEmailOrWebhookConfig(receiver) {
+		receiver := &amConfig.Receivers[i]
+		if !amconfig.HasEmailOrWebhookConfig(*receiver) {
 			continue
 		}
 		if matchAMConfigReceiverFilter(filter, receiver) {
-			res = append(res, receiver)
+			res = append(res, *receiver)
 		}
 	}
 
@@ -378,7 +378,7 @@ func (m *Metadata) AlertManagerConfigMarshalToYaml(configFile string) ([]byte, e
 	return yaml.Marshal(amConfig)
 }
 
-func matchAMConfigReceiverFilter(filter *request.AMConfigReceiverFilter, receiver amconfig.Receiver) bool {
+func matchAMConfigReceiverFilter(filter *request.AMConfigReceiverFilter, receiver *amconfig.Receiver) bool {
 	if filter == nil {
 		return true
 	}
@@ -390,6 +390,13 @@ func matchAMConfigReceiverFilter(filter *request.AMConfigReceiverFilter, receive
 	if len(filter.RType) > 0 {
 		switch filter.RType {
 		case "webhook":
+			filteredWebhookConfigs := []*amconfig.WebhookConfig{}
+			for i := range receiver.WebhookConfigs {
+				if !receiver.WebhookConfigs[i].IsDingTalk {
+					filteredWebhookConfigs = append(filteredWebhookConfigs, receiver.WebhookConfigs[i])
+				}
+			}
+			receiver.WebhookConfigs = filteredWebhookConfigs
 			return len(receiver.WebhookConfigs) > 0
 		case "email":
 			return len(receiver.EmailConfigs) > 0

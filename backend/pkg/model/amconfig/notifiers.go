@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/textproto"
+	"net/url"
 	"regexp"
 	"strings"
 	"text/template"
@@ -510,7 +511,25 @@ type WebhookConfig struct {
 	// MaxAlerts is the maximum number of alerts to be sent per webhook message.
 	// Alerts exceeding this threshold will be truncated. Setting this to 0
 	// allows an unlimited number of alerts.
-	MaxAlerts uint64 `yaml:"max_alerts" json:"maxAlerts"`
+	MaxAlerts  uint64 `yaml:"max_alerts" json:"maxAlerts"`
+	IsDingTalk bool   `yaml:"is_ding_talk" json:"-"`
+}
+
+func NewWebhookConfig(urlStr string, isDingTalk bool) *WebhookConfig {
+	url, _ := url.Parse(urlStr)
+	config := &WebhookConfig{
+		URL: &URL{
+			uURl: url,
+		},
+		IsDingTalk: isDingTalk,
+	}
+	config.VSendResolved = true
+	config.HTTPConfig = &httpconfig.HTTPClientConfig{
+		TLSConfig: httpconfig.TLSConfig{
+			InsecureSkipVerify: true,
+		},
+	}
+	return config
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface.
