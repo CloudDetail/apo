@@ -322,14 +322,20 @@ func calculateRate(instance *Instance) {
 	*maxVal = prometheus.RES_MAX_VALUE
 	if instance.LogYesterday == nil && *instance.LogNow > 0 {
 		instance.LogDayOverDay = maxVal
-	} else {
-		dod := (*instance.LogNow / *instance.LogYesterday - 1) * 100
+	} else if instance.LogYesterday != nil {
+		var dod float64 = 0
+		if *instance.LogYesterday != 0 {
+			dod = (*instance.LogNow / *instance.LogYesterday - 1) * 100
+		}
 		instance.LogDayOverDay = &dod
 	}
 	if instance.LogLastWeek == nil && *instance.LogNow > 0 {
 		instance.LogDayOverDay = maxVal
-	} else {
-		wow := (*instance.LogNow / *instance.LogLastWeek - 1) * 100
+	} else if instance.LogLastWeek != nil {
+		var wow float64 = 0
+		if *instance.LogLastWeek != 0 {
+			wow = (*instance.LogNow / *instance.LogLastWeek - 1) * 100
+		}
 		instance.LogDayOverDay = &wow
 	}
 }
