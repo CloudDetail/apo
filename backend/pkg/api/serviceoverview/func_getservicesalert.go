@@ -48,7 +48,6 @@ func (h *handler) GetServicesAlert() core.HandlerFunc {
 		serviceNames := req.ServiceNames
 		returnData := req.ReturnData
 		var resp []response.ServiceAlertRes
-		c.Payload(resp)
 		data, err := h.serviceoverview.GetServicesAlert(startTime, endTime, step, serviceNames, returnData)
 		if err != nil {
 			c.AbortWithError(core.Error(
@@ -61,7 +60,7 @@ func (h *handler) GetServicesAlert() core.HandlerFunc {
 		if data != nil {
 			resp = data
 		} else {
-			resp = []response.ServiceAlertRes{} // 确保返回一个空数组
+			resp = []response.ServiceAlertRes{}
 		}
 
 		c.Payload(resp)

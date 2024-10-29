@@ -221,3 +221,16 @@ func (s *service) InstanceLog(instances *InstanceMap, startTime, endTime time.Ti
 	err = multierror.Append(err, avgErr, dodErr, wowErr, chartErr)
 	return err
 }
+
+func (s *service) GetNormalLog(startTime, endTime time.Time, filters []string) []prometheus.MetricResult {
+	startTS := startTime.UnixMicro()
+	endTS := endTime.UnixMicro()
+
+	normalLog, _ := s.promRepo.QueryAggMetricsWithFilter(
+		prometheus.PQLNormalLogCountWithFilters,
+		startTS, endTS,
+		prometheus.LogGranularity,
+		filters...)
+
+	return normalLog
+}

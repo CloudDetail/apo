@@ -1,7 +1,6 @@
 package serviceoverview
 
 import (
-	"math"
 	"strconv"
 	"time"
 
@@ -15,16 +14,14 @@ func (s *service) AvgLogByPod(Instances *[]Instance, pods []string, endTime time
 	queryLog := prometheus.QueryLogPromql(duration, prometheus.AvgLog, pods)
 	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
 	for _, result := range LogRateRes {
-		podName := result.Metric.PodName
+		podName := result.Metric.POD
 		if podName == "" {
 			continue
 		}
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == podName {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Instances)[i].AvgLog = &value
-				}
+				(*Instances)[i].AvgLog = &value
 				break
 			}
 		}
@@ -33,51 +30,70 @@ func (s *service) AvgLogByPod(Instances *[]Instance, pods []string, endTime time
 }
 
 func (s *service) LogDODByPod(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
-	var LogRateRes []prometheus.MetricResult
-	queryLog := prometheus.QueryLogPromql(duration, prometheus.LogDOD, pods)
-	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
-	for _, result := range LogRateRes {
-		podName := result.Metric.PodName
+	queryLogNow := prometheus.QueryLogPromql(duration, prometheus.LogNow, pods)
+	logNow, err := s.promRepo.QueryData(endTime, queryLogNow)
+	if err != nil {
+		return Instances, err
+	}
+	queryLogYesterday := prometheus.QueryLogPromql(duration, prometheus.LogYesterday, pods)
+	logYesterday, err := s.promRepo.QueryData(endTime, queryLogYesterday)
+	if err != nil {
+		return Instances, err
+	}
+	for _, result := range logNow {
+		podName := result.Metric.POD
 		if podName == "" {
 			continue
 		}
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == podName {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Instances)[i].LogDayOverDay = &value
-				} else {
-					var value float64
-					value = RES_MAX_VALUE
-					pointer := &value
-					(*Instances)[i].LogDayOverDay = pointer
+				if Instance.LogNow == nil {
+					(*Instances)[i].LogNow = new(float64)
 				}
+				*(*Instances)[i].LogNow += value
+				break
+			}
+		}
+	}
+
+	for _, result := range logYesterday {
+		podName := result.Metric.POD
+		if podName == "" {
+			continue
+		}
+		value := result.Values[0].Value
+		for i, Instance := range *Instances {
+			if Instance.ConvertName == podName {
+				if Instance.LogYesterday == nil {
+					(*Instances)[i].LogYesterday = new(float64)
+				}
+				*(*Instances)[i].LogYesterday += value
 				break
 			}
 		}
 	}
 	return Instances, err
 }
+
 func (s *service) LogWOWByPod(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
-	var LogRateRes []prometheus.MetricResult
-	queryLog := prometheus.QueryLogPromql(duration, prometheus.LogWOW, pods)
-	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
-	for _, result := range LogRateRes {
-		podName := result.Metric.PodName
+	queryLogLastWeek := prometheus.QueryLogPromql(duration, prometheus.LogLastWeek, pods)
+	logLastWeek, err := s.promRepo.QueryData(endTime, queryLogLastWeek)
+	if err != nil {
+		return Instances, err
+	}
+	for _, result := range logLastWeek {
+		podName := result.Metric.POD
 		if podName == "" {
 			continue
 		}
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == podName {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Instances)[i].LogWeekOverWeek = &value
-				} else {
-					var value float64
-					value = RES_MAX_VALUE
-					pointer := &value
-					(*Instances)[i].LogWeekOverWeek = pointer
+				if Instance.LogLastWeek == nil {
+					(*Instances)[i].LogLastWeek = new(float64)
 				}
+				(*Instances)[i].LogLastWeek = &value
 				break
 			}
 		}
@@ -103,7 +119,7 @@ func (s *service) LogRangeDataByPod(Instances *[]Instance, pods []string, startT
 	LogDataQuery := prometheus.QueryLogPromql(stepToStr, prometheus.AvgLog, pods)
 	LogDataRes, err := s.promRepo.QueryRangeData(startTime, endTime, LogDataQuery, step)
 	for _, result := range LogDataRes {
-		podName := result.Metric.PodName
+		podName := result.Metric.POD
 		if podName == "" {
 			continue
 		}
@@ -130,9 +146,7 @@ func (s *service) AvgLogByContainerId(Instances *[]Instance, containerIds []stri
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == containerId {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Instances)[i].AvgLog = &value
-				}
+				(*Instances)[i].AvgLog = &value
 				break
 			}
 		}
@@ -141,31 +155,17 @@ func (s *service) AvgLogByContainerId(Instances *[]Instance, containerIds []stri
 }
 
 func (s *service) LogDODByContainerId(Instances *[]Instance, containerIds []string, endTime time.Time, duration string) (*[]Instance, error) {
-	var LogRateRes []prometheus.MetricResult
-	queryLog := prometheus.QueryLogByContainerIdPromql(duration, prometheus.LogDOD, containerIds)
-	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
-	for _, result := range LogRateRes {
-		contianerId := result.Metric.ContainerID
-		if contianerId == "" {
-			continue
-		}
-		value := result.Values[0].Value
-		for i, Instance := range *Instances {
-			if Instance.ConvertName == contianerId {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Instances)[i].LogDayOverDay = &value
-				}
-				break
-			}
-		}
+	queryLogNow := prometheus.QueryLogByContainerIdPromql(duration, prometheus.LogNow, containerIds)
+	logNow, err := s.promRepo.QueryData(endTime, queryLogNow)
+	if err != nil {
+		return Instances, err
 	}
-	return Instances, err
-}
-func (s *service) LogWOWByContainerId(Instances *[]Instance, containerIds []string, endTime time.Time, duration string) (*[]Instance, error) {
-	var LogRateRes []prometheus.MetricResult
-	queryLog := prometheus.QueryLogByContainerIdPromql(duration, prometheus.LogWOW, containerIds)
-	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
-	for _, result := range LogRateRes {
+	queryLogYesterday := prometheus.QueryLogByContainerIdPromql(duration, prometheus.LogYesterday, containerIds)
+	logYesterday, err := s.promRepo.QueryData(endTime, queryLogYesterday)
+	if err != nil {
+		return Instances, err
+	}
+	for _, result := range logNow {
 		containerId := result.Metric.ContainerID
 		if containerId == "" {
 			continue
@@ -173,9 +173,53 @@ func (s *service) LogWOWByContainerId(Instances *[]Instance, containerIds []stri
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == containerId {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Instances)[i].LogWeekOverWeek = &value
+				if Instance.LogNow == nil {
+					(*Instances)[i].LogNow = new(float64)
 				}
+				*(*Instances)[i].LogNow += value
+				break
+			}
+		}
+	}
+
+	for _, result := range logYesterday {
+		containerId := result.Metric.ContainerID
+		if containerId == "" {
+			continue
+		}
+		value := result.Values[0].Value
+		for i, Instance := range *Instances {
+			if Instance.ConvertName == containerId {
+				if Instance.LogYesterday == nil {
+					(*Instances)[i].LogYesterday = new(float64)
+				}
+				*(*Instances)[i].LogYesterday += value
+				break
+			}
+		}
+	}
+	return Instances, err
+}
+
+func (s *service) LogWOWByContainerId(Instances *[]Instance, containerIds []string, endTime time.Time, duration string) (*[]Instance, error) {
+	queryLastWeek := prometheus.QueryLogByContainerIdPromql(duration, prometheus.LogYesterday, containerIds)
+	logLastWeek, err := s.promRepo.QueryData(endTime, queryLastWeek)
+	if err != nil {
+		return Instances, err
+	}
+
+	for _, result := range logLastWeek {
+		containerId := result.Metric.ContainerID
+		if containerId == "" {
+			continue
+		}
+		value := result.Values[0].Value
+		for i, Instance := range *Instances {
+			if Instance.ConvertName == containerId {
+				if Instance.LogLastWeek == nil {
+					(*Instances)[i].LogLastWeek = new(float64)
+				}
+				*(*Instances)[i].LogLastWeek += value
 				break
 			}
 		}
@@ -228,9 +272,7 @@ func (s *service) AvgLogByPid(Instances *[]Instance, pods []string, endTime time
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == pid {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Instances)[i].AvgLog = &value
-				}
+				(*Instances)[i].AvgLog = &value
 				break
 			}
 		}
@@ -238,11 +280,18 @@ func (s *service) AvgLogByPid(Instances *[]Instance, pods []string, endTime time
 	return Instances, err
 }
 
-func (s *service) LogDODByPid(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
-	var LogRateRes []prometheus.MetricResult
-	queryLog := prometheus.QueryLogByPidPromql(duration, prometheus.LogDOD, pods)
-	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
-	for _, result := range LogRateRes {
+func (s *service) LogDODByPid(Instances *[]Instance, pids []string, endTime time.Time, duration string) (*[]Instance, error) {
+	queryLogNow := prometheus.QueryLogByPidPromql(duration, prometheus.LogNow, pids)
+	logNow, err := s.promRepo.QueryData(endTime, queryLogNow)
+	if err != nil {
+		return Instances, err
+	}
+	queryLogYesterday := prometheus.QueryLogByPidPromql(duration, prometheus.LogYesterday, pids)
+	logYesterday, err := s.promRepo.QueryData(endTime, queryLogYesterday)
+	if err != nil {
+		return Instances, err
+	}
+	for _, result := range logNow {
 		pid := result.Metric.PID
 		if pid == "" {
 			continue
@@ -250,20 +299,41 @@ func (s *service) LogDODByPid(Instances *[]Instance, pods []string, endTime time
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == pid {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Instances)[i].LogDayOverDay = &value
+				if Instance.LogNow == nil {
+					(*Instances)[i].LogNow = new(float64)
 				}
+				*(*Instances)[i].LogNow += value
+				break
+			}
+		}
+	}
+
+	for _, result := range logYesterday {
+		pid := result.Metric.PID
+		if pid == "" {
+			continue
+		}
+		value := result.Values[0].Value
+		for i, Instance := range *Instances {
+			if Instance.ConvertName == pid {
+				if Instance.LogYesterday == nil {
+					(*Instances)[i].LogYesterday = new(float64)
+				}
+				*(*Instances)[i].LogYesterday += value
 				break
 			}
 		}
 	}
 	return Instances, err
 }
-func (s *service) LogWOWByPid(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
-	var LogRateRes []prometheus.MetricResult
-	queryLog := prometheus.QueryLogByPidPromql(duration, prometheus.LogWOW, pods)
-	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
-	for _, result := range LogRateRes {
+func (s *service) LogWOWByPid(Instances *[]Instance, pids []string, endTime time.Time, duration string) (*[]Instance, error) {
+	queryLogLastWeek := prometheus.QueryLogByPidPromql(duration, prometheus.LogLastWeek, pids)
+	logLastWeek, err := s.promRepo.QueryData(endTime, queryLogLastWeek)
+	if err != nil {
+		return Instances, err
+	}
+
+	for _, result := range logLastWeek {
 		pid := result.Metric.PID
 		if pid == "" {
 			continue
@@ -271,9 +341,10 @@ func (s *service) LogWOWByPid(Instances *[]Instance, pods []string, endTime time
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == pid {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
-					(*Instances)[i].LogWeekOverWeek = &value
+				if Instance.LogLastWeek == nil {
+					(*Instances)[i].LogLastWeek = new(float64)
 				}
+				*(*Instances)[i].LogLastWeek += value
 				break
 			}
 		}
@@ -333,7 +404,14 @@ func (s *service) ServiceLogRangeDataByPod(Service *ServiceDetail, pods []string
 	LogDataQuery := prometheus.QueryLogPromql(stepToStr, prometheus.AvgLog, pods)
 	LogDataRes, err := s.promRepo.QueryRangeData(startTime, endTime, LogDataQuery, step)
 	for _, result := range LogDataRes {
-		Service.LogData = result.Values
+		if len(Service.LogData) < len(result.Values) {
+			Service.LogData = make([]prometheus.Points, len(result.Values))
+		}
+
+		for i := 0; i < len(result.Values); i++ {
+			Service.LogData[i].TimeStamp = result.Values[i].TimeStamp
+			Service.LogData[i].Value += result.Values[i].Value
+		}
 		break
 	}
 
@@ -359,7 +437,14 @@ func (s *service) ServiceLogRangeDataByContainerId(Service *ServiceDetail, conta
 	LogDataQuery := prometheus.QueryLogPromql(stepToStr, prometheus.AvgLog, containerIds)
 	LogDataRes, err := s.promRepo.QueryRangeData(startTime, endTime, LogDataQuery, step)
 	for _, result := range LogDataRes {
-		Service.LogData = result.Values
+		if len(Service.LogData) < len(result.Values) {
+			Service.LogData = make([]prometheus.Points, len(result.Values))
+		}
+
+		for i := 0; i < len(result.Values); i++ {
+			Service.LogData[i].TimeStamp = result.Values[i].TimeStamp
+			Service.LogData[i].Value += result.Values[i].Value
+		}
 		break
 	}
 
@@ -385,9 +470,38 @@ func (s *service) ServiceLogRangeDataByPid(Service *ServiceDetail, pids []string
 	LogDataQuery := prometheus.QueryLogPromql(stepToStr, prometheus.AvgLog, pids)
 	LogDataRes, err := s.promRepo.QueryRangeData(startTime, endTime, LogDataQuery, step)
 	for _, result := range LogDataRes {
-		Service.LogData = result.Values
+		if len(Service.LogData) < len(result.Values) {
+			Service.LogData = make([]prometheus.Points, len(result.Values))
+		}
+
+		for i := 0; i < len(result.Values); i++ {
+			Service.LogData[i].TimeStamp = result.Values[i].TimeStamp
+			Service.LogData[i].Value += result.Values[i].Value
+		}
 		break
 	}
 
 	return Service, err
+}
+
+func (s *service) GetNormalLog(pids []string, nodeName []string, pods []string, startTime, endTime time.Time) []prometheus.MetricResult {
+	startTS := startTime.UnixMicro()
+	endTS := endTime.UnixMicro()
+
+	podFilter := make([]string, 2)
+	podFilter[0] = prometheus.LogMetricPodRegexPQLFilter
+	podFilter[1] = prometheus.RegexMultipleValue(pods...)
+	vmFilter := make([]string, 4)
+	vmFilter[0] = prometheus.LogMetricNodeRegexPQLFilter
+	vmFilter[1] = prometheus.RegexMultipleValue(nodeName...)
+	vmFilter[2] = prometheus.LogMetricPidRegexPQLFilter
+	vmFilter[3] = prometheus.RegexMultipleValue(pids...)
+
+	normalLogPQL, _ := prometheus.PQLInstanceLog(
+		prometheus.PQLNormalLogCountWithFilters,
+		startTS, endTS,
+		prometheus.LogGranularity,
+		podFilter, vmFilter)
+	normalLog, _ := s.promRepo.QueryData(endTime, normalLogPQL)
+	return normalLog
 }

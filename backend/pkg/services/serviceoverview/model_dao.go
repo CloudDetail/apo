@@ -64,4 +64,9 @@ type Instance struct {
 	LogDayOverDay   *float64      // 日志告警次数日同比
 	LogWeekOverWeek *float64      // 日志告警次数周同比
 	LogData         []prom.Points // 日志告警次数 30min的数据
+
+	// 用于计算service下的同比
+	LogNow       *float64 // 查询时间段内的日志错误数
+	LogYesterday *float64 // 查询时间段内昨天的日志错误数
+	LogLastWeek  *float64 // 查询时间段内上周的日志错误数
 }
