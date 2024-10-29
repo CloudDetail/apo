@@ -3679,6 +3679,12 @@
                     "items": {
                         "$ref": "#/definitions/amconfig.WebhookConfig"
                     }
+                },
+                "wechatConfigs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/amconfig.WechatConfig"
+                    }
                 }
             }
         },
@@ -3707,6 +3713,44 @@
                     ]
                 },
                 "urlFile": {
+                    "type": "string"
+                }
+            }
+        },
+        "amconfig.WechatConfig": {
+            "type": "object",
+            "properties": {
+                "agentId": {
+                    "type": "string"
+                },
+                "apiSecret": {
+                    "type": "string"
+                },
+                "apiUrl": {
+                    "$ref": "#/definitions/amconfig.URL"
+                },
+                "corpId": {
+                    "type": "string"
+                },
+                "httpConfig": {
+                    "$ref": "#/definitions/httpconfig.HTTPClientConfig"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "messageType": {
+                    "type": "string"
+                },
+                "sendResolved": {
+                    "type": "boolean"
+                },
+                "toParty": {
+                    "type": "string"
+                },
+                "toTag": {
+                    "type": "string"
+                },
+                "toUser": {
                     "type": "string"
                 }
             }

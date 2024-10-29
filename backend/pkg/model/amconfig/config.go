@@ -758,7 +758,7 @@ type Receiver struct {
 	PagerdutyConfigs []*PagerdutyConfig         `yaml:"pagerduty_configs,omitempty" json:"-"`
 	SlackConfigs     []*SlackConfig             `yaml:"slack_configs,omitempty" json:"-"`
 	OpsGenieConfigs  []*OpsGenieConfig          `yaml:"opsgenie_configs,omitempty" json:"-"`
-	WechatConfigs    []*WechatConfig            `yaml:"wechat_configs,omitempty" json:"-"`
+	WechatConfigs    []*WechatConfig            `yaml:"wechat_configs,omitempty" json:"wechatConfigs,omitempty"`
 	PushoverConfigs  []*PushoverConfig          `yaml:"pushover_configs,omitempty" json:"-"`
 	VictorOpsConfigs []*VictorOpsConfig         `yaml:"victorops_configs,omitempty" json:"-"`
 	SNSConfigs       []*SNSConfig               `yaml:"sns_configs,omitempty" json:"-"`

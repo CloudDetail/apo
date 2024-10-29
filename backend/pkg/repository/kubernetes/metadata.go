@@ -151,6 +151,8 @@ func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.R
 					amConfig.Receivers[i].WebhookConfigs = receiver.WebhookConfigs
 				} else if len(receiver.EmailConfigs) > 0 {
 					amConfig.Receivers[i].EmailConfigs = receiver.EmailConfigs
+				} else if len(receiver.WechatConfigs) > 0 {
+					amConfig.Receivers[i].WechatConfigs = receiver.WechatConfigs
 				}
 
 				for _, route := range amConfig.Route.Routes {
@@ -389,6 +391,8 @@ func matchAMConfigReceiverFilter(filter *request.AMConfigReceiverFilter, receive
 			return len(receiver.WebhookConfigs) > 0
 		case "email":
 			return len(receiver.EmailConfigs) > 0
+		case "wechat":
+			return len(receiver.WechatConfigs) > 0
 		default:
 			return false
 		}
