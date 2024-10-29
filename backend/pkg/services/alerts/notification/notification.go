@@ -47,16 +47,6 @@ type DingNotificationBuilder struct {
 	textTpl  string
 }
 
-type targetMention struct {
-	all     bool     `yaml:"all,omitempty"`
-	mobiles []string `yaml:"mobiles,omitempty"`
-}
-
-type targetMessage struct {
-	title string `yaml:"title"`
-	text  string `yaml:"text"`
-}
-
 var builder *DingNotificationBuilder
 
 func NewNotificationBuilder() (*DingNotificationBuilder, error) {
