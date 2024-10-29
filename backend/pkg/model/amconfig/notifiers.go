@@ -511,17 +511,15 @@ type WebhookConfig struct {
 	// MaxAlerts is the maximum number of alerts to be sent per webhook message.
 	// Alerts exceeding this threshold will be truncated. Setting this to 0
 	// allows an unlimited number of alerts.
-	MaxAlerts  uint64 `yaml:"max_alerts" json:"maxAlerts"`
-	IsDingTalk bool   `yaml:"is_ding_talk" json:"-"`
+	MaxAlerts uint64 `yaml:"max_alerts" json:"maxAlerts"`
 }
 
-func NewWebhookConfig(urlStr string, isDingTalk bool) *WebhookConfig {
+func NewWebhookConfig(urlStr string) *WebhookConfig {
 	url, _ := url.Parse(urlStr)
 	config := &WebhookConfig{
 		URL: &URL{
 			uURl: url,
 		},
-		IsDingTalk: isDingTalk,
 	}
 	config.VSendResolved = true
 	config.HTTPConfig = &httpconfig.HTTPClientConfig{

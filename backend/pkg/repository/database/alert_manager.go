@@ -31,7 +31,7 @@ func (repo *daoRepo) GetDingTalkReceiverByAlertName(configFile string, alertName
 	var dingTalkConfigs []*DingTalkConfig
 	offset := (page - 1) * pageSize
 
-	query := repo.db.Select("url, secret").Where("config_file = ?", configFile)
+	query := repo.db.Select("alert_name, url, secret").Where("config_file = ?", configFile)
 	countQuery := repo.db.Model(&DingTalkConfig{}).Select("*").Where("config_file = ?", configFile)
 
 	if len(alertName) > 0 {

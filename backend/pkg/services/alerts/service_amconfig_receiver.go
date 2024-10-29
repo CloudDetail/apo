@@ -7,6 +7,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	uuid2 "github.com/google/uuid"
 	"net/url"
 )
@@ -18,7 +19,6 @@ func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigRecever
 			PageSize:    999,
 		}
 	}
-	// TODO 根据filter筛选
 	// 从内存中获取am的配置
 	receivers, totalCount := s.k8sApi.GetAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiverFilter, req.PageParam, req.RefreshCache)
 	resp := response.GetAlertManagerConfigReceiverResponse{
@@ -30,6 +30,9 @@ func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigRecever
 		},
 	}
 
+	if req.AMConfigReceiverFilter != nil && req.AMConfigReceiverFilter.RType != "" && req.AMConfigReceiverFilter.RType != "dingtalk" {
+		return resp
+	}
 	// 计算db的分页参数
 	page := req.PageParam.CurrentPage - totalCount/req.PageParam.PageSize
 	pageSize := req.PageParam.PageSize - len(receivers)
@@ -41,7 +44,13 @@ func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigRecever
 	if err != nil {
 		return resp
 	}
-	resp.AMConfigReceivers = append(resp.AMConfigReceivers, amconfig.Receiver{DingTalkConfigs: dingTalkReceivers})
+
+	for i := range dingTalkReceivers {
+		receiver := amconfig.Receiver{
+			Name:            dingTalkReceivers[i].AlertName,
+			DingTalkConfigs: []*database.DingTalkConfig{dingTalkReceivers[i]}}
+		resp.AMConfigReceivers = append(resp.AMConfigReceivers, receiver)
+	}
 	resp.Pagination.Total += dingTalkCount
 	return resp
 }
@@ -56,21 +65,16 @@ func (s *service) AddAMConfigReceiver(req *request.AddAlertManagerConfigReceiver
 	}
 
 	for i := range req.AMConfigReceiver.DingTalkConfigs {
-		uuid := uuid2.New()
-		escapedUUID := url.PathEscape(uuid.String())
-		webhookURL := fmt.Sprintf(`http://apo-backend-svc:8080/inputs/dingtalk/%s`, escapedUUID)
-		webhookConfig := amconfig.NewWebhookConfig(webhookURL, true)
-		req.AMConfigReceiver.WebhookConfigs = []*amconfig.WebhookConfig{webhookConfig}
-		err := s.k8sApi.AddAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver)
+		uuid, err := s.addDingTalkWebhook(req.AMConfigReceiver.Name)
 		if err != nil {
 			return err
 		}
-		req.AMConfigReceiver.DingTalkConfigs[i].UUID = escapedUUID
+		req.AMConfigReceiver.DingTalkConfigs[i].UUID = uuid
 		req.AMConfigReceiver.DingTalkConfigs[i].AlertName = req.AMConfigReceiver.Name
 		req.AMConfigReceiver.DingTalkConfigs[i].ConfigFile = req.AMConfigFile
-		// TODO consistency
 		err = s.dbRepo.CreateDingTalkReceiver(req.AMConfigReceiver.DingTalkConfigs[i])
 		if err != nil {
+			s.k8sApi.DeleteAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver.Name)
 			return err
 		}
 	}
@@ -87,23 +91,20 @@ func (s *service) UpdateAMConfigReceiver(req *request.UpdateAlertManagerConfigRe
 	}
 
 	for i := range req.AMConfigReceiver.DingTalkConfigs {
-		uuid := uuid2.New()
-		escapedUUID := url.PathEscape(uuid.String())
-		webhookURL := fmt.Sprintf(`http://apo-backend-svc:8080/inputs/dingtalk/%s`, escapedUUID)
-		webhookConfig := amconfig.NewWebhookConfig(webhookURL, true)
-		req.AMConfigReceiver.WebhookConfigs = []*amconfig.WebhookConfig{webhookConfig}
-		err := s.k8sApi.UpdateAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver, req.OldName)
-		if err != nil {
-			return err
-		}
-		req.AMConfigReceiver.DingTalkConfigs[i].UUID = escapedUUID
+		// regard as a create option
+		uuid, err := s.addDingTalkWebhook(req.AMConfigReceiver.Name)
+		req.AMConfigReceiver.DingTalkConfigs[i].UUID = uuid
 		req.AMConfigReceiver.DingTalkConfigs[i].AlertName = req.AMConfigReceiver.Name
 		req.AMConfigReceiver.DingTalkConfigs[i].ConfigFile = req.AMConfigFile
-		// TODO consistency
+
 		err = s.dbRepo.UpdateDingTalkReceiver(req.AMConfigReceiver.DingTalkConfigs[i], req.OldName)
 		if err != nil {
+			// redo
+			s.k8sApi.DeleteAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver.Name)
 			return err
 		}
+		// remove old config
+		s.k8sApi.DeleteAMConfigReceiver(req.AMConfigFile, req.OldName)
 	}
 	return nil
 }
@@ -117,4 +118,19 @@ func (s *service) DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigRe
 		return nil
 	}
 	return s.dbRepo.DeleteDingTalkReceiver(req.AMConfigFile, req.Name)
+}
+
+func (s *service) addDingTalkWebhook(name string) (string, error) {
+	uuid := uuid2.New()
+	escapedUUID := url.PathEscape(uuid.String())
+	webhookURL := fmt.Sprintf(`http://apo-backend-svc:8080/api/alerts/inputs/dingtalk/%s`, escapedUUID)
+	webhookConfig := amconfig.NewWebhookConfig(webhookURL)
+	req := request.AddAlertManagerConfigReceiver{}
+	req.AMConfigReceiver.WebhookConfigs = []*amconfig.WebhookConfig{webhookConfig}
+	req.AMConfigReceiver.Name = name
+	err := s.k8sApi.AddAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver)
+	if err != nil {
+		return "", err
+	}
+	return escapedUUID, nil
 }

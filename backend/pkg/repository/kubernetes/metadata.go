@@ -75,6 +75,13 @@ func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConf
 	var res []amconfig.Receiver = make([]amconfig.Receiver, 0)
 	for i := 0; i < len(amConfig.Receivers); i++ {
 		receiver := &amConfig.Receivers[i]
+		filteredWebhookConfigs := []*amconfig.WebhookConfig{}
+		for j := range receiver.WebhookConfigs {
+			if !strings.Contains(receiver.WebhookConfigs[j].URL.String(), "/inputs/dingtalk/") {
+				filteredWebhookConfigs = append(filteredWebhookConfigs, receiver.WebhookConfigs[i])
+			}
+		}
+		receiver.WebhookConfigs = filteredWebhookConfigs
 		if !amconfig.HasEmailOrWebhookConfig(*receiver) {
 			continue
 		}
@@ -140,8 +147,11 @@ func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.R
 			if amConfig.Receivers[i].Name == oldName {
 				receiverIsExist = true
 				amConfig.Receivers[i].Name = receiver.Name
-				amConfig.Receivers[i].WebhookConfigs = receiver.WebhookConfigs
-				amConfig.Receivers[i].EmailConfigs = receiver.EmailConfigs
+				if len(receiver.WebhookConfigs) > 0 {
+					amConfig.Receivers[i].WebhookConfigs = receiver.WebhookConfigs
+				} else if len(receiver.EmailConfigs) > 0 {
+					amConfig.Receivers[i].EmailConfigs = receiver.EmailConfigs
+				}
 
 				for _, route := range amConfig.Route.Routes {
 					if route.Receiver == oldName {
@@ -154,20 +164,6 @@ func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.R
 		if !receiverIsExist {
 			return model.NewErrWithMessage(fmt.Errorf("update receiver failed, '%s' not found", oldName), code.AlertManagerReceiverNotExistsError)
 		}
-
-	}
-
-	var receiverIsExist bool
-	for i := range amConfig.Receivers {
-		if amConfig.Receivers[i].Name == receiver.Name {
-			receiverIsExist = true
-			amConfig.Receivers[i].WebhookConfigs = receiver.WebhookConfigs
-			amConfig.Receivers[i].EmailConfigs = receiver.EmailConfigs
-			return nil
-		}
-	}
-	if !receiverIsExist {
-		return model.NewErrWithMessage(fmt.Errorf("update receiver failed, '%s' not found", oldName), code.AlertManagerReceiverNotExistsError)
 	}
 
 	return nil
@@ -390,16 +386,11 @@ func matchAMConfigReceiverFilter(filter *request.AMConfigReceiverFilter, receive
 	if len(filter.RType) > 0 {
 		switch filter.RType {
 		case "webhook":
-			filteredWebhookConfigs := []*amconfig.WebhookConfig{}
-			for i := range receiver.WebhookConfigs {
-				if !receiver.WebhookConfigs[i].IsDingTalk {
-					filteredWebhookConfigs = append(filteredWebhookConfigs, receiver.WebhookConfigs[i])
-				}
-			}
-			receiver.WebhookConfigs = filteredWebhookConfigs
 			return len(receiver.WebhookConfigs) > 0
 		case "email":
 			return len(receiver.EmailConfigs) > 0
+		default:
+			return false
 		}
 	}
 
@@ -471,6 +462,9 @@ func pageByParam[T any](list []T, param *request.PageParam) ([]T, int) {
 	}
 
 	startIdx := (param.CurrentPage - 1) * param.PageSize
+	if startIdx >= totalCount {
+		return nil, totalCount
+	}
 	endIdx := startIdx + param.PageSize
 	if endIdx > totalCount {
 		endIdx = totalCount
