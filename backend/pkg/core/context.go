@@ -52,6 +52,8 @@ type Context interface {
 	// tag: `uri:"xxx"`
 	ShouldBindURI(obj interface{}) error
 
+	Param(key string) string
+
 	// Payload 正确返回
 	Payload(payload interface{})
 	getPayload() interface{}
@@ -96,6 +98,10 @@ func (c *context) ShouldBindJSON(obj interface{}) error {
 // tag: `uri:"xxx"`
 func (c *context) ShouldBindURI(obj interface{}) error {
 	return c.ctx.ShouldBindUri(obj)
+}
+
+func (c *context) Param(key string) string {
+	return c.ctx.Param(key)
 }
 
 func (c *context) getPayload() interface{} {

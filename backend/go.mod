@@ -144,7 +144,9 @@ require (
 )
 
 require (
+	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572
 	github.com/prometheus/alertmanager v0.27.0
+	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.27.0
 )

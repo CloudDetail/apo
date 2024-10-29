@@ -74,12 +74,20 @@ func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConf
 
 	var res []amconfig.Receiver = make([]amconfig.Receiver, 0)
 	for i := 0; i < len(amConfig.Receivers); i++ {
-		receiver := amConfig.Receivers[i]
-		if !amconfig.HasEmailOrWebhookConfig(receiver) {
+		receiver := &amConfig.Receivers[i]
+		filteredWebhookConfigs := []*amconfig.WebhookConfig{}
+		// webhook中存在钉钉配置，这里需要忽略 会从db获取
+		for j := range receiver.WebhookConfigs {
+			if !strings.Contains(receiver.WebhookConfigs[j].URL.String(), "/outputs/dingtalk/") {
+				filteredWebhookConfigs = append(filteredWebhookConfigs, receiver.WebhookConfigs[i])
+			}
+		}
+		receiver.WebhookConfigs = filteredWebhookConfigs
+		if !amconfig.HasEmailOrWebhookConfig(*receiver) {
 			continue
 		}
 		if matchAMConfigReceiverFilter(filter, receiver) {
-			res = append(res, receiver)
+			res = append(res, *receiver)
 		}
 	}
 
@@ -140,8 +148,13 @@ func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.R
 			if amConfig.Receivers[i].Name == oldName {
 				receiverIsExist = true
 				amConfig.Receivers[i].Name = receiver.Name
-				amConfig.Receivers[i].WebhookConfigs = receiver.WebhookConfigs
-				amConfig.Receivers[i].EmailConfigs = receiver.EmailConfigs
+				if len(receiver.WebhookConfigs) > 0 {
+					amConfig.Receivers[i].WebhookConfigs = receiver.WebhookConfigs
+				} else if len(receiver.EmailConfigs) > 0 {
+					amConfig.Receivers[i].EmailConfigs = receiver.EmailConfigs
+				} else if len(receiver.WechatConfigs) > 0 {
+					amConfig.Receivers[i].WechatConfigs = receiver.WechatConfigs
+				}
 
 				for _, route := range amConfig.Route.Routes {
 					if route.Receiver == oldName {
@@ -154,20 +167,6 @@ func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.R
 		if !receiverIsExist {
 			return model.NewErrWithMessage(fmt.Errorf("update receiver failed, '%s' not found", oldName), code.AlertManagerReceiverNotExistsError)
 		}
-
-	}
-
-	var receiverIsExist bool
-	for i := range amConfig.Receivers {
-		if amConfig.Receivers[i].Name == receiver.Name {
-			receiverIsExist = true
-			amConfig.Receivers[i].WebhookConfigs = receiver.WebhookConfigs
-			amConfig.Receivers[i].EmailConfigs = receiver.EmailConfigs
-			return nil
-		}
-	}
-	if !receiverIsExist {
-		return model.NewErrWithMessage(fmt.Errorf("update receiver failed, '%s' not found", oldName), code.AlertManagerReceiverNotExistsError)
 	}
 
 	return nil
@@ -378,7 +377,7 @@ func (m *Metadata) AlertManagerConfigMarshalToYaml(configFile string) ([]byte, e
 	return yaml.Marshal(amConfig)
 }
 
-func matchAMConfigReceiverFilter(filter *request.AMConfigReceiverFilter, receiver amconfig.Receiver) bool {
+func matchAMConfigReceiverFilter(filter *request.AMConfigReceiverFilter, receiver *amconfig.Receiver) bool {
 	if filter == nil {
 		return true
 	}
@@ -393,6 +392,10 @@ func matchAMConfigReceiverFilter(filter *request.AMConfigReceiverFilter, receive
 			return len(receiver.WebhookConfigs) > 0
 		case "email":
 			return len(receiver.EmailConfigs) > 0
+		case "wechat":
+			return len(receiver.WechatConfigs) > 0
+		default:
+			return false
 		}
 	}
 
@@ -464,6 +467,9 @@ func pageByParam[T any](list []T, param *request.PageParam) ([]T, int) {
 	}
 
 	startIdx := (param.CurrentPage - 1) * param.PageSize
+	if startIdx >= totalCount {
+		return nil, totalCount
+	}
 	endIdx := startIdx + param.PageSize
 	if endIdx > totalCount {
 		endIdx = totalCount

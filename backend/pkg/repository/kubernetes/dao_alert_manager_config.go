@@ -114,13 +114,15 @@ func (k *k8sApi) UpdateAlertManagerConfigFile(alertManagerConfig string, content
 }
 
 func ValidateAMConfigReceiver(receiver amconfig.Receiver) error {
-	if len(receiver.WebhookConfigs) == 0 && len(receiver.EmailConfigs) == 0 {
-		return model.NewErrWithMessage(fmt.Errorf("receiver %s has no webhook or email config", receiver.Name), code.AlertManagerEmptyReceiver)
+	if len(receiver.WebhookConfigs) == 0 && len(receiver.EmailConfigs) == 0 && len(receiver.WechatConfigs) == 0 {
+		return model.NewErrWithMessage(fmt.Errorf("receiver %s has no webhook, wechat or email config", receiver.Name), code.AlertManagerEmptyReceiver)
 	}
 
 	for _, receiver := range receiver.WebhookConfigs {
 		// HACK 丢弃接口中设置的HEADER
-		receiver.HTTPConfig.HTTPHeaders = nil
+		if receiver.HTTPConfig != nil {
+			receiver.HTTPConfig.HTTPHeaders = nil
+		}
 	}
 
 	if receiver.EmailConfigs != nil {

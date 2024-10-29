@@ -61,6 +61,10 @@ func (u *URL) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (u *URL) String() string {
+	return u.uURl.String()
+}
+
 func parseURL(s string) (*URL, error) {
 	u, err := url.Parse(s)
 	if err != nil {

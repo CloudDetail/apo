@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/textproto"
+	"net/url"
 	"regexp"
 	"strings"
 	"text/template"
@@ -113,7 +114,7 @@ var (
 	// DefaultWechatConfig defines default values for wechat configurations.
 	DefaultWechatConfig = WechatConfig{
 		NotifierConfig: NotifierConfig{
-			VSendResolved: false,
+			VSendResolved: true,
 		},
 		Message: `{{ template "wechat.default.message" . }}`,
 		ToUser:  `{{ template "wechat.default.to_user" . }}`,
@@ -511,6 +512,22 @@ type WebhookConfig struct {
 	// Alerts exceeding this threshold will be truncated. Setting this to 0
 	// allows an unlimited number of alerts.
 	MaxAlerts uint64 `yaml:"max_alerts" json:"maxAlerts"`
+}
+
+func NewWebhookConfig(urlStr string) *WebhookConfig {
+	url, _ := url.Parse(urlStr)
+	config := &WebhookConfig{
+		URL: &URL{
+			uURl: url,
+		},
+	}
+	config.VSendResolved = true
+	config.HTTPConfig = &httpconfig.HTTPClientConfig{
+		TLSConfig: httpconfig.TLSConfig{
+			InsecureSkipVerify: true,
+		},
+	}
+	return config
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface.

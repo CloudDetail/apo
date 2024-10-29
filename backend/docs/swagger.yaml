@@ -45,6 +45,10 @@ definitions:
     type: object
   amconfig.Receiver:
     properties:
+      dingTalkConfigs:
+        items:
+          $ref: '#/definitions/database.DingTalkConfig'
+        type: array
       emailConfigs:
         items:
           $ref: '#/definitions/amconfig.EmailConfig'
@@ -56,6 +60,12 @@ definitions:
         items:
           $ref: '#/definitions/amconfig.WebhookConfig'
         type: array
+      wechatConfigs:
+        items:
+          $ref: '#/definitions/amconfig.WechatConfig'
+        type: array
+    required:
+    - name
     type: object
   amconfig.URL:
     type: object
@@ -76,6 +86,31 @@ definitions:
         - $ref: '#/definitions/amconfig.URL'
         description: URL to send POST request to.
       urlFile:
+        type: string
+    type: object
+  amconfig.WechatConfig:
+    properties:
+      agentId:
+        type: string
+      apiSecret:
+        type: string
+      apiUrl:
+        $ref: '#/definitions/amconfig.URL'
+      corpId:
+        type: string
+      httpConfig:
+        $ref: '#/definitions/httpconfig.HTTPClientConfig'
+      message:
+        type: string
+      messageType:
+        type: string
+      sendResolved:
+        type: boolean
+      toParty:
+        type: string
+      toTag:
+        type: string
+      toUser:
         type: string
     type: object
   clickhouse.AlertEventSample:
@@ -259,6 +294,13 @@ definitions:
         type: string
       message:
         description: 错误信息
+        type: string
+    type: object
+  database.DingTalkConfig:
+    properties:
+      secret:
+        type: string
+      url:
         type: string
     type: object
   httpconfig.Authorization:
@@ -590,6 +632,9 @@ definitions:
         $ref: '#/definitions/amconfig.Receiver'
       oldName:
         type: string
+      type:
+        description: receiver类型
+        type: string
     type: object
   request.AddAlertRuleRequest:
     properties:
@@ -635,9 +680,7 @@ definitions:
   request.Alert:
     properties:
       annotations:
-        additionalProperties:
-          type: string
-        type: object
+        $ref: '#/definitions/request.KV'
       endsAt:
         type: string
       fingerprint:
@@ -645,9 +688,7 @@ definitions:
       generatorURL:
         type: string
       labels:
-        additionalProperties:
-          type: string
-        type: object
+        $ref: '#/definitions/request.KV'
       startsAt:
         type: string
       status:
@@ -716,6 +757,8 @@ definitions:
         type: string
       name:
         type: string
+      type:
+        type: string
     required:
     - name
     type: object
@@ -755,6 +798,27 @@ definitions:
         type: string
       type:
         type: string
+    type: object
+  request.ForwardToDingTalkRequest:
+    properties:
+      ExternalURL:
+        type: string
+      alerts:
+        items:
+          $ref: '#/definitions/request.Alert'
+        type: array
+      commonAnnotations:
+        $ref: '#/definitions/request.KV'
+      commonLabels:
+        $ref: '#/definitions/request.KV'
+      groupLabels:
+        $ref: '#/definitions/request.KV'
+      receiver:
+        type: string
+      status:
+        type: string
+      truncatedAlerts:
+        type: integer
     type: object
   request.GetAlertManagerConfigReceverRequest:
     properties:
@@ -924,28 +988,28 @@ definitions:
     type: object
   request.InputAlertManagerRequest:
     properties:
+      ExternalURL:
+        type: string
       alerts:
         items:
           $ref: '#/definitions/request.Alert'
         type: array
       commonAnnotations:
-        additionalProperties:
-          type: string
-        type: object
+        $ref: '#/definitions/request.KV'
       commonLabels:
-        additionalProperties:
-          type: string
-        type: object
+        $ref: '#/definitions/request.KV'
       groupLabels:
-        additionalProperties:
-          type: string
-        type: object
+        $ref: '#/definitions/request.KV'
       receiver:
         type: string
       status:
         type: string
       truncatedAlerts:
         type: integer
+    type: object
+  request.KV:
+    additionalProperties:
+      type: string
     type: object
   request.LogIndexRequest:
     properties:
@@ -1123,6 +1187,9 @@ definitions:
       amConfigReceiver:
         $ref: '#/definitions/amconfig.Receiver'
       oldName:
+        type: string
+      type:
+        description: receiver类型
         type: string
     type: object
   request.UpdateAlertRuleRequest:
@@ -2226,6 +2293,35 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取 AlertManager 的告警事件
+      tags:
+      - API.alerts
+  /api/alerts/outputs/dingtalk/{uuid}:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 接收告警转发到钉钉
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.ForwardToDingTalkRequest'
+      - description: 钉钉webhook对应的uuid
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 接收告警转发到钉钉
       tags:
       - API.alerts
   /api/alerts/rule:
