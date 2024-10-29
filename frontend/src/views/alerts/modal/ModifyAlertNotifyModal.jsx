@@ -6,6 +6,8 @@ import { addAlertNotifyApi, updateAlertNotifyApi } from 'src/api/alerts'
 import { showToast } from 'src/utils/toast'
 import EmailConfigsFormList from './compontents/EmailConfigsFormList'
 import WebhookConfigsFormList from './compontents/WebhookConfigsFormList'
+import DingTalkConfigsFormList from './compontents/DingTalkConfigsFormList'
+import { formatTimeStr } from 'antd/es/statistic/utils'
 export default function ModifyAlertNotifyModal({
   modalVisible,
   notifyInfo = null,
@@ -13,24 +15,27 @@ export default function ModifyAlertNotifyModal({
   refresh,
 }) {
   const [form] = Form.useForm()
-  const updateAlertNotify = (amConfigReceiver) => {
-    let api = addAlertNotifyApi
-    let params = {
-      amConfigReceiver,
-    }
+  const updateAlertNotify = (amConfigReceiver, type) => {
+    let api = addAlertNotifyApi;
+    let params = typeof type === 'undefined'
+      ? { amConfigReceiver }
+      : { amConfigReceiver, type };
+
     if (notifyInfo) {
-      api = updateAlertNotifyApi
-      params.oldName = notifyInfo.name
+      api = updateAlertNotifyApi;
+      params.oldName = notifyInfo.name;
     }
+
     api(params).then(() => {
       showToast({
         title: '保存告警通知配置成功',
         color: 'success',
-      })
-      closeModal()
-      refresh()
-    })
-  }
+      });
+      closeModal();
+      refresh();
+    });
+  };
+
   const saveRule = () => {
     console.log(form.getFieldsValue(true))
     form
@@ -79,19 +84,25 @@ export default function ModifyAlertNotifyModal({
               })
               config.httpConfig.httpHeaders = headers
             }
-
             config.httpConfig.tlsConfig = {
               insecureSkipVerify: true,
             }
             return config
           })
+        } else if (formState.notifyType === 'dingtalk') {
+          amConfigReceiver.dingTalkConfigs = formState.dingTalkConfigs?.map((item) => {
+            let config = {}
+            if (item.url) config.url = item.url
+            if (item.secret) config.secret = item.secret
+            return config
+          })
         }
-        updateAlertNotify(amConfigReceiver)
+        updateAlertNotify(amConfigReceiver, formState.notifyType)
       })
       .catch((error) => console.log(error))
   }
   useEffect(() => {
-    // console.log(notifyInfo)
+    //console.log(notifyInfo)
     if (notifyInfo && modalVisible) {
       const emailConfigs = notifyInfo?.emailConfigs?.map((config) => {
         //编辑的时候就校验 端口号不允许冒号存在
@@ -210,7 +221,9 @@ export default function ModifyAlertNotifyModal({
                 options={[
                   { label: '邮件通知', value: 'email' },
                   { label: 'Webhook通知', value: 'webhook' },
+                  { label: '钉钉', value: 'dingtalk' }
                 ]}
+                disabled={notifyInfo}
               />
             </Form.Item>
           </Card>
@@ -224,6 +237,7 @@ export default function ModifyAlertNotifyModal({
                 <>
                   {notifyType === 'email' && <EmailConfigsFormList />}
                   {notifyType === 'webhook' && <WebhookConfigsFormList />}
+                  {notifyType === 'dingtalk' && <DingTalkConfigsFormList />}
                 </>
               )
             }}
