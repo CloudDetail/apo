@@ -18,7 +18,7 @@ type Handler interface {
 
 	// ForwardToDingTalk 接收告警转发到钉钉
 	// @Tags API.alerts
-	// @Router /api/alerts/inputs/dingtalk/{uuid} [post]
+	// @Router /api/alerts/outputs/dingtalk/{uuid} [post]
 	ForwardToDingTalk() core.HandlerFunc
 
 	// GetAlertRuleFile 获取基础告警规则

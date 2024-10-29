@@ -217,7 +217,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/alerts/inputs/dingtalk/{uuid}": {
+        "/api/alerts/outputs/dingtalk/{uuid}": {
             "post": {
                 "description": "接收告警转发到钉钉",
                 "consumes": [

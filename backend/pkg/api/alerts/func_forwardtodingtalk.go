@@ -18,7 +18,7 @@ import (
 // @Param uuid path string true "钉钉webhook对应的uuid"
 // @Success 200
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/inputs/dingtalk/{uuid} [post]
+// @Router /api/alerts/outputs/dingtalk/{uuid} [post]
 func (h *handler) ForwardToDingTalk() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.ForwardToDingTalkRequest)

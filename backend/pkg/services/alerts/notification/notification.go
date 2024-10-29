@@ -1,5 +1,7 @@
 package notification
 
+// Copied from https://github.com/timonwong/prometheus-webhook-dingtalk/blob/main/notifier/notification.go
+
 import (
 	"bytes"
 	"crypto/hmac"
@@ -43,13 +45,6 @@ type DingNotificationBuilder struct {
 	tmpl     *Template
 	titleTpl string
 	textTpl  string
-}
-
-type target struct {
-	url     *string        `yaml:"url,omitempty"`
-	secret  string         `yaml:"secret,omitempty"`
-	mention *targetMention `yaml:"mention,omitempty"`
-	message *targetMessage `yaml:"message,omitempty"`
 }
 
 type targetMention struct {

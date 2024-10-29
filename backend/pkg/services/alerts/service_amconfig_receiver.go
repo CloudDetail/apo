@@ -123,7 +123,7 @@ func (s *service) DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigRe
 func (s *service) addDingTalkWebhook(name string) (string, error) {
 	uuid := uuid2.New()
 	escapedUUID := url.PathEscape(uuid.String())
-	webhookURL := fmt.Sprintf(`http://apo-backend-svc:8080/api/alerts/inputs/dingtalk/%s`, escapedUUID)
+	webhookURL := fmt.Sprintf(`http://apo-backend-svc:8080/api/alerts/outputs/dingtalk/%s`, escapedUUID)
 	webhookConfig := amconfig.NewWebhookConfig(webhookURL)
 	req := request.AddAlertManagerConfigReceiver{}
 	req.AMConfigReceiver.WebhookConfigs = []*amconfig.WebhookConfig{webhookConfig}

@@ -2297,7 +2297,7 @@ paths:
       summary: 获取 AlertManager 的告警事件
       tags:
       - API.alerts
-  /api/alerts/inputs/dingtalk/{uuid}:
+  /api/alerts/outputs/dingtalk/{uuid}:
     post:
       consumes:
       - application/x-www-form-urlencoded
