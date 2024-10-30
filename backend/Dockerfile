@@ -12,7 +12,7 @@ FROM debian:bullseye-slim AS runner
 WORKDIR /app
 ENV TZ=Asia/Shanghai
 RUN apt-get update && \
-    apt-get install -y sqlite3 && \
+    apt-get install -y sqlite3 ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 COPY config/apo.yml /app/config/apo.yml
 COPY --from=builder /build/apo-backend /app/
