@@ -7,7 +7,7 @@ export default function DingTalkConfigsFormList() {
     {
       label: 'Webhook地址',
       name: 'url',
-      placeholder: 'webhook URL',
+      placeholder: 'Webhook URL',
       required: true,
     },
     {
@@ -36,7 +36,7 @@ export default function DingTalkConfigsFormList() {
                   <Form.Item
                     key={item.name}
                     label={item.label}
-                    name={[field.name, item.name]} 
+                    name={[field.name, item.name]}
                     rules={[
                       {
                         required: item.required,

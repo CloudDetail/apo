@@ -1,4 +1,4 @@
-import { Card, Form, Input, Modal, Select, Tag, Tooltip } from 'antd'
+import { Card, Form, Input, Modal, Select, Tag, Tooltip, message } from 'antd'
 import _, { reject } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
@@ -14,7 +14,9 @@ export default function ModifyAlertNotifyModal({
   closeModal,
   refresh,
 }) {
+  const [messageApi, contextHolder] = message.useMessage();
   const [form] = Form.useForm()
+  const [tip, setTip] = useState("")
   const updateAlertNotify = (amConfigReceiver, type) => {
     let api = addAlertNotifyApi;
     let params = typeof type === 'undefined'
@@ -37,7 +39,15 @@ export default function ModifyAlertNotifyModal({
   };
 
   const saveRule = () => {
-    console.log(form.getFieldsValue(true));
+
+    const config = form.getFieldsValue(true).wechatConfigs[0]
+    console.log(config)
+    if (config.to_user || config.to_party || config.to_tag) {
+      setTip("")
+    } else {
+      console.log(config.to_user)
+      setTip("请至少选择一项")
+    }
     form
       .validateFields()
       .then(() => {
@@ -100,20 +110,20 @@ export default function ModifyAlertNotifyModal({
           amConfigReceiver.wechatConfigs = formState.wechatConfigs?.map((item) => {
             let flag = false;
             let config = {};
-            if (item.api_url) config.api_url = item.api_url;
-            if (item.api_secret) config.api_secret = item.api_secret;
-            if (item.corp_id) config.corp_id = item.corp_id;
-            if (item.agent_id) config.agent_id = item.agent_id;
+            if (item.apiurl) config.apiUrl = item.api_url;
+            if (item.api_secret) config.apiSecret = item.api_secret;
+            if (item.corp_id) config.corpId = item.corp_id;
+            if (item.agent_id) config.agentId = item.agent_id;
             if (item.to_user) {
-              config.to_user = item.to_user;
+              config.toUser = item.to_user;
               flag = true;
             }
             if (item.to_party) {
-              config.to_party = item.to_party;
+              config.toParty = item.to_party;
               flag = true;
             }
             if (item.to_tag) {
-              config.to_tag = item.to_tag;
+              config.toTag = item.to_tag;
               flag = true;
             }
             if (!flag) {
@@ -131,7 +141,6 @@ export default function ModifyAlertNotifyModal({
         ) {
           return;
         }
-
         updateAlertNotify(amConfigReceiver, formState.notifyType);
       })
       .catch((error) => console.log(error));
@@ -207,13 +216,12 @@ export default function ModifyAlertNotifyModal({
       })
       const wechatConfigs = notifyInfo?.wechatConfigs?.map((config) => {
         return {
-          api_url: config.api_url,
-          api_secret: config.api_secret,
-          corp_id: config.corp_id,
-          agent_id: config.agent_id,
-          to_user: config.to_user,
-          to_party: config.to_party,
-          to_tag: config.to_tag
+          api_secret: config.apiSecret,
+          corp_id: config.corpId,
+          agent_id: config.agentId,
+          to_user: config.toUser,
+          to_party: config.toParty,
+          to_tag: config.toTag
         }
       })
       form.setFieldsValue({
@@ -251,6 +259,7 @@ export default function ModifyAlertNotifyModal({
 
   return (
     <>
+      {contextHolder}
       <Modal
         title={'告警通知配置'}
         open={modalVisible}
@@ -264,6 +273,7 @@ export default function ModifyAlertNotifyModal({
         width="100vw"
         getContainer={false}
         classNames={{ content: 'h-screen', body: 'h-[90%] overflow-y-scroll' }}
+        afterClose={() => setTip("")}
       >
         <Form layout={'vertical'} form={form} preserve={false}>
           <Card title="基础配置">
@@ -282,7 +292,7 @@ export default function ModifyAlertNotifyModal({
               <Input placeholder="告警规则名" />
             </Form.Item>
             <Form.Item
-              label="告警类型"
+              label="通知类型"
               name="notifyType"
               required
               rules={[
@@ -315,7 +325,7 @@ export default function ModifyAlertNotifyModal({
                   {notifyType === 'email' && <EmailConfigsFormList />}
                   {notifyType === 'webhook' && <WebhookConfigsFormList />}
                   {notifyType === 'dingtalk' && <DingTalkConfigsFormList />}
-                  {notifyType === 'wechat' && <WeChatConfigsFormList />}
+                  {notifyType === 'wechat' && <WeChatConfigsFormList tip={tip} setTip={setTip} />}
                 </>
               )
             }}

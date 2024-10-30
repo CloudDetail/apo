@@ -20,9 +20,16 @@ export default function AlertsNotify() {
   const [modalInfo, setModalInfo] = useState(null)
   const [searchName, setSearchName] = useState(null)
   const deleteAlertNotify = (row) => {
-    deleteAlertNotifyApi({
-      name: row.name,
-    }).then((res) => {
+    deleteAlertNotifyApi(
+      row.dingTalkConfigs ?
+        {
+          name: row.name,
+          type: 'dingtalk'
+        } :
+        {
+          name: row.name,
+        }
+    ).then((res) => {
       showToast({
         title: '删除告警通知成功',
         color: 'success',
@@ -53,9 +60,10 @@ export default function AlertsNotify() {
       case 'dingTalkConfigs':
         return row.dingTalkConfigs[0]?.url
       case 'wechatConfigs':
-        if (row.wechatConfigs[0]?.api_url) {
-          return row.wechatConfigs[0].api_url
-        }
+        // if (row.wechatConfigs[0]?.api_url) {
+        //   return row.wechatConfigs[0].api_url
+        // }
+        return
       default:
         return 'N/A'
     }

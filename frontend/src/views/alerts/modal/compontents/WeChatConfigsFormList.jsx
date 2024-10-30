@@ -2,7 +2,7 @@ import { Card, Form, Input } from 'antd';
 import React from 'react';
 import { defaultHtml } from './defaultHTMLcontext';
 
-export default function WeChatConfigsFormList() {
+export default function WeChatConfigsFormList({ tip, setTip }) {
     const tlsConfigItemsList = [
         {
             label: 'API地址',
@@ -14,7 +14,7 @@ export default function WeChatConfigsFormList() {
         {
             label: 'API 密钥',
             name: 'api_secret',
-            placeholder: '微信api密钥',
+            placeholder: '微信 API 密钥',
             required: true,
         },
         {
@@ -52,7 +52,6 @@ export default function WeChatConfigsFormList() {
             name: 'notificationType'
         }
     ];
-
     return (
         <Form.List name="wechatConfigs" initialValue={[{ html: defaultHtml, requireTls: false }]}>
             {(fields) => (
@@ -76,23 +75,11 @@ export default function WeChatConfigsFormList() {
                                     } else {
                                         return (
                                             <Form.Item
+                                                name='notificationType'
                                                 key={item.group}
                                                 label={item.label}
                                                 required
-                                                validateTrigger={['onBlur', 'onChange']}
-                                                rules={[
-                                                    {
-                                                        validator: async (_, __) => {
-                                                            const formInstance = Form.useFormInstance();
-                                                            const toUser = formInstance.getFieldValue([field.name, 'to_user']);
-                                                            const toParty = formInstance.getFieldValue([field.name, 'to_party']);
-                                                            const toTag = formInstance.getFieldValue([field.name, 'to_tag']);
-                                                            if (!toUser && !toParty && !toTag) {
-                                                                throw new Error('至少填写一个通知方式');
-                                                            }
-                                                        }
-                                                    }
-                                                ]}
+                                                validateTrigger={['onBlur']}
                                             >
                                                 <Card>
                                                     {item.list.map((subItem) => (
@@ -105,6 +92,7 @@ export default function WeChatConfigsFormList() {
                                                         </Form.Item>
                                                     ))}
                                                 </Card>
+                                                {<p style={{ color: "#CA4547" }}>{tip}</p>}
                                             </Form.Item>
                                         );
                                     }
