@@ -20,19 +20,17 @@ func contains(arr []string, str string) bool {
 	return false
 }
 func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error) {
-	var Services []ServiceDetail
-	for i := 0; i < len(serviceNames); i++ {
-		Services = append(Services, ServiceDetail{
-			ServiceName: serviceNames[i],
-		})
-	}
-	instances, err := s.promRepo.GetMultiServicesInstanceList(startTime.UnixMicro(), endTime.UnixMicro(), serviceNames)
+	svcInstances, err := s.promRepo.GetMultiServicesInstanceList(startTime.UnixMicro(), endTime.UnixMicro(), serviceNames)
 	if err != nil {
 		return nil, err
 	}
-	for i, svc := range serviceNames {
-		serviceInstances := instances[svc]
-		for _, instance := range serviceInstances.GetInstances() {
+	var services []ServiceDetail
+	for svc, instances := range svcInstances {
+		svcDetail := ServiceDetail{
+			ServiceName: svc,
+			Instances:   make([]Instance, 0),
+		}
+		for _, instance := range instances.GetInstances() {
 			var convertName string
 			var instanceType int
 			if len(instance.PodName) > 0 {
@@ -55,54 +53,55 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 				Namespace:    instance.Namespace,
 				Pid:          strconv.FormatInt(instance.Pid, 10),
 			}
-			Services[i].Instances = append(Services[i].Instances, newInstance)
+			svcDetail.Instances = append(svcDetail.Instances, newInstance)
 		}
+		services = append(services, svcDetail)
 	}
 
 	if returnData == nil || contains(returnData, "logMetrics") {
 		var duration string
 		var stepNS = endTime.Sub(startTime).Nanoseconds()
 		duration = strconv.FormatInt(stepNS/int64(time.Minute), 10) + "m"
-		for i := range Services {
+		for i := range services {
 			var Pods []string
-			for j := range Services[i].Instances {
-				if Services[i].Instances[j].InstanceType == POD {
-					Pods = append(Pods, Services[i].Instances[j].ConvertName)
+			for j := range services[i].Instances {
+				if services[i].Instances[j].InstanceType == POD {
+					Pods = append(Pods, services[i].Instances[j].ConvertName)
 				}
 			}
-			_, err = s.AvgLogByPod(&Services[i].Instances, Pods, endTime, duration)
-			_, err = s.LogDODByPod(&Services[i].Instances, Pods, endTime, duration)
-			_, err = s.LogWOWByPod(&Services[i].Instances, Pods, endTime, duration)
-			_, err = s.ServiceLogRangeDataByPod(&Services[i], Pods, startTime, endTime, duration, step)
+			_, err = s.AvgLogByPod(&services[i].Instances, Pods, endTime, duration)
+			_, err = s.LogDODByPod(&services[i].Instances, Pods, endTime, duration)
+			_, err = s.LogWOWByPod(&services[i].Instances, Pods, endTime, duration)
+			_, err = s.ServiceLogRangeDataByPod(&services[i], Pods, startTime, endTime, duration, step)
 		}
-		for i := range Services {
+		for i := range services {
 			var ContainerIds []string
-			for j := range Services[i].Instances {
-				if Services[i].Instances[j].InstanceType == CONTAINER {
-					ContainerIds = append(ContainerIds, Services[i].Instances[j].ConvertName)
+			for j := range services[i].Instances {
+				if services[i].Instances[j].InstanceType == CONTAINER {
+					ContainerIds = append(ContainerIds, services[i].Instances[j].ConvertName)
 				}
 			}
-			_, err = s.AvgLogByContainerId(&Services[i].Instances, ContainerIds, endTime, duration)
-			_, err = s.LogDODByContainerId(&Services[i].Instances, ContainerIds, endTime, duration)
-			_, err = s.LogWOWByContainerId(&Services[i].Instances, ContainerIds, endTime, duration)
-			_, err = s.ServiceLogRangeDataByContainerId(&Services[i], ContainerIds, startTime, endTime, duration, step)
+			_, err = s.AvgLogByContainerId(&services[i].Instances, ContainerIds, endTime, duration)
+			_, err = s.LogDODByContainerId(&services[i].Instances, ContainerIds, endTime, duration)
+			_, err = s.LogWOWByContainerId(&services[i].Instances, ContainerIds, endTime, duration)
+			_, err = s.ServiceLogRangeDataByContainerId(&services[i], ContainerIds, startTime, endTime, duration, step)
 		}
-		for i := range Services {
+		for i := range services {
 			var Pids []string
-			for j := range Services[i].Instances {
-				if Services[i].Instances[j].InstanceType == VM {
-					Pids = append(Pids, Services[i].Instances[j].ConvertName)
+			for j := range services[i].Instances {
+				if services[i].Instances[j].InstanceType == VM {
+					Pids = append(Pids, services[i].Instances[j].ConvertName)
 				}
 			}
-			_, err = s.AvgLogByPid(&Services[i].Instances, Pids, endTime, duration)
-			_, err = s.LogDODByPid(&Services[i].Instances, Pids, endTime, duration)
-			_, err = s.LogWOWByPid(&Services[i].Instances, Pids, endTime, duration)
-			_, err = s.ServiceLogRangeDataByPid(&Services[i], Pids, startTime, endTime, duration, step)
+			_, err = s.AvgLogByPid(&services[i].Instances, Pids, endTime, duration)
+			_, err = s.LogDODByPid(&services[i].Instances, Pids, endTime, duration)
+			_, err = s.LogWOWByPid(&services[i].Instances, Pids, endTime, duration)
+			_, err = s.ServiceLogRangeDataByPid(&services[i], Pids, startTime, endTime, duration, step)
 		}
 	}
 
 	var servicesAlertResMsg []response.ServiceAlertRes
-	for _, service := range Services {
+	for _, service := range services {
 		if service.ServiceName == "" {
 			continue
 		}
