@@ -16,4 +16,5 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 COPY config/apo.yml /app/config/apo.yml
 COPY --from=builder /build/apo-backend /app/
+COPY pkg/services/alerts/notification/default.tmpl /app/notification/default.tmpl
 CMD ["/app/apo-backend"]
