@@ -79,7 +79,7 @@ func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConf
 		// webhook中存在钉钉配置，这里需要忽略 会从db获取
 		for j := range receiver.WebhookConfigs {
 			if !strings.Contains(receiver.WebhookConfigs[j].URL.String(), "/outputs/dingtalk/") {
-				filteredWebhookConfigs = append(filteredWebhookConfigs, receiver.WebhookConfigs[i])
+				filteredWebhookConfigs = append(filteredWebhookConfigs, receiver.WebhookConfigs[j])
 			}
 		}
 		receiver.WebhookConfigs = filteredWebhookConfigs
