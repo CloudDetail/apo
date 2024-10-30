@@ -30,6 +30,47 @@ export default function AlertsNotify() {
       refreshTable()
     })
   }
+
+  const judgmentType = (type) => {
+    switch (type) {
+      case 'emailConfigs':
+        return '邮件'
+      case 'webhookConfigs':
+        return 'webhook'
+      case 'dingTalkConfigs':
+        return '钉钉'
+      case 'wechatConfigs':
+        return '微信'
+    }
+  }
+
+  const getUrl = (type, row) => {
+    switch (type) {
+      case 'emailConfigs':
+        return row.emailConfigs[0]?.to
+      case 'webhookConfigs':
+        return row.webhookConfigs[0]?.url
+      case 'dingTalkConfigs':
+        return row.dingTalkConfigs[0]?.url
+      case 'wechatConfigs':
+        if (row.wechatConfigs[0]?.api_url) {
+          return row.wechatConfigs[0].api_url
+        }
+      default:
+        return 'N/A'
+    }
+  }
+
+  const typeList = [
+    'emailConfigs',
+    'webhookConfigs',
+    'dingTalkConfigs',
+    'wechatConfigs'
+  ];
+
+
+
+
   const column = [
     {
       title: '告警通知规则名',
@@ -42,8 +83,10 @@ export default function AlertsNotify() {
       accessor: 'type',
       customWidth: 120,
       Cell: (props) => {
-        const row = props.row.original
-        return row.emailConfigs?.length > 0 ? '邮件通知' : 'Webhook通知'
+        const row = props.row.original;
+        let foundItem = typeList.find(item => Object.hasOwn(row, item));
+        foundItem = judgmentType(foundItem)
+        return foundItem || null;
       },
     },
     {
@@ -51,14 +94,10 @@ export default function AlertsNotify() {
       accessor: 'to',
       customWidth: '50%',
       Cell: (props) => {
-        const row = props.row.original
-        return row.emailConfigs?.length > 0 ? (
-          row.emailConfigs[0].to
-        ) : row.webhookConfigs?.length > 0 ? (
-          row.webhookConfigs[0].url
-        ) : (
-          <span className="text-slate-400">N/A</span>
-        )
+        const row = props.row.original;
+        let foundItem = typeList.find(item => Object.hasOwn(row, item));
+        foundItem = getUrl(foundItem, row)
+        return foundItem
       },
     },
     {
@@ -99,6 +138,8 @@ export default function AlertsNotify() {
       },
     },
   ]
+
+
   const clickAddRule = () => {
     setModalInfo(null)
     setModalVisible(true)
