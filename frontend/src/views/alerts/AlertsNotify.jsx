@@ -60,10 +60,7 @@ export default function AlertsNotify() {
       case 'dingTalkConfigs':
         return row.dingTalkConfigs[0]?.url
       case 'wechatConfigs':
-        // if (row.wechatConfigs[0]?.api_url) {
-        //   return row.wechatConfigs[0].api_url
-        // }
-        return
+        return ''
       default:
         return 'N/A'
     }
