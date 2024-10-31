@@ -53,11 +53,11 @@ func NewNotificationBuilder() (*DingNotificationBuilder, error) {
 	if builder != nil {
 		return builder, nil
 	}
-	builder = &DingNotificationBuilder{}
 	tmpl, err := FromDefault()
 	if err != nil {
 		return nil, err
 	}
+	builder = &DingNotificationBuilder{}
 	builder.tmpl = tmpl
 	builder.titleTpl = `{{ template "ding.link.title" . }}`
 	builder.textTpl = `{{ template "ding.link.content" . }}`
