@@ -8,6 +8,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/service"
 	"github.com/CloudDetail/apo/backend/pkg/api/serviceoverview"
 	"github.com/CloudDetail/apo/backend/pkg/api/trace"
+	"github.com/CloudDetail/apo/backend/pkg/api/user"
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 	"github.com/CloudDetail/metadata/source"
 )
@@ -125,7 +127,17 @@ func setApiRouter(r *resource) {
 		configApi.POST("/setSingleTableTTL", configHandler.SetSingleTableTTL())
 		configApi.GET("/getTTL", configHandler.GetTTL())
 	}
-
+	userApi := r.mux.Group("/api/user")
+	{
+		userHandler := user.New(r.logger, r.pkg_db)
+		userApi.POST("/login", userHandler.Login())
+		userApi.Use(middleware.Auth())
+		userApi.GET("/refresh", userHandler.RefreshToken())
+		userApi.POST("/create", userHandler.CreateUser())
+		userApi.POST("/update/password", userHandler.UpdateUserPassword())
+		userApi.POST("/update/phone", userHandler.UpdateUserPhone())
+		userApi.POST("/update/email", userHandler.UpdateUserEmail())
+	}
 }
 
 func SetMetaServerRouter(srv *Server, meta source.MetaSource) {

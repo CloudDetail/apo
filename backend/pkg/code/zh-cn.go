@@ -4,6 +4,8 @@ var zhCnText = map[string]string{
 	ServerError:    "内部服务器错误",
 	ParamBindError: "参数信息错误",
 	DbConnectError: "数据库连接失败",
+	UnAuth:         "未登录",
+	InValidToken:   "无效的token",
 
 	MockCreateError: "创建mock失败",
 	MockListError:   "获取mock列表失败",
@@ -86,4 +88,13 @@ var zhCnText = map[string]string{
 	AlertManagerReceiverEmailFromMissing:    "告警通知对象 email 'from' 配置缺失",
 	AlertManagerEmptyReceiver:               "告警通知对象没有设置任何 webhook 或 email 配置",
 	AlertManagerDefaultReceiverCannotDelete: "默认告警通知对象不能被删除",
+
+	UserNotExistsError:         "用户不存在",
+	UserPasswordIncorrectError: "密码错误",
+	UserLoginError:             "登录失败",
+	UserTokenExpireError:       "登录过期，请重新登录",
+	UserAlreadyExists:          "用户已存在",
+	UserCreateError:            "创建用户失败",
+	UserUpdateError:            "更新失败",
+	UserConfirmPasswordError:   "两次密码不一致",
 }

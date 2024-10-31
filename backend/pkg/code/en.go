@@ -4,6 +4,8 @@ var enText = map[string]string{
 	ServerError:    "Internal server error",
 	ParamBindError: "Parameter error",
 	DbConnectError: "Failed to connect Database",
+	UnAuth:         "not logged in",
+	InValidToken:   "invalid token",
 
 	MockCreateError: "Failed to create mock",
 	MockListError:   "Failed to get mock list",
@@ -82,4 +84,13 @@ var enText = map[string]string{
 	AlertManagerReceiverEmailFromMissing:    "alertManager receiver email 'from' missing",
 	AlertManagerEmptyReceiver:               "alertManager receiver neither set webhook nor set email config",
 	AlertManagerDefaultReceiverCannotDelete: "alertManager default receiver cannot be deleted",
+
+	UserNotExistsError:         "User does not exist",
+	UserPasswordIncorrectError: "Password is incorrect",
+	UserLoginError:             "Failed to login",
+	UserTokenExpireError:       "Login expired, please log in again",
+	UserAlreadyExists:          "User already exists",
+	UserCreateError:            "Failed to create user",
+	UserUpdateError:            "Failed to update",
+	UserConfirmPasswordError:   "Password inconsistent",
 }

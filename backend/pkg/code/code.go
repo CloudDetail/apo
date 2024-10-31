@@ -6,6 +6,8 @@ const (
 	ServerError    = "A0001"
 	ParamBindError = "A0002"
 	DbConnectError = "A0003"
+	UnAuth         = "A0004"
+	InValidToken   = "A0005"
 
 	MockCreateError = "B0101"
 	MockListError   = "B0102"
@@ -103,6 +105,15 @@ const (
 	AlertManagerDefaultReceiverCannotDelete = "B0726"
 
 	GetMonitorStatusError = "B0801"
+
+	UserNotExistsError         = "B0901"
+	UserPasswordIncorrectError = "B0902"
+	UserLoginError             = "B0903"
+	UserTokenExpireError       = "B0904"
+	UserAlreadyExists          = "B0905"
+	UserCreateError            = "B0906"
+	UserUpdateError            = "B0907"
+	UserConfirmPasswordError   = "B0908"
 )
 
 func Text(code string) string {
