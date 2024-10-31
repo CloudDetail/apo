@@ -400,19 +400,18 @@ func (s *service) ServiceLogRangeDataByPod(Service *ServiceDetail, pods []string
 	} else {
 		stepToStr = strconv.FormatInt(int64(step/time.Second), 10) + "s"
 	}
-	//LogDataRes, err = s.promRepo.QueryRangePrometheusErrorLast30min(searchTime)
+
 	LogDataQuery := prometheus.QueryLogPromql(stepToStr, prometheus.AvgLog, pods)
 	LogDataRes, err := s.promRepo.QueryRangeData(startTime, endTime, LogDataQuery, step)
 	for _, result := range LogDataRes {
 		if len(Service.LogData) < len(result.Values) {
-			Service.LogData = make([]prometheus.Points, len(result.Values))
+			Service.LogData = append(Service.LogData, make([]prometheus.Points, len(result.Values)-len(Service.LogData))...)
 		}
 
 		for i := 0; i < len(result.Values); i++ {
 			Service.LogData[i].TimeStamp = result.Values[i].TimeStamp
 			Service.LogData[i].Value += result.Values[i].Value
 		}
-		break
 	}
 
 	return Service, err

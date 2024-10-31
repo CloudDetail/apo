@@ -8,6 +8,7 @@ import EmailConfigsFormList from './compontents/EmailConfigsFormList'
 import WebhookConfigsFormList from './compontents/WebhookConfigsFormList'
 import DingTalkConfigsFormList from './compontents/DingTalkConfigsFormList'
 import WeChatConfigsFormList from './compontents/WeChatConfigsFormList'
+import WeChatConfigsFormList from './compontents/WeChatConfigsFormList'
 export default function ModifyAlertNotifyModal({
     modalVisible,
     notifyInfo = null,

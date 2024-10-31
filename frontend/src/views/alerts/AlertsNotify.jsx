@@ -92,6 +92,10 @@ export default function AlertsNotify() {
         let foundItem = typeList.find(item => Object.hasOwn(row, item));
         foundItem = judgmentType(foundItem)
         return foundItem || null;
+        const row = props.row.original;
+        let foundItem = typeList.find(item => Object.hasOwn(row, item));
+        foundItem = judgmentType(foundItem)
+        return foundItem || null;
       },
     },
     {
@@ -99,6 +103,10 @@ export default function AlertsNotify() {
       accessor: 'to',
       customWidth: '50%',
       Cell: (props) => {
+        const row = props.row.original;
+        let foundItem = typeList.find(item => Object.hasOwn(row, item));
+        foundItem = getUrl(foundItem, row)
+        return foundItem
         const row = props.row.original;
         let foundItem = typeList.find(item => Object.hasOwn(row, item));
         foundItem = getUrl(foundItem, row)
@@ -143,6 +151,8 @@ export default function AlertsNotify() {
       },
     },
   ]
+
+
 
 
   const clickAddRule = () => {
