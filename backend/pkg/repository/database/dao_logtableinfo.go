@@ -5,10 +5,10 @@ type LogTableInfo struct {
 	DataBase  string `gorm:"type:varchar(100);column:database"`
 	Table     string `gorm:"type:varchar(100);column:tablename"`
 	Cluster   string `gorm:"type:varchar(100)"`
-	Fields    string `gorm:"type:varchar(100)"`
+	Fields    string `gorm:"type:varchar(300)"`
 	ParseName string `gorm:"type:varchar(100);column:parsename"`
 	RouteRule string `gorm:"type:varchar(100);column:routerule"`
-	ParseRule string `gorm:"type:varchar(100);column:parserule"`
+	ParseRule string `gorm:"type:varchar(300);column:parserule"`
 	ParseInfo string `gorm:"type:varchar(100);column:parseinfo"`
 	Service   string `gorm:"type:varchar(100)"`
 }
@@ -32,11 +32,11 @@ func (repo *daoRepo) OperateLogTableInfo(model *LogTableInfo, op Operator) error
 	case INSERT:
 		err = repo.db.Create(model).Error
 	case QUERY:
-		err = repo.db.Where("database=? AND tablename=?", model.DataBase, model.Table).First(model).Error
+		err = repo.db.Where("`database` = ? AND `tablename` = ?", model.DataBase, model.Table).First(model).Error
 	case UPDATE:
-		err = repo.db.Model(&LogTableInfo{}).Where("database=? AND tablename=?", model.DataBase, model.Table).Update("fields", model.Fields).Error
+		err = repo.db.Model(&LogTableInfo{}).Where("`database` = ? AND `tablename` = ?", model.DataBase, model.Table).Update("fields", model.Fields).Error
 	case DELETE:
-		return repo.db.Where("database=? AND tablename=?", model.DataBase, model.Table).Delete(&LogTableInfo{}).Error
+		return repo.db.Where("`database` = ? AND `tablename` = ?", model.DataBase, model.Table).Delete(&LogTableInfo{}).Error
 	}
 	return err
 }
@@ -47,8 +47,8 @@ func (repo *daoRepo) GetAllLogTable() ([]LogTableInfo, error) {
 	return logTableInfo, err
 }
 
-func (repo *daoRepo) UpdateLogPaseRule(model *LogTableInfo) error {
-	return repo.db.Model(&LogTableInfo{}).Where("database=? AND tablename=?", model.DataBase, model.Table).Updates(LogTableInfo{
+func (repo *daoRepo) UpdateLogParseRule(model *LogTableInfo) error {
+	return repo.db.Model(&LogTableInfo{}).Where("`database` = ? AND `tablename` = ?", model.DataBase, model.Table).Updates(LogTableInfo{
 		ParseInfo: model.ParseInfo,
 		ParseRule: model.ParseRule,
 		RouteRule: model.RouteRule,

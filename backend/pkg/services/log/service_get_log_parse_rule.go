@@ -1,6 +1,8 @@
 package log
 
 import (
+	"errors"
+	"gorm.io/gorm"
 	"regexp"
 	"strings"
 
@@ -41,12 +43,14 @@ func (s *service) GetLogParseRule(req *request.QueryLogParseRequest) (*response.
 		Table:    req.TableName,
 	}
 	err := s.dbRepo.OperateLogTableInfo(model, database.QUERY)
-	if err != nil {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return &response.LogParseResponse{
 			ParseName: defaultParseName,
 			ParseRule: defaultParseRule,
 			RouteRule: defaultRouteRuleMap,
-		}, err
+		}, nil
+	} else if err != nil {
+		return nil, err
 	}
 
 	return &response.LogParseResponse{
