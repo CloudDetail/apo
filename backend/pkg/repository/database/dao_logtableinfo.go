@@ -5,10 +5,10 @@ type LogTableInfo struct {
 	DataBase  string `gorm:"type:varchar(100);column:database"`
 	Table     string `gorm:"type:varchar(100);column:tablename"`
 	Cluster   string `gorm:"type:varchar(100)"`
-	Fields    string `gorm:"type:varchar(300)"`
+	Fields    string `gorm:"type:varchar(5000)"` // 日志字段类型
 	ParseName string `gorm:"type:varchar(100);column:parsename"`
-	RouteRule string `gorm:"type:varchar(100);column:routerule"`
-	ParseRule string `gorm:"type:varchar(300);column:parserule"`
+	RouteRule string `gorm:"type:varchar(1000);column:routerule"` // 路由规则
+	ParseRule string `gorm:"type:varchar(5000);column:parserule"` // 解析规则
 	ParseInfo string `gorm:"type:varchar(100);column:parseinfo"`
 	Service   string `gorm:"type:varchar(100)"`
 }
