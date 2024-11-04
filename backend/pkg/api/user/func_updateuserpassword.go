@@ -19,7 +19,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Request body request.UpdateUserPasswordRequest true "请求信息"
-// @Param Authorization header string true "Bearer 令牌"
+// @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/user/update/password [post]

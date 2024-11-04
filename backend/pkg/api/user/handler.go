@@ -2,6 +2,7 @@ package user
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/services/user"
 	"go.uber.org/zap"
@@ -14,7 +15,7 @@ type Handler interface {
 	Login() core.HandlerFunc
 	// Logout 退出登录
 	// @Tags API.user
-	// @Router /api/user/logout [get]
+	// @Router /api/user/logout [post]
 	Logout() core.HandlerFunc
 	// CreateUser 创建用户
 	// @Tags API.user
@@ -47,9 +48,9 @@ type handler struct {
 	userService user.Service
 }
 
-func New(logger *zap.Logger, dbRepo database.Repo) Handler {
+func New(logger *zap.Logger, dbRepo database.Repo, cacheRepo cache.Repo) Handler {
 	return &handler{
 		logger:      logger,
-		userService: user.New(dbRepo),
+		userService: user.New(dbRepo, cacheRepo),
 	}
 }

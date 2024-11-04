@@ -3696,7 +3696,7 @@
             }
         },
         "/api/user/logout": {
-            "get": {
+            "post": {
                 "description": "退出登录",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -3710,20 +3710,25 @@
                 "summary": "退出登录",
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.LogoutRequest"
-                        }
+                        "type": "string",
+                        "description": "accessToken",
+                        "name": "accessToken",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "refreshToken",
+                        "name": "refreshToken",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
-                            "$ref": "#/definitions/response.LogoutResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -3751,7 +3756,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer 令牌",
+                        "description": "Bearer refreshToken",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -3788,17 +3793,15 @@
                 "summary": "更新/绑定邮箱",
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateUserEmailRequest"
-                        }
+                        "type": "string",
+                        "description": "邮箱",
+                        "name": "email",
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Bearer 令牌",
+                        "description": "Bearer accessToken",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -3833,11 +3836,26 @@
                     "API.user"
                 ],
                 "summary": "更新个人信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "组织",
+                        "name": "corporation",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
-                            "$ref": "#/definitions/response.UpdateUserInfoResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -3874,7 +3892,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "Bearer 令牌",
+                        "description": "Bearer accessToken",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -3911,17 +3929,15 @@
                 "summary": "更新/绑定手机号",
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateUserPhoneRequest"
-                        }
+                        "type": "string",
+                        "description": "手机号",
+                        "name": "phone",
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Bearer 令牌",
+                        "description": "Bearer accessToken",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -3945,6 +3961,17 @@
         }
     },
     "definitions": {
+        "amconfig.DingTalkConfig": {
+            "type": "object",
+            "properties": {
+                "secret": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "amconfig.EmailConfig": {
             "type": "object",
             "properties": {
@@ -4019,7 +4046,7 @@
                 "dingTalkConfigs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.DingTalkConfig"
+                        "$ref": "#/definitions/amconfig.DingTalkConfig"
                     }
                 },
                 "emailConfigs": {
@@ -4382,17 +4409,6 @@
                 },
                 "message": {
                     "description": "错误信息",
-                    "type": "string"
-                }
-            }
-        },
-        "database.DingTalkConfig": {
-            "type": "object",
-            "properties": {
-                "secret": {
-                    "type": "string"
-                },
-                "url": {
                     "type": "string"
                 }
             }
@@ -5508,9 +5524,6 @@
         "request.LogTableInfoRequest": {
             "type": "object"
         },
-        "request.LogoutRequest": {
-            "type": "object"
-        },
         "request.Operation": {
             "type": "string",
             "enum": [
@@ -5713,22 +5726,6 @@
                 }
             }
         },
-        "request.UpdateUserEmailRequest": {
-            "type": "object",
-            "required": [
-                "email"
-            ],
-            "properties": {
-                "email": {
-                    "description": "邮箱",
-                    "type": "string"
-                },
-                "vCode": {
-                    "description": "验证码",
-                    "type": "string"
-                }
-            }
-        },
         "request.UpdateUserPasswordRequest": {
             "type": "object",
             "required": [
@@ -5740,22 +5737,6 @@
                     "type": "string"
                 },
                 "oldPassword": {
-                    "type": "string"
-                }
-            }
-        },
-        "request.UpdateUserPhoneRequest": {
-            "type": "object",
-            "required": [
-                "phone"
-            ],
-            "properties": {
-                "phone": {
-                    "description": "手机号",
-                    "type": "string"
-                },
-                "vCode": {
-                    "description": "验证码",
                     "type": "string"
                 }
             }
@@ -6852,9 +6833,6 @@
                 }
             }
         },
-        "response.LogoutResponse": {
-            "type": "object"
-        },
         "response.MonitorStatus": {
             "type": "object",
             "properties": {
@@ -7182,9 +7160,6 @@
                     "type": "number"
                 }
             }
-        },
-        "response.UpdateUserInfoResponse": {
-            "type": "object"
         }
     }
 }

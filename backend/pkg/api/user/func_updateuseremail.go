@@ -17,15 +17,15 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.UpdateUserEmailRequest true "请求信息"
-// @Param Authorization header string true "Bearer 令牌"
+// @Param email query string true "邮箱"
+// @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/user/update/email [post]
 func (h *handler) UpdateUserEmail() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.UpdateUserEmailRequest)
-		if err := c.ShouldBindJSON(req); err != nil {
+		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,

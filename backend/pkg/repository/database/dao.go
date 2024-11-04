@@ -3,6 +3,8 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/config"
@@ -22,11 +24,11 @@ type Repo interface {
 	UpdateLogPaseRule(model *LogTableInfo) error
 	GetAllOtherLogTable() ([]OtherLogTable, error)
 	OperatorOtherLogTable(model *OtherLogTable, op Operator) error
-	CreateDingTalkReceiver(dingTalkConfig *DingTalkConfig) error
+	CreateDingTalkReceiver(dingTalkConfig *amconfig.DingTalkConfig) error
 	// GetDingTalkReceiver 获取uuid对应的webhook url secret
-	GetDingTalkReceiver(uuid string) (DingTalkConfig, error)
-	GetDingTalkReceiverByAlertName(configFile string, alertName string, page, pageSize int) ([]*DingTalkConfig, int64, error)
-	UpdateDingTalkReceiver(dingTalkConfig *DingTalkConfig, oldName string) error
+	GetDingTalkReceiver(uuid string) (amconfig.DingTalkConfig, error)
+	GetDingTalkReceiverByAlertName(configFile string, alertName string, page, pageSize int) ([]*amconfig.DingTalkConfig, int64, error)
+	UpdateDingTalkReceiver(dingTalkConfig *amconfig.DingTalkConfig, oldName string) error
 	DeleteDingTalkReceiver(configFile, alertName string) error
 
 	Login(username, password string) error
@@ -34,6 +36,7 @@ type Repo interface {
 	UpdateUserPhone(username string, phone string) error
 	UpdateUserEmail(username string, email string) error
 	UpdateUserPassword(username, oldPassword, newPassword string) error
+	UpdateUserInfo(username string, req *request.UpdateUserInfoRequest) error
 }
 
 type daoRepo struct {
@@ -88,7 +91,7 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = database.AutoMigrate(&DingTalkConfig{})
+	err = database.AutoMigrate(&amconfig.DingTalkConfig{})
 	if err != nil {
 		return nil, err
 	}

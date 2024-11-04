@@ -1,4 +1,4 @@
-package middleware
+package util
 
 import (
 	"errors"
@@ -18,6 +18,11 @@ var secret = []byte("APO@2024")
 var accessExpireTime = 30 * time.Minute
 var refreshExpireTime = 48 * time.Hour
 var testExpireTime = 7 * 24 * time.Hour
+
+var (
+	TokenInvalid = errors.New("invalid token")
+	TokenExpired = errors.New("token is expired")
+)
 
 type Claims struct {
 	Username  string `json:"username"`
@@ -57,9 +62,9 @@ func GenerateTokens(username string) (string, string, error) {
 }
 
 func RefreshToken(rawToken string) (string, error) {
-	token := parseRawToken(rawToken)
+	token := ParseRawToken(rawToken)
 	if len(token) == 0 {
-		return "", errors.New("invalid token")
+		return "", TokenInvalid
 	}
 	claims, err := ParseRefreshToken(token)
 	if err != nil {
@@ -91,12 +96,12 @@ func ParseRefreshToken(tokenStr string) (*Claims, error) {
 		return nil, err
 	}
 	if !claims.IsRefresh {
-		return nil, model.NewErrWithMessage(errors.New("invalid token"), code.InValidToken)
+		return nil, model.NewErrWithMessage(TokenInvalid, code.InValidToken)
 	}
 	if token.Valid {
 		return claims, nil
 	}
-	return nil, errors.New("token expired")
+	return nil, TokenExpired
 }
 
 func ParseAccessToken(tokenStr string) (*Claims, error) {
@@ -108,15 +113,15 @@ func ParseAccessToken(tokenStr string) (*Claims, error) {
 		return nil, err
 	}
 	if claims.IsRefresh {
-		return nil, errors.New("invalid token")
+		return nil, model.NewErrWithMessage(TokenInvalid, code.InValidToken)
 	}
 	if token.Valid {
 		return claims, nil
 	}
-	return nil, errors.New("invalid token")
+	return nil, TokenExpired
 }
 
-func parseRawToken(rawToken string) string {
+func ParseRawToken(rawToken string) string {
 	if len(rawToken) == 0 {
 		return ""
 	}
@@ -125,4 +130,16 @@ func parseRawToken(rawToken string) string {
 		return ""
 	}
 	return parts[1]
+}
+
+func IsExpire(token string) bool {
+	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		return secret, nil
+	})
+
+	if err != nil {
+		return true
+	}
+
+	return !parsedToken.Valid
 }

@@ -17,7 +17,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"net"
 	"os"
 	"path/filepath"
@@ -751,20 +750,20 @@ type Receiver struct {
 	// A unique identifier for this receiver.
 	Name string `yaml:"name" json:"name" binding:"required"`
 
-	EmailConfigs     []*EmailConfig             `yaml:"email_configs,omitempty" json:"emailConfigs,omitempty"`
-	WebhookConfigs   []*WebhookConfig           `yaml:"webhook_configs,omitempty" json:"webhookConfigs,omitempty"`
-	DingTalkConfigs  []*database.DingTalkConfig `yaml:"-" json:"dingTalkConfigs,omitempty"`
-	DiscordConfigs   []*DiscordConfig           `yaml:"discord_configs,omitempty" json:"-"`
-	PagerdutyConfigs []*PagerdutyConfig         `yaml:"pagerduty_configs,omitempty" json:"-"`
-	SlackConfigs     []*SlackConfig             `yaml:"slack_configs,omitempty" json:"-"`
-	OpsGenieConfigs  []*OpsGenieConfig          `yaml:"opsgenie_configs,omitempty" json:"-"`
-	WechatConfigs    []*WechatConfig            `yaml:"wechat_configs,omitempty" json:"wechatConfigs,omitempty"`
-	PushoverConfigs  []*PushoverConfig          `yaml:"pushover_configs,omitempty" json:"-"`
-	VictorOpsConfigs []*VictorOpsConfig         `yaml:"victorops_configs,omitempty" json:"-"`
-	SNSConfigs       []*SNSConfig               `yaml:"sns_configs,omitempty" json:"-"`
-	TelegramConfigs  []*TelegramConfig          `yaml:"telegram_configs,omitempty" json:"-"`
-	WebexConfigs     []*WebexConfig             `yaml:"webex_configs,omitempty" json:"-"`
-	MSTeamsConfigs   []*MSTeamsConfig           `yaml:"msteams_configs,omitempty" json:"-"`
+	EmailConfigs     []*EmailConfig     `yaml:"email_configs,omitempty" json:"emailConfigs,omitempty"`
+	WebhookConfigs   []*WebhookConfig   `yaml:"webhook_configs,omitempty" json:"webhookConfigs,omitempty"`
+	DingTalkConfigs  []*DingTalkConfig  `yaml:"-" json:"dingTalkConfigs,omitempty"`
+	DiscordConfigs   []*DiscordConfig   `yaml:"discord_configs,omitempty" json:"-"`
+	PagerdutyConfigs []*PagerdutyConfig `yaml:"pagerduty_configs,omitempty" json:"-"`
+	SlackConfigs     []*SlackConfig     `yaml:"slack_configs,omitempty" json:"-"`
+	OpsGenieConfigs  []*OpsGenieConfig  `yaml:"opsgenie_configs,omitempty" json:"-"`
+	WechatConfigs    []*WechatConfig    `yaml:"wechat_configs,omitempty" json:"wechatConfigs,omitempty"`
+	PushoverConfigs  []*PushoverConfig  `yaml:"pushover_configs,omitempty" json:"-"`
+	VictorOpsConfigs []*VictorOpsConfig `yaml:"victorops_configs,omitempty" json:"-"`
+	SNSConfigs       []*SNSConfig       `yaml:"sns_configs,omitempty" json:"-"`
+	TelegramConfigs  []*TelegramConfig  `yaml:"telegram_configs,omitempty" json:"-"`
+	WebexConfigs     []*WebexConfig     `yaml:"webex_configs,omitempty" json:"-"`
+	MSTeamsConfigs   []*MSTeamsConfig   `yaml:"msteams_configs,omitempty" json:"-"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for Receiver.

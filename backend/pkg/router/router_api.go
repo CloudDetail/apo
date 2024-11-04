@@ -129,14 +129,16 @@ func setApiRouter(r *resource) {
 	}
 	userApi := r.mux.Group("/api/user")
 	{
-		userHandler := user.New(r.logger, r.pkg_db)
+		userHandler := user.New(r.logger, r.pkg_db, r.cache)
 		userApi.POST("/login", userHandler.Login())
-		userApi.Use(middleware.Auth())
+		userApi.POST("/logout", userHandler.Logout())
 		userApi.GET("/refresh", userHandler.RefreshToken())
+		userApi.Use(middleware.Auth(r.cache))
 		userApi.POST("/create", userHandler.CreateUser())
 		userApi.POST("/update/password", userHandler.UpdateUserPassword())
 		userApi.POST("/update/phone", userHandler.UpdateUserPhone())
 		userApi.POST("/update/email", userHandler.UpdateUserEmail())
+		userApi.POST("/update/info", userHandler.UpdateUserInfo())
 	}
 }
 

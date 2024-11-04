@@ -14,7 +14,7 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Authorization header string true "Bearer 令牌"
+// @Param Authorization header string true "Bearer refreshToken"
 // @Success 200 {object} response.RefreshTokenResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/user/refresh [get]

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"gorm.io/gorm"
 )
 
@@ -14,12 +15,13 @@ const (
 )
 
 type User struct {
-	UserID   int64  `gorm:"user_id;primary_key;autoIncrement" json:"-"`
-	Username string `gorm:"username" json:"username,omitempty"`
-	Password string `gorm:"password" json:"password,omitempty"`
-	Role     string `gorm:"role" json:"role,omitempty"`
-	Phone    string `gorm:"phone" json:"phone,omitempty"`
-	Email    string `gorm:"email" json:"email,omitempty"`
+	UserID      int64  `gorm:"user_id;primary_key;autoIncrement" json:"-"`
+	Username    string `gorm:"username" json:"username,omitempty"`
+	Password    string `gorm:"password" json:"password,omitempty"`
+	Role        string `gorm:"role" json:"role,omitempty"`
+	Phone       string `gorm:"phone" json:"phone,omitempty"`
+	Email       string `gorm:"email" json:"email,omitempty"`
+	Corporation string `gorm:"corporation" json:"corporation,omitempty"`
 }
 
 func (t *User) TableName() string {
@@ -97,5 +99,21 @@ func (repo *daoRepo) UpdateUserPassword(username string, oldPassword, newPasswor
 		return model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswordIncorrectError)
 	}
 	user.Password = Encrypt(newPassword)
+	return repo.db.Save(&user).Error
+}
+
+func (repo *daoRepo) UpdateUserInfo(username string, req *request.UpdateUserInfoRequest) error {
+	var user User
+	err := repo.db.Where("username = ?", username).First(&user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return model.NewErrWithMessage(errors.New("user does not exist "), code.UserNotExistsError)
+	} else if err != nil {
+		return err
+	}
+
+	// add more check when user has more attribute
+	if len(req.Corporation) > 0 {
+		user.Corporation = req.Corporation
+	}
 	return repo.db.Save(&user).Error
 }

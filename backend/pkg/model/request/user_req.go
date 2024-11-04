@@ -1,7 +1,5 @@
 package request
 
-import "github.com/CloudDetail/apo/backend/pkg/repository/database"
-
 type LoginRequest struct {
 	Username string `json:"username" form:"username" binding:"required"` // 用户名
 	Password string `json:"password" form:"password" binding:"required"` // 密码
@@ -14,9 +12,13 @@ type CreateUserRequest struct {
 }
 
 type LogoutRequest struct {
+	AccessToken  string `json:"accessToken" binding:"required"`
+	RefreshToken string `json:"refreshToken" binding:"required"`
 }
 
-type UpdateUserInfoRequest database.User
+type UpdateUserInfoRequest struct {
+	Corporation string `json:"corporation,omitempty" form:"corporation"`
+}
 
 type UpdateUserPhoneRequest struct {
 	Phone string `json:"phone" form:"phone" binding:"required"` // 手机号

@@ -3704,7 +3704,7 @@ const docTemplate = `{
             }
         },
         "/api/user/logout": {
-            "get": {
+            "post": {
                 "description": "退出登录",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -3718,20 +3718,25 @@ const docTemplate = `{
                 "summary": "退出登录",
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.LogoutRequest"
-                        }
+                        "type": "string",
+                        "description": "accessToken",
+                        "name": "accessToken",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "refreshToken",
+                        "name": "refreshToken",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
-                            "$ref": "#/definitions/response.LogoutResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -3759,7 +3764,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer 令牌",
+                        "description": "Bearer refreshToken",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -3796,17 +3801,15 @@ const docTemplate = `{
                 "summary": "更新/绑定邮箱",
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateUserEmailRequest"
-                        }
+                        "type": "string",
+                        "description": "邮箱",
+                        "name": "email",
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Bearer 令牌",
+                        "description": "Bearer accessToken",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -3841,11 +3844,26 @@ const docTemplate = `{
                     "API.user"
                 ],
                 "summary": "更新个人信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "组织",
+                        "name": "corporation",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
-                            "$ref": "#/definitions/response.UpdateUserInfoResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -3882,7 +3900,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Bearer 令牌",
+                        "description": "Bearer accessToken",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -3919,17 +3937,15 @@ const docTemplate = `{
                 "summary": "更新/绑定手机号",
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateUserPhoneRequest"
-                        }
+                        "type": "string",
+                        "description": "手机号",
+                        "name": "phone",
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Bearer 令牌",
+                        "description": "Bearer accessToken",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -3953,6 +3969,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "amconfig.DingTalkConfig": {
+            "type": "object",
+            "properties": {
+                "secret": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "amconfig.EmailConfig": {
             "type": "object",
             "properties": {
@@ -4027,7 +4054,7 @@ const docTemplate = `{
                 "dingTalkConfigs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.DingTalkConfig"
+                        "$ref": "#/definitions/amconfig.DingTalkConfig"
                     }
                 },
                 "emailConfigs": {
@@ -4390,17 +4417,6 @@ const docTemplate = `{
                 },
                 "message": {
                     "description": "错误信息",
-                    "type": "string"
-                }
-            }
-        },
-        "database.DingTalkConfig": {
-            "type": "object",
-            "properties": {
-                "secret": {
-                    "type": "string"
-                },
-                "url": {
                     "type": "string"
                 }
             }
@@ -5516,9 +5532,6 @@ const docTemplate = `{
         "request.LogTableInfoRequest": {
             "type": "object"
         },
-        "request.LogoutRequest": {
-            "type": "object"
-        },
         "request.Operation": {
             "type": "string",
             "enum": [
@@ -5721,22 +5734,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.UpdateUserEmailRequest": {
-            "type": "object",
-            "required": [
-                "email"
-            ],
-            "properties": {
-                "email": {
-                    "description": "邮箱",
-                    "type": "string"
-                },
-                "vCode": {
-                    "description": "验证码",
-                    "type": "string"
-                }
-            }
-        },
         "request.UpdateUserPasswordRequest": {
             "type": "object",
             "required": [
@@ -5748,22 +5745,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "oldPassword": {
-                    "type": "string"
-                }
-            }
-        },
-        "request.UpdateUserPhoneRequest": {
-            "type": "object",
-            "required": [
-                "phone"
-            ],
-            "properties": {
-                "phone": {
-                    "description": "手机号",
-                    "type": "string"
-                },
-                "vCode": {
-                    "description": "验证码",
                     "type": "string"
                 }
             }
@@ -6860,9 +6841,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.LogoutResponse": {
-            "type": "object"
-        },
         "response.MonitorStatus": {
             "type": "object",
             "properties": {
@@ -7190,9 +7168,6 @@ const docTemplate = `{
                     "type": "number"
                 }
             }
-        },
-        "response.UpdateUserInfoResponse": {
-            "type": "object"
         }
     }
 }`

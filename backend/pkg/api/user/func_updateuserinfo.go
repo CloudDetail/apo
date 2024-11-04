@@ -1,6 +1,9 @@
 package user
 
 import (
+	"errors"
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
 
@@ -14,7 +17,9 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Success 200 {object} response.UpdateUserInfoResponse
+// @Param corporation query string false "组织"
+// @Param Authorization header string true "Bearer accessToken"
+// @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/user/update/info [post]
 func (h *handler) UpdateUserInfo() core.HandlerFunc {
@@ -28,6 +33,23 @@ func (h *handler) UpdateUserInfo() core.HandlerFunc {
 			)
 			return
 		}
-
+		username, _ := c.Get(middleware.UserKey)
+		err := h.userService.UpdateUserInfo(username.(string), req)
+		if err != nil {
+			var vErr model.ErrWithMessage
+			if errors.As(err, &vErr) {
+				c.AbortWithError(core.Error(
+					http.StatusBadRequest,
+					vErr.Code,
+					code.Text(vErr.Code)).WithError(err))
+			} else {
+				c.AbortWithError(core.Error(
+					http.StatusBadRequest,
+					code.UserUpdateError,
+					code.Text(code.UserUpdateError)).WithError(err))
+			}
+			return
+		}
+		c.Payload("ok")
 	}
 }

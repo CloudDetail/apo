@@ -1,5 +1,12 @@
 basePath: /
 definitions:
+  amconfig.DingTalkConfig:
+    properties:
+      secret:
+        type: string
+      url:
+        type: string
+    type: object
   amconfig.EmailConfig:
     properties:
       authIdentity:
@@ -47,7 +54,7 @@ definitions:
     properties:
       dingTalkConfigs:
         items:
-          $ref: '#/definitions/database.DingTalkConfig'
+          $ref: '#/definitions/amconfig.DingTalkConfig'
         type: array
       emailConfigs:
         items:
@@ -294,13 +301,6 @@ definitions:
         type: string
       message:
         description: 错误信息
-        type: string
-    type: object
-  database.DingTalkConfig:
-    properties:
-      secret:
-        type: string
-      url:
         type: string
     type: object
   httpconfig.Authorization:
@@ -1083,8 +1083,6 @@ definitions:
     type: object
   request.LogTableInfoRequest:
     type: object
-  request.LogoutRequest:
-    type: object
   request.Operation:
     enum:
     - EQUAL
@@ -1229,17 +1227,6 @@ definitions:
       tableName:
         type: string
     type: object
-  request.UpdateUserEmailRequest:
-    properties:
-      email:
-        description: 邮箱
-        type: string
-      vCode:
-        description: 验证码
-        type: string
-    required:
-    - email
-    type: object
   request.UpdateUserPasswordRequest:
     properties:
       newPassword:
@@ -1249,17 +1236,6 @@ definitions:
     required:
     - newPassword
     - oldPassword
-    type: object
-  request.UpdateUserPhoneRequest:
-    properties:
-      phone:
-        description: 手机号
-        type: string
-      vCode:
-        description: 验证码
-        type: string
-    required:
-    - phone
     type: object
   response.AddOtherTableResponse:
     properties:
@@ -1990,8 +1966,6 @@ definitions:
         description: refreshToken用于刷新accessToken
         type: string
     type: object
-  response.LogoutResponse:
-    type: object
   response.MonitorStatus:
     properties:
       isAlive:
@@ -2208,8 +2182,6 @@ definitions:
       value:
         description: Value 指标平均值
         type: number
-    type: object
-  response.UpdateUserInfoResponse:
     type: object
 info:
   contact: {}
@@ -4673,24 +4645,28 @@ paths:
       tags:
       - API.user
   /api/user/logout:
-    get:
+    post:
       consumes:
       - application/x-www-form-urlencoded
       description: 退出登录
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
+      - description: accessToken
+        in: query
+        name: accessToken
         required: true
-        schema:
-          $ref: '#/definitions/request.LogoutRequest'
+        type: string
+      - description: refreshToken
+        in: query
+        name: refreshToken
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
-            $ref: '#/definitions/response.LogoutResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -4704,7 +4680,7 @@ paths:
       - application/x-www-form-urlencoded
       description: 刷新accessToken
       parameters:
-      - description: Bearer 令牌
+      - description: Bearer refreshToken
         in: header
         name: Authorization
         required: true
@@ -4729,13 +4705,12 @@ paths:
       - application/x-www-form-urlencoded
       description: 更新/绑定邮箱
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
+      - description: 邮箱
+        in: query
+        name: email
         required: true
-        schema:
-          $ref: '#/definitions/request.UpdateUserEmailRequest'
-      - description: Bearer 令牌
+        type: string
+      - description: Bearer accessToken
         in: header
         name: Authorization
         required: true
@@ -4759,13 +4734,23 @@ paths:
       consumes:
       - application/x-www-form-urlencoded
       description: 更新个人信息
+      parameters:
+      - description: 组织
+        in: query
+        name: corporation
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
-            $ref: '#/definitions/response.UpdateUserInfoResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -4785,7 +4770,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.UpdateUserPasswordRequest'
-      - description: Bearer 令牌
+      - description: Bearer accessToken
         in: header
         name: Authorization
         required: true
@@ -4810,13 +4795,12 @@ paths:
       - application/x-www-form-urlencoded
       description: 更新/绑定手机号
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
+      - description: 手机号
+        in: query
+        name: phone
         required: true
-        schema:
-          $ref: '#/definitions/request.UpdateUserPhoneRequest'
-      - description: Bearer 令牌
+        type: string
+      - description: Bearer accessToken
         in: header
         name: Authorization
         required: true

@@ -1,9 +1,9 @@
 package user
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 func (s *service) Login(req *request.LoginRequest) (response.LoginResponse, error) {
@@ -11,7 +11,7 @@ func (s *service) Login(req *request.LoginRequest) (response.LoginResponse, erro
 	if err != nil {
 		return response.LoginResponse{}, err
 	}
-	accessToken, refreshToken, err := middleware.GenerateTokens(req.Username)
+	accessToken, refreshToken, err := util.GenerateTokens(req.Username)
 	if err != nil {
 		return response.LoginResponse{}, err
 	}

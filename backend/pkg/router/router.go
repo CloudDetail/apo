@@ -2,6 +2,7 @@ package router
 
 import (
 	"errors"
+	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
 
 	"go.uber.org/zap"
 
@@ -23,6 +24,7 @@ type resource struct {
 	pol         polarisanalyzer.Repo
 	internal_db internal_database.Repo
 	pkg_db      pkg_database.Repo
+	cache       cache.Repo
 
 	k8sApi kubernetes.Repo
 }
@@ -80,6 +82,13 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 		logger.Fatal("new polarisanalyzer err", zap.Error(err))
 	}
 	r.pol = polRepo
+
+	// 初始化 cache
+	cacheRepo, err := cache.New()
+	if err != nil {
+		logger.Fatal("new cache err", zap.Error(err))
+	}
+	r.cache = cacheRepo
 
 	k8sCfg := config.Get().Kubernetes
 	k8sApi, err := kubernetes.New(logger,
