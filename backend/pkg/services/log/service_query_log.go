@@ -26,11 +26,11 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 		res.Err = err.Error()
 		return res, nil
 	}
-	allFileds := []string{}
+	allFields := []string{}
 	for _, row := range rows {
-		allFileds = append(allFileds, row["name"].(string))
+		allFields = append(allFields, row["name"].(string))
 	}
-	res.DefaultFields = allFileds
+	res.DefaultFields = allFields
 
 	hiddenFields := []string{}
 	model := &database.LogTableInfo{
@@ -54,7 +54,7 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 	}
 
 	var defaultFields []string
-	for _, item := range allFileds {
+	for _, item := range allFields {
 		if _, exists := hMap[item]; !exists {
 			if item == req.TimeField || item == req.LogField {
 				continue

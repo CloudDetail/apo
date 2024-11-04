@@ -34,7 +34,7 @@ func (ch *chRepo) GetLogIndex(req *request.LogIndexRequest) (map[string]uint64, 
 	if err != nil {
 		return nil, 0, err
 	}
-	res := make(map[string]uint64, 0)
+	res := make(map[string]uint64)
 	for _, v := range groupRows {
 		if v["count"] != nil {
 			var key string
@@ -59,6 +59,8 @@ func (ch *chRepo) GetLogIndex(req *request.LogIndexRequest) (map[string]uint64, 
 				key = fmt.Sprintf("%f", *(v["f"].(*float64)))
 			case float64:
 				key = fmt.Sprintf("%f", v["f"].(float64))
+			case bool:
+				key = fmt.Sprintf("%t", v["f"].(bool))
 			default:
 				continue
 			}
