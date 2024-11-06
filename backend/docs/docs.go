@@ -4646,6 +4646,12 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "tableFields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.Field"
+                    }
                 }
             }
         },

@@ -693,6 +693,10 @@ definitions:
         items:
           type: string
         type: array
+      tableFields:
+        items:
+          $ref: '#/definitions/request.Field'
+        type: array
     type: object
   request.AddOtherTableRequest:
     properties:
