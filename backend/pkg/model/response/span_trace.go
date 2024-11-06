@@ -12,7 +12,3 @@ type GetTraceFilterValueResponse struct {
 type GetTraceFiltersResponse struct {
 	TraceFilters []request.SpanTraceFilter `json:"traceFilters"`
 }
-
-type GetOnOffCPUResponse struct {
-	ProfilingEvent *[]clickhouse.ProfilingEvent
-}
