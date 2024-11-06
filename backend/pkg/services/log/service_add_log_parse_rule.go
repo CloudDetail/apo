@@ -36,8 +36,23 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 		TableName: "logs_" + req.ParseName,
 	}
 
+	fields := make([]request.Field, 0)
+	if len(req.Fields) > 0 {
+		fields = req.Fields
+	} else {
+		matchesFields := fieldsRegexp.FindAllStringSubmatch(req.ParseRule, -1)
+		for _, match := range matchesFields {
+			if match[1] == "msg" || match[1] == "ts" {
+				continue
+			}
+			fields = append(fields, request.Field{
+				Name: match[1],
+				Type: "String",
+			})
+		}
+	}
 	logReq.TTL = req.LogTable.TTL
-	logReq.Fields = req.Fields
+	logReq.Fields = fields
 	logReq.Buffer = req.LogTable.Buffer
 	logReq.FillerValue()
 	_, err := s.chRepo.CreateLogTable(logReq)
