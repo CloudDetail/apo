@@ -35,24 +35,15 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 	logReq := &request.LogTableRequest{
 		TableName: "logs_" + req.ParseName,
 	}
-	matchesFields := fieldsRegexp.FindAllStringSubmatch(req.ParseRule, -1)
-
-	fields := make([]request.Field, 0)
-	for _, match := range matchesFields {
-		if match[1] == "msg" || match[1] == "ts" {
-			continue
-		}
-		fields = append(fields, request.Field{
-			Name: match[1],
-			Type: "String",
-		})
-	}
 
 	logReq.TTL = req.LogTable.TTL
-	logReq.Fields = fields
+	logReq.Fields = req.Fields
 	logReq.Buffer = req.LogTable.Buffer
 	logReq.FillerValue()
-
+	_, err := s.chRepo.CreateLogTable(logReq)
+	if err != nil {
+		return nil, err
+	}
 	// 更新k8s configmap
 	res := &response.LogParseResponse{
 		ParseName: req.ParseName,
@@ -74,15 +65,12 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 		ParseRule: req.ParseRule,
 		RouteRule: getRouteRule(req.RouteRule),
 	}
+
 	newData, err := p.AddParseRule(vectorCfg)
 	if err != nil {
 		return nil, err
 	}
 	err = s.k8sApi.UpdateVectorConfigFile(newData)
-	if err != nil {
-		return nil, err
-	}
-	_, err = s.chRepo.CreateLogTable(logReq)
 	if err != nil {
 		return nil, err
 	}
