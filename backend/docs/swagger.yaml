@@ -224,6 +224,38 @@ definitions:
         description: 故障最后一次发生时间
         type: string
     type: object
+  clickhouse.ProfilingEvent:
+    properties:
+      cpuEvents:
+        type: string
+      endTime:
+        type: integer
+      innerCalls:
+        type: string
+      javaFutexEvents:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      offset:
+        type: integer
+      pid:
+        type: integer
+      spans:
+        type: string
+      startTime:
+        type: integer
+      threadName:
+        description: 线程名 表中在labels中
+        type: string
+      tid:
+        type: integer
+      timestamp:
+        type: string
+      transactionId:
+        type: string
+    type: object
   clickhouse.QueryTraceResult:
     properties:
       duration:
@@ -1575,6 +1607,13 @@ definitions:
       monitorList:
         items:
           $ref: '#/definitions/response.MonitorStatus'
+        type: array
+    type: object
+  response.GetOnOffCPUResponse:
+    properties:
+      profilingEvent:
+        items:
+          $ref: '#/definitions/clickhouse.ProfilingEvent'
         type: array
     type: object
   response.GetPolarisInferResponse:
@@ -4463,6 +4502,46 @@ paths:
       summary: 获取Trace相关指标
       tags:
       - API.service
+  /api/trace/onoffcpu:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取span执行消耗
+      parameters:
+      - description: 开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 进程id
+        in: query
+        name: pid
+        required: true
+        type: integer
+      - description: 节点名
+        in: query
+        name: nodeName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetOnOffCPUResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取span执行消耗
+      tags:
+      - API.trace
   /api/trace/pagelist:
     post:
       consumes:

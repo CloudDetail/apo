@@ -42,6 +42,7 @@ var zhCnText = map[string]string{
 	GetTracePageListError:    "获取Trace分页列表失败",
 	GetTraceFiltersError:     "获取Trace过滤条件失败",
 	GetTraceFilterValueError: "获取Trace过滤条件值失败",
+	GetOnOffCPUError:         "获取Trace中span执行消耗失败",
 
 	GetOverviewServiceInstanceListError: "获取实例列表失败",
 	GetServiceMoreUrlListError:          "获取更多服务端点失败",

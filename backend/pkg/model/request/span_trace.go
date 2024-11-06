@@ -78,3 +78,10 @@ type SpanTraceFilter struct {
 	Operation   Operation   `json:"operation,omitempty"`
 	Value       []string    `json:"value,omitempty"`
 }
+
+type GetOnOffCPURequest struct {
+	PID       uint32 `form:"pid" binding:"required"`
+	NodeName  string `form:"nodeName" binding:"required"`
+	StartTime int64  `form:"startTime" binding:"required"`
+	EndTime   int64  `form:"endTime" binding:"required"`
+}
