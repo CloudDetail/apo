@@ -20,6 +20,11 @@ type Handler interface {
 	// @Tags API.trace
 	// @Router /api/trace/pagelist [post]
 	GetTracePageList() core.HandlerFunc
+
+	// GetOnOffCPU 获取span执行消耗
+	// @Tags API.trace
+	// @Router /api/trace/onoffcpu [get]
+	GetOnOffCPU() core.HandlerFunc
 }
 
 type handler struct {

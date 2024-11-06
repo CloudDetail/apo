@@ -62,6 +62,7 @@ const (
 	GetTracePageListError    = "B0501"
 	GetTraceFiltersError     = "B0502"
 	GetTraceFilterValueError = "B0503"
+	GetOnOffCPUError         = "B0504"
 
 	SetTTLError            = "B0601"
 	GetTTLError            = "B0602"

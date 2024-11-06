@@ -42,6 +42,7 @@ var enText = map[string]string{
 	GetTracePageListError:    "Failed to get trace pagelist",
 	GetTraceFiltersError:     "Failed to get trace filters",
 	GetTraceFilterValueError: "Failed to get trace filter value",
+	GetOnOffCPUError:         "Filed to get on off cpu value",
 
 	GetOverviewServiceInstanceListError: "Failed to get overview service instance list",
 	GetServiceMoreUrlListError:          "Failed to get service more url list",
