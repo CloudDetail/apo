@@ -26,15 +26,18 @@ const (
 func (s *service) GetPodMap(req *request.PodMapRequest) (*response.PodMapResponse, error) {
 	deepflowServer := config.Get().DeepFlow.ServerAddress
 	queryFields := "PerSecond(Avg(`request`)) AS `PerSecond(Avg(request))`, Avg(`server_error_ratio`) AS `Avg(server_error_ratio)`, Avg(`rrt`) AS `Avg(rrt)`, node_type(pod_0) AS `client_node_type`, icon_id(pod_0) AS `client_icon_id`, pod_id_0, pod_0, node_type(pod_1) AS `server_node_type`, icon_id(pod_1) AS `server_icon_id`, pod_id_1, pod_1, Enum(tap_side), tap_side"
-	queryWheres := clickhouse.NewQueryBuilder().
-		Between("time", req.StartTime/1e6, req.EndTime/1e6).
-		EqualsNotEmpty("pod_ns_1", req.Namespace).
-		EqualsNotEmpty("pod_group_1", req.Workload).
-		EqualsNotEmpty("protocol", req.Protocol)
+	queryWheres := fmt.Sprintf("WHERE time >= %d AND time <= %d", req.StartTime/1e6, req.EndTime/1e6)
+	if req.Namespace != "" {
+		queryWheres += fmt.Sprintf(" AND pod_ns_1 = '%s'", req.Namespace)
+	}
+	if req.Workload != "" {
+		queryWheres += fmt.Sprintf(" AND pod_group_1 = '%s'", req.Workload)
+	}
+
 	queryBys := clickhouse.NewByLimitBuilder().
-		Limit(500).
-		GroupBy("pod_0, pod_1, tap_side, pod_id_0, pod_id_1, `client_node_type`, `server_node_type`")
-	sql := fmt.Sprintf(sqlTemplate, queryFields, queryWheres.String(), queryBys.String())
+		GroupBy("pod_0, pod_1, tap_side, pod_id_0, pod_id_1, `client_node_type`, `server_node_type`").
+		Limit(500)
+	sql := fmt.Sprintf(sqlTemplate, queryFields, queryWheres, queryBys.String())
 	db := "flow_metrics"
 	dataPrecision := "1m"
 
@@ -67,4 +70,14 @@ func (s *service) GetPodMap(req *request.PodMapRequest) (*response.PodMapRespons
 	}
 
 	return podMapResp.Result, nil
+}
+
+func getProtocolNum(protocol string) int {
+	switch protocol {
+	case "HTTP":
+		return 20
+	case "HTTPS":
+		return 21
+	}
+	return 0
 }

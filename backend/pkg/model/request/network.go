@@ -1,7 +1,7 @@
 package request
 
 type PodMapRequest struct {
-	StartTime int64  `form:"statTime" json:"startTime" binding:"required,min=0"`          // 查询开始时间
+	StartTime int64  `form:"startTime" json:"startTime" binding:"required,min=0"`         // 查询开始时间
 	EndTime   int64  `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
 	Namespace string `form:"namespace"`
 	Workload  string `form:"workload"`
