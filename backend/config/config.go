@@ -63,6 +63,12 @@ type Config struct {
 		Enable           bool                     `mapstructure:"enable"`
 		MetaSourceConfig configs.MetaSourceConfig `mapstructure:"meta_source_config"`
 	} `mapstructure:"meta_server"`
+	DeepFlow struct {
+		ServerAddress string `mapstructure:"server_address"`
+		ChAddress     string `mapstructure:"ch_address"`
+		ChUsername    string `mapstructure:"ch_username"`
+		ChPassword    string `mapstructure:"ch_password"`
+	} `mapstructure:"deepflow"`
 }
 
 type MetadataSettings struct {

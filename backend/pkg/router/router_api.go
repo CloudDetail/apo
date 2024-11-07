@@ -5,6 +5,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
+	networkapi "github.com/CloudDetail/apo/backend/pkg/api/network"
 	"github.com/CloudDetail/apo/backend/pkg/api/service"
 	"github.com/CloudDetail/apo/backend/pkg/api/serviceoverview"
 	"github.com/CloudDetail/apo/backend/pkg/api/trace"
@@ -124,6 +125,13 @@ func setApiRouter(r *resource) {
 		configApi.POST("/setTTL", configHandler.SetTTL())
 		configApi.POST("/setSingleTableTTL", configHandler.SetSingleTableTTL())
 		configApi.GET("/getTTL", configHandler.GetTTL())
+	}
+
+	networkApi := r.mux.Group("/api/network/")
+	{
+		handler := networkapi.New(r.logger, r.ch)
+		networkApi.GET("/podmap", handler.GetPodMap())
+		networkApi.GET("/segments/traces/:traceId/spans/:spanId", handler.GetSpanSegmentsMetrics())
 	}
 
 }
