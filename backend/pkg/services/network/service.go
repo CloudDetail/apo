@@ -10,7 +10,7 @@ var _ Service = (*service)(nil)
 
 type Service interface {
 	GetPodMap(req *request.PodMapRequest) (*response.PodMapResponse, error)
-	GetSpanSegmentsMetrics(req *request.SpanSegmentMetricsRequest) (*response.SpanSegmentMetricsResponse, error)
+	GetSpanSegmentsMetrics(req *request.SpanSegmentMetricsRequest) (response.SpanSegmentMetricsResponse, error)
 }
 
 type service struct {

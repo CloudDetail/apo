@@ -5,34 +5,41 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-type SegmentLatency struct {
-	// 客户端进程发出到收到回复的信息
-	clientProcess Duration
-	// 客户端容器网卡发出到收到回复总时长
-	clientNic uint64
-	// 客户端主机网卡发出到收到回复总时长
-	clientK8sNodeNic uint64
-	// 服务端主机网卡发出到收到回复总时长
-	serverK8sNodeNic uint64
-	// 服务端容器网卡发出到收到回复总时长
-	serverNic uint64
-	// 客户端主机ID
-	PodNodeId0 uint32
-	// 服务端主机ID
-	PodNodeId1 uint32
-}
-
-type Duration struct {
-	// 处理网络包时间戳，单位微秒
-	startTime uint64
-	//
-	endTime          uint64
-	responseDuration uint64
-}
-
-func (s *service) GetSpanSegmentsMetrics(req *request.SpanSegmentMetricsRequest) (*response.SpanSegmentMetricsResponse, error) {
-	if len(req.SpanId) == 0 {
-
+func (s *service) GetSpanSegmentsMetrics(req *request.SpanSegmentMetricsRequest) (response.SpanSegmentMetricsResponse, error) {
+	netSegments, err := s.chRepo.GetNetworkSpanSegments(req.TraceId, req.SpanId)
+	if err != nil {
+		return nil, err
 	}
-	return nil, nil
+	result := make(response.SpanSegmentMetricsResponse)
+	for _, segment := range netSegments {
+		if segment.SpanId == "" {
+			continue
+		}
+		segmentLatency, ok := result[segment.SpanId]
+		if !ok {
+			segmentLatency = &response.SegmentLatency{}
+			result[segment.SpanId] = segmentLatency
+		}
+
+		duration := response.Duration{
+			StartTime:        segment.StartTime.UnixMicro(),
+			EndTime:          segment.EndTime.UnixMicro(),
+			ResponseDuration: segment.ResponseDuration,
+		}
+		switch segment.TapSide {
+		case "c-p":
+			segmentLatency.ClientProcess = duration
+		case "c":
+			segmentLatency.ClientNic = duration
+		case "c-nd":
+			segmentLatency.ClientK8sNodeNic = duration
+		case "s-p":
+			segmentLatency.ServerProcess = duration
+		case "s":
+			segmentLatency.ServerNic = duration
+		case "s-nd":
+			segmentLatency.ServerK8sNodeNic = duration
+		}
+	}
+	return result, nil
 }

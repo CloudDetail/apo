@@ -89,6 +89,9 @@ type Repo interface {
 	// ========== k8s events ============
 	// SeverityNumber > 9 (warning)
 	GetK8sAlertEventsSample(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) ([]K8sEvents, error)
+
+	// ========== network (deepflow) ==========
+	GetNetworkSpanSegments(traceId string, spanId string) ([]NetSegments, error)
 }
 
 type chRepo struct {

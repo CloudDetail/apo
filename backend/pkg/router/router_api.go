@@ -129,9 +129,9 @@ func setApiRouter(r *resource) {
 
 	networkApi := r.mux.Group("/api/network/")
 	{
-		handler := networkapi.New(r.logger, r.ch)
+		handler := networkapi.New(r.logger, r.deepflowClickhouse)
 		networkApi.GET("/podmap", handler.GetPodMap())
-		networkApi.GET("/segments/traces/:traceId/spans/:spanId", handler.GetSpanSegmentsMetrics())
+		networkApi.GET("/segments", handler.GetSpanSegmentsMetrics())
 	}
 
 }

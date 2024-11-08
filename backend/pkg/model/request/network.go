@@ -9,6 +9,6 @@ type PodMapRequest struct {
 }
 
 type SpanSegmentMetricsRequest struct {
-	TraceId string `uri:"traceId" binding:"required"`
-	SpanId  string `uri:"spanId"`
+	TraceId string `form:"traceId" binding:"required"`
+	SpanId  string `form:"spanId"`
 }

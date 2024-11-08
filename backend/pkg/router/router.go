@@ -16,13 +16,14 @@ import (
 )
 
 type resource struct {
-	mux         *core.Mux
-	logger      *zap.Logger
-	ch          clickhouse.Repo
-	prom        prometheus.Repo
-	pol         polarisanalyzer.Repo
-	internal_db internal_database.Repo
-	pkg_db      pkg_database.Repo
+	mux                *core.Mux
+	logger             *zap.Logger
+	ch                 clickhouse.Repo
+	deepflowClickhouse clickhouse.Repo
+	prom               prometheus.Repo
+	pol                polarisanalyzer.Repo
+	internal_db        internal_database.Repo
+	pkg_db             pkg_database.Repo
 
 	k8sApi kubernetes.Repo
 }
@@ -65,6 +66,17 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 		logger.Fatal("new clickhouse err", zap.Error(err))
 	}
 	r.ch = chRepo
+
+	deepflowCfg := config.Get().DeepFlow
+	deepflowChRepo, err := clickhouse.New(logger, []string{deepflowCfg.ChAddress},
+		"default", deepflowCfg.ChUsername, deepflowCfg.ChPassword)
+	if err != nil {
+		logger.Error("new clickhouse err, will use the apo clickhouse", zap.Error(err))
+		// 使用 APO 的 ClickHouse
+		r.deepflowClickhouse = chRepo
+	} else {
+		r.deepflowClickhouse = deepflowChRepo
+	}
 
 	// 初始化 Prometheus
 	promCfg := config.Get().Promethues

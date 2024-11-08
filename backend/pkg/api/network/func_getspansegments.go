@@ -10,7 +10,7 @@ import (
 func (h *handler) GetSpanSegmentsMetrics() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.SpanSegmentMetricsRequest)
-		if err := c.ShouldBindURI(req); err != nil {
+		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
