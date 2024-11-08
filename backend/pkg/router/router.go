@@ -17,16 +17,16 @@ import (
 )
 
 type resource struct {
-	mux         *core.Mux
-	logger      *zap.Logger
-	ch          clickhouse.Repo
+	mux                *core.Mux
+	logger             *zap.Logger
+	ch                 clickhouse.Repo
 	deepflowClickhouse clickhouse.Repo
-	prom        prometheus.Repo
-	pol         polarisanalyzer.Repo
-	internal_db internal_database.Repo
-	pkg_db      pkg_database.Repo
-	jaegerRepo  jaeger.JaegerRepo
-	k8sRepo     kubernetes.Repo
+	prom               prometheus.Repo
+	pol                polarisanalyzer.Repo
+	internal_db        internal_database.Repo
+	pkg_db             pkg_database.Repo
+	jaegerRepo         jaeger.JaegerRepo
+	k8sRepo            kubernetes.Repo
 }
 
 type Server struct {

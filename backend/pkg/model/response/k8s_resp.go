@@ -1,17 +1,19 @@
 package response
 
+import v1 "k8s.io/api/core/v1"
+
 type GetNamespaceListResponse struct {
-	NamespaceList string `json:"namespaceList"`
+	*v1.NamespaceList
 }
 
 type GetPodListResponse struct {
-	PodList string `json:"podList"`
+	*v1.PodList
 }
 
 type GetNamespaceInfoResponse struct {
-	NamespaceInfo string `json:"namespaceInfo"`
+	*v1.Namespace
 }
 
 type GetPodInfoResponse struct {
-	PodInfo string `json:"podInfo"`
+	*v1.Pod
 }
