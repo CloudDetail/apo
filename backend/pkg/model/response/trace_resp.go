@@ -13,3 +13,7 @@ type GetTracePageListResponse struct {
 type GetOnOffCPUResponse struct {
 	ProfilingEvent *[]clickhouse.ProfilingEvent `json:"profilingEvent"`
 }
+
+type GetSingleTraceInfoResponse struct {
+	TraceInfo string `json:"traceInfo"`
+}

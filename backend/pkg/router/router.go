@@ -2,6 +2,7 @@ package router
 
 import (
 	"errors"
+	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
 
 	"go.uber.org/zap"
 
@@ -23,8 +24,8 @@ type resource struct {
 	pol         polarisanalyzer.Repo
 	internal_db internal_database.Repo
 	pkg_db      pkg_database.Repo
-
-	k8sApi kubernetes.Repo
+	jaegerRepo  jaeger.JaegerRepo
+	k8sRepo     kubernetes.Repo
 }
 
 type Server struct {
@@ -88,7 +89,10 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	if err != nil {
 		logger.Fatal("new kubernetes api err", zap.Error(err))
 	}
-	r.k8sApi = k8sApi
+	r.k8sRepo = k8sApi
+
+	jaegerRepo, err := jaeger.New()
+	r.jaegerRepo = jaegerRepo
 
 	// 设置 API 路由
 	setApiRouter(r)

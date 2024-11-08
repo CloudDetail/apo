@@ -22,3 +22,7 @@ type GetOnOffCPURequest struct {
 	StartTime int64  `form:"startTime" binding:"required"`
 	EndTime   int64  `form:"endTime" binding:"required"`
 }
+
+type GetSingleTraceInfoRequest struct {
+	TraceID string `form:"traceId" binding:"required"`
+}

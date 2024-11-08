@@ -699,6 +699,156 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/k8s/namespace/info": {
+            "get": {
+                "description": "获取namespace信息",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.k8s"
+                ],
+                "summary": "获取namespace信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "namespace名",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetNamespaceInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/k8s/namespaces": {
+            "get": {
+                "description": "获取所有namespace信息",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.k8s"
+                ],
+                "summary": "获取所有namespace信息",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetNamespaceListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/k8s/pod/info": {
+            "get": {
+                "description": "获取pod信息",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.k8s"
+                ],
+                "summary": "获取pod信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "namespace名",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pod名",
+                        "name": "pod",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetPodInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/k8s/pods": {
+            "get": {
+                "description": "获取所有pod信息",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.k8s"
+                ],
+                "summary": "获取所有pod信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "namespace名",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetPodListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/log/chart": {
             "post": {
                 "description": "获取日志趋势图",
@@ -3468,6 +3618,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/trace/info": {
+            "get": {
+                "description": "获取单链路Trace详情",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.trace"
+                ],
+                "summary": "获取单链路Trace详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "trace id",
+                        "name": "traceId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetSingleTraceInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/trace/onoffcpu": {
             "get": {
                 "description": "获取span执行消耗",
@@ -4648,6 +4836,7 @@ const docTemplate = `{
                     }
                 },
                 "tableFields": {
+                    "description": "自定义表字段",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/request.Field"
@@ -5996,6 +6185,22 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetNamespaceInfoResponse": {
+            "type": "object",
+            "properties": {
+                "namespaceInfo": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetNamespaceListResponse": {
+            "type": "object",
+            "properties": {
+                "namespaceList": {
+                    "type": "string"
+                }
+            }
+        },
         "response.GetOnOffCPUResponse": {
             "type": "object",
             "properties": {
@@ -6004,6 +6209,22 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/clickhouse.ProfilingEvent"
                     }
+                }
+            }
+        },
+        "response.GetPodInfoResponse": {
+            "type": "object",
+            "properties": {
+                "podInfo": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetPodListResponse": {
+            "type": "object",
+            "properties": {
+                "podList": {
+                    "type": "string"
                 }
             }
         },
@@ -6108,6 +6329,14 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "response.GetSingleTraceInfoResponse": {
+            "type": "object",
+            "properties": {
+                "traceInfo": {
+                    "type": "string"
                 }
             }
         },
