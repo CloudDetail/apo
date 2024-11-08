@@ -10,14 +10,14 @@ type NetSegments struct {
 	StartTime        time.Time `ch:"start_time"`
 	EndTime          time.Time `ch:"end_time"`
 	ResponseDuration uint64    `ch:"response_duration"`
-	ObservationPoint string    `ch:"observation_point"`
+	TapSide          string    `ch:"tap_side"`
 	SpanId           string    `ch:"span_id"`
 	TraceId          string    `ch:"trace_id"`
 }
 
 func (ch *chRepo) GetNetworkSpanSegments(traceId string, spanId string) ([]NetSegments, error) {
 	spanSegmentSqlTemplate := "SELECT %s FROM flow_log.l7_flow_log %s"
-	fields := "start_time, end_time, response_duration, observation_point, span_id, trace_id"
+	fields := "start_time, end_time, response_duration, tap_side, span_id, trace_id"
 	queryBuilder := NewQueryBuilder().
 		EqualsNotEmpty("trace_id", traceId).
 		EqualsNotEmpty("span_id", spanId)

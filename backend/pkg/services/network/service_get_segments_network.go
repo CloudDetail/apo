@@ -26,7 +26,7 @@ func (s *service) GetSpanSegmentsMetrics(req *request.SpanSegmentMetricsRequest)
 			EndTime:          segment.EndTime.UnixMicro(),
 			ResponseDuration: segment.ResponseDuration,
 		}
-		switch segment.ObservationPoint {
+		switch segment.TapSide {
 		case "c-p":
 			segmentLatency.ClientProcess = duration
 		case "c":
