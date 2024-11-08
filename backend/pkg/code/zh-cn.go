@@ -43,6 +43,7 @@ var zhCnText = map[string]string{
 	GetTraceFiltersError:     "获取Trace过滤条件失败",
 	GetTraceFilterValueError: "获取Trace过滤条件值失败",
 	GetOnOffCPUError:         "获取Trace中span执行消耗失败",
+	GetSingleTraceError:      "获取单条trace数据失败",
 
 	GetOverviewServiceInstanceListError: "获取实例列表失败",
 	GetServiceMoreUrlListError:          "获取更多服务端点失败",
@@ -87,4 +88,6 @@ var zhCnText = map[string]string{
 	AlertManagerReceiverEmailFromMissing:    "告警通知对象 email 'from' 配置缺失",
 	AlertManagerEmptyReceiver:               "告警通知对象没有设置任何 webhook 或 email 配置",
 	AlertManagerDefaultReceiverCannotDelete: "默认告警通知对象不能被删除",
+
+	K8sGetResourceError: "获取k8s资源失败",
 }

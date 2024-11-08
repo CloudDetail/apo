@@ -4,6 +4,7 @@ import (
 	"github.com/CloudDetail/apo/backend/internal/api/mock"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
+	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
 	"github.com/CloudDetail/apo/backend/pkg/api/service"
 	"github.com/CloudDetail/apo/backend/pkg/api/serviceoverview"
@@ -62,7 +63,7 @@ func setApiRouter(r *resource) {
 
 	logApi := r.mux.Group("/api/log")
 	{
-		logHandler := log.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom)
+		logHandler := log.New(r.logger, r.ch, r.pkg_db, r.k8sRepo, r.prom)
 		logApi.POST("/fault/pagelist", logHandler.GetFaultLogPageList())
 		logApi.POST("/fault/content", logHandler.GetFaultLogContent())
 
@@ -89,16 +90,17 @@ func setApiRouter(r *resource) {
 
 	traceApi := r.mux.Group("/api/trace")
 	{
-		traceHandler := trace.New(r.logger, r.ch)
+		traceHandler := trace.New(r.logger, r.ch, r.jaegerRepo)
 		traceApi.POST("/pagelist", traceHandler.GetTracePageList())
 		traceApi.GET("/pagelist/filters", traceHandler.GetTraceFilters())
 		traceApi.POST("/pagelist/filter/value", traceHandler.GetTraceFilterValue())
 		traceApi.GET("/onoffcpu", traceHandler.GetOnOffCPU())
+		traceApi.GET("/info", traceHandler.GetSingleTraceInfo())
 	}
 
 	alertApi := r.mux.Group("/api/alerts")
 	{
-		alertHandler := alerts.New(r.logger, r.ch, r.k8sApi, r.pkg_db)
+		alertHandler := alerts.New(r.logger, r.ch, r.k8sRepo, r.pkg_db)
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.POST("/outputs/dingtalk/:uuid", alertHandler.ForwardToDingTalk())
 		alertApi.GET("/rules/file", alertHandler.GetAlertRuleFile())
@@ -127,6 +129,14 @@ func setApiRouter(r *resource) {
 		configApi.GET("/getTTL", configHandler.GetTTL())
 	}
 
+	k8sApi := r.mux.Group("/api/k8s")
+	{
+		k8sHandler := k8s.New(r.k8sRepo)
+		k8sApi.GET("/namespaces", k8sHandler.GetNamespaceList())
+		k8sApi.GET("/namespace/info", k8sHandler.GetNamespaceInfo())
+		k8sApi.GET("/pods", k8sHandler.GetPodList())
+		k8sApi.GET("/pod/info", k8sHandler.GetPodInfo())
+	}
 }
 
 func SetMetaServerRouter(srv *Server, meta source.MetaSource) {

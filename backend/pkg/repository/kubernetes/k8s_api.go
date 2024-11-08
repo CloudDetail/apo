@@ -202,3 +202,19 @@ func (n *NoneAPI) GetAMConfigReceiver(configFile string, filter *request.AMConfi
 func (n *NoneAPI) CheckAlertRule(configFile, group, alert string) (bool, error) {
 	return false, ErrKubernetesRepoNotReady
 }
+
+func (n *NoneAPI) GetNamespaceList() (*v1.NamespaceList, error) {
+	return nil, ErrKubernetesRepoNotReady
+}
+
+func (n *NoneAPI) GetNamespaceInfo(namespace string) (*v1.Namespace, error) {
+	return nil, ErrKubernetesRepoNotReady
+}
+
+func (n *NoneAPI) GetPodList(namespace string) (*v1.PodList, error) {
+	return nil, ErrKubernetesRepoNotReady
+}
+
+func (n *NoneAPI) GetPodInfo(namespace string, pod string) (*v1.Pod, error) {
+	return nil, ErrKubernetesRepoNotReady
+}

@@ -694,6 +694,7 @@ definitions:
           type: string
         type: array
       tableFields:
+        description: 自定义表字段
         items:
           $ref: '#/definitions/request.Field'
         type: array
@@ -1613,12 +1614,32 @@ definitions:
           $ref: '#/definitions/response.MonitorStatus'
         type: array
     type: object
+  response.GetNamespaceInfoResponse:
+    properties:
+      namespaceInfo:
+        type: string
+    type: object
+  response.GetNamespaceListResponse:
+    properties:
+      namespaceList:
+        type: string
+    type: object
   response.GetOnOffCPUResponse:
     properties:
       profilingEvent:
         items:
           $ref: '#/definitions/clickhouse.ProfilingEvent'
         type: array
+    type: object
+  response.GetPodInfoResponse:
+    properties:
+      podInfo:
+        type: string
+    type: object
+  response.GetPodListResponse:
+    properties:
+      podList:
+        type: string
     type: object
   response.GetPolarisInferResponse:
     properties:
@@ -1685,6 +1706,11 @@ definitions:
         additionalProperties:
           type: string
         type: object
+    type: object
+  response.GetSingleTraceInfoResponse:
+    properties:
+      traceInfo:
+        type: string
     type: object
   response.GetTTLResponse:
     properties:
@@ -2653,6 +2679,105 @@ paths:
       summary: 配置TTL
       tags:
       - Api.config
+  /api/k8s/namespace/info:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取namespace信息
+      parameters:
+      - description: namespace名
+        in: query
+        name: namespace
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetNamespaceInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取namespace信息
+      tags:
+      - API.k8s
+  /api/k8s/namespaces:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取所有namespace信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetNamespaceListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取所有namespace信息
+      tags:
+      - API.k8s
+  /api/k8s/pod/info:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取pod信息
+      parameters:
+      - description: namespace名
+        in: query
+        name: namespace
+        required: true
+        type: string
+      - description: pod名
+        in: query
+        name: pod
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetPodInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取pod信息
+      tags:
+      - API.k8s
+  /api/k8s/pods:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取所有pod信息
+      parameters:
+      - description: namespace名
+        in: query
+        name: namespace
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetPodListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取所有pod信息
+      tags:
+      - API.k8s
   /api/log/chart:
     post:
       consumes:
@@ -4506,6 +4631,31 @@ paths:
       summary: 获取Trace相关指标
       tags:
       - API.service
+  /api/trace/info:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取单链路Trace详情
+      parameters:
+      - description: trace id
+        in: query
+        name: traceId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetSingleTraceInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取单链路Trace详情
+      tags:
+      - API.trace
   /api/trace/onoffcpu:
     get:
       consumes:

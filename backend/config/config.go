@@ -63,6 +63,9 @@ type Config struct {
 		Enable           bool                     `mapstructure:"enable"`
 		MetaSourceConfig configs.MetaSourceConfig `mapstructure:"meta_source_config"`
 	} `mapstructure:"meta_server"`
+	Jaeger struct {
+		Address string `mapstructure:"address"`
+	}
 }
 
 type MetadataSettings struct {
