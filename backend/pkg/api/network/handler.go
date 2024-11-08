@@ -9,11 +9,11 @@ import (
 
 type Handler interface {
 	// GetPodMap 查询 Pod 网络调用拓扑与调用指标
-	// @Tags API.Network
+	// @Tags API.network
 	// @Router /api/network/podmap [get]
 	GetPodMap() core.HandlerFunc
 	// GetSpanSegmentsMetrics 客户端对外调用Span网络耗时分段指标
-	// @Tags API.Network
+	// @Tags API.network
 	// @Router /api/network/segments [get]
 	GetSpanSegmentsMetrics() core.HandlerFunc
 }

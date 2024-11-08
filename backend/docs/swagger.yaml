@@ -1277,6 +1277,18 @@ definitions:
       name:
         type: string
     type: object
+  response.Duration:
+    properties:
+      endTime:
+        description: 响应网络包时间戳，单位微秒
+        type: integer
+      responseDuration:
+        description: 响应延时
+        type: integer
+      startTime:
+        description: 请求网络包时间戳，单位微秒
+        type: integer
+    type: object
   response.EntryInstanceData:
     properties:
       alertReason:
@@ -2007,6 +2019,33 @@ definitions:
       tableName:
         type: string
     type: object
+  response.PodMapResponse:
+    properties:
+      columns:
+        items:
+          type: string
+        type: array
+      schemas:
+        items:
+          properties:
+            label_type:
+              type: string
+            pre_as:
+              type: string
+            type:
+              type: integer
+            unit:
+              type: string
+            value_type:
+              type: string
+          type: object
+        type: array
+      values:
+        items:
+          items: {}
+          type: array
+        type: array
+    type: object
   response.RYGScoreDetail:
     properties:
       detail:
@@ -2058,6 +2097,33 @@ definitions:
         allOf:
         - $ref: '#/definitions/response.TempChartObject'
         description: FIXME Tps 名称为tps,实际为每分钟请求数
+    type: object
+  response.SegmentLatency:
+    properties:
+      clientK8SNodeNic:
+        allOf:
+        - $ref: '#/definitions/response.Duration'
+        description: 在客户端主机网卡处采集到的请求和响应时间
+      clientNic:
+        allOf:
+        - $ref: '#/definitions/response.Duration'
+        description: 在客户端网卡处采集到的请求和响应时间
+      clientProcess:
+        allOf:
+        - $ref: '#/definitions/response.Duration'
+        description: 在客户端进程处采集到的请求和响应时间
+      serverK8SNodeNic:
+        allOf:
+        - $ref: '#/definitions/response.Duration'
+        description: 在服务端主机网卡处采集到的请求和响应时间
+      serverNic:
+        allOf:
+        - $ref: '#/definitions/response.Duration'
+        description: 在服务端网卡处采集到的请求和响应时间
+      serverProcess:
+        allOf:
+        - $ref: '#/definitions/response.Duration'
+        description: 在服务端进程处采集到的请求和响应时间
     type: object
   response.ServiceAlertRes:
     properties:
@@ -2142,6 +2208,10 @@ definitions:
         type: string
       status:
         $ref: '#/definitions/response.RYGStatus'
+    type: object
+  response.SpanSegmentMetricsResponse:
+    additionalProperties:
+      $ref: '#/definitions/response.SegmentLatency'
     type: object
   response.TempChartObject:
     properties:
@@ -3132,6 +3202,71 @@ paths:
       summary: xx详情
       tags:
       - API.mock
+  /api/network/podmap:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 查询 Pod 网络调用拓扑与调用指标
+      parameters:
+      - description: 起始时间，单位微秒
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 结束时间，单位微秒
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 要查询的Namespace，值为空则查询所有
+        in: query
+        name: namespace
+        type: string
+      - description: 要查询的工作负载，值为空则查询所有
+        in: query
+        name: workload
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PodMapResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 查询 Pod 网络调用拓扑与调用指标
+      tags:
+      - API.Network
+  /api/network/segments:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 客户端对外调用Span网络耗时分段指标
+      parameters:
+      - description: traceId
+        in: query
+        name: traceId
+        required: true
+        type: string
+      - description: spanId, 值为空则查询所有
+        in: query
+        name: spanId
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SpanSegmentMetricsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 客户端对外调用Span网络耗时分段指标
+      tags:
+      - API.Network
   /api/service/alert/events:
     get:
       consumes:
