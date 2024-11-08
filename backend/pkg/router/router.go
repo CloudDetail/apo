@@ -20,6 +20,7 @@ type resource struct {
 	mux         *core.Mux
 	logger      *zap.Logger
 	ch          clickhouse.Repo
+	deepflowClickhouse clickhouse.Repo
 	prom        prometheus.Repo
 	pol         polarisanalyzer.Repo
 	internal_db internal_database.Repo
@@ -66,6 +67,19 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 		logger.Fatal("new clickhouse err", zap.Error(err))
 	}
 	r.ch = chRepo
+
+	deepflowCfg := config.Get().DeepFlow
+	// 没有配置时，默认采用 apo 的 ClickHouse
+	if deepflowCfg.ChAddress == "" {
+		r.deepflowClickhouse = chRepo
+	} else {
+		deepflowChRepo, err := clickhouse.New(logger, []string{deepflowCfg.ChAddress},
+			"default", deepflowCfg.ChUsername, deepflowCfg.ChPassword)
+		if err != nil {
+			logger.Fatal("new deepflow clickhouse err", zap.Error(err))
+		}
+		r.deepflowClickhouse = deepflowChRepo
+	}
 
 	// 初始化 Prometheus
 	promCfg := config.Get().Promethues

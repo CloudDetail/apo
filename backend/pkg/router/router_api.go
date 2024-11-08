@@ -6,6 +6,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
 	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
+	networkapi "github.com/CloudDetail/apo/backend/pkg/api/network"
 	"github.com/CloudDetail/apo/backend/pkg/api/service"
 	"github.com/CloudDetail/apo/backend/pkg/api/serviceoverview"
 	"github.com/CloudDetail/apo/backend/pkg/api/trace"
@@ -137,6 +138,13 @@ func setApiRouter(r *resource) {
 		k8sApi.GET("/pods", k8sHandler.GetPodList())
 		k8sApi.GET("/pod/info", k8sHandler.GetPodInfo())
 	}
+	networkApi := r.mux.Group("/api/network/")
+	{
+		handler := networkapi.New(r.logger, r.deepflowClickhouse)
+		networkApi.GET("/podmap", handler.GetPodMap())
+		networkApi.GET("/segments", handler.GetSpanSegmentsMetrics())
+	}
+
 }
 
 func SetMetaServerRouter(srv *Server, meta source.MetaSource) {

@@ -66,6 +66,12 @@ type Config struct {
 	Jaeger struct {
 		Address string `mapstructure:"address"`
 	}
+	DeepFlow struct {
+		ServerAddress string `mapstructure:"server_address"`
+		ChAddress     string `mapstructure:"ch_address"`
+		ChUsername    string `mapstructure:"ch_username"`
+		ChPassword    string `mapstructure:"ch_password"`
+	} `mapstructure:"deepflow"`
 }
 
 type MetadataSettings struct {

@@ -93,6 +93,9 @@ type Repo interface {
 	// profiling_event
 	// GetOnOffCPU 获取span执行消耗
 	GetOnOffCPU(pid uint32, nodeName string, startTime, endTime int64) (*[]ProfilingEvent, error)
+
+	// ========== network (deepflow) ==========
+	GetNetworkSpanSegments(traceId string, spanId string) ([]NetSegments, error)
 }
 
 type chRepo struct {
