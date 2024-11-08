@@ -1,7 +1,6 @@
 package k8s
 
 import (
-	"encoding/json"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
@@ -11,9 +10,8 @@ func (s service) GetPodList(req *request.GetPodListRequest) (*response.GetPodLis
 	if err != nil {
 		return nil, err
 	}
-	listJson, _ := json.Marshal(list)
 	return &response.GetPodListResponse{
-		PodList: string(listJson),
+		PodList: list,
 	}, nil
 }
 
@@ -22,8 +20,7 @@ func (s service) GetPodInfo(req *request.GetPodInfoRequest) (*response.GetPodInf
 	if err != nil {
 		return nil, err
 	}
-	infoJson, _ := json.Marshal(info)
 	return &response.GetPodInfoResponse{
-		PodInfo: string(infoJson),
+		Pod: info,
 	}, nil
 }
