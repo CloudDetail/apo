@@ -16,7 +16,7 @@ type Service interface {
 	GetTraceFilterValues(startTime, endTime time.Time, searchText string, filter request.SpanTraceFilter) (*response.GetTraceFilterValueResponse, error)
 	GetTracePageList(req *request.GetTracePageListRequest) (*response.GetTracePageListResponse, error)
 	GetOnOffCPU(req *request.GetOnOffCPURequest) (*response.GetOnOffCPUResponse, error)
-	GetSingleTraceID(req *request.GetSingleTraceInfoRequest) (*response.GetSingleTraceInfoResponse, error)
+	GetSingleTraceID(req *request.GetSingleTraceInfoRequest) (string, error)
 }
 
 type service struct {
