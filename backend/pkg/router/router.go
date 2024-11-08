@@ -68,13 +68,15 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	r.ch = chRepo
 
 	deepflowCfg := config.Get().DeepFlow
-	deepflowChRepo, err := clickhouse.New(logger, []string{deepflowCfg.ChAddress},
-		"default", deepflowCfg.ChUsername, deepflowCfg.ChPassword)
-	if err != nil {
-		logger.Error("new clickhouse err, will use the apo clickhouse", zap.Error(err))
-		// 使用 APO 的 ClickHouse
+	// 没有配置时，默认采用 apo 的 ClickHouse
+	if deepflowCfg.ChAddress == "" {
 		r.deepflowClickhouse = chRepo
 	} else {
+		deepflowChRepo, err := clickhouse.New(logger, []string{deepflowCfg.ChAddress},
+			"default", deepflowCfg.ChUsername, deepflowCfg.ChPassword)
+		if err != nil {
+			logger.Fatal("new deepflow clickhouse err", zap.Error(err))
+		}
 		r.deepflowClickhouse = deepflowChRepo
 	}
 

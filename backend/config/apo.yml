@@ -59,6 +59,7 @@ meta_server:
 
 deepflow:
   server_address: http://localhost:20416
+  # 不配置时默认采用clickhouse中的配置
   ch_address: localhost:9000
   ch_username: admin
   ch_password:
