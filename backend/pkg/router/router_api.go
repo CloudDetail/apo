@@ -147,7 +147,7 @@ func setApiRouter(r *resource) {
 
 	k8sApi := r.mux.Group("/api/k8s")
 	{
-		k8sHandler := k8s.New(r.k8sRepo)
+		k8sHandler := k8s.New(r.k8sApi)
 		k8sApi.GET("/namespaces", k8sHandler.GetNamespaceList())
 		k8sApi.GET("/namespace/info", k8sHandler.GetNamespaceInfo())
 		k8sApi.GET("/pods", k8sHandler.GetPodList())
