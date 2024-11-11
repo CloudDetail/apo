@@ -4,7 +4,9 @@ import (
 	"github.com/CloudDetail/apo/backend/internal/api/mock"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
+	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
+	networkapi "github.com/CloudDetail/apo/backend/pkg/api/network"
 	"github.com/CloudDetail/apo/backend/pkg/api/service"
 	"github.com/CloudDetail/apo/backend/pkg/api/serviceoverview"
 	"github.com/CloudDetail/apo/backend/pkg/api/trace"
@@ -91,10 +93,12 @@ func setApiRouter(r *resource) {
 
 	traceApi := r.mux.Group("/api/trace")
 	{
-		traceHandler := trace.New(r.logger, r.ch)
+		traceHandler := trace.New(r.logger, r.ch, r.jaegerRepo)
 		traceApi.POST("/pagelist", traceHandler.GetTracePageList())
 		traceApi.GET("/pagelist/filters", traceHandler.GetTraceFilters())
 		traceApi.POST("/pagelist/filter/value", traceHandler.GetTraceFilterValue())
+		traceApi.GET("/onoffcpu", traceHandler.GetOnOffCPU())
+		traceApi.GET("/info", traceHandler.GetSingleTraceInfo())
 	}
 
 	alertApi := r.mux.Group("/api/alerts")
@@ -140,6 +144,22 @@ func setApiRouter(r *resource) {
 		userApi.POST("/update/email", userHandler.UpdateUserEmail())
 		userApi.POST("/update/info", userHandler.UpdateUserInfo())
 	}
+
+	k8sApi := r.mux.Group("/api/k8s")
+	{
+		k8sHandler := k8s.New(r.k8sRepo)
+		k8sApi.GET("/namespaces", k8sHandler.GetNamespaceList())
+		k8sApi.GET("/namespace/info", k8sHandler.GetNamespaceInfo())
+		k8sApi.GET("/pods", k8sHandler.GetPodList())
+		k8sApi.GET("/pod/info", k8sHandler.GetPodInfo())
+	}
+	networkApi := r.mux.Group("/api/network/")
+	{
+		handler := networkapi.New(r.logger, r.deepflowClickhouse)
+		networkApi.GET("/podmap", handler.GetPodMap())
+		networkApi.GET("/segments", handler.GetSpanSegmentsMetrics())
+	}
+
 }
 
 func SetMetaServerRouter(srv *Server, meta source.MetaSource) {

@@ -74,7 +74,7 @@ func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConf
 
 	var res []amconfig.Receiver = make([]amconfig.Receiver, 0)
 	for i := 0; i < len(amConfig.Receivers); i++ {
-		receiver := &amConfig.Receivers[i]
+		receiver := amConfig.Receivers[i]
 		filteredWebhookConfigs := []*amconfig.WebhookConfig{}
 		// webhook中存在钉钉配置，这里需要忽略 会从db获取
 		for j := range receiver.WebhookConfigs {
@@ -82,12 +82,13 @@ func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConf
 				filteredWebhookConfigs = append(filteredWebhookConfigs, receiver.WebhookConfigs[j])
 			}
 		}
+
 		receiver.WebhookConfigs = filteredWebhookConfigs
-		if !amconfig.HasEmailOrWebhookConfig(*receiver) {
+		if !amconfig.HasEmailOrWebhookConfig(receiver) {
 			continue
 		}
-		if matchAMConfigReceiverFilter(filter, receiver) {
-			res = append(res, *receiver)
+		if matchAMConfigReceiverFilter(filter, &receiver) {
+			res = append(res, receiver)
 		}
 	}
 

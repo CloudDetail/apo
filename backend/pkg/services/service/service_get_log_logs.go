@@ -16,7 +16,7 @@ func (s *service) GetLogLogs(req *request.GetLogLogsRequest) ([]clickhouse.Fault
 		ContainerId: req.ContainerId,
 		Pid:         req.Pid,
 		EndPoint:    req.Endpoint,
-		Type:        2, // Slow && Error & Profiled
+		Type:        0, // Slow && Error & Profiled
 		PageNum:     1,
 		PageSize:    5,
 	}

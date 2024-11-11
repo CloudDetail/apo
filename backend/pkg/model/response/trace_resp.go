@@ -9,3 +9,9 @@ type GetTracePageListResponse struct {
 	List       []clickhouse.QueryTraceResult `json:"list"`
 	Pagination *model.Pagination             `json:"pagination"`
 }
+
+type GetOnOffCPUResponse struct {
+	ProfilingEvent *[]clickhouse.ProfilingEvent `json:"profilingEvent"`
+}
+
+type GetSingleTraceInfoResponse string

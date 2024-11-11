@@ -231,6 +231,38 @@ definitions:
         description: 故障最后一次发生时间
         type: string
     type: object
+  clickhouse.ProfilingEvent:
+    properties:
+      cpuEvents:
+        type: string
+      endTime:
+        type: integer
+      innerCalls:
+        type: string
+      javaFutexEvents:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      offset:
+        type: integer
+      pid:
+        type: integer
+      spans:
+        type: string
+      startTime:
+        type: integer
+      threadName:
+        description: 线程名 表中在labels中
+        type: string
+      tid:
+        type: integer
+      timestamp:
+        type: string
+      transactionId:
+        type: string
+    type: object
   clickhouse.QueryTraceResult:
     properties:
       duration:
@@ -660,6 +692,11 @@ definitions:
       serviceName:
         items:
           type: string
+        type: array
+      tableFields:
+        description: 自定义表字段
+        items:
+          $ref: '#/definitions/request.Field'
         type: array
     type: object
   request.AddOtherTableRequest:
@@ -1287,6 +1324,18 @@ definitions:
       name:
         type: string
     type: object
+  response.Duration:
+    properties:
+      endTime:
+        description: 响应网络包时间戳，单位微秒
+        type: integer
+      responseDuration:
+        description: 响应延时
+        type: integer
+      startTime:
+        description: 请求网络包时间戳，单位微秒
+        type: integer
+    type: object
   response.EntryInstanceData:
     properties:
       alertReason:
@@ -1587,6 +1636,33 @@ definitions:
           $ref: '#/definitions/response.MonitorStatus'
         type: array
     type: object
+  response.GetNamespaceInfoResponse:
+    properties:
+      namespaceInfo:
+        type: string
+    type: object
+  response.GetNamespaceListResponse:
+    properties:
+      namespaceList:
+        type: string
+    type: object
+  response.GetOnOffCPUResponse:
+    properties:
+      profilingEvent:
+        items:
+          $ref: '#/definitions/clickhouse.ProfilingEvent'
+        type: array
+    type: object
+  response.GetPodInfoResponse:
+    properties:
+      podInfo:
+        type: string
+    type: object
+  response.GetPodListResponse:
+    properties:
+      podList:
+        type: string
+    type: object
   response.GetPolarisInferResponse:
     properties:
       inferCause:
@@ -1652,6 +1728,11 @@ definitions:
         additionalProperties:
           type: string
         type: object
+    type: object
+  response.GetSingleTraceInfoResponse:
+    properties:
+      traceInfo:
+        type: string
     type: object
   response.GetTTLResponse:
     properties:
@@ -2026,6 +2107,33 @@ definitions:
       tableName:
         type: string
     type: object
+  response.PodMapResponse:
+    properties:
+      columns:
+        items:
+          type: string
+        type: array
+      schemas:
+        items:
+          properties:
+            label_type:
+              type: string
+            pre_as:
+              type: string
+            type:
+              type: integer
+            unit:
+              type: string
+            value_type:
+              type: string
+          type: object
+        type: array
+      values:
+        items:
+          items: {}
+          type: array
+        type: array
+    type: object
   response.RYGScoreDetail:
     properties:
       detail:
@@ -2083,6 +2191,33 @@ definitions:
         allOf:
         - $ref: '#/definitions/response.TempChartObject'
         description: FIXME Tps 名称为tps,实际为每分钟请求数
+    type: object
+  response.SegmentLatency:
+    properties:
+      clientK8SNodeNic:
+        allOf:
+        - $ref: '#/definitions/response.Duration'
+        description: 在客户端主机网卡处采集到的请求和响应时间
+      clientNic:
+        allOf:
+        - $ref: '#/definitions/response.Duration'
+        description: 在客户端网卡处采集到的请求和响应时间
+      clientProcess:
+        allOf:
+        - $ref: '#/definitions/response.Duration'
+        description: 在客户端进程处采集到的请求和响应时间
+      serverK8SNodeNic:
+        allOf:
+        - $ref: '#/definitions/response.Duration'
+        description: 在服务端主机网卡处采集到的请求和响应时间
+      serverNic:
+        allOf:
+        - $ref: '#/definitions/response.Duration'
+        description: 在服务端网卡处采集到的请求和响应时间
+      serverProcess:
+        allOf:
+        - $ref: '#/definitions/response.Duration'
+        description: 在服务端进程处采集到的请求和响应时间
     type: object
   response.ServiceAlertRes:
     properties:
@@ -2167,6 +2302,10 @@ definitions:
         type: string
       status:
         $ref: '#/definitions/response.RYGStatus'
+    type: object
+  response.SpanSegmentMetricsResponse:
+    additionalProperties:
+      $ref: '#/definitions/response.SegmentLatency'
     type: object
   response.TempChartObject:
     properties:
@@ -2635,6 +2774,105 @@ paths:
       summary: 配置TTL
       tags:
       - Api.config
+  /api/k8s/namespace/info:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取namespace信息
+      parameters:
+      - description: namespace名
+        in: query
+        name: namespace
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetNamespaceInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取namespace信息
+      tags:
+      - API.k8s
+  /api/k8s/namespaces:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取所有namespace信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetNamespaceListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取所有namespace信息
+      tags:
+      - API.k8s
+  /api/k8s/pod/info:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取pod信息
+      parameters:
+      - description: namespace名
+        in: query
+        name: namespace
+        required: true
+        type: string
+      - description: pod名
+        in: query
+        name: pod
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetPodInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取pod信息
+      tags:
+      - API.k8s
+  /api/k8s/pods:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取所有pod信息
+      parameters:
+      - description: namespace名
+        in: query
+        name: namespace
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetPodListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取所有pod信息
+      tags:
+      - API.k8s
   /api/log/chart:
     post:
       consumes:
@@ -3157,6 +3395,71 @@ paths:
       summary: xx详情
       tags:
       - API.mock
+  /api/network/podmap:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 查询 Pod 网络调用拓扑与调用指标
+      parameters:
+      - description: 起始时间，单位微秒
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 结束时间，单位微秒
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 要查询的Namespace，值为空则查询所有
+        in: query
+        name: namespace
+        type: string
+      - description: 要查询的工作负载，值为空则查询所有
+        in: query
+        name: workload
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PodMapResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 查询 Pod 网络调用拓扑与调用指标
+      tags:
+      - API.Network
+  /api/network/segments:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 客户端对外调用Span网络耗时分段指标
+      parameters:
+      - description: traceId
+        in: query
+        name: traceId
+        required: true
+        type: string
+      - description: spanId, 值为空则查询所有
+        in: query
+        name: spanId
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SpanSegmentMetricsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 客户端对外调用Span网络耗时分段指标
+      tags:
+      - API.Network
   /api/service/alert/events:
     get:
       consumes:
@@ -4488,6 +4791,71 @@ paths:
       summary: 获取Trace相关指标
       tags:
       - API.service
+  /api/trace/info:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取单链路Trace详情
+      parameters:
+      - description: trace id
+        in: query
+        name: traceId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetSingleTraceInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取单链路Trace详情
+      tags:
+      - API.trace
+  /api/trace/onoffcpu:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取span执行消耗
+      parameters:
+      - description: 开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 进程id
+        in: query
+        name: pid
+        required: true
+        type: integer
+      - description: 节点名
+        in: query
+        name: nodeName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetOnOffCPUResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取span执行消耗
+      tags:
+      - API.trace
   /api/trace/pagelist:
     post:
       consumes:

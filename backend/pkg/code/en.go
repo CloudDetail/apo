@@ -44,6 +44,8 @@ var enText = map[string]string{
 	GetTracePageListError:    "Failed to get trace pagelist",
 	GetTraceFiltersError:     "Failed to get trace filters",
 	GetTraceFilterValueError: "Failed to get trace filter value",
+	GetOnOffCPUError:         "Failed to get on off cpu value",
+	GetSingleTraceError:      "Failed to get single trace value",
 
 	GetOverviewServiceInstanceListError: "Failed to get overview service instance list",
 	GetServiceMoreUrlListError:          "Failed to get service more url list",
@@ -84,6 +86,8 @@ var enText = map[string]string{
 	AlertManagerReceiverEmailFromMissing:    "alertManager receiver email 'from' missing",
 	AlertManagerEmptyReceiver:               "alertManager receiver neither set webhook nor set email config",
 	AlertManagerDefaultReceiverCannotDelete: "alertManager default receiver cannot be deleted",
+
+	K8sGetResourceError: "Failed to get k8s resource",
 
 	UserNotExistsError:         "User does not exist",
 	UserPasswordIncorrectError: "Password is incorrect",

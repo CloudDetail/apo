@@ -15,3 +15,14 @@ type GetTracePageListRequest struct {
 
 	Filters []*SpanTraceFilter `json:"filters"` // 过滤器
 }
+
+type GetOnOffCPURequest struct {
+	PID       uint32 `form:"pid" binding:"required"`
+	NodeName  string `form:"nodeName" binding:"required"`
+	StartTime int64  `form:"startTime" binding:"required"`
+	EndTime   int64  `form:"endTime" binding:"required"`
+}
+
+type GetSingleTraceInfoRequest struct {
+	TraceID string `form:"traceId" binding:"required"`
+}

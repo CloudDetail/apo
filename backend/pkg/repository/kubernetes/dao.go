@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"github.com/go-logr/zapr"
 	"go.uber.org/zap"
+	v1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -50,6 +51,11 @@ type Repo interface {
 	AddAMConfigReceiver(configFile string, receiver amconfig.Receiver) error
 	UpdateAMConfigReceiver(configFile string, receiver amconfig.Receiver, oldName string) error
 	DeleteAMConfigReceiver(configFile string, name string) error
+
+	GetNamespaceList() (*v1.NamespaceList, error)
+	GetNamespaceInfo(namespace string) (*v1.Namespace, error)
+	GetPodList(namespace string) (*v1.PodList, error)
+	GetPodInfo(namespace string, pod string) (*v1.Pod, error)
 }
 
 func New(logger *zap.Logger, authType, authFilePath string, setting config.MetadataSettings) (Repo, error) {

@@ -81,7 +81,7 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 		Table:     req.TableName,
 		DataBase:  req.DataBase,
 	}
-	err = s.dbRepo.UpdateLogPaseRule(&log)
+	err = s.dbRepo.UpdateLogParseRule(&log)
 	if err != nil {
 		return nil, err
 	}

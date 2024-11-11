@@ -22,6 +22,7 @@ type AddLogParseRequest struct {
 	RouteRule map[string]string `json:"routeRule"`
 	ParseRule string            `json:"parseRule"`
 	LogTable  LogTable          `json:"logTable"`
+	Fields    []Field           `json:"tableFields"` // 自定义表字段
 }
 
 type GetServiceRouteRequest struct {

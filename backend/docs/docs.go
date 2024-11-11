@@ -699,6 +699,156 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/k8s/namespace/info": {
+            "get": {
+                "description": "获取namespace信息",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.k8s"
+                ],
+                "summary": "获取namespace信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "namespace名",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetNamespaceInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/k8s/namespaces": {
+            "get": {
+                "description": "获取所有namespace信息",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.k8s"
+                ],
+                "summary": "获取所有namespace信息",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetNamespaceListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/k8s/pod/info": {
+            "get": {
+                "description": "获取pod信息",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.k8s"
+                ],
+                "summary": "获取pod信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "namespace名",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pod名",
+                        "name": "pod",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetPodInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/k8s/pods": {
+            "get": {
+                "description": "获取所有pod信息",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.k8s"
+                ],
+                "summary": "获取所有pod信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "namespace名",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetPodListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/log/chart": {
             "post": {
                 "description": "获取日志趋势图",
@@ -1487,6 +1637,104 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.DeleteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/network/podmap": {
+            "get": {
+                "description": "查询 Pod 网络调用拓扑与调用指标",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.Network"
+                ],
+                "summary": "查询 Pod 网络调用拓扑与调用指标",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "起始时间，单位微秒",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "结束时间，单位微秒",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "要查询的Namespace，值为空则查询所有",
+                        "name": "namespace",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "要查询的工作负载，值为空则查询所有",
+                        "name": "workload",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PodMapResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/network/segments": {
+            "get": {
+                "description": "客户端对外调用Span网络耗时分段指标",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "tags": [
+                    "API.Network"
+                ],
+                "summary": "客户端对外调用Span网络耗时分段指标",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "traceId",
+                        "name": "traceId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "spanId, 值为空则查询所有",
+                        "name": "spanId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.SpanSegmentMetricsResponse"
                         }
                     },
                     "400": {
@@ -3468,6 +3716,103 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/trace/info": {
+            "get": {
+                "description": "获取单链路Trace详情",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.trace"
+                ],
+                "summary": "获取单链路Trace详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "trace id",
+                        "name": "traceId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetSingleTraceInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/trace/onoffcpu": {
+            "get": {
+                "description": "获取span执行消耗",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.trace"
+                ],
+                "summary": "获取span执行消耗",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "进程id",
+                        "name": "pid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "节点名",
+                        "name": "nodeName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetOnOffCPUResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/trace/pagelist": {
             "post": {
                 "description": "查询Trace分页列表",
@@ -4312,6 +4657,54 @@ const docTemplate = `{
                 }
             }
         },
+        "clickhouse.ProfilingEvent": {
+            "type": "object",
+            "properties": {
+                "cpuEvents": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "integer"
+                },
+                "innerCalls": {
+                    "type": "string"
+                },
+                "javaFutexEvents": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "pid": {
+                    "type": "integer"
+                },
+                "spans": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
+                },
+                "threadName": {
+                    "description": "线程名 表中在labels中",
+                    "type": "string"
+                },
+                "tid": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string"
+                }
+            }
+        },
         "clickhouse.QueryTraceResult": {
             "type": "object",
             "properties": {
@@ -4906,6 +5299,13 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "type": "string"
+                    }
+                },
+                "tableFields": {
+                    "description": "自定义表字段",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.Field"
                     }
                 }
             }
@@ -5827,6 +6227,23 @@ const docTemplate = `{
                 }
             }
         },
+        "response.Duration": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "description": "响应网络包时间戳，单位微秒",
+                    "type": "integer"
+                },
+                "responseDuration": {
+                    "description": "响应延时",
+                    "type": "integer"
+                },
+                "startTime": {
+                    "description": "请求网络包时间戳，单位微秒",
+                    "type": "integer"
+                }
+            }
+        },
         "response.EntryInstanceData": {
             "type": "object",
             "properties": {
@@ -6266,6 +6683,49 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetNamespaceInfoResponse": {
+            "type": "object",
+            "properties": {
+                "namespaceInfo": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetNamespaceListResponse": {
+            "type": "object",
+            "properties": {
+                "namespaceList": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetOnOffCPUResponse": {
+            "type": "object",
+            "properties": {
+                "profilingEvent": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/clickhouse.ProfilingEvent"
+                    }
+                }
+            }
+        },
+        "response.GetPodInfoResponse": {
+            "type": "object",
+            "properties": {
+                "podInfo": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetPodListResponse": {
+            "type": "object",
+            "properties": {
+                "podList": {
+                    "type": "string"
+                }
+            }
+        },
         "response.GetPolarisInferResponse": {
             "type": "object",
             "properties": {
@@ -6367,6 +6827,14 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "response.GetSingleTraceInfoResponse": {
+            "type": "object",
+            "properties": {
+                "traceInfo": {
+                    "type": "string"
                 }
             }
         },
@@ -6933,6 +7401,47 @@ const docTemplate = `{
                 }
             }
         },
+        "response.PodMapResponse": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "schemas": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "label_type": {
+                                "type": "string"
+                            },
+                            "pre_as": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "type": "integer"
+                            },
+                            "unit": {
+                                "type": "string"
+                            },
+                            "value_type": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {}
+                    }
+                }
+            }
+        },
         "response.RYGScoreDetail": {
             "type": "object",
             "properties": {
@@ -7014,6 +7523,59 @@ const docTemplate = `{
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.TempChartObject"
+                        }
+                    ]
+                }
+            }
+        },
+        "response.SegmentLatency": {
+            "type": "object",
+            "properties": {
+                "clientK8SNodeNic": {
+                    "description": "在客户端主机网卡处采集到的请求和响应时间",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Duration"
+                        }
+                    ]
+                },
+                "clientNic": {
+                    "description": "在客户端网卡处采集到的请求和响应时间",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Duration"
+                        }
+                    ]
+                },
+                "clientProcess": {
+                    "description": "在客户端进程处采集到的请求和响应时间",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Duration"
+                        }
+                    ]
+                },
+                "serverK8SNodeNic": {
+                    "description": "在服务端主机网卡处采集到的请求和响应时间",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Duration"
+                        }
+                    ]
+                },
+                "serverNic": {
+                    "description": "在服务端网卡处采集到的请求和响应时间",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Duration"
+                        }
+                    ]
+                },
+                "serverProcess": {
+                    "description": "在服务端进程处采集到的请求和响应时间",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Duration"
                         }
                     ]
                 }
@@ -7143,6 +7705,12 @@ const docTemplate = `{
                 "status": {
                     "$ref": "#/definitions/response.RYGStatus"
                 }
+            }
+        },
+        "response.SpanSegmentMetricsResponse": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/response.SegmentLatency"
             }
         },
         "response.TempChartObject": {

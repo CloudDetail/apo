@@ -64,6 +64,8 @@ const (
 	GetTracePageListError    = "B0501"
 	GetTraceFiltersError     = "B0502"
 	GetTraceFilterValueError = "B0503"
+	GetOnOffCPUError         = "B0504"
+	GetSingleTraceError      = "B0505"
 
 	SetTTLError            = "B0601"
 	GetTTLError            = "B0602"
@@ -105,6 +107,9 @@ const (
 	AlertManagerDefaultReceiverCannotDelete = "B0726"
 
 	GetMonitorStatusError = "B0801"
+
+	// k8s api
+	K8sGetResourceError = "B1001"
 
 	UserNotExistsError         = "B0901"
 	UserPasswordIncorrectError = "B0902"
