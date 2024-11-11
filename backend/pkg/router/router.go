@@ -27,7 +27,7 @@ type resource struct {
 	pkg_db      pkg_database.Repo
 	cache       cache.Repo
 
-	k8sApi kubernetes.Repo
+	k8sApi             kubernetes.Repo
 	deepflowClickhouse clickhouse.Repo
 	jaegerRepo         jaeger.JaegerRepo
 }
@@ -113,7 +113,7 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	if err != nil {
 		logger.Fatal("new kubernetes api err", zap.Error(err))
 	}
-	r.k8sRepo = k8sApi
+	r.k8sApi = k8sApi
 
 	jaegerRepo, err := jaeger.New()
 	r.jaegerRepo = jaegerRepo
