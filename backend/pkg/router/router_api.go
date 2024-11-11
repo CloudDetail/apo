@@ -10,6 +10,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/service"
 	"github.com/CloudDetail/apo/backend/pkg/api/serviceoverview"
 	"github.com/CloudDetail/apo/backend/pkg/api/trace"
+	"github.com/CloudDetail/apo/backend/pkg/api/user"
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 	"github.com/CloudDetail/metadata/source"
 )
@@ -64,7 +66,7 @@ func setApiRouter(r *resource) {
 
 	logApi := r.mux.Group("/api/log")
 	{
-		logHandler := log.New(r.logger, r.ch, r.pkg_db, r.k8sRepo, r.prom)
+		logHandler := log.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom)
 		logApi.POST("/fault/pagelist", logHandler.GetFaultLogPageList())
 		logApi.POST("/fault/content", logHandler.GetFaultLogContent())
 
@@ -101,7 +103,7 @@ func setApiRouter(r *resource) {
 
 	alertApi := r.mux.Group("/api/alerts")
 	{
-		alertHandler := alerts.New(r.logger, r.ch, r.k8sRepo, r.pkg_db)
+		alertHandler := alerts.New(r.logger, r.ch, r.k8sApi, r.pkg_db)
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.POST("/outputs/dingtalk/:uuid", alertHandler.ForwardToDingTalk())
 		alertApi.GET("/rules/file", alertHandler.GetAlertRuleFile())
@@ -122,17 +124,30 @@ func setApiRouter(r *resource) {
 		alertApi.DELETE("/alertmanager/receiver", alertHandler.DeleteAlertManagerConfigReceiver())
 	}
 
-	configApi := r.mux.Group("/api/config")
+	configApi := r.mux.Group("/api/config").Use(middleware.Auth(r.cache))
 	{
 		configHandler := config.New(r.logger, r.ch)
 		configApi.POST("/setTTL", configHandler.SetTTL())
 		configApi.POST("/setSingleTableTTL", configHandler.SetSingleTableTTL())
 		configApi.GET("/getTTL", configHandler.GetTTL())
 	}
+	userApi := r.mux.Group("/api/user")
+	{
+		userHandler := user.New(r.logger, r.pkg_db, r.cache)
+		userApi.POST("/login", userHandler.Login())
+		userApi.POST("/logout", userHandler.Logout())
+		userApi.GET("/refresh", userHandler.RefreshToken())
+		userApi.Use(middleware.Auth(r.cache))
+		userApi.POST("/create", userHandler.CreateUser())
+		userApi.POST("/update/password", userHandler.UpdateUserPassword())
+		userApi.POST("/update/phone", userHandler.UpdateUserPhone())
+		userApi.POST("/update/email", userHandler.UpdateUserEmail())
+		userApi.POST("/update/info", userHandler.UpdateUserInfo())
+	}
 
 	k8sApi := r.mux.Group("/api/k8s")
 	{
-		k8sHandler := k8s.New(r.k8sRepo)
+		k8sHandler := k8s.New(r.k8sApi)
 		k8sApi.GET("/namespaces", k8sHandler.GetNamespaceList())
 		k8sApi.GET("/namespace/info", k8sHandler.GetNamespaceInfo())
 		k8sApi.GET("/pods", k8sHandler.GetPodList())
