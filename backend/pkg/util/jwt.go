@@ -9,11 +9,6 @@ import (
 	"time"
 )
 
-// 7days 10.31-11.7
-// accToken
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwidXNlcklEIjowLCJpc1JlZnJlc2giOmZhbHNlLCJleHAiOjE3MzA5NzAwOTYsImlhdCI6MTczMDM2NTI5NiwiaXNzIjoiYXBvIn0.MgdmgjSqs-YlUJGCc8yylEKYIb7_CCdSQzPFw0BYjXs
-// refToken
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwidXNlcklEIjowLCJpc1JlZnJlc2giOnRydWUsImV4cCI6MTczMDk3MDA5NiwiaWF0IjoxNzMwMzY1Mjk2LCJpc3MiOiJhcG8ifQ.QntyKxam4mhSiX94IWr_3U4fQp41zkZA0RBC7LOtj6w
 var secret = []byte("APO@2024")
 var accessExpireTime = 30 * time.Minute
 var refreshExpireTime = 48 * time.Hour

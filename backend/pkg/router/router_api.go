@@ -120,7 +120,7 @@ func setApiRouter(r *resource) {
 		alertApi.DELETE("/alertmanager/receiver", alertHandler.DeleteAlertManagerConfigReceiver())
 	}
 
-	configApi := r.mux.Group("/api/config")
+	configApi := r.mux.Group("/api/config").Use(middleware.Auth(r.cache))
 	{
 		configHandler := config.New(r.logger, r.ch)
 		configApi.POST("/setTTL", configHandler.SetTTL())
