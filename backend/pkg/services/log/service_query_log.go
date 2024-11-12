@@ -98,6 +98,7 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 			// this pair of kv is log field
 			if _, exists := hMap[k]; exists {
 				logFields[k] = v
+				delete(log, k)
 			}
 		}
 
