@@ -220,6 +220,7 @@ type QueryTraceResult struct {
 	EndPoint       string  `ch:"endpoint" json:"endpoint"`
 	InstanceId     string  `ch:"instance_id" json:"instanceId"`
 	SpanId         string  `ch:"span_id" json:"spanId"`
+	ApmType        string  `ch:"apm_type" json:"apmType"`
 	Reason         string  `ch:"reason" json:"reason"`
 	IsError        bool    `ch:"is_error" json:"isError"`
 	IsSlow         bool    `ch:"is_slow" json:"isSlow"`
@@ -488,7 +489,7 @@ func (ch *chRepo) GetAnomalyTrace(req *request.GetAnomalySpanRequest) ([]QueryTr
 	// 构造select
 	fieldSql := `trace_id, divide(threshold_value, 1000) as threshold_value, labels['mutated_type'] as reason,
 		apm_span_id as span_id, intDiv(toUnixTimestamp64Nano(timestamp), 1000) as ts,
-		intDiv(duration, 1000) as duration_us, metrics, flags['is_error'] as is_error, flags['is_slow'] as is_slow`
+		intDiv(duration, 1000) as duration_us, metrics, flags['is_error'] as is_error, flags['is_slow'] as is_slow, labels['apm_type'] as apm_type`
 
 	// 构造order by limit offset
 	metrics := model.GetPolarisMetrics(req.Reason)

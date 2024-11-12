@@ -317,6 +317,15 @@ func (entryInstanceData *EntryInstanceData) AddNamespaces(namespaces []string) {
 type GetAnomalySpanResponse struct {
 	List       []clickhouse.QueryTraceResult `json:"list"`
 	Pagination *model.Pagination             `json:"pagination"`
+
+	SpanList []SpanInfo `json:"spanList"`
+}
+
+type SpanInfo struct {
+	TraceId   string `json:"traceId"`
+	SpanId    string `json:"spanId"`
+	ApmType   string `json:"apmType"`
+	Timestamp int64  `json:"timestamp"`
 }
 
 type GetMonitorStatusResponse struct {
