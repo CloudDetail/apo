@@ -9,7 +9,22 @@ import { FaRegBell } from 'react-icons/fa'
 import { MdOutlineSettings } from 'react-icons/md'
 import { IoIosTrendingUp, IoMdCloudOutline } from 'react-icons/io'
 import { TbWaveSawTool } from 'react-icons/tb'
-const commercialNav = []
+const commercialNav = [
+  {
+    key: 'alertAnalyze',
+    icon: <IoIosTrendingUp />,
+    label: (
+      <>
+        告警分析
+        <CBadge color="info" className="ml-2">
+          免费公测
+        </CBadge>
+      </>
+    ),
+    to: '/alert-analyze',
+  },
+]
+
 const _nav = [
   { key: 'service', icon: <IoMdCloudOutline />, label: '服务概览', to: '/service' },
   {
@@ -51,7 +66,13 @@ const _nav = [
     abbreviation: '中间件',
     to: '/middleware-dashboard',
   },
-
+  {
+    key: 'mysql',
+    icon: <CIcon icon={cilSpeedometer} />,
+    label: 'MySQL 大盘',
+    abbreviation: 'MySQL',
+    to: '/mysql-dashboard',
+  },
   {
     key: 'alerts',
     icon: <FaRegBell />,
@@ -63,6 +84,13 @@ const _nav = [
     icon: <MdOutlineSettings />,
     label: '配置中心',
     to: '/config',
+  },
+  {
+    key: 'healthy',
+    label: '服务健康状态',
+    abbreviation: '服务健康',
+    to: '/service-healthy',
+    icon: <TbWaveSawTool />,
   },
 ]
 
