@@ -26,7 +26,7 @@ import (
 func (h *handler) UpdateUserPassword() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.UpdateUserPasswordRequest)
-		if err := c.ShouldBindJSON(req); err != nil {
+		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
