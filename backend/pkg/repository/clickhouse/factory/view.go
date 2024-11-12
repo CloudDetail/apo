@@ -23,7 +23,7 @@ k8s_pod_name       LowCardinality(String) CODEC(ZSTD(1))%s
 )
 AS SELECT
 parseDateTime64BestEffort(timestamp, 9) AS timestamp,
-content AS content,
+%s
 _source_ AS source,
 _container_id_ AS container_id,
 pid as pid,
@@ -56,8 +56,12 @@ func (v *ViewTableFactory) CreateTableSQL(params *request.LogTableRequest) strin
 	if cluster != "" {
 		tablename += "_local"
 	}
+	var selectContent string
+	if !params.IsStructured {
+		selectContent = "content AS content,"
+	}
 	return fmt.Sprintf(viewSQL, params.DataBase, params.TableName, cluster, params.DataBase, tablename,
-		logFields, viewFields, params.DataBase, params.TableName)
+		logFields, selectContent, viewFields, params.DataBase, params.TableName)
 }
 
 func (v *ViewTableFactory) DropTableSQL(params *request.LogTableRequest) string {
