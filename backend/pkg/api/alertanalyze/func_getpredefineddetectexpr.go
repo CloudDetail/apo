@@ -1,6 +1,9 @@
 package alertanalyze
 
 import (
+	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
@@ -15,7 +18,15 @@ import (
 // @Router /api/alerts/detect/mutation/metrics [get]
 func (h *handler) GetPredefinedDetectExpr() core.HandlerFunc {
 	return func(c core.Context) {
-		resp := h.alertanalyzeService.DetectDefectsOptions()
+		resp, err := h.alertanalyzeService.DetectDefectsOptions()
+		if err != nil {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.GetQuickMutationMetricError,
+				code.Text(code.GetQuickMutationMetricError)).WithError(err),
+			)
+			return
+		}
 		c.Payload(resp)
 	}
 }

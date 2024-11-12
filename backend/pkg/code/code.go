@@ -120,6 +120,8 @@ const (
 	GetDetectMutationExecListError               = "B0738"
 	AddExecRecordError                           = "B0739"
 	GetDetectMutationRuleListError               = "B0740"
+	GetQuickMutationMetricError                  = "B0741"
+	GetMetricPQLError                            = "B0742"
 
 	GetMonitorStatusError = "B0801"
 

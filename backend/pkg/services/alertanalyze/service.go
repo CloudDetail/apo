@@ -5,6 +5,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -35,7 +36,7 @@ type Service interface {
 	SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDeltaEventRequest) (*response.GetDescendantDeltaAnormalEventResponse, error)
 
 	// 获取预定义的检测表达式
-	DetectDefectsOptions() *response.GetPredefinedDetectExprResponse
+	DetectDefectsOptions() (*response.GetPredefinedDetectExprResponse, error)
 
 	// 缺陷检测
 	DetectDefects(req *request.DetectMutationRequest) error
@@ -51,13 +52,15 @@ type service struct {
 	polRepo  polarisanalyzer.Repo
 
 	k8sRepo kubernetes.Repo
+	dbRepo  database.Repo // TODO init
 }
 
-func New(chRepo clickhouse.Repo, promRepo prometheus.Repo, polRepo polarisanalyzer.Repo, k8sRepo kubernetes.Repo) Service {
+func New(chRepo clickhouse.Repo, promRepo prometheus.Repo, polRepo polarisanalyzer.Repo, k8sRepo kubernetes.Repo, dbRepo database.Repo) Service {
 	return &service{
 		chRepo:   chRepo,
 		promRepo: promRepo,
 		polRepo:  polRepo,
 		k8sRepo:  k8sRepo,
+		dbRepo:   dbRepo,
 	}
 }

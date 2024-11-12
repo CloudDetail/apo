@@ -98,6 +98,8 @@ var zhCnText = map[string]string{
 	GetAnomalySpanError:                          "获取故障报告失败",
 	GetDetectMutationExecListError:               "获取异常检测执行记录失败",
 	GetDetectMutationRuleListError:               "获取取异常检测规则失败",
+	GetQuickMutationMetricError:                  "获取预定义的快速异常检测指标失败",
+	GetMetricPQLError:                            "获取预定义的快速告警规则指标失败",
 
 	MutationPQLCheckFailed: "通过PQL检查指标突变失败",
 

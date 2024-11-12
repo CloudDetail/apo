@@ -93,6 +93,8 @@ var enText = map[string]string{
 	GetAnomalySpanError:                          "get anomaly span failed",
 	GetDetectMutationExecListError:               "Failed to get detect mutation exec list",
 	GetDetectMutationRuleListError:               "Failed to get detect mutation rule list",
+	GetQuickMutationMetricError:                  "Failed to get quick mutation metric",
+	GetMetricPQLError:                            "Failed to get quick alert rule metrics",
 
 	MutationPQLCheckFailed: "Failed to check mutation by PQL",
 
