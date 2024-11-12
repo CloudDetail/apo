@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
@@ -141,6 +141,7 @@ const LayoutFlow = (props) => {
   const onLoad = () => {
     console.log(1)
   }
+  const memoNodeTypes = useMemo(() => ({ ...nodeTypes, ...defaultNodeTypes }), [])
   return (
     <ReactFlow
       nodes={nodes}
@@ -148,7 +149,7 @@ const LayoutFlow = (props) => {
       edgeTypes={edgeTypes}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
-      nodeTypes={{ ...nodeTypes, ...defaultNodeTypes }}
+      nodeTypes={memoNodeTypes}
       ref={reactFlowInstance}
       minZoom={0.1} // 设置最小缩放
       maxZoom={2} // 设置最大缩放
