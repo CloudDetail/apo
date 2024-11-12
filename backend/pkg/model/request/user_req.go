@@ -12,8 +12,8 @@ type CreateUserRequest struct {
 }
 
 type LogoutRequest struct {
-	AccessToken  string `json:"accessToken" binding:"required"`
-	RefreshToken string `json:"refreshToken" binding:"required"`
+	AccessToken  string `json:"accessToken" form:"accessToken" binding:"required"`
+	RefreshToken string `json:"refreshToken" form:"refreshToken" binding:"required"`
 }
 
 type UpdateUserInfoRequest struct {
@@ -26,11 +26,11 @@ type UpdateUserPhoneRequest struct {
 }
 
 type UpdateUserEmailRequest struct {
-	Email string `json:"email" binding:"required"` // 邮箱
-	VCode string `json:"vCode"`                    // 验证码
+	Email string `json:"email" form:"email" binding:"required"` // 邮箱
+	VCode string `json:"vCode"`                                 // 验证码
 }
 
 type UpdateUserPasswordRequest struct {
-	OldPassword string `json:"oldPassword" binding:"required"`
-	NewPassword string `json:"newPassword" binding:"required"`
+	OldPassword string `json:"oldPassword" form:"oldPassword" binding:"required"`
+	NewPassword string `json:"newPassword" form:"newPassword" binding:"required"`
 }
