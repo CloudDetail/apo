@@ -1,6 +1,7 @@
 import { Tag } from 'antd'
 import React from 'react'
 import LogTagDropDown from './LogTagDropdown'
+import LogKeyTagValue from './LogKeyTagValue'
 
 const LogKeyTag = (props) => {
   const { title, description } = props
@@ -14,15 +15,14 @@ const LogKeyTag = (props) => {
         <Tag className="cursor-pointer text-gray-200">{formatValue(title)}</Tag>
       </div>
       ：
-      <LogTagDropDown
-        objKey={formatValue(title)}
-        value={formatValue(description)}
-        children={
-          <span className="break-all hover:underline cursor-pointer">
-            {formatValue(description)}
-          </span>
-        }
-      />
+      <div className="flex-1">
+        <LogTagDropDown
+          objKey={formatValue(title)}
+          value={formatValue(description)}
+          trigger={['contextMenu']}
+          children={<LogKeyTagValue title={title} description={description} />}
+        />
+      </div>
     </div>
   )
 }
