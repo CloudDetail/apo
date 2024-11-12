@@ -4,7 +4,7 @@
     "module": "ESNext",
     "checkJs": true,
     "allowJs": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
 
     "types": ["react", "react-dom"],
     "noEmit": true,
@@ -15,7 +15,9 @@
     "allowSyntheticDefaultImports": true,
     "paths": {
       "src/*": ["src/*"],
-      "components/*": ["src/components/*"]
+      "components/*": ["src/core/components/*"],
+      "core/*": ["src/core/*"],
+      "pro/*": ["src/pro/*"]
     }
   },
   "include": ["src"]
