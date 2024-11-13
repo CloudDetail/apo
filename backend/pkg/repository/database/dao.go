@@ -28,6 +28,8 @@ type Repo interface {
 	GetDingTalkReceiverByAlertName(configFile string, alertName string, page, pageSize int) ([]*DingTalkConfig, int64, error)
 	UpdateDingTalkReceiver(dingTalkConfig *DingTalkConfig, oldName string) error
 	DeleteDingTalkReceiver(configFile, alertName string) error
+
+	ListQuickAlertRuleMetric() ([]AlertMetricsData, error)
 }
 
 type daoRepo struct {
@@ -86,8 +88,16 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return &daoRepo{
+	daoRepo := &daoRepo{
 		db:    database,
 		sqlDB: sqlDb,
-	}, nil
+	}
+
+	// 检查并初始化预设快速告警规则指标表
+	err = daoRepo.InitPredefinedQuickAlertRuleMetric(databaseCfg.InitScript.QuickAlertRuleMetric)
+	if err != nil {
+		return nil, err
+	}
+
+	return daoRepo, nil
 }

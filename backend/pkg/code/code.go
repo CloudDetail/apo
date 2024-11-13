@@ -104,6 +104,25 @@ const (
 	AlertManagerEmptyReceiver               = "B0725"
 	AlertManagerDefaultReceiverCannotDelete = "B0726"
 
+	// Alert Analyze
+	AlertEventImpactError            = "B0727"
+	AlertEventImpactMissingTag       = "B0728"
+	AlertEventImpactNoMatchedService = "B0729"
+	AlertEventIDMissing              = "B0730"
+
+	AlertAnalyzeDescendantAnormalEventDeltaError = "B0731"
+	GetAnomalySpanError                          = "B0732"
+	MutationPQLCheckFailed                       = "B0733"
+	AlertAnalyzeDescendantAnormalEventError      = "B0734"
+	AlertAnalyzeDescendantAnormalContribution    = "B0735"
+	DetectDefectsError                           = "B0736"
+	DetectDefectsCreatAlertError                 = "B0737"
+	GetDetectMutationExecListError               = "B0738"
+	AddExecRecordError                           = "B0739"
+	GetDetectMutationRuleListError               = "B0740"
+	GetQuickMutationMetricError                  = "B0741"
+	GetMetricPQLError                            = "B0742"
+
 	GetMonitorStatusError = "B0801"
 
 	// k8s api
