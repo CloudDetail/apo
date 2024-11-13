@@ -1,4 +1,4 @@
-import { get } from 'src/core/utils/request'
+import { get, post } from 'src/core/utils/request'
 
 export function getMutatedtracesApi(traceId: string, spanId: string) {
   return get(`/originx/api/query/mutatedtraceswithspan/${traceId}/${spanId}`)
@@ -18,4 +18,8 @@ export function getErrortracesApi(traceId: string) {
 }
 export function getErrorFlowsApi(traceId: string, spanId: string) {
   return get(`/originx/api/flows/error/${traceId}/${spanId}`)
+}
+
+export function getEntryEndpointApi(params: any) {
+  return post(`/originx/api/query/entryendpoint`, params)
 }

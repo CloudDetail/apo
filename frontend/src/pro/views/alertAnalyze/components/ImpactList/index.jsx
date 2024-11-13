@@ -10,7 +10,7 @@ import { getStep } from 'src/core/utils/step'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import EventListModal from './EventListModal'
 import { showToast } from 'src/core/utils/toast'
-import ServiceEndpointTag from '../ServiceEndpointTag'
+import ServiceEndpointTag from 'src/pro/components/ServiceEndpointTag'
 import { useNavigate } from 'react-router-dom'
 
 const ImpactList = () => {

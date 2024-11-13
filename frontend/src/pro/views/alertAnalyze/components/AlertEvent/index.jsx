@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
 import { convertUTCToBeijing } from 'src/core/utils/time'
-import ServiceEndpointTag from '../ServiceEndpointTag'
+import ServiceEndpointTag from 'src/pro/components/ServiceEndpointTag'
 function isJSONString(str) {
   try {
     JSON.parse(str)
