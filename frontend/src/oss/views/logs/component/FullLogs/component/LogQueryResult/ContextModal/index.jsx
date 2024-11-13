@@ -41,7 +41,9 @@ const ContextModal = ({ modalVisible, closeModal, logParams }) => {
       )}
     >
       <Skeleton loading={loading}>
-        <QueryList logs={context} />
+        <div className="h-[650px]">
+          <QueryList logs={context} />
+        </div>
       </Skeleton>
     </Modal>
   )
