@@ -5,7 +5,7 @@ import qs from 'qs'
 // 创建axios实例
 const instance = axios.create({
   baseURL: '', // 替换为你的API基础URL
-  timeout: 30000,
+  timeout: 120000,
   headers: { 'Content-Type': 'application/json' },
   paramsSerializer: (params) => qs.stringify(params, { arrayFormat: 'repeat' }),
 })

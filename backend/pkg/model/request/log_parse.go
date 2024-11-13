@@ -16,13 +16,14 @@ type UpdateLogParseRequest struct {
 }
 
 type AddLogParseRequest struct {
-	ParseName string            `json:"parseName"`
-	Service   []string          `json:"serviceName"`
-	ParseInfo string            `json:"parseInfo"`
-	RouteRule map[string]string `json:"routeRule"`
-	ParseRule string            `json:"parseRule"`
-	LogTable  LogTable          `json:"logTable"`
-	Fields    []Field           `json:"tableFields"` // 自定义表字段
+	ParseName    string            `json:"parseName"`
+	Service      []string          `json:"serviceName"`
+	ParseInfo    string            `json:"parseInfo"`
+	RouteRule    map[string]string `json:"routeRule"`
+	ParseRule    string            `json:"parseRule"`
+	LogTable     LogTable          `json:"logTable"`
+	Fields       []Field           `json:"tableFields"` // 自定义表字段
+	IsStructured bool              `json:"isStructured"`
 }
 
 type GetServiceRouteRequest struct {

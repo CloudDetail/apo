@@ -2,6 +2,7 @@ import { Modal, Skeleton } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { getLogContextApi } from 'core/api/logs'
 import QueryList from '../QueryList'
+import LoadingSpinner from 'src/core/components/Spinner'
 
 const ContextModal = ({ modalVisible, closeModal, logParams }) => {
   const [context, setContext] = useState([])
@@ -21,6 +22,10 @@ const ContextModal = ({ modalVisible, closeModal, logParams }) => {
         setLoading(false)
       })
   }
+  const closeContextModal = () => {
+    closeModal()
+    setContext([])
+  }
   useEffect(() => {
     if (modalVisible && logParams) getLogContext()
   }, [modalVisible, logParams])
@@ -28,21 +33,22 @@ const ContextModal = ({ modalVisible, closeModal, logParams }) => {
     <Modal
       title={'上下文'}
       open={modalVisible}
-      onCancel={closeModal}
+      onCancel={closeContextModal}
       destroyOnClose
       centered
       cancelText="关闭"
       width={1000}
-      bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden' }}
+      bodyStyle={{ height: '80vh', overflowY: 'auto', overflowX: 'hidden' }}
       footer={(_, { CancelBtn }) => (
         <>
           <CancelBtn />
         </>
       )}
     >
-      <Skeleton loading={loading}>
-        <QueryList logs={context} />
-      </Skeleton>
+      <div className="h-full overflow-hidden ">
+        <LoadingSpinner loading={loading} />
+        <QueryList logs={context} loading={loading} />
+      </div>
     </Modal>
   )
 }

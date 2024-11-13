@@ -3,7 +3,7 @@ import React from 'react'
 import { copyValue } from 'src/core/components/CopyButton'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 
-const LogTagDropDown = ({ objKey, value, children }) => {
+const LogTagDropDown = ({ objKey, value, children, trigger = ['click', 'contextMenu'] }) => {
   const { query, updateQuery } = useLogsContext()
   const addToQuery = () => {
     let newQueryPart = '`' + objKey + '` =' + "'" + value + "'"
@@ -42,7 +42,7 @@ const LogTagDropDown = ({ objKey, value, children }) => {
     <>
       <Dropdown
         menu={{ items }}
-        trigger={['click', 'contextMenu']}
+        trigger={trigger}
         overlayStyle={{ minWidth: 'auto' }}
         getPopupContainer={(triggerNode) => triggerNode.parentNode}
       >

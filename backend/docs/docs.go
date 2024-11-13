@@ -1244,9 +1244,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
-                            "$ref": "#/definitions/response.GetNamespaceInfoResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -1273,9 +1273,9 @@ const docTemplate = `{
                 "summary": "获取所有namespace信息",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
-                            "$ref": "#/definitions/response.GetNamespaceListResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -1318,9 +1318,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
-                            "$ref": "#/definitions/response.GetPodInfoResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -1356,9 +1356,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
-                            "$ref": "#/definitions/response.GetPodListResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -4275,7 +4275,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.GetSingleTraceInfoResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -5616,6 +5616,9 @@ const docTemplate = `{
         "request.AddLogParseRequest": {
             "type": "object",
             "properties": {
+                "isStructured": {
+                    "type": "boolean"
+                },
                 "logTable": {
                     "$ref": "#/definitions/request.LogTable"
                 },
@@ -7314,22 +7317,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.GetNamespaceInfoResponse": {
-            "type": "object",
-            "properties": {
-                "namespaceInfo": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.GetNamespaceListResponse": {
-            "type": "object",
-            "properties": {
-                "namespaceList": {
-                    "type": "string"
-                }
-            }
-        },
         "response.GetOnOffCPUResponse": {
             "type": "object",
             "properties": {
@@ -7338,22 +7325,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/clickhouse.ProfilingEvent"
                     }
-                }
-            }
-        },
-        "response.GetPodInfoResponse": {
-            "type": "object",
-            "properties": {
-                "podInfo": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.GetPodListResponse": {
-            "type": "object",
-            "properties": {
-                "podList": {
-                    "type": "string"
                 }
             }
         },
@@ -7475,14 +7446,6 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "response.GetSingleTraceInfoResponse": {
-            "type": "object",
-            "properties": {
-                "traceInfo": {
-                    "type": "string"
                 }
             }
         },
@@ -7823,6 +7786,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {},
+                "logFields": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
                 "tags": {
                     "type": "object",
                     "additionalProperties": true
