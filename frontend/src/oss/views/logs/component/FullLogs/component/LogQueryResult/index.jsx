@@ -6,7 +6,7 @@ import Histogram from './Histogram'
 import ContextModal from './ContextModal'
 
 const LogQueryResult = () => {
-  const { pagination, updateLogsPagination, logs, tableInfo, query } = useLogsContext()
+  const { pagination, updateLogsPagination, logs, tableInfo, query, loading } = useLogsContext()
 
   const [modalVisible, setModalVisible] = useState(false)
   const [contextLogParams, setContextLogParams] = useState(null)
@@ -36,7 +36,7 @@ const LogQueryResult = () => {
   return (
     <div className="overflow-hidden flex flex-col h-full">
       <Histogram />
-      <QueryList logs={logs} openContextModal={openContextModal} />
+      <QueryList logs={logs} openContextModal={openContextModal} loading={loading} />
       <Pagination
         defaultCurrent={1}
         total={pagination.total}
