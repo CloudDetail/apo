@@ -677,6 +677,8 @@ definitions:
     type: object
   request.AddLogParseRequest:
     properties:
+      isStructured:
+        type: boolean
       logTable:
         $ref: '#/definitions/request.LogTable'
       parseInfo:
@@ -1626,32 +1628,12 @@ definitions:
           $ref: '#/definitions/response.MonitorStatus'
         type: array
     type: object
-  response.GetNamespaceInfoResponse:
-    properties:
-      namespaceInfo:
-        type: string
-    type: object
-  response.GetNamespaceListResponse:
-    properties:
-      namespaceList:
-        type: string
-    type: object
   response.GetOnOffCPUResponse:
     properties:
       profilingEvent:
         items:
           $ref: '#/definitions/clickhouse.ProfilingEvent'
         type: array
-    type: object
-  response.GetPodInfoResponse:
-    properties:
-      podInfo:
-        type: string
-    type: object
-  response.GetPodListResponse:
-    properties:
-      podList:
-        type: string
     type: object
   response.GetPolarisInferResponse:
     properties:
@@ -1718,11 +1700,6 @@ definitions:
         additionalProperties:
           type: string
         type: object
-    type: object
-  response.GetSingleTraceInfoResponse:
-    properties:
-      traceInfo:
-        type: string
     type: object
   response.GetTTLResponse:
     properties:
@@ -1949,6 +1926,9 @@ definitions:
   response.LogItem:
     properties:
       content: {}
+      logFields:
+        additionalProperties: true
+        type: object
       tags:
         additionalProperties: true
         type: object
@@ -2764,9 +2744,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
-            $ref: '#/definitions/response.GetNamespaceInfoResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -2783,9 +2763,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
-            $ref: '#/definitions/response.GetNamespaceListResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -2813,9 +2793,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
-            $ref: '#/definitions/response.GetPodInfoResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -2838,9 +2818,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
-            $ref: '#/definitions/response.GetPodListResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -4783,7 +4763,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.GetSingleTraceInfoResponse'
+            type: string
         "400":
           description: Bad Request
           schema:

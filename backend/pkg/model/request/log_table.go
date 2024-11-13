@@ -22,13 +22,14 @@ type BufferEngineConfig struct {
 }
 
 type LogTableRequest struct {
-	DataBase  string             `json:"dataBase"`
-	TableName string             `json:"tableName"`
-	Cluster   string             `json:"cluster"`
-	Replica   bool               `json:"replica"`
-	TTL       uint               `json:"ttl"`
-	Fields    []Field            `json:"fields"`
-	Buffer    BufferEngineConfig `json:"buffer"`
+	DataBase     string             `json:"dataBase"`
+	TableName    string             `json:"tableName"`
+	Cluster      string             `json:"cluster"`
+	Replica      bool               `json:"replica"`
+	TTL          uint               `json:"ttl"`
+	Fields       []Field            `json:"fields"`
+	Buffer       BufferEngineConfig `json:"buffer"`
+	IsStructured bool               `json:"isStructured"`
 }
 
 func (q *LogTableRequest) ClusterString() string {

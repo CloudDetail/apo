@@ -54,6 +54,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 	logReq.TTL = req.LogTable.TTL
 	logReq.Fields = fields
 	logReq.Buffer = req.LogTable.Buffer
+	logReq.IsStructured = req.IsStructured
 	logReq.FillerValue()
 	_, err := s.chRepo.CreateLogTable(logReq)
 	if err != nil {
@@ -77,10 +78,12 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 	p := vector.ParseInfo{
 		ParseName: req.ParseName,
 		TableName: "logs_" + req.ParseName,
-		ParseRule: req.ParseRule,
 		RouteRule: getRouteRule(req.RouteRule),
 	}
-
+	// 非结构化日志，需要parse rule
+	if !req.IsStructured {
+		p.ParseRule = req.ParseRule
+	}
 	newData, err := p.AddParseRule(vectorCfg)
 	if err != nil {
 		return nil, err
