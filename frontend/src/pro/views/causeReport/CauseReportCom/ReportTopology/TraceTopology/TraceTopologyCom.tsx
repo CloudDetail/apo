@@ -149,6 +149,8 @@ function TraceTopologyCom({ data, category }: any) {
           'style',
           `z-index: 99; visibility: visible; position: fixed; left: ${tooltipX}px; top: ${clientY}px`,
         )
+        const key = d3.select(this).attr('data-key')
+        let node = nodes.current.find((opt: any) => opt.key === key)
         const htmlContent = `<div class='tooltip_content'>
                     <div class='title'>${node.id}</div>
                     <div class='content'>
