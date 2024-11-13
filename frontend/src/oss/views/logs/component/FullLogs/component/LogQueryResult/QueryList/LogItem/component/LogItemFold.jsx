@@ -13,7 +13,7 @@ const LogItemFold = ({ tags }) => {
           key !== (tableInfo?.timeField || 'timestamp') && // 排除与 timeField 相同的键
           typeof value !== 'object' // 确保 value 不是对象
         ) {
-          return <LogValueTag key={key} objKey={key} value={value} />
+          return <LogValueTag key={key} objKey={key} value={String(value)} />
         }
         return null // 不符合条件时返回 null
       })}

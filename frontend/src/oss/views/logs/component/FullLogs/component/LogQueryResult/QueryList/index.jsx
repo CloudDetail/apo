@@ -4,7 +4,7 @@ import LogItem from './LogItem'
 import { Empty } from 'antd'
 const QueryList = ({ logs, openContextModal = null, loading }) => {
   return (
-    <div className="overflow-y-auto h-full">
+    <div className="overflow-hidden h-full">
       {logs?.length > 0 && (
         <Virtuoso
           style={{ height: '100%', width: '100%' }}

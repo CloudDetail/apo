@@ -38,14 +38,14 @@ const ContextModal = ({ modalVisible, closeModal, logParams }) => {
       centered
       cancelText="关闭"
       width={1000}
-      bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden' }}
+      bodyStyle={{ height: '80vh', overflowY: 'auto', overflowX: 'hidden' }}
       footer={(_, { CancelBtn }) => (
         <>
           <CancelBtn />
         </>
       )}
     >
-      <div className="h-[650px]">
+      <div className="h-full overflow-hidden ">
         <LoadingSpinner loading={loading} />
         <QueryList logs={context} loading={loading} />
       </div>
