@@ -194,9 +194,10 @@ export default function FaultReportModal({
         width="80vw"
         destroyOnClose={true}
         footer={[]}
+        bodyStyle={{ height: '70vh', overflowY: 'auto', overflowX: 'hidden' }}
         title={' 故障类型为 ' + reason + ' 的延时报告列表'}
       >
-        <div className="h-[650px] pb-5 overflow-hidden">
+        <div className="h-full pb-5 overflow-hidden">
           <LoadingSpinner loading={loadingStatus} />
           <BasicTable {...tableProps} />
           {/* <Table
