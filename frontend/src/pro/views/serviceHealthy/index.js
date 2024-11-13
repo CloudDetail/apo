@@ -4,10 +4,10 @@ import { CCard } from '@coreui/react'
 import { useSelector } from 'react-redux'
 import { selectProcessedTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { Input } from 'antd'
-import { getServiceHealthyApi } from 'core/api/serviceHealthy'
 import { FaCircle } from 'react-icons/fa'
 import LoadingSpinner from 'src/core/components/Spinner'
 import BorderTag from 'src/core/components/Tag/BorderTag'
+import { getServiceHealthyApi } from 'src/pro/api/serviceHealthy'
 export default function ServiceHealthyPage() {
   const [data, setData] = useState([])
   const [serachServiceName, setSerachServiceName] = useState()
