@@ -44,7 +44,7 @@ const ImpactList = () => {
         // eslint-disable-next-line react/prop-types
         const { value } = props
 
-        return <TempCell type="latency" data={value} />
+        return <TempCell type="latency" data={value} timeRange={{ startTime, endTime }} />
       },
     },
     {
@@ -55,7 +55,7 @@ const ImpactList = () => {
       Cell: (props) => {
         // eslint-disable-next-line react/prop-types
         const { value } = props
-        return <TempCell type="errorRate" data={value} />
+        return <TempCell type="errorRate" data={value} timeRange={{ startTime, endTime }} />
       },
     },
     {
@@ -66,7 +66,7 @@ const ImpactList = () => {
       Cell: (props) => {
         // eslint-disable-next-line react/prop-types
         const { value } = props
-        return <TempCell type="tps" data={value} />
+        return <TempCell type="tps" data={value} timeRange={{ startTime, endTime }} />
       },
     },
     {
