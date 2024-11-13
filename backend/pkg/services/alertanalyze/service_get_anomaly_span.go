@@ -19,15 +19,6 @@ func (s *service) GetAnomalySpan(req *request.GetAnomalySpanRequest) (response.G
 		return resp, err
 	}
 
-	for _, result := range results {
-		resp.SpanList = append(resp.SpanList, response.SpanInfo{
-			TraceId:   result.TraceId,
-			SpanId:    result.SpanId,
-			ApmType:   result.ApmType,
-			Timestamp: result.Timestamp,
-		})
-	}
-
 	resp.List = results
 	resp.Pagination = &model.Pagination{
 		Total:       total,

@@ -142,9 +142,22 @@ func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.R
 		return model.NewErrWithMessage(fmt.Errorf("configfile %s is not found", configFile), code.AlertConfigFileNotExistError)
 	}
 
-	if len(oldName) > 0 && oldName != receiver.Name {
-		// Update Exist receiver
-		var receiverIsExist bool
+	// Update Exist receiver
+	var receiverIsExist bool
+	if len(oldName) == 0 || oldName == receiver.Name {
+		for i := range amConfig.Receivers {
+			if amConfig.Receivers[i].Name == oldName {
+				receiverIsExist = true
+				if len(receiver.WebhookConfigs) > 0 {
+					amConfig.Receivers[i].WebhookConfigs = receiver.WebhookConfigs
+				} else if len(receiver.EmailConfigs) > 0 {
+					amConfig.Receivers[i].EmailConfigs = receiver.EmailConfigs
+				} else if len(receiver.WechatConfigs) > 0 {
+					amConfig.Receivers[i].WechatConfigs = receiver.WechatConfigs
+				}
+			}
+		}
+	} else if len(oldName) > 0 && oldName != receiver.Name {
 		for i := range amConfig.Receivers {
 			if amConfig.Receivers[i].Name == oldName {
 				receiverIsExist = true
@@ -165,9 +178,9 @@ func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.R
 				return nil
 			}
 		}
-		if !receiverIsExist {
-			return model.NewErrWithMessage(fmt.Errorf("update receiver failed, '%s' not found", oldName), code.AlertManagerReceiverNotExistsError)
-		}
+	}
+	if !receiverIsExist {
+		return model.NewErrWithMessage(fmt.Errorf("update receiver failed, '%s' not found", oldName), code.AlertManagerReceiverNotExistsError)
 	}
 
 	return nil
