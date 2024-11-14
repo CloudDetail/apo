@@ -32,7 +32,7 @@ build: # This job runs in the build stage, which runs first.
 manual_build:
   stage: build
   rules:
-  - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "enterprise"'
+  - if: '$CI_COMMIT_BRANCH'
     when: manual
   script:
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
