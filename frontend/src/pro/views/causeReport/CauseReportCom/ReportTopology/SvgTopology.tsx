@@ -289,15 +289,15 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
       } else if (category === 'chain') {
         let totalTimeWidth
         if (node.totalTime === -1) {
-          totalTimeWidth = 2 * selfTimeMaxWidth
+          totalTimeWidth = 4 * selfTimeMaxWidth
         } else {
-          totalTimeWidth = selfTimeMaxWidth * (node.totalTime / maxTotalTime)
+          totalTimeWidth = 2 * selfTimeMaxWidth * (node.totalTime / maxTotalTime)
         }
         nodeG
           .append('text')
           .text('服务端耗时')
           .attr('style', `font-size: 11px;font-weight: 500; fill: ${theme.colors.text.primary}`)
-          .attr('x', 70)
+          .attr('x', 20)
           .attr('y', timeY)
         nodeG
           .append('rect')
@@ -306,7 +306,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
           .attr('height', 20)
           .attr('fill', '#f3485c')
           .attr('style', 'border-radius: 2px;')
-          .attr('x', 300)
+          .attr('x', 80)
           .attr('y', timeY - 15)
           .attr('rx', 2)
           .attr('ry', 2)
@@ -315,7 +315,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
           .text(node.totalTime === -1 ? '∞' : formatUnit(node.totalTime, 'ms'))
           .attr('style', `font-size: 11px; font-weight: 500;fill: ${theme.colors.text.primary}`)
           .style('font-size', node.totalTime === -1 ? 18 : 12)
-          .attr('x', 300 + totalTimeWidth + 10)
+          .attr('x', 80 + totalTimeWidth + 10)
           .attr('y', timeY)
       }
     }
@@ -344,7 +344,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
       if (edge.missVNode || category === 'chain') {
         let startX = sx + 50,
           startY = sy,
-          endX = tx + 50,
+          endX = tx,
           endY = ty
 
         // 计算中间点
@@ -353,14 +353,14 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
         // 创建两条线段
         d3.select(`#${chartId}-line_warp`)
           .append('path')
-          .attr('d', `M${startX},${startY} L${midX},${midY - 20}`)
+          .attr('d', `M${startX},${startY} L${midX - 50},${midY}`)
           .attr('stroke', theme.colors.text.primary)
           .attr('stroke-width', 1)
           .attr('fill', 'none')
 
         d3.select(`#${chartId}-line_warp`)
           .append('path')
-          .attr('d', `M${midX},${midY + 20} L${endX},${endY}`)
+          .attr('d', `M${midX + 50},${midY} L${endX},${endY}`)
           .attr('stroke', theme.colors.text.primary)
           .attr('stroke-width', 1)
           .attr('fill', 'none')
