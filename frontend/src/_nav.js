@@ -25,7 +25,7 @@ const commercialNav = [
   },
 ]
 
-const VITE_SHOW_MIDWARE_HEALTH = import.meta.env.VITE_SHOW_MIDWARE_HEALTH === "special"
+const VITE_SHOW_MIDWARE_HEALTH = import.meta.env.VITE_SHOW_MYSQL_HEALTH === "special"
 
 let _nav = [
   { key: 'service', icon: <IoMdCloudOutline />, label: '服务概览', to: '/service' },
@@ -97,7 +97,7 @@ let _nav = [
 ]
 
 if (!VITE_SHOW_MIDWARE_HEALTH) {
-  _nav = _nav.filter((item) => item.key !== 'middleware' && item.key !== 'healthy')
+  _nav = _nav.filter((item) => item.key !== 'mysql' && item.key !== 'healthy')
 }
 
 
