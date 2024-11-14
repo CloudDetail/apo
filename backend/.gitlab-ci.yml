@@ -9,7 +9,7 @@ variables:
   DEPLOYMENT_NAME: apo-backend-ee
   CONTAINER_NAME: apo-backend-ee
   DIR_NAME: backend
-  VITE_SHOW_MIDWARE_HEALTH: ""
+
 
 build: # This job runs in the build stage, which runs first.
   stage: build
@@ -19,11 +19,7 @@ build: # This job runs in the build stage, which runs first.
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
   - TAG_NAME="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-$DATE"
   - echo "TAG_NAME=$TAG_NAME" > build.env
-  - docker build \
-      --build-arg VITE_PUBLIC_POSTHOG_HOST=$VITE_PUBLIC_POSTHOG_HOST \
-      --build-arg VITE_PUBLIC_POSTHOG_KEY=$VITE_PUBLIC_POSTHOG_KEY \
-      --build-arg VITE_SHOW_MIDWARE_HEALTH=$VITE_SHOW_MIDWARE_HEALTH \
-      -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
+  - docker build -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
   artifacts:
     reports:
       dotenv: build.env
@@ -37,11 +33,7 @@ manual_build:
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
   - TAG_NAME="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-$DATE"
   - echo "TAG_NAME=$TAG_NAME" > build.env
-  - docker build \
-      --build-arg VITE_PUBLIC_POSTHOG_HOST=$VITE_PUBLIC_POSTHOG_HOST \
-      --build-arg VITE_PUBLIC_POSTHOG_KEY=$VITE_PUBLIC_POSTHOG_KEY \
-      --build-arg VITE_SHOW_MIDWARE_HEALTH=$VITE_SHOW_MIDWARE_HEALTH \
-      -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
+  - docker build -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
   artifacts:
     reports:
       dotenv: build.env
