@@ -41,6 +41,10 @@ type Handler interface {
 	// @Tags API.user
 	// @Router /api/user/update/email [post]
 	UpdateUserEmail() core.HandlerFunc
+	// GetUserInfo 获取个人信息
+	// @Tags API.user
+	// @Router /api/user/info [get]
+	GetUserInfo() core.HandlerFunc
 }
 
 type handler struct {

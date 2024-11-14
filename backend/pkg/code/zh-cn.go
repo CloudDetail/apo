@@ -99,6 +99,7 @@ var zhCnText = map[string]string{
 	UserCreateError:            "创建用户失败",
 	UserUpdateError:            "更新失败",
 	UserConfirmPasswordError:   "两次密码不一致",
+	GetUserInfoError:           "获取用户信息失败",
 
 	K8sGetResourceError: "获取k8s资源失败",
 }
