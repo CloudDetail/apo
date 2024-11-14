@@ -119,6 +119,7 @@ const (
 	UserCreateError            = "B0906"
 	UserUpdateError            = "B0907"
 	UserConfirmPasswordError   = "B0908"
+	GetUserInfoError           = "B0909"
 )
 
 func Text(code string) string {

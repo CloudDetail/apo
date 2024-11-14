@@ -117,3 +117,9 @@ func (repo *daoRepo) UpdateUserInfo(username string, req *request.UpdateUserInfo
 	}
 	return repo.db.Save(&user).Error
 }
+
+func (repo *daoRepo) GetUserInfo(username string) (User, error) {
+	var user User
+	err := repo.db.Select("username, role, phone, email, corporation").Where("username = ?", username).First(&user).Error
+	return user, err
+}

@@ -97,4 +97,5 @@ var enText = map[string]string{
 	UserCreateError:            "Failed to create user",
 	UserUpdateError:            "Failed to update",
 	UserConfirmPasswordError:   "Password inconsistent",
+	GetUserInfoError:           "Failed to get user information",
 }

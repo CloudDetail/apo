@@ -37,6 +37,7 @@ type Repo interface {
 	UpdateUserEmail(username string, email string) error
 	UpdateUserPassword(username, oldPassword, newPassword string) error
 	UpdateUserInfo(username string, req *request.UpdateUserInfoRequest) error
+	GetUserInfo(username string) (User, error)
 }
 
 type daoRepo struct {
