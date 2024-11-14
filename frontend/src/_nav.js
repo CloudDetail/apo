@@ -96,11 +96,9 @@ let _nav = [
   },
 ]
 
-if (VITE_SHOW_MIDWARE_HEALTH) {
+if (!VITE_SHOW_MIDWARE_HEALTH) {
   _nav = _nav.filter((item) => item.key !== 'middleware' && item.key !== 'healthy')
 }
-
-console.log(_nav)
 
 
 export { _nav, commercialNav }
