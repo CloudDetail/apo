@@ -25,7 +25,9 @@ const commercialNav = [
   },
 ]
 
-const _nav = [
+const VITE_SHOW_MIDWARE_HEALTH = import.meta.env.VITE_SHOW_MIDWARE_HEALTH === "special"
+
+let _nav = [
   { key: 'service', icon: <IoMdCloudOutline />, label: '服务概览', to: '/service' },
   {
     key: 'logs',
@@ -93,5 +95,12 @@ const _nav = [
     icon: <TbWaveSawTool />,
   },
 ]
+
+if (VITE_SHOW_MIDWARE_HEALTH) {
+  _nav = _nav.filter((item) => item.key !== 'middleware' && item.key !== 'healthy')
+}
+
+console.log(_nav)
+
 
 export { _nav, commercialNav }
