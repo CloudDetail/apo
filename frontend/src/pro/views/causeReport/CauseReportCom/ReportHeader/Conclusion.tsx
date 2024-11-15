@@ -43,7 +43,7 @@ const Conclusion = () => {
           marginBottom: 3,
         }}
       >
-        {reportData?.conclusionStruct?.messages.join('\n\n') || ''}
+        {reportData?.conclusionStruct?.messages?.join('\n\n') || ''}
       </pre>
       <div className="flex items-center m-3">
         <Descriptions
