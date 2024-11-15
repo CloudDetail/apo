@@ -36,7 +36,7 @@ export const alertAnalyzeInitialState = {
   },
   topologyData: null,
   //当前展示的异常信息类型
-  anormalTypes: ['alert-app', 'alert-container', 'alert-infer', 'alert-network', 'error'],
+  anormalTypes: ['app', 'container', 'infra', 'network', 'error'],
   //用以时间区域图数据 [{timestamp:'', count:''}]
   timeLineChartData: [],
   //用以拓扑图节点信息map
