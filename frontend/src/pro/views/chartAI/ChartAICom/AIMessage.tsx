@@ -20,14 +20,16 @@ const AIMessage: React.FC<AIMessageProps> = ({ message }) => {
         overflow: 'hidden',
       }}
     >
-      <div className="m-2">
+      <div className="m-2 flex-shrink-0 flex-grow-0">
         <RiRobot2Line size={24} />
       </div>
-      <div
-        dangerouslySetInnerHTML={renderMarkdown()}
-        className="p-3 markdown-body rounded-2xl "
-        style={{ fontSize: 14, background: '#3e3f4c' }}
-      />
+      <div className="overflow-hidden">
+        <div
+          dangerouslySetInnerHTML={renderMarkdown()}
+          className="p-3 markdown-body rounded-2xl "
+          style={{ fontSize: 14, background: '#3e3f4c' }}
+        />
+      </div>
     </div>
   )
 }

@@ -4,7 +4,17 @@ import timelinePng from 'src/pro/assets/timeline.png'
 import newEventPng from 'src/pro/assets/newEvent.png'
 import resolveEventPng from 'src/pro/assets/resolveEvent.png'
 import polariPng from 'src/pro/assets/polari.png'
-import { Image } from 'antd'
+import mock1Png from 'src/pro/assets/1.png'
+import mock2Png from 'src/pro/assets/2.png'
+import mock5Png from 'src/pro/assets/5.png'
+import mock61Png from 'src/pro/assets/6-1.png'
+import mock62Png from 'src/pro/assets/6-2.png'
+import mock7Png from 'src/pro/assets/7.png'
+import mock9_1Png from 'src/pro/assets/9-1.png'
+import mock9_2Png from 'src/pro/assets/9-2.png'
+import mock10Png from 'src/pro/assets/10.png'
+
+import { Image, Table } from 'antd'
 function createDownloadLink(data, fileName) {
   // 检查 data 是否是字符串或者对象
   const content =
@@ -518,8 +528,8 @@ export const mockDialogue = [
     ],
     explanation: (
       <div>
-        <div>拓扑图数据如下</div>
-        <Image src={topologyPng} width={'90%'} />
+        <div>拓扑示例如下：通过告警深入分析可以看到告警关联的完整业务调用关系。</div>
+        <Image src={mock1Png} width={'60%'} />
       </div>
     ),
   },
@@ -534,7 +544,14 @@ export const mockDialogue = [
         message: `已记住告警事件数据。\n如果需要分析或报告这些数据，请提供进一步的指导。`,
       },
     ],
-    explanation: <Image src={eventListPng} width={'90%'} />,
+    explanation: (
+      <>
+        <div>
+          示例：在告警深入分析中，可以通过拖动时间范围可以看到不同时间段的告警详细信息。智能对话中，提交的是这段时间所有的告警信息，并且每个告警进行已经被关联至应用接口
+        </div>
+        <Image src={mock2Png} width={'90%'} />
+      </>
+    ),
   },
   {
     conversation: [
@@ -558,7 +575,7 @@ export const mockDialogue = [
 请提供具体规则，以便开始分析。`,
       },
     ],
-    explanation: <></>,
+    explanation: <>先请LLM根据拓扑结构和告警信息完成疑似根因节点的识别。</>,
   },
   {
     conversation: [
@@ -605,7 +622,23 @@ export const mockDialogue = [
           '请注意，这些节点是基于提供的告警事件数据进行分析的，并且我们假设只有当所有同级节点的服务都满足异常传递条件时，它们才可能是根因。如果需要进一步的规则或条件，请提供。',
       },
     ],
-    explanation: <></>,
+    explanation: (
+      <>
+        告警信息详细解释：
+        <ol style={{ listStyleType: 'disc', paddingLeft: 20 }}>
+          <li>应用层告警（URL接口延时异常和错误异常）</li>
+          <li>网络层告警（节点之间连接的网络周期性Ping值异常）</li>
+          <li>基础设施主机层告警（主机的CPU、 内存、磁盘、网卡吞吐量异常）</li>
+          <li>容器告警（k8s事件比如容器killed， 容器重启等异常）</li>
+          <li>
+            错误告警（Java程序使用java
+            Exception，非Java程序，使用日志错误数异常。解决微服务场景中会识别不了错误的场景、将错误封装到error
+            code中，导致http status code永远是200）
+          </li>
+        </ol>
+        专家经验：只有应用层告警和错误告警能够在调用链路上传递。
+      </>
+    ),
   },
   {
     conversation: [
@@ -631,15 +664,14 @@ export const mockDialogue = [
       <>
         <div>
           <div className="w-full">
-            {`示例中应用告警传递过程 ts-route-service -> ts-travel-service -> ts-route-plan-service -> ts-gateway-servcie。`}{' '}
+            <div>如下图示例，应用层告警和错误告警都是从下游往上游传递。</div>
+            <div>上游节点的应用告警是由下游传递导致的，所以上游节点不是疑似根因节点</div>
+            <div>
+              {`示例中应用告警传递过程 ts-route-service -> ts-travel-service -> ts-route-plan-service
+              -> ts-gateway-servcie。`}
+            </div>
           </div>
-          <Image src={topologyPng} width={'90%'} />
-          <div>
-            可以在告警深入分析当中，使用时间轴，选择告警突增的时间段，在拓扑图查看告警发生的详细信息。
-          </div>
-          <div className="text-center">
-            <Image src={timelinePng} width={'80%'} />
-          </div>
+          <Image src={mock5Png} width={'100%'} />
         </div>
       </>
     ),
@@ -672,7 +704,26 @@ export const mockDialogue = [
 目前，我们没有足够的信息来确定具体的根因节点。如果有更多的告警事件数据或其他规则，请提供，以便我们能够继续分析。`,
       },
     ],
-    explanation: <></>,
+    // explanation: (
+    //   <div>
+    //     <div>偶发的是噪音，应该排除。例如在这段时间内，在告警新增之后，很快的看到了已经解决。</div>
+    //     <div>新增发生在：11：19：35秒 </div>
+    //     <Image src={newEventPng} width={'70%'} />
+    //     <div>已解决发生在：11：20：35秒</div>
+    //     <Image src={resolveEventPng} width={'70%'} />
+    //   </div>
+    // ),
+    explanation: (
+      <>
+        <div>如果应用接口产生的告警是偶发的，应该排除出疑似根因节点以外。</div>
+        <div>偶发的告警定义：在故障排查时间段内，告警新增之后，很快的看到了已经解决。</div>
+        <div>新增发生在：11：19：35秒</div>
+        <Image src={mock61Png} width={'100%'} />
+
+        <div>已解决发生在：11：20：35秒</div>
+        <Image src={mock62Png} width={'100%'} />
+      </>
+    ),
   },
   {
     conversation: [
@@ -697,14 +748,22 @@ export const mockDialogue = [
 `,
       },
     ],
+    // explanation: (
+    //   <div>
+    //     <div>偶发的是噪音，应该排除。例如在这段时间内，在告警新增之后，很快的看到了已经解决。</div>
+    //     <div>新增发生在：11：19：35秒 </div>
+    //     <Image src={newEventPng} width={'70%'} />
+    //     <div>已解决发生在：11：20：35秒</div>
+    //     <Image src={resolveEventPng} width={'70%'} />
+    //   </div>
+    // ),
+
     explanation: (
-      <div>
-        <div>偶发的是噪音，应该排除。例如在这段时间内，在告警新增之后，很快的看到了已经解决。</div>
-        <div>新增发生在：11：19：35秒 </div>
-        <Image src={newEventPng} width={'70%'} />
-        <div>已解决发生在：11：20：35秒</div>
-        <Image src={resolveEventPng} width={'70%'} />
-      </div>
+      <>
+        <div>根因节点产生的告警，应该沿着调用链路逆向传递到业务入口。</div>
+        <div>示例中，告警只传递到了某个上游就断掉了，说明该上游和下游告警节点都不是根因节点。</div>
+        <Image src={mock7Png} width={'100%'} />
+      </>
     ),
   },
   {
@@ -719,6 +778,49 @@ export const mockDialogue = [
         message: `造成根因的是ts-route-plan-service|POST /api/v1/routeplanservice/routePlan/cheapestRoute节点。`,
       },
     ],
+    explanation: (
+      <>
+        <div>汇总</div>
+        <div>
+          不同模型的推理准确度并不相同，请根据您使用的模型判断需不需要人为使用“告警深入分析功能”确认疑似根因节点。
+        </div>
+        <div>
+          目前测试数据如下：
+          <Table
+            pagination={false}
+            dataSource={[
+              {
+                key: '1',
+                name: 'GPT4o mini',
+                value: '90%',
+              },
+              {
+                key: '2',
+                name: '智普GLM',
+                value: '85%',
+              },
+              {
+                key: '2',
+                name: '通义千问',
+                value: '80%',
+              },
+            ]}
+            columns={[
+              {
+                title: '模型',
+                dataIndex: 'name',
+                key: 'name',
+              },
+              {
+                title: '准确率',
+                dataIndex: 'value',
+                key: 'value',
+              },
+            ]}
+          />
+        </div>
+      </>
+    ),
   },
   {
     conversation: [
@@ -735,13 +837,25 @@ export const mockDialogue = [
       {
         role: 'ai',
         message: `延时曲线中的scheduling_time类型最相似。
+        <div style="overflow-x: auto;">
         
 | 本次请求耗时                                                 | 请求时间            | 入口应用名称       | 入口服务端点     | 查看报告     |
 | ------------------------------------------------------------ | ------------------- | ------------------ | ---------------- | ------------ |
-| <div>1219ms<span class="ant-tag ant-tag-red css-1leukm8" style="margin-left: 5px;">偏离基线0.11%</span></div> | 2024-11-15 14:48:25 | ts-gateway-service | POST travel-plan | [查看](xx) |
-| <div>1219ms<span class="ant-tag ant-tag-red css-1leukm8" style="margin-left: 5px;">偏离基线0.21%</span></div> | 2024-11-15 14:48:26 | ts-gateway-service | POST travel-plan | [查看](xx) |`,
+| <div>1219ms<span class="ant-tag ant-tag-red css-1leukm8" style="margin-left: 5px;">偏离基线0.11%</span></div> | 2024-11-15 16:41:13 | ts-gateway-service | POST travel-plan | [查看](http://kindling.myddns.me:31553/#/cause/report/13b76c4d8c129bb6b241d552cbc80048/9465c9c9999bceee?mutatedType=scheduling_time) |
+| <div>1219ms<span class="ant-tag ant-tag-red css-1leukm8" style="margin-left: 5px;">偏离基线0.21%</span></div> | 2024-11-15 16:42:25 | ts-gateway-service | POST travel-plan | [查看](http://kindling.myddns.me:31553/#/cause/report/e3675e18900c13d6209e628ca67799ab/25877bdd0bada47f?mutatedType=scheduling_time) |
+</div>`,
       },
     ],
-    explanation: <Image src={polariPng} width={'80%'} />,
+    explanation: (
+      <>
+        <div>
+          北极星指标曲线是利用eBPF技术，将请求延时完整的拆解成了主要的几个故障方向，当延时变化之时，可以根据哪个分项的变化曲线最相似，从而判断疑似故障节点的故障方向。
+        </div>
+        <Image src={mock9_1Png} />
+        <Image src={mock9_2Png} />
+        <div>最后可以查看故障方向的进一步分析报告。</div>
+        <Image src={mock10Png} />
+      </>
+    ),
   },
 ]
