@@ -627,9 +627,9 @@ export const mockDialogue = [
         告警信息详细解释：
         <ol style={{ listStyleType: 'disc', paddingLeft: 20 }}>
           <li>应用层告警（URL接口延时异常和错误异常）</li>
-          <li>网络层告警（节点之间连接的网络周期性Ping值异常）</li>
-          <li>基础设施主机层告警（主机的CPU、 内存、磁盘、网卡吞吐量异常）</li>
           <li>容器告警（k8s事件比如容器killed， 容器重启等异常）</li>
+          <li>基础设施主机层告警（主机的CPU、 内存、磁盘、网卡吞吐量异常）</li>
+          <li>网络层告警（节点之间连接的网络周期性Ping值异常）</li>
           <li>
             错误告警（Java程序使用java
             Exception，非Java程序，使用日志错误数异常。解决微服务场景中会识别不了错误的场景、将错误封装到error
