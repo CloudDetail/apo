@@ -19,6 +19,7 @@ build: # This job runs in the build stage, which runs first.
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
   - TAG_NAME="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-$DATE"
   - echo "TAG_NAME=$TAG_NAME" > build.env
+  - echo "VITE_SHOW_MYSQL_HEALTH=$VITE_SHOW_MYSQL_HEALTH"
   - |
     docker build \
       --build-arg VITE_PUBLIC_POSTHOG_HOST=$VITE_PUBLIC_POSTHOG_HOST \
@@ -38,6 +39,7 @@ manual_build:
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
   - TAG_NAME="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-$DATE"
   - echo "TAG_NAME=$TAG_NAME" > build.env
+  - echo "VITE_SHOW_MYSQL_HEALTH=$VITE_SHOW_MYSQL_HEALTH"
   - |
     docker build --no-cache \
       --build-arg VITE_PUBLIC_POSTHOG_HOST=$VITE_PUBLIC_POSTHOG_HOST \
