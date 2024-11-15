@@ -81,6 +81,19 @@ const ChartAICom = () => {
   return (
     <Card className="h-full overflow-hidden" classNames={{ body: 'p-0 h-full' }}>
       <div className="h-full w-full flex overflow-hidden flex-col">
+        <div
+          className="flex "
+          style={{
+            borderBottom: '1px solid #303030',
+            paddingLeft: '1.5rem',
+            paddingRight: '1.6rem',
+          }}
+        >
+          <div className="w-2/3 p-3  text-lg font-bold">大模型对话</div>
+          <div className=" p-3  text-lg font-bold" style={{ borderLeft: '1.5px solid #303030' }}>
+            数据与规则说明
+          </div>
+        </div>
         <div className="w-full overflow-y-auto flex-1 p-4">
           {mockDialogue.map((item, index) => (
             <>
@@ -95,6 +108,9 @@ const ChartAICom = () => {
                       )}
                     </div>
                   ))}
+                </div>
+                <div>
+                  <Divider type="vertical" className="h-full" />
                 </div>
                 <ExampleCom children={item?.explanation} />
               </div>
