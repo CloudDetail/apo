@@ -2,6 +2,7 @@ package factory
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -116,19 +117,45 @@ func (l *LogTableFactory) DropDistributedTableSQL(params *request.LogTableReques
 	return fmt.Sprintf(dropLogSQL, params.DataBase, params.TableName, params.ClusterString())
 }
 
-func (l *LogTableFactory) UpdateTableSQL(params *request.LogTableRequest, distrubted bool) string {
-	var upateFiles string
-	size := len(params.Fields)
-	for i, field := range params.Fields {
-		upateFiles += fmt.Sprintf("ADD COLUMN %s Nullable(%s)", field.Name, field.Type)
-		if i < size-1 {
-			upateFiles += ",\n"
+func (l *LogTableFactory) UpdateTableSQL(params *request.LogTableRequest, old []request.Field, distributed bool) string {
+	var updateFields []string
+	for i := range params.Fields {
+		exists := false
+		for j := range old {
+			if params.Fields[i].Name == old[j].Name && params.Fields[i].Type == old[j].Type {
+				exists = true
+				break
+			} else if params.Fields[i].Name == old[j].Name && params.Fields[i].Type != old[j].Type {
+				exists = true
+				updateFields = append(updateFields, fmt.Sprintf("MODIFY COLUMN %s Nullable(%s)", params.Fields[i].Name, params.Fields[i].Type))
+				break
+			}
+		}
+		if !exists {
+			updateFields = append(updateFields, fmt.Sprintf("ADD COLUMN %s Nullable(%s)", params.Fields[i].Name, params.Fields[i].Type))
 		}
 	}
+
+	for i := range old {
+		exists := false
+		for j := range params.Fields {
+			if old[i].Name == params.Fields[j].Name {
+				exists = true
+			}
+		}
+		if !exists {
+			updateFields = append(updateFields, fmt.Sprintf("DROP COLUMN %s", old[i].Name))
+		}
+	}
+
+	if len(updateFields) == 0 {
+		return ""
+	}
+	updateFieldSql := strings.Join(updateFields, ",")
 	tablename := params.TableName
 	cluster := params.ClusterString()
-	if cluster != "" && !distrubted {
+	if cluster != "" && !distributed {
 		tablename += "_local"
 	}
-	return fmt.Sprintf(updateLogSQL, params.DataBase, tablename, cluster, upateFiles)
+	return fmt.Sprintf(updateLogSQL, params.DataBase, tablename, cluster, updateFieldSql)
 }

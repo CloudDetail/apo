@@ -1167,13 +1167,6 @@ definitions:
     x-enum-varnames:
     - PF_Labels
     - PF_Flags
-  request.QueryLogParseRequest:
-    properties:
-      dataBase:
-        type: string
-      tableName:
-        type: string
-    type: object
   request.SetSingleTTLRequest:
     properties:
       day:
@@ -1249,6 +1242,8 @@ definitions:
     properties:
       dataBase:
         type: string
+      isStructured:
+        type: boolean
       parseInfo:
         type: string
       parseName:
@@ -1262,6 +1257,10 @@ definitions:
       serviceName:
         items:
           type: string
+        type: array
+      tableFields:
+        items:
+          $ref: '#/definitions/request.Field'
         type: array
       tableName:
         type: string
@@ -1950,6 +1949,10 @@ definitions:
       serviceName:
         items:
           type: string
+        type: array
+      tableFields:
+        items:
+          $ref: '#/definitions/request.Field'
         type: array
     type: object
   response.LogQueryContextResponse:
@@ -3144,12 +3147,16 @@ paths:
       - application/x-www-form-urlencoded
       description: 获取日志表解析规则
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
+      - description: 数据库
+        in: query
+        name: dataBase
         required: true
-        schema:
-          $ref: '#/definitions/request.QueryLogParseRequest'
+        type: string
+      - description: 表
+        in: query
+        name: tableName
+        required: true
+        type: string
       produces:
       - application/json
       responses:
