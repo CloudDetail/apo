@@ -7,10 +7,8 @@ import (
 )
 
 type ProfilingEvent struct {
-	Timestamp time.Time `json:"timestamp" ch:"timestamp"`
-	// 单位微秒
-	StartTime uint64 `json:"startTime" ch:"startTime"`
-	// 单位微秒
+	Timestamp       time.Time         `json:"timestamp" ch:"timestamp"`
+	StartTime       uint64            `json:"startTime" ch:"startTime"`
 	EndTime         uint64            `json:"endTime" ch:"endTime"`
 	Offset          int64             `json:"offset" ch:"offset"`
 	PID             uint32            `json:"pid" ch:"pid"`
@@ -29,8 +27,8 @@ const profiling_event_sql = `SELECT %s FROM profiling_event %s LIMIT %s`
 func (ch *chRepo) GetOnOffCPU(pid uint32, nodeName string, startTime, endTime int64) (*[]ProfilingEvent, error) {
 	queryBuilder := NewQueryBuilder()
 	querySql := queryBuilder.
-		Between("startTime", startTime*1e3, endTime*1e3).
-		Between("endTime", startTime*1e3, endTime*1e3).
+		Between("startTime", startTime, endTime).
+		Between("endTime", startTime, endTime).
 		EqualsNotEmpty("labels['node_name']", nodeName).
 		Equals("pid", pid).String()
 	fieldSql := NewFieldBuilder().

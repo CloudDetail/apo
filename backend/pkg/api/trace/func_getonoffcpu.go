@@ -14,8 +14,8 @@ import (
 // @Tags API.trace
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "开始时间，单位微秒"
-// @Param endTime query int64  true "结束时间，单位微秒"
+// @Param startTime query int64 true "开始时间"
+// @Param endTime query int64  true "结束时间"
 // @Param pid query uint32 true "进程id"
 // @Param nodeName query string true "节点名"
 // @Success 200 {object} response.GetOnOffCPUResponse
