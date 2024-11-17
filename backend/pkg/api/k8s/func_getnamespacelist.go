@@ -12,7 +12,7 @@ import (
 // @Tags API.k8s
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Success 200 {object} response.GetNamespaceListResponse
+// @Success 200 {object} string
 // @Failure 400 {object} code.Failure
 // @Router /api/k8s/namespaces [get]
 func (h *handler) GetNamespaceList() core.HandlerFunc {

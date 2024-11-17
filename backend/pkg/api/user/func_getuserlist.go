@@ -1,0 +1,47 @@
+package user
+
+import (
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
+)
+
+// GetUserList 获取用户列表
+// @Summary 获取用户列表
+// @Description 获取用户列表
+// @Tags API.user
+// @Accept application/x-www-form-urlencoded
+// @Produce json
+// @Param Authorization header string true "Bearer accessToken"
+// @Param username query string false "用户名"
+// @Param role query string false "角色"
+// @Param corporation query string false "组织"
+// @Success 200 {object} response.GetUserListResponse
+// @Failure 400 {object} code.Failure
+// @Router /api/user/list [get]
+func (h *handler) GetUserList() core.HandlerFunc {
+	return func(c core.Context) {
+		req := new(request.GetUserListRequest)
+		if err := c.ShouldBindQuery(req); err != nil {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.ParamBindError,
+				code.Text(code.ParamBindError)).WithError(err),
+			)
+			return
+		}
+
+		resp, err := h.userService.GetUserList(req)
+		if err != nil {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.GetUserInfoError,
+				code.Text(code.GetUserInfoError)).WithError(err),
+			)
+			return
+		}
+		c.Payload(resp)
+	}
+}

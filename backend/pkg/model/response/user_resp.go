@@ -14,3 +14,7 @@ type RefreshTokenResponse struct {
 type GetUserInfoResponse struct {
 	database.User
 }
+
+type GetUserListResponse struct {
+	Users []database.User `json:"users"`
+}

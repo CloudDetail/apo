@@ -335,6 +335,21 @@ definitions:
         description: 错误信息
         type: string
     type: object
+  database.User:
+    properties:
+      corporation:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+    type: object
   httpconfig.Authorization:
     properties:
       credentials:
@@ -1636,32 +1651,12 @@ definitions:
           $ref: '#/definitions/response.MonitorStatus'
         type: array
     type: object
-  response.GetNamespaceInfoResponse:
-    properties:
-      namespaceInfo:
-        type: string
-    type: object
-  response.GetNamespaceListResponse:
-    properties:
-      namespaceList:
-        type: string
-    type: object
   response.GetOnOffCPUResponse:
     properties:
       profilingEvent:
         items:
           $ref: '#/definitions/clickhouse.ProfilingEvent'
         type: array
-    type: object
-  response.GetPodInfoResponse:
-    properties:
-      podInfo:
-        type: string
-    type: object
-  response.GetPodListResponse:
-    properties:
-      podList:
-        type: string
     type: object
   response.GetPolarisInferResponse:
     properties:
@@ -1728,11 +1723,6 @@ definitions:
         additionalProperties:
           type: string
         type: object
-    type: object
-  response.GetSingleTraceInfoResponse:
-    properties:
-      traceInfo:
-        type: string
     type: object
   response.GetTTLResponse:
     properties:
@@ -1807,6 +1797,28 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetUserInfoResponse:
+    properties:
+      corporation:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+  response.GetUserListResponse:
+    properties:
+      users:
+        items:
+          $ref: '#/definitions/database.User'
+        type: array
     type: object
   response.IndexItem:
     properties:
@@ -2791,7 +2803,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.GetNamespaceInfoResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -2810,7 +2822,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.GetNamespaceListResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -2840,7 +2852,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.GetPodInfoResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -2865,7 +2877,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.GetPodListResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -4808,7 +4820,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.GetSingleTraceInfoResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -4982,6 +4994,68 @@ paths:
       summary: 创建用户
       tags:
       - API.user
+  /api/user/info:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取个人信息
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetUserInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取个人信息
+      tags:
+      - API.user
+  /api/user/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取用户列表
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 用户名
+        in: query
+        name: username
+        type: string
+      - description: 角色
+        in: query
+        name: role
+        type: string
+      - description: 组织
+        in: query
+        name: corporation
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetUserListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取用户列表
+      tags:
+      - API.user
   /api/user/login:
     post:
       consumes:
@@ -5065,6 +5139,36 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 刷新accessToken
+      tags:
+      - API.user
+  /api/user/remove:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 移除用户
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 请求信息
+        in: query
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 移除用户
       tags:
       - API.user
   /api/user/update/email:
