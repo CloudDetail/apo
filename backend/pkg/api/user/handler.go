@@ -45,6 +45,16 @@ type Handler interface {
 	// @Tags API.user
 	// @Router /api/user/info [get]
 	GetUserInfo() core.HandlerFunc
+
+	// GetUserList 获取用户列表
+	// @Tags API.user
+	// @Router /api/user/list [get]
+	GetUserList() core.HandlerFunc
+
+	// RemoveUser 移除用户
+	// @Tags API.user
+	// @Router /api/user/remove [post]
+	RemoveUser() core.HandlerFunc
 }
 
 type handler struct {
