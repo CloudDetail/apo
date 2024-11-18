@@ -4,6 +4,7 @@ import (
 	"github.com/CloudDetail/apo/backend/internal/api/mock"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
+	"github.com/CloudDetail/apo/backend/pkg/api/health"
 	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
 	networkapi "github.com/CloudDetail/apo/backend/pkg/api/network"
@@ -26,7 +27,7 @@ func setApiRouter(r *resource) {
 		api.DELETE("/mock/:id", mockHandler.Delete())
 	}
 
-	serviceApi := r.mux.Group("/api/service")
+	serviceApi := r.mux.Group("/api/service").Use(middleware.Auth(r.cache))
 	{
 		serviceOverviewHandler := serviceoverview.New(r.logger, r.ch, r.prom, r.pkg_db)
 		serviceApi.GET("/endpoints", serviceOverviewHandler.GetEndPointsData())
@@ -64,7 +65,7 @@ func setApiRouter(r *resource) {
 		serviceApi.GET("/sql/metrics", serviceHandler.GetSQLMetrics())
 	}
 
-	logApi := r.mux.Group("/api/log")
+	logApi := r.mux.Group("/api/log").Use(middleware.Auth(r.cache))
 	{
 		logHandler := log.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom)
 		logApi.POST("/fault/pagelist", logHandler.GetFaultLogPageList())
@@ -94,14 +95,15 @@ func setApiRouter(r *resource) {
 	traceApi := r.mux.Group("/api/trace")
 	{
 		traceHandler := trace.New(r.logger, r.ch, r.jaegerRepo)
+		traceApi.GET("/onoffcpu", traceHandler.GetOnOffCPU())
 		traceApi.POST("/pagelist", traceHandler.GetTracePageList())
+		traceApi.Use(middleware.Auth(r.cache))
 		traceApi.GET("/pagelist/filters", traceHandler.GetTraceFilters())
 		traceApi.POST("/pagelist/filter/value", traceHandler.GetTraceFilterValue())
-		traceApi.GET("/onoffcpu", traceHandler.GetOnOffCPU())
 		traceApi.GET("/info", traceHandler.GetSingleTraceInfo())
 	}
 
-	alertApi := r.mux.Group("/api/alerts")
+	alertApi := r.mux.Group("/api/alerts").Use(middleware.Auth(r.cache))
 	{
 		alertHandler := alerts.New(r.logger, r.ch, r.k8sApi, r.pkg_db)
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
@@ -163,6 +165,11 @@ func setApiRouter(r *resource) {
 		networkApi.GET("/segments", handler.GetSpanSegmentsMetrics())
 	}
 
+	healthApi := r.mux.Group("/api/health")
+	{
+		handler := health.New()
+		healthApi.GET("", handler.HealthCheck())
+	}
 }
 
 func SetMetaServerRouter(srv *Server, meta source.MetaSource) {
