@@ -1,6 +1,6 @@
 import { marked } from 'marked'
 import { RiRobot2Line } from 'react-icons/ri'
-import 'github-markdown-css'
+import 'github-markdown-css/github-markdown-dark.css'
 interface HumenMessageProps {
   message: string
 }
