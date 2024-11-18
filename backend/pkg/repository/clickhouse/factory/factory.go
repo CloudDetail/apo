@@ -44,21 +44,18 @@ func GetDropTableSQL(params *request.LogTableRequest) []string {
 
 // 先删除view,然后调整log，再创建view
 // 分布式表先调整本地表，然后调分布式表
-func GetUpdateTableSQLByFields(params *request.LogTableRequest, new, old []request.Field) []string {
+func GetUpdateTableSQLByFields(params *request.LogTableRequest, old []request.Field) []string {
 	var sqls []string
-	params.Fields = new
 	viewfactory := &ViewTableFactory{}
 	logfactory := &LogTableFactory{}
-	sqls = append(sqls,
-		viewfactory.DropTableSQL(params),
-		logfactory.UpdateTableSQL(params, false),
-	)
-	if params.Cluster != "" {
-		sqls = append(sqls,
-			logfactory.UpdateTableSQL(params, true),
-		)
+	sqls = append(sqls, viewfactory.DropTableSQL(params))
+	logSql := logfactory.UpdateTableSQL(params, old, false)
+	if len(logSql) > 0 {
+		sqls = append(sqls, logSql)
 	}
-	params.Fields = append(old, new...)
+	if params.Cluster != "" && len(logSql) > 0 {
+		sqls = append(sqls, logfactory.UpdateTableSQL(params, old, true))
+	}
 	sqls = append(sqls, viewfactory.CreateTableSQL(params))
 	return sqls
 }

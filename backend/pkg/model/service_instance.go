@@ -6,8 +6,8 @@ import (
 	"strconv"
 )
 
+// ServiceInstances 包含了 Pod、Container、VM三种场景的所有映射情况，已剔除未设置Pod的数据
 type ServiceInstances struct {
-	// 包含了 Pod、Container、VM三种场景的所有映射情况，已剔除未设置Pod的数据
 	InstanceMap map[string]*ServiceInstance
 }
 
@@ -20,6 +20,15 @@ func NewServiceInstances() *ServiceInstances {
 func (instances *ServiceInstances) AddInstances(list []*ServiceInstance) {
 	for _, instance := range list {
 		if instance.PodName != "" {
+			existInstance, ok := instances.InstanceMap[instance.getPodInstanceId()]
+			if ok && instance.Pid == 1 {
+				continue
+			}
+
+			if ok && existInstance.Pid == 1 {
+				delete(instances.InstanceMap, existInstance.getVMInstanceId())
+			}
+
 			instances.InstanceMap[instance.getPodInstanceId()] = instance
 			instances.InstanceMap[instance.getContainerInstanceId()] = instance
 			instances.InstanceMap[instance.getVMInstanceId()] = instance
@@ -28,6 +37,9 @@ func (instances *ServiceInstances) AddInstances(list []*ServiceInstance) {
 			if instance.ContainerId != "" {
 				instanceId = instance.getContainerInstanceId()
 			} else {
+				if instance.Pid == 1 {
+					continue
+				}
 				instanceId = instance.getVMInstanceId()
 			}
 			if _, exist := instances.InstanceMap[instanceId]; !exist {
@@ -97,6 +109,7 @@ type ServiceInstance struct {
 	Namespace   string `json:"-"`
 	NodeName    string `json:"nodeName"` // 主机名
 	Pid         int64  `json:"pid"`      // 进程号
+	NodeIP      string `json:"nodeIp"`
 }
 
 func (i *ServiceInstance) MatchSvcTags(group string, tags map[string]string) bool {

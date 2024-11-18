@@ -749,7 +749,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
                             "type": "string"
                         }
@@ -778,7 +778,7 @@ const docTemplate = `{
                 "summary": "获取所有namespace信息",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
                             "type": "string"
                         }
@@ -823,7 +823,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
                             "type": "string"
                         }
@@ -861,7 +861,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
                             "type": "string"
                         }
@@ -1367,13 +1367,18 @@ const docTemplate = `{
                 "summary": "获取日志表解析规则",
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.QueryLogParseRequest"
-                        }
+                        "type": "string",
+                        "description": "数据库",
+                        "name": "dataBase",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "表",
+                        "name": "tableName",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -5465,6 +5470,9 @@ const docTemplate = `{
         "request.AddLogParseRequest": {
             "type": "object",
             "properties": {
+                "isStructured": {
+                    "type": "boolean"
+                },
                 "logTable": {
                     "$ref": "#/definitions/request.LogTable"
                 },
@@ -6176,17 +6184,6 @@ const docTemplate = `{
                 "PF_Flags"
             ]
         },
-        "request.QueryLogParseRequest": {
-            "type": "object",
-            "properties": {
-                "dataBase": {
-                    "type": "string"
-                },
-                "tableName": {
-                    "type": "string"
-                }
-            }
-        },
         "request.SetSingleTTLRequest": {
             "type": "object",
             "required": [
@@ -6296,6 +6293,9 @@ const docTemplate = `{
                 "dataBase": {
                     "type": "string"
                 },
+                "isStructured": {
+                    "type": "boolean"
+                },
                 "parseInfo": {
                     "type": "string"
                 },
@@ -6315,6 +6315,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "type": "string"
+                    }
+                },
+                "tableFields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.Field"
                     }
                 },
                 "tableName": {
@@ -7357,6 +7363,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {},
+                "logFields": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
                 "tags": {
                     "type": "object",
                     "additionalProperties": true
@@ -7388,6 +7398,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "type": "string"
+                    }
+                },
+                "tableFields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.Field"
                     }
                 }
             }

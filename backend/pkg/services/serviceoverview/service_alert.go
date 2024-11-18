@@ -105,57 +105,102 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		if service.ServiceName == "" {
 			continue
 		}
-		newlogs := response.TempChartObject{
-			//ChartData: map[int64]float64{},
-			Value: nil,
-		}
+		newLogs := response.TempChartObject{}
 		if service.LogData != nil {
 			data := make(map[int64]float64)
-			// 将chartData转换为map
 			for _, item := range service.LogData {
 				timestamp := item.TimeStamp
 				value := item.Value
 				data[timestamp] = value
 			}
-			newlogs.ChartData = data
+			newLogs.ChartData = data
 		} else {
 			values := make(map[int64]float64)
 			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {
 				values[ts] = 0
 			}
-			newlogs.ChartData = values
+			newLogs.ChartData = values
 		}
+		normalNowLog := s.getNormalLog(service, startTime, endTime, "")
+		normalDayLog := s.getNormalLog(service, startTime, endTime, "24h")
+		normalWeekLog := s.getNormalLog(service, startTime, endTime, "7d")
+		var allLogNow, allLogDay, allLogWeek *float64 // 当前、昨天、上周的总日志错误数
+		// 整合instance的now，day，week，avg数据
 		for _, instance := range service.Instances {
-			calculateRate(&instance)
-			if instance.LogDayOverDay != nil {
-				newlogs.Ratio.DayOverDay = instance.LogDayOverDay
-			}
-			if instance.LogWeekOverWeek != nil {
-				newlogs.Ratio.WeekOverDay = instance.LogWeekOverWeek
-			}
-			if instance.AvgLog != nil {
-				if newlogs.Value == nil {
-					// 如果 newlogs.Value 是 nil，需要先初始化
-					newlogs.Value = new(float64)
+			if instance.LogNow != nil {
+				if allLogNow == nil {
+					allLogNow = new(float64)
 				}
-				*newlogs.Value += *instance.AvgLog
+				*allLogNow += *instance.LogNow
+			}
+
+			if instance.LogYesterday != nil {
+				if allLogDay == nil {
+					allLogDay = new(float64)
+				}
+				*allLogDay += *instance.LogYesterday
+			}
+
+			if instance.LogLastWeek != nil {
+				if allLogWeek == nil {
+					allLogWeek = new(float64)
+				}
+				*allLogWeek += *instance.LogLastWeek
+			}
+
+			if instance.AvgLog != nil {
+				if newLogs.Value == nil {
+					newLogs.Value = new(float64)
+				}
+				*newLogs.Value += *instance.AvgLog
 			}
 		}
-		if newlogs.Value != nil && *newlogs.Value == 0 {
-			values := make(map[int64]float64)
-			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {
-				values[ts] = 0
-			}
-			newlogs.ChartData = values
+
+		// 计算同比并填充数据
+		if allLogDay == nil && normalDayLog != nil {
+			allLogDay = new(float64)
 		}
-		if newlogs.Value == nil {
-			newlogs.Value = new(float64)
-			*newlogs.Value = 0
+		if allLogWeek == nil && normalWeekLog != nil {
+			allLogWeek = new(float64)
+		}
+		if allLogNow == nil && normalNowLog != nil {
+			allLogNow = new(float64)
+		}
+		maxVal := new(float64)
+		*maxVal = prometheus.RES_MAX_VALUE
+		minVal := new(float64)
+		*minVal = -100
+		if allLogNow != nil && *allLogNow > 0 && allLogDay != nil && *allLogDay == 0 {
+			// 昨天错误为0，今天有错误 正无穷
+			newLogs.Ratio.DayOverDay = maxVal
+		} else if allLogNow != nil && *allLogNow == 0 && allLogDay != nil && *allLogDay > 0 {
+			// 昨天错有错误，今天错误为0 负无穷
+			newLogs.Ratio.DayOverDay = minVal
+		} else if allLogNow != nil && allLogDay != nil && *allLogNow > 0 && *allLogDay > 0 {
+			dod := new(float64)
+			*dod = (*allLogNow / *allLogDay - 1) * 100
+			newLogs.Ratio.DayOverDay = dod
+		}
+
+		if allLogNow != nil && *allLogNow > 0 && allLogWeek != nil && *allLogWeek == 0 {
+			// 上周错误为0，今天有错误 正无穷
+			newLogs.Ratio.WeekOverDay = maxVal
+		} else if allLogNow != nil && *allLogNow == 0 && allLogWeek != nil && *allLogWeek > 0 {
+			// 上周错有错误，今天错误为0 负无穷
+			newLogs.Ratio.WeekOverDay = minVal
+		} else if allLogNow != nil && allLogWeek != nil && *allLogNow > 0 && *allLogWeek > 0 {
+			wow := new(float64)
+			*wow = (*allLogNow / *allLogWeek - 1) * 100
+			newLogs.Ratio.WeekOverDay = wow
+		}
+
+		if newLogs.Value == nil && normalNowLog != nil {
+			newLogs.Value = new(float64)
 		}
 
 		newServiceRes := response.ServiceAlertRes{
 			ServiceName: service.ServiceName,
-			Logs:        newlogs,
+			Logs:        newLogs,
 			AlertStatus: model.NORMAL_ALERT_STATUS,
 			AlertReason: model.AlertReason{},
 		}
@@ -279,7 +324,7 @@ func getLatestStartTime(startTSmap map[model.ServiceInstance]int64) int64 {
 }
 
 // getNormalLog 查询service下所有实例是否有正常log指标
-func (s *service) getNormalLog(service ServiceDetail, startTime, endTime time.Time) []prometheus.MetricResult {
+func (s *service) getNormalLog(service ServiceDetail, startTime, endTime time.Time, offset string) []prometheus.MetricResult {
 	startTS, endTS := startTime.UnixMicro(), endTime.UnixMicro()
 	var pods, pids, nodeNames []string
 	for _, instance := range service.Instances {
@@ -307,34 +352,7 @@ func (s *service) getNormalLog(service ServiceDetail, startTime, endTime time.Ti
 	if err != nil {
 		return nil
 	}
+	pql = "(" + pql + ")" + offset
 	normalLog, _ := s.promRepo.QueryData(endTime, pql)
 	return normalLog
-}
-
-// calculateRate 计算instance的同比
-func calculateRate(instance *Instance) {
-	if instance.LogNow == nil {
-		return
-	}
-
-	maxVal := new(float64)
-	*maxVal = prometheus.RES_MAX_VALUE
-	if instance.LogYesterday == nil && *instance.LogNow > 0 {
-		instance.LogDayOverDay = maxVal
-	} else if instance.LogYesterday != nil {
-		var dod float64 = 0
-		if *instance.LogYesterday != 0 {
-			dod = (*instance.LogNow / *instance.LogYesterday - 1) * 100
-		}
-		instance.LogDayOverDay = &dod
-	}
-	if instance.LogLastWeek == nil && *instance.LogNow > 0 {
-		instance.LogDayOverDay = maxVal
-	} else if instance.LogLastWeek != nil {
-		var wow float64 = 0
-		if *instance.LogLastWeek != 0 {
-			wow = (*instance.LogNow / *instance.LogLastWeek - 1) * 100
-		}
-		instance.LogDayOverDay = &wow
-	}
 }

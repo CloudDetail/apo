@@ -1,0 +1,72 @@
+.selectedAlertAnalyzeNode {
+    /* box-shadow: rgba(255, 158, 64, 0.25) 0px 54px 55px, rgba(255, 158, 64, 0.12) 0px -12px 30px, rgba(255, 158, 64, 0.12) 0px 4px 6px, rgba(255, 158, 64, 0.17) 0px 12px 13px, rgba(255, 158, 64, 0.09) 0px -3px 5px; */
+    box-shadow: rgba(255, 158, 64, 0.3) 0px 0px 15px 5px, rgba(255, 158, 64, 1) 0px 0px 1px 1px;
+    border-radius: 0.375rem;
+
+    .nodeContent {
+        border-color: rgba(255, 158, 64, 1)
+    }
+}
+
+.nodeContent {
+    padding: 2;
+    border-radius: 0.375rem;
+    border: 2px solid #6293ff;
+    color: #6293ff;
+    overflow: hidden
+}
+
+.animate-shadow {
+    animation: shadowPulse 0.5s forwards;
+}
+
+@keyframes shadowPulse {
+    0% {
+        box-shadow: 0 0 0px red;
+    }
+
+    50% {
+        box-shadow: 0 0 10px 2px red;
+    }
+
+    100% {
+        box-shadow: 0 0 0px red;
+    }
+}
+
+
+.ripple-active {
+    animation: ripple-animation 0.7s ease-out forwards;
+}
+
+@keyframes ripple-animation {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 99, 132, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 15px 5px rgba(255, 99, 132, 0.7);
+    }
+
+    100% {
+        box-shadow: 0 0 20px 1px rgba(255, 99, 132, 0);
+    }
+}
+
+.ripple-active-resolve {
+    animation: ripple-resolve-animation 0.7s ease-out forwards;
+}
+
+@keyframes ripple-resolve-animation {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.5); 
+    }
+
+    50% {
+        box-shadow: 0 0 15px 5px rgba(127, 177, 66, 0.7); 
+    }
+
+    100% {
+        box-shadow: 0 0 20px 1px rgba(255, 99, 132, 0); 
+    }
+}

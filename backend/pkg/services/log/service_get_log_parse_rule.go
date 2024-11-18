@@ -1,6 +1,7 @@
 package log
 
 import (
+	"encoding/json"
 	"errors"
 	"gorm.io/gorm"
 	"regexp"
@@ -53,11 +54,15 @@ func (s *service) GetLogParseRule(req *request.QueryLogParseRequest) (*response.
 		return nil, err
 	}
 
+	logFields := []request.Field{}
+	json.Unmarshal([]byte(model.Fields), &logFields)
 	return &response.LogParseResponse{
-		Service:   strings.Split(model.Service, ","),
-		ParseName: model.ParseName,
-		ParseRule: model.ParseRule,
-		ParseInfo: model.ParseInfo,
-		RouteRule: getRouteRuleMap(model.RouteRule),
+		Service:      strings.Split(model.Service, ","),
+		ParseName:    model.ParseName,
+		ParseRule:    model.ParseRule,
+		ParseInfo:    model.ParseInfo,
+		RouteRule:    getRouteRuleMap(model.RouteRule),
+		LogFields:    logFields,
+		IsStructured: model.IsStructured,
 	}, nil
 }

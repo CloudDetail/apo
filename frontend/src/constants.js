@@ -2,7 +2,7 @@ import {
   getServiceErrorInstancesLogsApi,
   getServiceLogLogsApi,
   getServiceTraceLogsApi,
-} from './api/serviceInfo'
+} from 'src/core/api/serviceInfo'
 
 export const DelaySourceTimeUnit = {
   self: '自身',
@@ -160,5 +160,27 @@ export const DefaultTraceFilters = {
     key: 'is_error',
     parentField: 'flags',
     dataType: 'bool',
+  },
+}
+
+export const ThemeColor = {
+  green: '#73bf69',
+  red: '#f3485c',
+  gray: '#ADABAB',
+  deepRed: '#7A242E',
+}
+
+export const ThemeStyle = {
+  light: {
+    colors: {
+      text: { primary: '#ffffff' },
+      background: { primary: '#181B1F' },
+    },
+  },
+  dark: {
+    colors: {
+      text: { primary: '#ffffff' },
+      background: { primary: '#181B1F' },
+    },
   },
 }
