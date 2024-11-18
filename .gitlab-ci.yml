@@ -18,3 +18,23 @@ trigger_frontend:
     - if: '$CI_COMMIT_BRANCH == "enterprise"'
       changes:
       - frontend/**/*
+
+manual_trigger_backend:
+  stage: triggers
+  trigger:
+    include: backend/.gitlab-ci.yml
+  rules:
+    - if: '$CI_COMMIT_BRANCH != "enterprise"'
+      when: manual
+      changes:
+      - backend/**/*
+
+manual_trigger_frontend:
+  stage: triggers
+  trigger:
+    include: frontend/.gitlab-ci.yml
+  rules:
+    - if: '$CI_COMMIT_BRANCH != "enterprise"'
+      when: manual
+      changes:
+      - frontend/**/*
