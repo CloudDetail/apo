@@ -2786,6 +2786,23 @@ paths:
       summary: 配置TTL
       tags:
       - Api.config
+  /api/health:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 用于k8s检查后端健康状态
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 用于k8s检查后端健康状态
   /api/k8s/namespace/info:
     get:
       consumes:
