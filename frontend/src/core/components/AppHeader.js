@@ -11,16 +11,23 @@ import CoachMask from './Mask/CoachMask'
 import DateTimeCombine from './DateTime/DateTimeCombine'
 import { Menu } from 'antd'
 import { commercialNav } from 'src/_nav'
+import ToolBox from './UserPage/component/ToolBox'
+import { HiUserCircle } from "react-icons/hi";
+
 // united / default
 const AppHeader = ({ type = 'default' }) => {
   const location = useLocation()
   const navigate = useNavigate()
   const headerRef = useRef()
   const { colorMode, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
+  const [toolVisibal, setToolVisibal] = useState(false)
 
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
   const [selectedKeys, setSelectedKeys] = useState([])
+  // 通过 ref 获取工具箱和触发按钮的 DOM 引用
+  const toolBoxRef = useRef(null)
+  const buttonRef = useRef(null)
 
   const onClick = ({ item, key, keyPath, domEvent }) => {
     navigate(item.props.to)
@@ -59,6 +66,23 @@ const AppHeader = ({ type = 'default' }) => {
     })
   }, [])
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (toolBoxRef.current && !toolBoxRef.current.contains(event.target) &&
+        buttonRef.current && !buttonRef.current.contains(event.target)) {
+        setToolVisibal(false)
+      }
+    }
+
+    // 监听点击事件
+    document.addEventListener('click', handleClickOutside)
+
+    // 清理事件监听器
+    return () => {
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [])
+
   const vars = {
     // '--cui-header-bg': 'inherit',
     borderBottom: 0,
@@ -67,7 +91,7 @@ const AppHeader = ({ type = 'default' }) => {
 
   return (
     <CHeader position="sticky" className="mb-1 p-0" ref={headerRef} style={vars}>
-      <div className="flex justify-between w-full">
+      <div className="flex justify-between items-center w-full">
         {type === 'united' ? (
           <div className="flex items-center">
             <div className="h-[50px] flex overflow-hidden items-center mr-5">
@@ -91,6 +115,10 @@ const AppHeader = ({ type = 'default' }) => {
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
         </CHeaderNav>
+        <div className='relative h-8 w-8 flex justify-center items-center rounded-1 mr-5' ref={buttonRef} onClick={() => setToolVisibal(!toolVisibal)}>
+          <HiUserCircle className='w-8 h-8' />
+          <ToolBox visiable={toolVisibal} setVisiable={setToolVisibal} ref={toolBoxRef} />
+        </div>
       </div>
     </CHeader>
   )

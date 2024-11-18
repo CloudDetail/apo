@@ -13,6 +13,7 @@ const FullLogsPage = React.lazy(() => import('src/oss/views/logs/FullLogsPage'))
 const TracePage = React.lazy(() => import('src/oss/views/trace/index.js'))
 const Alerts = React.lazy(() => import('src/oss/views/alerts/index.js'))
 const ConfigPage = React.lazy(() => import('src/oss/views/config/index'))
+const UserPage = React.lazy(() => import('../core/components/UserPage/index'))
 
 const ossRoutes = [
   { path: '/service', exact: true, name: '服务概览', element: Service },
@@ -35,5 +36,6 @@ const ossRoutes = [
   { path: '/middleware-dashboard', name: '中间件大盘', element: MiddlewareDashboard },
   { path: '/alerts', name: '告警规则', element: Alerts, hideSystemTimeRangePicker: true },
   { path: '/config', name: '配置中心', element: ConfigPage, hideSystemTimeRangePicker: true },
+  { path: '/user', name: '个人中心', element: UserPage }
 ]
 export default ossRoutes
