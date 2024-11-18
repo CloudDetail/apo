@@ -21,11 +21,18 @@ func (instances *ServiceInstances) AddInstances(list []*ServiceInstance) {
 	for _, instance := range list {
 		if instance.PodName != "" {
 			instances.InstanceMap[instance.getPodInstanceId()] = instance
+			instances.InstanceMap[instance.getContainerInstanceId()] = instance
+			if instance.Pid != 1 {
+				instances.InstanceMap[instance.getVMInstanceId()] = instance
+			}
 		} else {
 			instanceId := ""
 			if instance.ContainerId != "" {
 				instanceId = instance.getContainerInstanceId()
 			} else {
+				if instance.Pid == 1 {
+					continue
+				}
 				instanceId = instance.getVMInstanceId()
 			}
 			if _, exist := instances.InstanceMap[instanceId]; !exist {

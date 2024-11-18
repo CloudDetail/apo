@@ -45,8 +45,11 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 		metric := &prometheus.InstanceMetrics{
 			InstanceKey: key,
 		}
-		instances.MetricGroupMap[key] = metric
-		instances.MetricGroupList = append(instances.MetricGroupList, metric)
+		// 去重，pod类型实例会添加containerID，PID，pod三个但最终指向的instance是一样的
+		if _, ok := instances.MetricGroupMap[key]; !ok {
+			instances.MetricGroupMap[key] = metric
+			instances.MetricGroupList = append(instances.MetricGroupList, metric)
+		}
 	}
 	// 填充RED指标
 	s.InstanceRED(startTime, endTime, filters, instances)
@@ -87,8 +90,7 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 	}
 
 	for _, instance := range instances.MetricGroupList {
-		// 过滤空数据和错误数据(pid = 1)
-		if (len(instance.Pod) == 0 && len(instance.PID) == 0 && len(instance.ContainerId) == 0) || instance.PID == "1" {
+		if len(instance.Pod) == 0 && len(instance.PID) == 0 && len(instance.ContainerId) == 0 {
 			continue
 		}
 
@@ -247,7 +249,6 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 }
 
 // DataToChart 将图表数据转为map
-// 可以复用
 func DataToChart(data []prometheus.Points) map[int64]float64 {
 	chart := make(map[int64]float64)
 	for _, item := range data {
