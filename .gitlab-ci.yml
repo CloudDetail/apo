@@ -1,6 +1,10 @@
 stages:
   - triggers
 
+variables: 
+  VITE_SHOW_MYSQL_HEALTH: ""
+  DOCKER_BUILD_ARGS: ""
+  
 trigger_backend:
   stage: triggers
   trigger:
@@ -12,6 +16,9 @@ trigger_backend:
 
 trigger_frontend:
   stage: triggers
+  variables: 
+    VITE_SHOW_MYSQL_HEALTH: $VITE_SHOW_MYSQL_HEALTH
+    DOCKER_BUILD_ARGS: $DOCKER_BUILD_ARGS
   trigger:
     include: frontend/.gitlab-ci.yml
   rules:
@@ -31,6 +38,9 @@ manual_trigger_backend:
 
 manual_trigger_frontend:
   stage: triggers
+  variables: 
+    VITE_SHOW_MYSQL_HEALTH: $VITE_SHOW_MYSQL_HEALTH
+    DOCKER_BUILD_ARGS: $DOCKER_BUILD_ARGS
   trigger:
     include: frontend/.gitlab-ci.yml
   rules:
