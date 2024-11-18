@@ -20,11 +20,12 @@ func NewServiceInstances() *ServiceInstances {
 func (instances *ServiceInstances) AddInstances(list []*ServiceInstance) {
 	for _, instance := range list {
 		if instance.PodName != "" {
+			if _, ok := instances.InstanceMap[instance.getPodInstanceId()]; instance.Pid == 1 && ok {
+				continue
+			}
 			instances.InstanceMap[instance.getPodInstanceId()] = instance
 			instances.InstanceMap[instance.getContainerInstanceId()] = instance
-			if instance.Pid != 1 {
-				instances.InstanceMap[instance.getVMInstanceId()] = instance
-			}
+			instances.InstanceMap[instance.getVMInstanceId()] = instance
 		} else {
 			instanceId := ""
 			if instance.ContainerId != "" {
@@ -39,6 +40,12 @@ func (instances *ServiceInstances) AddInstances(list []*ServiceInstance) {
 				// 如果已存在Pod则不覆盖
 				instances.InstanceMap[instanceId] = instance
 			}
+		}
+	}
+	for id, instance := range instances.InstanceMap {
+		// 有pod，containerId但是pid为1且有pid不为1的实例，要删除这个错误实例
+		if correctInstance, ok := instances.InstanceMap[instance.getPodInstanceId()]; ok && instance.Pid == 1 && correctInstance.Pid != 1 {
+			delete(instances.InstanceMap, id)
 		}
 	}
 }
