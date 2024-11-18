@@ -19,6 +19,8 @@ type Service interface {
 	UpdateUserEmail(username string, req *request.UpdateUserEmailRequest) error
 	UpdateUserPassword(username string, req *request.UpdateUserPasswordRequest) error
 	GetUserInfo(username string) (response.GetUserInfoResponse, error)
+	GetUserList(req *request.GetUserListRequest) (response.GetUserListResponse, error)
+	RemoveUser(username string) error
 }
 
 type service struct {

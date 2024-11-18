@@ -111,6 +111,7 @@ const (
 	// k8s api
 	K8sGetResourceError = "B1001"
 
+	// user api
 	UserNotExistsError         = "B0901"
 	UserPasswordIncorrectError = "B0902"
 	UserLoginError             = "B0903"
@@ -120,6 +121,7 @@ const (
 	UserUpdateError            = "B0907"
 	UserConfirmPasswordError   = "B0908"
 	GetUserInfoError           = "B0909"
+	RemoveUserError            = "B0910"
 )
 
 func Text(code string) string {

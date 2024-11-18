@@ -98,4 +98,5 @@ var enText = map[string]string{
 	UserUpdateError:            "Failed to update",
 	UserConfirmPasswordError:   "Password inconsistent",
 	GetUserInfoError:           "Failed to get user information",
+	RemoveUserError:            "Failed to remove user",
 }

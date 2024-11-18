@@ -123,3 +123,23 @@ func (repo *daoRepo) GetUserInfo(username string) (User, error) {
 	err := repo.db.Select("username, role, phone, email, corporation").Where("username = ?", username).First(&user).Error
 	return user, err
 }
+
+func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, error) {
+	var users []User
+	query := repo.db.Select("username, role, phone, email, corporation")
+	if len(req.Username) > 0 {
+		query = query.Where("username = ?", req.Username)
+	}
+	if len(req.Role) > 0 {
+		query = query.Where("role = ?", req.Role)
+	}
+	if len(req.Corporation) > 0 {
+		query = query.Where("corporation = ?", req.Corporation)
+	}
+	err := query.Find(&users).Error
+	return users, err
+}
+
+func (repo *daoRepo) RemoveUser(username string) error {
+	return repo.db.Model(&User{}).Where("username = ?", username).Delete(nil).Error
+}

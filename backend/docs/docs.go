@@ -725,7 +725,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.GetNamespaceInfoResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -754,7 +754,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.GetNamespaceListResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -799,7 +799,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.GetPodInfoResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -837,7 +837,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.GetPodListResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -3742,7 +3742,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.GetSingleTraceInfoResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -4003,6 +4003,100 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/user/info": {
+            "get": {
+                "description": "获取个人信息",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "获取个人信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetUserInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/list": {
+            "get": {
+                "description": "获取用户列表",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "获取用户列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户名",
+                        "name": "username",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "角色",
+                        "name": "role",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "组织",
+                        "name": "corporation",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetUserListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/user/login": {
             "post": {
                 "description": "登录",
@@ -4120,6 +4214,51 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.RefreshTokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/remove": {
+            "post": {
+                "description": "移除用户",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "移除用户",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "请求信息",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -4810,6 +4949,29 @@ const docTemplate = `{
                 },
                 "message": {
                     "description": "错误信息",
+                    "type": "string"
+                }
+            }
+        },
+        "database.User": {
+            "type": "object",
+            "properties": {
+                "corporation": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -6683,22 +6845,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.GetNamespaceInfoResponse": {
-            "type": "object",
-            "properties": {
-                "namespaceInfo": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.GetNamespaceListResponse": {
-            "type": "object",
-            "properties": {
-                "namespaceList": {
-                    "type": "string"
-                }
-            }
-        },
         "response.GetOnOffCPUResponse": {
             "type": "object",
             "properties": {
@@ -6707,22 +6853,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/clickhouse.ProfilingEvent"
                     }
-                }
-            }
-        },
-        "response.GetPodInfoResponse": {
-            "type": "object",
-            "properties": {
-                "podInfo": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.GetPodListResponse": {
-            "type": "object",
-            "properties": {
-                "podList": {
-                    "type": "string"
                 }
             }
         },
@@ -6827,14 +6957,6 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "response.GetSingleTraceInfoResponse": {
-            "type": "object",
-            "properties": {
-                "traceInfo": {
-                    "type": "string"
                 }
             }
         },
@@ -6945,6 +7067,40 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetUserInfoResponse": {
+            "type": "object",
+            "properties": {
+                "corporation": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetUserListResponse": {
+            "type": "object",
+            "properties": {
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.User"
+                    }
                 }
             }
         },
