@@ -20,14 +20,15 @@ func NewServiceInstances() *ServiceInstances {
 func (instances *ServiceInstances) AddInstances(list []*ServiceInstance) {
 	for _, instance := range list {
 		if instance.PodName != "" {
-			// 保证不覆盖正确实例
-			if _, ok := instances.InstanceMap[instance.getPodInstanceId()]; ok && instance.Pid == 1 {
+			existInstance, ok := instances.InstanceMap[instance.getPodInstanceId()]
+			if ok && instance.Pid == 1 {
 				continue
 			}
-			// 将错误实例删除
-			if wrongInstance, ok := instances.InstanceMap[instance.getPodInstanceId()]; ok && wrongInstance.Pid == 1 {
-				delete(instances.InstanceMap, wrongInstance.getVMInstanceId())
+
+			if ok && existInstance.Pid == 1 {
+				delete(instances.InstanceMap, existInstance.getVMInstanceId())
 			}
+
 			instances.InstanceMap[instance.getPodInstanceId()] = instance
 			instances.InstanceMap[instance.getContainerInstanceId()] = instance
 			instances.InstanceMap[instance.getVMInstanceId()] = instance
