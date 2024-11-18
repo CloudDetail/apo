@@ -91,7 +91,7 @@ let _nav = [
     key: 'healthy',
     label: '服务健康状态',
     abbreviation: '服务健康',
-    to: '/service-healthy',
+    to: '/healthy-service',
     icon: <TbWaveSawTool />,
   },
 ]
