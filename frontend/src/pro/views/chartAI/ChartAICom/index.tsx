@@ -31,8 +31,8 @@ const ChartAICom = () => {
       },
       body: JSON.stringify({
         endTime: startTime,
-        endpoint: service,
-        service: endpoint,
+        service: service,
+        endpoint: endpoint,
         entryService: service,
         entryEndpoint: endpoint,
         startTime: 1731563224409000,
