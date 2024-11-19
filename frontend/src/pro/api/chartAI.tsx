@@ -11,5 +11,5 @@ export function chatApi(params: any) {
 
 //ai对话中文件下载
 export function downloadFileApi(params: any) {
-  return get(`/api/download`, params)
+  return get(`/ai/api/download`, params)
 }
