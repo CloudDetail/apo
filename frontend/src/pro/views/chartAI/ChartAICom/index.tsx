@@ -1,10 +1,7 @@
-import { marked } from 'marked'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { useEventSource } from 'react-sse-hooks'
 import { useDebounce } from 'react-use'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
-import { FaCircleArrowUp } from 'react-icons/fa6'
 import { useChartAIContext } from 'src/pro/contexts/ChartAIContext'
 import { mockDialogue } from './mock'
 import { Button, Card, ConfigProvider, Divider, Input, message } from 'antd'
@@ -25,7 +22,8 @@ const ChartAICom = () => {
   const getChartData = async () => {
     setIsDone(false)
     const step = getStep(startTime, endTime)
-    const response = await fetch('http://localhost:8083/api/alertchat', {
+    // const response = await fetch('http://localhost:8083/ai/api/alertchat', {
+    const response = await fetch('/ai/api/alertchat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -40,7 +38,7 @@ const ChartAICom = () => {
         startTime: 1731563224409000,
         step: step,
         anormalTypes: 'app,container,infra,network,error',
-        withTopology: 'true',
+        withTopology: true,
       }),
     })
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
@@ -94,7 +92,7 @@ const ChartAICom = () => {
                   {
                     role: 'human',
                     message: parsedData.content,
-                    fileList: [parsedData?.filename],
+                    fileList: parsedData?.filename ? [parsedData?.filename] : null,
                   },
                 ],
               }
@@ -104,7 +102,7 @@ const ChartAICom = () => {
                   {
                     role: 'human',
                     message: parsedData.content,
-                    fileList: [parsedData?.filename],
+                    fileList: parsedData?.filename ? [parsedData?.filename] : null,
                   },
                 ],
               }
@@ -130,7 +128,35 @@ const ChartAICom = () => {
     300, // 延迟时间 300ms
     [startTime, endTime, service, endpoint, anormalTypes],
   )
+  const chatContainerRef = useRef(null)
+  const [isAutoScroll, setIsAutoScroll] = useState(true) // 是否自动滚动
 
+  useEffect(() => {
+    const chatContainer = chatContainerRef.current
+
+    const handleScroll = () => {
+      if (!chatContainer) return
+
+      // 检查是否在底部
+      const isAtBottom =
+        chatContainer.scrollHeight - chatContainer.scrollTop <= chatContainer.clientHeight + 5 // 容忍误差5px
+
+      setIsAutoScroll(isAtBottom)
+    }
+
+    // 监听滚动事件
+    chatContainer.addEventListener('scroll', handleScroll)
+    return () => chatContainer.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const chatContainer = chatContainerRef.current
+
+    if (chatContainer && isAutoScroll) {
+      // 如果是自动滚动模式，则滚动到最底部
+      chatContainer.scrollTop = chatContainer.scrollHeight
+    }
+  }, [dialogue, isAutoScroll]) // 在消息更新时检查自动滚动状态
   return (
     <Card className="h-full overflow-hidden" classNames={{ body: 'p-0 h-full' }}>
       <div className="h-full w-full flex overflow-hidden flex-col">
@@ -147,7 +173,7 @@ const ChartAICom = () => {
             数据与规则说明
           </div>
         </div>
-        <div className="w-full overflow-y-auto flex-1 p-4">
+        <div ref={chatContainerRef} className="w-full overflow-y-auto flex-1 p-4">
           {dialogue.map((item, index) => (
             <ConversationCom
               dialogue={item}
