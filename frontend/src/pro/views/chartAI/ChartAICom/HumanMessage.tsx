@@ -3,6 +3,7 @@ import 'github-markdown-css/github-markdown-dark.css'
 import { Button } from 'antd'
 import { downloadFileApi } from 'src/pro/api/chartAI'
 import { LuPaperclip } from 'react-icons/lu'
+import { FaRegUser } from 'react-icons/fa'
 interface HumanMessageProps {
   message: string
   fileList: string[]
@@ -58,7 +59,7 @@ const HumanMessage: React.FC<HumanMessageProps> = ({ message, fileList }) => {
         overflow: 'hidden',
       }}
     >
-      <div className="p-3 overflow-hidden flex-grow-0" style={{ maxWidth: '80%' }}>
+      <div className="overflow-hidden" style={{ maxWidth: '80%' }}>
         <div
           dangerouslySetInnerHTML={renderMarkdown()}
           className="p-3  rounded-2xl markdown-body bg-[#2f2f2f] "
@@ -72,6 +73,10 @@ const HumanMessage: React.FC<HumanMessageProps> = ({ message, fileList }) => {
             </Button>
           ))}
         </div>
+      </div>
+
+      <div className="m-2 flex-shrink-0 flex-grow-0">
+        <FaRegUser size={19} />
       </div>
     </div>
   )
