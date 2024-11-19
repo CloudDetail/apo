@@ -82,6 +82,8 @@ func (s *service) GetServicesEndpointDataByFilter(startTime time.Time, endTime t
 	return servicesResMsg, err
 }
 
+// GetServicesEndpointDataByEndpoints 根据输入的Endpoint填充端点总览信息,不按Service分组,并保留指标为空的Endpoint
+// 当前只在告警分析时使用
 func (s *service) GetServicesEndpointDataByEndpoints(startTime time.Time, endTime time.Time, step time.Duration, endpoints []prom.EndpointKey, sortRule SortType) (res []response.ServiceEndPointsRes, err error) {
 	var duration string
 	var stepNS = endTime.Sub(startTime).Nanoseconds()
@@ -92,6 +94,13 @@ func (s *service) GetServicesEndpointDataByEndpoints(startTime time.Time, endTim
 	// step1 查询满足Filter的Endpoint,并返回对应的RED指标
 	// RED指标包含了选定时间段内的平均值,日同比变化率和周同比变化率
 	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filters)
+
+	// 为未能查到数据的endpoint填充空结构
+	for _, endpoint := range endpoints {
+		if _, find := endpointsMap.CheckKeyExist(endpoint); !find {
+			endpointsMap.AppendEmptyGroup(endpoint)
+		}
+	}
 
 	// step2 填充延时依赖关系
 	err = s.EndpointsDelaySource(endpointsMap, startTime, endTime, filters)
@@ -114,7 +123,7 @@ func (s *service) GetServicesEndpointDataByEndpoints(startTime time.Time, endTim
 	err = s.sortWithRule(sortRule, endpointsMap)
 
 	// step4 将Endpoints按service分组,并维持service排序
-	services := fillEndpoints(endpointsMap.MetricGroupList)
+	services := fillEndpointsWithEmptyEndpoint(endpointsMap.MetricGroupList)
 
 	// step5 填充RED图表数据
 	s.EndpointRangeREDChart(&services, startTime, endTime, duration, step)
@@ -128,7 +137,12 @@ func (s *service) GetServicesEndpointDataByEndpoints(startTime time.Time, endTim
 		serviceDetails := s.extractDetail(service, startTime, endTime, step)
 
 		if serviceDetails == nil {
-			continue
+			serviceDetails = make([]response.ServiceDetail, 0)
+			for _, endpoint := range service.Endpoints {
+				serviceDetails = append(serviceDetails, response.ServiceDetail{
+					Endpoint: endpoint.ContentKey,
+				})
+			}
 		}
 
 		// endpoint的namespaceList去重
