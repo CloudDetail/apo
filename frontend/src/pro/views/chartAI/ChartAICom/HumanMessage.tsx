@@ -58,11 +58,11 @@ const HumanMessage: React.FC<HumanMessageProps> = ({ message, fileList }) => {
         overflow: 'hidden',
       }}
     >
-      <div className="p-3 overflow-hidden" style={{ maxWidth: '80%' }}>
+      <div className="p-3 overflow-hidden flex-grow-0" style={{ maxWidth: '80%' }}>
         <div
           dangerouslySetInnerHTML={renderMarkdown()}
           className="p-3  rounded-2xl markdown-body bg-[#2f2f2f] "
-          style={{ background: '#2f2f2f', fontSize: 14 }}
+          style={{ background: '#2f2f2f', fontSize: 14, minHeight: 0 }}
         />
         <div className="text-right ">
           {fileList.map((file) => (

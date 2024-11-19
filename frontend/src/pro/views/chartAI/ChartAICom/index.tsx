@@ -30,12 +30,12 @@ const ChartAICom = () => {
         // 其他自定义请求头
       },
       body: JSON.stringify({
-        endTime: startTime,
+        endTime: endTime,
         service: service,
         endpoint: endpoint,
         entryService: service,
         entryEndpoint: endpoint,
-        startTime: 1731563224409000,
+        startTime: startTime,
         step: step,
         anormalTypes: 'app,container,infra,network,error',
         withTopology: true,
