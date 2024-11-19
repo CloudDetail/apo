@@ -133,9 +133,8 @@ const ChartAICom = () => {
       })
       return updatedDialogue
     })
-    // setIsDone(false)
-    const response = await fetch(`http://localhost:8083/ai/api/chat?${queryString}`, {
-      // const response = await fetch('/ai/api/alertchat', {
+    setIsDone(false)
+    const response = await fetch('/ai/api/chat?${queryString}', {
       method: 'GET',
     })
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
