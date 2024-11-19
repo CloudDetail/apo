@@ -16,6 +16,8 @@ import (
 // @Produce json
 // @Param Authorization header string true "Bearer accessToken"
 // @Param username query string false "用户名"
+// @Param currentPage query string false "当前页"
+// @Param pageSize query string false "页大小"
 // @Param role query string false "角色"
 // @Param corporation query string false "组织"
 // @Success 200 {object} response.GetUserListResponse

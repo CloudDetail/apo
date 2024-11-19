@@ -741,7 +741,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }
@@ -770,7 +770,7 @@
                 "summary": "获取所有namespace信息",
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }
@@ -815,7 +815,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }
@@ -853,7 +853,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }
@@ -4093,6 +4093,18 @@
                     },
                     {
                         "type": "string",
+                        "description": "当前页",
+                        "name": "currentPage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "页大小",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "角色",
                         "name": "role",
                         "in": "query"
@@ -4862,7 +4874,7 @@
                 "timestamp": {
                     "type": "string"
                 },
-                "transactionId": {
+                "transactionIds": {
                     "type": "string"
                 }
             }
@@ -4894,8 +4906,14 @@
                         "type": "string"
                     }
                 },
+                "pid": {
+                    "type": "integer"
+                },
                 "serviceName": {
                     "type": "string"
+                },
+                "tid": {
+                    "type": "integer"
                 },
                 "timestamp": {
                     "type": "integer"
@@ -5369,6 +5387,9 @@
             "properties": {
                 "containerId": {
                     "description": "容器ID",
+                    "type": "string"
+                },
+                "nodeIp": {
                     "type": "string"
                 },
                 "nodeName": {
@@ -7120,6 +7141,18 @@
         "response.GetUserListResponse": {
             "type": "object",
             "properties": {
+                "currentPage": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "每页条数",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总记录数",
+                    "type": "integer"
+                },
                 "users": {
                     "type": "array",
                     "items": {
@@ -7371,6 +7404,9 @@
         "response.LogParseResponse": {
             "type": "object",
             "properties": {
+                "isStructured": {
+                    "type": "boolean"
+                },
                 "parseInfo": {
                     "type": "string"
                 },

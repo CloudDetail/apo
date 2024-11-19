@@ -16,11 +16,18 @@ func (s *service) GetUserInfo(username string) (response.GetUserInfoResponse, er
 }
 
 func (s *service) GetUserList(req *request.GetUserListRequest) (response.GetUserListResponse, error) {
-	users, err := s.dbRepo.GetUserList(req)
+	if req.PageParam == nil {
+		req.CurrentPage = 1
+		req.PageSize = 10
+	}
+	users, count, err := s.dbRepo.GetUserList(req)
 	resp := response.GetUserListResponse{}
 	if err != nil {
 		return resp, err
 	}
 	resp.Users = users
+	resp.PageSize = req.PageSize
+	resp.CurrentPage = req.CurrentPage
+	resp.Total = count
 	return resp, nil
 }

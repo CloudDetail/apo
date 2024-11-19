@@ -260,7 +260,7 @@ definitions:
         type: integer
       timestamp:
         type: string
-      transactionId:
+      transactionIds:
         type: string
     type: object
   clickhouse.QueryTraceResult:
@@ -281,8 +281,12 @@ definitions:
         additionalProperties:
           type: string
         type: object
+      pid:
+        type: integer
       serviceName:
         type: string
+      tid:
+        type: integer
       timestamp:
         type: integer
       traceId:
@@ -626,6 +630,8 @@ definitions:
     properties:
       containerId:
         description: 容器ID
+        type: string
+      nodeIp:
         type: string
       nodeName:
         description: 主机名
@@ -1816,6 +1822,15 @@ definitions:
     type: object
   response.GetUserListResponse:
     properties:
+      currentPage:
+        description: 当前页码
+        type: integer
+      pageSize:
+        description: 每页条数
+        type: integer
+      total:
+        description: 总记录数
+        type: integer
       users:
         items:
           $ref: '#/definitions/database.User'
@@ -1983,6 +1998,8 @@ definitions:
     type: object
   response.LogParseResponse:
     properties:
+      isStructured:
+        type: boolean
       parseInfo:
         type: string
       parseName:
@@ -2826,7 +2843,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: ok
+          description: OK
           schema:
             type: string
         "400":
@@ -2845,7 +2862,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: ok
+          description: OK
           schema:
             type: string
         "400":
@@ -2875,7 +2892,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: ok
+          description: OK
           schema:
             type: string
         "400":
@@ -2900,7 +2917,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: ok
+          description: OK
           schema:
             type: string
         "400":
@@ -5062,6 +5079,14 @@ paths:
       - description: 用户名
         in: query
         name: username
+        type: string
+      - description: 当前页
+        in: query
+        name: currentPage
+        type: string
+      - description: 页大小
+        in: query
+        name: pageSize
         type: string
       - description: 角色
         in: query

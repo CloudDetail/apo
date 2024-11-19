@@ -1,6 +1,9 @@
 package response
 
-import "github.com/CloudDetail/apo/backend/pkg/repository/database"
+import (
+	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+)
 
 type LoginResponse struct {
 	AccessToken  string `json:"accessToken"`  // accessToken用于调用接口获取资源
@@ -17,4 +20,5 @@ type GetUserInfoResponse struct {
 
 type GetUserListResponse struct {
 	Users []database.User `json:"users"`
+	model.Pagination
 }
