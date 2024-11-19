@@ -112,6 +112,72 @@ const ChartAICom = () => {
           })
         }
       } catch (error) {
+        break // 根据业务需求决定是否退出循环
+      }
+    }
+    setIsDone(true)
+  }
+  // 发起提问
+  const addChart = async (query: string) => {
+    const queryString = new URLSearchParams({ query: query }).toString()
+    setDialogue((prev) => {
+      // 使用深拷贝初始化副本，避免未定义元素
+      const updatedDialogue = [...prev]
+      updatedDialogue.push({
+        conversation: [
+          {
+            role: 'human',
+            message: query,
+          },
+        ],
+      })
+      return updatedDialogue
+    })
+    // setIsDone(false)
+    const response = await fetch(`http://localhost:8083/ai/api/chat?${queryString}`, {
+      // const response = await fetch('/ai/api/alertchat', {
+      method: 'GET',
+    })
+    const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+
+    while (true) {
+      try {
+        // 读取流数据
+        const { value, done } = await reader.read()
+        // console.log(done)
+        if (done) break // 流结束时退出循环
+
+        // 确保 `value` 是字符串类型
+        if (typeof value !== 'string') continue
+
+        // 提取流中的数据
+        const match = value.match(/data: (.+)/)
+        if (!match) continue
+
+        // 解析 JSON 数据
+        let parsedData
+        try {
+          parsedData = JSON.parse(match[1])
+        } catch (jsonError) {
+          console.error('JSON 解析失败:', jsonError, match[1])
+          continue // 跳过解析失败的数据
+        }
+
+        // 处理内容
+        if (parsedData?.content) {
+          setDialogue((prev) => {
+            // 使用深拷贝初始化副本，避免未定义元素
+            const updatedDialogue = [...prev]
+            updatedDialogue[updatedDialogue?.length - 1].conversation[1] = {
+              message:
+                (updatedDialogue[updatedDialogue?.length - 1].conversation[1]?.message || '') +
+                parsedData.content,
+              role: 'ai',
+            }
+            return updatedDialogue
+          })
+        }
+      } catch (error) {
         console.error('读取或处理消息时发生错误:', error)
         break // 根据业务需求决定是否退出循环
       }
@@ -182,30 +248,8 @@ const ChartAICom = () => {
               loading={!isDone && index === dialogue.length - 1}
             />
           ))}
-          {/* {mockDialogue.map((item, index) => (
-            <>
-              <div className="flex " key={index}>
-                <div className="w-2/3 flex-grow-0 flex-shrink-0">
-                  {item.conversation?.map((conv, cIndex) => (
-                    <div key={cIndex}>
-                      {conv?.role === 'ai' ? (
-                        <AIMessage message={conv?.message || ''} />
-                      ) : (
-                        <HumenMessage message={conv?.message || ''} />
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <div>
-                  <Divider type="vertical" className="h-full" />
-                </div>
-                <ExampleCom children={item?.explanation} />
-              </div>
-              <Divider />
-            </>
-          ))} */}
         </div>
-        <ChartInput />
+        <ChartInput addChart={addChart} loading={false} />
       </div>
     </Card>
   )

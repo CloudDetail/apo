@@ -26,7 +26,7 @@ const AIMessage: React.FC<AIMessageProps> = ({ message }) => {
         <div
           dangerouslySetInnerHTML={renderMarkdown()}
           className="p-3 markdown-body rounded-2xl "
-          style={{ fontSize: 14, background: '#3e3f4c' }}
+          style={{ fontSize: 14, background: '#3e3f4c', minHeight: 0 }}
         />
       </div>
     </div>

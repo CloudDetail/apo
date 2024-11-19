@@ -1,6 +1,6 @@
 import React from 'react'
 import AIMessage from './AIMessage'
-import HumenMessage from './HumenMessage'
+import HumanMessage from './HumanMessage'
 import { Divider } from 'antd'
 import ExampleCom from './ExampleCom'
 import { mockDialogue } from './mock'
@@ -29,7 +29,7 @@ const ConversationCom = ({ dialogue, index, loading }: ConversationComProps) => 
             return item.role === 'ai' ? (
               <AIMessage message={item.message || ''} loading={loading} />
             ) : (
-              <HumenMessage message={item.message || ''} />
+              <HumanMessage message={item.message || ''} fileList={item.fileList || []} />
             )
           })}
         </div>
@@ -39,7 +39,7 @@ const ConversationCom = ({ dialogue, index, loading }: ConversationComProps) => 
 
         <ExampleCom children={mockDialogue[index]?.explanation || <></>} />
       </div>
-      <Divider />
+      {!loading && <Divider />}
     </>
   )
 }
