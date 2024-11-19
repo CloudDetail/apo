@@ -10,6 +10,7 @@ import { getRuleGroupLabelApi } from 'src/core/api/alerts'
 
 // Containers
 const DefaultLayout = React.lazy(() => import('src/core/layout/DefaultLayout'))
+const Login = React.lazy(() => import('./core/components/Login/Login'))
 
 // // Pages
 // const Login = React.lazy(() => import('./community/1/pages/login/Login'))
@@ -67,7 +68,7 @@ const App = () => {
         }
       >
         <Routes>
-          {/* <Route exact path="/login" name="Login Page" element={<Login />}  */}
+          <Route exact path="/login" name="Login Page" element={<Login />} />
           <Route path="*" name="Home" element={<DefaultLayout />} />
         </Routes>
       </Suspense>
