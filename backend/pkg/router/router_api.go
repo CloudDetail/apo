@@ -103,11 +103,12 @@ func setApiRouter(r *resource) {
 		traceApi.GET("/info", traceHandler.GetSingleTraceInfo())
 	}
 
-	alertApi := r.mux.Group("/api/alerts").Use(middleware.Auth(r.cache))
+	alertApi := r.mux.Group("/api/alerts")
 	{
 		alertHandler := alerts.New(r.logger, r.ch, r.k8sApi, r.pkg_db)
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.POST("/outputs/dingtalk/:uuid", alertHandler.ForwardToDingTalk())
+		alertApi.Use(middleware.Auth(r.cache))
 		alertApi.GET("/rules/file", alertHandler.GetAlertRuleFile())
 		alertApi.POST("/rules/file", alertHandler.UpdateAlertRuleFile())
 
