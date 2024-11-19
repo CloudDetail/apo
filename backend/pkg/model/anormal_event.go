@@ -16,7 +16,7 @@ const (
 
 	AnormalTypeError // 错误事件告警 => 来自JavaException等
 
-	AnormalTypeAlertAppMetric // 应用指标告警     => group=appMetrics
+	AnormalTypeAlertAppInstance // 应用实例告警     => group=appInstance
 )
 
 // AnormalEvent 存储通用的异常事件,用于告警分析时汇总各种类型告警,统一返回

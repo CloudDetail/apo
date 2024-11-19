@@ -373,8 +373,8 @@ func (*service) parseAlertEvents(alertEvents []ck.AlertEventWithKey, instanceMap
 				AlertReason:  alertEvent.Name,
 				AlertMessage: alertMessage,
 			})
-		case ck.APP_METRIC_GROUP, ck.MUTATION_APP_METRIC_GROUP:
-			anormalEvent.AnormalType = model.AnormalTypeAlertAppMetric
+		case ck.APP_INSTANCE_GROUP, ck.MUTATION_APP_INSTANCE_GROUP:
+			anormalEvent.AnormalType = model.AnormalTypeAlertAppInstance
 			endpoints := instanceMap.GetEndpointsByService(alertEvent.GetServiceNameTag())
 			for _, endpoint := range endpoints {
 				anormalEvent.ImpactEndpoints = append(anormalEvent.ImpactEndpoints, model.AnormalEventDetail{
