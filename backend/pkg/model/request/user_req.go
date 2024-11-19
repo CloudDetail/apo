@@ -39,6 +39,7 @@ type GetUserListRequest struct {
 	Username    string `json:"username" form:"username"`
 	Role        string `json:"role" form:"role"`
 	Corporation string `json:"corporation" form:"corporation"`
+	*PageParam
 }
 
 type RemoveUserRequest struct {

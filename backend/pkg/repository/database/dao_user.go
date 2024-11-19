@@ -124,8 +124,9 @@ func (repo *daoRepo) GetUserInfo(username string) (User, error) {
 	return user, err
 }
 
-func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, error) {
+func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64, error) {
 	var users []User
+	var count int64
 	query := repo.db.Select("username, role, phone, email, corporation")
 	if len(req.Username) > 0 {
 		query = query.Where("username = ?", req.Username)
@@ -136,8 +137,13 @@ func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, error
 	if len(req.Corporation) > 0 {
 		query = query.Where("corporation = ?", req.Corporation)
 	}
-	err := query.Find(&users).Error
-	return users, err
+	err := query.Model(&User{}).Count(&count).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	query = query.Limit(req.PageSize).Offset((req.CurrentPage - 1) * req.PageSize)
+	err = query.Find(&users).Error
+	return users, count, err
 }
 
 func (repo *daoRepo) RemoveUser(username string) error {

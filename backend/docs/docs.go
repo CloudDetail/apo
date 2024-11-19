@@ -749,7 +749,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }
@@ -778,7 +778,7 @@ const docTemplate = `{
                 "summary": "获取所有namespace信息",
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }
@@ -823,7 +823,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }
@@ -861,7 +861,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }
@@ -4101,6 +4101,18 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "当前页",
+                        "name": "currentPage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "页大小",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "角色",
                         "name": "role",
                         "in": "query"
@@ -4870,7 +4882,7 @@ const docTemplate = `{
                 "timestamp": {
                     "type": "string"
                 },
-                "transactionId": {
+                "transactionIds": {
                     "type": "string"
                 }
             }
@@ -4902,8 +4914,14 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "pid": {
+                    "type": "integer"
+                },
                 "serviceName": {
                     "type": "string"
+                },
+                "tid": {
+                    "type": "integer"
                 },
                 "timestamp": {
                     "type": "integer"
@@ -5377,6 +5395,9 @@ const docTemplate = `{
             "properties": {
                 "containerId": {
                     "description": "容器ID",
+                    "type": "string"
+                },
+                "nodeIp": {
                     "type": "string"
                 },
                 "nodeName": {
@@ -7128,6 +7149,18 @@ const docTemplate = `{
         "response.GetUserListResponse": {
             "type": "object",
             "properties": {
+                "currentPage": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "每页条数",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总记录数",
+                    "type": "integer"
+                },
                 "users": {
                     "type": "array",
                     "items": {
@@ -7379,6 +7412,9 @@ const docTemplate = `{
         "response.LogParseResponse": {
             "type": "object",
             "properties": {
+                "isStructured": {
+                    "type": "boolean"
+                },
                 "parseInfo": {
                     "type": "string"
                 },
