@@ -41,17 +41,17 @@ func (s *service) GetAnormalTrendByEntry(req *request.GetDescendantAnormalTrendR
 	// TODO 优化,减少查询次数
 
 	for _, descendant := range descendants {
-		// 获取每个endpoint下的所有实例
+		endpoint := model.EndpointKey{
+			ServiceName: descendant.Service,
+			Endpoint:    descendant.Endpoint,
+		}
+		instanceMap.AddEndpoint(endpoint)
+		// TODO 优化,减少查询次数,获取每个endpoint下的所有实例
 		instanceList, err := s.promRepo.GetActiveRequestInstanceList(req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
 		if err != nil {
 			continue
 		}
 
-		// 构建好子孙节点的Node/Service -> descendant 映射
-		endpoint := model.EndpointKey{
-			ServiceName: descendant.Service,
-			Endpoint:    descendant.Endpoint,
-		}
 		instancesForDescendant := instanceList.GetInstances()
 		instanceMap.AddInstances(endpoint, instancesForDescendant)
 

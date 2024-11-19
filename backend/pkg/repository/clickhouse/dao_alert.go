@@ -16,15 +16,17 @@ import (
 type AlertGroup string
 
 const (
-	APP_GROUP       AlertGroup = "app"
-	NETWORK_GROUP   AlertGroup = "network"
-	CONTAINER_GROUP AlertGroup = "container"
-	INFRA_GROUP     AlertGroup = "infra"
+	APP_GROUP        AlertGroup = "app"
+	APP_METRIC_GROUP AlertGroup = "appMetric"
+	NETWORK_GROUP    AlertGroup = "network"
+	CONTAINER_GROUP  AlertGroup = "container"
+	INFRA_GROUP      AlertGroup = "infra"
 
-	MUTATION_APP_GROUP       AlertGroup = "mutation-app"
-	MUTATION_NETWORK_GROUP   AlertGroup = "mutation-network"
-	MUTATION_CONTAINER_GROUP AlertGroup = "mutation-container"
-	MUTATION_INFRA_GROUP     AlertGroup = "mutation-infra"
+	MUTATION_APP_GROUP        AlertGroup = "mutation-app"
+	MUTATION_APP_METRIC_GROUP AlertGroup = "mutation-appMetric"
+	MUTATION_NETWORK_GROUP    AlertGroup = "mutation-network"
+	MUTATION_CONTAINER_GROUP  AlertGroup = "mutation-container"
+	MUTATION_INFRA_GROUP      AlertGroup = "mutation-infra"
 )
 
 func (g AlertGroup) GetAlertType() string {
@@ -35,10 +37,11 @@ func (g AlertGroup) GetAlertType() string {
 		return model.NetAlert
 	case APP_GROUP:
 		return model.AppAlert
+	case APP_METRIC_GROUP:
+		return model.AppAlert
 	case CONTAINER_GROUP:
 		return model.ContainerAlert
 	}
-
 	return model.UndefinedAlert
 }
 

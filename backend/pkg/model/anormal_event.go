@@ -8,15 +8,15 @@ type AnormalType int
 
 // AnormalType 所有可分类的异常平铺到最外层,便于前端过滤
 const (
-	AnormalTypeUnknown AnormalType = iota
-	AnormalTypeAlertApp
-	AnormalTypeAlertContainer
-	AnormalTypeAlertInfra
-	AnormalTypeAlertNet
+	AnormalTypeUnknown        AnormalType = iota // 未定义的告警类型
+	AnormalTypeAlertApp                          // 应用接口告警     => group=app
+	AnormalTypeAlertContainer                    // 容器告警         => group=container
+	AnormalTypeAlertInfra                        // 基础设施告警     => group=infra
+	AnormalTypeAlertNet                          // 网络告警         => group=net
 
-	AnormalTypeError
+	AnormalTypeError // 错误事件告警 => 来自JavaException等
 
-	AnormalTypeMutation
+	AnormalTypeAlertAppMetric // 应用指标告警     => group=appMetrics
 )
 
 // AnormalEvent 存储通用的异常事件,用于告警分析时汇总各种类型告警,统一返回

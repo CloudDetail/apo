@@ -48,20 +48,19 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 	var instances []*model.ServiceInstance
 	var endpoints []model.EndpointKey
 	instanceMap := newInstanceMap()
-	// TODO 优化,减少查询次数
 
 	for _, descendant := range descendants {
-		// 获取每个endpoint下的所有实例
+		endpoint := model.EndpointKey{
+			ServiceName: descendant.Service,
+			Endpoint:    descendant.Endpoint,
+		}
+		instanceMap.AddEndpoint(endpoint)
+		// TODO 优化,减少查询次数,获取每个endpoint下的所有实例
 		instanceList, err := s.promRepo.GetActiveRequestInstanceList(req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
 		if err != nil {
 			continue
 		}
 
-		// 构建好子孙节点的Node/Service -> descendant 映射
-		endpoint := model.EndpointKey{
-			ServiceName: descendant.Service,
-			Endpoint:    descendant.Endpoint,
-		}
 		instancesForDescendant := instanceList.GetInstances()
 		instanceMap.AddInstances(endpoint, instancesForDescendant)
 
@@ -374,6 +373,21 @@ func (*service) parseAlertEvents(alertEvents []ck.AlertEventWithKey, instanceMap
 				AlertReason:  alertEvent.Name,
 				AlertMessage: alertMessage,
 			})
+		case ck.APP_METRIC_GROUP, ck.MUTATION_APP_METRIC_GROUP:
+			anormalEvent.AnormalType = model.AnormalTypeAlertAppMetric
+			endpoints := instanceMap.GetEndpointsByService(alertEvent.GetServiceNameTag())
+			for _, endpoint := range endpoints {
+				anormalEvent.ImpactEndpoints = append(anormalEvent.ImpactEndpoints, model.AnormalEventDetail{
+					EndpointKey: model.EndpointKey{
+						ServiceName: endpoint.ServiceName,
+						Endpoint:    endpoint.Endpoint,
+					},
+					AlertKey:     alertEvent.AlertKey,
+					AlertObject:  alertEvent.GetTargetObj(),
+					AlertReason:  alertEvent.Name,
+					AlertMessage: alertMessage,
+				})
+			}
 		case ck.CONTAINER_GROUP, ck.MUTATION_CONTAINER_GROUP:
 			anormalEvent.AnormalType = model.AnormalTypeAlertContainer
 			instance, endpoints := instanceMap.GetEndpointsByK8sPodNS(alertEvent.GetK8sPodTag(), alertEvent.GetK8sNamespaceTag())
@@ -471,7 +485,8 @@ type instanceMap struct {
 
 	InstanceMap map[model.ServiceInstance]map[model.EndpointKey]struct{}
 
-	EndpointMap map[model.EndpointKey]struct{}
+	Service2EndpointMap map[string]map[model.EndpointKey]struct{}
+	EndpointMap         map[model.EndpointKey]struct{}
 }
 
 type NodePidKey struct {
@@ -490,10 +505,23 @@ func newInstanceMap() *instanceMap {
 		NodePid2InstanceMap: map[NodePidKey]model.ServiceInstance{},
 		Node2InstancesMap:   map[string]map[model.ServiceInstance]struct{}{},
 		InstanceMap:         map[model.ServiceInstance]map[model.EndpointKey]struct{}{},
+		Service2EndpointMap: map[string]map[model.EndpointKey]struct{}{},
 		EndpointMap:         map[model.EndpointKey]struct{}{},
 	}
 }
 
+// AddEndpoint 记录拓扑上的所有endpoint,并构建serviceName到endpoint的映射
+func (m *instanceMap) AddEndpoint(endpointKey model.EndpointKey) {
+	endpointKeys, find := m.Service2EndpointMap[endpointKey.ServiceName]
+	if !find {
+		endpointKeys = make(map[model.EndpointKey]struct{})
+	}
+	endpointKeys[endpointKey] = struct{}{}
+	m.Service2EndpointMap[endpointKey.ServiceName] = endpointKeys
+}
+
+// AddInstances 记录endpoint关联的实例
+// 根据instance信息完成node,pid/pod到endpoint的映射
 func (m *instanceMap) AddInstances(endpointKey model.EndpointKey, instances []*model.ServiceInstance) {
 	m.EndpointMap[endpointKey] = struct{}{}
 
@@ -522,6 +550,18 @@ func (m *instanceMap) AddInstances(endpointKey model.EndpointKey, instances []*m
 			m.Node2InstancesMap[instance.NodeName] = instancesOnNode
 		}
 	}
+}
+
+func (m *instanceMap) GetEndpointsByService(service string) []model.EndpointKey {
+	endpointsMap, find := m.Service2EndpointMap[service]
+	if !find {
+		return nil
+	}
+	var endpoints []model.EndpointKey
+	for endpoint := range endpointsMap {
+		endpoints = append(endpoints, endpoint)
+	}
+	return endpoints
 }
 
 func (m *instanceMap) GetEndpointsByK8sPodNS(pod, namespace string) (*model.ServiceInstance, []model.EndpointKey) {
