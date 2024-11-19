@@ -436,10 +436,10 @@ func (*service) parseAlertEvents(alertEvents []ck.AlertEventWithKey, instanceMap
 			}
 		}
 
-		var j = i + 1
+		var tryMergeIndex = i + 1
 		var lastStatus model.Status = model.StatusFiring
-		for j < len(alertEvents) {
-			nextEvent := alertEvents[j]
+		for tryMergeIndex < len(alertEvents) {
+			nextEvent := alertEvents[tryMergeIndex]
 			if nextEvent.AlertKey != alertEvent.AlertKey {
 				break
 			}
@@ -454,9 +454,10 @@ func (*service) parseAlertEvents(alertEvents []ck.AlertEventWithKey, instanceMap
 				}
 				lastStatus = nextEvent.Status
 			}
-			j++
 			// 后续处理时跳过已经完成处理的事件
-			i = j
+			i = tryMergeIndex
+			// 继续查询处理下一个事件
+			tryMergeIndex++
 		}
 		anormalEventList = append(anormalEventList, anormalEvent)
 	}
