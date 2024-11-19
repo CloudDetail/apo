@@ -160,10 +160,13 @@ const ImpactList = () => {
               variant="outlined"
               color="primary"
               onClick={() => {
-                showToast({
-                  title: '功能开发中，敬请期待',
-                  color: 'info',
-                })
+                navigate(
+                  `/alert-analyze/chartAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}`,
+                )
+                // showToast({
+                //   title: '功能开发中，敬请期待',
+                //   color: 'info',
+                // })
               }}
             >
               大模型根因分析

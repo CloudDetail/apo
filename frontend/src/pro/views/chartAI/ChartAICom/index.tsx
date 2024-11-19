@@ -7,19 +7,24 @@ import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer
 import { FaCircleArrowUp } from 'react-icons/fa6'
 import { useChartAIContext } from 'src/pro/contexts/ChartAIContext'
 import { mockDialogue } from './mock'
-import { Button, Card, ConfigProvider, Divider, Input } from 'antd'
+import { Button, Card, ConfigProvider, Divider, Input, message } from 'antd'
 import ChartInput from './ChartInput'
 import AIMessage from './AIMessage'
 import HumenMessage from './HumenMessage'
 import ExampleCom from './ExampleCom'
+import ConversationCom from './ConversationCom'
+import { getStep } from 'src/core/utils/step'
 const ChartAICom = () => {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const { service, endpoint, anormalTypes } = useChartAIContext()
   const [dialogue, setDialogue] = useState([])
+  const [isDone, setIsDone] = useState<boolean>(true)
   // post('/api/alertchat', )
   const controller = new AbortController()
   const signal = controller.signal
   const getChartData = async () => {
+    setIsDone(false)
+    const step = getStep(startTime, endTime)
     const response = await fetch('http://localhost:8083/api/alertchat', {
       method: 'POST',
       headers: {
@@ -27,51 +32,99 @@ const ChartAICom = () => {
         // 其他自定义请求头
       },
       body: JSON.stringify({
-        endTime: 1731565024409000,
-        endpoint: 'POST travel-plan',
-        service: 'ts-gateway-service',
-        entryService: 'POST travel-plan',
-        entryEndpoint: 'ts-gateway-service',
+        endTime: startTime,
+        endpoint: service,
+        service: endpoint,
+        entryService: service,
+        entryEndpoint: endpoint,
         startTime: 1731563224409000,
-        step: 60000000,
+        step: step,
         anormalTypes: 'app,container,infra,network,error',
         withTopology: 'true',
       }),
     })
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
-    let index = dialogue?.length || 0
+    let index = dialogue?.length ? dialogue.length - 1 : 0
 
     while (true) {
-      const { value, done } = await reader.read()
-      if (done) break
-      const match = value.match(/data: (.+)/)
-      if (match) {
+      try {
+        // 读取流数据
+        const { value, done } = await reader.read()
+        // console.log(done)
+        if (done) break // 流结束时退出循环
+
+        // 确保 `value` 是字符串类型
+        if (typeof value !== 'string') continue
+
+        // 提取流中的数据
+        const match = value.match(/data: (.+)/)
+        if (!match) continue
+
+        // 解析 JSON 数据
+        let parsedData
         try {
-          const parsedData = JSON.parse(match[1])
-          if (parsedData && parsedData.content) {
-            setDialogue((prev) => {
-              // 创建新的对话数组，更新最后一个元素的内容
-              const updatedDialogue = [...prev]
-              if (updatedDialogue[index]?.role === parsedData.role) {
-                updatedDialogue[index].content += parsedData.content
-              } else {
-                index++
-                updatedDialogue[index] = parsedData
-              }
-              return updatedDialogue
-            })
-          }
-        } catch (error) {
-          console.error('JSON 解析错误:', error)
+          parsedData = JSON.parse(match[1])
+        } catch (jsonError) {
+          console.error('JSON 解析失败:', jsonError, match[1])
+          continue // 跳过解析失败的数据
         }
+
+        // 处理内容
+        if (parsedData?.content) {
+          setDialogue((prev) => {
+            // 使用深拷贝初始化副本，避免未定义元素
+            const updatedDialogue = [...prev]
+            if (!updatedDialogue[index]) {
+              updatedDialogue[index] = {
+                conversation: [],
+              }
+            }
+            if (parsedData.role === 'ai') {
+              updatedDialogue[index].conversation[1] = {
+                message:
+                  (updatedDialogue[index].conversation[1]?.message || '') + parsedData.content,
+                role: 'ai',
+              }
+            } else if (
+              parsedData.role === 'human' &&
+              updatedDialogue[index].conversation.length === 0
+            ) {
+              updatedDialogue[index] = {
+                conversation: [
+                  {
+                    role: 'human',
+                    message: parsedData.content,
+                    fileList: [parsedData?.filename],
+                  },
+                ],
+              }
+            } else {
+              updatedDialogue[++index] = {
+                conversation: [
+                  {
+                    role: 'human',
+                    message: parsedData.content,
+                    fileList: [parsedData?.filename],
+                  },
+                ],
+              }
+            }
+            // console.log(updatedDialogue)
+            return updatedDialogue
+          })
+        }
+      } catch (error) {
+        console.error('读取或处理消息时发生错误:', error)
+        break // 根据业务需求决定是否退出循环
       }
     }
+    setIsDone(true)
   }
 
   useDebounce(
     () => {
       if (startTime && endTime) {
-        // getChartData()
+        getChartData()
       }
     },
     300, // 延迟时间 300ms
@@ -95,7 +148,15 @@ const ChartAICom = () => {
           </div>
         </div>
         <div className="w-full overflow-y-auto flex-1 p-4">
-          {mockDialogue.map((item, index) => (
+          {dialogue.map((item, index) => (
+            <ConversationCom
+              dialogue={item}
+              index={index}
+              key={index}
+              loading={!isDone && index === dialogue.length - 1}
+            />
+          ))}
+          {/* {mockDialogue.map((item, index) => (
             <>
               <div className="flex " key={index}>
                 <div className="w-2/3 flex-grow-0 flex-shrink-0">
@@ -116,7 +177,7 @@ const ChartAICom = () => {
               </div>
               <Divider />
             </>
-          ))}
+          ))} */}
         </div>
         <ChartInput />
       </div>
