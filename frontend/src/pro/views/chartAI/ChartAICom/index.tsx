@@ -11,6 +11,8 @@ import HumenMessage from './HumenMessage'
 import ExampleCom from './ExampleCom'
 import ConversationCom from './ConversationCom'
 import { getStep } from 'src/core/utils/step'
+import HintCom from './HintCom'
+import './index.css'
 const ChartAICom = () => {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const { service, endpoint, anormalTypes } = useChartAIContext()
@@ -134,7 +136,7 @@ const ChartAICom = () => {
       return updatedDialogue
     })
     setIsDone(false)
-    const response = await fetch('/ai/api/chat?${queryString}', {
+    const response = await fetch(`/ai/api/chat?${queryString}`, {
       method: 'GET',
     })
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
@@ -233,7 +235,9 @@ const ChartAICom = () => {
             paddingRight: '1.6rem',
           }}
         >
-          <div className="w-2/3 p-3  text-lg font-bold">大模型对话</div>
+          <div className="w-2/3 p-3  text-lg font-bold flex items-center">
+            大模型对话 <HintCom />
+          </div>
           <div className=" p-3  text-lg font-bold" style={{ borderLeft: '1.5px solid #303030' }}>
             数据与规则说明
           </div>

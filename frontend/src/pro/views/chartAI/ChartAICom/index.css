@@ -1,0 +1,27 @@
+.loading {
+  position: relative;
+}
+
+.loading::after {
+  content: '';
+  display: inline-block;
+  width: 28px; /* 圆球的宽度 */
+  height: 28px; /* 圆球的高度 */
+  margin-left: 8px; /* 距离内容的间距 */
+  margin-top: 8px; /* 距离内容的间距 */
+  border-radius: 50%; /* 使其成为圆形 */
+  background-color: white; /* 圆球的颜色 */
+  animation: smoothBlink 1.5s infinite ease-in-out; /* 更丝滑的动画效果 */
+}
+
+@keyframes smoothBlink {
+  0%,
+  100% {
+    opacity: 1; /* 圆球完全可见 */
+    transform: scale(1); /* 保持正常大小 */
+  }
+  50% {
+    opacity: 0; /* 圆球完全消失 */
+    transform: scale(0.5); /* 缩小 */
+  }
+}
