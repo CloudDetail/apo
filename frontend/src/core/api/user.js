@@ -51,5 +51,4 @@ export {
     getUserInfoApi,
     getUserListApi,
     removeUserApi
-    getUserInfoApi
 }
