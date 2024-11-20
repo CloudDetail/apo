@@ -4,8 +4,7 @@ import { createUserApi, getUserListApi, removeUserApi } from "src/core/api/user"
 import { showToast } from "src/core/utils/toast";
 import { IoPersonAdd } from "react-icons/io5";
 import { useEffect, useState } from "react";
-import '../index.css'
-
+import "../index.css"
 export default function UserManage() {
     const [form] = Form.useForm()
     const [modalVisibility, setModalVisibility] = useState(false)
@@ -55,6 +54,10 @@ export default function UserManage() {
         try {
             await removeUserApi(params)
             await getUserList()
+            showToast({
+                title:"移除用户成功",
+                color:"success"
+            })
         } catch (error) {
             showToast({
                 title: "移除用户失败",
