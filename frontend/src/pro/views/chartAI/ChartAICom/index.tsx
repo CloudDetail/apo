@@ -17,7 +17,7 @@ const ChartAICom = () => {
   const [controller, setController] = useState<any>(null)
   const [chatQuery, setChatQuery] = useState<any>(null)
   const typeMessage = async (parsedData: any, index: number, setDialogue: any) => {
-    const content = parsedData.content // 消息内容
+    const content = parsedData?.content || '' // 消息内容
     const step = 10 // 每次追加的字符数量
     let typeIndex = 0 // 当前字符索引
     let currentIndex = index // 当前对话框索引
@@ -93,8 +93,8 @@ const ChartAICom = () => {
   const getChartData = async () => {
     setIsDone(false)
     const step = getStep(startTime, endTime)
-    // const response = await fetch('http://localhost:8083/ai/api/alertchat', {
-    const response = await fetch('http://localhost:8083/stream', {
+    const response = await fetch('/ai/api/alertchat', {
+      // const response = await fetch('http://localhost:8083/stream', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -153,14 +153,19 @@ const ChartAICom = () => {
           }
           buffer = ''
           // 处理内容
-          if (parsedData?.content) {
+          if (parsedData?.content || parsedData?.reportUrlList) {
             if (parsedData.role === 'ai') {
               setDialogue((prev) => {
                 const updatedDialogue = [...prev]
                 updatedDialogue[index].conversation[1] = {
                   message:
-                    (updatedDialogue[index].conversation[1]?.message || '') + parsedData.content,
+                    (updatedDialogue[index].conversation[1]?.message || '') +
+                    (parsedData?.content || ''),
                   role: 'ai',
+                  reportUrlList: [
+                    ...(updatedDialogue[index].conversation[1]?.reportUrlList || []),
+                    ...(parsedData.reportUrlList || []),
+                  ],
                 }
                 return updatedDialogue
               })

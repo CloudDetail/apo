@@ -2,14 +2,16 @@ import { marked } from 'marked'
 import { RiRobot2Line } from 'react-icons/ri'
 import 'github-markdown-css/github-markdown-dark.css'
 import { CSpinner } from '@coreui/react'
+import { Button } from 'antd'
 
 // import remarkMath from 'remark-math'
 interface AIMessageProps {
   message: string
   loading: boolean
+  reportUrlList?: string[]
 }
 
-const AIMessage: React.FC<AIMessageProps> = ({ message, loading }) => {
+const AIMessage: React.FC<AIMessageProps> = ({ message, loading, reportUrlList = [] }) => {
   const renderMarkdown = () => {
     return {
       __html: marked(message),
@@ -36,6 +38,13 @@ const AIMessage: React.FC<AIMessageProps> = ({ message, loading }) => {
             style={{ fontSize: 14, background: '#3e3f4c', minHeight: 0 }}
           />
         )}
+        {reportUrlList?.map((reportUrl, index) => (
+          <div>
+            <Button type="link" target="_blank" href={reportUrl}>
+              延时报告_{index + 1}
+            </Button>
+          </div>
+        ))}
         {loading && message?.length === 0 && <CSpinner variant="grow" />}
       </div>
     </div>
