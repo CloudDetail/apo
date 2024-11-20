@@ -93,7 +93,7 @@ const ChartAICom = () => {
   const getChartData = async () => {
     setIsDone(false)
     const step = getStep(startTime, endTime)
-    const response = await fetch('http://localhost:8083/ai/api/alertchat', {
+    const response = await fetch('/ai/api/alertchat', {
       // const response = await fetch('http://localhost:8083/stream', {
       method: 'POST',
       headers: {
