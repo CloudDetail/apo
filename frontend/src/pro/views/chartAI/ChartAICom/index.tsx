@@ -228,34 +228,37 @@ const ChartAICom = () => {
 
         // 确保 `value` 是字符串类型
         if (typeof value !== 'string') continue
+        const parts = value.split('\n\ndata:')
+        parts?.forEach(async (part, pIndex) => {
+          let newPart = pIndex === 0 ? `${part}` : `data:${part}`
+          // 提取流中的数据
+          const match = newPart.match(/data: (.+)/)
+          if (!match) return
 
-        // 提取流中的数据
-        const match = value.match(/data: (.+)/)
-        if (!match) continue
+          // 解析 JSON 数据
+          let parsedData
+          try {
+            parsedData = JSON.parse(match[1])
+          } catch (jsonError) {
+            console.error('JSON 解析失败:', jsonError, match[1])
+            return // 跳过解析失败的数据
+          }
 
-        // 解析 JSON 数据
-        let parsedData
-        try {
-          parsedData = JSON.parse(match[1])
-        } catch (jsonError) {
-          console.error('JSON 解析失败:', jsonError, match[1])
-          continue // 跳过解析失败的数据
-        }
-
-        // 处理内容
-        if (parsedData?.content) {
-          setDialogue((prev) => {
-            // 使用深拷贝初始化副本，避免未定义元素
-            const updatedDialogue = [...prev]
-            updatedDialogue[updatedDialogue?.length - 1].conversation[1] = {
-              message:
-                (updatedDialogue[updatedDialogue?.length - 1].conversation[1]?.message || '') +
-                parsedData.content,
-              role: 'ai',
-            }
-            return updatedDialogue
-          })
-        }
+          // 处理内容
+          if (parsedData?.content) {
+            setDialogue((prev) => {
+              // 使用深拷贝初始化副本，避免未定义元素
+              const updatedDialogue = [...prev]
+              updatedDialogue[updatedDialogue?.length - 1].conversation[1] = {
+                message:
+                  (updatedDialogue[updatedDialogue?.length - 1].conversation[1]?.message || '') +
+                  parsedData?.content,
+                role: 'ai',
+              }
+              return updatedDialogue
+            })
+          }
+        })
       } catch (error) {
         console.error('读取或处理消息时发生错误:', error)
         break // 根据业务需求决定是否退出循环
