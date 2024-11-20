@@ -9,10 +9,15 @@ import DateTimeRangePicker from './DateTime/DateTimeRangePicker'
 import routes from 'src/routes'
 import CoachMask from './Mask/CoachMask'
 import DateTimeCombine from './DateTime/DateTimeCombine'
-import { Menu } from 'antd'
+import { ConfigProvider, Menu } from 'antd'
 import { commercialNav } from 'src/_nav'
 import ToolBox from './UserPage/component/ToolBox'
 import { HiUserCircle } from "react-icons/hi";
+import { RxTriangleDown } from "react-icons/rx";
+import { RxTriangleLeft } from "react-icons/rx";
+import { Button } from 'antd'
+import { getUserInfoApi } from '../api/user';
+import { showToast } from '../utils/toast'
 
 // united / default
 const AppHeader = ({ type = 'default' }) => {
@@ -21,6 +26,7 @@ const AppHeader = ({ type = 'default' }) => {
   const headerRef = useRef()
   const { colorMode, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
   const [toolVisibal, setToolVisibal] = useState(false)
+  const [username, setUsername] = useState("")
 
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
@@ -44,7 +50,6 @@ const AppHeader = ({ type = 'default' }) => {
     })
     return result
   }
-
   const checkRoute = () => {
     // 使用正则表达式替换动态参数（例如 :traceId）为通配符
     const currentRoute = routes.find((route) => {
@@ -83,6 +88,33 @@ const AppHeader = ({ type = 'default' }) => {
     }
   }, [])
 
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          const user = JSON.parse(localStorage.getItem("user"))
+          if (user) {
+            setUsername(user.username)
+          } else {
+            setUsername("获取用户信息失败")
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (headerRef.current) {
+      observer.observe(headerRef.current);
+    }
+
+    return () => {
+      if (headerRef.current) {
+        observer.unobserve(headerRef.current);
+      }
+    };
+  }, []);
+
   const vars = {
     // '--cui-header-bg': 'inherit',
     borderBottom: 0,
@@ -115,10 +147,34 @@ const AppHeader = ({ type = 'default' }) => {
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
         </CHeaderNav>
-        <div className='relative h-8 w-8 flex justify-center items-center rounded-1 mr-5' ref={buttonRef} onClick={() => setToolVisibal(!toolVisibal)}>
-          <HiUserCircle className='w-8 h-8' />
-          <ToolBox visiable={toolVisibal} setVisiable={setToolVisibal} ref={toolBoxRef} />
-        </div>
+        <ConfigProvider
+          theme={{
+            components: {
+              Button: {
+                defaultHoverBg: '#30333C',
+                defaultBg: '#1E222B',
+                defaultBorderColor: 'transparent',
+                defaultHoverBorderColor: 'transparent',
+                defaultActiveBorderColor: 'transparent',
+                defaultActiveBg: '#1E222B',
+                defaultHoverColor: 'none',
+                defaultShadow: 'none',
+                defaultActiveColor: 'none'
+              }
+            }
+          }}
+        >
+          <div className='relative flex items-center select-none ml-6' ref={buttonRef} onClick={() => setToolVisibal(!toolVisibal)}>
+            <Button className='h-8 w-8 flex justify-center items-center rounded-1 mr-1' icon={<HiUserCircle className='w-8 h-8' />}></Button>
+            <div className='h-1/2 flex flex-col justify-start'>
+              <p className='text-base relative -top-0.5'>{username}</p>
+            </div>
+            {
+              toolVisibal ? <RxTriangleDown className='ml-1 mr-4' /> : <RxTriangleLeft className='ml-1 mr-4' />
+            }
+            <ToolBox visiable={toolVisibal} setVisiable={setToolVisibal} ref={toolBoxRef} />
+          </div>
+        </ConfigProvider>
       </div>
     </CHeader>
   )

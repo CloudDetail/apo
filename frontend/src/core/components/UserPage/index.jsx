@@ -43,7 +43,7 @@ export default function UserPage() {
                     defaultSelectedKeys={['update']}
                     onSelect={handleSelect}
                 />
-                <Flex className="w-11/12 ml-10">
+                <Flex className="w-11/12 ml-10 h-fit">
                     {currentItem == "update" ? <UserInfo /> : currentItem == "add" ? <UserManage /> : <UpdatePassword />}
                 </Flex>
             </Flex>

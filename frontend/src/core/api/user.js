@@ -32,6 +32,14 @@ const getUserInfoApi = () => {
     return get(`api/user/info`)
 }
 
+const getUserListApi = (params) => {
+    return get(`/api/user/list?currentPage=${params.currentPage}&pageSize=${params.pageSize}&username=${params.username}&role=${params.role}&corporation=${params.corporation}`)
+}
+
+const removeUserApi = (params) => {
+    return post(`/api/user/remove?username=${params.username}`)
+}
+
 export {
     loginApi,
     logoutApi,
@@ -40,5 +48,7 @@ export {
     updatePasswordApi,
     updatePhoneApi,
     createUserApi,
-    getUserInfoApi
+    getUserInfoApi,
+    getUserListApi,
+    removeUserApi
 }

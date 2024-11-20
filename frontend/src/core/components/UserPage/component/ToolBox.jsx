@@ -37,7 +37,7 @@ const ToolBox = forwardRef((props, ref) => {
 
     return (
         <>
-            <Flex ref={ref} vertical className={visiable ? "flex items-center absolute top-10 right-0 w-36 rounded-lg bg-[#171A21] pt-3 pb-3" : "hidden"} onClick={(e) => {
+            <Flex ref={ref} vertical className={visiable ? "flex items-center absolute top-10 right-2 w-36 rounded-lg bg-[#171A21] pt-3 pb-3 z-50" : "hidden"} onClick={(e) => {
                 setVisiable(false)
                 e.stopPropagation()
             }}>

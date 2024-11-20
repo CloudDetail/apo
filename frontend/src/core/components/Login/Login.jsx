@@ -4,6 +4,8 @@ import { loginApi } from "src/core/api/user";
 import { useNavigate } from "react-router-dom";
 import { UserOutlined, LockOutlined } from "@ant-design/icons"
 import { showToast } from "src/core/utils/toast";
+import { getUserInfoApi } from "src/core/api/user";
+import logo from 'src/core/assets/brand/logo.svg'
 
 export default function Login() {
     const navigate = useNavigate();
@@ -31,6 +33,8 @@ export default function Login() {
                         }
                         localStorage.setItem("remeberMe", String(remeberMe))
                     }
+                    const user = await getUserInfoApi()
+                    localStorage.setItem("user",JSON.stringify(user))
                 } catch (error) {
                     if (error.response && error.response.data) {
                         const { code, message } = error.response.data
@@ -78,10 +82,10 @@ export default function Login() {
     }, [form]);
 
     return (
-        <Flex vertical className="w-screen h-screen justify-center items-center bg-[url('bg.jpg')] bg-no-repeat bg-cover">
+        <Flex vertical className="w-screen h-screen justify-center items-center bg-[url('src/core/assets/brand/bg.jpg')] bg-no-repeat bg-cover">
             <Flex vertical className="w-3/12 bg-[rgba(0,0,0,0.4)] rounded-lg p-10 drop-shadow-xl">
                 <Flex className="w-full justify-center items-center select-none">
-                    <img src="mini_logo.png" className="w-16"/>
+                    <img src={logo} className="w-12 mr-2"/>
                     <p className="text-2xl">向导式可观测平台</p>
                 </Flex>
                 <Flex vertical className="w-full justify-center items-center mt-20">
