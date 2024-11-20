@@ -93,8 +93,8 @@ const ChartAICom = () => {
   const getChartData = async () => {
     setIsDone(false)
     const step = getStep(startTime, endTime)
-    const response = await fetch('/ai/api/alertchat', {
-      // const response = await fetch('http://localhost:8083/stream', {
+    // const response = await fetch('http://localhost:8083/ai/api/alertchat', {
+    const response = await fetch('http://localhost:8083/stream', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -117,6 +117,7 @@ const ChartAICom = () => {
     let index = dialogue?.length ? dialogue.length - 1 : 0
     let isPaused = false // 用于控制暂停和继续
 
+    let buffer = '' // 用于存储未处理的数据
 
     const processChunk = async () => {
       if (isPaused) return // 如果暂停，则不继续读取
@@ -131,8 +132,9 @@ const ChartAICom = () => {
         if (typeof value !== 'string') return processChunk()
         // 提取流中的数据
 
+        buffer += value // 将新读取的数据追加到缓冲区
         // 按 `\n\ndata:` 分割数据
-        const parts = value.split('\n\ndata:')
+        const parts = buffer.split('\n\ndata:')
         parts?.forEach(async (part, pIndex) => {
           let newPart = pIndex === 0 ? `${part}` : `data:${part}`
           const match = newPart.match(/data: (.+)/)
@@ -145,10 +147,11 @@ const ChartAICom = () => {
           try {
             parsedData = JSON.parse(match[1])
           } catch (jsonError) {
-            console.error('JSON 解析失败:', jsonError, match[1])
-            // buffer += newPart
+            // console.error('JSON 解析失败:', jsonError, match[1])
+            console.log('JSON 解析失败:', newPart)
             return // 跳过解析失败的数据
           }
+          buffer = ''
           // 处理内容
           if (parsedData?.content) {
             if (parsedData.role === 'ai') {
@@ -205,7 +208,7 @@ const ChartAICom = () => {
       return updatedDialogue
     })
     setIsDone(false)
-    const response = await fetch(`/ai/api/chat?${queryString}`, {
+    const response = await fetch(`http://localhost:8083/ai/api/chat?${queryString}`, {
       method: 'GET',
       signal: controller.signal,
     })
@@ -215,7 +218,6 @@ const ChartAICom = () => {
       try {
         // 读取流数据
         const { value, done } = await reader.read()
-        // console.log(done)
         if (done) break // 流结束时退出循环
 
         // 确保 `value` 是字符串类型
