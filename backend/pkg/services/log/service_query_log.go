@@ -18,6 +18,7 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 		return res, nil
 	}
 
+	// query column name and type
 	rows, err := s.chRepo.OtherLogTableInfo(&request.OtherTableInfoRequest{
 		DataBase:  req.DataBase,
 		TableName: req.TableName,
@@ -37,12 +38,10 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 		DataBase: req.DataBase,
 		Table:    req.TableName,
 	}
+	// query log field json
 	s.dbRepo.OperateLogTableInfo(model, database.QUERY)
 	var fields []request.Field
 	_ = json.Unmarshal([]byte(model.Fields), &fields)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	for _, field := range fields {
 		hiddenFields = append(hiddenFields, field.Name)
@@ -77,6 +76,7 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 		content := log[req.LogField]
 		delete(log, req.LogField)
 
+		logFields := map[string]interface{}{}
 		for k, v := range log {
 			if k == req.TimeField {
 				ts, ok := v.(time.Time)
@@ -94,12 +94,19 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 				}
 				delete(log, k)
 			}
+
+			// this pair of kv is log field
+			if _, exists := hMap[k]; exists {
+				logFields[k] = v
+				delete(log, k)
+			}
 		}
 
 		logitems[i] = response.LogItem{
-			Content: content,
-			Tags:    log,
-			Time:    timestamp,
+			Content:   content,
+			Tags:      log,
+			Time:      timestamp,
+			LogFields: logFields,
 		}
 	}
 

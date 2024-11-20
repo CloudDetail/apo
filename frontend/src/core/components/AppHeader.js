@@ -88,7 +88,6 @@ const AppHeader = ({ type = 'default' }) => {
     }
   }, [])
 
-
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {

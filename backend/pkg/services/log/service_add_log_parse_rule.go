@@ -54,17 +54,13 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 	logReq.TTL = req.LogTable.TTL
 	logReq.Fields = fields
 	logReq.Buffer = req.LogTable.Buffer
+	logReq.IsStructured = req.IsStructured
 	logReq.FillerValue()
 	_, err := s.chRepo.CreateLogTable(logReq)
 	if err != nil {
 		return nil, err
 	}
 	// 更新k8s configmap
-	res := &response.LogParseResponse{
-		ParseName: req.ParseName,
-		ParseRule: req.ParseRule,
-		RouteRule: req.RouteRule,
-	}
 	data, err := s.k8sApi.GetVectorConfigFile()
 	if err != nil {
 		return nil, err
@@ -74,11 +70,16 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 	if err != nil {
 		return nil, err
 	}
+
+	// 结构化日志，不需要parse rule
+	if req.IsStructured {
+		req.ParseRule = ""
+	}
 	p := vector.ParseInfo{
 		ParseName: req.ParseName,
 		TableName: "logs_" + req.ParseName,
-		ParseRule: req.ParseRule,
 		RouteRule: getRouteRule(req.RouteRule),
+		ParseRule: req.ParseRule,
 	}
 
 	newData, err := p.AddParseRule(vectorCfg)
@@ -96,20 +97,27 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 
 	// 更新sqlite表信息
 	log := database.LogTableInfo{
-		ParseInfo: req.ParseInfo,
-		ParseName: req.ParseName,
-		ParseRule: req.ParseRule,
-		RouteRule: getRouteRule(req.RouteRule),
-		Table:     "logs_" + req.ParseName,
-		DataBase:  logReq.DataBase,
-		Cluster:   logReq.Cluster,
-		Fields:    string(fieldsJSON),
-		Service:   strings.Join(req.Service, ","),
+		ParseInfo:    req.ParseInfo,
+		ParseName:    req.ParseName,
+		RouteRule:    getRouteRule(req.RouteRule),
+		Table:        "logs_" + req.ParseName,
+		DataBase:     logReq.DataBase,
+		Cluster:      logReq.Cluster,
+		Fields:       string(fieldsJSON),
+		Service:      strings.Join(req.Service, ","),
+		IsStructured: req.IsStructured,
+		ParseRule:    req.ParseRule,
 	}
+
 	err = s.dbRepo.OperateLogTableInfo(&log, database.INSERT)
 	if err != nil {
 		return nil, err
 	}
 
+	res := &response.LogParseResponse{
+		ParseName: req.ParseName,
+		ParseRule: req.ParseRule,
+		RouteRule: req.RouteRule,
+	}
 	return res, nil
 }

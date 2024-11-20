@@ -58,7 +58,7 @@ type Repo interface {
 
 	CreateLogTable(req *request.LogTableRequest) ([]string, error)
 	DropLogTable(req *request.LogTableRequest) ([]string, error)
-	UpdateLogTable(req *request.LogTableRequest, new, old []request.Field) ([]string, error)
+	UpdateLogTable(req *request.LogTableRequest, old []request.Field) ([]string, error)
 
 	queryRowsData(sql string) ([]map[string]any, error)
 

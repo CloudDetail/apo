@@ -4,6 +4,8 @@ var enText = map[string]string{
 	ServerError:    "Internal server error",
 	ParamBindError: "Parameter error",
 	DbConnectError: "Failed to connect Database",
+	UnAuth:         "not logged in",
+	InValidToken:   "invalid token",
 
 	MockCreateError: "Failed to create mock",
 	MockListError:   "Failed to get mock list",
@@ -86,4 +88,15 @@ var enText = map[string]string{
 	AlertManagerDefaultReceiverCannotDelete: "alertManager default receiver cannot be deleted",
 
 	K8sGetResourceError: "Failed to get k8s resource",
+
+	UserNotExistsError:         "User does not exist",
+	UserPasswordIncorrectError: "Password is incorrect",
+	UserLoginError:             "Failed to login",
+	UserTokenExpireError:       "Login expired, please log in again",
+	UserAlreadyExists:          "User already exists",
+	UserCreateError:            "Failed to create user",
+	UserUpdateError:            "Failed to update",
+	UserConfirmPasswordError:   "Password inconsistent",
+	GetUserInfoError:           "Failed to get user information",
+	RemoveUserError:            "Failed to remove user",
 }

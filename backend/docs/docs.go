@@ -699,6 +699,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/health": {
+            "get": {
+                "description": "用于k8s检查后端健康状态",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "用于k8s检查后端健康状态",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/k8s/namespace/info": {
             "get": {
                 "description": "获取namespace信息",
@@ -725,7 +751,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.GetNamespaceInfoResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -754,7 +780,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.GetNamespaceListResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -799,7 +825,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.GetPodInfoResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -837,7 +863,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.GetPodListResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -1341,13 +1367,18 @@ const docTemplate = `{
                 "summary": "获取日志表解析规则",
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.QueryLogParseRequest"
-                        }
+                        "type": "string",
+                        "description": "数据库",
+                        "name": "dataBase",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "表",
+                        "name": "tableName",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -3742,7 +3773,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.GetSingleTraceInfoResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -3943,9 +3974,539 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/user/create": {
+            "post": {
+                "description": "创建用户",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "创建用户",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户名",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "密码",
+                        "name": "password",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "确认密码",
+                        "name": "confirmPassword",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer 令牌",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/info": {
+            "get": {
+                "description": "获取个人信息",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "获取个人信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetUserInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/list": {
+            "get": {
+                "description": "获取用户列表",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "获取用户列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户名",
+                        "name": "username",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "当前页",
+                        "name": "currentPage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "页大小",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "角色",
+                        "name": "role",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "组织",
+                        "name": "corporation",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetUserListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/login": {
+            "post": {
+                "description": "登录",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "登录",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户名",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "密码",
+                        "name": "password",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/logout": {
+            "post": {
+                "description": "退出登录",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "退出登录",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "accessToken",
+                        "name": "accessToken",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "refreshToken",
+                        "name": "refreshToken",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/refresh": {
+            "get": {
+                "description": "刷新accessToken",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "刷新accessToken",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer refreshToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.RefreshTokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/remove": {
+            "post": {
+                "description": "移除用户",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "移除用户",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "请求信息",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/update/email": {
+            "post": {
+                "description": "更新/绑定邮箱",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "更新/绑定邮箱",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "邮箱",
+                        "name": "email",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/update/info": {
+            "post": {
+                "description": "更新个人信息",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "更新个人信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "组织",
+                        "name": "corporation",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/update/password": {
+            "post": {
+                "description": "更新密码",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "更新密码",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateUserPasswordRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/update/phone": {
+            "post": {
+                "description": "更新/绑定手机号",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "更新/绑定手机号",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "手机号",
+                        "name": "phone",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "amconfig.DingTalkConfig": {
+            "type": "object",
+            "properties": {
+                "secret": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "amconfig.EmailConfig": {
             "type": "object",
             "properties": {
@@ -4020,7 +4581,7 @@ const docTemplate = `{
                 "dingTalkConfigs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.DingTalkConfig"
+                        "$ref": "#/definitions/amconfig.DingTalkConfig"
                     }
                 },
                 "emailConfigs": {
@@ -4321,7 +4882,7 @@ const docTemplate = `{
                 "timestamp": {
                     "type": "string"
                 },
-                "transactionId": {
+                "transactionIds": {
                     "type": "string"
                 }
             }
@@ -4353,8 +4914,14 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "pid": {
+                    "type": "integer"
+                },
                 "serviceName": {
                     "type": "string"
+                },
+                "tid": {
+                    "type": "integer"
                 },
                 "timestamp": {
                     "type": "integer"
@@ -4435,13 +5002,25 @@ const docTemplate = `{
                 }
             }
         },
-        "database.DingTalkConfig": {
+        "database.User": {
             "type": "object",
             "properties": {
-                "secret": {
+                "corporation": {
                     "type": "string"
                 },
-                "url": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -4818,6 +5397,9 @@ const docTemplate = `{
                     "description": "容器ID",
                     "type": "string"
                 },
+                "nodeIp": {
+                    "type": "string"
+                },
                 "nodeName": {
                     "description": "主机名",
                     "type": "string"
@@ -4909,6 +5491,9 @@ const docTemplate = `{
         "request.AddLogParseRequest": {
             "type": "object",
             "properties": {
+                "isStructured": {
+                    "type": "boolean"
+                },
                 "logTable": {
                     "$ref": "#/definitions/request.LogTable"
                 },
@@ -5620,17 +6205,6 @@ const docTemplate = `{
                 "PF_Flags"
             ]
         },
-        "request.QueryLogParseRequest": {
-            "type": "object",
-            "properties": {
-                "dataBase": {
-                    "type": "string"
-                },
-                "tableName": {
-                    "type": "string"
-                }
-            }
-        },
         "request.SetSingleTTLRequest": {
             "type": "object",
             "required": [
@@ -5740,6 +6314,9 @@ const docTemplate = `{
                 "dataBase": {
                     "type": "string"
                 },
+                "isStructured": {
+                    "type": "boolean"
+                },
                 "parseInfo": {
                     "type": "string"
                 },
@@ -5761,7 +6338,28 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "tableFields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.Field"
+                    }
+                },
                 "tableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateUserPasswordRequest": {
+            "type": "object",
+            "required": [
+                "newPassword",
+                "oldPassword"
+            ],
+            "properties": {
+                "newPassword": {
+                    "type": "string"
+                },
+                "oldPassword": {
                     "type": "string"
                 }
             }
@@ -6300,22 +6898,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.GetNamespaceInfoResponse": {
-            "type": "object",
-            "properties": {
-                "namespaceInfo": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.GetNamespaceListResponse": {
-            "type": "object",
-            "properties": {
-                "namespaceList": {
-                    "type": "string"
-                }
-            }
-        },
         "response.GetOnOffCPUResponse": {
             "type": "object",
             "properties": {
@@ -6324,22 +6906,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/clickhouse.ProfilingEvent"
                     }
-                }
-            }
-        },
-        "response.GetPodInfoResponse": {
-            "type": "object",
-            "properties": {
-                "podInfo": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.GetPodListResponse": {
-            "type": "object",
-            "properties": {
-                "podList": {
-                    "type": "string"
                 }
             }
         },
@@ -6444,14 +7010,6 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "response.GetSingleTraceInfoResponse": {
-            "type": "object",
-            "properties": {
-                "traceInfo": {
-                    "type": "string"
                 }
             }
         },
@@ -6562,6 +7120,52 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetUserInfoResponse": {
+            "type": "object",
+            "properties": {
+                "corporation": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetUserListResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "每页条数",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总记录数",
+                    "type": "integer"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.User"
+                    }
                 }
             }
         },
@@ -6792,6 +7396,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {},
+                "logFields": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
                 "tags": {
                     "type": "object",
                     "additionalProperties": true
@@ -6804,6 +7412,9 @@ const docTemplate = `{
         "response.LogParseResponse": {
             "type": "object",
             "properties": {
+                "isStructured": {
+                    "type": "boolean"
+                },
                 "parseInfo": {
                     "type": "string"
                 },
@@ -6823,6 +7434,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "type": "string"
+                    }
+                },
+                "tableFields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.Field"
                     }
                 }
             }
@@ -6910,6 +7527,19 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/response.Parse"
                     }
+                }
+            }
+        },
+        "response.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "description": "accessToken用于调用接口获取资源",
+                    "type": "string"
+                },
+                "refreshToken": {
+                    "description": "refreshToken用于刷新accessToken",
+                    "type": "string"
                 }
             }
         },
@@ -7083,6 +7713,15 @@ const docTemplate = `{
                 "weekOverDay": {
                     "description": "WeekOverDay 周同比变化率",
                     "type": "number"
+                }
+            }
+        },
+        "response.RefreshTokenResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "description": "accessToken用于调用接口获取资源",
+                    "type": "string"
                 }
             }
         },
