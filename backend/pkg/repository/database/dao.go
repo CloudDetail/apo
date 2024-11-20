@@ -31,6 +31,8 @@ type Repo interface {
 	UpdateDingTalkReceiver(dingTalkConfig *amconfig.DingTalkConfig, oldName string) error
 	DeleteDingTalkReceiver(configFile, alertName string) error
 
+	ListQuickAlertRuleMetric() ([]AlertMetricsData, error)
+
 	Login(username, password string) error
 	CreateUser(username, password string) error
 	UpdateUserPhone(username string, phone string) error
@@ -105,10 +107,18 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err = createAdmin(database); err != nil {
 		return nil, err
 	}
-	return &daoRepo{
+	daoRepo := &daoRepo{
 		db:    database,
 		sqlDB: sqlDb,
-	}, nil
+	}
+
+	// 检查并初始化预设快速告警规则指标表
+	err = daoRepo.InitPredefinedQuickAlertRuleMetric(databaseCfg.InitScript.QuickAlertRuleMetric)
+	if err != nil {
+		return nil, err
+	}
+
+	return daoRepo, nil
 }
 
 const adminUsername = "admin"

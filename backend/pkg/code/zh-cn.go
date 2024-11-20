@@ -91,6 +91,26 @@ var zhCnText = map[string]string{
 	AlertManagerEmptyReceiver:               "告警通知对象没有设置任何 webhook 或 email 配置",
 	AlertManagerDefaultReceiverCannotDelete: "默认告警通知对象不能被删除",
 
+	AlertEventImpactError:            "查询告警事件影响面失败",
+	AlertEventImpactMissingTag:       "查询告警事件影响面失败, 事件标签中未找到任意可关联标签组 ",
+	AlertEventImpactNoMatchedService: "查询告警事件影响面失败, 未找到告警事件匹配的服务 ",
+	AlertEventIDMissing:              "查询告警事件影响面失败, 搜索时间范围内未找到告警事件ID对应的事件 ",
+
+	AlertAnalyzeDescendantAnormalEventDeltaError: "分析告警事件失败: 查询下游异常事件失败",
+	GetAnomalySpanError:                          "获取故障报告失败",
+	GetDetectMutationExecListError:               "获取异常检测执行记录失败",
+	GetDetectMutationRuleListError:               "获取取异常检测规则失败",
+	GetQuickMutationMetricError:                  "获取预定义的快速异常检测指标失败",
+	GetMetricPQLError:                            "获取预定义的快速告警规则指标失败",
+
+	MutationPQLCheckFailed: "通过PQL检查指标突变失败",
+
+	AlertAnalyzeDescendantAnormalEventError:   "获取下游异常事件失败",
+	AlertAnalyzeDescendantAnormalContribution: "获取下游异常事件贡献失败",
+	DetectDefectsError:                        "异常分析失败",
+	DetectDefectsCreatAlertError:              "创建异常告警失败",
+	AddExecRecordError:                        "添加执行记录失败",
+
 	UserNotExistsError:         "用户不存在",
 	UserPasswordIncorrectError: "密码错误",
 	UserLoginError:             "登录失败",
