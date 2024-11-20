@@ -9,6 +9,7 @@ import { FaRegBell } from 'react-icons/fa'
 import { MdOutlineSettings } from 'react-icons/md'
 import { IoIosTrendingUp, IoMdCloudOutline } from 'react-icons/io'
 import { TbWaveSawTool } from 'react-icons/tb'
+import { GrSystem } from "react-icons/gr";
 const commercialNav = []
 const _nav = [
   { key: 'service', icon: <IoMdCloudOutline />, label: '服务概览', to: '/service' },
@@ -64,6 +65,14 @@ const _nav = [
     label: '配置中心',
     to: '/config',
   },
+  {
+    key:'manage',
+    icon: <GrSystem />,
+    label:'系统管理',
+    children: [
+      { key: 'userManage', label: '用户管理', to: '/user-manage' }
+    ],
+  }
 ]
 
 export { _nav, commercialNav }

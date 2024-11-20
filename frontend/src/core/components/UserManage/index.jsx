@@ -4,7 +4,8 @@ import { createUserApi, getUserListApi, removeUserApi } from "src/core/api/user"
 import { showToast } from "src/core/utils/toast";
 import { IoPersonAdd } from "react-icons/io5";
 import { useEffect, useState } from "react";
-import "../index.css"
+import "./index.css"
+
 export default function UserManage() {
     const [form] = Form.useForm()
     const [modalVisibility, setModalVisibility] = useState(false)
@@ -55,8 +56,8 @@ export default function UserManage() {
             await removeUserApi(params)
             await getUserList()
             showToast({
-                title:"移除用户成功",
-                color:"success"
+                title: "移除用户成功",
+                color: "success"
             })
         } catch (error) {
             showToast({
@@ -173,11 +174,8 @@ export default function UserManage() {
     }, [username, role, corporation, currentPage, pageSize])
 
     return (
-        <Flex vertical className="w-full pl-5">
-            <Flex className="mb-10">
-                <Divider orientation="left">用户管理</Divider>
-            </Flex>
-            <Flex className="mb-10">
+        <Flex vertical className="w-full mt-4">
+            <Flex className="mb-3">
                 <Flex className="w-full justify-between">
                     <Flex className="w-full">
                         <Flex className="w-auto items-center justify-start mr-5">
@@ -193,8 +191,9 @@ export default function UserManage() {
                             <Input placeholder="检索" className="w-40" value={corporation} onChange={(e) => setCorporation(e.target.value)} />
                         </Flex>
                     </Flex>
-                    <Flex className="w-full justify-end">
-                        <Button onClick={() => setModalVisibility(true)}><Tooltip title='新增用户'><IoPersonAdd className="w-6 h-6" /></Tooltip></Button>
+                    <Flex className="w-full justify-end items-center">
+                        <p className="mr-2 text-md">添加用户</p>
+                        <Button onClick={() => setModalVisibility(true)}><IoPersonAdd className="w-6 h-6" /></Button>
                     </Flex>
                 </Flex>
             </Flex>
@@ -203,7 +202,10 @@ export default function UserManage() {
                     components: {
                         Table: {
                             headerBg: "#222631",
-                            bodySortBg: "#222631"
+                            bodySortBg: "#222631",
+                            footerBg: "#222631",
+                            rowExpandedBg: "#222631",
+                            // colorBgContainer:"#222631"
                         }
                     }
                 }}
@@ -211,7 +213,7 @@ export default function UserManage() {
                 {
 
                     tableVisibility ?
-                        (<Flex vertical className={tableVisibility ? "w-11/12 flex" : "w-11/12 hidden"}>
+                        (<Flex vertical className={tableVisibility ? "w-full flex" : "w-full hidden"}>
                             <Table
                                 dataSource={userList}
                                 columns={columns}
