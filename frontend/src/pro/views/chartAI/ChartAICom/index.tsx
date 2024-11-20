@@ -9,6 +9,7 @@ import ConversationCom from './ConversationCom'
 import { getStep } from 'src/core/utils/step'
 import HintCom from './HintCom'
 import './index.css'
+import LoadingSpinner from 'src/core/components/Spinner'
 const ChartAICom = () => {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const { service, endpoint, anormalTypes } = useChartAIContext()
@@ -322,6 +323,7 @@ const ChartAICom = () => {
   }, [dialogue, isAutoScroll]) // 在消息更新时检查自动滚动状态
   return (
     <Card className="h-full overflow-hidden" classNames={{ body: 'p-0 h-full' }}>
+      <LoadingSpinner loading={!isDone && dialogue?.length === 0} />
       <div className="h-full w-full flex overflow-hidden flex-col">
         <div
           className="flex "
