@@ -23,9 +23,36 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 
 	filter := InstancesFilter{SrvName: serviceName, ContentKey: endPoint}
 	filters := filter.ExtractFilterStr()
-
-	// 获取RED指标
-	instances := s.InstanceRED(startTime, endTime, filters)
+	// 获取实例
+	instanceList, err := s.promRepo.GetInstanceList(startTime.UnixMicro(), endTime.UnixMicro(), serviceName, endPoint)
+	if err != nil {
+		return res, err
+	}
+	// 填充实例
+	var instances = &InstanceMap{
+		MetricGroupList: []*prometheus.InstanceMetrics{},
+		MetricGroupMap:  map[prometheus.InstanceKey]*prometheus.InstanceMetrics{},
+	}
+	for _, instance := range instanceList.InstanceMap {
+		key := prometheus.InstanceKey{
+			PID:         strconv.FormatInt(instance.Pid, 10),
+			ContainerId: instance.ContainerId,
+			Pod:         instance.PodName,
+			Namespace:   instance.Namespace,
+			NodeName:    instance.NodeName,
+			NodeIP:      instance.NodeIP,
+		}
+		metric := &prometheus.InstanceMetrics{
+			InstanceKey: key,
+		}
+		// 去重，pod类型实例会添加containerID，PID，pod三个但最终指向的instance是一样的
+		if _, ok := instances.MetricGroupMap[key]; !ok {
+			instances.MetricGroupMap[key] = metric
+			instances.MetricGroupList = append(instances.MetricGroupList, metric)
+		}
+	}
+	// 填充RED指标
+	s.InstanceRED(startTime, endTime, filters, instances)
 
 	// 填充图表数据
 	chartErr := s.InstanceRangeData(instances, startTime, endTime, step, filters)
@@ -64,9 +91,6 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 
 	for _, instance := range instances.MetricGroupList {
 		if len(instance.Pod) == 0 && len(instance.PID) == 0 && len(instance.ContainerId) == 0 {
-			continue
-		}
-		if instance.REDMetrics.Avg.Latency == nil {
 			continue
 		}
 
@@ -125,15 +149,37 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 			Value: instance.LogAVGData,
 		}
 		filters := ExtractLogFilter(instance.InstanceKey)
-		var normalLog []prometheus.MetricResult
+		var normalNowLog, normalDayLog, normalWeekLog []prometheus.MetricResult
 		if len(filters) > 0 {
-			normalLog = s.GetNormalLog(startTime, endTime, filters)
+			normalNowLog = s.GetNormalLog(startTime, endTime, filters, "")
+			normalDayLog = s.GetNormalLog(startTime, endTime, filters, "offset 24h")
+			normalWeekLog = s.GetNormalLog(startTime, endTime, filters, "offset 7d")
 		}
 
-		if logTempChartObject.Value == nil && normalLog != nil {
+		// 有正常数据，日志错误平均值应填充为0
+		if logTempChartObject.Value == nil && normalNowLog != nil {
 			zero := new(float64)
 			logTempChartObject.Value = zero
 		}
+
+		if logTempChartObject.Ratio.DayOverDay != nil && *logTempChartObject.Ratio.DayOverDay == prometheus.RES_MAX_VALUE && normalDayLog == nil {
+			// 昨天没有正常数据，同比应为nil
+			logTempChartObject.Ratio.DayOverDay = nil
+		} else if logTempChartObject.Ratio.DayOverDay != nil && logTempChartObject.Ratio.DayOverDay == nil && normalDayLog != nil && normalNowLog != nil {
+			// 有正常数据，同比应该为0
+			zero := new(float64)
+			logTempChartObject.Ratio.DayOverDay = zero
+		}
+
+		if logTempChartObject.Ratio.WeekOverDay != nil && *logTempChartObject.Ratio.WeekOverDay == prometheus.RES_MAX_VALUE && normalWeekLog == nil {
+			// 上周没有正常数据，同比应为nil
+			logTempChartObject.Ratio.WeekOverDay = nil
+		} else if logTempChartObject.Ratio.WeekOverDay != nil && logTempChartObject.Ratio.WeekOverDay == nil && normalWeekLog != nil && normalNowLog != nil {
+			// 有正常数据，同比应该为0
+			zero := new(float64)
+			logTempChartObject.Ratio.WeekOverDay = zero
+		}
+
 		if instance.LogData != nil {
 			logTempChartObject.ChartData = DataToChart(instance.LogData)
 		} else {
@@ -203,7 +249,6 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 }
 
 // DataToChart 将图表数据转为map
-// 可以复用
 func DataToChart(data []prometheus.Points) map[int64]float64 {
 	chart := make(map[int64]float64)
 	for _, item := range data {

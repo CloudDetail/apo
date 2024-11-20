@@ -4,6 +4,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
 type GetAlertRuleFileResponse struct {
@@ -27,7 +28,7 @@ type GetGroupListResponse struct {
 }
 
 type GetMetricPQLResponse struct {
-	AlertMetricsData []model.AlertMetricsData `json:"alertMetricsData"`
+	AlertMetricsData []database.AlertMetricsData `json:"alertMetricsData"`
 }
 
 type CheckAlertRuleResponse struct {

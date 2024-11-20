@@ -1,6 +1,9 @@
 package alerts
 
 import (
+	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
@@ -15,8 +18,15 @@ import (
 // @Router /api/alerts/rule/metrics [get]
 func (h *handler) GetMetricPQL() core.HandlerFunc {
 	return func(c core.Context) {
-		resp := h.alertService.GetMetricPQL()
-
+		resp, err := h.alertService.GetMetricPQL()
+		if err != nil {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.GetMetricPQLError,
+				code.Text(code.GetMetricPQLError)).WithError(err),
+			)
+			return
+		}
 		c.Payload(resp)
 	}
 }

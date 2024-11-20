@@ -85,5 +85,24 @@ var enText = map[string]string{
 	AlertManagerEmptyReceiver:               "alertManager receiver neither set webhook nor set email config",
 	AlertManagerDefaultReceiverCannotDelete: "alertManager default receiver cannot be deleted",
 
+	AlertEventImpactError:                        "Failed to get alert event impact",
+	AlertEventImpactMissingTag:                   "Failed to get alert event impact, event missing tag ",
+	AlertEventImpactNoMatchedService:             "Failed to get alert event impact, no matched service for event ",
+	AlertEventIDMissing:                          "Failed to get alert event impact, can not find event by id within the search time range.",
+	AlertAnalyzeDescendantAnormalEventDeltaError: "Failed to analyze descendant anormal event",
+	GetAnomalySpanError:                          "get anomaly span failed",
+	GetDetectMutationExecListError:               "Failed to get detect mutation exec list",
+	GetDetectMutationRuleListError:               "Failed to get detect mutation rule list",
+	GetQuickMutationMetricError:                  "Failed to get quick mutation metric",
+	GetMetricPQLError:                            "Failed to get quick alert rule metrics",
+
+	MutationPQLCheckFailed: "Failed to check mutation by PQL",
+
+	AlertAnalyzeDescendantAnormalEventError:   "Failed to analyze descendant anormal event",
+	AlertAnalyzeDescendantAnormalContribution: "Failed to analyze descendant anormal contribution",
+	DetectDefectsError:                        "Failed to detect defects",
+	DetectDefectsCreatAlertError:              "Failed to detect defects when create alert",
+	AddExecRecordError:                        "Failed to add exec record",
+
 	K8sGetResourceError: "Failed to get k8s resource",
 }

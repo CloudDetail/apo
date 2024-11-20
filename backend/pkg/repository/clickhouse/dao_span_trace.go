@@ -147,6 +147,8 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 
 	fieldSql := NewFieldBuilder().
 		Fields("trace_id").
+		Fields("pid").
+		Fields("tid").
 		Alias("toUnixTimestamp64Micro(timestamp)", "ts").
 		Alias("intDiv(duration, 1000)", "duration_us").
 		Alias("labels['content_key']", "endpoint").
@@ -206,6 +208,8 @@ type QueryTraceResult struct {
 	Timestamp   int64  `ch:"ts" json:"timestamp"`
 	Duration    uint64 `ch:"duration_us" json:"duration"`
 	ServiceName string `ch:"service_name" json:"serviceName"`
+	Pid         uint32 `ch:"pid" json:"pid"`
+	Tid         uint32 `ch:"tid" json:"tid"`
 	TraceId     string `ch:"trace_id" json:"traceId"`
 	EndPoint    string `ch:"endpoint" json:"endpoint"`
 	InstanceId  string `ch:"instance_id" json:"instanceId"`

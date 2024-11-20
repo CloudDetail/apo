@@ -14,7 +14,8 @@ import (
 // @Tags API.log
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.QueryLogParseRequest true "请求信息"
+// @Param dataBase query string true "数据库"
+// @Param tableName query string true "表"
 // @Success 200 {object} response.LogParseResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/log/rule/get [get]

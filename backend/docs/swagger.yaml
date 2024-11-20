@@ -677,6 +677,8 @@ definitions:
     type: object
   request.AddLogParseRequest:
     properties:
+      isStructured:
+        type: boolean
       logTable:
         $ref: '#/definitions/request.LogTable'
       parseInfo:
@@ -1165,13 +1167,6 @@ definitions:
     x-enum-varnames:
     - PF_Labels
     - PF_Flags
-  request.QueryLogParseRequest:
-    properties:
-      dataBase:
-        type: string
-      tableName:
-        type: string
-    type: object
   request.SetSingleTTLRequest:
     properties:
       day:
@@ -1247,6 +1242,8 @@ definitions:
     properties:
       dataBase:
         type: string
+      isStructured:
+        type: boolean
       parseInfo:
         type: string
       parseName:
@@ -1260,6 +1257,10 @@ definitions:
       serviceName:
         items:
           type: string
+        type: array
+      tableFields:
+        items:
+          $ref: '#/definitions/request.Field'
         type: array
       tableName:
         type: string
@@ -1626,32 +1627,12 @@ definitions:
           $ref: '#/definitions/response.MonitorStatus'
         type: array
     type: object
-  response.GetNamespaceInfoResponse:
-    properties:
-      namespaceInfo:
-        type: string
-    type: object
-  response.GetNamespaceListResponse:
-    properties:
-      namespaceList:
-        type: string
-    type: object
   response.GetOnOffCPUResponse:
     properties:
       profilingEvent:
         items:
           $ref: '#/definitions/clickhouse.ProfilingEvent'
         type: array
-    type: object
-  response.GetPodInfoResponse:
-    properties:
-      podInfo:
-        type: string
-    type: object
-  response.GetPodListResponse:
-    properties:
-      podList:
-        type: string
     type: object
   response.GetPolarisInferResponse:
     properties:
@@ -1718,11 +1699,6 @@ definitions:
         additionalProperties:
           type: string
         type: object
-    type: object
-  response.GetSingleTraceInfoResponse:
-    properties:
-      traceInfo:
-        type: string
     type: object
   response.GetTTLResponse:
     properties:
@@ -1949,6 +1925,9 @@ definitions:
   response.LogItem:
     properties:
       content: {}
+      logFields:
+        additionalProperties: true
+        type: object
       tags:
         additionalProperties: true
         type: object
@@ -1970,6 +1949,10 @@ definitions:
       serviceName:
         items:
           type: string
+        type: array
+      tableFields:
+        items:
+          $ref: '#/definitions/request.Field'
         type: array
     type: object
   response.LogQueryContextResponse:
@@ -2764,9 +2747,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
-            $ref: '#/definitions/response.GetNamespaceInfoResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -2783,9 +2766,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
-            $ref: '#/definitions/response.GetNamespaceListResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -2813,9 +2796,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
-            $ref: '#/definitions/response.GetPodInfoResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -2838,9 +2821,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
-            $ref: '#/definitions/response.GetPodListResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -3164,12 +3147,16 @@ paths:
       - application/x-www-form-urlencoded
       description: 获取日志表解析规则
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
+      - description: 数据库
+        in: query
+        name: dataBase
         required: true
-        schema:
-          $ref: '#/definitions/request.QueryLogParseRequest'
+        type: string
+      - description: 表
+        in: query
+        name: tableName
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -4783,7 +4770,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.GetSingleTraceInfoResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
