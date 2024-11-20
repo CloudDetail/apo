@@ -6,7 +6,6 @@ import { useEffect, useState } from "react"
 
 export default function UserInfo() {
     const [form] = Form.useForm()
-    const [username, setUsername] = useState("")
 
     async function getUserInfo() {
         try {
@@ -14,7 +13,7 @@ export default function UserInfo() {
             form.setFieldValue("email", result.email)
             form.setFieldValue("phone", result.phone)
             form.setFieldValue("corporation", result.corporation == 'undefined' ? "" : result.corporation)
-            setUsername(result.username)
+            localStorage.setItem("user",JSON.stringify(result))
         } catch (error) {
             showToast({
                 title: error,
@@ -24,7 +23,12 @@ export default function UserInfo() {
     }
 
     useEffect(() => {
-        getUserInfo()
+        const user = JSON.parse(localStorage.getItem("user"))
+        if(user){
+            form.setFieldValue("email", user.email)
+            form.setFieldValue("phone", user.phone)
+            form.setFieldValue("corporation", user.corporation == 'undefined' ? "" : user.corporation)
+        }
     }, [])
 
     //更新邮箱
@@ -57,7 +61,6 @@ export default function UserInfo() {
             .then(() => {
                 getUserInfo()
             })
-
     }
 
     //修改手机号
@@ -79,7 +82,7 @@ export default function UserInfo() {
     return (
         <Flex vertical className="w-full flex-wrap">
             <Flex vertical className="mb-10">
-                <Divider orientation="left">个人信息: {username}</Divider>
+                <Divider orientation="left">个人信息</Divider>
             </Flex>
             <Flex vertical className="w-2/3">
                 <Flex vertical justify="start" className="w-full">
