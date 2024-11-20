@@ -6,16 +6,29 @@ import { FaCircleArrowUp } from 'react-icons/fa6'
 interface ChartInputProps {
   addChart: any
   loading: boolean
+  closeStream: any
 }
-const ChartInput = ({ addChart, loading }: ChartInputProps) => {
+const ChartInput = ({ addChart, loading, closeStream }: ChartInputProps) => {
   const [question, setQuestion] = useState<string>('')
   const textareaRef = useRef(null)
   const askQuestion = (e: any) => {
-    e.preventDefault()
     if (question && !loading) {
       addChart(question)
       setQuestion('')
     }
+  }
+  const changeQueationValue = (e: any) => {
+    if (!loading && e.target.value !== '\n') {
+      setQuestion(e.target.value)
+    }
+
+    // if (question && !loading) {
+    //   addChart(question)
+    //   setQuestion('')
+    //   requestAnimationFrame(() => {
+    //     e.preventDefault()
+    //   })
+    // }
   }
   return (
     <div className="w-full  min-h-[80px] rounded-lg  text-center left-0 flex items-center justify-center ">
@@ -41,7 +54,7 @@ const ChartInput = ({ addChart, loading }: ChartInputProps) => {
             style={{ background: '#2f2f2f ' }}
             placeholder="对话大模型"
             value={question}
-            onChange={(e) => setQuestion(e.target.value)}
+            onChange={(e) => changeQueationValue(e)}
             onPressEnter={(e) => askQuestion(e)}
             rows={1}
           ></Input.TextArea>
@@ -52,7 +65,7 @@ const ChartInput = ({ addChart, loading }: ChartInputProps) => {
             shape="circle"
             className="mr-2  "
             icon={<FaRegStopCircle size={24} />}
-            disabled
+            onClick={() => closeStream()}
           ></Button>
         ) : (
           <Button
@@ -60,7 +73,7 @@ const ChartInput = ({ addChart, loading }: ChartInputProps) => {
             shape="circle"
             className="mr-2  "
             icon={<FaCircleArrowUp size={24} />}
-            onClick={askQuestion}
+            onClick={(e) => askQuestion(e)}
           ></Button>
         )}
       </div>

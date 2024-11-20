@@ -1,13 +1,19 @@
 import { marked } from 'marked'
 import { RiRobot2Line } from 'react-icons/ri'
 import 'github-markdown-css/github-markdown-dark.css'
+import { CSpinner } from '@coreui/react'
+
+// import remarkMath from 'remark-math'
 interface AIMessageProps {
   message: string
+  loading: boolean
 }
 
-const AIMessage: React.FC<AIMessageProps> = ({ message }) => {
+const AIMessage: React.FC<AIMessageProps> = ({ message, loading }) => {
   const renderMarkdown = () => {
-    return { __html: marked(message) }
+    return {
+      __html: marked(message),
+    }
   }
 
   return (
@@ -23,11 +29,14 @@ const AIMessage: React.FC<AIMessageProps> = ({ message }) => {
         <RiRobot2Line size={24} />
       </div>
       <div className="overflow-hidden">
-        <div
-          dangerouslySetInnerHTML={renderMarkdown()}
-          className="p-3 markdown-body rounded-2xl "
-          style={{ fontSize: 14, background: '#3e3f4c', minHeight: 0 }}
-        />
+        {message?.length > 0 && (
+          <div
+            dangerouslySetInnerHTML={renderMarkdown()}
+            className={`p-3 markdown-body rounded-2xl ${loading ? 'loading' : ''}`}
+            style={{ fontSize: 14, background: '#3e3f4c', minHeight: 0 }}
+          />
+        )}
+        {loading && message?.length === 0 && <CSpinner variant="grow" />}
       </div>
     </div>
   )

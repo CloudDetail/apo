@@ -1,15 +1,17 @@
 import { marked } from 'marked'
 import 'github-markdown-css/github-markdown-dark.css'
-import { Button } from 'antd'
+import { Button, Image } from 'antd'
 import { downloadFileApi } from 'src/pro/api/chartAI'
 import { LuPaperclip } from 'react-icons/lu'
 import { FaRegUser } from 'react-icons/fa'
+import { useEffect, useState } from 'react'
 interface HumanMessageProps {
   message: string
   fileList: string[]
+  img?: any
 }
 
-const HumanMessage: React.FC<HumanMessageProps> = ({ message, fileList }) => {
+const HumanMessage: React.FC<HumanMessageProps> = ({ message, fileList, img }) => {
   const renderMarkdown = () => {
     return { __html: marked(message) }
   }
@@ -66,6 +68,9 @@ const HumanMessage: React.FC<HumanMessageProps> = ({ message, fileList }) => {
           style={{ background: '#2f2f2f', fontSize: 14, minHeight: 0 }}
         />
         <div className="text-right ">
+          {img?.inferMetricsPng && (
+            <Image src={'data:image/png;base64,' + img.inferMetricsPng} alt={img.inferCause} />
+          )}
           {fileList.map((file) => (
             <Button type="text" onClick={() => downloadFile(file)}>
               <LuPaperclip color="#fff" />

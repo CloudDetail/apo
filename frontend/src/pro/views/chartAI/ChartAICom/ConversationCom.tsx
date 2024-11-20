@@ -9,6 +9,8 @@ interface CnversationData {
   message: string
   role: string
   fileList: string[]
+  showTyping?: boolean
+  img?: any
 }
 
 interface DialogueData {
@@ -25,11 +27,15 @@ const ConversationCom = ({ dialogue, index, loading }: ConversationComProps) => 
     <>
       <div className="flex ">
         <div className="w-2/3 flex-grow-0 flex-shrink-0">
-          {dialogue.conversation?.map((item) => {
+          {dialogue?.conversation?.map((item) => {
             return item.role === 'ai' ? (
               <AIMessage message={item.message || ''} loading={loading} />
             ) : (
-              <HumanMessage message={item.message || ''} fileList={item.fileList || []} />
+              <HumanMessage
+                message={item.message || ''}
+                fileList={item.fileList || []}
+                img={item?.img || null}
+              />
             )
           })}
         </div>
