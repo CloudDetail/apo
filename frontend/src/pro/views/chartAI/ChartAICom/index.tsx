@@ -157,6 +157,7 @@ const ChartAICom = () => {
           console.log(parsedData)
           if (parsedData?.content || parsedData?.reportUrlList) {
             if (parsedData.role === 'ai') {
+              console.log('ai的index:', index)
               setDialogue((prev) => {
                 const updatedDialogue = [...prev]
                 updatedDialogue[index].conversation[1] = {
@@ -176,6 +177,7 @@ const ChartAICom = () => {
               // 暂停流处理
               isPaused = true
               index = await typeMessage(parsedData, index, setDialogue)
+              console.log('human结束后的index:', index)
               isPaused = false // 恢复流处理
               processChunk() // 继续处理流
             }
