@@ -115,6 +115,49 @@ const AppHeader = ({ type = 'default' }) => {
     };
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (toolBoxRef.current && !toolBoxRef.current.contains(event.target) &&
+        buttonRef.current && !buttonRef.current.contains(event.target)) {
+        setToolVisibal(false)
+      }
+    }
+
+    // 监听点击事件
+    document.addEventListener('click', handleClickOutside)
+
+    // 清理事件监听器
+    return () => {
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [])
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          const user = JSON.parse(localStorage.getItem("user"))
+          if (user) {
+            setUsername(user.username)
+          } else {
+            setUsername("获取用户信息失败")
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (headerRef.current) {
+      observer.observe(headerRef.current);
+    }
+
+    return () => {
+      if (headerRef.current) {
+        observer.unobserve(headerRef.current);
+      }
+    };
+  }, []);
+
   const vars = {
     borderBottom: 0,
     zIndex: 998,

@@ -144,6 +144,7 @@ require (
 )
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572
 	github.com/prometheus/alertmanager v0.27.0
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c

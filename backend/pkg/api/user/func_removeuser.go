@@ -1,4 +1,4 @@
-package k8s
+package user
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -8,20 +8,20 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// GetPodInfo 获取pod信息
-// @Summary 获取pod信息
-// @Description 获取pod信息
-// @Tags API.k8s
+// RemoveUser 移除用户
+// @Summary 移除用户
+// @Description 移除用户
+// @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param namespace query string true "namespace名"
-// @Param pod query string true "pod名"
-// @Success 200 {object} string
+// @Param Authorization header string true "Bearer accessToken"
+// @Param username query string true "请求信息"
+// @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/k8s/pod/info [get]
-func (h *handler) GetPodInfo() core.HandlerFunc {
+// @Router /api/user/remove [post]
+func (h *handler) RemoveUser() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.GetPodInfoRequest)
+		req := new(request.RemoveUserRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -31,14 +31,14 @@ func (h *handler) GetPodInfo() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.k8sService.GetPodInfo(req)
-		if err != nil {
+		if err := h.userService.RemoveUser(req.Username); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.K8sGetResourceError,
-				code.Text(code.K8sGetResourceError)).WithError(err))
+				code.RemoveUserError,
+				code.Text(code.RemoveUserError)).WithError(err),
+			)
 			return
 		}
-		c.Payload(resp)
+		c.Payload("ok")
 	}
 }
