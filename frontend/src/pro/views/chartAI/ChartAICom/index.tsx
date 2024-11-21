@@ -136,7 +136,9 @@ const ChartAICom = () => {
         buffer += value // 将新读取的数据追加到缓冲区
         // 按 `\n\ndata:` 分割数据
         const parts = buffer.split('\n\ndata:')
-        parts?.forEach(async (part, pIndex) => {
+        isPaused = true
+
+        for (const [pIndex, part] of parts.entries()) {
           let newPart = pIndex === 0 ? `${part}` : `data:${part}`
           const match = newPart.match(/data: (.+)/)
           if (!match) {
@@ -172,19 +174,14 @@ const ChartAICom = () => {
                 }
                 return updatedDialogue
               })
-              processChunk() // 继续处理流
             } else if (parsedData.role === 'human') {
               // 暂停流处理
-              isPaused = true
               index = await typeMessage(parsedData, index, setDialogue)
               console.log('human结束后的index:', index)
-              isPaused = false // 恢复流处理
-              processChunk() // 继续处理流
             }
-          } else {
-            processChunk() // 没有内容则继续处理
           }
-        })
+        }
+        isPaused = false
         processChunk()
       } catch (error) {
         console.error('流读取失败:', error)
