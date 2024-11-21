@@ -13,7 +13,7 @@ export default function UserInfo() {
             form.setFieldValue("email", result.email)
             form.setFieldValue("phone", result.phone)
             form.setFieldValue("corporation", result.corporation == 'undefined' ? "" : result.corporation)
-            localStorage.setItem("user",JSON.stringify(result))
+            localStorage.setItem("user", JSON.stringify(result))
         } catch (error) {
             showToast({
                 title: error,
@@ -24,7 +24,7 @@ export default function UserInfo() {
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem("user"))
-        if(user){
+        if (user) {
             form.setFieldValue("email", user.email)
             form.setFieldValue("phone", user.phone)
             form.setFieldValue("corporation", user.corporation == 'undefined' ? "" : user.corporation)
@@ -81,16 +81,13 @@ export default function UserInfo() {
 
     return (
         <Flex vertical className="w-full flex-wrap">
-            <Flex vertical className="mb-10">
-                <Divider orientation="left">个人信息</Divider>
-            </Flex>
             <Flex vertical className="w-2/3">
                 <Flex vertical justify="start" className="w-full">
-                    <Form form={form} requiredMark={false}>
+                    <Form form={form} requiredMark={true} layout="vertical">
                         <Flex className="flex flex-col justify-between">
-                            <Flex>
+                            <Flex className="flex items-center">
                                 <Form.Item
-                                    label="邮&#12288;件"
+                                    label={<p className="text-base">邮件</p>}
                                     name="email"
                                     rules={[
                                         {
@@ -103,53 +100,53 @@ export default function UserInfo() {
                                         }
                                     ]}
                                 >
-                                    <Input placeholder="请输入邮箱" prefix={<MailOutlined />} className="w-60" />
+                                    <Input placeholder="请输入邮箱" className="w-80 h-10" />
                                 </Form.Item>
                                 <Popconfirm
                                     title="确定要修改邮箱吗"
                                     okText="确定"
                                     onConfirm={updateEmail}
                                 >
-                                    <Button type="link">修改邮箱</Button>
+                                    <Button type="link" className="text-base">修改邮箱</Button>
                                 </Popconfirm>
                             </Flex>
                         </Flex>
                         <Flex className="flex flex-col justify-betwwen w-full">
-                            <Flex>
+                            <Flex className="flex items-center">
                                 <Form.Item
-                                    label="手机号"
+                                    label={<p className="text-base">手机号</p>}
                                     name="phone"
                                     rules={[
                                         { required: true, message: '请输入手机号' },
                                         { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' }
                                     ]}
                                 >
-                                    <Input placeholder="请输入手机号" prefix={<PhoneOutlined />} className="w-60" />
+                                    <Input placeholder="请输入手机号" className="w-80 h-10" />
                                 </Form.Item>
                                 <Popconfirm
                                     title="确定要修改手机号吗"
                                     okText="确定"
                                     onConfirm={updatePhone}
                                 >
-                                    <Button type="link">修改手机号</Button>
+                                    <Button type="link" className="text-base">修改手机号</Button>
                                 </Popconfirm>
                             </Flex>
                         </Flex>
 
                         <Flex className="flex flex-col justify-betwwen">
-                            <Flex >
+                            <Flex className="flex items-center">
                                 <Form.Item
-                                    label="组&#12288;织"
+                                    label={<p className="text-base">组织</p>}
                                     name="corporation"
                                 >
-                                    <Input placeholder="请输入组织名" prefix={<ApartmentOutlined />} className="w-60" />
+                                    <Input placeholder="请输入组织名" className="w-80 h-10" />
                                 </Form.Item>
                                 <Popconfirm
                                     title="确定要修改组织吗"
                                     okText="确定"
                                     onConfirm={updateCorporation}
                                 >
-                                    <Button type="link">修改组织</Button>
+                                    <Button type="link" className="text-base">修改组织</Button>
                                 </Popconfirm>
                             </Flex>
                         </Flex>

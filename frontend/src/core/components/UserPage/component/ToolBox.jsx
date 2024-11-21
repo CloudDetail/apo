@@ -37,10 +37,7 @@ const ToolBox = forwardRef((props, ref) => {
 
     return (
         <>
-            <Flex ref={ref} vertical className={visiable ? "flex items-center absolute top-10 right-2 w-36 rounded-lg bg-[#171A21] pt-3 pb-3 z-50" : "hidden"} onClick={(e) => {
-                setVisiable(false)
-                e.stopPropagation()
-            }}>
+            <Flex ref={ref} vertical className={visiable ? "flex items-center absolute top-10 right-0.5 w-36 rounded-lg bg-[#171A21] pt-3 pb-3 z-50" : "hidden"} >
                 <Flex vertical className="justify-center items-center w-full h-9 hover:bg-[#292E3B]" onClick={() => navigate('/user')}>
                     <Flex className="w-2/3 justify-around p-2">
                         <UserOutlined className="text-md" />
