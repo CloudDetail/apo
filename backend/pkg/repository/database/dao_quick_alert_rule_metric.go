@@ -27,7 +27,13 @@ func (repo *daoRepo) InitPredefinedQuickAlertRuleMetric(sqlScript string) error 
 	if err := repo.db.AutoMigrate(&AlertMetricsData{}); err != nil {
 		return err
 	}
-
+	var count int64
+	if err := repo.db.Model(&AlertMetricsData{}).Count(&count).Error; err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
 	if sqlScript == "" {
 		// 默认的初始化脚本
 		sqlScript = "./sqlscripts/default_quick_alert_rule_metric.sql"
