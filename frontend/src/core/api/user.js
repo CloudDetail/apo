@@ -32,8 +32,8 @@ const getUserInfoApi = () => {
     return get(`api/user/info`)
 }
 
-const getUserListApi = (params) => {
-    return get(`/api/user/list?currentPage=${params.currentPage}&pageSize=${params.pageSize}&username=${params.username}&role=${params.role}&corporation=${params.corporation}`)
+const getUserListApi = (params,signal) => {
+    return get(`/api/user/list?currentPage=${params.currentPage}&pageSize=${params.pageSize}&username=${params.username}&role=${params.role}&corporation=${params.corporation}`,{signal})
 }
 
 const removeUserApi = (params) => {

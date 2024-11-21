@@ -1,11 +1,13 @@
 import { Form, Input, Popconfirm, Button, Flex, Divider } from "antd"
 import { showToast } from "src/core/utils/toast"
-import { updatePasswordApi } from "src/core/api/user"
+import { logoutApi, updatePasswordApi } from "src/core/api/user"
 import { LockOutlined } from "@ant-design/icons"
+import { useNavigate } from "react-router-dom"
 
 
 export default function UpdatePassword() {
     const [form] = Form.useForm()
+    const navigate = useNavigate();
 
     //更新密码
     function updatePassword() {
@@ -20,11 +22,19 @@ export default function UpdatePassword() {
                         return
                     }
                     await updatePasswordApi(values)
+                    form.resetFields(['oldPassword', 'newPassword', 'newPasswordAgain'])
+                    const params = {
+                        accessToken: localStorage.getItem("token"),
+                        refreshToken: localStorage.getItem("refreshToken")
+                    }
+                    await logoutApi(params)
+                    localStorage.removeItem("token")
+                    localStorage.removeItem("refreshToken")
+                    navigate("/login")
                     showToast({
-                        title: '密码重设成功',
+                        title: '密码重设成功,请重新登录',
                         color: 'success'
                     })
-                    form.resetFields(['oldPassword', 'newPassword'])
                 } catch (error) {
                     console.log(error.response.data.code)
                     if (error.response.data.code) {
@@ -44,34 +54,34 @@ export default function UpdatePassword() {
                     <Flex vertical justify="start">
                         <Form form={form} requiredMark={true} layout="vertical">
                             <Form.Item
-                                label={<p className="text-base">旧密码</p>}
+                                label={<p className="text-md">旧密码</p>}
                                 name="oldPassword"
                                 validateTrigger={false}
                                 rules={[
                                     { required: true, message: '请输入旧密码' }
                                 ]}
                             >
-                                <Input.Password placeholder="请输入旧密码" type="password" className="w-80 h-10" />
+                                <Input.Password placeholder="请输入旧密码" type="password" className="w-80" />
                             </Form.Item>
                             <Form.Item
-                                label={<p className="text-base">新密码</p>}
+                                label={<p className="text-md">新密码</p>}
                                 name="newPassword"
                                 validateTrigger={false}
                                 rules={[
                                     { required: true, message: '请输入新密码' }
                                 ]}
                             >
-                                <Input.Password placeholder="请输入新密码" type="password" className="w-80 h-10" />
+                                <Input.Password placeholder="请输入新密码" type="password" className="w-80" />
                             </Form.Item>
                             <Form.Item
-                                label={<p className="text-base">确认新密码</p>}
+                                label={<p className="text-md">确认新密码</p>}
                                 name="newPasswordAgain"
                                 validateTrigger={false}
                                 rules={[
                                     { required: true, message: '请再次输入新密码' }
                                 ]}
                             >
-                                <Input.Password placeholder="请输入新密码" type="password" className="w-80 h-10" />
+                                <Input.Password placeholder="请输入新密码" type="password" className="w-80" />
                             </Form.Item>
                             <div className="w-auto flex justify-start">
                                 <Popconfirm
@@ -79,7 +89,7 @@ export default function UpdatePassword() {
                                     okText="确定"
                                     onConfirm={updatePassword}
                                 >
-                                    <Button className="text-base">修改密码</Button>
+                                    <Button className="text-md">修改密码</Button>
                                 </Popconfirm>
                             </div>
                         </Form>

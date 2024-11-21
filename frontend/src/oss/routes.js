@@ -39,6 +39,6 @@ const ossRoutes = [
   { path: '/alerts', name: '告警规则', element: Alerts, hideSystemTimeRangePicker: true },
   { path: '/config', name: '配置中心', element: ConfigPage, hideSystemTimeRangePicker: true },
   { path: '/user', name: '个人中心', element: UserPage },
-  { path: '/user-manage', name: '用户管理', element: UserManage }
+  { path: '/system/user-manage', name: '用户管理', element: UserManage }
 ]
 export default ossRoutes

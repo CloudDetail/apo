@@ -87,7 +87,7 @@ export default function UserInfo() {
                         <Flex className="flex flex-col justify-between">
                             <Flex className="flex items-center">
                                 <Form.Item
-                                    label={<p className="text-base">邮件</p>}
+                                    label={<p className="text-md">邮件</p>}
                                     name="email"
                                     rules={[
                                         {
@@ -100,35 +100,35 @@ export default function UserInfo() {
                                         }
                                     ]}
                                 >
-                                    <Input placeholder="请输入邮箱" className="w-80 h-10" />
+                                    <Input placeholder="请输入邮箱" className="w-80" />
                                 </Form.Item>
                                 <Popconfirm
                                     title="确定要修改邮箱吗"
                                     okText="确定"
                                     onConfirm={updateEmail}
                                 >
-                                    <Button type="link" className="text-base">修改邮箱</Button>
+                                    <Button type="link" className="text-md">修改邮箱</Button>
                                 </Popconfirm>
                             </Flex>
                         </Flex>
                         <Flex className="flex flex-col justify-betwwen w-full">
                             <Flex className="flex items-center">
                                 <Form.Item
-                                    label={<p className="text-base">手机号</p>}
+                                    label={<p className="text-md">手机号</p>}
                                     name="phone"
                                     rules={[
                                         { required: true, message: '请输入手机号' },
                                         { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' }
                                     ]}
                                 >
-                                    <Input placeholder="请输入手机号" className="w-80 h-10" />
+                                    <Input placeholder="请输入手机号" className="w-80" />
                                 </Form.Item>
                                 <Popconfirm
                                     title="确定要修改手机号吗"
                                     okText="确定"
                                     onConfirm={updatePhone}
                                 >
-                                    <Button type="link" className="text-base">修改手机号</Button>
+                                    <Button type="link" className="text-md">修改手机号</Button>
                                 </Popconfirm>
                             </Flex>
                         </Flex>
@@ -136,17 +136,17 @@ export default function UserInfo() {
                         <Flex className="flex flex-col justify-betwwen">
                             <Flex className="flex items-center">
                                 <Form.Item
-                                    label={<p className="text-base">组织</p>}
+                                    label={<p className="text-md">组织</p>}
                                     name="corporation"
                                 >
-                                    <Input placeholder="请输入组织名" className="w-80 h-10" />
+                                    <Input placeholder="请输入组织名" className="w-80" />
                                 </Form.Item>
                                 <Popconfirm
                                     title="确定要修改组织吗"
                                     okText="确定"
                                     onConfirm={updateCorporation}
                                 >
-                                    <Button type="link" className="text-base">修改组织</Button>
+                                    <Button type="link" className="text-md">修改组织</Button>
                                 </Popconfirm>
                             </Flex>
                         </Flex>

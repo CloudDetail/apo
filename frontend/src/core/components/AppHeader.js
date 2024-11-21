@@ -189,53 +189,30 @@ const AppHeader = ({ type = 'default' }) => {
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
         </CHeaderNav>
-        <ConfigProvider
-          theme={{
-            components: {
-              Button: {
-                defaultHoverBg: '#30333C',
-                defaultBg: '#1E222B',
-                defaultBorderColor: 'transparent',
-                defaultHoverBorderColor: 'transparent',
-                defaultActiveBorderColor: 'transparent',
-                defaultActiveBg: '#1E222B',
-                defaultHoverColor: 'none',
-                defaultShadow: 'none',
-                defaultActiveColor: 'none',
-              },
-            },
+        <div
+          className="relative flex items-center select-none w-auto pl-2 pr-2 mr-2 rounded-md hover:bg-[#30333C] cursor-pointer"
+          ref={buttonRef}
+          onMouseEnter={() => {
+            clearTimeout(buttonRef.current?.hideTimer);
+            buttonRef.current.showTimer = setTimeout(() => {
+              setToolVisibal(true);
+            }, 100); // 延时显示
+          }}
+          onMouseLeave={() => {
+            clearTimeout(buttonRef.current?.showTimer);
+            buttonRef.current.hideTimer = setTimeout(() => {
+              setToolVisibal(false);
+            }, 300); // 延时隐藏
           }}
         >
-          <div
-            className="relative flex items-center select-none w-20 mr-2 rounded-md hover:bg-[#30333C]"
-            ref={buttonRef}
-            onMouseEnter={() => {
-              clearTimeout(buttonRef.current?.hideTimer);
-              buttonRef.current.showTimer = setTimeout(() => {
-                setToolVisibal(true);
-              }, 100); // 延时显示
-            }}
-            onMouseLeave={() => {
-              clearTimeout(buttonRef.current?.showTimer);
-              buttonRef.current.hideTimer = setTimeout(() => {
-                setToolVisibal(false);
-              }, 300); // 延时隐藏
-            }}
-          >
-            <div>
-              <HiUserCircle className="w-8 h-8" />
-            </div>
-            <div className="h-1/2 flex flex-col justify-start">
-              <p className="text-base relative -top-0.5">{username}</p>
-            </div>
-            {toolVisibal ? (
-              <RxTriangleDown className="ml-1 mr-4" />
-            ) : (
-              <RxTriangleLeft className="ml-1 mr-4" />
-            )}
-            <ToolBox visiable={toolVisibal} setVisiable={setToolVisibal} ref={toolBoxRef} />
+          <div>
+            <HiUserCircle className="w-8 h-8" />
           </div>
-        </ConfigProvider>
+          <div className="h-1/2 flex flex-col justify-start">
+            <p className="text-base relative -top-0.5">{username}</p>
+          </div>
+          <ToolBox visiable={toolVisibal} setVisiable={setToolVisibal} ref={toolBoxRef} />
+        </div>
       </div>
     </CHeader>
   );
