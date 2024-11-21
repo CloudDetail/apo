@@ -63,4 +63,4 @@ INSERT INTO quick_alert_rule_metric (name,pql,unit,"group") VALUES
 	 ('容器当前运行的进程数','container_processes{image!="", image!~".*pause.*"}','number','container'),
 	 ('容器正在使用的 GPU 加速卡内存量','container_accelerator_memory_used_bytes','byte','container'),
 	 ('容器总 GPU 加速卡可用内存量','container_accelerator_memory_total_bytes','byte','container'),
-     ('容器指标丢失时常', '(time() - last_over_time(container_last_seen{namespace!~"apo|deepflow|originx"}[5m])) * on (node_name) group_left () (up{job="integrations/kubernetes/cadvisor"})','s', 'container');
+	 ('容器指标丢失时长', '(time() - last_over_time(container_last_seen{namespace!~"apo|deepflow|originx"}[5m])) * on (node_name) group_left () (up{job="integrations/kubernetes/cadvisor"})','s', 'container');
