@@ -6,14 +6,6 @@ const AnormalTypeFilter = () => {
   const { anormalTypes, setAnormalTypes, anormalTypesOptions } = useAlertAnalyzeContext()
   return (
     <Flex vertical>
-      <p
-        style={{
-          marginBottom: '45px',
-          fontSize: '15px',
-        }}
-      >
-        告警和异常总数
-      </p>
       <Checkbox.Group
         style={{ width: '100%' }}
         value={anormalTypes}

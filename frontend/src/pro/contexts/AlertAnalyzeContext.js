@@ -99,6 +99,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
     'infra',
     'network',
     'error',
+    'appInstance',
   ])
   const [timeLineChartData, setTimeLineChartData] = useState([])
   //当前的拓扑图节点信息map
@@ -131,7 +132,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
     {
       value: 'app',
       key: 1,
-      label: '应用异常类型',
+      label: '应用接口异常类型',
     },
     {
       value: 'container',
@@ -152,6 +153,11 @@ export const AlertAnalyzeProvider = ({ children }) => {
       value: 'error',
       key: 5,
       label: 'JAVA Exception',
+    },
+    {
+      value: 'appInstance',
+      key: 6,
+      label: '应用实例异常类型',
     },
   ]
 

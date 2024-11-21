@@ -26,7 +26,7 @@ export const ChartAIProvider: React.FC<{ children: ReactNode }> = ({ children })
     () => ({
       service,
       endpoint,
-      anormalTypes: ['app', 'container', 'infra', 'network', 'error'],
+      anormalTypes: ['app', 'container', 'infra', 'network', 'error', 'appInstance'],
     }),
     [service, endpoint],
   )

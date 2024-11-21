@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import TopologyCom from './Topology'
 import AnormalTypeFilter from './AnormalTypeFilter'
 import TimeLineChart from './TimeLineChart'
-import { Card, Modal, Splitter } from 'antd'
+import { Card, Divider, Modal, Splitter } from 'antd'
 import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
 import NodeInfo from './NodeInfo'
 import PlayDelta from './PlayDelta'
@@ -42,14 +42,19 @@ const DescendantTopology = () => {
           </Splitter.Panel>
           <Splitter.Panel className="h-full overflow-auto flex flex-col">
             <div className="flex-grow-0 flex-shrink-0 overflow-hidden">
-              <div className="bg-[#2a3042] rounded p-2 m-2 flex flex-row overflow-hidden ">
-                <div className="flex-grow flex-shrink w-[400px]">
-                  <TimeLineChart rightWidth={rightWidth} />
-                </div>
-                <div className="h-full flex flex-col justify-between w-[250px]">
-                  <AnormalTypeFilter />
+              <div className="bg-[#2a3042] rounded p-2 m-2">
+                <div className=" text-base font-bold flex items-center pl-1">告警和异常总数</div>
+                <Divider className="m-2" />
+                <div className=" flex flex-row overflow-hidden ">
+                  <div className="flex-grow flex-shrink w-[400px]">
+                    <TimeLineChart rightWidth={rightWidth} />
+                  </div>
+                  <div className="h-full flex flex-col justify-between w-[250px]">
+                    <AnormalTypeFilter />
+                  </div>
                 </div>
               </div>
+
               <div
                 style={{
                   display: 'flex',
