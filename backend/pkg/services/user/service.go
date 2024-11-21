@@ -14,13 +14,13 @@ type Service interface {
 	Logout(req *request.LogoutRequest) error
 	CreateUser(req *request.CreateUserRequest) error
 	RefreshToken(token string) (response.RefreshTokenResponse, error)
-	UpdateUserInfo(username string, req *request.UpdateUserInfoRequest) error
-	UpdateUserPhone(username string, req *request.UpdateUserPhoneRequest) error
-	UpdateUserEmail(username string, req *request.UpdateUserEmailRequest) error
-	UpdateUserPassword(username string, req *request.UpdateUserPasswordRequest) error
+	UpdateUserInfo(req *request.UpdateUserInfoRequest) error
+	UpdateUserPhone(req *request.UpdateUserPhoneRequest) error
+	UpdateUserEmail(req *request.UpdateUserEmailRequest) error
+	UpdateUserPassword(req *request.UpdateUserPasswordRequest) error
 	GetUserInfo(username string) (response.GetUserInfoResponse, error)
 	GetUserList(req *request.GetUserListRequest) (response.GetUserListResponse, error)
-	RemoveUser(username string) error
+	RemoveUser(username string, operatorName string) error
 }
 
 type service struct {

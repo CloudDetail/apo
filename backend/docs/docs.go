@@ -4329,6 +4329,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "用户名",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "邮箱",
                         "name": "email",
                         "in": "query",
@@ -4374,6 +4381,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "用户名",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "组织",
                         "name": "corporation",
                         "in": "query"
@@ -4417,13 +4431,32 @@ const docTemplate = `{
                 "summary": "更新密码",
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateUserPasswordRequest"
-                        }
+                        "type": "string",
+                        "description": "用户名",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "原密码",
+                        "name": "oldPassword",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "新密码",
+                        "name": "newPassword",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "确认密码",
+                        "name": "confirmPassword",
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
@@ -4463,6 +4496,13 @@ const docTemplate = `{
                 ],
                 "summary": "更新/绑定手机号",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户名",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "手机号",
@@ -5002,6 +5042,23 @@ const docTemplate = `{
                 }
             }
         },
+        "database.AlertMetricsData": {
+            "type": "object",
+            "properties": {
+                "group": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "pql": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
         "database.User": {
             "type": "object",
             "properties": {
@@ -5330,23 +5387,6 @@ const docTemplate = `{
                 },
                 "timestamp": {
                     "type": "integer"
-                }
-            }
-        },
-        "model.AlertMetricsData": {
-            "type": "object",
-            "properties": {
-                "group": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "pql": {
-                    "type": "string"
-                },
-                "unit": {
-                    "type": "string"
                 }
             }
         },
@@ -6349,21 +6389,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.UpdateUserPasswordRequest": {
-            "type": "object",
-            "required": [
-                "newPassword",
-                "oldPassword"
-            ],
-            "properties": {
-                "newPassword": {
-                    "type": "string"
-                },
-                "oldPassword": {
-                    "type": "string"
-                }
-            }
-        },
         "response.AddOtherTableResponse": {
             "type": "object",
             "properties": {
@@ -6882,7 +6907,7 @@ const docTemplate = `{
                 "alertMetricsData": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.AlertMetricsData"
+                        "$ref": "#/definitions/database.AlertMetricsData"
                     }
                 }
             }
