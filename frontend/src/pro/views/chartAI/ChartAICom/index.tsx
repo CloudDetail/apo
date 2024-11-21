@@ -154,6 +154,7 @@ const ChartAICom = () => {
           }
           buffer = ''
           // 处理内容
+          console.log(parsedData)
           if (parsedData?.content || parsedData?.reportUrlList) {
             if (parsedData.role === 'ai') {
               setDialogue((prev) => {
