@@ -118,4 +118,7 @@ var enText = map[string]string{
 	UserConfirmPasswordError:   "Password inconsistent",
 	GetUserInfoError:           "Failed to get user information",
 	RemoveUserError:            "Failed to remove user",
+	UserPasswordSimpleError:    "Password too week, contains at least one uppercase, lowercase, special characters, and numbers and length greater than 8",
+	UserRemoveSelfError:        "Cannot remove yourself",
+	UserNoPermissionError:      "You have no permission",
 }

@@ -1,6 +1,9 @@
 package user
 
 import (
+	"errors"
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
 
@@ -30,13 +33,30 @@ func (h *handler) RemoveUser() core.HandlerFunc {
 			)
 			return
 		}
-
-		if err := h.userService.RemoveUser(req.Username); err != nil {
+		username, _ := c.Get(middleware.UserKey)
+		if username == req.Username {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.RemoveUserError,
-				code.Text(code.RemoveUserError)).WithError(err),
-			)
+				code.UserRemoveSelfError,
+				code.Text(code.UserRemoveSelfError)))
+			return
+		}
+		err := h.userService.RemoveUser(req.Username, username.(string))
+		if err != nil {
+			var vErr model.ErrWithMessage
+			if errors.As(err, &vErr) {
+				c.AbortWithError(core.Error(
+					http.StatusBadRequest,
+					vErr.Code,
+					code.Text(vErr.Code),
+				).WithError(err))
+			} else {
+				c.AbortWithError(core.Error(
+					http.StatusBadRequest,
+					code.RemoveUserError,
+					code.Text(code.RemoveUserError),
+				).WithError(err))
+			}
 			return
 		}
 		c.Payload("ok")

@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
@@ -18,6 +17,7 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
+// @Param username query string true "用户名"
 // @Param phone query string true "手机号"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
@@ -41,8 +41,8 @@ func (h *handler) UpdateUserPhone() core.HandlerFunc {
 				code.Text(code.ParamBindError)))
 			return
 		}
-		username, _ := c.Get(middleware.UserKey)
-		err := h.userService.UpdateUserPhone(username.(string), req)
+
+		err := h.userService.UpdateUserPhone(req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {

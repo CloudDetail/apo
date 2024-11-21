@@ -102,16 +102,15 @@ func (repo *daoRepo) UpdateUserPassword(username string, oldPassword, newPasswor
 	return repo.db.Save(&user).Error
 }
 
-func (repo *daoRepo) UpdateUserInfo(username string, req *request.UpdateUserInfoRequest) error {
+func (repo *daoRepo) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
 	var user User
-	err := repo.db.Where("username = ?", username).First(&user).Error
+	err := repo.db.Where("username = ?", req.Username).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return model.NewErrWithMessage(errors.New("user does not exist "), code.UserNotExistsError)
 	} else if err != nil {
 		return err
 	}
 
-	// add more check when user has more attribute
 	if len(req.Corporation) > 0 {
 		user.Corporation = req.Corporation
 	}
@@ -129,7 +128,8 @@ func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64
 	var count int64
 	query := repo.db.Select("username, role, phone, email, corporation")
 	if len(req.Username) > 0 {
-		query = query.Where("username = ?", req.Username)
+		name := "%" + req.Username + "%"
+		query = query.Where("username like ?", name)
 	}
 	if len(req.Role) > 0 {
 		query = query.Where("role = ?", req.Role)
@@ -146,6 +146,15 @@ func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64
 	return users, count, err
 }
 
-func (repo *daoRepo) RemoveUser(username string) error {
+func (repo *daoRepo) RemoveUser(username string, operatorName string) error {
+	var operator User
+	if err := repo.db.Select("role").Where("username = ?", operatorName).First(&operator).Error; err != nil {
+		return err
+	}
+
+	if operator.Role != RoleAdmin {
+		return model.NewErrWithMessage(errors.New("no permission"), code.UserNoPermissionError)
+	}
+
 	return repo.db.Model(&User{}).Where("username = ?", username).Delete(nil).Error
 }

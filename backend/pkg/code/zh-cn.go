@@ -121,6 +121,8 @@ var zhCnText = map[string]string{
 	UserConfirmPasswordError:   "两次密码不一致",
 	GetUserInfoError:           "获取用户信息失败",
 	RemoveUserError:            "移除用户失败",
-
-	K8sGetResourceError: "获取k8s资源失败",
+	UserPasswordSimpleError:    "密码强度太弱，至少包含一个大写、小写、特殊字符、数字且长度大于8",
+	UserRemoveSelfError:        "不能删除自己",
+	K8sGetResourceError:        "获取k8s资源失败",
+	UserNoPermissionError:      "没有权限",
 }

@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
@@ -17,6 +16,7 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
+// @Param username query string true "用户名"
 // @Param email query string true "邮箱"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
@@ -34,8 +34,7 @@ func (h *handler) UpdateUserEmail() core.HandlerFunc {
 			return
 		}
 
-		username, _ := c.Get(middleware.UserKey)
-		err := h.userService.UpdateUserEmail(username.(string), req)
+		err := h.userService.UpdateUserEmail(req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {

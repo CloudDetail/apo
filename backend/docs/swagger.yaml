@@ -339,6 +339,17 @@ definitions:
         description: 错误信息
         type: string
     type: object
+  database.AlertMetricsData:
+    properties:
+      group:
+        type: string
+      name:
+        type: string
+      pql:
+        type: string
+      unit:
+        type: string
+    type: object
   database.User:
     properties:
       corporation:
@@ -587,17 +598,6 @@ definitions:
         type: string
       timestamp:
         type: integer
-    type: object
-  model.AlertMetricsData:
-    properties:
-      group:
-        type: string
-      name:
-        type: string
-      pql:
-        type: string
-      unit:
-        type: string
     type: object
   model.AlertReason:
     additionalProperties:
@@ -1286,16 +1286,6 @@ definitions:
       tableName:
         type: string
     type: object
-  request.UpdateUserPasswordRequest:
-    properties:
-      newPassword:
-        type: string
-      oldPassword:
-        type: string
-    required:
-    - newPassword
-    - oldPassword
-    type: object
   response.AddOtherTableResponse:
     properties:
       error:
@@ -1648,7 +1638,7 @@ definitions:
     properties:
       alertMetricsData:
         items:
-          $ref: '#/definitions/model.AlertMetricsData'
+          $ref: '#/definitions/database.AlertMetricsData'
         type: array
     type: object
   response.GetMonitorStatusResponse:
@@ -5231,6 +5221,11 @@ paths:
       - application/x-www-form-urlencoded
       description: 更新/绑定邮箱
       parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
       - description: 邮箱
         in: query
         name: email
@@ -5261,6 +5256,11 @@ paths:
       - application/x-www-form-urlencoded
       description: 更新个人信息
       parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
       - description: 组织
         in: query
         name: corporation
@@ -5290,12 +5290,26 @@ paths:
       - application/x-www-form-urlencoded
       description: 更新密码
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
+      - description: 用户名
+        in: query
+        name: username
         required: true
-        schema:
-          $ref: '#/definitions/request.UpdateUserPasswordRequest'
+        type: string
+      - description: 原密码
+        in: query
+        name: oldPassword
+        required: true
+        type: string
+      - description: 新密码
+        in: query
+        name: newPassword
+        required: true
+        type: string
+      - description: 确认密码
+        in: query
+        name: confirmPassword
+        required: true
+        type: string
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -5321,6 +5335,11 @@ paths:
       - application/x-www-form-urlencoded
       description: 更新/绑定手机号
       parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
       - description: 手机号
         in: query
         name: phone

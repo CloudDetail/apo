@@ -17,22 +17,27 @@ type LogoutRequest struct {
 }
 
 type UpdateUserInfoRequest struct {
+	Username    string `json:"username" form:"username" binding:"required"`
 	Corporation string `json:"corporation,omitempty" form:"corporation"`
 }
 
 type UpdateUserPhoneRequest struct {
-	Phone string `json:"phone" form:"phone" binding:"required"` // 手机号
-	VCode string `json:"vCode" form:"vCode"`                    // 验证码
+	Username string `json:"username" form:"username" binding:"required"`
+	Phone    string `json:"phone" form:"phone" binding:"required"` // 手机号
+	VCode    string `json:"vCode" form:"vCode"`                    // 验证码
 }
 
 type UpdateUserEmailRequest struct {
-	Email string `json:"email" form:"email" binding:"required"` // 邮箱
-	VCode string `json:"vCode"`                                 // 验证码
+	Username string `json:"username" form:"username" binding:"required"`
+	Email    string `json:"email" form:"email" binding:"required"` // 邮箱
+	VCode    string `json:"vCode"`                                 // 验证码
 }
 
 type UpdateUserPasswordRequest struct {
-	OldPassword string `json:"oldPassword" form:"oldPassword" binding:"required"`
-	NewPassword string `json:"newPassword" form:"newPassword" binding:"required"`
+	Username        string `json:"username" form:"username" binding:"required"`
+	OldPassword     string `json:"oldPassword" form:"oldPassword" binding:"required"`
+	NewPassword     string `json:"newPassword" form:"newPassword" binding:"required"`
+	ConfirmPassword string `json:"confirmPassword" form:"confirmPassword" binding:"required"`
 }
 
 type GetUserListRequest struct {

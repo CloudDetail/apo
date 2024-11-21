@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
 
@@ -18,7 +17,10 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.UpdateUserPasswordRequest true "请求信息"
+// @Param username query string true "用户名"
+// @Param oldPassword query string true "原密码"
+// @Param newPassword query string true "新密码"
+// @Param confirmPassword query string true "确认密码"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
@@ -34,9 +36,16 @@ func (h *handler) UpdateUserPassword() core.HandlerFunc {
 			)
 			return
 		}
+		if req.ConfirmPassword != req.NewPassword {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.UserConfirmPasswordError,
+				code.Text(code.UserConfirmPasswordError)),
+			)
+			return
+		}
 
-		username, _ := c.Get(middleware.UserKey)
-		err := h.userService.UpdateUserPassword(username.(string), req)
+		err := h.userService.UpdateUserPassword(req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {
