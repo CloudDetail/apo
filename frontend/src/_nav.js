@@ -70,7 +70,7 @@ const _nav = [
     icon: <GrSystem />,
     label:'系统管理',
     children: [
-      { key: 'userManage', label: '用户管理', to: '/user-manage' }
+      { key: 'userManage', label: '用户管理', to: '/system/user-manage' }
     ],
   }
 ]

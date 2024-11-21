@@ -4,6 +4,7 @@ import { createUserApi, getUserListApi, removeUserApi } from "src/core/api/user"
 import { showToast } from "src/core/utils/toast";
 import { IoPersonAdd } from "react-icons/io5";
 import { useEffect, useState } from "react";
+import { RiDeleteBin5Line } from 'react-icons/ri'
 import "./index.css"
 
 export default function UserManage() {
@@ -15,7 +16,7 @@ export default function UserManage() {
     const [corporation, setCorporation] = useState("")
     const [tableVisibility, setTableVisibility] = useState(true)
     const [currentPage, setCurrentPage] = useState(1)
-    const [pageSize, setPageSize] = useState(10)
+    const [pageSize, setPageSize] = useState(11)
     const [total, setTotal] = useState(0)
 
     //创建用户
@@ -36,6 +37,7 @@ export default function UserManage() {
                         title: '新用户添加成功',
                         color: 'success'
                     })
+                    setModalVisibility(false)
                     await getUserList()
                 } catch (error) {
                     showToast({
@@ -54,7 +56,11 @@ export default function UserManage() {
         }
         try {
             await removeUserApi(params)
-            await getUserList()
+            if (userList.length <= 1) {
+                await getUserList(undefined, "special")
+            } else {
+                await getUserList()
+            }
             showToast({
                 title: "移除用户成功",
                 color: "success"
@@ -69,13 +75,13 @@ export default function UserManage() {
     }
 
     //获取用户列表
-    async function getUserList() {
+    async function getUserList(signal = undefined, type = "normal") {
         let loadingTimer
         loadingTimer = setTimeout(() => {
             setTableVisibility(false)
         }, 500)
 
-        const params = {
+        let params = {
             currentPage,
             pageSize,
             username,
@@ -83,8 +89,18 @@ export default function UserManage() {
             corporation
         }
 
+        if (type === "special") {
+            params = {
+                currentPage: currentPage - 1,
+                pageSize,
+                username,
+                role,
+                corporation
+            }
+        }
+
         try {
-            const { users, currentPage, pageSize, total } = await getUserListApi(params)
+            const { users, currentPage, pageSize, total } = await getUserListApi(params, signal)
             clearTimeout(loadingTimer)
             setUserList(users)
             setCurrentPage(currentPage)
@@ -112,35 +128,35 @@ export default function UserManage() {
             dataIndex: 'username',
             key: 'username',
             align: 'center',
-            width: 120
+            width: "16%"
         },
         {
             title: '角色',
             dataIndex: 'role',
             key: 'role',
             align: 'center',
-            width: 120
+            width: "16%"
         },
         {
             title: '组织',
             dataIndex: 'corporation',
             key: 'corporation',
             align: 'center',
-            width: 120
+            width: "16%"
         },
         {
             title: '手机',
             dataIndex: 'phone',
             key: 'phone',
             align: 'center',
-            width: 120
+            width: "16%"
         },
         {
             title: '邮箱',
             dataIndex: 'email',
             key: 'email',
             align: 'center',
-            width: 120
+            width: "16%"
         },
         {
             title: '操作',
@@ -148,29 +164,30 @@ export default function UserManage() {
             key: 'username',
             align: 'center',
             render: (prop) => {
-                return (
-                    <Popconfirm
-                        title={`确定要移除用户名为${prop}的用户吗`}
-                        onConfirm={() => removeUser(prop)}
-                    >
-                        <Button type="link" >
-                            移除用户
-                        </Button>
-                    </Popconfirm>
-                )
+                return localStorage.getItem("username") !== prop ?
+                    (
+                        <Popconfirm
+                            title={`确定要移除用户名为${prop}的用户吗`}
+                            onConfirm={() => removeUser(prop)}
+                        >
+                            <Button type="text" icon={<RiDeleteBin5Line />} danger>
+                                删除
+                            </Button>
+                        </Popconfirm>
+                    ) : <></>
             },
-            width: 120
+            width: "16%"
         }
     ]
 
-
     //初始化列表数据
     useEffect(() => {
-        getUserList()
-    }, [])
-
-    useEffect(() => {
-        getUserList()
+        const controller = new AbortController();
+        const { signal } = controller; // 获取信号对象
+        getUserList(signal)
+        return () => {
+            controller.abort
+        }
     }, [username, role, corporation, currentPage, pageSize])
 
     return (
@@ -192,8 +209,14 @@ export default function UserManage() {
                         </Flex>
                     </Flex>
                     <Flex className="w-full justify-end items-center">
-                        <p className="mr-2 text-md">添加用户</p>
-                        <Button onClick={() => setModalVisibility(true)}><IoPersonAdd className="w-6 h-6" /></Button>
+                        <Button
+                            type="primary"
+                            icon={<IoPersonAdd />}
+                            onClick={() => setModalVisibility(true)}
+                            className="flex-grow-0 flex-shrink-0"
+                        >
+                            <span className="text-xs">新增用户</span>
+                        </Button>
                     </Flex>
                 </Flex>
             </Flex>
@@ -202,40 +225,30 @@ export default function UserManage() {
                     components: {
                         Table: {
                             headerBg: "#222631",
-                            bodySortBg: "#222631",
-                            footerBg: "#222631",
-                            rowExpandedBg: "#222631",
-                            // colorBgContainer:"#222631"
                         }
                     }
                 }}
             >
-                {
-
-                    tableVisibility ?
-                        (<Flex vertical className={tableVisibility ? "w-full flex" : "w-full hidden"}>
-                            <Table
-                                dataSource={userList}
-                                columns={columns}
-                                className="w-full"
-                                scroll={{ y: 800 }}
-                                pagination={false}
-                            />
-                            <Pagination
-                                className="mt-4"
-                                align="end"
-                                current={currentPage}
-                                pageSize={pageSize}
-                                total={total}
-                                pageSizeOptions={[10, 20, 40]}
-                                showSizeChanger
-                                onChange={paginationChange}
-                                showQuickJumper
-                            />
-                        </Flex>) :
-                        (<Spin />)
-                }
-
+                <Flex vertical className={"w-full flex"}>
+                    <Table
+                        dataSource={userList}
+                        columns={columns}
+                        pagination={false}
+                        scroll={{ y: 550 }}
+                        loading={!tableVisibility}
+                    />
+                    <Pagination
+                        className="mt-4"
+                        align="end"
+                        current={currentPage}
+                        pageSize={pageSize}
+                        total={total}
+                        pageSizeOptions={[11, 30, 50]}
+                        showSizeChanger
+                        onChange={paginationChange}
+                        showQuickJumper
+                    />
+                </Flex>
             </ConfigProvider>
             <Modal
                 open={modalVisibility}
@@ -245,29 +258,29 @@ export default function UserManage() {
                 okText="新增"
                 onOk={createUser}
             >
-                <Flex vertical className="w-full mt-4 mb-4">
-                    <Flex vertical className="w-full justify-center items-center">
-                        <Form form={form} requiredMark={false}>
+                <Flex vertical className="w-full mt-4 mb-4 ml-8">
+                    <Flex vertical className="w-full justify-center start">
+                        <Form form={form} layout="vertical">
                             <Form.Item
-                                label="用户名&#12288;"
+                                label="用户名;"
                                 name="username"
                                 rules={[
                                     { required: true, message: '请输入用户名' }
                                 ]}
                             >
                                 <div className="flex justify-start items-start">
-                                    <Input prefix={<UserOutlined />} placeholder="请输入用户名" className="w-80" />
+                                    <Input prefix={<UserOutlined />} placeholder="请输入用户名" className="w-5/6" />
                                 </div>
                             </Form.Item>
                             <Form.Item
-                                label="密&#12288;&#12288;码"
+                                label="密码"
                                 name="password"
                                 rules={[
                                     { required: true, message: '请输入密码' }
                                 ]}
                             >
                                 <div className="flex justify-start items-start">
-                                    <Input.Password prefix={<LockOutlined />} placeholder="请输入密码" className="w-80" />
+                                    <Input.Password prefix={<LockOutlined />} placeholder="请输入密码" className="w-5/6" />
                                 </div>
                             </Form.Item>
                             <Form.Item
@@ -277,7 +290,7 @@ export default function UserManage() {
                                     { required: true, message: '请再次输入密码' }
                                 ]}
                             >
-                                <Input.Password prefix={<LockOutlined />} placeholder="请再次输入密码" className="w-80" />
+                                <Input.Password prefix={<LockOutlined />} placeholder="请再次输入密码" className="w-5/6" />
                             </Form.Item>
                         </Form>
                     </Flex>
