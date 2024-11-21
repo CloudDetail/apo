@@ -121,12 +121,16 @@ const ChartAICom = () => {
     let buffer = '' // 用于存储未处理的数据
 
     const processChunk = async () => {
-      if (isPaused) return // 如果暂停，则不继续读取
+      if (isPaused) {
+        setIsDone(true)
 
+        return // 如果暂停，则不继续读取
+      }
       try {
         const { value, done } = await reader.read()
         if (done) {
           setIsDone(true)
+          isPaused = true
           return // 流结束时退出
         }
         // 确保 `value` 是字符串类型
@@ -136,13 +140,12 @@ const ChartAICom = () => {
         buffer += value // 将新读取的数据追加到缓冲区
         // 按 `\n\ndata:` 分割数据
         const parts = buffer.split('\n\ndata:')
-        isPaused = true
 
         for (const [pIndex, part] of parts.entries()) {
           let newPart = pIndex === 0 ? `${part}` : `data:${part}`
           const match = newPart.match(/data: (.+)/)
           if (!match) {
-            return
+            continue
           }
 
           // 解析 JSON 数据
@@ -152,14 +155,12 @@ const ChartAICom = () => {
           } catch (jsonError) {
             // console.error('JSON 解析失败:', jsonError, match[1])
             console.log('JSON 解析失败:', newPart)
-            return // 跳过解析失败的数据
+            continue // 跳过解析失败的数据
           }
           buffer = ''
           // 处理内容
-          console.log(parsedData)
           if (parsedData?.content || parsedData?.reportUrlList) {
             if (parsedData.role === 'ai') {
-              console.log('ai的index:', index)
               setDialogue((prev) => {
                 const updatedDialogue = [...prev]
                 updatedDialogue[index].conversation[1] = {
@@ -177,11 +178,9 @@ const ChartAICom = () => {
             } else if (parsedData.role === 'human') {
               // 暂停流处理
               index = await typeMessage(parsedData, index, setDialogue)
-              console.log('human结束后的index:', index)
             }
           }
         }
-        isPaused = false
         processChunk()
       } catch (error) {
         console.error('流读取失败:', error)
@@ -224,7 +223,10 @@ const ChartAICom = () => {
       try {
         // 读取流数据
         const { value, done } = await reader.read()
-        if (done) break // 流结束时退出循环
+        if (done) {
+          setIsDone(true)
+          break
+        } // 流结束时退出循环
 
         // 确保 `value` 是字符串类型
         if (typeof value !== 'string') continue
@@ -260,11 +262,11 @@ const ChartAICom = () => {
           }
         })
       } catch (error) {
-        console.error('读取或处理消息时发生错误:', error)
+        setIsDone(true)
         break // 根据业务需求决定是否退出循环
       }
     }
-    setIsDone(true)
+
     setChatQuery(null)
   }
   const updateController = () => {
