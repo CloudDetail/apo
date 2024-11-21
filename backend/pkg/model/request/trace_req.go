@@ -26,3 +26,11 @@ type GetOnOffCPURequest struct {
 type GetSingleTraceInfoRequest struct {
 	TraceID string `form:"traceId" binding:"required"`
 }
+
+type GetFlameDataRequest struct {
+	SampleType string `json:"sampleType" form:"sampleType"`
+	PID        uint32 `json:"pid" form:"pid"`
+	TID        uint32 `json:"tid" form:"tid"`
+	StartTime  int64  `json:"startTime" form:"startTime" binding:"required"`
+	EndTime    int64  `json:"endTime" form:"endTime" binding:"required"`
+}

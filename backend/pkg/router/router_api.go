@@ -97,6 +97,7 @@ func setApiRouter(r *resource) {
 		traceApi.POST("/pagelist/filter/value", traceHandler.GetTraceFilterValue())
 		traceApi.GET("/onoffcpu", traceHandler.GetOnOffCPU())
 		traceApi.GET("/info", traceHandler.GetSingleTraceInfo())
+		traceApi.GET("/flame", traceHandler.GetFlameGraphData())
 	}
 
 	alertApi := r.mux.Group("/api/alerts")

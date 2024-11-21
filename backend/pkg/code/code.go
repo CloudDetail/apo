@@ -64,6 +64,7 @@ const (
 	GetTraceFilterValueError = "B0503"
 	GetOnOffCPUError         = "B0504"
 	GetSingleTraceError      = "B0505"
+	GetFlameGraphError       = "B0506"
 
 	SetTTLError            = "B0601"
 	GetTTLError            = "B0602"
