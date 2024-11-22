@@ -38,6 +38,13 @@ func (repo *daoRepo) InitPredefinedQuickMutationMetric(sqlScript string) error {
 	if err := repo.db.AutoMigrate(&QuickMutationMetric{}); err != nil {
 		return err
 	}
+	var count int64
+	if err := repo.db.Model(&QuickMutationMetric{}).Count(&count).Error; err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
 
 	if sqlScript == "" {
 		// 默认的初始化脚本
