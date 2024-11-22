@@ -31,6 +31,10 @@ type Handler interface {
 	// @Tags API.trace
 	// @Router /api/trace/info [get]
 	GetSingleTraceInfo() core.HandlerFunc
+	// GetFlameGraphData 获取指定时间段指定条件的火焰图数据
+	// @Tags API.trace
+	// @Router /api/trace/flame [get]
+	GetFlameGraphData() core.HandlerFunc
 }
 
 type handler struct {

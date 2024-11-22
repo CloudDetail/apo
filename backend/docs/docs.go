@@ -3721,6 +3721,83 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/trace/flame": {
+            "get": {
+                "description": "获取指定时间段指定条件的火焰图数据",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.trace"
+                ],
+                "summary": "获取指定时间段指定条件的火焰图数据",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "采样类型",
+                        "name": "sampleType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "进程id",
+                        "name": "pid",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "线程id",
+                        "name": "tid",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "span id",
+                        "name": "spanId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "trae id",
+                        "name": "traceId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetFlameDataResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/trace/info": {
             "get": {
                 "description": "获取单链路Trace详情",
@@ -4326,7 +4403,7 @@ const docTemplate = `{
                 "timestamp": {
                     "type": "string"
                 },
-                "transactionId": {
+                "transactionIds": {
                     "type": "string"
                 }
             }
@@ -4358,8 +4435,14 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "pid": {
+                    "type": "integer"
+                },
                 "serviceName": {
                     "type": "string"
+                },
+                "tid": {
+                    "type": "integer"
                 },
                 "timestamp": {
                     "type": "integer"
@@ -4436,6 +4519,23 @@ const docTemplate = `{
                 },
                 "message": {
                     "description": "错误信息",
+                    "type": "string"
+                }
+            }
+        },
+        "database.AlertMetricsData": {
+            "type": "object",
+            "properties": {
+                "group": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "pql": {
+                    "type": "string"
+                },
+                "unit": {
                     "type": "string"
                 }
             }
@@ -4759,23 +4859,6 @@ const docTemplate = `{
                 }
             }
         },
-        "model.AlertMetricsData": {
-            "type": "object",
-            "properties": {
-                "group": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "pql": {
-                    "type": "string"
-                },
-                "unit": {
-                    "type": "string"
-                }
-            }
-        },
         "model.AlertReason": {
             "type": "object",
             "additionalProperties": {
@@ -4821,6 +4904,9 @@ const docTemplate = `{
             "properties": {
                 "containerId": {
                     "description": "容器ID",
+                    "type": "string"
+                },
+                "nodeIp": {
                     "type": "string"
                 },
                 "nodeName": {
@@ -6211,6 +6297,38 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetFlameDataResponse": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "flameBearer": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "pid": {
+                    "type": "integer"
+                },
+                "sampleRate": {
+                    "type": "integer"
+                },
+                "sampleType": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
+                },
+                "tid": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.GetGroupListResponse": {
             "type": "object",
             "properties": {
@@ -6290,7 +6408,7 @@ const docTemplate = `{
                 "alertMetricsData": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.AlertMetricsData"
+                        "$ref": "#/definitions/database.AlertMetricsData"
                     }
                 }
             }
@@ -6774,6 +6892,9 @@ const docTemplate = `{
         "response.LogParseResponse": {
             "type": "object",
             "properties": {
+                "isStructured": {
+                    "type": "boolean"
+                },
                 "parseInfo": {
                     "type": "string"
                 },

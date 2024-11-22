@@ -253,7 +253,7 @@ definitions:
         type: integer
       timestamp:
         type: string
-      transactionId:
+      transactionIds:
         type: string
     type: object
   clickhouse.QueryTraceResult:
@@ -274,8 +274,12 @@ definitions:
         additionalProperties:
           type: string
         type: object
+      pid:
+        type: integer
       serviceName:
         type: string
+      tid:
+        type: integer
       timestamp:
         type: integer
       traceId:
@@ -326,6 +330,17 @@ definitions:
         type: string
       message:
         description: 错误信息
+        type: string
+    type: object
+  database.AlertMetricsData:
+    properties:
+      group:
+        type: string
+      name:
+        type: string
+      pql:
+        type: string
+      unit:
         type: string
     type: object
   database.DingTalkConfig:
@@ -569,17 +584,6 @@ definitions:
       timestamp:
         type: integer
     type: object
-  model.AlertMetricsData:
-    properties:
-      group:
-        type: string
-      name:
-        type: string
-      pql:
-        type: string
-      unit:
-        type: string
-    type: object
   model.AlertReason:
     additionalProperties:
       items:
@@ -611,6 +615,8 @@ definitions:
     properties:
       containerId:
         description: 容器ID
+        type: string
+      nodeIp:
         type: string
       nodeName:
         description: 主机名
@@ -1563,6 +1569,27 @@ definitions:
       pagination:
         $ref: '#/definitions/model.Pagination'
     type: object
+  response.GetFlameDataResponse:
+    properties:
+      endTime:
+        type: integer
+      flameBearer:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      pid:
+        type: integer
+      sampleRate:
+        type: integer
+      sampleType:
+        type: string
+      startTime:
+        type: integer
+      tid:
+        type: integer
+    type: object
   response.GetGroupListResponse:
     properties:
       groupsLabel:
@@ -1617,7 +1644,7 @@ definitions:
     properties:
       alertMetricsData:
         items:
-          $ref: '#/definitions/model.AlertMetricsData'
+          $ref: '#/definitions/database.AlertMetricsData'
         type: array
     type: object
   response.GetMonitorStatusResponse:
@@ -1936,6 +1963,8 @@ definitions:
     type: object
   response.LogParseResponse:
     properties:
+      isStructured:
+        type: boolean
       parseInfo:
         type: string
       parseName:
@@ -4753,6 +4782,58 @@ paths:
       summary: 获取Trace相关指标
       tags:
       - API.service
+  /api/trace/flame:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取指定时间段指定条件的火焰图数据
+      parameters:
+      - description: 采样类型
+        in: query
+        name: sampleType
+        type: string
+      - description: 进程id
+        in: query
+        name: pid
+        type: integer
+      - description: 线程id
+        in: query
+        name: tid
+        type: integer
+      - description: 开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: span id
+        in: query
+        name: spanId
+        required: true
+        type: string
+      - description: trae id
+        in: query
+        name: traceId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetFlameDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取指定时间段指定条件的火焰图数据
+      tags:
+      - API.trace
   /api/trace/info:
     get:
       consumes:
