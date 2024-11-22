@@ -10,6 +10,7 @@ import mock5Png from 'src/pro/assets/5.png'
 import mock61Png from 'src/pro/assets/6-1.png'
 import mock62Png from 'src/pro/assets/6-2.png'
 import mock7Png from 'src/pro/assets/7.png'
+import mock8Png from 'src/pro/assets/8.png'
 import mock9_1Png from 'src/pro/assets/9-1.png'
 import mock9_2Png from 'src/pro/assets/9-2.png'
 import mock10Png from 'src/pro/assets/10.png'
@@ -781,44 +782,9 @@ export const mockDialogue = [
     explanation: (
       <>
         <div>汇总</div>
-        <div>
-          不同模型的推理准确度并不相同，请根据您使用的模型判断需不需要人为使用“告警深入分析功能”确认疑似根因节点。
-        </div>
-        <div>
-          目前测试数据如下：
-          <Table
-            pagination={false}
-            dataSource={[
-              {
-                key: '1',
-                name: 'GPT4o mini',
-                value: '90%',
-              },
-              {
-                key: '2',
-                name: '智普GLM',
-                value: '85%',
-              },
-              {
-                key: '2',
-                name: '通义千问',
-                value: '80%',
-              },
-            ]}
-            columns={[
-              {
-                title: '模型',
-                dataIndex: 'name',
-                key: 'name',
-              },
-              {
-                title: '准确率',
-                dataIndex: 'value',
-                key: 'value',
-              },
-            ]}
-          />
-        </div>
+        <div>不同大模型的准确率不同，apo 使用 deepseek 模型进行分析</div>
+        <div>用户可以修改配置文件选择不同的大模型，如智谱、千帆、豆包等模型</div>
+        <Image src={mock8Png} width={'100%'} />
       </>
     ),
   },
@@ -831,7 +797,7 @@ export const mockDialogue = [
 第二层KEY中time为曲线时间, vaule对应每个时间点的延时数据
 请根据曲线变化的相似性找出和 total_latency 变化最相似的曲线 (不要根据值的大小), 然后给出类型名称即可。
 回答格式为延时曲线中的xx类型最相似,xx内容且必须为(lock_gc_time, network_time, scheduling_time, cpu_time, disk_io_time类型中的其中一个)
-延时曲线数据如下 ${createDownloadLink(delayMock, '延时曲线数据.json')}
+延时曲线数据如下 ${createDownloadLink(delayMock, '延时曲线数据.json')}  
 `,
       },
       {
