@@ -34,5 +34,5 @@ type GetFlameDataRequest struct {
 	SpanID     string `json:"spanId" form:"spanId" binding:"required"`
 	TraceID    string `json:"traceId" form:"traceId" binding:"required"`
 	StartTime  int64  `json:"startTime" form:"startTime" binding:"required"`
-	EndTime    int64  `json:"endTime" form:"endTime" binding:"required"`
+	EndTime    int64  `json:"endTime" form:"endTime" binding:"required,gtfield=StartTime"`
 }
