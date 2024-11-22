@@ -3749,23 +3749,36 @@
                         "type": "integer",
                         "description": "开始时间",
                         "name": "startTime",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",
                         "description": "结束时间",
                         "name": "endTime",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "span id",
+                        "name": "spanId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "trae id",
+                        "name": "traceId",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/clickhouse.FlameGraphData"
-                            }
+                            "$ref": "#/definitions/response.GetFlameDataResponse"
                         }
                     },
                     "400": {
@@ -4262,38 +4275,6 @@
                 },
                 "traceId": {
                     "type": "string"
-                }
-            }
-        },
-        "clickhouse.FlameGraphData": {
-            "type": "object",
-            "properties": {
-                "endTime": {
-                    "type": "integer"
-                },
-                "flameBearer": {
-                    "type": "string"
-                },
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "pid": {
-                    "type": "integer"
-                },
-                "sampleRate": {
-                    "type": "integer"
-                },
-                "sampleType": {
-                    "type": "string"
-                },
-                "startTime": {
-                    "type": "integer"
-                },
-                "tid": {
-                    "type": "integer"
                 }
             }
         },
@@ -6305,6 +6286,38 @@
                 },
                 "pagination": {
                     "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetFlameDataResponse": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "flameBearer": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "pid": {
+                    "type": "integer"
+                },
+                "sampleRate": {
+                    "type": "integer"
+                },
+                "sampleType": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
+                },
+                "tid": {
+                    "type": "integer"
                 }
             }
         },

@@ -174,27 +174,6 @@ definitions:
       traceId:
         type: string
     type: object
-  clickhouse.FlameGraphData:
-    properties:
-      endTime:
-        type: integer
-      flameBearer:
-        type: string
-      labels:
-        additionalProperties:
-          type: string
-        type: object
-      pid:
-        type: integer
-      sampleRate:
-        type: integer
-      sampleType:
-        type: string
-      startTime:
-        type: integer
-      tid:
-        type: integer
-    type: object
   clickhouse.LogContent:
     properties:
       body:
@@ -1589,6 +1568,27 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetFlameDataResponse:
+    properties:
+      endTime:
+        type: integer
+      flameBearer:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      pid:
+        type: integer
+      sampleRate:
+        type: integer
+      sampleType:
+        type: string
+      startTime:
+        type: integer
+      tid:
+        type: integer
     type: object
   response.GetGroupListResponse:
     properties:
@@ -4803,20 +4803,30 @@ paths:
       - description: 开始时间
         in: query
         name: startTime
+        required: true
         type: integer
       - description: 结束时间
         in: query
         name: endTime
+        required: true
         type: integer
+      - description: span id
+        in: query
+        name: spanId
+        required: true
+        type: string
+      - description: trae id
+        in: query
+        name: traceId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/clickhouse.FlameGraphData'
-            type: array
+            $ref: '#/definitions/response.GetFlameDataResponse'
         "400":
           description: Bad Request
           schema:

@@ -16,13 +16,15 @@ type FlameGraphData struct {
 	FlameBearer string            `ch:"flamebearer" json:"flameBearer"`
 }
 
-const flame_graph_sql = `SELECT toUnixTimestamp64Nano(start_time) as start_time, toUnixTimestamp64Nano(end_time) as end_time, pid, tid, sample_type, sample_rate, labels, flamebearer FROM flame_graph %s ORDER BY start_time DESC`
+const flame_graph_sql = `SELECT DISTINCT toUnixTimestamp64Nano(start_time) as start_time, toUnixTimestamp64Nano(end_time) as end_time, pid, tid, sample_type, sample_rate, labels, flamebearer FROM flame_graph %s ORDER BY start_time DESC`
 
-func (ch *chRepo) GetFlameGraphData(startTime, endTime int64, pid, tid uint32, sampleType string) (*[]FlameGraphData, error) {
+func (ch *chRepo) GetFlameGraphData(startTime, endTime int64, pid, tid uint32, sampleType, spanId, traceId string) (*[]FlameGraphData, error) {
 	queryBuilder := NewQueryBuilder()
 	queryBuilder.Between("start_time", startTime*1000, endTime*1000).
 		Between("end_time", startTime*1000, endTime*1000).
-		EqualsNotEmpty("sample_type", sampleType)
+		EqualsNotEmpty("sample_type", sampleType).
+		Equals("labels['span_id']", spanId).
+		Equals("labels['trace_id']", traceId)
 	if pid > 0 {
 		queryBuilder.Equals("pid", pid)
 	}

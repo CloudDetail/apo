@@ -14,11 +14,13 @@ import (
 // @Tags API.trace
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param sampleType query string false "采样类型"
+// @Param sampleType query string true "采样类型"
 // @Param pid query uint64 false "进程id"
 // @Param tid query uint64 false "线程id"
 // @Param startTime query int64 true "开始时间"
 // @Param endTime query int64 true "结束时间"
+// @Param spanId query string true "span id"
+// @Param traceId query string true "trace id"
 // @Success 200 {object} response.GetFlameDataResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/trace/flame [get]

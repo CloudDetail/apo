@@ -17,7 +17,7 @@ type Service interface {
 	GetTracePageList(req *request.GetTracePageListRequest) (*response.GetTracePageListResponse, error)
 	GetOnOffCPU(req *request.GetOnOffCPURequest) (*response.GetOnOffCPUResponse, error)
 	GetSingleTraceID(req *request.GetSingleTraceInfoRequest) (string, error)
-	GetFlameGraphData(req *request.GetFlameDataRequest) (*response.GetFlameDataResponse, error)
+	GetFlameGraphData(req *request.GetFlameDataRequest) (response.GetFlameDataResponse, error)
 }
 
 type service struct {
