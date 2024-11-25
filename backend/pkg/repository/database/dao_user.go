@@ -87,16 +87,13 @@ func (repo *daoRepo) UpdateUserEmail(username string, email string) error {
 	return repo.db.Save(&user).Error
 }
 
-func (repo *daoRepo) UpdateUserPassword(username string, oldPassword, newPassword string) error {
+func (repo *daoRepo) UpdateUserPassword(username, newPassword string) error {
 	var user User
 	err := repo.db.Where("username = ?", username).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
 	} else if err != nil {
 		return err
-	}
-	if user.Password != Encrypt(oldPassword) {
-		return model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswordIncorrectError)
 	}
 	user.Password = Encrypt(newPassword)
 	return repo.db.Save(&user).Error

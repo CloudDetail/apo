@@ -4439,13 +4439,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "原密码",
-                        "name": "oldPassword",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
                         "description": "新密码",
                         "name": "newPassword",
                         "in": "query",

@@ -24,7 +24,7 @@ func (s *service) UpdateUserPassword(req *request.UpdateUserPasswordRequest) err
 	if err := checkPasswordComplexity(req.NewPassword); err != nil {
 		return err
 	}
-	return s.dbRepo.UpdateUserPassword(req.Username, req.OldPassword, req.NewPassword)
+	return s.dbRepo.UpdateUserPassword(req.Username, req.NewPassword)
 }
 
 func checkPasswordComplexity(password string) error {

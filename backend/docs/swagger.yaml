@@ -5295,11 +5295,6 @@ paths:
         name: username
         required: true
         type: string
-      - description: 原密码
-        in: query
-        name: oldPassword
-        required: true
-        type: string
       - description: 新密码
         in: query
         name: newPassword

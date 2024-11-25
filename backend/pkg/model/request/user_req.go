@@ -35,7 +35,6 @@ type UpdateUserEmailRequest struct {
 
 type UpdateUserPasswordRequest struct {
 	Username        string `json:"username" form:"username" binding:"required"`
-	OldPassword     string `json:"oldPassword" form:"oldPassword" binding:"required"`
 	NewPassword     string `json:"newPassword" form:"newPassword" binding:"required"`
 	ConfirmPassword string `json:"confirmPassword" form:"confirmPassword" binding:"required"`
 }

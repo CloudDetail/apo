@@ -37,7 +37,7 @@ type Repo interface {
 	CreateUser(username, password string) error
 	UpdateUserPhone(username string, phone string) error
 	UpdateUserEmail(username string, email string) error
-	UpdateUserPassword(username, oldPassword, newPassword string) error
+	UpdateUserPassword(username, newPassword string) error
 	UpdateUserInfo(req *request.UpdateUserInfoRequest) error
 	GetUserInfo(username string) (User, error)
 	GetUserList(req *request.GetUserListRequest) ([]User, int64, error)
