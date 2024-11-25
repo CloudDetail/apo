@@ -21,6 +21,7 @@ type Service interface {
 	GetUserInfo(username string) (response.GetUserInfoResponse, error)
 	GetUserList(req *request.GetUserListRequest) (response.GetUserListResponse, error)
 	RemoveUser(username string, operatorName string) error
+	RestPassword(req *request.ResetPasswordRequest) error
 }
 
 type service struct {

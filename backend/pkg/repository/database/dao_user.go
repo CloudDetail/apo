@@ -102,6 +102,19 @@ func (repo *daoRepo) UpdateUserPassword(username string, oldPassword, newPasswor
 	return repo.db.Save(&user).Error
 }
 
+func (repo *daoRepo) RestPassword(username string, newPassword string) error {
+	var user User
+	err := repo.db.Where("username = ?", username).First(&user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
+	} else if err != nil {
+		return err
+	}
+
+	user.Password = Encrypt(newPassword)
+	return repo.db.Save(&user).Error
+}
+
 func (repo *daoRepo) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
 	var user User
 	err := repo.db.Where("username = ?", req.Username).First(&user).Error
@@ -135,7 +148,8 @@ func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64
 		query = query.Where("role = ?", req.Role)
 	}
 	if len(req.Corporation) > 0 {
-		query = query.Where("corporation = ?", req.Corporation)
+		corporation := "%" + req.Corporation + "%"
+		query = query.Where("corporation like ?", corporation)
 	}
 	err := query.Model(&User{}).Count(&count).Error
 	if err != nil {

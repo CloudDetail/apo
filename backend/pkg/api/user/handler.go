@@ -55,6 +55,11 @@ type Handler interface {
 	// @Tags API.user
 	// @Router /api/user/remove [post]
 	RemoveUser() core.HandlerFunc
+
+	// ResetPassword 重设密码
+	// @Tags API.user
+	// @Router /api/user/reset [post]
+	ResetPassword() core.HandlerFunc
 }
 
 type handler struct {

@@ -42,6 +42,7 @@ type Repo interface {
 	GetUserInfo(username string) (User, error)
 	GetUserList(req *request.GetUserListRequest) ([]User, int64, error)
 	RemoveUser(username string, operatorName string) error
+	RestPassword(username string, newPassword string) error
 }
 
 type daoRepo struct {

@@ -76,3 +76,10 @@ func containsRune(set string, char rune) bool {
 	}
 	return false
 }
+
+func (s *service) RestPassword(req *request.ResetPasswordRequest) error {
+	if err := checkPasswordComplexity(req.NewPassword); err != nil {
+		return err
+	}
+	return s.dbRepo.RestPassword(req.Username, req.NewPassword)
+}
