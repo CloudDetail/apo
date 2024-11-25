@@ -13,13 +13,20 @@ type GetServiceEndpointRelationResponse struct {
 	Current       clickhouse.TopologyNode      `json:"current"`        // 当前服务
 	ChildRelation []clickhouse.ToplogyRelation `json:"childRelations"` // 下游节点调用关系列表
 
-	TopologyLevels []TopologyNodeLevel `json:"topologyLevels,omitempty"`
+	TopologyLevels      []TopologyNodeLevel          `json:"topologyLevels,omitempty"`
+	ExternalClientCalls []TopologyExternalClientCall `json:"topologyExternalClientCall,omitempty"`
 }
 
 type TopologyNodeLevel struct {
 	Service  string `ch:"service" json:"service"`
 	Endpoint string `ch:"endpoint" json:"endpoint"`
 	Depth    int    `ch:"depth" json:"depth"`
+}
+
+type TopologyExternalClientCall struct {
+	clickhouse.TopologyNode
+
+	Childs []clickhouse.TopologyNode `json:"childs"`
 }
 
 type GetServiceEndpointTopologyResponse struct {

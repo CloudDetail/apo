@@ -30,24 +30,95 @@ func (s *service) GetServiceEndpointRelation(req *request.GetServiceEndpointRela
 		ChildRelation: relations,
 	}
 
-	// 下游接口评估非循环下的最大深度
-	// 构造邻接矩阵
-	if req.WithTopologyLevel {
+	if !req.WithNotTracedLeafNode || req.WithTopologyLevel {
 		if req.EntryService == "" || req.EntryEndpoint == "" {
 			req.EntryService = req.Service
 			req.EntryEndpoint = req.Endpoint
 		}
+
+		// 构造邻接矩阵
 		endpointMatrix := newEndpointDepthMatrix(req.EntryService, req.EntryEndpoint, relations)
-		res.TopologyLevels = endpointMatrix.EndpointsLevel()
+
+		// 如果要剪除未监控的叶子节点,则将相关Relation进行过滤
+		if !req.WithNotTracedLeafNode {
+			for idx, info := range endpointMatrix.EndpointInfos {
+				if info.IsTraced {
+					continue
+				}
+				childCount := endpointMatrix.GetChildCounts(idx)
+				if childCount > 0 {
+					continue
+				}
+				// 从Relation中移除相关关联
+				for i := 0; i < len(relations); {
+					relation := relations[i]
+					if relation.Service == info.ServiceName && relation.Endpoint == info.Endpoint {
+						parentIdx, find := endpointMatrix.EndpointSet[model.EndpointKey{
+							ServiceName: relation.ParentService,
+							Endpoint:    relation.ParentEndpoint,
+						}]
+						if find {
+							// 在父节点中添加下游附属信息
+							endpointMatrix.EndpointInfos[parentIdx].ExternalClientCalls = append(
+								endpointMatrix.EndpointInfos[parentIdx].ExternalClientCalls,
+								clickhouse.TopologyNode{
+									Service:  relation.Service,
+									Endpoint: relation.Endpoint,
+								},
+							)
+						}
+						// 移除当前Relation
+						relations = append(relations[:i], relations[i+1:]...)
+					} else {
+						i++
+					}
+				}
+
+				// 标记后续深度分析时跳过此节点
+				endpointMatrix.NotTracedEndpointsIdx = append(endpointMatrix.NotTracedEndpointsIdx, idx)
+			}
+
+			// 剪枝完成,把剪下的Relation添加到返回结构中
+			for _, info := range endpointMatrix.EndpointInfos {
+				if len(info.ExternalClientCalls) <= 0 {
+					continue
+				}
+				res.ExternalClientCalls = append(res.ExternalClientCalls, response.TopologyExternalClientCall{
+					TopologyNode: clickhouse.TopologyNode{
+						Service:  info.ServiceName,
+						Endpoint: info.Endpoint,
+						IsTraced: info.IsTraced,
+					},
+					Childs: info.ExternalClientCalls,
+				})
+			}
+
+			res.ChildRelation = relations
+		}
+
+		if req.WithTopologyLevel {
+			// 下游接口评估非循环下的最大深度
+			res.TopologyLevels = endpointMatrix.EndpointsLevel()
+		}
 	}
 	return res, nil
 }
 
 type EndpointDepthMatrix struct {
-	EndpointSet  map[model.EndpointKey]int
-	EndpointKeys []model.EndpointKey
+	EndpointSet   map[model.EndpointKey]int
+	EndpointKeys  []model.EndpointKey
+	EndpointInfos []EndpointInfo // 记录端点的特殊信息,是否Traced
+
+	NotTracedEndpointsIdx []int
 
 	Matrix [][]int
+}
+
+type EndpointInfo struct {
+	model.EndpointKey
+	IsTraced bool
+
+	ExternalClientCalls []clickhouse.TopologyNode
 }
 
 func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []clickhouse.ToplogyRelation) *EndpointDepthMatrix {
@@ -61,16 +132,29 @@ func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []clic
 	}
 	matrix.EndpointSet[root] = 0
 	matrix.EndpointKeys = append(matrix.EndpointKeys, root)
+	matrix.EndpointInfos = append(matrix.EndpointInfos, EndpointInfo{
+		EndpointKey:         root,
+		IsTraced:            true,
+		ExternalClientCalls: []clickhouse.TopologyNode{},
+	})
 	for _, relation := range relations {
 		childEndpoint := model.EndpointKey{
 			ServiceName: relation.Service,
 			Endpoint:    relation.Endpoint,
 		}
-		_, find := matrix.EndpointSet[childEndpoint]
+		idx, find := matrix.EndpointSet[childEndpoint]
 		if !find {
 			childIdx := len(matrix.EndpointKeys)
 			matrix.EndpointSet[childEndpoint] = childIdx
 			matrix.EndpointKeys = append(matrix.EndpointKeys, childEndpoint)
+			matrix.EndpointInfos = append(matrix.EndpointInfos, EndpointInfo{
+				EndpointKey:         childEndpoint,
+				IsTraced:            relation.IsTraced,
+				ExternalClientCalls: []clickhouse.TopologyNode{},
+			})
+		} else if relation.IsTraced && !matrix.EndpointInfos[idx].IsTraced {
+			// 更新IsTraced状态
+			matrix.EndpointInfos[idx].IsTraced = true
 		}
 		parentEndpoint := model.EndpointKey{
 			ServiceName: relation.ParentService,
@@ -81,6 +165,11 @@ func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []clic
 			parentIdx := len(matrix.EndpointKeys)
 			matrix.EndpointSet[parentEndpoint] = parentIdx
 			matrix.EndpointKeys = append(matrix.EndpointKeys, parentEndpoint)
+			matrix.EndpointInfos = append(matrix.EndpointInfos, EndpointInfo{
+				EndpointKey:         parentEndpoint,
+				IsTraced:            true, // 父节点一定被监控
+				ExternalClientCalls: []clickhouse.TopologyNode{},
+			})
 		}
 	}
 
@@ -107,6 +196,19 @@ func (m *EndpointDepthMatrix) AddRelation(relation clickhouse.ToplogyRelation) {
 	parentIdx := m.EndpointSet[parentEndpoint]
 	childIdx := m.EndpointSet[childEndpoint]
 	m.Matrix[parentIdx][childIdx] = 1
+}
+
+func (m *EndpointDepthMatrix) GetChildCounts(idx int) int {
+	if idx >= len(m.Matrix) {
+		return -1
+	}
+
+	connectStatus := m.Matrix[idx]
+	var childCount = 0
+	for _, v := range connectStatus {
+		childCount += v
+	}
+	return childCount
 }
 
 func (m *EndpointDepthMatrix) MaxDepth(service, endpoint string) (int, bool) {
@@ -158,7 +260,10 @@ func (m *EndpointDepthMatrix) dfs(node int, target int, visited []bool, currentD
 
 func (m *EndpointDepthMatrix) EndpointsLevel() []response.TopologyNodeLevel {
 	var res []response.TopologyNodeLevel
-	for _, endpoint := range m.EndpointKeys {
+	for idx, endpoint := range m.EndpointKeys {
+		if isSkipped(m.NotTracedEndpointsIdx, idx) {
+			continue
+		}
 		depth, find := m.MaxDepth(endpoint.ServiceName, endpoint.Endpoint)
 		if !find {
 			depth = -1
@@ -170,4 +275,13 @@ func (m *EndpointDepthMatrix) EndpointsLevel() []response.TopologyNodeLevel {
 		})
 	}
 	return res
+}
+
+func isSkipped(skipped []int, idx int) bool {
+	for _, v := range skipped {
+		if v == idx {
+			return true
+		}
+	}
+	return false
 }
