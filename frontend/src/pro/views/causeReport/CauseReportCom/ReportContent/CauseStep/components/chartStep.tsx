@@ -4,7 +4,7 @@ import { cloneDeep } from 'lodash'
 import { flameDataHandle, basiclineOption, buildLineSeriesData, stackDataHandle } from './service'
 import dayjs from 'dayjs'
 import { ThemeColor, ThemeStyle } from 'src/constants'
-import Flamegraph from './Flamegraph'
+import Flamegraph from './Flamegraph/index'
 import StackChart from './StackChart'
 import CopyButton from 'src/core/components/CopyButton'
 import GrafanaChart from './GrafanaChart'
@@ -98,8 +98,8 @@ function ChartStep({ data, occurrenceAt }: Props) {
   }
   const dataHandle = () => {
     if (data.source === 'text' && data.text?.flame_graph) {
-      const result = flameDataHandle(data.text.flame_graph)
-      setChartData(result)
+      // const result = flameDataHandle(data.text.flame_graph)
+      setChartData(JSON.parse(data.text.flame_graph || ''))
     } else if (data.source === 'object') {
       setStackList(stackDataHandle(data.object?.stack))
     } else {
