@@ -29,6 +29,7 @@
     "chartjs-adapter-date-fns": "^3.0.0",
     "classnames": "^2.5.1",
     "codemirror": "^5.59.1",
+    "color": "^4.2.3",
     "core-js": "^3.37.1",
     "d3": "^7.9.0",
     "d3-flame-graph": "^4.1.3",
