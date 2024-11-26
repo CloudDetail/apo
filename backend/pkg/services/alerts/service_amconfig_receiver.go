@@ -7,7 +7,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	uuid2 "github.com/google/uuid"
 	"net/url"
 )
@@ -47,8 +46,9 @@ func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigRecever
 
 	for i := range dingTalkReceivers {
 		receiver := amconfig.Receiver{
-			Name:            dingTalkReceivers[i].AlertName,
-			DingTalkConfigs: []*database.DingTalkConfig{dingTalkReceivers[i]}}
+			Name: dingTalkReceivers[i].AlertName,
+			DingTalkConfigs: []*amconfig.DingTalkConfig{
+				dingTalkReceivers[i]}}
 		resp.AMConfigReceivers = append(resp.AMConfigReceivers, receiver)
 	}
 	resp.Pagination.Total += dingTalkCount

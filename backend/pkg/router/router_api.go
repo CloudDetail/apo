@@ -4,12 +4,15 @@ import (
 	"github.com/CloudDetail/apo/backend/internal/api/mock"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
+	"github.com/CloudDetail/apo/backend/pkg/api/health"
 	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
 	networkapi "github.com/CloudDetail/apo/backend/pkg/api/network"
 	"github.com/CloudDetail/apo/backend/pkg/api/service"
 	"github.com/CloudDetail/apo/backend/pkg/api/serviceoverview"
 	"github.com/CloudDetail/apo/backend/pkg/api/trace"
+	"github.com/CloudDetail/apo/backend/pkg/api/user"
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 	"github.com/CloudDetail/metadata/source"
 )
@@ -24,7 +27,7 @@ func setApiRouter(r *resource) {
 		api.DELETE("/mock/:id", mockHandler.Delete())
 	}
 
-	serviceApi := r.mux.Group("/api/service")
+	serviceApi := r.mux.Group("/api/service").Use(middleware.Auth(r.cache))
 	{
 		serviceOverviewHandler := serviceoverview.New(r.logger, r.ch, r.prom, r.pkg_db)
 		serviceApi.GET("/endpoints", serviceOverviewHandler.GetEndPointsData())
@@ -62,9 +65,9 @@ func setApiRouter(r *resource) {
 		serviceApi.GET("/sql/metrics", serviceHandler.GetSQLMetrics())
 	}
 
-	logApi := r.mux.Group("/api/log")
+	logApi := r.mux.Group("/api/log").Use(middleware.Auth(r.cache))
 	{
-		logHandler := log.New(r.logger, r.ch, r.pkg_db, r.k8sRepo, r.prom)
+		logHandler := log.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom)
 		logApi.POST("/fault/pagelist", logHandler.GetFaultLogPageList())
 		logApi.POST("/fault/content", logHandler.GetFaultLogContent())
 
@@ -92,19 +95,21 @@ func setApiRouter(r *resource) {
 	traceApi := r.mux.Group("/api/trace")
 	{
 		traceHandler := trace.New(r.logger, r.ch, r.jaegerRepo)
+		traceApi.GET("/onoffcpu", traceHandler.GetOnOffCPU())
 		traceApi.POST("/pagelist", traceHandler.GetTracePageList())
+		traceApi.Use(middleware.Auth(r.cache))
 		traceApi.GET("/pagelist/filters", traceHandler.GetTraceFilters())
 		traceApi.POST("/pagelist/filter/value", traceHandler.GetTraceFilterValue())
-		traceApi.GET("/onoffcpu", traceHandler.GetOnOffCPU())
 		traceApi.GET("/info", traceHandler.GetSingleTraceInfo())
 		traceApi.GET("/flame", traceHandler.GetFlameGraphData())
 	}
 
 	alertApi := r.mux.Group("/api/alerts")
 	{
-		alertHandler := alerts.New(r.logger, r.ch, r.k8sRepo, r.pkg_db)
+		alertHandler := alerts.New(r.logger, r.ch, r.k8sApi, r.pkg_db)
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.POST("/outputs/dingtalk/:uuid", alertHandler.ForwardToDingTalk())
+		alertApi.Use(middleware.Auth(r.cache))
 		alertApi.GET("/rules/file", alertHandler.GetAlertRuleFile())
 		alertApi.POST("/rules/file", alertHandler.UpdateAlertRuleFile())
 
@@ -123,17 +128,34 @@ func setApiRouter(r *resource) {
 		alertApi.DELETE("/alertmanager/receiver", alertHandler.DeleteAlertManagerConfigReceiver())
 	}
 
-	configApi := r.mux.Group("/api/config")
+	configApi := r.mux.Group("/api/config").Use(middleware.Auth(r.cache))
 	{
 		configHandler := config.New(r.logger, r.ch)
 		configApi.POST("/setTTL", configHandler.SetTTL())
 		configApi.POST("/setSingleTableTTL", configHandler.SetSingleTableTTL())
 		configApi.GET("/getTTL", configHandler.GetTTL())
 	}
+	userApi := r.mux.Group("/api/user")
+	{
+		userHandler := user.New(r.logger, r.pkg_db, r.cache)
+		userApi.POST("/login", userHandler.Login())
+		userApi.POST("/logout", userHandler.Logout())
+		userApi.GET("/refresh", userHandler.RefreshToken())
+		userApi.Use(middleware.Auth(r.cache))
+		userApi.POST("/create", userHandler.CreateUser())
+		userApi.POST("/update/password", userHandler.UpdateUserPassword())
+		userApi.POST("/update/phone", userHandler.UpdateUserPhone())
+		userApi.POST("/update/email", userHandler.UpdateUserEmail())
+		userApi.POST("/update/info", userHandler.UpdateUserInfo())
+		userApi.GET("/info", userHandler.GetUserInfo())
+		userApi.GET("/list", userHandler.GetUserList())
+		userApi.POST("/remove", userHandler.RemoveUser())
+		userApi.POST("/reset", userHandler.ResetPassword())
+	}
 
 	k8sApi := r.mux.Group("/api/k8s")
 	{
-		k8sHandler := k8s.New(r.k8sRepo)
+		k8sHandler := k8s.New(r.k8sApi)
 		k8sApi.GET("/namespaces", k8sHandler.GetNamespaceList())
 		k8sApi.GET("/namespace/info", k8sHandler.GetNamespaceInfo())
 		k8sApi.GET("/pods", k8sHandler.GetPodList())
@@ -146,6 +168,11 @@ func setApiRouter(r *resource) {
 		networkApi.GET("/segments", handler.GetSpanSegmentsMetrics())
 	}
 
+	healthApi := r.mux.Group("/api/health")
+	{
+		handler := health.New()
+		healthApi.GET("", handler.HealthCheck())
+	}
 }
 
 func SetMetaServerRouter(srv *Server, meta source.MetaSource) {

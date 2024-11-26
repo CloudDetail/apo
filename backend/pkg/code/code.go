@@ -6,6 +6,8 @@ const (
 	ServerError    = "A0001"
 	ParamBindError = "A0002"
 	DbConnectError = "A0003"
+	UnAuth         = "A0004"
+	InValidToken   = "A0005"
 
 	MockCreateError = "B0101"
 	MockListError   = "B0102"
@@ -128,6 +130,21 @@ const (
 
 	// k8s api
 	K8sGetResourceError = "B1001"
+
+	// user api
+	UserNotExistsError         = "B0901"
+	UserPasswordIncorrectError = "B0902"
+	UserLoginError             = "B0903"
+	UserTokenExpireError       = "B0904"
+	UserAlreadyExists          = "B0905"
+	UserCreateError            = "B0906"
+	UserUpdateError            = "B0907"
+	UserConfirmPasswordError   = "B0908"
+	GetUserInfoError           = "B0909"
+	RemoveUserError            = "B0910"
+	UserPasswordSimpleError    = "B0911"
+	UserRemoveSelfError        = "B0912"
+	UserNoPermissionError      = "B0913"
 )
 
 func Text(code string) string {

@@ -1,4 +1,4 @@
-// core/api/request.js
+// src/api/request.js
 import axios from 'axios'
 import { showToast } from './toast'
 import qs from 'qs'
@@ -15,7 +15,7 @@ instance.interceptors.request.use(
   (config) => {
     // 在发送请求之前做些什么，比如添加token
     const token = localStorage.getItem('token')
-    if (token) {
+    if (token && config.url != "/api/user/refresh") {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
@@ -29,32 +29,46 @@ instance.interceptors.request.use(
 // 响应拦截器
 instance.interceptors.response.use(
   (response) => {
-    // 对响应数据做点什么
     const { data } = response
     return data
   },
-  (error) => {
-    // 对响应错误做点什么
+  async (error) => {
     if (error.response) {
-      // 请求已发出，但服务器响应状态码不在2xx范围内
       const { status, data } = error.response
+      const originalRequest = error.config
       switch (status) {
-        case 401:
-          //   message.error('未授权，请登录');
-          // 可以跳转到登录页
+        case 400:
+          if (data.code === 'A0004') {
+            window.location.href = "/#/login"
+            showToast({
+              title: "未登录,请先登录",
+              color: 'danger'
+            })
+          } else if (data.code === 'A0005') {
+            const newToken = await refreshAccessToken()
+            if (newToken) {
+              originalRequest.headers.Authorization = `Bearer ${newToken}`
+              return instance(originalRequest)
+            } else {
+              window.location.href = "/#/login"
+              showToast({
+                title: "登录过期,请重新登录",
+                color: 'danger'
+              })
+            }
+          }
           break
+
+        case 401:
+          break
+
         case 403:
           showToast({
             title: '拒绝访问',
             color: 'danger',
           })
           break
-        // case 404:
-        //   message.error('请求地址出错');
-        //   break;
-        // case 500:
-        //   message.error('服务器内部错误');
-        //   break;
+
         default:
           showToast({
             title: '请求失败',
@@ -63,17 +77,35 @@ instance.interceptors.response.use(
           })
       }
     } else {
-      // 一些错误是在设置请求的时候触发的
       showToast({
         title: error.message,
         color: 'danger',
       })
-      //   message.error(error.message)
     }
-    console.log(error)
     return Promise.reject(error)
   },
 )
+
+// 刷新 accessToken
+const refreshAccessToken = async () => {
+  const refreshToken = localStorage.getItem('refreshToken')
+  if (!refreshToken) return null
+
+  try {
+    // 使用 instance 实例发送请求并排除 Authorization 头部
+    const response = await instance.get(`/api/user/refresh`, {
+      headers: {
+        Authorization: `Bearer ${refreshToken}`,
+      }
+    })
+    // @ts-ignore
+    const { accessToken } = response
+    localStorage.setItem('token', accessToken)
+    return accessToken
+  } catch (error) {
+    return null
+  }
+}
 
 // 封装GET请求
 const get = (url, params = {}, config = {}) => {
@@ -81,7 +113,6 @@ const get = (url, params = {}, config = {}) => {
     throw error
   })
 }
-
 // 封装POST请求
 const post = (url, data = {}, config = {}) => {
   return instance.post(url, data, { ...config }).catch((error) => {
