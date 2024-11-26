@@ -350,6 +350,17 @@ definitions:
       unit:
         type: string
     type: object
+  database.AlertMetricsData:
+    properties:
+      group:
+        type: string
+      name:
+        type: string
+      pql:
+        type: string
+      unit:
+        type: string
+    type: object
   database.User:
     properties:
       corporation:
@@ -630,6 +641,8 @@ definitions:
     properties:
       containerId:
         description: 容器ID
+        type: string
+      nodeIp:
         type: string
       nodeIp:
         type: string
@@ -1583,6 +1596,27 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetFlameDataResponse:
+    properties:
+      endTime:
+        type: integer
+      flameBearer:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      pid:
+        type: integer
+      sampleRate:
+        type: integer
+      sampleType:
+        type: string
+      startTime:
+        type: integer
+      tid:
+        type: integer
     type: object
   response.GetGroupListResponse:
     properties:
@@ -4839,6 +4873,58 @@ paths:
       summary: 获取Trace相关指标
       tags:
       - API.service
+  /api/trace/flame:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取指定时间段指定条件的火焰图数据
+      parameters:
+      - description: 采样类型
+        in: query
+        name: sampleType
+        type: string
+      - description: 进程id
+        in: query
+        name: pid
+        type: integer
+      - description: 线程id
+        in: query
+        name: tid
+        type: integer
+      - description: 开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: span id
+        in: query
+        name: spanId
+        required: true
+        type: string
+      - description: trae id
+        in: query
+        name: traceId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetFlameDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取指定时间段指定条件的火焰图数据
+      tags:
+      - API.trace
   /api/trace/info:
     get:
       consumes:

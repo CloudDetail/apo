@@ -67,7 +67,7 @@ func (builder *FieldBuilder) String() string {
 	return labels
 }
 
-func (builder *QueryBuilder) Between(key string, from int64, to int64) *QueryBuilder {
+func (builder *QueryBuilder) Between(key string, from interface{}, to interface{}) *QueryBuilder {
 	builder.where = append(builder.where, fmt.Sprintf("%s BETWEEN ? AND ?", key))
 	builder.values = append(builder.values, from, to)
 	return builder

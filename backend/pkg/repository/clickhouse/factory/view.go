@@ -49,11 +49,11 @@ func (v *ViewTableFactory) CreateTableSQL(params *request.LogTableRequest) strin
 	var viewFields string
 	tablename := params.TableName
 	for _, field := range params.Fields {
-		logFields += fmt.Sprintf(",\n%s Nullable(%s)", field.Name, field.Type)
+		logFields += fmt.Sprintf(",\n`%s` Nullable(%s)", field.Name, field.Type)
 		if field.Type == "Float64" {
-			viewFields += fmt.Sprintf(",\ntoNullable(to%sOrZero(replaceAll(JSONExtractRaw(content, '%s'), '\"', ''))) AS %s", field.Type, field.Name, field.Name)
+			viewFields += fmt.Sprintf(",\ntoNullable(to%sOrZero(replaceAll(JSONExtractRaw(content, '%s'), '\"', ''))) AS `%s`", field.Type, field.Name, field.Name)
 		} else {
-			viewFields += fmt.Sprintf(",\ntoNullable(to%s(replaceAll(JSONExtractRaw(content, '%s'), '\"', ''))) AS %s", field.Type, field.Name, field.Name)
+			viewFields += fmt.Sprintf(",\ntoNullable(to%s(replaceAll(JSONExtractRaw(content, '%s'), '\"', ''))) AS `%s`", field.Type, field.Name, field.Name)
 		}
 	}
 	cluster := params.ClusterString()

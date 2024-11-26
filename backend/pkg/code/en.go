@@ -46,6 +46,7 @@ var enText = map[string]string{
 	GetTraceFilterValueError: "Failed to get trace filter value",
 	GetOnOffCPUError:         "Failed to get on off cpu value",
 	GetSingleTraceError:      "Failed to get single trace value",
+	GetFlameGraphError:       "Failed to get flame graph",
 
 	GetOverviewServiceInstanceListError: "Failed to get overview service instance list",
 	GetServiceMoreUrlListError:          "Failed to get service more url list",

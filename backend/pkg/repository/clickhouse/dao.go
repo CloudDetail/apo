@@ -96,6 +96,9 @@ type Repo interface {
 
 	// ========== network (deepflow) ==========
 	GetNetworkSpanSegments(traceId string, spanId string) ([]NetSegments, error)
+
+	// ========== flame graph ===========
+	GetFlameGraphData(startTime, endTime int64, pid, tid uint32, sampleType, spanId, traceId string) (*[]FlameGraphData, error)
 }
 
 type chRepo struct {

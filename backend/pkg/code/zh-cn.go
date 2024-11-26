@@ -46,6 +46,7 @@ var zhCnText = map[string]string{
 	GetTraceFilterValueError: "获取Trace过滤条件值失败",
 	GetOnOffCPUError:         "获取Trace中span执行消耗失败",
 	GetSingleTraceError:      "获取单条trace数据失败",
+	GetFlameGraphError:       "获取火焰图失败",
 
 	GetOverviewServiceInstanceListError: "获取实例列表失败",
 	GetServiceMoreUrlListError:          "获取更多服务端点失败",
