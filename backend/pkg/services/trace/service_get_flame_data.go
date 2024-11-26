@@ -11,9 +11,13 @@ func (s *service) GetFlameGraphData(req *request.GetFlameDataRequest) (resp resp
 	if err != nil {
 		return
 	}
-	if len(*flameData) > 0 {
-		s.logger.Warn("invoke level flame graph should have one flame data", zap.Int("got", len(*flameData)))
-		resp = (response.GetFlameDataResponse)((*flameData)[0])
+
+	if len(*flameData) == 0 {
+		return
 	}
+	if len(*flameData) > 1 {
+		s.logger.Warn("invoke level flame graph should have one flame data", zap.Int("got", len(*flameData)))
+	}
+	resp = (response.GetFlameDataResponse)((*flameData)[0])
 	return
 }

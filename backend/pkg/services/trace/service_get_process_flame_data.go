@@ -29,7 +29,7 @@ func (s *service) GetProcessFlameGraphData(req *request.GetProcessFlameGraphRequ
 		startTime = min(startTime, d.StartTime)
 		endTime = max(endTime, d.EndTime)
 		if d.TID != 0 {
-			s.logger.Warn("process's thread id doesn't equal to 0", zap.Uint32("pid", d.PID), zap.Uint32("tid", d.TID))
+			s.logger.Warn("process level flame graph's thread id doesn't equal to 0", zap.Uint32("pid", d.PID), zap.Uint32("tid", d.TID))
 		}
 		if labels == nil {
 			labels = d.Labels
