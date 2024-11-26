@@ -1668,6 +1668,27 @@ definitions:
       inferMetricsPng:
         type: string
     type: object
+  response.GetProcessFlameGraphResponse:
+    properties:
+      endTime:
+        type: integer
+      flameBearer:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      pid:
+        type: integer
+      sampleRate:
+        type: integer
+      sampleType:
+        type: string
+      startTime:
+        type: integer
+      tid:
+        type: integer
+    type: object
   response.GetSQLMetricsResponse:
     properties:
       pagination:
@@ -4791,6 +4812,7 @@ paths:
       - description: 采样类型
         in: query
         name: sampleType
+        required: true
         type: string
       - description: 进程id
         in: query
@@ -4815,7 +4837,7 @@ paths:
         name: spanId
         required: true
         type: string
-      - description: trae id
+      - description: trace id
         in: query
         name: traceId
         required: true
@@ -4832,6 +4854,46 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取指定时间段指定条件的火焰图数据
+      tags:
+      - API.trace
+  /api/trace/flame/process:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取并整合进程级别火焰图数据
+      parameters:
+      - description: 开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 进程id
+        in: query
+        name: pid
+        required: true
+        type: integer
+      - description: 采样类型
+        in: query
+        name: sampleType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetProcessFlameGraphResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取并整合进程级别火焰图数据
       tags:
       - API.trace
   /api/trace/info:
