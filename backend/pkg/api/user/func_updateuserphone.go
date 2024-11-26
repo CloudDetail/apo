@@ -17,8 +17,8 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param username query string true "用户名"
-// @Param phone query string true "手机号"
+// @Param username formData string true "用户名"
+// @Param phone formData string true "手机号"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
@@ -26,7 +26,7 @@ import (
 func (h *handler) UpdateUserPhone() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.UpdateUserPhoneRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
