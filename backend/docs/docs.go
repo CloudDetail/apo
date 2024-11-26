@@ -4493,7 +4493,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "原密码",
                         "name": "oldPassword",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
