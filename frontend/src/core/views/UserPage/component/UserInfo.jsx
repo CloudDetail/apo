@@ -1,7 +1,7 @@
 import { Button, Flex, Popconfirm, Form, Input, Collapse, Divider } from "antd"
 import { MailOutlined, ApartmentOutlined, LockOutlined, PhoneOutlined } from '@ant-design/icons'
-import { updateEmailApi, updateCorporationApi, updatePhoneApi, getUserInfoApi } from "src/core/api/user"
-import { showToast } from "src/core/utils/toast"
+import { updateEmailApi, updateCorporationApi, updatePhoneApi, getUserInfoApi } from "core/api/user"
+import { showToast } from "core/utils/toast"
 import { useEffect, useState } from "react"
 
 export default function UserInfo() {
@@ -9,11 +9,14 @@ export default function UserInfo() {
 
     async function getUserInfo() {
         try {
-            const result = await getUserInfoApi()
-            form.setFieldValue("email", result.email)
-            form.setFieldValue("phone", result.phone)
-            form.setFieldValue("corporation", result.corporation == 'undefined' ? "" : result.corporation)
-            localStorage.setItem("user", JSON.stringify(result))
+            const user = await getUserInfoApi()
+            if (user) {
+                localStorage.setItem("user", JSON.stringify(user))
+                const { email, phone, corporation } = user
+                form.setFieldValue("email", email)
+                form.setFieldValue("phone", phone)
+                form.setFieldValue("corporation", corporation == 'undefined' ? "" : corporation)
+            }
         } catch (error) {
             showToast({
                 title: error,
@@ -23,19 +26,18 @@ export default function UserInfo() {
     }
 
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem("user"))
-        if (user) {
-            form.setFieldValue("email", user.email)
-            form.setFieldValue("phone", user.phone)
-            form.setFieldValue("corporation", user.corporation == 'undefined' ? "" : user.corporation)
-        }
+        getUserInfo()
     }, [])
 
     //更新邮箱
     function updateEmail() {
         form.validateFields(['email'])
-            .then(async (values) => {
-                await updateEmailApi(values)
+            .then(async ({ email }) => {
+                const params = {
+                    username: JSON.parse(localStorage.getItem("user")).username,
+                    email
+                }
+                await updateEmailApi(params)
                 showToast({
                     title: '邮箱更新成功',
                     color: 'success'
@@ -50,10 +52,15 @@ export default function UserInfo() {
     //更新个人信息
     function updateCorporation() {
         form.validateFields(['corporation'])
-            .then(async (values) => {
-                await updateCorporationApi(values)
+            .then(async ({ corporation }) => {
+                const params = {
+                    username: JSON.parse(localStorage.getItem("user")).username,
+                    corporation
+                }
+
+                await updateCorporationApi(params)
                 showToast({
-                    title: '个人信息更新成功',
+                    title: '组织更新成功',
                     color: 'success'
                 })
                 form.resetFields(['corporation'])
@@ -66,8 +73,12 @@ export default function UserInfo() {
     //修改手机号
     function updatePhone() {
         form.validateFields(['phone'])
-            .then(async (values) => {
-                await updatePhoneApi(values)
+            .then(async ({ phone }) => {
+                const params = {
+                    username: JSON.parse(localStorage.getItem("user")).username,
+                    phone
+                }
+                await updatePhoneApi(params)
                 showToast({
                     title: '手机号修改成功',
                     color: 'success'

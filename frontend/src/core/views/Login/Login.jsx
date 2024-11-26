@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Button, Input, Form, Flex, Checkbox } from "antd";
-import { loginApi } from "src/core/api/user";
+import { loginApi } from "core/api/user";
 import { useNavigate } from "react-router-dom";
 import { UserOutlined, LockOutlined } from "@ant-design/icons"
-import { showToast } from "src/core/utils/toast";
-import { getUserInfoApi } from "src/core/api/user";
-import logo from 'src/core/assets/brand/logo.svg'
+import { showToast } from "core/utils/toast";
+import { getUserInfoApi } from "core/api/user";
+import logo from 'core/assets/brand/logo.svg'
 import { AiOutlineLoading } from "react-icons/ai";
 
 export default function Login() {
@@ -18,7 +18,6 @@ export default function Login() {
         form.validateFields()
             .then(async (values) => {
                 try {
-                    // @ts-ignore
                     setLoading(true)
                     const { accessToken, refreshToken } = await loginApi(values);
                     setLoading(false)

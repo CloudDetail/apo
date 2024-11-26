@@ -1,8 +1,8 @@
 import { Button, Flex, Popconfirm } from "antd";
 import { EditOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons"
-import { showToast } from "src/core/utils/toast";
+import { showToast } from "core/utils/toast";
 import { useNavigate } from 'react-router-dom'
-import { logoutApi } from "src/core/api/user";
+import { logoutApi } from "core/api/user";
 import { forwardRef, useState } from "react";
 
 

@@ -1,53 +1,27 @@
 import { Flex, Form, Input, Button, Divider, Tooltip, Modal, Table, ConfigProvider, Popconfirm, Spin, Pagination } from "antd"
-import { UserOutlined, LockOutlined } from "@ant-design/icons"
-import { createUserApi, getUserListApi, removeUserApi } from "src/core/api/user";
-import { showToast } from "src/core/utils/toast";
+import { createUserApi, getUserListApi, removeUserApi } from "core/api/user";
+import { showToast } from "core/utils/toast";
 import { IoPersonAdd } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import { RiDeleteBin5Line } from 'react-icons/ri'
-import "./index.css"
+import { MdOutlineModeEdit } from "react-icons/md";
+import EditModal from "./componnets/EditModal";
+import AddModal from "./componnets/AddModal";
+import styles from "./index.module.css"
 
 export default function UserManage() {
-    const [form] = Form.useForm()
-    const [modalVisibility, setModalVisibility] = useState(false)
+    console.log(styles)
+    const [modalAddVisibility, setModalAddVisibility] = useState(false)
     const [userList, setUserList] = useState([])
     const [username, setUsername] = useState("")
     const [role, setRole] = useState("")
     const [corporation, setCorporation] = useState("")
     const [tableVisibility, setTableVisibility] = useState(true)
+    const [modalEditVisibility, setModalEditVisibility] = useState(false)
     const [currentPage, setCurrentPage] = useState(1)
     const [pageSize, setPageSize] = useState(11)
     const [total, setTotal] = useState(0)
-
-    //创建用户
-    async function createUser() {
-        form.validateFields()
-            .then(async (values) => {
-                console.log(values)
-                if (values.password !== values.confirmPassword) {
-                    showToast({
-                        title: '两次密码不一致,请重新输入',
-                        color: 'danger'
-                    })
-                    return
-                }
-                try {
-                    await createUserApi(values)
-                    showToast({
-                        title: '新用户添加成功',
-                        color: 'success'
-                    })
-                    setModalVisibility(false)
-                    await getUserList()
-                } catch (error) {
-                    showToast({
-                        title: error.response ? error.response.data.message : "未知错误",
-                        color: 'danger'
-                    })
-                }
-                form.resetFields()
-            })
-    }
+    const [selectedUser, setSelectedUser] = useState("")
 
     //移除用户
     async function removeUser(prop) {
@@ -68,9 +42,10 @@ export default function UserManage() {
         } catch (error) {
             showToast({
                 title: "移除用户失败",
-                message: error,
+                message: error.response.data.message,
                 color: "danger"
             })
+            console.log(error)
         }
     }
 
@@ -130,13 +105,13 @@ export default function UserManage() {
             align: 'center',
             width: "16%"
         },
-        {
-            title: '角色',
-            dataIndex: 'role',
-            key: 'role',
-            align: 'center',
-            width: "16%"
-        },
+        // {
+        //     title: '角色',
+        //     dataIndex: 'role',
+        //     key: 'role',
+        //     align: 'center',
+        //     width: "16%"
+        // },
         {
             title: '组织',
             dataIndex: 'corporation',
@@ -166,15 +141,30 @@ export default function UserManage() {
             render: (prop) => {
                 return localStorage.getItem("username") !== prop ?
                     (
-                        <Popconfirm
-                            title={`确定要移除用户名为${prop}的用户吗`}
-                            onConfirm={() => removeUser(prop)}
-                        >
-                            <Button type="text" icon={<RiDeleteBin5Line />} danger>
-                                删除
+                        <>
+                            <Button onClick={() => {
+                                setSelectedUser(prop)
+                                setModalEditVisibility(true)
+                            }} icon={<MdOutlineModeEdit />} type="text" className="mr-1">
+                                编辑
                             </Button>
-                        </Popconfirm>
-                    ) : <></>
+                            <Popconfirm
+                                title={`确定要移除用户名为${prop}的用户吗`}
+                                onConfirm={() => removeUser(prop)}
+                            >
+                                <Button type="text" icon={<RiDeleteBin5Line />} danger>
+                                    删除
+                                </Button>
+                            </Popconfirm>
+                        </>
+                    ) : <>
+                        <Button onClick={() => {
+                            setSelectedUser(prop)
+                            setModalEditVisibility(true)
+                        }} icon={<MdOutlineModeEdit />} type="text" className="mr-1">
+                            编辑
+                        </Button>
+                    </>
             },
             width: "16%"
         }
@@ -199,10 +189,10 @@ export default function UserManage() {
                             <p className="text-md mr-2">用户名称:</p>
                             <Input placeholder="检索" className="w-52" value={username} onChange={(e) => setUsername(e.target.value)} />
                         </Flex>
-                        <Flex className="w-auto items-center justify-start mr-5">
+                        {/* <Flex className="w-auto items-center justify-start mr-5">
                             <p className="text-md mr-2">角色:</p>
                             <Input placeholder="检索" className="w-40" value={role} onChange={(e) => setRole(e.target.value)} />
-                        </Flex>
+                        </Flex> */}
                         <Flex className="w-auto items-center justify-start">
                             <p className="text-md mr-2">组织:</p>
                             <Input placeholder="检索" className="w-40" value={corporation} onChange={(e) => setCorporation(e.target.value)} />
@@ -212,7 +202,7 @@ export default function UserManage() {
                         <Button
                             type="primary"
                             icon={<IoPersonAdd />}
-                            onClick={() => setModalVisibility(true)}
+                            onClick={() => setModalAddVisibility(true)}
                             className="flex-grow-0 flex-shrink-0"
                         >
                             <span className="text-xs">新增用户</span>
@@ -229,7 +219,7 @@ export default function UserManage() {
                     }
                 }}
             >
-                <Flex vertical className={"w-full flex"}>
+                <Flex vertical className={"w-full flex"} >
                     <Table
                         dataSource={userList}
                         columns={columns}
@@ -250,52 +240,17 @@ export default function UserManage() {
                     />
                 </Flex>
             </ConfigProvider>
-            <Modal
-                open={modalVisibility}
-                onCancel={() => setModalVisibility(false)}
-                maskClosable={false}
-                title="新增用户"
-                okText="新增"
-                onOk={createUser}
-            >
-                <Flex vertical className="w-full mt-4 mb-4 ml-8">
-                    <Flex vertical className="w-full justify-center start">
-                        <Form form={form} layout="vertical">
-                            <Form.Item
-                                label="用户名;"
-                                name="username"
-                                rules={[
-                                    { required: true, message: '请输入用户名' }
-                                ]}
-                            >
-                                <div className="flex justify-start items-start">
-                                    <Input prefix={<UserOutlined />} placeholder="请输入用户名" className="w-5/6" />
-                                </div>
-                            </Form.Item>
-                            <Form.Item
-                                label="密码"
-                                name="password"
-                                rules={[
-                                    { required: true, message: '请输入密码' }
-                                ]}
-                            >
-                                <div className="flex justify-start items-start">
-                                    <Input.Password prefix={<LockOutlined />} placeholder="请输入密码" className="w-5/6" />
-                                </div>
-                            </Form.Item>
-                            <Form.Item
-                                label="重复密码"
-                                name="confirmPassword"
-                                rules={[
-                                    { required: true, message: '请再次输入密码' }
-                                ]}
-                            >
-                                <Input.Password prefix={<LockOutlined />} placeholder="请再次输入密码" className="w-5/6" />
-                            </Form.Item>
-                        </Form>
-                    </Flex>
-                </Flex>
-            </Modal>
+            <EditModal
+                selectedUser={selectedUser}
+                modalEditVisibility={modalEditVisibility}
+                setModalEditVisibility={setModalEditVisibility}
+                getUserList={getUserList}
+            />
+            <AddModal
+                modalAddVisibility={modalAddVisibility}
+                setModalAddVisibility={setModalAddVisibility}
+                getUserList={getUserList}
+            />
         </Flex>
     )
 }

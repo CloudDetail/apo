@@ -9,19 +9,19 @@ const logoutApi = (params) => {
 }
 
 const updateEmailApi = (params) => {
-    return post(`/api/user/update/email?email=${params.email}`)
+    return post(`/api/user/update/email?email=${params.email}&username=${params.username}`)
 }
 
 const updateCorporationApi = (params) => {
-    return post(`/api/user/update/info?corporation=${params.corporation}`)
+    return post(`/api/user/update/info?corporation=${params.corporation}&username=${params.username}`)
 }
 
 const updatePasswordApi = (params) => {
-    return post(`/api/user/update/password?oldPassword=${params.oldPassword}&newPassword=${params.newPassword}`)
+    return post(`/api/user/update/password?oldPassword=${params.oldPassword}&newPassword=${params.newPassword}&confirmPassword=${params.confirmPassword}&username=${params.username}`)
 }
 
 const updatePhoneApi = (params) => {
-    return post(`/api/user/update/phone?phone=${params.phone}`)
+    return post(`/api/user/update/phone?phone=${params.phone}&username=${params.username}`)
 }
 
 const createUserApi = (params) => {
@@ -32,12 +32,16 @@ const getUserInfoApi = () => {
     return get(`api/user/info`)
 }
 
-const getUserListApi = (params,signal) => {
-    return get(`/api/user/list?currentPage=${params.currentPage}&pageSize=${params.pageSize}&username=${params.username}&role=${params.role}&corporation=${params.corporation}`,{signal})
+const getUserListApi = (params, signal) => {
+    return get(`/api/user/list?currentPage=${params.currentPage}&pageSize=${params.pageSize}&username=${params.username}&role=${params.role}&corporation=${params.corporation}`, { signal })
 }
 
 const removeUserApi = (params) => {
     return post(`/api/user/remove?username=${params.username}`)
+}
+
+const updatePasswordWithNoOldPwd = (params) => {
+    return post(`/api/user/reset?newPassword=${params.newPassword}&username=${params.username}`)
 }
 
 export {
@@ -50,5 +54,6 @@ export {
     createUserApi,
     getUserInfoApi,
     getUserListApi,
-    removeUserApi
+    removeUserApi,
+    updatePasswordWithNoOldPwd
 }

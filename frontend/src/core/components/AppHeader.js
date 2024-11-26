@@ -11,7 +11,7 @@ import CoachMask from './Mask/CoachMask';
 import DateTimeCombine from './DateTime/DateTimeCombine';
 import { ConfigProvider, Menu } from 'antd';
 import { commercialNav } from 'src/_nav';
-import ToolBox from './UserPage/component/ToolBox';
+import ToolBox from '../views/UserPage/component/ToolBox';
 import { HiUserCircle } from "react-icons/hi";
 import { RxTriangleDown } from "react-icons/rx";
 import { RxTriangleLeft } from "react-icons/rx";
