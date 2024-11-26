@@ -74,7 +74,7 @@ func (l *LogTableFactory) CreateTableSQL(params *request.LogTableRequest) string
 	}
 	var AnalyzerFiles string
 	for _, field := range params.Fields {
-		AnalyzerFiles += fmt.Sprintf("%s Nullable(%s),\n", field.Name, field.Type)
+		AnalyzerFiles += fmt.Sprintf("`%s` Nullable(%s),\n", field.Name, field.Type)
 	}
 	cluster := params.ClusterString()
 	var engine string
@@ -107,7 +107,7 @@ func (l *LogTableFactory) DropTableSQL(params *request.LogTableRequest) string {
 func (l *LogTableFactory) CreateDistributedTableSQL(params *request.LogTableRequest) string {
 	var AnalyzerFiles string
 	for _, field := range params.Fields {
-		AnalyzerFiles += fmt.Sprintf(",\n%s Nullable(%s)", field.Name, field.Type)
+		AnalyzerFiles += fmt.Sprintf(",\n`%s` Nullable(%s)", field.Name, field.Type)
 	}
 	return fmt.Sprintf(distributedlogSQL, params.DataBase, params.TableName, params.ClusterString(),
 		AnalyzerFiles, params.Cluster, params.DataBase, params.TableName)
@@ -127,12 +127,12 @@ func (l *LogTableFactory) UpdateTableSQL(params *request.LogTableRequest, old []
 				break
 			} else if params.Fields[i].Name == old[j].Name && params.Fields[i].Type != old[j].Type {
 				exists = true
-				updateFields = append(updateFields, fmt.Sprintf("MODIFY COLUMN %s Nullable(%s)", params.Fields[i].Name, params.Fields[i].Type))
+				updateFields = append(updateFields, fmt.Sprintf("MODIFY COLUMN `%s` Nullable(%s)", params.Fields[i].Name, params.Fields[i].Type))
 				break
 			}
 		}
 		if !exists {
-			updateFields = append(updateFields, fmt.Sprintf("ADD COLUMN %s Nullable(%s)", params.Fields[i].Name, params.Fields[i].Type))
+			updateFields = append(updateFields, fmt.Sprintf("ADD COLUMN `%s` Nullable(%s)", params.Fields[i].Name, params.Fields[i].Type))
 		}
 	}
 
@@ -144,7 +144,7 @@ func (l *LogTableFactory) UpdateTableSQL(params *request.LogTableRequest, old []
 			}
 		}
 		if !exists {
-			updateFields = append(updateFields, fmt.Sprintf("DROP COLUMN %s", old[i].Name))
+			updateFields = append(updateFields, fmt.Sprintf("DROP COLUMN `%s`", old[i].Name))
 		}
 	}
 
