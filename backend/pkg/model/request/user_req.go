@@ -50,3 +50,8 @@ type GetUserListRequest struct {
 type RemoveUserRequest struct {
 	Username string `json:"username" form:"username" binding:"required"`
 }
+
+type ResetPasswordRequest struct {
+	Username    string `json:"username" form:"username" binding:"required"`
+	NewPassword string `json:"newPassword" form:"newPassword" binding:"required"`
+}

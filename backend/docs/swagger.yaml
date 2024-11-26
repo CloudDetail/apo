@@ -5215,6 +5215,41 @@ paths:
       summary: 移除用户
       tags:
       - API.user
+  /api/user/reset:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 重设密码
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 新密码
+        in: query
+        name: newPassword
+        required: true
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 重设密码
+      tags:
+      - API.user
   /api/user/update/email:
     post:
       consumes:

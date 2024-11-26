@@ -149,6 +149,7 @@ func setApiRouter(r *resource) {
 		userApi.GET("/info", userHandler.GetUserInfo())
 		userApi.GET("/list", userHandler.GetUserList())
 		userApi.POST("/remove", userHandler.RemoveUser())
+		userApi.POST("/reset", userHandler.ResetPassword())
 	}
 
 	k8sApi := r.mux.Group("/api/k8s")
