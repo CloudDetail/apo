@@ -18,7 +18,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param username query string true "用户名"
-// @Param oldPassword query string false "原密码"
+// @Param oldPassword query string true "原密码"
 // @Param newPassword query string true "新密码"
 // @Param confirmPassword query string true "确认密码"
 // @Param Authorization header string true "Bearer accessToken"
