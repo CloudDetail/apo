@@ -3757,7 +3757,8 @@
                         "type": "string",
                         "description": "采样类型",
                         "name": "sampleType",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",
@@ -3794,7 +3795,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "trae id",
+                        "description": "trace id",
                         "name": "traceId",
                         "in": "query",
                         "required": true
@@ -5122,6 +5123,9 @@
                 "endpoint": {
                     "type": "string"
                 },
+                "group": {
+                    "type": "string"
+                },
                 "isTraced": {
                     "type": "boolean"
                 },
@@ -5133,6 +5137,9 @@
                 },
                 "service": {
                     "type": "string"
+                },
+                "system": {
+                    "type": "string"
                 }
             }
         },
@@ -5142,10 +5149,16 @@
                 "endpoint": {
                     "type": "string"
                 },
+                "group": {
+                    "type": "string"
+                },
                 "isTraced": {
                     "type": "boolean"
                 },
                 "service": {
+                    "type": "string"
+                },
+                "system": {
                     "type": "string"
                 }
             }
@@ -5159,23 +5172,6 @@
                 },
                 "message": {
                     "description": "错误信息",
-                    "type": "string"
-                }
-            }
-        },
-        "database.AlertMetricsData": {
-            "type": "object",
-            "properties": {
-                "group": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "pql": {
-                    "type": "string"
-                },
-                "unit": {
                     "type": "string"
                 }
             }
@@ -5573,9 +5569,6 @@
             "properties": {
                 "containerId": {
                     "description": "容器ID",
-                    "type": "string"
-                },
-                "nodeIp": {
                     "type": "string"
                 },
                 "nodeIp": {

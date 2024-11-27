@@ -20,12 +20,8 @@ func (s *service) GetServiceEndpointRelation(req *request.GetServiceEndpointRela
 	}
 
 	res := &response.GetServiceEndpointRelationResponse{
-		Parents: parents,
-		Current: clickhouse.TopologyNode{
-			Service:  req.Service,
-			Endpoint: req.Endpoint,
-			IsTraced: true,
-		},
+		Parents:       parents,
+		Current:       clickhouse.NewTopologyNode(req.Service, req.Endpoint),
 		ChildRelation: relations,
 	}
 	return res, nil

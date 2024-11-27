@@ -3765,7 +3765,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "采样类型",
                         "name": "sampleType",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",
@@ -3802,7 +3803,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "trae id",
+                        "description": "trace id",
                         "name": "traceId",
                         "in": "query",
                         "required": true
@@ -5130,6 +5131,9 @@ const docTemplate = `{
                 "endpoint": {
                     "type": "string"
                 },
+                "group": {
+                    "type": "string"
+                },
                 "isTraced": {
                     "type": "boolean"
                 },
@@ -5141,6 +5145,9 @@ const docTemplate = `{
                 },
                 "service": {
                     "type": "string"
+                },
+                "system": {
+                    "type": "string"
                 }
             }
         },
@@ -5150,10 +5157,16 @@ const docTemplate = `{
                 "endpoint": {
                     "type": "string"
                 },
+                "group": {
+                    "type": "string"
+                },
                 "isTraced": {
                     "type": "boolean"
                 },
                 "service": {
+                    "type": "string"
+                },
+                "system": {
                     "type": "string"
                 }
             }
@@ -5167,23 +5180,6 @@ const docTemplate = `{
                 },
                 "message": {
                     "description": "错误信息",
-                    "type": "string"
-                }
-            }
-        },
-        "database.AlertMetricsData": {
-            "type": "object",
-            "properties": {
-                "group": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "pql": {
-                    "type": "string"
-                },
-                "unit": {
                     "type": "string"
                 }
             }
@@ -5581,9 +5577,6 @@ const docTemplate = `{
             "properties": {
                 "containerId": {
                     "description": "容器ID",
-                    "type": "string"
-                },
-                "nodeIp": {
                     "type": "string"
                 },
                 "nodeIp": {
