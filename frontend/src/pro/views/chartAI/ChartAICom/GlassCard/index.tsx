@@ -10,7 +10,7 @@ const GlassCard = () => {
             <a
               className="underline text-sky-500"
               target="_blank"
-              href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/APO接入大语言模型分析告警事件"
+              href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/APO接入大语言模型分析告警事件"
             >
               接入大语言模型手册
             </a>
