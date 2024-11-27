@@ -16,8 +16,8 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param username query string true "用户名"
-// @Param newPassword query string true "新密码"
+// @Param username formData string true "用户名"
+// @Param newPassword formData string true "新密码"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
@@ -25,7 +25,7 @@ import (
 func (h *handler) ResetPassword() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.ResetPasswordRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,

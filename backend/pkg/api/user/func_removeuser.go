@@ -18,14 +18,14 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Authorization header string true "Bearer accessToken"
-// @Param username query string true "请求信息"
+// @Param username formData string true "请求信息"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/user/remove [post]
 func (h *handler) RemoveUser() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.RemoveUserRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
