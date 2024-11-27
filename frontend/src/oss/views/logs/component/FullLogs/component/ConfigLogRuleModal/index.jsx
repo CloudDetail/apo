@@ -4,6 +4,7 @@ import { flushSync } from 'react-dom'
 import LogRouteRuleFormList from './component/LogRouteRuleFormList'
 import LogStructRuleFormList from './component/LogStructRuleFormList'
 import { IoMdAddCircleOutline } from 'react-icons/io'
+import LoadingSpinner from 'src/core/components/Spinner'
 import {
   addLogRuleApi,
   getLogRuleApi,
@@ -15,7 +16,6 @@ import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { getServiceListApi } from 'core/api/service'
 import TextArea from 'antd/es/input/TextArea'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
-import { AiOutlineLoading } from "react-icons/ai";
 
 const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   const { getLogTableInfo, updateLoading } = useLogsContext()
@@ -145,7 +145,6 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       // 更新 currentLogType
       const newLogType = res.isStructured ? 0 : 1;
       setCurrentLogType(newLogType);
-
       setTimeout(() => {
         form.setFieldsValue({
           parseName: res.parseName,
@@ -154,7 +153,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
             key: { key: key, value: key },
             value: value,
           })),
-          serviceName: res.serviceName,
+          serviceName: (res.serviceName.length == 1 && res.serviceName[0] == "") ? null : res.serviceName,
           parseInfo: logRuleInfo.parseInfo,
         });
         setParseRule(res.parseRule);
@@ -174,10 +173,9 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
 
   useEffect(() => {
     setLoading(false)
-  },[])
+  }, [])
 
   function addLogRule(logRuleParams) {
-    console.log("add")
     addLogRuleApi(logRuleParams).then((res) => {
       showToast({
         title: '日志库配置成功',
@@ -187,6 +185,10 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       getLogTableInfo()
       closeModal()
     })
+      .catch(() => {
+        setLoading(false)
+        updateLoading(false)
+      })
   }
   function updateLogRule(logRuleParams) {
     updateLogRuleApi({
@@ -202,6 +204,14 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       closeModal()
       getLogTableInfo()
     })
+      .catch((error) => {
+        setLoading(false)
+        console.log(error)
+        showToast({
+          title: error,
+          color: "danger"
+        })
+      })
   }
   function saveLogRule() {
     if (loading) return
@@ -253,12 +263,25 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
               });
             }
           });
+          const names = new Set();
+          for (const obj of tableFields) {
+            if (names.has(obj.name)) {
+              showToast({
+                title: "结构化规则键重复",
+                color: "danger"
+              })
+              setLoading(false)
+              return
+            }
+            names.add(obj.name);
+          }
           logRuleParams.tableFields = tableFields
           if (tableFields.length === 0) {
             showToast({
               title: "日志格式不能为空",
               color: "danger"
             })
+            setLoading(false)
             return
           }
         }
@@ -311,6 +334,13 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       // 更新表单值
       form.setFieldValue('routeRule', result)
     })
+      .catch((error) => {
+        showToast({
+          title: "错误",
+          message: error,
+          color: "danger"
+        })
+      })
   }
   const tabItems = [
     {
@@ -325,7 +355,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
               <AiOutlineInfoCircle size={16} className="ml-1 mr-1" />
               <span className="text-xs text-gray-400">请输入JSON格式的日志样本自动生成日志格式（仅支持解析JSON最外层的键）</span>
             </div>
-            <TextArea placeholder="解析规则" rows={3} onChange={parseJsonRule} />
+            <TextArea placeholder="日志样本" rows={3} onChange={parseJsonRule} />
           </Form.Item>
           <div className='flex items-center mt-2 mb-2 w-full justify-start'>
             {/* <AiOutlineInfoCircle size={16} className="ml-1 mr-1" /> */}
@@ -385,25 +415,29 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       )
     },
   ]
+  const handleModalClose = () => {
+    if (!loading) {
+      setCurrentLogType(0)
+      setParseRule("")
+      setStructuringObject([])
+      closeModal()
+    }
+  }
   return (
     <Modal
       title={'日志库配置'}
       open={modalVisible}
-      onCancel={() => {
-        setCurrentLogType(0)
-        setParseRule("")
-        setStructuringObject([])
-        closeModal()
-      }}
+      onCancel={handleModalClose}
       destroyOnClose
       centered
-      okText={loading ? <AiOutlineLoading className='animate-spin' /> : '保存'}
+      okText={'保存'}
       cancelText="取消"
       maskClosable={false}
       onOk={saveLogRule}
       width={1000}
-      bodyStyle={{ maxHeight: '85vh', overflowY: 'auto', overflowX: 'hidden', padding: "20px" }}
+      bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden', padding: "20px" }}
     >
+      <LoadingSpinner loading={loading} />
       <Form
         layout={'vertical'}
         form={form}
