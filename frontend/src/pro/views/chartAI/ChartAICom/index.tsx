@@ -10,6 +10,7 @@ import { getStep } from 'src/core/utils/step'
 import HintCom from './HintCom'
 import './index.css'
 import LoadingSpinner from 'src/core/components/Spinner'
+import GlassCard from './GlassCard'
 const ChartAICom = () => {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const { service, endpoint, anormalTypes } = useChartAIContext()
@@ -17,6 +18,7 @@ const ChartAICom = () => {
   const [isDone, setIsDone] = useState<boolean>(true)
   const [controller, setController] = useState<any>(null)
   const [chatQuery, setChatQuery] = useState<any>(null)
+  const [isConfigure, setIsConfigure] = useState<boolean>(true)
   const typeMessage = async (parsedData: any, index: number, setDialogue: any) => {
     const content = parsedData?.content || '' // 消息内容
     const step = 10 // 每次追加的字符数量
@@ -113,7 +115,18 @@ const ChartAICom = () => {
         withTopology: true,
       }),
     })
+    const contentType = response.headers.get('Content-Type') // 获取响应头
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json()
 
+      // 根据 code 做进一步处理
+      if (data.code === 'B0302') {
+        setIsConfigure(false)
+      }
+      setIsDone(true)
+      return
+    }
+    setIsConfigure(true)
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
     let index = dialogue?.length ? dialogue.length - 1 : 0
     let isPaused = false // 用于控制暂停和继续
@@ -345,15 +358,18 @@ const ChartAICom = () => {
             数据与规则说明
           </div>
         </div>
-        <div ref={chatContainerRef} className="w-full overflow-y-auto flex-1 p-4">
-          {dialogue.map((item, index) => (
-            <ConversationCom
-              dialogue={item}
-              index={index}
-              key={index}
-              loading={!isDone && index === dialogue.length - 1}
-            />
-          ))}
+        <div ref={chatContainerRef} className="w-full overflow-y-auto flex-1">
+          {!isConfigure && <GlassCard />}
+          <div className=" p-4">
+            {dialogue.map((item, index) => (
+              <ConversationCom
+                dialogue={item}
+                index={index}
+                key={index}
+                loading={!isDone && index === dialogue.length - 1}
+              />
+            ))}
+          </div>
         </div>
         <ChartInput addChart={setChatQuery} loading={!isDone} closeStream={closeStream} />
       </div>
