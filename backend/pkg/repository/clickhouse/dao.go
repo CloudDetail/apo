@@ -63,7 +63,7 @@ type Repo interface {
 
 	CreateLogTable(req *request.LogTableRequest) ([]string, error)
 	DropLogTable(req *request.LogTableRequest) ([]string, error)
-	UpdateLogTable(req *request.LogTableRequest, new, old []request.Field) ([]string, error)
+	UpdateLogTable(req *request.LogTableRequest, old []request.Field) ([]string, error)
 
 	queryRowsData(sql string) ([]map[string]any, error)
 
@@ -105,6 +105,9 @@ type Repo interface {
 
 	// ========== network (deepflow) ==========
 	GetNetworkSpanSegments(traceId string, spanId string) ([]NetSegments, error)
+
+	// ========== flame graph ===========
+	GetFlameGraphData(startTime, endTime int64, pid, tid uint32, sampleType, spanId, traceId string) (*[]FlameGraphData, error)
 
 	// detect mutation exec list
 	// GetDetectExecList 获取异常检测执行记录

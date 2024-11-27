@@ -14,7 +14,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param namespace query string true "namespace名"
-// @Success 200 {object} string "ok"
+// @Success 200 {object} string
 // @Failure 400 {object} code.Failure
 // @Router /api/k8s/pods [get]
 func (h *handler) GetPodList() core.HandlerFunc {

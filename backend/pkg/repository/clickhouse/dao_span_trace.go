@@ -157,6 +157,8 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 
 	fieldSql := NewFieldBuilder().
 		Fields("trace_id").
+		Fields("pid").
+		Fields("tid").
 		Alias("toUnixTimestamp64Micro(timestamp)", "ts").
 		Alias("intDiv(duration, 1000)", "duration_us").
 		Alias("labels['content_key']", "endpoint").
@@ -213,16 +215,18 @@ type FaultLogResult struct {
 }
 
 type QueryTraceResult struct {
-	Timestamp      int64   `ch:"ts" json:"timestamp"`
-	Duration       uint64  `ch:"duration_us" json:"duration"`
-	ServiceName    string  `ch:"service_name" json:"serviceName"`
-	TraceId        string  `ch:"trace_id" json:"traceId"`
-	EndPoint       string  `ch:"endpoint" json:"endpoint"`
-	InstanceId     string  `ch:"instance_id" json:"instanceId"`
+	Timestamp   int64  `ch:"ts" json:"timestamp"`
+	Duration    uint64 `ch:"duration_us" json:"duration"`
+	ServiceName string `ch:"service_name" json:"serviceName"`
+	Pid         uint32 `ch:"pid" json:"pid"`
+	Tid         uint32 `ch:"tid" json:"tid"`
+	TraceId     string `ch:"trace_id" json:"traceId"`
+	EndPoint    string `ch:"endpoint" json:"endpoint"`
+	InstanceId  string `ch:"instance_id" json:"instanceId"`
 	SpanId         string  `ch:"span_id" json:"spanId"`
 	ApmType        string  `ch:"apm_type" json:"apmType"`
 	Reason         string  `ch:"reason" json:"reason"`
-	IsError        bool    `ch:"is_error" json:"isError"`
+	IsError     bool   `ch:"is_error" json:"isError"`
 	IsSlow         bool    `ch:"is_slow" json:"isSlow"`
 	ThresholdValue float64 `ch:"threshold_value" json:"thresholdValue"`
 

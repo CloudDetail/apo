@@ -173,6 +173,11 @@ func (r *Router) PUT(relativePath string, handlers ...HandlerFunc) {
 	r.group.PUT(relativePath, wrapHandlers(handlers...)...)
 }
 
+func (r *Router) Use(middleware gin.HandlerFunc) *Router {
+	r.group.Use(middleware)
+	return r
+}
+
 func wrapHandlers(handlers ...HandlerFunc) []gin.HandlerFunc {
 	funcs := make([]gin.HandlerFunc, len(handlers))
 	for i, handler := range handlers {

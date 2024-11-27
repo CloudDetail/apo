@@ -70,6 +70,8 @@ type Context interface {
 	SetHeader(key, value string)
 
 	GetContext() go_context.Context
+
+	Get(key string) (any, bool)
 }
 
 type context struct {
@@ -155,4 +157,8 @@ func (c *context) abortError() BusinessError {
 
 func (c *context) GetContext() go_context.Context {
 	return c.ctx
+}
+
+func (c *context) Get(key string) (any, bool) {
+	return c.ctx.Get(key)
 }

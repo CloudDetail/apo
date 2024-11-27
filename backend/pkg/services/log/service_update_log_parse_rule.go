@@ -13,22 +13,26 @@ import (
 
 func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*response.LogParseResponse, error) {
 	//更新日志表
-	matchesFields := fieldsRegexp.FindAllStringSubmatch(req.ParseRule, -1)
-
 	fields := make([]request.Field, 0)
-	for _, match := range matchesFields {
-		if match[1] == "msg" || match[1] == "ts" {
-			continue
+	if len(req.TableFields) > 0 {
+		fields = req.TableFields
+	} else {
+		matchesFields := fieldsRegexp.FindAllStringSubmatch(req.ParseRule, -1)
+		for _, match := range matchesFields {
+			if match[1] == "msg" || match[1] == "ts" {
+				continue
+			}
+			fields = append(fields, request.Field{
+				Name: match[1],
+				Type: "String",
+			})
 		}
-		fields = append(fields, request.Field{
-			Name: match[1],
-			Type: "String",
-		})
 	}
 	logReq := &request.LogTableRequest{
-		DataBase:  req.DataBase,
-		TableName: req.TableName,
-		Fields:    fields,
+		DataBase:     req.DataBase,
+		TableName:    req.TableName,
+		Fields:       fields,
+		IsStructured: req.IsStructured,
 	}
 	logReq.FillerValue()
 	_, err := s.UpdateLogTable(logReq)
@@ -37,11 +41,6 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 	}
 
 	// 更新k8s configmap
-	res := &response.LogParseResponse{
-		ParseName: req.ParseName,
-		ParseRule: req.ParseRule,
-		RouteRule: req.RouteRule,
-	}
 	data, err := s.k8sApi.GetVectorConfigFile()
 	if err != nil {
 		return nil, err
@@ -51,11 +50,16 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 	if err != nil {
 		return nil, err
 	}
+	// 结构化日志，不需要parse rule
+	if req.IsStructured {
+		req.ParseRule = ""
+	}
 	p := vector.ParseInfo{
 		ParseName: req.ParseName,
-		ParseRule: req.ParseRule,
 		RouteRule: getRouteRule(req.RouteRule),
+		ParseRule: req.ParseRule,
 	}
+
 	newData, err := p.UpdateParseRule(vectorCfg)
 	if err != nil {
 		return nil, err
@@ -65,26 +69,33 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 		return nil, err
 	}
 
-	// 调整整个表结构
-
+	// 修改表记录
 	fieldsJSON, err := json.Marshal(logReq.Fields)
 	if err != nil {
 		return nil, err
 	}
 
 	log := database.LogTableInfo{
-		Service:   strings.Join(req.Service, ","),
-		ParseRule: req.ParseRule,
-		ParseInfo: req.ParseInfo,
-		RouteRule: getRouteRule(req.RouteRule),
-		Fields:    string(fieldsJSON),
-		Table:     req.TableName,
-		DataBase:  req.DataBase,
+		Service:      strings.Join(req.Service, ","),
+		ParseInfo:    req.ParseInfo,
+		RouteRule:    getRouteRule(req.RouteRule),
+		Fields:       string(fieldsJSON),
+		Table:        req.TableName,
+		DataBase:     req.DataBase,
+		IsStructured: req.IsStructured,
+		ParseRule:    req.ParseRule,
 	}
+
 	err = s.dbRepo.UpdateLogParseRule(&log)
 	if err != nil {
 		return nil, err
 	}
 
+	res := &response.LogParseResponse{
+		ParseName:    req.ParseName,
+		ParseRule:    req.ParseRule,
+		RouteRule:    req.RouteRule,
+		IsStructured: req.IsStructured,
+	}
 	return res, nil
 }

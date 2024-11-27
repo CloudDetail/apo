@@ -17,7 +17,7 @@ const (
 	TEMPLATE_GET_SERVICES_BY_FILTER      = `group by (svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])> 0)`
 	TEMPLATE_GET_SERVICES                = `sum by(svc_name) (increase(kindling_span_trace_duration_nanoseconds_count[%s]))`
 	TEMPLATE_GET_ENDPOINTS               = `sum by(content_key) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
-	TEMPLATE_GET_SERVICE_INSTANCE        = `sum by(svc_name, pod, pid, container_id, node_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
+	TEMPLATE_GET_SERVICE_INSTANCE        = `sum by(svc_name, pod, pid, container_id, node_name, namespace, node_ip) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_ACTIVE_INSTANCE         = `sum by(svc_name, pod, pid, container_id, node_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])) > 0`
 	TEMPLATE_GET_ACTIVE_SERVICE_INSTANCE = `sum by(svc_name, pod, pid, container_id, node_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_ERROR_RATE_INSTANCE         = "100*(" +
@@ -202,6 +202,7 @@ func (repo *promRepo) GetInstanceList(startTime int64, endTime int64, serviceNam
 			Namespace:   string(sample.Metric["namespace"]),
 			NodeName:    string(sample.Metric["node_name"]),
 			Pid:         pid,
+			NodeIP:      string(sample.Metric["node_ip"]),
 		})
 	}
 	result.AddInstances(instances)

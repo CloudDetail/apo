@@ -15,3 +15,5 @@ type GetOnOffCPUResponse struct {
 }
 
 type GetSingleTraceInfoResponse string
+
+type GetFlameDataResponse clickhouse.FlameGraphData

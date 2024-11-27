@@ -31,7 +31,6 @@ const DateTimeRangePicker = React.memo((props) => {
   const [dropdownVisible, setDropdownVisible] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const storeTimeRange = useSelector((state) => state.timeRange)
-
   const [state, setState] = useState({
     startDate: startOfDay(new Date()),
     endDate: endOfDay(new Date()),
@@ -192,7 +191,17 @@ const DateTimeRangePicker = React.memo((props) => {
       key: state.key,
     })
     setStartTime(format(state.startDate, 'yyyy-MM-dd HH:mm:ss'))
-    setEndTime(format(endOfDay(state.endDate), 'yyyy-MM-dd HH:mm:ss'))
+    if (areDatesEqual(state.endDate, new Date())) {
+      setEndTime(format(new Date(), 'yyyy-MM-dd HH:mm:ss'))
+    } else {
+      setEndTime(format(endOfDay(state.endDate), 'yyyy-MM-dd HH:mm:ss'))
+    }
+  }
+
+  const areDatesEqual = (date1, date2) => {
+    return date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate();
   }
   const changeStartTime = (event) => {
     setStartTime(event.target.value)
@@ -257,6 +266,9 @@ const DateTimeRangePicker = React.memo((props) => {
     } else if (new Date(startTime) > new Date(endTime)) {
       feedback = '结束时间不能早于开始时间'
       result = false
+    } else if (new Date(endTime) > new Date()) {
+      feedback = '结束时间不能超过当前时间'
+      result = false
     }
     if (result) {
       feedback = ''
@@ -286,8 +298,8 @@ const DateTimeRangePicker = React.memo((props) => {
             {storeTimeRange?.rangeTypeKey
               ? timeRangeMap[storeTimeRange?.rangeTypeKey].name
               : convertTime(storeTimeRange?.startTime, 'yyyy-mm-dd hh:mm:ss') +
-                ' to ' +
-                convertTime(storeTimeRange?.endTime, 'yyyy-mm-dd hh:mm:ss')}
+              ' to ' +
+              convertTime(storeTimeRange?.endTime, 'yyyy-mm-dd hh:mm:ss')}
           </span>
         </CDropdownToggle>
         <CDropdownMenu className="m-0 p-0">
@@ -305,6 +317,7 @@ const DateTimeRangePicker = React.memo((props) => {
                     onChange={changeStartTime}
                     required
                     invalid={startTimeInvalid}
+                    max={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
                   />
                   <CInputGroupText>
                     <CIcon icon={cilCalendar} />
@@ -321,6 +334,7 @@ const DateTimeRangePicker = React.memo((props) => {
                     onChange={changeEndTime}
                     required
                     invalid={endTimeInvalid}
+                    max={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
                   />
                   <CInputGroupText id="basic-addon2">
                     <CIcon icon={cilCalendar} />
@@ -333,11 +347,13 @@ const DateTimeRangePicker = React.memo((props) => {
               </CForm>
               <DateRange
                 moveRangeOnFirstSelection={false}
+                showSelectionPreview={true}
                 ranges={[state]}
                 onChange={handleSelect}
                 editableDateInputs={true}
                 hh
                 showDateDisplay={false}
+                maxDate={new Date()}
               />
             </div>
             <div className="w-2/5">

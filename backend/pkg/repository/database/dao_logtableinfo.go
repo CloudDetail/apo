@@ -1,16 +1,17 @@
 package database
 
 type LogTableInfo struct {
-	ID        uint   `gorm:"primaryKey;autoIncrement"`
-	DataBase  string `gorm:"type:varchar(100);column:database"`
-	Table     string `gorm:"type:varchar(100);column:tablename"`
-	Cluster   string `gorm:"type:varchar(100)"`
-	Fields    string `gorm:"type:varchar(5000)"` // 日志字段类型
-	ParseName string `gorm:"type:varchar(100);column:parsename"`
-	RouteRule string `gorm:"type:varchar(1000);column:routerule"` // 路由规则
-	ParseRule string `gorm:"type:varchar(5000);column:parserule"` // 解析规则
-	ParseInfo string `gorm:"type:varchar(100);column:parseinfo"`
-	Service   string `gorm:"type:varchar(100)"`
+	ID           uint   `gorm:"primaryKey;autoIncrement"`
+	DataBase     string `gorm:"type:varchar(100);column:database"`
+	Table        string `gorm:"type:varchar(100);column:tablename"`
+	Cluster      string `gorm:"type:varchar(100)"`
+	Fields       string `gorm:"type:varchar(5000)"` // 日志字段类型
+	ParseName    string `gorm:"type:varchar(100);column:parsename"`
+	RouteRule    string `gorm:"type:varchar(1000);column:routerule"` // 路由规则
+	ParseRule    string `gorm:"type:varchar(5000);column:parserule"` // 解析规则
+	ParseInfo    string `gorm:"type:varchar(100);column:parseinfo"`
+	Service      string `gorm:"type:varchar(100)"`
+	IsStructured bool   `gorm:"type:bool;column:structured"`
 }
 
 func (LogTableInfo) TableName() string {
@@ -48,11 +49,12 @@ func (repo *daoRepo) GetAllLogTable() ([]LogTableInfo, error) {
 }
 
 func (repo *daoRepo) UpdateLogParseRule(model *LogTableInfo) error {
-	return repo.db.Model(&LogTableInfo{}).Where("`database` = ? AND `tablename` = ?", model.DataBase, model.Table).Updates(LogTableInfo{
-		ParseInfo: model.ParseInfo,
-		ParseRule: model.ParseRule,
-		RouteRule: model.RouteRule,
-		Service:   model.Service,
-		Fields:    model.Fields,
+	return repo.db.Model(&LogTableInfo{}).Where("`database` = ? AND `tablename` = ?", model.DataBase, model.Table).Updates(map[string]interface{}{
+		"parseinfo":  model.ParseInfo,
+		"parserule":  model.ParseRule,
+		"routerule":  model.RouteRule,
+		"service":    model.Service,
+		"fields":     model.Fields,
+		"structured": model.IsStructured,
 	}).Error
 }

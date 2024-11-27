@@ -35,6 +35,7 @@ const (
 	LogMetricNodeRegexPQLFilter = "host_name=~"
 	LogMetricPidRegexPQLFilter  = "pid=~"
 	ContainerIdRegexPQLFilter   = "container_id=~"
+	PidRegexPQLFilter           = "pid=~"
 )
 
 type Granularity string

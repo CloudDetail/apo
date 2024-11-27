@@ -4,6 +4,8 @@ var enText = map[string]string{
 	ServerError:    "Internal server error",
 	ParamBindError: "Parameter error",
 	DbConnectError: "Failed to connect Database",
+	UnAuth:         "not logged in",
+	InValidToken:   "invalid token",
 
 	MockCreateError: "Failed to create mock",
 	MockListError:   "Failed to get mock list",
@@ -44,6 +46,7 @@ var enText = map[string]string{
 	GetTraceFilterValueError: "Failed to get trace filter value",
 	GetOnOffCPUError:         "Failed to get on off cpu value",
 	GetSingleTraceError:      "Failed to get single trace value",
+	GetFlameGraphError:       "Failed to get flame graph",
 
 	GetOverviewServiceInstanceListError: "Failed to get overview service instance list",
 	GetServiceMoreUrlListError:          "Failed to get service more url list",
@@ -105,4 +108,18 @@ var enText = map[string]string{
 	AddExecRecordError:                        "Failed to add exec record",
 
 	K8sGetResourceError: "Failed to get k8s resource",
+
+	UserNotExistsError:         "User does not exist",
+	UserPasswordIncorrectError: "Password is incorrect",
+	UserLoginError:             "Failed to login",
+	UserTokenExpireError:       "Login expired, please log in again",
+	UserAlreadyExists:          "User already exists",
+	UserCreateError:            "Failed to create user",
+	UserUpdateError:            "Failed to update",
+	UserConfirmPasswordError:   "Password inconsistent",
+	GetUserInfoError:           "Failed to get user information",
+	RemoveUserError:            "Failed to remove user",
+	UserPasswordSimpleError:    "Password too week, contains at least one uppercase, lowercase, special characters, and numbers and length greater than 8",
+	UserRemoveSelfError:        "Cannot remove yourself",
+	UserNoPermissionError:      "You have no permission",
 }

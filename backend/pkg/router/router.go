@@ -2,6 +2,7 @@ package router
 
 import (
 	"errors"
+	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
 	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
 
 	"go.uber.org/zap"
@@ -17,16 +18,18 @@ import (
 )
 
 type resource struct {
-	mux                *core.Mux
-	logger             *zap.Logger
-	ch                 clickhouse.Repo
+	mux         *core.Mux
+	logger      *zap.Logger
+	ch          clickhouse.Repo
+	prom        prometheus.Repo
+	pol         polarisanalyzer.Repo
+	internal_db internal_database.Repo
+	pkg_db      pkg_database.Repo
+	cache       cache.Repo
+
+	k8sApi             kubernetes.Repo
 	deepflowClickhouse clickhouse.Repo
-	prom               prometheus.Repo
-	pol                polarisanalyzer.Repo
-	internal_db        internal_database.Repo
-	pkg_db             pkg_database.Repo
 	jaegerRepo         jaeger.JaegerRepo
-	k8sRepo            kubernetes.Repo
 }
 
 type Server struct {
@@ -96,6 +99,13 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	}
 	r.pol = polRepo
 
+	// 初始化 cache
+	cacheRepo, err := cache.New()
+	if err != nil {
+		logger.Fatal("new cache err", zap.Error(err))
+	}
+	r.cache = cacheRepo
+
 	k8sCfg := config.Get().Kubernetes
 	k8sApi, err := kubernetes.New(logger,
 		k8sCfg.AuthType, k8sCfg.AuthFilePath,
@@ -103,7 +113,7 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	if err != nil {
 		logger.Fatal("new kubernetes api err", zap.Error(err))
 	}
-	r.k8sRepo = k8sApi
+	r.k8sApi = k8sApi
 
 	jaegerRepo, err := jaeger.New()
 	r.jaegerRepo = jaegerRepo

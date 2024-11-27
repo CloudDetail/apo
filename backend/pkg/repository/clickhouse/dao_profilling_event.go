@@ -13,7 +13,7 @@ type ProfilingEvent struct {
 	Offset          int64             `json:"offset" ch:"offset"`
 	PID             uint32            `json:"pid" ch:"pid"`
 	TID             uint32            `json:"tid" ch:"tid"`
-	TransactionIDs  string            `json:"transactionId" ch:"transactionIds"`
+	TransactionIDs  string            `json:"transactionIds" ch:"transactionIds"`
 	CPUEvents       string            `json:"cpuEvents" ch:"cpuEvents"`
 	InnerCalls      string            `json:"innerCalls" ch:"innerCalls"`
 	JavaFutexEvents string            `json:"javaFutexEvents" ch:"javaFutexEvents"`

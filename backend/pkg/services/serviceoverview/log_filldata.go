@@ -48,10 +48,7 @@ func (s *service) LogDODByPod(Instances *[]Instance, pods []string, endTime time
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == podName {
-				if Instance.LogNow == nil {
-					(*Instances)[i].LogNow = new(float64)
-				}
-				*(*Instances)[i].LogNow += value
+				(*Instances)[i].LogNow = &value
 				break
 			}
 		}
@@ -102,7 +99,6 @@ func (s *service) LogWOWByPod(Instances *[]Instance, pods []string, endTime time
 }
 
 // 查询曲线图
-
 func (s *service) LogRangeDataByPod(Instances *[]Instance, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]Instance, error) {
 	if Instances == nil {
 		return nil, errors.New("instances is nil")
@@ -202,7 +198,7 @@ func (s *service) LogDODByContainerId(Instances *[]Instance, containerIds []stri
 }
 
 func (s *service) LogWOWByContainerId(Instances *[]Instance, containerIds []string, endTime time.Time, duration string) (*[]Instance, error) {
-	queryLastWeek := prometheus.QueryLogByContainerIdPromql(duration, prometheus.LogYesterday, containerIds)
+	queryLastWeek := prometheus.QueryLogByContainerIdPromql(duration, prometheus.LogLastWeek, containerIds)
 	logLastWeek, err := s.promRepo.QueryData(endTime, queryLastWeek)
 	if err != nil {
 		return Instances, err
@@ -216,10 +212,7 @@ func (s *service) LogWOWByContainerId(Instances *[]Instance, containerIds []stri
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == containerId {
-				if Instance.LogLastWeek == nil {
-					(*Instances)[i].LogLastWeek = new(float64)
-				}
-				*(*Instances)[i].LogLastWeek += value
+				(*Instances)[i].LogLastWeek = &value
 				break
 			}
 		}
@@ -261,7 +254,6 @@ func (s *service) LogRangeDataByContainerId(Instances *[]Instance, containerIds 
 }
 
 func (s *service) AvgLogByPid(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
-	var LogRateRes []prometheus.MetricResult
 	queryLog := prometheus.QueryLogByPidPromql(duration, prometheus.AvgLog, pods)
 	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
 	for _, result := range LogRateRes {
@@ -353,7 +345,6 @@ func (s *service) LogWOWByPid(Instances *[]Instance, pids []string, endTime time
 }
 
 // 查询曲线图
-
 func (s *service) LogRangeDataByPid(Instances *[]Instance, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]Instance, error) {
 	if Instances == nil {
 		return nil, errors.New("instances is nil")
@@ -465,7 +456,6 @@ func (s *service) ServiceLogRangeDataByPid(Service *ServiceDetail, pids []string
 	} else {
 		stepToStr = strconv.FormatInt(int64(step/time.Second), 10) + "s"
 	}
-	//LogDataRes, err = s.promRepo.QueryRangePrometheusErrorLast30min(searchTime)
 	LogDataQuery := prometheus.QueryLogPromql(stepToStr, prometheus.AvgLog, pids)
 	LogDataRes, err := s.promRepo.QueryRangeData(startTime, endTime, LogDataQuery, step)
 	for _, result := range LogDataRes {
@@ -481,26 +471,4 @@ func (s *service) ServiceLogRangeDataByPid(Service *ServiceDetail, pids []string
 	}
 
 	return Service, err
-}
-
-func (s *service) GetNormalLog(pids []string, nodeName []string, pods []string, startTime, endTime time.Time) []prometheus.MetricResult {
-	startTS := startTime.UnixMicro()
-	endTS := endTime.UnixMicro()
-
-	podFilter := make([]string, 2)
-	podFilter[0] = prometheus.LogMetricPodRegexPQLFilter
-	podFilter[1] = prometheus.RegexMultipleValue(pods...)
-	vmFilter := make([]string, 4)
-	vmFilter[0] = prometheus.LogMetricNodeRegexPQLFilter
-	vmFilter[1] = prometheus.RegexMultipleValue(nodeName...)
-	vmFilter[2] = prometheus.LogMetricPidRegexPQLFilter
-	vmFilter[3] = prometheus.RegexMultipleValue(pids...)
-
-	normalLogPQL, _ := prometheus.PQLInstanceLog(
-		prometheus.PQLNormalLogCountWithFilters,
-		startTS, endTS,
-		prometheus.LogGranularity,
-		podFilter, vmFilter)
-	normalLog, _ := s.promRepo.QueryData(endTime, normalLogPQL)
-	return normalLog
 }

@@ -90,25 +90,13 @@ func (s *service) UpdateLogTable(req *request.LogTableRequest) (*response.LogTab
 	if err != nil {
 		return nil, err
 	}
-	var fields []request.Field
-	err = json.Unmarshal([]byte(logtable.Fields), &fields)
+	var oldFields []request.Field
+	err = json.Unmarshal([]byte(logtable.Fields), &oldFields)
 	if err != nil {
 		return nil, err
 	}
-	fieldsname := map[string]struct{}{}
-	newFields := []request.Field{}
-	for _, field := range fields {
-		fieldsname[field.Name] = struct{}{}
-	}
-	for _, field := range req.Fields {
-		if _, ok := fieldsname[field.Name]; !ok {
-			newFields = append(newFields, field)
-		}
-	}
-	if len(newFields) == 0 {
-		return res, nil
-	}
-	sqls, err := s.chRepo.UpdateLogTable(req, newFields, fields)
+
+	sqls, err := s.chRepo.UpdateLogTable(req, oldFields)
 	res.Sqls = sqls
 	if err != nil {
 		return nil, err

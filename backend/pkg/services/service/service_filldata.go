@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/hashicorp/go-multierror"
 	"math"
 	"time"
@@ -74,17 +75,11 @@ func (f InstancesFilter) ExtractFilterStr() []string {
 }
 
 // InstanceRED 获取instance粒度的RED指标
-func (s *service) InstanceRED(startTime, endTime time.Time, filters []string) *InstanceMap {
-	var res = &InstanceMap{
-		MetricGroupList: []*prometheus.InstanceMetrics{},
-		MetricGroupMap:  map[prometheus.InstanceKey]*prometheus.InstanceMetrics{},
-	}
-
+func (s *service) InstanceRED(startTime, endTime time.Time, filters []string, res *InstanceMap) {
 	s.promRepo.FillMetric(res, prometheus.AVG, startTime, endTime, filters, prometheus.InstanceGranularity)
 	s.promRepo.FillMetric(res, prometheus.DOD, startTime, endTime, filters, prometheus.InstanceGranularity)
 	s.promRepo.FillMetric(res, prometheus.WOW, startTime, endTime, filters, prometheus.InstanceGranularity)
 
-	return res
 }
 
 // InstanceRangeData 获取instance粒度的RED指标的图表数据
@@ -222,15 +217,20 @@ func (s *service) InstanceLog(instances *InstanceMap, startTime, endTime time.Ti
 	return err
 }
 
-func (s *service) GetNormalLog(startTime, endTime time.Time, filters []string) []prometheus.MetricResult {
+func (s *service) GetNormalLog(startTime, endTime time.Time, filterKVs []string, offset string) []prometheus.MetricResult {
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
-	normalLog, _ := s.promRepo.QueryAggMetricsWithFilter(
-		prometheus.PQLNormalLogCountWithFilters,
-		startTS, endTS,
-		prometheus.LogGranularity,
-		filters...)
-
-	return normalLog
+	if len(filterKVs)%2 != 0 {
+		return nil
+	}
+	var filters []string
+	for i := 0; i+1 < len(filterKVs); i += 2 {
+		filters = append(filters, fmt.Sprintf("%s\"%s\"", filterKVs[i], filterKVs[i+1]))
+	}
+	vector := prometheus.VecFromS2E(startTS, endTS)
+	pql := prometheus.PQLNormalLogCountWithFilters(vector, string(prometheus.LogGranularity), filters)
+	pql = "(" + pql + ") " + offset
+	data, _ := s.promRepo.QueryData(endTime, pql)
+	return data
 }

@@ -245,6 +245,18 @@ func (c *DiscordConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+type DingTalkConfig struct {
+	ConfigFile string `json:"-" gorm:"column:config_file;type:varchar(50)"`
+	AlertName  string `json:"-" gorm:"column:alert_name;type:varchar(50)"`
+	UUID       string `json:"-" gorm:"column:uuid;unique;type:varchar(50)"`
+	URL        string `json:"url,omitempty" gorm:"column:url;type:varchar(150)"`
+	Secret     string `json:"secret,omitempty" gorm:"secret"`
+}
+
+func (t DingTalkConfig) TableName() string {
+	return "ding_talk_config"
+}
+
 // EmailConfig configures notifications via mail.
 type EmailConfig struct {
 	NotifierConfig `yaml:",inline" json:",inline"`

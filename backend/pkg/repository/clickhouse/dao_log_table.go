@@ -29,8 +29,8 @@ func (ch *chRepo) DropLogTable(params *request.LogTableRequest) ([]string, error
 	return sqls, nil
 }
 
-func (ch *chRepo) UpdateLogTable(params *request.LogTableRequest, new, old []request.Field) ([]string, error) {
-	sqls := factory.GetUpdateTableSQLByFields(params, new, old)
+func (ch *chRepo) UpdateLogTable(req *request.LogTableRequest, old []request.Field) ([]string, error) {
+	sqls := factory.GetUpdateTableSQLByFields(req, old)
 	for _, sql := range sqls {
 		err := ch.conn.Exec(context.Background(), sql)
 		if err != nil {
