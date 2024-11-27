@@ -98,7 +98,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       })
       setLoading(false)
       getLogTableInfo()
-      closeModal()
+      handleModalClose()
     }).catch(() => {
       setLoading(false)
       updateLoading(false)
@@ -115,7 +115,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         color: 'success',
       })
       setLoading(false)
-      closeModal()
+      handleModalClose()
       getLogTableInfo()
     }).catch((error) => {
       setLoading(false)
@@ -207,6 +207,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         } else {
           logRuleParams.isStructured = false
         }
+        setJsonRule("")
         updateLoading(true)
         if (logRuleInfo) {
           updateLogRule(logRuleParams)
@@ -325,10 +326,11 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   ]
   const handleModalClose = () => {
     if (!loading) {
+      closeModal()
       setCurrentLogType(0)
       setParseRule("")
-      subFormRef.current.setStructuringObject([])
-      closeModal()
+      subFormRef.current.setStructuringObject(null)
+      setJsonRule("")
     }
   }
   return (
@@ -339,7 +341,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       destroyOnClose
       centered
       okText={'保存'}
-      okText={'保存'}
+
       cancelText="取消"
       maskClosable={false}
       onOk={saveLogRule}
