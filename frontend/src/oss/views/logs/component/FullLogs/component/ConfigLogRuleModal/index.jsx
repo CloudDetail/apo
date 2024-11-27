@@ -4,6 +4,7 @@ import { flushSync } from 'react-dom'
 import LogRouteRuleFormList from './component/LogRouteRuleFormList'
 import LogStructRuleFormList from './component/LogStructRuleFormList'
 import { IoMdAddCircleOutline } from 'react-icons/io'
+import LoadingSpinner from 'src/core/components/Spinner'
 import {
   addLogRuleApi,
   getLogRuleApi,
@@ -21,96 +22,12 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   const { getLogTableInfo, updateLoading } = useLogsContext()
   const [form] = Form.useForm()
   const [serviceList, setServiceList] = useState([])
-  const [structuringObject, setStructuringObject] = useState([])
   const [currentLogType, setCurrentLogType] = useState(0)
   const [parseRule, setParseRule] = useState("")
   const [loading, setLoading] = useState(false)
+  const [jsonRule, setJsonRule] = useState("")
   const subFormRef = useRef(null)
-  const parseJsonRule = (e) => {
-    const jsonForParse = e.target.value.trim(); // 去掉前后空格
-    if (!jsonForParse) {
-      setStructuringObject([
-        {
-          name: "",
-          type: "String"
-        }
-      ]); // 如果为空，清空列表
-      form.setFields([
-        {
-          name: "structuredRule",
-          errors: []
-        }
-      ])
-      return;
-    }
-    let parsedJson = null;
-    try {
-      parsedJson = JSON.parse(jsonForParse);
-      form.setFields([
-        {
-          name: "structuredRule",
-          errors: []
-        }
-      ])
-    } catch (error) {
-      console.error("解析失败:", error);
-      form.setFields([
-        {
-          name: "structuredRule",
-          errors: ["json解析失败，请检查格式是否正确"]
-        }
-      ])
-      setStructuringObject([
-        {
-          name: "",
-          type: "String"
-        }
-      ]);
-      return;
-    }
 
-    if (typeof parsedJson === "object" && parsedJson !== null && JSON.stringify(parsedJson) !== '{}') {
-      const result = Object.entries(parsedJson).map(([key, value]) => {
-        let type;
-        if (typeof value === 'string') {
-          type = 'String';
-        } else if (typeof value === 'number') {
-          type = Number.isInteger(value) ? 'Int256' : 'Float64';
-        } else if (typeof value === 'boolean') {
-          type = 'Bool';
-        } else {
-          type = 'String';
-        }
-        return { name: key, type };
-      });
-      setStructuringObject(result)
-    } else {
-      form.setFields([
-        {
-          name: "structuredRule",
-          errors: ["json解析失败，请检查格式是否正确"]
-        }
-      ])
-    }
-  };
-  const addStructConf = () => {
-    const oldStructuringObject = []
-    Object.keys(subFormRef.current.getFieldsValue()).forEach(key => {
-      const match = key.match(/^(\w+)_Type$/);
-      if (match) {
-        const field = match[1];
-        oldStructuringObject.push({
-          type: subFormRef.current.getFieldsValue()[`${field}_Type`],
-          name: subFormRef.current.getFieldsValue()[`${field}_Name`]
-        });
-      }
-    });
-
-    setStructuringObject([...oldStructuringObject, {
-      name: "",
-      type: "String"
-    }])
-  }
   const getServiceListData = () => {
     // 获取7天前的开始时间（当天00:00:00）
     const startDate = new Date()
@@ -154,11 +71,11 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
             key: { key: key, value: key },
             value: value,
           })),
-          serviceName: res.serviceName,
+          serviceName: (res.serviceName.length == 1 && res.serviceName[0] == "") ? null : res.serviceName,
           parseInfo: logRuleInfo.parseInfo,
         });
         setParseRule(res.parseRule);
-        setStructuringObject(res.tableFields);
+        subFormRef.current.setStructuringObject(res.tableFields);
       }, 0);
     });
   };
@@ -167,14 +84,13 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       getLogRule()
     } else {
       form.resetFields()
-      setStructuringObject([""])
     }
     if (modalVisible) getServiceListData()
   }, [modalVisible, logRuleInfo])
 
   useEffect(() => {
     setLoading(false)
-  },[])
+  }, [])
 
   function addLogRule(logRuleParams) {
     console.log("add")
@@ -186,6 +102,9 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       setLoading(false)
       getLogTableInfo()
       closeModal()
+    }).catch(() => {
+      setLoading(false)
+      updateLoading(false)
     })
   }
   function updateLogRule(logRuleParams) {
@@ -201,6 +120,14 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       setLoading(false)
       closeModal()
       getLogTableInfo()
+    }).catch((error) => {
+      setLoading(false)
+      updateLoading(false)
+      console.log(error)
+      showToast({
+        title: error,
+        color: "danger"
+      })
     })
   }
   function saveLogRule() {
@@ -209,7 +136,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
     Promise.all(
       !currentLogType ? [
         form.validateFields({}),
-        subFormRef.current.validateFields({})
+        subFormRef.current.form.validateFields({})
       ] : [
         form.validateFields({})
       ]
@@ -238,6 +165,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
             title: '匹配规则不可为空',
             color: 'danger',
           })
+          updateLoading(false)
           setLoading(false)
           return
         }
@@ -253,12 +181,27 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
               });
             }
           });
+          const names = new Set();
+          for (const obj of tableFields) {
+            if (names.has(obj.name)) {
+              showToast({
+                title: "结构化规则键重复",
+                color: "danger"
+              })
+              updateLoading(false)
+              setLoading(false)
+              return
+            }
+            names.add(obj.name);
+          }
           logRuleParams.tableFields = tableFields
           if (tableFields.length === 0) {
             showToast({
               title: "日志格式不能为空",
               color: "danger"
             })
+            updateLoading(false)
+            setLoading(false)
             return
           }
         }
@@ -275,6 +218,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         }
       })
       .catch((error) => {
+        updateLoading(false)
         setLoading(false)
         console.log(error)
       })
@@ -311,6 +255,15 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       // 更新表单值
       form.setFieldValue('routeRule', result)
     })
+      .catch((error) => {
+        updateLoading(false)
+        setLoading(false)
+        showToast({
+          title: "错误",
+          message: error,
+          color: "danger"
+        })
+      })
   }
   const tabItems = [
     {
@@ -325,22 +278,10 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
               <AiOutlineInfoCircle size={16} className="ml-1 mr-1" />
               <span className="text-xs text-gray-400">请输入JSON格式的日志样本自动生成日志格式（仅支持解析JSON最外层的键）</span>
             </div>
-            <TextArea placeholder="解析规则" rows={3} onChange={parseJsonRule} />
+            <TextArea placeholder="日志样本" rows={3} onChange={(e) => { setJsonRule(e.target.value) }} />
           </Form.Item>
-          <div className='flex items-center mt-2 mb-2 w-full justify-start'>
-            {/* <AiOutlineInfoCircle size={16} className="ml-1 mr-1" /> */}
-            {/* <span className="text-xs text-gray-400">请输入字段名并指定类型</span> */}
-            <span className="text-md text-gray-400">日志键值对</span>
-            <div className='flex items-center'>
-              <IoMdAddCircleOutline
-                size={20}
-                className="cursor-pointer ml-2"
-                onClick={addStructConf}
-              />
-            </div>
-          </div>
           <div className='flex flex-col items-start w-full'>
-            <LogStructRuleFormList object={structuringObject} setObject={setStructuringObject} ref={subFormRef} />
+            <LogStructRuleFormList jsonRule={jsonRule} fForm={form} ref={subFormRef} />
           </div>
         </div>
       )
@@ -385,25 +326,29 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       )
     },
   ]
+  const handleModalClose = () => {
+    if (!loading) {
+      setCurrentLogType(0)
+      setParseRule("")
+      subFormRef.current.setStructuringObject([])
+      closeModal()
+    }
+  }
   return (
     <Modal
       title={'日志库配置'}
       open={modalVisible}
-      onCancel={() => {
-        setCurrentLogType(0)
-        setParseRule("")
-        setStructuringObject([])
-        closeModal()
-      }}
+      onCancel={handleModalClose}
       destroyOnClose
       centered
-      okText={loading ? <AiOutlineLoading className='animate-spin' /> : '保存'}
+      okText={'保存'}
       cancelText="取消"
       maskClosable={false}
       onOk={saveLogRule}
       width={1000}
-      bodyStyle={{ maxHeight: '85vh', overflowY: 'auto', overflowX: 'hidden', padding: "20px" }}
+      bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden', padding: "20px" }}
     >
+      <LoadingSpinner loading={loading} />
       <Form
         layout={'vertical'}
         form={form}
