@@ -96,7 +96,7 @@ type Repo interface {
 	GetNetworkSpanSegments(traceId string, spanId string) ([]NetSegments, error)
 
 	// ========== flame graph ===========
-	GetFlameGraphData(startTime, endTime int64, pid, tid uint32, sampleType, spanId, traceId string) (*[]FlameGraphData, error)
+	GetFlameGraphData(startTime, endTime int64, pid, tid int64, sampleType, spanId, traceId string) (*[]FlameGraphData, error)
 }
 
 type chRepo struct {
