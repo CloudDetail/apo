@@ -7,10 +7,10 @@ import { RiDeleteBin5Line } from 'react-icons/ri'
 import { MdOutlineModeEdit } from "react-icons/md";
 import EditModal from "./componnets/EditModal";
 import AddModal from "./componnets/AddModal";
-import styles from "./index.module.css"
+import { BsPersonFillAdd } from "react-icons/bs";
+
 
 export default function UserManage() {
-    console.log(styles)
     const [modalAddVisibility, setModalAddVisibility] = useState(false)
     const [userList, setUserList] = useState([])
     const [username, setUsername] = useState("")
@@ -40,10 +40,10 @@ export default function UserManage() {
                 color: "success"
             })
         } catch (error) {
+            const errorMessage = error.response?.data?.message || "移除失败"
             showToast({
-                title: "移除用户失败",
-                message: error.response.data.message,
-                color: "danger"
+                title:errorMessage,
+                color:"danger"
             })
             console.log(error)
         }
@@ -85,7 +85,7 @@ export default function UserManage() {
         } catch (error) {
             showToast({
                 title: "获取用户列表失败",
-                color: "danger   "
+                color: "danger"
             })
         }
     }
@@ -187,7 +187,7 @@ export default function UserManage() {
                     <Flex className="w-full">
                         <Flex className="w-auto items-center justify-start mr-5">
                             <p className="text-md mr-2">用户名称:</p>
-                            <Input placeholder="检索" className="w-52" value={username} onChange={(e) => setUsername(e.target.value)} />
+                            <Input placeholder="检索" className="w-2/3" value={username} onChange={(e) => setUsername(e.target.value)} />
                         </Flex>
                         {/* <Flex className="w-auto items-center justify-start mr-5">
                             <p className="text-md mr-2">角色:</p>
@@ -195,13 +195,13 @@ export default function UserManage() {
                         </Flex> */}
                         <Flex className="w-auto items-center justify-start">
                             <p className="text-md mr-2">组织:</p>
-                            <Input placeholder="检索" className="w-40" value={corporation} onChange={(e) => setCorporation(e.target.value)} />
+                            <Input placeholder="检索" className="w-2/3" value={corporation} onChange={(e) => setCorporation(e.target.value)} />
                         </Flex>
                     </Flex>
                     <Flex className="w-full justify-end items-center">
                         <Button
                             type="primary"
-                            icon={<IoPersonAdd />}
+                            icon={<BsPersonFillAdd size={20}/>}
                             onClick={() => setModalAddVisibility(true)}
                             className="flex-grow-0 flex-shrink-0"
                         >
@@ -220,13 +220,15 @@ export default function UserManage() {
                 }}
             >
                 <Flex vertical className={"w-full flex"} >
-                    <Table
-                        dataSource={userList}
-                        columns={columns}
-                        pagination={false}
-                        scroll={{ y: 550 }}
-                        loading={!tableVisibility}
-                    />
+                    <div>
+                        <Table
+                            dataSource={userList}
+                            columns={columns}
+                            pagination={false}
+                            scroll={{ y: 700 }}
+                            loading={!tableVisibility}
+                        />
+                    </div>
                     <Pagination
                         className="mt-4"
                         align="end"

@@ -14,6 +14,15 @@ export default function UpdatePassword() {
         form.validateFields(['oldPassword', 'newPassword', 'confirmPassword'])
             .then(async ({ oldPassword, newPassword, confirmPassword }) => {
                 try {
+                    const username = getUsernameFromLocalStorage()
+                    if (!username) {
+                        showToast({
+                            title:"获取用户名失败",
+                            message:"请重新登录",
+                            color:"danger"
+                        })
+                        return navigate("/login")
+                    }
                     const paramsForUpdatePassword = {
                         oldPassword,
                         newPassword,
@@ -36,13 +45,29 @@ export default function UpdatePassword() {
                     })
                 } catch (error) {
                     console.log(error.response.data.code)
+                    const errorMessage = error.response?.data?.message || error.message || "更新密码失败"
                     showToast({
                         title: "错误",
-                        message: error,
+                        message: errorMessage,
                         color: "danger"
                     })
                 }
+            }).catch((error)=>{
+                showToast({
+                    title:"表单验证失败",
+                    message:error.message || "请检查输入",
+                    color:"danger"
+                })
             })
+    }
+
+    function getUsernameFromLocalStorage() {
+        try {
+            const user = JSON.parse(localStorage.getItem("user"));
+            return user?.username || '';
+        } catch (error) {
+            return '';
+        }
     }
 
     return (

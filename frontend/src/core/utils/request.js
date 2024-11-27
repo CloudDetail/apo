@@ -1,7 +1,9 @@
 // src/api/request.js
 import axios from 'axios'
 import { showToast } from './toast'
+import FormData from 'form-data';
 import qs from 'qs'
+
 // 创建axios实例
 const instance = axios.create({
   baseURL: '', // 替换为你的API基础URL
@@ -120,6 +122,28 @@ const post = (url, data = {}, config = {}) => {
     throw error
   })
 }
+
+// 封装form-data类型的POST请求
+const postFormData = (url, data = {}, config = {}) => { 
+  // 将 data 转换为 x-www-form-urlencoded 格式的字符串
+  const formData = new URLSearchParams();
+  Object.keys(data).forEach(key => {
+    formData.append(key, data[key]);
+  });
+
+  return instance.post(url, formData.toString(), {
+    ...config,
+    headers: {
+      ...config.headers,
+      'Content-Type': 'application/x-www-form-urlencoded', // 设置 Content-Type 为 x-www-form-urlencoded
+    }
+  }).catch((error) => {
+    // 捕获并抛出错误信息
+    throw error;
+  });
+}
+
+
 // 封装DELETE请求
 const del = (url, data = {}, config = {}) => {
   return instance.delete(url, { data, ...config }).catch((error) => {
@@ -129,4 +153,4 @@ const del = (url, data = {}, config = {}) => {
 }
 
 // 导出axios实例和封装的请求方法
-export { instance as axiosInstance, get, post, del }
+export { instance as axiosInstance, get, post, del, postFormData }

@@ -1,47 +1,47 @@
-import { post, get } from "../utils/request"
+import { postFormData, get } from "../utils/request"
 
 const loginApi = (params) => {
-    return post(`/api/user/login?username=${params.username}&password=${params.password}`)
+    return postFormData(`/api/user/login`,params)
 }
 
 const logoutApi = (params) => {
-    return post(`/api/user/logout?accessToken=${params.accessToken}&refreshToken=${params.refreshToken}`)
+    return postFormData(`/api/user/logout`,params)
 }
 
 const updateEmailApi = (params) => {
-    return post(`/api/user/update/email?email=${params.email}&username=${params.username}`)
+    return postFormData(`/api/user/update/email`,params)
 }
 
 const updateCorporationApi = (params) => {
-    return post(`/api/user/update/info?corporation=${params.corporation}&username=${params.username}`)
+    return postFormData(`/api/user/update/info`,params)
 }
 
 const updatePasswordApi = (params) => {
-    return post(`/api/user/update/password?oldPassword=${params.oldPassword}&newPassword=${params.newPassword}&confirmPassword=${params.confirmPassword}&username=${params.username}`)
+    return postFormData(`/api/user/update/password`,params)
 }
 
 const updatePhoneApi = (params) => {
-    return post(`/api/user/update/phone?phone=${params.phone}&username=${params.username}`)
+    return postFormData(`/api/user/update/phone`,params)
 }
 
 const createUserApi = (params) => {
-    return post(`/api/user/create?username=${params.username}&password=${params.password}&confirmPassword=${params.confirmPassword}`)
+    return postFormData(`/api/user/create`,params)
 }
 
 const getUserInfoApi = () => {
     return get(`api/user/info`)
 }
 
-const getUserListApi = (params, signal) => {
-    return get(`/api/user/list?currentPage=${params.currentPage}&pageSize=${params.pageSize}&username=${params.username}&role=${params.role}&corporation=${params.corporation}`, { signal })
+const getUserListApi = (params,signal) => {
+    return get(`/api/user/list`,params,{signal})
 }
 
 const removeUserApi = (params) => {
-    return post(`/api/user/remove?username=${params.username}`)
+    return postFormData(`/api/user/remove`,params)
 }
 
 const updatePasswordWithNoOldPwd = (params) => {
-    return post(`/api/user/reset?newPassword=${params.newPassword}&username=${params.username}`)
+    return postFormData(`/api/user/reset`,params)
 }
 
 export {

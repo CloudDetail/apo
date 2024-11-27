@@ -3,6 +3,7 @@ import { showToast } from "core/utils/toast"
 import { createUserApi, updateEmailApi, updatePhoneApi, updateCorporationApi } from "core/api/user"
 import { AiOutlineLoading } from "react-icons/ai";
 import { useState } from "react"
+import LoadingSpinner from 'src/core/components/Spinner'
 
 
 const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) => {
@@ -11,7 +12,7 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) =>
 
     //创建用户
     async function createUser() {
-        if(addStatus) return
+        if (addStatus) return
         form.validateFields()
             .then(async ({ username, password, confirmPassword, email, phone, corporation }) => {
                 try {
@@ -21,26 +22,24 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) =>
                         password: password,
                         confirmPassword: confirmPassword
                     }
-                    const result = await createUserApi(params)
+                    await createUserApi(params)
                     // @ts-ignore
-                    if (result === "ok") {
-                        if (email) {
-                            await updateEmailApi({ username, email })
-                        }
-                        if (phone) {
-                            await updatePhoneApi({ username, phone })
-                        }
-                        if (corporation) {
-                            await updateCorporationApi({ username, corporation })
-                        }
-                        showToast({
-                            title: "用户添加成功",
-                            color: "success"
-                        })
-                        setAddStatus(false)
-                        setModalAddVisibility(false)
-                        await getUserList()
+                    if (email) {
+                        await updateEmailApi({ username, email })
                     }
+                    if (phone) {
+                        await updatePhoneApi({ username, phone })
+                    }
+                    if (corporation) {
+                        await updateCorporationApi({ username, corporation })
+                    }
+                    showToast({
+                        title: "用户添加成功",
+                        color: "success"
+                    })
+                    setAddStatus(false)
+                    setModalAddVisibility(false)
+                    await getUserList()
                 } catch (error) {
                     setAddStatus(false)
                     console.log(error)
@@ -56,13 +55,18 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) =>
     return (<>
         <Modal
             open={modalAddVisibility}
-            onCancel={() => setModalAddVisibility(false)}
+            onCancel={() => {
+                if (!addStatus) {
+                    setModalAddVisibility(false)
+                }
+            }}
             maskClosable={false}
             title="新增用户"
-            okText={addStatus ? (<div><AiOutlineLoading className="animate-spin" size={18} /></div>) : <span>新增</span>}
+            okText={<span>新增</span>}
             onOk={createUser}
             width={1000}
         >
+            <LoadingSpinner loading={addStatus} />
             <Flex vertical className="w-full mt-4 mb-4">
                 <Flex vertical className="w-full justify-center start">
                     <Form form={form} layout="vertical">

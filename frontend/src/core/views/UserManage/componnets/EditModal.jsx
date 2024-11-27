@@ -5,6 +5,7 @@ import { getUserListApi, updateEmailApi, updatePhoneApi, updateCorporationApi, u
 import { AiOutlineLoading } from "react-icons/ai";
 import { GrPowerReset } from "react-icons/gr";
 import { showToast } from "core/utils/toast";
+import LoadingSpinner from 'src/core/components/Spinner'
 
 const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, getUserList }) => {
     const [loading, setLoading] = useState(false)
@@ -12,7 +13,6 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
     const [form] = Form.useForm()
 
     useEffect(() => {
-        console.log(selectedUser)
         getUserInfoByName()
     }, [selectedUser])
 
@@ -68,7 +68,6 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
                 "corporation": ""
             }
             const { users } = await getUserListApi(params)
-            console.log("result", users)
             form.setFieldsValue({
                 username: users[0]?.username,
                 email: users[0]?.email,
@@ -85,13 +84,18 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
     return (<>
         <Modal
             open={modalEditVisibility}
-            onCancel={() => setModalEditVisibility(false)}
+            onCancel={() => {
+                if(!saveStatus){
+                    setModalEditVisibility(false)
+                }
+            }}
             maskClosable={false}
             title="编辑用户"
-            okText={saveStatus ? (<div><AiOutlineLoading className="animate-spin" size={18} /></div>) : <span>保存</span>}
+            okText={<span>保存</span>}
             onOk={editUser}
             width={1000}
         >
+            <LoadingSpinner loading={saveStatus}/>
             <Flex vertical className="w-full mt-4 mb-4 justify-center align-center">
                 {loading ? <AiOutlineLoading className="animate-spin" size={25} /> : <div>
                     <Form form={form} layout="vertical">

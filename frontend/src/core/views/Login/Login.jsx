@@ -7,6 +7,7 @@ import { showToast } from "core/utils/toast";
 import { getUserInfoApi } from "core/api/user";
 import logo from 'core/assets/brand/logo.svg'
 import { AiOutlineLoading } from "react-icons/ai";
+import style from "./Login.module.css"
 
 export default function Login() {
     const navigate = useNavigate();
@@ -86,7 +87,7 @@ export default function Login() {
     }, [form]);
 
     return (
-        <Flex vertical className="w-screen h-screen justify-center items-center bg-[url('src/core/assets/brand/bg.jpg')] bg-no-repeat bg-cover">
+        <Flex vertical className={`w-screen h-screen justify-center items-center bg-[url('src/core/assets/brand/bg.jpg')] bg-no-repeat bg-cover ` + style.loginBackground}>
             <Flex vertical className="w-3/12 bg-[rgba(0,0,0,0.4)] rounded-lg p-10 drop-shadow-xl">
                 <Flex className="w-full justify-center items-center select-none">
                     <img src={logo} className="w-12 mr-2" />
@@ -119,7 +120,7 @@ export default function Login() {
                         </Form.Item>
                     </Form>
                     <Flex className="w-full justify-between items-start mt-14">
-                        <Button size="large" disabled={loading} onClick={login} className="bg-[#455EEB] border-none w-full border-none">{loading? <AiOutlineLoading className="animate-spin"/> :"登录"}</Button>
+                        <Button size="large" disabled={loading} onClick={login} className="bg-[#455EEB] border-none w-full border-none">{loading ? <AiOutlineLoading className="animate-spin" /> : "登录"}</Button>
                     </Flex>
                 </Flex>
             </Flex>
