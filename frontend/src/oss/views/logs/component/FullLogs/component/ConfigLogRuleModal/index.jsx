@@ -5,6 +5,7 @@ import LogRouteRuleFormList from './component/LogRouteRuleFormList'
 import LogStructRuleFormList from './component/LogStructRuleFormList'
 import { IoMdAddCircleOutline } from 'react-icons/io'
 import LoadingSpinner from 'src/core/components/Spinner'
+import LoadingSpinner from 'src/core/components/Spinner'
 import {
   addLogRuleApi,
   getLogRuleApi,
@@ -16,7 +17,6 @@ import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { getServiceListApi } from 'core/api/service'
 import TextArea from 'antd/es/input/TextArea'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
-import { AiOutlineLoading } from "react-icons/ai";
 
 const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   const { getLogTableInfo, updateLoading } = useLogsContext()
@@ -62,7 +62,6 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       // 更新 currentLogType
       const newLogType = res.isStructured ? 0 : 1;
       setCurrentLogType(newLogType);
-
       setTimeout(() => {
         form.setFieldsValue({
           parseName: res.parseName,
@@ -93,7 +92,6 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   }, [])
 
   function addLogRule(logRuleParams) {
-    console.log("add")
     addLogRuleApi(logRuleParams).then((res) => {
       showToast({
         title: '日志库配置成功',
@@ -341,6 +339,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       onCancel={handleModalClose}
       destroyOnClose
       centered
+      okText={'保存'}
       okText={'保存'}
       cancelText="取消"
       maskClosable={false}
