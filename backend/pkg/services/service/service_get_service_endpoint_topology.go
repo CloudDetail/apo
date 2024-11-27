@@ -20,12 +20,8 @@ func (s *service) GetServiceEndpointTopology(req *request.GetServiceEndpointTopo
 	}
 
 	res := &response.GetServiceEndpointTopologyResponse{
-		Parents: parents,
-		Current: clickhouse.TopologyNode{
-			Service:  req.Service,
-			Endpoint: req.Endpoint,
-			IsTraced: true,
-		},
+		Parents:  parents,
+		Current:  clickhouse.NewTopologyNode(req.Service, req.Endpoint),
 		Children: children,
 	}
 	return res, nil

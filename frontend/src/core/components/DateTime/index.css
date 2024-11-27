@@ -10,6 +10,19 @@
     color: #CCCCDC;
 }
 
+.rdrDayDisabled {
+    background-color: rgba(0, 0, 0, 0);
+    font-size: 0;
+}
+
+.rdrDayPassive .rdrDayNumber span {
+    color: #555555;
+}
+
+.rdrDayPassive {
+    cursor: no-drop !important;
+}
+
 .refresh-date-time .ant-dropdown-button .ant-dropdown-trigger {
     width: auto;
     padding: 0 10px;

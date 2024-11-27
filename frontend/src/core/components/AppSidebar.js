@@ -44,7 +44,7 @@ const AppSidebar = ({ collapsed }) => {
   }, [location.pathname])
   useEffect(() => {
     if (!collapsed) {
-      setOpenKeys(['logs'])
+      setOpenKeys(['logs','manage'])
     } else {
       setOpenKeys([])
     }
