@@ -5,7 +5,6 @@ import LogRouteRuleFormList from './component/LogRouteRuleFormList'
 import LogStructRuleFormList from './component/LogStructRuleFormList'
 import { IoMdAddCircleOutline } from 'react-icons/io'
 import LoadingSpinner from 'src/core/components/Spinner'
-import LoadingSpinner from 'src/core/components/Spinner'
 import {
   addLogRuleApi,
   getLogRuleApi,
