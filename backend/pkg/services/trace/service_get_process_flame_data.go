@@ -15,6 +15,10 @@ func (s *service) GetProcessFlameGraphData(req *request.GetProcessFlameGraphRequ
 		return response.GetProcessFlameGraphResponse{}, err
 	}
 
+	if len(*data) == 0 {
+		return response.GetProcessFlameGraphResponse{}, nil
+	}
+
 	var startTime int64 = math.MaxInt64
 	var endTime int64 = 0
 	var labels map[string]string
@@ -45,7 +49,7 @@ func (s *service) GetProcessFlameGraphData(req *request.GetProcessFlameGraphRequ
 	for _, graph := range raw {
 		t.MergeFlameGraph(&graph)
 	}
-	mergedFlame := model.NewFlameGraph(t)
+	mergedFlame := model.NewFlameGraph(t, req.MaxNodes)
 	bearerStr, err := json.Marshal(&mergedFlame)
 	if err != nil {
 		return response.GetProcessFlameGraphResponse{}, err

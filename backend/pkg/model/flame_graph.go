@@ -1,9 +1,12 @@
 // copied from https://github.com/grafana/pyroscope
+
 package model
 
 import (
 	"sort"
 )
+
+const defaultDFSSize = 128
 
 type FlameBearer struct {
 	Names    []string  `json:"names"`
@@ -130,7 +133,22 @@ func (t *Tree) InsertStack(v int64, stack ...string) {
 	t.root = r.children
 }
 
-func NewFlameGraph(t *Tree) *FlameBearer {
+// size reports number of nodes the tree consists of.
+// Provided buffer used for DFS traversal.
+func (t *Tree) size(buf []*node) int64 {
+	nodes := append(buf, t.root...)
+	var s int64
+	var n *node
+	for len(nodes) > 0 {
+		last := len(nodes) - 1
+		n, nodes = nodes[last], nodes[:last]
+		nodes = append(nodes, n.children...)
+		s++
+	}
+	return s
+}
+
+func NewFlameGraph(t *Tree, maxNodes int64) *FlameBearer {
 	var total, max int64
 	for _, node := range t.root {
 		total += node.total
@@ -138,6 +156,8 @@ func NewFlameGraph(t *Tree) *FlameBearer {
 	names := []string{}
 	nameLocationCache := map[string]int{}
 	res := []*Stack[int64]{}
+
+	minVal := t.minValue(maxNodes)
 
 	stack := Stack[stackNode]{}
 	stack.Push(stackNode{xOffset: 0, level: 0, node: &node{children: t.root, total: total}})
@@ -179,7 +199,7 @@ func NewFlameGraph(t *Tree) *FlameBearer {
 
 		otherTotal := int64(0)
 		for _, child := range current.node.children {
-			if child.name != "other" {
+			if child.total >= minVal && child.name != "other" {
 				stack.Push(stackNode{xOffset: current.xOffset, level: current.level + 1, node: child})
 				current.xOffset += int(child.total)
 			} else {
@@ -221,4 +241,40 @@ func NewFlameGraph(t *Tree) *FlameBearer {
 		NumTicks: total,
 		MaxSelf:  max,
 	}
+}
+
+// minValue returns the minimum "total" value a node in a tree has to have to show up in
+// the resulting flamegraph
+func (t *Tree) minValue(maxNodes int64) int64 {
+	if maxNodes < 1 {
+		return 0
+	}
+	nodes := make([]*node, 0, max(int64(len(t.root)), defaultDFSSize))
+	treeSize := t.size(nodes)
+	if treeSize <= maxNodes {
+		return 0
+	}
+
+	h := make([]int64, 0, maxNodes)
+
+	nodes = append(nodes[:0], t.root...)
+	var n *node
+	for len(nodes) > 0 {
+		last := len(nodes) - 1
+		n, nodes = nodes[last], nodes[:last]
+		if len(h) >= int(maxNodes) {
+			if n.total > h[0] {
+				h = Pop(h)
+			} else {
+				continue
+			}
+		}
+		h = Push(h, n.total)
+		nodes = append(nodes, n.children...)
+	}
+
+	if len(h) < int(maxNodes) {
+		return 0
+	}
+	return h[0]
 }

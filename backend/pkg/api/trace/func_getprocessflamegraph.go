@@ -15,6 +15,7 @@ import (
 // @Tags API.trace
 // @Accept application/x-www-form-urlencoded
 // @Produce json
+// @Param maxNodes query int64 false "限制节点数"
 // @Param startTime query int64 true "开始时间"
 // @Param endTime query int64 true "结束时间"
 // @Param pid query int64 true "进程id"

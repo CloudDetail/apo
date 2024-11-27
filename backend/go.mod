@@ -91,7 +91,6 @@ require (
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
-	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
@@ -145,6 +144,7 @@ require (
 
 require (
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572
+	github.com/magiconair/properties v1.8.7
 	github.com/prometheus/alertmanager v0.27.0
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c
 	go.uber.org/zap v1.27.0

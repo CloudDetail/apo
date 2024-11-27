@@ -3746,13 +3746,15 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "进程id",
                         "name": "pid",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",
                         "description": "线程id",
                         "name": "tid",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",
@@ -3813,6 +3815,12 @@ const docTemplate = `{
                 ],
                 "summary": "获取并整合进程级别火焰图数据",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "限制节点数",
+                        "name": "maxNodes",
+                        "in": "query"
+                    },
                     {
                         "type": "integer",
                         "description": "开始时间",

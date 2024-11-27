@@ -4817,10 +4817,12 @@ paths:
       - description: 进程id
         in: query
         name: pid
+        required: true
         type: integer
       - description: 线程id
         in: query
         name: tid
+        required: true
         type: integer
       - description: 开始时间
         in: query
@@ -4862,6 +4864,10 @@ paths:
       - application/x-www-form-urlencoded
       description: 获取并整合进程级别火焰图数据
       parameters:
+      - description: 限制节点数
+        in: query
+        name: maxNodes
+        type: integer
       - description: 开始时间
         in: query
         name: startTime

@@ -38,6 +38,8 @@ type GetFlameDataRequest struct {
 }
 
 type GetProcessFlameGraphRequest struct {
+	// 限制节点要展示的最小的total
+	MaxNodes   int64  `json:"maxNodes" form:"maxNodes"`
 	StartTime  int64  `json:"startTime" form:"startTime" binding:"required"`
 	EndTime    int64  `json:"endTime" form:"endTime" binding:"required,gtfield=StartTime"`
 	PID        int64  `json:"pid" form:"pid" binding:"required"`
