@@ -38,7 +38,7 @@ func (s *service) GetDescendantAnormal(req *request.GetDescendantAnormalEventReq
 	tmpServiceSet := map[string]struct{}{}
 	endpointList := make([]model.EndpointKey, 0)
 
-	nodes = append(nodes, clickhouse.TopologyNode{
+	nodes = append(nodes, clickhouse.ServiceNode{
 		Service:  req.Service,
 		Endpoint: req.Endpoint,
 		IsTraced: false,

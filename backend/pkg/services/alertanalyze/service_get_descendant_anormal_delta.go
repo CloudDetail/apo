@@ -34,7 +34,7 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 		return nil, err
 	}
 
-	descendants = append(descendants, ck.TopologyNode{
+	descendants = append(descendants, ck.ServiceNode{
 		Service:  req.Service,
 		Endpoint: req.Endpoint,
 	})

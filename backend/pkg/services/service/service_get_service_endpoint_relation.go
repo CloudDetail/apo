@@ -116,7 +116,7 @@ type EndpointInfo struct {
 	ExternalClientCalls []clickhouse.TopologyNode
 }
 
-func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []clickhouse.ToplogyRelation) *EndpointDepthMatrix {
+func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []*clickhouse.ToplogyRelation) *EndpointDepthMatrix {
 	matrix := &EndpointDepthMatrix{
 		EndpointSet:  map[model.EndpointKey]int{},
 		EndpointKeys: []model.EndpointKey{},
@@ -179,7 +179,7 @@ func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []clic
 	return matrix
 }
 
-func (m *EndpointDepthMatrix) AddRelation(relation clickhouse.ToplogyRelation) {
+func (m *EndpointDepthMatrix) AddRelation(relation *clickhouse.ToplogyRelation) {
 	parentEndpoint := model.EndpointKey{
 		ServiceName: relation.ParentService,
 		Endpoint:    relation.ParentEndpoint,

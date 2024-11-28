@@ -15,7 +15,7 @@ import (
 // AlertImpact 分析告警事件的影响面
 // 1. 根据告警时间类型找到关联的Service,会检查Event中是否有满足要求的Label,如果没有会尝试所有预设的label组合
 // 2. 通过ServiceTopology查询service的关联入口
-func (s *service) AlertImpact(req *request.AlertImpactRequest) ([]clickhouse.EntryNodeRelations, []response.ImpactAlertEvent, map[model.EndpointKey]int, *model.Pagination, error) {
+func (s *service) AlertImpact(req *request.AlertImpactRequest) ([]clickhouse.EntryRelationship, []response.ImpactAlertEvent, map[model.EndpointKey]int, *model.Pagination, error) {
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 
@@ -42,7 +42,7 @@ func (s *service) AlertImpact(req *request.AlertImpactRequest) ([]clickhouse.Ent
 	}
 
 	if count == 0 {
-		return []clickhouse.EntryNodeRelations{}, []response.ImpactAlertEvent{}, map[model.EndpointKey]int{}, &model.Pagination{
+		return []clickhouse.EntryRelationship{}, []response.ImpactAlertEvent{}, map[model.EndpointKey]int{}, &model.Pagination{
 			Total:       0,
 			CurrentPage: req.CurrentPage,
 			PageSize:    req.PageSize,
@@ -90,7 +90,9 @@ func (s *service) AlertImpact(req *request.AlertImpactRequest) ([]clickhouse.Ent
 	return entryRelation, eventList, relatedEventCounts, pagation, err
 }
 
-func addRelatedEntryAndPagation(req *request.AlertImpactRequest, count int, impactEvents []response.ImpactAlertEvent, entryRelation []clickhouse.EntryNodeRelations) (*model.Pagination, []response.ImpactAlertEvent, map[model.EndpointKey]int, error) {
+// addRelatedEntryAndPagation 在告警事件中填充入口信息
+// 同时每个入口关联的告警事件的数量
+func addRelatedEntryAndPagation(req *request.AlertImpactRequest, count int, impactEvents []response.ImpactAlertEvent, entryRelation []clickhouse.EntryRelationship) (*model.Pagination, []response.ImpactAlertEvent, map[model.EndpointKey]int, error) {
 	var pagation *model.Pagination = &model.Pagination{
 		Total:       int64(count),
 		CurrentPage: req.CurrentPage,
@@ -107,21 +109,22 @@ func addRelatedEntryAndPagation(req *request.AlertImpactRequest, count int, impa
 	}
 
 	var relatedEventCount = make(map[model.EndpointKey]int)
-	for i := from; i < count; i++ {
+	for i := 0; i < count; i++ {
 		// 查询和事件关联的入口
 		impactEntrys := searchEntryRelations(entryRelation, impactEvents[i].ImpactEndpoints)
 		// 统计入口关联的告警数量
 		for _, impactEntry := range impactEntrys {
 			relatedEventCount[impactEntry]++
 		}
-		if i < to {
+		if from < i && i < to {
+			// 在当前页的告警事件中填充入口信息
 			impactEvents[i].ImpactEntrys = impactEntrys
 		}
 	}
 	return pagation, impactEvents[from:to], relatedEventCount, nil
 }
 
-func (s *service) alertImpactTargetEvent(eventid string, startTime, endTime time.Time) ([]clickhouse.EntryNodeRelations, error) {
+func (s *service) alertImpactTargetEvent(eventid string, startTime, endTime time.Time) ([]clickhouse.EntryRelationship, error) {
 	event, err := s.chRepo.GetAlertEventById(eventid, startTime, endTime)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get alert eventId[%s]: %v", eventid, err)
@@ -168,7 +171,7 @@ type EndpointsMap struct {
 	// Node + Pid
 	NetSrcSet map[netSrcProcessKey][]clickhouse.AlertService
 
-	EntryRelationsSet map[clickhouse.AlertService][]clickhouse.EntryNodeRelations
+	EntryRelationsSet map[clickhouse.AlertService][]clickhouse.EntryRelationship
 }
 
 type podKey struct {
@@ -208,21 +211,29 @@ func (m *EndpointsMap) EndpointsList() []clickhouse.AlertService {
 	return endpointList
 }
 
-func searchEntryRelations(relations []clickhouse.EntryNodeRelations, endpoints []clickhouse.AlertService) []model.EndpointKey {
+// searchEntryRelations 查询每个alertServices关联的入口
+func searchEntryRelations(relations []clickhouse.EntryRelationship, alertServices []clickhouse.AlertService) []model.EndpointKey {
 	var tmpEntrySet = make(map[model.EndpointKey]struct{}, 0)
 	var entryList = make([]model.EndpointKey, 0)
 	for _, relation := range relations {
-		for _, endpoint := range endpoints {
-			// endpoint.ContentKey 为空表示整个服务都收到该Alert的影响
-			if len(endpoint.Endpoint) > 0 && endpoint.Endpoint != relation.DescendantEndpoint {
+		for _, endpoint := range alertServices {
+			if endpoint.Service != relation.Service {
 				continue
 			}
-			if endpoint.ServiceName != relation.DescendantService {
+			// endpoint.ContentKey 为空表示所有关联业务匹配所有接口
+			if len(endpoint.Endpoint) > 0 && endpoint.Endpoint != relation.Endpoint {
 				continue
 			}
-			entryKey := model.EndpointKey{
-				ServiceName: relation.Service,
-				Endpoint:    relation.Endpoint,
+
+			var entryKey model.EndpointKey
+			if len(relation.AsyncEntryService) > 0 {
+				// 如果有异步的入口,添加异步的入口节点
+				entryKey.ServiceName = relation.AsyncEntryService
+				entryKey.Endpoint = relation.AsyncEntryEndpoint
+			} else {
+				// 如果没有,使用APM提供的入口节点信息
+				entryKey.ServiceName = relation.EntryService
+				entryKey.Endpoint = relation.EntryEndpoint
 			}
 			if _, find := tmpEntrySet[entryKey]; find {
 				continue
@@ -282,8 +293,8 @@ func tryGetAlertServiceByService(_ prometheus.Repo, endpointsMap *EndpointsMap, 
 
 	alertServices := []clickhouse.AlertService{
 		{
-			ServiceName: serviceName,
-			Endpoint:    event.GetContentKeyTag(),
+			Service:  serviceName,
+			Endpoint: event.GetContentKeyTag(),
 		},
 	}
 
@@ -328,7 +339,7 @@ func tryGetAlertServiceByNetK8s(repo prometheus.Repo, endpointsMap *EndpointsMap
 	for _, service := range services {
 		// 不关系ContentKey
 		endpoints = append(endpoints, clickhouse.AlertService{
-			ServiceName: service,
+			Service: service,
 		})
 	}
 
@@ -382,7 +393,7 @@ func tryGetAlertServiceByNetSrcVM(repo prometheus.Repo, endpointsMap *EndpointsM
 	var endpoints []clickhouse.AlertService
 	for _, service := range services {
 		endpoints = append(endpoints, clickhouse.AlertService{
-			ServiceName: service,
+			Service: service,
 		})
 	}
 
@@ -437,7 +448,7 @@ func tryGetAlertServiceByInfraNode(repo prometheus.Repo, endpointsMap *Endpoints
 	var endpoints []clickhouse.AlertService
 	for _, service := range services {
 		endpoints = append(endpoints, clickhouse.AlertService{
-			ServiceName: service,
+			Service: service,
 		})
 	}
 
@@ -490,7 +501,7 @@ func tryGetAlertServiceByContainer(repo prometheus.Repo, endpointsMap *Endpoints
 	for _, service := range services {
 		// 不关系ContentKey
 		endpoints = append(endpoints, clickhouse.AlertService{
-			ServiceName: service,
+			Service: service,
 		})
 	}
 

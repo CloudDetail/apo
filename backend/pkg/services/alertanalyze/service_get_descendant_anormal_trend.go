@@ -24,7 +24,7 @@ func (s *service) GetAnormalTrendByEntry(req *request.GetDescendantAnormalTrendR
 		return nil, err
 	}
 
-	descendants = append(descendants, ck.TopologyNode{
+	descendants = append(descendants, ck.ServiceNode{
 		Service:  req.Service,
 		Endpoint: req.Endpoint,
 	})

@@ -30,7 +30,7 @@ type Repo interface {
 	// 查询入口节点列表
 	ListEntryEndpoints(req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error)
 	// 根据Endpoint查询入口节点
-	SearchEntryEndpointsByAlertService(endpoints []AlertService, startTime, endTime int64) ([]EntryNodeRelations, error)
+	SearchEntryEndpointsByAlertService(endpoints []AlertService, startTime, endTime int64) ([]EntryRelationship, error)
 	// ========== error_propagation ==========
 	// 查询实例相关的错误传播链
 	ListErrorPropagation(req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error)
