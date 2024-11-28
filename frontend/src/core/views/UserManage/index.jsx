@@ -1,13 +1,13 @@
 import { Flex, Form, Input, Button, Divider, Tooltip, Modal, Table, ConfigProvider, Popconfirm, Spin, Pagination } from "antd"
-import { createUserApi, getUserListApi, removeUserApi } from "core/api/user";
+import { getUserListApi, removeUserApi } from "core/api/user";
 import { showToast } from "core/utils/toast";
-import { IoPersonAdd } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { MdOutlineModeEdit } from "react-icons/md";
 import EditModal from "./componnets/EditModal";
 import AddModal from "./componnets/AddModal";
 import { BsPersonFillAdd } from "react-icons/bs";
+import LoadingSpinner from 'src/core/components/Spinner'
 
 
 export default function UserManage() {
@@ -22,7 +22,7 @@ export default function UserManage() {
     const [pageSize, setPageSize] = useState(11)
     const [total, setTotal] = useState(0)
     const [selectedUser, setSelectedUser] = useState("")
-
+    const [loading, setLoading] = useState(false)
     //移除用户
     async function removeUser(prop) {
         const params = {
@@ -42,8 +42,8 @@ export default function UserManage() {
         } catch (error) {
             const errorMessage = error.response?.data?.message || "移除失败"
             showToast({
-                title:errorMessage,
-                color:"danger"
+                title: errorMessage,
+                color: "danger"
             })
             console.log(error)
         }
@@ -51,42 +51,26 @@ export default function UserManage() {
 
     //获取用户列表
     async function getUserList(signal = undefined, type = "normal") {
-        let loadingTimer
-        loadingTimer = setTimeout(() => {
-            setTableVisibility(false)
-        }, 500)
-
-        let params = {
-            currentPage,
-            pageSize,
-            username,
-            role,
-            corporation
-        }
-
-        if (type === "special") {
-            params = {
-                currentPage: currentPage - 1,
-                pageSize,
-                username,
-                role,
-                corporation
-            }
-        }
-
+        if (loading) return
+        setLoading(true)
+        const params = type === "special" ?
+            { currentPage: currentPage - 1, pageSize, username, role, corporation } :
+            { currentPage, pageSize, username, role, corporation }
         try {
             const { users, currentPage, pageSize, total } = await getUserListApi(params, signal)
-            clearTimeout(loadingTimer)
             setUserList(users)
             setCurrentPage(currentPage)
             setPageSize(pageSize)
             setTotal(total)
             setTableVisibility(true)
         } catch (error) {
+            console.error(error)
             showToast({
                 title: "获取用户列表失败",
                 color: "danger"
             })
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -181,78 +165,81 @@ export default function UserManage() {
     }, [username, role, corporation, currentPage, pageSize])
 
     return (
-        <Flex vertical className="w-full mt-4">
-            <Flex className="mb-3">
-                <Flex className="w-full justify-between">
-                    <Flex className="w-full">
-                        <Flex className="w-auto items-center justify-start mr-5">
-                            <p className="text-md mr-2">用户名称:</p>
-                            <Input placeholder="检索" className="w-2/3" value={username} onChange={(e) => setUsername(e.target.value)} />
-                        </Flex>
-                        {/* <Flex className="w-auto items-center justify-start mr-5">
+        <>
+            <LoadingSpinner loading={loading} />
+            <Flex vertical className="w-full mt-4">
+                <Flex className="mb-3">
+                    <Flex className="w-full justify-between">
+                        <Flex className="w-full">
+                            <Flex className="w-auto items-center justify-start mr-5">
+                                <p className="text-md mr-2">用户名称:</p>
+                                <Input placeholder="检索" className="w-2/3" value={username} onChange={(e) => setUsername(e.target.value)} />
+                            </Flex>
+                            {/* <Flex className="w-auto items-center justify-start mr-5">
                             <p className="text-md mr-2">角色:</p>
                             <Input placeholder="检索" className="w-40" value={role} onChange={(e) => setRole(e.target.value)} />
                         </Flex> */}
-                        <Flex className="w-auto items-center justify-start">
-                            <p className="text-md mr-2">组织:</p>
-                            <Input placeholder="检索" className="w-2/3" value={corporation} onChange={(e) => setCorporation(e.target.value)} />
+                            <Flex className="w-auto items-center justify-start">
+                                <p className="text-md mr-2">组织:</p>
+                                <Input placeholder="检索" className="w-2/3" value={corporation} onChange={(e) => setCorporation(e.target.value)} />
+                            </Flex>
+                        </Flex>
+                        <Flex className="w-full justify-end items-center">
+                            <Button
+                                type="primary"
+                                icon={<BsPersonFillAdd size={20} />}
+                                onClick={() => setModalAddVisibility(true)}
+                                className="flex-grow-0 flex-shrink-0"
+                            >
+                                <span className="text-xs">新增用户</span>
+                            </Button>
                         </Flex>
                     </Flex>
-                    <Flex className="w-full justify-end items-center">
-                        <Button
-                            type="primary"
-                            icon={<BsPersonFillAdd size={20}/>}
-                            onClick={() => setModalAddVisibility(true)}
-                            className="flex-grow-0 flex-shrink-0"
-                        >
-                            <span className="text-xs">新增用户</span>
-                        </Button>
-                    </Flex>
                 </Flex>
-            </Flex>
-            <ConfigProvider
-                theme={{
-                    components: {
-                        Table: {
-                            headerBg: "#222631",
+                <ConfigProvider
+                    theme={{
+                        components: {
+                            Table: {
+                                headerBg: "#222631",
+                            }
                         }
-                    }
-                }}
-            >
-                <Flex vertical className={"w-full flex"} >
-                    <div>
-                        <Table
-                            dataSource={userList}
-                            columns={columns}
-                            pagination={false}
-                            scroll={{ y: 700 }}
-                            loading={!tableVisibility}
+                    }}
+                >
+                    <Flex vertical className={"w-full"} >
+                        <div>
+                            <Table
+                                dataSource={userList}
+                                columns={columns}
+                                pagination={false}
+                                scroll={{ y: 600 }}
+                                loading={!tableVisibility}
+                            />
+                        </div>
+                        <Pagination
+                            className="mt-4"
+                            align="end"
+                            current={currentPage}
+                            pageSize={pageSize}
+                            total={total}
+                            pageSizeOptions={[11, 30, 50]}
+                            showSizeChanger
+                            onChange={paginationChange}
+                            showQuickJumper
                         />
-                    </div>
-                    <Pagination
-                        className="mt-4"
-                        align="end"
-                        current={currentPage}
-                        pageSize={pageSize}
-                        total={total}
-                        pageSizeOptions={[11, 30, 50]}
-                        showSizeChanger
-                        onChange={paginationChange}
-                        showQuickJumper
-                    />
-                </Flex>
-            </ConfigProvider>
-            <EditModal
-                selectedUser={selectedUser}
-                modalEditVisibility={modalEditVisibility}
-                setModalEditVisibility={setModalEditVisibility}
-                getUserList={getUserList}
-            />
-            <AddModal
-                modalAddVisibility={modalAddVisibility}
-                setModalAddVisibility={setModalAddVisibility}
-                getUserList={getUserList}
-            />
-        </Flex>
+                    </Flex>
+                </ConfigProvider>
+                <EditModal
+                    selectedUser={selectedUser}
+                    modalEditVisibility={modalEditVisibility}
+                    setModalEditVisibility={setModalEditVisibility}
+                    getUserList={getUserList}
+                />
+                <AddModal
+                    modalAddVisibility={modalAddVisibility}
+                    setModalAddVisibility={setModalAddVisibility}
+                    getUserList={getUserList}
+                />
+            </Flex>
+        </>
     )
 }

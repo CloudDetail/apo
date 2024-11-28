@@ -115,33 +115,31 @@ const get = (url, params = {}, config = {}) => {
     throw error
   })
 }
+
 // 封装POST请求
-const post = (url, data = {}, config = {}) => {
-  return instance.post(url, data, { ...config }).catch((error) => {
-    // 在此处可以捕获到错误信息
-    throw error
-  })
-}
+const post = (url, data = {}, config = {}, form = false) => {
+  if (form) {
+    const formData = new URLSearchParams();
+    Object.keys(data).forEach(key => {
+      formData.append(key, data[key]);
+    });
+    data = formData;
+  }
 
-// 封装form-data类型的POST请求
-const postFormData = (url, data = {}, config = {}) => { 
-  // 将 data 转换为 x-www-form-urlencoded 格式的字符串
-  const formData = new URLSearchParams();
-  Object.keys(data).forEach(key => {
-    formData.append(key, data[key]);
-  });
+  const headers = form ? {
+    ...config.headers,
+    'Content-Type': 'application/x-www-form-urlencoded',
+  } : config.headers;
 
-  return instance.post(url, formData.toString(), {
-    ...config,
-    headers: {
-      ...config.headers,
-      'Content-Type': 'application/x-www-form-urlencoded', // 设置 Content-Type 为 x-www-form-urlencoded
-    }
-  }).catch((error) => {
-    // 捕获并抛出错误信息
-    throw error;
-  });
-}
+  const requestConfig = { ...config, headers };
+
+  // 发送 POST 请求
+  return instance.post(url, form ? data.toString() : data, requestConfig)
+    .catch((error) => {
+      // 捕获错误信息
+      throw error;
+    });
+};
 
 
 // 封装DELETE请求
@@ -153,4 +151,4 @@ const del = (url, data = {}, config = {}) => {
 }
 
 // 导出axios实例和封装的请求方法
-export { instance as axiosInstance, get, post, del, postFormData }
+export { instance as axiosInstance, get, post, del }

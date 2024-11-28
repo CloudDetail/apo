@@ -31,59 +31,19 @@ export default function UserInfo() {
 
     //更新邮箱
     function updateEmail() {
-        form.validateFields(['email'])
-            .then(async ({ email }) => {
+        form.validateFields(['email', 'corporation', 'phone'])
+            .then(async ({ email, corporation, phone }) => {
                 const params = {
-                    username: JSON.parse(localStorage.getItem("user")).username,
-                    email
+                    email,
+                    corporation,
+                    phone
                 }
-                await updateEmailApi(params)
+                await updateCorporationApi({ username: JSON.parse(localStorage.getItem("user"))?.username, ...params })
                 showToast({
                     title: '邮箱更新成功',
                     color: 'success'
                 })
-                form.resetFields(['email'])
-            })
-            .then(() => {
-                getUserInfo()
-            })
-    }
-
-    //更新个人信息
-    function updateCorporation() {
-        form.validateFields(['corporation'])
-            .then(async ({ corporation }) => {
-                const params = {
-                    username: JSON.parse(localStorage.getItem("user")).username,
-                    corporation
-                }
-
-                await updateCorporationApi(params)
-                showToast({
-                    title: '组织更新成功',
-                    color: 'success'
-                })
-                form.resetFields(['corporation'])
-            })
-            .then(() => {
-                getUserInfo()
-            })
-    }
-
-    //修改手机号
-    function updatePhone() {
-        form.validateFields(['phone'])
-            .then(async ({ phone }) => {
-                const params = {
-                    username: JSON.parse(localStorage.getItem("user")).username,
-                    phone
-                }
-                await updatePhoneApi(params)
-                showToast({
-                    title: '手机号修改成功',
-                    color: 'success'
-                })
-                form.resetFields(['phone'])
+                form.resetFields()
             })
             .then(() => {
                 getUserInfo()
@@ -113,13 +73,6 @@ export default function UserInfo() {
                                 >
                                     <Input placeholder="请输入邮箱" className="w-80" />
                                 </Form.Item>
-                                <Popconfirm
-                                    title="确定要修改邮箱吗"
-                                    okText="确定"
-                                    onConfirm={updateEmail}
-                                >
-                                    <Button type="link" className="text-md">修改邮箱</Button>
-                                </Popconfirm>
                             </Flex>
                         </Flex>
                         <Flex className="flex flex-col justify-betwwen w-full">
@@ -134,16 +87,8 @@ export default function UserInfo() {
                                 >
                                     <Input placeholder="请输入手机号" className="w-80" />
                                 </Form.Item>
-                                <Popconfirm
-                                    title="确定要修改手机号吗"
-                                    okText="确定"
-                                    onConfirm={updatePhone}
-                                >
-                                    <Button type="link" className="text-md">修改手机号</Button>
-                                </Popconfirm>
                             </Flex>
                         </Flex>
-
                         <Flex className="flex flex-col justify-betwwen">
                             <Flex className="flex items-center">
                                 <Form.Item
@@ -152,15 +97,9 @@ export default function UserInfo() {
                                 >
                                     <Input placeholder="请输入组织名" className="w-80" />
                                 </Form.Item>
-                                <Popconfirm
-                                    title="确定要修改组织吗"
-                                    okText="确定"
-                                    onConfirm={updateCorporation}
-                                >
-                                    <Button type="link" className="text-md">修改组织</Button>
-                                </Popconfirm>
                             </Flex>
                         </Flex>
+                        <Button type="primary" onClick={updateEmail}>修改信息</Button>
                     </Form>
                 </Flex>
             </Flex>

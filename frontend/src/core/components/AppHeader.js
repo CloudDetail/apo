@@ -4,20 +4,12 @@ import { useSelector, useDispatch } from 'react-redux';
 import logo from 'src/core/assets/brand/logo.svg';
 import { CContainer, CHeader, CHeaderNav, useColorModes, CImage } from '@coreui/react';
 import { AppBreadcrumb } from './index';
-import { AppHeaderDropdown } from './header/index';
-import DateTimeRangePicker from './DateTime/DateTimeRangePicker';
 import routes from 'src/routes';
 import CoachMask from './Mask/CoachMask';
 import DateTimeCombine from './DateTime/DateTimeCombine';
-import { ConfigProvider, Menu } from 'antd';
+import { Menu } from 'antd';
 import { commercialNav } from 'src/_nav';
-import ToolBox from '../views/UserPage/component/ToolBox';
-import { HiUserCircle } from "react-icons/hi";
-import { RxTriangleDown } from "react-icons/rx";
-import { RxTriangleLeft } from "react-icons/rx";
-import { Button } from 'antd';
-import { getUserInfoApi } from '../api/user';
-import { showToast } from '../utils/toast';
+import UserToolBox from '../views/UserPage/component/UserToolBox';
 
 const AppHeader = ({ type = 'default' }) => {
   const location = useLocation();
@@ -29,8 +21,6 @@ const AppHeader = ({ type = 'default' }) => {
   const dispatch = useDispatch();
   const sidebarShow = useSelector((state) => state.sidebarShow);
   const [selectedKeys, setSelectedKeys] = useState([]);
-  const toolBoxRef = useRef(null);
-  const buttonRef = useRef(null);
 
   const onClick = ({ item, key, keyPath, domEvent }) => {
     navigate(item.props.to);
@@ -70,94 +60,6 @@ const AppHeader = ({ type = 'default' }) => {
     });
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        toolBoxRef.current &&
-        !toolBoxRef.current.contains(event.target) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target)
-      ) {
-        setToolVisibal(false);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, []);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          const user = JSON.parse(localStorage.getItem("user"));
-          if (user) {
-            setUsername(user.username);
-          } else {
-            setUsername("获取用户信息失败");
-          }
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (headerRef.current) {
-      observer.observe(headerRef.current);
-    }
-
-    return () => {
-      if (headerRef.current) {
-        observer.unobserve(headerRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (toolBoxRef.current && !toolBoxRef.current.contains(event.target) &&
-        buttonRef.current && !buttonRef.current.contains(event.target)) {
-        setToolVisibal(false)
-      }
-    }
-
-    // 监听点击事件
-    document.addEventListener('click', handleClickOutside)
-
-    // 清理事件监听器
-    return () => {
-      document.removeEventListener('click', handleClickOutside)
-    }
-  }, [])
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          const user = JSON.parse(localStorage.getItem("user"))
-          if (user) {
-            setUsername(user.username)
-          } else {
-            setUsername("获取用户信息失败")
-          }
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (headerRef.current) {
-      observer.observe(headerRef.current);
-    }
-
-    return () => {
-      if (headerRef.current) {
-        observer.unobserve(headerRef.current);
-      }
-    };
-  }, []);
-
   const vars = {
     borderBottom: 0,
     zIndex: 998,
@@ -188,31 +90,8 @@ const AppHeader = ({ type = 'default' }) => {
         <CHeaderNav className="pr-4">
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
+          <UserToolBox />
         </CHeaderNav>
-        <div
-          className="relative flex items-center select-none w-auto pl-2 pr-2 mr-2 rounded-md hover:bg-[#30333C] cursor-pointer"
-          ref={buttonRef}
-          onMouseEnter={() => {
-            clearTimeout(buttonRef.current?.hideTimer);
-            buttonRef.current.showTimer = setTimeout(() => {
-              setToolVisibal(true);
-            }, 100); // 延时显示
-          }}
-          onMouseLeave={() => {
-            clearTimeout(buttonRef.current?.showTimer);
-            buttonRef.current.hideTimer = setTimeout(() => {
-              setToolVisibal(false);
-            }, 300); // 延时隐藏
-          }}
-        >
-          <div>
-            <HiUserCircle className="w-8 h-8" />
-          </div>
-          <div className="h-1/2 flex flex-col justify-start">
-            <p className="text-base relative -top-0.5">{username}</p>
-          </div>
-          <ToolBox visiable={toolVisibal} setVisiable={setToolVisibal} ref={toolBoxRef} />
-        </div>
       </div>
     </CHeader>
   );

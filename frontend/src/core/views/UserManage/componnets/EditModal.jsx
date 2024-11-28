@@ -1,59 +1,68 @@
-import { Modal, Flex, Form, Input, message, Divider, Button, Popconfirm } from "antd"
+import { Modal, Flex, Form, Input, Divider, Button } from "antd"
 import { useEffect, useState } from "react"
-import { AiFillWechatWork } from "react-icons/ai"
 import { getUserListApi, updateEmailApi, updatePhoneApi, updateCorporationApi, updatePasswordWithNoOldPwd } from "core/api/user"
-import { AiOutlineLoading } from "react-icons/ai";
-import { GrPowerReset } from "react-icons/gr";
 import { showToast } from "core/utils/toast";
 import LoadingSpinner from 'src/core/components/Spinner'
 
 const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, getUserList }) => {
     const [loading, setLoading] = useState(false)
-    const [saveStatus, setSaveStatus] = useState(false)
     const [form] = Form.useForm()
 
     useEffect(() => {
-        getUserInfoByName()
-    }, [selectedUser])
+        if (modalEditVisibility) {
+            form.resetFields()
+            getUserInfoByName()
+        }
+    }, [modalEditVisibility])
 
     const editUser = () => {
-        if(saveStatus) return
-        form.validateFields()
-            .then(async ({ email, phone, corporation, newPassword }) => {
-                let flag = false
-                setSaveStatus(true)
-                if (email) {
-                    await updateEmailApi({ username: selectedUser, email })
-                    flag = true
+        if (loading) return
+        form.validateFields(['email','phone','corporation'])
+            .then(async ({ email = "", phone = "", corporation = "" }) => {
+                setLoading(true)
+
+                const params = {
+                    email, phone,
+                    corporation
                 }
-                if (phone) {
-                    await updatePhoneApi({ username: selectedUser, phone })
-                    flag = true
-                }
-                if (corporation) {
-                    await updateCorporationApi({ username: selectedUser, corporation })
-                    flag = true
-                }
-                if (newPassword) {
-                    await updatePasswordWithNoOldPwd({ username: selectedUser, newPassword })
-                }
-                if (flag) {
-                    showToast({
-                        title: "保存成功",
-                        color: "success"
-                    })
-                } else {
-                    showToast({
-                        title: "未作任何修改"
-                    })
-                }
+
+                await updateCorporationApi({ username: selectedUser, ...params })
+
                 setModalEditVisibility(false)
                 getUserList()
+                showToast({ "title": "保存成功", "color": "success" })
+                form.resetFields()
             })
             .catch((error) => {
-                console.log(error)
+                console.error(error)
             }).finally(() => {
-                setSaveStatus(false)
+                setLoading(false)
+            })
+    }
+
+    const resetPassword = () => {
+        if (loading) return
+        form.validateFields(['newPassword','confirmPassword'])
+            .then(async ({ newPassword, confirmPassword }) => {
+                try {
+                    setLoading(true)
+
+                    const params = { newPassword, confirmPassword }
+                    await updatePasswordWithNoOldPwd({ username: selectedUser, ...params })
+                    showToast({
+                        "title": "密码修改成功",
+                        "color": "success"
+                    })
+                } catch (error) {
+                    console.error(error)
+                    showToast({
+                        title: error.response?.data?.message || "未知错误",
+                        "color": "danger"
+                    })
+                    setModalEditVisibility(false)
+                } finally {
+                    setLoading(false)
+                }
             })
     }
 
@@ -74,105 +83,119 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
                 phone: users[0]?.phone,
                 corporation: users[0]?.corporation
             })
-            setLoading(false)
         } catch (error) {
+            showToast({
+                title: "获取用户信息失败",
+                color: "danger"
+            })
             console.log(error)
+        } finally {
             setLoading(false)
         }
     }
 
-    return (<>
-        <Modal
-            open={modalEditVisibility}
-            onCancel={() => {
-                if(!saveStatus){
-                    setModalEditVisibility(false)
-                }
-            }}
-            maskClosable={false}
-            title="编辑用户"
-            okText={<span>保存</span>}
-            onOk={editUser}
-            width={1000}
-        >
-            <LoadingSpinner loading={saveStatus}/>
-            <Flex vertical className="w-full mt-4 mb-4 justify-center align-center">
-                {loading ? <AiOutlineLoading className="animate-spin" size={25} /> : <div>
-                    <Form form={form} layout="vertical">
-                        <Form.Item
-                            label="用户名"
-                            name="username"
-                        >
-                            <Input disabled={true} />
-                        </Form.Item>
-                        <Form.Item
-                            label="邮件"
-                            name="email"
-                            rules={[
-                                {
-                                    type: "email",
-                                    message: "请输入有效的邮箱地址"
-                                }
-                            ]}
-                        >
-                            <Input placeholder="请输入用户邮箱" />
-                        </Form.Item>
-                        <Form.Item
-                            label="电话号码"
-                            name="phone"
-                            rules={[
-                                {
-
-                                    pattern: /^1[3-9]\d{9}$/, // 中国大陆手机号正则
-                                    message: "请输入有效的电话号码",
-                                }
-                            ]}
-                        >
-                            <Input placeholder="请输入电话号码" />
-                        </Form.Item>
-                        <Form.Item
-                            label="组织"
-                            name="corporation"
-                        >
-                            <Input placeholder="请输入组织" />
-                        </Form.Item>
-                        {/* <Divider /> */}
-                        <span>密码</span>
-                        <div className="ml-7 mt-3">
+    return (
+        <>
+            <Modal
+                open={modalEditVisibility}
+                onCancel={() => {
+                    if (!loading) {
+                        setModalEditVisibility(false)
+                    }
+                }}
+                maskClosable={false}
+                title="编辑用户"
+                width={1000}
+                footer={null}
+            >
+                <LoadingSpinner loading={loading} />
+                <Flex vertical className="w-full mt-4 mb-4 justify-center align-center">
+                    <div>
+                        <Form form={form} layout="vertical">
                             <Form.Item
-                                label="新密码"
-                                name="newPassword"
+                                label="用户名"
+                                name="username"
+                            >
+                                <Input disabled={true} />
+                            </Form.Item>
+                            <Form.Item
+                                label="邮件"
+                                name="email"
                                 rules={[
                                     {
-                                        pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{9,}$/,
-                                        message: '密码必须包含大写字母、小写字母、特殊字符，且长度大于8'
+                                        type: "email",
+                                        message: "请输入有效的邮箱地址"
                                     }
                                 ]}
                             >
-                                <Input placeholder="请输入密码" />
+                                <Input placeholder="请输入用户邮箱" />
                             </Form.Item>
                             <Form.Item
-                                label="重复新密码"
-                                name="confirmPassword"
+                                label="电话号码"
+                                name="phone"
                                 rules={[
-                                    ({ getFieldValue }) => ({
-                                        validator(_, value) {
-                                            if (!value || getFieldValue('newPassword') === value) {
-                                                return Promise.resolve();
-                                            }
-                                            return Promise.reject(new Error('两次输入的密码不一致'));
-                                        },
-                                    }),
+                                    {
+
+                                        pattern: /^1[3-9]\d{9}$/, // 中国大陆手机号正则
+                                        message: "请输入有效的电话号码",
+                                    }
                                 ]}
                             >
-                                <Input placeholder="请重复密码" />
+                                <Input placeholder="请输入电话号码" />
                             </Form.Item>
-                        </div>
-                    </Form>
-                </div>}
-            </Flex>
-        </Modal>
-    </>)
+                            <Form.Item
+                                label="组织"
+                                name="corporation"
+                            >
+                                <Input placeholder="请输入组织" />
+                            </Form.Item>
+                            <Button type="primary" onClick={editUser}>修改用户信息</Button>
+                            <Divider />
+                            <div className="mt-3">
+                                <Form.Item
+                                    label="新密码"
+                                    name="newPassword"
+                                    rules={[
+                                        {
+                                            required:true,
+                                            message:"请输入密码"
+                                        },
+                                        {
+                                            pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{9,}$/,
+                                            message: '密码必须包含大写字母、小写字母、特殊字符，且长度大于8'
+                                        }
+                                    ]}
+                                >
+                                    <Input.Password placeholder="请输入密码" />
+                                </Form.Item>
+                                <Form.Item
+                                    label="重复新密码"
+                                    name="confirmPassword"
+                                    rules={[
+                                        {
+                                            required:true,
+                                            message:"请确认密码"
+                                        },
+                                        ({ getFieldValue }) => ({
+                                            validator(_, value) {
+                                                if (!value || getFieldValue('newPassword') === value) {
+                                                    return Promise.resolve();
+                                                }
+                                                return Promise.reject(new Error('两次输入的密码不一致'));
+                                            },
+                                        }),
+                                    ]}
+                                >
+                                    <Input.Password  placeholder="请重复密码" />
+                                </Form.Item>
+                            </div>
+                            <Button type="primary" onClick={resetPassword}>修改密码</Button>
+                        </Form>
+                    </div>
+                </Flex>
+            </Modal>
+        </>
+    )
 }
 
 export default EditModal

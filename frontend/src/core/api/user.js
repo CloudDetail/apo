@@ -1,31 +1,31 @@
-import { postFormData, get } from "../utils/request"
+import { post, get } from "../utils/request"
 
 const loginApi = (params) => {
-    return postFormData(`/api/user/login`,params)
+    return post(`/api/user/login`,params,{},true)
 }
 
 const logoutApi = (params) => {
-    return postFormData(`/api/user/logout`,params)
+    return post(`/api/user/logout`,params,{},true)
 }
 
 const updateEmailApi = (params) => {
-    return postFormData(`/api/user/update/email`,params)
+    return post(`/api/user/update/email`,params,{},true)
 }
 
 const updateCorporationApi = (params) => {
-    return postFormData(`/api/user/update/info`,params)
+    return post(`/api/user/update/info`,params,{},true)
 }
 
 const updatePasswordApi = (params) => {
-    return postFormData(`/api/user/update/password`,params)
+    return post(`/api/user/update/password`,params,{},true)
 }
 
 const updatePhoneApi = (params) => {
-    return postFormData(`/api/user/update/phone`,params)
+    return post(`/api/user/update/phone`,params,{},true)
 }
 
 const createUserApi = (params) => {
-    return postFormData(`/api/user/create`,params)
+    return post(`/api/user/create`,params,{},true)
 }
 
 const getUserInfoApi = () => {
@@ -37,11 +37,11 @@ const getUserListApi = (params,signal) => {
 }
 
 const removeUserApi = (params) => {
-    return postFormData(`/api/user/remove`,params)
+    return post(`/api/user/remove`,params,{},true)
 }
 
 const updatePasswordWithNoOldPwd = (params) => {
-    return postFormData(`/api/user/reset`,params)
+    return post(`/api/user/reset`,params,{},true)
 }
 
 export {

@@ -1,54 +1,39 @@
 import { Modal, Flex, Form, Input } from "antd"
 import { showToast } from "core/utils/toast"
-import { createUserApi, updateEmailApi, updatePhoneApi, updateCorporationApi } from "core/api/user"
-import { AiOutlineLoading } from "react-icons/ai";
+import { createUserApi } from "core/api/user"
 import { useState } from "react"
 import LoadingSpinner from 'src/core/components/Spinner'
 
 
 const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) => {
-    const [addStatus, setAddStatus] = useState(false)
+    const [loading, setLoading] = useState(false)
     const [form] = Form.useForm()
 
     //创建用户
     async function createUser() {
-        if (addStatus) return
+        if (loading) return //防止重复提交
         form.validateFields()
-            .then(async ({ username, password, confirmPassword, email, phone, corporation }) => {
+            .then(async ({ username, password, confirmPassword, email = "", phone = "", corporation = "" }) => {
                 try {
-                    setAddStatus(true)
-                    const params = {
-                        username: username,
-                        password: password,
-                        confirmPassword: confirmPassword
-                    }
+                    //设置加载状态
+                    setLoading(true)
+                    //创建用户
+                    const params = { username, password, confirmPassword, email, phone, corporation }
                     await createUserApi(params)
-                    // @ts-ignore
-                    if (email) {
-                        await updateEmailApi({ username, email })
-                    }
-                    if (phone) {
-                        await updatePhoneApi({ username, phone })
-                    }
-                    if (corporation) {
-                        await updateCorporationApi({ username, corporation })
-                    }
-                    showToast({
-                        title: "用户添加成功",
-                        color: "success"
-                    })
-                    setAddStatus(false)
+                    // 操作成功的反馈和状态清理
                     setModalAddVisibility(false)
                     await getUserList()
+                    showToast({ title: "用户添加成功", color: "success" })
                 } catch (error) {
-                    setAddStatus(false)
-                    console.log(error)
+                    console.error(error)
                     showToast({
-                        title: error.response ? error.response.data.message : "未知错误",
+                        title: error.response?.data?.message || "未知错误",
                         color: 'danger'
                     })
+                } finally {
+                    setLoading(false)
+                    form.resetFields()
                 }
-                form.resetFields()
             })
     }
 
@@ -56,7 +41,7 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) =>
         <Modal
             open={modalAddVisibility}
             onCancel={() => {
-                if (!addStatus) {
+                if (!loading) {
                     setModalAddVisibility(false)
                 }
             }}
@@ -66,7 +51,7 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) =>
             onOk={createUser}
             width={1000}
         >
-            <LoadingSpinner loading={addStatus} />
+            <LoadingSpinner loading={loading} />
             <Flex vertical className="w-full mt-4 mb-4">
                 <Flex vertical className="w-full justify-center start">
                     <Form form={form} layout="vertical">

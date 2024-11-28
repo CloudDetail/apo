@@ -122,7 +122,7 @@ export default function UpdatePassword() {
                                     okText="确定"
                                     onConfirm={updatePassword}
                                 >
-                                    <Button className="text-md">修改密码</Button>
+                                    <Button type="primary" className="text-md">修改密码</Button>
                                 </Popconfirm>
                             </div>
                         </Form>
