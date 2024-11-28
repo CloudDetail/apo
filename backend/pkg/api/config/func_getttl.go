@@ -13,6 +13,7 @@ import (
 // @Tags API.config
 // @Accept application/x-www-form-urlencoded
 // @Produce json
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetTTLResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/config/getTTL [get]

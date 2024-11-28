@@ -22,6 +22,7 @@ import (
 // @Param errorRate formData float64 true "同比错误率"
 // @Param tps formData float64 true "同比请求次数"
 // @Param log formData float64 true "同比日志告警"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200
 // @Failure 400 {object} code.Failure
 // @Router /api/service/setThreshold [post]

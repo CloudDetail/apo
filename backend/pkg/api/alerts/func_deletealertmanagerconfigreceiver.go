@@ -17,6 +17,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param Request body request.DeleteAlertManagerConfigReceiverRequest true "删除对象"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 string ok
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/alertmanager/receiver [delete]

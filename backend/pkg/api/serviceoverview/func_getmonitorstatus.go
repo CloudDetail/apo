@@ -18,6 +18,7 @@ import (
 // @Produce json
 // @Param startTime query int64 true "查询开始时间"
 // @Param endTime query int64 true "查询结束时间"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetMonitorStatusResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/service/monitor/status [get]

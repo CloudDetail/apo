@@ -16,6 +16,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param alertRuleFile query string false "查询告警规则文件名,为空返回所有"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetAlertRuleFileResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/rules [get]

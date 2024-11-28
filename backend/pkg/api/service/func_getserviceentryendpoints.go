@@ -26,6 +26,7 @@ import (
 // @Param endpoint query string true "查询Endpoint"
 // @Param step query int64 true "查询步长(us)"
 // @Param showMissTop query bool false "显示缺失入口"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []response.GetServiceEntryEndpointsResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/service/entry/endpoints [get]

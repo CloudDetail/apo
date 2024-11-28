@@ -21,6 +21,7 @@ import (
 // @Param serviceName query string false "服务名称"
 // @Param endpointName query string false "接口名称"
 // @Param namespace query string false "命名空间"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.ServiceRYGLightRes
 // @Failure 400 {object} code.Failure
 // @Router /api/service/ryglight [get]

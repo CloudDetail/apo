@@ -3,8 +3,6 @@ package prometheus
 import (
 	"context"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -13,11 +11,6 @@ import (
 )
 
 const (
-	TEMPLATE_FILTER_ENDPOINT            = `content_key=~"%s"`
-	TEMPLATE_FILTER_SVC                 = `svc_name=~"%s"`
-	TEMPLATE_HISTO_P90_LATENCY          = `histogram_quantile(0.9,sum by (%s,content_key,svc_name) (increase(kindling_span_trace_duration_nanoseconds_bucket{%s}[%s])))`
-	TEMPLATE_INSTANCE_HISTO_P90_LATENCY = `histogram_quantile(0.9,sum by (%s) (increase(kindling_span_trace_duration_nanoseconds_bucket{%s, content_key='%s'}[%s])))`
-
 	TIME_SECOND = int64(time.Second)
 	TIME_MINUTE = 60 * TIME_SECOND
 	TIME_HOUR   = 60 * TIME_MINUTE
@@ -36,21 +29,25 @@ func (repo *promRepo) QueryRangePercentile(startTime int64, endTime int64, step 
 		End:   time.UnixMicro(endTime),
 		Step:  time.Duration(step * 1000),
 	}
-	filters := []string{}
-	filters = append(filters, fmt.Sprintf(TEMPLATE_FILTER_ENDPOINT, RegexMultipleValue(endpoints...)))
-	filters = append(filters, fmt.Sprintf(TEMPLATE_FILTER_SVC, strings.Join(svcs, "|")))
-
-	query := fmt.Sprintf(TEMPLATE_HISTO_P90_LATENCY,
-		repo.GetRange(),
-		strings.Join(filters, ","),
-		getDurationFromStep(tRange.Step),
-	)
+	query := getSpanTraceP9xSql(repo.GetRange(), tRange.Step, svcs, endpoints)
 	res, _, err := repo.GetApi().QueryRange(context.Background(), query, tRange)
 	if err != nil {
 		return nil, err
 	}
 
 	return getDescendantMetrics("svc_name", "content_key", tRange, res), nil
+}
+
+func getSpanTraceP9xSql(promRange string, step time.Duration, svcs []string, endpoints []string) string {
+	builder := NewUnionP9xBuilder(
+		"0.9",
+		"kindling_span_trace_duration_nanoseconds_bucket",
+		[]string{promRange, "content_key", "svc_name"},
+		step,
+	)
+	builder.AddCondition("svc_name", svcs)
+	builder.AddCondition("content_key", endpoints)
+	return builder.ToString()
 }
 
 func (repo *promRepo) QueryInstanceP90(startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error) {
@@ -60,23 +57,18 @@ func (repo *promRepo) QueryInstanceP90(startTime int64, endTime int64, step int6
 		Step:  time.Duration(step * 1000),
 	}
 
-	var queryCondition string
+	extraCondition := ""
 	if instance.PodName != "" {
-		queryCondition = fmt.Sprintf("pod='%s'", instance.PodName)
+		extraCondition = fmt.Sprintf("pod='%s'", instance.PodName)
 	} else if instance.ContainerId != "" {
-		queryCondition = fmt.Sprintf("node_name='%s', container_id='%s'", instance.NodeName, instance.ContainerId)
+		extraCondition = fmt.Sprintf("node_name='%s', container_id='%s'", instance.NodeName, instance.ContainerId)
 	} else {
 		// VM场景
-		queryCondition = fmt.Sprintf("node_name='%s', pid='%d'", instance.NodeName, instance.Pid)
+		extraCondition = fmt.Sprintf("node_name='%s', pid='%d'", instance.NodeName, instance.Pid)
 	}
+	sql := getSpanTraceInstanceP9xSql(repo.GetRange(), tRange.Step, endpoint, extraCondition)
 
-	query := fmt.Sprintf(TEMPLATE_INSTANCE_HISTO_P90_LATENCY,
-		repo.GetRange(),
-		queryCondition,
-		endpoint,
-		getDurationFromStep(tRange.Step),
-	)
-	res, _, err := repo.GetApi().QueryRange(context.Background(), query, tRange)
+	res, _, err := repo.GetApi().QueryRange(context.Background(), sql, tRange)
 	if err != nil {
 		return nil, err
 	}
@@ -95,23 +87,17 @@ func (repo *promRepo) QueryInstanceP90(startTime int64, endTime int64, step int6
 	return result, nil
 }
 
-func getDurationFromStep(step time.Duration) string {
-	var stepNS = step.Nanoseconds()
-	if stepNS > TIME_DAY && (stepNS%TIME_DAY == 0) {
-		return strconv.FormatInt(stepNS/TIME_DAY, 10) + "d"
-	}
-	if stepNS > TIME_HOUR && (stepNS%TIME_HOUR == 0) {
-		return strconv.FormatInt(stepNS/TIME_HOUR, 10) + "h"
-	}
-	if stepNS > TIME_MINUTE && (stepNS%TIME_MINUTE == 0) {
-		return strconv.FormatInt(stepNS/TIME_MINUTE, 10) + "m"
-	}
-	if stepNS > TIME_SECOND && (stepNS%TIME_SECOND == 0) {
-		return strconv.FormatInt(stepNS/TIME_SECOND, 10) + "s"
-	}
+func getSpanTraceInstanceP9xSql(promRange string, step time.Duration, endpoint string, extraCondition string) string {
+	builder := NewUnionP9xBuilder(
+		"0.9",
+		"kindling_span_trace_duration_nanoseconds_bucket",
+		[]string{promRange},
+		step,
+	)
+	builder.AddCondition("content_key", []string{endpoint})
+	builder.AddExtraCondition(extraCondition)
 
-	// 默认时间
-	return "1m"
+	return builder.ToString()
 }
 
 type DescendantMetrics struct {

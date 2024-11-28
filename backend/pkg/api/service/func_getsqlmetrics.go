@@ -21,6 +21,7 @@ import (
 // @Param sortBy query string true "排序方法(latency/errorRate/tps)"
 // @Param currentPage query int false "分页参数,当前页数"
 // @Param pageSize query int false "分页参数, 每页数量"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetSQLMetricsResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/service/sql/metrics [get]

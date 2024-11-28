@@ -2,19 +2,10 @@ package prometheus
 
 import (
 	"context"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
-)
-
-const (
-	TEMPLATE_FILTER_EXTERNAL_SVC    = `address=~"%s"`
-	TEMPLATE_FILTER_EXTERNAL_URL    = `name=~"%s"`
-	TEMPLATE_FILTER_EXTERNAL_SYSTEM = `system=~"%s"`
-	TEMPLATE_HISTO_P90_EXTERNAL     = `histogram_quantile(0.9, sum by (%s,address,name) (increase(kindling_external_duration_nanoseconds_bucket{%s}[%s])))`
 )
 
 // 基于服务列表、URL列表和时段、步长，查询P90曲线
@@ -29,19 +20,23 @@ func (repo *promRepo) QueryExternalRangePercentile(startTime int64, endTime int6
 		Step:  time.Duration(step * 1000),
 	}
 
-	filters := []string{}
-	filters = append(filters, fmt.Sprintf(TEMPLATE_FILTER_EXTERNAL_SVC, strings.Join(svcs, "|")))
-	filters = append(filters, fmt.Sprintf(TEMPLATE_FILTER_EXTERNAL_URL, RegexMultipleValue(endpoints...)))
-	filters = append(filters, fmt.Sprintf(TEMPLATE_FILTER_EXTERNAL_SYSTEM, strings.Join(systems, "|")))
-
-	query := fmt.Sprintf(TEMPLATE_HISTO_P90_EXTERNAL,
-		repo.GetRange(),
-		strings.Join(filters, ","),
-		getDurationFromStep(tRange.Step),
-	)
+	query := getExternalP9xSql(repo.promRange, tRange.Step, svcs, endpoints, systems)
 	res, _, err := repo.GetApi().QueryRange(context.Background(), query, tRange)
 	if err != nil {
 		return nil, err
 	}
 	return getDescendantMetrics("address", "name", tRange, res), nil
+}
+
+func getExternalP9xSql(promRange string, step time.Duration, svcs []string, endpoints []string, systems []string) string {
+	builder := NewUnionP9xBuilder(
+		"0.9",
+		"kindling_external_duration_nanoseconds_bucket",
+		[]string{promRange, "address", "name"},
+		step,
+	)
+	builder.AddCondition("address", svcs)
+	builder.AddCondition("name", endpoints)
+	builder.AddCondition("system", systems)
+	return builder.ToString()
 }

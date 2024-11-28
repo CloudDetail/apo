@@ -19,6 +19,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Request body request.AddAlertRuleRequest true "请求信息"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/rule/add [post]

@@ -20,6 +20,7 @@ import (
 // @Param endpoint query string true "查询Endpoint"
 // @Param entryService query string false "入口服务名"
 // @Param entryEndpoint query string false "入口Endpoint"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetServiceEndpointTopologyResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/service/topology [get]

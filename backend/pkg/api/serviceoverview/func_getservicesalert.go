@@ -23,6 +23,7 @@ import (
 // @Param step query int64 true "步长"
 // @Param serviceNames query []string true "应用名称" collectionFormat(multi)
 // @Param returnData query []string false "返回数据内容" collectionFormat(multi)
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.ServiceAlertRes
 // @Failure 400 {object} code.Failure
 // @Router /api/service/servicesAlert [get]

@@ -22,6 +22,7 @@ import (
 // @Param nodeName query string false "主机名"
 // @Param containerId query string false "容器名"
 // @Param pid query uint32 false "进程号"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []clickhouse.FaultLogResult
 // @Failure 400 {object} code.Failure
 // @Router /api/service/errorinstance/logs [get]

@@ -16,6 +16,7 @@ import (
 // @Produce json
 // @Param dataBase query string true "数据库"
 // @Param tableName query string true "表"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.LogParseResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/log/rule/get [get]

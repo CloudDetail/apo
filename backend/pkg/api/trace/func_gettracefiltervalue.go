@@ -17,6 +17,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Request body request.GetTraceFilterValueRequest true "请求信息"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetTraceFilterValueResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/trace/pagelist/filter/value [post]

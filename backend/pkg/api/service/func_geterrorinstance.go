@@ -22,6 +22,7 @@ import (
 // @Param entryService query string false "入口服务名"
 // @Param entryEndpoint query string false "入口Endpoint"
 // @Param ignoreEmptyPropationsInstance query bool false "是否跳过无故障传播链的记录"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetErrorInstanceResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/service/error/instance [get]

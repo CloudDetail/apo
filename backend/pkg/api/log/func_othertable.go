@@ -15,6 +15,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Request body request.OtherTableRequest true "请求信息"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.OtherTableResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/log/other [get]

@@ -41,6 +41,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.UpdateAlertManagerConfigReceiver"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -79,6 +85,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.DeleteAlertManagerConfigReceiverRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -119,6 +131,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.AddAlertManagerConfigReceiver"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -159,6 +177,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.GetAlertManagerConfigReceverRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -804,6 +828,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.UpdateAlertRuleRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -842,6 +872,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.DeleteAlertRuleRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -882,6 +918,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.AddAlertRuleRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -930,6 +972,12 @@ const docTemplate = `{
                         "name": "alert",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -961,6 +1009,14 @@ const docTemplate = `{
                     "API.alerts"
                 ],
                 "summary": "获取group和label对应接口",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -999,6 +1055,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.GetAlertRuleRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1030,6 +1092,14 @@ const docTemplate = `{
                     "API.alerts"
                 ],
                 "summary": "获取告警规则中指标和PQL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1065,6 +1135,12 @@ const docTemplate = `{
                         "description": "查询告警规则文件名,为空返回所有",
                         "name": "alertRuleFile",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1105,6 +1181,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.UpdateAlertRuleRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1136,6 +1218,14 @@ const docTemplate = `{
                     "API.config"
                 ],
                 "summary": "获取TTL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1174,6 +1264,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.SetSingleTTLRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1208,6 +1304,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.SetTTLRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1418,6 +1520,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.LogQueryRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1458,6 +1566,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.LogQueryContextRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1495,6 +1609,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.GetFaultLogContentRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1535,6 +1655,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.GetFaultLogPageListRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1575,6 +1701,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.LogIndexRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1615,6 +1747,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.OtherTableRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1655,6 +1793,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.AddOtherTableRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1695,6 +1839,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.DeleteOtherTableRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1735,6 +1885,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.OtherTableInfoRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1775,6 +1931,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.LogQueryRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1815,6 +1977,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.AddLogParseRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1855,6 +2023,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.DeleteLogParseRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1900,6 +2074,12 @@ const docTemplate = `{
                         "name": "tableName",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1940,6 +2120,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.GetServiceRouteRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1980,6 +2166,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.UpdateLogParseRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -2020,6 +2212,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.LogTableInfoRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -2373,6 +2571,12 @@ const docTemplate = `{
                         "description": "分页参数, 每页数量",
                         "name": "pageSize",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -2461,6 +2665,12 @@ const docTemplate = `{
                         "description": "采样告警数量",
                         "name": "sampleCount",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -2539,6 +2749,12 @@ const docTemplate = `{
                         "description": "入口Endpoint",
                         "name": "entryEndpoint",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -2623,6 +2839,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
                         "description": "排序字段,支持latency和errorRate",
                         "name": "sortBy",
                         "in": "query"
@@ -2680,6 +2902,12 @@ const docTemplate = `{
                         "description": "查询服务名",
                         "name": "service",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -2748,6 +2976,12 @@ const docTemplate = `{
                         "name": "sortRule",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -2820,6 +3054,12 @@ const docTemplate = `{
                         "description": "显示缺失入口",
                         "name": "showMissTop",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -2901,6 +3141,12 @@ const docTemplate = `{
                         "description": "入口Endpoint",
                         "name": "entryEndpoint",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     },
                     {
                         "type": "boolean",
@@ -2990,6 +3236,12 @@ const docTemplate = `{
                         "description": "进程号",
                         "name": "pid",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3043,6 +3295,12 @@ const docTemplate = `{
                         "name": "level",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3093,6 +3351,12 @@ const docTemplate = `{
                         "name": "service",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3148,6 +3412,12 @@ const docTemplate = `{
                         "name": "service",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3217,6 +3487,12 @@ const docTemplate = `{
                         "name": "endpoint",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3269,6 +3545,12 @@ const docTemplate = `{
                         "name": "service",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3314,6 +3596,12 @@ const docTemplate = `{
                         "name": "endTime",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3400,6 +3688,12 @@ const docTemplate = `{
                         "description": "进程号",
                         "name": "pid",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3481,6 +3775,12 @@ const docTemplate = `{
                         "description": "入口Endpoint",
                         "name": "entryEndpoint",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3529,6 +3829,12 @@ const docTemplate = `{
                         "name": "endTime",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3595,6 +3901,12 @@ const docTemplate = `{
                         "name": "sortRule",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3664,6 +3976,12 @@ const docTemplate = `{
                         "name": "endpoint",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3735,6 +4053,12 @@ const docTemplate = `{
                         "description": "入口Endpoint",
                         "name": "entryEndpoint",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3798,6 +4122,12 @@ const docTemplate = `{
                         "description": "命名空间",
                         "name": "namespace",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3871,6 +4201,12 @@ const docTemplate = `{
                         "description": "返回数据内容",
                         "name": "returnData",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3949,6 +4285,12 @@ const docTemplate = `{
                         "name": "log",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4024,6 +4366,12 @@ const docTemplate = `{
                         "description": "分页参数, 每页数量",
                         "name": "pageSize",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4095,6 +4443,12 @@ const docTemplate = `{
                         "description": "入口Endpoint",
                         "name": "entryEndpoint",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4178,6 +4532,12 @@ const docTemplate = `{
                         "description": "进程号",
                         "name": "pid",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4259,6 +4619,12 @@ const docTemplate = `{
                         "description": "入口Endpoint",
                         "name": "entryEndpoint",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4445,6 +4811,12 @@ const docTemplate = `{
                         "name": "traceId",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4584,6 +4956,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.GetTraceFilterValueRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4635,6 +5013,12 @@ const docTemplate = `{
                         "description": "是否根据用户输入的时间立即更新可用过滤器",
                         "name": "needUpdate",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {

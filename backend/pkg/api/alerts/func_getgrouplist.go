@@ -10,6 +10,7 @@ import (
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetGroupListResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/rule/groups [get]

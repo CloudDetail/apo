@@ -14,6 +14,7 @@ import (
 // @Tags API.log
 // @Produce json
 // @Param Request body request.GetFaultLogContentRequest true "请求信息"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetFaultLogContentResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/log/fault/content [post]

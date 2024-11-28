@@ -17,6 +17,7 @@ import (
 // @Param startTime query int64 true "查询开始时间"
 // @Param endTime query int64 true "查询结束时间"
 // @Param service query string true "查询服务名"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetK8sEventsResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/service/k8s/events/count [get]

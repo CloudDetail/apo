@@ -15,6 +15,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param Request body request.SetTTLRequest true "请求信息"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200
 // @Failure 400
 // @Router /api/config/setTTL [post]
