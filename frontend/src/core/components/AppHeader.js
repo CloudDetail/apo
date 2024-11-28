@@ -9,7 +9,7 @@ import CoachMask from './Mask/CoachMask';
 import DateTimeCombine from './DateTime/DateTimeCombine';
 import { Menu } from 'antd';
 import { commercialNav } from 'src/_nav';
-import UserToolBox from '../views/UserPage/component/UserToolBox';
+import UserToolBox from './UserToolBox';
 
 const AppHeader = ({ type = 'default' }) => {
   const location = useLocation();
