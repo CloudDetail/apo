@@ -8,6 +8,8 @@ import (
 	"fmt"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 const (
@@ -40,6 +42,23 @@ type EntryRelationship struct {
 
 	AsyncEntryService  string `ch:"async_entry_service"`
 	AsyncEntryEndpoint string `ch:"async_entry_endpoint"`
+}
+
+func (r *EntryRelationship) GetEntryService() string {
+	// TODO 后续支持异步入口
+	// if len(r.AsyncEntryService) > 0 {
+	// 	return r.AsyncEntryEndpoint
+	// }
+
+	return r.EntryService
+}
+
+func (r *EntryRelationship) GetEntryEndpoint() string {
+	// TODO 后续支持异步入口
+	// if len(r.AsyncEntryService) > 0 {
+	// 	return r.AsyncEntryEndpoint
+	// }
+	return r.EntryEndpoint
 }
 
 // 和ServiceNode结构完全相同
@@ -89,4 +108,51 @@ func (ch *chRepo) SearchEntryEndpointsByAlertService(alertServices []AlertServic
 	}
 
 	return parentTopologys, nil
+}
+
+func (ch *chRepo) ListDescendantRelationsWithoutEdge(req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error) {
+	startTime := req.StartTime / 1000000
+	endTime := req.EndTime / 1000000
+	queryBuilder := NewQueryBuilder().
+		Between("timestamp", startTime, endTime).
+		Equals("service", req.Service).
+		Equals("url", req.Endpoint).
+		EqualsNotEmpty("entry_service", req.EntryService).
+		EqualsNotEmpty("entry_url", req.EntryEndpoint)
+	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, ch.database, queryBuilder.String())
+	results := []ChildRelation{}
+	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+		return nil, err
+	}
+	return getDescendantServiceNode(results), nil
+}
+
+func getDescendantServiceNode(relations []ChildRelation) []*model.ToplogyRelation {
+	result := make([]*model.ToplogyRelation, 0)
+	if len(relations) == 0 {
+		return result
+	}
+
+	relationMap := make(map[string]*model.ToplogyRelation)
+	for _, relation := range relations {
+		if relation.ParentService != "" && relation.Service != "" {
+			// 已监控服务数据
+			// A -> B
+			key := relation.getParentCurrentKey()
+			if _, exist := relationMap[key]; !exist {
+				relationMap[key] = model.NewServerRelation(
+					relation.ParentService,
+					relation.ParentUrl,
+					relation.Service,
+					relation.Url,
+					relation.IsTraced,
+				)
+			}
+		}
+	}
+
+	for _, topologyRelation := range relationMap {
+		result = append(result, topologyRelation)
+	}
+	return result
 }

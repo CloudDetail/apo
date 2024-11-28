@@ -225,16 +225,11 @@ func searchEntryRelations(relations []clickhouse.EntryRelationship, alertService
 				continue
 			}
 
-			var entryKey model.EndpointKey
-			if len(relation.AsyncEntryService) > 0 {
-				// 如果有异步的入口,添加异步的入口节点
-				entryKey.ServiceName = relation.AsyncEntryService
-				entryKey.Endpoint = relation.AsyncEntryEndpoint
-			} else {
-				// 如果没有,使用APM提供的入口节点信息
-				entryKey.ServiceName = relation.EntryService
-				entryKey.Endpoint = relation.EntryEndpoint
+			var entryKey = model.EndpointKey{
+				ServiceName: relation.GetEntryService(),
+				Endpoint:    relation.GetEntryEndpoint(),
 			}
+
 			if _, find := tmpEntrySet[entryKey]; find {
 				continue
 			}

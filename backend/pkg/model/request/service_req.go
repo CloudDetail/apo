@@ -12,8 +12,8 @@ type GetServiceEndpointTopologyRequest struct {
 type GetServiceEndpointRelationRequest struct {
 	GetServiceEndpointTopologyRequest
 
-	WithTopologyLevel     bool `form:"withTopologyLevel"`     // 是否携带拓扑层级
-	WithNotTracedLeafNode bool `form:"withNotTracedLeafNode"` // 是否保留未被跟踪的叶子节点
+	RemoveClientCall  bool `form:"removeClientCall"`  // 是否移除对外调用关系
+	WithTopologyLevel bool `form:"withTopologyLevel"` // 是否携带拓扑层级
 }
 
 type GetDescendantMetricsRequest struct {
