@@ -3135,16 +3135,16 @@
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
                         "type": "boolean",
                         "description": "是否跳过无故障传播链的记录",
                         "name": "ignoreEmptyPropationsInstance",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {

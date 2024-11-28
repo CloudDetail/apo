@@ -4647,13 +4647,13 @@ paths:
         in: query
         name: entryEndpoint
         type: string
-      - description: 排序字段,支持latency和errorRate
-        in: query
-        name: sortBy
-        type: string
       - description: Bearer accessToken
         in: header
         name: Authorization
+        type: string
+      - description: 排序字段,支持latency和errorRate
+        in: query
+        name: sortBy
         type: string
       produces:
       - application/json
@@ -4853,14 +4853,14 @@ paths:
         in: query
         name: entryEndpoint
         type: string
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        type: string
       - description: 是否跳过无故障传播链的记录
         in: query
         name: ignoreEmptyPropationsInstance
         type: boolean
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
