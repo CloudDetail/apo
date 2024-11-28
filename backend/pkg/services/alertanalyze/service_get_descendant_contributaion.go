@@ -25,11 +25,13 @@ func (s *service) GetDescendantContribution(req *request.GetDescendantAlertContr
 		}, nil
 	}
 
-	unsortedDescendant := make([]polarisanalyzer.Relevance, 0, len(nodes.Nodes))
+	unsortedDescendant := make([]polarisanalyzer.ServiceNode, 0, len(nodes.Nodes))
 	for _, node := range nodes.Nodes {
-		unsortedDescendant = append(unsortedDescendant, polarisanalyzer.Relevance{
+		unsortedDescendant = append(unsortedDescendant, polarisanalyzer.ServiceNode{
 			Service:  node.Service,
 			Endpoint: node.Endpoint,
+			Group:    node.Group,
+			System:   node.System,
 		})
 	}
 

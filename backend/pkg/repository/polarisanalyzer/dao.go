@@ -13,7 +13,7 @@ type Repo interface {
 	SortDescendantByRelevance(
 		startTime, endTime int64, stepStr string,
 		targetService, targetEndpoint string,
-		unsortedDescendant []Relevance, sortBy string,
+		unsortedDescendant []ServiceNode, sortBy string,
 	) (sortResp *RelevanceResponse, err error)
 
 	QueryPolarisInfer(

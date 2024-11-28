@@ -20,7 +20,7 @@ func (p *polRepo) SortDescendantByRelevance(
 	stepStr string,
 	targetService string,
 	targetEndpoint string,
-	descendants []Relevance,
+	descendants []ServiceNode,
 	sortBy string,
 ) (sortResp *RelevanceResponse, err error) {
 	if len(sortBy) == 0 {
@@ -73,12 +73,12 @@ func (p *polRepo) SortDescendantByRelevance(
 }
 
 type SortRelevanceRequest struct {
-	StartTime          int64       `json:"startTime"`
-	EndTime            int64       `json:"endTime"`
-	StepStr            string      `json:"stepStr"`
-	Target             Target      `json:"target"`
-	UnsortedDescendant []Relevance `json:"unsortedDescendant"`
-	SortBy             string      `json:"sortBy"`
+	StartTime          int64         `json:"startTime"`
+	EndTime            int64         `json:"endTime"`
+	StepStr            string        `json:"stepStr"`
+	Target             Target        `json:"target"`
+	UnsortedDescendant []ServiceNode `json:"unsortedDescendant"`
+	SortBy             string        `json:"sortBy"`
 }
 
 type Target struct {
@@ -87,13 +87,15 @@ type Target struct {
 }
 
 type RelevanceResponse struct {
-	SortedDescendant   []Relevance `json:"sortedDescendant"`
-	UnsortedDescendant []Relevance `json:"unsortedDescendant"`
-	DistanceType       string      `json:"distanceType"`
+	SortedDescendant   []ServiceNode `json:"sortedDescendant"`
+	UnsortedDescendant []ServiceNode `json:"unsortedDescendant"`
+	DistanceType       string        `json:"distanceType"`
 }
 
-type Relevance struct {
+type ServiceNode struct {
 	Service   string  `json:"service"`
 	Endpoint  string  `json:"endpoint"`
-	Relevance float64 `json:"relevance"`
+	Group     string  `json:"group"`
+	System    string  `json:"system"`
+	Relevance float64 `json:"relevance,omitempty"`
 }
