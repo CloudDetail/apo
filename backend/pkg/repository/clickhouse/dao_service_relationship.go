@@ -4,13 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 const (
-	GROUP_MQ      = "mq"
-	GROUP_SERVICE = "service"
-
 	SQL_GET_PARENT_NODES = `SELECT parent_service as parentService, parent_url as parentUrl, sum(case when flags['parent_traced'] then 1 else 0 end) > 0 as parentTraced,
 		labels['client_group'] as clientGroup, labels['client_type'] as clientType, labels['client_peer'] as clientPeer, labels['client_key'] as clientKey
 		FROM service_relationship
@@ -23,23 +21,6 @@ const (
 		FROM service_relationship
 		%s
 		GROUP BY service, url, clientGroup, clientType, clientPeer, clientKey
-	`
-
-	SQL_GET_DESCENDANT_NODES = `
-		WITH found_trace_ids AS
-		(
-			SELECT trace_id, path
-			FROM %s.service_relationship
-			%s
-			GROUP BY trace_id, path
-			LIMIT 10000
-		)
-		SELECT service, url, sum(case when flags['is_traced'] then 1 else 0 end) > 0 as traced
-		FROM service_relationship
-		GLOBAL JOIN found_trace_ids ON service_relationship.trace_id = found_trace_ids.trace_id
-		WHERE startsWith(service_relationship.path, found_trace_ids.path)
-		AND service_relationship.path != found_trace_ids.path
-		GROUP BY service, url
 	`
 
 	SQL_GET_DESCENDANT_TOPOLOGY = `
@@ -70,7 +51,7 @@ const (
 )
 
 // 查询上游节点列表
-func (ch *chRepo) ListParentNodes(req *request.GetServiceEndpointTopologyRequest) ([]*TopologyNode, error) {
+func (ch *chRepo) ListParentNodes(req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
 		Equals("service", req.Service).
@@ -90,7 +71,7 @@ func (ch *chRepo) ListParentNodes(req *request.GetServiceEndpointTopologyRequest
 }
 
 // 查询下游对外调用列表
-func (ch *chRepo) ListChildNodes(req *request.GetServiceEndpointTopologyRequest) ([]*TopologyNode, error) {
+func (ch *chRepo) ListChildNodes(req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
 		Equals("parent_service", req.Service).
@@ -108,25 +89,7 @@ func (ch *chRepo) ListChildNodes(req *request.GetServiceEndpointTopologyRequest)
 }
 
 // 查询所有子孙节点列表
-func (ch *chRepo) ListDescendantNodes(req *request.GetDescendantMetricsRequest) ([]ServiceNode, error) {
-	startTime := req.StartTime / 1000000
-	endTime := req.EndTime / 1000000
-	queryBuilder := NewQueryBuilder().
-		Between("timestamp", startTime, endTime).
-		Equals("service", req.Service).
-		Equals("url", req.Endpoint).
-		EqualsNotEmpty("entry_service", req.EntryService).
-		EqualsNotEmpty("entry_url", req.EntryEndpoint)
-	sql := fmt.Sprintf(SQL_GET_DESCENDANT_NODES, ch.database, queryBuilder.String())
-	results := []ServiceNode{}
-	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
-		return nil, err
-	}
-	return results, nil
-}
-
-// 查询所有子孙的拓扑关系
-func (ch *chRepo) ListDescendantRelations(req *request.GetServiceEndpointTopologyRequest) ([]*ToplogyRelation, error) {
+func (ch *chRepo) ListDescendantNodes(req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
@@ -136,11 +99,29 @@ func (ch *chRepo) ListDescendantRelations(req *request.GetServiceEndpointTopolog
 		EqualsNotEmpty("entry_service", req.EntryService).
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
 	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, ch.database, queryBuilder.String())
-	results := []ChildRealtion{}
+	results := []ChildRelation{}
 	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
-	return getChildRelations(results), nil
+	return getDescendantNodes(results), nil
+}
+
+// 查询所有子孙的拓扑关系
+func (ch *chRepo) ListDescendantRelations(req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error) {
+	startTime := req.StartTime / 1000000
+	endTime := req.EndTime / 1000000
+	queryBuilder := NewQueryBuilder().
+		Between("timestamp", startTime, endTime).
+		Equals("service", req.Service).
+		Equals("url", req.Endpoint).
+		EqualsNotEmpty("entry_service", req.EntryService).
+		EqualsNotEmpty("entry_url", req.EntryEndpoint)
+	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, ch.database, queryBuilder.String())
+	results := []ChildRelation{}
+	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+		return nil, err
+	}
+	return getDescendantRelations(results), nil
 }
 
 // 查询相关入口节点列表
@@ -175,42 +156,30 @@ type ParentNode struct {
 // 考虑2种场景
 // MQ -> B
 // A -> B
-func getParentNodes(parentNodes []ParentNode) []*TopologyNode {
-	result := make([]*TopologyNode, 0)
+func getParentNodes(parentNodes []ParentNode) *model.TopologyNodes {
+	result := model.NewTopologyNodes()
 	if len(parentNodes) == 0 {
 		return result
 	}
 
-	parentMap := make(map[string]*TopologyNode)
 	for _, parentNode := range parentNodes {
-		if parentNode.ClientGroup == GROUP_MQ {
-			key := fmt.Sprintf("%s.%s", parentNode.ClientPeer, parentNode.ClientKey)
-			if _, exist := parentMap[key]; !exist {
-				parentMap[key] = &TopologyNode{
-					Service:  parentNode.ClientPeer,
-					Endpoint: parentNode.ClientKey,
-					IsTraced: false,
-					Group:    parentNode.ClientGroup,
-					System:   parentNode.ClientType,
-				}
-			}
+		if parentNode.ClientGroup == model.GROUP_MQ {
+			result.AddTopologyNode(
+				fmt.Sprintf("%s.%s", parentNode.ClientPeer, parentNode.ClientKey),
+				parentNode.ClientPeer,
+				parentNode.ClientKey,
+				false,
+				parentNode.ClientGroup,
+				parentNode.ClientType,
+			)
 		} else if parentNode.ParentService != "" && parentNode.ParentUrl != "" {
-			// 存在 A -> B多次，但边不同
-			key := fmt.Sprintf("%s.%s", parentNode.ParentService, parentNode.ParentUrl)
-			if _, exist := parentMap[key]; !exist {
-				parentMap[key] = &TopologyNode{
-					Service:  parentNode.ParentService,
-					Endpoint: parentNode.ParentUrl,
-					IsTraced: parentNode.ParentTraced,
-					Group:    GROUP_SERVICE,
-					System:   parentNode.ClientType,
-				}
-			}
+			result.AddServerNode(
+				fmt.Sprintf("%s.%s", parentNode.ParentService, parentNode.ParentUrl),
+				parentNode.ParentService,
+				parentNode.ParentUrl,
+				parentNode.ParentTraced,
+			)
 		}
-	}
-
-	for _, topologyNode := range parentMap {
-		result = append(result, topologyNode)
 	}
 	return result
 }
@@ -228,62 +197,127 @@ type ChildNode struct {
 // 考虑2种场景
 // A -> MQ
 // A -> External -> B 存在B部分缺失，此时需补全为 A -> B
-func getChildNodes(childNodes []ChildNode) []*TopologyNode {
-	result := make([]*TopologyNode, 0)
+func getChildNodes(childNodes []ChildNode) *model.TopologyNodes {
+	result := model.NewTopologyNodes()
 	if len(childNodes) == 0 {
 		return result
 	}
 
-	childMap := make(map[string]*TopologyNode)
+	childMap := make(map[string]struct{})
 	for _, childNode := range childNodes {
-		key := fmt.Sprintf("%s.%s", childNode.ClientPeer, childNode.ClientKey)
-		if childNode.ClientGroup == GROUP_MQ {
+		if childNode.ClientGroup == model.GROUP_MQ {
 			// MQ数据
-			if _, exist := childMap[key]; !exist {
-				childMap[key] = &TopologyNode{
-					Service:  childNode.ClientPeer,
-					Endpoint: childNode.ClientKey,
-					IsTraced: childNode.IsTraced,
-					Group:    childNode.ClientGroup,
-					System:   childNode.ClientType,
-				}
-			}
+			result.AddTopologyNode(
+				fmt.Sprintf("%s.%s", childNode.ClientPeer, childNode.ClientKey),
+				childNode.ClientPeer,
+				childNode.ClientKey,
+				childNode.IsTraced,
+				childNode.ClientGroup,
+				childNode.ClientType,
+			)
 		} else if childNode.Service != "" {
 			// 已监控服务数据
-			childMap[key] = &TopologyNode{
-				Service:  childNode.Service,
-				Endpoint: childNode.Url,
-				IsTraced: childNode.IsTraced,
-				Group:    GROUP_SERVICE,
-				System:   childNode.ClientType,
+			result.AddServerNode(
+				fmt.Sprintf("%s.%s", childNode.Service, childNode.Url),
+				childNode.Service,
+				childNode.Url,
+				childNode.IsTraced,
+			)
+			// 边 缓存已关联标识
+			// 此处存在下游节点丢失可能，需尽可能补全该数据
+			if childNode.ClientKey != "" {
+				childMap[fmt.Sprintf("%s.%s", childNode.ClientPeer, childNode.ClientKey)] = struct{}{}
+			}
+		}
+	}
+
+	// 未监控服务
+	for _, childNode := range childNodes {
+		if childNode.Service == "" && childNode.ClientGroup != model.GROUP_MQ {
+			key := fmt.Sprintf("%s.%s", childNode.ClientPeer, childNode.ClientKey)
+			if _, exist := childMap[key]; !exist {
+				result.AddTopologyNode(
+					key,
+					childNode.ClientPeer,
+					childNode.ClientKey,
+					childNode.IsTraced,
+					childNode.ClientGroup,
+					childNode.ClientType,
+				)
+			}
+		}
+	}
+	return result
+}
+
+func getDescendantNodes(relations []ChildRelation) *model.TopologyNodes {
+	result := model.NewTopologyNodes()
+	if len(relations) == 0 {
+		return result
+	}
+
+	childMap := make(map[string]struct{})
+	for _, relation := range relations {
+		if relation.ClientGroup == model.GROUP_MQ {
+			// MQ数据 A -> MQ -> B, 需生成2个节点 MQ 和 B
+			if relation.ClientKey != "" {
+				result.AddTopologyNode(
+					fmt.Sprintf("%s.%s", relation.ClientPeer, relation.ClientKey),
+					relation.ClientPeer,
+					relation.ClientKey,
+					false,
+					relation.ClientGroup,
+					relation.ClientType,
+				)
+			}
+			if relation.Service != "" {
+				result.AddServerNode(
+					fmt.Sprintf("%s.%s", relation.Service, relation.Url),
+					relation.Service,
+					relation.Url,
+					relation.IsTraced,
+				)
+			}
+		} else if relation.Service != "" {
+			// 已监控服务数据
+			// A -> B
+			result.AddServerNode(
+				fmt.Sprintf("%s.%s", relation.Service, relation.Url),
+				relation.Service,
+				relation.Url,
+				relation.IsTraced,
+			)
+			// 存在 A -> B 有多个不同边的场景
+			// A -> 边 缓存关系
+			if relation.ClientKey != "" {
+				childMap[relation.getParentClientKey()] = struct{}{}
 			}
 		}
 	}
 
 	// 未监控服务
 	// 此处存在下游节点丢失可能，需尽可能补全该数据
-	for _, childNode := range childNodes {
-		if childNode.Service == "" && childNode.ClientGroup != GROUP_MQ {
-			key := fmt.Sprintf("%s.%s", childNode.ClientPeer, childNode.ClientKey)
+	for _, relation := range relations {
+		if relation.ClientKey != "" && relation.Service == "" && relation.ClientGroup != model.GROUP_MQ {
+			// 读取 A -> 边缓存关系，剔除可能存在的脏数据
+			key := relation.getParentClientKey()
 			if _, exist := childMap[key]; !exist {
 				// 未监控服务
-				childMap[key] = &TopologyNode{
-					Service:  childNode.ClientPeer,
-					Endpoint: childNode.ClientKey,
-					IsTraced: childNode.IsTraced,
-					Group:    childNode.ClientGroup,
-					System:   childNode.ClientType,
-				}
+				result.AddTopologyNode(
+					key,
+					relation.ClientPeer,
+					relation.ClientKey,
+					false,
+					relation.ClientGroup,
+					relation.ClientType,
+				)
 			}
 		}
-	}
-	for _, topologyNode := range childMap {
-		result = append(result, topologyNode)
 	}
 	return result
 }
 
-type ChildRealtion struct {
+type ChildRelation struct {
 	ParentService string `ch:"parentService"`
 	ParentUrl     string `ch:"parentUrl"`
 	Service       string `ch:"service"`
@@ -295,22 +329,27 @@ type ChildRealtion struct {
 	ClientKey     string `ch:"clientKey"`
 }
 
-func getChildRelations(relations []ChildRealtion) []*ToplogyRelation {
-	result := make([]*ToplogyRelation, 0)
+func (relation *ChildRelation) getParentClientKey() string {
+	return fmt.Sprintf("%s.%s.%s.%s", relation.ParentService, relation.ParentUrl, relation.ClientPeer, relation.ClientKey)
+}
+
+func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation {
+	result := make([]*model.ToplogyRelation, 0)
 	if len(relations) == 0 {
 		return result
 	}
 
-	childMap := make(map[string]*ToplogyRelation)
+	relationMap := make(map[string]*model.ToplogyRelation)
+	childMap := make(map[string]struct{}) // 剔除脏数据
 	for _, relation := range relations {
-		if relation.ClientGroup == GROUP_MQ {
+		if relation.ClientGroup == model.GROUP_MQ {
 			// MQ数据 需补充一条调用链路
 			// A -> MQ
 			// MQ -> B
 			if relation.ParentService != "" {
-				clientKey := fmt.Sprintf("%s.%s.%s.%s", relation.ParentService, relation.ParentUrl, relation.ClientPeer, relation.ClientKey)
-				if _, exist := childMap[clientKey]; !exist {
-					childMap[clientKey] = &ToplogyRelation{
+				clientKey := relation.getParentClientKey()
+				if _, exist := relationMap[clientKey]; !exist {
+					relationMap[clientKey] = &model.ToplogyRelation{
 						ParentService:  relation.ParentService,
 						ParentEndpoint: relation.ParentUrl,
 						Service:        relation.ClientPeer,
@@ -323,41 +362,44 @@ func getChildRelations(relations []ChildRealtion) []*ToplogyRelation {
 			}
 			if relation.Service != "" {
 				serverKey := fmt.Sprintf("%s.%s.%s.%s", relation.ClientPeer, relation.ClientKey, relation.Service, relation.Url)
-				if _, exist := childMap[serverKey]; !exist {
-					childMap[serverKey] = &ToplogyRelation{
-						ParentService:  relation.ClientPeer,
-						ParentEndpoint: relation.ClientKey,
-						Service:        relation.Service,
-						Endpoint:       relation.Url,
-						IsTraced:       relation.IsTraced,
-						Group:          GROUP_SERVICE,
-						System:         relation.ClientType,
-					}
+				if _, exist := relationMap[serverKey]; !exist {
+					relationMap[serverKey] = model.NewServerRelation(
+						relation.ClientPeer,
+						relation.ClientKey,
+						relation.Service,
+						relation.Url,
+						relation.IsTraced,
+					)
 				}
 			}
 		} else if relation.ParentService != "" && relation.Service != "" {
 			// 已监控服务数据
-			key := fmt.Sprintf("%s.%s.%s.%s", relation.ParentService, relation.ParentUrl, relation.ClientPeer, relation.ClientKey)
-			childMap[key] = &ToplogyRelation{
-				ParentService:  relation.ParentService,
-				ParentEndpoint: relation.ParentUrl,
-				Service:        relation.Service,
-				Endpoint:       relation.Url,
-				IsTraced:       relation.IsTraced,
-				Group:          GROUP_SERVICE,
-				System:         relation.ClientType,
+			// A -> B
+			key := relation.getParentClientKey()
+			if _, exist := relationMap[key]; !exist {
+				relationMap[key] = model.NewServerRelation(
+					relation.ClientPeer,
+					relation.ClientKey,
+					relation.Service,
+					relation.Url,
+					relation.IsTraced,
+				)
 			}
+			// 存在 A -> B 有多个不同边的场景
+			// A -> 边 缓存关系
+			childMap[relation.getParentClientKey()] = struct{}{}
 		}
 	}
 
 	// 未监控服务
 	// 此处存在下游节点丢失可能，需尽可能补全该数据
 	for _, relation := range relations {
-		if relation.ParentService != "" && relation.Service == "" && relation.ClientGroup != GROUP_MQ {
-			key := fmt.Sprintf("%s.%s.%s.%s", relation.ParentService, relation.ParentUrl, relation.ClientPeer, relation.ClientKey)
+		if relation.ParentService != "" && relation.Service == "" && relation.ClientGroup != model.GROUP_MQ {
+			// 读取 A -> 边缓存关系，剔除可能存在的脏数据
+			key := relation.getParentClientKey()
 			if _, exist := childMap[key]; !exist {
 				// 未监控服务
-				childMap[key] = &ToplogyRelation{
+				relationMap[key] = &model.ToplogyRelation{
 					ParentService:  relation.ParentService,
 					ParentEndpoint: relation.ParentUrl,
 					Service:        relation.ClientPeer,
@@ -369,28 +411,10 @@ func getChildRelations(relations []ChildRealtion) []*ToplogyRelation {
 			}
 		}
 	}
-	for _, topologyRelation := range childMap {
+	for _, topologyRelation := range relationMap {
 		result = append(result, topologyRelation)
 	}
 	return result
-}
-
-type TopologyNode struct {
-	Service  string `json:"service"`
-	Endpoint string `json:"endpoint"`
-	IsTraced bool   `json:"isTraced"`
-	Group    string `json:"group"`
-	System   string `json:"system"`
-}
-
-func NewTopologyNode(service string, url string) *TopologyNode {
-	return &TopologyNode{
-		Service:  service,
-		Endpoint: url,
-		IsTraced: true,
-		Group:    GROUP_SERVICE,
-		System:   "",
-	}
 }
 
 type ServiceNode struct {
@@ -402,14 +426,4 @@ type ServiceNode struct {
 type EntryNode struct {
 	Service  string `ch:"service" json:"service"`
 	Endpoint string `ch:"endpoint" json:"endpoint"`
-}
-
-type ToplogyRelation struct {
-	ParentService  string `json:"parentService"`
-	ParentEndpoint string `json:"parentEndpoint"`
-	Service        string `json:"service"`
-	Endpoint       string `json:"endpoint"`
-	IsTraced       bool   `json:"isTraced"`
-	Group          string `json:"group"`
-	System         string `json:"system"`
 }

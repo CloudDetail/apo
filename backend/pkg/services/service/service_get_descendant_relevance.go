@@ -21,13 +21,13 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 		return nil, err
 	}
 
-	if len(nodes) == 0 {
+	if len(nodes.Nodes) == 0 {
 		return make([]response.GetDescendantRelevanceResponse, 0), nil
 	}
 
-	unsortedDescendant := make([]polarisanalyzer.LatencyRelevance, 0, len(nodes))
+	unsortedDescendant := make([]polarisanalyzer.LatencyRelevance, 0, len(nodes.Nodes))
 	var services, endpoints []string
-	for _, node := range nodes {
+	for _, node := range nodes.Nodes {
 		unsortedDescendant = append(unsortedDescendant, polarisanalyzer.LatencyRelevance{
 			Service:  node.Service,
 			Endpoint: node.Endpoint,

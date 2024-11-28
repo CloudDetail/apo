@@ -6,6 +6,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/logger"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
@@ -22,12 +23,12 @@ func TestRepo(t *testing.T) {
 		t.Fatalf("Error to connect clickhouse: %v", err)
 	}
 
-	// testListParentNodes(t, repo) // 查询上游节点列表
-	// testKafkaListParentNodes(t, repo)
-	// testListChildNodes(t, repo) // 查询下游节点列表
-	// testDescendantNodes(t, repo) // 查询所有子孙节点列表
-	testDescendantRelations(t, repo) // 查询下游节点调用关系列表
-	// testKafkaDescendantRelations(t, repo) // 查询下游节点调用关系列表
+	testListParentNodes(t, repo) // 查询上游节点列表
+	testKafkaListParentNodes(t, repo)
+	testListChildNodes(t, repo)           // 查询下游节点列表
+	testDescendantNodes(t, repo)          // 查询所有子孙节点列表
+	testDescendantRelations(t, repo)      // 查询下游节点调用关系列表
+	testKafkaDescendantRelations(t, repo) // 查询下游节点调用关系列表
 
 	// testCountK8sEvents(t, repo) // 计算K8s事件数量
 }
@@ -43,16 +44,16 @@ func testListParentNodes(t *testing.T, repo Repo) {
 	if err != nil {
 		t.Errorf("Error to list parent nodes: %v", err)
 	}
-	expect := []*TopologyNode{
-		{
+	expect := map[string]*model.TopologyNode{
+		"": {
 			Service:  "stuck-demo-tomcat",
 			Endpoint: "GET /wait/callOthers",
 			IsTraced: true,
-			Group:    GROUP_SERVICE,
-			System:   "http",
+			Group:    model.GROUP_SERVICE,
+			System:   "",
 		},
 	}
-	checkTopologyNodes(util.NewValidator(t, "ListParentNodes"), expect, resp)
+	checkTopologyNodes(util.NewValidator(t, "ListParentNodes"), expect, resp.Nodes)
 }
 
 func testKafkaListParentNodes(t *testing.T, repo Repo) {
@@ -66,16 +67,16 @@ func testKafkaListParentNodes(t *testing.T, repo Repo) {
 	if err != nil {
 		t.Errorf("Error to list parent nodes: %v", err)
 	}
-	expect := []*TopologyNode{
-		{
+	expect := map[string]*model.TopologyNode{
+		"": {
 			Service:  "",
 			Endpoint: "topic_login",
 			IsTraced: false,
-			Group:    GROUP_MQ,
+			Group:    model.GROUP_MQ,
 			System:   "kafka",
 		},
 	}
-	checkTopologyNodes(util.NewValidator(t, "ListParentNodes"), expect, resp)
+	checkTopologyNodes(util.NewValidator(t, "ListParentNodes"), expect, resp.Nodes)
 }
 
 func testListChildNodes(t *testing.T, repo Repo) {
@@ -89,22 +90,22 @@ func testListChildNodes(t *testing.T, repo Repo) {
 	if err != nil {
 		t.Errorf("Error to list child nodes: %v", err)
 	}
-	expect := []*TopologyNode{
-		{
+	expect := map[string]*model.TopologyNode{
+		"": {
 			Service:  "10.0.2.15:6379",
 			Endpoint: "GET",
 			IsTraced: false,
 			Group:    "db",
 			System:   "redis",
 		},
-		{
+		"1": {
 			Service:  "10.0.2.15:6379",
 			Endpoint: "SET",
 			IsTraced: false,
 			Group:    "db",
 			System:   "redis",
 		},
-		{
+		"2": {
 			Service:  "10.0.2.15:6379",
 			Endpoint: "EXISTS",
 			IsTraced: false,
@@ -112,7 +113,7 @@ func testListChildNodes(t *testing.T, repo Repo) {
 			System:   "redis",
 		},
 	}
-	checkTopologyNodes(util.NewValidator(t, "ListChildNodes"), expect, resp)
+	checkTopologyNodes(util.NewValidator(t, "ListChildNodes"), expect, resp.Nodes)
 }
 
 func testDescendantNodes(t *testing.T, repo Repo) {
@@ -126,14 +127,23 @@ func testDescendantNodes(t *testing.T, repo Repo) {
 	if err != nil {
 		t.Errorf("Error to list child nodes: %v", err)
 	}
-	expect := []ServiceNode{
-		{
+	expect := map[string]*model.TopologyNode{
+		"": {
+			Service:  "",
+			Endpoint: "topic_login",
+			IsTraced: false,
+			Group:    "mq",
+			System:   "kafka",
+		},
+		"2": {
 			Service:  "kafka-consumer",
 			Endpoint: "topic_login process",
 			IsTraced: true,
+			Group:    model.GROUP_SERVICE,
+			System:   "",
 		},
 	}
-	checkServiceNodes(util.NewValidator(t, "ListDescendantNodes"), expect, resp)
+	checkTopologyNodes(util.NewValidator(t, "ListDescendantNodes"), expect, resp.Nodes)
 }
 
 func testDescendantRelations(t *testing.T, repo Repo) {
@@ -147,15 +157,15 @@ func testDescendantRelations(t *testing.T, repo Repo) {
 	if err != nil {
 		t.Errorf("Error to list descendant relation: %v", err)
 	}
-	expect := []*ToplogyRelation{
+	expect := []*model.ToplogyRelation{
 		{
 			ParentService:  "stuck-demo-tomcat",
 			ParentEndpoint: "GET /wait/callOthers",
 			Service:        "stuck-demo-undertow",
 			Endpoint:       "GET /db/query",
 			IsTraced:       true,
-			Group:          GROUP_SERVICE,
-			System:         "http",
+			Group:          model.GROUP_SERVICE,
+			System:         "",
 		},
 		{
 			ParentService:  "stuck-demo-tomcat",
@@ -163,8 +173,8 @@ func testDescendantRelations(t *testing.T, repo Repo) {
 			Service:        "stuck-demo-undertow",
 			Endpoint:       "GET /cpu/loop/{times}",
 			IsTraced:       true,
-			Group:          GROUP_SERVICE,
-			System:         "http",
+			Group:          model.GROUP_SERVICE,
+			System:         "",
 		},
 		{
 			ParentService:  "stuck-demo-undertow",
@@ -190,14 +200,14 @@ func testKafkaDescendantRelations(t *testing.T, repo Repo) {
 	if err != nil {
 		t.Errorf("Error to list descendant relation: %v", err)
 	}
-	expect := []*ToplogyRelation{
+	expect := []*model.ToplogyRelation{
 		{
 			ParentService:  "kafka-provider",
 			ParentEndpoint: "GET /send",
 			Service:        "",
 			Endpoint:       "topic_login",
 			IsTraced:       false,
-			Group:          GROUP_MQ,
+			Group:          model.GROUP_MQ,
 			System:         "kafka",
 		},
 		{
@@ -206,8 +216,8 @@ func testKafkaDescendantRelations(t *testing.T, repo Repo) {
 			Service:        "kafka-consumer",
 			Endpoint:       "topic_login process",
 			IsTraced:       true,
-			Group:          GROUP_SERVICE,
-			System:         "kafka",
+			Group:          model.GROUP_SERVICE,
+			System:         "",
 		},
 	}
 	checkToplogyRelation(util.NewValidator(t, "ListDescendantTopology"), expect, resp)
@@ -223,10 +233,10 @@ func testCountK8sEvents(t *testing.T, repo Repo) {
 		CheckIntValue("Count Size", 10, len(count))
 }
 
-func checkTopologyNodes(validator *util.Validator, expect []*TopologyNode, got []*TopologyNode) {
+func checkTopologyNodes(validator *util.Validator, expect map[string]*model.TopologyNode, got map[string]*model.TopologyNode) {
 	validator.CheckIntValue("Response Size", len(expect), len(got))
-	for i, gotNode := range got {
-		expectNode := expect[i]
+	for key, gotNode := range got {
+		expectNode := expect[key]
 		validator.
 			CheckStringValue("service", expectNode.Service, gotNode.Service).
 			CheckStringValue("endpoint", expectNode.Endpoint, gotNode.Endpoint).
@@ -236,18 +246,7 @@ func checkTopologyNodes(validator *util.Validator, expect []*TopologyNode, got [
 	}
 }
 
-func checkServiceNodes(validator *util.Validator, expect []ServiceNode, got []ServiceNode) {
-	validator.CheckIntValue("Response Size", len(expect), len(got))
-	for i, gotNode := range got {
-		expectNode := expect[i]
-		validator.
-			CheckStringValue("service", expectNode.Service, gotNode.Service).
-			CheckStringValue("endpoint", expectNode.Endpoint, gotNode.Endpoint).
-			CheckBoolValue("isTraced", expectNode.IsTraced, gotNode.IsTraced)
-	}
-}
-
-func checkToplogyRelation(validator *util.Validator, expect []*ToplogyRelation, got []*ToplogyRelation) {
+func checkToplogyRelation(validator *util.Validator, expect []*model.ToplogyRelation, got []*model.ToplogyRelation) {
 	validator.CheckIntValue("Response Size", len(expect), len(got))
 	for i, gotTopology := range got {
 		expectTopology := expect[i]

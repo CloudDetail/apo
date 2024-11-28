@@ -20,13 +20,13 @@ import (
 type Repo interface {
 	// ========== service_relationship ==========
 	// 查询上游节点列表
-	ListParentNodes(req *request.GetServiceEndpointTopologyRequest) ([]*TopologyNode, error)
+	ListParentNodes(req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error)
 	// 查询下游节点列表
-	ListChildNodes(req *request.GetServiceEndpointTopologyRequest) ([]*TopologyNode, error)
+	ListChildNodes(req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error)
 	// 查询所有子孙服务节点列表
-	ListDescendantNodes(req *request.GetDescendantMetricsRequest) ([]ServiceNode, error)
+	ListDescendantNodes(req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error)
 	// 查询所有子孙节点的调用关系
-	ListDescendantRelations(req *request.GetServiceEndpointTopologyRequest) ([]*ToplogyRelation, error)
+	ListDescendantRelations(req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error)
 	// 查询入口节点列表
 	ListEntryEndpoints(req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error)
 

@@ -1,9 +1,9 @@
 package service
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 )
 
 func (s *service) GetServiceEndpointTopology(req *request.GetServiceEndpointTopologyRequest) (*response.GetServiceEndpointTopologyResponse, error) {
@@ -20,9 +20,9 @@ func (s *service) GetServiceEndpointTopology(req *request.GetServiceEndpointTopo
 	}
 
 	res := &response.GetServiceEndpointTopologyResponse{
-		Parents:  parents,
-		Current:  clickhouse.NewTopologyNode(req.Service, req.Endpoint),
-		Children: children,
+		Parents:  parents.GetNodes(),
+		Current:  model.NewServerNode(req.Service, req.Endpoint, true),
+		Children: children.GetNodes(),
 	}
 	return res, nil
 }

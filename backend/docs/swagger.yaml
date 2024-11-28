@@ -308,36 +308,6 @@ definitions:
           type: string
         type: array
     type: object
-  clickhouse.ToplogyRelation:
-    properties:
-      endpoint:
-        type: string
-      group:
-        type: string
-      isTraced:
-        type: boolean
-      parentEndpoint:
-        type: string
-      parentService:
-        type: string
-      service:
-        type: string
-      system:
-        type: string
-    type: object
-  clickhouse.TopologyNode:
-    properties:
-      endpoint:
-        type: string
-      group:
-        type: string
-      isTraced:
-        type: boolean
-      service:
-        type: string
-      system:
-        type: string
-    type: object
   code.Failure:
     properties:
       code:
@@ -676,6 +646,36 @@ definitions:
     x-enum-varnames:
     - StatusResolved
     - StatusFiring
+  model.ToplogyRelation:
+    properties:
+      endpoint:
+        type: string
+      group:
+        type: string
+      isTraced:
+        type: boolean
+      parentEndpoint:
+        type: string
+      parentService:
+        type: string
+      service:
+        type: string
+      system:
+        type: string
+    type: object
+  model.TopologyNode:
+    properties:
+      endpoint:
+        type: string
+      group:
+        type: string
+      isTraced:
+        type: boolean
+      service:
+        type: string
+      system:
+        type: string
+    type: object
   prometheus.MetricsPoint:
     properties:
       timestamp:
@@ -1726,16 +1726,16 @@ definitions:
       childRelations:
         description: 下游节点调用关系列表
         items:
-          $ref: '#/definitions/clickhouse.ToplogyRelation'
+          $ref: '#/definitions/model.ToplogyRelation'
         type: array
       current:
         allOf:
-        - $ref: '#/definitions/clickhouse.TopologyNode'
+        - $ref: '#/definitions/model.TopologyNode'
         description: 当前服务
       parents:
         description: 上游节点列表
         items:
-          $ref: '#/definitions/clickhouse.TopologyNode'
+          $ref: '#/definitions/model.TopologyNode'
         type: array
     type: object
   response.GetServiceEndpointTopologyResponse:
@@ -1743,16 +1743,16 @@ definitions:
       children:
         description: 下游节点列表
         items:
-          $ref: '#/definitions/clickhouse.TopologyNode'
+          $ref: '#/definitions/model.TopologyNode'
         type: array
       current:
         allOf:
-        - $ref: '#/definitions/clickhouse.TopologyNode'
+        - $ref: '#/definitions/model.TopologyNode'
         description: 当前服务
       parents:
         description: 上游节点列表
         items:
-          $ref: '#/definitions/clickhouse.TopologyNode'
+          $ref: '#/definitions/model.TopologyNode'
         type: array
     type: object
   response.GetServiceEntryEndpointsResponse:

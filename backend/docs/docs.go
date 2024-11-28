@@ -5192,52 +5192,6 @@ const docTemplate = `{
                 }
             }
         },
-        "clickhouse.ToplogyRelation": {
-            "type": "object",
-            "properties": {
-                "endpoint": {
-                    "type": "string"
-                },
-                "group": {
-                    "type": "string"
-                },
-                "isTraced": {
-                    "type": "boolean"
-                },
-                "parentEndpoint": {
-                    "type": "string"
-                },
-                "parentService": {
-                    "type": "string"
-                },
-                "service": {
-                    "type": "string"
-                },
-                "system": {
-                    "type": "string"
-                }
-            }
-        },
-        "clickhouse.TopologyNode": {
-            "type": "object",
-            "properties": {
-                "endpoint": {
-                    "type": "string"
-                },
-                "group": {
-                    "type": "string"
-                },
-                "isTraced": {
-                    "type": "boolean"
-                },
-                "service": {
-                    "type": "string"
-                },
-                "system": {
-                    "type": "string"
-                }
-            }
-        },
         "code.Failure": {
             "type": "object",
             "properties": {
@@ -5694,6 +5648,52 @@ const docTemplate = `{
                 "StatusResolved",
                 "StatusFiring"
             ]
+        },
+        "model.ToplogyRelation": {
+            "type": "object",
+            "properties": {
+                "endpoint": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "isTraced": {
+                    "type": "boolean"
+                },
+                "parentEndpoint": {
+                    "type": "string"
+                },
+                "parentService": {
+                    "type": "string"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "system": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.TopologyNode": {
+            "type": "object",
+            "properties": {
+                "endpoint": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "isTraced": {
+                    "type": "boolean"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "system": {
+                    "type": "string"
+                }
+            }
         },
         "prometheus.MetricsPoint": {
             "type": "object",
@@ -7239,14 +7239,14 @@ const docTemplate = `{
                     "description": "下游节点调用关系列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/clickhouse.ToplogyRelation"
+                        "$ref": "#/definitions/model.ToplogyRelation"
                     }
                 },
                 "current": {
                     "description": "当前服务",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/clickhouse.TopologyNode"
+                            "$ref": "#/definitions/model.TopologyNode"
                         }
                     ]
                 },
@@ -7254,7 +7254,7 @@ const docTemplate = `{
                     "description": "上游节点列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/clickhouse.TopologyNode"
+                        "$ref": "#/definitions/model.TopologyNode"
                     }
                 }
             }
@@ -7266,14 +7266,14 @@ const docTemplate = `{
                     "description": "下游节点列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/clickhouse.TopologyNode"
+                        "$ref": "#/definitions/model.TopologyNode"
                     }
                 },
                 "current": {
                     "description": "当前服务",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/clickhouse.TopologyNode"
+                            "$ref": "#/definitions/model.TopologyNode"
                         }
                     ]
                 },
@@ -7281,7 +7281,7 @@ const docTemplate = `{
                     "description": "上游节点列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/clickhouse.TopologyNode"
+                        "$ref": "#/definitions/model.TopologyNode"
                     }
                 }
             }
