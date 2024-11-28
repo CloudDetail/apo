@@ -76,11 +76,15 @@ type Config struct {
 		ChUsername    string `mapstructure:"ch_username"`
 		ChPassword    string `mapstructure:"ch_password"`
 	} `mapstructure:"deepflow"`
-	AnonymousUser struct {
-		Username string `mapstructure:"username"`
-		Enable   bool   `mapstructure:"enable"`
-		Role     string `mapstructure:"role"`
-	} `mapstructure:"anonymous_user"`
+	User struct {
+		AnonymousUser `mapstructure:"anonymous_user"`
+	} `mapstructure:"user"`
+}
+
+type AnonymousUser struct {
+	Username string `mapstructure:"username"`
+	Enable   bool   `mapstructure:"enable"`
+	Role     string `mapstructure:"role"`
 }
 
 type MetadataSettings struct {

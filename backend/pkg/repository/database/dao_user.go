@@ -48,7 +48,7 @@ func createAdmin(db *gorm.DB) error {
 }
 
 func createAnonymousUser(db *gorm.DB) error {
-	conf := config.Get().AnonymousUser
+	conf := config.Get().User.AnonymousUser
 	anonymousUser := &User{
 		Username: conf.Username,
 		Role:     conf.Role,

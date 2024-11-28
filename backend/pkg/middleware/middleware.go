@@ -17,8 +17,8 @@ func Auth(tokenCache cache.Repo) gin.HandlerFunc {
 		rawToken := c.Request.Header.Get("Authorization")
 		token := util.ParseRawToken(rawToken)
 		if len(token) == 0 {
-			if config.Get().AnonymousUser.Enable {
-				c.Set(UserKey, config.Get().AnonymousUser.Username)
+			if config.Get().User.AnonymousUser.Enable {
+				c.Set(UserKey, config.Get().User.AnonymousUser.Username)
 				c.Next()
 				return
 			} else {

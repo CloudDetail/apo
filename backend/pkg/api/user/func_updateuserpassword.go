@@ -37,7 +37,7 @@ func (h *handler) UpdateUserPassword() core.HandlerFunc {
 			)
 			return
 		}
-		if req.Username == config.Get().AnonymousUser.Username {
+		if req.Username == config.Get().User.AnonymousUser.Username {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.UserNoPermissionError,

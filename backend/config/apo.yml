@@ -67,7 +67,8 @@ deepflow:
   ch_username: admin
   ch_password:
 
-anonymous_user:
-  username: anonymous
-  enable: true
-  role: admin
+user:
+  anonymous_user:
+    username: anonymous
+    enable: true
+    role: admin
