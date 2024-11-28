@@ -5669,6 +5669,9 @@ const docTemplate = `{
         "clickhouse.QueryTraceResult": {
             "type": "object",
             "properties": {
+                "apmType": {
+                    "type": "string"
+                },
                 "duration": {
                     "type": "integer"
                 },
@@ -5709,14 +5712,20 @@ const docTemplate = `{
                 "mutatedValue": {
                     "type": "integer"
                 },
-                "reason": {
-                    "type": "string"
-                },
                 "pid": {
                     "type": "integer"
                 },
+                "reason": {
+                    "type": "string"
+                },
                 "serviceName": {
                     "type": "string"
+                },
+                "spanId": {
+                    "type": "string"
+                },
+                "thresholdValue": {
+                    "type": "number"
                 },
                 "tid": {
                     "type": "integer"
@@ -6134,6 +6143,15 @@ const docTemplate = `{
                 5,
                 6
             ],
+            "x-enum-comments": {
+                "AnormalTypeAlertApp": "应用接口告警     =\u003e group=app",
+                "AnormalTypeAlertAppInstance": "应用实例告警     =\u003e group=appInstance",
+                "AnormalTypeAlertContainer": "容器告警         =\u003e group=container",
+                "AnormalTypeAlertInfra": "基础设施告警     =\u003e group=infra",
+                "AnormalTypeAlertNet": "网络告警         =\u003e group=net",
+                "AnormalTypeError": "错误事件告警 =\u003e 来自JavaException等",
+                "AnormalTypeUnknown": "未定义的告警类型"
+            },
             "x-enum-varnames": [
                 "AnormalTypeUnknown",
                 "AnormalTypeAlertApp",
@@ -6141,7 +6159,7 @@ const docTemplate = `{
                 "AnormalTypeAlertInfra",
                 "AnormalTypeAlertNet",
                 "AnormalTypeError",
-                "AnormalTypeMutation"
+                "AnormalTypeAlertAppInstance"
             ]
         },
         "model.DetectExprPart": {
@@ -6179,6 +6197,10 @@ const docTemplate = `{
                 },
                 "for": {
                     "description": "突变告警等待时间",
+                    "type": "string"
+                },
+                "group": {
+                    "description": "告警组名",
                     "type": "string"
                 },
                 "mutationCheckPQL": {
@@ -7838,7 +7860,7 @@ const docTemplate = `{
                 "alertRule": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/request.AlertRule"
+                        "$ref": "#/definitions/model.DetectMutation"
                     }
                 },
                 "pagination": {
@@ -8214,6 +8236,38 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetProcessFlameGraphResponse": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "flameBearer": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "pid": {
+                    "type": "integer"
+                },
+                "sampleRate": {
+                    "type": "integer"
+                },
+                "sampleType": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
+                },
+                "tid": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.GetSQLMetricsResponse": {
             "type": "object",
             "properties": {
@@ -8251,6 +8305,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.TopologyNode"
+                    }
+                },
+                "topologyExternalClientCall": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.TopologyExternalClientCall"
                     }
                 },
                 "topologyLevels": {
@@ -9268,6 +9328,32 @@ const docTemplate = `{
                 "value": {
                     "description": "Value 指标平均值",
                     "type": "number"
+                }
+            }
+        },
+        "response.TopologyExternalClientCall": {
+            "type": "object",
+            "properties": {
+                "childs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.TopologyNode"
+                    }
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "isTraced": {
+                    "type": "boolean"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "system": {
+                    "type": "string"
                 }
             }
         },

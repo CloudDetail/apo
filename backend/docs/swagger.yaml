@@ -265,6 +265,8 @@ definitions:
     type: object
   clickhouse.QueryTraceResult:
     properties:
+      apmType:
+        type: string
       duration:
         type: integer
       endpoint:
@@ -286,24 +288,24 @@ definitions:
         additionalProperties:
           type: string
         type: object
-      pid:
-        type: integer
       metrics:
         additionalProperties:
           type: integer
         type: object
       mutatedValue:
         type: integer
+      pid:
+        type: integer
       reason:
         type: string
       serviceName:
         type: string
-      tid:
-        type: integer
       spanId:
         type: string
       thresholdValue:
         type: number
+      tid:
+        type: integer
       timestamp:
         type: integer
       traceId:
@@ -610,6 +612,14 @@ definitions:
     - 5
     - 6
     type: integer
+    x-enum-comments:
+      AnormalTypeAlertApp: 应用接口告警     => group=app
+      AnormalTypeAlertAppInstance: 应用实例告警     => group=appInstance
+      AnormalTypeAlertContainer: 容器告警         => group=container
+      AnormalTypeAlertInfra: 基础设施告警     => group=infra
+      AnormalTypeAlertNet: 网络告警         => group=net
+      AnormalTypeError: 错误事件告警 => 来自JavaException等
+      AnormalTypeUnknown: 未定义的告警类型
     x-enum-varnames:
     - AnormalTypeUnknown
     - AnormalTypeAlertApp
@@ -617,7 +627,7 @@ definitions:
     - AnormalTypeAlertInfra
     - AnormalTypeAlertNet
     - AnormalTypeError
-    - AnormalTypeMutation
+    - AnormalTypeAlertAppInstance
   model.DetectExprPart:
     properties:
       compareGroup:
@@ -643,6 +653,9 @@ definitions:
         type: integer
       for:
         description: 突变告警等待时间
+        type: string
+      group:
+        description: 告警组名
         type: string
       mutationCheckPQL:
         description: 需要执行故障检测的语句
@@ -1774,7 +1787,7 @@ definitions:
     properties:
       alertRule:
         items:
-          $ref: '#/definitions/request.AlertRule'
+          $ref: '#/definitions/model.DetectMutation'
         type: array
       pagination:
         $ref: '#/definitions/model.Pagination'
@@ -2028,6 +2041,27 @@ definitions:
           $ref: '#/definitions/model.PredefinedMetricExpr'
         type: array
     type: object
+  response.GetProcessFlameGraphResponse:
+    properties:
+      endTime:
+        type: integer
+      flameBearer:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      pid:
+        type: integer
+      sampleRate:
+        type: integer
+      sampleType:
+        type: string
+      startTime:
+        type: integer
+      tid:
+        type: integer
+    type: object
   response.GetSQLMetricsResponse:
     properties:
       pagination:
@@ -2052,6 +2086,10 @@ definitions:
         description: 上游节点列表
         items:
           $ref: '#/definitions/model.TopologyNode'
+        type: array
+      topologyExternalClientCall:
+        items:
+          $ref: '#/definitions/response.TopologyExternalClientCall'
         type: array
       topologyLevels:
         items:
@@ -2718,6 +2756,23 @@ definitions:
       value:
         description: Value 指标平均值
         type: number
+    type: object
+  response.TopologyExternalClientCall:
+    properties:
+      childs:
+        items:
+          $ref: '#/definitions/model.TopologyNode'
+        type: array
+      endpoint:
+        type: string
+      group:
+        type: string
+      isTraced:
+        type: boolean
+      service:
+        type: string
+      system:
+        type: string
     type: object
   response.TopologyNodeLevel:
     properties:
