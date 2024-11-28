@@ -66,3 +66,9 @@ deepflow:
   ch_address: localhost:9000
   ch_username: admin
   ch_password:
+
+user:
+  anonymous_user:
+    username: anonymous
+    enable: true
+    role: admin

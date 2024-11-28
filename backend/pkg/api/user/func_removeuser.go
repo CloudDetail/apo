@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -17,7 +18,7 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Authorization header string true "Bearer accessToken"
+// @Param Authorization header string false "Bearer accessToken"
 // @Param username query string true "请求信息"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
@@ -33,6 +34,13 @@ func (h *handler) RemoveUser() core.HandlerFunc {
 			)
 			return
 		}
+		if req.Username == config.Get().User.AnonymousUser.Username {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.UserNoPermissionError,
+				code.Text(code.UserNoPermissionError)))
+			return
+		}
 		username, _ := c.Get(middleware.UserKey)
 		if username == req.Username {
 			c.AbortWithError(core.Error(
@@ -41,6 +49,7 @@ func (h *handler) RemoveUser() core.HandlerFunc {
 				code.Text(code.UserRemoveSelfError)))
 			return
 		}
+
 		err := h.userService.RemoveUser(req.Username, username.(string))
 		if err != nil {
 			var vErr model.ErrWithMessage

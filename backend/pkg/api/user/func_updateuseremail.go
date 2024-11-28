@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
@@ -18,7 +19,7 @@ import (
 // @Produce json
 // @Param username query string true "用户名"
 // @Param email query string true "邮箱"
-// @Param Authorization header string true "Bearer accessToken"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/user/update/email [post]
@@ -31,6 +32,14 @@ func (h *handler) UpdateUserEmail() core.HandlerFunc {
 				code.ParamBindError,
 				code.Text(code.ParamBindError)).WithError(err),
 			)
+			return
+		}
+
+		if req.Username == config.Get().User.AnonymousUser.Username {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.UserNoPermissionError,
+				code.Text(code.UserNoPermissionError)))
 			return
 		}
 
