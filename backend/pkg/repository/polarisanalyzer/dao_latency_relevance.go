@@ -20,8 +20,12 @@ func (p *polRepo) SortDescendantByLatencyRelevance(
 	stepStr string,
 	targetService string,
 	targetEndpoint string,
-	descendants []LatencyRelevance,
-) (sortResp *LatencyRelevanceResponse, err error) {
+	descendants []ServiceNode,
+	sortBy string,
+) (sortResp *RelevanceResponse, err error) {
+	if len(sortBy) == 0 {
+		sortBy = "latency"
+	}
 	sortRequest := &SortRelevanceRequest{
 		StartTime: startTime,
 		EndTime:   endTime,
@@ -53,7 +57,7 @@ func (p *polRepo) SortDescendantByLatencyRelevance(
 		return nil, errors.New("failed to sort relevance, polarisanalyzer response status code: " + resp.Status)
 	}
 
-	relevanceRes := &LatencyRelevanceResponse{}
+	relevanceRes := &RelevanceResponse{}
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -68,11 +72,12 @@ func (p *polRepo) SortDescendantByLatencyRelevance(
 }
 
 type SortRelevanceRequest struct {
-	StartTime          int64              `json:"startTime"`
-	EndTime            int64              `json:"endTime"`
-	StepStr            string             `json:"stepStr"`
-	Target             Target             `json:"target"`
-	UnsortedDescendant []LatencyRelevance `json:"unsortedDescendant"`
+	StartTime          int64         `json:"startTime"`
+	EndTime            int64         `json:"endTime"`
+	StepStr            string        `json:"stepStr"`
+	Target             Target        `json:"target"`
+	UnsortedDescendant []ServiceNode `json:"unsortedDescendant"`
+	SortBy             string        `json:"sortBy"`
 }
 
 type Target struct {
@@ -80,14 +85,16 @@ type Target struct {
 	Endpoint string `json:"endpoint"`
 }
 
-type LatencyRelevanceResponse struct {
-	SortedDescendant   []LatencyRelevance `json:"sortedDescendant"`
-	UnsortedDescendant []LatencyRelevance `json:"unsortedDescendant"`
-	DistanceType       string             `json:"distanceType"`
+type RelevanceResponse struct {
+	SortedDescendant   []ServiceNode `json:"sortedDescendant"`
+	UnsortedDescendant []ServiceNode `json:"unsortedDescendant"`
+	DistanceType       string        `json:"distanceType"`
 }
 
-type LatencyRelevance struct {
+type ServiceNode struct {
 	Service   string  `json:"service"`
 	Endpoint  string  `json:"endpoint"`
-	Relevance float64 `json:"relevance"`
+	Group     string  `json:"group"`
+	System    string  `json:"system"`
+	Relevance float64 `json:"relevance,omitempty"`
 }
