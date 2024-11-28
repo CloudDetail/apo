@@ -19,14 +19,14 @@ func (s *service) GetDescendantContribution(req *request.GetDescendantAlertContr
 		return nil, err
 	}
 
-	if len(nodes) == 0 {
+	if len(nodes.Nodes) == 0 {
 		return &response.GetDescendantAlertContributationResponse{
 			LatencyContributationList: make([]model.EndpointKey, 0),
 		}, nil
 	}
 
-	unsortedDescendant := make([]polarisanalyzer.Relevance, 0, len(nodes))
-	for _, node := range nodes {
+	unsortedDescendant := make([]polarisanalyzer.Relevance, 0, len(nodes.Nodes))
+	for _, node := range nodes.Nodes {
 		unsortedDescendant = append(unsortedDescendant, polarisanalyzer.Relevance{
 			Service:  node.Service,
 			Endpoint: node.Endpoint,

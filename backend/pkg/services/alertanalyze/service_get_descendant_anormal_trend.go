@@ -1,13 +1,13 @@
 package alertanalyze
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	ck "github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 )
 
 func (s *service) GetAnormalTrendByEntry(req *request.GetDescendantAnormalTrendRequest) (*response.GetDescendantDeltaAnormalEventResponse, error) {
@@ -24,10 +24,8 @@ func (s *service) GetAnormalTrendByEntry(req *request.GetDescendantAnormalTrendR
 		return nil, err
 	}
 
-	descendants = append(descendants, ck.ServiceNode{
-		Service:  req.Service,
-		Endpoint: req.Endpoint,
-	})
+	descendants.AddServerNode(fmt.Sprintf("%s.%s", req.Service, req.Endpoint),
+		req.Service, req.Endpoint, true)
 
 	var selectedEvents []string
 	if len(req.AnormalTypes) > 0 {
@@ -40,7 +38,7 @@ func (s *service) GetAnormalTrendByEntry(req *request.GetDescendantAnormalTrendR
 	instanceMap := newInstanceMap()
 	// TODO 优化,减少查询次数
 
-	for _, descendant := range descendants {
+	for _, descendant := range descendants.Nodes {
 		endpoint := model.EndpointKey{
 			ServiceName: descendant.Service,
 			Endpoint:    descendant.Endpoint,

@@ -56,7 +56,7 @@ func (s *service) GetServiceEndpointRelation(req *request.GetServiceEndpointRela
 							// 在父节点中添加下游附属信息
 							endpointMatrix.EndpointInfos[parentIdx].ExternalClientCalls = append(
 								endpointMatrix.EndpointInfos[parentIdx].ExternalClientCalls,
-								clickhouse.TopologyNode{
+								model.TopologyNode{
 									Service:  relation.Service,
 									Endpoint: relation.Endpoint,
 								},
@@ -79,7 +79,7 @@ func (s *service) GetServiceEndpointRelation(req *request.GetServiceEndpointRela
 					continue
 				}
 				res.ExternalClientCalls = append(res.ExternalClientCalls, response.TopologyExternalClientCall{
-					TopologyNode: clickhouse.TopologyNode{
+					TopologyNode: model.TopologyNode{
 						Service:  info.ServiceName,
 						Endpoint: info.Endpoint,
 						IsTraced: info.IsTraced,
@@ -113,10 +113,10 @@ type EndpointInfo struct {
 	model.EndpointKey
 	IsTraced bool
 
-	ExternalClientCalls []clickhouse.TopologyNode
+	ExternalClientCalls []model.TopologyNode
 }
 
-func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []*clickhouse.ToplogyRelation) *EndpointDepthMatrix {
+func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []*model.ToplogyRelation) *EndpointDepthMatrix {
 	matrix := &EndpointDepthMatrix{
 		EndpointSet:  map[model.EndpointKey]int{},
 		EndpointKeys: []model.EndpointKey{},
@@ -130,7 +130,7 @@ func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []*cli
 	matrix.EndpointInfos = append(matrix.EndpointInfos, EndpointInfo{
 		EndpointKey:         root,
 		IsTraced:            true,
-		ExternalClientCalls: []clickhouse.TopologyNode{},
+		ExternalClientCalls: []model.TopologyNode{},
 	})
 	for _, relation := range relations {
 		childEndpoint := model.EndpointKey{
@@ -145,7 +145,7 @@ func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []*cli
 			matrix.EndpointInfos = append(matrix.EndpointInfos, EndpointInfo{
 				EndpointKey:         childEndpoint,
 				IsTraced:            relation.IsTraced,
-				ExternalClientCalls: []clickhouse.TopologyNode{},
+				ExternalClientCalls: []model.TopologyNode{},
 			})
 		} else if relation.IsTraced && !matrix.EndpointInfos[idx].IsTraced {
 			// 更新IsTraced状态
@@ -163,7 +163,7 @@ func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []*cli
 			matrix.EndpointInfos = append(matrix.EndpointInfos, EndpointInfo{
 				EndpointKey:         parentEndpoint,
 				IsTraced:            true, // 父节点一定被监控
-				ExternalClientCalls: []clickhouse.TopologyNode{},
+				ExternalClientCalls: []model.TopologyNode{},
 			})
 		}
 	}
@@ -179,7 +179,7 @@ func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []*cli
 	return matrix
 }
 
-func (m *EndpointDepthMatrix) AddRelation(relation *clickhouse.ToplogyRelation) {
+func (m *EndpointDepthMatrix) AddRelation(relation *model.ToplogyRelation) {
 	parentEndpoint := model.EndpointKey{
 		ServiceName: relation.ParentService,
 		Endpoint:    relation.ParentEndpoint,

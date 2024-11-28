@@ -34,10 +34,8 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 		return nil, err
 	}
 
-	descendants = append(descendants, ck.ServiceNode{
-		Service:  req.Service,
-		Endpoint: req.Endpoint,
-	})
+	descendants.AddServerNode(fmt.Sprintf("%s.%s", req.Service, req.Endpoint),
+		req.Service, req.Endpoint, true)
 
 	var selectedEvents []string
 	if len(req.AnormalTypes) > 0 {
@@ -49,7 +47,7 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 	var endpoints []model.EndpointKey
 	instanceMap := newInstanceMap()
 
-	for _, descendant := range descendants {
+	for _, descendant := range descendants.Nodes {
 		endpoint := model.EndpointKey{
 			ServiceName: descendant.Service,
 			Endpoint:    descendant.Endpoint,

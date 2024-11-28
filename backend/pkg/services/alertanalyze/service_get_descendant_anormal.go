@@ -1,6 +1,7 @@
 package alertanalyze
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -38,13 +39,10 @@ func (s *service) GetDescendantAnormal(req *request.GetDescendantAnormalEventReq
 	tmpServiceSet := map[string]struct{}{}
 	endpointList := make([]model.EndpointKey, 0)
 
-	nodes = append(nodes, clickhouse.ServiceNode{
-		Service:  req.Service,
-		Endpoint: req.Endpoint,
-		IsTraced: false,
-	})
+	nodes.AddServerNode(fmt.Sprintf("%s.%s", req.Service, req.Endpoint),
+		req.Service, req.Endpoint, true)
 
-	for _, node := range nodes {
+	for _, node := range nodes.Nodes {
 		endpointList = append(endpointList, model.EndpointKey{
 			ServiceName: node.Service,
 			Endpoint:    node.Endpoint,
