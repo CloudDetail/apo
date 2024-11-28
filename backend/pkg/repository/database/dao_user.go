@@ -4,10 +4,12 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const (
@@ -16,7 +18,7 @@ const (
 
 type User struct {
 	UserID      int64  `gorm:"user_id;primary_key;autoIncrement" json:"-"`
-	Username    string `gorm:"username" json:"username,omitempty"`
+	Username    string `gorm:"username;unique" json:"username,omitempty"`
 	Password    string `gorm:"password" json:"password,omitempty"`
 	Role        string `gorm:"role" json:"role,omitempty"`
 	Phone       string `gorm:"phone" json:"phone,omitempty"`
@@ -26,6 +28,35 @@ type User struct {
 
 func (t *User) TableName() string {
 	return "user"
+}
+
+const adminUsername = "admin"
+const adminPassword = "APO2024@admin"
+
+func createAdmin(db *gorm.DB) error {
+	admin := &User{
+		Username: adminUsername,
+		Password: Encrypt(adminPassword),
+		Role:     RoleAdmin,
+	}
+	var count int64
+	db.Model(&User{}).Where("username = ?", adminUsername).Count(&count)
+	if count > 0 {
+		return nil
+	}
+	return db.Create(&admin).Error
+}
+
+func createAnonymousUser(db *gorm.DB) error {
+	conf := config.Get().AnonymousUser
+	anonymousUser := &User{
+		Username: conf.Username,
+		Role:     conf.Role,
+	}
+	return db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "username"}},
+		DoUpdates: clause.Assignments(map[string]interface{}{"role": anonymousUser.Role}),
+	}).Create(&anonymousUser).Error
 }
 
 func Encrypt(raw string) string {
@@ -50,17 +81,14 @@ func (repo *daoRepo) Login(username, password string) error {
 	return nil
 }
 
-func (repo *daoRepo) CreateUser(username, password string) error {
+func (repo *daoRepo) CreateUser(user *User) error {
 	var count int64
-	repo.db.Model(&User{}).Where("username = ?", username).Count(&count)
+	repo.db.Model(&User{}).Where("username = ?", user.Username).Count(&count)
 	if count > 0 {
 		return model.NewErrWithMessage(errors.New("user already exists"), code.UserAlreadyExists)
 	}
-	user := User{
-		Username: username,
-		Password: Encrypt(password),
-	}
-	return repo.db.Create(&user).Error
+
+	return repo.db.Create(user).Error
 }
 
 func (repo *daoRepo) UpdateUserPhone(username string, phone string) error {

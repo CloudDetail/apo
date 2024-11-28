@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
 
@@ -21,7 +22,7 @@ import (
 // @Param oldPassword query string true "原密码"
 // @Param newPassword query string true "新密码"
 // @Param confirmPassword query string true "确认密码"
-// @Param Authorization header string true "Bearer accessToken"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/user/update/password [post]
@@ -36,6 +37,14 @@ func (h *handler) UpdateUserPassword() core.HandlerFunc {
 			)
 			return
 		}
+		if req.Username == config.Get().AnonymousUser.Username {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.UserNoPermissionError,
+				code.Text(code.UserNoPermissionError)))
+			return
+		}
+
 		if req.ConfirmPassword != req.NewPassword {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

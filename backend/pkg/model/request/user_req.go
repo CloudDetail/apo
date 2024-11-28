@@ -9,6 +9,9 @@ type CreateUserRequest struct {
 	Username        string `json:"username" form:"username" binding:"required"`               // 用户名
 	Password        string `json:"password" form:"password" binding:"required"`               // 密码
 	ConfirmPassword string `json:"confirmPassword" form:"confirmPassword" binding:"required"` // 确认密码
+	Email           string `json:"email" form:"email"`
+	Phone           string `json:"phone" form:"phone"`
+	Corporation     string `json:"corporation,omitempty" form:"corporation"`
 }
 
 type LogoutRequest struct {

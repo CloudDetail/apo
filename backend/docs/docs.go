@@ -4157,10 +4157,27 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "邮箱",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "手机号",
+                        "name": "phone",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "组织",
+                        "name": "corporation",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Bearer 令牌",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4197,8 +4214,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4235,8 +4251,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     },
                     {
                         "type": "string",
@@ -4431,8 +4446,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     },
                     {
                         "type": "string",
@@ -4490,8 +4504,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4542,8 +4555,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4593,8 +4605,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4659,8 +4670,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4711,8 +4721,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
