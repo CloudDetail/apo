@@ -5055,40 +5055,40 @@ const docTemplate = `{
                         "type": "string",
                         "description": "用户名",
                         "name": "username",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "密码",
                         "name": "password",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "确认密码",
                         "name": "confirmPassword",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "邮箱",
                         "name": "email",
-                        "in": "query"
+                        "in": "formData"
                     },
                     {
                         "type": "string",
                         "description": "手机号",
                         "name": "phone",
-                        "in": "query"
+                        "in": "formData"
                     },
                     {
                         "type": "string",
                         "description": "组织",
                         "name": "corporation",
-                        "in": "query"
+                        "in": "formData"
                     },
                     {
                         "type": "string",
@@ -5235,14 +5235,14 @@ const docTemplate = `{
                         "type": "string",
                         "description": "用户名",
                         "name": "username",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "密码",
                         "name": "password",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     }
                 ],
@@ -5280,14 +5280,14 @@ const docTemplate = `{
                         "type": "string",
                         "description": "accessToken",
                         "name": "accessToken",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "refreshToken",
                         "name": "refreshToken",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     }
                 ],
@@ -5369,7 +5369,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "请求信息",
                         "name": "username",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     }
                 ],
@@ -5407,21 +5407,29 @@ const docTemplate = `{
                         "type": "string",
                         "description": "用户名",
                         "name": "username",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "新密码",
                         "name": "newPassword",
-                        "in": "query",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "重复密码",
+                        "name": "confirmPassword",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header"
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -5458,21 +5466,22 @@ const docTemplate = `{
                         "type": "string",
                         "description": "用户名",
                         "name": "username",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "邮箱",
                         "name": "email",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header"
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -5509,20 +5518,33 @@ const docTemplate = `{
                         "type": "string",
                         "description": "用户名",
                         "name": "username",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "组织",
                         "name": "corporation",
-                        "in": "query"
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "手机号",
+                        "name": "phone",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "邮箱",
+                        "name": "email",
+                        "in": "formData"
                     },
                     {
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header"
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -5559,35 +5581,36 @@ const docTemplate = `{
                         "type": "string",
                         "description": "用户名",
                         "name": "username",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "原密码",
                         "name": "oldPassword",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "新密码",
                         "name": "newPassword",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "确认密码",
                         "name": "confirmPassword",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header"
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -5624,21 +5647,22 @@ const docTemplate = `{
                         "type": "string",
                         "description": "用户名",
                         "name": "username",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "手机号",
                         "name": "phone",
-                        "in": "query",
+                        "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header"
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {

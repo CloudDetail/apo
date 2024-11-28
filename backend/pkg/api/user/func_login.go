@@ -16,15 +16,15 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param username query string true "用户名"
-// @Param password query string true "密码"
+// @Param username formData string true "用户名"
+// @Param password formData string true "密码"
 // @Success 200 {object} response.LoginResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/user/login [post]
 func (h *handler) Login() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.LoginRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,

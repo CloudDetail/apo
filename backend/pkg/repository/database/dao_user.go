@@ -87,7 +87,7 @@ func (repo *daoRepo) CreateUser(user *User) error {
 	if count > 0 {
 		return model.NewErrWithMessage(errors.New("user already exists"), code.UserAlreadyExists)
 	}
-
+	user.Password = Encrypt(user.Password)
 	return repo.db.Create(user).Error
 }
 
@@ -100,7 +100,7 @@ func (repo *daoRepo) UpdateUserPhone(username string, phone string) error {
 		return err
 	}
 	user.Phone = phone
-	return repo.db.Save(&user).Error
+	return repo.db.Updates(&user).Error
 }
 
 func (repo *daoRepo) UpdateUserEmail(username string, email string) error {
@@ -112,7 +112,7 @@ func (repo *daoRepo) UpdateUserEmail(username string, email string) error {
 		return err
 	}
 	user.Email = email
-	return repo.db.Save(&user).Error
+	return repo.db.Updates(&user).Error
 }
 
 func (repo *daoRepo) UpdateUserPassword(username string, oldPassword, newPassword string) error {
@@ -127,7 +127,7 @@ func (repo *daoRepo) UpdateUserPassword(username string, oldPassword, newPasswor
 		return model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswordIncorrectError)
 	}
 	user.Password = Encrypt(newPassword)
-	return repo.db.Save(&user).Error
+	return repo.db.Updates(&user).Error
 }
 
 func (repo *daoRepo) RestPassword(username string, newPassword string) error {
@@ -140,7 +140,7 @@ func (repo *daoRepo) RestPassword(username string, newPassword string) error {
 	}
 
 	user.Password = Encrypt(newPassword)
-	return repo.db.Save(&user).Error
+	return repo.db.Updates(&user).Error
 }
 
 func (repo *daoRepo) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
@@ -155,7 +155,15 @@ func (repo *daoRepo) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
 	if len(req.Corporation) > 0 {
 		user.Corporation = req.Corporation
 	}
-	return repo.db.Save(&user).Error
+
+	if len(req.Phone) > 0 {
+		user.Phone = req.Phone
+	}
+
+	if len(req.Email) > 0 {
+		user.Email = req.Email
+	}
+	return repo.db.Updates(&user).Error
 }
 
 func (repo *daoRepo) GetUserInfo(username string) (User, error) {
@@ -179,6 +187,7 @@ func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64
 		corporation := "%" + req.Corporation + "%"
 		query = query.Where("corporation like ?", corporation)
 	}
+	query = query.Where("username != ?", "anonymous")
 	err := query.Model(&User{}).Count(&count).Error
 	if err != nil {
 		return nil, 0, err

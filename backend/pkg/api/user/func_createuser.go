@@ -16,12 +16,12 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param username query string true "用户名"
-// @Param password query string true "密码"
-// @Param confirmPassword query string true "确认密码"
-// @Param email query string false "邮箱"
-// @Param phone query string false "手机号"
-// @Param corporation query string false "组织"
+// @Param username formData string true "用户名"
+// @Param password formData string true "密码"
+// @Param confirmPassword formData string true "确认密码"
+// @Param email formData string false "邮箱"
+// @Param phone formData string false "手机号"
+// @Param corporation formData string false "组织"
 // @Param Authorization header string false "Bearer 令牌"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
@@ -29,7 +29,7 @@ import (
 func (h *handler) CreateUser() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.CreateUserRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,

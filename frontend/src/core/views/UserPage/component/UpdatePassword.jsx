@@ -1,6 +1,6 @@
 import { Form, Input, Popconfirm, Button, Flex, Divider } from "antd"
-import { showToast } from "src/core/utils/toast"
-import { logoutApi, updatePasswordApi } from "src/core/api/user"
+import { showToast } from "core/utils/toast"
+import { logoutApi, updatePasswordApi } from "core/api/user"
 import { LockOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
 
@@ -11,23 +11,31 @@ export default function UpdatePassword() {
 
     //更新密码
     function updatePassword() {
-        form.validateFields(['oldPassword', 'newPassword', 'newPasswordAgain'])
-            .then(async (values) => {
+        form.validateFields(['oldPassword', 'newPassword', 'confirmPassword'])
+            .then(async ({ oldPassword, newPassword, confirmPassword }) => {
                 try {
-                    if (values.newPassword !== values.newPasswordAgain) {
+                    const username = getUsernameFromLocalStorage()
+                    if (!username) {
                         showToast({
-                            title: "两次密码不一致，请检查",
-                            color: "danger"
+                            title:"获取用户名失败",
+                            message:"请重新登录",
+                            color:"danger"
                         })
-                        return
+                        return navigate("/login")
                     }
-                    await updatePasswordApi(values)
-                    form.resetFields(['oldPassword', 'newPassword', 'newPasswordAgain'])
-                    const params = {
+                    const paramsForUpdatePassword = {
+                        oldPassword,
+                        newPassword,
+                        confirmPassword,
+                        username: JSON.parse(localStorage.getItem("user")).username
+                    }
+                    await updatePasswordApi(paramsForUpdatePassword)
+                    form.resetFields(['oldPassword', 'newPassword', 'confirmPassword'])
+                    const paramsForLogout = {
                         accessToken: localStorage.getItem("token"),
                         refreshToken: localStorage.getItem("refreshToken")
                     }
-                    await logoutApi(params)
+                    await logoutApi(paramsForLogout)
                     localStorage.removeItem("token")
                     localStorage.removeItem("refreshToken")
                     navigate("/login")
@@ -37,14 +45,29 @@ export default function UpdatePassword() {
                     })
                 } catch (error) {
                     console.log(error.response.data.code)
-                    if (error.response.data.code) {
-                        showToast({
-                            title: "旧密码错误,请检查",
-                            color: "danger"
-                        })
-                    }
+                    const errorMessage = error.response?.data?.message || error.message || "更新密码失败"
+                    showToast({
+                        title: "错误",
+                        message: errorMessage,
+                        color: "danger"
+                    })
                 }
+            }).catch((error)=>{
+                showToast({
+                    title:"表单验证失败",
+                    message:error.message || "请检查输入",
+                    color:"danger"
+                })
             })
+    }
+
+    function getUsernameFromLocalStorage() {
+        try {
+            const user = JSON.parse(localStorage.getItem("user"));
+            return user?.username || '';
+        } catch (error) {
+            return '';
+        }
     }
 
     return (
@@ -56,7 +79,6 @@ export default function UpdatePassword() {
                             <Form.Item
                                 label={<p className="text-md">旧密码</p>}
                                 name="oldPassword"
-                                validateTrigger={false}
                                 rules={[
                                     { required: true, message: '请输入旧密码' }
                                 ]}
@@ -66,19 +88,30 @@ export default function UpdatePassword() {
                             <Form.Item
                                 label={<p className="text-md">新密码</p>}
                                 name="newPassword"
-                                validateTrigger={false}
                                 rules={[
-                                    { required: true, message: '请输入新密码' }
+                                    { required: true, message: '请输入新密码' },
+                                    {
+                                        pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{9,}$/,
+                                        message: '密码必须包含大写字母、小写字母、特殊字符，且长度大于8'
+                                    }
                                 ]}
                             >
                                 <Input.Password placeholder="请输入新密码" type="password" className="w-80" />
                             </Form.Item>
                             <Form.Item
                                 label={<p className="text-md">确认新密码</p>}
-                                name="newPasswordAgain"
-                                validateTrigger={false}
+                                name="confirmPassword"
+                                dependencies={['newPassword']}
                                 rules={[
-                                    { required: true, message: '请再次输入新密码' }
+                                    { required: true, message: '请再次输入新密码' },
+                                    ({ getFieldValue }) => ({
+                                        validator(_, value) {
+                                            if (!value || getFieldValue('newPassword') === value) {
+                                                return Promise.resolve();
+                                            }
+                                            return Promise.reject(new Error('两次输入的密码不一致'));
+                                        },
+                                    }),
                                 ]}
                             >
                                 <Input.Password placeholder="请输入新密码" type="password" className="w-80" />
@@ -89,7 +122,7 @@ export default function UpdatePassword() {
                                     okText="确定"
                                     onConfirm={updatePassword}
                                 >
-                                    <Button className="text-md">修改密码</Button>
+                                    <Button type="primary" className="text-md">修改密码</Button>
                                 </Popconfirm>
                             </div>
                         </Form>

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Button, Input, Form, Flex, Checkbox } from "antd";
-import { loginApi } from "src/core/api/user";
+import { loginApi } from "core/api/user";
 import { useNavigate } from "react-router-dom";
 import { UserOutlined, LockOutlined } from "@ant-design/icons"
-import { showToast } from "src/core/utils/toast";
-import { getUserInfoApi } from "src/core/api/user";
-import logo from 'src/core/assets/brand/logo.svg'
+import { showToast } from "core/utils/toast";
+import { getUserInfoApi } from "core/api/user";
+import logo from 'core/assets/brand/logo.svg'
 import { AiOutlineLoading } from "react-icons/ai";
+import style from "./Login.module.css"
 
 export default function Login() {
     const navigate = useNavigate();
@@ -15,50 +16,38 @@ export default function Login() {
     const [loading, setLoading] = useState(false)
 
     const login = () => {
+        if (loading) return
         form.validateFields()
             .then(async (values) => {
                 try {
-                    // @ts-ignore
                     setLoading(true)
                     const { accessToken, refreshToken } = await loginApi(values);
-                    setLoading(false)
                     if (accessToken && refreshToken) {
                         window.localStorage.setItem("token", accessToken)
                         window.localStorage.setItem("refreshToken", refreshToken)
                         navigate("/");
-                        showToast({
-                            title: "登录成功",
-                            color: "success"
-                        })
-                        if (remeberMe) {
-                            localStorage.setItem("username", values.username)
-                        } else {
-                            localStorage.removeItem("username")
-                        }
+                        showToast({ title: "登录成功", color: "success" })
+                        remeberMe ? localStorage.setItem("username", values.username) : localStorage.removeItem("username")
                         localStorage.setItem("remeberMe", String(remeberMe))
                     }
                     const user = await getUserInfoApi()
                     localStorage.setItem("user", JSON.stringify(user))
                 } catch (error) {
-                    setLoading(false)
-                    if (error.response && error.response.data) {
-                        const { code, message } = error.response.data
+                    if (error.response && error.response?.data) {
+                        const { code, message } = error.response?.data
                         switch (code) {
                             case 'B0902':
-                                showToast({
-                                    title: message,
-                                    color: 'danger'
-                                })
+                                showToast({ title: message, color: 'danger' })
                                 break
                             case 'B0901':
-                                showToast({
-                                    title: "用户不存在",
-                                    color: 'danger'
-                                })
+                                showToast({ title: "用户不存在", color: 'danger' })
                                 break
+                            default:
+                                showToast({ title: error.response?.data?.message || "未知错误", color: "danger" })
                         }
-
                     }
+                } finally {
+                    setLoading(false)
                 }
             })
             .catch((errorInfo) => {
@@ -84,10 +73,10 @@ export default function Login() {
         return () => {
             window.removeEventListener("keydown", handleKeyDown);
         };
-    }, [form]);
+    }, []);
 
     return (
-        <Flex vertical className="w-screen h-screen justify-center items-center bg-[url('src/core/assets/brand/bg.jpg')] bg-no-repeat bg-cover">
+        <Flex vertical className={style.loginBackground}>
             <Flex vertical className="w-3/12 bg-[rgba(0,0,0,0.4)] rounded-lg p-10 drop-shadow-xl">
                 <Flex className="w-full justify-center items-center select-none">
                     <img src={logo} className="w-12 mr-2" />
@@ -120,7 +109,7 @@ export default function Login() {
                         </Form.Item>
                     </Form>
                     <Flex className="w-full justify-between items-start mt-14">
-                        <Button size="large" disabled={loading} onClick={login} className="bg-[#455EEB] border-none w-full border-none">{loading? <AiOutlineLoading className="animate-spin"/> :"登录"}</Button>
+                        <Button size="large" disabled={loading} onClick={login} className="bg-[#455EEB] border-none w-full border-none">{loading ? <AiOutlineLoading className="animate-spin" /> : "登录"}</Button>
                     </Flex>
                 </Flex>
             </Flex>

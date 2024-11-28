@@ -17,15 +17,15 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param accessToken query string true "accessToken"
-// @Param refreshToken query string true "refreshToken"
+// @Param accessToken formData string true "accessToken"
+// @Param refreshToken formData string true "refreshToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/user/logout [post]
 func (h *handler) Logout() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.LogoutRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
