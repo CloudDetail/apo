@@ -26,10 +26,6 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) =>
                     showToast({ title: "用户添加成功", color: "success" })
                 } catch (error) {
                     console.error(error)
-                    showToast({
-                        title: error.response?.data?.message || "未知错误",
-                        color: 'danger'
-                    })
                 } finally {
                     setLoading(false)
                     form.resetFields()
