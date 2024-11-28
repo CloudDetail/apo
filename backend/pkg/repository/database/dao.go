@@ -34,7 +34,7 @@ type Repo interface {
 	ListQuickAlertRuleMetric() ([]AlertMetricsData, error)
 
 	Login(username, password string) error
-	CreateUser(username, password string) error
+	CreateUser(user *User) error
 	UpdateUserPhone(username string, phone string) error
 	UpdateUserEmail(username string, email string) error
 	UpdateUserPassword(username, oldPassword, newPassword string) error
@@ -108,6 +108,9 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err = createAdmin(database); err != nil {
 		return nil, err
 	}
+	if err = createAnonymousUser(database); err != nil {
+		return nil, err
+	}
 	daoRepo := &daoRepo{
 		db:    database,
 		sqlDB: sqlDb,
@@ -120,21 +123,4 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	}
 
 	return daoRepo, nil
-}
-
-const adminUsername = "admin"
-const adminPassword = "APO2024@admin"
-
-func createAdmin(db *gorm.DB) error {
-	admin := &User{
-		Username: adminUsername,
-		Password: Encrypt(adminPassword),
-		Role:     RoleAdmin,
-	}
-	var count int64
-	db.Model(&User{}).Where("username = ?", adminUsername).Count(&count)
-	if count > 0 {
-		return nil
-	}
-	return db.Create(&admin).Error
 }

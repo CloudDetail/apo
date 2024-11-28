@@ -9,15 +9,15 @@ import (
 )
 
 type GetServiceEndpointRelationResponse struct {
-	Parents       []clickhouse.TopologyNode    `json:"parents"`        // 上游节点列表
-	Current       clickhouse.TopologyNode      `json:"current"`        // 当前服务
-	ChildRelation []clickhouse.ToplogyRelation `json:"childRelations"` // 下游节点调用关系列表
+	Parents       []*model.TopologyNode    `json:"parents"`        // 上游节点列表
+	Current       *model.TopologyNode      `json:"current"`        // 当前服务
+	ChildRelation []*model.ToplogyRelation `json:"childRelations"` // 下游节点调用关系列表
 }
 
 type GetServiceEndpointTopologyResponse struct {
-	Parents  []clickhouse.TopologyNode `json:"parents"`  // 上游节点列表
-	Current  clickhouse.TopologyNode   `json:"current"`  // 当前服务
-	Children []clickhouse.TopologyNode `json:"children"` // 下游节点列表
+	Parents  []*model.TopologyNode `json:"parents"`  // 上游节点列表
+	Current  *model.TopologyNode   `json:"current"`  // 当前服务
+	Children []*model.TopologyNode `json:"children"` // 下游节点列表
 }
 
 type GetDescendantMetricsResponse = prometheus.DescendantMetrics

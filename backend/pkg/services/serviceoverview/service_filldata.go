@@ -168,7 +168,7 @@ func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTi
 			SvcName:    metricResult.Metric.SvcName,
 			ContentKey: metricResult.Metric.ContentKey,
 		}
-		// 所有合并值均只包含最新时间点的结果,直接取metricResult.Values[0]
+		// 所有合并值均只包含最新时间点的结果,直接取metricResult.values[0]
 		value := metricResult.Values[0].Value
 		if endpoint, ok := endpoints.MetricGroupMap[key]; ok {
 			endpoint.DelaySource = &value

@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
 
@@ -36,6 +37,14 @@ func (h *handler) UpdateUserPassword() core.HandlerFunc {
 			)
 			return
 		}
+		if req.Username == config.Get().User.AnonymousUser.Username {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.UserNoPermissionError,
+				code.Text(code.UserNoPermissionError)))
+			return
+		}
+
 		if req.ConfirmPassword != req.NewPassword {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

@@ -17,7 +17,7 @@ import (
 type Repo interface {
 	// ========== span_trace_duration_bucket Start ==========
 	// 基于服务列表、URL列表和时段、步长，查询P90曲线
-	QueryRangePercentile(startTime int64, endTime int64, step int64, services []string, endpoints []string) ([]DescendantMetrics, error)
+	QueryRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
 	// 查询实例的P90延时曲线
 	QueryInstanceP90(startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error)
 	// ========== span_trace_duration_bucket END ==========
@@ -50,6 +50,21 @@ type Repo interface {
 	// QueryInstanceLogRangeData 查询实例级别的日志曲线图
 	QueryInstanceLogRangeData(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, stepMicroS int64, granularity Granularity, podFilterKVs, vmFilterKVs []string) ([]MetricResult, error)
 	// ========== originx_logparser_level_count_total END ==========
+
+	// ========== db_duration_bucket Start ==========
+	// 基于服务列表、URL列表和时段、步长，查询P90曲线
+	QueryDbRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
+	// ========== db_duration_bucket END ==========
+
+	// ========== external_duration_bucket Start ==========
+	// 基于服务列表、URL列表和时段、步长，查询P90曲线
+	QueryExternalRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
+	// ========== external_duration_bucket END ==========
+
+	// ========== mq_duration_bucket Start ==========
+	// 基于服务列表、URL列表和时段、步长，查询P90曲线
+	QueryMqRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
+	// ========== mq_duration_nanoseconds_bucket END ==========
 
 	QueryAggMetricsWithFilter(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error)
 	QueryRangeAggMetricsWithFilter(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, step int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error)

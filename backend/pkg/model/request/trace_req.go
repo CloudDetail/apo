@@ -29,10 +29,19 @@ type GetSingleTraceInfoRequest struct {
 
 type GetFlameDataRequest struct {
 	SampleType string `json:"sampleType" form:"sampleType" binding:"required"`
-	PID        uint32 `json:"pid" form:"pid" binding:"required"`
-	TID        uint32 `json:"tid" form:"tid" binding:"required"`
+	PID        int64  `json:"pid" form:"pid" binding:"required"`
+	TID        int64  `json:"tid" form:"tid" binding:"required"`
 	SpanID     string `json:"spanId" form:"spanId" binding:"required"`
 	TraceID    string `json:"traceId" form:"traceId" binding:"required"`
 	StartTime  int64  `json:"startTime" form:"startTime" binding:"required"`
 	EndTime    int64  `json:"endTime" form:"endTime" binding:"required,gtfield=StartTime"`
+}
+
+type GetProcessFlameGraphRequest struct {
+	// 限制节点要展示的最小的total
+	MaxNodes   int64  `json:"maxNodes" form:"maxNodes"`
+	StartTime  int64  `json:"startTime" form:"startTime" binding:"required"`
+	EndTime    int64  `json:"endTime" form:"endTime" binding:"required,gtfield=StartTime"`
+	PID        int64  `json:"pid" form:"pid" binding:"required"`
+	SampleType string `json:"sampleType" form:"sampleType" binding:"required"`
 }

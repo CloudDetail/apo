@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
@@ -25,7 +26,7 @@ import (
 func (h *handler) UpdateUserInfo() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.UpdateUserInfoRequest)
-		if err := c.ShouldBindPostForm(req); err != nil {
+		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -33,6 +34,15 @@ func (h *handler) UpdateUserInfo() core.HandlerFunc {
 			)
 			return
 		}
+
+		if req.Username == config.Get().User.AnonymousUser.Username {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.UserNoPermissionError,
+				code.Text(code.UserNoPermissionError)))
+			return
+		}
+
 		err := h.userService.UpdateUserInfo(req)
 		if err != nil {
 			var vErr model.ErrWithMessage

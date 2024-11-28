@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"strings"
 	"time"
 )
@@ -12,7 +12,6 @@ import (
 var secret = []byte("APO@2024")
 var accessExpireTime = 30 * time.Minute
 var refreshExpireTime = 48 * time.Hour
-var testExpireTime = 7 * 24 * time.Hour
 
 var (
 	TokenInvalid = errors.New("invalid token")

@@ -25,20 +25,20 @@ const (
 )
 
 // 基于服务列表、URL列表和时段、步长，查询P90曲线
-func (repo *promRepo) QueryRangePercentile(startTime int64, endTime int64, step int64, services []string, endpoints []string) ([]DescendantMetrics, error) {
+func (repo *promRepo) QueryRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error) {
+	svcs, endpoints, _ := nodes.GetLabels(model.GROUP_SERVICE)
+	if len(svcs) == 0 {
+		return nil, nil
+	}
+
 	tRange := v1.Range{
 		Start: time.UnixMicro(startTime),
 		End:   time.UnixMicro(endTime),
 		Step:  time.Duration(step * 1000),
 	}
-
 	filters := []string{}
-	if len(endpoints) > 0 {
-		filters = append(filters, fmt.Sprintf(TEMPLATE_FILTER_ENDPOINT, RegexMultipleValue(endpoints...)))
-	}
-	if len(services) > 0 {
-		filters = append(filters, fmt.Sprintf(TEMPLATE_FILTER_SVC, strings.Join(services, "|")))
-	}
+	filters = append(filters, fmt.Sprintf(TEMPLATE_FILTER_ENDPOINT, RegexMultipleValue(endpoints...)))
+	filters = append(filters, fmt.Sprintf(TEMPLATE_FILTER_SVC, strings.Join(svcs, "|")))
 
 	query := fmt.Sprintf(TEMPLATE_HISTO_P90_LATENCY,
 		repo.GetRange(),
@@ -50,60 +50,7 @@ func (repo *promRepo) QueryRangePercentile(startTime int64, endTime int64, step 
 		return nil, err
 	}
 
-	result := make([]DescendantMetrics, 0)
-	values, ok := res.(prometheus_model.Matrix)
-	if !ok {
-		return result, nil
-	}
-
-	for _, val := range values {
-		svcName, ok := val.Metric["svc_name"]
-		if !ok {
-			continue
-		}
-		contentKey, ok := val.Metric["content_key"]
-		if !ok {
-			continue
-		}
-
-		ts := DescendantMetrics{
-			ServiceName: string(svcName),
-			EndPoint:    string(contentKey),
-			LatencyP90:  []MetricsPoint{},
-		}
-
-		tsMark := tRange.Start.UnixMicro()
-		for _, pair := range val.Values {
-			// 未获取到数据的时间点填充0
-			for tsMark < int64(pair.Timestamp)*1000 {
-				ts.LatencyP90 = append(ts.LatencyP90, MetricsPoint{
-					Timestamp: tsMark,
-					Value:     float64(pair.Value / 1000),
-				})
-				tsMark += tRange.Step.Microseconds()
-			}
-
-			ts.LatencyP90 = append(ts.LatencyP90, MetricsPoint{
-				Timestamp: int64(pair.Timestamp) * 1000,
-				Value:     float64(pair.Value / 1000),
-			})
-			tsMark += tRange.Step.Microseconds()
-		}
-
-		if tsMark < tRange.End.UnixMicro() {
-			for tsMark < tRange.End.UnixMicro() {
-				ts.LatencyP90 = append(ts.LatencyP90, MetricsPoint{
-					Timestamp: tsMark,
-					Value:     float64(0),
-				})
-				tsMark += tRange.Step.Microseconds()
-			}
-		}
-
-		result = append(result, ts)
-	}
-
-	return result, nil
+	return getDescendantMetrics("svc_name", "content_key", tRange, res), nil
 }
 
 func (repo *promRepo) QueryInstanceP90(startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error) {
@@ -176,4 +123,61 @@ type DescendantMetrics struct {
 type MetricsPoint struct {
 	Timestamp int64   `json:"timestamp"` // 时间(微秒)
 	Value     float64 `json:"value"`     // 值
+}
+
+func getDescendantMetrics(svcNameLabel prometheus_model.LabelName, contentKeyLabel prometheus_model.LabelName, tRange v1.Range, res prometheus_model.Value) []DescendantMetrics {
+	result := make([]DescendantMetrics, 0)
+	values, ok := res.(prometheus_model.Matrix)
+	if !ok {
+		return result
+	}
+
+	for _, val := range values {
+		svcName, ok := val.Metric[svcNameLabel]
+		if !ok {
+			continue
+		}
+		contentKey, ok := val.Metric[contentKeyLabel]
+		if !ok {
+			continue
+		}
+
+		ts := DescendantMetrics{
+			ServiceName: string(svcName),
+			EndPoint:    string(contentKey),
+			LatencyP90:  []MetricsPoint{},
+		}
+
+		tsMark := tRange.Start.UnixMicro()
+		for _, pair := range val.Values {
+			// 未获取到数据的时间点填充0
+			for tsMark < int64(pair.Timestamp)*1000 {
+				ts.LatencyP90 = append(ts.LatencyP90, MetricsPoint{
+					Timestamp: tsMark,
+					Value:     float64(pair.Value / 1000),
+				})
+				tsMark += tRange.Step.Microseconds()
+			}
+
+			ts.LatencyP90 = append(ts.LatencyP90, MetricsPoint{
+				Timestamp: int64(pair.Timestamp) * 1000,
+				Value:     float64(pair.Value / 1000),
+			})
+			tsMark += tRange.Step.Microseconds()
+		}
+
+		if tsMark < tRange.End.UnixMicro() {
+			for tsMark < tRange.End.UnixMicro() {
+				ts.LatencyP90 = append(ts.LatencyP90, MetricsPoint{
+					Timestamp: tsMark,
+					Value:     float64(0),
+				})
+				tsMark += tRange.Step.Microseconds()
+			}
+		}
+
+		result = append(result, ts)
+	}
+
+	return result
 }

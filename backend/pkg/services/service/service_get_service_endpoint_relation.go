@@ -1,9 +1,9 @@
 package service
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 )
 
 func (s *service) GetServiceEndpointRelation(req *request.GetServiceEndpointRelationRequest) (*response.GetServiceEndpointRelationResponse, error) {
@@ -20,12 +20,8 @@ func (s *service) GetServiceEndpointRelation(req *request.GetServiceEndpointRela
 	}
 
 	res := &response.GetServiceEndpointRelationResponse{
-		Parents: parents,
-		Current: clickhouse.TopologyNode{
-			Service:  req.Service,
-			Endpoint: req.Endpoint,
-			IsTraced: true,
-		},
+		Parents:       parents.GetNodes(),
+		Current:       model.NewServerNode(req.Service, req.Endpoint, true),
 		ChildRelation: relations,
 	}
 	return res, nil

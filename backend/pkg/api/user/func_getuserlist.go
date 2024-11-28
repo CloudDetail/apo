@@ -14,7 +14,7 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Authorization header string true "Bearer accessToken"
+// @Param Authorization header string false "Bearer accessToken"
 // @Param username query string false "用户名"
 // @Param currentPage query string false "当前页"
 // @Param pageSize query string false "页大小"

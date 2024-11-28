@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
@@ -34,6 +35,15 @@ func (h *handler) UpdateUserPhone() core.HandlerFunc {
 			)
 			return
 		}
+
+		if req.Username == config.Get().User.AnonymousUser.Username {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.UserNoPermissionError,
+				code.Text(code.UserNoPermissionError)))
+			return
+		}
+
 		if !phoneRegexp.MatchString(req.Phone) {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

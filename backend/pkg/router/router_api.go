@@ -97,11 +97,12 @@ func setApiRouter(r *resource) {
 		traceHandler := trace.New(r.logger, r.ch, r.jaegerRepo)
 		traceApi.GET("/onoffcpu", traceHandler.GetOnOffCPU())
 		traceApi.POST("/pagelist", traceHandler.GetTracePageList())
+		traceApi.GET("/flame", traceHandler.GetFlameGraphData())
+		traceApi.GET("/flame/process", traceHandler.GetProcessFlameGraph())
 		traceApi.Use(middleware.Auth(r.cache))
 		traceApi.GET("/pagelist/filters", traceHandler.GetTraceFilters())
 		traceApi.POST("/pagelist/filter/value", traceHandler.GetTraceFilterValue())
 		traceApi.GET("/info", traceHandler.GetSingleTraceInfo())
-		traceApi.GET("/flame", traceHandler.GetFlameGraphData())
 	}
 
 	alertApi := r.mux.Group("/api/alerts")

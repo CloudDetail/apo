@@ -18,17 +18,15 @@ import (
 )
 
 type Repo interface {
-	// ========== service_relation ==========
+	// ========== service_relationship ==========
 	// 查询上游节点列表
-	ListParentNodes(req *request.GetServiceEndpointTopologyRequest) ([]TopologyNode, error)
+	ListParentNodes(req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error)
 	// 查询下游节点列表
-	ListChildNodes(req *request.GetServiceEndpointTopologyRequest) ([]TopologyNode, error)
-
-	// ========== service_topology ==========
-	// 查询所有子孙节点列表
-	ListDescendantNodes(req *request.GetDescendantMetricsRequest) ([]TopologyNode, error)
+	ListChildNodes(req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error)
+	// 查询所有子孙服务节点列表
+	ListDescendantNodes(req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error)
 	// 查询所有子孙节点的调用关系
-	ListDescendantRelations(req *request.GetServiceEndpointTopologyRequest) ([]ToplogyRelation, error)
+	ListDescendantRelations(req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error)
 	// 查询入口节点列表
 	ListEntryEndpoints(req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error)
 
@@ -98,7 +96,7 @@ type Repo interface {
 	GetNetworkSpanSegments(traceId string, spanId string) ([]NetSegments, error)
 
 	// ========== flame graph ===========
-	GetFlameGraphData(startTime, endTime int64, pid, tid uint32, sampleType, spanId, traceId string) (*[]FlameGraphData, error)
+	GetFlameGraphData(startTime, endTime int64, pid, tid int64, sampleType, spanId, traceId string) (*[]FlameGraphData, error)
 }
 
 type chRepo struct {

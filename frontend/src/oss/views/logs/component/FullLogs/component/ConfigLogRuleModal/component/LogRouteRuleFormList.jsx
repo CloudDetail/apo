@@ -2,6 +2,7 @@ import { Col, Form, Input, Row, Select } from 'antd'
 import React from 'react'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
+import LogStructRuleFormList from './LogStructRuleFormList'
 const routeKeyList = [
   { label: '_container_id_', value: '_container_id_' },
   { label: '_source_', value: '_source_' },
@@ -43,7 +44,7 @@ export default function LogRouteRuleFormList() {
                 />
                 {/* </div>
                 <div className="flex flex-row"> */}
-                <AiOutlineInfoCircle size={16} className="ml-1" />
+                <AiOutlineInfoCircle size={16} className="ml-1 mr-1" />
                 <span className="text-xs text-gray-400">解析规则只应用于满足匹配规则的日志</span>
                 {/* </div> */}
               </>

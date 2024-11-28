@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
@@ -16,10 +17,16 @@ func Auth(tokenCache cache.Repo) gin.HandlerFunc {
 		rawToken := c.Request.Header.Get("Authorization")
 		token := util.ParseRawToken(rawToken)
 		if len(token) == 0 {
-			err := core.Error(http.StatusBadRequest, code.UnAuth, code.Text(code.UnAuth))
-			c.AbortWithStatus(http.StatusBadRequest)
-			c.Set("_abort_error_", err)
-			return
+			if config.Get().User.AnonymousUser.Enable {
+				c.Set(UserKey, config.Get().User.AnonymousUser.Username)
+				c.Next()
+				return
+			} else {
+				err := core.Error(http.StatusBadRequest, code.UnAuth, code.Text(code.UnAuth))
+				c.AbortWithStatus(http.StatusBadRequest)
+				c.Set("_abort_error_", err)
+				return
+			}
 		}
 
 		// TODO handle error when switch to redis

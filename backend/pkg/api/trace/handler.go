@@ -35,6 +35,10 @@ type Handler interface {
 	// @Tags API.trace
 	// @Router /api/trace/flame [get]
 	GetFlameGraphData() core.HandlerFunc
+	// GetProcessFlameGraph 获取并整合进程级别火焰图数据
+	// @Tags API.trace
+	// @Router /api/trace/flame/process [get]
+	GetProcessFlameGraph() core.HandlerFunc
 }
 
 type handler struct {
@@ -45,6 +49,6 @@ type handler struct {
 func New(logger *zap.Logger, chRepo clickhouse.Repo, jaegerRepo jaeger.JaegerRepo) Handler {
 	return &handler{
 		logger:       logger,
-		traceService: trace.New(chRepo, jaegerRepo),
+		traceService: trace.New(chRepo, jaegerRepo, logger),
 	}
 }
