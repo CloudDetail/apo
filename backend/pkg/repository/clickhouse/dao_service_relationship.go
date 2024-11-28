@@ -333,6 +333,10 @@ func (relation *ChildRelation) getParentClientKey() string {
 	return fmt.Sprintf("%s.%s.%s.%s", relation.ParentService, relation.ParentUrl, relation.ClientPeer, relation.ClientKey)
 }
 
+func (relation *ChildRelation) getParentCurrentKey() string {
+	return fmt.Sprintf("%s.%s.%s.%s", relation.ParentService, relation.ParentUrl, relation.Service, relation.Url)
+}
+
 func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation {
 	result := make([]*model.ToplogyRelation, 0)
 	if len(relations) == 0 {
@@ -375,11 +379,11 @@ func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation 
 		} else if relation.ParentService != "" && relation.Service != "" {
 			// 已监控服务数据
 			// A -> B
-			key := relation.getParentClientKey()
+			key := relation.getParentCurrentKey()
 			if _, exist := relationMap[key]; !exist {
 				relationMap[key] = model.NewServerRelation(
-					relation.ClientPeer,
-					relation.ClientKey,
+					relation.ParentService,
+					relation.ParentUrl,
 					relation.Service,
 					relation.Url,
 					relation.IsTraced,
