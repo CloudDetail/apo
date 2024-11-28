@@ -10,7 +10,7 @@ import { IoMdLock } from "react-icons/io";
 export default function UserPage() {
     return (
         <>
-            <Flex vertical className="w-full mt-4 pl-12">
+            <Flex vertical className="w-full mt-4 pl-12 pb-20">
                 <Divider orientation="left">基本信息</Divider>
                 <UserInfo />
                 <Divider orientation="left">修改密码</Divider>

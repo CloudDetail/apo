@@ -1,7 +1,9 @@
 // src/api/request.js
 import axios from 'axios'
 import { showToast } from './toast'
+import FormData from 'form-data';
 import qs from 'qs'
+
 // 创建axios实例
 const instance = axios.create({
   baseURL: '', // 替换为你的API基础URL
@@ -118,13 +120,33 @@ const get = (url, params = {}, config = {}) => {
     throw error
   })
 }
+
 // 封装POST请求
-const post = (url, data = {}, config = {}) => {
-  return instance.post(url, data, { ...config }).catch((error) => {
-    // 在此处可以捕获到错误信息
-    throw error
-  })
-}
+const post = (url, data = {}, config = {}, form = false) => {
+  if (form) {
+    const formData = new URLSearchParams();
+    Object.keys(data).forEach(key => {
+      formData.append(key, data[key]);
+    });
+    data = formData;
+  }
+
+  const headers = form ? {
+    ...config.headers,
+    'Content-Type': 'application/x-www-form-urlencoded',
+  } : config.headers;
+
+  const requestConfig = { ...config, headers };
+
+  // 发送 POST 请求
+  return instance.post(url, form ? data.toString() : data, requestConfig)
+    .catch((error) => {
+      // 捕获错误信息
+      throw error;
+    });
+};
+
+
 // 封装DELETE请求
 const del = (url, data = {}, config = {}) => {
   return instance.delete(url, { data, ...config }).catch((error) => {

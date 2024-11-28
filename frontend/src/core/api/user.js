@@ -1,31 +1,31 @@
 import { post, get } from "../utils/request"
 
 const loginApi = (params) => {
-    return post(`/api/user/login?username=${params.username}&password=${params.password}`)
+    return post(`/api/user/login`,params,{},true)
 }
 
 const logoutApi = (params) => {
-    return post(`/api/user/logout?accessToken=${params.accessToken}&refreshToken=${params.refreshToken}`)
+    return post(`/api/user/logout`,params,{},true)
 }
 
 const updateEmailApi = (params) => {
-    return post(`/api/user/update/email?email=${params.email}`)
+    return post(`/api/user/update/email`,params,{},true)
 }
 
 const updateCorporationApi = (params) => {
-    return post(`/api/user/update/info?corporation=${params.corporation}`)
+    return post(`/api/user/update/info`,params,{},true)
 }
 
 const updatePasswordApi = (params) => {
-    return post(`/api/user/update/password?oldPassword=${params.oldPassword}&newPassword=${params.newPassword}`)
+    return post(`/api/user/update/password`,params,{},true)
 }
 
 const updatePhoneApi = (params) => {
-    return post(`/api/user/update/phone?phone=${params.phone}`)
+    return post(`/api/user/update/phone`,params,{},true)
 }
 
 const createUserApi = (params) => {
-    return post(`/api/user/create?username=${params.username}&password=${params.password}&confirmPassword=${params.confirmPassword}`)
+    return post(`/api/user/create`,params,{},true)
 }
 
 const getUserInfoApi = () => {
@@ -33,11 +33,15 @@ const getUserInfoApi = () => {
 }
 
 const getUserListApi = (params,signal) => {
-    return get(`/api/user/list?currentPage=${params.currentPage}&pageSize=${params.pageSize}&username=${params.username}&role=${params.role}&corporation=${params.corporation}`,{signal})
+    return get(`/api/user/list`,params,{signal})
 }
 
 const removeUserApi = (params) => {
-    return post(`/api/user/remove?username=${params.username}`)
+    return post(`/api/user/remove`,params,{},true)
+}
+
+const updatePasswordWithNoOldPwd = (params) => {
+    return post(`/api/user/reset`,params,{},true)
 }
 
 export {
@@ -50,5 +54,6 @@ export {
     createUserApi,
     getUserInfoApi,
     getUserListApi,
-    removeUserApi
+    removeUserApi,
+    updatePasswordWithNoOldPwd
 }
