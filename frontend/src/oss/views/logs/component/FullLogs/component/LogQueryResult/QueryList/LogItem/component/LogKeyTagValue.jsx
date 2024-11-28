@@ -72,6 +72,7 @@ const LogKeyTagValue = ({ title, description }) => {
           {value?.length > 10 ? (
             <Virtuoso
               style={{ height: 400, width: '100%' }}
+              overscan={1000}
               data={value}
               itemContent={(index, paragraph) => <div key={index}>{value[index]}</div>}
             />
