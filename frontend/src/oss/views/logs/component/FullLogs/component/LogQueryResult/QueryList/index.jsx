@@ -1,18 +1,15 @@
-import React from 'react'
-import { Virtuoso } from 'react-virtuoso'
 import LogItem from './LogItem'
-import { Empty } from 'antd'
+import { Empty, List } from 'antd'
 const QueryList = ({ logs, openContextModal = null, loading }) => {
   return (
-    <div className="overflow-hidden h-full">
+    <div className="overflow-auto h-full">
       {logs?.length > 0 && (
-        <Virtuoso
-          style={{ height: '100%', width: '100%' }}
-          data={logs}
-          itemContent={(index) => (
-            <div style={{ padding: '10px' }}>
-              <LogItem log={logs[index]} openContextModal={openContextModal} />
-            </div>
+        <List
+          dataSource={logs}
+          renderItem={(log) => (
+            <List.Item>
+              <LogItem log={log} openContextModal={openContextModal} />
+            </List.Item>
           )}
         />
       )}

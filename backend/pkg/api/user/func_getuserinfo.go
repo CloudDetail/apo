@@ -13,7 +13,7 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Authorization header string true "Bearer accessToken"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetUserInfoResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/user/info [get]

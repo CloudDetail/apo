@@ -1,6 +1,10 @@
-import { Form, Input, Modal, Select, Tooltip } from 'antd'
-import React, { useEffect, useState } from 'react'
+import { Form, Input, Modal, Select, Tooltip, Tabs, Divider } from 'antd'
+import React, { Children, useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import LogRouteRuleFormList from './component/LogRouteRuleFormList'
+import LogStructRuleFormList from './component/LogStructRuleFormList'
+import { IoMdAddCircleOutline } from 'react-icons/io'
+import LoadingSpinner from 'src/core/components/Spinner'
 import {
   addLogRuleApi,
   getLogRuleApi,
@@ -17,6 +21,12 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   const { getLogTableInfo, updateLoading } = useLogsContext()
   const [form] = Form.useForm()
   const [serviceList, setServiceList] = useState([])
+  const [currentLogType, setCurrentLogType] = useState(0)
+  const [parseRule, setParseRule] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [jsonRule, setJsonRule] = useState("")
+  const subFormRef = useRef(null)
+
   const getServiceListData = () => {
     // 获取7天前的开始时间（当天00:00:00）
     const startDate = new Date()
@@ -39,7 +49,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         )
       })
       .catch((error) => {
-        // console.log(error)
+        console.log(error)
         setServiceList([])
       })
   }
@@ -48,18 +58,25 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       dataBase: logRuleInfo.dataBase,
       tableName: logRuleInfo.tableName,
     }).then((res) => {
-      form.setFieldsValue({
-        parseName: res.parseName,
-        parseRule: res.parseRule,
-        routeRule: Object.entries(res.routeRule).map(([key, value]) => ({
-          key: { key: key, value: key },
-          value: value,
-        })),
-        serviceName: res.serviceName,
-        parseInfo: logRuleInfo.parseInfo,
-      })
-    })
-  }
+      // 更新 currentLogType
+      const newLogType = res.isStructured ? 0 : 1;
+      setCurrentLogType(newLogType);
+      setTimeout(() => {
+        form.setFieldsValue({
+          parseName: res.parseName,
+          parseRule: res.parseRule,
+          routeRule: Object.entries(res.routeRule).map(([key, value]) => ({
+            key: { key: key, value: key },
+            value: value,
+          })),
+          serviceName: (res.serviceName.length == 1 && res.serviceName[0] == "") ? null : res.serviceName,
+          parseInfo: logRuleInfo.parseInfo,
+        });
+        setParseRule(res.parseRule);
+        subFormRef.current.setStructuringObject(res.tableFields);
+      }, 0);
+    });
+  };
   useEffect(() => {
     if (logRuleInfo && modalVisible) {
       getLogRule()
@@ -69,15 +86,22 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
     if (modalVisible) getServiceListData()
   }, [modalVisible, logRuleInfo])
 
+  useEffect(() => {
+    setLoading(false)
+  }, [])
+
   function addLogRule(logRuleParams) {
     addLogRuleApi(logRuleParams).then((res) => {
       showToast({
         title: '日志库配置成功',
         color: 'success',
       })
-
+      setLoading(false)
       getLogTableInfo()
-      closeModal()
+      handleModalClose()
+    }).catch(() => {
+      setLoading(false)
+      updateLoading(false)
     })
   }
   function updateLogRule(logRuleParams) {
@@ -90,32 +114,100 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         title: '日志库配置成功',
         color: 'success',
       })
-      closeModal()
+      setLoading(false)
+      handleModalClose()
       getLogTableInfo()
+    }).catch((error) => {
+      setLoading(false)
+      updateLoading(false)
+      console.log(error)
+      showToast({
+        title: error,
+        color: "danger"
+      })
     })
   }
   function saveLogRule() {
-    form
-      .validateFields({})
-      .then(() => {
-        const formState = form.getFieldsValue(true)
-        const logRuleParams = {
-          ...formState,
+    if (loading) return
+    setLoading(true)
+    Promise.all(
+      !currentLogType ? [
+        form.validateFields({}),
+        subFormRef.current.form.validateFields({})
+      ] : [
+        form.validateFields({})
+      ]
+    )
+      .then(([formState, subFormState]) => {
+        let logRuleParams
+        if (!currentLogType) {
+          logRuleParams = {
+            ...formState,
+            parseRule: ""
+          }
+        } else {
+          logRuleParams = {
+            ...formState,
+          }
         }
         let routeRule = {}
+        let tableFields = []
         formState?.routeRule?.forEach((route) => {
           if (route?.key?.value && route.value) {
             routeRule[route?.key?.value] = route.value
           }
         })
-        logRuleParams.routeRule = routeRule
         if (Object.keys(routeRule).length === 0) {
           showToast({
             title: '匹配规则不可为空',
             color: 'danger',
           })
+          updateLoading(false)
+          setLoading(false)
           return
         }
+        logRuleParams.routeRule = routeRule
+        if (!currentLogType) {
+          Object.keys(subFormState).forEach(key => {
+            const match = key.match(/^(\w+)_Type$/);
+            if (match) {
+              const field = match[1];
+              tableFields.push({
+                type: subFormState[`${field}_Type`],
+                name: subFormState[`${field}_Name`]
+              });
+            }
+          });
+          const names = new Set();
+          for (const obj of tableFields) {
+            if (names.has(obj.name)) {
+              showToast({
+                title: "结构化规则键重复",
+                color: "danger"
+              })
+              updateLoading(false)
+              setLoading(false)
+              return
+            }
+            names.add(obj.name);
+          }
+          logRuleParams.tableFields = tableFields
+          if (tableFields.length === 0) {
+            showToast({
+              title: "日志格式不能为空",
+              color: "danger"
+            })
+            updateLoading(false)
+            setLoading(false)
+            return
+          }
+        }
+        if (!currentLogType) {
+          logRuleParams.isStructured = true
+        } else {
+          logRuleParams.isStructured = false
+        }
+        setJsonRule("")
         updateLoading(true)
         if (logRuleInfo) {
           updateLogRule(logRuleParams)
@@ -123,7 +215,11 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
           addLogRule(logRuleParams)
         }
       })
-      .catch((error) => console.log(error))
+      .catch((error) => {
+        updateLoading(false)
+        setLoading(false)
+        console.log(error)
+      })
   }
   const getServiceRouteRule = (serviceName) => {
     getLogRuleServiceRouteRuleApi({
@@ -157,21 +253,102 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       // 更新表单值
       form.setFieldValue('routeRule', result)
     })
+      .catch((error) => {
+        updateLoading(false)
+        setLoading(false)
+        showToast({
+          title: "错误",
+          message: error,
+          color: "danger"
+        })
+      })
+  }
+  const tabItems = [
+    {
+      key: 0,
+      label: <span className='text-md select-none'>结构化JSON日志</span>,
+      children: (
+        <div className='min-h-36'>
+          <Form.Item
+            name="structuredRule"
+          >
+            <div className='flex mb-2'>
+              <AiOutlineInfoCircle size={16} className="ml-1 mr-1" />
+              <span className="text-xs text-gray-400">请输入JSON格式的日志样本自动生成日志格式（仅支持解析JSON最外层的键）</span>
+            </div>
+            <TextArea placeholder="日志样本" rows={3} onChange={(e) => { setJsonRule(e.target.value) }} />
+          </Form.Item>
+          <div className='flex flex-col items-start w-full'>
+            <LogStructRuleFormList jsonRule={jsonRule} fForm={form} ref={subFormRef} />
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 1,
+      label: <span className='text-md select-none'>非结构化日志</span>,
+      children: (
+        <Form.Item
+          name="parseRule"
+          rules={[
+            {
+              validator: (_, value) => {
+                if (currentLogType) {
+                  if (!value) {
+                    return Promise.reject(new Error("请输入解析规则"))
+                  }
+                }
+                return Promise.resolve()
+              }
+            }
+          ]}
+        >
+          <div className='flex mb-2'>
+            <AiOutlineInfoCircle size={16} className="ml-1 mr-1" />
+            <span className="text-xs text-gray-400">
+              将符合规则的日志进行结构化并加快查询速度，查看
+              <a
+                href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/日志解析规则配置/"
+                className="underline"
+                target="_blank"
+              >
+                帮助文档
+              </a>
+            </span>
+          </div>
+          <TextArea placeholder="解析规则" rows={3} value={parseRule} onChange={(e) => {
+            setParseRule(e.target.value)
+            form.setFieldValue('parseRule', e.target.value)
+          }} />
+        </Form.Item>
+      )
+    },
+  ]
+  const handleModalClose = () => {
+    if (!loading) {
+      closeModal()
+      setCurrentLogType(0)
+      setParseRule("")
+      subFormRef.current.setStructuringObject(null)
+      setJsonRule("")
+    }
   }
   return (
     <Modal
       title={'日志库配置'}
       open={modalVisible}
-      onCancel={closeModal}
+      onCancel={handleModalClose}
       destroyOnClose
       centered
       okText={'保存'}
+
       cancelText="取消"
       maskClosable={false}
       onOk={saveLogRule}
       width={1000}
-      bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden' }}
+      bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden', padding: "20px" }}
     >
+      <LoadingSpinner loading={loading} />
       <Form
         layout={'vertical'}
         form={form}
@@ -210,33 +387,25 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
           ></Select>
         </Form.Item>
         <LogRouteRuleFormList />
-
-        <Form.Item
-          label={
-            <div className="flex items-center">
-              解析规则 <AiOutlineInfoCircle size={16} className="ml-1" />
-              <span className="text-xs text-gray-400">
-                将符合规则的日志进行结构化并加快查询速度，查看
-                <a
-                  href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/日志解析规则配置/"
-                  className="underline"
-                  target="_blank"
-                >
-                  帮助文档
-                </a>
-              </span>
-            </div>
-          }
-          name="parseRule"
-          rules={[
-            {
-              required: true,
-              message: '请输入解析规则',
-            },
-          ]}
-        >
-          <TextArea placeholder="解析规则" rows={3} />
-        </Form.Item>
+        {/* <div className="flex items-center">
+          解析规则 <AiOutlineInfoCircle size={16} className="ml-1" />
+          <span className="text-xs text-gray-400">
+            将符合规则的日志进行结构化并加快查询速度，查看
+            <a
+              href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/日志解析规则配置/"
+              className="underline"
+              target="_blank"
+            >
+              帮助文档
+            </a>
+          </span>
+        </div> */}
+        <div className='flex'>
+          <span className='text-[#DC4446] text-[20px] mr-1'>*</span><p>日志格式配置</p>
+        </div>
+        <Tabs items={tabItems} activeKey={currentLogType} onChange={(key) => {
+          setCurrentLogType(key)
+        }} />
       </Form>
     </Modal>
   )

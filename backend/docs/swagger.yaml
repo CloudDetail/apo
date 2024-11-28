@@ -325,28 +325,6 @@ definitions:
           type: string
         type: array
     type: object
-  clickhouse.ToplogyRelation:
-    properties:
-      endpoint:
-        type: string
-      isTraced:
-        type: boolean
-      parentEndpoint:
-        type: string
-      parentService:
-        type: string
-      service:
-        type: string
-    type: object
-  clickhouse.TopologyNode:
-    properties:
-      endpoint:
-        type: string
-      isTraced:
-        type: boolean
-      service:
-        type: string
-    type: object
   code.Failure:
     properties:
       code:
@@ -354,17 +332,6 @@ definitions:
         type: string
       message:
         description: 错误信息
-        type: string
-    type: object
-  database.AlertMetricsData:
-    properties:
-      group:
-        type: string
-      name:
-        type: string
-      pql:
-        type: string
-      unit:
         type: string
     type: object
   database.AlertMetricsData:
@@ -769,8 +736,6 @@ definitions:
         type: string
       nodeIp:
         type: string
-      nodeIp:
-        type: string
       nodeName:
         description: 主机名
         type: string
@@ -806,6 +771,36 @@ definitions:
     x-enum-varnames:
     - StatusResolved
     - StatusFiring
+  model.ToplogyRelation:
+    properties:
+      endpoint:
+        type: string
+      group:
+        type: string
+      isTraced:
+        type: boolean
+      parentEndpoint:
+        type: string
+      parentService:
+        type: string
+      service:
+        type: string
+      system:
+        type: string
+    type: object
+  model.TopologyNode:
+    properties:
+      endpoint:
+        type: string
+      group:
+        type: string
+      isTraced:
+        type: boolean
+      service:
+        type: string
+      system:
+        type: string
+    type: object
   prometheus.MetricsPoint:
     properties:
       timestamp:
@@ -2047,16 +2042,16 @@ definitions:
       childRelations:
         description: 下游节点调用关系列表
         items:
-          $ref: '#/definitions/clickhouse.ToplogyRelation'
+          $ref: '#/definitions/model.ToplogyRelation'
         type: array
       current:
         allOf:
-        - $ref: '#/definitions/clickhouse.TopologyNode'
+        - $ref: '#/definitions/model.TopologyNode'
         description: 当前服务
       parents:
         description: 上游节点列表
         items:
-          $ref: '#/definitions/clickhouse.TopologyNode'
+          $ref: '#/definitions/model.TopologyNode'
         type: array
       topologyLevels:
         items:
@@ -2068,16 +2063,16 @@ definitions:
       children:
         description: 下游节点列表
         items:
-          $ref: '#/definitions/clickhouse.TopologyNode'
+          $ref: '#/definitions/model.TopologyNode'
         type: array
       current:
         allOf:
-        - $ref: '#/definitions/clickhouse.TopologyNode'
+        - $ref: '#/definitions/model.TopologyNode'
         description: 当前服务
       parents:
         description: 上游节点列表
         items:
-          $ref: '#/definitions/clickhouse.TopologyNode'
+          $ref: '#/definitions/model.TopologyNode'
         type: array
     type: object
   response.GetServiceEntryEndpointsResponse:
@@ -5587,14 +5582,17 @@ paths:
       - description: 采样类型
         in: query
         name: sampleType
+        required: true
         type: string
       - description: 进程id
         in: query
         name: pid
+        required: true
         type: integer
       - description: 线程id
         in: query
         name: tid
+        required: true
         type: integer
       - description: 开始时间
         in: query
@@ -5611,7 +5609,7 @@ paths:
         name: spanId
         required: true
         type: string
-      - description: trae id
+      - description: trace id
         in: query
         name: traceId
         required: true
@@ -5628,6 +5626,50 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取指定时间段指定条件的火焰图数据
+      tags:
+      - API.trace
+  /api/trace/flame/process:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取并整合进程级别火焰图数据
+      parameters:
+      - description: 限制节点数
+        in: query
+        name: maxNodes
+        type: integer
+      - description: 开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 进程id
+        in: query
+        name: pid
+        required: true
+        type: integer
+      - description: 采样类型
+        in: query
+        name: sampleType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetProcessFlameGraphResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取并整合进程级别火焰图数据
       tags:
       - API.trace
   /api/trace/info:
@@ -5802,10 +5844,21 @@ paths:
         name: confirmPassword
         required: true
         type: string
+      - description: 邮箱
+        in: query
+        name: email
+        type: string
+      - description: 手机号
+        in: query
+        name: phone
+        type: string
+      - description: 组织
+        in: query
+        name: corporation
+        type: string
       - description: Bearer 令牌
         in: header
         name: Authorization
-        required: true
         type: string
       produces:
       - application/json
@@ -5830,7 +5883,6 @@ paths:
       - description: Bearer accessToken
         in: header
         name: Authorization
-        required: true
         type: string
       produces:
       - application/json
@@ -5855,7 +5907,6 @@ paths:
       - description: Bearer accessToken
         in: header
         name: Authorization
-        required: true
         type: string
       - description: 用户名
         in: query
@@ -5985,7 +6036,6 @@ paths:
       - description: Bearer accessToken
         in: header
         name: Authorization
-        required: true
         type: string
       - description: 请求信息
         in: query
@@ -6025,7 +6075,6 @@ paths:
       - description: Bearer accessToken
         in: header
         name: Authorization
-        required: true
         type: string
       produces:
       - application/json
@@ -6060,7 +6109,6 @@ paths:
       - description: Bearer accessToken
         in: header
         name: Authorization
-        required: true
         type: string
       produces:
       - application/json
@@ -6094,7 +6142,6 @@ paths:
       - description: Bearer accessToken
         in: header
         name: Authorization
-        required: true
         type: string
       produces:
       - application/json
@@ -6139,7 +6186,6 @@ paths:
       - description: Bearer accessToken
         in: header
         name: Authorization
-        required: true
         type: string
       produces:
       - application/json
@@ -6174,7 +6220,6 @@ paths:
       - description: Bearer accessToken
         in: header
         name: Authorization
-        required: true
         type: string
       produces:
       - application/json

@@ -4298,19 +4298,22 @@ const docTemplate = `{
                         "type": "string",
                         "description": "采样类型",
                         "name": "sampleType",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",
                         "description": "进程id",
                         "name": "pid",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",
                         "description": "线程id",
                         "name": "tid",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",
@@ -4335,7 +4338,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "trae id",
+                        "description": "trace id",
                         "name": "traceId",
                         "in": "query",
                         "required": true
@@ -4346,6 +4349,71 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.GetFlameDataResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/trace/flame/process": {
+            "get": {
+                "description": "获取并整合进程级别火焰图数据",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.trace"
+                ],
+                "summary": "获取并整合进程级别火焰图数据",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "限制节点数",
+                        "name": "maxNodes",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "进程id",
+                        "name": "pid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "采样类型",
+                        "name": "sampleType",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetProcessFlameGraphResponse"
                         }
                     },
                     "400": {
@@ -4622,10 +4690,27 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "邮箱",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "手机号",
+                        "name": "phone",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "组织",
+                        "name": "corporation",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Bearer 令牌",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4662,8 +4747,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4700,8 +4784,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     },
                     {
                         "type": "string",
@@ -4896,8 +4979,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     },
                     {
                         "type": "string",
@@ -4955,8 +5037,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -5007,8 +5088,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -5058,8 +5138,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -5124,8 +5203,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -5176,8 +5254,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -5676,40 +5753,6 @@ const docTemplate = `{
                 }
             }
         },
-        "clickhouse.ToplogyRelation": {
-            "type": "object",
-            "properties": {
-                "endpoint": {
-                    "type": "string"
-                },
-                "isTraced": {
-                    "type": "boolean"
-                },
-                "parentEndpoint": {
-                    "type": "string"
-                },
-                "parentService": {
-                    "type": "string"
-                },
-                "service": {
-                    "type": "string"
-                }
-            }
-        },
-        "clickhouse.TopologyNode": {
-            "type": "object",
-            "properties": {
-                "endpoint": {
-                    "type": "string"
-                },
-                "isTraced": {
-                    "type": "boolean"
-                },
-                "service": {
-                    "type": "string"
-                }
-            }
-        },
         "code.Failure": {
             "type": "object",
             "properties": {
@@ -5719,23 +5762,6 @@ const docTemplate = `{
                 },
                 "message": {
                     "description": "错误信息",
-                    "type": "string"
-                }
-            }
-        },
-        "database.AlertMetricsData": {
-            "type": "object",
-            "properties": {
-                "group": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "pql": {
-                    "type": "string"
-                },
-                "unit": {
                     "type": "string"
                 }
             }
@@ -6287,9 +6313,6 @@ const docTemplate = `{
                 "nodeIp": {
                     "type": "string"
                 },
-                "nodeIp": {
-                    "type": "string"
-                },
                 "nodeName": {
                     "description": "主机名",
                     "type": "string"
@@ -6335,6 +6358,52 @@ const docTemplate = `{
                 "StatusResolved",
                 "StatusFiring"
             ]
+        },
+        "model.ToplogyRelation": {
+            "type": "object",
+            "properties": {
+                "endpoint": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "isTraced": {
+                    "type": "boolean"
+                },
+                "parentEndpoint": {
+                    "type": "string"
+                },
+                "parentService": {
+                    "type": "string"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "system": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.TopologyNode": {
+            "type": "object",
+            "properties": {
+                "endpoint": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "isTraced": {
+                    "type": "boolean"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "system": {
+                    "type": "string"
+                }
+            }
         },
         "prometheus.MetricsPoint": {
             "type": "object",
@@ -8166,14 +8235,14 @@ const docTemplate = `{
                     "description": "下游节点调用关系列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/clickhouse.ToplogyRelation"
+                        "$ref": "#/definitions/model.ToplogyRelation"
                     }
                 },
                 "current": {
                     "description": "当前服务",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/clickhouse.TopologyNode"
+                            "$ref": "#/definitions/model.TopologyNode"
                         }
                     ]
                 },
@@ -8181,7 +8250,7 @@ const docTemplate = `{
                     "description": "上游节点列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/clickhouse.TopologyNode"
+                        "$ref": "#/definitions/model.TopologyNode"
                     }
                 },
                 "topologyLevels": {
@@ -8199,14 +8268,14 @@ const docTemplate = `{
                     "description": "下游节点列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/clickhouse.TopologyNode"
+                        "$ref": "#/definitions/model.TopologyNode"
                     }
                 },
                 "current": {
                     "description": "当前服务",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/clickhouse.TopologyNode"
+                            "$ref": "#/definitions/model.TopologyNode"
                         }
                     ]
                 },
@@ -8214,7 +8283,7 @@ const docTemplate = `{
                     "description": "上游节点列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/clickhouse.TopologyNode"
+                        "$ref": "#/definitions/model.TopologyNode"
                     }
                 }
             }

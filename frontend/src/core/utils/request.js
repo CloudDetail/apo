@@ -56,6 +56,11 @@ instance.interceptors.response.use(
                 color: 'danger'
               })
             }
+          } else {
+            showToast({
+              title: data.message,
+              color: 'danger',
+            })
           }
           break
 

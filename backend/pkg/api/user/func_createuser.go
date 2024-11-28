@@ -19,7 +19,10 @@ import (
 // @Param username query string true "用户名"
 // @Param password query string true "密码"
 // @Param confirmPassword query string true "确认密码"
-// @Param Authorization header string true "Bearer 令牌"
+// @Param email query string false "邮箱"
+// @Param phone query string false "手机号"
+// @Param corporation query string false "组织"
+// @Param Authorization header string false "Bearer 令牌"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/user/create [post]
