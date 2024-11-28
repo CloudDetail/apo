@@ -15,6 +15,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param Request body request.GetAlertRuleRequest true "请求信息"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetAlertRulesResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/rule/list [post]

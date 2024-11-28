@@ -18,6 +18,7 @@ import (
 // @Param startTime query int64 true "查询开始时间"
 // @Param endTime query int64 true "查询结束时间"
 // @Param service query string true "查询服务名"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} map[string]model.ServiceInstance
 // @Failure 400 {object} code.Failure
 // @Router /api/service/instance/options [get]

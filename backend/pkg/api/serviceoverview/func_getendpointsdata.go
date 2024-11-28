@@ -24,6 +24,7 @@ import (
 // @Param step query int64 true "步长"
 // @Param serviceName query string false "名称"
 // @Param sortRule query int true "排序逻辑"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.ServiceEndPointsRes
 // @Failure 400 {object} code.Failure
 // @Router /api/service/endpoints [get]

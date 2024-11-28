@@ -20,6 +20,7 @@ import (
 // @Param alertRuleFile query string false "查询告警规则文件名"
 // @Param group query string true "组名"
 // @Param alert query string true "告警规则名"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.CheckAlertRuleResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/rule/available  [get]

@@ -2419,6 +2419,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.DeleteAlertManagerConfigReceiverRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2444,6 +2448,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.UpdateAlertManagerConfigReceiver'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2470,6 +2478,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.AddAlertManagerConfigReceiver'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2496,6 +2508,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.GetAlertManagerConfigReceverRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2577,6 +2593,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.DeleteAlertRuleRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2602,6 +2622,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.UpdateAlertRuleRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2628,6 +2652,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.AddAlertRuleRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2660,6 +2688,10 @@ paths:
         name: alert
         required: true
         type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2679,6 +2711,11 @@ paths:
       consumes:
       - application/x-www-form-urlencoded
       description: 获取group和label对应接口
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2705,6 +2742,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.GetAlertRuleRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2724,6 +2765,11 @@ paths:
       consumes:
       - application/x-www-form-urlencoded
       description: 获取告警规则中指标和PQL
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2747,6 +2793,10 @@ paths:
       - description: 查询告警规则文件名,为空返回所有
         in: query
         name: alertRuleFile
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
         type: string
       produces:
       - application/json
@@ -2774,6 +2824,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.UpdateAlertRuleRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2793,6 +2847,11 @@ paths:
       consumes:
       - application/x-www-form-urlencoded
       description: 获取TTL
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2819,6 +2878,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.SetSingleTTLRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2841,6 +2904,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.SetTTLRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -2979,6 +3046,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.LogQueryRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3005,6 +3076,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.LogQueryContextRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3029,6 +3104,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.GetFaultLogContentRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3055,6 +3134,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.GetFaultLogPageListRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3081,6 +3164,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.LogIndexRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3107,6 +3194,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.OtherTableRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3133,6 +3224,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.AddOtherTableRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3159,6 +3254,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.DeleteOtherTableRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3185,6 +3284,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.OtherTableInfoRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3211,6 +3314,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.LogQueryRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3237,6 +3344,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.AddLogParseRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3263,6 +3374,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.DeleteLogParseRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3293,6 +3408,10 @@ paths:
         name: tableName
         required: true
         type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3319,6 +3438,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.GetServiceRouteRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3345,6 +3468,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.UpdateLogParseRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3371,6 +3498,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.LogTableInfoRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3606,6 +3737,10 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3665,6 +3800,10 @@ paths:
         in: query
         name: sampleCount
         type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3717,6 +3856,10 @@ paths:
       - description: 入口Endpoint
         in: query
         name: entryEndpoint
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
         type: string
       produces:
       - application/json
@@ -3773,6 +3916,10 @@ paths:
         in: query
         name: entryEndpoint
         type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3808,6 +3955,10 @@ paths:
       - description: 查询服务名
         in: query
         name: service
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
         type: string
       produces:
       - application/json
@@ -3855,6 +4006,10 @@ paths:
         name: sortRule
         required: true
         type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3904,6 +4059,10 @@ paths:
         in: query
         name: showMissTop
         type: boolean
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -3958,6 +4117,10 @@ paths:
       - description: 入口Endpoint
         in: query
         name: entryEndpoint
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
         type: string
       produces:
       - application/json
@@ -4015,6 +4178,10 @@ paths:
         in: query
         name: pid
         type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -4050,6 +4217,10 @@ paths:
         name: level
         required: true
         type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -4083,6 +4254,10 @@ paths:
         in: query
         name: service
         required: true
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
         type: string
       produces:
       - application/json
@@ -4120,6 +4295,10 @@ paths:
         in: query
         name: service
         required: true
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
         type: string
       produces:
       - application/json
@@ -4168,6 +4347,10 @@ paths:
         name: endpoint
         required: true
         type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -4203,6 +4386,10 @@ paths:
         name: service
         required: true
         type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -4233,6 +4420,10 @@ paths:
         name: endTime
         required: true
         type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -4291,6 +4482,10 @@ paths:
         in: query
         name: pid
         type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -4346,6 +4541,10 @@ paths:
         in: query
         name: entryEndpoint
         type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -4378,6 +4577,10 @@ paths:
         name: endTime
         required: true
         type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -4423,6 +4626,10 @@ paths:
         name: sortRule
         required: true
         type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -4469,6 +4676,10 @@ paths:
         in: query
         name: endpoint
         required: true
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
         type: string
       produces:
       - application/json
@@ -4518,6 +4729,10 @@ paths:
         in: query
         name: entryEndpoint
         type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -4559,6 +4774,10 @@ paths:
       - description: 命名空间
         in: query
         name: namespace
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
         type: string
       produces:
       - application/json
@@ -4610,6 +4829,10 @@ paths:
           type: string
         name: returnData
         type: array
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -4663,6 +4886,10 @@ paths:
         name: log
         required: true
         type: number
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -4714,6 +4941,10 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -4761,6 +4992,10 @@ paths:
       - description: 入口Endpoint
         in: query
         name: entryEndpoint
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
         type: string
       produces:
       - application/json
@@ -4818,6 +5053,10 @@ paths:
         in: query
         name: pid
         type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -4872,6 +5111,10 @@ paths:
       - description: 入口Endpoint
         in: query
         name: entryEndpoint
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
         type: string
       produces:
       - application/json
@@ -4999,6 +5242,10 @@ paths:
         name: traceId
         required: true
         type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -5091,6 +5338,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.GetTraceFilterValueRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -5125,6 +5376,10 @@ paths:
         in: query
         name: needUpdate
         type: boolean
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:

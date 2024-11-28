@@ -25,6 +25,7 @@ import (
 // @Param id query string false "查询告警ID"
 // @Param status query string false "查询告警状态"
 // @Param sampleCount query int false "采样告警数量"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetAlertEventsSampleResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/service/alert/sample/events [get]

@@ -21,6 +21,7 @@ import (
 // @Param step query int64 true "查询步长(us)"
 // @Param entryService query string false "入口服务名"
 // @Param entryEndpoint query string false "入口Endpoint"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []response.GetTraceMetricsResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/service/trace/metrics [get]

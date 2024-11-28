@@ -18,6 +18,7 @@ import (
 // @Param serviceName query string false "应用名称"
 // @Param endpoint query string false "endpoint"
 // @Param level query string true "阈值等级"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200
 // @Failure 400 {object} code.Failure
 // @Router /api/service/getThreshold [get]
