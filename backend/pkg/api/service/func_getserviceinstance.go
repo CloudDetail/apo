@@ -21,6 +21,7 @@ import (
 // @Param step query int64 true "步长"
 // @Param serviceName query string true "应用名称"
 // @Param endpoint query string true "endpoint"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.InstancesRes
 // @Failure 400 {object} code.Failure
 // @Router /api/service/instances [get]

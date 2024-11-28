@@ -15,6 +15,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Request body request.LogTableInfoRequest true "请求信息"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.LogTableInfoResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/log/table [get]

@@ -15,6 +15,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param traceId query string true "trace id"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetSingleTraceInfoResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/trace/info [get]

@@ -27,6 +27,7 @@ import (
 // @Param status query string false "查询告警状态"
 // @Param currentPage query int false "分页参数,当前页数"
 // @Param pageSize query int false "分页参数, 每页数量"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetAlertEventsResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/service/alert/events [get]

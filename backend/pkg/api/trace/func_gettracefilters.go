@@ -19,6 +19,7 @@ import (
 // @Param startTime query int64 true "查询开始时间"
 // @Param endTime query int64 true "查询结束时间"
 // @Param needUpdate query bool false "是否根据用户输入的时间立即更新可用过滤器"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetTraceFiltersResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/trace/pagelist/filters [get]
