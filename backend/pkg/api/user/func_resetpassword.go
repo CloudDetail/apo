@@ -19,6 +19,7 @@ import (
 // @Produce json
 // @Param username formData string true "用户名"
 // @Param newPassword formData string true "新密码"
+// @Param confirmPassword formData string true "重复密码"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
@@ -31,6 +32,15 @@ func (h *handler) ResetPassword() core.HandlerFunc {
 				http.StatusBadRequest,
 				code.ParamBindError,
 				code.Text(code.ParamBindError)).WithError(err),
+			)
+			return
+		}
+
+		if req.NewPassword != req.ConfirmPassword {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.UserConfirmPasswordError,
+				code.Text(code.UserConfirmPasswordError)),
 			)
 			return
 		}

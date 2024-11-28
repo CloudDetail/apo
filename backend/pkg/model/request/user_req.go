@@ -9,9 +9,9 @@ type CreateUserRequest struct {
 	Username        string `json:"username" form:"username" binding:"required"`               // 用户名
 	Password        string `json:"password" form:"password" binding:"required"`               // 密码
 	ConfirmPassword string `json:"confirmPassword" form:"confirmPassword" binding:"required"` // 确认密码
-	Email           string `json:"email" form:"email"`
-	Phone           string `json:"phone" form:"phone"`
-	Corporation     string `json:"corporation,omitempty" form:"corporation"`
+	Email           string `json:"email" form:"email,omitempty"`
+	Phone           string `json:"phone" form:"phone,omitempty"`
+	Corporation     string `json:"corporation,omitempty" form:"corporation,omitempty"`
 }
 
 type LogoutRequest struct {
@@ -21,19 +21,21 @@ type LogoutRequest struct {
 
 type UpdateUserInfoRequest struct {
 	Username    string `json:"username" form:"username" binding:"required"`
-	Corporation string `json:"corporation,omitempty" form:"corporation"`
+	Corporation string `json:"corporation,omitempty" form:"corporation,omitempty"`
+	Phone       string `json:"phone" form:"phone,omitempty"`
+	Email       string `json:"email" form:"email,omitempty"`
 }
 
 type UpdateUserPhoneRequest struct {
 	Username string `json:"username" form:"username" binding:"required"`
 	Phone    string `json:"phone" form:"phone" binding:"required"` // 手机号
-	VCode    string `json:"vCode" form:"vCode"`                    // 验证码
+	VCode    string `json:"vCode" form:"vCode,omitempty"`          // 验证码
 }
 
 type UpdateUserEmailRequest struct {
 	Username string `json:"username" form:"username" binding:"required"`
 	Email    string `json:"email" form:"email" binding:"required"` // 邮箱
-	VCode    string `json:"vCode"`                                 // 验证码
+	VCode    string `json:"vCode,omitempty"`                       // 验证码
 }
 
 type UpdateUserPasswordRequest struct {
@@ -55,6 +57,7 @@ type RemoveUserRequest struct {
 }
 
 type ResetPasswordRequest struct {
-	Username    string `json:"username" form:"username" binding:"required"`
-	NewPassword string `json:"newPassword" form:"newPassword" binding:"required"`
+	Username        string `json:"username" form:"username" binding:"required"`
+	NewPassword     string `json:"newPassword" form:"newPassword" binding:"required"`
+	ConfirmPassword string `json:"confirmPassword" form:"confirmPassword" binding:"required"`
 }

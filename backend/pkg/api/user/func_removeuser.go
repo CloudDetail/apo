@@ -18,7 +18,7 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Authorization header string true "Bearer accessToken"
+// @Param Authorization header string false "Bearer accessToken"
 // @Param username formData string true "请求信息"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
