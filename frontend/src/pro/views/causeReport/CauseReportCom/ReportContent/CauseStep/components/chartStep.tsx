@@ -4,11 +4,11 @@ import { cloneDeep } from 'lodash'
 import { flameDataHandle, basiclineOption, buildLineSeriesData, stackDataHandle } from './service'
 import dayjs from 'dayjs'
 import { ThemeColor, ThemeStyle } from 'src/constants'
-import Flamegraph from './Flamegraph/index'
 import StackChart from './StackChart'
 import CopyButton from 'src/core/components/CopyButton'
 import GrafanaChart from './GrafanaChart'
 import { Card } from 'antd'
+import FlamegraphCanvas from './Flamegraph'
 
 // const testPQL = 'sum by (device) (rate(node_disk_io_time_seconds_total{instance=\"10.10.103.219:9100\"}[5m]))*100';
 interface Props {
@@ -126,7 +126,13 @@ function ChartStep({ data, occurrenceAt }: Props) {
 
   const ChartComponent = () => {
     if (data.chart === 'flame_graph') {
-      return <Flamegraph data={chartData} />
+      return (
+        chartData && (
+          <div className="h-[500px] overflow-hidden">
+            <FlamegraphCanvas {...chartData} />
+          </div>
+        )
+      )
     } else if (data.chart === 'stack') {
       return <StackChart stackList={stackList} />
     } else {
