@@ -108,7 +108,7 @@ func fillRelatedAlertRate(resp *response.GetAlertImpactResponse, relatedEventCou
 
 // fillEntryNodeDetail 填充EntryEndpoint信息
 // 复制于 backend/pkg/api/service/func_getserviceentryendpoints.go
-func fillEntryNodeDetail(s serviceoverview.Service, req *request.AlertImpactRequest, entryNodes []clickhouse.EntryNodeRelations) (*response.GetAlertImpactResponse, error) {
+func fillEntryNodeDetail(s serviceoverview.Service, req *request.AlertImpactRequest, entryNodes []clickhouse.EntryRelationship) (*response.GetAlertImpactResponse, error) {
 	resp := response.GetAlertImpactResponse{
 		Data: make([]*response.EndpointData, 0),
 	}

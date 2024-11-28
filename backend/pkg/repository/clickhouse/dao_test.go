@@ -148,10 +148,12 @@ func testDescendantNodes(t *testing.T, repo Repo) {
 
 func testDescendantRelations(t *testing.T, repo Repo) {
 	req := &request.GetServiceEndpointRelationRequest{
-		StartTime: 1732550400000000,
-		EndTime:   1732636800000000,
-		Service:   "stuck-demo-tomcat",
-		Endpoint:  "GET /wait/callOthers",
+		GetServiceEndpointTopologyRequest: request.GetServiceEndpointTopologyRequest{
+			StartTime: 1732550400000000,
+			EndTime:   1732636800000000,
+			Service:   "stuck-demo-tomcat",
+			Endpoint:  "GET /wait/callOthers",
+		},
 	}
 	resp, err := repo.ListDescendantRelations(&req.GetServiceEndpointTopologyRequest)
 	if err != nil {
@@ -191,10 +193,12 @@ func testDescendantRelations(t *testing.T, repo Repo) {
 
 func testKafkaDescendantRelations(t *testing.T, repo Repo) {
 	req := &request.GetServiceEndpointRelationRequest{
-		StartTime: 1732550400000000,
-		EndTime:   1732636800000000,
-		Service:   "kafka-provider",
-		Endpoint:  "GET /send",
+		GetServiceEndpointTopologyRequest: request.GetServiceEndpointTopologyRequest{
+			StartTime: 1732550400000000,
+			EndTime:   1732636800000000,
+			Service:   "kafka-provider",
+			Endpoint:  "GET /send",
+		},
 	}
 	resp, err := repo.ListDescendantRelations(req)
 	if err != nil {
