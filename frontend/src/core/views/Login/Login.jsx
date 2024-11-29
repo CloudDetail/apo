@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 import { Button, Input, Form, Flex, Checkbox } from "antd";
 import { loginApi } from "core/api/user";
 import { useNavigate } from "react-router-dom";
@@ -8,8 +8,10 @@ import { getUserInfoApi } from "core/api/user";
 import logo from 'core/assets/brand/logo.svg'
 import { AiOutlineLoading } from "react-icons/ai";
 import style from "./Login.module.css"
-
+import userReducer, { initialState } from "src/core/store/reducers/userReducer";
+import { useUserContext } from "src/core/contexts/UserContext";
 export default function Login() {
+    const {user, dispatchUser} = useUserContext()
     const navigate = useNavigate();
     const [form] = Form.useForm();
     const [remeberMe, setRemeberMe] = useState(true)
@@ -31,21 +33,13 @@ export default function Login() {
                         localStorage.setItem("remeberMe", String(remeberMe))
                     }
                     const user = await getUserInfoApi()
-                    localStorage.setItem("user", JSON.stringify(user))
+                    // @ts-ignore
+                    dispatchUser({
+                        type:"addUser",
+                        payload:JSON.stringify(user)
+                    })
                 } catch (error) {
-                    if (error.response && error.response?.data) {
-                        const { code, message } = error.response?.data
-                        switch (code) {
-                            case 'B0902':
-                                showToast({ title: message, color: 'danger' })
-                                break
-                            case 'B0901':
-                                showToast({ title: "用户不存在", color: 'danger' })
-                                break
-                            default:
-                                showToast({ title: error.response?.data?.message || "未知错误", color: "danger" })
-                        }
-                    }
+                    console.error(error)
                 } finally {
                     setLoading(false)
                 }
@@ -73,7 +67,7 @@ export default function Login() {
         return () => {
             window.removeEventListener("keydown", handleKeyDown);
         };
-    }, []);
+    }, []); 
 
     return (
         <Flex vertical className={style.loginBackground}>

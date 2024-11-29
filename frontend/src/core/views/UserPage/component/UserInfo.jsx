@@ -11,7 +11,6 @@ export default function UserInfo() {
         try {
             const user = await getUserInfoApi()
             if (user) {
-                localStorage.setItem("user", JSON.stringify(user))
                 const { email, phone, corporation } = user
                 form.setFieldValue("email", email)
                 form.setFieldValue("phone", phone)

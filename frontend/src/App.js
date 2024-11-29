@@ -7,10 +7,10 @@ import 'src/core/scss/style.scss'
 import './index.css'
 import { promLanguageDefinition } from 'monaco-promql'
 import { getRuleGroupLabelApi } from 'src/core/api/alerts'
-
 // Containers
 const DefaultLayout = React.lazy(() => import('src/core/layout/DefaultLayout'))
 const Login = React.lazy(() => import('./core/views/Login/Login.jsx'))
+import { UserProvider } from './core/contexts/UserContext'
 
 // // Pages
 // const Login = React.lazy(() => import('./community/1/pages/login/Login'))
@@ -70,8 +70,8 @@ const App = () => {
         }
       >
         <Routes>
-          <Route exact path="/login" name="Login Page" element={<Login />} />
-          <Route path="*" name="Home" element={<DefaultLayout />} />
+          <Route exact path="/login" name="Login Page" element={<UserProvider><Login /></UserProvider>} />
+          <Route path="*" name="Home" element={<UserProvider><DefaultLayout /></UserProvider>} />
         </Routes>
       </Suspense>
     </HashRouter>
