@@ -244,6 +244,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
       entryService: selectedEndpointInfo.service,
       entryEndpoint: selectedEndpointInfo.endpoint,
       withTopologyLevel: true,
+      removeClientCall: true,
     }).then((res) => {
       setTopologyData(res)
       let result = []
