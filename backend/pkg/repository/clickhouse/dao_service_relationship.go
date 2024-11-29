@@ -43,7 +43,7 @@ const (
 	`
 
 	SQL_GET_ENTRY_NODES = `
-		SELECT entry_service as service, entry_url as endpoint
+		SELECT entry_service, entry_url
 		FROM service_relationship
 		%s
 		GROUP BY entry_service, entry_url
@@ -428,6 +428,6 @@ type ServiceNode struct {
 }
 
 type EntryNode struct {
-	Service  string `ch:"service" json:"service"`
-	Endpoint string `ch:"endpoint" json:"endpoint"`
+	Service  string `ch:"entry_service" json:"service"`
+	Endpoint string `ch:"entry_url" json:"endpoint"`
 }
