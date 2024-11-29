@@ -3,18 +3,20 @@ import { showToast } from "core/utils/toast"
 import { logoutApi, updatePasswordApi } from "core/api/user"
 import { LockOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
+import { useUserContext } from "src/core/contexts/UserContext"
 
 
 export default function UpdatePassword() {
     const [form] = Form.useForm()
     const navigate = useNavigate();
+    const {user,dispatchUser} = useUserContext()
 
     //更新密码
     function updatePassword() {
         form.validateFields(['oldPassword', 'newPassword', 'confirmPassword'])
             .then(async ({ oldPassword, newPassword, confirmPassword }) => {
                 try {
-                    const username = getUsernameFromLocalStorage()
+                    const username = user.user.username
                     if (!username) {
                         showToast({
                             title:"获取用户名失败",
@@ -27,7 +29,7 @@ export default function UpdatePassword() {
                         oldPassword,
                         newPassword,
                         confirmPassword,
-                        username: JSON.parse(localStorage.getItem("user")).username
+                        username: username
                     }
                     await updatePasswordApi(paramsForUpdatePassword)
                     form.resetFields(['oldPassword', 'newPassword', 'confirmPassword'])
@@ -59,15 +61,6 @@ export default function UpdatePassword() {
                     color:"danger"
                 })
             })
-    }
-
-    function getUsernameFromLocalStorage() {
-        try {
-            const user = JSON.parse(localStorage.getItem("user"));
-            return user?.username || '';
-        } catch (error) {
-            return '';
-        }
     }
 
     return (

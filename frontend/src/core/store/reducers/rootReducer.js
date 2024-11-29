@@ -10,6 +10,8 @@ import urlParamsReducer from './urlParamsReducer'
 import urlParamsPresistConfig from '../persist/urlParamsPresistConfig'
 import groupLabelReducer from './groupLabelReducer'
 import groupLabelPresistConfig from '../persist/groupLabelPresistConfig'
+import userReducer from './userReducer'
+import userPersistConfig from '../persist/userPresistConfig'
 
 const rootReducer = combineReducers({
   timeRange: persistReducer(timeRangePersistConfig, timeRangeReducer),
@@ -17,6 +19,7 @@ const rootReducer = combineReducers({
   topologyReducer: persistReducer(topologyPresistConfig, topologyReducer),
   urlParamsReducer: persistReducer(urlParamsPresistConfig, urlParamsReducer),
   groupLabelReducer: persistReducer(groupLabelPresistConfig, groupLabelReducer),
+  userReducer: persistReducer(userPersistConfig, userReducer)
 })
 
 export default rootReducer

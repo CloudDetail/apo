@@ -3,25 +3,23 @@ import { MailOutlined, ApartmentOutlined, LockOutlined, PhoneOutlined } from '@a
 import { updateEmailApi, updateCorporationApi, updatePhoneApi, getUserInfoApi } from "core/api/user"
 import { showToast } from "core/utils/toast"
 import { useEffect, useState } from "react"
+import { useUserContext } from "src/core/contexts/UserContext"
 
 export default function UserInfo() {
     const [form] = Form.useForm()
+    const { user, dispatchUser } = useUserContext()
 
     async function getUserInfo() {
         try {
             const user = await getUserInfoApi()
             if (user) {
-                localStorage.setItem("user", JSON.stringify(user))
                 const { email, phone, corporation } = user
                 form.setFieldValue("email", email)
                 form.setFieldValue("phone", phone)
                 form.setFieldValue("corporation", corporation == 'undefined' ? "" : corporation)
             }
         } catch (error) {
-            showToast({
-                title: error,
-                color: 'danger'
-            })
+            console.error(error)
         }
     }
 
@@ -29,7 +27,7 @@ export default function UserInfo() {
         getUserInfo()
     }, [])
 
-    //更新邮箱
+    //更新用户信息
     function updateEmail() {
         form.validateFields(['email', 'corporation', 'phone'])
             .then(async ({ email, corporation, phone }) => {
@@ -38,9 +36,9 @@ export default function UserInfo() {
                     corporation,
                     phone
                 }
-                await updateCorporationApi({ username: JSON.parse(localStorage.getItem("user"))?.username, ...params })
+                await updateCorporationApi({ username: user.user.username, ...params })
                 showToast({
-                    title: '邮箱更新成功',
+                    title: '用户信息更新成功',
                     color: 'success'
                 })
                 form.resetFields()
@@ -99,7 +97,12 @@ export default function UserInfo() {
                                 </Form.Item>
                             </Flex>
                         </Flex>
-                        <Button type="primary" onClick={updateEmail}>修改信息</Button>
+                        <Popconfirm
+                            title="确定要修改信息吗"
+                            onConfirm={updateEmail}
+                        >
+                            <Button type="primary" >修改信息</Button>
+                        </Popconfirm>
                     </Form>
                 </Flex>
             </Flex>

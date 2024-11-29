@@ -23,7 +23,7 @@ type Handler interface {
 	CreateUser() core.HandlerFunc
 	// RefreshToken 刷新accessToken
 	// @Tags API.user
-	// @Router /api/user/refresh
+	// @Router /api/user/refresh [get]
 	RefreshToken() core.HandlerFunc
 	// UpdateUserInfo 更新个人信息
 	// @Tags API.user

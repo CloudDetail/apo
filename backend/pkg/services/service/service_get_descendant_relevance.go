@@ -25,24 +25,34 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 		return make([]response.GetDescendantRelevanceResponse, 0), nil
 	}
 
-	unsortedDescendant := make([]polarisanalyzer.LatencyRelevance, 0, len(nodes.Nodes))
+	unsortedDescendant := make([]polarisanalyzer.Relevance, 0, len(nodes.Nodes))
+	descendants := make([]polarisanalyzer.ServiceNode, 0, len(nodes.Nodes))
+	var isTracedMap = make(map[polarisanalyzer.ServiceNode]bool)
 	var services, endpoints []string
 	for _, node := range nodes.Nodes {
-		unsortedDescendant = append(unsortedDescendant, polarisanalyzer.LatencyRelevance{
+		svcNode := polarisanalyzer.ServiceNode{
 			Service:  node.Service,
 			Endpoint: node.Endpoint,
+			Group:    node.Group,
+			System:   node.System,
+		}
+		unsortedDescendant = append(unsortedDescendant, polarisanalyzer.Relevance{
+			ServiceNode: svcNode,
+			Relevance:   0,
 		})
+		descendants = append(descendants, svcNode)
+		isTracedMap[svcNode] = node.IsTraced
 		services = append(services, node.Service)
 		endpoints = append(endpoints, node.Endpoint)
 	}
 
 	// 按延时相似度排序
-	sortResp, err := s.polRepo.SortDescendantByLatencyRelevance(
+	sortResp, err := s.polRepo.SortDescendantByRelevance(
 		req.StartTime, req.EndTime, prom.VecFromDuration(time.Duration(req.Step)*time.Microsecond),
 		req.Service, req.Endpoint,
-		unsortedDescendant,
+		descendants, "",
 	)
-	var sortResult []polarisanalyzer.LatencyRelevance
+	var sortResult []polarisanalyzer.Relevance
 	var sortType string
 	if err != nil || sortResp == nil {
 		sortResult = unsortedDescendant
@@ -51,12 +61,7 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 		sortResult = sortResp.SortedDescendant
 		sortType = sortResp.DistanceType
 		// 将未能排序成功的下游添加到descendants后(可能是没有北极星指标)
-		for _, descendant := range sortResp.UnsortedDescendant {
-			sortResult = append(sortResult, polarisanalyzer.LatencyRelevance{
-				Service:  descendant.Service,
-				Endpoint: descendant.Endpoint,
-			})
-		}
+		sortResult = append(sortResult, sortResp.UnsortedDescendant...)
 	}
 
 	var resp []response.GetDescendantRelevanceResponse
@@ -72,6 +77,8 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 		var descendantResp = response.GetDescendantRelevanceResponse{
 			ServiceName:      descendant.Service,
 			EndPoint:         descendant.Endpoint,
+			Group:            descendant.Group,
+			IsTraced:         isTracedMap[descendant.ServiceNode],
 			Distance:         descendant.Relevance,
 			DistanceType:     sortType,
 			DelaySource:      "unknown",
