@@ -1,4 +1,4 @@
-import { Modal, Flex, Form, Input, Divider, Button } from "antd"
+import { Modal, Flex, Form, Input, Divider, Button, Tooltip } from "antd"
 import { useEffect, useState } from "react"
 import { getUserListApi, updateEmailApi, updatePhoneApi, updateCorporationApi, updatePasswordWithNoOldPwd } from "core/api/user"
 import { showToast } from "core/utils/toast";
@@ -17,7 +17,7 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
 
     const editUser = () => {
         if (loading) return
-        form.validateFields(['email','phone','corporation'])
+        form.validateFields(['email', 'phone', 'corporation'])
             .then(async ({ email = "", phone = "", corporation = "" }) => {
                 setLoading(true)
 
@@ -42,7 +42,7 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
 
     const resetPassword = () => {
         if (loading) return
-        form.validateFields(['newPassword','confirmPassword'])
+        form.validateFields(['newPassword', 'confirmPassword'])
             .then(async ({ newPassword, confirmPassword }) => {
                 try {
                     setLoading(true)
@@ -158,12 +158,12 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
                                     name="newPassword"
                                     rules={[
                                         {
-                                            required:true,
-                                            message:"请输入密码"
+                                            required: true,
+                                            message: "请输入密码"
                                         },
                                         {
-                                            pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{9,}$/,
-                                            message: '密码必须包含大写字母、小写字母、特殊字符，且长度大于8'
+                                            pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()\-_+=<>?/{}[\]|:;.,~]).{9,}$/,
+                                            message: <p>密码必须包含大写字母、小写字母、<Tooltip title="(! @ # $ % ^ & * ( ) - _ + = < > ? / { } [ ] | : ; . , ~)" ><span className="underline">特殊字符</span></Tooltip>，且长度大于8</p>
                                         }
                                     ]}
                                 >
@@ -174,8 +174,8 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
                                     name="confirmPassword"
                                     rules={[
                                         {
-                                            required:true,
-                                            message:"请确认密码"
+                                            required: true,
+                                            message: "请确认密码"
                                         },
                                         ({ getFieldValue }) => ({
                                             validator(_, value) {
@@ -187,7 +187,7 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
                                         }),
                                     ]}
                                 >
-                                    <Input.Password  placeholder="请重复密码" />
+                                    <Input.Password placeholder="请重复密码" />
                                 </Form.Item>
                             </div>
                             <Button type="primary" onClick={resetPassword}>修改密码</Button>
