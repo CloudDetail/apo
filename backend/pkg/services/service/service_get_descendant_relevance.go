@@ -26,20 +26,23 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 	}
 
 	unsortedDescendant := make([]polarisanalyzer.ServiceNode, 0, len(nodes.Nodes))
+	var isTracedMap = make(map[polarisanalyzer.ServiceNode]bool)
 	var services, endpoints []string
 	for _, node := range nodes.Nodes {
-		unsortedDescendant = append(unsortedDescendant, polarisanalyzer.ServiceNode{
+		svcNode := polarisanalyzer.ServiceNode{
 			Service:  node.Service,
 			Endpoint: node.Endpoint,
 			Group:    node.Group,
 			System:   node.System,
-		})
+		}
+		unsortedDescendant = append(unsortedDescendant, svcNode)
+		isTracedMap[svcNode] = node.IsTraced
 		services = append(services, node.Service)
 		endpoints = append(endpoints, node.Endpoint)
 	}
 
 	// 按延时相似度排序
-	sortResp, err := s.polRepo.SortDescendantByLatencyRelevance(
+	sortResp, err := s.polRepo.SortDescendantByRelevance(
 		req.StartTime, req.EndTime, prom.VecFromDuration(time.Duration(req.Step)*time.Microsecond),
 		req.Service, req.Endpoint,
 		unsortedDescendant, "",
@@ -75,7 +78,7 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 			ServiceName:      descendant.Service,
 			EndPoint:         descendant.Endpoint,
 			Group:            descendant.Group,
-			IsTraced:         descendant.Group == "service",
+			IsTraced:         isTracedMap[descendant],
 			Distance:         descendant.Relevance,
 			DistanceType:     sortType,
 			DelaySource:      "unknown",

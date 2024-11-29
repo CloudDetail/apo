@@ -13,8 +13,8 @@ const (
 	RelevanceSortAPI = "/relevance/sort"
 )
 
-// SortDescendantByLatencyRelevance
-func (p *polRepo) SortDescendantByLatencyRelevance(
+// SortDescendantByRelevance
+func (p *polRepo) SortDescendantByRelevance(
 	startTime int64,
 	endTime int64,
 	stepStr string,
@@ -35,6 +35,7 @@ func (p *polRepo) SortDescendantByLatencyRelevance(
 			Endpoint: targetEndpoint,
 		},
 		UnsortedDescendant: descendants,
+		SortBy:             sortBy,
 	}
 
 	body, err := json.Marshal(sortRequest)

@@ -9,8 +9,8 @@ import (
 var polarisAnalyzerAddress = "http://localhost:5000"
 
 type Repo interface {
-	// SortDescendantByLatencyRelevance 查询依赖节点延时关联度
-	SortDescendantByLatencyRelevance(
+	// SortDescendantByRelevance 查询依赖节点延时关联度
+	SortDescendantByRelevance(
 		startTime, endTime int64, stepStr string,
 		targetService, targetEndpoint string,
 		unsortedDescendant []ServiceNode, sortBy string,
