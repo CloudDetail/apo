@@ -53,6 +53,7 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
                         "title": "密码修改成功",
                         "color": "success"
                     })
+                    setModalEditVisibility(false)
                 } catch (error) {
                     console.error(error)
                     showToast({

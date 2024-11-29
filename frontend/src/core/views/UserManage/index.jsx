@@ -8,6 +8,7 @@ import EditModal from "./componnets/EditModal";
 import AddModal from "./componnets/AddModal";
 import { BsPersonFillAdd } from "react-icons/bs";
 import LoadingSpinner from 'src/core/components/Spinner'
+import { useUserContext } from "src/core/contexts/UserContext";
 
 
 export default function UserManage() {
@@ -23,6 +24,7 @@ export default function UserManage() {
     const [total, setTotal] = useState(0)
     const [selectedUser, setSelectedUser] = useState("")
     const [loading, setLoading] = useState(false)
+    const { user, dispatchUser } = useUserContext()
     //移除用户
     async function removeUser(prop) {
         const params = {
@@ -50,13 +52,13 @@ export default function UserManage() {
     }
 
     //获取用户列表
-    async function getUserList(signal = undefined, type = "normal",search = false) {
+    async function getUserList(signal = undefined, type = "normal", search = false) {
         if (loading) return
         setLoading(true)
         const params = type === "special" ?
             { currentPage: currentPage - 1, pageSize, username, role, corporation } :
-            search ? { currentPage:1, pageSize, username, role, corporation } : { currentPage, pageSize, username, role, corporation }
-            
+            search ? { currentPage: 1, pageSize, username, role, corporation } : { currentPage, pageSize, username, role, corporation }
+
         try {
             const { users, currentPage, pageSize, total } = await getUserListApi(params, signal)
             setUserList(users)
@@ -124,7 +126,7 @@ export default function UserManage() {
             key: 'username',
             align: 'center',
             render: (prop) => {
-                return localStorage.getItem("username") !== prop ?
+                return user.user.username !== prop ?
                     (
                         <>
                             <Button onClick={() => {
@@ -143,12 +145,7 @@ export default function UserManage() {
                             </Popconfirm>
                         </>
                     ) : <>
-                        <Button onClick={() => {
-                            setSelectedUser(prop)
-                            setModalEditVisibility(true)
-                        }} icon={<MdOutlineModeEdit />} type="text" className="mr-1">
-                            编辑
-                        </Button>
+
                     </>
             },
             width: "16%"
@@ -168,7 +165,7 @@ export default function UserManage() {
     useEffect(() => {
         const controller = new AbortController();
         const { signal } = controller; // 获取信号对象
-        getUserList(signal,null,true)
+        getUserList(signal, null, true)
         return () => {
             controller.abort
         }
