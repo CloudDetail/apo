@@ -6,6 +6,7 @@ import { Header } from 'antd/es/layout/layout'
 import { CImage } from '@coreui/react'
 import logo from 'src/core/assets/brand/logo.svg'
 import './index.css'
+
 const DefaultLayout = () => {
   const [collapsed, setCollapsed] = useState(true)
   return (

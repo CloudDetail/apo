@@ -10,6 +10,7 @@ import { DelaySourceTimeUnit } from 'src/constants'
 import { Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
+import { showToast } from 'src/core/utils/toast'
 
 function DependentTable(props) {
   const { serviceName, endpoint, startTime, endTime, storeDisplayData = false } = props
@@ -196,10 +197,13 @@ function DependentTable(props) {
     },
   ]
   const toServiceInfoPage = (props) => {
-    console.log(props)
-    navigate(
-      `/service/info?service-name=${encodeURIComponent(props.serviceName)}&endpoint=${encodeURIComponent(props.endpoint)}&breadcrumb-name=${encodeURIComponent(props.serviceName)}`,
-    )
+    if (props.isTraced) {
+      navigate(
+        `/service/info?service-name=${encodeURIComponent(props.serviceName)}&endpoint=${encodeURIComponent(props.endpoint)}&breadcrumb-name=${encodeURIComponent(props.serviceName)}`,
+      )
+    } else {
+      showToast({ title: '该服务未被监控，无法跳转', color: 'info' })
+    }
   }
   const tableProps = useMemo(() => {
     return {

@@ -13,6 +13,7 @@ import { PostHogProvider } from 'posthog-js/react'
 import { MessageProvider } from 'src/core/contexts/MessageContext'
 import ErrorBoundary from 'src/core/components/ErrorBoundary'
 import zhCN from 'antd/es/locale/zh_CN' // 引入中文包
+import { UserProvider } from './core/contexts/UserContext'
 const apiHost = import.meta.env.VITE_PUBLIC_POSTHOG_HOST
 const apiKey = import.meta.env.VITE_PUBLIC_POSTHOG_KEY
 
@@ -44,7 +45,9 @@ const AppWrapper = () => {
             }}
           >
             <MessageProvider>
-              <App />
+              <UserProvider>
+                <App />
+              </UserProvider>
             </MessageProvider>
           </ConfigProvider>
         </ToastProvider>

@@ -7,7 +7,6 @@ import 'src/core/scss/style.scss'
 import './index.css'
 import { promLanguageDefinition } from 'monaco-promql'
 import { getRuleGroupLabelApi } from 'src/core/api/alerts'
-
 // Containers
 const DefaultLayout = React.lazy(() => import('src/core/layout/DefaultLayout'))
 const UnitedLayout = React.lazy(() => import('src/pro/layout/UnitedLayout'))

@@ -10,6 +10,7 @@ import { MdOutlineSettings } from 'react-icons/md'
 import { IoIosTrendingUp, IoMdCloudOutline } from 'react-icons/io'
 import { TbWaveSawTool } from 'react-icons/tb'
 import { GrSystem } from "react-icons/gr";
+
 const commercialNav = [
   {
     key: 'alertAnalyze',
@@ -96,9 +97,9 @@ let _nav = [
     icon: <TbWaveSawTool />,
   },
   {
-    key:'manage',
+    key: 'manage',
     icon: <GrSystem />,
-    label:'系统管理',
+    label: '系统管理',
     children: [
       { key: 'userManage', label: '用户管理', to: '/system/user-manage' }
     ],

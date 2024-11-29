@@ -21,7 +21,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   const { getLogTableInfo, updateLoading } = useLogsContext()
   const [form] = Form.useForm()
   const [serviceList, setServiceList] = useState([])
-  const [currentLogType, setCurrentLogType] = useState(0)
+  const [currentLogType, setCurrentLogType] = useState(1)
   const [parseRule, setParseRule] = useState("")
   const [loading, setLoading] = useState(false)
   const [jsonRule, setJsonRule] = useState("")
@@ -265,28 +265,8 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   }
   const tabItems = [
     {
-      key: 0,
-      label: <span className='text-md select-none'>结构化JSON日志</span>,
-      children: (
-        <div className='min-h-36'>
-          <Form.Item
-            name="structuredRule"
-          >
-            <div className='flex mb-2'>
-              <AiOutlineInfoCircle size={16} className="ml-1 mr-1" />
-              <span className="text-xs text-gray-400">请输入JSON格式的日志样本自动生成日志格式（仅支持解析JSON最外层的键）</span>
-            </div>
-            <TextArea placeholder="日志样本" rows={3} onChange={(e) => { setJsonRule(e.target.value) }} />
-          </Form.Item>
-          <div className='flex flex-col items-start w-full'>
-            <LogStructRuleFormList jsonRule={jsonRule} fForm={form} ref={subFormRef} />
-          </div>
-        </div>
-      )
-    },
-    {
       key: 1,
-      label: <span className='text-md select-none'>非结构化日志</span>,
+      label: <span className="text-md select-none">非结构化日志</span>,
       children: (
         <Form.Item
           name="parseRule"
@@ -295,15 +275,15 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
               validator: (_, value) => {
                 if (currentLogType) {
                   if (!value) {
-                    return Promise.reject(new Error("请输入解析规则"))
+                    return Promise.reject(new Error('请输入解析规则'))
                   }
                 }
                 return Promise.resolve()
-              }
-            }
+              },
+            },
           ]}
         >
-          <div className='flex mb-2'>
+          <div className="flex mb-2">
             <AiOutlineInfoCircle size={16} className="ml-1 mr-1" />
             <span className="text-xs text-gray-400">
               将符合规则的日志进行结构化并加快查询速度，查看
@@ -316,12 +296,43 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
               </a>
             </span>
           </div>
-          <TextArea placeholder="解析规则" rows={3} value={parseRule} onChange={(e) => {
-            setParseRule(e.target.value)
-            form.setFieldValue('parseRule', e.target.value)
-          }} />
+          <TextArea
+            placeholder="解析规则"
+            rows={3}
+            value={parseRule}
+            onChange={(e) => {
+              setParseRule(e.target.value)
+              form.setFieldValue('parseRule', e.target.value)
+            }}
+          />
         </Form.Item>
-      )
+      ),
+    },
+    {
+      key: 0,
+      label: <span className="text-md select-none">结构化JSON日志</span>,
+      children: (
+        <div className="min-h-36">
+          <Form.Item name="structuredRule">
+            <div className="flex mb-2">
+              <AiOutlineInfoCircle size={16} className="ml-1 mr-1" />
+              <span className="text-xs text-gray-400">
+                请输入JSON格式的日志样本自动生成日志格式（仅支持解析JSON最外层的键）
+              </span>
+            </div>
+            <TextArea
+              placeholder="日志样本"
+              rows={3}
+              onChange={(e) => {
+                setJsonRule(e.target.value)
+              }}
+            />
+          </Form.Item>
+          <div className="flex flex-col items-start w-full">
+            <LogStructRuleFormList jsonRule={jsonRule} fForm={form} ref={subFormRef} />
+          </div>
+        </div>
+      ),
     },
   ]
   const handleModalClose = () => {
