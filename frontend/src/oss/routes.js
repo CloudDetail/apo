@@ -38,7 +38,7 @@ const ossRoutes = [
   { path: '/middleware-dashboard', name: '中间件大盘', element: MiddlewareDashboard },
   { path: '/alerts', name: '告警规则', element: Alerts, hideSystemTimeRangePicker: true },
   { path: '/config', name: '配置中心', element: ConfigPage, hideSystemTimeRangePicker: true },
-  { path: '/user', name: '个人中心', element: UserPage },
-  { path: '/system/user-manage', name: '用户管理', element: UserManage }
+  { path: '/user', name: '个人中心', element: UserPage, hideSystemTimeRangePicker: true },
+  { path: '/system/user-manage', name: '用户管理', element: UserManage, hideSystemTimeRangePicker: true }
 ]
 export default ossRoutes

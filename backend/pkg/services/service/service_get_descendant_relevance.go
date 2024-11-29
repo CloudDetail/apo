@@ -27,14 +27,17 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 	}
 
 	unsortedDescendant := make([]polarisanalyzer.ServiceNode, 0, len(nodes.Nodes))
+	var isTracedMap = make(map[polarisanalyzer.ServiceNode]bool)
 	var services, endpoints []string
 	for _, node := range nodes.Nodes {
-		unsortedDescendant = append(unsortedDescendant, polarisanalyzer.ServiceNode{
+		svcNode := polarisanalyzer.ServiceNode{
 			Service:  node.Service,
 			Endpoint: node.Endpoint,
 			Group:    node.Group,
 			System:   node.System,
-		})
+		}
+		unsortedDescendant = append(unsortedDescendant, svcNode)
+		isTracedMap[svcNode] = node.IsTraced
 		services = append(services, node.Service)
 		endpoints = append(endpoints, node.Endpoint)
 	}
@@ -64,7 +67,9 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 
 	var resp []response.GetDescendantRelevanceResponse
 	if req.WithAlert == "true" {
-		resp = s.fillDescendantWithAlertStatus(services, endpoints, req, sortResult, sortType, resp)
+		resp = s.fillDescendantWithAlertStatus(
+			services, endpoints,
+			req, sortResult, sortType, resp, isTracedMap)
 	} else {
 		for i := 0; i < len(sortResult); i++ {
 			descendant := sortResult[i]
@@ -72,6 +77,8 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 				ServiceName:  descendant.Service,
 				EndPoint:     descendant.Endpoint,
 				Distance:     descendant.Relevance,
+				Group:        descendant.Group,
+				IsTraced:     isTracedMap[descendant],
 				DistanceType: sortType,
 			})
 		}
@@ -80,7 +87,7 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 	return resp, nil
 }
 
-func (s *service) fillDescendantWithAlertStatus(services []string, endpoints []string, req *request.GetDescendantRelevanceRequest, sortResult []polarisanalyzer.ServiceNode, sortType string, resp []response.GetDescendantRelevanceResponse) []response.GetDescendantRelevanceResponse {
+func (s *service) fillDescendantWithAlertStatus(services []string, endpoints []string, req *request.GetDescendantRelevanceRequest, sortResult []polarisanalyzer.ServiceNode, sortType string, resp []response.GetDescendantRelevanceResponse, isTracedMap map[polarisanalyzer.ServiceNode]bool) []response.GetDescendantRelevanceResponse {
 	var alermCheckErr error
 
 	// 查询RED指标和阈值
@@ -98,7 +105,7 @@ func (s *service) fillDescendantWithAlertStatus(services []string, endpoints []s
 			ServiceName:      descendant.Service,
 			EndPoint:         descendant.Endpoint,
 			Group:            descendant.Group,
-			IsTraced:         descendant.Group == "service",
+			IsTraced:         isTracedMap[descendant],
 			Distance:         descendant.Relevance,
 			DistanceType:     sortType,
 			DelaySource:      "unknown",
