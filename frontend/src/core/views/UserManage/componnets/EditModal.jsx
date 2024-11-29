@@ -53,13 +53,13 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
                         "title": "密码修改成功",
                         "color": "success"
                     })
+                    setModalEditVisibility(false)
                 } catch (error) {
                     console.error(error)
                     showToast({
                         title: error.response?.data?.message || "未知错误",
                         "color": "danger"
                     })
-                    setModalEditVisibility(false)
                 } finally {
                     setLoading(false)
                 }
@@ -162,7 +162,7 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
                                         },
                                         {
                                             pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{9,}$/,
-                                            message: '密码必须包含大写字母、小写字母、特殊字符，且长度大于8'
+                                            message: '密码必须包含大写字母、小写字母、特殊字符(!@#$%^&*(),.?":{}|<>)，且长度大于8'
                                         }
                                     ]}
                                 >

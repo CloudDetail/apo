@@ -19,7 +19,7 @@ export default function UserManage() {
     const [tableVisibility, setTableVisibility] = useState(true)
     const [modalEditVisibility, setModalEditVisibility] = useState(false)
     const [currentPage, setCurrentPage] = useState(1)
-    const [pageSize, setPageSize] = useState(11)
+    const [pageSize, setPageSize] = useState(10)
     const [total, setTotal] = useState(0)
     const [selectedUser, setSelectedUser] = useState("")
     const [loading, setLoading] = useState(false)
@@ -50,12 +50,13 @@ export default function UserManage() {
     }
 
     //获取用户列表
-    async function getUserList(signal = undefined, type = "normal") {
+    async function getUserList(signal = undefined, type = "normal",search = false) {
         if (loading) return
         setLoading(true)
         const params = type === "special" ?
             { currentPage: currentPage - 1, pageSize, username, role, corporation } :
-            { currentPage, pageSize, username, role, corporation }
+            search ? { currentPage:1, pageSize, username, role, corporation } : { currentPage, pageSize, username, role, corporation }
+            
         try {
             const { users, currentPage, pageSize, total } = await getUserListApi(params, signal)
             setUserList(users)
@@ -162,7 +163,16 @@ export default function UserManage() {
         return () => {
             controller.abort
         }
-    }, [username, role, corporation, currentPage, pageSize])
+    }, [currentPage, pageSize])
+
+    useEffect(() => {
+        const controller = new AbortController();
+        const { signal } = controller; // 获取信号对象
+        getUserList(signal,null,true)
+        return () => {
+            controller.abort
+        }
+    }, [username, role, corporation])
 
     return (
         <>
@@ -221,7 +231,7 @@ export default function UserManage() {
                             current={currentPage}
                             pageSize={pageSize}
                             total={total}
-                            pageSizeOptions={[11, 30, 50]}
+                            pageSizeOptions={[10, 30, 50]}
                             showSizeChanger
                             onChange={paginationChange}
                             showQuickJumper
