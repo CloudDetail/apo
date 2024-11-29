@@ -19,7 +19,7 @@ const rootReducer = combineReducers({
   topologyReducer: persistReducer(topologyPresistConfig, topologyReducer),
   urlParamsReducer: persistReducer(urlParamsPresistConfig, urlParamsReducer),
   groupLabelReducer: persistReducer(groupLabelPresistConfig, groupLabelReducer),
-  userReducer: persistReducer(userPersistConfig, userReducer),
+  userReducer: persistReducer(userPersistConfig, userReducer)
 })
 
 export default rootReducer
