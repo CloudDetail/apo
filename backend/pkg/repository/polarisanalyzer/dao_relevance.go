@@ -87,15 +87,19 @@ type Target struct {
 }
 
 type RelevanceResponse struct {
-	SortedDescendant   []ServiceNode `json:"sortedDescendant"`
-	UnsortedDescendant []ServiceNode `json:"unsortedDescendant"`
-	DistanceType       string        `json:"distanceType"`
+	SortedDescendant   []Relevance `json:"sortedDescendant"`
+	UnsortedDescendant []Relevance `json:"unsortedDescendant"`
+	DistanceType       string      `json:"distanceType"`
 }
 
 type ServiceNode struct {
-	Service   string  `json:"service"`
-	Endpoint  string  `json:"endpoint"`
-	Group     string  `json:"group"`
-	System    string  `json:"system"`
+	Service  string `json:"service"`
+	Endpoint string `json:"endpoint"`
+	Group    string `json:"group"`
+	System   string `json:"system"`
+}
+
+type Relevance struct {
+	ServiceNode
 	Relevance float64 `json:"relevance,omitempty"`
 }
