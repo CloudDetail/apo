@@ -163,7 +163,7 @@ const LogStructRuleFormList = forwardRef(({ jsonRule, fForm }, ref) => {
     return (
         <>
             <div className='flex items-center mt-2 mb-2 w-full justify-start'>
-                <span className="text-md text-gray-400">日志键值对</span>
+                <span className="text-md text-gray-400">日志解析规则</span>
                 <div className='flex items-center'>
                     <IoMdAddCircleOutline
                         size={20}
