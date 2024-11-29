@@ -1,12 +1,16 @@
-import { Flex, Popover } from "antd";
+import { Flex, Popover, Button } from "antd";
 import { LogoutOutlined, UserOutlined } from "@ant-design/icons"
 import { showToast } from "core/utils/toast";
 import { useNavigate } from 'react-router-dom'
-import { logoutApi } from "core/api/user";
+import { logoutApi, getUserInfoApi } from "core/api/user";
 import { HiUserCircle } from "react-icons/hi";
+import { useEffect, useState, useReducer } from "react";
+import userReducer, { initialState } from "../store/reducers/userReducer";
+import { useUserContext } from "../contexts/UserContext";
 
 
 const UserToolBox = () => {
+    const {user, dispatchUser} = useUserContext()
     const navigate = useNavigate()
 
     const content = (
@@ -34,6 +38,10 @@ const UserToolBox = () => {
 
     //退出登录
     async function logout() {
+        // @ts-ignore
+        dispatchUser({
+            type: "removeUser"
+        })
         try {
             const params = {
                 accessToken: localStorage.getItem("token"),
@@ -42,6 +50,10 @@ const UserToolBox = () => {
             await logoutApi(params)
             localStorage.removeItem("token")
             localStorage.removeItem("refreshToken")
+            // @ts-ignore
+            dispatchUser({
+                type: "removeUser"
+            })
             navigate('/login')
             showToast({
                 title: '退出登录成功',
@@ -56,19 +68,41 @@ const UserToolBox = () => {
         }
     }
 
+    function getUserInfo() {
+        getUserInfoApi()
+            .then((res) => {
+                // @ts-ignore
+                dispatch({
+                    type: "addUser",
+                    payload: res
+                })
+            }).catch((error) => {
+                showToast({
+                    title: error.response?.data?.message,
+                    color: "danger"
+                })
+            })
+    }
+
+    useEffect(() => {
+        getUserInfo()
+    }, [])
+
     return (
-        <Popover content={content}>
-            <div
-                className="relative flex items-center select-none w-auto pl-2 pr-2 rounded-md hover:bg-[#30333C] cursor-pointer"
-            >
-                <div>
-                    <HiUserCircle className="w-8 h-8" />
+        <>
+            {user.user?.username !== 'anonymous'  ? (<Popover content={content}>
+                <div
+                    className="relative flex items-center select-none w-auto pl-2 pr-2 rounded-md hover:bg-[#30333C] cursor-pointer"
+                >
+                    <div>
+                        <HiUserCircle className="w-8 h-8" />
+                    </div>
+                    <div className="h-1/2 flex flex-col justify-center">
+                        <p className="text-base relative -top-0.5">{user.user?.username}</p>
+                    </div>
                 </div>
-                <div className="h-1/2 flex flex-col justify-center">
-                    <p className="text-base relative -top-0.5">{JSON.parse(localStorage.getItem("user"))?.username || "获取用户信息失败"}</p>
-                </div>
-            </div>
-        </Popover>
+            </Popover>) : <Button type="link" onClick={() => navigate("/login")}>登录</Button>}
+        </>
     )
 }
 

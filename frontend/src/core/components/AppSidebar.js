@@ -4,6 +4,11 @@ import React, { useEffect, useState } from 'react'
 import { _nav as navigation } from 'src/_nav'
 import { ConfigProvider, Menu } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
+import userReducer, { initialState } from '../store/reducers/userReducer'
+import { useReducer } from 'react'
+import { getUserInfoApi } from '../api/user'
+import { showToast } from '../utils/toast'
+import { useUserContext } from '../contexts/UserContext'
 
 const AppSidebarMenuIcon = (menuItem) => {
   return (
@@ -16,13 +21,41 @@ const AppSidebarMenuIcon = (menuItem) => {
   )
 }
 const AppSidebar = ({ collapsed }) => {
+  const { user, dispatchUser } = useUserContext()
   const location = useLocation()
   const navigate = useNavigate()
   const [selectedKeys, setSelectedKeys] = useState([])
   const [openKeys, setOpenKeys] = useState([])
+  const [menuList, setMenuList] = useState([])
   const getItems = () => {
-    return navigation.map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) }))
+    return user.user.username !== 'anonymous' ?
+      navigation.map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) })) :
+      navigation.filter((item) => {
+        if (item.key !== 'manage') return item
+      }).map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) }))
   }
+
+  function getUserInfo() {
+    getUserInfoApi()
+      .then((res) => {
+        // @ts-ignore
+        dispatchUser({
+          type: "addUser",
+          payload: res
+        })
+      }).catch((error) => {
+        showToast({
+          title: error.response?.data?.message,
+          color: "danger"
+        })
+      })
+  }
+
+  useEffect(() => {
+    getUserInfo()
+    setMenuList(getItems())
+  }, [user.user.username])
+
   const onClick = ({ item, key, keyPath, domEvent }) => {
     navigate(item.props.to)
   }
@@ -44,7 +77,7 @@ const AppSidebar = ({ collapsed }) => {
   }, [location.pathname])
   useEffect(() => {
     if (!collapsed) {
-      setOpenKeys(['logs','manage'])
+      setOpenKeys(['logs', 'manage'])
     } else {
       setOpenKeys([])
     }
@@ -64,7 +97,7 @@ const AppSidebar = ({ collapsed }) => {
         mode="inline"
         theme="dark"
         inlineCollapsed={true}
-        items={getItems()}
+        items={menuList}
         onClick={onClick}
         selectedKeys={selectedKeys}
         openKeys={openKeys}
