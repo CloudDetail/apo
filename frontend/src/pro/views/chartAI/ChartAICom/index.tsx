@@ -11,6 +11,8 @@ import HintCom from './HintCom'
 import './index.css'
 import LoadingSpinner from 'src/core/components/Spinner'
 import GlassCard from './GlassCard'
+import { showToast } from 'src/core/utils/toast'
+import { refreshAccessToken } from 'src/core/utils/request'
 const ChartAICom = () => {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const { service, endpoint, anormalTypes } = useChartAIContext()
@@ -96,8 +98,7 @@ const ChartAICom = () => {
   const getChartData = async () => {
     setIsDone(false)
     const step = getStep(startTime, endTime)
-    const response = await fetch('/ai/api/alertchat', {
-      // const response = await fetch('http://localhost:8083/stream', {
+    const response = await customFetch('/ai/api/alertchat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -116,15 +117,18 @@ const ChartAICom = () => {
       }),
     })
     const contentType = response.headers.get('Content-Type') // 获取响应头
-    if (contentType && contentType.includes('application/json')) {
-      const data = await response.json()
 
-      // 根据 code 做进一步处理
-      if (data.code === 'B0302') {
-        setIsConfigure(false)
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        const data = await response.json()
+        if (data.code === 'B0302') {
+          setIsConfigure(false)
+        }
+      } catch {
+      } finally {
+        setIsDone(true)
+        return
       }
-      setIsDone(true)
-      return
     }
     setIsConfigure(true)
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
@@ -226,7 +230,7 @@ const ChartAICom = () => {
       return updatedDialogue
     })
     setIsDone(false)
-    const response = await fetch(`/ai/api/chat?${queryString}`, {
+    const response = await customFetch(`/ai/api/chat?${queryString}`, {
       method: 'GET',
       signal: controller.signal,
     })
@@ -377,3 +381,83 @@ const ChartAICom = () => {
   )
 }
 export default ChartAICom
+
+const customFetch = async (url: string, options: any = {}) => {
+  const token = localStorage.getItem('token') // 从本地存储获取 token
+  const headers = {
+    ...options.headers,
+    'Content-Type': 'application/json',
+    Authorization: token ? `Bearer ${token}` : undefined,
+  }
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      const { status } = response
+
+      switch (status) {
+        case 400:
+          if (errorData.code === 'A0004') {
+            window.location.href = '/#/login'
+            showToast({
+              title: '未登录,请先登录',
+              color: 'danger',
+            })
+          } else if (errorData.code === 'A0005') {
+            const newToken = await refreshAccessToken()
+            if (newToken) {
+              localStorage.setItem('token', newToken)
+              return customFetch(url, options) // 递归调用需返回结果
+            } else {
+              window.location.href = '/#/login'
+              showToast({
+                title: '登录过期,请重新登录',
+                color: 'danger',
+              })
+            }
+          } else {
+            showToast({
+              title: errorData.message || '请求错误',
+              color: 'danger',
+            })
+          }
+          break
+
+        case 401:
+          window.location.href = '/#/login'
+          showToast({
+            title: '认证失败，请重新登录',
+            color: 'danger',
+          })
+          break
+
+        case 403:
+          showToast({
+            title: '拒绝访问',
+            color: 'danger',
+          })
+          break
+
+        default:
+          showToast({
+            title: '请求失败',
+            message: errorData.message || '未知错误',
+            color: 'danger',
+          })
+      }
+
+      // throw new Error(`请求失败，状态码：${status}`)
+    }
+
+    // 处理成功响应
+    return response
+  } catch (error) {
+    console.error('Fetch 请求出错:', error?.message || error)
+    throw error
+  }
+}
