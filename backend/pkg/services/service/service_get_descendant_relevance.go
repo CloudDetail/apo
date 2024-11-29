@@ -74,6 +74,8 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 		var descendantResp = response.GetDescendantRelevanceResponse{
 			ServiceName:      descendant.Service,
 			EndPoint:         descendant.Endpoint,
+			Group:            descendant.Group,
+			IsTraced:         descendant.Group == "service",
 			Distance:         descendant.Relevance,
 			DistanceType:     sortType,
 			DelaySource:      "unknown",

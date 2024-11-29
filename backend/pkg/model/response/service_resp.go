@@ -25,6 +25,8 @@ type GetDescendantMetricsResponse = prometheus.DescendantMetrics
 type GetDescendantRelevanceResponse struct {
 	ServiceName      string  `json:"serviceName"`  // 服务名
 	EndPoint         string  `json:"endpoint"`     // Endpoint
+	Group            string  `json:"group"`        // 服务类型
+	IsTraced         bool    `json:"isTraced"`     // 是否跟踪
 	Distance         float64 `json:"distance"`     // 延时曲线差异
 	DistanceType     string  `json:"distanceType"` // 延时曲线差异计算方式, 有euclidean/pearson/dtw/failed/net_failed四种
 	DelaySource      string  `json:"delaySource"`  // 延时主要来源 unknown/self/dependency
