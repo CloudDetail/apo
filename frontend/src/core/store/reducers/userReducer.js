@@ -8,7 +8,7 @@ const userReducer = (state = initialState, action) => {
         case "addUser":
             return { user: action.payload }
         case "removeUser":
-            return { user: "anonymous" }
+            return { user: "anonymous", token: { token: null, refreshToken: null } }
         default:
             return state
     }

@@ -59,12 +59,8 @@ const UserToolBox = () => {
                 title: '退出登录成功',
                 color: 'success'
             })
-        } catch (errorInfo) {
-            showToast({
-                title: '退出登录失败',
-                message: '失败原因:' + errorInfo,
-                color: 'danger'
-            })
+        } catch (error) {
+            console.error(error)
         }
     }
 
@@ -72,15 +68,12 @@ const UserToolBox = () => {
         getUserInfoApi()
             .then((res) => {
                 // @ts-ignore
-                dispatch({
+                dispatchUser({
                     type: "addUser",
                     payload: res
                 })
             }).catch((error) => {
-                showToast({
-                    title: error.response?.data?.message,
-                    color: "danger"
-                })
+                console.error(error)
             })
     }
 

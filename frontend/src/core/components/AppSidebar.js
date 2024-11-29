@@ -35,24 +35,7 @@ const AppSidebar = ({ collapsed }) => {
       }).map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) }))
   }
 
-  function getUserInfo() {
-    getUserInfoApi()
-      .then((res) => {
-        // @ts-ignore
-        dispatchUser({
-          type: "addUser",
-          payload: res
-        })
-      }).catch((error) => {
-        showToast({
-          title: error.response?.data?.message,
-          color: "danger"
-        })
-      })
-  }
-
   useEffect(() => {
-    getUserInfo()
     setMenuList(getItems())
   }, [user.user.username])
 
