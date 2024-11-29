@@ -94,7 +94,7 @@ const LogStructRuleFormList = forwardRef(({ jsonRule, fForm }, ref) => {
         if (typeof value === 'string') {
           type = 'String'
         } else if (typeof value === 'number') {
-          type = Number.isInteger(value) ? 'Int256' : 'Float64'
+          type = Number.isInteger(value) ? 'Int64' : 'Float64'
         } else if (typeof value === 'boolean') {
           type = 'Bool'
         } else {
