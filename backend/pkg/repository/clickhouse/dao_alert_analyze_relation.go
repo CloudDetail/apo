@@ -18,7 +18,7 @@ const (
 	  direct_relation AS (
 	    SELECT trace_id,path,service,url,entry_service,entry_url
 	    FROM %s.service_relationship
-	    WHERE %s
+	    %s
 	  ),
 	  async_path AS (
 	    SELECT path,service,url,trace_id
