@@ -157,6 +157,7 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 		Alias("flags['is_error']", "is_error").
 		Alias("flags", "flags").
 		Alias("labels", "labels").
+		Alias("apm_span_id", "span_id").
 		String()
 	bySql := NewByLimitBuilder().
 		OrderBy("timestamp", false).
@@ -205,18 +206,27 @@ type FaultLogResult struct {
 }
 
 type QueryTraceResult struct {
-	Timestamp   int64  `ch:"ts" json:"timestamp"`
-	Duration    uint64 `ch:"duration_us" json:"duration"`
-	ServiceName string `ch:"service_name" json:"serviceName"`
-	Pid         uint32 `ch:"pid" json:"pid"`
-	Tid         uint32 `ch:"tid" json:"tid"`
-	TraceId     string `ch:"trace_id" json:"traceId"`
-	EndPoint    string `ch:"endpoint" json:"endpoint"`
-	InstanceId  string `ch:"instance_id" json:"instanceId"`
-	IsError     bool   `ch:"is_error" json:"isError"`
+	Timestamp      int64   `ch:"ts" json:"timestamp"`
+	Duration       uint64  `ch:"duration_us" json:"duration"`
+	ServiceName    string  `ch:"service_name" json:"serviceName"`
+	Pid            uint32  `ch:"pid" json:"pid"`
+	Tid            uint32  `ch:"tid" json:"tid"`
+	TraceId        string  `ch:"trace_id" json:"traceId"`
+	EndPoint       string  `ch:"endpoint" json:"endpoint"`
+	InstanceId     string  `ch:"instance_id" json:"instanceId"`
+	SpanId         string  `ch:"span_id" json:"spanId"`
+	ApmType        string  `ch:"apm_type" json:"apmType"`
+	Reason         string  `ch:"reason" json:"reason"`
+	IsError        bool    `ch:"is_error" json:"isError"`
+	IsSlow         bool    `ch:"is_slow" json:"isSlow"`
+	ThresholdValue float64 `ch:"threshold_value" json:"thresholdValue"`
 
-	Labels map[string]string `ch:"labels" json:"labels"`
-	Flags  map[string]bool   `ch:"flags"  json:"flags"`
+	Labels  map[string]string `ch:"labels" json:"labels"`
+	Flags   map[string]bool   `ch:"flags"  json:"flags"`
+	Metrics map[string]uint64 `ch:"metrics" json:"metrics"`
+
+	MutatedValue uint64 `ch:"mutated_value" json:"mutatedValue"`
+	IsMutated    uint8  `ch:"is_mutated" json:"isMutated"` // 延时是否突变
 }
 
 func AppendToBuilder(builder *QueryBuilder, f *request.SpanTraceFilter) error {
