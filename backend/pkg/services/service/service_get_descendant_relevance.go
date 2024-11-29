@@ -97,6 +97,8 @@ func (s *service) fillDescendantWithAlertStatus(services []string, endpoints []s
 		var descendantResp = response.GetDescendantRelevanceResponse{
 			ServiceName:      descendant.Service,
 			EndPoint:         descendant.Endpoint,
+			Group:            descendant.Group,
+			IsTraced:         descendant.Group == "service",
 			Distance:         descendant.Relevance,
 			DistanceType:     sortType,
 			DelaySource:      "unknown",
