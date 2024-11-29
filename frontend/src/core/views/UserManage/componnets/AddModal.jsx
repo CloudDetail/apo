@@ -1,4 +1,4 @@
-import { Modal, Flex, Form, Input } from "antd"
+import { Modal, Flex, Form, Input, Tooltip } from "antd"
 import { showToast } from "core/utils/toast"
 import { createUserApi } from "core/api/user"
 import { useState } from "react"
@@ -68,8 +68,8 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) =>
                             rules={[
                                 { required: true, message: '请输入密码' },
                                 {
-                                    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{9,}$/,
-                                    message: '密码必须包含大写字母、小写字母、特殊字符，且长度大于8'
+                                    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()\-_+=<>?/{}[\]|:;.,~]).{9,}$/,
+                                    message: <p>密码必须包含大写字母、小写字母、<Tooltip title="(! @ # $ % ^ & * ( ) - _ + = < > ? / { } [ ] | : ; . , ~)" ><span className="underline">特殊字符</span></Tooltip>，且长度大于8</p>
                                 }
                             ]}
                         >

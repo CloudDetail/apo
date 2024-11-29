@@ -31,7 +31,15 @@ instance.interceptors.request.use(
 // 响应拦截器
 instance.interceptors.response.use(
   (response) => {
-    const { data } = response
+    const { headers, data, config } = response
+    // 检查预期类型
+    const expectedType = config.headers.Accept || 'application/json' // 默认期望 JSON
+    const responseType = headers['content-type'] || ''
+
+    // 如果期望是 JSON，但返回的却是 HTML，则认为异常
+    if (!expectedType.includes('text/html') && responseType.includes('text/html')) {
+      return Promise.reject(new Error('Unexpected HTML response for a JSON request'))
+    }
     return data
   },
   async (error) => {
@@ -94,7 +102,7 @@ instance.interceptors.response.use(
 )
 
 // 刷新 accessToken
-const refreshAccessToken = async () => {
+export const refreshAccessToken = async () => {
   const refreshToken = localStorage.getItem('refreshToken')
   if (!refreshToken) return null
 

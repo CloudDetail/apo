@@ -1,25 +1,27 @@
-import { Form, Input, Popconfirm, Button, Flex, Divider } from "antd"
+import { Form, Input, Popconfirm, Button, Flex, Tooltip } from "antd"
 import { showToast } from "core/utils/toast"
 import { logoutApi, updatePasswordApi } from "core/api/user"
 import { LockOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
+import { useUserContext } from "src/core/contexts/UserContext"
 
 
 export default function UpdatePassword() {
     const [form] = Form.useForm()
     const navigate = useNavigate();
+    const { user, dispatchUser } = useUserContext()
 
     //更新密码
     function updatePassword() {
         form.validateFields(['oldPassword', 'newPassword', 'confirmPassword'])
             .then(async ({ oldPassword, newPassword, confirmPassword }) => {
                 try {
-                    const username = getUsernameFromLocalStorage()
+                    const username = user.user.username
                     if (!username) {
                         showToast({
-                            title:"获取用户名失败",
-                            message:"请重新登录",
-                            color:"danger"
+                            title: "获取用户名失败",
+                            message: "请重新登录",
+                            color: "danger"
                         })
                         return navigate("/login")
                     }
@@ -27,7 +29,7 @@ export default function UpdatePassword() {
                         oldPassword,
                         newPassword,
                         confirmPassword,
-                        username: JSON.parse(localStorage.getItem("user")).username
+                        username: username
                     }
                     await updatePasswordApi(paramsForUpdatePassword)
                     form.resetFields(['oldPassword', 'newPassword', 'confirmPassword'])
@@ -52,22 +54,13 @@ export default function UpdatePassword() {
                         color: "danger"
                     })
                 }
-            }).catch((error)=>{
+            }).catch((error) => {
                 showToast({
-                    title:"表单验证失败",
-                    message:error.message || "请检查输入",
-                    color:"danger"
+                    title: "表单验证失败",
+                    message: error.message || "请检查输入",
+                    color: "danger"
                 })
             })
-    }
-
-    function getUsernameFromLocalStorage() {
-        try {
-            const user = JSON.parse(localStorage.getItem("user"));
-            return user?.username || '';
-        } catch (error) {
-            return '';
-        }
     }
 
     return (
@@ -91,8 +84,8 @@ export default function UpdatePassword() {
                                 rules={[
                                     { required: true, message: '请输入新密码' },
                                     {
-                                        pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{9,}$/,
-                                        message: '密码必须包含大写字母、小写字母、特殊字符，且长度大于8'
+                                        pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()\-_+=<>?/{}[\]|:;.,~]).{9,}$/,
+                                        message: <p>密码必须包含大写字母、小写字母、<Tooltip title="(! @ # $ % ^ & * ( ) - _ + = < > ? / { } [ ] | : ; . , ~)" ><span className="underline">特殊字符</span></Tooltip>，且长度大于8</p>
                                     }
                                 ]}
                             >
