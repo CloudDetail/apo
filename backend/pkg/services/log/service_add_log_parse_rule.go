@@ -37,7 +37,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 	}
 
 	fields := make([]request.Field, 0)
-	if len(req.Fields) > 0 {
+	if req.IsStructured {
 		fields = req.Fields
 	} else {
 		matchesFields := fieldsRegexp.FindAllStringSubmatch(req.ParseRule, -1)
@@ -45,12 +45,21 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 			if match[1] == "msg" || match[1] == "ts" {
 				continue
 			}
-			fields = append(fields, request.Field{
+
+			parsedField := request.Field{
 				Name: match[1],
 				Type: "String",
-			})
+			}
+
+			for _, customizedFiled := range req.Fields {
+				if parsedField.Name == customizedFiled.Name {
+					parsedField.Type = customizedFiled.Type
+				}
+			}
+			fields = append(fields, parsedField)
 		}
 	}
+
 	logReq.TTL = req.LogTable.TTL
 	logReq.Fields = fields
 	logReq.Buffer = req.LogTable.Buffer
