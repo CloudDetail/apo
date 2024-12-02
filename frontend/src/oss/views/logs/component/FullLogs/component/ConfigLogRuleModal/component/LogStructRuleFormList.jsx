@@ -37,7 +37,16 @@ export default function LogStructRuleFormList({ fieldName }) {
                 {/* <div className="flex flex-row"> */}
                 日志字段数据类型{' '}
                 <IoMdAddCircleOutline
-                  onClick={() => add()}
+                  onClick={() =>
+                    add({
+                      name: '',
+                      type: {
+                        key: 'String',
+                        label: 'String',
+                        value: 'String',
+                      },
+                    })
+                  }
                   size={20}
                   className="mx-2 cursor-pointer"
                 />
@@ -104,7 +113,11 @@ export default function LogStructRuleFormList({ fieldName }) {
                         options={routeKeyList}
                         labelInValue
                         placeholder="选择匹配规则Key"
-                        // defaultValue={'String'}
+                        defaultValue={{
+                          key: 'String',
+                          label: 'String',
+                          value: 'String',
+                        }}
                       />
                     </Form.Item>
                   </Col>
