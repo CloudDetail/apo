@@ -30,6 +30,19 @@ const (
 	LEFT JOIN async_path ON direct_relation.trace_id = async_path.trace_id
 	WHERE startsWith(path,async_path.path)
 	GROUP BY service,url,entry_service,entry_url,async_entry_service,async_entry_endpoint`
+
+	SQL_GET_ASYNC_ENTRY_NODE_RELATIONSHIP = `WITH
+	  async_entry_path AS (
+	    SELECT trace_id,path,service,url,entry_service,entry_url
+	    FROM %s.service_relationship
+	    %s
+	  )
+	SELECT parent_service as parentService, parent_url as parentUrl, service, url, sum(case when flags['is_traced'] then 1 else 0 end) > 0 as traced,
+	labels['client_group'] as clientGroup, labels['client_type'] as clientType, labels['client_peer'] as clientPeer, labels['client_key'] as clientKey
+	FROM %s.service_relationship r
+	GLOBAL JOIN async_entry_path ON r.trace_id = async_entry_path.trace_id
+	WHERE startsWith(path,async_entry_path.path)
+	GROUP BY parentService, parentUrl, service, url, clientGroup, clientType, clientPeer, clientKey`
 )
 
 // EntryRelationship 表示下游节点和其入口的直接对应关系
@@ -45,19 +58,17 @@ type EntryRelationship struct {
 }
 
 func (r *EntryRelationship) GetEntryService() string {
-	// TODO 后续支持异步入口
-	// if len(r.AsyncEntryService) > 0 {
-	// 	return r.AsyncEntryEndpoint
-	// }
+	if len(r.AsyncEntryService) > 0 {
+		return r.AsyncEntryEndpoint
+	}
 
 	return r.EntryService
 }
 
 func (r *EntryRelationship) GetEntryEndpoint() string {
-	// TODO 后续支持异步入口
-	// if len(r.AsyncEntryService) > 0 {
-	// 	return r.AsyncEntryEndpoint
-	// }
+	if len(r.AsyncEntryService) > 0 {
+		return r.AsyncEntryEndpoint
+	}
 	return r.EntryEndpoint
 }
 
@@ -155,4 +166,21 @@ func getDescendantServiceNode(relations []ChildRelation) []*model.ToplogyRelatio
 		result = append(result, topologyRelation)
 	}
 	return result
+}
+
+// ListDescendantNodesForAsyncEntry 获取异步入口的下游依赖拓扑
+func (ch *chRepo) ListDescendantNodesForAsyncEntry(req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error) {
+	startTime := req.StartTime / 1000000
+	endTime := req.EndTime / 1000000
+	queryBuilder := NewQueryBuilder().
+		Between("timestamp", startTime, endTime).
+		Equals("service", req.EntryService).
+		Equals("url", req.EntryEndpoint).
+		Equals("flags['is_async']", true)
+	sql := fmt.Sprintf(SQL_GET_ASYNC_ENTRY_NODE_RELATIONSHIP, ch.database, queryBuilder.String(), ch.database)
+	results := []ChildRelation{}
+	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+		return nil, err
+	}
+	return getDescendantServiceNode(results), nil
 }
