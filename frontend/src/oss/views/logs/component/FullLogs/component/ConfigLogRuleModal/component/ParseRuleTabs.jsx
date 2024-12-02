@@ -88,11 +88,16 @@ const ParseRuleTabs = () => {
     try {
       // 尝试解析输入字符串为 JSON 对象
       const parsed = JSON.parse(value)
-      // 检查是否是对象
-      if (typeof parsed !== 'object' || parsed === null) {
-        return false
+      // 确保解析结果是对象且不是数组
+      if (
+        typeof parsed === 'object' &&
+        parsed !== null &&
+        !Array.isArray(parsed) &&
+        Object.keys(parsed).length > 0
+      ) {
+        return true
       }
-      return true
+      return false
     } catch (error) {
       return false
     }
