@@ -114,10 +114,14 @@ const ParseRuleTabs = () => {
         }
         return {
           name: key,
-          type: type,
+          type: {
+            key: type,
+            label: type,
+            value: type,
+          },
         }
       })
-      form.setFieldValue('tableFields', result)
+      form.setFieldValue('structured', result)
     }
   }
 
