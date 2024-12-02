@@ -73,7 +73,7 @@ function TableRow({ row, clickRow }) {
   return (
     <tr
       {...row.getRowProps()}
-      onClick={() => clickRow?.(row.values)}
+      onClick={() => clickRow?.(row.original)}
       className={clickRow ? 'cursor-pointer' : ''}
     >
       {cellPropsArray.map((props, idx) => {
