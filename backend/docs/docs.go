@@ -1205,6 +1205,83 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/service/relation": {
+            "get": {
+                "description": "获取告警分析中的服务相关性",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "获取告警分析中的服务相关性",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "查询开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询服务名",
+                        "name": "service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询Endpoint",
+                        "name": "endpoint",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "入口服务名",
+                        "name": "entryService",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "入口Endpoint",
+                        "name": "entryEndpoint",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetServiceEndpointRelationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/config/getTTL": {
             "get": {
                 "description": "获取TTL",
@@ -8414,9 +8491,17 @@ const docTemplate = `{
                     "description": "Endpoint",
                     "type": "string"
                 },
+                "group": {
+                    "description": "服务类型",
+                    "type": "string"
+                },
                 "infrastructureStatus": {
                     "description": "基础设施告警",
                     "type": "string"
+                },
+                "isTraced": {
+                    "description": "是否跟踪",
+                    "type": "boolean"
                 },
                 "k8sStatus": {
                     "description": "K8s状态告警",

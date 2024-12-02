@@ -36,7 +36,7 @@ func (h *handler) GetAlertServiceEndpointRelation() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.alertanalyzeService.GetServiceEndpointRelationForAnalyze(req)
+		resp, err := h.alertanalyzeService.GetAnalyzeServiceEndpointRelation(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

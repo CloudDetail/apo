@@ -6,7 +6,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetServiceEndpointRelationForAnalyze(req *request.GetAlertServiceEndpointRelationRequest) (*response.GetServiceEndpointRelationResponse, error) {
+func (s *service) GetAnalyzeServiceEndpointRelation(req *request.GetAlertServiceEndpointRelationRequest) (*response.GetServiceEndpointRelationResponse, error) {
 	// 查询所有上游节点
 	parents, err := s.chRepo.ListParentNodes(&req.GetServiceEndpointTopologyRequest)
 	if err != nil {

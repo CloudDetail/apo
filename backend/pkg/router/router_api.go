@@ -140,6 +140,7 @@ func setApiRouter(r *resource) {
 		alertApi.POST("/detect/mutation/add", alertanalyzeHandler.AddDefectsDetect())
 		alertApi.GET("/detect/mutation/exec-list", alertanalyzeHandler.GetDefectDetectExecList())
 		alertApi.GET("/detect/mutation/rule-list", alertanalyzeHandler.GetDefectDetectRuleList())
+		alertApi.GET("/service/relation", alertanalyzeHandler.GetAlertServiceEndpointRelation())
 	}
 
 	configApi := r.mux.Group("/api/config").Use(middleware.Auth(r.cache))
