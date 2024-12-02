@@ -80,7 +80,22 @@ export default function LogRouteRuleFormList() {
                     </Form.Item>
                   </Col>
                   <Col span={11} key={index}>
-                    <Form.Item noStyle name={[field.name, 'value']} required>
+                    <Form.Item
+                      name={[field.name, 'value']}
+                      required
+                      rules={[
+                        {
+                          validator: async (_, value) => {
+                            // 获取当前表单中所有的routeRule项
+                            const routeRule = form.getFieldValue('routeRule') || []
+                            // 检查是否有重复的key
+                            if (!value) {
+                              return Promise.reject('匹配规则值不可为空')
+                            }
+                          },
+                        },
+                      ]}
+                    >
                       <Input placeholder="匹配值，按照前缀匹配" />
                     </Form.Item>
                   </Col>

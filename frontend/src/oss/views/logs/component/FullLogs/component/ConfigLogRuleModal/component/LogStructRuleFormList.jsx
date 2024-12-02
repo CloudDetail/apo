@@ -1,11 +1,6 @@
-import React, { forwardRef, useImperativeHandle, useState } from 'react'
-import { Button, Form, Input, Select } from 'antd'
+import { Col, Form, Input, Row, Select } from 'antd'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
-import { AiOutlineInfoCircle } from 'react-icons/ai'
-import { useEffect } from 'react'
-import TextArea from 'antd/es/input/TextArea'
-
-const typeOptions = [
+const routeKeyList = [
   { value: 'Int8', label: 'Int8' },
   { value: 'Int16', label: 'Int16' },
   { value: 'Int32', label: 'Int32' },
@@ -29,201 +24,105 @@ const typeOptions = [
   { value: 'Bool', label: 'Bool' },
 ]
 
-const LogStructRuleFormList = forwardRef(({ jsonRule, fForm }, ref) => {
-  const [structuringObject, setStructuringObject] = useState([])
-  const [form] = Form.useForm()
-  useImperativeHandle(
-    ref,
-    () => ({
-      form,
-      setStructuringObject,
-    }),
-    [form],
-  )
-
-  const parseJsonRule = (jsonRule) => {
-    const jsonForParse = jsonRule.trim() // 去掉前后空格
-    if (!jsonForParse) {
-      setStructuringObject([
-        {
-          name: '',
-          type: 'String',
-        },
-      ]) // 如果为空，清空列表
-      fForm.setFields([
-        {
-          name: 'structuredRule',
-          errors: [],
-        },
-      ])
-      return
-    }
-    let parsedJson = null
-    try {
-      parsedJson = JSON.parse(jsonForParse)
-      fForm.setFields([
-        {
-          name: 'structuredRule',
-          errors: [],
-        },
-      ])
-    } catch (error) {
-      console.error('解析失败:', error)
-      fForm.setFields([
-        {
-          name: 'structuredRule',
-          errors: ['json解析失败，请检查格式是否正确'],
-        },
-      ])
-      setStructuringObject([
-        {
-          name: '',
-          type: 'String',
-        },
-      ])
-      return
-    }
-
-    if (
-      typeof parsedJson === 'object' &&
-      parsedJson !== null &&
-      JSON.stringify(parsedJson) !== '{}'
-    ) {
-      const result = Object.entries(parsedJson).map(([key, value]) => {
-        let type
-        if (typeof value === 'string') {
-          type = 'String'
-        } else if (typeof value === 'number') {
-          type = Number.isInteger(value) ? 'Int64' : 'Float64'
-        } else if (typeof value === 'boolean') {
-          type = 'Bool'
-        } else {
-          type = 'String'
-        }
-        return { name: key, type }
-      })
-      setStructuringObject(result)
-    } else {
-      fForm.setFields([
-        {
-          name: 'structuredRule',
-          errors: ['json解析失败，请检查格式是否正确'],
-        },
-      ])
-    }
-  }
-  const addStructConf = () => {
-    const oldStructuringObject = []
-    Object.keys(form.getFieldsValue()).forEach((key) => {
-      const match = key.match(/^(\w+)_Type$/)
-      if (match) {
-        const field = match[1]
-        oldStructuringObject.push({
-          type: form.getFieldsValue()[`${field}_Type`],
-          name: form.getFieldsValue()[`${field}_Name`],
-        })
-      }
-    })
-
-    setStructuringObject([
-      ...oldStructuringObject,
-      {
-        name: '',
-        type: 'String',
-      },
-    ])
-  }
-
-  useEffect(() => {
-    form.resetFields()
-  }, [structuringObject])
-
-  useEffect(() => {
-    setStructuringObject([
-      {
-        name: '',
-        type: 'String',
-      },
-    ])
-  }, [])
-
-  useEffect(() => {
-    parseJsonRule(jsonRule)
-  }, [jsonRule])
-
-  const removeStructuring = (index) => {
-    setStructuringObject(structuringObject.filter((_, i) => i !== index))
-  }
-
-  const updateObject = () => {
-    const oldStructuringObject = []
-    Object.keys(form.getFieldsValue()).forEach((key) => {
-      const match = key.match(/^(\w+)_Type$/)
-      if (match) {
-        const field = match[1]
-        oldStructuringObject.push({
-          type: form.getFieldsValue()[`${field}_Type`],
-          name: form.getFieldsValue()[`${field}_Name`],
-        })
-      }
-    })
-
-    setStructuringObject([...oldStructuringObject])
-  }
-
+export default function LogStructRuleFormList({ fieldName }) {
+  const form = Form.useFormInstance()
   return (
-    <>
-      <div className="flex items-center mt-2 mb-2 w-full justify-start">
-        <span className="text-md text-gray-400">日志字段数据类型</span>
-        <div className="flex items-center">
-          <IoMdAddCircleOutline size={20} className="cursor-pointer ml-2" onClick={addStructConf} />
-        </div>
-      </div>
-      <div className="flex flex-col items-start w-full">
-        <Form className="w-full" form={form}>
-          {structuringObject?.map((item, index) => (
-            <div className="flex w-10/12 mb-8" key={index}>
-              <Form.Item
-                className="w-1/2 mr-3"
-                // name={key + "_" + "Name"}
-                name={index + '_' + 'Name'}
-                initialValue={item['name']}
-                rules={[
-                  {
-                    required: true,
-                    message: '请填写字段名',
-                  },
-                ]}
-              >
-                <Input placeholder="字段名" onBlur={updateObject} />
-              </Form.Item>
-              <Form.Item
-                className="w-1/6"
-                // name={key + "_" + "Type"}
-                name={index + '_' + 'Type'}
-                rules={[
-                  {
-                    required: true,
-                    message: '请选择类型',
-                  },
-                ]}
-                initialValue={item['type']}
-              >
-                <Select options={typeOptions} onChange={updateObject} />
-              </Form.Item>
-              <IoIosRemoveCircleOutline
-                size={20}
-                className="mt-1 cursor-pointer ml-5"
-                onClick={() => {
-                  removeStructuring(index)
-                }}
-              />
-            </div>
-          ))}
-        </Form>
-      </div>
-    </>
+    <Form.List name={fieldName}>
+      {(fields, { add, remove }, { errors }) => (
+        <>
+          <Form.Item
+            required={form.getFieldValue('isStructured')}
+            label={
+              <>
+                {/* <div className="flex flex-row"> */}
+                日志字段数据类型{' '}
+                <IoMdAddCircleOutline
+                  onClick={() => add()}
+                  size={20}
+                  className="mx-2 cursor-pointer"
+                />
+              </>
+            }
+          >
+            {fields.map((field, index) => (
+              <div key={field.name} className=" px-3 pt-3 pb-0 rounded relative">
+                <Row gutter={12}>
+                  <Col span={11}>
+                    <Form.Item
+                      name={[field.name, 'name']}
+                      required
+                      rules={[
+                        {
+                          validator: async (_, value) => {
+                            // 获取当前表单中所有的routeRule项
+                            const tableFields = form.getFieldValue(fieldName) || []
+                            // // 检查是否有重复的key
+                            const isStructured = form.getFieldValue('isStructured')
+                            if (isStructured) {
+                              if (!value) {
+                                return Promise.reject('字段名不可为空')
+                              }
+                            } else if (!form.getFieldValue('parseRule') && !value) {
+                              return Promise.reject('字段名不可为空')
+                            }
+                            const duplicate = tableFields.filter(
+                              (item, i) => item?.name === value && i !== index,
+                            )
+                            if (duplicate.length) {
+                              return Promise.reject('已存在相同的字段名')
+                            }
+                          },
+                        },
+                      ]}
+                    >
+                      <Input placeholder="字段名" />
+                    </Form.Item>
+                  </Col>
+                  <Col span={11}>
+                    <Form.Item
+                      // noStyle
+                      name={[field.name, 'type']}
+                      required
+                      rules={[
+                        {
+                          validator: async (_, value) => {
+                            // 获取当前表单中所有的routeRule项
+                            // // 检查是否有重复的key
+                            const isStructured = form.getFieldValue('isStructured')
+                            if (isStructured) {
+                              if (!value) {
+                                return Promise.reject('字段类型不可为空')
+                              }
+                            } else if (!form.getFieldValue('parseRule') && !value) {
+                              return Promise.reject('字段类型不可为空')
+                            }
+                          },
+                        },
+                      ]}
+                    >
+                      <Select
+                        options={routeKeyList}
+                        labelInValue
+                        placeholder="选择匹配规则Key"
+                        // defaultValue={'String'}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={1}>
+                    <IoIosRemoveCircleOutline
+                      size={20}
+                      className="mt-1 cursor-pointer"
+                      onClick={() => {
+                        remove(field.name)
+                      }}
+                    />
+                  </Col>
+                </Row>
+              </div>
+            ))}
+          </Form.Item>
+        </>
+      )}
+    </Form.List>
   )
-})
-
-export default LogStructRuleFormList
+}
