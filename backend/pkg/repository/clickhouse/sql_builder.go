@@ -241,26 +241,45 @@ const (
 func MergeWheres(sep MergeSep, whereSQLs ...*whereSQL) *whereSQL {
 	var wheres []string
 	var values []any
+
+	var allFalse = true
+	var allTrue = true
+
+	if len(whereSQLs) <= 0 {
+		// 没有新增任何条件
+		return ALWAYS_TRUE
+	}
+
 	for _, where := range whereSQLs {
 		if where == nil || where == ALWAYS_FALSE {
 			if sep == AndSep {
 				return ALWAYS_FALSE
 			} else {
+				allTrue = false
 				continue
 			}
 		} else if where == ALWAYS_TRUE {
 			if sep == AndSep {
+				allFalse = false
 				continue
 			} else {
 				return ALWAYS_TRUE
 			}
 		}
 
+		allFalse = false
+		allTrue = false
+
 		wheres = append(wheres, where.Wheres)
 		values = append(values, where.Values...)
 	}
 
-	if len(wheres) <= 0 {
+	if allTrue {
+		return ALWAYS_TRUE
+	} else if allFalse {
+		return ALWAYS_FALSE
+	} else if len(wheres) <= 0 {
+		// 没有新增任何条件
 		return ALWAYS_TRUE
 	}
 
