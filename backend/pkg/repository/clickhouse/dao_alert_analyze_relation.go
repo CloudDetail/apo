@@ -75,7 +75,10 @@ func (r *EntryRelationship) GetEntryEndpoint() string {
 // 和ServiceNode结构完全相同
 // 作为查询条件时,允许Endpoint为空
 // 表示对应Service下的所有Endpoint
-type AlertService = ServiceNode
+type AlertService struct {
+	Service  string `ch:"service" json:"serviceName"`
+	Endpoint string `ch:"url" json:"endpoint"`
+}
 
 // SearchEntryEndpointsByAlertService 根据下游节点查询入口节点
 // 链路中存在异步节点时,不保留真正的入口节点
