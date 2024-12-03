@@ -64,11 +64,6 @@ type Handler interface {
 	// @Tags API.alerts
 	// @Router /api/alerts/detect/mutation/rule-list [get]
 	GetDefectDetectRuleList() core.HandlerFunc
-
-	// GetAlertServiceEndpointRelation 获取告警分析中的服务相关性
-	// @Tags API.alerts
-	// @Router /api/alerts/service/relation [get]
-	GetAlertServiceEndpointRelation() core.HandlerFunc
 }
 
 type handler struct {

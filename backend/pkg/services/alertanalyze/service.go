@@ -20,9 +20,6 @@ type Service interface {
 	// 如果关联所需的Label不足,error会返回ErrAlertImpactMissingTag提示期望哪些tag
 	AlertImpact(req *request.AlertImpactRequest) ([]clickhouse.EntryRelationship, []response.ImpactAlertEvent, map[model.EndpointKey]int, *model.Pagination, error)
 
-	// 获取告警分析时的上下游调用关系
-	GetServiceEndpointRelationForAnalyze(req *request.GetAlertServiceEndpointRelationRequest) (*response.GetServiceEndpointRelationResponse, error)
-
 	// 获取下游的故障贡献度排序
 	GetDescendantContribution(req *request.GetDescendantAlertContributaionRequest) (resp *response.GetDescendantAlertContributationResponse, err error)
 
