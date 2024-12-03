@@ -14,7 +14,7 @@ import (
 func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*response.LogParseResponse, error) {
 	//更新日志表
 	fields := make([]request.Field, 0)
-	if len(req.TableFields) > 0 {
+	if req.IsStructured {
 		fields = req.TableFields
 	} else {
 		matchesFields := fieldsRegexp.FindAllStringSubmatch(req.ParseRule, -1)
@@ -22,12 +22,21 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 			if match[1] == "msg" || match[1] == "ts" {
 				continue
 			}
-			fields = append(fields, request.Field{
+
+			parsedField := request.Field{
 				Name: match[1],
 				Type: "String",
-			})
+			}
+
+			for _, customizedFiled := range req.TableFields {
+				if parsedField.Name == customizedFiled.Name {
+					parsedField.Type = customizedFiled.Type
+				}
+			}
+			fields = append(fields, parsedField)
 		}
 	}
+
 	logReq := &request.LogTableRequest{
 		DataBase:     req.DataBase,
 		TableName:    req.TableName,

@@ -9,6 +9,7 @@ import AddModal from "./componnets/AddModal";
 import { BsPersonFillAdd } from "react-icons/bs";
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useUserContext } from "src/core/contexts/UserContext";
+import style from "./index.module.css"
 
 
 export default function UserManage() {
@@ -174,18 +175,14 @@ export default function UserManage() {
     return (
         <>
             <LoadingSpinner loading={loading} />
-            <Flex vertical className="w-full mt-4">
-                <Flex className="mb-3">
+            <div className={style.userManageContainer}>
+                <Flex className="mb-3 h-[40px]">
                     <Flex className="w-full justify-between">
                         <Flex className="w-full">
                             <Flex className="w-auto items-center justify-start mr-5">
                                 <p className="text-md mr-2">用户名称:</p>
                                 <Input placeholder="检索" className="w-2/3" value={username} onChange={(e) => setUsername(e.target.value)} />
                             </Flex>
-                            {/* <Flex className="w-auto items-center justify-start mr-5">
-                            <p className="text-md mr-2">角色:</p>
-                            <Input placeholder="检索" className="w-40" value={role} onChange={(e) => setRole(e.target.value)} />
-                        </Flex> */}
                             <Flex className="w-auto items-center justify-start">
                                 <p className="text-md mr-2">组织:</p>
                                 <Input placeholder="检索" className="w-2/3" value={corporation} onChange={(e) => setCorporation(e.target.value)} />
@@ -203,6 +200,7 @@ export default function UserManage() {
                         </Flex>
                     </Flex>
                 </Flex>
+
                 <ConfigProvider
                     theme={{
                         components: {
@@ -212,18 +210,16 @@ export default function UserManage() {
                         }
                     }}
                 >
-                    <Flex vertical className={"w-full"} >
-                        <div>
-                            <Table
-                                dataSource={userList}
-                                columns={columns}
-                                pagination={false}
-                                scroll={{ y: 600 }}
-                                loading={!tableVisibility}
-                            />
-                        </div>
+                    <Flex vertical className="w-full flex-1 pb-4 justify-between">
+                        <Table
+                            dataSource={userList}
+                            columns={columns}
+                            pagination={false}
+                            loading={!tableVisibility}
+                            scroll={{ y: 'calc(100vh - 220px)' }}
+                        />
                         <Pagination
-                            className="mt-4"
+                            className="mt-4 absolute bottom-0 right-0"
                             align="end"
                             current={currentPage}
                             pageSize={pageSize}
@@ -235,18 +231,18 @@ export default function UserManage() {
                         />
                     </Flex>
                 </ConfigProvider>
-                <EditModal
-                    selectedUser={selectedUser}
-                    modalEditVisibility={modalEditVisibility}
-                    setModalEditVisibility={setModalEditVisibility}
-                    getUserList={getUserList}
-                />
-                <AddModal
-                    modalAddVisibility={modalAddVisibility}
-                    setModalAddVisibility={setModalAddVisibility}
-                    getUserList={getUserList}
-                />
-            </Flex>
+            </div>
+            <EditModal
+                selectedUser={selectedUser}
+                modalEditVisibility={modalEditVisibility}
+                setModalEditVisibility={setModalEditVisibility}
+                getUserList={getUserList}
+            />
+            <AddModal
+                modalAddVisibility={modalAddVisibility}
+                setModalAddVisibility={setModalAddVisibility}
+                getUserList={getUserList}
+            />
         </>
     )
 }

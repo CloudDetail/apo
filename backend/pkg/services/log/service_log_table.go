@@ -101,14 +101,5 @@ func (s *service) UpdateLogTable(req *request.LogTableRequest) (*response.LogTab
 	if err != nil {
 		return nil, err
 	}
-	fieldsJSON, err := json.Marshal(req.Fields)
-	if err != nil {
-		return nil, err
-	}
-	logtable.Fields = string(fieldsJSON)
-	err = s.dbRepo.OperateLogTableInfo(logtable, database.UPDATE)
-	if err != nil {
-		return nil, err
-	}
 	return res, nil
 }
