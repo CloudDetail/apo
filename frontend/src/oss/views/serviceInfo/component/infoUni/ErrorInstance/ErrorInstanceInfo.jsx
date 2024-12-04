@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { getStep } from 'src/core/utils/step'
 import { getServiceErrorInstancesApi } from 'core/api/serviceInfo'
-import { ErrotChain } from './ErrorChain'
+import { ErrorChain } from './ErrorChain'
 import Timeline from '../TimeLine'
 import { useDebounce } from 'react-use'
 import ErrorCell from 'src/core/components/ErrorInstance/ErrorCell'
@@ -106,7 +106,7 @@ export default function ErrorInstanceInfo(props) {
       Cell: (props) => {
         const { value, dependsValue, originalRow } = props
         return (
-          <ErrotChain
+          <ErrorChain
             data={dependsValue?.customAbbreviation}
             instance={originalRow.name}
             chartId={originalRow.name}
