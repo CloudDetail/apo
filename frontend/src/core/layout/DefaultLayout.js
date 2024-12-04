@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/index'
-import { Layout } from 'antd'
+import { Button, Layout } from 'antd'
 import Sider from 'antd/es/layout/Sider'
 import { Header } from 'antd/es/layout/layout'
 import { CImage } from '@coreui/react'
@@ -16,8 +16,9 @@ const DefaultLayout = () => {
         trigger={null}
         collapsible
         collapsed={collapsed}
-        onMouseEnter={() => setCollapsed(false)}
-        onMouseLeave={() => setCollapsed(true)}
+        // onMouseEnter={() => setCollapsed(false)}
+        // onMouseLeave={() => setCollapsed(true)}
+        // onCollapse={(value) => setCollapsed(value)}
         collapsedWidth={70}
         style={{
           overflow: 'auto',
@@ -38,6 +39,7 @@ const DefaultLayout = () => {
           <span className="flex-shrink-0 text-lg">向导式可观测平台</span>
         </div>
         <AppSidebar collapsed={collapsed} />
+        <Button onClick={() => setCollapsed(!collapsed)}>test</Button>
       </Sider>
       <Layout>
         <AppHeader />
