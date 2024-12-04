@@ -28,11 +28,13 @@ const AppSidebar = ({ collapsed }) => {
   const [openKeys, setOpenKeys] = useState([])
   const [menuList, setMenuList] = useState([])
   const getItems = () => {
-    return user.user.username !== 'anonymous' ?
-      navigation.map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) })) :
-      navigation.filter((item) => {
-        if (item.key !== 'manage') return item
-      }).map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) }))
+    return user.user.username !== 'anonymous'
+      ? navigation.map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) }))
+      : navigation
+          .filter((item) => {
+            if (item.key !== 'manage') return item
+          })
+          .map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) }))
   }
 
   useEffect(() => {
@@ -79,7 +81,18 @@ const AppSidebar = ({ collapsed }) => {
       <Menu
         mode="inline"
         theme="dark"
-        inlineCollapsed={true}
+        inlineCollapsed={collapsed}
+        items={menuList}
+        onClick={onClick}
+        selectedKeys={selectedKeys}
+        openKeys={openKeys}
+        className="pb-20"
+      ></Menu>
+      <Menu
+        id="test"
+        mode="inline"
+        theme="dark"
+        inlineCollapsed={false}
         items={menuList}
         onClick={onClick}
         selectedKeys={selectedKeys}
