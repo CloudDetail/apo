@@ -1322,6 +1322,190 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/custom/create": {
+            "post": {
+                "description": "创建一个用户自定义查询数据类型",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "创建一个用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/custom/delete": {
+            "delete": {
+                "description": "删除用户自定义查询数据类型",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "删除用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/custom/get": {
+            "get": {
+                "description": "获取用户自定义查询数据类型",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "获取用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetCustomResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/custom/update": {
+            "post": {
+                "description": "更新用户自定义查询数据类型",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "更新用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/health": {
             "get": {
                 "description": "用于k8s检查后端健康状态",
@@ -7030,6 +7214,26 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CreateCustomRequest": {
+            "type": "object",
+            "properties": {
+                "customName": {
+                    "type": "string"
+                },
+                "groupName": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
         "request.DataType": {
             "type": "string",
             "enum": [
@@ -7078,6 +7282,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "group": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.DeleteCustomRequest": {
+            "type": "object",
+            "properties": {
+                "customName": {
+                    "type": "string"
+                },
+                "groupName": {
+                    "type": "string"
+                },
+                "userName": {
                     "type": "string"
                 }
             }
@@ -7301,6 +7519,17 @@ const docTemplate = `{
                 },
                 "startTime": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.GetCustomRequest": {
+            "type": "object",
+            "properties": {
+                "groupName": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
                 }
             }
         },
@@ -7828,6 +8057,26 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateCustomRequest": {
+            "type": "object",
+            "properties": {
+                "customName": {
+                    "type": "string"
+                },
+                "groupName": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
         "request.UpdateLogParseRequest": {
             "type": "object",
             "properties": {
@@ -7902,6 +8151,20 @@ const docTemplate = `{
                 "id": {
                     "description": "主键ID",
                     "type": "integer"
+                }
+            }
+        },
+        "response.CustonType": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -8248,6 +8511,17 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetCustomResponse": {
+            "type": "object",
+            "properties": {
+                "customs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.CustonType"
+                    }
+                }
+            }
+        },
         "response.GetDefectDetectExecListResponse": {
             "type": "object",
             "properties": {
@@ -8414,9 +8688,17 @@ const docTemplate = `{
                     "description": "Endpoint",
                     "type": "string"
                 },
+                "group": {
+                    "description": "服务类型",
+                    "type": "string"
+                },
                 "infrastructureStatus": {
                     "description": "基础设施告警",
                     "type": "string"
+                },
+                "isTraced": {
+                    "description": "是否跟踪",
+                    "type": "boolean"
                 },
                 "k8sStatus": {
                     "description": "K8s状态告警",

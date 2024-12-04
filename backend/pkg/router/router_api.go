@@ -5,6 +5,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/alertanalyze"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
+	"github.com/CloudDetail/apo/backend/pkg/api/custom"
 	"github.com/CloudDetail/apo/backend/pkg/api/health"
 	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
@@ -186,6 +187,14 @@ func setApiRouter(r *resource) {
 	{
 		handler := health.New()
 		healthApi.GET("", handler.HealthCheck())
+	}
+	customApi := r.mux.Group("/api/custom")
+	{
+		handler := custom.New(r.logger, r.pkg_db)
+		customApi.POST("/create", handler.CreateCustomQuery())
+		customApi.POST("/update", handler.UpdateCustomQuery())
+		customApi.GET("/get", handler.GetCustomQuery())
+		customApi.DELETE("/delete", handler.DeleteCustomQuery())
 	}
 }
 

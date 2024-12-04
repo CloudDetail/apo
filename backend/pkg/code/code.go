@@ -145,6 +145,12 @@ const (
 	UserPasswordSimpleError    = "B0911"
 	UserRemoveSelfError        = "B0912"
 	UserNoPermissionError      = "B0913"
+
+	// custom api
+	CreateCustomTypeError = "B1101"
+	GetCustomTypeError    = "B1102"
+	UpdateCustomTypeError = "B1103"
+	DeleteCustomTypeError = "B1104"
 )
 
 func Text(code string) string {
