@@ -4149,6 +4149,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "主机名称",
+                        "name": "nodeName",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "开始时间",
                         "name": "startTime",
@@ -4233,6 +4239,12 @@ const docTemplate = `{
                         "name": "pid",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "主机名称",
+                        "name": "nodeName",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -5544,6 +5556,9 @@ const docTemplate = `{
         "clickhouse.QueryTraceResult": {
             "type": "object",
             "properties": {
+                "apmType": {
+                    "type": "string"
+                },
                 "duration": {
                     "type": "integer"
                 },
@@ -5562,17 +5577,42 @@ const docTemplate = `{
                 "isError": {
                     "type": "boolean"
                 },
+                "isMutated": {
+                    "description": "延时是否突变",
+                    "type": "integer"
+                },
+                "isSlow": {
+                    "type": "boolean"
+                },
                 "labels": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
+                "metrics": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "mutatedValue": {
+                    "type": "integer"
+                },
                 "pid": {
                     "type": "integer"
                 },
+                "reason": {
+                    "type": "string"
+                },
                 "serviceName": {
                     "type": "string"
+                },
+                "spanId": {
+                    "type": "string"
+                },
+                "thresholdValue": {
+                    "type": "number"
                 },
                 "tid": {
                     "type": "integer"
@@ -7384,9 +7424,17 @@ const docTemplate = `{
                     "description": "Endpoint",
                     "type": "string"
                 },
+                "group": {
+                    "description": "服务类型",
+                    "type": "string"
+                },
                 "infrastructureStatus": {
                     "description": "基础设施告警",
                     "type": "string"
+                },
+                "isTraced": {
+                    "description": "是否跟踪",
+                    "type": "boolean"
                 },
                 "k8sStatus": {
                     "description": "K8s状态告警",

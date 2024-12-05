@@ -19,6 +19,7 @@ import (
 // @Param startTime query int64 true "开始时间"
 // @Param endTime query int64 true "结束时间"
 // @Param pid query int64 true "进程id"
+// @Param nodeName query string false "主机名称"
 // @Param sampleType query string true "采样类型"
 // @Success 200 {object} response.GetProcessFlameGraphResponse
 // @Failure 400 {object} code.Failure
