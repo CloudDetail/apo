@@ -13,9 +13,6 @@ func (s *service) GetLogTableInfo(req *request.LogTableInfoRequest) (*response.L
 	}
 	parses := make([]response.Parse, 0)
 	for _, row := range rows {
-		if row.ParseInfo == "" {
-			row.ParseInfo = defaultParseInfo
-		}
 		parses = append(parses, response.Parse{
 			DataBase:  row.DataBase,
 			ParseName: row.ParseName,
