@@ -7218,9 +7218,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "customName": {
-                    "type": "string"
-                },
-                "groupName": {
+                    "description": "UserName   string   ` + "`" + `json:\"userName\"` + "`" + `\nGroupName  string   ` + "`" + `json:\"groupName\"` + "`" + `",
                     "type": "string"
                 },
                 "type": {
@@ -7228,9 +7226,6 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
-                },
-                "userName": {
-                    "type": "string"
                 }
             }
         },
@@ -7290,12 +7285,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "customName": {
-                    "type": "string"
-                },
-                "groupName": {
-                    "type": "string"
-                },
-                "userName": {
+                    "description": "UserName   string ` + "`" + `form:\"userName\"` + "`" + `\nGroupName  string ` + "`" + `form:\"groupName\"` + "`" + `",
                     "type": "string"
                 }
             }
@@ -7523,15 +7513,7 @@ const docTemplate = `{
             }
         },
         "request.GetCustomRequest": {
-            "type": "object",
-            "properties": {
-                "groupName": {
-                    "type": "string"
-                },
-                "userName": {
-                    "type": "string"
-                }
-            }
+            "type": "object"
         },
         "request.GetDescendantAnormalTrendRequest": {
             "type": "object",
@@ -8061,9 +8043,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "customName": {
-                    "type": "string"
-                },
-                "groupName": {
+                    "description": "UserName   string   ` + "`" + `json:\"userName\"` + "`" + `\nGroupName  string   ` + "`" + `json:\"groupName\"` + "`" + `",
                     "type": "string"
                 },
                 "type": {
@@ -8071,9 +8051,6 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
-                },
-                "userName": {
-                    "type": "string"
                 }
             }
         },

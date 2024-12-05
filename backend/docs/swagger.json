@@ -7210,9 +7210,7 @@
             "type": "object",
             "properties": {
                 "customName": {
-                    "type": "string"
-                },
-                "groupName": {
+                    "description": "UserName   string   `json:\"userName\"`\nGroupName  string   `json:\"groupName\"`",
                     "type": "string"
                 },
                 "type": {
@@ -7220,9 +7218,6 @@
                     "items": {
                         "type": "string"
                     }
-                },
-                "userName": {
-                    "type": "string"
                 }
             }
         },
@@ -7282,12 +7277,7 @@
             "type": "object",
             "properties": {
                 "customName": {
-                    "type": "string"
-                },
-                "groupName": {
-                    "type": "string"
-                },
-                "userName": {
+                    "description": "UserName   string `form:\"userName\"`\nGroupName  string `form:\"groupName\"`",
                     "type": "string"
                 }
             }
@@ -7515,15 +7505,7 @@
             }
         },
         "request.GetCustomRequest": {
-            "type": "object",
-            "properties": {
-                "groupName": {
-                    "type": "string"
-                },
-                "userName": {
-                    "type": "string"
-                }
-            }
+            "type": "object"
         },
         "request.GetDescendantAnormalTrendRequest": {
             "type": "object",
@@ -8053,9 +8035,7 @@
             "type": "object",
             "properties": {
                 "customName": {
-                    "type": "string"
-                },
-                "groupName": {
+                    "description": "UserName   string   `json:\"userName\"`\nGroupName  string   `json:\"groupName\"`",
                     "type": "string"
                 },
                 "type": {
@@ -8063,9 +8043,6 @@
                     "items": {
                         "type": "string"
                     }
-                },
-                "userName": {
-                    "type": "string"
                 }
             }
         },

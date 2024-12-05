@@ -7,5 +7,5 @@ import (
 )
 
 func (s *service) UpdateCustomQuery(req *request.UpdateCustomRequest) error {
-	return s.dbRepo.UpdateCustomQuery(req.UserName, req.GroupName, req.CustomName, strings.Join(req.Type, ","))
+	return s.dbRepo.UpdateCustomQuery(req.CustomName, strings.Join(req.Type, ","))
 }

@@ -47,9 +47,9 @@ type Repo interface {
 	RestPassword(username string, newPassword string) error
 
 	CreateCustomQuery(serviceType *QueryServiceType) error
-	UpdateCustomQuery(userName, groupName, customName string, customType string) error
-	GetCustomQuery(userName, groupName string) ([]QueryServiceType, error)
-	DeleteCustomQuery(userName, groupName, customName string) error
+	UpdateCustomQuery(customName string, customType string) error
+	GetCustomQuery() ([]QueryServiceType, error)
+	DeleteCustomQuery(customName string) error
 }
 
 type daoRepo struct {

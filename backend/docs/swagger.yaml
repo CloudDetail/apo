@@ -946,15 +946,14 @@ definitions:
   request.CreateCustomRequest:
     properties:
       customName:
-        type: string
-      groupName:
+        description: |-
+          UserName   string   `json:"userName"`
+          GroupName  string   `json:"groupName"`
         type: string
       type:
         items:
           type: string
         type: array
-      userName:
-        type: string
     type: object
   request.DataType:
     enum:
@@ -996,10 +995,9 @@ definitions:
   request.DeleteCustomRequest:
     properties:
       customName:
-        type: string
-      groupName:
-        type: string
-      userName:
+        description: |-
+          UserName   string `form:"userName"`
+          GroupName  string `form:"groupName"`
         type: string
     type: object
   request.DeleteLogParseRequest:
@@ -1148,11 +1146,6 @@ definitions:
     - startTime
     type: object
   request.GetCustomRequest:
-    properties:
-      groupName:
-        type: string
-      userName:
-        type: string
     type: object
   request.GetDescendantAnormalTrendRequest:
     properties:
@@ -1526,15 +1519,14 @@ definitions:
   request.UpdateCustomRequest:
     properties:
       customName:
-        type: string
-      groupName:
+        description: |-
+          UserName   string   `json:"userName"`
+          GroupName  string   `json:"groupName"`
         type: string
       type:
         items:
           type: string
         type: array
-      userName:
-        type: string
     type: object
   request.UpdateLogParseRequest:
     properties:

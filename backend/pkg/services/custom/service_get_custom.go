@@ -8,7 +8,7 @@ import (
 )
 
 func (s *service) GetCustomQuery(req *request.GetCustomRequest) (*response.GetCustomResponse, error) {
-	serviecType, err := s.dbRepo.GetCustomQuery(req.UserName, req.GroupName)
+	serviecType, err := s.dbRepo.GetCustomQuery()
 	if err != nil {
 		return nil, err
 	}
