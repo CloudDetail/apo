@@ -2459,6 +2459,16 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "服务端点",
+                        "name": "endpointName",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "排序逻辑",
                         "name": "sortRule",

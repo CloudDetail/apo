@@ -4051,6 +4051,13 @@ paths:
         name: namespace
         required: true
         type: array
+      - collectionFormat: multi
+        description: 服务端点
+        in: query
+        items:
+          type: string
+        name: endpointName
+        type: array
       - description: 排序逻辑
         in: query
         name: sortRule

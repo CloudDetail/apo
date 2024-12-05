@@ -44,4 +44,5 @@ type EndpointsFilter struct {
 	ServiceName          string   // 指定服务名, 完全匹配
 	MultiService         []string // 多个服务名，完全匹配
 	MultiNamespace       []string // 多个namespace，完全匹配
+	MultiEndpoint        []string // 多个服务端点，完全匹配
 }

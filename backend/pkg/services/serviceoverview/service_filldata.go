@@ -145,6 +145,9 @@ func (f EndpointsFilter) ExtractFilterStr() []string {
 	if len(f.MultiService) > 0 {
 		filters = append(filters, prom.ServiceRegexPQLFilter, strings.Join(f.MultiService, "|"))
 	}
+	if len(f.MultiEndpoint) > 0 {
+		filters = append(filters, prom.ContentKeyRegexPQLFilter, strings.Join(f.MultiEndpoint, "|"))
+	}
 	return filters
 }
 

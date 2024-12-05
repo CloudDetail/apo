@@ -113,9 +113,9 @@ type GetServiceEndPointListRequest struct {
 }
 type GetEndPointsDataRequest struct {
 	// 筛选条件
-	ServiceName  []string `form:"serviceName"`                  // 应用名,包含匹配
+	ServiceName  []string `form:"serviceName"`                  // 应用名,完全匹配
 	Namespace    []string `form:"namespace" binding:"required"` // 指定命名空间,完全匹配
-	EndpointName string   `form:"endpointName"`                 // 端点名,包含匹配
+	EndpointName []string `form:"endpointName"`                 // 端点名,完全匹配
 
 	// 查询条件
 	StartTime int64 `form:"startTime" binding:"required"`                 // 查询开始时间
