@@ -265,6 +265,8 @@ definitions:
     type: object
   clickhouse.QueryTraceResult:
     properties:
+      apmType:
+        type: string
       duration:
         type: integer
       endpoint:
@@ -277,14 +279,31 @@ definitions:
         type: string
       isError:
         type: boolean
+      isMutated:
+        description: 延时是否突变
+        type: integer
+      isSlow:
+        type: boolean
       labels:
         additionalProperties:
           type: string
         type: object
+      metrics:
+        additionalProperties:
+          type: integer
+        type: object
+      mutatedValue:
+        type: integer
       pid:
         type: integer
+      reason:
+        type: string
       serviceName:
         type: string
+      spanId:
+        type: string
+      thresholdValue:
+        type: number
       tid:
         type: integer
       timestamp:
@@ -962,6 +981,10 @@ definitions:
       instance:
         description: 实例名
         type: string
+      namespaces:
+        items:
+          type: string
+        type: array
       nodeName:
         description: 主机名
         type: string
@@ -976,7 +999,9 @@ definitions:
         type: integer
       service:
         description: 查询服务名
-        type: string
+        items:
+          type: string
+        type: array
       startTime:
         description: 查询开始时间
         minimum: 0
@@ -986,6 +1011,7 @@ definitions:
         type: string
     required:
     - endTime
+    - service
     type: object
   request.GetServiceRouteRequest:
     properties:
@@ -1030,6 +1056,10 @@ definitions:
       instance:
         description: 实例名
         type: string
+      namespace:
+        items:
+          type: string
+        type: array
       nodeName:
         description: 主机名
         type: string
@@ -1043,7 +1073,9 @@ definitions:
         type: integer
       service:
         description: 查询服务名
-        type: string
+        items:
+          type: string
+        type: array
       startTime:
         description: 查询开始时间
         minimum: 0
@@ -1053,6 +1085,7 @@ definitions:
         type: string
     required:
     - endTime
+    - service
     type: object
   request.InputAlertManagerRequest:
     properties:
@@ -1544,9 +1577,15 @@ definitions:
       endpoint:
         description: Endpoint
         type: string
+      group:
+        description: 服务类型
+        type: string
       infrastructureStatus:
         description: 基础设施告警
         type: string
+      isTraced:
+        description: 是否跟踪
+        type: boolean
       k8sStatus:
         description: K8s状态告警
         type: string
@@ -3997,10 +4036,21 @@ paths:
         name: step
         required: true
         type: integer
-      - description: 名称
+      - collectionFormat: multi
+        description: 服务名称
         in: query
+        items:
+          type: string
         name: serviceName
-        type: string
+        type: array
+      - collectionFormat: multi
+        description: 命名空间
+        in: query
+        items:
+          type: string
+        name: namespace
+        required: true
+        type: array
       - description: 排序逻辑
         in: query
         name: sortRule
@@ -4420,6 +4470,13 @@ paths:
         name: endTime
         required: true
         type: integer
+      - collectionFormat: multi
+        description: namespace
+        in: query
+        items:
+          type: string
+        name: namespace
+        type: array
       - description: Bearer accessToken
         in: header
         name: Authorization

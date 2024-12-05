@@ -2438,10 +2438,25 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "名称",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "服务名称",
                         "name": "serviceName",
                         "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "命名空间",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",
@@ -3063,6 +3078,16 @@ const docTemplate = `{
                         "name": "endTime",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "namespace",
+                        "name": "namespace",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -5544,6 +5569,9 @@ const docTemplate = `{
         "clickhouse.QueryTraceResult": {
             "type": "object",
             "properties": {
+                "apmType": {
+                    "type": "string"
+                },
                 "duration": {
                     "type": "integer"
                 },
@@ -5562,17 +5590,42 @@ const docTemplate = `{
                 "isError": {
                     "type": "boolean"
                 },
+                "isMutated": {
+                    "description": "延时是否突变",
+                    "type": "integer"
+                },
+                "isSlow": {
+                    "type": "boolean"
+                },
                 "labels": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
+                "metrics": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "mutatedValue": {
+                    "type": "integer"
+                },
                 "pid": {
                     "type": "integer"
                 },
+                "reason": {
+                    "type": "string"
+                },
                 "serviceName": {
                     "type": "string"
+                },
+                "spanId": {
+                    "type": "string"
+                },
+                "thresholdValue": {
+                    "type": "number"
                 },
                 "tid": {
                     "type": "integer"
@@ -6528,7 +6581,8 @@ const docTemplate = `{
         "request.GetFaultLogPageListRequest": {
             "type": "object",
             "required": [
-                "endTime"
+                "endTime",
+                "service"
             ],
             "properties": {
                 "containerId": {
@@ -6542,6 +6596,12 @@ const docTemplate = `{
                 "instance": {
                     "description": "实例名",
                     "type": "string"
+                },
+                "namespaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "nodeName": {
                     "description": "主机名",
@@ -6561,7 +6621,10 @@ const docTemplate = `{
                 },
                 "service": {
                     "description": "查询服务名",
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "startTime": {
                     "description": "查询开始时间",
@@ -6612,7 +6675,8 @@ const docTemplate = `{
         "request.GetTracePageListRequest": {
             "type": "object",
             "required": [
-                "endTime"
+                "endTime",
+                "service"
             ],
             "properties": {
                 "containerId": {
@@ -6638,6 +6702,12 @@ const docTemplate = `{
                     "description": "实例名",
                     "type": "string"
                 },
+                "namespace": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "nodeName": {
                     "description": "主机名",
                     "type": "string"
@@ -6655,7 +6725,10 @@ const docTemplate = `{
                 },
                 "service": {
                     "description": "查询服务名",
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "startTime": {
                     "description": "查询开始时间",
@@ -7384,9 +7457,17 @@ const docTemplate = `{
                     "description": "Endpoint",
                     "type": "string"
                 },
+                "group": {
+                    "description": "服务类型",
+                    "type": "string"
+                },
                 "infrastructureStatus": {
                     "description": "基础设施告警",
                     "type": "string"
+                },
+                "isTraced": {
+                    "description": "是否跟踪",
+                    "type": "boolean"
                 },
                 "k8sStatus": {
                     "description": "K8s状态告警",
