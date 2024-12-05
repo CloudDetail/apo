@@ -7,17 +7,18 @@ import (
 )
 
 func (s *service) Login(req *request.LoginRequest) (response.LoginResponse, error) {
-	err := s.dbRepo.Login(req.Username, req.Password)
+	user, err := s.dbRepo.Login(req.Username, req.Password)
 	if err != nil {
 		return response.LoginResponse{}, err
 	}
-	accessToken, refreshToken, err := util.GenerateTokens(req.Username)
+	accessToken, refreshToken, err := util.GenerateTokens(user.Username, user.UserID)
 	if err != nil {
 		return response.LoginResponse{}, err
 	}
 	resp := response.LoginResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
+		User:         *user,
 	}
 	return resp, nil
 }

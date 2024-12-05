@@ -1,5 +1,5 @@
 package user
 
-func (s *service) RemoveUser(username string, operatorName string) error {
-	return s.dbRepo.RemoveUser(username, operatorName)
+func (s *service) RemoveUser(userID int64, operatorID int64) error {
+	return s.dbRepo.RemoveUser(userID, operatorID)
 }

@@ -126,4 +126,7 @@ var zhCnText = map[string]string{
 	UserRemoveSelfError:        "不能删除自己",
 	K8sGetResourceError:        "获取k8s资源失败",
 	UserNoPermissionError:      "没有权限",
+	UserEmailUsed:              "邮箱已被使用",
+	UserPhoneUsed:              "手机号已被使用",
+	UserPhoneFormatError:       "手机号格式不正确",
 }

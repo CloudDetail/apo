@@ -265,6 +265,8 @@ definitions:
     type: object
   clickhouse.QueryTraceResult:
     properties:
+      apmType:
+        type: string
       duration:
         type: integer
       endpoint:
@@ -277,14 +279,31 @@ definitions:
         type: string
       isError:
         type: boolean
+      isMutated:
+        description: 延时是否突变
+        type: integer
+      isSlow:
+        type: boolean
       labels:
         additionalProperties:
           type: string
         type: object
+      metrics:
+        additionalProperties:
+          type: integer
+        type: object
+      mutatedValue:
+        type: integer
       pid:
         type: integer
+      reason:
+        type: string
       serviceName:
         type: string
+      spanId:
+        type: string
+      thresholdValue:
+        type: number
       tid:
         type: integer
       timestamp:
@@ -334,12 +353,12 @@ definitions:
         type: string
       email:
         type: string
-      password:
-        type: string
       phone:
         type: string
       role:
         type: string
+      userId:
+        type: integer
       username:
         type: string
     type: object
@@ -1544,9 +1563,15 @@ definitions:
       endpoint:
         description: Endpoint
         type: string
+      group:
+        description: 服务类型
+        type: string
       infrastructureStatus:
         description: 基础设施告警
         type: string
+      isTraced:
+        description: 是否跟踪
+        type: boolean
       k8sStatus:
         description: K8s状态告警
         type: string
@@ -1851,12 +1876,12 @@ definitions:
         type: string
       email:
         type: string
-      password:
-        type: string
       phone:
         type: string
       role:
         type: string
+      userId:
+        type: integer
       username:
         type: string
     type: object
@@ -2120,8 +2145,20 @@ definitions:
       accessToken:
         description: accessToken用于调用接口获取资源
         type: string
+      corporation:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
       refreshToken:
         description: refreshToken用于刷新accessToken
+        type: string
+      role:
+        type: string
+      userId:
+        type: integer
+      username:
         type: string
     type: object
   response.MonitorStatus:
@@ -5610,9 +5647,9 @@ paths:
         type: string
       - description: 请求信息
         in: formData
-        name: username
+        name: userId
         required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
@@ -5633,11 +5670,11 @@ paths:
       - application/x-www-form-urlencoded
       description: 重设密码
       parameters:
-      - description: 用户名
+      - description: 用户id
         in: formData
-        name: username
+        name: userId
         required: true
-        type: string
+        type: integer
       - description: 新密码
         in: formData
         name: newPassword
@@ -5673,11 +5710,11 @@ paths:
       - application/x-www-form-urlencoded
       description: 更新/绑定邮箱
       parameters:
-      - description: 用户名
+      - description: 用户id
         in: formData
-        name: username
+        name: userId
         required: true
-        type: string
+        type: integer
       - description: 邮箱
         in: formData
         name: email
@@ -5708,11 +5745,11 @@ paths:
       - application/x-www-form-urlencoded
       description: 更新个人信息
       parameters:
-      - description: 用户名
+      - description: 用户id
         in: formData
-        name: username
+        name: userId
         required: true
-        type: string
+        type: integer
       - description: 组织
         in: formData
         name: corporation
@@ -5750,11 +5787,11 @@ paths:
       - application/x-www-form-urlencoded
       description: 更新密码
       parameters:
-      - description: 用户名
+      - description: 用户id
         in: formData
-        name: username
+        name: userId
         required: true
-        type: string
+        type: integer
       - description: 原密码
         in: formData
         name: oldPassword
@@ -5795,11 +5832,11 @@ paths:
       - application/x-www-form-urlencoded
       description: 更新/绑定手机号
       parameters:
-      - description: 用户名
+      - description: 用户id
         in: formData
-        name: username
+        name: userId
         required: true
-        type: string
+        type: integer
       - description: 手机号
         in: formData
         name: phone

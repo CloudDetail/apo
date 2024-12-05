@@ -46,6 +46,14 @@ func (h *handler) CreateUser() core.HandlerFunc {
 			return
 		}
 
+		if len(req.Phone) > 0 && !phoneRegexp.MatchString(req.Phone) {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.UserPhoneFormatError,
+				code.Text(code.UserPhoneFormatError)))
+			return
+		}
+
 		err := h.userService.CreateUser(req)
 		if err != nil {
 			var vErr model.ErrWithMessage

@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
@@ -17,7 +16,7 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param username formData string true "用户名"
+// @Param userId formData int64 true "用户id"
 // @Param corporation formData string false "组织"
 // @Param phone formData string false "手机号"
 // @Param email formData string false "邮箱"
@@ -34,14 +33,6 @@ func (h *handler) UpdateUserInfo() core.HandlerFunc {
 				code.ParamBindError,
 				code.Text(code.ParamBindError)).WithError(err),
 			)
-			return
-		}
-
-		if req.Username == config.Get().User.AnonymousUser.Username {
-			c.AbortWithError(core.Error(
-				http.StatusBadRequest,
-				code.UserNoPermissionError,
-				code.Text(code.UserNoPermissionError)))
 			return
 		}
 

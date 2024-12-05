@@ -33,16 +33,16 @@ type Repo interface {
 
 	ListQuickAlertRuleMetric() ([]AlertMetricsData, error)
 
-	Login(username, password string) error
+	Login(username, password string) (*User, error)
 	CreateUser(user *User) error
-	UpdateUserPhone(username string, phone string) error
-	UpdateUserEmail(username string, email string) error
-	UpdateUserPassword(username, oldPassword, newPassword string) error
+	UpdateUserPhone(userID int64, phone string) error
+	UpdateUserEmail(userID int64, email string) error
+	UpdateUserPassword(userID int64, oldPassword, newPassword string) error
 	UpdateUserInfo(req *request.UpdateUserInfoRequest) error
-	GetUserInfo(username string) (User, error)
+	GetUserInfo(userID int64) (User, error)
 	GetUserList(req *request.GetUserListRequest) ([]User, int64, error)
-	RemoveUser(username string, operatorName string) error
-	RestPassword(username string, newPassword string) error
+	RemoveUser(userID int64, operatorID int64) error
+	RestPassword(userID int64, newPassword string) error
 }
 
 type daoRepo struct {

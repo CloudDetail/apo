@@ -18,9 +18,9 @@ type Service interface {
 	UpdateUserPhone(req *request.UpdateUserPhoneRequest) error
 	UpdateUserEmail(req *request.UpdateUserEmailRequest) error
 	UpdateUserPassword(req *request.UpdateUserPasswordRequest) error
-	GetUserInfo(username string) (response.GetUserInfoResponse, error)
+	GetUserInfo(userID int64) (response.GetUserInfoResponse, error)
 	GetUserList(req *request.GetUserListRequest) (response.GetUserListResponse, error)
-	RemoveUser(username string, operatorName string) error
+	RemoveUser(userID int64, operatorID int64) error
 	RestPassword(req *request.ResetPasswordRequest) error
 }
 

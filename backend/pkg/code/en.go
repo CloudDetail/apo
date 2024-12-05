@@ -122,4 +122,7 @@ var enText = map[string]string{
 	UserPasswordSimpleError:    "Password too week, contains at least one uppercase, lowercase, special characters, and numbers and length greater than 8",
 	UserRemoveSelfError:        "Cannot remove yourself",
 	UserNoPermissionError:      "You have no permission",
+	UserEmailUsed:              "Email was used",
+	UserPhoneUsed:              "Phone was used",
+	UserPhoneFormatError:       "Phone number format incorrect",
 }

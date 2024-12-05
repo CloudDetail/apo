@@ -10,7 +10,9 @@ import (
 	"net/http"
 )
 
-const UserKey = "username"
+const (
+	UserIDKey = "userID"
+)
 
 func Auth(tokenCache cache.Repo) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -18,7 +20,6 @@ func Auth(tokenCache cache.Repo) gin.HandlerFunc {
 		token := util.ParseRawToken(rawToken)
 		if len(token) == 0 {
 			if config.Get().User.AnonymousUser.Enable {
-				c.Set(UserKey, config.Get().User.AnonymousUser.Username)
 				c.Next()
 				return
 			} else {
@@ -44,7 +45,19 @@ func Auth(tokenCache cache.Repo) gin.HandlerFunc {
 			return
 		}
 
-		c.Set(UserKey, claims.Username)
+		c.Set(UserIDKey, claims.UserID)
 		c.Next()
 	}
+}
+
+func GetContextUserID(c core.Context) int64 {
+	userID, ok := c.Get(UserIDKey)
+	if !ok {
+		return 0
+	}
+	id, ok := userID.(int64)
+	if !ok {
+		return 0
+	}
+	return id
 }

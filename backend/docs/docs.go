@@ -4833,9 +4833,9 @@ const docTemplate = `{
                         "in": "header"
                     },
                     {
-                        "type": "string",
+                        "type": "integer",
                         "description": "请求信息",
-                        "name": "username",
+                        "name": "userId",
                         "in": "formData",
                         "required": true
                     }
@@ -4871,9 +4871,9 @@ const docTemplate = `{
                 "summary": "重设密码",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "username",
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
                         "in": "formData",
                         "required": true
                     },
@@ -4930,9 +4930,9 @@ const docTemplate = `{
                 "summary": "更新/绑定邮箱",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "username",
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
                         "in": "formData",
                         "required": true
                     },
@@ -4982,9 +4982,9 @@ const docTemplate = `{
                 "summary": "更新个人信息",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "username",
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
                         "in": "formData",
                         "required": true
                     },
@@ -5045,9 +5045,9 @@ const docTemplate = `{
                 "summary": "更新密码",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "username",
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
                         "in": "formData",
                         "required": true
                     },
@@ -5111,9 +5111,9 @@ const docTemplate = `{
                 "summary": "更新/绑定手机号",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "username",
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
                         "in": "formData",
                         "required": true
                     },
@@ -5544,6 +5544,9 @@ const docTemplate = `{
         "clickhouse.QueryTraceResult": {
             "type": "object",
             "properties": {
+                "apmType": {
+                    "type": "string"
+                },
                 "duration": {
                     "type": "integer"
                 },
@@ -5562,17 +5565,42 @@ const docTemplate = `{
                 "isError": {
                     "type": "boolean"
                 },
+                "isMutated": {
+                    "description": "延时是否突变",
+                    "type": "integer"
+                },
+                "isSlow": {
+                    "type": "boolean"
+                },
                 "labels": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
+                "metrics": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "mutatedValue": {
+                    "type": "integer"
+                },
                 "pid": {
                     "type": "integer"
                 },
+                "reason": {
+                    "type": "string"
+                },
                 "serviceName": {
                     "type": "string"
+                },
+                "spanId": {
+                    "type": "string"
+                },
+                "thresholdValue": {
+                    "type": "number"
                 },
                 "tid": {
                     "type": "integer"
@@ -5648,14 +5676,14 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "password": {
-                    "type": "string"
-                },
                 "phone": {
                     "type": "string"
                 },
                 "role": {
                     "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
                 },
                 "username": {
                     "type": "string"
@@ -7384,9 +7412,17 @@ const docTemplate = `{
                     "description": "Endpoint",
                     "type": "string"
                 },
+                "group": {
+                    "description": "服务类型",
+                    "type": "string"
+                },
                 "infrastructureStatus": {
                     "description": "基础设施告警",
                     "type": "string"
+                },
+                "isTraced": {
+                    "description": "是否跟踪",
+                    "type": "boolean"
                 },
                 "k8sStatus": {
                     "description": "K8s状态告警",
@@ -7847,14 +7883,14 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "password": {
-                    "type": "string"
-                },
                 "phone": {
                     "type": "string"
                 },
                 "role": {
                     "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
                 },
                 "username": {
                     "type": "string"
@@ -8252,8 +8288,26 @@ const docTemplate = `{
                     "description": "accessToken用于调用接口获取资源",
                     "type": "string"
                 },
+                "corporation": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
                 "refreshToken": {
                     "description": "refreshToken用于刷新accessToken",
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                },
+                "username": {
                     "type": "string"
                 }
             }

@@ -145,6 +145,9 @@ const (
 	UserPasswordSimpleError    = "B0911"
 	UserRemoveSelfError        = "B0912"
 	UserNoPermissionError      = "B0913"
+	UserEmailUsed              = "B0914"
+	UserPhoneUsed              = "B0915"
+	UserPhoneFormatError       = "B0916"
 )
 
 func Text(code string) string {

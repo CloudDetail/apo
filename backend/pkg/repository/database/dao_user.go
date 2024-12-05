@@ -13,13 +13,17 @@ import (
 )
 
 const (
-	RoleAdmin = "admin"
+	RoleAdmin     = "admin"
+	adminUsername = "admin"
+	adminPassword = "APO2024@admin"
+
+	userFieldSql = "user_id, username, role, phone, email, corporation"
 )
 
 type User struct {
-	UserID      int64  `gorm:"user_id;primary_key;autoIncrement" json:"-"`
+	UserID      int64  `gorm:"user_id;primary_key" json:"userId,omitempty"`
 	Username    string `gorm:"username;unique" json:"username,omitempty"`
-	Password    string `gorm:"password" json:"password,omitempty"`
+	Password    string `gorm:"password" json:"-"`
 	Role        string `gorm:"role" json:"role,omitempty"`
 	Phone       string `gorm:"phone" json:"phone,omitempty"`
 	Email       string `gorm:"email" json:"email,omitempty"`
@@ -29,9 +33,6 @@ type User struct {
 func (t *User) TableName() string {
 	return "user"
 }
-
-const adminUsername = "admin"
-const adminPassword = "APO2024@admin"
 
 func createAdmin(db *gorm.DB) error {
 	admin := &User{
@@ -65,20 +66,20 @@ func Encrypt(raw string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func (repo *daoRepo) Login(username, password string) error {
+func (repo *daoRepo) Login(username, password string) (*User, error) {
 	var user User
 	err := repo.db.Where("username = ?", username).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
+		return nil, model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
 	} else if err != nil {
-		return err
+		return nil, err
 	}
 	enPassword := Encrypt(password)
 	if enPassword != user.Password {
-		return model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswordIncorrectError)
+		return nil, model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswordIncorrectError)
 	}
 
-	return nil
+	return &user, nil
 }
 
 func (repo *daoRepo) CreateUser(user *User) error {
@@ -91,9 +92,9 @@ func (repo *daoRepo) CreateUser(user *User) error {
 	return repo.db.Create(user).Error
 }
 
-func (repo *daoRepo) UpdateUserPhone(username string, phone string) error {
+func (repo *daoRepo) UpdateUserPhone(userID int64, phone string) error {
 	var user User
-	err := repo.db.Where("username = ?", username).First(&user).Error
+	err := repo.db.Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
 	} else if err != nil {
@@ -103,9 +104,9 @@ func (repo *daoRepo) UpdateUserPhone(username string, phone string) error {
 	return repo.db.Updates(&user).Error
 }
 
-func (repo *daoRepo) UpdateUserEmail(username string, email string) error {
+func (repo *daoRepo) UpdateUserEmail(userID int64, email string) error {
 	var user User
-	err := repo.db.Where("username = ?", username).First(&user).Error
+	err := repo.db.Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
 	} else if err != nil {
@@ -115,9 +116,9 @@ func (repo *daoRepo) UpdateUserEmail(username string, email string) error {
 	return repo.db.Updates(&user).Error
 }
 
-func (repo *daoRepo) UpdateUserPassword(username string, oldPassword, newPassword string) error {
+func (repo *daoRepo) UpdateUserPassword(userID int64, oldPassword, newPassword string) error {
 	var user User
-	err := repo.db.Where("username = ?", username).First(&user).Error
+	err := repo.db.Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
 	} else if err != nil {
@@ -130,9 +131,9 @@ func (repo *daoRepo) UpdateUserPassword(username string, oldPassword, newPasswor
 	return repo.db.Updates(&user).Error
 }
 
-func (repo *daoRepo) RestPassword(username string, newPassword string) error {
+func (repo *daoRepo) RestPassword(userID int64, newPassword string) error {
 	var user User
-	err := repo.db.Where("username = ?", username).First(&user).Error
+	err := repo.db.Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
 	} else if err != nil {
@@ -145,37 +146,29 @@ func (repo *daoRepo) RestPassword(username string, newPassword string) error {
 
 func (repo *daoRepo) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
 	var user User
-	err := repo.db.Where("username = ?", req.Username).First(&user).Error
+	err := repo.db.Where("user_id = ?", req.UserID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return model.NewErrWithMessage(errors.New("user does not exist "), code.UserNotExistsError)
 	} else if err != nil {
 		return err
 	}
 
-	if len(req.Corporation) > 0 {
-		user.Corporation = req.Corporation
-	}
-
-	if len(req.Phone) > 0 {
-		user.Phone = req.Phone
-	}
-
-	if len(req.Email) > 0 {
-		user.Email = req.Email
-	}
+	user.Corporation = req.Corporation
+	user.Phone = req.Phone
+	user.Email = req.Email
 	return repo.db.Updates(&user).Error
 }
 
-func (repo *daoRepo) GetUserInfo(username string) (User, error) {
+func (repo *daoRepo) GetUserInfo(userID int64) (User, error) {
 	var user User
-	err := repo.db.Select("username, role, phone, email, corporation").Where("username = ?", username).First(&user).Error
+	err := repo.db.Select(userFieldSql).Where("user_id = ?", userID).First(&user).Error
 	return user, err
 }
 
 func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64, error) {
 	var users []User
 	var count int64
-	query := repo.db.Select("username, role, phone, email, corporation")
+	query := repo.db.Select(userFieldSql)
 	if len(req.Username) > 0 {
 		name := "%" + req.Username + "%"
 		query = query.Where("username like ?", name)
@@ -197,9 +190,9 @@ func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64
 	return users, count, err
 }
 
-func (repo *daoRepo) RemoveUser(username string, operatorName string) error {
+func (repo *daoRepo) RemoveUser(userID int64, operatorID int64) error {
 	var operator User
-	if err := repo.db.Select("role").Where("username = ?", operatorName).First(&operator).Error; err != nil {
+	if err := repo.db.Select("role").Where("user_id = ?", operatorID).First(&operator).Error; err != nil {
 		return err
 	}
 
@@ -207,5 +200,5 @@ func (repo *daoRepo) RemoveUser(username string, operatorName string) error {
 		return model.NewErrWithMessage(errors.New("no permission"), code.UserNoPermissionError)
 	}
 
-	return repo.db.Model(&User{}).Where("username = ?", username).Delete(nil).Error
+	return repo.db.Model(&User{}).Where("user_id = ?", userID).Delete(nil).Error
 }
