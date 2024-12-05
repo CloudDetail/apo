@@ -210,7 +210,7 @@ const ImpactList = () => {
       showBorder: false,
       loading: false,
     }
-  }, [eventImpactList])
+  }, [eventImpactList, pagination.pageSize, pagination.pageIndex])
   return (
     <>
       <div className="flex flex-col h-full">
