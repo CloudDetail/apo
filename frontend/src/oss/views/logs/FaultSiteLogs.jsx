@@ -12,7 +12,7 @@ import LogsTraceFilter from 'src/oss/components/Filter/LogsTraceFilter'
 import { useSelector } from 'react-redux'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
 function FaultSiteLogs(props) {
-  const { startTime, endTime, service, instance, traceId, instanceOption } = useSelector(
+  const { startTime, endTime, service, instance, traceId, instanceOption, namespace } = useSelector(
     (state) => state.urlParamsReducer,
   )
 
@@ -33,6 +33,7 @@ function FaultSiteLogs(props) {
     instance: '',
     traceId: '',
     pageIndex: 1,
+    namespace: '',
     selectInstanceOption: {},
   })
   const [source, setSource] = useState('')
@@ -59,6 +60,7 @@ function FaultSiteLogs(props) {
       pageNum: pageIndex,
       pageSize: 10,
       containerId,
+      namespace,
       nodeName,
       pid,
     })
@@ -73,7 +75,7 @@ function FaultSiteLogs(props) {
         setLogsPageList([])
         setLoading(false)
       })
-      .finally(() => {})
+      .finally(() => { })
     // 你的getLogs实现
   }
   const getLogContent = () => {
@@ -123,6 +125,10 @@ function FaultSiteLogs(props) {
       console.log('traceId -> pre:', prev.traceId, 'now:', traceId)
       paramsChange = true
     }
+    if (prev.namespace !== namespace) {
+      console.log('namespace -> pre:', prev.namespace, 'now:', namespace)
+      paramsChange = true
+    }
     const selectInstanceOption = instanceOption[instance]
     if (JSON.stringify(prev.selectInstanceOption) !== JSON.stringify(selectInstanceOption)) {
       console.log(
@@ -168,7 +174,7 @@ function FaultSiteLogs(props) {
         getLogs()
       }
     }
-  }, [startTime, endTime, service, instance, traceId, pageIndex])
+  }, [startTime, endTime, service, instance, traceId, pageIndex, namespace])
   useEffect(() => {
     getLogContent()
   }, [logsPageList, activeItemKey])
