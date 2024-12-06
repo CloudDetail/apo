@@ -8,7 +8,7 @@ import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer
 import { getStep } from 'src/core/utils/step'
 import { getServiceErrorInstancesApi } from 'src/core/api/serviceInfo'
 import ErrorCell from '../../../../../../core/components/ErrorInstance/ErrorCell'
-import { ErrotChain } from '../../../../../../core/components/ErrorInstance/ErrorChain'
+import { ErrorChain } from '../../../../../../core/components/ErrorInstance/ErrorChain'
 import { useDebounce } from 'react-use'
 import Timeline from '../../../../../../core/components/TimeLine'
 import { Button, Skeleton, Flex } from 'antd'
@@ -52,7 +52,7 @@ export default function ErrorInstanceInfo(props) {
       Cell: (props) => {
         const { value, dependsValue, originalRow } = props
         return (
-          <ErrotChain
+          <ErrorChain
             data={dependsValue?.customAbbreviation}
             instance={originalRow.name}
             chartId={originalRow.name}
