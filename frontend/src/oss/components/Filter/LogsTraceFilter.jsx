@@ -222,7 +222,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     const urlEndpoint = searchParams.get('endpoint') ?? ''
     const urlFrom = searchParams.get(type + '-from')
     const urlTo = searchParams.get(type + '-to')
-    const namespace = searchParams.get('namespace') == '' ? null : searchParams.get('namespace') ?? null
+    const namespace = searchParams.get('namespace') || null;
     const minDuration = searchParams.get('minDuration') ?? ''
     const maxDuration = searchParams.get('maxDuration') ?? ''
     const faultTypeList = searchParams.get('faultTypeList') ?? ''
@@ -278,9 +278,6 @@ const LogsTraceFilter = React.memo(({ type }) => {
   }, [selectServiceName])
   useEffect(() => {
     clearUrlParamsState()
-  }, [])
-
-  useEffect(() => {
     getNamespaceList()
   }, [])
 
