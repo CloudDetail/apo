@@ -79,6 +79,8 @@ const TableFilter = ({ getTableData }) => {
     useEffect(() => {
         if (serachServiceName?.length > 0) {
             getEndpointNameOptions(serachServiceName);
+        }else {
+            getEndpointNameOptions([]);
         }
     }, [serachServiceName]);
 
