@@ -10,7 +10,8 @@ import (
 )
 
 func (s *service) GetProcessFlameGraphData(req *request.GetProcessFlameGraphRequest) (response.GetProcessFlameGraphResponse, error) {
-	data, err := s.chRepo.GetFlameGraphData(req.StartTime, req.EndTime, req.PID, -1, req.SampleType, "", "")
+	data, err := s.chRepo.GetFlameGraphData(req.StartTime, req.EndTime, req.NodeName,
+		req.PID, -1, req.SampleType, "", "")
 	if err != nil {
 		return response.GetProcessFlameGraphResponse{}, err
 	}

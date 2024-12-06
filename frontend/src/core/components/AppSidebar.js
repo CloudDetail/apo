@@ -79,7 +79,7 @@ const AppSidebar = ({ collapsed }) => {
       <Menu
         mode="inline"
         theme="dark"
-        inlineCollapsed={true}
+        inlineCollapsed={collapsed}
         items={menuList}
         onClick={onClick}
         selectedKeys={selectedKeys}

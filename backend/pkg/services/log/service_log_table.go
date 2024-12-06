@@ -24,7 +24,7 @@ var defaultRouteRuleMap = map[string]string{
 	"k8s.pod.name": "apo",
 }
 
-func (s *service) CreateLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error) {
+func (s *service) InitParseLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error) {
 	sqls, err := s.chRepo.CreateLogTable(req)
 	res := &response.LogTableResponse{Sqls: sqls}
 	if err != nil {

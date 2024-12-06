@@ -17,7 +17,7 @@ type Service interface {
 
 	GetFaultLogContent(req *request.GetFaultLogContentRequest) (*response.GetFaultLogContentResponse, error)
 
-	CreateLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error)
+	InitParseLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error)
 
 	DropLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error)
 

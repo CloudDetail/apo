@@ -4682,6 +4682,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "主机名称",
+                        "name": "nodeName",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "开始时间",
                         "name": "startTime",
@@ -4766,6 +4772,12 @@ const docTemplate = `{
                         "name": "pid",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "主机名称",
+                        "name": "nodeName",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -8414,9 +8426,17 @@ const docTemplate = `{
                     "description": "Endpoint",
                     "type": "string"
                 },
+                "group": {
+                    "description": "服务类型",
+                    "type": "string"
+                },
                 "infrastructureStatus": {
                     "description": "基础设施告警",
                     "type": "string"
+                },
+                "isTraced": {
+                    "description": "是否跟踪",
+                    "type": "boolean"
                 },
                 "k8sStatus": {
                     "description": "K8s状态告警",

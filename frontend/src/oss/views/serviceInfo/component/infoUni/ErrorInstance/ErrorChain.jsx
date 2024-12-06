@@ -32,7 +32,7 @@ function splitTextToFitWidth(text, maxWidth) {
 
   return lines
 }
-export const ErrotChain = React.memo(function ErrotChain(props) {
+export const ErrorChain = React.memo(function ErrorChain(props) {
   const { data, chartId = 'errorChain' } = props
   const { serviceName, endpoint } = usePropsContext()
   const [searchParams, setSearchParams] = useSearchParams()
