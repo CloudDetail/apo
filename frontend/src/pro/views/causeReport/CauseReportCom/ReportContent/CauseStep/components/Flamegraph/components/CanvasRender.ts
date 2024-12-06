@@ -20,14 +20,14 @@ function CanvasRender(props: CanvasRenderProps) {
     focusedItem,
     setbarPositions,
   } = props
-
+  const ratio = window.devicePixelRatio || 1
   const barPositions = []
   const sf = signleFlame
   const graphWidth = canvas?.clientWidth || 0
-  canvas.width = graphWidth
+  canvas.width = graphWidth * ratio
   const canvasHeight = LEVEL_HEIGHT * levels.length
   //  const canvasHeight = PX_PER_LEVEL * (levels.length - topLevel);
-  canvas.height = canvasHeight
+  canvas.height = canvasHeight * ratio
 
   //每一个刻度的宽度
   const tickWidth = graphWidth / numTicks / (rangeMax - rangeMin)
@@ -35,7 +35,7 @@ function CanvasRender(props: CanvasRenderProps) {
   if (!ctx) {
     throw new Error('Could not get ctx')
   }
-  console.log(rangeMin, rangeMax, tickWidth)
+  ctx.scale(ratio, ratio)
   for (let lIndex = 0; lIndex < levels.length; lIndex += 1) {
     const level = levels[lIndex]
     let offset = 0
