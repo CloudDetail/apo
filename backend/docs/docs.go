@@ -2438,9 +2438,34 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "名称",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "服务名称",
                         "name": "serviceName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "命名空间",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "服务端点",
+                        "name": "endpointName",
                         "in": "query"
                     },
                     {
@@ -3063,6 +3088,16 @@ const docTemplate = `{
                         "name": "endTime",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "namespace",
+                        "name": "namespace",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -6568,7 +6603,8 @@ const docTemplate = `{
         "request.GetFaultLogPageListRequest": {
             "type": "object",
             "required": [
-                "endTime"
+                "endTime",
+                "service"
             ],
             "properties": {
                 "containerId": {
@@ -6582,6 +6618,12 @@ const docTemplate = `{
                 "instance": {
                     "description": "实例名",
                     "type": "string"
+                },
+                "namespaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "nodeName": {
                     "description": "主机名",
@@ -6601,7 +6643,10 @@ const docTemplate = `{
                 },
                 "service": {
                     "description": "查询服务名",
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "startTime": {
                     "description": "查询开始时间",
@@ -6652,7 +6697,8 @@ const docTemplate = `{
         "request.GetTracePageListRequest": {
             "type": "object",
             "required": [
-                "endTime"
+                "endTime",
+                "service"
             ],
             "properties": {
                 "containerId": {
@@ -6678,6 +6724,12 @@ const docTemplate = `{
                     "description": "实例名",
                     "type": "string"
                 },
+                "namespace": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "nodeName": {
                     "description": "主机名",
                     "type": "string"
@@ -6695,7 +6747,10 @@ const docTemplate = `{
                 },
                 "service": {
                     "description": "查询服务名",
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "startTime": {
                     "description": "查询开始时间",
