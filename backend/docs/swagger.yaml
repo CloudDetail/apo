@@ -943,6 +943,18 @@ definitions:
       numLayers:
         type: integer
     type: object
+  request.CreateCustomRequest:
+    properties:
+      customName:
+        description: |-
+          UserName   string   `json:"userName"`
+          GroupName  string   `json:"groupName"`
+        type: string
+      type:
+        items:
+          type: string
+        type: array
+    type: object
   request.DataType:
     enum:
     - int64
@@ -979,6 +991,14 @@ definitions:
     required:
     - alert
     - group
+    type: object
+  request.DeleteCustomRequest:
+    properties:
+      customName:
+        description: |-
+          UserName   string `form:"userName"`
+          GroupName  string `form:"groupName"`
+        type: string
     type: object
   request.DeleteLogParseRequest:
     properties:
@@ -1124,6 +1144,8 @@ definitions:
     - endTime
     - service
     - startTime
+    type: object
+  request.GetCustomRequest:
     type: object
   request.GetDescendantAnormalTrendRequest:
     properties:
@@ -1494,6 +1516,18 @@ definitions:
     - oldAlert
     - oldGroup
     type: object
+  request.UpdateCustomRequest:
+    properties:
+      customName:
+        description: |-
+          UserName   string   `json:"userName"`
+          GroupName  string   `json:"groupName"`
+        type: string
+      type:
+        items:
+          type: string
+        type: array
+    type: object
   request.UpdateLogParseRequest:
     properties:
       dataBase:
@@ -1543,6 +1577,15 @@ definitions:
       id:
         description: 主键ID
         type: integer
+    type: object
+  response.CustonType:
+    properties:
+      name:
+        type: string
+      type:
+        items:
+          type: string
+        type: array
     type: object
   response.DBInfo:
     properties:
@@ -1773,6 +1816,13 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetCustomResponse:
+    properties:
+      customs:
+        items:
+          $ref: '#/definitions/response.CustonType'
+        type: array
     type: object
   response.GetDefectDetectExecListResponse:
     properties:
@@ -3655,6 +3705,126 @@ paths:
       summary: 配置TTL
       tags:
       - API.config
+  /api/custom/create:
+    post:
+      consumes:
+      - application/json
+      description: 创建一个用户自定义查询数据类型
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateCustomRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 创建一个用户自定义查询数据类型
+      tags:
+      - API.custom
+  /api/custom/delete:
+    delete:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 删除用户自定义查询数据类型
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteCustomRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 删除用户自定义查询数据类型
+      tags:
+      - API.custom
+  /api/custom/get:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取用户自定义查询数据类型
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetCustomRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetCustomResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取用户自定义查询数据类型
+      tags:
+      - API.custom
+  /api/custom/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新用户自定义查询数据类型
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateCustomRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 更新用户自定义查询数据类型
+      tags:
+      - API.custom
   /api/health:
     get:
       consumes:

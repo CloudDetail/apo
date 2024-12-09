@@ -3,9 +3,10 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"time"
+
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"time"
 
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/logger"
@@ -44,6 +45,11 @@ type Repo interface {
 	GetUserList(req *request.GetUserListRequest) ([]User, int64, error)
 	RemoveUser(username string, operatorName string) error
 	RestPassword(username string, newPassword string) error
+
+	CreateCustomQuery(serviceType *QueryServiceType) error
+	UpdateCustomQuery(customName string, customType string) error
+	GetCustomQuery() ([]QueryServiceType, error)
+	DeleteCustomQuery(customName string) error
 }
 
 type daoRepo struct {
@@ -103,6 +109,10 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		return nil, err
 	}
 	err = database.AutoMigrate(&User{})
+	if err != nil {
+		return nil, err
+	}
+	err = database.AutoMigrate(&QueryServiceType{})
 	if err != nil {
 		return nil, err
 	}
