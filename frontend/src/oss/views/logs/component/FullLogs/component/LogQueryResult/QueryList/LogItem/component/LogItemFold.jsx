@@ -1,9 +1,5 @@
-import { Tag, Tooltip } from 'antd';
-import React, { useEffect, useState } from 'react';
-import LogTagDropDown from './LogTagDropdown';
 import { useLogsContext } from 'src/core/contexts/LogsContext';
 import LogValueTag from './LogValueTag';
-import LogFieldTag from './LogFieldTag';
 import LogKeyTag from './LogKeyTag';
 
 const LogItemFold = ({ tags, fields }) => {
