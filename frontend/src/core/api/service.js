@@ -102,3 +102,22 @@ export const getServiceAlertEventsApi = (params) => {
 export const getServiceRelationApi = (params) => {
   return get(`/api/service/relation`, params)
 }
+
+/**
+ * 告警分析页面->获取告警分析服务端点数据
+ * @param {*} params 
+ * @returns {Promise<Object>}
+ */
+export const getServiceEndpointNameApi = (params) => {
+  return get(`/api/service/moreUrl`, params)
+}
+
+
+/**
+ * 获取所有命名空间
+ * @param {*} params 
+ * @returns {Promise<Object>}
+ */
+export const getNamespacesApi = (params) => {
+  return get(`/api/service/namespace/list`, params)
+}

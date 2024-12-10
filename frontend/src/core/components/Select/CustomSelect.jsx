@@ -104,6 +104,7 @@ const CustomSelect = React.memo((props) => {
       popupMatchSelectWidth={false}
       className="w-full"
       placeholder="请选择"
+      showSearch
     />
   )
 })
