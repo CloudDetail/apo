@@ -19,7 +19,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
 
   const [selectServiceName, setSelectServiceName] = useState('')
   const [selectInstance, setSelectInstance] = useState('')
-  const [selectNamespace, setSelectNamespace] = useState(null)
+  const [selectNamespace, setSelectNamespace] = useState('')
   // 应该深入
   const [inputTraceId, setInputTraceId] = useState('')
   const [inputEndpoint, setInputEndpoint] = useState('')
@@ -35,13 +35,13 @@ const LogsTraceFilter = React.memo(({ type }) => {
   const [urlParam, setUrlParam] = useState({
     service: '',
     instance: '',
+    namespace: '',
     traceId: '',
     endpoint: '',
     startTime: null,
     endTime: null,
 
     //filter
-    namespace: '',
     minDuration: null,
     maxDuration: null,
     faultTypeList: null,
@@ -78,6 +78,12 @@ const LogsTraceFilter = React.memo(({ type }) => {
     updateUrlParamsState({
       service: selectServiceName,
       instance: props,
+    })
+  }
+  const onChangeNamespace = (props) => {
+    setSelectNamespace(props)
+    updateUrlParamsState({
+      namespace: props,
     })
   }
   const onChangeTraceId = (event) => {
@@ -119,13 +125,6 @@ const LogsTraceFilter = React.memo(({ type }) => {
       faultTypeList: value,
     })
   }
-  const onChangeNamespace = (event) => {
-    setSelectNamespace(event)
-    updateUrlParamsState({
-      namespace: event,
-    })
-  }
-
   const getServiceListData = () => {
     getServiceListApi({ startTime, endTime })
       .then((res) => {
@@ -142,16 +141,15 @@ const LogsTraceFilter = React.memo(({ type }) => {
           storeService = ''
           storeInstance = ''
         }
-
         if (!storeService) {
           updateUrlParamsState({
             startTime,
             endTime,
+            namespace: selectNamespace,
             service: storeService,
             instance: storeInstance,
             traceId: inputTraceId,
             endpoint: inputEndpoint,
-            namespace:selectNamespace,
             minDuration,
             maxDuration,
           })
@@ -203,12 +201,10 @@ const LogsTraceFilter = React.memo(({ type }) => {
     }
   }
   const getNamespaceList = () => {
-    getNamespacesApi()
+    const params = { startTime, endTime }
+    getNamespacesApi(params)
       .then((res) => {
-        setNamespaceList(res.items.map((item) => ({
-          label: <span>{item.metadata.name}</span>,
-          value: item.metadata.name
-        })))
+        setNamespaceList(res?.namespaceList ?? [])
       })
       .catch((error) => {
         console.error(error)
@@ -278,9 +274,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
   }, [selectServiceName])
   useEffect(() => {
     clearUrlParamsState()
-    getNamespaceList()
   }, [])
-
   useEffect(() => {
     let changeTime = false
     if (startTime !== urlParam.startTime) {
@@ -295,6 +289,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
       // console.log(urlParam.service, selectServiceName)
       if (changeTime || urlParam.service !== selectServiceName) {
         getServiceListData()
+        getNamespaceList()
       }
     }
   }, [startTime, endTime, urlParam])
@@ -352,14 +347,11 @@ const LogsTraceFilter = React.memo(({ type }) => {
         <div className="flex flex-row  flex-wrap">
           <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
             <span className="text-nowrap">命名空间：</span>
-            <Select
-              className='w-full'
+            <CustomSelect
               options={namespaceList}
               value={selectNamespace}
-              placeholder="检索"
               onChange={onChangeNamespace}
-              allowClear
-              popupMatchSelectWidth={false}
+              isClearable
             />
           </div>
           <div className="flex flex-row items-center mr-5 mt-2 w-[250px]">
@@ -469,5 +461,4 @@ const LogsTraceFilter = React.memo(({ type }) => {
     </>
   )
 })
-
 export default LogsTraceFilter

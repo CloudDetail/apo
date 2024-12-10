@@ -119,5 +119,5 @@ export const getServiceEndpointNameApi = (params) => {
  * @returns {Promise<Object>}
  */
 export const getNamespacesApi = (params) => {
-  return get(`/api/k8s/namespaces`, params)
+  return get(`/api/service/namespace/list`, params)
 }
