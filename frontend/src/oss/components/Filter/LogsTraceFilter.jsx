@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { getServiceInstancOptionsListApi, getServiceListApi } from 'core/api/service'
+import { getServiceInstancOptionsListApi, getServiceListApi, getNamespacesApi } from 'core/api/service'
 import DateTimeRangePickerCom from 'src/core/components/DateTime/DateTimeRangePickerCom'
 import { CustomSelect } from 'src/core/components/Select'
 import { getTimestampRange, timeRangeList } from 'src/core/store/reducers/timeRangeReducer'
 import { ISOToTimestamp } from 'src/core/utils/time'
 import { useDispatch } from 'react-redux'
-import { Checkbox, Input, InputNumber, Segmented, Tooltip } from 'antd'
+import { Checkbox, Input, InputNumber, Segmented, Tooltip, Select } from 'antd'
 import { swTraceIDToTraceID } from 'src/core/utils/trace'
 import TraceErrorType from 'src/oss/views/trace/component/TraceErrorType'
 
@@ -15,9 +15,11 @@ const LogsTraceFilter = React.memo(({ type }) => {
 
   const [serviceList, setServiceList] = useState([])
   const [instanceList, setInstanceList] = useState([])
+  const [namespaceList, setNamespaceList] = useState([])
 
   const [selectServiceName, setSelectServiceName] = useState('')
   const [selectInstance, setSelectInstance] = useState('')
+  const [selectNamespace, setSelectNamespace] = useState('')
   // 应该深入
   const [inputTraceId, setInputTraceId] = useState('')
   const [inputEndpoint, setInputEndpoint] = useState('')
@@ -28,19 +30,18 @@ const LogsTraceFilter = React.memo(({ type }) => {
   // filter
   const [minDuration, setMinDuration] = useState(null)
   const [maxDuration, setMaxDuration] = useState(null)
-  const [namespace, setNamespace] = useState(null)
   const [faultTypeList, setFaultTypeList] = useState([])
   const [traceType, setTraceType] = useState('TraceID')
   const [urlParam, setUrlParam] = useState({
     service: '',
     instance: '',
+    namespace: '',
     traceId: '',
     endpoint: '',
     startTime: null,
     endTime: null,
 
     //filter
-    namespace: '',
     minDuration: null,
     maxDuration: null,
     faultTypeList: null,
@@ -53,10 +54,10 @@ const LogsTraceFilter = React.memo(({ type }) => {
   //trace more filter
   const [visible, setVisible] = useState(true)
   const dispatch = useDispatch()
+
   const clearUrlParamsState = (value) => {
     dispatch({ type: 'clearUrlParamsState', payload: value })
   }
-
   const updateUrlParamsState = (params) => {
     changeUrlParams(params)
     dispatch({ type: 'setUrlParamsState', payload: params })
@@ -77,6 +78,12 @@ const LogsTraceFilter = React.memo(({ type }) => {
     updateUrlParamsState({
       service: selectServiceName,
       instance: props,
+    })
+  }
+  const onChangeNamespace = (props) => {
+    setSelectNamespace(props)
+    updateUrlParamsState({
+      namespace: props,
     })
   }
   const onChangeTraceId = (event) => {
@@ -118,12 +125,6 @@ const LogsTraceFilter = React.memo(({ type }) => {
       faultTypeList: value,
     })
   }
-  const onChangeNamespace = (event) => {
-    setNamespace(event.target.value)
-    updateUrlParamsState({
-      namespace: event.target.value,
-    })
-  }
   const getServiceListData = () => {
     getServiceListApi({ startTime, endTime })
       .then((res) => {
@@ -140,16 +141,15 @@ const LogsTraceFilter = React.memo(({ type }) => {
           storeService = ''
           storeInstance = ''
         }
-
         if (!storeService) {
           updateUrlParamsState({
             startTime,
             endTime,
+            namespace: selectNamespace,
             service: storeService,
             instance: storeInstance,
             traceId: inputTraceId,
             endpoint: inputEndpoint,
-            namespace,
             minDuration,
             maxDuration,
           })
@@ -159,7 +159,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
         }
       })
       .catch((error) => {
-        // console.log(error)
+        console.log(error)
         setServiceList([])
       })
   }
@@ -189,7 +189,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
             traceId: inputTraceId,
             endpoint: inputEndpoint,
             instanceOption: res,
-            namespace,
+            namespace: selectNamespace
           })
         })
         .catch((error) => {
@@ -197,8 +197,19 @@ const LogsTraceFilter = React.memo(({ type }) => {
           setInstanceList(null)
           // updateInstanceOption({})
         })
-        .finally(() => {})
+        .finally(() => { })
     }
+  }
+  const getNamespaceList = () => {
+    const params = { startTime, endTime }
+    getNamespacesApi(params)
+      .then((res) => {
+        setNamespaceList(res?.namespaceList ?? [])
+      })
+      .catch((error) => {
+        console.error(error)
+      })
+      .finally(() => { })
   }
   useEffect(() => {
     const urlService = searchParams.get('service') ?? ''
@@ -207,7 +218,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     const urlEndpoint = searchParams.get('endpoint') ?? ''
     const urlFrom = searchParams.get(type + '-from')
     const urlTo = searchParams.get(type + '-to')
-    const namespace = searchParams.get('namespace') ?? ''
+    const namespace = searchParams.get('namespace') || null;
     const minDuration = searchParams.get('minDuration') ?? ''
     const maxDuration = searchParams.get('maxDuration') ?? ''
     const faultTypeList = searchParams.get('faultTypeList') ?? ''
@@ -239,7 +250,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     let faultTypeListValue = faultTypeList ? faultTypeList.split(',') : null
     setMinDuration(minDuration)
     setMaxDuration(maxDuration)
-    setNamespace(namespace)
+    setSelectNamespace(namespace)
     setFaultTypeList(faultTypeListValue)
     setUrlParam({
       ...urlParam,
@@ -261,12 +272,9 @@ const LogsTraceFilter = React.memo(({ type }) => {
       // onChangeInstance('')
     }
   }, [selectServiceName])
-  useEffect(
-    () => () => {
-      clearUrlParamsState()
-    },
-    [],
-  )
+  useEffect(() => {
+    clearUrlParamsState()
+  }, [])
   useEffect(() => {
     let changeTime = false
     if (startTime !== urlParam.startTime) {
@@ -281,6 +289,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
       // console.log(urlParam.service, selectServiceName)
       if (changeTime || urlParam.service !== selectServiceName) {
         getServiceListData()
+        getNamespaceList()
       }
     }
   }, [startTime, endTime, urlParam])
@@ -336,7 +345,16 @@ const LogsTraceFilter = React.memo(({ type }) => {
     <>
       <div className="flex flex-row my-2 justify-between">
         <div className="flex flex-row  flex-wrap">
-          <div className="flex flex-row items-center mr-5 w-[150px]">
+          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
+            <span className="text-nowrap">命名空间：</span>
+            <CustomSelect
+              options={namespaceList}
+              value={selectNamespace}
+              onChange={onChangeNamespace}
+              isClearable
+            />
+          </div>
+          <div className="flex flex-row items-center mr-5 mt-2 w-[250px]">
             <span className="text-nowrap w-[60px]">服务名：</span>
             <div className="flex-1 w-0">
               <CustomSelect
@@ -347,9 +365,9 @@ const LogsTraceFilter = React.memo(({ type }) => {
               />
             </div>
           </div>
-          <div className="flex flex-row items-center mr-5 w-[150px]">
+          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
             <span className="text-nowrap">实例名：</span>
-            <div className="flex-1 w-0">
+            <div className="flex-1">
               <CustomSelect
                 options={Object.keys(instanceList)}
                 value={selectInstance}
@@ -358,33 +376,6 @@ const LogsTraceFilter = React.memo(({ type }) => {
               />
             </div>
           </div>
-          <div className="flex flex-row items-center mr-5 w-[300px] text-sm">
-            {type === 'trace' ? (
-              <Segmented options={['TraceID', 'SWTraceId']} onChange={setTraceType} />
-            ) : (
-              <span className="text-nowrap text-sm">TraceId：</span>
-            )}
-            ：
-            {traceType === 'TraceID' ? (
-              <Input placeholder="检索" value={inputTraceId} onChange={onChangeTraceId} />
-            ) : (
-              <Tooltip
-                title={
-                  convertTraceId
-                    ? '自动转换为TraceID：' + convertTraceId
-                    : '输入SkyWalking的traceid将自动转换'
-                }
-              >
-                <Input placeholder="检索" value={inputSWTraceId} onChange={onChangeSWTraceId} />
-              </Tooltip>
-            )}
-          </div>
-          {type === 'trace' && (
-            <div className="flex flex-row items-center mr-5  w-[150px]">
-              <span className="text-nowrap ">服务端点：</span>
-              <Input placeholder="检索" value={inputEndpoint} onChange={onChangeEndpoint} />
-            </div>
-          )}
         </div>
         <div className="flex-grow-0 flex-shrink-0 flex">
           <DateTimeRangePickerCom type={type} />
@@ -399,49 +390,75 @@ const LogsTraceFilter = React.memo(({ type }) => {
         </div>
       </div>
       {type === 'trace' && (
-        <div className="text-xs flex flex-row  flex-wrap w-full">
-          <div className="flex flex-row items-center mr-5">
-            <span className="text-nowrap">响应时间：</span>
-            <div className="flex-1 flex flex-row items-center">
-              <div className="pr-2">
-                <InputNumber
-                  addonBefore="MIN"
-                  addonAfter="ms"
-                  min={0}
-                  value={minDuration}
-                  onChange={onChangeMinDuration}
-                  className=" w-[150px]"
-                />
-              </div>
-              至
-              <div className="pl-2">
-                <InputNumber
-                  addonBefore="MAX"
-                  addonAfter="ms"
-                  min={0}
-                  value={maxDuration}
-                  onChange={onChangeMaxDuration}
-                  className=" w-[150px]"
-                />
+        <>
+          <div className="text-xs flex flex-row  flex-wrap w-full mb-2">
+            <div className="flex flex-row items-center mr-5 mt-2">
+              <span className="text-nowrap">响应时间：</span>
+              <div className="flex-1 flex flex-row items-center">
+                <div className="pr-2">
+                  <InputNumber
+                    addonBefore="MIN"
+                    addonAfter="ms"
+                    min={0}
+                    value={minDuration}
+                    onChange={onChangeMinDuration}
+                    className=" w-[150px]"
+                  />
+                </div>
+                至
+                <div className="pl-2">
+                  <InputNumber
+                    addonBefore="MAX"
+                    addonAfter="ms"
+                    min={0}
+                    value={maxDuration}
+                    onChange={onChangeMaxDuration}
+                    className=" w-[150px]"
+                  />
+                </div>
               </div>
             </div>
+            {type === 'trace' && (
+              <div className="flex flex-row items-center mr-5 mt-2 w-[150px]">
+                <span className="text-nowrap ">服务端点：</span>
+                <Input placeholder="检索" value={inputEndpoint} onChange={onChangeEndpoint} />
+              </div>
+            )}
           </div>
-          <div className="flex flex-row items-center mr-5">
-            <span className="text-nowrap">命名空间：</span>
-            <Input value={namespace} placeholder="检索" onChange={onChangeNamespace} />
+          <div className='flex'>
+            <div className="flex flex-row items-center mr-5 mt-2 w-[300px] text-sm">
+              {type === 'trace' ? (
+                <Segmented options={['TraceID', 'SWTraceId']} onChange={setTraceType} />
+              ) : (
+                <span className="text-nowrap text-sm">TraceId：</span>
+              )}
+              ：
+              {traceType === 'TraceID' ? (
+                <Input placeholder="检索" value={inputTraceId} onChange={onChangeTraceId} />
+              ) : (
+                <Tooltip
+                  title={
+                    convertTraceId
+                      ? '自动转换为TraceID：' + convertTraceId
+                      : '输入SkyWalking的traceid将自动转换'
+                  }
+                >
+                  <Input placeholder="检索" value={inputSWTraceId} onChange={onChangeSWTraceId} />
+                </Tooltip>
+              )}
+            </div>
+            <div className="flex flex-row items-center mr-5 mt-2">
+              <span className="text-nowrap">故障状态：</span>
+              <Checkbox.Group
+                onChange={onChangeTypeList}
+                options={options}
+                value={faultTypeList}
+              ></Checkbox.Group>
+            </div>
           </div>
-          <div className="flex flex-row items-center mr-5">
-            <span className="text-nowrap">故障状态：</span>
-            <Checkbox.Group
-              onChange={onChangeTypeList}
-              options={options}
-              value={faultTypeList}
-            ></Checkbox.Group>
-          </div>
-        </div>
+        </>
       )}
     </>
   )
 })
-
 export default LogsTraceFilter

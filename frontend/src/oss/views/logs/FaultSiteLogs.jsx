@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CTab, CTabList, CTabs, CRow, CCol, CCard, CToast, CToastBody } from '@coreui/react'
 import { convertTime } from 'src/core/utils/time'
 import { getLogContentApi, getLogPageListApi } from 'core/api/logs'
@@ -12,7 +12,7 @@ import LogsTraceFilter from 'src/oss/components/Filter/LogsTraceFilter'
 import { useSelector } from 'react-redux'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
 function FaultSiteLogs(props) {
-  const { startTime, endTime, service, instance, traceId, instanceOption } = useSelector(
+  const { startTime, endTime, service, instance, traceId, instanceOption, namespace } = useSelector(
     (state) => state.urlParamsReducer,
   )
 
@@ -23,6 +23,7 @@ function FaultSiteLogs(props) {
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [loading, setLoading] = useState(true)
+  const [source, setSource] = useState('')
   const [logContentLoading, setLogContentLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const refs = useRef({})
@@ -33,19 +34,13 @@ function FaultSiteLogs(props) {
     instance: '',
     traceId: '',
     pageIndex: 1,
+    namespace: '',
     selectInstanceOption: {},
   })
-  const [source, setSource] = useState('')
   const changeActiveItemKey = (key) => {
     setActiveItemKey(key)
     setSource('')
   }
-
-  useEffect(() => {
-    if (logContent?.logContents?.contents?.length > 0 && !source) {
-      setSource(logContent?.sources[0])
-    }
-  }, [logContent])
   const getLogs = () => {
     setActiveItemKey(0)
     setLoading(true)
@@ -53,12 +48,13 @@ function FaultSiteLogs(props) {
     getLogPageListApi({
       startTime,
       endTime,
-      service: service,
-      // instance: instance,
-      traceId: traceId,
+      service: service ? [service] : undefined,
+      instance: instance ? instance : undefined,
+      traceId: traceId ? traceId : undefined,
       pageNum: pageIndex,
       pageSize: 10,
       containerId,
+      namespaces: namespace ? [namespace] : undefined,
       nodeName,
       pid,
     })
@@ -66,15 +62,12 @@ function FaultSiteLogs(props) {
         setLoading(false)
         setLogsPageList(res?.list ?? [])
         setTotal(res?.pagination.total)
-
-        //
       })
       .catch(() => {
         setLogsPageList([])
         setLoading(false)
       })
-      .finally(() => {})
-    // 你的getLogs实现
+      .finally(() => { })
   }
   const getLogContent = () => {
     const params = logsPageList?.[activeItemKey]
@@ -118,9 +111,12 @@ function FaultSiteLogs(props) {
       console.log('service -> pre:', prev.service, 'now:', service)
       paramsChange = true
     }
-
     if (prev.traceId !== traceId) {
       console.log('traceId -> pre:', prev.traceId, 'now:', traceId)
+      paramsChange = true
+    }
+    if (prev.namespace !== namespace) {
+      console.log('namespace -> pre:', prev.namespace, 'now:', namespace)
       paramsChange = true
     }
     const selectInstanceOption = instanceOption[instance]
@@ -168,7 +164,7 @@ function FaultSiteLogs(props) {
         getLogs()
       }
     }
-  }, [startTime, endTime, service, instance, traceId, pageIndex])
+  }, [startTime, endTime, service, instance, traceId, pageIndex, namespace])
   useEffect(() => {
     getLogContent()
   }, [logsPageList, activeItemKey])
@@ -177,6 +173,11 @@ function FaultSiteLogs(props) {
       getLogContent()
     }
   }, [source])
+  useEffect(() => {
+    if (logContent?.logContents?.contents?.length > 0 && !source) {
+      setSource(logContent?.sources[0])
+    }
+  }, [logContent])
   return (
     <CCard
       className="h-full flex flex-col overflow-hidden text-xs px-2"

@@ -17,7 +17,6 @@ import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { Tooltip } from 'antd'
 
 function Trace() {
-  const [searchParams] = useSearchParams()
   // const [startTime, setStartTime] = useState(null)
   const [tracePageList, setTracePageList] = useState([])
   // const [endTime, setEndTime] = useState(null)
@@ -317,10 +316,11 @@ function Trace() {
     getTracePageListApi({
       startTime,
       endTime,
-      service: service,
+      service: service ? [service] : undefined,
       // instance: instance,
       traceId: traceId,
       endpoint: endpoint,
+      namespace: namespace ? [namespace] : undefined,
       pageNum: pageIndex,
       pageSize: pageSize,
       containerId,

@@ -60,7 +60,7 @@ function DependentTable(props) {
   )
   const column = [
     {
-      title: '应用名称',
+      title: '服务名',
       accessor: 'serviceName',
       customWidth: 150,
     },
