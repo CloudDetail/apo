@@ -62,6 +62,8 @@ type Service interface {
 
 	// GetAlertEventsSample 获取告警事件
 	GetAlertEventsSample(req *request.GetAlertEventsSampleRequest) (*response.GetAlertEventsSampleResponse, error)
+
+	GetServiceNamespaceList(req *request.GetServiceNamespaceListRequest) (response.GetServiceNamespaceListResponse, error)
 }
 
 type service struct {

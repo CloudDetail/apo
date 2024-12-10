@@ -40,6 +40,13 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 		EqualsNotEmpty("labels['content_key']", query.EndPoint).
 		EqualsNotEmpty("labels['node_name']", query.NodeName).
 		EqualsNotEmpty("trace_id", query.TraceId)
+
+	if len(query.MultiServices) > 0 {
+		queryBuilder.In("labels['service_name']", query.MultiServices)
+	}
+	if len(query.MultiNamespace) > 0 {
+		queryBuilder.In("labels['namespace']", query.MultiNamespace)
+	}
 	if len(query.ContainerId) > 0 {
 		queryBuilder.Equals("labels['container_id']", query.ContainerId)
 	} else if query.Pid > 0 {
@@ -117,13 +124,19 @@ func (ch *chRepo) GetAvailableFilterKey(startTime, endTime time.Time, needUpdate
 func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
-		EqualsNotEmpty("labels['service_name']", req.Service).
 		EqualsNotEmpty("labels['content_key']", req.EndPoint).
 		EqualsNotEmpty("labels['instance_id']", req.Instance).
 		EqualsNotEmpty("labels['node_name']", req.NodeName).
 		EqualsNotEmpty("trace_id", req.TraceId).
 		EqualsNotEmpty("labels['container_id']", req.ContainerId)
 
+	if len(req.Service) > 0 {
+		queryBuilder.In("labels['service_name']", req.Service)
+	}
+
+	if len(req.Namespace) > 0 {
+		queryBuilder.In("labels['namespace']", req.Namespace)
+	}
 	for _, filter := range req.Filters {
 		AppendToBuilder(queryBuilder, filter)
 	}
@@ -174,18 +187,20 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 }
 
 type FaultLogQuery struct {
-	StartTime   int64
-	EndTime     int64
-	Service     string
-	Instance    string
-	NodeName    string
-	ContainerId string
-	Pid         uint32
-	EndPoint    string
-	TraceId     string
-	PageNum     int
-	PageSize    int
-	Type        int // 0 - slow & error, 1 - error
+	StartTime      int64
+	EndTime        int64
+	Service        string
+	Instance       string
+	NodeName       string
+	ContainerId    string
+	Pid            uint32
+	EndPoint       string
+	TraceId        string
+	PageNum        int
+	PageSize       int
+	Type           int      // 0 - slow & error, 1 - error
+	MultiServices  []string // 匹配多个service
+	MultiNamespace []string // 匹配多个namespace
 }
 
 type QueryCount struct {
