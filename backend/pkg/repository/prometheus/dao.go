@@ -72,6 +72,8 @@ type Repo interface {
 	QueryProcessStartTime(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) (map[model.ServiceInstance]int64, error)
 	GetApi() v1.API
 	GetRange() string
+
+	GetNamespaceList(startTime int64, endTime int64) ([]string, error)
 }
 
 type promRepo struct {

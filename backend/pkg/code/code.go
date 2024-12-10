@@ -39,13 +39,14 @@ const (
 	GetSQLMetricError                   = "B0322"
 	GetServiceEntryEndpointsError       = "B0323"
 	GetServiceRYGLightError             = "B0324"
-	GetFaultLogPageListError            = "B0401"
-	GetFaultLogContentError             = "B0402"
+	GetNamespaceListError               = "B0325"
 
-	QueryLogContextError = "B0405"
-	QueryLogError        = "B0406"
-	GetLogChartError     = "B0407"
-	GetLogIndexError     = "B0408"
+	GetFaultLogPageListError = "B0401"
+	GetFaultLogContentError  = "B0402"
+	QueryLogContextError     = "B0405"
+	QueryLogError            = "B0406"
+	GetLogChartError         = "B0407"
+	GetLogIndexError         = "B0408"
 
 	GetLogTableInfoError = "B0409"
 

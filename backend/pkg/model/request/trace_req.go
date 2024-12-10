@@ -3,7 +3,7 @@ package request
 type GetTracePageListRequest struct {
 	StartTime   int64    `json:"startTime" binding:"min=0"`                    // 查询开始时间
 	EndTime     int64    `json:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Service     []string `json:"service" binding:"required"`                   // 查询服务名
+	Service     []string `json:"service"`                                      // 查询服务名
 	Namespace   []string `json:"namespace"`
 	EndPoint    string   `json:"endpoint"`    // 查询Endpoint
 	Instance    string   `json:"instance"`    // 实例名

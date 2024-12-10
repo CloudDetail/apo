@@ -2455,8 +2455,7 @@ const docTemplate = `{
                         "collectionFormat": "multi",
                         "description": "命名空间",
                         "name": "namespace",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "array",
@@ -3419,6 +3418,51 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/response.ServiceDetail"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/service/namespace/list": {
+            "get": {
+                "description": "Get monitored namespaces.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.service"
+                ],
+                "summary": "Get monitored namespaces.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetServiceNamespaceListResponse"
                         }
                     },
                     "400": {
@@ -6591,8 +6635,7 @@ const docTemplate = `{
         "request.GetFaultLogPageListRequest": {
             "type": "object",
             "required": [
-                "endTime",
-                "service"
+                "endTime"
             ],
             "properties": {
                 "containerId": {
@@ -6685,8 +6728,7 @@ const docTemplate = `{
         "request.GetTracePageListRequest": {
             "type": "object",
             "required": [
-                "endTime",
-                "service"
+                "endTime"
             ],
             "properties": {
                 "containerId": {
@@ -7805,6 +7847,17 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "response.GetServiceNamespaceListResponse": {
+            "type": "object",
+            "properties": {
+                "namespaceList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

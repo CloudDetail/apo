@@ -1011,7 +1011,6 @@ definitions:
         type: string
     required:
     - endTime
-    - service
     type: object
   request.GetServiceRouteRequest:
     properties:
@@ -1085,7 +1084,6 @@ definitions:
         type: string
     required:
     - endTime
-    - service
     type: object
   request.InputAlertManagerRequest:
     properties:
@@ -1802,6 +1800,13 @@ definitions:
         type: array
       status:
         type: string
+    type: object
+  response.GetServiceNamespaceListResponse:
+    properties:
+      namespaceList:
+        items:
+          type: string
+        type: array
     type: object
   response.GetServiceRouteResponse:
     properties:
@@ -4049,7 +4054,6 @@ paths:
         items:
           type: string
         name: namespace
-        required: true
         type: array
       - collectionFormat: multi
         description: 服务端点
@@ -4708,6 +4712,36 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取服务的更多url列表
+      tags:
+      - API.service
+  /api/service/namespace/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get monitored namespaces.
+      parameters:
+      - description: 开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetServiceNamespaceListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get monitored namespaces.
       tags:
       - API.service
   /api/service/polaris/infer:

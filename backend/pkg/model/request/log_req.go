@@ -3,7 +3,7 @@ package request
 type GetFaultLogPageListRequest struct {
 	StartTime   int64    `json:"startTime" binding:"min=0"`                    // 查询开始时间
 	EndTime     int64    `json:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Service     []string `json:"service" binding:"required"`                   // 查询服务名
+	Service     []string `json:"service"`                                      // 查询服务名
 	Namespaces  []string `json:"namespaces"`
 	Instance    string   `json:"instance"`    // 实例名
 	NodeName    string   `json:"nodeName"`    // 主机名

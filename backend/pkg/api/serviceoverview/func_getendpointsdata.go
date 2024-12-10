@@ -23,7 +23,7 @@ import (
 // @Param endTime query int64 true "查询结束时间"
 // @Param step query int64 true "步长"
 // @Param serviceName query []string false "服务名称" collectionFormat(multi)
-// @Param namespace query []string true "命名空间" collectionFormat(multi)
+// @Param namespace query []string false "命名空间" collectionFormat(multi)
 // @Param endpointName query []string false "服务端点" collectionFormat(multi)
 // @Param sortRule query int true "排序逻辑"
 // @Param Authorization header string false "Bearer accessToken"
