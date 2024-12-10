@@ -286,3 +286,7 @@ type MonitorStatus struct {
 	MonitorName string `json:"monitorName"`
 	IsAlive     bool   `json:"isAlive"`
 }
+
+type GetServiceNamespaceListResponse struct {
+	NamespaceList []string `json:"namespaceList"`
+}

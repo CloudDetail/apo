@@ -24,7 +24,7 @@ type Repo interface {
 
 	// ========== span_trace_duration_count Start ==========
 	// 查询服务列表
-	GetServiceList(startTime int64, endTime int64) ([]string, error)
+	GetServiceList(startTime int64, endTime int64, namespace []string) ([]string, error)
 	// 查询服务实例列表, URL允许为空
 	GetInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
 	// 查询活跃实例列表
@@ -72,6 +72,8 @@ type Repo interface {
 	QueryProcessStartTime(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) (map[model.ServiceInstance]int64, error)
 	GetApi() v1.API
 	GetRange() string
+
+	GetNamespaceList(startTime int64, endTime int64) ([]string, error)
 }
 
 type promRepo struct {

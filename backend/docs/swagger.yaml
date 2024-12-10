@@ -981,6 +981,10 @@ definitions:
       instance:
         description: 实例名
         type: string
+      namespaces:
+        items:
+          type: string
+        type: array
       nodeName:
         description: 主机名
         type: string
@@ -995,7 +999,9 @@ definitions:
         type: integer
       service:
         description: 查询服务名
-        type: string
+        items:
+          type: string
+        type: array
       startTime:
         description: 查询开始时间
         minimum: 0
@@ -1049,6 +1055,10 @@ definitions:
       instance:
         description: 实例名
         type: string
+      namespace:
+        items:
+          type: string
+        type: array
       nodeName:
         description: 主机名
         type: string
@@ -1062,7 +1072,9 @@ definitions:
         type: integer
       service:
         description: 查询服务名
-        type: string
+        items:
+          type: string
+        type: array
       startTime:
         description: 查询开始时间
         minimum: 0
@@ -1788,6 +1800,13 @@ definitions:
         type: array
       status:
         type: string
+    type: object
+  response.GetServiceNamespaceListResponse:
+    properties:
+      namespaceList:
+        items:
+          type: string
+        type: array
     type: object
   response.GetServiceRouteResponse:
     properties:
@@ -4022,10 +4041,27 @@ paths:
         name: step
         required: true
         type: integer
-      - description: 名称
+      - collectionFormat: multi
+        description: 服务名称
         in: query
+        items:
+          type: string
         name: serviceName
-        type: string
+        type: array
+      - collectionFormat: multi
+        description: 命名空间
+        in: query
+        items:
+          type: string
+        name: namespace
+        type: array
+      - collectionFormat: multi
+        description: 服务端点
+        in: query
+        items:
+          type: string
+        name: endpointName
+        type: array
       - description: 排序逻辑
         in: query
         name: sortRule
@@ -4445,6 +4481,13 @@ paths:
         name: endTime
         required: true
         type: integer
+      - collectionFormat: multi
+        description: namespace
+        in: query
+        items:
+          type: string
+        name: namespace
+        type: array
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -4669,6 +4712,36 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 获取服务的更多url列表
+      tags:
+      - API.service
+  /api/service/namespace/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get monitored namespaces.
+      parameters:
+      - description: 开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetServiceNamespaceListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get monitored namespaces.
       tags:
       - API.service
   /api/service/polaris/infer:

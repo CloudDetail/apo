@@ -118,6 +118,11 @@ type Handler interface {
 	// @Tags API.service
 	// @Router /api/service/entry/endpoints [get]
 	GetServiceEntryEndpoints() core.HandlerFunc
+
+	// GetNamespaceList Get monitored namespaces.
+	// @Tags API.service
+	// @Router /api/service/namespace/list [get]
+	GetNamespaceList() core.HandlerFunc
 }
 
 type handler struct {

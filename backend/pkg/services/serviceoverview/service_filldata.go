@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -137,6 +138,15 @@ func (f EndpointsFilter) ExtractFilterStr() []string {
 	}
 	if len(f.Namespace) > 0 {
 		filters = append(filters, prom.NamespacePQLFilter, f.Namespace)
+	}
+	if len(f.MultiNamespace) > 0 {
+		filters = append(filters, prom.NamespaceRegexPQLFilter, strings.Join(f.MultiNamespace, "|"))
+	}
+	if len(f.MultiService) > 0 {
+		filters = append(filters, prom.ServiceRegexPQLFilter, strings.Join(f.MultiService, "|"))
+	}
+	if len(f.MultiEndpoint) > 0 {
+		filters = append(filters, prom.ContentKeyRegexPQLFilter, strings.Join(f.MultiEndpoint, "|"))
 	}
 	return filters
 }
