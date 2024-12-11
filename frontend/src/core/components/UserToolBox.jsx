@@ -25,7 +25,7 @@ const UserToolBox = () => {
                     </Flex>
                 </Flex>
                 <Flex vertical className="justify-center items-center w-full h-9 mt-2 hover:bg-[#292E3B]" onClick={logout}>
-                    <Flex className="w-2/3 justify-around p-2" onClick={() => console.log("he;")}>
+                    <Flex className="w-2/3 justify-around p-2">
                         <LogoutOutlined className="text-md" />
                         <p className="text-md select-none">
                             退出登录
