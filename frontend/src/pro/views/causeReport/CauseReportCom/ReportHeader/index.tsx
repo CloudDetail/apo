@@ -24,7 +24,6 @@ const ReportHeader = () => {
       <Card classNames={{ body: 'px-3 py-2' }}>
         <div className="flex">
           <span className="font-bold text-base mb-1 flex-shrink-0 flex-grow-0">故障结论：</span>
-
           <div className="flex-1 overflow-hidden">
             <Conclusion />
           </div>

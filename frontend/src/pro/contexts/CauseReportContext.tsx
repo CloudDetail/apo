@@ -25,6 +25,7 @@ interface CauseReportType {
   uploadTraceId: string
   node: any
   causeNode: any
+  dataMissing: boolean
   // 方法
   setNode: any
 }
@@ -48,6 +49,7 @@ export const CauseReportProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [reportData, setReportData] = useState<any>({})
   const [modalVisible, setModalVisible] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
+  const [dataMissing, setDataMissing] = useState<boolean>(false)
 
   const [node, setNode] = useState<any>()
   // 导入用
@@ -124,11 +126,15 @@ export const CauseReportProvider: React.FC<{ children: ReactNode }> = ({ childre
   // }
   function fetchSlowData(mutatedType) {
     setLoading(true)
-
+    setDataMissing(false)
     // 定义各个请求的 Promise
     const mutatedTracesPromise = getMutatedtracesApi(traceId, spanId)
       .then((res) => {
-        prepareTopologyData(res.data)
+        if (res.success && res.data) {
+          prepareTopologyData(res.data)
+        } else if (!res.success && !res.data) {
+          setDataMissing(true)
+        }
       })
       .catch((err) => {
         console.error('Mutated traces error:', err)
@@ -152,7 +158,6 @@ export const CauseReportProvider: React.FC<{ children: ReactNode }> = ({ childre
       setLoading(false)
     })
   }
-
   function getErrorTraces() {
     getErrortracesApi(traceId)
       .then((res) => {
@@ -191,7 +196,7 @@ export const CauseReportProvider: React.FC<{ children: ReactNode }> = ({ childre
       }
     }
   }, [spanId, traceId, searchParams, location])
-  useEffect(() => {}, [location])
+  useEffect(() => { }, [location])
   const memoizedValue = useMemo(
     () => ({
       traceId,
@@ -209,6 +214,7 @@ export const CauseReportProvider: React.FC<{ children: ReactNode }> = ({ childre
       spanId,
       node,
       causeNode,
+      dataMissing,
       setNode,
     }),
     [
