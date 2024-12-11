@@ -3,7 +3,7 @@ import AIMessage from './AIMessage'
 import HumanMessage from './HumanMessage'
 import { Divider } from 'antd'
 import ExampleCom from './ExampleCom'
-import { mockDialogue } from './mock'
+import { mockDialogue } from '../mock'
 
 interface CnversationData {
   message: string
@@ -12,6 +12,7 @@ interface CnversationData {
   reportUrlList?: string[]
   showTyping?: boolean
   img?: any
+  components: any[]
 }
 
 interface DialogueData {
@@ -34,6 +35,7 @@ const ConversationCom = ({ dialogue, index, loading }: ConversationComProps) => 
                 message={item.message || ''}
                 loading={loading}
                 reportUrlList={item?.reportUrlList || []}
+                components={item.components || []}
               />
             ) : (
               <HumanMessage
