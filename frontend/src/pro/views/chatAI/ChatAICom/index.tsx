@@ -325,6 +325,7 @@ const ChatAICom = () => {
     if (controller) {
       if (chatQuery) {
         addChart()
+        setCauseConfirmvisibilit(false)
       } else if (streamType === 'init') {
         getChartData()
       }
@@ -341,6 +342,7 @@ const ChatAICom = () => {
         updateController()
         setStreamType('init')
         changeSuspectedNodeList([])
+        setCauseConfirmvisibilit(false)
       }
     },
     300, // 延迟时间 300ms
