@@ -6,7 +6,23 @@ import { useLogsContext } from 'src/core/contexts/LogsContext'
 const LogTagDropDown = ({ objKey, value, children, trigger = ['click', 'contextMenu'] }) => {
   const { query, updateQuery } = useLogsContext()
   const addToQuery = () => {
-    let newQueryPart = '`' + objKey + '` =' + "'" + value + "'"
+    console.log("valueType", typeof value)
+    let newQueryPart
+    switch (typeof value) {
+      case 'string':
+        newQueryPart = '`' + objKey + '` = ' + "'" + value + "'"
+        break
+      case 'number':
+        newQueryPart = '`' + objKey + '` = ' + value
+        break
+      case 'boolean':
+        newQueryPart = '`' + objKey + '` = ' + value
+        break
+      default:
+        newQueryPart = '`' + objKey + '` = -' + "'" + value + "'"
+        break
+    }
+    console.log(newQueryPart)
     // 检查 query 是否已经包含 newQueryPart
     if (!query.includes(newQueryPart)) {
       let newQuery = query

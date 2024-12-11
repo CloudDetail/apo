@@ -29,6 +29,12 @@ const LogKeyTagValue = ({ title, description }) => {
           setValue(description?.split('\n'))
         }
       }
+    } else if (typeof description === 'number') {
+      setType('number')
+      setValue([String(description)])
+    } else if (typeof description === 'boolean') {
+      setType('boolean')
+      setValue([String(description)])
     } else if (typeof description === 'object') {
       // 非字符串类型，直接显示
       setType('object')

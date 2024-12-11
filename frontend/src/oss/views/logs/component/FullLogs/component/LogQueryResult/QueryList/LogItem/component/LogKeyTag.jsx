@@ -8,21 +8,23 @@ const LogKeyTag = (props) => {
 
   // 判断 title 和 description 是否为对象或数组，若是则转换为字符串
   const formatValue = (value) => (typeof value === 'object' ? JSON.stringify(value) : value)
-
   return (
-    <div className="flex">
+    <div className="flex mb-1">
       <div>
-        <Tag className="cursor-pointer text-gray-200">{formatValue(title)}</Tag>
+        <Tag className="cursor-pointer text-gray-200">{formatValue(title)} :</Tag>
       </div>
-      ：
-      <div className="flex-1">
-        <LogTagDropDown
-          objKey={formatValue(title)}
-          value={formatValue(description)}
-          trigger={['contextMenu']}
-          children={<LogKeyTagValue title={title} description={description} />}
-        />
-      </div>
+      {
+        description ? (
+          <div className="flex-1">
+            <LogTagDropDown
+              objKey={formatValue(title)}
+              value={formatValue(description)}
+              trigger={['contextMenu']}
+              children={<LogKeyTagValue title={title} description={description} />}
+            />
+          </div>
+        ) : null
+      }
     </div>
   )
 }
