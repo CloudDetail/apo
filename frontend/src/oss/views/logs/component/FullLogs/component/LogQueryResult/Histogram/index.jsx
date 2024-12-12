@@ -174,7 +174,7 @@ const BarChart = () => {
   };
 
   return (
-    <div style={{ height: 100 }}>
+    <div className='h-[100px]'>
       {logsChartData?.length > 0 ? (
         <ReactECharts
           ref={chartRef}
@@ -183,7 +183,7 @@ const BarChart = () => {
           onChartReady={onChartReady}
         />
       ) : (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无数据" />
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无直方图数据" />
       )}
     </div>
   );
