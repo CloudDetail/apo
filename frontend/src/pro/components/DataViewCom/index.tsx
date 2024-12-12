@@ -11,7 +11,7 @@ const DataViewCom = ({ type, data, analyserNode }) => {
   const component = () => {
     switch (type) {
       case 'service':
-        return <ServiceTable data={data ? [data] : []} />
+        return <ServiceTable data={data?.serviceName ? [data] : []} />
       case 'alert':
         return (
           <div className="flex p-2">
@@ -19,10 +19,10 @@ const DataViewCom = ({ type, data, analyserNode }) => {
           </div>
         )
       case 'endpoint':
-        return <InstanceTable data={data.data} />
+        return <InstanceTable data={data?.data || []} />
 
       case 'error':
-        return <ErrorInstanceTable data={data.instances} />
+        return <ErrorInstanceTable data={data?.instances || []} />
       case 'log':
         return <FaultSiteLogsWrapper {...data} selectedNodeInfo={analyserNode} />
       case 'dashboard':
