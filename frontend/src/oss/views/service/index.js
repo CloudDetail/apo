@@ -1,28 +1,29 @@
-import React, { useMemo, useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { CButton, CCard, CFormInput, CToast, CToastBody, CToastClose } from '@coreui/react'
+import { CButton, CCard, CToast, CToastBody } from '@coreui/react'
 import { useNavigate } from 'react-router-dom'
 import TempCell from 'src/core/components/Table/TempCell'
 import StatusInfo from 'src/core/components/StatusInfo'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
-import ThresholdCofigModal from './component/ThresholdCofigModal'
-import { getServicesAlertApi, getServicesEndpointsApi } from 'core/api/service'
+import {
+  getServicesAlertApi,
+  getServicesEndpointsApi,
+} from 'core/api/service'
 import { useSelector } from 'react-redux'
-import { selectSecondsTimeRange, toNearestSecond } from 'src/core/store/reducers/timeRangeReducer'
+import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { getStep } from 'src/core/utils/step'
 import { DelaySourceTimeUnit } from 'src/constants'
 import { convertTime } from 'src/core/utils/time'
 import EndpointTableModal from './component/EndpointTableModal'
 import LoadingSpinner from 'src/core/components/Spinner'
-import { Input, Tooltip } from 'antd'
+import { Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
+import { TableFilter } from './component/TableFilter'
+
 export default function ServiceView() {
   const navigate = useNavigate()
   const [data, setData] = useState([])
-  const [serachServiceName, setSerachServiceName] = useState()
-  const [serachEndpointName, setSerachEndpointName] = useState()
-  const [serachNamespace, setSerachNamespace] = useState()
   const [loading, setLoading] = useState(true)
   const [modalVisible, setModalVisible] = useState(false)
   const [modalServiceName, setModalServiceName] = useState()
@@ -30,8 +31,14 @@ export default function ServiceView() {
     startTime: null,
     endTime: null,
   })
+  const [serviceName, setServiceName] = useState(null)
+  const [endpoint, setEndpoint] = useState(null)
+  const [namespace, setNamespace] = useState(null)
+
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const { startTime, endTime } = useSelector(selectSecondsTimeRange)
+
   const column = [
     {
       title: '应用名称',
@@ -57,13 +64,15 @@ export default function ServiceView() {
       isNested: true,
       customWidth: '55%',
       clickCell: (props) => {
+        console.log("props", props)
         // const navigate = useNavigate()
         // toServiceInfo()
         const serviceName = props.cell.row.values.serviceName
         const endpoint = props.trs.endpoint
+        const namespace = props.cell.row.values.namespaces
         // TODO encode
         navigate(
-          `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}`,
+          `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}&namespace=${encodeURIComponent(namespace)}`,
         )
       },
       showMore: (original) => {
@@ -253,7 +262,6 @@ export default function ServiceView() {
       ],
     },
   ]
-  const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const getTableData = () => {
     if (startTime && endTime) {
       setLoading(true)
@@ -266,9 +274,9 @@ export default function ServiceView() {
         startTime: startTime,
         endTime: endTime,
         step: getStep(startTime, endTime),
-        serviceName: serachServiceName,
-        endpointName: serachEndpointName,
-        namespace: serachNamespace,
+        serviceName: serviceName ?? undefined,
+        endpointName: endpoint ?? undefined,
+        namespace: namespace ?? undefined,
         sortRule: 1,
       })
         .then((res) => {
@@ -293,27 +301,8 @@ export default function ServiceView() {
       getTableData()
     },
     300, // 延迟时间 300ms
-    [startTime, endTime],
+    [startTime, endTime, serviceName, endpoint, namespace],
   )
-
-  const handleKeyDown = (event) => {
-    getTableData()
-  }
-  const changeSearchValue = (event) => {
-    switch (event.target.id) {
-      case 'serviceName':
-        setSerachServiceName(event.target.value)
-        return
-      case 'endpointName':
-        setSerachEndpointName(event.target.value)
-        return
-      case 'namespace':
-        setSerachNamespace(event.target.value)
-        return
-      default:
-        break
-    }
-  }
   const getServicesAlert = (serviceNames, returnData) => {
     return getServicesAlertApi({
       startTime: startTime,
@@ -335,7 +324,6 @@ export default function ServiceView() {
         // setLoading(false)
       })
   }
-
   const handleTableChange = (props) => {
     if (props.pageSize && props.pageIndex) {
       setPageSize(props.pageSize), setPageIndex(props.pageIndex)
@@ -396,40 +384,11 @@ export default function ServiceView() {
           </CToastBody>
         </div>
       </CToast>
-      <div className="p-2 my-2 flex flex-row">
-        <div className="flex flex-row items-center mr-5 text-sm">
-          <span className="text-nowrap">应用名称：</span>
-          <Input
-            id="serviceName"
-            placeholder="检索"
-            value={serachServiceName}
-            onChange={changeSearchValue}
-            onPressEnter={handleKeyDown}
-          />
-        </div>
-        <div className="flex flex-row items-center mr-5 text-sm">
-          <span className="text-nowrap">服务端点：</span>
-          <Input
-            id="endpointName"
-            placeholder="检索"
-            value={serachEndpointName}
-            onChange={changeSearchValue}
-            onPressEnter={handleKeyDown}
-          />
-        </div>
-        <div className="flex flex-row items-center mr-5 text-sm">
-          <span className="text-nowrap">命名空间：</span>
-          <Input
-            id="namespace"
-            placeholder="检索"
-            value={serachNamespace}
-            onChange={changeSearchValue}
-            onPressEnter={handleKeyDown}
-          />
-        </div>
-        <div>{/* <ThresholdCofigModal /> */}</div>
-      </div>
-
+      <TableFilter
+        setServiceName={setServiceName}
+        setEndpoint={setEndpoint}
+        setNamespace={setNamespace}
+      />
       <CCard style={{ height: 'calc(100vh - 220px)' }}>
         <div className="mb-4 h-full p-2 text-xs justify-between">
           <BasicTable {...tableProps} />

@@ -10,17 +10,18 @@ import (
 func (s *service) GetFaultLogPageList(req *request.GetFaultLogPageListRequest) (*response.GetFaultLogPageListResponse, error) {
 	// 分页查询故障现场日志
 	query := &clickhouse.FaultLogQuery{
-		StartTime:   req.StartTime,
-		EndTime:     req.EndTime,
-		Service:     req.Service,
-		NodeName:    req.NodeName,
-		ContainerId: req.ContainerId,
-		Pid:         req.Pid,
-		Instance:    req.Instance,
-		TraceId:     req.TraceId,
-		Type:        2, // Slow && Error && Normal
-		PageNum:     req.PageNum,
-		PageSize:    req.PageSize,
+		StartTime:      req.StartTime,
+		EndTime:        req.EndTime,
+		MultiServices:  req.Service,
+		MultiNamespace: req.Namespaces,
+		NodeName:       req.NodeName,
+		ContainerId:    req.ContainerId,
+		Pid:            req.Pid,
+		Instance:       req.Instance,
+		TraceId:        req.TraceId,
+		Type:           2, // Slow && Error && Normal
+		PageNum:        req.PageNum,
+		PageSize:       req.PageSize,
 	}
 	list, total, err := s.chRepo.GetFaultLogPageList(query)
 	if err != nil {

@@ -52,14 +52,16 @@ const LogItem = (props) => {
         <LogItemDetail log={log} isFold={isFold} /> */}
         {/* <LogItemFold tags={!tableInfo?.timeField || isFold ? log.tags : []} /> */}
         {tableInfo.timeField ? (
-          isFold ? (
-            <LogItemFold tags={log.tags} />
-          ) : (
+          <>
+            isFold ? (
+            <LogItemFold tags={log.tags} fields={log.logFields} />
+            ) : (
             <LogItemDetail log={log} />
-          )
+            )
+          </>
         ) : (
           <>
-            <LogItemFold tags={log.tags} />
+            <LogItemFold tags={log.tags} fields={log.logFields} />
             <LogItemDetail log={log} />
           </>
         )}

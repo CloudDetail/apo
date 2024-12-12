@@ -14,14 +14,15 @@ func EscapeRegexp(s string) string {
 }
 
 const (
-	ContentKeyPQLFilter  = "content_key="
-	ServicePQLFilter     = "svc_name="
-	NamespacePQLFilter   = "namespace="
-	ContainerIdPQLFilter = "container_id="
-	IsErrorPQLFilter     = "is_error="
-	PodPQLFilter         = "pod="
-	PidPQLFilter         = "pid="
-	NodeNamePQLFilter    = "node_name="
+	ContentKeyPQLFilter     = "content_key="
+	ServicePQLFilter        = "svc_name="
+	NamespacePQLFilter      = "namespace="
+	NamespaceRegexPQLFilter = "namespace=~"
+	ContainerIdPQLFilter    = "container_id="
+	IsErrorPQLFilter        = "is_error="
+	PodPQLFilter            = "pod="
+	PidPQLFilter            = "pid="
+	NodeNamePQLFilter       = "node_name="
 
 	ContentKeyRegexPQLFilter = "content_key=~"
 	ServiceRegexPQLFilter    = "svc_name=~"

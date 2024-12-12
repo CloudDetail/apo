@@ -1,7 +1,6 @@
 // src/api/request.js
 import axios from 'axios'
 import { showToast } from './toast'
-import FormData from 'form-data';
 import qs from 'qs'
 
 // 创建axios实例
@@ -113,7 +112,6 @@ export const refreshAccessToken = async () => {
         Authorization: `Bearer ${refreshToken}`,
       }
     })
-    // @ts-ignore
     const { accessToken } = response
     localStorage.setItem('token', accessToken)
     return accessToken
@@ -130,30 +128,11 @@ const get = (url, params = {}, config = {}) => {
 }
 
 // 封装POST请求
-const post = (url, data = {}, config = {}, form = false) => {
-  if (form) {
-    const formData = new URLSearchParams();
-    Object.keys(data).forEach(key => {
-      formData.append(key, data[key]);
-    });
-    data = formData;
-  }
-
-  const headers = form ? {
-    ...config.headers,
-    'Content-Type': 'application/x-www-form-urlencoded',
-  } : config.headers;
-
-  const requestConfig = { ...config, headers };
-
-  // 发送 POST 请求
-  return instance.post(url, form ? data.toString() : data, requestConfig)
-    .catch((error) => {
-      // 捕获错误信息
-      throw error;
-    });
+const post = (url, data = {}, config = {}) => {
+  return instance.post(url, data, config).catch((error) => {
+    throw error;
+  });
 };
-
 
 // 封装DELETE请求
 const del = (url, data = {}, config = {}) => {
@@ -163,5 +142,12 @@ const del = (url, data = {}, config = {}) => {
   })
 }
 
+// 封装常用的请求头配置
+const headers = {
+  formUrlencoded: {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  }
+}
+
 // 导出axios实例和封装的请求方法
-export { instance as axiosInstance, get, post, del }
+export { instance as axiosInstance, get, post, del, headers }

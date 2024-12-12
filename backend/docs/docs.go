@@ -3149,9 +3149,33 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "名称",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "服务名称",
                         "name": "serviceName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "命名空间",
+                        "name": "namespace",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "服务端点",
+                        "name": "endpointName",
                         "in": "query"
                     },
                     {
@@ -3782,6 +3806,16 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "namespace",
+                        "name": "namespace",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
@@ -4101,6 +4135,51 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/response.ServiceDetail"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/service/namespace/list": {
+            "get": {
+                "description": "Get monitored namespaces.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.service"
+                ],
+                "summary": "Get monitored namespaces.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetServiceNamespaceListResponse"
                         }
                     },
                     "400": {
@@ -7620,6 +7699,12 @@ const docTemplate = `{
                     "description": "实例名",
                     "type": "string"
                 },
+                "namespaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "nodeName": {
                     "description": "主机名",
                     "type": "string"
@@ -7638,7 +7723,10 @@ const docTemplate = `{
                 },
                 "service": {
                     "description": "查询服务名",
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "startTime": {
                     "description": "查询开始时间",
@@ -7715,6 +7803,12 @@ const docTemplate = `{
                     "description": "实例名",
                     "type": "string"
                 },
+                "namespace": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "nodeName": {
                     "description": "主机名",
                     "type": "string"
@@ -7732,7 +7826,10 @@ const docTemplate = `{
                 },
                 "service": {
                     "description": "查询服务名",
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "startTime": {
                     "description": "查询开始时间",
@@ -9038,6 +9135,17 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "response.GetServiceNamespaceListResponse": {
+            "type": "object",
+            "properties": {
+                "namespaceList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
