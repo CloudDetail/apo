@@ -2,23 +2,37 @@ import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useDebounce } from 'react-use'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
-import { useChartAIContext } from 'src/pro/contexts/ChartAIContext'
+import { useChatAIContext } from 'src/pro/contexts/ChatAIContext'
 import { Card } from 'antd'
 import ChartInput from './ChartInput'
-import ConversationCom from './ConversationCom'
+import ConversationCom from './Conversation/ConversationCom'
 import { getStep } from 'src/core/utils/step'
 import HintCom from './HintCom'
-import './index.css'
 import LoadingSpinner from 'src/core/components/Spinner'
-import GlassCard from './GlassCard'
-import { showToast } from 'src/core/utils/toast'
-import { refreshAccessToken } from 'src/core/utils/request'
-const ChartAICom = () => {
+import GlassCard from '../../../components/GlassCard'
+import CauseConfirm from './CauseConfirm'
+import streamFetch from 'src/pro/util/streamFetch'
+import React from 'react'
+import { anormalTypes } from 'src/pro/constants'
+const ChatAICom = () => {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
-  const { service, endpoint, anormalTypes } = useChartAIContext()
-  const [dialogue, setDialogue] = useState([])
-  const [isDone, setIsDone] = useState<boolean>(true)
-  const [controller, setController] = useState<any>(null)
+  //上下文
+  const service = useChatAIContext((ctx) => ctx.service)
+  const endpoint = useChatAIContext((ctx) => ctx.endpoint)
+  const changeSuspectedNodeList = useChatAIContext((ctx) => ctx.changeSuspectedNodeList)
+  const dialogue = useChatAIContext((ctx) => ctx.dialogue)
+  const setDialogue = useChatAIContext((ctx) => ctx.setDialogue)
+  const isDone = useChatAIContext((ctx) => ctx.isDone)
+  const setIsDone = useChatAIContext((ctx) => ctx.setIsDone)
+  const controller = useChatAIContext((ctx) => ctx.controller)
+  const setController = useChatAIContext((ctx) => ctx.setController)
+  const streamType = useChatAIContext((ctx) => ctx.streamType)
+  const setStreamType = useChatAIContext((ctx) => ctx.setStreamType)
+  const setCauseConfirmvisibilit = useChatAIContext((ctx) => ctx.setCauseConfirmvisibilit)
+  const isAutoScroll = useChatAIContext((ctx) => ctx.isAutoScroll)
+  const setIsAutoScroll = useChatAIContext((ctx) => ctx.setIsAutoScroll)
+  // const [dialogue, setDialogue] = useState([])
+
   const [chatQuery, setChatQuery] = useState<any>(null)
   const [isConfigure, setIsConfigure] = useState<boolean>(true)
   const typeMessage = async (parsedData: any, index: number, setDialogue: any) => {
@@ -90,15 +104,18 @@ const ChartAICom = () => {
   }
   // 关闭流
   const closeStream = () => {
+    console.log(controller)
+    // closeStoreStream()
     if (controller) {
       controller.abort()
+      setController(null)
       console.log('Fetch stream closed.')
     }
   }
   const getChartData = async () => {
     setIsDone(false)
     const step = getStep(startTime, endTime)
-    const response = await customFetch('/ai/api/alertchat', {
+    const response = await streamFetch('/ai/api/alertchat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -112,8 +129,9 @@ const ChartAICom = () => {
         entryEndpoint: endpoint,
         startTime,
         step,
-        anormalTypes: 'app,container,infra,network,error',
+        anormalTypes: anormalTypes.join(','),
         withTopology: true,
+        removeClientCall: true,
       }),
     })
     const contentType = response.headers.get('Content-Type') // 获取响应头
@@ -134,7 +152,7 @@ const ChartAICom = () => {
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
     let index = dialogue?.length ? dialogue.length - 1 : 0
     let isPaused = false // 用于控制暂停和继续
-
+    let hasNodeList = false
     let buffer = '' // 用于存储未处理的数据
 
     const processChunk = async () => {
@@ -145,9 +163,11 @@ const ChartAICom = () => {
       }
       try {
         const { value, done } = await reader.read()
+
         if (done) {
           setIsDone(true)
           isPaused = true
+          if (hasNodeList) setCauseConfirmvisibilit(true)
           return // 流结束时退出
         }
         // 确保 `value` 是字符串类型
@@ -171,11 +191,15 @@ const ChartAICom = () => {
             parsedData = JSON.parse(match[1])
           } catch (jsonError) {
             // console.error('JSON 解析失败:', jsonError, match[1])
-            console.log('JSON 解析失败:', newPart)
+            // console.log('JSON 解析失败:', newPart)
             continue // 跳过解析失败的数据
           }
           buffer = ''
           // 处理内容
+          if (parsedData.nodeList) {
+            hasNodeList = true
+            changeSuspectedNodeList(parsedData.nodeList)
+          }
           if (parsedData?.content || parsedData?.reportUrlList) {
             if (parsedData.role === 'ai') {
               setDialogue((prev) => {
@@ -230,7 +254,7 @@ const ChartAICom = () => {
       return updatedDialogue
     })
     setIsDone(false)
-    const response = await customFetch(`/ai/api/chat?${queryString}`, {
+    const response = await streamFetch(`/ai/api/chat?${queryString}`, {
       method: 'GET',
       signal: controller.signal,
     })
@@ -241,6 +265,7 @@ const ChartAICom = () => {
         // 读取流数据
         const { value, done } = await reader.read()
         if (done) {
+          console.log('提问结束')
           setIsDone(true)
           break
         } // 流结束时退出循环
@@ -252,7 +277,9 @@ const ChartAICom = () => {
           let newPart = pIndex === 0 ? `${part}` : `data:${part}`
           // 提取流中的数据
           const match = newPart.match(/data: (.+)/)
-          if (!match) return
+          if (!match) {
+            return
+          }
 
           // 解析 JSON 数据
           let parsedData
@@ -279,6 +306,7 @@ const ChartAICom = () => {
           }
         })
       } catch (error) {
+        console.log('读取或处理消息时发生错误:', error)
         setIsDone(true)
         break // 根据业务需求决定是否退出循环
       }
@@ -286,6 +314,8 @@ const ChartAICom = () => {
 
     setChatQuery(null)
   }
+  // 分析其他节点
+
   const updateController = () => {
     setDialogue([])
     closeStream()
@@ -295,7 +325,8 @@ const ChartAICom = () => {
     if (controller) {
       if (chatQuery) {
         addChart()
-      } else {
+        setCauseConfirmvisibilit(false)
+      } else if (streamType === 'init') {
         getChartData()
       }
     }
@@ -309,13 +340,15 @@ const ChartAICom = () => {
     () => {
       if (startTime && endTime) {
         updateController()
+        setStreamType('init')
+        changeSuspectedNodeList([])
+        setCauseConfirmvisibilit(false)
       }
     },
     300, // 延迟时间 300ms
     [startTime, endTime, service, endpoint, anormalTypes],
   )
   const chatContainerRef = useRef(null)
-  const [isAutoScroll, setIsAutoScroll] = useState(true) // 是否自动滚动
 
   useEffect(() => {
     const chatContainer = chatContainerRef.current
@@ -337,7 +370,7 @@ const ChartAICom = () => {
 
   useEffect(() => {
     const chatContainer = chatContainerRef.current
-
+    console.log(chatContainer && isAutoScroll)
     if (chatContainer && isAutoScroll) {
       // 如果是自动滚动模式，则滚动到最底部
       chatContainer.scrollTop = chatContainer.scrollHeight
@@ -358,13 +391,34 @@ const ChartAICom = () => {
           <div className="w-2/3 p-3  text-lg font-bold flex items-center">
             大模型对话 <HintCom />
           </div>
-          <div className=" p-3  text-lg font-bold" style={{ borderLeft: '1.5px solid #303030' }}>
-            数据与规则说明
+          <div
+            className=" p-3  text-lg font-bold flex-grow"
+            style={{ borderLeft: '1.5px solid #303030' }}
+          >
+            <div className="w-full  flex justify-between">
+              <div>数据与规则说明</div>
+            </div>
           </div>
         </div>
-        <div ref={chatContainerRef} className="w-full overflow-y-auto flex-1">
-          {!isConfigure && <GlassCard />}
-          <div className=" p-4">
+        <div ref={chatContainerRef} className="w-full overflow-y-auto flex-1 ">
+          {!isConfigure && (
+            <GlassCard
+              content={
+                <p>
+                  尚未配置大语言模型 API 访问权限，请参阅
+                  <a
+                    className="underline text-sky-500"
+                    target="_blank"
+                    href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/APO接入大语言模型分析告警事件"
+                  >
+                    接入大语言模型手册
+                  </a>
+                  进行配置
+                </p>
+              }
+            />
+          )}
+          <div className=" p-4 ">
             {dialogue.map((item, index) => (
               <ConversationCom
                 dialogue={item}
@@ -374,90 +428,13 @@ const ChartAICom = () => {
               />
             ))}
           </div>
+          <div className="relative mb-3">
+            <CauseConfirm />
+          </div>
         </div>
         <ChartInput addChart={setChatQuery} loading={!isDone} closeStream={closeStream} />
       </div>
     </Card>
   )
 }
-export default ChartAICom
-
-const customFetch = async (url: string, options: any = {}) => {
-  const token = localStorage.getItem('token') // 从本地存储获取 token
-  const headers = {
-    ...options.headers,
-    'Content-Type': 'application/json',
-    Authorization: token ? `Bearer ${token}` : undefined,
-  }
-
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      const { status } = response
-
-      switch (status) {
-        case 400:
-          if (errorData.code === 'A0004') {
-            window.location.href = '/#/login'
-            showToast({
-              title: '未登录,请先登录',
-              color: 'danger',
-            })
-          } else if (errorData.code === 'A0005') {
-            const newToken = await refreshAccessToken()
-            if (newToken) {
-              localStorage.setItem('token', newToken)
-              return customFetch(url, options) // 递归调用需返回结果
-            } else {
-              window.location.href = '/#/login'
-              showToast({
-                title: '登录过期,请重新登录',
-                color: 'danger',
-              })
-            }
-          } else {
-            showToast({
-              title: errorData.message || '请求错误',
-              color: 'danger',
-            })
-          }
-          break
-
-        case 401:
-          window.location.href = '/#/login'
-          showToast({
-            title: '认证失败，请重新登录',
-            color: 'danger',
-          })
-          break
-
-        case 403:
-          showToast({
-            title: '拒绝访问',
-            color: 'danger',
-          })
-          break
-
-        default:
-          showToast({
-            title: '请求失败',
-            message: errorData.message || '未知错误',
-            color: 'danger',
-          })
-      }
-
-      // throw new Error(`请求失败，状态码：${status}`)
-    }
-
-    // 处理成功响应
-    return response
-  } catch (error) {
-    console.error('Fetch 请求出错:', error?.message || error)
-    throw error
-  }
-}
+export default React.memo(ChatAICom)

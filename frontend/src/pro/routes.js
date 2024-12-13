@@ -7,7 +7,7 @@ const CauseReportPage = React.lazy(() => import('src/pro/views/causeReport/index
 
 const ServiceHealthy = React.lazy(() => import('src/pro/views/serviceHealthy/index'))
 const MysqlDashboard = React.lazy(() => import('src/pro/views/MysqlDashboard/index'))
-const ChartAIPage = React.lazy(() => import('src/pro/views/chartAI/index'))
+const ChatAIPage = React.lazy(() => import('src/pro/views/chatAI/index'))
 
 let proRoutes = [
   {
@@ -37,9 +37,9 @@ let proRoutes = [
     element: ServiceHealthy,
   },
   {
-    path: '/alert-analyze/chartAI/:service/:endpoint',
+    path: '/alert-analyze/chatAI/:service/:endpoint',
     name: '大模型根因分析',
-    element: ChartAIPage,
+    element: ChatAIPage,
   },
 ]
 export default proRoutes

@@ -1,10 +1,9 @@
 import { marked } from 'marked'
 import 'github-markdown-css/github-markdown-dark.css'
 import { Button, Image } from 'antd'
-import { downloadFileApi } from 'src/pro/api/chartAI'
 import { LuPaperclip } from 'react-icons/lu'
 import { FaRegUser } from 'react-icons/fa'
-import { useEffect, useState } from 'react'
+import { downloadFileApi } from 'src/pro/api/chatAI'
 interface HumanMessageProps {
   message: string
   fileList: string[]

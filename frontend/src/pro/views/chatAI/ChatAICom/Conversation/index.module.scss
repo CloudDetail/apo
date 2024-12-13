@@ -1,3 +1,22 @@
+.fadeItem {
+  opacity: 0; /* 初始透明度 */
+  transform: translateY(20px); /* 初始位置往下偏移 */
+  animation: fadeInUp 0.5s ease forwards; /* 渐入动画 */
+  margin-top: 2px;
+}
+
+/* 渐入关键帧 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px); /* 从下往上 */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0); /* 最终位置 */
+  }
+}
+
 .loading {
   position: relative;
 }

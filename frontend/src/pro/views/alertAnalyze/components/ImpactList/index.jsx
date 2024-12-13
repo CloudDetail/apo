@@ -161,7 +161,7 @@ const ImpactList = () => {
               color="primary"
               onClick={() => {
                 navigate(
-                  `/alert-analyze/chartAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}`,
+                  `/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}`,
                 )
                 // showToast({
                 //   title: '功能开发中，敬请期待',

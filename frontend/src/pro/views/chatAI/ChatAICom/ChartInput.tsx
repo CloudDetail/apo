@@ -1,4 +1,5 @@
 import { Button, ConfigProvider, Input } from 'antd'
+import React from 'react'
 import { useRef, useState } from 'react'
 import { FaRegStopCircle } from 'react-icons/fa'
 import { FaCircleArrowUp } from 'react-icons/fa6'
@@ -80,4 +81,4 @@ const ChartInput = ({ addChart, loading, closeStream }: ChartInputProps) => {
     </div>
   )
 }
-export default ChartInput
+export default React.memo(ChartInput)
