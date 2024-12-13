@@ -1,5 +1,6 @@
 package database
 
+// MenuItem is a menu item on the left menu bar.
 type MenuItem struct {
 	ItemID       int    `gorm:"column:item_id;primary_key" json:"itemId"`
 	Key          string `gorm:"column:key" json:"key"`

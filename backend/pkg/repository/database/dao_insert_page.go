@@ -1,5 +1,6 @@
 package database
 
+// InsertPage saves embedded interface.
 type InsertPage struct {
 	PageID int    `gorm:"column:page_id;primary_key;auto_increment"`
 	Url    string `gorm:"column:url"`

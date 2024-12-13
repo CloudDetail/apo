@@ -15,7 +15,6 @@ import (
 )
 
 const (
-	adminUsername = "admin"
 	adminPassword = "APO2024@admin"
 
 	userFieldSql = "user_id, username, role, phone, email, corporation"
@@ -41,13 +40,13 @@ func (t *User) TableName() string {
 // createAdmin TODO Replace with sql script.
 func (repo *daoRepo) createAdmin() error {
 	var admin User
-	err := repo.db.Where("username = ?", adminUsername).First(&admin).Error
+	err := repo.db.Where("username = ?", model.ROLE_ADMIN).First(&admin).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			admin = User{
 				UserID:   util.Generator.GenerateID(),
-				Username: adminUsername,
+				Username: model.ROLE_ADMIN,
 				Password: Encrypt(adminPassword),
 			}
 

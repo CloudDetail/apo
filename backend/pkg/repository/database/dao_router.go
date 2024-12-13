@@ -1,5 +1,6 @@
 package database
 
+// Router front end router.
 type Router struct {
 	RouterID         int    `gorm:"column:router_id;primary_key"`
 	RouterTo         string `gorm:"column:router_to"`

@@ -1,5 +1,7 @@
 package database
 
+// Feature is a collection of APIs, frontend routes and menu items
+// that represents the embodiment of access control.
 type Feature struct {
 	FeatureID   int    `gorm:"column:feature_id;primary_key;auto_increment" json:"featureId"`
 	FeatureName string `gorm:"column:feature_name" json:"featureName"`
@@ -12,6 +14,7 @@ func (t *Feature) TableName() string {
 	return "feature"
 }
 
+// FeatureAPI maps feature to api.
 type FeatureAPI struct {
 	FeatureID int    `gorm:"column:feature_id;primary_key"`
 	APIPath   string `gorm:"column:api_path;primary_key"`
@@ -21,6 +24,7 @@ func (t *FeatureAPI) TableName() string {
 	return "feature_api"
 }
 
+// FeatureRoute maps feature to router.
 type FeatureRoute struct {
 	FeatureID int    `gorm:"column:feature_id;primary_key"`
 	RoutePath string `gorm:"column:route_path;primary_key"`
@@ -30,6 +34,7 @@ func (t *FeatureRoute) TableName() string {
 	return "feature_route"
 }
 
+// FeatureMenuItem maps feature to menu item.
 type FeatureMenuItem struct {
 	FeatureID  int `gorm:"column:feature_id;primary_key"`
 	MenuItemID int `gorm:"column:menu_item_id;primary_key"`

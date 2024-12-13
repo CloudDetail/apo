@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Role is a collection of feature permission.
 type Role struct {
 	RoleID   int    `gorm:"column:role_id;primary_key"`
 	RoleName string `gorm:"column:role_name;uniqueIndex"`
