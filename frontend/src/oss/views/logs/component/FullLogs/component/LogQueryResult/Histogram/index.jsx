@@ -130,7 +130,7 @@ const BarChart = () => {
           const startTime = currentLogsChartData[range[0]]?.from;
           const endTime = currentLogsChartData[range[1]]?.to;
           if (startTime && endTime) {
-            if (range[1] + 1 === currentLogsChartData.length) {
+            if (range[1] - range[0] + 1 === currentLogsChartData.length) {
               chartInstance.setOption(chartInstance.getOption(), true);
             } else {
               setStoreTimeRange({
