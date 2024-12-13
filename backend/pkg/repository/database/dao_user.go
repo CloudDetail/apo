@@ -1,19 +1,20 @@
 package database
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/util"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 const (
-	RoleAdmin     = "admin"
 	adminUsername = "admin"
 	adminPassword = "APO2024@admin"
 
@@ -21,43 +22,96 @@ const (
 )
 
 type User struct {
-	UserID      int64  `gorm:"user_id;primary_key" json:"userId,omitempty"`
-	Username    string `gorm:"username;unique" json:"username,omitempty"`
-	Password    string `gorm:"password" json:"-"`
-	Role        string `gorm:"role" json:"role,omitempty"`
-	Phone       string `gorm:"phone" json:"phone,omitempty"`
-	Email       string `gorm:"email" json:"email,omitempty"`
-	Corporation string `gorm:"corporation" json:"corporation,omitempty"`
+	UserID      int64  `gorm:"column:user_id;primary_key" json:"userId,omitempty"`
+	Username    string `gorm:"column:username;unique" json:"username,omitempty"`
+	Password    string `gorm:"column:password" json:"-"`
+	Role        string `gorm:"column:role" json:"role,omitempty"`
+	Phone       string `gorm:"column:phone" json:"phone,omitempty"`
+	Email       string `gorm:"column:email" json:"email,omitempty"`
+	Corporation string `gorm:"column:corporation" json:"corporation,omitempty"`
+
+	RoleList    []Role    `gorm:"-" json:"roleList,omitempty"`
+	FeatureList []Feature `gorm:"-" json:"featureList,omitempty"`
 }
 
 func (t *User) TableName() string {
 	return "user"
 }
 
-func createAdmin(db *gorm.DB) error {
-	admin := &User{
-		Username: adminUsername,
-		Password: Encrypt(adminPassword),
-		Role:     RoleAdmin,
+// createAdmin TODO Replace with sql script.
+func (repo *daoRepo) createAdmin() error {
+	var admin User
+	err := repo.db.Where("username = ?", adminUsername).First(&admin).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			admin = User{
+				UserID:   util.Generator.GenerateID(),
+				Username: adminUsername,
+				Password: Encrypt(adminPassword),
+			}
+
+			if err = repo.db.Create(&admin).Error; err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
 	}
-	var count int64
-	db.Model(&User{}).Where("username = ?", adminUsername).Count(&count)
-	if count > 0 {
-		return nil
+
+	var role Role
+	if err = repo.db.Where("role_name = ?", model.ROLE_ADMIN).First(&role).Error; err != nil {
+		return err
 	}
-	return db.Create(&admin).Error
+	userRole := &UserRole{
+		UserID: admin.UserID,
+		RoleID: role.RoleID,
+	}
+	return repo.db.Save(userRole).Error
 }
 
-func createAnonymousUser(db *gorm.DB) error {
+func (repo *daoRepo) createAnonymousUser() error {
 	conf := config.Get().User.AnonymousUser
-	anonymousUser := &User{
-		Username: conf.Username,
-		Role:     conf.Role,
+	var anonymousUser User
+	err := repo.db.Where("username = ?", conf.Username).First(&anonymousUser).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			anonymousUser = User{
+				UserID:   util.Generator.GenerateID(),
+				Username: conf.Username,
+			}
+
+			if err = repo.db.Create(&anonymousUser).Error; err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
 	}
-	return db.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "username"}},
-		DoUpdates: clause.Assignments(map[string]interface{}{"role": anonymousUser.Role}),
-	}).Create(&anonymousUser).Error
+
+	var role Role
+	if err = repo.db.Where("role_name = ?", conf.Role).First(&role).Error; err != nil {
+		return err
+	}
+
+	var existingUserRole UserRole
+	err = repo.db.Where("user_id = ?", anonymousUser.UserID).First(&existingUserRole).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			userRole := &UserRole{
+				UserID: anonymousUser.UserID,
+				RoleID: role.RoleID,
+			}
+			err = repo.db.Create(userRole).Error
+		} else {
+			return err
+		}
+	} else {
+		err = repo.db.Model(&existingUserRole).Update("role_id", role.RoleID).Error
+	}
+
+	return err
 }
 
 func Encrypt(raw string) string {
@@ -82,14 +136,15 @@ func (repo *daoRepo) Login(username, password string) (*User, error) {
 	return &user, nil
 }
 
-func (repo *daoRepo) CreateUser(user *User) error {
+func (repo *daoRepo) CreateUser(ctx context.Context, user *User) error {
+	db := repo.GetContextDB(ctx)
 	var count int64
-	repo.db.Model(&User{}).Where("username = ?", user.Username).Count(&count)
+	db.Model(&User{}).Where("username = ?", user.Username).Count(&count)
 	if count > 0 {
 		return model.NewErrWithMessage(errors.New("user already exists"), code.UserAlreadyExists)
 	}
 	user.Password = Encrypt(user.Password)
-	return repo.db.Create(user).Error
+	return db.Create(user).Error
 }
 
 func (repo *daoRepo) UpdateUserPhone(userID int64, phone string) error {
@@ -170,8 +225,7 @@ func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64
 	var count int64
 	query := repo.db.Select(userFieldSql)
 	if len(req.Username) > 0 {
-		name := "%" + req.Username + "%"
-		query = query.Where("username like ?", name)
+		query = query.Where("username like ?", fmt.Sprintf("%%%s%%", req.Username))
 	}
 	if len(req.Role) > 0 {
 		query = query.Where("role = ?", req.Role)
@@ -190,15 +244,15 @@ func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64
 	return users, count, err
 }
 
-func (repo *daoRepo) RemoveUser(userID int64, operatorID int64) error {
-	var operator User
-	if err := repo.db.Select("role").Where("user_id = ?", operatorID).First(&operator).Error; err != nil {
-		return err
+func (repo *daoRepo) RemoveUser(ctx context.Context, userID int64) error {
+	return repo.GetContextDB(ctx).Model(&User{}).Where("user_id = ?", userID).Delete(nil).Error
+}
+
+func (repo *daoRepo) UserExists(userID int64) (bool, error) {
+	var count int64
+	if err := repo.db.Model(&User{}).Where("user_id = ?", userID).Count(&count).Error; err != nil {
+		return false, err
 	}
 
-	if operator.Role != RoleAdmin {
-		return model.NewErrWithMessage(errors.New("no permission"), code.UserNoPermissionError)
-	}
-
-	return repo.db.Model(&User{}).Where("user_id = ?", userID).Delete(nil).Error
+	return count > 0, nil
 }

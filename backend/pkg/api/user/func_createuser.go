@@ -19,6 +19,7 @@ import (
 // @Param username formData string true "用户名"
 // @Param password formData string true "密码"
 // @Param confirmPassword formData string true "确认密码"
+// @Param roleList formData []int false "角色id" collectionFormat(multi)
 // @Param email formData string false "邮箱"
 // @Param phone formData string false "手机号"
 // @Param corporation formData string false "组织"

@@ -1,0 +1,15 @@
+INSERT INTO router (router_id, router_to, hide_time_selector) VALUES
+    (1, "/service", false),
+    (2, "/logs/fault-site", true),
+    (3, "/logs/full", false),
+    (4, "/trace", true),
+    (5, "/system-dashboard", false),
+    (6, "/basic-dashboard", false),
+    (7, "/application-dashboard", false),
+    (8, "/middleware-dashboard", false),
+    (9, "/mysql-dashboard", false),
+    (10, "/alerts", true),
+    (11, "/config", true),
+    (12, "/healthy-service", false),
+    (13, "/system/user-manage", true),
+    (14, "/service/info", false);

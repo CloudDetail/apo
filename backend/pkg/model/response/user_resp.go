@@ -23,3 +23,14 @@ type GetUserListResponse struct {
 	Users []database.User `json:"users"`
 	model.Pagination
 }
+
+type GetRoleResponse []database.Role
+
+type GetUserConfigResponse struct {
+	MenuItem []*database.MenuItem `json:"menuItem"`
+	Routes   []string             `json:"routes"`
+}
+
+type GetFeatureResponse []*database.Feature
+type GetSubjectFeatureResponse []database.Feature
+type GetUserRoleResponse []database.Role

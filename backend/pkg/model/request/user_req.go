@@ -9,6 +9,7 @@ type CreateUserRequest struct {
 	Username        string `json:"username" form:"username" binding:"required"`               // 用户名
 	Password        string `json:"password" form:"password" binding:"required"`               // 密码
 	ConfirmPassword string `json:"confirmPassword" form:"confirmPassword" binding:"required"` // 确认密码
+	RoleList        []int  `json:"roleList" form:"roleList"`                                  // Role id list
 	Email           string `json:"email" form:"email,omitempty"`
 	Phone           string `json:"phone" form:"phone,omitempty"`
 	Corporation     string `json:"corporation,omitempty" form:"corporation,omitempty"`
@@ -60,4 +61,33 @@ type ResetPasswordRequest struct {
 	UserID          int64  `json:"userId" form:"userId" binding:"required"`
 	NewPassword     string `json:"newPassword" form:"newPassword" binding:"required"`
 	ConfirmPassword string `json:"confirmPassword" form:"confirmPassword" binding:"required"`
+}
+
+type RoleOperationRequest struct {
+	UserID   int64 `form:"userId" binding:"required"`
+	RoleList []int `form:"roleList" binding:"required"`
+}
+
+type GetUserConfigRequest struct {
+	UserID int64 `form:"userId" binding:"required"`
+}
+
+type GetSubjectFeatureRequest struct {
+	SubjectID   int64  `form:"subjectId" binding:"required"`
+	SubjectType string `form:"subjectType" binding:"required"`
+}
+
+type PermissionOperationRequest struct {
+	SubjectID      int64  `form:"subjectId" binding:"required"`
+	SubjectType    string `form:"subjectType" binding:"required"` // "user", "role", "team"
+	Type           string `form:"type" binding:"required"`        // "feature", "data"
+	PermissionList []int  `form:"permissionList"`
+}
+
+type GetUserRoleRequest struct {
+	UserID int64 `form:"userId"`
+}
+
+type ConfigureMenuRequest struct {
+	PermissionList []int `form:"permissionList"`
 }

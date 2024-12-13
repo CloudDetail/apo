@@ -10,20 +10,21 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// RemoveUser 移除用户
-// @Summary 移除用户
-// @Description 移除用户
+// RoleOperation Grant or revoke user's role.
+// @Summary Grant or revoke user's role.
+// @Description Grants permission to user
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Authorization header string false "Bearer accessToken"
-// @Param userId formData int64 true "请求信息"
+// @Param userId formData int64 ture "用户id"
+// @Param roleList formData []int ture "角色id" collectionFormat(multi)
+// @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/user/remove [post]
-func (h *handler) RemoveUser() core.HandlerFunc {
+// @Router /api/user/role/operation [post]
+func (h *handler) RoleOperation() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.RemoveUserRequest)
+		req := new(request.RoleOperationRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -33,7 +34,7 @@ func (h *handler) RemoveUser() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.RemoveUser(req.UserID)
+		err := h.userService.RoleOperation(req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {
@@ -45,8 +46,8 @@ func (h *handler) RemoveUser() core.HandlerFunc {
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
-					code.RemoveUserError,
-					code.Text(code.RemoveUserError),
+					code.UserGrantRoleError,
+					code.Text(code.UserGrantRoleError),
 				).WithError(err))
 			}
 			return

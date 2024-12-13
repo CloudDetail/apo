@@ -20,8 +20,21 @@ type Service interface {
 	UpdateUserPassword(req *request.UpdateUserPasswordRequest) error
 	GetUserInfo(userID int64) (response.GetUserInfoResponse, error)
 	GetUserList(req *request.GetUserListRequest) (response.GetUserListResponse, error)
-	RemoveUser(userID int64, operatorID int64) error
+	RemoveUser(userID int64) error
 	RestPassword(req *request.ResetPasswordRequest) error
+
+	RoleOperation(req *request.RoleOperationRequest) error
+	GetRoles() (response.GetRoleResponse, error)
+	GetUserRole(req *request.GetUserRoleRequest) (response.GetUserRoleResponse, error)
+	GetFeature() (response.GetFeatureResponse, error)
+	GetSubjectFeature(req *request.GetSubjectFeatureRequest) (response.GetSubjectFeatureResponse, error)
+	PermissionOperation(req *request.PermissionOperationRequest) error
+	GetUserFeature(userID int64) ([]database.Feature, error)
+	ConfigureMenu(req *request.ConfigureMenuRequest) error
+
+	IsInBlacklist(token string) (bool, error)
+
+	GetUserConfig(req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error)
 }
 
 type service struct {

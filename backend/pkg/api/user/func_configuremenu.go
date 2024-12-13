@@ -10,20 +10,20 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// RemoveUser 移除用户
-// @Summary 移除用户
-// @Description 移除用户
+// ConfigureMenu Configure global menu.
+// @Summary Configure global menu.
+// @Description Configure global menu.
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
+// @Param permissionList formData []int true "功能id列表" collectionFormat(multi)
 // @Param Authorization header string false "Bearer accessToken"
-// @Param userId formData int64 true "请求信息"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/user/remove [post]
-func (h *handler) RemoveUser() core.HandlerFunc {
+// @Router /api/user/menu/configure [post]
+func (h *handler) ConfigureMenu() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.RemoveUserRequest)
+		req := new(request.ConfigureMenuRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -33,7 +33,7 @@ func (h *handler) RemoveUser() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.RemoveUser(req.UserID)
+		err := h.userService.ConfigureMenu(req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {
@@ -45,9 +45,9 @@ func (h *handler) RemoveUser() core.HandlerFunc {
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
-					code.RemoveUserError,
-					code.Text(code.RemoveUserError),
-				).WithError(err))
+					code.ConfigureMenuError,
+					code.Text(code.ConfigureMenuError)).WithError(err),
+				)
 			}
 			return
 		}

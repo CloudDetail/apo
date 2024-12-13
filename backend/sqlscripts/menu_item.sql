@@ -1,0 +1,16 @@
+INSERT INTO menu_item (item_id, key, label, router_id, parent_id, abbreviation, insert_page_id, icon) VALUES
+    (1, "service", "服务概览", 1, NULL, NULL, NULL, NULL),
+    (2, "logs", "日志检索", NULL, NULL, NULL, NULL, NULL),
+    (3, "faultSite", "故障现场日志", 2, 2, NULL, NULL, NULL),
+    (4, "full", "全量日志", 3, 2, NULL, NULL, NULL),
+    (5, "trace", "链路追踪", 4, NULL, NULL, NULL, NULL),
+    (6, "system", "全局资源大盘", 5, NULL, "全局资源", 4, NULL),
+    (7, "basic", "应用基础设施大盘", 6, NULL, "基础设施", 2, NULL),
+    (8, "application", "应用指标大盘", 7, NULL, "应用指标", 1, NULL),
+    (9, "middleware", "中间件大盘", 8, NULL, "中间件", 3, NULL),
+    (10, "mysql", "MySQL 大盘", 9, NULL, "MySQL", 5, NULL),
+    (11, "alerts", "告警规则", 10, NULL, NULL, NULL, NULL),
+    (12, "config", "配置中心", 11, NULL, NULL, NULL, NULL),
+    (13, "healthy", "服务健康状态", 12, NULL, "服务健康", NULL, NULL),
+    (14, "manage", "系统管理", NULL, NULL, NULL, NULL, NULL),
+    (15, "userManage", "用户管理", 14, 14, NULL, NULL, NULL);

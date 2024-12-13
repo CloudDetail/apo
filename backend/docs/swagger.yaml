@@ -347,16 +347,79 @@ definitions:
       unit:
         type: string
     type: object
+  database.Feature:
+    properties:
+      featureId:
+        type: integer
+      featureName:
+        type: string
+    type: object
+  database.InsertPage:
+    properties:
+      pageID:
+        type: integer
+      type:
+        description: For now it's grafana or jaeger.
+        type: string
+      url:
+        type: string
+    type: object
+  database.MenuItem:
+    properties:
+      abbreviation:
+        type: string
+      icon:
+        type: string
+      itemId:
+        type: integer
+      key:
+        type: string
+      label:
+        description: AKA item name.
+        type: string
+      page:
+        $ref: '#/definitions/database.InsertPage'
+      parentId:
+        type: integer
+      to:
+        allOf:
+        - $ref: '#/definitions/database.Router'
+        description: Frontend router.
+    type: object
+  database.Role:
+    properties:
+      roleID:
+        type: integer
+      roleName:
+        type: string
+    type: object
+  database.Router:
+    properties:
+      hideTimeSelector:
+        type: boolean
+      routerID:
+        type: integer
+      routerTo:
+        type: string
+    type: object
   database.User:
     properties:
       corporation:
         type: string
       email:
         type: string
+      featureList:
+        items:
+          $ref: '#/definitions/database.Feature'
+        type: array
       phone:
         type: string
       role:
         type: string
+      roleList:
+        items:
+          $ref: '#/definitions/database.Role'
+        type: array
       userId:
         type: integer
       username:
@@ -1870,16 +1933,35 @@ definitions:
       pagination:
         $ref: '#/definitions/model.Pagination'
     type: object
+  response.GetUserConfigResponse:
+    properties:
+      menuItem:
+        items:
+          $ref: '#/definitions/database.MenuItem'
+        type: array
+      routes:
+        items:
+          type: string
+        type: array
+    type: object
   response.GetUserInfoResponse:
     properties:
       corporation:
         type: string
       email:
         type: string
+      featureList:
+        items:
+          $ref: '#/definitions/database.Feature'
+        type: array
       phone:
         type: string
       role:
         type: string
+      roleList:
+        items:
+          $ref: '#/definitions/database.Role'
+        type: array
       userId:
         type: integer
       username:
@@ -2149,6 +2231,10 @@ definitions:
         type: string
       email:
         type: string
+      featureList:
+        items:
+          $ref: '#/definitions/database.Feature'
+        type: array
       phone:
         type: string
       refreshToken:
@@ -2156,6 +2242,10 @@ definitions:
         type: string
       role:
         type: string
+      roleList:
+        items:
+          $ref: '#/definitions/database.Role'
+        type: array
       userId:
         type: integer
       username:
@@ -5431,6 +5521,35 @@ paths:
       summary: 查询Trace列表可用的过滤器
       tags:
       - API.trace
+  /api/user/config:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get user's menu config.
+      parameters:
+      - description: 用户id
+        in: query
+        name: userId
+        required: true
+        type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetUserConfigResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Gets user's menu config and which route can access.
+      tags:
+      - API.user
   /api/user/create:
     post:
       consumes:
@@ -5452,6 +5571,13 @@ paths:
         name: confirmPassword
         required: true
         type: string
+      - collectionFormat: multi
+        description: 角色id
+        in: formData
+        items:
+          type: integer
+        name: roleList
+        type: array
       - description: 邮箱
         in: formData
         name: email
@@ -5480,6 +5606,32 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 创建用户
+      tags:
+      - API.user
+  /api/user/feature:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Gets all feature permission.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Feature'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Gets all feature permission.
       tags:
       - API.user
   /api/user/info:
@@ -5610,6 +5762,80 @@ paths:
       summary: 退出登录
       tags:
       - API.user
+  /api/user/menu/configure:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Configure global menu.
+      parameters:
+      - collectionFormat: multi
+        description: 功能id列表
+        in: formData
+        items:
+          type: integer
+        name: permissionList
+        required: true
+        type: array
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Configure global menu.
+      tags:
+      - API.user
+  /api/user/permission/operation:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Grant or revoke user's permission(feature).
+      parameters:
+      - description: 授权主体id
+        in: formData
+        name: subjectId
+        required: true
+        type: integer
+      - description: 授权主体类型
+        in: formData
+        name: subjectType
+        required: true
+        type: string
+      - description: 授权类型
+        in: formData
+        name: type
+        required: true
+        type: string
+      - collectionFormat: multi
+        description: 权限id列表
+        in: formData
+        items:
+          type: integer
+        name: permissionList
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Grant or revoke user's permission(feature).
+      tags:
+      - API.user
   /api/user/refresh:
     get:
       consumes:
@@ -5702,6 +5928,128 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 重设密码
+      tags:
+      - API.user
+  /api/user/role:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get user's role.
+      parameters:
+      - description: 用户id
+        in: query
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Role'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get user's role.
+      tags:
+      - API.user
+  /api/user/role/operation:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Grants permission to user
+      parameters:
+      - description: 用户id
+        in: formData
+        name: userId
+        type: integer
+      - collectionFormat: multi
+        description: 角色id
+        in: formData
+        items:
+          type: integer
+        name: roleList
+        type: array
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Grant or revoke user's role.
+      tags:
+      - API.user
+  /api/user/roles:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Gets all roles.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Role'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Gets all roles.
+      tags:
+      - API.user
+  /api/user/sub/feature:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Gets subject's permission.
+      parameters:
+      - description: 授权主体id
+        in: query
+        name: subjectId
+        required: true
+        type: integer
+      - description: 授权主体类型
+        in: query
+        name: subjectType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Feature'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Gets subject's permission.
       tags:
       - API.user
   /api/user/update/email:

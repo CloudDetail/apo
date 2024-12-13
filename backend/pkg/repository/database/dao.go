@@ -1,8 +1,10 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"errors"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"time"
@@ -34,20 +36,48 @@ type Repo interface {
 	ListQuickAlertRuleMetric() ([]AlertMetricsData, error)
 
 	Login(username, password string) (*User, error)
-	CreateUser(user *User) error
+	CreateUser(ctx context.Context, user *User) error
 	UpdateUserPhone(userID int64, phone string) error
 	UpdateUserEmail(userID int64, email string) error
 	UpdateUserPassword(userID int64, oldPassword, newPassword string) error
 	UpdateUserInfo(req *request.UpdateUserInfoRequest) error
 	GetUserInfo(userID int64) (User, error)
 	GetUserList(req *request.GetUserListRequest) ([]User, int64, error)
-	RemoveUser(userID int64, operatorID int64) error
+	RemoveUser(ctx context.Context, userID int64) error
 	RestPassword(userID int64, newPassword string) error
+	UserExists(userID int64) (bool, error)
+
+	GetUserRole(userID int64) ([]UserRole, error)
+	GetUsersRole(userIDs []int64) ([]UserRole, error)
+	GetRoles(filter model.RoleFilter) ([]Role, error)
+	GetFeature(featureIDs []int) ([]Feature, error)
+	GrantRole(ctx context.Context, userID int64, roleIDs []int) error
+	RevokeRole(ctx context.Context, userID int64, roleIDs []int) error
+	GetSubjectPermission(subID int64, subType string, typ string) ([]int, error)
+	GetSubjectsPermission(subIDs []int64, typ string) ([]AuthPermission, error)
+	RoleExists(roleID int64) (bool, error)
+	GrantPermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
+	RevokePermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
+	RoleGranted(userID int64, roleID int) (bool, error)
+	GetItemRouter(items *[]MenuItem) error
+	GetItemInsertPage(items *[]MenuItem) error
+
+	GetMappedMenuItem(featureIDs []int) ([]FeatureMenuItem, error)
+
+	GetMenuItems(itemIDs []int) ([]MenuItem, error)
+
+	// GetContextDB Gets transaction form ctx.
+	GetContextDB(ctx context.Context) *gorm.DB
+	// WithTransaction Puts transaction into ctx.
+	WithTransaction(ctx context.Context, tx *gorm.DB) context.Context
+	// Transaction Starts a transaction and automatically commit and rollback.
+	Transaction(ctx context.Context, funcs ...func(txCtx context.Context) error) error
 }
 
 type daoRepo struct {
-	db    *gorm.DB
-	sqlDB *sql.DB
+	db             *gorm.DB
+	sqlDB          *sql.DB
+	transactionCtx struct{}
 }
 
 // Connect 连接数据库
@@ -105,22 +135,55 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = createAdmin(database); err != nil {
+	err = database.AutoMigrate(&Role{})
+	if err != nil {
 		return nil, err
 	}
-	if err = createAnonymousUser(database); err != nil {
+	err = database.AutoMigrate(&UserRole{})
+	if err != nil {
 		return nil, err
 	}
+
 	daoRepo := &daoRepo{
 		db:    database,
 		sqlDB: sqlDb,
 	}
 
-	// 检查并初始化预设快速告警规则指标表
-	err = daoRepo.InitPredefinedQuickAlertRuleMetric(databaseCfg.InitScript.QuickAlertRuleMetric)
-	if err != nil {
+	var alertScript string
+	if len(databaseCfg.InitScript.QuickAlertRuleMetric) > 0 {
+		alertScript = databaseCfg.InitScript.QuickAlertRuleMetric
+	} else {
+		alertScript = "./sqlscripts/default_quick_alert_rule_metric.sql"
+	}
+	if err = daoRepo.initSql(AlertMetricsData{}, alertScript); err != nil {
 		return nil, err
 	}
-
+	if err = daoRepo.initSql(Role{}, "./sqlscripts/default_role.sql"); err != nil {
+		return nil, err
+	}
+	if err = daoRepo.initSql(Feature{}, "./sqlscripts/default_feature.sql"); err != nil {
+		return nil, err
+	}
+	if err = daoRepo.initSql(FeatureMenuItem{}, "./sqlscripts/default_feature_mapping.sql"); err != nil {
+		return nil, err
+	}
+	if err = daoRepo.initSql(AuthPermission{}, "./sqlscripts/default_role_permission.sql"); err != nil {
+		return nil, err
+	}
+	if err = daoRepo.initSql(InsertPage{}, "./sqlscripts/default_inserted_page.sql"); err != nil {
+		return nil, err
+	}
+	if err = daoRepo.initSql(Router{}, "./sqlscripts/default_router.sql"); err != nil {
+		return nil, err
+	}
+	if err = daoRepo.initSql(MenuItem{}, "./sqlscripts/menu_item.sql"); err != nil {
+		return nil, err
+	}
+	if err = daoRepo.createAdmin(); err != nil {
+		return nil, err
+	}
+	if err = daoRepo.createAnonymousUser(); err != nil {
+		return nil, err
+	}
 	return daoRepo, nil
 }

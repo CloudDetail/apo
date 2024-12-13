@@ -10,20 +10,22 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// RemoveUser 移除用户
-// @Summary 移除用户
-// @Description 移除用户
+// PermissionOperation Grant or revoke user's permission(feature).
+// @Summary Grant or revoke user's permission(feature).
+// @Description Grant or revoke user's permission(feature).
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Authorization header string false "Bearer accessToken"
-// @Param userId formData int64 true "请求信息"
+// @Param subjectId formData int64 true "授权主体id"
+// @Param subjectType formData string true "授权主体类型: 'role','user','team'"
+// @Param type formData string true "授权类型: 'feature','data'"
+// @Param permissionList formData []int false "权限id列表" collectionFormat(multi)
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/user/remove [post]
-func (h *handler) RemoveUser() core.HandlerFunc {
+// @Router /api/user/permission/operation [post]
+func (h *handler) PermissionOperation() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.RemoveUserRequest)
+		req := new(request.PermissionOperationRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -33,7 +35,7 @@ func (h *handler) RemoveUser() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.RemoveUser(req.UserID)
+		err := h.userService.PermissionOperation(req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {
@@ -45,8 +47,8 @@ func (h *handler) RemoveUser() core.HandlerFunc {
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
-					code.RemoveUserError,
-					code.Text(code.RemoveUserError),
+					code.UserCreateError,
+					code.Text(code.UserCreateError),
 				).WithError(err))
 			}
 			return
