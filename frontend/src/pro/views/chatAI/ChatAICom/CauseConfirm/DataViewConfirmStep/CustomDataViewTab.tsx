@@ -85,7 +85,7 @@ const CustomDataViewTab = ({ defaultValue }: any) => {
       </Form>
       <div className="text-right">
         <Button type="primary" onClick={saveForm}>
-          保存并生成数据
+          确认根因并查看数据
         </Button>
       </div>
     </>

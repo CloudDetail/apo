@@ -25,7 +25,7 @@ const CauseConfirmStep = ({ nextStep }: CauseConfirmStepProps) => {
         style={{ backgroundColor: 'rgba(19, 25, 32, 0.6)' }}
         onClick={() => onSelectNode(node)}
       >
-        <div className="text-center text-sm pt-2 px-2">
+        <div className="text-center text-sm pt-2 px-2 break-all">
           {node.service}
           <div className="text-xs text-[#9e9e9e] text-left  break-all">{node.endpoint}</div>
         </div>
@@ -37,11 +37,23 @@ const CauseConfirmStep = ({ nextStep }: CauseConfirmStepProps) => {
     )
   }
   return (
-    <div className="w-full text-center p-4">
-      末次大模型推断根因节点为 <span className="text-lg font-bold">{causeNode?.service}</span>
-      ,请选择您怀疑的节点进行数据分析
+    <div className="w-full text-center">
+      末次大模型推断根因节点为{' '}
+      <span className="text-lg font-bold">
+        {causeNode?.service}
+        <span className="text-xs font-normal">（{causeNode?.endpoint}）</span>
+      </span>
+      ,可<span className="font-extrabold">继续查看该节点的数据</span>或
+      <span className="font-extrabold">选择您怀疑的节点</span>作为根因节点
       <div className="flex justify-around p-4 flex-wrap">
-        {suspectedNodeList?.length <= 4 ? (
+        <Row justify="space-between">
+          {suspectedNodeList.map((node) => (
+            <Col>
+              <NodeCom node={node} />
+            </Col>
+          ))}
+        </Row>
+        {/* {suspectedNodeList?.length <= 2 ? (
           <>
             {suspectedNodeList.map((node) => (
               <NodeCom node={node} />
@@ -51,13 +63,13 @@ const CauseConfirmStep = ({ nextStep }: CauseConfirmStepProps) => {
           <>
             <Row>
               {suspectedNodeList.map((node) => (
-                <Col span={8}>
+                <Col>
                   <NodeCom node={node} />
                 </Col>
               ))}
             </Row>
           </>
-        )}
+        )} */}
       </div>
     </div>
   )

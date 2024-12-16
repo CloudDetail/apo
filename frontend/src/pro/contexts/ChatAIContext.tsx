@@ -112,23 +112,7 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [analysisType, setAnalysisType] = useState([])
   const [dialogue, setDialogue] = useState([])
   const [causeNode, setCauseNode] = useState<NodeData | null>(null)
-  const [suspectedNodeList, setSuspectedNodeList] = useState<NodeData[] | []>([
-    {
-      service: 'ts-train-service',
-      endpoint: 'POST /api/v1/trainservice/trains/byNames',
-      isRoot: true,
-    },
-    {
-      service: 'ts-station-service',
-      endpoint: 'POST /api/v1/stationservice/stations/idlist',
-      isRoot: false,
-    },
-    {
-      service: 'ts-price-service',
-      endpoint: 'POST /api/v1/priceservice/prices/byRouteIdsAndTrainTypes',
-      isRoot: false,
-    },
-  ])
+  const [suspectedNodeList, setSuspectedNodeList] = useState<NodeData[] | []>()
 
   const [selectedSuspectedNode, setSelectedSuspectedNode] = useState<NodeData | null>(null)
   const [isDone, setIsDone] = useState<boolean>(true)
@@ -147,6 +131,7 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       suspectedNodeList.push(node)
     })
     setCauseNode(causeNode)
+    setSelectedSuspectedNode(causeNode)
     setSuspectedNodeList(suspectedNodeList)
   }
   const analysisNode = async (type) => {
@@ -177,7 +162,7 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       updatedDialogue.push({
         conversation: [
           {
-            message: `疑似节点${selectedSuspectedNode?.service}(${selectedSuspectedNode?.endpoint})为根因节点，请给出关于此节点的${typeTitle.join('、')}数据`,
+            message: `我确认疑似节点${selectedSuspectedNode?.service}(${selectedSuspectedNode?.endpoint})为根因节点，请给出关于此节点的${typeTitle.join('、')}数据`,
             role: 'human',
           },
           {
@@ -249,7 +234,7 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             // 处理内容
             if (parsedData?.components) {
               for (let i = 0; i < parsedData.components.length; i++) {
-                await new Promise((resolve) => setTimeout(resolve, 200)) // 延迟 1 秒
+                await new Promise((resolve) => setTimeout(resolve, 300))
                 setDialogue((prev) => {
                   const updatedDialogue = [...prev]
                   const currentConversation =
@@ -261,6 +246,7 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                   return updatedDialogue
                 })
               }
+              await new Promise((resolve) => setTimeout(resolve, 300)) //刻意等待
             }
           }
         } catch (error) {

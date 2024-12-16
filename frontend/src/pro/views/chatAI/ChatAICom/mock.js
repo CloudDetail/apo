@@ -812,16 +812,16 @@ export const mockDialogue = [
 </div>`,
       },
     ],
-    explanation: (
-      <>
-        <div>
-          北极星指标曲线是利用eBPF技术，将请求延时完整的拆解成了主要的几个故障方向，当延时变化之时，可以根据哪个分项的变化曲线最相似，从而判断疑似故障节点的故障方向。
-        </div>
-        <Image src={mock9_1Png} />
-        <Image src={mock9_2Png} />
-        <div>最后可以查看故障方向的进一步分析报告。</div>
-        <Image src={mock10Png} />
-      </>
-    ),
+    // explanation: (
+    //   <>
+    //     <div>
+    //       北极星指标曲线是利用eBPF技术，将请求延时完整的拆解成了主要的几个故障方向，当延时变化之时，可以根据哪个分项的变化曲线最相似，从而判断疑似故障节点的故障方向。
+    //     </div>
+    //     <Image src={mock9_1Png} />
+    //     <Image src={mock9_2Png} />
+    //     <div>最后可以查看故障方向的进一步分析报告。</div>
+    //     <Image src={mock10Png} />
+    //   </>
+    // ),
   },
 ]

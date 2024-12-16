@@ -41,3 +41,14 @@
     transform: translate(20px, 0px);
   }
 }
+
+.steps {
+  // background: red !important;  #1668dc
+
+  :global(.ant-steps-item::before) {
+    background: none !important;
+  }
+  :global(.ant-steps-item::after) {
+    display: none !important;
+  }
+}

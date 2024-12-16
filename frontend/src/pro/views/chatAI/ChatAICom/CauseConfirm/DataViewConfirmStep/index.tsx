@@ -110,7 +110,7 @@ const DataViewConfirmStep = () => {
     }
   }
   return (
-    <div className=" w-full ">
+    <div className=" w-full h-full">
       <Tabs
         type="editable-card"
         items={items}
@@ -124,10 +124,10 @@ const DataViewConfirmStep = () => {
           </Flex>
         }
       />
-      <div className="text-right">
+      <div className="absolute bottom-2 right-2">
         {(activeKey === 'slow' || activeKey === 'error') && (
           <Button type="primary" onClick={onClick}>
-            生成数据
+            确认根因并查看数据
           </Button>
         )}
       </div>
