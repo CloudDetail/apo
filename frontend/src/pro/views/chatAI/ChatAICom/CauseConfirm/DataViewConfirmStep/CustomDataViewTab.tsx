@@ -49,7 +49,7 @@ const CustomDataViewTab = ({ defaultValue }: any) => {
   }, [defaultValue])
   return (
     <>
-      <Form form={form} labelCol={{ span: 3 }} wrapperCol={{ span: 18 }}>
+      <Form form={form} labelCol={{ span: 3 }}>
         <Form.Item
           name="customName"
           label="数据类型名"

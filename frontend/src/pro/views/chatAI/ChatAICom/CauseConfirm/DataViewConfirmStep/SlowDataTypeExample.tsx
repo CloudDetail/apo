@@ -3,7 +3,7 @@ import { Image } from 'antd'
 const SlowDataTypeExample = () => {
   return (
     <div className="text-center">
-      <div>慢类型数据将展示节点的北极星数据，以下是示例数据：</div>
+      <div>慢故障推荐数据将展示节点的北极星数据，以下是示例数据：</div>
       <Image src={PolarisPng} width={200} />
     </div>
   )

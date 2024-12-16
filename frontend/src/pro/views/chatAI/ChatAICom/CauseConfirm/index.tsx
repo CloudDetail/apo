@@ -21,11 +21,11 @@ const CauseConfirm = () => {
   const [stepItems, setStepItems] = useState()
   const steps = [
     {
-      title: '确认根因节点',
+      title: '选择疑似根因节点',
       content: <CauseConfirmStep nextStep={() => setCurrent(1)} />,
     },
     {
-      title: '选择查看根因节点的数据',
+      title: '根据疑似根因节点数据确认故障根因',
       content: <DataViewConfirmStep />,
     },
   ]
@@ -56,17 +56,20 @@ const CauseConfirm = () => {
     <>
       {suspectedNodeList?.length > 0 && (
         <Card
+          title="确认告警故障根因"
+          extra={
+            <Button
+              onClick={() => setCauseConfirmvisibilit(false)}
+              // className=" absolute top-0 right-0"
+              style={{ zIndex: 100 }}
+              type="link"
+            >
+              收起
+              <FaChevronRight size={25} />
+            </Button>
+          }
           className={`${styles.causeConfirmCard} ${causeConfirmvisibility ? styles.fadeIn : styles.fadeOut}`}
         >
-          <Button
-            onClick={() => setCauseConfirmvisibilit(false)}
-            className=" absolute top-0 right-0"
-            style={{ zIndex: 100 }}
-            type="link"
-          >
-            收起
-            <FaChevronRight size={25} />
-          </Button>
           {suspectedNodeList?.length === 0 && (
             <GlassCard content={<p>未分析出可选择的疑似节点</p>} />
           )}
@@ -87,7 +90,7 @@ const CauseConfirm = () => {
             }}
           >
             {/* 左侧卡片 */}
-            <div className="h-full">
+            <div className="h-full w-full">
               <Card
                 className="h-full bg-[#212631]"
                 styles={{
@@ -95,6 +98,7 @@ const CauseConfirm = () => {
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
+                    padding: '16px 8px',
                   },
                 }}
               >
@@ -108,7 +112,7 @@ const CauseConfirm = () => {
             </div>
 
             {/* 右侧卡片 */}
-            <div className="h-full table-cell">
+            <div className="h-full overflow-hidden">
               <Card
                 className="h-full bg-[#212631]"
                 styles={{
@@ -116,6 +120,8 @@ const CauseConfirm = () => {
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
+                    width: '100%',
+                    padding: '8px',
                   },
                 }}
               >

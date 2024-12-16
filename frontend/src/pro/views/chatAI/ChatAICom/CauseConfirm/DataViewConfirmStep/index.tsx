@@ -20,14 +20,14 @@ const DataViewConfirmStep = () => {
   const defaultItems = [
     {
       key: 'slow',
-      label: '慢类型数据',
+      label: '慢故障推荐数据',
       children: <SlowDataTypeExample />,
       closable: false,
       type: ['slow'],
     },
     {
       key: 'error',
-      label: '错误类型数据',
+      label: '错故障推荐数据',
       children: <ErrorDataTypeExample />,
       closable: false,
       type: ['log'],
@@ -40,7 +40,7 @@ const DataViewConfirmStep = () => {
       const result = [...prev]
       result.push({
         key: 'custom_' + prev.length,
-        label: '自定义' + prev.length,
+        label: '用户自定义数据确认故障' + prev.length,
         children: <CustomDataViewTab />,
         closable: true,
         newAdd: true,
@@ -120,7 +120,7 @@ const DataViewConfirmStep = () => {
         addIcon={
           <Flex>
             <MdAdd size={20} />
-            自定义
+            用户自定义数据确认故障
           </Flex>
         }
       />
