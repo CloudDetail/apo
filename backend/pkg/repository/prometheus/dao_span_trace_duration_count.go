@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -13,7 +14,7 @@ import (
 )
 
 const (
-	TEMPLATE_GET_SERVICES                = `sum by(svc_name) (increase(kindling_span_trace_duration_nanoseconds_count[%s]))`
+	TEMPLATE_GET_SERVICES                = `sum by(svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_ENDPOINTS               = `sum by(content_key) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_SERVICE_INSTANCE        = `sum by(svc_name, pod, pid, container_id, node_name, namespace, node_ip) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_ACTIVE_SERVICE_INSTANCE = `sum by(svc_name, pod, pid, container_id, node_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
@@ -21,11 +22,16 @@ const (
 		"(sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s, is_error='true'}[%s])) or 0)" + // or 0补充缺失数据场景
 		"/sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))" +
 		") or (sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])) * 0)" // or * 0补充中间缺失数据的场景
+	TEMPLATE_GET_NAMESPACES = `sum(kindling_span_trace_duration_nanoseconds_count{namespace=~".+"}[%s]) by (namespace)`
 )
 
 // GetServiceList 查询服务名列表
-func (repo *promRepo) GetServiceList(startTime int64, endTime int64) ([]string, error) {
-	query := fmt.Sprintf(TEMPLATE_GET_SERVICES, VecFromS2E(startTime, endTime))
+func (repo *promRepo) GetServiceList(startTime int64, endTime int64, namespace []string) ([]string, error) {
+	var namespaceFilter string
+	if len(namespace) > 0 {
+		namespaceFilter = fmt.Sprintf(`%s"%s"`, NamespaceRegexPQLFilter, strings.Join(namespace, "|"))
+	}
+	query := fmt.Sprintf(TEMPLATE_GET_SERVICES, namespaceFilter, VecFromS2E(startTime, endTime))
 	value, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
 
 	if err != nil {

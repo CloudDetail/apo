@@ -17,6 +17,7 @@ import (
 // @Param sampleType query string true "采样类型"
 // @Param pid query uint64 true "进程id"
 // @Param tid query uint64 true "线程id"
+// @Param nodeName query string false "主机名称"
 // @Param startTime query int64 true "开始时间"
 // @Param endTime query int64 true "结束时间"
 // @Param spanId query string true "span id"
