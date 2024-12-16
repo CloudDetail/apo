@@ -14,7 +14,7 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId query int64 true "用户id"
+// @Param userId query int64 false "用户id"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetUserConfigResponse
 // @Failure 400 {object} code.Failure

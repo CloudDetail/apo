@@ -5530,7 +5530,6 @@ paths:
       - description: 用户id
         in: query
         name: userId
-        required: true
         type: integer
       - description: Bearer accessToken
         in: header
@@ -5805,12 +5804,12 @@ paths:
         name: subjectId
         required: true
         type: integer
-      - description: 授权主体类型
+      - description: '授权主体类型: ''role'',''user'',''team'''
         in: formData
         name: subjectType
         required: true
         type: string
-      - description: 授权类型
+      - description: '授权类型: ''feature'',''data'''
         in: formData
         name: type
         required: true

@@ -219,6 +219,13 @@ func (repo *daoRepo) GetUserInfo(userID int64) (User, error) {
 	return user, err
 }
 
+func (repo *daoRepo) GetAnonymousUser() (User, error) {
+	conf := config.Get().User.AnonymousUser
+	var user User
+	err := repo.db.Select(userFieldSql).Where("username = ?", conf.Username).Find(&user).Error
+	return user, err
+}
+
 func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64, error) {
 	var users []User
 	var count int64

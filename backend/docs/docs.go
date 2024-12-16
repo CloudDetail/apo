@@ -4522,8 +4522,7 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "用户id",
                         "name": "userId",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -4939,14 +4938,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "授权主体类型",
+                        "description": "授权主体类型: 'role','user','team'",
                         "name": "subjectType",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "授权类型",
+                        "description": "授权类型: 'feature','data'",
                         "name": "type",
                         "in": "formData",
                         "required": true

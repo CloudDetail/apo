@@ -10,6 +10,15 @@ import (
 // GetUserConfig Gets menus and routes that users can view.
 func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error) {
 	var resp response.GetUserConfigResponse
+	if req.UserID == 0 {
+		anonymousUser, err := s.dbRepo.GetAnonymousUser()
+		if err != nil {
+			return resp, err
+		}
+
+		req.UserID = anonymousUser.UserID
+	}
+
 	// 1. Get user's role
 	roles, err := s.dbRepo.GetUserRole(req.UserID)
 	if err != nil {
