@@ -1,12 +1,13 @@
 package database
 
 import (
+	"os"
+	"testing"
+
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 	"gorm.io/gorm"
-	"os"
-	"testing"
 )
 
 func TestUpsertAnonymous(t *testing.T) {
@@ -21,7 +22,7 @@ func TestUpsertAnonymous(t *testing.T) {
 		t.Fatal(err)
 	}
 	conf := config.Get()
-	conf.AnonymousUser.Role = "user"
+	conf.User.AnonymousUser.Role = "user"
 	err = createAnonymousUser(database)
 	if err != nil {
 		t.Fatal(err)
@@ -29,9 +30,9 @@ func TestUpsertAnonymous(t *testing.T) {
 	var count int64
 	database.Model(&User{}).Count(&count)
 	var user User
-	database.Where("username = ?", conf.AnonymousUser.Username).First(&user)
+	database.Where("username = ?", conf.User.AnonymousUser.Username).First(&user)
 
 	validator := util.NewValidator(t, "upsert anonymous user")
 	validator.CheckInt64Value("count", int64(1), count)
-	validator.CheckStringValue("role", conf.AnonymousUser.Role, user.Role)
+	validator.CheckStringValue("role", conf.User.AnonymousUser.Role, user.Role)
 }
