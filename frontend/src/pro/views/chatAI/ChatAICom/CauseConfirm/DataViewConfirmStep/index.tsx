@@ -16,6 +16,7 @@ import ErrorDataTypeExample from './ErrorDataTypeExample'
 const DataViewConfirmStep = () => {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const analysisNode = useChatAIContext((ctx) => ctx.analysisNode)
+  const causeConfirmvisibility = useChatAIContext((ctx) => ctx.causeConfirmvisibility)
   const [activeKey, setActiveKey] = useState('slow')
   const defaultItems = [
     {
@@ -40,7 +41,7 @@ const DataViewConfirmStep = () => {
       const result = [...prev]
       result.push({
         key: 'custom_' + prev.length,
-        label: '用户自定义数据确认故障' + prev.length,
+        label: '自定义' + prev.length,
         children: <CustomDataViewTab />,
         closable: true,
         newAdd: true,
@@ -90,11 +91,14 @@ const DataViewConfirmStep = () => {
       })
 
       setItems(newItems)
+      if (!newItems.some((item) => item.key === activeKey)) {
+        setActiveKey('slow')
+      }
     })
   }
   useEffect(() => {
-    getCustomItems()
-  }, [])
+    if (causeConfirmvisibility) getCustomItems()
+  }, [causeConfirmvisibility])
   const onClick = () => {
     const type = items.find((item) => item.key === activeKey)?.type || []
     analysisNode(type)

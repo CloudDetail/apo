@@ -54,83 +54,80 @@ const CauseConfirm = () => {
   }, [causeConfirmvisibility])
   return (
     <>
-      {suspectedNodeList?.length > 0 && (
-        <Card
-          title="确认告警故障根因"
-          extra={
-            <Button
-              onClick={() => setCauseConfirmvisibilit(false)}
-              // className=" absolute top-0 right-0"
-              style={{ zIndex: 100 }}
-              type="link"
-            >
-              收起
-              <FaChevronRight size={25} />
-            </Button>
-          }
-          className={`${styles.causeConfirmCard} ${causeConfirmvisibility ? styles.fadeIn : styles.fadeOut}`}
-        >
-          {suspectedNodeList?.length === 0 && (
-            <GlassCard content={<p>未分析出可选择的疑似节点</p>} />
-          )}
-
-          <Steps
-            current={current}
-            items={stepItems}
-            onChange={onChangeStep}
-            type="navigation"
-            className={styles.steps}
-            // size="small"
-          />
-          <div
-            className="grid h-full min-h-[380px]"
-            style={{
-              gridTemplateColumns: '1fr 30px 1fr', // 左右均分，中间固定宽度
-              gap: '16px', // 左中右间距
-            }}
+      <Card
+        title="确认告警故障根因"
+        extra={
+          <Button
+            onClick={() => setCauseConfirmvisibilit(false)}
+            // className=" absolute top-0 right-0"
+            style={{ zIndex: 100 }}
+            type="link"
           >
-            {/* 左侧卡片 */}
-            <div className="h-full w-full">
-              <Card
-                className="h-full bg-[#212631]"
-                styles={{
-                  body: {
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    padding: '16px 8px',
-                  },
-                }}
-              >
-                {steps[0].content}
-              </Card>
-            </div>
+            收起
+            <FaChevronRight size={25} />
+          </Button>
+        }
+        className={`${styles.causeConfirmCard} ${causeConfirmvisibility ? styles.fadeIn : styles.fadeOut}`}
+      >
+        {suspectedNodeList?.length === 0 && <GlassCard content={<p>未分析出可选择的疑似节点</p>} />}
 
-            {/* 中间图标 */}
-            <div className="flex items-center justify-center">
-              <FaChevronRight size={30} />
-            </div>
-
-            {/* 右侧卡片 */}
-            <div className="h-full overflow-hidden">
-              <Card
-                className="h-full bg-[#212631]"
-                styles={{
-                  body: {
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    width: '100%',
-                    padding: '8px',
-                  },
-                }}
-              >
-                {steps[1].content}
-              </Card>
-            </div>
+        <Steps
+          current={current}
+          items={stepItems}
+          onChange={onChangeStep}
+          type="navigation"
+          className={styles.steps}
+          // size="small"
+        />
+        <div
+          className="grid h-full min-h-[380px]"
+          style={{
+            gridTemplateColumns: '1fr 30px 1fr', // 左右均分，中间固定宽度
+            gap: '16px', // 左中右间距
+          }}
+        >
+          {/* 左侧卡片 */}
+          <div className="h-full w-full">
+            <Card
+              className="h-full bg-[#212631]"
+              styles={{
+                body: {
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  padding: '16px 8px',
+                },
+              }}
+            >
+              {steps[0].content}
+            </Card>
           </div>
 
-          {/* <Carousel
+          {/* 中间图标 */}
+          <div className="flex items-center justify-center">
+            <FaChevronRight size={30} />
+          </div>
+
+          {/* 右侧卡片 */}
+          <div className="h-full overflow-hidden">
+            <Card
+              className="h-full bg-[#212631]"
+              styles={{
+                body: {
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: '100%',
+                  padding: '8px',
+                },
+              }}
+            >
+              {steps[1].content}
+            </Card>
+          </div>
+        </div>
+
+        {/* <Carousel
           afterChange={(currentSlide) => setCurrent(currentSlide)}
           ref={carouselRef}
           // adaptiveHeight
@@ -139,8 +136,7 @@ const CauseConfirm = () => {
             <>{step.content}</>
           ))}
         </Carousel> */}
-        </Card>
-      )}
+      </Card>
 
       <Tooltip title="确认根因节点、查看数据">
         <Button

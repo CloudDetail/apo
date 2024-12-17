@@ -4,6 +4,7 @@
   margin-top: 2px;
   margin: 0 80px;
   height: 0;
+  visibility: hidden;
 }
 
 .causeConfirmCard.fadeOut {
@@ -12,6 +13,7 @@
 }
 .causeConfirmCard.fadeIn {
   height: 100%;
+  visibility: visible;
   animation: fadeInUp 0.5s ease forwards; /* 渐入动画 */
 }
 

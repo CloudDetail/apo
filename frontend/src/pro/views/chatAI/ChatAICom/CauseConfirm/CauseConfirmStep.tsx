@@ -47,7 +47,7 @@ const CauseConfirmStep = ({ nextStep }: CauseConfirmStepProps) => {
       <span className="font-extrabold">选择您怀疑的节点</span>作为根因节点
       <div className="flex justify-around p-4 flex-wrap">
         <Row justify="space-between">
-          {suspectedNodeList.map((node) => (
+          {suspectedNodeList?.map((node) => (
             <Col>
               <NodeCom node={node} />
             </Col>

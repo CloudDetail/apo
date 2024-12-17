@@ -17,6 +17,7 @@ const SlowType = ({ image, reportUrlList, content }) => {
         )}
       </div>
       <div className="flex-1">
+        <div className="px-4 pt-3">{content}</div>
         {reportUrlList?.length > 0 ? (
           <div className="w-[200px] flex-shrink-0 p-2">
             {reportUrlList?.map((reportUrl, index) => (
