@@ -12,7 +12,7 @@ type MenuItem struct {
 	Abbreviation string `gorm:"column:abbreviation" json:"abbreviation"`
 
 	Children []MenuItem  `gorm:"-" json:"children" swaggerignore:"true"`
-	Router   *Router     `gorm:"-" json:"to"` // Frontend router.
+	Router   *Router     `gorm:"-" json:"router"` // Frontend router.
 	Page     *InsertPage `gorm:"-" json:"page,omitempty"`
 }
 

@@ -2,9 +2,9 @@ package database
 
 // InsertPage saves embedded interface.
 type InsertPage struct {
-	PageID int    `gorm:"column:page_id;primary_key;auto_increment"`
-	Url    string `gorm:"column:url"`
-	Type   string `gorm:"column:type"` // For now it's grafana or jaeger.
+	PageID int    `gorm:"column:page_id;primary_key;auto_increment" json:"pageId"`
+	Url    string `gorm:"column:url" json:"url"`
+	Type   string `gorm:"column:type" json:"type"` // For now it's grafana or jaeger.
 }
 
 func (t *InsertPage) TableName() string {
