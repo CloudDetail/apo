@@ -116,7 +116,7 @@ func addRelatedEntryAndPagation(req *request.AlertImpactRequest, count int, impa
 		for _, impactEntry := range impactEntrys {
 			relatedEventCount[impactEntry]++
 		}
-		if from < i && i < to {
+		if from <= i && i < to {
 			// 在当前页的告警事件中填充入口信息
 			impactEvents[i].ImpactEntrys = impactEntrys
 		}
