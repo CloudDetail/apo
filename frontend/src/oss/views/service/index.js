@@ -5,10 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import TempCell from 'src/core/components/Table/TempCell'
 import StatusInfo from 'src/core/components/StatusInfo'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
-import {
-  getServicesAlertApi,
-  getServicesEndpointsApi,
-} from 'core/api/service'
+import { getServicesAlertApi, getServicesEndpointsApi } from 'core/api/service'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { getStep } from 'src/core/utils/step'
@@ -20,8 +17,10 @@ import { Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
 import { TableFilter } from './component/TableFilter'
+import { useTranslation } from 'react-i18next'
 
 export default function ServiceView() {
+  const { t } = useTranslation('oss/service')
   const navigate = useNavigate()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -64,7 +63,6 @@ export default function ServiceView() {
       isNested: true,
       customWidth: '55%',
       clickCell: (props) => {
-        console.log("props", props)
         // const navigate = useNavigate()
         // toServiceInfo()
         const serviceName = props.cell.row.values.serviceName
@@ -380,7 +378,7 @@ export default function ServiceView() {
         <div className="d-flex">
           <CToastBody className=" flex flex-row items-center text-xs">
             <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-            请根据本页提供的各种提示信息，选择您最怀疑的服务端点，选择服务端点之后可以查看具体的相关指标、日志和事件信息、Trace信息
+            {t('serviceTableToast')}
           </CToastBody>
         </div>
       </CToast>

@@ -14,6 +14,7 @@ import { MessageProvider } from 'src/core/contexts/MessageContext'
 import ErrorBoundary from 'src/core/components/ErrorBoundary'
 import zhCN from 'antd/es/locale/zh_CN' // 引入中文包
 import { UserProvider } from './core/contexts/UserContext'
+import './i18n'
 const apiHost = import.meta.env.VITE_PUBLIC_POSTHOG_HOST
 const apiKey = import.meta.env.VITE_PUBLIC_POSTHOG_KEY
 

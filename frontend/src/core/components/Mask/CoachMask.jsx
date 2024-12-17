@@ -12,7 +12,9 @@ import TracePng from 'src/core/assets/snapshot/trace.png'
 import CommingSoon from 'src/core/assets/images/commingSoon.svg'
 import CpuPng from 'src/core/assets/snapshot/cpu.png'
 import { QuestionCircleOutlined, EyeOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 export default function CoachMask() {
+  const { t } = useTranslation('core/mask')
   const [visible, setVisible] = useState(false)
   const list = [
     {
@@ -111,7 +113,7 @@ export default function CoachMask() {
     <>
       <QuestionCircleOutlined className="text-lg text-[#6261cc] px-3" onClick={setPopupShown} />
       <Modal
-        title={'服务详情指南'}
+        title={t('coachMaskTitle')}
         open={visible}
         // footer={null}
         // style={{ width: '100vw', height: '100vh' }}
