@@ -62,43 +62,43 @@ type Handler interface {
 	ResetPassword() core.HandlerFunc
 
 	// RoleOperation Grant or revoke user's role.
-	// @Tags API.user
-	// @Router /api/user/role/operation [post]
+	// @Tags API.permission
+	// @Router /api/permission/role/operation [post]
 	RoleOperation() core.HandlerFunc
 
 	// GetRole Gets all roles.
-	// @Tags API.user
-	// @Router /api/user/roles [get]
+	// @Tags API.permission
+	// @Router /api/permission/roles [get]
 	GetRole() core.HandlerFunc
 
 	// GetUserRole Get user's role.
-	// @Tags API.user
-	// @Router /api/user/role [get]
+	// @Tags API.permission
+	// @Router /api/permission/role [get]
 	GetUserRole() core.HandlerFunc
 
 	// GetUserConfig Gets user's menu config and which route can access.
-	// @Tags API.user
-	// @Router /api/user/config [get]
+	// @Tags API.permission
+	// @Router /api/permission/config [get]
 	GetUserConfig() core.HandlerFunc
 
 	// GetFeature Gets all feature permission.
-	// @Tags API.user
-	// @Router /api/user/feature [get]
+	// @Tags API.permission
+	// @Router /api/permission/feature [get]
 	GetFeature() core.HandlerFunc
 
 	// GetSubjectFeature Gets subject's feature permission.
-	// @Tags API.user
-	// @Router /api/user/sub/feature [get]
+	// @Tags API.permission
+	// @Router /api/permission/sub/feature [get]
 	GetSubjectFeature() core.HandlerFunc
 
 	// PermissionOperation Grant or revoke user's permission(feature).
-	// @Tags API.user
-	// @Router /api/user/permission/operation [post]
+	// @Tags API.permission
+	// @Router /api/permission/operation [post]
 	PermissionOperation() core.HandlerFunc
 
 	// ConfigureMenu Configure global menu.
-	// @Tags API.user
-	// @Router /api/user/menu/configure [post]
+	// @Tags API.permission
+	// @Router /api/permission/menu/configure [post]
 	ConfigureMenu() core.HandlerFunc
 }
 

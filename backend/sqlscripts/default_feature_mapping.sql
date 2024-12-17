@@ -1,6 +1,5 @@
 INSERT INTO feature_menu_item(feature_id, menu_item_id) VALUES
     (1, 1),
-    (2, 2),
     (3, 3),
     (4, 4),
     (5, 5),
@@ -12,5 +11,4 @@ INSERT INTO feature_menu_item(feature_id, menu_item_id) VALUES
     (11, 11),
     (12, 12),
     (13, 13),
-    (14, 14),
     (15, 15);

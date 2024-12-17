@@ -137,6 +137,7 @@ func setApiRouter(r *resource) {
 		configApi.POST("/setSingleTableTTL", configHandler.SetSingleTableTTL())
 		configApi.GET("/getTTL", configHandler.GetTTL())
 	}
+
 	userApi := r.mux.Group("/api/user")
 	{
 		userHandler := user.New(r.logger, r.pkg_db, r.cache)
@@ -153,14 +154,19 @@ func setApiRouter(r *resource) {
 		userApi.GET("/list", userHandler.GetUserList())
 		userApi.POST("/remove", userHandler.RemoveUser())
 		userApi.POST("/reset", userHandler.ResetPassword())
-		userApi.GET("/roles", userHandler.GetRole())
-		userApi.GET("/role", userHandler.GetUserRole())
-		userApi.POST("/role/operation", userHandler.RoleOperation())
-		userApi.GET("/config", userHandler.GetUserConfig())
-		userApi.GET("/feature", userHandler.GetFeature())
-		userApi.GET("/sub/feature", userHandler.GetSubjectFeature())
-		userApi.POST("/permission/operation", userHandler.PermissionOperation())
-		userApi.POST("/menu/configure", userHandler.ConfigureMenu())
+	}
+
+	permissionApi := r.mux.Group("/api/permission").Use(middlewares.AuthMiddleware())
+	{
+		permissionHandler := user.New(r.logger, r.pkg_db, r.cache)
+		permissionApi.GET("/roles", permissionHandler.GetRole())
+		permissionApi.GET("/role", permissionHandler.GetUserRole())
+		permissionApi.POST("/role/operation", permissionHandler.RoleOperation())
+		permissionApi.GET("/config", permissionHandler.GetUserConfig())
+		permissionApi.GET("/feature", permissionHandler.GetFeature())
+		permissionApi.GET("/sub/feature", permissionHandler.GetSubjectFeature())
+		permissionApi.POST("/operation", permissionHandler.PermissionOperation())
+		permissionApi.POST("/menu/configure", permissionHandler.ConfigureMenu())
 	}
 
 	k8sApi := r.mux.Group("/api/k8s")

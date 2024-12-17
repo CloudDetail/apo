@@ -13,14 +13,14 @@ import (
 // ConfigureMenu Configure global menu.
 // @Summary Configure global menu.
 // @Description Configure global menu.
-// @Tags API.user
+// @Tags API.permission
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param permissionList formData []int true "功能id列表" collectionFormat(multi)
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/user/menu/configure [post]
+// @Router /api/permission/menu/configure [post]
 func (h *handler) ConfigureMenu() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.ConfigureMenuRequest)

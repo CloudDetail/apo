@@ -65,7 +65,7 @@ type Repo interface {
 
 	GetMappedMenuItem(featureIDs []int) ([]FeatureMenuItem, error)
 
-	GetMenuItems(itemIDs []int) ([]MenuItem, error)
+	GetMenuItems() ([]MenuItem, error)
 
 	// GetContextDB Gets transaction form ctx.
 	GetContextDB(ctx context.Context) *gorm.DB

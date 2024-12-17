@@ -8,7 +8,7 @@ type MenuItem struct {
 	RouterID     int    `gorm:"column:router_id" json:"-"` // Router id.
 	InsertPageID int    `gorm:"column:insert_page_id" json:"-"`
 	Icon         string `gorm:"column:icon" json:"icon"`
-	ParentID     *int   `gorm:"column:parent_id" json:"parentId"`
+	ParentID     *int   `gorm:"column:parent_id" json:"-"`
 	Abbreviation string `gorm:"column:abbreviation" json:"abbreviation"`
 
 	Children []MenuItem  `gorm:"-" json:"children" swaggerignore:"true"`
@@ -20,9 +20,9 @@ func (t *MenuItem) TableName() string {
 	return "menu_item"
 }
 
-func (repo *daoRepo) GetMenuItems(itemIDs []int) ([]MenuItem, error) {
+func (repo *daoRepo) GetMenuItems() ([]MenuItem, error) {
 	var menuItems []MenuItem
 
-	err := repo.db.Where("item_id in ?", itemIDs).Find(&menuItems).Error
+	err := repo.db.Find(&menuItems).Error
 	return menuItems, err
 }

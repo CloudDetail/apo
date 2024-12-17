@@ -50,7 +50,7 @@ func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.Get
 		return resp, err
 	}
 	// 5. Get menu item
-	items, err := s.dbRepo.GetMenuItems(itemIDs)
+	items, err := s.dbRepo.GetMenuItems()
 	if err != nil {
 		return resp, err
 	}
@@ -70,12 +70,23 @@ func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.Get
 		menuItemMap[m.ItemID] = &m
 	}
 
-	for _, item := range items {
+	addedToRoot := make(map[int]bool)
+
+	for _, id := range itemIDs {
+		item := menuItemMap[id]
 		if item.ParentID == nil {
-			rootMenuItems = append(rootMenuItems, menuItemMap[item.ItemID])
+			if !addedToRoot[item.ItemID] {
+				rootMenuItems = append(rootMenuItems, menuItemMap[item.ItemID])
+				addedToRoot[item.ItemID] = true
+			}
 		} else {
 			if parent, exists := menuItemMap[*item.ParentID]; exists {
 				parent.Children = append(parent.Children, *menuItemMap[item.ItemID])
+
+				if !addedToRoot[parent.ItemID] {
+					rootMenuItems = append(rootMenuItems, parent)
+					addedToRoot[parent.ItemID] = true
+				}
 			}
 		}
 	}
