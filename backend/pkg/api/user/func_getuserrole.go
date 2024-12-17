@@ -11,13 +11,13 @@ import (
 // GetUserRole Get user's role.
 // @Summary Get user's role.
 // @Description Get user's role.
-// @Tags API.user
+// @Tags API.permission
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param userId query int64 true "用户id"
 // @Success 200 {object} response.GetUserRoleResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/user/role [get]
+// @Router /api/permission/role [get]
 func (h *handler) GetUserRole() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetUserRoleRequest)

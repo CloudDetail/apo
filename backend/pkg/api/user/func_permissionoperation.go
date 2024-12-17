@@ -13,7 +13,7 @@ import (
 // PermissionOperation Grant or revoke user's permission(feature).
 // @Summary Grant or revoke user's permission(feature).
 // @Description Grant or revoke user's permission(feature).
-// @Tags API.user
+// @Tags API.permission
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param subjectId formData int64 true "授权主体id"
@@ -22,7 +22,7 @@ import (
 // @Param permissionList formData []int false "权限id列表" collectionFormat(multi)
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/user/permission/operation [post]
+// @Router /api/permission/operation [post]
 func (h *handler) PermissionOperation() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.PermissionOperationRequest)

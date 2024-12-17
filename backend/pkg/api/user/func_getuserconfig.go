@@ -11,14 +11,14 @@ import (
 // GetUserConfig Gets user's menu config and which route can access.
 // @Summary Gets user's menu config and which route can access.
 // @Description Get user's menu config.
-// @Tags API.user
+// @Tags API.permission
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param userId query int64 false "用户id"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetUserConfigResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/user/config [get]
+// @Router /api/permission/config [get]
 func (h *handler) GetUserConfig() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetUserConfigRequest)

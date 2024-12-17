@@ -13,7 +13,7 @@ import (
 // RoleOperation Grant or revoke user's role.
 // @Summary Grant or revoke user's role.
 // @Description Grants permission to user
-// @Tags API.user
+// @Tags API.permission
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param userId formData int64 ture "用户id"
@@ -21,7 +21,7 @@ import (
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/user/role/operation [post]
+// @Router /api/permission/role/operation [post]
 func (h *handler) RoleOperation() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.RoleOperationRequest)

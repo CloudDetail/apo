@@ -9,13 +9,13 @@ import (
 // GetRole Gets all roles.
 // @Summary Gets all roles.
 // @Description Gets all roles.
-// @Tags API.user
+// @Tags API.permission
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} response.GetRoleResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/user/roles [get]
+// @Router /api/permission/roles [get]
 func (h *handler) GetRole() core.HandlerFunc {
 	return func(c core.Context) {
 
