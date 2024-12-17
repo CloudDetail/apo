@@ -9,8 +9,8 @@ import (
 
 // Role is a collection of feature permission.
 type Role struct {
-	RoleID   int    `gorm:"column:role_id;primary_key"`
-	RoleName string `gorm:"column:role_name;uniqueIndex"`
+	RoleID   int    `gorm:"column:role_id;primary_key" json:"roleId"`
+	RoleName string `gorm:"column:role_name;uniqueIndex" json:"roleName"`
 }
 
 type UserRole struct {

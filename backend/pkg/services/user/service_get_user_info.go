@@ -37,6 +37,7 @@ func (s *service) GetUserInfo(userID int64) (response.GetUserInfoResponse, error
 	}
 	user.RoleList = roles
 	user.FeatureList = feature
+	resp.User = user
 	return resp, nil
 }
 
