@@ -115,6 +115,7 @@ const DataSourceTree = () => {
         cluster: selectedNodes[0].cluster,
         timeField: selectedNodes[0].timeField,
         instanceName: selectedNodes[0].instanceName,
+        type: 'database'
       })
     }
   }
