@@ -28,7 +28,7 @@ func (repo *daoRepo) GetItemRouter(items *[]MenuItem) error {
 
 	var routers []Router
 	if err := repo.db.Table("router").
-		Select("router_id, router_to").
+		Select("router_id, router_to, hide_time_selector").
 		Where("router_id IN ?", routerIDs).
 		Find(&routers).Error; err != nil {
 		return err

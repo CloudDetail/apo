@@ -27,6 +27,6 @@ SELECT 13, "/service/info", false WHERE NOT EXISTS (SELECT 1 FROM router WHERE r
 UNION ALL
 SELECT 14, "/system/menu-manage", false WHERE NOT EXISTS (SELECT 1 FROM router WHERE router_id = 14)
 UNION ALL
-SELECT 15, "/trace/fault-site", false WHERE NOT EXISTS (SELECT 1 FROM router WHERE router_id = 15)
+SELECT 15, "/trace/fault-site", true WHERE NOT EXISTS (SELECT 1 FROM router WHERE router_id = 15)
 UNION ALL
-SELECT 16, "/trace/full", false WHERE NOT EXISTS (SELECT 1 FROM router WHERE router_id = 16);
+SELECT 16, "/trace/full", true WHERE NOT EXISTS (SELECT 1 FROM router WHERE router_id = 16);
