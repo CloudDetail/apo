@@ -47,8 +47,8 @@ UNION ALL
 SELECT 16, "manage", "系统管理", NULL, NULL, NULL, NULL, "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/system.svg", "System Management", NULL
     WHERE NOT EXISTS (SELECT 1 FROM menu_item WHERE item_id = 16)
 UNION ALL
-SELECT 17, "userManage", "用户管理", 12, 14, NULL, NULL, NULL, "User Management", NULL
+SELECT 17, "userManage", "用户管理", 12, 16, NULL, NULL, NULL, "User Management", NULL
     WHERE NOT EXISTS (SELECT 1 FROM menu_item WHERE item_id = 17)
 UNION ALL
-SELECT 18, "menuManage", "菜单管理", 14, 14, NULL, NULL, NULL, "Menu Management", NULL
+SELECT 18, "menuManage", "菜单管理", 14, 16, NULL, NULL, NULL, "Menu Management", NULL
     WHERE NOT EXISTS (SELECT 1 FROM menu_item WHERE item_id = 18);
