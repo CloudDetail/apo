@@ -32,6 +32,9 @@ UNION ALL
 SELECT 13, 13
     WHERE NOT EXISTS (SELECT 1 FROM feature_menu_item WHERE feature_id = 13 AND menu_item_id = 13)
 UNION ALL
+SELECT 14, 14
+    WHERE NOT EXISTS (SELECT 1 FROM feature_menu_item WHERE feature_id = 14 AND menu_item_id = 14)
+UNION ALL
 SELECT 15, 15
     WHERE NOT EXISTS (SELECT 1 FROM feature_menu_item WHERE feature_id = 15 AND menu_item_id = 15)
 UNION ALL
