@@ -90,5 +90,3 @@ UNION ALL
 SELECT 4, 'role', 'feature', 7 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 4 AND subject_type = 'role' AND type = 'feature' AND permission_id = 7)
 UNION ALL
 SELECT 4, 'role', 'feature', 8 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 4 AND subject_type = 'role' AND type = 'feature' AND permission_id = 8)
-UNION ALL
-SELECT 4, 'role', 'feature', 9 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 4 AND subject_type = 'role' AND type = 'feature' AND permission_id = 9);
