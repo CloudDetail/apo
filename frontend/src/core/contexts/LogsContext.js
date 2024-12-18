@@ -152,12 +152,10 @@ export const LogsProvider = ({ children }) => {
     })
   }
   useEffect(() => {
-    console.log('获取database')
     getLogTableInfo()
   }, [])
   useEffect(() => {
     persistFieldsVisibility()
-    console.log(state)
   }, [state.displayFields])
 
   const memoizedValue = useMemo(
