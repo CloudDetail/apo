@@ -64,7 +64,7 @@ const IndexList = () => {
         <div className='flex items-center'>
           {
             hiddenFields.every(item => displayFields.includes(item)) ?
-              <Tooltip title='全不展示' mouseEnterDelay={0.5}>
+              <Tooltip title='取消展示' mouseEnterDelay={0.5}>
                 <Button type='link' className='p-0 m-0 h-auto' icon={<IoMdEyeOff size={18} />} onClick={(e) => showHiddenAll(e, 'hidden', 'logs')}></Button>
               </Tooltip>
               :
