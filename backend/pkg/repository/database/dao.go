@@ -73,6 +73,8 @@ type Repo interface {
 	WithTransaction(ctx context.Context, tx *gorm.DB) context.Context
 	// Transaction Starts a transaction and automatically commit and rollback.
 	Transaction(ctx context.Context, funcs ...func(txCtx context.Context) error) error
+
+	initSql(model interface{}, sqlScript string) error
 }
 
 type daoRepo struct {

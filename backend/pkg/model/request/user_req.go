@@ -69,7 +69,7 @@ type RoleOperationRequest struct {
 }
 
 type GetUserConfigRequest struct {
-	UserID int64 `form:"userId"`
+	UserID int64 `form:"userId" binding:"required"`
 }
 
 type GetSubjectFeatureRequest struct {

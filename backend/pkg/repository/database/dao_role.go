@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"gorm.io/gorm"
 )
@@ -28,8 +29,9 @@ func (t *UserRole) TableName() string {
 
 // GetRoles Get all roles for the given condition.
 func (repo *daoRepo) GetRoles(filter model.RoleFilter) ([]Role, error) {
+	conf := config.Get().User.AnonymousUser
 	var roles []Role
-	query := repo.db
+	query := repo.db.Where("role_name != ?", conf.Username)
 
 	if len(filter.Names) > 0 {
 		query = query.Where("role_name in ?", filter.Names)

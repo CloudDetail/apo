@@ -1993,7 +1993,8 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "用户id",
                         "name": "userId",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
@@ -6068,7 +6069,7 @@ const docTemplate = `{
         "database.InsertPage": {
             "type": "object",
             "properties": {
-                "pageID": {
+                "pageId": {
                     "type": "integer"
                 },
                 "type": {
@@ -6102,7 +6103,7 @@ const docTemplate = `{
                 "page": {
                     "$ref": "#/definitions/database.InsertPage"
                 },
-                "to": {
+                "router": {
                     "description": "Frontend router.",
                     "allOf": [
                         {
@@ -6115,7 +6116,7 @@ const docTemplate = `{
         "database.Role": {
             "type": "object",
             "properties": {
-                "roleID": {
+                "roleId": {
                     "type": "integer"
                 },
                 "roleName": {
@@ -6129,10 +6130,10 @@ const docTemplate = `{
                 "hideTimeSelector": {
                     "type": "boolean"
                 },
-                "routerID": {
+                "routerId": {
                     "type": "integer"
                 },
-                "routerTo": {
+                "to": {
                     "type": "string"
                 }
             }

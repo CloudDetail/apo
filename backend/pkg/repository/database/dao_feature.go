@@ -57,6 +57,6 @@ func (repo *daoRepo) GetFeature(featureIDs []int) ([]Feature, error) {
 
 func (repo *daoRepo) GetMappedMenuItem(featureIDs []int) ([]FeatureMenuItem, error) {
 	var featureMenuItem []FeatureMenuItem
-	err := repo.db.Where("feature_id in ?", featureIDs).Find(&featureMenuItem).Error
+	err := repo.db.Where("feature_id in ?", featureIDs).Order("menu_item_id").Find(&featureMenuItem).Error
 	return featureMenuItem, err
 }

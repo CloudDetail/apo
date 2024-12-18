@@ -356,7 +356,7 @@ definitions:
     type: object
   database.InsertPage:
     properties:
-      pageID:
+      pageId:
         type: integer
       type:
         description: For now it's grafana or jaeger.
@@ -379,14 +379,14 @@ definitions:
         type: string
       page:
         $ref: '#/definitions/database.InsertPage'
-      to:
+      router:
         allOf:
         - $ref: '#/definitions/database.Router'
         description: Frontend router.
     type: object
   database.Role:
     properties:
-      roleID:
+      roleId:
         type: integer
       roleName:
         type: string
@@ -395,9 +395,9 @@ definitions:
     properties:
       hideTimeSelector:
         type: boolean
-      routerID:
+      routerId:
         type: integer
-      routerTo:
+      to:
         type: string
     type: object
   database.User:
@@ -3823,6 +3823,7 @@ paths:
       - description: 用户id
         in: query
         name: userId
+        required: true
         type: integer
       - description: Bearer accessToken
         in: header

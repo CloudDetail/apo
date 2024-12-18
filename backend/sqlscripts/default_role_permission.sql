@@ -1,34 +1,94 @@
-INSERT INTO auth_permission (subject_id, subject_type, type, permission_id) VALUES
-    (1, "role", "feature", 1),
-    (1, "role", "feature", 2),
-    (1, "role", "feature", 3),
-    (1, "role", "feature", 4),
-    (1, "role", "feature", 5),
-    (1, "role", "feature", 6),
-    (1, "role", "feature", 7),
-    (1, "role", "feature", 8),
-    (1, "role", "feature", 9),
-    (1, "role", "feature", 11),
-    (1, "role", "feature", 12),
-    (1, "role", "feature", 14),
-    (1, "role", "feature", 15),
-    (2, "role", "feature", 1),
-    (2, "role", "feature", 2),
-    (2, "role", "feature", 3),
-    (2, "role", "feature", 4),
-    (2, "role", "feature", 5),
-    (2, "role", "feature", 6),
-    (2, "role", "feature", 7),
-    (2, "role", "feature", 8),
-    (2, "role", "feature", 9),
-    (2, "role", "feature", 11),
-    (2, "role", "feature", 12),
-    (3, "role", "feature", 1),
-    (3, "role", "feature", 2),
-    (3, "role", "feature", 3),
-    (3, "role", "feature", 4),
-    (3, "role", "feature", 5),
-    (3, "role", "feature", 6),
-    (3, "role", "feature", 7),
-    (3, "role", "feature", 8),
-    (3, "role", "feature", 9);
+INSERT INTO auth_permission (subject_id, subject_type, type, permission_id)
+SELECT 1, 'role', 'feature', 1 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 1)
+UNION ALL
+SELECT 1, 'role', 'feature', 2 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 2)
+UNION ALL
+SELECT 1, 'role', 'feature', 3 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 3)
+UNION ALL
+SELECT 1, 'role', 'feature', 4 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 4)
+UNION ALL
+SELECT 1, 'role', 'feature', 5 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 5)
+UNION ALL
+SELECT 1, 'role', 'feature', 6 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 6)
+UNION ALL
+SELECT 1, 'role', 'feature', 7 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 7)
+UNION ALL
+SELECT 1, 'role', 'feature', 8 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 8)
+UNION ALL
+SELECT 1, 'role', 'feature', 9 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 9)
+UNION ALL
+SELECT 1, 'role', 'feature', 11 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 11)
+UNION ALL
+SELECT 1, 'role', 'feature', 12 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 12)
+UNION ALL
+SELECT 1, 'role', 'feature', 14 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 14)
+UNION ALL
+SELECT 1, 'role', 'feature', 15 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 15)
+UNION ALL
+SELECT 1, 'role', 'feature', 16 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 16)
+UNION ALL
+SELECT 1, 'role', 'feature', 17 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 17)
+UNION ALL
+SELECT 1, 'role', 'feature', 18 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 1 AND subject_type = 'role' AND type = 'feature' AND permission_id = 18)
+UNION ALL
+SELECT 2, 'role', 'feature', 1 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 2 AND subject_type = 'role' AND type = 'feature' AND permission_id = 1)
+UNION ALL
+SELECT 2, 'role', 'feature', 2 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 2 AND subject_type = 'role' AND type = 'feature' AND permission_id = 2)
+UNION ALL
+SELECT 2, 'role', 'feature', 3 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 2 AND subject_type = 'role' AND type = 'feature' AND permission_id = 3)
+UNION ALL
+SELECT 2, 'role', 'feature', 4 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 2 AND subject_type = 'role' AND type = 'feature' AND permission_id = 4)
+UNION ALL
+SELECT 2, 'role', 'feature', 5 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 2 AND subject_type = 'role' AND type = 'feature' AND permission_id = 5)
+UNION ALL
+SELECT 2, 'role', 'feature', 6 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 2 AND subject_type = 'role' AND type = 'feature' AND permission_id = 6)
+UNION ALL
+SELECT 2, 'role', 'feature', 7 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 2 AND subject_type = 'role' AND type = 'feature' AND permission_id = 7)
+UNION ALL
+SELECT 2, 'role', 'feature', 8 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 2 AND subject_type = 'role' AND type = 'feature' AND permission_id = 8)
+UNION ALL
+SELECT 2, 'role', 'feature', 9 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 2 AND subject_type = 'role' AND type = 'feature' AND permission_id = 9)
+UNION ALL
+SELECT 2, 'role', 'feature', 11 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 2 AND subject_type = 'role' AND type = 'feature' AND permission_id = 11)
+UNION ALL
+SELECT 2, 'role', 'feature', 12 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 2 AND subject_type = 'role' AND type = 'feature' AND permission_id = 12)
+UNION ALL
+SELECT 2, 'role', 'feature', 17 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 2 AND subject_type = 'role' AND type = 'feature' AND permission_id = 17)
+UNION ALL
+SELECT 2, 'role', 'feature', 18 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 2 AND subject_type = 'role' AND type = 'feature' AND permission_id = 18)
+UNION ALL
+SELECT 3, 'role', 'feature', 1 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 3 AND subject_type = 'role' AND type = 'feature' AND permission_id = 1)
+UNION ALL
+SELECT 3, 'role', 'feature', 2 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 3 AND subject_type = 'role' AND type = 'feature' AND permission_id = 2)
+UNION ALL
+SELECT 3, 'role', 'feature', 3 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 3 AND subject_type = 'role' AND type = 'feature' AND permission_id = 3)
+UNION ALL
+SELECT 3, 'role', 'feature', 4 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 3 AND subject_type = 'role' AND type = 'feature' AND permission_id = 4)
+UNION ALL
+SELECT 3, 'role', 'feature', 5 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 3 AND subject_type = 'role' AND type = 'feature' AND permission_id = 5)
+UNION ALL
+SELECT 3, 'role', 'feature', 6 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 3 AND subject_type = 'role' AND type = 'feature' AND permission_id = 6)
+UNION ALL
+SELECT 3, 'role', 'feature', 7 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 3 AND subject_type = 'role' AND type = 'feature' AND permission_id = 7)
+UNION ALL
+SELECT 3, 'role', 'feature', 8 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 3 AND subject_type = 'role' AND type = 'feature' AND permission_id = 8)
+UNION ALL
+SELECT 3, 'role', 'feature', 9 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 3 AND subject_type = 'role' AND type = 'feature' AND permission_id = 9)
+UNION ALL
+SELECT 4, 'role', 'feature', 1 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 4 AND subject_type = 'role' AND type = 'feature' AND permission_id = 1)
+UNION ALL
+SELECT 4, 'role', 'feature', 2 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 4 AND subject_type = 'role' AND type = 'feature' AND permission_id = 2)
+UNION ALL
+SELECT 4, 'role', 'feature', 3 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 4 AND subject_type = 'role' AND type = 'feature' AND permission_id = 3)
+UNION ALL
+SELECT 4, 'role', 'feature', 4 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 4 AND subject_type = 'role' AND type = 'feature' AND permission_id = 4)
+UNION ALL
+SELECT 4, 'role', 'feature', 5 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 4 AND subject_type = 'role' AND type = 'feature' AND permission_id = 5)
+UNION ALL
+SELECT 4, 'role', 'feature', 6 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 4 AND subject_type = 'role' AND type = 'feature' AND permission_id = 6)
+UNION ALL
+SELECT 4, 'role', 'feature', 7 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 4 AND subject_type = 'role' AND type = 'feature' AND permission_id = 7)
+UNION ALL
+SELECT 4, 'role', 'feature', 8 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 4 AND subject_type = 'role' AND type = 'feature' AND permission_id = 8)
+UNION ALL
+SELECT 4, 'role', 'feature', 9 WHERE NOT EXISTS (SELECT 1 FROM auth_permission WHERE subject_id = 4 AND subject_type = 'role' AND type = 'feature' AND permission_id = 9);
