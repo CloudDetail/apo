@@ -27,26 +27,39 @@ function MenuManagePage() {
     setSelectedKeys(selectedKeysValue)
   }
 
-  const loopTree = (treeData) => {
+  const loopTree = (treeData = [], key = 'featureId') => {
     const allKeys = []
     const expandedKeys = []
 
     treeData.forEach((item) => {
-      allKeys.push(item.featureId)
+      allKeys.push(item[key])
 
       // 如果有子节点，记录到 expandedKeys
       if (item?.children?.length > 0) {
-        expandedKeys.push(item.featureId)
+        expandedKeys.push(item[key])
 
-        const { allKeys: allResult, expandedKeys: expandedResult } = loopTree(item.children)
+        const { allKeys: allResult, expandedKeys: expandedResult } = loopTree(item.children, key)
         expandedKeys.push(...expandedResult)
         allKeys.push(...allResult)
       }
     })
-
     return { allKeys, expandedKeys }
   }
+  // 获取所有叶子节点
+  const loopTreeForLeaf = (treeData = [], key = 'featureId') => {
+    const leafKeys = []
 
+    treeData.forEach((item) => {
+      // 如果有子节点，记录到 expandedKeys
+      if (item?.children?.length > 0) {
+        const keyResult = loopTreeForLeaf(item.children, key)
+        leafKeys.push(...keyResult)
+      } else {
+        leafKeys.push(item[key])
+      }
+    })
+    return leafKeys
+  }
   const getAllPermission = () => {
     setLoading(true)
     getAllPermissionApi()
@@ -64,7 +77,8 @@ function MenuManagePage() {
       })
   }
   useEffect(() => {
-    setCheckedKeys(menuItems?.map((menu) => menu.itemId))
+    const leafKeys = loopTreeForLeaf(menuItems, 'itemId')
+    setCheckedKeys(leafKeys)
   }, [menuItems])
   useEffect(() => {
     getAllPermission()
