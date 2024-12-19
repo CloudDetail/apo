@@ -8,6 +8,7 @@ import {
   getLogTableInfoAPi,
 } from 'core/api/logs'
 import logsReducer, { logsInitialState } from 'src/core/store/reducers/logsReducer'
+import { useDispatch, useSelector } from 'react-redux'
 
 const LogsContext = createContext(logsInitialState)
 
@@ -15,6 +16,8 @@ export const useLogsContext = () => useContext(LogsContext)
 
 export const LogsProvider = ({ children }) => {
   const [state, dispatch] = useReducer(logsReducer, logsInitialState)
+  const dispatchRedux = useDispatch()
+  const personalizedSetting = useSelector((state) => state.personalizedSetting)
   const fetchData = async ({ startTime, endTime }) => {
     // @ts-ignore
     dispatch({ type: 'updateLoading', payload: true })
@@ -48,6 +51,7 @@ export const LogsProvider = ({ children }) => {
           logs: res1?.logs ?? [],
           defaultFields: defaultFields,
           hiddenFields: hiddenFields,
+          displayFields: personalizedSetting?.logsField[`${state.tableInfo.tableName}-${state.tableInfo.type}`] ?? [...defaultFields, ...hiddenFields],
           // @ts-ignore
           logsChartData: res2?.histograms ?? [],
           pagination: {
@@ -59,6 +63,7 @@ export const LogsProvider = ({ children }) => {
           // logRule: res3,
         },
       })
+
     } catch (error) {
       console.error('请求出错:', error)
       // @ts-ignore
@@ -83,7 +88,6 @@ export const LogsProvider = ({ children }) => {
       dispatch({ type: 'updateLoading', payload: false })
     }
   }
-
   const getFieldIndexData = async ({ startTime, endTime, column }) => {
     try {
       const res = await getLogIndexApi({
@@ -135,15 +139,25 @@ export const LogsProvider = ({ children }) => {
             dataBase: res.parses[0].dataBase,
             tableName: res.parses[0].tableName,
             parseName: res.parses[0]?.parseName,
+            type: 'logLibrary'
           },
         })
       }
     })
   }
+  const persistFieldsVisibility = () => {
+    dispatchRedux({
+      type: 'updateLogsField',
+      payload: { [`${state.tableInfo.tableName}-${state.tableInfo.type}`]: state.displayFields }
+    })
+  }
   useEffect(() => {
-    console.log('获取database')
     getLogTableInfo()
   }, [])
+  useEffect(() => {
+    persistFieldsVisibility()
+  }, [state.displayFields])
+
   const memoizedValue = useMemo(
     () => ({
       logs: state.logs,
@@ -151,6 +165,7 @@ export const LogsProvider = ({ children }) => {
       logsChartData: state.logsChartData,
       defaultFields: state.defaultFields,
       hiddenFields: state.hiddenFields,
+      displayFields: state.displayFields,
       query: state.query,
       loading: state.loading,
       fieldIndexMap: state.fieldIndexMap,
@@ -171,7 +186,13 @@ export const LogsProvider = ({ children }) => {
       // @ts-ignore
       updateDefaultFields: (data) => dispatch({ type: 'updateDefaultFields', payload: data }),
       // @ts-ignore
-      updateHiddenFields: (data) => dispatch({ type: 'updateHiddenFields', payload: data }),
+      updateHiddenFields: (data) => dispatch({ type: 'addHiddenFields', payload: data }),
+      // @ts-ignore
+      addDisplayFields: (data) => dispatch({ type: 'addDisplayFields', payload: data }),
+      // @ts-ignore
+      removeDisplayFields: (data) => dispatch({ type: 'removeDisplayFields', payload: data }),
+      // @ts-ignore
+      resetDisplayFields: (data) => dispatch({ type: 'resetDisplayFields', payload: data }),
       // @ts-ignore
       updateQuery: (data) => dispatch({ type: 'updateQuery', payload: data }),
       // @ts-ignore
@@ -193,6 +214,7 @@ export const LogsProvider = ({ children }) => {
       state.logsChartData,
       state.defaultFields,
       state.hiddenFields,
+      state.displayFields,
       state.query,
       state.loading,
       state.fieldIndexMap,

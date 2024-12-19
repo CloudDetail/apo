@@ -96,6 +96,7 @@ const LogRuleList = () => {
       tableName: selectedNodes[0].tableName,
       cluster: '',
       parseName: selectedNodes[0].parseName,
+      type: 'logLibrary'
     })
   }
   useEffect(() => {

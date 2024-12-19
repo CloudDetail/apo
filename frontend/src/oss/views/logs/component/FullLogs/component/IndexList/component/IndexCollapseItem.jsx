@@ -14,13 +14,15 @@ const IndexCollapseItem = ({ field }) => {
     getFieldIndexData,
     defaultFields,
     hiddenFields,
+    displayFields
   } = useLogsContext()
 
   const [searchParams] = useSearchParams()
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
   const [loading, setLoading] = useState(false)
+
   const clickIndex = (index) => {
-    let newQueryPart = '`' + field + '` =' + "'" + index.indexName + "'"
+    let newQueryPart = '`' + field + '` = ' + "'" + index.indexName + "'"
     // 检查 query 是否已经包含 newQueryPart
     if (!query.includes(newQueryPart)) {
       let newQuery = query
@@ -31,6 +33,7 @@ const IndexCollapseItem = ({ field }) => {
       updateQuery(newQuery) // 更新查询
     }
   }
+
   useEffect(() => {
     if ((defaultFields.includes(field) || hiddenFields.includes(field)) && !fieldIndexMap[field]) {
       setLoading(true)
