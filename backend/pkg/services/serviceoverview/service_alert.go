@@ -2,6 +2,7 @@ package serviceoverview
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"log"
 	"strconv"
 	"time"
 
@@ -352,7 +353,12 @@ func (s *service) getNormalLog(service ServiceDetail, startTime, endTime time.Ti
 	if err != nil {
 		return nil
 	}
-	pql = "(" + pql + ")" + offset
-	normalLog, _ := s.promRepo.QueryData(endTime, pql)
+	if len(offset) > 0 {
+		pql = "(" + pql + ") offset " + offset
+	}
+	normalLog, err := s.promRepo.QueryData(endTime, pql)
+	if err != nil {
+		log.Println(err)
+	}
 	return normalLog
 }
