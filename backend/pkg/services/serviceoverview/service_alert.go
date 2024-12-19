@@ -2,6 +2,7 @@ package serviceoverview
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"log"
 	"strconv"
 	"time"
 
@@ -121,9 +122,9 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 			}
 			newLogs.ChartData = values
 		}
-		normalNowLog := s.getNormalLog(service, startTime, endTime, "")
-		normalDayLog := s.getNormalLog(service, startTime, endTime, "24h")
-		normalWeekLog := s.getNormalLog(service, startTime, endTime, "7d")
+		normalNowLog := s.getNormalLog(service, startTime, endTime, 0)
+		normalDayLog := s.getNormalLog(service, startTime, endTime, time.Hour*24)
+		normalWeekLog := s.getNormalLog(service, startTime, endTime, time.Hour*24*7)
 		var allLogNow, allLogDay, allLogWeek *float64 // 当前、昨天、上周的总日志错误数
 		// 整合instance的now，day，week，avg数据
 		for _, instance := range service.Instances {
@@ -324,7 +325,7 @@ func getLatestStartTime(startTSmap map[model.ServiceInstance]int64) int64 {
 }
 
 // getNormalLog 查询service下所有实例是否有正常log指标
-func (s *service) getNormalLog(service ServiceDetail, startTime, endTime time.Time, offset string) []prometheus.MetricResult {
+func (s *service) getNormalLog(service ServiceDetail, startTime, endTime time.Time, offset time.Duration) []prometheus.MetricResult {
 	startTS, endTS := startTime.UnixMicro(), endTime.UnixMicro()
 	var pods, pids, nodeNames []string
 	for _, instance := range service.Instances {
@@ -352,7 +353,9 @@ func (s *service) getNormalLog(service ServiceDetail, startTime, endTime time.Ti
 	if err != nil {
 		return nil
 	}
-	pql = "(" + pql + ")" + offset
-	normalLog, _ := s.promRepo.QueryData(endTime, pql)
+	normalLog, err := s.promRepo.QueryData(endTime.Add(-offset), pql)
+	if err != nil {
+		log.Println(err)
+	}
 	return normalLog
 }
