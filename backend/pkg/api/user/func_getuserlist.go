@@ -35,6 +35,13 @@ func (h *handler) GetUserList() core.HandlerFunc {
 			return
 		}
 
+		if req.PageParam == nil {
+			req.PageParam = &request.PageParam{
+				CurrentPage: 1,
+				PageSize:    99,
+			}
+		}
+
 		resp, err := h.userService.GetUserList(req)
 		if err != nil {
 			c.AbortWithError(core.Error(

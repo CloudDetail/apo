@@ -70,8 +70,12 @@ type Context interface {
 	SetHeader(key, value string)
 
 	GetContext() go_context.Context
-
+	// Set Sets key-value pairs in context
+	Set(key string, value interface{})
+	// Get Gets the value of the key in context.
 	Get(key string) (any, bool)
+
+	Next()
 }
 
 type context struct {
@@ -159,6 +163,12 @@ func (c *context) GetContext() go_context.Context {
 	return c.ctx
 }
 
+func (c *context) Set(key string, value interface{}) { c.ctx.Set(key, value) }
+
 func (c *context) Get(key string) (any, bool) {
 	return c.ctx.Get(key)
 }
+
+func (c *context) Next() { c.ctx.Next() }
+
+func (c *context) Abort() { c.ctx.Abort() }

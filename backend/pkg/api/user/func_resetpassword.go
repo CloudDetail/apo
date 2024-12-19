@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
@@ -17,7 +16,7 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param username formData string true "用户名"
+// @Param userId formData int64 true "用户id"
 // @Param newPassword formData string true "新密码"
 // @Param confirmPassword formData string true "重复密码"
 // @Param Authorization header string true "Bearer accessToken"
@@ -42,14 +41,6 @@ func (h *handler) ResetPassword() core.HandlerFunc {
 				code.UserConfirmPasswordError,
 				code.Text(code.UserConfirmPasswordError)),
 			)
-			return
-		}
-
-		if req.Username == config.Get().User.AnonymousUser.Username {
-			c.AbortWithError(core.Error(
-				http.StatusBadRequest,
-				code.UserNoPermissionError,
-				code.Text(code.UserNoPermissionError)))
 			return
 		}
 

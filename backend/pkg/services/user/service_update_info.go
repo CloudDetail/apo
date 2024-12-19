@@ -13,18 +13,18 @@ func (s *service) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
 }
 
 func (s *service) UpdateUserPhone(req *request.UpdateUserPhoneRequest) error {
-	return s.dbRepo.UpdateUserPhone(req.Username, req.Phone)
+	return s.dbRepo.UpdateUserPhone(req.UserID, req.Phone)
 }
 
 func (s *service) UpdateUserEmail(req *request.UpdateUserEmailRequest) error {
-	return s.dbRepo.UpdateUserEmail(req.Username, req.Email)
+	return s.dbRepo.UpdateUserEmail(req.UserID, req.Email)
 }
 
 func (s *service) UpdateUserPassword(req *request.UpdateUserPasswordRequest) error {
 	if err := checkPasswordComplexity(req.NewPassword); err != nil {
 		return err
 	}
-	return s.dbRepo.UpdateUserPassword(req.Username, req.OldPassword, req.NewPassword)
+	return s.dbRepo.UpdateUserPassword(req.UserID, req.OldPassword, req.NewPassword)
 }
 
 func checkPasswordComplexity(password string) error {
@@ -81,5 +81,5 @@ func (s *service) RestPassword(req *request.ResetPasswordRequest) error {
 	if err := checkPasswordComplexity(req.NewPassword); err != nil {
 		return err
 	}
-	return s.dbRepo.RestPassword(req.Username, req.NewPassword)
+	return s.dbRepo.RestPassword(req.UserID, req.NewPassword)
 }
