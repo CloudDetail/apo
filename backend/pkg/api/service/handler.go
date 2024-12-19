@@ -84,6 +84,11 @@ type Handler interface {
 	// @Router /api/service/instances/list [get]
 	GetServiceInstanceList() core.HandlerFunc
 
+	// GetServiceInstanceList 获取服务的实例详情
+	// @Tags API.service
+	// @Router /api/service/instanceinfo/list [get]
+	GetServiceInstanceInfoList() core.HandlerFunc
+
 	// GetServiceInstanceOptions 获取服务下拉实例列表
 	// @Tags API.service
 	// @Router /api/service/instance/options [get]
