@@ -2,9 +2,9 @@ import { Tag } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import LogKeyTag from './LogKeyTag'
-const LogItemDetail = ({ log }) => {
+const LogItemDetail = ({ log, access }) => {
   const [contentInfo, setContentInfo] = useState({})
-  const { tableInfo } = useLogsContext()
+  const { tableInfo, displayFields } = useLogsContext()
   useEffect(() => {
     try {
       const obj = JSON.parse(log.content)
@@ -23,13 +23,9 @@ const LogItemDetail = ({ log }) => {
   }, [log])
   return (
     <div className=" ">
-      {Object.entries(contentInfo).map(([key, value]) => (
+      {!access && Object.entries(contentInfo).map(([key, value]) => (
         <LogKeyTag key={key} title={key} description={value} />
       ))}
-      {tableInfo.timeField &&
-        Object.entries(log.tags).map(([key, value]) => (
-          <LogKeyTag key={key} title={key} description={value} />
-        ))}
     </div>
   )
 }

@@ -12,8 +12,8 @@ import groupLabelReducer from './groupLabelReducer'
 import groupLabelPresistConfig from '../persist/groupLabelPresistConfig'
 import userReducer from './userReducer'
 import userPersistConfig from '../persist/userPresistConfig'
-import personalizedSettingReducer from './personalizedSettingReducer'
-import personalizedSettingPersistConfig from '../persist/personalizedSettingPersistConfig'
+import logsReducer from './logsReducer'
+import logsPresistConfig from '../persist/logsPresistConfig'
 
 const rootReducer = combineReducers({
   timeRange: persistReducer(timeRangePersistConfig, timeRangeReducer),
@@ -22,7 +22,7 @@ const rootReducer = combineReducers({
   urlParamsReducer: persistReducer(urlParamsPresistConfig, urlParamsReducer),
   groupLabelReducer: persistReducer(groupLabelPresistConfig, groupLabelReducer),
   userReducer: persistReducer(userPersistConfig, userReducer),
-  personalizedSetting: persistReducer(personalizedSettingPersistConfig, personalizedSettingReducer)
+  logsReducer: persistReducer(logsPresistConfig, logsReducer)
 })
 
 export default rootReducer
