@@ -21,7 +21,7 @@ export const logsInitialState = {
   defaultFields: [],
 
   hiddenFields: [],
-  displayFields: [],
+  displayFields: {},
   //最终的query 会触发查询
   query: '',
   //searchValue 当前框值，不触发查询
@@ -45,7 +45,7 @@ const logsReducer = (state = logsInitialState, action) => {
     case 'updateHiddenFields':
       return { ...state, hiddenFields: action.payload }
     case 'addDisplayFields':
-      return { ...state, displayFields: [...state.displayFields, action.payload] }
+      return { ...state, displayFields: { ...state.displayFields, ...action.payload } }
     case 'removeDisplayFields':
       return { ...state, displayFields: action.payload }
     case 'resetDisplayFields':
@@ -64,7 +64,6 @@ const logsReducer = (state = logsInitialState, action) => {
         fieldIndexMap: {},
         defaultFields: [],
         hiddenFields: [],
-        displayFields: [],
       }
     case 'setLogState':
       return { ...state, ...action.payload }

@@ -7,17 +7,15 @@ import {
   getLogRuleApi,
   getLogTableInfoAPi,
 } from 'core/api/logs'
-import logsReducer, { logsInitialState } from 'src/core/store/reducers/logsReducer'
 import { useDispatch, useSelector } from 'react-redux'
 
-const LogsContext = createContext(logsInitialState)
+const LogsContext = createContext(null)
 
 export const useLogsContext = () => useContext(LogsContext)
 
 export const LogsProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(logsReducer, logsInitialState)
-  const dispatchRedux = useDispatch()
-  const personalizedSetting = useSelector((state) => state.personalizedSetting)
+  const dispatch = useDispatch()
+  const logs = useSelector((state) => state.logsReducer)
   const fetchData = async ({ startTime, endTime }) => {
     // @ts-ignore
     dispatch({ type: 'updateLoading', payload: true })
@@ -26,12 +24,12 @@ export const LogsProvider = ({ children }) => {
       const params = {
         startTime: startTime,
         endTime: endTime,
-        pageNum: state.pagination.pageIndex,
-        pageSize: state.pagination.pageSize,
-        tableName: state.tableInfo?.tableName,
-        dataBase: state.tableInfo?.dataBase,
-        timeField: state.tableInfo?.timeField,
-        query: state.query,
+        pageNum: logs.pagination.pageIndex,
+        pageSize: logs.pagination.pageSize,
+        tableName: logs.tableInfo?.tableName,
+        dataBase: logs.tableInfo?.dataBase,
+        timeField: logs.tableInfo?.timeField,
+        query: logs.query,
       }
 
       const [res1, res2] = await Promise.all([
@@ -43,6 +41,10 @@ export const LogsProvider = ({ children }) => {
       let defaultFields = (res1?.defaultFields ?? []).sort()
       // @ts-ignore
       let hiddenFields = (res1?.hiddenFields ?? []).sort()
+
+      //由tableName和type组成的唯一标识
+      const tableId = `${logs.tableInfo.tableName}_${logs.tableInfo.type}`
+
       // @ts-ignore
       dispatch({
         type: 'setLogState',
@@ -51,14 +53,19 @@ export const LogsProvider = ({ children }) => {
           logs: res1?.logs ?? [],
           defaultFields: defaultFields,
           hiddenFields: hiddenFields,
-          displayFields: personalizedSetting?.logsField[`${state.tableInfo.tableName}-${state.tableInfo.type}`] ?? [...defaultFields, ...hiddenFields],
+          //判断displayFields对象中是否包含某个Table的信息，如果包含就不做处理，如果不包含就全部显示
+          //${logs.tableInfo.tableName}_${logs.tableInfo.type}tableName+tableInfo作为唯一标识
+          displayFields: Object.keys(logs.displayFields).some((key) => {
+            return key === tableId
+          }) ? logs.displayFields :
+            { ...logs.displayFields, [tableId]: [...defaultFields, ...hiddenFields] },
           // @ts-ignore
           logsChartData: res2?.histograms ?? [],
           pagination: {
             // @ts-ignore
             total: res2?.count ?? 0,
-            pageIndex: state.pagination.pageIndex,
-            pageSize: state.pagination.pageSize,
+            pageIndex: logs.pagination.pageIndex,
+            pageSize: logs.pagination.pageSize,
           },
           // logRule: res3,
         },
@@ -77,8 +84,8 @@ export const LogsProvider = ({ children }) => {
           loading: false,
           pagination: {
             total: 0,
-            pageIndex: state.pagination.pageIndex,
-            pageSize: state.pagination.pageSize,
+            pageIndex: logs.pagination.pageIndex,
+            pageSize: logs.pagination.pageSize,
           },
           // logRule: res3,
         },
@@ -88,16 +95,17 @@ export const LogsProvider = ({ children }) => {
       dispatch({ type: 'updateLoading', payload: false })
     }
   }
+
   const getFieldIndexData = async ({ startTime, endTime, column }) => {
     try {
       const res = await getLogIndexApi({
         startTime,
         endTime,
         column,
-        tableName: state.tableInfo?.tableName,
-        dataBase: state.tableInfo?.dataBase,
-        timeField: state.tableInfo?.timeField,
-        query: state.query,
+        tableName: logs.tableInfo?.tableName,
+        dataBase: logs.tableInfo?.dataBase,
+        timeField: logs.tableInfo?.timeField,
+        query: logs.query,
       })
 
       // @ts-ignore
@@ -122,6 +130,7 @@ export const LogsProvider = ({ children }) => {
       throw error // 如果发生错误，可以抛出异常让调用方处理
     }
   }
+
   const getLogTableInfo = () => {
     // @ts-ignore
     dispatch({ type: 'updateLoading', payload: true })
@@ -145,34 +154,26 @@ export const LogsProvider = ({ children }) => {
       }
     })
   }
-  const persistFieldsVisibility = () => {
-    dispatchRedux({
-      type: 'updateLogsField',
-      payload: { [`${state.tableInfo.tableName}-${state.tableInfo.type}`]: state.displayFields }
-    })
-  }
+
   useEffect(() => {
     getLogTableInfo()
   }, [])
-  useEffect(() => {
-    persistFieldsVisibility()
-  }, [state.displayFields])
 
   const memoizedValue = useMemo(
     () => ({
-      logs: state.logs,
-      pagination: state.pagination,
-      logsChartData: state.logsChartData,
-      defaultFields: state.defaultFields,
-      hiddenFields: state.hiddenFields,
-      displayFields: state.displayFields,
-      query: state.query,
-      loading: state.loading,
-      fieldIndexMap: state.fieldIndexMap,
-      tableInfo: state.tableInfo,
-      logRules: state.logRules,
-      instances: state.instances,
-      searchValue: state.searchValue,
+      logs: logs.logs,
+      pagination: logs.pagination,
+      logsChartData: logs.logsChartData,
+      defaultFields: logs.defaultFields,
+      hiddenFields: logs.hiddenFields,
+      displayFields: logs.displayFields,
+      query: logs.query,
+      loading: logs.loading,
+      fieldIndexMap: logs.fieldIndexMap,
+      tableInfo: logs.tableInfo,
+      logRules: logs.logRules,
+      instances: logs.instances,
+      searchValue: logs.searchValue,
       fetchData,
       getLogTableInfo,
       getFieldIndexData,
@@ -209,19 +210,19 @@ export const LogsProvider = ({ children }) => {
       clearFieldIndexMap: () => dispatch({ type: 'clearFieldIndexMap' }),
     }),
     [
-      state.logs,
-      state.pagination,
-      state.logsChartData,
-      state.defaultFields,
-      state.hiddenFields,
-      state.displayFields,
-      state.query,
-      state.loading,
-      state.fieldIndexMap,
-      state.tableInfo,
-      state.logRules,
-      state.instances,
-      state.searchValue,
+      logs.logs,
+      logs.pagination,
+      logs.logsChartData,
+      logs.defaultFields,
+      logs.hiddenFields,
+      logs.displayFields,
+      logs.query,
+      logs.loading,
+      logs.fieldIndexMap,
+      logs.tableInfo,
+      logs.logRules,
+      logs.instances,
+      logs.searchValue,
     ],
   )
 
