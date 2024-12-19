@@ -24,7 +24,7 @@ func (s *service) GetUserFeature(userID int64) ([]database.Feature, error) {
 	}
 	subIDs[i] = userID
 	// 3. Get feature permission.
-	permissions, err := s.dbRepo.GetSubjectsPermission(subIDs, model.PERMISSION_TYP_FEATURE)
+	permissions, err := s.dbRepo.GetSubjectsPermission(subIDs, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE)
 	if err != nil {
 		return nil, err
 	}

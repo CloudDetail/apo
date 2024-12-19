@@ -17,20 +17,27 @@ func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.Get
 	}
 	// 2. TODO Get user's team
 	// 3. Get user's feature permission
-	subIDs := make([]int64, len(roles)+1)
+	subIDs := make([]int64, len(roles))
 	var i int
 	for ; i < len(roles); i++ {
 		subIDs[i] = int64(roles[i].RoleID)
 	}
-	subIDs[i] = req.UserID
-	features, err := s.dbRepo.GetSubjectsPermission(subIDs, model.PERMISSION_TYP_FEATURE)
+	features, err := s.dbRepo.GetSubjectsPermission(subIDs, model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE)
 	if err != nil {
 		return resp, err
 	}
+
+	uFeatureIDs, err := s.dbRepo.GetSubjectPermission(req.UserID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE)
+	if err != nil {
+		return resp, err
+	}
+
 	featureIDs := make([]int, len(features))
 	for i, feature := range features {
 		featureIDs[i] = feature.PermissionID
 	}
+
+	featureIDs = append(featureIDs, uFeatureIDs...)
 	// 4. Get menu item ids
 	res, err := s.dbRepo.GetMappedMenuItem(featureIDs)
 	itemIDs := make([]int, len(res))

@@ -24,10 +24,10 @@ func (repo *daoRepo) GetSubjectPermission(subID int64, subType string, typ strin
 	return permissionIDs, err
 }
 
-func (repo *daoRepo) GetSubjectsPermission(subIDs []int64, typ string) ([]AuthPermission, error) {
+func (repo *daoRepo) GetSubjectsPermission(subIDs []int64, subType string, typ string) ([]AuthPermission, error) {
 	var permissions []AuthPermission
 	err := repo.db.Model(&AuthPermission{}).
-		Where("subject_id in ? AND type = ?", subIDs, typ).
+		Where("subject_id in ? AND subject_type = ? AND type = ?", subIDs, subType, typ).
 		Find(&permissions).Error
 	return permissions, err
 }
