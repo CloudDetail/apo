@@ -96,6 +96,9 @@ function MenuManagePage() {
           color: 'success',
         })
       })
+      .catch((error) => {
+        console.error(error)
+      })
       .finally(() => {
         getUserPermission()
         setLoading(false)

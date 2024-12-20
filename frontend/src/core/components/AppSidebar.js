@@ -36,14 +36,9 @@ const AppSidebar = ({ collapsed }) => {
   }
 
   useEffect(() => {
-    if (menuItems?.length > 0) {
-      const items = menuItems?.map((menu) => {
-        return prepareMenu(menu)
-      })
-      setMenuList(items)
-    }
-    // setMenuList(getItems())
-  }, [menuItems, user])
+    const items = menuItems?.length ? menuItems.map(prepareMenu) : []
+    setMenuList(items)
+  }, [menuItems])
 
   const onClick = ({ item, key, keyPath, domEvent }) => {
     navigate(item.props.to)
