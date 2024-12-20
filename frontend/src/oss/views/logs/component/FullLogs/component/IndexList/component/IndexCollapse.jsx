@@ -19,17 +19,27 @@ const IndexCollapse = (props) => {
     displayFields,
     addDisplayFields,
     removeDisplayFields,
+    tableInfo,
     query = '',
     updateQuery
   } = useLogsContext()
 
+  //由tableName和type组成的唯一标识
+  const tableId = `${tableInfo.tableName}_${tableInfo.type}`
+
   const addToDisplayField = (event, field) => {
     event.stopPropagation()
-    addDisplayFields(field)
+    addDisplayFields({
+      [tableId]: [...displayFields[tableId], field]
+    })
   }
   const removeToDisplayField = (event, field) => {
     event.stopPropagation()
-    const payload = displayFields.filter((item) => item !== field)
+    const payload = {
+      ...displayFields,
+      [tableId]: displayFields[tableId]
+        .filter((item) => item !== field)
+    }
     removeDisplayFields(payload)
   }
 
@@ -47,8 +57,8 @@ const IndexCollapse = (props) => {
             <div className='flex-1 overflow-hidden whitespace-nowrap text-ellipsis'>
               {item}
             </div>
-            {!displayFields.includes(item) ?
-              <Button size='small'className='border-0' onClick={(e) => addToDisplayField(e, item)}>
+            {!displayFields[`${tableInfo.tableName}_${tableInfo.type}`].includes(item) ?
+              <Button size='small' className='border-0' onClick={(e) => addToDisplayField(e, item)}>
                 <IoMdEyeOff size={16} className='opacity-40 text-[#999999]' />
               </Button>
               :
