@@ -83,7 +83,9 @@ const IndexCollapse = (props) => {
             expandIconPosition="end"
             ghost
             className={style.collapse}
-            style={{ maxHeight: 'calc((100vh - 275px) / 2)', borderRadius: '0', }}
+            style={tableInfo.type === 'database' ?
+              { maxHeight: 'calc((100vh - 250px))', borderRadius: '0', } :
+              { maxHeight: 'calc((100vh - 275px) / 2)', borderRadius: '0', }}
           // expandIcon={({ isActive }) => (isActive ? <AiFillCaretUp /> : <AiFillCaretDown />)}
           />
         </>
