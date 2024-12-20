@@ -8,9 +8,7 @@ import {
   getLogTableInfoAPi,
 } from 'core/api/logs'
 import { useDispatch, useSelector } from 'react-redux'
-
 const LogsContext = createContext(null)
-
 export const useLogsContext = () => useContext(LogsContext)
 
 export const LogsProvider = ({ children }) => {

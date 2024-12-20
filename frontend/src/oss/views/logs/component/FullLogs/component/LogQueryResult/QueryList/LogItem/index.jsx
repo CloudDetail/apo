@@ -35,8 +35,8 @@ const LogItem = (props) => {
       <div className="flex-1 overflow-hidden">
         {
           <>
-            <LogItemFold tags={log.tags} fields={log.logFields} />
-            {!tableInfo.timeField && <LogItemDetail log={log} />}
+            <LogItemFold tags={log.tags} />
+            <LogItemDetail log={log} contentVisibility={!tableInfo?.timeField} />
           </>
         }
       </div>
