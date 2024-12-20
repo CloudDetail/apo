@@ -36,7 +36,7 @@ const LogItem = (props) => {
         {
           <>
             <LogItemFold tags={log.tags} fields={log.logFields} />
-            <LogItemDetail log={log} access={tableInfo.timeField} />
+            {!tableInfo.timeField && <LogItemDetail log={log} />}
           </>
         }
       </div>

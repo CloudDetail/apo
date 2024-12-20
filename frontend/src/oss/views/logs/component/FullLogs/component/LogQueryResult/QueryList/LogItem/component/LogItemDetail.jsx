@@ -2,7 +2,7 @@ import { Tag } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import LogKeyTag from './LogKeyTag'
-const LogItemDetail = ({ log, access }) => {
+const LogItemDetail = ({ log }) => {
   const [contentInfo, setContentInfo] = useState({})
   const { tableInfo, displayFields } = useLogsContext()
   useEffect(() => {
@@ -23,7 +23,7 @@ const LogItemDetail = ({ log, access }) => {
   }, [log])
   return (
     <div className=" ">
-      {!access && Object.entries(contentInfo).map(([key, value]) => (
+      {Object.entries(contentInfo).map(([key, value]) => (
         <LogKeyTag key={key} title={key} description={value} />
       ))}
     </div>
