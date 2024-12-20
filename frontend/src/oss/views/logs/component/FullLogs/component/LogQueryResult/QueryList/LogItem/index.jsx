@@ -11,7 +11,7 @@ const LogItem = (props) => {
   const { tableInfo } = useLogsContext()
 
   return (
-    <div className="flex overflow-hidden px-2">
+    <div className="flex overflow-hidden px-2 w-full">
       {/* icon 和 时间 */}
       <div className="flex-grow-0 flex-shrink-0  w-[230px]">
         <div className="items-center pl-2 j">
