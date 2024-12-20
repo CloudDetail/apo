@@ -1,5 +1,5 @@
 import { Button, Card, Collapse, Input, Tooltip } from 'antd'
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import IndexCollapse from './component/IndexCollapse'
 import './index.css'
 import FullTextSearch from '../SerarchBar/RawLogQuery/FullTextSearch'
@@ -74,13 +74,16 @@ const IndexList = () => {
       children: <IndexCollapse type="log" />,
     },
   ]
+
+  const getItems = () => (tableInfo.type === 'database' ? items.filter(({ key }) => key === 'log') : items);
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-shrink-0 py-2">
         <FullTextSearch />
       </div>
       <Collapse
-        items={items}
+        items={getItems()}
         defaultActiveKey={['base', 'log']}
         size="small"
         className=" flex-1 indexList h-full overflow-auto mb-2 mt-2"
