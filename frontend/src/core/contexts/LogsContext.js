@@ -28,6 +28,7 @@ export const LogsProvider = ({ children }) => {
         dataBase: logs.tableInfo?.dataBase,
         timeField: logs.tableInfo?.timeField,
         query: logs.query,
+        isExternal: logs.tableInfo?.type === 'database',
       }
 
       const [res1, res2] = await Promise.all([
@@ -179,7 +180,7 @@ export const LogsProvider = ({ children }) => {
       updateLogs: (logs) => dispatch({ type: 'setLogs', payload: logs }),
       updateLogsPagination: (pagination) =>
         // @ts-ignore
-        dispatch({ type: 'setPagination', payload: { ...state.pagination, ...pagination } }),
+        dispatch({ type: 'setPagination', payload: { ...logs.pagination, ...pagination } }),
       // @ts-ignore
       updateLogsChartData: (data) => dispatch({ type: 'setLogsChartData', payload: data }),
       // @ts-ignore

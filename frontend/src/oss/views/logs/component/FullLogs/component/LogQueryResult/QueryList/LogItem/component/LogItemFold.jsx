@@ -9,21 +9,22 @@ const LogItemFold = ({ tags }) => {
   const tableId = `${tableInfo.tableName}_${tableInfo.type}`
   // 计算过滤后的 tags
   const filteredTags = useMemo(() => {
-    return Object.entries(tags).filter(([key, value]) => {
-      return (
-        displayFields[tableId]?.includes(key) &&  // 检查是否在显示字段中
-        value !== '' &&  // 确保值不为空
-        key !== (tableInfo?.timeField || 'timestamp') &&  // 排除时间字段
-        typeof value !== 'object'  // 确保值不是对象
-      );
-    });
+    if (!tags) return [];
+
+    const isFieldValid = ([key, value]) =>
+      displayFields[tableId]?.includes(key) &&
+      value !== '' &&
+      key !== (tableInfo?.timeField || 'timestamp') &&
+      typeof value !== 'object';
+
+    return Object.entries(tags).filter(isFieldValid);
   }, [tags, displayFields, tableInfo?.timeField]);
 
   return (
     <>
       {/* 渲染 tags */}
       <div className="text-ellipsis text-wrap flex" style={{ display: '-webkit-box' }}>
-        {filteredTags.map(([key, value]) => (
+        {filteredTags?.map(([key, value]) => (
           <LogValueTag key={key} objKey={key} value={String(value)} />
         ))}
       </div>
