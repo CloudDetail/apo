@@ -106,13 +106,18 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 				delete(log, k)
 			}
 		}
-
-		logitems[i] = response.LogItem{
-			Content:   content,
-			Tags:      log,
-			Time:      timestamp,
-			LogFields: logFields,
+		item := response.LogItem{
+			Time: timestamp,
 		}
+		if req.IsExternal {
+			item.LogFields = log
+		} else {
+			item.Tags = log
+			item.Content = content
+			item.LogFields = logFields
+		}
+
+		logitems[i] = item
 	}
 
 	res.Logs = logitems
