@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
 	"time"
 
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -140,25 +139,13 @@ func (f EndpointsFilter) ExtractFilterStr() []string {
 		filters = append(filters, prom.NamespacePQLFilter, f.Namespace)
 	}
 	if len(f.MultiNamespace) > 0 {
-		escapedNamespaces := make([]string, len(f.MultiNamespace))
-		for i, namespace := range f.MultiNamespace {
-			escapedNamespaces[i] = prom.RegexContainsValue(namespace)
-		}
-		filters = append(filters, prom.NamespaceRegexPQLFilter, strings.Join(escapedNamespaces, "|"))
+		filters = append(filters, prom.NamespaceRegexPQLFilter, prom.RegexMultipleValue(f.MultiNamespace...))
 	}
 	if len(f.MultiService) > 0 {
-		escapedServices := make([]string, len(f.MultiService))
-		for i, svc := range f.MultiService {
-			escapedServices[i] = prom.RegexContainsValue(svc)
-		}
-		filters = append(filters, prom.ServiceRegexPQLFilter, strings.Join(escapedServices, "|"))
+		filters = append(filters, prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(f.MultiService...))
 	}
 	if len(f.MultiEndpoint) > 0 {
-		escapedEndpoints := make([]string, len(f.MultiEndpoint))
-		for i, endpoint := range f.MultiEndpoint {
-			escapedEndpoints[i] = prom.RegexContainsValue(endpoint)
-		}
-		filters = append(filters, prom.ContentKeyRegexPQLFilter, strings.Join(escapedEndpoints, "|"))
+		filters = append(filters, prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(f.MultiEndpoint...))
 	}
 	return filters
 }
