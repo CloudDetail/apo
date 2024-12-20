@@ -2930,6 +2930,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/service/instanceinfo/list": {
+            "get": {
+                "description": "获取服务实例列表",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.service"
+                ],
+                "summary": "获取服务实例列表",
+                "deprecated": true,
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "查询开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询服务名",
+                        "name": "service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/service/instances": {
             "get": {
                 "description": "获取service对应url实例",
@@ -2976,8 +3038,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "endpoint",
                         "name": "endpoint",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -6908,6 +6969,9 @@ const docTemplate = `{
                 "endTime": {
                     "type": "integer"
                 },
+                "isExternal": {
+                    "type": "boolean"
+                },
                 "logField": {
                     "type": "string"
                 },
@@ -8339,6 +8403,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "defaultFields": {
+                    "description": "tag field",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -8348,6 +8413,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "hiddenFields": {
+                    "description": "log field",
                     "type": "array",
                     "items": {
                         "type": "string"
