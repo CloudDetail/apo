@@ -91,6 +91,7 @@ const LogRuleList = () => {
     )
   }, [logRules])
   const onSelect = (selectedKeys, { selectedNodes }) => {
+    updateLoading(true)
     updateTableInfo({
       dataBase: selectedNodes[0].dataBase,
       tableName: selectedNodes[0].tableName,

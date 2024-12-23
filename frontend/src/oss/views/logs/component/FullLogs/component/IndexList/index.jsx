@@ -1,5 +1,5 @@
 import { Button, Card, Collapse, Input, Tooltip } from 'antd'
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import IndexCollapse from './component/IndexCollapse'
 import './index.css'
 import FullTextSearch from '../SerarchBar/RawLogQuery/FullTextSearch'
@@ -11,8 +11,12 @@ const IndexList = () => {
     defaultFields,
     hiddenFields,
     displayFields,
-    resetDisplayFields
+    resetDisplayFields,
+    tableInfo
   } = useLogsContext()
+
+  //由tableName和type组成的唯一标识
+  const tableId = `${tableInfo.tableName}_${tableInfo.type}`
 
   const IndexType = {
     base: '基础字段',
@@ -23,15 +27,15 @@ const IndexList = () => {
     event.stopPropagation()
     if (field === 'tags') {
       if (type === 'show') {
-        resetDisplayFields([...new Set([...displayFields, ...defaultFields])])
+        resetDisplayFields({ ...displayFields, [tableId]: [...defaultFields, ...hiddenFields.filter((item) => displayFields[tableId].includes(item))] })
       } else {
-        resetDisplayFields(displayFields.filter((item) => !defaultFields.includes(item)))
+        resetDisplayFields({ ...displayFields, [tableId]: displayFields[tableId].filter((item) => !defaultFields.includes(item)) })
       }
     } else {
       if (type === 'show') {
-        resetDisplayFields([...new Set([...displayFields, ...hiddenFields])])
+        resetDisplayFields({ ...displayFields, [tableId]: [...defaultFields.filter((item) => displayFields[tableId].includes(item)), ...hiddenFields] })
       } else {
-        resetDisplayFields(displayFields.filter((item) => !hiddenFields.includes(item)))
+        resetDisplayFields({ ...displayFields, [tableId]: displayFields[tableId].filter((item) => !hiddenFields.includes(item)) })
       }
     }
   }
@@ -43,14 +47,10 @@ const IndexList = () => {
         <span className='select-none'>标签</span>
         <div className='flex items-center'>
           {
-            defaultFields.every(item => displayFields.includes(item)) ?
-              <Tooltip title='取消展示' mouseEnterDelay={0.5}>
-                <Button type='link' className='p-0 m-0 h-auto' icon={<IoMdEyeOff size={18} />} onClick={(e) => showHiddenAll(e, 'hidden', 'tags')}></Button>
-              </Tooltip>
+            defaultFields.every(item => displayFields[tableId].includes(item)) ?
+              <Button type='link' className='p-0 m-0 h-auto' icon={<IoMdEyeOff size={18} />} onClick={(e) => showHiddenAll(e, 'hidden', 'tags')}></Button>
               :
-              <Tooltip title='全部展示' mouseEnterDelay={0.5}>
-                <Button type='link' className='p-0 m-0 h-auto' icon={<IoEye size={18} />} onClick={(e) => showHiddenAll(e, 'show', 'tags')}></Button>
-              </Tooltip>
+              <Button type='link' className='p-0 m-0 h-auto' icon={<IoEye size={18} />} onClick={(e) => showHiddenAll(e, 'show', 'tags')}></Button>
           }
         </div>
       </div>
@@ -63,14 +63,10 @@ const IndexList = () => {
         <span className='select-none'>日志字段</span>
         <div className='flex items-center'>
           {
-            hiddenFields.every(item => displayFields.includes(item)) ?
-              <Tooltip title='取消展示' mouseEnterDelay={0.5}>
-                <Button type='link' className='p-0 m-0 h-auto' icon={<IoMdEyeOff size={18} />} onClick={(e) => showHiddenAll(e, 'hidden', 'logs')}></Button>
-              </Tooltip>
+            hiddenFields.every(item => displayFields[tableId].includes(item)) ?
+              <Button type='link' className='p-0 m-0 h-auto' icon={<IoMdEyeOff size={18} />} onClick={(e) => showHiddenAll(e, 'hidden', 'logs')}></Button>
               :
-              <Tooltip title='全部展示' mouseEnterDelay={0.5}>
-                <Button type='link' className='p-0 m-0 h-auto' icon={<IoEye size={18} />} onClick={(e) => showHiddenAll(e, 'show', 'logs')}></Button>
-              </Tooltip>
+              <Button type='link' className='p-0 m-0 h-auto' icon={<IoEye size={18} />} onClick={(e) => showHiddenAll(e, 'show', 'logs')}></Button>
           }
         </div>
       </div>
@@ -78,13 +74,16 @@ const IndexList = () => {
       children: <IndexCollapse type="log" />,
     },
   ]
+
+  const getItems = () => (tableInfo.type === 'database' ? items.filter(({ key }) => key === 'log') : items);
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-shrink-0 py-2">
         <FullTextSearch />
       </div>
       <Collapse
-        items={items}
+        items={getItems()}
         defaultActiveKey={['base', 'log']}
         size="small"
         className=" flex-1 indexList h-full overflow-auto mb-2 mt-2"
