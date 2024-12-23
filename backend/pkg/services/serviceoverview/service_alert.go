@@ -1,18 +1,16 @@
 package serviceoverview
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
-	"log"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
-
-	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
