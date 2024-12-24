@@ -14,7 +14,6 @@ func (repo *daoRepo) initRouterData() error {
 		{RouterTo: "/basic-dashboard", HideTimeSelector: false, MenuItemKey: "basic"},
 		{RouterTo: "/application-dashboard", HideTimeSelector: false, MenuItemKey: "application"},
 		{RouterTo: "/middleware-dashboard", HideTimeSelector: false, MenuItemKey: "middleware"},
-		{RouterTo: "/mysql-dashboard", HideTimeSelector: false, MenuItemKey: "mysql"},
 		{RouterTo: "/alerts", HideTimeSelector: true, MenuItemKey: "alerts"},
 		{RouterTo: "/config", HideTimeSelector: true, MenuItemKey: "config"},
 		{RouterTo: "/system/user-manage", HideTimeSelector: true, MenuItemKey: "userManage"},
@@ -30,7 +29,7 @@ func (repo *daoRepo) initRouterData() error {
 		}
 		for _, router := range routers {
 			var menuItem MenuItem
-			if err := tx.Where("key = ?", router.MenuItemKey).First(&menuItem).Error; err != nil {
+			if err := tx.Where("key = ?", router.MenuItemKey).Find(&menuItem).Error; err != nil {
 				return err
 			}
 
