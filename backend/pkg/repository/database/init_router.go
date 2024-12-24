@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// initRouterData TODO Add mapping of router to feature when permission control is required
 func (repo *daoRepo) initRouterData() error {
 	routers := []Router{
 		{RouterTo: "/service", HideTimeSelector: false, MenuItemKey: "service"},
@@ -17,7 +18,6 @@ func (repo *daoRepo) initRouterData() error {
 		{RouterTo: "/alerts", HideTimeSelector: true, MenuItemKey: "alerts"},
 		{RouterTo: "/config", HideTimeSelector: true, MenuItemKey: "config"},
 		{RouterTo: "/system/user-manage", HideTimeSelector: true, MenuItemKey: "userManage"},
-		{RouterTo: "/service/info", HideTimeSelector: false, MenuItemKey: "service"},
 		{RouterTo: "/system/menu-manage", HideTimeSelector: false, MenuItemKey: "menuManage"},
 		{RouterTo: "/trace/fault-site", HideTimeSelector: true, MenuItemKey: "faultSiteTrace"},
 		{RouterTo: "/trace/full", HideTimeSelector: true, MenuItemKey: "fullTrace"},
@@ -39,7 +39,7 @@ func (repo *daoRepo) initRouterData() error {
 			}
 			router.MenuItemID = menuItem.ItemID
 			if err := tx.Clauses(clause.OnConflict{
-				Columns:   []clause.Column{{Name: "router_to"}},
+				Columns:   []clause.Column{{Name: "menu_item_id"}},
 				UpdateAll: true,
 			}).Create(&router).Error; err != nil {
 				return err
