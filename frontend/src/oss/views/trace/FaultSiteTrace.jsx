@@ -5,8 +5,6 @@ import { getTimestampRange, timeRangeList } from 'src/core/store/reducers/timeRa
 import { convertTime, ISOToTimestamp } from 'src/core/utils/time'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { getTracePageListApi } from 'core/api/trace.js'
-import StatusInfo from 'src/core/components/StatusInfo'
-import { PropsProvider } from 'src/core/contexts/PropsContext'
 import EndpointTableModal from './component/JaegerIframeModal'
 import { useSelector } from 'react-redux'
 import LoadingSpinner from 'src/core/components/Spinner'
@@ -14,9 +12,9 @@ import LogsTraceFilter from 'src/oss/components/Filter/LogsTraceFilter'
 import { DefaultTraceFilters } from 'src/constants'
 import TraceErrorType from './component/TraceErrorType'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
-import { Tooltip } from 'antd'
+import { Card, Tooltip } from 'antd'
 
-function Trace() {
+function FaultSiteTrace() {
   // const [startTime, setStartTime] = useState(null)
   const [tracePageList, setTracePageList] = useState([])
   // const [endTime, setEndTime] = useState(null)
@@ -371,17 +369,11 @@ function Trace() {
     }
   }, [tracePageList])
   return (
-    // <PropsProvider
-    //   value={{
-    //     startTime,
-    //     endTime,
-    //     service,
-    //     instance,
-    //     traceId,
-    //     endpoint,
-    //   }}
-    // >
-    <>
+    <Card
+      className="h-full flex flex-col overflow-hidden text-xs px-2"
+      style={{ height: 'calc(100vh - 120px)' }}
+      styles={{ body: { padding: '8px', height: '100%' } }}
+    >
       <LoadingSpinner loading={loading} />
       <div className="text-xs flex flex-col h-full overflow-hidden">
         <div className="flex-shrink-0 flex-grow">
@@ -394,8 +386,8 @@ function Trace() {
         visible={modalVisible}
         closeModal={() => setModalVisible(false)}
       />
-    </>
+    </Card>
     // </PropsProvider>
   )
 }
-export default Trace
+export default FaultSiteTrace

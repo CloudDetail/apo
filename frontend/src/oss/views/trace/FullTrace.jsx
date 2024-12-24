@@ -1,10 +1,6 @@
-import { CToast, CToastBody } from '@coreui/react'
-import React from 'react'
-import { IoMdInformationCircleOutline } from 'react-icons/io'
-
 function FullTrace() {
   return (
-    <div className="text-xs h-full">
+    <div className="text-xs" style={{ height: 'calc(100vh - 120px)' }}>
       <iframe src={'/jaeger/search'} width="100%" height="100%" frameBorder={0}></iframe>
     </div>
   )
