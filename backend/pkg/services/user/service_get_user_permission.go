@@ -37,5 +37,11 @@ func (s *service) GetUserFeature(userID int64) ([]database.Feature, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// 5. Translation
+	err = s.dbRepo.GetFeatureTans(&features, "")
+	if err != nil {
+		return nil, err
+	}
 	return features, nil
 }

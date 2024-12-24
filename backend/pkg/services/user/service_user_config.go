@@ -60,6 +60,10 @@ func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.Get
 	if err != nil {
 		return resp, err
 	}
+	err = s.dbRepo.GetMenuItemTans(&items, req.Language)
+	if err != nil {
+		return resp, err
+	}
 	menuItemMap := make(map[int]*database.MenuItem)
 	var rootMenuItems []*database.MenuItem
 

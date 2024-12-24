@@ -7,9 +7,10 @@ const (
 )
 
 const (
-	ROLE_ADMIN   = "admin"
-	ROLE_MANAGER = "manager"
-	ROLE_VIEWER  = "viewer"
+	ROLE_ADMIN    = "admin"
+	ROLE_MANAGER  = "manager"
+	ROLE_VIEWER   = "viewer"
+	ROLE_ANONYMOS = "anonymous"
 )
 
 const (
@@ -18,4 +19,11 @@ const (
 
 	PERMISSION_TYP_FEATURE = "feature"
 	PERMISSION_TYP_DATA    = "data"
+)
+
+const (
+	TRANSLATION_EN          = "en"
+	TRANSLATION_ZH          = "zh"
+	TRANSLATION_TYP_FEATURE = "feature"
+	TRANSLATION_TYP_MENU    = "menu"
 )

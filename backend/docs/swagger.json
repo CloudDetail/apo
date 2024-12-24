@@ -1990,6 +1990,12 @@
                     },
                     {
                         "type": "string",
+                        "description": "language",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
                         "in": "header"
@@ -2025,6 +2031,12 @@
                 ],
                 "summary": "Gets all feature permission.",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "language",
+                        "name": "language",
+                        "in": "query"
+                    },
                     {
                         "type": "string",
                         "description": "Bearer accessToken",
@@ -2311,6 +2323,12 @@
                 ],
                 "summary": "Gets subject's permission.",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "language",
+                        "name": "language",
+                        "in": "query"
+                    },
                     {
                         "type": "integer",
                         "description": "授权主体id",

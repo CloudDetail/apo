@@ -12,6 +12,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 	"gorm.io/gorm"
+	"strconv"
 )
 
 const (
@@ -22,7 +23,7 @@ const (
 
 type User struct {
 	UserID      int64  `gorm:"column:user_id;primary_key" json:"userId,omitempty"`
-	Username    string `gorm:"column:username;unique" json:"username,omitempty"`
+	Username    string `gorm:"column:username;uniqueIdx" json:"username,omitempty"`
 	Password    string `gorm:"column:password" json:"-"`
 	Role        string `gorm:"column:role" json:"role,omitempty"`
 	Phone       string `gorm:"column:phone" json:"phone,omitempty"`
@@ -37,7 +38,6 @@ func (t *User) TableName() string {
 	return "user"
 }
 
-// createAdmin TODO Replace with sql script.
 func (repo *daoRepo) createAdmin() error {
 	var admin User
 	err := repo.db.Where("username = ?", model.ROLE_ADMIN).First(&admin).Error
@@ -79,6 +79,8 @@ func (repo *daoRepo) createAnonymousUser() error {
 			anonymousUser = User{
 				UserID:   util.Generator.GenerateID(),
 				Username: conf.Username,
+				// random password
+				Password: Encrypt(strconv.FormatInt(util.Generator.GenerateID(), 10)),
 			}
 
 			if err = repo.db.Create(&anonymousUser).Error; err != nil {

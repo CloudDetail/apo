@@ -1,8 +1,0 @@
-INSERT INTO role (role_id, role_name)
-SELECT 1, 'admin' WHERE NOT EXISTS (SELECT 1 FROM role WHERE role_id = 1)
-UNION ALL
-SELECT 2, 'manager' WHERE NOT EXISTS (SELECT 1 FROM role WHERE role_id = 2)
-UNION ALL
-SELECT 3, 'viewer' WHERE NOT EXISTS (SELECT 1 FROM role WHERE role_id = 3)
-UNION ALL
-SELECT 4, 'anonymous' WHERE NOT EXISTS (SELECT 1 FROM role WHERE role_id = 4);

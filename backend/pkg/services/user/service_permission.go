@@ -10,8 +10,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) GetFeature() (response.GetFeatureResponse, error) {
+func (s *service) GetFeature(req *request.GetFeatureRequest) (response.GetFeatureResponse, error) {
 	features, err := s.dbRepo.GetFeature(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.dbRepo.GetFeatureTans(&features, req.Language)
 	if err != nil {
 		return nil, err
 	}
@@ -48,6 +53,7 @@ func (s *service) GetSubjectFeature(req *request.GetSubjectFeatureRequest) (resp
 	if err != nil {
 		return resp, err
 	}
+	err = s.dbRepo.GetFeatureTans(&featureList, req.Language)
 	resp = featureList
 	return resp, nil
 }

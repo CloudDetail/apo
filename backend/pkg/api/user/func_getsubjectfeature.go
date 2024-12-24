@@ -14,6 +14,7 @@ import (
 // @Tags API.permission
 // @Accept application/x-www-form-urlencoded
 // @Produce json
+// @Param language query string false "language"
 // @Param subjectId query int64 true "授权主体id"
 // @Param subjectType query string true "授权主体类型"
 // @Success 200 {object} response.GetSubjectFeatureResponse

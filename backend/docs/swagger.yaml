@@ -3825,6 +3825,10 @@ paths:
         name: userId
         required: true
         type: integer
+      - description: language
+        in: query
+        name: language
+        type: string
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -3849,6 +3853,10 @@ paths:
       - application/x-www-form-urlencoded
       description: Gets all feature permission.
       parameters:
+      - description: language
+        in: query
+        name: language
+        type: string
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -4039,6 +4047,10 @@ paths:
       - application/x-www-form-urlencoded
       description: Gets subject's permission.
       parameters:
+      - description: language
+        in: query
+        name: language
+        type: string
       - description: 授权主体id
         in: query
         name: subjectId

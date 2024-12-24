@@ -6,6 +6,7 @@ type Feature struct {
 	FeatureID   int    `gorm:"column:feature_id;primary_key;auto_increment" json:"featureId"`
 	FeatureName string `gorm:"column:feature_name" json:"featureName"`
 	ParentID    *int   `gorm:"column:parent_id" json:"-"`
+	Custom      bool   `gorm:"column:custom;default:false" json:"-"`
 
 	Children []Feature `gorm:"-" json:"children,omitempty" swaggerignore:"true"`
 }
@@ -51,7 +52,7 @@ func (repo *daoRepo) GetFeature(featureIDs []int) ([]Feature, error) {
 		query = query.Where("feature_id in ?", featureIDs)
 	}
 
-	err := query.Find(&features).Error
+	err := query.Find(&features).Order("custom ASC, id ASC").Error
 	return features, err
 }
 

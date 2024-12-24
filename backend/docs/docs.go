@@ -1998,6 +1998,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "language",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
                         "in": "header"
@@ -2033,6 +2039,12 @@ const docTemplate = `{
                 ],
                 "summary": "Gets all feature permission.",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "language",
+                        "name": "language",
+                        "in": "query"
+                    },
                     {
                         "type": "string",
                         "description": "Bearer accessToken",
@@ -2319,6 +2331,12 @@ const docTemplate = `{
                 ],
                 "summary": "Gets subject's permission.",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "language",
+                        "name": "language",
+                        "in": "query"
+                    },
                     {
                         "type": "integer",
                         "description": "授权主体id",

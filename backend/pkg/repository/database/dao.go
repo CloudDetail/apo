@@ -62,6 +62,8 @@ type Repo interface {
 	RoleGranted(userID int64, roleID int) (bool, error)
 	GetItemRouter(items *[]MenuItem) error
 	GetItemInsertPage(items *[]MenuItem) error
+	GetFeatureTans(features *[]Feature, language string) error
+	GetMenuItemTans(menuItems *[]MenuItem, language string) error
 
 	GetMappedMenuItem(featureIDs []int) ([]FeatureMenuItem, error)
 
@@ -73,8 +75,6 @@ type Repo interface {
 	WithTransaction(ctx context.Context, tx *gorm.DB) context.Context
 	// Transaction Starts a transaction and automatically commit and rollback.
 	Transaction(ctx context.Context, funcs ...func(txCtx context.Context) error) error
-
-	initSql(model interface{}, sqlScript string) error
 }
 
 type daoRepo struct {
@@ -138,14 +138,6 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = database.AutoMigrate(&Role{})
-	if err != nil {
-		return nil, err
-	}
-	err = database.AutoMigrate(&UserRole{})
-	if err != nil {
-		return nil, err
-	}
 
 	daoRepo := &daoRepo{
 		db:    database,
@@ -161,25 +153,28 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err = daoRepo.initSql(AlertMetricsData{}, alertScript); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initSql(Role{}, "./sqlscripts/default_role.sql"); err != nil {
+	if err = daoRepo.initRole(); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initSql(Feature{}, "./sqlscripts/default_feature.sql"); err != nil {
+	if err = daoRepo.initFeature(); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initSql(FeatureMenuItem{}, "./sqlscripts/default_feature_mapping.sql"); err != nil {
+	if err = daoRepo.initMenuItems(); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initSql(AuthPermission{}, "./sqlscripts/default_role_permission.sql"); err != nil {
+	if err = daoRepo.initInsertPages(); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initSql(InsertPage{}, "./sqlscripts/default_inserted_page.sql"); err != nil {
+	if err = daoRepo.initRouterData(); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initSql(Router{}, "./sqlscripts/default_router.sql"); err != nil {
+	if err = daoRepo.initFeatureMenuItems(); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initSql(MenuItem{}, "./sqlscripts/menu_item.sql"); err != nil {
+	if err = daoRepo.initPermissions(); err != nil {
+		return nil, err
+	}
+	if err = daoRepo.initI18nTranslation(); err != nil {
 		return nil, err
 	}
 	if err = daoRepo.createAdmin(); err != nil {
