@@ -89,7 +89,7 @@ type GetServiceInstanceRequest struct {
 	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
 	Step        int64  `form:"step" binding:"required"`                      // 步长
 	ServiceName string `form:"serviceName" binding:"required"`               // 应用名
-	Endpoint    string `form:"endpoint" binding:"required"`
+	Endpoint    string `form:"endpoint"`
 }
 
 type GetServiceInstanceOptionsRequest struct {

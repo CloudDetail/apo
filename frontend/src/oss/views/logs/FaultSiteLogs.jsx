@@ -32,9 +32,9 @@ function FaultSiteLogs(props) {
     endTime: null,
     service: '',
     instance: '',
+    namespace: '',
     traceId: '',
     pageIndex: 1,
-    namespace: '',
     selectInstanceOption: {},
   })
   const changeActiveItemKey = (key) => {
@@ -100,55 +100,34 @@ function FaultSiteLogs(props) {
     let paramsChange = false
 
     if (prev.startTime !== startTime) {
-      console.log('startTime -> pre:', prev.startTime, 'now:', startTime)
       paramsChange = true
     }
     if (prev.endTime !== endTime) {
-      console.log('endTime -> pre:', prev.endTime, 'now:', endTime)
       paramsChange = true
     }
     if (prev.service !== service) {
-      console.log('service -> pre:', prev.service, 'now:', service)
       paramsChange = true
     }
     if (prev.traceId !== traceId) {
-      console.log('traceId -> pre:', prev.traceId, 'now:', traceId)
       paramsChange = true
     }
     if (prev.namespace !== namespace) {
-      console.log('namespace -> pre:', prev.namespace, 'now:', namespace)
       paramsChange = true
     }
     const selectInstanceOption = instanceOption[instance]
     if (JSON.stringify(prev.selectInstanceOption) !== JSON.stringify(selectInstanceOption)) {
-      console.log(
-        'selectInstanceOption -> pre:',
-        prev.selectInstanceOption,
-        'now:',
-        selectInstanceOption,
-      )
       paramsChange = true
     }
     if (instance && !selectInstanceOption) {
       paramsChange = false
     }
-    console.log(
-      '-----------',
-      paramsChange,
-      startTime,
-      endTime,
-      service,
-      instance,
-      traceId,
-      pageIndex,
-      instanceOption,
-    )
 
     previousValues.current = {
       startTime,
       endTime,
       service,
       instance,
+      namespace,
       traceId,
       pageIndex,
       selectInstanceOption,

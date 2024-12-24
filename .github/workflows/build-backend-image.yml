@@ -33,8 +33,8 @@ jobs:
         COMMIT_HASH: ${{ github.sha }}
       run: |
         DATE=$(date +"%Y%m%d%H%M%S%Z")
-        REF_SLUG_NAME=$(echo "${BRANCH_NAME}" | sed 's/\//-/g')
-        IMAGE_TAG_NAME="${REF_SLUG_NAME}-${COMMIT_HASH::7}-${DATE}"
+        BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's#[^a-zA-Z0-9._-]#-#g')
+        IMAGE_TAG_NAME="${BRANCH_NAME}-${COMMIT_HASH::7}-${DATE}"
         echo "IMAGE_TAG_NAME=$IMAGE_TAG_NAME" >> "$GITHUB_OUTPUT"
 
         IMAGE_FULL_NAME="${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.CONTAINER_NAME }}:$IMAGE_TAG_NAME"

@@ -49,6 +49,8 @@ type Service interface {
 	// 获取服务实例列表
 	// DEPRECATED
 	GetServiceInstanceList(req *request.GetServiceInstanceListRequest) ([]string, error)
+	// 获取服务实例详情
+	GetServiceInstanceInfoList(req *request.GetServiceInstanceListRequest) ([]prometheus.InstanceKey, error)
 	// 获取服务实例下拉列表
 	GetServiceInstanceOptions(req *request.GetServiceInstanceOptionsRequest) (map[string]*model.ServiceInstance, error)
 	// 获取服务Endpoint列表

@@ -55,6 +55,7 @@ func setApiRouter(r *resource) {
 		serviceApi.GET("/list", serviceHandler.GetServiceList())
 		serviceApi.GET("/instances", serviceHandler.GetServiceInstance())
 		serviceApi.GET("/instance/list", serviceHandler.GetServiceInstanceList())
+		serviceApi.GET("/instanceinfo/list", serviceHandler.GetServiceInstanceInfoList())
 		serviceApi.GET("/instance/options", serviceHandler.GetServiceInstanceOptions())
 		serviceApi.GET("/endpoint/list", serviceHandler.GetServiceEndPointList())
 		serviceApi.GET("/k8s/events/count", serviceHandler.CountK8sEvents())

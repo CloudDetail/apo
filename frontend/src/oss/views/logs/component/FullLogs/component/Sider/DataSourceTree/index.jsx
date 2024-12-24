@@ -109,12 +109,14 @@ const DataSourceTree = () => {
 
   const onSelect = (selectedKeys, { selected, selectedNodes }) => {
     if (selected && selectedNodes?.[0]?.tableName) {
+      updateLoading(true)
       updateTableInfo({
         dataBase: selectedNodes[0].dataBase,
         tableName: selectedNodes[0].tableName,
         cluster: selectedNodes[0].cluster,
         timeField: selectedNodes[0].timeField,
         instanceName: selectedNodes[0].instanceName,
+        type: 'database'
       })
     }
   }

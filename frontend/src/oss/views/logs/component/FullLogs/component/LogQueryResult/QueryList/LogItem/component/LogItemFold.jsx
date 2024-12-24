@@ -1,38 +1,33 @@
 import { useLogsContext } from 'src/core/contexts/LogsContext';
 import LogValueTag from './LogValueTag';
 import LogKeyTag from './LogKeyTag';
+import { useMemo } from 'react';
 
-const LogItemFold = ({ tags, fields }) => {
-  const { tableInfo } = useLogsContext();
+const LogItemFold = ({ tags }) => {
+  const { tableInfo, displayFields } = useLogsContext();
+  //由tableName和type组成的唯一标识
+  const tableId = `${tableInfo.tableName}_${tableInfo.type}`
+  // 计算过滤后的 tags
+  const filteredTags = useMemo(() => {
+    if (!tags) return [];
+
+    const isFieldValid = ([key, value]) =>
+      displayFields[tableId]?.includes(key) &&
+      value !== '' &&
+      key !== (tableInfo?.timeField || 'timestamp') &&
+      typeof value !== 'object';
+
+    return Object.entries(tags).filter(isFieldValid);
+  }, [tags, displayFields, tableInfo?.timeField]);
 
   return (
     <>
       {/* 渲染 tags */}
       <div className="text-ellipsis text-wrap flex" style={{ display: '-webkit-box' }}>
-        {Object.entries(tags).map(([key, value]) => {
-          if (
-            value !== '' && // 确保 value 存在且非空
-            key !== (tableInfo?.timeField || 'timestamp') && // 排除与 timeField 相同的键
-            typeof value !== 'object' // 确保 value 不是对象
-          ) {
-            return <LogValueTag key={key} objKey={key} value={String(value)} />;
-          }
-          return null; // 不符合条件时返回 null
-        })}
+        {filteredTags?.map(([key, value]) => (
+          <LogValueTag key={key} objKey={key} value={String(value)} />
+        ))}
       </div>
-
-      {/* 渲染 fields */}
-      <div className="text-ellipsis text-wrap flex flex-col overflow-hidden">
-        {fields ? (
-          Object.entries(fields)
-            .map(([key, value]) => (
-              <div key={key}>
-                <LogKeyTag key={key} title={key} description={value} />
-              </div>
-            ))
-        ) : null}
-      </div>
-
     </>
   );
 };
