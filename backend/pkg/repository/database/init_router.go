@@ -17,7 +17,6 @@ func (repo *daoRepo) initRouterData() error {
 		{RouterTo: "/alerts", HideTimeSelector: true, MenuItemKey: "alerts"},
 		{RouterTo: "/config", HideTimeSelector: true, MenuItemKey: "config"},
 		{RouterTo: "/system/user-manage", HideTimeSelector: true, MenuItemKey: "userManage"},
-		{RouterTo: "/service/info", HideTimeSelector: false, MenuItemKey: "service"},
 		{RouterTo: "/system/menu-manage", HideTimeSelector: false, MenuItemKey: "menuManage"},
 		{RouterTo: "/trace/fault-site", HideTimeSelector: true, MenuItemKey: "faultSiteTrace"},
 		{RouterTo: "/trace/full", HideTimeSelector: true, MenuItemKey: "fullTrace"},
