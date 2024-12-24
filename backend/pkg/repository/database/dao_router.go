@@ -5,7 +5,7 @@ type Router struct {
 	RouterID         int    `gorm:"column:router_id;primary_key" json:"routerId"`
 	RouterTo         string `gorm:"column:router_to;uniqueIndex" json:"to"`
 	HideTimeSelector bool   `gorm:"column:hide_time_selector" json:"hideTimeSelector"`
-	MenuItemID       int    `gorm:"column:menu_item_id" json:"-"`
+	MenuItemID       int    `gorm:"column:menu_item_id;uniqueIndex" json:"-"`
 
 	MenuItemKey string `gorm:"-" json:"-"`
 }
