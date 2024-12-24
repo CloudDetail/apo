@@ -10,7 +10,7 @@ import (
 )
 
 var secret = []byte("APO@2024")
-var accessExpireTime = 30 * time.Minute
+var accessExpireTime = 15 * time.Minute
 var refreshExpireTime = 48 * time.Hour
 
 var (
@@ -25,10 +25,11 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-func GenerateTokens(username string) (string, string, error) {
+func GenerateTokens(username string, userID int64) (string, string, error) {
 	issuedAt := time.Now()
 	accessClaims := Claims{
 		Username: username,
+		UserID:   userID,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  issuedAt.Unix(),
 			ExpiresAt: issuedAt.Add(accessExpireTime).Unix(),
@@ -41,6 +42,7 @@ func GenerateTokens(username string) (string, string, error) {
 	}
 	refreshClaims := Claims{
 		Username:  username,
+		UserID:    userID,
 		IsRefresh: true,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  issuedAt.Unix(),

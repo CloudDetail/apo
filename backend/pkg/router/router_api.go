@@ -18,6 +18,7 @@ import (
 )
 
 func setApiRouter(r *resource) {
+	middlewares := middleware.New(r.cache, r.pkg_db)
 	api := r.mux.Group("/api")
 	{
 		mockHandler := mock.New(r.logger, r.internal_db)
@@ -27,7 +28,7 @@ func setApiRouter(r *resource) {
 		api.DELETE("/mock/:id", mockHandler.Delete())
 	}
 
-	serviceApi := r.mux.Group("/api/service").Use(middleware.Auth(r.cache))
+	serviceApi := r.mux.Group("/api/service").Use(middlewares.AuthMiddleware())
 	{
 		serviceOverviewHandler := serviceoverview.New(r.logger, r.ch, r.prom, r.pkg_db)
 		serviceApi.GET("/endpoints", serviceOverviewHandler.GetEndPointsData())
@@ -67,7 +68,7 @@ func setApiRouter(r *resource) {
 		serviceApi.GET("/sql/metrics", serviceHandler.GetSQLMetrics())
 	}
 
-	logApi := r.mux.Group("/api/log").Use(middleware.Auth(r.cache))
+	logApi := r.mux.Group("/api/log").Use(middlewares.AuthMiddleware())
 	{
 		logHandler := log.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom)
 		logApi.POST("/fault/pagelist", logHandler.GetFaultLogPageList())
@@ -101,7 +102,7 @@ func setApiRouter(r *resource) {
 		traceApi.POST("/pagelist", traceHandler.GetTracePageList())
 		traceApi.GET("/flame", traceHandler.GetFlameGraphData())
 		traceApi.GET("/flame/process", traceHandler.GetProcessFlameGraph())
-		traceApi.Use(middleware.Auth(r.cache))
+		traceApi.Use(middlewares.AuthMiddleware())
 		traceApi.GET("/pagelist/filters", traceHandler.GetTraceFilters())
 		traceApi.POST("/pagelist/filter/value", traceHandler.GetTraceFilterValue())
 		traceApi.GET("/info", traceHandler.GetSingleTraceInfo())
@@ -112,7 +113,7 @@ func setApiRouter(r *resource) {
 		alertHandler := alerts.New(r.logger, r.ch, r.k8sApi, r.pkg_db)
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.POST("/outputs/dingtalk/:uuid", alertHandler.ForwardToDingTalk())
-		alertApi.Use(middleware.Auth(r.cache))
+		alertApi.Use(middlewares.AuthMiddleware())
 		alertApi.GET("/rules/file", alertHandler.GetAlertRuleFile())
 		alertApi.POST("/rules/file", alertHandler.UpdateAlertRuleFile())
 
@@ -131,20 +132,21 @@ func setApiRouter(r *resource) {
 		alertApi.DELETE("/alertmanager/receiver", alertHandler.DeleteAlertManagerConfigReceiver())
 	}
 
-	configApi := r.mux.Group("/api/config").Use(middleware.Auth(r.cache))
+	configApi := r.mux.Group("/api/config").Use(middlewares.AuthMiddleware())
 	{
 		configHandler := config.New(r.logger, r.ch)
 		configApi.POST("/setTTL", configHandler.SetTTL())
 		configApi.POST("/setSingleTableTTL", configHandler.SetSingleTableTTL())
 		configApi.GET("/getTTL", configHandler.GetTTL())
 	}
+
 	userApi := r.mux.Group("/api/user")
 	{
 		userHandler := user.New(r.logger, r.pkg_db, r.cache)
 		userApi.POST("/login", userHandler.Login())
 		userApi.POST("/logout", userHandler.Logout())
 		userApi.GET("/refresh", userHandler.RefreshToken())
-		userApi.Use(middleware.Auth(r.cache))
+		userApi.Use(middlewares.AuthMiddleware())
 		userApi.POST("/create", userHandler.CreateUser())
 		userApi.POST("/update/password", userHandler.UpdateUserPassword())
 		userApi.POST("/update/phone", userHandler.UpdateUserPhone())
@@ -154,6 +156,19 @@ func setApiRouter(r *resource) {
 		userApi.GET("/list", userHandler.GetUserList())
 		userApi.POST("/remove", userHandler.RemoveUser())
 		userApi.POST("/reset", userHandler.ResetPassword())
+	}
+
+	permissionApi := r.mux.Group("/api/permission").Use(middlewares.AuthMiddleware())
+	{
+		permissionHandler := user.New(r.logger, r.pkg_db, r.cache)
+		permissionApi.GET("/roles", permissionHandler.GetRole())
+		permissionApi.GET("/role", permissionHandler.GetUserRole())
+		permissionApi.POST("/role/operation", permissionHandler.RoleOperation())
+		permissionApi.GET("/config", permissionHandler.GetUserConfig())
+		permissionApi.GET("/feature", permissionHandler.GetFeature())
+		permissionApi.GET("/sub/feature", permissionHandler.GetSubjectFeature())
+		permissionApi.POST("/operation", permissionHandler.PermissionOperation())
+		permissionApi.POST("/menu/configure", permissionHandler.ConfigureMenu())
 	}
 
 	k8sApi := r.mux.Group("/api/k8s")

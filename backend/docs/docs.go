@@ -1975,6 +1975,402 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/permission/config": {
+            "get": {
+                "description": "Get user's menu config.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.permission"
+                ],
+                "summary": "Gets user's menu config and which route can access.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "language",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetUserConfigResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/permission/feature": {
+            "get": {
+                "description": "Gets all feature permission.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.permission"
+                ],
+                "summary": "Gets all feature permission.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "language",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Feature"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/permission/menu/configure": {
+            "post": {
+                "description": "Configure global menu.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.permission"
+                ],
+                "summary": "Configure global menu.",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "功能id列表",
+                        "name": "permissionList",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/permission/operation": {
+            "post": {
+                "description": "Grant or revoke user's permission(feature).",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.permission"
+                ],
+                "summary": "Grant or revoke user's permission(feature).",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "授权主体id",
+                        "name": "subjectId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "授权主体类型: 'role','user','team'",
+                        "name": "subjectType",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "授权类型: 'feature','data'",
+                        "name": "type",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "权限id列表",
+                        "name": "permissionList",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/permission/role": {
+            "get": {
+                "description": "Get user's role.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.permission"
+                ],
+                "summary": "Get user's role.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Role"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/permission/role/operation": {
+            "post": {
+                "description": "Grants permission to user",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.permission"
+                ],
+                "summary": "Grant or revoke user's role.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "角色id",
+                        "name": "roleList",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/permission/roles": {
+            "get": {
+                "description": "Gets all roles.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.permission"
+                ],
+                "summary": "Gets all roles.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Role"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/permission/sub/feature": {
+            "get": {
+                "description": "Gets subject's permission.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.permission"
+                ],
+                "summary": "Gets subject's permission.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "language",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "授权主体id",
+                        "name": "subjectId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "授权主体类型",
+                        "name": "subjectType",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Feature"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/service/alert/events": {
             "get": {
                 "description": "获取告警事件",
@@ -4692,6 +5088,16 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "角色id",
+                        "name": "roleList",
+                        "in": "formData"
+                    },
+                    {
                         "type": "string",
                         "description": "邮箱",
                         "name": "email",
@@ -4985,9 +5391,9 @@ const docTemplate = `{
                         "in": "header"
                     },
                     {
-                        "type": "string",
+                        "type": "integer",
                         "description": "请求信息",
-                        "name": "username",
+                        "name": "userId",
                         "in": "formData",
                         "required": true
                     }
@@ -5023,9 +5429,9 @@ const docTemplate = `{
                 "summary": "重设密码",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "username",
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
                         "in": "formData",
                         "required": true
                     },
@@ -5082,9 +5488,9 @@ const docTemplate = `{
                 "summary": "更新/绑定邮箱",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "username",
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
                         "in": "formData",
                         "required": true
                     },
@@ -5134,9 +5540,9 @@ const docTemplate = `{
                 "summary": "更新个人信息",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "username",
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
                         "in": "formData",
                         "required": true
                     },
@@ -5197,9 +5603,9 @@ const docTemplate = `{
                 "summary": "更新密码",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "username",
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
                         "in": "formData",
                         "required": true
                     },
@@ -5263,9 +5669,9 @@ const docTemplate = `{
                 "summary": "更新/绑定手机号",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "username",
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
                         "in": "formData",
                         "required": true
                     },
@@ -5819,6 +6225,89 @@ const docTemplate = `{
                 }
             }
         },
+        "database.Feature": {
+            "type": "object",
+            "properties": {
+                "featureId": {
+                    "type": "integer"
+                },
+                "featureName": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.InsertPage": {
+            "type": "object",
+            "properties": {
+                "pageId": {
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "For now it's grafana or jaeger.",
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.MenuItem": {
+            "type": "object",
+            "properties": {
+                "abbreviation": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "itemId": {
+                    "type": "integer"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "label": {
+                    "description": "AKA item name.",
+                    "type": "string"
+                },
+                "page": {
+                    "$ref": "#/definitions/database.InsertPage"
+                },
+                "router": {
+                    "description": "Frontend router.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/database.Router"
+                        }
+                    ]
+                }
+            }
+        },
+        "database.Role": {
+            "type": "object",
+            "properties": {
+                "roleId": {
+                    "type": "integer"
+                },
+                "roleName": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.Router": {
+            "type": "object",
+            "properties": {
+                "hideTimeSelector": {
+                    "type": "boolean"
+                },
+                "routerId": {
+                    "type": "integer"
+                },
+                "to": {
+                    "type": "string"
+                }
+            }
+        },
         "database.User": {
             "type": "object",
             "properties": {
@@ -5828,14 +6317,26 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "password": {
-                    "type": "string"
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Feature"
+                    }
                 },
                 "phone": {
                     "type": "string"
                 },
                 "role": {
                     "type": "string"
+                },
+                "roleList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Role"
+                    }
+                },
+                "userId": {
+                    "type": "integer"
                 },
                 "username": {
                     "type": "string"
@@ -8058,6 +8559,23 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetUserConfigResponse": {
+            "type": "object",
+            "properties": {
+                "menuItem": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.MenuItem"
+                    }
+                },
+                "routes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "response.GetUserInfoResponse": {
             "type": "object",
             "properties": {
@@ -8067,14 +8585,26 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "password": {
-                    "type": "string"
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Feature"
+                    }
                 },
                 "phone": {
                     "type": "string"
                 },
                 "role": {
                     "type": "string"
+                },
+                "roleList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Role"
+                    }
+                },
+                "userId": {
+                    "type": "integer"
                 },
                 "username": {
                     "type": "string"
@@ -8474,8 +9004,38 @@ const docTemplate = `{
                     "description": "accessToken用于调用接口获取资源",
                     "type": "string"
                 },
+                "corporation": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Feature"
+                    }
+                },
+                "phone": {
+                    "type": "string"
+                },
                 "refreshToken": {
                     "description": "refreshToken用于刷新accessToken",
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "roleList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Role"
+                    }
+                },
+                "userId": {
+                    "type": "integer"
+                },
+                "username": {
                     "type": "string"
                 }
             }

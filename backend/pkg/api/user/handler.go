@@ -60,6 +60,46 @@ type Handler interface {
 	// @Tags API.user
 	// @Router /api/user/reset [post]
 	ResetPassword() core.HandlerFunc
+
+	// RoleOperation Grant or revoke user's role.
+	// @Tags API.permission
+	// @Router /api/permission/role/operation [post]
+	RoleOperation() core.HandlerFunc
+
+	// GetRole Gets all roles.
+	// @Tags API.permission
+	// @Router /api/permission/roles [get]
+	GetRole() core.HandlerFunc
+
+	// GetUserRole Get user's role.
+	// @Tags API.permission
+	// @Router /api/permission/role [get]
+	GetUserRole() core.HandlerFunc
+
+	// GetUserConfig Gets user's menu config and which route can access.
+	// @Tags API.permission
+	// @Router /api/permission/config [get]
+	GetUserConfig() core.HandlerFunc
+
+	// GetFeature Gets all feature permission.
+	// @Tags API.permission
+	// @Router /api/permission/feature [get]
+	GetFeature() core.HandlerFunc
+
+	// GetSubjectFeature Gets subject's feature permission.
+	// @Tags API.permission
+	// @Router /api/permission/sub/feature [get]
+	GetSubjectFeature() core.HandlerFunc
+
+	// PermissionOperation Grant or revoke user's permission(feature).
+	// @Tags API.permission
+	// @Router /api/permission/operation [post]
+	PermissionOperation() core.HandlerFunc
+
+	// ConfigureMenu Configure global menu.
+	// @Tags API.permission
+	// @Router /api/permission/menu/configure [post]
+	ConfigureMenu() core.HandlerFunc
 }
 
 type handler struct {

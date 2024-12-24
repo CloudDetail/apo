@@ -43,8 +43,9 @@ type %sResponse struct {
 // @Produce json
 // TODO 下面的请求参数类型和返回类型需根据实际需求进行变更
 // @Param Request body request.%sRequest true "请求信息"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.%sResponse
-// @Failure 400 {object} code.Failure
+// @Failure 400 {object} code.
 %s
 func (h *handler) %s() core.HandlerFunc {
 	return func(c core.Context) {

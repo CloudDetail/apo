@@ -146,6 +146,20 @@ const (
 	UserPasswordSimpleError    = "B0911"
 	UserRemoveSelfError        = "B0912"
 	UserNoPermissionError      = "B0913"
+	UserEmailUsed              = "B0914"
+	UserPhoneUsed              = "B0915"
+	UserPhoneFormatError       = "B0916"
+	UserGrantRoleError         = "B0917"
+	UserGetRolesERROR          = "B0918"
+	RoleNotExistsError         = "B0919"
+	GetMenuConfigError         = "B0920"
+	UpdateMenuConfigError      = "B0921"
+	RoleGrantedError           = "B0922"
+	GetFeatureError            = "B0923"
+	AuthSubjectNotExistError   = "B0924"
+	UserGrantPermissionError   = "B0925"
+	ConfigureMenuError         = "B0926"
+	PermissionNotExistError    = "B0927"
 )
 
 func Text(code string) string {
