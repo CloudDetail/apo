@@ -11,7 +11,6 @@ func (repo *daoRepo) initInsertPages() error {
 		{Url: "grafana/d/adst2iva9181se/e59fba-e7a180-e8aebe-e696bd-e68385-e586b5", Type: "grafana", MenuItemKey: "basic"},
 		{Url: "grafana/dashboards/f/edwu5b9rkv94wb/", Type: "grafana", MenuItemKey: "middleware"},
 		{Url: "grafana/d/k8s_views_global/e99b86-e7bea4-e680bb-e8a788", Type: "grafana", MenuItemKey: "system"},
-		{Url: "grafana/d/0D6dTg3Zk/mysql-e68c87-e6a087", Type: "grafana", MenuItemKey: "mysql"},
 		{Url: "/jaeger/search", Type: "jaeger", MenuItemKey: "fullTrace"},
 	}
 
@@ -21,7 +20,7 @@ func (repo *daoRepo) initInsertPages() error {
 		}
 		for _, page := range pages {
 			var menuItem MenuItem
-			if err := tx.Where("key = ?", page.MenuItemKey).First(&menuItem).Error; err != nil {
+			if err := tx.Where("key = ?", page.MenuItemKey).Find(&menuItem).Error; err != nil {
 				return err
 			}
 
