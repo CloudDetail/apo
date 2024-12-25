@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { createContext, useContext, useEffect, useMemo, useReducer, useState } from 'react'
 import userReducer, { initialState } from '../store/reducers/userReducer'
 import { getUserPermissionApi } from '../api/permission'

@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package database
 
 // Feature is a collection of APIs, frontend routes and menu items

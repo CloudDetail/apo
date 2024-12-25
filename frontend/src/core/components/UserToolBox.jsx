@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Flex, Popover, Button } from 'antd'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import { showToast } from 'core/utils/toast'

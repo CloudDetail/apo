@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useLogsContext } from 'src/core/contexts/LogsContext';
 import LogValueTag from './LogValueTag';
 import LogKeyTag from './LogKeyTag';

@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package notification
 
 // Copied from https://github.com/timonwong/prometheus-webhook-dingtalk/blob/main/notifier/notification.go

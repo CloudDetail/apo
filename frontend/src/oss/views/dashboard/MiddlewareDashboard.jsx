@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { CToast, CToastBody } from '@coreui/react'
 import React from 'react'
 import { IoMdInformationCircleOutline } from 'react-icons/io'

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Col, Form, Input, Row, Select } from 'antd'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
 const routeKeyList = [

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React from 'react'
 import ossRoutes from './oss/routes'
 const UserPage = React.lazy(() => import('src/core/views/UserPage/index.jsx'))

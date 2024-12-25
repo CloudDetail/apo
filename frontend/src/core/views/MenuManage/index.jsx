@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Button, Card, Tree } from 'antd'
 import Checkbox from 'antd/es/checkbox/Checkbox'
 import { useEffect, useState } from 'react'

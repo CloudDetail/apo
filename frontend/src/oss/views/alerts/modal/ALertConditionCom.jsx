@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Descriptions, Dropdown, Input, List, Menu, Popover, Select, Space, theme } from 'antd'
 import { Tooltip } from 'chart.js'
 import React, { useEffect, useState } from 'react'

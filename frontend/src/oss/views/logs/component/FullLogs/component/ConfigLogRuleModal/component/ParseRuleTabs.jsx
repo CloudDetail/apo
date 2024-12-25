@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Form, Tabs } from 'antd'
 import { useEffect, useState } from 'react'
 import TextArea from 'antd/es/input/TextArea'

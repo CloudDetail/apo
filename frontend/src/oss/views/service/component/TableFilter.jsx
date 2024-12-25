@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react"
 import { getServiceListApi, getNamespacesApi, getServiceEndpointNameApi } from "src/core/api/service"
 import { useSelector } from 'react-redux'

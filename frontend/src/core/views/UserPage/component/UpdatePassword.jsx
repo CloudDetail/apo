@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Form, Input, Popconfirm, Button, Flex, Tooltip } from 'antd'
 import { showToast } from 'core/utils/toast'
 import { logoutApi, updatePasswordApi } from 'core/api/user'

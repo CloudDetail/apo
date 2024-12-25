@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Button, Flex, Popconfirm, Form, Input, Collapse, Divider } from 'antd'
 import { MailOutlined, ApartmentOutlined, LockOutlined, PhoneOutlined } from '@ant-design/icons'
 import { updateEmailApi, updateCorporationApi, updatePhoneApi, getUserInfoApi } from 'core/api/user'
