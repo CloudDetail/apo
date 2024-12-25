@@ -3,27 +3,24 @@ package database
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (repo *daoRepo) initRole() error {
-	roles := []string{model.ROLE_ADMIN, model.ROLE_MANAGER, model.ROLE_VIEWER, model.ROLE_ANONYMOS}
+	roles := []Role{
+		{RoleName: model.ROLE_ADMIN},
+		{RoleName: model.ROLE_MANAGER},
+		{RoleName: model.ROLE_VIEWER},
+		{RoleName: model.ROLE_ANONYMOS},
+	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.AutoMigrate(&Role{}); err != nil {
 			return err
 		}
-		for _, roleName := range roles {
-			var count int64
-			if err := tx.Model(&Role{}).Where("role_name = ?", roleName).Count(&count).Error; err != nil {
-				return err
-			}
-			if count == 0 {
-				role := Role{RoleName: roleName}
-				if err := tx.Create(&role).Error; err != nil {
-					return err
-				}
-			}
-		}
-		return nil
+		return tx.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "role_name"}},
+			DoNothing: true,
+		}).Create(roles).Error
 	})
 }

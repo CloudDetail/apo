@@ -27,3 +27,9 @@ const (
 	TRANSLATION_TYP_FEATURE = "feature"
 	TRANSLATION_TYP_MENU    = "menu"
 )
+
+const (
+	MAPPED_TYP_MENU   = "menu"
+	MAPPED_TYP_ROUTER = "router"
+	MAPPED_TYP_API    = "api"
+)

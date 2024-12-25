@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"gorm.io/gorm"
 )
 
@@ -20,12 +21,12 @@ func (repo *daoRepo) initPermissions() error {
 		"viewer": {
 			"服务概览", "日志检索", "故障现场日志", "全量日志", "链路追踪",
 			"故障现场链路", "全量链路", "全局资源大盘", "应用基础设施大盘",
-			"应用指标大盘", "中间件大盘", "告警规则",
+			"应用指标大盘", "中间件大盘", "告警规则", "配置中心",
 		},
 		"anonymous": {
 			"服务概览", "日志检索", "故障现场日志", "全量日志", "链路追踪",
 			"故障现场链路", "全量链路", "全局资源大盘", "应用基础设施大盘",
-			"应用指标大盘", "中间件大盘", "告警规则",
+			"应用指标大盘", "中间件大盘", "告警规则", "配置中心",
 		},
 	}
 
@@ -34,6 +35,18 @@ func (repo *daoRepo) initPermissions() error {
 			return err
 		}
 
+		var featureIDs []int
+		if err := tx.Model(&Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
+			return err
+		}
+
+		// revoke feature permission whose feature has already been deleted
+		err := tx.Model(&AuthPermission{}).
+			Where("permission_id NOT IN ? AND type = ?", featureIDs, model.PERMISSION_TYP_FEATURE).
+			Delete(nil).Error
+		if err != nil {
+			return err
+		}
 		var count int64
 		if err := tx.Model(&AuthPermission{}).Count(&count).Error; err != nil {
 			return err
