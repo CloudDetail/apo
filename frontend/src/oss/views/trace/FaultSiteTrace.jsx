@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useMemo, useState, useEffect, useRef } from 'react'
 import { traceTableMock } from './mock'
 import BasicTable from 'src/core/components/Table/basicTable'

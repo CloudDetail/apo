@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 function FullTrace() {
   return (
     <div className="text-xs" style={{ height: 'calc(100vh - 120px)' }}>

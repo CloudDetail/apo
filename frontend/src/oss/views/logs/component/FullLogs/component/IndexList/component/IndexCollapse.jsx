@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Collapse, Tooltip, ConfigProvider, List, Button, Tag } from 'antd'
 import Empty from 'src/core/components/Empty/Empty'
 import React, { useEffect, useState } from 'react'

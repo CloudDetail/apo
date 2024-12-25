@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { CModal, CModalBody, CModalHeader, CModalTitle } from '@coreui/react'
 import { Tooltip } from 'antd'
 import React, { useState, useEffect, useMemo } from 'react'

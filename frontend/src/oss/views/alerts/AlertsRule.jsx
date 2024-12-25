@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { CCard, CToast, CToastBody } from '@coreui/react'
 import { Button, Input, Popconfirm, Select, Space } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'

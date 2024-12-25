@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Card, Form, Input, Modal, Select, Tag, Tooltip, message } from 'antd'
 import _, { reject } from 'lodash'
 import React, { useEffect, useState } from 'react'

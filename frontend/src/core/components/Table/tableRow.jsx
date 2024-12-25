@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /* eslint-disable react/prop-types */
 import _ from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'

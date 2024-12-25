@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Button, Card, Col, Form, Input, Row, Segmented, Select, Space, Switch } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
 import React, { useEffect, useState } from 'react'

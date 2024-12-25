@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import PropTypes from 'prop-types'
 import React from 'react'
 import { CLink } from '@coreui/react'

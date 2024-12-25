@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { get, headers, post } from '../utils/request'
 
 //获取用户权限（菜单+路由）

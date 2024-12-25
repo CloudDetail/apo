@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import Editor from '@monaco-editor/react'
 import { promLanguageDefinition } from 'monaco-promql'
 import React from 'react'
