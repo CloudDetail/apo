@@ -1,0 +1,22 @@
+{
+  "configTTL": {
+    "title": "Data Retention Configuration",
+    "updateInfo": "Updates may take some time to take effect, please refresh the page later to see the results.",
+    "confirmUpdate": "After confirmation, the data retention period for all tables under {{type}} data will be updated synchronously",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "update": "Update",
+    "days": "days",
+    "data": " Data"
+  },
+  "TTLTable": {
+    "tableName": "Table Name",
+    "dataRetention": "Data Retention (days)",
+    "operation": "Operation",
+    "update": "Update",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "updateInfo": "Data retention configuration may take some time to take effect, please refresh the page later to see the results",
+    "validationMessage": "{{title}} must be a number greater than 0"
+  }
+}

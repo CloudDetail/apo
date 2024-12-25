@@ -9,70 +9,103 @@ import { FaRegBell } from 'react-icons/fa'
 import { MdOutlineSettings } from 'react-icons/md'
 import { IoIosTrendingUp, IoMdCloudOutline } from 'react-icons/io'
 import { TbWaveSawTool } from 'react-icons/tb'
-import { GrSystem } from "react-icons/gr";
+import { GrSystem } from 'react-icons/gr'
+import TranslationCom from './oss/components/TranslationCom'
 
+const translationUrl = 'oss/routes'
 const commercialNav = []
 const _nav = [
-  { key: 'service', icon: <IoMdCloudOutline />, label: '服务概览', to: '/service' },
+  {
+    key: 'service',
+    icon: <IoMdCloudOutline />,
+    label: <TranslationCom text="servicesName" url={translationUrl} />,
+    abbreviation: <TranslationCom text="servicesAbbreviationName" url={translationUrl} />,
+    to: '/service',
+  },
   {
     key: 'logs',
-    label: '日志检索',
+    label: <TranslationCom text="logsName" url={translationUrl} />,
     to: '/logs',
     icon: <LuFileText />,
     children: [
-      { key: 'faultSite', label: '故障现场日志', to: '/logs/fault-site' },
-      { key: 'full', label: '全量日志', to: '/logs/full' },
+      {
+        key: 'faultSite',
+        label: <TranslationCom text="faultLogsName" url={translationUrl} />,
+        to: '/logs/fault-site',
+      },
+      {
+        key: 'full',
+        label: <TranslationCom text="allLogsName" url={translationUrl} />,
+        to: '/logs/full',
+      },
     ],
   },
-  { key: 'trace', icon: <PiPath />, label: '链路追踪', to: '/trace' },
+  {
+    key: 'trace',
+    icon: <PiPath />,
+    label: <TranslationCom text="tracesName" url={translationUrl} />,
+    to: '/trace',
+  },
   {
     key: 'system',
     icon: <AiOutlineDashboard />,
-    label: '全局资源大盘',
-    abbreviation: '全局资源',
+    label: <TranslationCom text="overviewDashboardName" url={translationUrl} />,
+    abbreviation: <TranslationCom text="overviewDashboardAbbreviationName" url={translationUrl} />,
     to: '/system-dashboard',
   },
   {
     key: 'basic',
     icon: <AiOutlineDashboard />,
-    label: '应用基础设施大盘',
-    abbreviation: '基础设施',
+    label: <TranslationCom text="infrastructureDashboardName" url={translationUrl} />,
+    abbreviation: (
+      <TranslationCom text="infrastructureDashboardAbbreviationName" url={translationUrl} />
+    ),
     to: '/basic-dashboard',
   },
   {
     key: 'application',
     icon: <AiOutlineDashboard />,
-    label: '应用指标大盘',
-    abbreviation: '应用指标',
+    label: <TranslationCom text="applicationDashboardName" url={translationUrl} />,
+    abbreviation: (
+      <TranslationCom text="applicationDashboardAbbreviationName" url={translationUrl} />
+    ),
     to: '/application-dashboard',
   },
   {
     key: 'middleware',
     icon: <AiOutlineDashboard />,
-    label: '中间件大盘',
-    abbreviation: '中间件',
+    label: <TranslationCom text="middlewareDashboardName" url={translationUrl} />,
+    abbreviation: (
+      <TranslationCom text="middlewareDashboardAbbreviationName" url={translationUrl} />
+    ),
     to: '/middleware-dashboard',
   },
   {
     key: 'alerts',
     icon: <FaRegBell />,
-    label: '告警规则',
+    label: <TranslationCom text="alertsName" url={translationUrl} />,
     to: '/alerts',
   },
   {
     key: 'config',
     icon: <MdOutlineSettings />,
-    label: '配置中心',
+    label: <TranslationCom text="configurationsName" url={translationUrl} />,
+    abbreviation: <TranslationCom text="configurationsAbbreviationName" url={translationUrl} />,
     to: '/config',
   },
   {
     key: 'manage',
     icon: <GrSystem />,
-    label: '系统管理',
+    label: <TranslationCom text="systemSettingsName" url={translationUrl} />,
+    abbreviation: <TranslationCom text="systemSettingsAbbreviationName" url={translationUrl} />,
     children: [
-      { key: 'userManage', label: '用户管理', to: '/system/user-manage' }
+      {
+        key: 'userManage',
+        label: <TranslationCom text="userManageName" url={translationUrl} />,
+        to: '/system/user-manage',
+      },
     ],
-  }
+  },
 ]
 
 export { _nav, commercialNav }

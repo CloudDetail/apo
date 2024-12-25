@@ -3,20 +3,19 @@ import React from 'react'
 import IndexCollapse from './component/IndexCollapse'
 import './index.css'
 import FullTextSearch from '../SerarchBar/RawLogQuery/FullTextSearch'
+import { useTranslation } from 'react-i18next' // 引入i18n
+
 const IndexList = () => {
-  const IndexType = {
-    base: '基础字段',
-    log: '日志字段',
-  }
+  const { t } = useTranslation('oss/fullLogs') // 使用i18n
   const items = [
     {
       key: 'base',
-      label: '基础字段',
+      label: t('indexList.basicFieldLabel'),
       children: <IndexCollapse type="base" />,
     },
     {
       key: 'log',
-      label: '日志字段',
+      label: t('indexList.logFieldLabel'),
       children: <IndexCollapse type="log" />,
 
       style: {

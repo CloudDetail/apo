@@ -9,11 +9,13 @@ import { getStep } from 'src/core/utils/step'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useDispatch } from 'react-redux'
 import { useDebounce } from 'react-use'
+import { useTranslation } from 'react-i18next'
 
 const TimelapseLineChart = (props) => {
   const { startTime, endTime, serviceName, endpoint } = props
   const chartRef = useRef(null)
   const dispatch = useDispatch()
+  const { t } = useTranslation('oss/serviceInfo')
   const setStoreTimeRange = (value) => {
     dispatch({ type: 'SET_TIMERANGE', payload: value })
   }
@@ -129,7 +131,7 @@ const TimelapseLineChart = (props) => {
           return convertTime(value, 'ms', 2)
         },
       },
-      name: '耗时（ms）', // Y轴说明
+      name: t('dependent.dependentTable.timestamp'), // Y轴说明
       // nameLocation: 'middle', // 说明位置
       // nameTextStyle: {
       //     fontWeight: 'bold',
@@ -314,7 +316,11 @@ const TimelapseLineChart = (props) => {
           </div>
         </div>
       ) : (
-        !loading && <Empty context={serviceName + ' 无下游依赖节点'} />
+        !loading && (
+          <Empty
+            context={serviceName + ' ' + t('dependent.timelapseLineChart.noDownstreamDependencies')}
+          />
+        )
       )}
     </>
   )

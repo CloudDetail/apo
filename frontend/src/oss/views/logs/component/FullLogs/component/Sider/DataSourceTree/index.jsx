@@ -7,7 +7,10 @@ import { MdAdd, MdDeleteOutline, MdModeEdit } from 'react-icons/md'
 import { deleteLogOtherTableApi, deleteLogRuleApi } from 'core/api/logs'
 import { showToast } from 'src/core/utils/toast'
 import ConfigTableModal from '../../ConfigTableModal'
+import { useTranslation } from 'react-i18next' // 引入i18n
+
 const DataSourceTree = () => {
+  const { t } = useTranslation('oss/fullLogs') // 使用i18n
   const { instances, tableInfo, updateTableInfo, getLogTableInfo, updateLoading } = useLogsContext()
   const [treeData, setTreeData] = useState([])
   const [expandedKeys, setExpandedKeys] = useState([])
@@ -21,7 +24,7 @@ const DataSourceTree = () => {
       tableName: table.tableName,
     }).then((res) => {
       showToast({
-        title: '删除接入数据库成功',
+        title: t('fullLogSider.DataSourceTree.deleteLogSuccessToast'),
         color: 'success',
       })
       getLogTableInfo()
@@ -45,16 +48,17 @@ const DataSourceTree = () => {
             <Popconfirm
               title={
                 <>
-                  是否确定删除名为“<span className="font-bold ">{nodeData.tableName}</span>
-                  ”的接入数据库
+                  {t('fullLogSider.DataSourceTree.confirmDeleteLogRulePart1Text')}
+                  <span className="font-bold ">{nodeData.tableName}</span>
+                  {t('fullLogSider.DataSourceTree.confirmDeleteLogRulePart2Text')}
                 </>
               }
               onConfirm={(e) => {
                 e.stopPropagation()
                 deleteLogRule(nodeData)
               }}
-              okText="确定"
-              cancelText="取消"
+              okText={t('fullLogSider.DataSourceTree.confirmText')}
+              cancelText={t('fullLogSider.DataSourceTree.cancelText')}
             >
               <Button
                 color="danger"
@@ -127,7 +131,7 @@ const DataSourceTree = () => {
   return (
     <Card
       className="overflow-y-auto h-1/2 w-full overflow-x-hidden"
-      title="接入数据库"
+      title={t('fullLogSider.DataSourceTree.ExternalRepositoryText')}
       classNames={{
         body: 'p-0',
       }}

@@ -11,8 +11,10 @@ import { MdAdd, MdOutlineEdit } from 'react-icons/md'
 import ModifyAlertRuleModal from './modal/ModifyAlertRuleModal'
 import Tag from 'src/core/components/Tag/Tag'
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next' // 添加i18n
 
 export default function AlertsRule() {
+  const { t } = useTranslation('oss/alert') // 使用i18n
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(false)
   const [pageIndex, setPageIndex] = useState(1)
@@ -33,22 +35,22 @@ export default function AlertsRule() {
       case 'firing':
         return {
           type: 'error',
-          context: '告警中',
+          context: t('rule.alertStatus.firing'),
         }
       case 'pending':
         return {
           type: 'warning',
-          context: '准备告警',
+          context: t('rule.alertStatus.pending'),
         }
       case 'inactive':
         return {
           type: 'success',
-          context: '正常',
+          context: t('rule.alertStatus.inactive'),
         }
       default:
         return {
           type: 'default',
-          context: '未知',
+          context: t('rule.alertStatus.unknown'),
         }
     }
   }
@@ -60,7 +62,7 @@ export default function AlertsRule() {
     })
       .then((res) => {
         showToast({
-          title: '删除告警规则成功',
+          title: t('rule.deleteSuccess'),
           color: 'success',
         })
         refreshTable()
@@ -71,25 +73,25 @@ export default function AlertsRule() {
   }
   const column = [
     {
-      title: '组名',
+      title: t('rule.groupName'),
       accessor: 'group',
       customWidth: 120,
       justifyContent: 'left',
     },
     {
-      title: '告警规则名',
+      title: t('rule.alertRuleName'),
       accessor: 'alert',
       justifyContent: 'left',
       customWidth: 300,
     },
 
     {
-      title: '持续时间',
+      title: t('rule.duration'),
       accessor: 'for',
       customWidth: 100,
     },
     {
-      title: '查询语句',
+      title: t('rule.query'),
       accessor: 'expr',
       justifyContent: 'left',
       Cell: ({ value }) => {
@@ -98,7 +100,7 @@ export default function AlertsRule() {
     },
 
     {
-      title: '告警状态',
+      title: t('rule.alertStatus.title'),
       accessor: 'state',
       customWidth: 150,
       Cell: (props) => {
@@ -112,7 +114,7 @@ export default function AlertsRule() {
       },
     },
     {
-      title: '操作',
+      title: t('rule.operation'),
       accessor: 'action',
       customWidth: 200,
       Cell: (props) => {
@@ -124,21 +126,16 @@ export default function AlertsRule() {
               onClick={() => clickEditRule(row)}
               icon={<MdOutlineEdit className="text-blue-400 hover:text-blue-400" />}
             >
-              <span className="text-blue-400 hover:text-blue-400">编辑</span>
+              <span className="text-blue-400 hover:text-blue-400">{t('rule.edit')}</span>
             </Button>
             <Popconfirm
-              title={
-                <>
-                  是否确定删除名为“<span className="font-bold ">{row.alert}</span>
-                  ”的告警规则
-                </>
-              }
+              title={<>{t('rule.confirmDelete', { name: row.alert })}</>}
               onConfirm={() => deleteAlertRule(row)}
-              okText="确定"
-              cancelText="取消"
+              okText={t('rule.confirm')}
+              cancelText={t('rule.cancel')}
             >
               <Button type="text" icon={<RiDeleteBin5Line />} danger>
-                删除
+                {t('rule.delete')}
               </Button>
             </Popconfirm>
           </div>
@@ -223,7 +220,7 @@ export default function AlertsRule() {
       },
       loading: false,
     }
-  }, [data, pageIndex, pageSize, searchAlert, searchGroup])
+  }, [column, data, pageIndex, pageSize, searchAlert, searchGroup])
   return (
     <>
       <LoadingSpinner loading={loading} />
@@ -246,11 +243,11 @@ export default function AlertsRule() {
       <div className="flex items-center justify-betweeen text-sm p-2 my-2">
         <Space className="flex-grow">
           <Space className="flex-1">
-            <span className="text-nowrap">组名：</span>
+            <span className="text-nowrap">{t('rule.groupName')}：</span>
             <Select
               options={groupLabelSelectOptions}
               labelInValue
-              placeholder="选择组名"
+              placeholder={t('rule.groupName')}
               mode="multiple"
               allowClear
               className=" min-w-[200px]"
@@ -259,7 +256,7 @@ export default function AlertsRule() {
             />
           </Space>
           <div className="flex flex-row items-center mr-5 text-sm">
-            <span className="text-nowrap">告警规则名：</span>
+            <span className="text-nowrap">{t('rule.alertRuleName')}：</span>
             <Input
               value={searchAlert}
               onChange={(e) => {
@@ -276,7 +273,7 @@ export default function AlertsRule() {
           onClick={clickAddRule}
           className="flex-grow-0 flex-shrink-0"
         >
-          <span className="text-xs">新增告警规则</span>
+          <span className="text-xs">{t('rule.addAlertRule')}</span>
         </Button>
       </div>
       <CCard className="text-sm p-2">

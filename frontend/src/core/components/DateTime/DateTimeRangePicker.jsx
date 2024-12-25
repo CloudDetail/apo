@@ -25,8 +25,10 @@ import { timeRangeMap } from 'src/core/store/reducers/timeRangeReducer'
 import { convertTime, ISOToTimestamp, TimestampToISO } from 'src/core/utils/time'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { useUpdateEffect } from 'react-use'
+import { useTranslation } from 'react-i18next'
 
 const DateTimeRangePicker = React.memo((props) => {
+  const { t } = useTranslation('core/dateTime')
   const location = useLocation()
   const [dropdownVisible, setDropdownVisible] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
@@ -199,9 +201,11 @@ const DateTimeRangePicker = React.memo((props) => {
   }
 
   const areDatesEqual = (date1, date2) => {
-    return date1.getFullYear() === date2.getFullYear() &&
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
       date1.getMonth() === date2.getMonth() &&
-      date1.getDate() === date2.getDate();
+      date1.getDate() === date2.getDate()
+    )
   }
   const changeStartTime = (event) => {
     setStartTime(event.target.value)
@@ -243,12 +247,12 @@ const DateTimeRangePicker = React.memo((props) => {
     return dateString === format(date.getTime(), 'yyyy-MM-dd HH:mm:ss')
   }
   const validStartTime = () => {
-    let feedback = '请输入或选择正确的日期'
+    let feedback = t('dateTimeRangePicker.selectCorrectTimeRangeFeedback')
     let result = true
     if (!startTime || startTime.length === 0 || !isValidDate(startTime)) {
       result = false
     } else if (new Date(startTime) > new Date(endTime)) {
-      feedback = '开始时间不能晚于结束时间'
+      feedback = t('dateTimeRangePicker.startTimeLongerThanEndTimeFeedback')
       result = false
     }
     if (result) {
@@ -259,15 +263,15 @@ const DateTimeRangePicker = React.memo((props) => {
     return result
   }
   const validEndTime = () => {
-    let feedback = '请输入或选择正确的日期'
+    let feedback = t('dateTimeRangePicker.selectCorrectTimeRangeFeedback')
     let result = true
     if (!endTime || endTime.length === 0 || !isValidDate(endTime)) {
       result = false
     } else if (new Date(startTime) > new Date(endTime)) {
-      feedback = '结束时间不能早于开始时间'
+      feedback = t('dateTimeRangePicker.endTimeLessThanStartTimeFeedback')
       result = false
     } else if (new Date(endTime) > new Date()) {
-      feedback = '结束时间不能超过当前时间'
+      feedback = t('dateTimeRangePicker.endTimeLongerThanCurrentTimeFeedback')
       result = false
     }
     if (result) {
@@ -298,17 +302,19 @@ const DateTimeRangePicker = React.memo((props) => {
             {storeTimeRange?.rangeTypeKey
               ? timeRangeMap[storeTimeRange?.rangeTypeKey].name
               : convertTime(storeTimeRange?.startTime, 'yyyy-mm-dd hh:mm:ss') +
-              ' to ' +
-              convertTime(storeTimeRange?.endTime, 'yyyy-mm-dd hh:mm:ss')}
+                ' to ' +
+                convertTime(storeTimeRange?.endTime, 'yyyy-mm-dd hh:mm:ss')}
           </span>
         </CDropdownToggle>
         <CDropdownMenu className="m-0 p-0">
           <div className="w-[600px] flex">
             <div className="w-3/5 border-r border-r-slate-700  px-3 py-2">
               <CForm noValidate>
-                <div>绝对时间范围</div>
+                <div>{t('dateTimeRangePicker.absoluteTimeRangeTitle')}</div>
 
-                <CFormLabel className="text-sm mt-2 block">开始{startTimeInvalid && 1}</CFormLabel>
+                <CFormLabel className="text-sm mt-2 block">
+                  {t('dateTimeRangePicker.startTitle')}
+                </CFormLabel>
 
                 <CInputGroup className="mb-2">
                   <CFormInput
@@ -326,7 +332,7 @@ const DateTimeRangePicker = React.memo((props) => {
                 </CInputGroup>
 
                 <CFormLabel htmlFor="basic-url" className="text-sm block">
-                  结束
+                  {t('dateTimeRangePicker.endTitle')}
                 </CFormLabel>
                 <CInputGroup>
                   <CFormInput
@@ -342,7 +348,7 @@ const DateTimeRangePicker = React.memo((props) => {
                   <CFormFeedback invalid>{endTimeFeedback}</CFormFeedback>
                 </CInputGroup>
                 <CButton color="primary" size="sm" className="mt-3" onClick={confirmTimeRange}>
-                  应用时间范围
+                  {t('dateTimeRangePicker.applyTimeRangeButtonText')}
                 </CButton>
               </CForm>
               <DateRange
@@ -357,7 +363,7 @@ const DateTimeRangePicker = React.memo((props) => {
               />
             </div>
             <div className="w-2/5">
-              <div className="p-2">快速范围</div>
+              <div className="p-2">{t('dateTimeRangePicker.quickRangeTitle')}</div>
               <CDropdownMenu className="w-2/5 border-0">
                 {Object.keys(timeRangeMap).map((key) => {
                   return (

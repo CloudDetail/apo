@@ -1,22 +1,24 @@
-import { Card, Form, Input } from 'antd';
-import React from 'react';
-import { defaultHtml } from './defaultHTMLcontext';
+import { Card, Form, Input } from 'antd'
+import React from 'react'
+import { defaultHtml } from './defaultHTMLcontext'
+import { useTranslation } from 'react-i18next' // 添加i18n
 
 export default function DingTalkConfigsFormList() {
+  const { t } = useTranslation('oss/alert') // 使用i18n
   const tlsConfigItemsList = [
     {
-      label: 'Webhook地址',
+      label: t('dingTalkConfigsFormList.url'),
       name: 'url',
-      placeholder: 'Webhook URL',
+      placeholder: t('dingTalkConfigsFormList.url'),
       required: true,
     },
     {
-      label: '加签密钥',
+      label: t('dingTalkConfigsFormList.secret'),
       name: 'secret',
-      placeholder: '钉钉加签密钥',
+      placeholder: t('dingTalkConfigsFormList.secret'),
       required: true,
     },
-  ];
+  ]
 
   return (
     <Form.List name="dingTalkConfigs" initialValue={[{ html: defaultHtml, requireTls: false }]}>
@@ -25,7 +27,7 @@ export default function DingTalkConfigsFormList() {
           <Card
             title={
               <span className="flex items-center">
-                钉钉通知
+                {t('dingTalkConfigsFormList.title')}
                 {/* <IoMdAddCircleOutline onClick={() => add()} size={20} className="mx-2" /> */}
               </span>
             }
@@ -40,7 +42,7 @@ export default function DingTalkConfigsFormList() {
                     rules={[
                       {
                         required: item.required,
-                        message: `${item.label} 是必填项`,
+                        message: `${item.label} ${t('dingTalkConfigsFormList.empty')}`,
                       },
                     ]}
                   >
@@ -53,5 +55,5 @@ export default function DingTalkConfigsFormList() {
         </>
       )}
     </Form.List>
-  );
+  )
 }

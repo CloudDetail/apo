@@ -1,0 +1,17 @@
+{
+  "LogsTraceFilter": {
+    "nameSpaceLabel": "Namespace：",
+    "applicationLabel": "Application：",
+    "instanceLabel": "Instance：",
+    "durationLabel": "Duration：",
+    "endpointLabel": "Endpoint：",
+    "Status": "Status：",
+    "toText": "To",
+    "search": "Search"
+  },
+  "traceErrorType": {
+    "error": "Error",
+    "slow": "Slow",
+    "normal": "OK"
+  }
+}

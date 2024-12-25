@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import AreaChart from '../Chart/LineAreaChart'
 import { BsArrowDown, BsArrowUp } from 'react-icons/bs'
+import { useTranslation } from 'react-i18next'
 
 const ArrowComponent = ({ value }) => {
   if (value === null || value === 0) {
@@ -11,6 +12,7 @@ const ArrowComponent = ({ value }) => {
 }
 
 const TempCell = (props) => {
+  const { t } = useTranslation('oss/service')
   const { data, compare, type, timeRange } = props
   const [displayValue, setDisplayValue] = useState('')
   // const ArrowIcon = (props) =>{
@@ -61,14 +63,14 @@ const TempCell = (props) => {
             if (data.value > 0 && data.value < 0.01) {
               value = '< 0.01'
             }
-            value += `次/分`
+            value += t('TempCell.times/minuteText')
 
             break
           case 'logs':
             if (data.value > 0 && data.value < 0.01) {
               value = '< 0.01'
             }
-            value += `个`
+            value += t('TempCell.unitsText')
             break
         }
         setDisplayValue(value)
@@ -89,7 +91,7 @@ const TempCell = (props) => {
 
         <div className="h-full text-[10px] text-neutral-400 w-full">
           <div className="flex p-1 justify-center items-center">
-            <span className="flex-1 text-right">日同比 </span>
+            <span className="flex-1 text-right">{t('TempCell.DailyYoYText')} </span>
             <span className="flex-1 inline-flex  justify-center items-center">
               {/* {data.ratio.dayOverDay !== null
                 ? parseFloat(data.ratio.dayOverDay.toFixed(2)) + '%'
@@ -99,7 +101,7 @@ const TempCell = (props) => {
             </span>
           </div>
           <div className="flex p-1 justify-center items-center">
-            <span className="flex-1 text-right">周同比 </span>
+            <span className="flex-1 text-right">{t('TempCell.WeeklyYoYText')}</span>
             <span className="flex-1 inline-flex  justify-center items-center">
               {displayRatio(data.ratio.weekOverDay)}{' '}
               {/* {data.ratio.weekOverDay !== null

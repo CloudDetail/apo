@@ -9,6 +9,8 @@ import TimelapseLineChart from './TimelapseLineChart'
 import DependentTable from './DependentTable'
 import { Modal } from 'antd'
 import LoadingSpinner from 'src/core/components/Spinner'
+import { useTranslation } from 'react-i18next'
+
 function escapeId(id) {
   return id.replace(/[^a-zA-Z0-9-_]/g, '_')
 }
@@ -28,6 +30,7 @@ export default function TopologyModal(props) {
   const [loading, setLoading] = useState(false)
   const { displayData, modalService, modalEndpoint } = useSelector((state) => state.topologyReducer)
   const dispatch = useDispatch()
+  const { t } = useTranslation('oss/serviceInfo')
   const clearTopology = () => {
     dispatch({ type: 'clearTopology' })
   }
@@ -314,14 +317,14 @@ export default function TopologyModal(props) {
   return (
     <>
       <CButton color="primary" variant="ghost" size="sm" className="text-xs" onClick={openModal}>
-        查看更多下游依赖
+        {t('dependent.topologyModal.viewMoreDependencies')}
       </CButton>
       {visible && (
         <>
           {/* <div className=" fixed bg-black h-full w-full top-0" style={{ zIndex: 999999 }}>
           </div> */}
           <Modal
-            title={modalService + '更多下游依赖'}
+            title={modalService + ' ' + t('dependent.topologyModal.modalTitle')}
             open={visible}
             footer={null} // 如果你不需要默认的底部按钮
             style={{ top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}
@@ -336,13 +339,13 @@ export default function TopologyModal(props) {
             </CCard>
             <div className="flex flex-row h-1/2 pt-2">
               <CCard className="w-1/2 mr-2 h-full">
-                <CCardHeader>依赖节点延时曲线全览对比图</CCardHeader>
+                <CCardHeader>{t('dependent.topologyModal.timelapseComparison')}</CCardHeader>
                 <CCardBody className="text-xs overflow-hidden p-0">
                   <TimelapseLineChart {...memoProps} />
                 </CCardBody>
               </CCard>
               <CCard className="w-1/2 ml-2  h-full">
-                <CCardHeader>依赖节点延时曲线相似度排序</CCardHeader>
+                <CCardHeader>{t('dependent.topologyModal.similarityRanking')}</CCardHeader>
                 <CCardBody className="text-xs overflow-hidden p-0">
                   <DependentTable {...memoProps} />
                 </CCardBody>

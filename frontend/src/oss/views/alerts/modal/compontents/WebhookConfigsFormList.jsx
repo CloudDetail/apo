@@ -3,102 +3,14 @@ import TextArea from 'antd/es/input/TextArea'
 import React, { useEffect, useState } from 'react'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
 import WebhookConfigsHeaderFormList from './WebhookConfigsHeaderFormList'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 export default function WebhookConfigsFormList() {
   const [authType, setAuthType] = useState()
   const form = Form.useFormInstance()
   const formAuthType = Form.useWatch(['webhookConfigs'], form)
-  // console.log(formAuthType)
-  // const tlsConfigItemsList = [
-  //   {
-  //     label: 'URL',
-  //     name: 'url',
-  //     placeholder: 'Webhook地址',
-  //     required: true,
-  //     span: 24,
-  //   },
-  //   {
-  //     label: '身份认证方式',
-  //     name: 'authType',
-  //     span: 24,
-  //     children: (filed) => {
-  //       return (
-  //         <Select
-  //           placeholder="身份认证方式"
-  //           options={[
-  //             { label: '用户密码', value: 'user' },
-  //             { label: 'Token验证', value: 'token' },
-  //           ]}
-  //         />
-  //       )
-  //     },
-  //   },
-  //   // {
-  //   //   name: 'auth',
-  //   //   span: 24,
-  //   //   noStyle: true,
-  //   //   children: (e) => {
-  //   //     console.log(e)
-  //   //     return (
-  //   //       <Row gutter={20}>
-  //   //         {/* {({ getFieldValue }) => {
-  //   //           const notifyType = getFieldValue('notifyType')
-  //   //           return (
-  //   //             <>
-  //   //               {notifyType === 'email' && <EmailConfigsFormList />}
-  //   //               {notifyType === 'webhook' && <WebhookConfigsFormList />}
-  //   //             </>
-  //   //           )
-  //   //         }} */}
-  //   //         {authType ? 1 : 2}
-  //   //         {/* <Col span={12}>
-  //   //           <Form.Item label="身份认证用户名" name="basicAuthUsername">
-  //   //             <Input placeholder="身份认证用户名" />
-  //   //           </Form.Item>
-  //   //         </Col>
-  //   //         <Col span={12}>
-  //   //           <Form.Item label="身份认证密码" name="smarthostPort">
-  //   //             <Input placeholder="身份认证密码" />
-  //   //           </Form.Item>
-  //   //         </Col> */}
-  //   //       </Row>
-  //   //     )
-  //   //   },
-  //   // },
-  //   {
-  //     label: '身份认证用户名',
-  //     name: 'basicAuthUsername',
-  //     placeholder: '身份认证用户名',
-  //     hide: (authType) => {
-  //       return authType !== 'user'
-  //     },
-  //   },
-  //   {
-  //     label: '身份认证密码',
-  //     name: 'basicAuthPassword',
-  //     placeholder: '身份认证密码',
-  //     hide: () => {
-  //       return authType !== 'user'
-  //     },
-  //   },
-  //   {
-  //     label: 'Token验证',
-  //     name: 'bearerToken',
-  //     placeholder: 'Token验证',
-  //     span: 24,
-  //     hide: () => {
-  //       return authType !== 'token'
-  //     },
-  //   },
-  //   {
-  //     span: 24,
-  //     noStyle: true,
-  //     children: (filed) => {
-  //       console.log()
-  //       return <WebhookConfigsHeaderFormList formListName={[filed.name, 'webhookConfigsHeader']} />
-  //     },
-  //   },
-  // ]
+  const { t } = useTranslation('oss/alert') // 使用i18n
+
   useEffect(() => {
     if (formAuthType?.length > 0) setAuthType(formAuthType[0].authType)
   }, [formAuthType])
@@ -110,7 +22,7 @@ export default function WebhookConfigsFormList() {
         {
           validator: async (_, names) => {
             if (!names || names.length < 1) {
-              return Promise.reject(new Error('至少设置1个邮件通知'))
+              return Promise.reject(new Error(t('webhookConfigsFormList.addWebhook')))
             }
           },
         },
@@ -121,7 +33,7 @@ export default function WebhookConfigsFormList() {
           <Card
             title={
               <span className="flex items-center">
-                Webhook配置
+                {t('webhookConfigsFormList.title')}
                 {/* <IoMdAddCircleOutline onClick={() => add()} size={20} className="mx-2" /> */}
               </span>
             }
@@ -144,11 +56,14 @@ export default function WebhookConfigsFormList() {
                       <Form.Item
                         {...field}
                         name={[field.name, 'url']}
-                        label="URL"
+                        label={t('webhookConfigsFormList.url')}
                         rules={[
                           {
                             required: true,
-                            message: 'URL不可为空',
+                            message:
+                              t('webhookConfigsFormList.url') +
+                              ' ' +
+                              t('ModifyAlertNotifyModal.invalidNotifyType'),
                           },
                         ]}
                       >
@@ -156,12 +71,16 @@ export default function WebhookConfigsFormList() {
                       </Form.Item>
                     </Col>
                     <Col span={24}>
-                      <Form.Item {...field} name={[field.name, 'authType']} label="身份认证方式">
+                      <Form.Item
+                        {...field}
+                        name={[field.name, 'authType']}
+                        label={t('webhookConfigsFormList.authType')}
+                      >
                         <Select
-                          placeholder="身份认证方式"
+                          placeholder={t('webhookConfigsFormList.authType')}
                           options={[
-                            { label: '用户密码', value: 'user' },
-                            { label: 'Token验证', value: 'token' },
+                            { label: t('webhookConfigsFormList.userAuth'), value: 'user' },
+                            { label: t('webhookConfigsFormList.tokenAuth'), value: 'token' },
                           ]}
                           onChange={setAuthType}
                         />
@@ -173,18 +92,18 @@ export default function WebhookConfigsFormList() {
                           <Form.Item
                             {...field}
                             name={[field.name, 'basicAuthUsername']}
-                            label="身份认证用户名"
+                            label={t('webhookConfigsFormList.username')}
                           >
-                            <Input placeholder="身份认证用户名" />
+                            <Input placeholder={t('webhookConfigsFormList.username')} />
                           </Form.Item>
                         </Col>
                         <Col span={12}>
                           <Form.Item
                             {...field}
                             name={[field.name, 'basicAuthPassword']}
-                            label="身份认证密码"
+                            label={t('webhookConfigsFormList.password')}
                           >
-                            <Input placeholder="身份认证密码" />
+                            <Input placeholder={t('webhookConfigsFormList.password')} />
                           </Form.Item>
                         </Col>
                       </>
@@ -195,9 +114,9 @@ export default function WebhookConfigsFormList() {
                           <Form.Item
                             {...field}
                             name={[field.name, 'bearerToken']}
-                            label="Token验证"
+                            label={t('webhookConfigsFormList.token')}
                           >
-                            <Input placeholder="Token验证" />
+                            <Input placeholder={t('webhookConfigsFormList.token')} />
                           </Form.Item>
                         </Col>
                       </>

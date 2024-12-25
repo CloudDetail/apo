@@ -26,7 +26,6 @@ function IframeDashboard(props) {
   useEffect(() => {
     const iframe = iframeRef.current
 
-
     iframe.addEventListener('load', handleLoad)
 
     return () => {
@@ -37,8 +36,9 @@ function IframeDashboard(props) {
     const iframe = iframeRef.current
 
     const handleLoad = () => {
-      const iframeDocument = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
-      const someElement = iframeDocument.querySelector('selector'); // 替换 'selector' 为你要选择的元素
+      const iframeDocument =
+        iframeRef.current.contentDocument || iframeRef.current.contentWindow.document
+      const someElement = iframeDocument.querySelector('selector') // 替换 'selector' 为你要选择的元素
       // const targetDiv = iframe.ownerDocument.documentElement.querySelector('#react-root .main-view > div:first-child');
       // console.log(targetDiv)
       // 获取 iframe 元素，并通过类型断言确保其为 HTMLIFrameElement
@@ -117,29 +117,29 @@ function IframeDashboard(props) {
       iframe.removeEventListener('load', handleLoad)
     }
   }, [])
-  useEffect(()=>{
-    let src =props.src
-    if(storeTimeRange.rangeType){
+  useEffect(() => {
+    let src = props.src
+    if (storeTimeRange.rangeType) {
       const storeTimeRangeItem = timeRangeList.find(
         (item) => item.rangeType === storeTimeRange.rangeType,
-      );
-      src+=  `&from=${storeTimeRangeItem.from}&to=${storeTimeRangeItem.to}`
-    }else{
-      src+=  `&from=${Math.round(startTime / 1000)}&to=${Math.round(endTime / 1000)}`
+      )
+      src += `&from=${storeTimeRangeItem.from}&to=${storeTimeRangeItem.to}`
+    } else {
+      src += `&from=${Math.round(startTime / 1000)}&to=${Math.round(endTime / 1000)}`
     }
     setSrc(src)
-  },[props.src,startTime, endTime,storeTimeRange ])
+  }, [props.src, startTime, endTime, storeTimeRange])
   return (
-      <iframe
-        id="iframe"
-        ref={iframeRef}
-        src={src}
-        width="100%"
-        height="100%"
-        frameBorder={0}
-        onLoad={handleLoad}
-        key={src}
-      ></iframe>
+    <iframe
+      id="iframe"
+      ref={iframeRef}
+      src={src}
+      width="100%"
+      height="100%"
+      frameBorder={0}
+      onLoad={handleLoad}
+      key={src}
+    ></iframe>
   )
 }
 

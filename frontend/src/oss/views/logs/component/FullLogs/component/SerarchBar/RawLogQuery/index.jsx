@@ -6,7 +6,10 @@ import { IoSearch } from 'react-icons/io5'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { useSearchParams } from 'react-router-dom'
 import FullTextSearch from './FullTextSearch'
+import { useTranslation } from 'react-i18next' // 引入i18n
+
 const RawLogQuery = () => {
+  const { t } = useTranslation('oss/fullLogs') // 使用i18n
   const { searchValue, setSearchValue, query, updateQuery, getLogTableInfo } = useLogsContext()
   // 分析字段的代码提示
   const [analysisFieldTips, setAnalysisFieldTips] = useState([])
@@ -40,7 +43,7 @@ const RawLogQuery = () => {
           <CodeMirrorSearch
             title="logInput"
             value={searchValue}
-            placeholder="请输入查询语句"
+            placeholder={t('rawLogQuery.placeholder')}
             onPressEnter={() => updateQuery(queryKeyword)}
             onChange={setQueryKeyword}
             tables={analysisFieldTips}

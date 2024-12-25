@@ -3,26 +3,28 @@ import { useEffect, useState } from 'react'
 import TextArea from 'antd/es/input/TextArea'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import LogStructRuleFormList from './LogStructRuleFormList'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 const ParseRuleTabs = () => {
+  const { t } = useTranslation('oss/fullLogs') // 使用i18n
   const form = Form.useFormInstance()
   const [activeKey, setActiveKey] = useState('unStructured')
   const items = [
     {
       key: 'unStructured',
-      label: '非结构化日志',
+      label: t('ConfigLogRuleModal.ParseRuleTabs.unStructuredLabel'),
       children: (
         <div>
           <div className="flex items-center mb-2">
             <AiOutlineInfoCircle size={16} className="mx-1" />
             <span className="text-xs text-gray-400">
-              将符合规则的日志进行结构化并加快查询速度，查看
+              {t('ConfigLogRuleModal.ParseRuleTabs.unStructuredDescription')}
               <a
                 href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/日志解析规则配置/"
                 className="underline"
                 target="_blank"
               >
-                帮助文档
+                {t('ConfigLogRuleModal.ParseRuleTabs.unStructuredHelpLink')}
               </a>
             </span>
           </div>
@@ -36,13 +38,16 @@ const ParseRuleTabs = () => {
                   }
                   const unStructuredList = form.getFieldValue('unStructured') || []
                   if (!value && !unStructuredList[0]?.name) {
-                    return Promise.reject('请输入解析规则或填写至少一个日志字段数据类型')
+                    return Promise.reject(t('ConfigLogRuleModal.ParseRuleTabs.parseRuleError'))
                   }
                 },
               },
             ]}
           >
-            <TextArea placeholder="解析规则" rows={3} />
+            <TextArea
+              placeholder={t('ConfigLogRuleModal.ParseRuleTabs.parseRulePlaceholder')}
+              rows={3}
+            />
           </Form.Item>
           <LogStructRuleFormList fieldName={'unStructured'} />
         </div>
@@ -50,13 +55,13 @@ const ParseRuleTabs = () => {
     },
     {
       key: 'structured',
-      label: '结构化日志',
+      label: t('ConfigLogRuleModal.ParseRuleTabs.structuredLabel'),
       children: (
         <>
           <div className="flex mb-2">
             <AiOutlineInfoCircle size={16} className="mx-1" />
             <span className="text-xs text-gray-400">
-              请输入JSON格式的日志样本自动生成日志格式（仅支持解析JSON最外层的键）
+              {t('ConfigLogRuleModal.ParseRuleTabs.structuredDescription')}
             </span>
           </div>
           <Form.Item
@@ -65,14 +70,14 @@ const ParseRuleTabs = () => {
               {
                 validator: async (_, value) => {
                   if (form.getFieldError('isStructured') && value && !checkyIsJson(value)) {
-                    return Promise.reject('json解析失败，请检查格式是否正确')
+                    return Promise.reject(t('ConfigLogRuleModal.ParseRuleTabs.structuredRuleError'))
                   }
                 },
               },
             ]}
           >
             <TextArea
-              placeholder="日志样本"
+              placeholder={t('ConfigLogRuleModal.ParseRuleTabs.structuredRulePlaceholder')}
               rows={3}
               onChange={(e) => {
                 changeStructuredRule(e.target.value)

@@ -11,6 +11,7 @@ import { Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
 import { showToast } from 'src/core/utils/toast'
+import { useTranslation } from 'react-i18next'
 
 function DependentTable(props) {
   const { serviceName, endpoint, startTime, endTime, storeDisplayData = false } = props
@@ -18,6 +19,7 @@ function DependentTable(props) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(false)
   const dispatch = useDispatch()
+  const { t } = useTranslation('oss/serviceInfo')
 
   const setDisplayData = (value) => {
     dispatch({ type: 'setDisplayData', payload: value })
@@ -36,7 +38,6 @@ function DependentTable(props) {
         .then((res) => {
           setData(res ?? [])
           setLoading(false)
-          // console.log(res.slice(0, 5))
           if (storeDisplayData) setDisplayData((res ?? []).slice(0, 5))
         })
         .catch((error) => {
@@ -58,162 +59,158 @@ function DependentTable(props) {
     300, // 延迟时间 300ms
     [startTime, endTime, serviceName, endpoint],
   )
-  const column = [
-    {
-      title: '服务名',
-      accessor: 'serviceName',
-      customWidth: 150,
-    },
-
-    {
-      title: '服务端点',
-      accessor: 'endpoint',
-      // Cell: (props) => {
-      //   console.log(props)
-      //   // const navigate = useNavigate()
-      //   // toServiceInfo()
-      //   // TODO encode
-
-      //   return <a onClick={navigate(
-      //     `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}`,
-      //   )} >{props.value}</a>
-      //   // window.location.reload();
-      //   // window.location.href = `/service/info?service-name=${serviceName}&url=${url}&&breadcrumb-name=${serviceName}`
-      // },
-    },
-    {
-      title: (
-        <Tooltip
-          title={
-            <div>
-              <div>自身：服务自身延时占比50%以上</div>
-              <div>依赖：请求下游服务延时占比50%以上</div>
-              <div>未知：未找到相关指标</div>
+  const columns = useMemo(
+    () => [
+      {
+        title: t('dependent.dependentTable.serviceName'),
+        accessor: 'serviceName',
+        customWidth: 150,
+      },
+      {
+        title: t('dependent.dependentTable.endpoint'),
+        accessor: 'endpoint',
+      },
+      {
+        title: (
+          <Tooltip
+            title={
+              <div>
+                <div className="text-[#D3D3D3]">
+                  {t('dependent.dependentTable.delaySource.title1')}
+                </div>
+                <div className="text-[#D3D3D3] mt-2">
+                  {t('dependent.dependentTable.delaySource.title2')}
+                </div>
+                <div className="text-[#D3D3D3] mt-2">
+                  {t('dependent.dependentTable.delaySource.title3')}
+                </div>
+              </div>
+            }
+          >
+            <div className="flex flex-row justify-center items-center">
+              <div>
+                <div className="text-center flex flex-row ">
+                  {t('dependent.dependentTable.delaySource.title4')}
+                </div>
+                <div className="block text-[10px]">
+                  {t('dependent.dependentTable.delaySource.title5')}
+                </div>
+              </div>
+              <AiOutlineInfoCircle size={16} className="ml-1" />
             </div>
-          }
-        >
-          <div className="flex flex-row justify-center items-center">
-            <div>
-              <div className="text-center flex flex-row ">延时主要来源</div>
-              <div className="block text-[10px]">(自身/依赖/未知)</div>
-            </div>
-            <AiOutlineInfoCircle size={16} className="ml-1" />
-          </div>
-        </Tooltip>
-      ),
-      accessor: 'delaySource',
-      canExpand: false,
-      customWidth: 112,
-      Cell: ({ value }) => {
-        return <>{DelaySourceTimeUnit[value]}</>
+          </Tooltip>
+        ),
+        accessor: 'delaySource',
+        canExpand: false,
+        customWidth: 112,
+        Cell: ({ value }) => {
+          return <>{DelaySourceTimeUnit[value]}</>
+        },
       },
-    },
-    {
-      title: 'RED告警',
-      accessor: `REDStatus`,
+      {
+        title: t('dependent.dependentTable.REDStatus'),
+        accessor: `REDStatus`,
+        Cell: (props) => {
+          const { value, row, column } = props
+          const alertReason = row.original?.alertReason?.[column.id]
+          return (
+            <>
+              <StatusInfo status={value} alertReason={alertReason} title={column.title} />
+            </>
+          )
+        },
+      },
+      {
+        title: t('dependent.dependentTable.logsStatus'),
+        accessor: `logsStatus`,
+        Cell: (props) => {
+          const { value, row, column } = props
+          const alertReason = row.original?.alertReason?.[column.id]
+          return (
+            <>
+              <StatusInfo status={value} alertReason={alertReason} title={column.title} />
+            </>
+          )
+        },
+      },
+      {
+        title: t('dependent.dependentTable.infrastructureStatus'),
+        accessor: `infrastructureStatus`,
+        Cell: (props) => {
+          const { value, row, column } = props
+          const alertReason = row.original?.alertReason?.[column.id]
+          return (
+            <>
+              <StatusInfo status={value} alertReason={alertReason} title={column.title} />
+            </>
+          )
+        },
+      },
+      {
+        title: t('dependent.dependentTable.netStatus'),
+        accessor: `netStatus`,
+        Cell: (props) => {
+          const { value, row, column } = props
+          const alertReason = row.original?.alertReason?.[column.id]
+          return (
+            <>
+              <StatusInfo status={value} alertReason={alertReason} title={column.title} />
+            </>
+          )
+        },
+      },
+      {
+        title: t('dependent.dependentTable.k8sStatus'),
+        accessor: `k8sStatus`,
+        Cell: (props) => {
+          const { value, row, column } = props
+          const alertReason = row.original?.alertReason?.[column.id]
+          return (
+            <>
+              <StatusInfo status={value} alertReason={alertReason} title={column.title} />
+            </>
+          )
+        },
+      },
+      {
+        title: t('dependent.dependentTable.timestamp'),
+        accessor: `timestamp`,
+        Cell: (props) => {
+          const { value } = props
+          return (
+            <>
+              {value !== null ? (
+                convertTime(value, 'yyyy-mm-dd hh:mm:ss')
+              ) : (
+                <span className="text-slate-400">N/A</span>
+              )}{' '}
+            </>
+          )
+        },
+      },
+    ],
+    [t],
+  )
 
-      Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
-        const { value, row, column } = props
-        const alertReason = row.original?.alertReason?.[column.id]
-        return (
-          <>
-            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
-          </>
-        )
-      },
-    },
-    {
-      title: '日志错误数量',
-      accessor: `logsStatus`,
-      Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
-        const { value, row, column } = props
-        const alertReason = row.original?.alertReason?.[column.id]
-        return (
-          <>
-            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
-          </>
-        )
-      },
-    },
-    {
-      title: '基础设施状态',
-      accessor: `infrastructureStatus`,
-      Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
-        const { value, row, column } = props
-        const alertReason = row.original?.alertReason?.[column.id]
-        return (
-          <>
-            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
-          </>
-        )
-      },
-    },
-    {
-      title: '网络质量状态',
-      accessor: `netStatus`,
-      Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
-        const { value, row, column } = props
-        const alertReason = row.original?.alertReason?.[column.id]
-        return (
-          <>
-            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
-          </>
-        )
-      },
-    },
-    {
-      title: 'K8s事件状态',
-      accessor: `k8sStatus`,
-      Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
-        const { value, row, column } = props
-        const alertReason = row.original?.alertReason?.[column.id]
-        return (
-          <>
-            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
-          </>
-        )
-      },
-    },
-    {
-      title: '末次部署或重启时间',
-      accessor: `timestamp`,
-      Cell: (props) => {
-        const { value } = props
-        return (
-          <>
-            {value !== null ? (
-              convertTime(value, 'yyyy-mm-dd hh:mm:ss')
-            ) : (
-              <span className="text-slate-400">N/A</span>
-            )}{' '}
-          </>
-        )
-      },
-    },
-  ]
   const toServiceInfoPage = (props) => {
     if (props.isTraced) {
       navigate(
         `/service/info?service-name=${encodeURIComponent(props.serviceName)}&endpoint=${encodeURIComponent(props.endpoint)}&breadcrumb-name=${encodeURIComponent(props.serviceName)}`,
       )
     } else {
-      showToast({ title: '该服务未被监控，无法跳转', color: 'info' })
+      showToast({ title: t('dependent.dependentTable.unmonitoredService'), color: 'info' })
     }
   }
+
   const tableProps = useMemo(() => {
     return {
-      columns: column,
+      columns: columns,
       data: data ?? [],
-
       loading: loading,
       clickRow: toServiceInfoPage,
     }
-  }, [data, startTime, endTime, loading])
+  }, [columns, data, startTime, endTime, loading])
+
   return <>{data && <BasicTable {...tableProps} />}</>
 }
 

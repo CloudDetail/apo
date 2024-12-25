@@ -1,0 +1,11 @@
+{
+  "FaultSiteLogs": {
+    "faultLogTableToast": "默认采集控制台日志，从文件中采集日志的配置方式请参考",
+    "documentText": "文档",
+    "faultLogsText": "故障现场日志",
+    "faultSiteText": "故障现场",
+    "endpoint": "服务端点",
+    "timeOfFailure": "故障发生时间",
+    "specificLogInformation": "具体日志信息"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "dateTimeRangePicker": {
+    "selectCorrectTimeRangeFeedback": "请输入或选择正确的日期",
+    "startTimeLongerThanEndTime": "开始时间不能晚于结束时间",
+    "endTimeLessThanStartTime": "结束时间不能早于开始时间",
+    "endTimeLongerThanCurrentTimeFeedback": "结束时间不能超过当前时间",
+    "absoluteTimeRangeTitle": "绝对时间范围",
+    "startTitle": "开始",
+    "endTitle": "结束",
+    "applyTimeRangeButtonText": "应用时间范围",
+    "quickRangeTitle": "快速范围"
+  },
+  "RefreshDateTime": {
+    "RefreshDateTimeOffText": "关"
+  },
+  "TimeSinceRefresh": {
+    "dayText": "天",
+    "hourText": "小时",
+    "minuteText": "分钟",
+    "secondText": "秒",
+    "refreshTipText": "刷新于",
+    "refreshTipTextAgo": "前"
+  },
+  "DataTimeCombine": {
+    "absoluteTimeText": "绝对时间",
+    "relativeTimeText": "相对时间"
+  }
+}

@@ -3,11 +3,14 @@ import {
   getServiceLogLogsApi,
   getServiceTraceLogsApi,
 } from 'src/core/api/serviceInfo'
+import TranslationCom from './oss/components/TranslationCom'
+
+const translationUrl = 'constant'
 
 export const DelaySourceTimeUnit = {
-  self: '自身',
-  dependency: '依赖',
-  unknown: '未知',
+  self: <TranslationCom text={'DelaySourceTimeUnit.selfText'} url={translationUrl} />,
+  dependency: <TranslationCom text={'DelaySourceTimeUnit.dependencyText'} url={translationUrl} />,
+  unknown: <TranslationCom text={'DelaySourceTimeUnit.unknownText'} url={translationUrl} />,
 }
 
 export const MetricsLineChartColor = {
@@ -39,14 +42,6 @@ export const TimeLineTypeTitleMap = {
   errorLogs: '错误日志',
   logsInfo: '故障现场日志',
   traceLogs: '故障现场Trace',
-}
-
-export const DelayLineChartTitleMap = {
-  latency: '平均响应时间',
-  p90: '90分位数',
-  errorRate: '错误率',
-  logs: '日志错误数量',
-  tps: '吞吐量',
 }
 
 export const YValueMinInterval = {
@@ -93,18 +88,11 @@ export const ChartColorList = [
 ]
 
 export const TableType = {
-  logs: '日志',
-  trace: '链路',
-  k8s: 'Kubernetes事件',
-  topology: '拓扑图',
-  other: '其他',
-}
-
-export const RuleGroupMap = {
-  app: '应用指标',
-  infra: '主机相关',
-  network: '网络相关',
-  container: '容器相关',
+  logs: <TranslationCom text={'TableType.logsText'} url={translationUrl} />,
+  trace: <TranslationCom text={'TableType.traceText'} url={translationUrl} />,
+  k8s: <TranslationCom text={'TableType.k8sText'} url={translationUrl} />,
+  topology: <TranslationCom text={'TableType.topologyText'} url={translationUrl} />,
+  other: <TranslationCom text={'TableType.otherText'} url={translationUrl} />,
 }
 
 export const AlertSeverityMapList = [

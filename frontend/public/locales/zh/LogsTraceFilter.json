@@ -1,0 +1,17 @@
+{
+  "LogsTraceFilter": {
+    "nameSpaceLabel": "命名空间：",
+    "applicationLabel": "服务名：",
+    "instanceLabel": "实例名：",
+    "durationLabel": "响应时间：",
+    "endpointLabel": "服务端点：",
+    "Status": "故障状态：",
+    "toText": "至",
+    "search": "检索"
+  },
+  "traceErrorType": {
+    "error": "错误故障",
+    "slow": "慢故障",
+    "normal": "无异常"
+  }
+}

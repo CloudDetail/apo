@@ -11,8 +11,10 @@ import { useSelector } from 'react-redux'
 import { getStep } from 'src/core/utils/step'
 import { convertTime } from 'src/core/utils/time'
 import { useDebounce } from 'react-use'
+import { useTranslation } from 'react-i18next'
 
 export default function InstanceInfo(props) {
+  const { t } = useTranslation('oss/serviceInfo')
   const { handlePanelStatus, prepareVariable } = props
   const [data, setData] = useState()
   const [status, setStatus] = useState()
@@ -21,12 +23,12 @@ export default function InstanceInfo(props) {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const column = [
     {
-      title: '实例名',
+      title: t('instanceInfo.instanceName'),
       accessor: 'name',
       customWidth: 150,
     },
     {
-      title: '平均响应时间',
+      title: t('instanceInfo.avgResponseTime'),
       accessor: 'latency',
       minWidth: 150,
       Cell: (props) => {
@@ -35,19 +37,17 @@ export default function InstanceInfo(props) {
       },
     },
     {
-      title: '错误率',
+      title: t('instanceInfo.errorRate'),
       accessor: 'errorRate',
       minWidth: 150,
-
       Cell: (props) => {
         const { value } = props
         return <TempCell type="errorRate" timeRange={{ startTime, endTime }} data={value} />
       },
     },
     {
-      title: '吞吐量',
+      title: t('instanceInfo.throughput'),
       accessor: 'tps',
-
       minWidth: 150,
       Cell: (props) => {
         const { value } = props
@@ -55,9 +55,8 @@ export default function InstanceInfo(props) {
       },
     },
     {
-      title: '日志错误数量',
+      title: t('instanceInfo.logErrorCount'),
       accessor: 'logs',
-
       minWidth: 150,
       Cell: (props) => {
         const { value } = props
@@ -65,7 +64,7 @@ export default function InstanceInfo(props) {
       },
     },
     {
-      title: '基础设施状态',
+      title: t('instanceInfo.infrastructureStatus'),
       accessor: 'infrastructureStatus',
       Cell: (props) => {
         const { value, row, column } = props
@@ -78,7 +77,7 @@ export default function InstanceInfo(props) {
       },
     },
     {
-      title: '网络质量状态',
+      title: t('instanceInfo.networkQualityStatus'),
       accessor: 'netStatus',
       Cell: (props) => {
         const { value, row, column } = props
@@ -91,7 +90,7 @@ export default function InstanceInfo(props) {
       },
     },
     {
-      title: 'K8s事件状态',
+      title: t('instanceInfo.k8sEventStatus'),
       accessor: 'k8sStatus',
       Cell: (props) => {
         const { value, row, column } = props
@@ -105,18 +104,22 @@ export default function InstanceInfo(props) {
     },
 
     {
-      title: '主机节点信息',
+      title: t('instanceInfo.nodeInfo'),
       accessor: 'nodeName',
       minWidth: 150,
       Cell: (props) => {
         return (
           <div>
             <div className="flex ">
-              <span className="text-gray-400 flex-shrink-0 flex-grow-0">主机名：</span>
+              <span className="text-gray-400 flex-shrink-0 flex-grow-0">
+                {t('instanceInfo.nodeName')}：
+              </span>
               {props.value}
             </div>
             <div className="flex">
-              <span className="text-gray-400 flex-shrink-0 flex-grow-0">主机IP：</span>
+              <span className="text-gray-400 flex-shrink-0 flex-grow-0">
+                {t('instanceInfo.nodeIP')}：
+              </span>
               {props.row.original.nodeIP}
             </div>
           </div>
@@ -124,7 +127,7 @@ export default function InstanceInfo(props) {
       },
     },
     {
-      title: '末次部署或重启时间',
+      title: t('instanceInfo.lastDeploymentOrRestartTime'),
       accessor: `timestamp`,
       Cell: (props) => {
         const { value } = props
@@ -188,7 +191,7 @@ export default function InstanceInfo(props) {
       showBorder: false,
       loading: false,
     }
-  }, [serviceName, data])
+  }, [serviceName, data, column])
   return (
     <>
       {/* <CAccordionHeader onClick={() => handleToggle('instance')}>

@@ -3,8 +3,9 @@ import ReactECharts from 'echarts-for-react'
 import { getStep } from 'src/core/utils/step'
 import { convertTime } from 'src/core/utils/time'
 import { format } from 'date-fns'
-import { DelayLineChartTitleMap, MetricsLineChartColor, YValueMinInterval } from 'src/constants'
+import { MetricsLineChartColor, YValueMinInterval } from 'src/constants'
 import { useDispatch } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 
 export const adjustAlpha = (color, alpha) => {
   const rgba = color.match(/\d+/g)
@@ -12,6 +13,16 @@ export const adjustAlpha = (color, alpha) => {
 }
 
 const DelayLineChart = ({ data, timeRange, type }) => {
+  const { t } = useTranslation('core/delayLineChart')
+
+  const DelayLineChartTitleMap = {
+    latency: t('DelayLineChartTitleMap.latency'),
+    p90: t('DelayLineChartTitleMap.p90'),
+    errorRate: t('DelayLineChartTitleMap.errorRate'),
+    logs: t('DelayLineChartTitleMap.logs'),
+    tps: t('DelayLineChartTitleMap.tps'),
+  }
+
   const chartRef = useRef(null)
   const dispatch = useDispatch()
   const setStoreTimeRange = (value) => {
@@ -20,7 +31,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
   const convertYValue = (value) => {
     switch (type) {
       case 'logs':
-        return Math.floor(value) + '个'
+        return Math.floor(value) + t('units.unit')
       case 'latency':
         if (value > 0 && value < 10) {
           return '< 0.01 ms'
@@ -40,9 +51,9 @@ const DelayLineChart = ({ data, timeRange, type }) => {
         return parseFloat(value.toFixed(2)) + '%'
       case 'tps':
         if (value > 0 && value < 0.01) {
-          return '< 0.01次/分'
+          return '< 0.01' + t('units.timesPerMinute')
         }
-        return parseFloat((Math.floor(value * 100) / 100).toString()) + '次/分'
+        return parseFloat((Math.floor(value * 100) / 100).toString()) + t('units.timesPerMinute')
     }
   }
   const [option, setOption] = useState({

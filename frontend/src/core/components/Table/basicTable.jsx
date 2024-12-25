@@ -2,12 +2,11 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useSortBy, useTable, usePagination } from 'react-table'
 import './index.css'
 import _ from 'lodash'
-// import LoadingSpinner from 'src/core/components/Spinner/spinner';
 import TableBody from './tableBody'
 import LoadingSpinner from '../Spinner'
 import BasicPagination from './basicPagination'
 
-const BasicTable = React.memo((props) => {
+const BasicTable = (props) => {
   const {
     data,
     columns,
@@ -71,8 +70,7 @@ const BasicTable = React.memo((props) => {
       onChange({ pageSize: pageSize, pageIndex: pageIndex + 1 })
     }
     setPaginationLoading(false)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageSize, pageIndex])
+  }, [pageSize, pageIndex, onChange])
 
   const tableBodyProps = useMemo(
     () => ({
@@ -84,9 +82,8 @@ const BasicTable = React.memo((props) => {
       pageSize,
       clickRow,
       emptyContent,
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }),
-    [page, data, pageIndex, pageSize],
+    [page, data, pageIndex, pageSize, loading, rowKey, clickRow, emptyContent],
   )
   return (
     <div className={showBorder ? 'basic-table border-table' : 'basic-table'}>
@@ -98,7 +95,6 @@ const BasicTable = React.memo((props) => {
                 {headerGroup.headers.map((column, idx) => {
                   return (
                     <th
-                      // @ts-ignore
                       {...column.getHeaderProps({
                         style: {
                           width: column.customWidth,
@@ -109,20 +105,12 @@ const BasicTable = React.memo((props) => {
                         },
                       })}
                       className={
-                        // @ts-ignore
-                        (column.isSorted
-                          ? // @ts-ignore
-                            column.isSortedDesc
-                            ? 'sort-desc'
-                            : 'sort-asc'
-                          : '') + (column.canSort ? '  cursor-pointer' : '')
+                        (column.isSorted ? (column.isSortedDesc ? 'sort-desc' : 'sort-asc') : '') +
+                        (column.canSort ? '  cursor-pointer' : '')
                       }
                       key={`header_th_${idx}`}
                       onClick={() => {
-                        // @ts-ignore
-
                         if (column.canSort) {
-                          // @ts-ignore
                           column.toggleSortBy()
                         }
                       }}
@@ -149,19 +137,6 @@ const BasicTable = React.memo((props) => {
                           )
                         })}
                       {!column.isNested && column.render('title')}
-                      {/* {
-                        // @ts-ignore
-                        column.isSorted ? (
-                          // @ts-ignore
-                          column.isSortedDesc ? (
-                            <Icon name="arrow-down" />
-                          ) : (
-                            <Icon name="arrow-up" />
-                          )
-                        ) : (
-                          ""
-                        )
-                      } */}
                     </th>
                   )
                 })}
@@ -183,20 +158,8 @@ const BasicTable = React.memo((props) => {
           setPageSize={setPageSize}
         />
       )}
-      {/* <CPagination className="flex justify-end">
-  <CPaginationItem >
-    <span >&laquo;</span>
-  </CPaginationItem>
-  <CPaginationItem>1</CPaginationItem>
-  <CPaginationItem>2</CPaginationItem>
-  <CPaginationItem>3</CPaginationItem>
-  <CPaginationItem aria-label="Next">
-    <span >&raquo;</span>
-  </CPaginationItem>
-</CPagination> */}
     </div>
   )
-})
-BasicTable.displayName = 'BasicTable'
+}
 
-export default BasicTable
+export default React.memo(BasicTable)

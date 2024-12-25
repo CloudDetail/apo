@@ -6,8 +6,10 @@ import { MdAdd, MdDeleteOutline, MdModeEdit } from 'react-icons/md'
 import './index.css'
 import { deleteLogRuleApi } from 'core/api/logs'
 import { showToast } from 'src/core/utils/toast'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 const LogRuleList = () => {
+  const { t } = useTranslation('oss/fullLogs') // 使用i18n
   const { logRules, tableInfo, updateTableInfo, getLogTableInfo, updateLoading } = useLogsContext()
   const [treeData, setTreeData] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
@@ -25,7 +27,7 @@ const LogRuleList = () => {
       tableName: rule.tableName,
     }).then((res) => {
       showToast({
-        title: '删除日志规则成功',
+        title: t('fullLogSider.logRuleList.deleteLogSuccessToast'),
         color: 'success',
       })
       getLogTableInfo()
@@ -54,16 +56,17 @@ const LogRuleList = () => {
             <Popconfirm
               title={
                 <>
-                  是否确定删除名为“<span className="font-bold ">{nodeData.parseName}</span>
-                  ”的日志规则
+                  {t('fullLogSider.logRuleList.confirmDeleteLogRulePart1Text')}
+                  <span className="font-bold ">{nodeData.parseName}</span>
+                  {t('fullLogSider.logRuleList.confirmDeleteLogRulePart2Text')}
                 </>
               }
               onConfirm={(e) => {
                 e.stopPropagation()
                 deleteLogRule(nodeData)
               }}
-              okText="确定"
-              cancelText="取消"
+              okText={t('fullLogSider.logRuleList.confirmText')}
+              cancelText={t('fullLogSider.logRuleList.cancelText')}
             >
               <Button
                 size="small"
@@ -107,7 +110,7 @@ const LogRuleList = () => {
       className="overflow-y-auto h-1/2 w-full overflow-x-hidden"
       title={
         <>
-          <span>日志库</span>
+          <span>{t('fullLogSider.logRuleList.RepositoryText')}</span>
           <div className="flex flex-row">
             {/* <AiOutlineInfoCircle size={16} className="ml-1" /> */}
             {/* <span className="text-xs text-gray-400">点击规则查询对应服务的日志</span> */}

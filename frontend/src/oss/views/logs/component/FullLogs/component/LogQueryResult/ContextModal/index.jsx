@@ -3,8 +3,10 @@ import React, { useEffect, useState } from 'react'
 import { getLogContextApi } from 'core/api/logs'
 import QueryList from '../QueryList'
 import LoadingSpinner from 'src/core/components/Spinner'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 const ContextModal = ({ modalVisible, closeModal, logParams }) => {
+  const { t } = useTranslation('oss/fullLogs') // 使用i18n
   const [context, setContext] = useState([])
   const [loading, setLoading] = useState(false)
   const getLogContext = () => {
@@ -31,12 +33,12 @@ const ContextModal = ({ modalVisible, closeModal, logParams }) => {
   }, [modalVisible, logParams])
   return (
     <Modal
-      title={'上下文'}
+      title={t('contextModal.contextText')}
       open={modalVisible}
       onCancel={closeContextModal}
       destroyOnClose
       centered
-      cancelText="关闭"
+      cancelText={t('contextModal.cancelText')}
       width={1000}
       bodyStyle={{ height: '80vh', overflowY: 'auto', overflowX: 'hidden' }}
       footer={(_, { CancelBtn }) => (

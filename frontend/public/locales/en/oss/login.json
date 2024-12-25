@@ -1,0 +1,11 @@
+{
+  "index": {
+    "title": "APO",
+    "username": "Username",
+    "password": "Password",
+    "login": "Login",
+    "loginSuccess": "Login successful",
+    "enterUsername": "Please enter username",
+    "enterPassword": "Please enter password"
+  }
+}
