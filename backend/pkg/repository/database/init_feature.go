@@ -45,7 +45,7 @@ func (repo *daoRepo) initFeature() error {
 			return err
 		}
 		for _, feature := range newFeatures {
-			// Add new feature
+			// Add new feature and grant to admin.
 			if _, exists := existingFeatureMap[feature.FeatureName]; !exists {
 				if err = tx.Create(&feature).Error; err != nil {
 					return err
