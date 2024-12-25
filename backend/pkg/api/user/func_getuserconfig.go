@@ -1,6 +1,10 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package user
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
 
@@ -14,7 +18,8 @@ import (
 // @Tags API.permission
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId query int64 false "用户id"
+// @Param userId query int64 true "用户id"
+// @Param language query string false "language"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetUserConfigResponse
 // @Failure 400 {object} code.Failure
@@ -29,6 +34,10 @@ func (h *handler) GetUserConfig() core.HandlerFunc {
 				code.Text(code.ParamBindError)).WithError(err),
 			)
 			return
+		}
+
+		if len(req.Language) == 0 {
+			req.Language = model.TRANSLATION_ZH
 		}
 
 		resp, err := h.userService.GetUserConfig(req)

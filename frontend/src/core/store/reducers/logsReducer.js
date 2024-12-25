@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 export const logsInitialState = {
   tableInfo: {
     dataBase: '',
@@ -21,9 +26,10 @@ export const logsInitialState = {
   defaultFields: [],
 
   hiddenFields: [],
+  displayFields: {},
   //最终的query 会触发查询
   query: '',
-  //searchValue 当前框值，不处罚查询
+  //searchValue 当前框值，不触发查询
   searchValue: '',
   loading: true,
 
@@ -43,6 +49,12 @@ const logsReducer = (state = logsInitialState, action) => {
       return { ...state, defaultFields: action.payload }
     case 'updateHiddenFields':
       return { ...state, hiddenFields: action.payload }
+    case 'addDisplayFields':
+      return { ...state, displayFields: { ...state.displayFields, ...action.payload } }
+    case 'removeDisplayFields':
+      return { ...state, displayFields: action.payload }
+    case 'resetDisplayFields':
+      return { ...state, displayFields: action.payload }
     case 'updateQuery':
       return { ...state, query: action.payload }
     case 'updateLoading':

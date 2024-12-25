@@ -1,4 +1,9 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package request
+
+import "github.com/CloudDetail/apo/backend/pkg/model"
 
 type LoginRequest struct {
 	Username string `json:"username" form:"username" binding:"required"` // 用户名
@@ -69,12 +74,14 @@ type RoleOperationRequest struct {
 }
 
 type GetUserConfigRequest struct {
-	UserID int64 `form:"userId"`
+	UserID int64 `form:"userId" binding:"required"`
+	model.I18nLanguage
 }
 
 type GetSubjectFeatureRequest struct {
 	SubjectID   int64  `form:"subjectId" binding:"required"`
 	SubjectType string `form:"subjectType" binding:"required"`
+	model.I18nLanguage
 }
 
 type PermissionOperationRequest struct {
@@ -90,4 +97,8 @@ type GetUserRoleRequest struct {
 
 type ConfigureMenuRequest struct {
 	PermissionList []int `form:"permissionList"`
+}
+
+type GetFeatureRequest struct {
+	model.I18nLanguage
 }

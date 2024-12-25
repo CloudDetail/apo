@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package service
 
 import (
@@ -83,6 +86,11 @@ type Handler interface {
 	// @DEPRECATED
 	// @Router /api/service/instances/list [get]
 	GetServiceInstanceList() core.HandlerFunc
+
+	// GetServiceInstanceList 获取服务的实例详情
+	// @Tags API.service
+	// @Router /api/service/instanceinfo/list [get]
+	GetServiceInstanceInfoList() core.HandlerFunc
 
 	// GetServiceInstanceOptions 获取服务下拉实例列表
 	// @Tags API.service

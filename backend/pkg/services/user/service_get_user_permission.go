@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package user
 
 import (
@@ -24,7 +27,7 @@ func (s *service) GetUserFeature(userID int64) ([]database.Feature, error) {
 	}
 	subIDs[i] = userID
 	// 3. Get feature permission.
-	permissions, err := s.dbRepo.GetSubjectsPermission(subIDs, model.PERMISSION_TYP_FEATURE)
+	permissions, err := s.dbRepo.GetSubjectsPermission(subIDs, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE)
 	if err != nil {
 		return nil, err
 	}
@@ -34,6 +37,12 @@ func (s *service) GetUserFeature(userID int64) ([]database.Feature, error) {
 	}
 	// 4. Get features.
 	features, err := s.dbRepo.GetFeature(featureIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	// 5. Translation
+	err = s.dbRepo.GetFeatureTans(&features, "")
 	if err != nil {
 		return nil, err
 	}

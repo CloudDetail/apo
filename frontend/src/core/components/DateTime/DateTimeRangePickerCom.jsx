@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 //此组件用于页面内的时间选择 不具备存储功能 目前用于log和trace页面
 
 import { cilCalendar, cilClock } from '@coreui/icons'

@@ -1,8 +1,13 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package response
 
 type LogQueryResponse struct {
-	Limited       int       `json:"limited"`
-	HiddenFields  []string  `json:"hiddenFields"`
+	Limited int `json:"limited"`
+	// log field
+	HiddenFields []string `json:"hiddenFields"`
+	// tag field
 	DefaultFields []string  `json:"defaultFields"`
 	Logs          []LogItem `json:"logs"`
 	Query         string    `json:"query"`

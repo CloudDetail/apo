@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { combineReducers } from 'redux'
 import { persistReducer } from 'redux-persist'
 import timeRangePersistConfig from '../persist/timeRangePersistConfig'
@@ -12,6 +17,8 @@ import groupLabelReducer from './groupLabelReducer'
 import groupLabelPresistConfig from '../persist/groupLabelPresistConfig'
 import userReducer from './userReducer'
 import userPersistConfig from '../persist/userPresistConfig'
+import logsReducer from './logsReducer'
+import logsPresistConfig from '../persist/logsPresistConfig'
 
 const rootReducer = combineReducers({
   timeRange: persistReducer(timeRangePersistConfig, timeRangeReducer),
@@ -19,7 +26,8 @@ const rootReducer = combineReducers({
   topologyReducer: persistReducer(topologyPresistConfig, topologyReducer),
   urlParamsReducer: persistReducer(urlParamsPresistConfig, urlParamsReducer),
   groupLabelReducer: persistReducer(groupLabelPresistConfig, groupLabelReducer),
-  userReducer: persistReducer(userPersistConfig, userReducer)
+  userReducer: persistReducer(userPersistConfig, userReducer),
+  logsReducer: persistReducer(logsPresistConfig, logsReducer)
 })
 
 export default rootReducer

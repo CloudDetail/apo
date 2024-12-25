@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package user
 
 import (
@@ -26,7 +29,7 @@ type Service interface {
 	RoleOperation(req *request.RoleOperationRequest) error
 	GetRoles() (response.GetRoleResponse, error)
 	GetUserRole(req *request.GetUserRoleRequest) (response.GetUserRoleResponse, error)
-	GetFeature() (response.GetFeatureResponse, error)
+	GetFeature(req *request.GetFeatureRequest) (response.GetFeatureResponse, error)
 	GetSubjectFeature(req *request.GetSubjectFeatureRequest) (response.GetSubjectFeatureResponse, error)
 	PermissionOperation(req *request.PermissionOperationRequest) error
 	GetUserFeature(userID int64) ([]database.Feature, error)

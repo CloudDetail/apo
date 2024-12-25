@@ -356,7 +356,7 @@ definitions:
     type: object
   database.InsertPage:
     properties:
-      pageID:
+      pageId:
         type: integer
       type:
         description: For now it's grafana or jaeger.
@@ -379,14 +379,14 @@ definitions:
         type: string
       page:
         $ref: '#/definitions/database.InsertPage'
-      to:
+      router:
         allOf:
         - $ref: '#/definitions/database.Router'
         description: Frontend router.
     type: object
   database.Role:
     properties:
-      roleID:
+      roleId:
         type: integer
       roleName:
         type: string
@@ -395,9 +395,9 @@ definitions:
     properties:
       hideTimeSelector:
         type: boolean
-      routerID:
+      routerId:
         type: integer
-      routerTo:
+      to:
         type: string
     type: object
   database.User:
@@ -1212,6 +1212,8 @@ definitions:
         type: string
       endTime:
         type: integer
+      isExternal:
+        type: boolean
       logField:
         type: string
       pageNum:
@@ -2199,12 +2201,14 @@ definitions:
       cost:
         type: integer
       defaultFields:
+        description: tag field
         items:
           type: string
         type: array
       error:
         type: string
       hiddenFields:
+        description: log field
         items:
           type: string
         type: array
@@ -3842,7 +3846,12 @@ paths:
       - description: 用户id
         in: query
         name: userId
+        required: true
         type: integer
+      - description: language
+        in: query
+        name: language
+        type: string
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -3867,6 +3876,10 @@ paths:
       - application/x-www-form-urlencoded
       description: Gets all feature permission.
       parameters:
+      - description: language
+        in: query
+        name: language
+        type: string
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -4057,6 +4070,10 @@ paths:
       - application/x-www-form-urlencoded
       description: Gets subject's permission.
       parameters:
+      - description: language
+        in: query
+        name: language
+        type: string
       - description: 授权主体id
         in: query
         name: subjectId
@@ -4727,6 +4744,48 @@ paths:
       summary: 获取服务下拉实例列表
       tags:
       - API.service
+  /api/service/instanceinfo/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      deprecated: true
+      description: 获取服务实例列表
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取服务实例列表
+      tags:
+      - API.service
   /api/service/instances:
     get:
       consumes:
@@ -4756,7 +4815,6 @@ paths:
       - description: endpoint
         in: query
         name: endpoint
-        required: true
         type: string
       - description: Bearer accessToken
         in: header

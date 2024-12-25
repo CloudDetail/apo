@@ -1,46 +1,48 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useEffect, useState } from 'react'
 import ReactJson from 'react-json-view'
 import { Virtuoso } from 'react-virtuoso'
 import LogTagDropDown from './LogTagDropdown'
 function isJSONString(str) {
   try {
-    JSON.parse(str)
-    return true
+    return (typeof JSON.parse(str) === 'object' && JSON.parse(str) !== null)
   } catch (e) {
     return false
   }
 }
+const determineTypeAndValue = (description, title) => {
+  if (typeof description === 'string') {
+    if (isJSONString(description)) {
+      return { type: 'object', value: JSON.parse(description) };
+    }
+    if (description.length < 1000 && title !== 'content') {
+      return { type: 'string', value: [description] };
+    }
+    return { type: 'longString', value: description.split('\n') };
+  }
+  if (typeof description === 'number' || typeof description === 'boolean') {
+    return { type: typeof description, value: [String(description)] };
+  }
+  if (typeof description === 'object') {
+    return { type: 'object', value: [description] };
+  }
+  return { type: null, value: [null] }; // 默认情况
+};
+
 const formatValue = (value) => (typeof value === 'object' ? JSON.stringify(value) : value)
 
 const LogKeyTagValue = ({ title, description }) => {
   const [type, setType] = useState(null)
   const [value, setValue] = useState([null])
   useEffect(() => {
-    if (typeof description === 'string') {
-      if (isJSONString(description)) {
-        setType('object')
-        setValue(JSON.parse(description))
-      } else {
-        if (description?.length < 1000 && title !== 'content') {
-          setType('string')
-          setValue([description])
-        } else {
-          setType('longString')
-          setValue(description?.split('\n'))
-        }
-      }
-    } else if (typeof description === 'number') {
-      setType('number')
-      setValue([String(description)])
-    } else if (typeof description === 'boolean') {
-      setType('boolean')
-      setValue([String(description)])
-    } else if (typeof description === 'object') {
-      // 非字符串类型，直接显示
-      setType('object')
-      setValue([description])
-    }
-  }, [description])
+    const { type, value } = determineTypeAndValue(description, title);
+    setType(type)
+    setValue(value)
+  }, [description, title])
   return (
     <div
       className="break-all  cursor-pointer w-full"

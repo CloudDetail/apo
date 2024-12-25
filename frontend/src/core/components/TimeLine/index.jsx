@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useState, useEffect, useRef } from 'react'
 import CIcon from '@coreui/icons-react'
 import { cilChevronCircleLeftAlt, cilChevronCircleRightAlt } from '@coreui/icons'

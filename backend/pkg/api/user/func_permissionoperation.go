@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package user
 
 import (
@@ -47,8 +50,8 @@ func (h *handler) PermissionOperation() core.HandlerFunc {
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
-					code.UserCreateError,
-					code.Text(code.UserCreateError),
+					code.UserGrantPermissionError,
+					code.Text(code.UserGrantPermissionError),
 				).WithError(err))
 			}
 			return

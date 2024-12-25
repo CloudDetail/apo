@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package service
 
 import (
@@ -217,7 +220,7 @@ func (s *service) InstanceLog(instances *InstanceMap, startTime, endTime time.Ti
 	return err
 }
 
-func (s *service) GetNormalLog(startTime, endTime time.Time, filterKVs []string, offset string) []prometheus.MetricResult {
+func (s *service) GetNormalLog(startTime, endTime time.Time, filterKVs []string, offset time.Duration) []prometheus.MetricResult {
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
@@ -230,7 +233,6 @@ func (s *service) GetNormalLog(startTime, endTime time.Time, filterKVs []string,
 	}
 	vector := prometheus.VecFromS2E(startTS, endTS)
 	pql := prometheus.PQLNormalLogCountWithFilters(vector, string(prometheus.LogGranularity), filters)
-	pql = "(" + pql + ") " + offset
-	data, _ := s.promRepo.QueryData(endTime, pql)
+	data, _ := s.promRepo.QueryData(endTime.Add(-offset), pql)
 	return data
 }

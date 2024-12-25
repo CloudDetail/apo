@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { CButton } from '@coreui/react'
 import { Divider, Popover } from 'antd'
 import React from 'react'

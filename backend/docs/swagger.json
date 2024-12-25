@@ -1985,6 +1985,13 @@
                         "type": "integer",
                         "description": "用户id",
                         "name": "userId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "language",
+                        "name": "language",
                         "in": "query"
                     },
                     {
@@ -2024,6 +2031,12 @@
                 ],
                 "summary": "Gets all feature permission.",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "language",
+                        "name": "language",
+                        "in": "query"
+                    },
                     {
                         "type": "string",
                         "description": "Bearer accessToken",
@@ -2310,6 +2323,12 @@
                 ],
                 "summary": "Gets subject's permission.",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "language",
+                        "name": "language",
+                        "in": "query"
+                    },
                     {
                         "type": "integer",
                         "description": "授权主体id",
@@ -3299,6 +3318,68 @@
                 }
             }
         },
+        "/api/service/instanceinfo/list": {
+            "get": {
+                "description": "获取服务实例列表",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.service"
+                ],
+                "summary": "获取服务实例列表",
+                "deprecated": true,
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "查询开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询服务名",
+                        "name": "service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/service/instances": {
             "get": {
                 "description": "获取service对应url实例",
@@ -3345,8 +3426,7 @@
                         "type": "string",
                         "description": "endpoint",
                         "name": "endpoint",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -6151,7 +6231,7 @@
         "database.InsertPage": {
             "type": "object",
             "properties": {
-                "pageID": {
+                "pageId": {
                     "type": "integer"
                 },
                 "type": {
@@ -6185,7 +6265,7 @@
                 "page": {
                     "$ref": "#/definitions/database.InsertPage"
                 },
-                "to": {
+                "router": {
                     "description": "Frontend router.",
                     "allOf": [
                         {
@@ -6198,7 +6278,7 @@
         "database.Role": {
             "type": "object",
             "properties": {
-                "roleID": {
+                "roleId": {
                     "type": "integer"
                 },
                 "roleName": {
@@ -6212,10 +6292,10 @@
                 "hideTimeSelector": {
                     "type": "boolean"
                 },
-                "routerID": {
+                "routerId": {
                     "type": "integer"
                 },
-                "routerTo": {
+                "to": {
                     "type": "string"
                 }
             }
@@ -7381,6 +7461,9 @@
                 },
                 "endTime": {
                     "type": "integer"
+                },
+                "isExternal": {
+                    "type": "boolean"
                 },
                 "logField": {
                     "type": "string"
@@ -8842,6 +8925,7 @@
                     "type": "integer"
                 },
                 "defaultFields": {
+                    "description": "tag field",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -8851,6 +8935,7 @@
                     "type": "string"
                 },
                 "hiddenFields": {
+                    "description": "log field",
                     "type": "array",
                     "items": {
                         "type": "string"

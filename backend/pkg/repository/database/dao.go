@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package database
 
 import (
@@ -55,15 +58,17 @@ type Repo interface {
 	GrantRole(ctx context.Context, userID int64, roleIDs []int) error
 	RevokeRole(ctx context.Context, userID int64, roleIDs []int) error
 	GetSubjectPermission(subID int64, subType string, typ string) ([]int, error)
-	GetSubjectsPermission(subIDs []int64, typ string) ([]AuthPermission, error)
+	GetSubjectsPermission(subIDs []int64, subType string, typ string) ([]AuthPermission, error)
 	RoleExists(roleID int64) (bool, error)
 	GrantPermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
 	RevokePermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
 	RoleGranted(userID int64, roleID int) (bool, error)
 	GetItemRouter(items *[]MenuItem) error
-	GetItemInsertPage(items *[]MenuItem) error
+	GetRouterInsertedPage(routers []*Router) error
+	GetFeatureTans(features *[]Feature, language string) error
+	GetMenuItemTans(menuItems *[]MenuItem, language string) error
 
-	GetMappedMenuItem(featureIDs []int) ([]FeatureMenuItem, error)
+	GetFeatureMapping(featureIDs []int, mappedType string) ([]FeatureMapping, error)
 
 	GetMenuItems() ([]MenuItem, error)
 
@@ -136,14 +141,6 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = database.AutoMigrate(&Role{})
-	if err != nil {
-		return nil, err
-	}
-	err = database.AutoMigrate(&UserRole{})
-	if err != nil {
-		return nil, err
-	}
 
 	daoRepo := &daoRepo{
 		db:    database,
@@ -159,25 +156,31 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err = daoRepo.initSql(AlertMetricsData{}, alertScript); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initSql(Role{}, "./sqlscripts/default_role.sql"); err != nil {
+	if err = daoRepo.initRole(); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initSql(Feature{}, "./sqlscripts/default_feature.sql"); err != nil {
+	if err = daoRepo.initFeature(); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initSql(FeatureMenuItem{}, "./sqlscripts/default_feature_mapping.sql"); err != nil {
+	if err = daoRepo.initRouterData(); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initSql(AuthPermission{}, "./sqlscripts/default_role_permission.sql"); err != nil {
+	if err = daoRepo.initMenuItems(); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initSql(InsertPage{}, "./sqlscripts/default_inserted_page.sql"); err != nil {
+	if err = daoRepo.initInsertPages(); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initSql(Router{}, "./sqlscripts/default_router.sql"); err != nil {
+	if err = daoRepo.initRouterPage(); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initSql(MenuItem{}, "./sqlscripts/menu_item.sql"); err != nil {
+	if err = daoRepo.initFeatureMenuItems(); err != nil {
+		return nil, err
+	}
+	if err = daoRepo.initPermissions(); err != nil {
+		return nil, err
+	}
+	if err = daoRepo.initI18nTranslation(); err != nil {
 		return nil, err
 	}
 	if err = daoRepo.createAdmin(); err != nil {

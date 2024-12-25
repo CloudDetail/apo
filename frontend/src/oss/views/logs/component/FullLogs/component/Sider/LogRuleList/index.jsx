@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Button, Card, Popconfirm, Tree } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
@@ -91,11 +96,13 @@ const LogRuleList = () => {
     )
   }, [logRules])
   const onSelect = (selectedKeys, { selectedNodes }) => {
+    updateLoading(true)
     updateTableInfo({
       dataBase: selectedNodes[0].dataBase,
       tableName: selectedNodes[0].tableName,
       cluster: '',
       parseName: selectedNodes[0].parseName,
+      type: 'logLibrary'
     })
   }
   useEffect(() => {

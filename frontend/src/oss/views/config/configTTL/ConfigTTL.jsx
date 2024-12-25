@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { CCard, CCardHeader } from '@coreui/react'
 import { Button, Collapse, Popconfirm, InputNumber, List, Space, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'

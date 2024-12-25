@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package service
 
 import (
@@ -20,7 +23,7 @@ import (
 // @Param endTime query int64 true "查询结束时间"
 // @Param step query int64 true "步长"
 // @Param serviceName query string true "应用名称"
-// @Param endpoint query string true "endpoint"
+// @Param endpoint query string false "endpoint"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.InstancesRes
 // @Failure 400 {object} code.Failure

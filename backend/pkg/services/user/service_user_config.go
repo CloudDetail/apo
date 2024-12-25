@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package user
 
 import (
@@ -10,15 +13,6 @@ import (
 // GetUserConfig Gets menus and routes that users can view.
 func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error) {
 	var resp response.GetUserConfigResponse
-	if req.UserID == 0 {
-		anonymousUser, err := s.dbRepo.GetAnonymousUser()
-		if err != nil {
-			return resp, err
-		}
-
-		req.UserID = anonymousUser.UserID
-	}
-
 	// 1. Get user's role
 	roles, err := s.dbRepo.GetUserRole(req.UserID)
 	if err != nil {
@@ -26,39 +20,60 @@ func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.Get
 	}
 	// 2. TODO Get user's team
 	// 3. Get user's feature permission
-	subIDs := make([]int64, len(roles)+1)
+	subIDs := make([]int64, len(roles))
 	var i int
 	for ; i < len(roles); i++ {
 		subIDs[i] = int64(roles[i].RoleID)
 	}
-	subIDs[i] = req.UserID
-	features, err := s.dbRepo.GetSubjectsPermission(subIDs, model.PERMISSION_TYP_FEATURE)
+	features, err := s.dbRepo.GetSubjectsPermission(subIDs, model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE)
 	if err != nil {
 		return resp, err
 	}
+
+	uFeatureIDs, err := s.dbRepo.GetSubjectPermission(req.UserID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE)
+	if err != nil {
+		return resp, err
+	}
+
 	featureIDs := make([]int, len(features))
 	for i, feature := range features {
 		featureIDs[i] = feature.PermissionID
 	}
+
+	featureIDs = append(featureIDs, uFeatureIDs...)
 	// 4. Get menu item ids
-	res, err := s.dbRepo.GetMappedMenuItem(featureIDs)
+	res, err := s.dbRepo.GetFeatureMapping(featureIDs, model.MAPPED_TYP_MENU)
 	itemIDs := make([]int, len(res))
 	for i := range res {
-		itemIDs[i] = res[i].MenuItemID
+		itemIDs[i] = res[i].MappedID
 	}
 	if err != nil {
 		return resp, err
 	}
+
 	// 5. Get menu item
 	items, err := s.dbRepo.GetMenuItems()
 	if err != nil {
 		return resp, err
 	}
+
 	err = s.dbRepo.GetItemRouter(&items)
 	if err != nil {
 		return resp, err
 	}
-	err = s.dbRepo.GetItemInsertPage(&items)
+	var routers []*database.Router
+	for i := range items {
+		if items[i].Router != nil {
+			routers = append(routers, items[i].Router)
+		}
+	}
+
+	err = s.dbRepo.GetRouterInsertedPage(routers)
+	if err != nil {
+		return resp, err
+	}
+
+	err = s.dbRepo.GetMenuItemTans(&items, req.Language)
 	if err != nil {
 		return resp, err
 	}

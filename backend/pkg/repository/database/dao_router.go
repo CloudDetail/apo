@@ -1,10 +1,16 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package database
 
 // Router front end router.
 type Router struct {
-	RouterID         int    `gorm:"column:router_id;primary_key"`
-	RouterTo         string `gorm:"column:router_to"`
+	RouterID         int    `gorm:"column:router_id;primary_key" json:"routerId"`
+	RouterTo         string `gorm:"column:router_to;uniqueIndex" json:"to"`
+	Custom           bool   `gorm:"column:custom;default:false" json:"-"`
 	HideTimeSelector bool   `gorm:"column:hide_time_selector" json:"hideTimeSelector"`
+
+	Page *InsertPage `gorm:"-" json:"page,omitempty"`
 }
 
 func (t *Router) TableName() string {
@@ -17,20 +23,11 @@ func (repo *daoRepo) GetItemRouter(items *[]MenuItem) error {
 	}
 	routerIDs := make([]int, 0, len(*items))
 	for _, item := range *items {
-		if item.RouterID != 0 {
-			routerIDs = append(routerIDs, item.RouterID)
-		}
-	}
-
-	if len(routerIDs) == 0 {
-		return nil
+		routerIDs = append(routerIDs, item.RouterID)
 	}
 
 	var routers []Router
-	if err := repo.db.Table("router").
-		Select("router_id, router_to").
-		Where("router_id IN ?", routerIDs).
-		Find(&routers).Error; err != nil {
+	if err := repo.db.Where("router_id IN ?", routerIDs).Find(&routers).Error; err != nil {
 		return err
 	}
 

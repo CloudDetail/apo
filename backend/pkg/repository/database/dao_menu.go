@@ -1,19 +1,20 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package database
 
-// MenuItem is a menu item on the left menu bar.
+// MenuItem is a menu item on the left or top menu bar.
 type MenuItem struct {
 	ItemID       int    `gorm:"column:item_id;primary_key" json:"itemId"`
-	Key          string `gorm:"column:key" json:"key"`
-	Label        string `gorm:"column:label" json:"label"` // AKA item name.
-	RouterID     int    `gorm:"column:router_id" json:"-"` // Router id.
-	InsertPageID int    `gorm:"column:insert_page_id" json:"-"`
+	Key          string `gorm:"column:key;uniqueIndex" json:"key"`
+	Label        string `gorm:"-" json:"label"` // AKA item name.
 	Icon         string `gorm:"column:icon" json:"icon"`
 	ParentID     *int   `gorm:"column:parent_id" json:"-"`
-	Abbreviation string `gorm:"column:abbreviation" json:"abbreviation"`
+	Abbreviation string `gorm:"-" json:"abbreviation,omitempty"`
+	RouterID     int    `gorm:"column:router_id" json:"-"`
 
-	Children []MenuItem  `gorm:"-" json:"children" swaggerignore:"true"`
-	Router   *Router     `gorm:"-" json:"to"` // Frontend router.
-	Page     *InsertPage `gorm:"-" json:"page,omitempty"`
+	Children []MenuItem `gorm:"-" json:"children,omitempty" swaggerignore:"true"`
+	Router   *Router    `gorm:"-" json:"router,omitempty"` // Frontend router.
 }
 
 func (t *MenuItem) TableName() string {

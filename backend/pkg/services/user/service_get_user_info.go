@@ -1,13 +1,24 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package user
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
 func (s *service) GetUserInfo(userID int64) (response.GetUserInfoResponse, error) {
-	user, err := s.dbRepo.GetUserInfo(userID)
+	var user database.User
+	var err error
+	if userID == 0 {
+		user, err = s.dbRepo.GetAnonymousUser()
+	} else {
+		user, err = s.dbRepo.GetUserInfo(userID)
+	}
+
 	resp := response.GetUserInfoResponse{}
 	if err != nil {
 		return resp, err
@@ -37,6 +48,7 @@ func (s *service) GetUserInfo(userID int64) (response.GetUserInfoResponse, error
 	}
 	user.RoleList = roles
 	user.FeatureList = feature
+	resp.User = user
 	return resp, nil
 }
 

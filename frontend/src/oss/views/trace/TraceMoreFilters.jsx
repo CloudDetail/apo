@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { CCol, CCollapse, CRow } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
 import { Button, Checkbox, Input, InputNumber, Tag } from 'antd'

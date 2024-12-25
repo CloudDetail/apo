@@ -1,16 +1,20 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package database
 
 import (
 	"context"
 	"errors"
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"gorm.io/gorm"
 )
 
 // Role is a collection of feature permission.
 type Role struct {
-	RoleID   int    `gorm:"column:role_id;primary_key"`
-	RoleName string `gorm:"column:role_name;uniqueIndex"`
+	RoleID   int    `gorm:"column:role_id;primary_key" json:"roleId"`
+	RoleName string `gorm:"column:role_name;uniqueIndex" json:"roleName"`
 }
 
 type UserRole struct {
@@ -28,8 +32,9 @@ func (t *UserRole) TableName() string {
 
 // GetRoles Get all roles for the given condition.
 func (repo *daoRepo) GetRoles(filter model.RoleFilter) ([]Role, error) {
+	conf := config.Get().User.AnonymousUser
 	var roles []Role
-	query := repo.db
+	query := repo.db.Where("role_name != ?", conf.Username)
 
 	if len(filter.Names) > 0 {
 		query = query.Where("role_name in ?", filter.Names)

@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package database
 
 // Feature is a collection of APIs, frontend routes and menu items
@@ -6,6 +9,7 @@ type Feature struct {
 	FeatureID   int    `gorm:"column:feature_id;primary_key;auto_increment" json:"featureId"`
 	FeatureName string `gorm:"column:feature_name" json:"featureName"`
 	ParentID    *int   `gorm:"column:parent_id" json:"-"`
+	Custom      bool   `gorm:"column:custom;default:false" json:"-"`
 
 	Children []Feature `gorm:"-" json:"children,omitempty" swaggerignore:"true"`
 }
@@ -14,34 +18,16 @@ func (t *Feature) TableName() string {
 	return "feature"
 }
 
-// FeatureAPI maps feature to api.
-type FeatureAPI struct {
-	FeatureID int    `gorm:"column:feature_id;primary_key"`
-	APIPath   string `gorm:"column:api_path;primary_key"`
+// FeatureMapping maps feature to menu item, router and api.
+type FeatureMapping struct {
+	ID         int    `gorm:"column:id;primary_key"`
+	FeatureID  int    `gorm:"column:feature_id;index:feature_mapped_idx"`
+	MappedID   int    `gorm:"column:mapped_id;index:feature_mapped_idx"`
+	MappedType string `gorm:"column:mapped_type"` // menu router api
 }
 
-func (t *FeatureAPI) TableName() string {
-	return "feature_api"
-}
-
-// FeatureRoute maps feature to router.
-type FeatureRoute struct {
-	FeatureID int    `gorm:"column:feature_id;primary_key"`
-	RoutePath string `gorm:"column:route_path;primary_key"`
-}
-
-func (t *FeatureRoute) TableName() string {
-	return "feature_route"
-}
-
-// FeatureMenuItem maps feature to menu item.
-type FeatureMenuItem struct {
-	FeatureID  int `gorm:"column:feature_id;primary_key"`
-	MenuItemID int `gorm:"column:menu_item_id;primary_key"`
-}
-
-func (t *FeatureMenuItem) TableName() string {
-	return "feature_menu_item"
+func (t *FeatureMapping) TableName() string {
+	return "feature_mapping"
 }
 
 func (repo *daoRepo) GetFeature(featureIDs []int) ([]Feature, error) {
@@ -51,12 +37,12 @@ func (repo *daoRepo) GetFeature(featureIDs []int) ([]Feature, error) {
 		query = query.Where("feature_id in ?", featureIDs)
 	}
 
-	err := query.Find(&features).Error
+	err := query.Find(&features).Order("custom ASC, id ASC").Error
 	return features, err
 }
 
-func (repo *daoRepo) GetMappedMenuItem(featureIDs []int) ([]FeatureMenuItem, error) {
-	var featureMenuItem []FeatureMenuItem
-	err := repo.db.Where("feature_id in ?", featureIDs).Find(&featureMenuItem).Error
+func (repo *daoRepo) GetFeatureMapping(featureIDs []int, mappedType string) ([]FeatureMapping, error) {
+	var featureMenuItem []FeatureMapping
+	err := repo.db.Where("feature_id in ? AND mapped_type = ?", featureIDs, mappedType).Order("mapped_id").Find(&featureMenuItem).Error
 	return featureMenuItem, err
 }

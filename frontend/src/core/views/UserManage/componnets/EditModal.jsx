@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Modal, Flex, Form, Input, Divider, Button, Tooltip } from "antd"
 import { useEffect, useState } from "react"
 import { getUserListApi, updateEmailApi, updatePhoneApi, updateCorporationApi, updatePasswordWithNoOldPwd } from "core/api/user"

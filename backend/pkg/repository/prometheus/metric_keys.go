@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package prometheus
 
 type EndpointKey struct {
@@ -6,12 +9,12 @@ type EndpointKey struct {
 }
 
 type InstanceKey struct {
-	PID         string
-	ContainerId string
-	Pod         string
-	Namespace   string
-	NodeName    string
-	NodeIP      string
+	PID         string `json:"pid"`
+	ContainerId string `json:"container_id"`
+	Pod         string `json:"pod"`
+	Namespace   string `json:"namespace"`
+	NodeName    string `json:"node_name"`
+	NodeIP      string `json:"node_ip"`
 }
 
 func (i InstanceKey) ConvertFromLabels(labels Labels) ConvertFromLabels {
