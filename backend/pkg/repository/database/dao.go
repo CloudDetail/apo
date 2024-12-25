@@ -64,11 +64,11 @@ type Repo interface {
 	RevokePermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
 	RoleGranted(userID int64, roleID int) (bool, error)
 	GetItemRouter(items *[]MenuItem) error
-	GetItemInsertPage(items *[]MenuItem) error
+	GetRouterInsertedPage(routers []*Router) error
 	GetFeatureTans(features *[]Feature, language string) error
 	GetMenuItemTans(menuItems *[]MenuItem, language string) error
 
-	GetMappedMenuItem(featureIDs []int) ([]FeatureMenuItem, error)
+	GetFeatureMapping(featureIDs []int, mappedType string) ([]FeatureMapping, error)
 
 	GetMenuItems() ([]MenuItem, error)
 
@@ -162,13 +162,16 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err = daoRepo.initFeature(); err != nil {
 		return nil, err
 	}
+	if err = daoRepo.initRouterData(); err != nil {
+		return nil, err
+	}
 	if err = daoRepo.initMenuItems(); err != nil {
 		return nil, err
 	}
 	if err = daoRepo.initInsertPages(); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initRouterData(); err != nil {
+	if err = daoRepo.initRouterPage(); err != nil {
 		return nil, err
 	}
 	if err = daoRepo.initFeatureMenuItems(); err != nil {

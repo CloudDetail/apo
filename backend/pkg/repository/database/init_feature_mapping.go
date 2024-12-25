@@ -5,6 +5,7 @@ package database
 
 import (
 	"errors"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"gorm.io/gorm"
 )
 
@@ -29,10 +30,17 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&FeatureMenuItem{}); err != nil {
+		if err := tx.AutoMigrate(&FeatureMapping{}); err != nil {
 			return err
 		}
-		if err := tx.Exec("DELETE FROM feature_menu_item WHERE feature_id NOT IN (SELECT feature_id FROM feature)").Error; err != nil {
+
+		var featureIDs []int
+		if err := tx.Model(&Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
+			return err
+		}
+
+		// delete mapping whose feature has been already deleted
+		if err := tx.Model(&FeatureMapping{}).Where("feature_id not in ?", featureIDs).Delete(nil).Error; err != nil {
 			return err
 		}
 
@@ -54,16 +62,17 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 			}
 
 			var count int64
-			if err := tx.Model(&FeatureMenuItem{}).
-				Where("feature_id = ? AND menu_item_id = ?", feature.FeatureID, menuItem.ItemID).
+			if err := tx.Model(&FeatureMapping{}).
+				Where("feature_id = ? AND mapped_id = ? AND mapped_type = ?", feature.FeatureID, menuItem.ItemID, model.MAPPED_TYP_MENU).
 				Count(&count).Error; err != nil {
 				return err
 			}
 
 			if count == 0 {
-				featureMenuItem := FeatureMenuItem{
+				featureMenuItem := FeatureMapping{
 					FeatureID:  feature.FeatureID,
-					MenuItemID: menuItem.ItemID,
+					MappedID:   menuItem.ItemID,
+					MappedType: model.MAPPED_TYP_MENU,
 				}
 				if err := tx.Create(&featureMenuItem).Error; err != nil {
 					return err
@@ -74,3 +83,5 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 		return nil
 	})
 }
+
+// TODO add mapping of feature and router or api

@@ -5,44 +5,44 @@ package database
 
 // InsertPage saves embedded interface.
 type InsertPage struct {
-	PageID     int    `gorm:"column:page_id;primary_key;auto_increment" json:"pageId"`
-	Url        string `gorm:"column:url" json:"url"`
-	Type       string `gorm:"column:type" json:"type"` // For now it's grafana or jaeger.
-	MenuItemID int    `gorm:"column:menu_item_id;uniqueIndex" json:"-"`
+	PageID int    `gorm:"column:page_id;primary_key;auto_increment" json:"pageId"`
+	Url    string `gorm:"column:url" json:"url"`
+	Type   string `gorm:"column:type" json:"type"` // For now it's grafana or jaeger.
+	Custom bool   `gorm:"column:custom" json:"-"`
+}
 
-	MenuItemKey string `gorm:"-" json:"-"`
+// RouterInsertPage maps router to inserted page.
+type RouterInsertPage struct {
+	ID       int `gorm:"column:id"`
+	RouterID int `gorm:"column:router_id;uniqueIndex"`
+	PageID   int `gorm:"column:page_id;"`
+}
+
+func (RouterInsertPage) TableName() string {
+	return "router_insert_page"
 }
 
 func (t *InsertPage) TableName() string {
 	return "insert_page"
 }
 
-func (repo *daoRepo) GetItemInsertPage(items *[]MenuItem) error {
-	if len(*items) == 0 {
+func (repo *daoRepo) GetRouterInsertedPage(routers []*Router) error {
+	if len(routers) == 0 {
 		return nil
 	}
 
-	itemIDs := make([]int, 0, len(*items))
-	for _, item := range *items {
-		itemIDs = append(itemIDs, item.ItemID)
-	}
-
-	var pages []InsertPage
-	if err := repo.db.Table("insert_page").
-		Select("page_id, url, type").
-		Where("menu_item_id IN ?", itemIDs).
-		Find(&pages).Error; err != nil {
-		return err
-	}
-
-	pageMap := make(map[int]InsertPage)
-	for _, page := range pages {
-		pageMap[page.MenuItemID] = page
-	}
-
-	for i := range *items {
-		if page, ok := pageMap[(*items)[i].ItemID]; ok {
-			(*items)[i].Page = &page
+	for i := range routers {
+		var page InsertPage
+		err := repo.db.Table("router_insert_page").
+			Select("insert_page.*").
+			Joins("JOIN insert_page ON router_insert_page.page_id = insert_page.page_id").
+			Where("router_insert_page.router_id = ?", routers[i].RouterID).
+			Find(&page).Error
+		if err != nil {
+			return err
+		}
+		if page.PageID != 0 {
+			routers[i].Page = &page
 		}
 	}
 

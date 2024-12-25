@@ -30,7 +30,8 @@ func (repo *daoRepo) initFeature() error {
 		newFeatures := []Feature{
 			{FeatureName: "服务概览"}, {FeatureName: "日志检索"}, {FeatureName: "故障现场日志"},
 			{FeatureName: "全量日志"}, {FeatureName: "链路追踪"}, {FeatureName: "故障现场链路"},
-			{FeatureName: "全量链路"}, {FeatureName: "全局资源大盘"}, {FeatureName: "应用基础设施大盘"},
+			{FeatureName: "全量链路"},
+			{FeatureName: "全局资源大盘"}, {FeatureName: "应用基础设施大盘"},
 			{FeatureName: "应用指标大盘"}, {FeatureName: "中间件大盘"}, {FeatureName: "告警规则"},
 			{FeatureName: "配置中心"}, {FeatureName: "系统管理"}, {FeatureName: "用户管理"},
 			{FeatureName: "菜单管理"},
@@ -42,12 +43,12 @@ func (repo *daoRepo) initFeature() error {
 		}
 
 		var adminID int
-		err := tx.Model(&Role{}).Select("role_id").First(&adminID).Error
+		err := tx.Model(&Role{}).Select("role_id").Where("role_name = ?", model.ROLE_ADMIN).First(&adminID).Error
 		if err != nil {
 			return err
 		}
 		for _, feature := range newFeatures {
-			// Add new feature
+			// Add new feature and grant to admin.
 			if _, exists := existingFeatureMap[feature.FeatureName]; !exists {
 				if err = tx.Create(&feature).Error; err != nil {
 					return err

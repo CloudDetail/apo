@@ -7,10 +7,10 @@ package database
 type Router struct {
 	RouterID         int    `gorm:"column:router_id;primary_key" json:"routerId"`
 	RouterTo         string `gorm:"column:router_to;uniqueIndex" json:"to"`
+	Custom           bool   `gorm:"column:custom;default:false" json:"-"`
 	HideTimeSelector bool   `gorm:"column:hide_time_selector" json:"hideTimeSelector"`
-	MenuItemID       int    `gorm:"column:menu_item_id;uniqueIndex" json:"-"`
 
-	MenuItemKey string `gorm:"-" json:"-"`
+	Page *InsertPage `gorm:"-" json:"page,omitempty"`
 }
 
 func (t *Router) TableName() string {
@@ -21,26 +21,23 @@ func (repo *daoRepo) GetItemRouter(items *[]MenuItem) error {
 	if items == nil {
 		return nil
 	}
-	itemIDs := make([]int, 0, len(*items))
+	routerIDs := make([]int, 0, len(*items))
 	for _, item := range *items {
-		itemIDs = append(itemIDs, item.ItemID)
+		routerIDs = append(routerIDs, item.RouterID)
 	}
 
 	var routers []Router
-	if err := repo.db.Table("router").
-		Select("router_id, router_to, hide_time_selector, menu_item_id").
-		Where("menu_item_id IN ?", itemIDs).
-		Find(&routers).Error; err != nil {
+	if err := repo.db.Where("router_id IN ?", routerIDs).Find(&routers).Error; err != nil {
 		return err
 	}
 
 	routerMap := make(map[int]Router)
 	for _, router := range routers {
-		routerMap[router.MenuItemID] = router
+		routerMap[router.RouterID] = router
 	}
 
 	for i := range *items {
-		if router, ok := routerMap[(*items)[i].ItemID]; ok {
+		if router, ok := routerMap[(*items)[i].RouterID]; ok {
 			(*items)[i].Router = &router
 		}
 	}

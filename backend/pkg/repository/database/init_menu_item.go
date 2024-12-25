@@ -9,23 +9,26 @@ import (
 )
 
 func (repo *daoRepo) initMenuItems() error {
-	menuItems := []MenuItem{
-		{Key: "service", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/service.svg"},
-		{Key: "logs", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/log.svg"},
-		{Key: "faultSite"},
-		{Key: "full"},
-		{Key: "trace", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/trace.svg"},
-		{Key: "faultSiteTrace"},
-		{Key: "fullTrace"},
-		{Key: "system", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"},
-		{Key: "basic", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"},
-		{Key: "application", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"},
-		{Key: "middleware", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"},
-		{Key: "alerts", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/alert.svg"},
-		{Key: "config", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/setting.svg"},
-		{Key: "manage", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/system.svg"},
-		{Key: "userManage"},
-		{Key: "menuManage"},
+	menuItemsMapping := []struct {
+		MenuItem
+		RouterKey string
+	}{
+		{MenuItem: MenuItem{Key: "service", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/service.svg"}, RouterKey: "/service"},
+		{MenuItem: MenuItem{Key: "logs", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/log.svg"}},
+		{MenuItem: MenuItem{Key: "faultSite"}, RouterKey: "/logs/fault-site"},
+		{MenuItem: MenuItem{Key: "full"}, RouterKey: "/logs/full"},
+		{MenuItem: MenuItem{Key: "trace", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/trace.svg"}},
+		{MenuItem: MenuItem{Key: "faultSiteTrace"}, RouterKey: "/trace/fault-site"},
+		{MenuItem: MenuItem{Key: "fullTrace"}, RouterKey: "/trace/full"},
+		{MenuItem: MenuItem{Key: "system", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"}, RouterKey: "/system-dashboard"},
+		{MenuItem: MenuItem{Key: "basic", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"}, RouterKey: "/basic-dashboard"},
+		{MenuItem: MenuItem{Key: "application", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"}, RouterKey: "/application-dashboard"},
+		{MenuItem: MenuItem{Key: "middleware", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"}, RouterKey: "/middleware-dashboard"},
+		{MenuItem: MenuItem{Key: "alerts", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/alert.svg"}, RouterKey: "/alerts"},
+		{MenuItem: MenuItem{Key: "config", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/setting.svg"}, RouterKey: "/config"},
+		{MenuItem: MenuItem{Key: "manage", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/system.svg"}},
+		{MenuItem: MenuItem{Key: "userManage"}, RouterKey: "/system/user-manage"},
+		{MenuItem: MenuItem{Key: "menuManage"}, RouterKey: "/system/menu-manage"},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
@@ -33,14 +36,29 @@ func (repo *daoRepo) initMenuItems() error {
 			return err
 		}
 		// Menu item might include item which not support to existing
-		// but the mapping between item and feature will be deleted.
-		for _, menuItem := range menuItems {
-			if err := tx.Clauses(clause.OnConflict{
-				Columns:   []clause.Column{{Name: "key"}},
-				UpdateAll: true,
-			}).Create(&menuItem).Error; err != nil {
+		// but the mapping between item and feature will be deleted
+		// because once a menu was deleted, the feature should also be deleted.
+		for i, menuItem := range menuItemsMapping {
+			if len(menuItem.RouterKey) == 0 {
+				continue
+			}
+			var routerID int
+			err := tx.Model(&Router{}).Select("router_id").Where("router_to = ?", menuItem.RouterKey).First(&routerID).Error
+			if err != nil {
 				return err
 			}
+			menuItemsMapping[i].RouterID = routerID
+		}
+
+		menuItems := make([]MenuItem, len(menuItemsMapping))
+		for i := range menuItemsMapping {
+			menuItems[i] = menuItemsMapping[i].MenuItem
+		}
+		if err := tx.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "key"}},
+			UpdateAll: true,
+		}).Create(&menuItems).Error; err != nil {
+			return err
 		}
 
 		relations := map[string]string{
