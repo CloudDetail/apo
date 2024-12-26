@@ -42,7 +42,7 @@ func chartSQL(req *request.LogQueryRequest) (string, int64) {
 
 func (ch *chRepo) GetLogChart(req *request.LogQueryRequest) ([]map[string]any, int64, error) {
 	sql, interval := chartSQL(req)
-	results, err := ch.queryRowsData(sql)
+	results, err := ch.queryRowsData(sql, nil)
 	if err != nil {
 		return nil, interval, err
 	}

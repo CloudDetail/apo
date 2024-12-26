@@ -22,7 +22,7 @@ func (ch *chRepo) QueryAllLogs(req *request.LogQueryRequest) ([]map[string]any, 
 		String()
 	sql := fmt.Sprintf(querySQl, req.DataBase, req.TableName, condition, bySql)
 
-	results, err := ch.queryRowsData(sql)
+	results, err := ch.queryRowsData(sql, nil)
 	if err != nil {
 		return nil, sql, err
 	}

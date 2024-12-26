@@ -4,8 +4,6 @@
 package clickhouse
 
 import (
-	"fmt"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -21,7 +19,7 @@ SELECT
     name,type
 FROM 
     system.columns
-WHERE database = '%s' And table = '%s';
+WHERE database = ? And table = ?;
 `
 
 func (ch *chRepo) OtherLogTable() ([]map[string]any, error) {
@@ -29,6 +27,5 @@ func (ch *chRepo) OtherLogTable() ([]map[string]any, error) {
 }
 
 func (ch *chRepo) OtherLogTableInfo(req *request.OtherTableInfoRequest) ([]map[string]any, error) {
-	sql := fmt.Sprintf(queryOtherTableInfoSQL, req.DataBase, req.TableName)
-	return ch.queryRowsData(sql)
+	return ch.queryRowsData(queryOtherTableInfoSQL, req.DataBase, req.TableName)
 }

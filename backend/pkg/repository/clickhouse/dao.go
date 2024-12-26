@@ -61,7 +61,7 @@ type Repo interface {
 	DropLogTable(req *request.LogTableRequest) ([]string, error)
 	UpdateLogTable(req *request.LogTableRequest, old []request.Field) ([]string, error)
 
-	queryRowsData(sql string) ([]map[string]any, error)
+	queryRowsData(sql string, args ...interface{}) ([]map[string]any, error)
 
 	QueryAllLogs(req *request.LogQueryRequest) ([]map[string]any, string, error)
 	QueryLogContext(req *request.LogQueryContextRequest) ([]map[string]any, []map[string]any, error)
