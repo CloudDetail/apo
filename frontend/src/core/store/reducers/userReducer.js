@@ -15,11 +15,6 @@ const userReducer = (state = initialState, action) => {
       return { ...state, user: action.payload }
     case 'removeUser':
       return { user: 'anonymous', token: { accesstoken: null, refreshToken: null } }
-    case 'setToken':
-      console.log(action)
-      return { ...state, token: action.payload }
-    case 'removeToken':
-      return { ...state, token: { accesstoken: null, refreshToken: null } }
     case 'setMenu':
       return { ...state, menuItems: action.payload }
     default:
