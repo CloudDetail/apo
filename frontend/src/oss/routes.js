@@ -15,8 +15,8 @@ const FullLogsPage = React.lazy(() => import('src/oss/views/logs/FullLogsPage'))
 const TracePage = React.lazy(() => import('src/oss/views/trace/index.js'))
 const Alerts = React.lazy(() => import('src/oss/views/alerts/index.js'))
 const ConfigPage = React.lazy(() => import('src/oss/views/config/index'))
-const UserPage = React.lazy(() => import('../core/views/user/UserPage'))
-const UserManage = React.lazy(() => import('../core/views/user/UserManage'))
+const UserPage = React.lazy(() => import('../core/views/userPage/index.jsx'))
+const UserManage = React.lazy(() => import('../core/views/userManage/index.jsx'))
 
 const namespace = 'oss/routes'
 
