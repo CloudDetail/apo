@@ -154,7 +154,7 @@ func (i *ServiceInstance) MatchSvcTags(group string, tags map[string]string) boo
 				return false
 			}
 
-			return strconv.Itoa(int(i.Pid)) == pid && i.NodeName == node
+			return strconv.FormatInt(i.Pid, 10) == pid && i.NodeName == node
 		}
 	case "infra":
 		if len(i.NodeName) > 0 {

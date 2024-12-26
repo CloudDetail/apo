@@ -22,8 +22,8 @@ func (p *polRepo) QueryPolarisInfer(
 ) (*PolarisInferRes, error) {
 
 	params := url.Values{}
-	params.Add("startTime", strconv.Itoa(int(startTime)))
-	params.Add("endTime", strconv.Itoa(int(endTime)))
+	params.Add("startTime", strconv.FormatInt(startTime, 10))
+	params.Add("endTime", strconv.FormatInt(endTime, 10))
 	params.Add("stepStr", stepStr)
 	params.Add("service", service)
 	params.Add("endpoint", endpoint)
