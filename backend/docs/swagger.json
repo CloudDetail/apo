@@ -6225,6 +6225,9 @@
                 },
                 "featureName": {
                     "type": "string"
+                },
+                "source": {
+                    "type": "string"
                 }
             }
         },
@@ -6262,9 +6265,6 @@
                     "description": "AKA item name.",
                     "type": "string"
                 },
-                "page": {
-                    "$ref": "#/definitions/database.InsertPage"
-                },
                 "router": {
                     "description": "Frontend router.",
                     "allOf": [
@@ -6291,6 +6291,9 @@
             "properties": {
                 "hideTimeSelector": {
                     "type": "boolean"
+                },
+                "page": {
+                    "$ref": "#/definitions/database.InsertPage"
                 },
                 "routerId": {
                     "type": "integer"

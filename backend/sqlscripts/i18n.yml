@@ -170,13 +170,41 @@ alerts:
   key: "alerts"
   i18n:
   - language: "en"
-    translation: "Alerts"
+    translation: "Alerts Settings"
     field_name: "label"
     entity_type: "menu"
   - language: "zh"
-    translation: "告警规则"
+    translation: "告警管理"
     field_name: "label"
     entity_type: "menu"
+
+alertsRule:
+  key: "alertsRule"
+  i18n:
+    - language: "en"
+      translation: "Alerts Rules"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "告警规则"
+      field_name: "label"
+      entity_type: "menu"
+
+alertsNotify:
+  key: "alertsNotify"
+  i18n:
+    - language: "en"
+      translation: "Notification Channels"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "告警通知"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "Notification"
+      field_name: "abbreviation"
+      entity_type: "menu"
 
 config:
   key: "config"
@@ -218,7 +246,7 @@ menuManage:
   key: "menuManage"
   i18n:
   - language: "en"
-    translation: "Menu Management"
+    translation: "Menu Settings"
     field_name: "label"
     entity_type: "menu"
   - language: "zh"
@@ -368,11 +396,25 @@ menuManage:
     entity_type: "feature"
     field_name: "featureName"
 
+告警管理:
+  key: "告警管理"
+  i18n:
+    - language: "en"
+      translation: "Alerts Settings"
+      entity_type: "feature"
+      field_name: "featureName"
+
+    - language: "zh"
+      translation: "告警管理"
+      entity_type: "feature"
+      field_name: "featureName"
+
+
 告警规则:
   key: "告警规则"
   i18n:
   - language: "en"
-    translation: "Alerts"
+    translation: "Alerts Rules"
     entity_type: "feature"
     field_name: "featureName"
 
@@ -380,6 +422,18 @@ menuManage:
     translation: "告警规则"
     entity_type: "feature"
     field_name: "featureName"
+
+告警通知:
+  key: "告警通知"
+  i18n:
+    - language: "en"
+      translation: "Notification Channels"
+      entity_type: "feature"
+      field_name: "featureName"
+    - language: "zh"
+      translation: "告警通知"
+      entity_type: "feature"
+      field_name: "featureName"
 
 配置中心:
   key: "配置中心"

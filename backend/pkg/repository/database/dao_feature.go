@@ -12,6 +12,7 @@ type Feature struct {
 	Custom      bool   `gorm:"column:custom;default:false" json:"-"`
 
 	Children []Feature `gorm:"-" json:"children,omitempty" swaggerignore:"true"`
+	Source   string    `gorm:"-" json:"source,omitempty"`
 }
 
 func (t *Feature) TableName() string {

@@ -13,22 +13,24 @@ func (repo *daoRepo) initMenuItems() error {
 		MenuItem
 		RouterKey string
 	}{
-		{MenuItem: MenuItem{Key: "service", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/service.svg"}, RouterKey: "/service"},
-		{MenuItem: MenuItem{Key: "logs", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/log.svg"}},
-		{MenuItem: MenuItem{Key: "faultSite"}, RouterKey: "/logs/fault-site"},
-		{MenuItem: MenuItem{Key: "full"}, RouterKey: "/logs/full"},
-		{MenuItem: MenuItem{Key: "trace", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/trace.svg"}},
-		{MenuItem: MenuItem{Key: "faultSiteTrace"}, RouterKey: "/trace/fault-site"},
-		{MenuItem: MenuItem{Key: "fullTrace"}, RouterKey: "/trace/full"},
-		{MenuItem: MenuItem{Key: "system", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"}, RouterKey: "/system-dashboard"},
-		{MenuItem: MenuItem{Key: "basic", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"}, RouterKey: "/basic-dashboard"},
-		{MenuItem: MenuItem{Key: "application", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"}, RouterKey: "/application-dashboard"},
-		{MenuItem: MenuItem{Key: "middleware", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"}, RouterKey: "/middleware-dashboard"},
-		{MenuItem: MenuItem{Key: "alerts", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/alert.svg"}, RouterKey: "/alerts"},
-		{MenuItem: MenuItem{Key: "config", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/setting.svg"}, RouterKey: "/config"},
-		{MenuItem: MenuItem{Key: "manage", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/system.svg"}},
-		{MenuItem: MenuItem{Key: "userManage"}, RouterKey: "/system/user-manage"},
-		{MenuItem: MenuItem{Key: "menuManage"}, RouterKey: "/system/menu-manage"},
+		{MenuItem: MenuItem{Key: "service", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/service.svg", Order: 1}, RouterKey: "/service"},
+		{MenuItem: MenuItem{Key: "logs", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/log.svg", Order: 2}},
+		{MenuItem: MenuItem{Key: "faultSite", Order: 3}, RouterKey: "/logs/fault-site"},
+		{MenuItem: MenuItem{Key: "full", Order: 4}, RouterKey: "/logs/full"},
+		{MenuItem: MenuItem{Key: "trace", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/trace.svg", Order: 5}},
+		{MenuItem: MenuItem{Key: "faultSiteTrace", Order: 6}, RouterKey: "/trace/fault-site"},
+		{MenuItem: MenuItem{Key: "fullTrace", Order: 7}, RouterKey: "/trace/full"},
+		{MenuItem: MenuItem{Key: "system", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg", Order: 8}, RouterKey: "/system-dashboard"},
+		{MenuItem: MenuItem{Key: "basic", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg", Order: 9}, RouterKey: "/basic-dashboard"},
+		{MenuItem: MenuItem{Key: "application", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg", Order: 10}, RouterKey: "/application-dashboard"},
+		{MenuItem: MenuItem{Key: "middleware", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg", Order: 11}, RouterKey: "/middleware-dashboard"},
+		{MenuItem: MenuItem{Key: "alerts", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/alert.svg", Order: 12}},
+		{MenuItem: MenuItem{Key: "alertsRule", Order: 13}, RouterKey: "/alerts/rule"},
+		{MenuItem: MenuItem{Key: "alertsNotify", Order: 14}, RouterKey: "/alerts/notify"},
+		{MenuItem: MenuItem{Key: "config", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/setting.svg", Order: 15}, RouterKey: "/config"},
+		{MenuItem: MenuItem{Key: "manage", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/system.svg", Order: 16}},
+		{MenuItem: MenuItem{Key: "userManage", Order: 17}, RouterKey: "/system/user-manage"},
+		{MenuItem: MenuItem{Key: "menuManage", Order: 18}, RouterKey: "/system/menu-manage"},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
@@ -68,6 +70,8 @@ func (repo *daoRepo) initMenuItems() error {
 			"fullTrace":      "trace",
 			"userManage":     "manage",
 			"menuManage":     "manage",
+			"alertsRule":     "alerts",
+			"alertsNotify":   "alerts",
 		}
 
 		// update parent_id
