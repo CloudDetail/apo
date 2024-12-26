@@ -4,8 +4,8 @@
  */
 
 export const initialState = {
-  user: { username: 'anonymous', userId: '' },
-  token: { token: null, refreshToken: null },
+  user: { username: 'anonymous', userId: '', role: '', roleList: '' },
+  token: { accesstoken: null, refreshToken: null },
   menuItems: [],
 }
 
@@ -14,7 +14,12 @@ const userReducer = (state = initialState, action) => {
     case 'setUser':
       return { ...state, user: action.payload }
     case 'removeUser':
-      return { user: 'anonymous', token: { token: null, refreshToken: null } }
+      return { user: 'anonymous', token: { accesstoken: null, refreshToken: null } }
+    case 'setToken':
+      console.log(action)
+      return { ...state, token: action.payload }
+    case 'removeToken':
+      return { ...state, token: { accesstoken: null, refreshToken: null } }
     case 'setMenu':
       return { ...state, menuItems: action.payload }
     default:

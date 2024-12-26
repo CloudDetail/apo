@@ -13,7 +13,7 @@ import { useUserContext } from 'src/core/contexts/UserContext'
 export default function UpdatePassword() {
   const [form] = Form.useForm()
   const navigate = useNavigate()
-  const { user, dispatchUser } = useUserContext()
+  const { user, dispatch } = useUserContext()
 
   //更新密码
   function updatePassword() {
@@ -21,24 +21,16 @@ export default function UpdatePassword() {
       .validateFields(['oldPassword', 'newPassword', 'confirmPassword'])
       .then(async ({ oldPassword, newPassword, confirmPassword }) => {
         try {
-          const username = user.username
-          if (!username) {
-            showToast({
-              title: '获取用户名失败',
-              message: '请重新登录',
-              color: 'danger',
-            })
-            return navigate('/login')
-          }
           const paramsForUpdatePassword = {
             oldPassword,
             newPassword,
             confirmPassword,
-            username: username,
+            userId: user?.userId,
           }
           await updatePasswordApi(paramsForUpdatePassword)
           form.resetFields(['oldPassword', 'newPassword', 'confirmPassword'])
           const paramsForLogout = {
+            userId: user?.userId,
             accessToken: localStorage.getItem('token'),
             refreshToken: localStorage.getItem('refreshToken'),
           }
@@ -52,12 +44,6 @@ export default function UpdatePassword() {
           })
         } catch (error) {
           console.log(error.response.data.code)
-          const errorMessage = error.response?.data?.message || error.message || '更新密码失败'
-          showToast({
-            title: '错误',
-            message: errorMessage,
-            color: 'danger',
-          })
         }
       })
       .catch((error) => {

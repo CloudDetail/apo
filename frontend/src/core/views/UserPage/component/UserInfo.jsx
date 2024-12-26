@@ -12,7 +12,7 @@ import { useUserContext } from 'src/core/contexts/UserContext'
 
 export default function UserInfo() {
   const [form] = Form.useForm()
-  const { user, dispatchUser } = useUserContext()
+  const { user, dispatch } = useUserContext()
 
   async function getUserInfo() {
     try {
@@ -33,7 +33,7 @@ export default function UserInfo() {
   }, [])
 
   //更新用户信息
-  function updateEmail() {
+  function updateUserInfo() {
     form
       .validateFields(['email', 'corporation', 'phone'])
       .then(async ({ email, corporation, phone }) => {
@@ -42,7 +42,7 @@ export default function UserInfo() {
           corporation,
           phone,
         }
-        await updateCorporationApi({ username: user.username, ...params })
+        await updateCorporationApi({ userId: user.userId, ...params })
         showToast({
           title: '用户信息更新成功',
           color: 'success',
@@ -100,7 +100,7 @@ export default function UserInfo() {
                 </Form.Item>
               </Flex>
             </Flex>
-            <Popconfirm title="确定要修改信息吗" onConfirm={updateEmail}>
+            <Popconfirm title="确定要修改信息吗" onConfirm={updateUserInfo}>
               <Button type="primary">修改信息</Button>
             </Popconfirm>
           </Form>

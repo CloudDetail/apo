@@ -40,13 +40,13 @@ export default function UserManage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [total, setTotal] = useState(0)
-  const [selectedUser, setSelectedUser] = useState('')
+  const [selectedUser, setSelectedUser] = useState(null)
   const [loading, setLoading] = useState(false)
-  const { user, dispatchUser } = useUserContext()
+  const { user, dispatch } = useUserContext()
   //移除用户
   async function removeUser(prop) {
     const params = {
-      username: prop,
+      userId: prop,
     }
     try {
       await removeUserApi(params)
@@ -60,11 +60,6 @@ export default function UserManage() {
         color: 'success',
       })
     } catch (error) {
-      const errorMessage = error.response?.data?.message || '移除失败'
-      showToast({
-        title: errorMessage,
-        color: 'danger',
-      })
       console.log(error)
     }
   }
@@ -143,15 +138,16 @@ export default function UserManage() {
     },
     {
       title: '操作',
-      dataIndex: 'username',
-      key: 'username',
+      dataIndex: 'userId',
+      key: 'userId',
       align: 'center',
-      render: (prop) => {
-        return user.username !== prop ? (
+      render: (userId, record) => {
+        const { username } = record
+        return user.userId !== userId ? (
           <>
             <Button
               onClick={() => {
-                setSelectedUser(prop)
+                setSelectedUser(record)
                 setModalEditVisibility(true)
               }}
               icon={<MdOutlineModeEdit />}
@@ -161,17 +157,15 @@ export default function UserManage() {
               编辑
             </Button>
             <Popconfirm
-              title={`确定要移除用户名为${prop}的用户吗`}
-              onConfirm={() => removeUser(prop)}
+              title={`确定要移除用户名为${username}的用户吗`}
+              onConfirm={() => removeUser(userId)}
             >
               <Button type="text" icon={<RiDeleteBin5Line />} danger>
                 删除
               </Button>
             </Popconfirm>
           </>
-        ) : (
-          <></>
-        )
+        ) : null
       },
       width: '16%',
     },
