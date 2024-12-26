@@ -14,7 +14,7 @@ import userReducer, { initialState } from '../store/reducers/userReducer'
 import { useUserContext } from '../contexts/UserContext'
 
 const UserToolBox = () => {
-  const { user, dispatchUser } = useUserContext()
+  const { user, dispatch } = useUserContext()
   const navigate = useNavigate()
 
   const content = (
@@ -46,10 +46,6 @@ const UserToolBox = () => {
 
   //退出登录
   async function logout() {
-    // @ts-ignore
-    dispatchUser({
-      type: 'removeUser',
-    })
     try {
       const params = {
         accessToken: localStorage.getItem('token'),
@@ -59,7 +55,7 @@ const UserToolBox = () => {
       localStorage.removeItem('token')
       localStorage.removeItem('refreshToken')
       // @ts-ignore
-      dispatchUser({
+      dispatch({
         type: 'removeUser',
       })
       navigate('/login')
@@ -75,13 +71,13 @@ const UserToolBox = () => {
   function getUserInfo() {
     getUserInfoApi()
       .then((res) => {
-        // @ts-ignore
-        dispatchUser({
+        dispatch({
           type: 'setUser',
           payload: res,
         })
       })
       .catch((error) => {
+        navigate('/login')
         console.error(error)
       })
   }

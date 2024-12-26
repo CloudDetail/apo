@@ -40,12 +40,6 @@ export default function Login() {
               : localStorage.removeItem('username')
             localStorage.setItem('remeberMe', String(remeberMe))
           }
-          // const user = await getUserInfoApi()
-          // // @ts-ignore
-          // dispatchUser({
-          //   type: 'setUser',
-          //   payload: JSON.stringify(user),
-          // })
         } catch (error) {
           console.error(error)
         } finally {

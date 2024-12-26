@@ -27,7 +27,7 @@ export const UserProvider = ({ children }) => {
 
   const value = {
     user: user,
-    dispatchUser: dispatch,
+    dispatch: dispatch,
     menuItems: menuItems,
     getUserPermission,
   }
