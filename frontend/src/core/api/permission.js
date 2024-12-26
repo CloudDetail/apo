@@ -21,3 +21,8 @@ export function configMenuApi(params) {
 export function getAllRoleList() {
   return get('/api/permission/roles')
 }
+
+//获取角色或用户的所有权限列表
+export function getSubjectPermissionApi(params) {
+  return get('/api/permission/sub/feature', params)
+}

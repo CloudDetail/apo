@@ -18,7 +18,8 @@ const FaultSiteLogsPage = React.lazy(() => import('src/oss/views/logs/FaultSiteL
 const FullLogsPage = React.lazy(() => import('src/oss/views/logs/FullLogsPage'))
 const FaultSiteTrace = React.lazy(() => import('src/oss/views/trace/FaultSiteTrace.jsx'))
 const FullTrace = React.lazy(() => import('src/oss/views/trace/FullTrace.jsx'))
-const Alerts = React.lazy(() => import('src/oss/views/alerts/index.js'))
+const AlertsRule = React.lazy(() => import('src/oss/views/alerts/AlertsRule'))
+const AlertsNotify = React.lazy(() => import('src/oss/views/alerts/AlertsNotify'))
 const ConfigPage = React.lazy(() => import('src/oss/views/config/index'))
 
 const ossRoutes = [
@@ -51,7 +52,14 @@ const ossRoutes = [
   { path: '/system-dashboard', name: '全局资源大盘', element: SystemDashboard },
   { path: '/application-dashboard', name: '应用指标大盘', element: ApplicationDashboard },
   { path: '/middleware-dashboard', name: '中间件大盘', element: MiddlewareDashboard },
-  { path: '/alerts', name: '告警规则', element: Alerts, hideSystemTimeRangePicker: true },
+  // { path: '/alerts', name: '告警规则', hideSystemTimeRangePicker: true },
+  { path: '/alerts/rule', name: '告警规则', element: AlertsRule, hideSystemTimeRangePicker: true },
+  {
+    path: '/alerts/notify',
+    name: '告警通知',
+    element: AlertsNotify,
+    hideSystemTimeRangePicker: true,
+  },
   { path: '/config', name: '配置中心', element: ConfigPage, hideSystemTimeRangePicker: true },
 ]
 export default ossRoutes

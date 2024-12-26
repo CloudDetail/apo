@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CCard } from '@coreui/react'
-import { Button, Input, Popconfirm, Select, Space } from 'antd'
+import { Button, Card, Input, Popconfirm, Select, Space } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { deleteAlertNotifyApi, getAlertmanagerListApi } from 'core/api/alerts'
@@ -26,14 +25,14 @@ export default function AlertsNotify() {
   const [searchName, setSearchName] = useState(null)
   const deleteAlertNotify = (row) => {
     deleteAlertNotifyApi(
-      row.dingTalkConfigs ?
-        {
-          name: row.name,
-          type: 'dingtalk'
-        } :
-        {
-          name: row.name,
-        }
+      row.dingTalkConfigs
+        ? {
+            name: row.name,
+            type: 'dingtalk',
+          }
+        : {
+            name: row.name,
+          },
     ).then((res) => {
       showToast({
         title: '删除告警通知成功',
@@ -71,15 +70,7 @@ export default function AlertsNotify() {
     }
   }
 
-  const typeList = [
-    'emailConfigs',
-    'webhookConfigs',
-    'dingTalkConfigs',
-    'wechatConfigs'
-  ];
-
-
-
+  const typeList = ['emailConfigs', 'webhookConfigs', 'dingTalkConfigs', 'wechatConfigs']
 
   const column = [
     {
@@ -93,10 +84,10 @@ export default function AlertsNotify() {
       accessor: 'type',
       customWidth: 120,
       Cell: (props) => {
-        const row = props.row.original;
-        let foundItem = typeList.find(item => Object.hasOwn(row, item));
+        const row = props.row.original
+        let foundItem = typeList.find((item) => Object.hasOwn(row, item))
         foundItem = judgmentType(foundItem)
-        return foundItem || null;
+        return foundItem || null
       },
     },
     {
@@ -104,8 +95,8 @@ export default function AlertsNotify() {
       accessor: 'to',
       customWidth: '50%',
       Cell: (props) => {
-        const row = props.row.original;
-        let foundItem = typeList.find(item => Object.hasOwn(row, item));
+        const row = props.row.original
+        let foundItem = typeList.find((item) => Object.hasOwn(row, item))
         foundItem = getUrl(foundItem, row)
         return foundItem
       },
@@ -149,9 +140,6 @@ export default function AlertsNotify() {
     },
   ]
 
-
-
-
   const clickAddRule = () => {
     setModalInfo(null)
     setModalVisible(true)
@@ -170,7 +158,7 @@ export default function AlertsNotify() {
       currentPage: pageIndex,
       pageSize: pageSize,
       name: searchName,
-      refreshCache: true
+      refreshCache: true,
     })
       .then((res) => {
         setLoading(false)
@@ -205,25 +193,20 @@ export default function AlertsNotify() {
     }
   }, [data, pageIndex, pageSize])
   return (
-    <>
+    <Card
+      style={{ height: 'calc(100vh - 60px)' }}
+      styles={{
+        body: {
+          height: '100%',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '12px 24px',
+        },
+      }}
+    >
       <LoadingSpinner loading={loading} />
-      {/* <CToast autohide={false} visible={true} className="align-items-center w-full my-2">
-        <div className="d-flex">
-          <CToastBody className=" flex flex-row items-center text-xs">
-            <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-            配置后预计15s生效，请稍后刷新页面查看最新告警规则。
-            仅展示告警规则，如需配置请参考
-            <a
-              className="underline text-sky-500"
-              target="_blank"
-              href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置告警规则"
-            >
-              文档
-            </a>
-          </CToastBody>
-        </div>
-      </CToast> */}
-      <div className="flex items-center justify-betweeen text-sm p-2 my-2">
+      <div className="flex items-center justify-betweeen text-sm ">
         <Space className="flex-grow">
           <Space className="flex-1">
             <span className="text-nowrap">通知规则名：</span>
@@ -246,20 +229,17 @@ export default function AlertsNotify() {
           <span className="text-xs">新增告警通知</span>
         </Button>
       </div>
-      <CCard className="text-sm p-2">
-        <div
-          className="mb-4 h-full p-2 text-xs justify-between"
-          style={{ height: 'calc(100vh - 280px)' }}
-        >
+      <div className="text-sm flex-1 overflow-auto">
+        <div className="h-full text-xs justify-between">
           <BasicTable {...tableProps} />
         </div>
-      </CCard>
+      </div>
       <ModifyAlertNotifyModal
         modalVisible={modalVisible}
         notifyInfo={modalInfo}
         closeModal={() => setModalVisible(false)}
         refresh={refreshTable}
       />
-    </>
+    </Card>
   )
 }
