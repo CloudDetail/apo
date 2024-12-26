@@ -61,7 +61,7 @@ const UserToolBox = () => {
       })
       navigate('/login')
       showToast({
-        title: '退出登录成功',
+        title: t('logoutSuccess'),
         color: 'success',
       })
     } catch (error) {
@@ -102,7 +102,7 @@ const UserToolBox = () => {
         </Popover>
       ) : (
         <Button type="link" onClick={() => navigate('/login')}>
-          登录
+          {t('login')}
         </Button>
       )}
     </>

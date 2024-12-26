@@ -1,4 +1,6 @@
 {
   "personalCenter": "Profile",
-  "logout": "Logout"
+  "logout": "Logout",
+  "logoutSuccess": "Logout successfully",
+  "login": "Login"
 }
