@@ -14,12 +14,15 @@ jobs:
     if: (github.event_name == 'schedule' && github.repository == 'CloudDetail/apo') || (github.event_name != 'schedule')
     name: Check License header
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: false
       - name: Check license header
-        uses: apache/skywalking-eyes@v0.6.0
+        uses: apache/skywalking-eyes@cd7b195c51fd3d6ad52afceb760719ddc6b3ee91
 
     
