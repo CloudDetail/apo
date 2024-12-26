@@ -40,7 +40,7 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 			return err
 		}
 
-		if err := tx.Model(&MenuItem{}).Select("item_id").Find(&menuItemIDs).Error; err != nil {
+		if err := tx.Model(&MenuItem{}).Select("item_id").Where("router_id != 0").Find(&menuItemIDs).Error; err != nil {
 			return err
 		}
 		// delete mapping whose feature or menu has been already deleted
