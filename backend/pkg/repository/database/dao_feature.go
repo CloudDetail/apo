@@ -12,6 +12,7 @@ type Feature struct {
 	Custom      bool   `gorm:"column:custom;default:false" json:"-"`
 
 	Children []Feature `gorm:"-" json:"children,omitempty" swaggerignore:"true"`
+	Source   string    `gorm:"-" json:"source,omitempty"`
 }
 
 func (t *Feature) TableName() string {
@@ -31,6 +32,10 @@ func (t *FeatureMapping) TableName() string {
 }
 
 func (repo *daoRepo) GetFeature(featureIDs []int) ([]Feature, error) {
+	if len(featureIDs) == 0 {
+		return nil, nil
+	}
+
 	var features []Feature
 	query := repo.db
 	if featureIDs != nil {
@@ -42,6 +47,10 @@ func (repo *daoRepo) GetFeature(featureIDs []int) ([]Feature, error) {
 }
 
 func (repo *daoRepo) GetFeatureMapping(featureIDs []int, mappedType string) ([]FeatureMapping, error) {
+	if len(featureIDs) == 0 {
+		return nil, nil
+	}
+
 	var featureMenuItem []FeatureMapping
 	err := repo.db.Where("feature_id in ? AND mapped_type = ?", featureIDs, mappedType).Order("mapped_id").Find(&featureMenuItem).Error
 	return featureMenuItem, err

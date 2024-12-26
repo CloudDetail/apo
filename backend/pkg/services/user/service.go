@@ -32,7 +32,6 @@ type Service interface {
 	GetFeature(req *request.GetFeatureRequest) (response.GetFeatureResponse, error)
 	GetSubjectFeature(req *request.GetSubjectFeatureRequest) (response.GetSubjectFeatureResponse, error)
 	PermissionOperation(req *request.PermissionOperationRequest) error
-	GetUserFeature(userID int64) ([]database.Feature, error)
 	ConfigureMenu(req *request.ConfigureMenuRequest) error
 
 	IsInBlacklist(token string) (bool, error)
