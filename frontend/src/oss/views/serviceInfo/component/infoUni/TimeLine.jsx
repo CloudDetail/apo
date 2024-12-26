@@ -92,7 +92,7 @@ const Timeline = (props) => {
         url = `/logs/fault-site?service=${item.serviceName}&endpoint=${item.endpoint}&instance=${item.instanceId}&traceId=${item.traceId}&logs-from=${TimestampToISO(chronoList[activeKey].start)}&logs-to=${TimestampToISO(chronoList[activeKey].end)}`
         break
       case 'traceLogs':
-        url = `/trace?service=${item.serviceName}&endpoint=${item.endpoint}&instance=${item.instanceId}&traceId=${item.traceId}&trace-from=${TimestampToISO(chronoList[activeKey].start)}&trace-to=${TimestampToISO(chronoList[activeKey].end)}`
+        url = `/trace/fault-site?service=${item.serviceName}&endpoint=${item.endpoint}&instance=${item.instanceId}&traceId=${item.traceId}&trace-from=${TimestampToISO(chronoList[activeKey].start)}&trace-to=${TimestampToISO(chronoList[activeKey].end)}`
         sessionStorage.setItem('openJaegerModalAfterLoad', 'true')
         break
       default:
