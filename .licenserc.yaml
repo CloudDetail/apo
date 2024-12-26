@@ -19,6 +19,7 @@ header:
     - '**/*.svg'
     - '**/*.tmpl'
     - '**/Dockerfile'
+    - 'backend/docs/docs.go'
     - 'backend/pkg/model/amconfig/config.go'
     - 'backend/pkg/model/amconfig/httpconfig/config.go'
     - 'backend/pkg/model/amconfig/httpconfig/headers.go'
