@@ -24,7 +24,9 @@ func (repo *daoRepo) initMenuItems() error {
 		{MenuItem: MenuItem{Key: "basic", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"}, RouterKey: "/basic-dashboard"},
 		{MenuItem: MenuItem{Key: "application", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"}, RouterKey: "/application-dashboard"},
 		{MenuItem: MenuItem{Key: "middleware", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg"}, RouterKey: "/middleware-dashboard"},
-		{MenuItem: MenuItem{Key: "alerts", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/alert.svg"}, RouterKey: "/alerts"},
+		{MenuItem: MenuItem{Key: "alerts", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/alert.svg"}},
+		{MenuItem: MenuItem{Key: "alertsRule"}, RouterKey: "/alerts/rule"},
+		{MenuItem: MenuItem{Key: "alertsNotify"}, RouterKey: "/alerts/notify"},
 		{MenuItem: MenuItem{Key: "config", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/setting.svg"}, RouterKey: "/config"},
 		{MenuItem: MenuItem{Key: "manage", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/system.svg"}},
 		{MenuItem: MenuItem{Key: "userManage"}, RouterKey: "/system/user-manage"},
@@ -68,6 +70,8 @@ func (repo *daoRepo) initMenuItems() error {
 			"fullTrace":      "trace",
 			"userManage":     "manage",
 			"menuManage":     "manage",
+			"alertsRule":     "alerts",
+			"alertsNotify":   "alerts",
 		}
 
 		// update parent_id
