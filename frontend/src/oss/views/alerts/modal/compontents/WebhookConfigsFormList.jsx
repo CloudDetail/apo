@@ -63,7 +63,7 @@ export default function WebhookConfigsFormList() {
                             message:
                               t('webhookConfigsFormList.url') +
                               ' ' +
-                              t('ModifyAlertNotifyModal.invalidNotifyType'),
+                              t('modifyAlertNotifyModal.invalidNotifyType'),
                           },
                         ]}
                       >

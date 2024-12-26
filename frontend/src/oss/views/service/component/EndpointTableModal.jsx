@@ -48,7 +48,7 @@ function EndpointTableModal(props) {
   }, [visible, serviceName, timeRange])
   const column = [
     {
-      title: t('EndpointTableModal.columns.endpoint'),
+      title: t('endpointTableModal.columns.endpoint'),
       accessor: 'endpoint',
       canExpand: false,
     },
@@ -72,10 +72,10 @@ function EndpointTableModal(props) {
           <div className="flex flex-row justify-center items-center">
             <div>
               <div className="text-center flex flex-row ">
-                {t('EndpointTableModal.columns.delaySource.title4')}
+                {t('endpointTableModal.columns.delaySource.title4')}
               </div>
               <div className="block text-[10px] text-center">
-                {t('EndpointTableModal.columns.delaySource.title5')}
+                {t('endpointTableModal.columns.delaySource.title5')}
               </div>
             </div>
             <AiOutlineInfoCircle size={16} className="ml-2" />
@@ -91,7 +91,7 @@ function EndpointTableModal(props) {
       },
     },
     {
-      title: t('EndpointTableModal.columns.latency'),
+      title: t('endpointTableModal.columns.latency'),
       minWidth: 140,
       accessor: `latency`,
 
@@ -115,7 +115,7 @@ function EndpointTableModal(props) {
       },
     },
     {
-      title: t('EndpointTableModal.columns.errorRate'),
+      title: t('endpointTableModal.columns.errorRate'),
       accessor: `errorRate`,
 
       minWidth: 140,
@@ -126,7 +126,7 @@ function EndpointTableModal(props) {
       },
     },
     {
-      title: t('EndpointTableModal.columns.tps'),
+      title: t('endpointTableModal.columns.tps'),
       accessor: `tps`,
       minWidth: 140,
 
@@ -175,12 +175,12 @@ function EndpointTableModal(props) {
         <CModalTitle>
           {currentLanguage === 'zh' ? (
             <span>
-              {serviceName} {t('EndpointTableModal.serviceEndpointDataText')}
+              {serviceName} {t('endpointTableModal.serviceEndpointDataText')}
             </span>
           ) : (
             <span>
               {' '}
-              {t('EndpointTableModal.serviceEndpointDataText')} {serviceName}
+              {t('endpointTableModal.serviceEndpointDataText')} {serviceName}
             </span>
           )}
         </CModalTitle>

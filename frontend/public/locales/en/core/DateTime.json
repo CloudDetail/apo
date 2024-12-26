@@ -10,10 +10,10 @@
     "applyTimeRangeButtonText": "Apply time range",
     "quickRangeTitle": "Quick Range"
   },
-  "RefreshDateTime": {
+  "refreshDateTime": {
     "refreshDateTimeOffText": "off"
   },
-  "TimeSinceRefresh": {
+  "timeSinceRefresh": {
     "dayText": "day",
     "hourText": "hour",
     "minuteText": "minute",
@@ -21,7 +21,7 @@
     "refreshTipText": "Refreshed",
     "refreshTipTextAgo": "ago"
   },
-  "DataTimeCombine": {
+  "dataTimeCombine": {
     "absoluteTimeText": "Absolute time",
     "relativeTimeText": "Relative time"
   }

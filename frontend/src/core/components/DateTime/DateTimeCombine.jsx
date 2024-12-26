@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next'
 function ShareLink() {
   const { t, i18n } = useTranslation('core/dateTime')
   const location = useLocation()
-  const [shareType, setShareType] = useState(t('DataTimeCombine.absoluteTimeText'))
+  const [shareType, setShareType] = useState(t('dataTimeCombine.absoluteTimeText'))
   const { rangeTypeKey, startTime, endTime } = useSelector((state) => state.timeRange)
   const [copyUrl, setCopyUrl] = useState(window.location.href)
   const [searchParams] = useSearchParams()
@@ -22,13 +22,13 @@ function ShareLink() {
   useEffect(() => {
     // 在翻译加载完成后设置shareType
     if (i18n.isInitialized) {
-      setShareType(t('DataTimeCombine.absoluteTimeText'))
+      setShareType(t('dataTimeCombine.absoluteTimeText'))
     }
   }, [i18n.isInitialized, t])
 
   useEffect(() => {
     let url = window.location.href
-    if (shareType === t('DataTimeCombine.absoluteTimeText') && rangeTypeKey) {
+    if (shareType === t('dataTimeCombine.absoluteTimeText') && rangeTypeKey) {
       const currentUrl = new URL(window.location.href)
       const params = new URLSearchParams(location.search)
       params.delete('relativeTime')
@@ -46,17 +46,17 @@ function ShareLink() {
           <Segmented
             value={shareType}
             options={[
-              t('DataTimeCombine.absoluteTimeText'),
+              t('dataTimeCombine.absoluteTimeText'),
               {
-                label: t('DataTimeCombine.relativeTimeText'),
-                value: t('DataTimeCombine.relativeTimeText'),
+                label: t('dataTimeCombine.relativeTimeText'),
+                value: t('dataTimeCombine.relativeTimeText'),
                 disabled: !rangeTypeKey,
               },
             ]}
             onChange={setShareType}
           />
           <div className="my-2 text-gray-300 mx-1">
-            {shareType === t('DataTimeCombine.absoluteTimeText') ? (
+            {shareType === t('dataTimeCombine.absoluteTimeText') ? (
               <>
                 {convertTime(startTime, 'yyyy-mm-dd hh:mm:ss')} to{' '}
                 {convertTime(endTime, 'yyyy-mm-dd hh:mm:ss')}

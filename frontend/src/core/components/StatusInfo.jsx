@@ -18,7 +18,6 @@ function isJSONString(str) {
 
 function StatusInfo({ status, alertReason = [], title = null }) {
   const { t } = useTranslation('oss/service')
-  console.log('StatusInfo:', title)
 
   return (
     <Popover
@@ -30,19 +29,19 @@ function StatusInfo({ status, alertReason = [], title = null }) {
                 <div key={index}>
                   {index > 0 && <Divider />}
                   <div>
-                    <span className="text-[#a1a1a1]">{t('StatusInfo.alertObjectText')}：</span>
+                    <span className="text-[#a1a1a1]">{t('statusInfo.alertObjectText')}：</span>
                     {item.alertObject}
                   </div>
                   <div>
-                    <span className="text-[#a1a1a1]">{t('StatusInfo.alertTimeText')}：</span>
+                    <span className="text-[#a1a1a1]">{t('statusInfo.alertTimeText')}：</span>
                     {convertTime(item.timestamp, 'yyyy-mm-dd hh:mm:ss')}
                   </div>
                   <div>
-                    <span className="text-[#a1a1a1]">{t('StatusInfo.alertReasonText')}：</span>
+                    <span className="text-[#a1a1a1]">{t('statusInfo.alertReasonText')}：</span>
                     {item.alertReason}
                   </div>
                   <div>
-                    <span className="text-[#a1a1a1]">{t('StatusInfo.detailsText')}：</span>
+                    <span className="text-[#a1a1a1]">{t('statusInfo.detailsText')}：</span>
                     {isJSONString(item.alertMessage) ? (
                       <ReactJson
                         src={JSON.parse(item.alertMessage)}
@@ -61,16 +60,16 @@ function StatusInfo({ status, alertReason = [], title = null }) {
             </div>
             {alertReason.length > 3 && (
               <div className="text-[#a1a1a1] text-center pt-2">
-                {t('StatusInfo.moreDetailsText')}
+                {t('statusInfo.moreDetailsText')}
               </div>
             )}
-            {/* {alertReason.length === 0 && t('StatusInfo.noReasonText')} */}
+            {/* {alertReason.length === 0 && t('statusInfo.noReasonText')} */}
           </div>
         ) : null
       }
       title={
         ['critical', 'warning'].includes(status) && alertReason.length > 0
-          ? title + t('StatusInfo.alertReasonText')
+          ? title + t('statusInfo.alertReasonText')
           : null
       }
     >

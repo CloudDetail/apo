@@ -166,7 +166,7 @@
     "traceInfo": "Trace Info",
     "toastMessage": "Find key moment traces based on log error count, average response time, and error rate"
   },
-  "RuleGroupMap": {
+  "ruleGroupMap": {
     "app": "Application Metrics",
     "infra": "Host Related",
     "network": "Network Related",

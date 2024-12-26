@@ -9,7 +9,7 @@ import { promLanguageDefinition } from 'monaco-promql'
 import { getRuleGroupLabelApi } from 'src/core/api/alerts'
 // Containers
 const DefaultLayout = React.lazy(() => import('src/core/layout/DefaultLayout'))
-const Login = React.lazy(() => import('./oss/views/user/Login/Login'))
+const Login = React.lazy(() => import('./core/views/user/Login/Login'))
 
 // // Pages
 // const Login = React.lazy(() => import('./community/1/pages/login/Login'))

@@ -12,19 +12,19 @@ const ParseRuleTabs = () => {
   const items = [
     {
       key: 'unStructured',
-      label: t('ConfigLogRuleModal.ParseRuleTabs.unStructuredLabel'),
+      label: t('configLogRuleModal.parseRuleTabs.unStructuredLabel'),
       children: (
         <div>
           <div className="flex items-center mb-2">
             <AiOutlineInfoCircle size={16} className="mx-1" />
             <span className="text-xs text-gray-400">
-              {t('ConfigLogRuleModal.ParseRuleTabs.unStructuredDescription')}
+              {t('configLogRuleModal.parseRuleTabs.unStructuredDescription')}
               <a
                 href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/日志解析规则配置/"
                 className="underline"
                 target="_blank"
               >
-                {t('ConfigLogRuleModal.ParseRuleTabs.unStructuredHelpLink')}
+                {t('configLogRuleModal.parseRuleTabs.unStructuredHelpLink')}
               </a>
             </span>
           </div>
@@ -38,14 +38,14 @@ const ParseRuleTabs = () => {
                   }
                   const unStructuredList = form.getFieldValue('unStructured') || []
                   if (!value && !unStructuredList[0]?.name) {
-                    return Promise.reject(t('ConfigLogRuleModal.ParseRuleTabs.parseRuleError'))
+                    return Promise.reject(t('configLogRuleModal.parseRuleTabs.parseRuleError'))
                   }
                 },
               },
             ]}
           >
             <TextArea
-              placeholder={t('ConfigLogRuleModal.ParseRuleTabs.parseRulePlaceholder')}
+              placeholder={t('configLogRuleModal.parseRuleTabs.parseRulePlaceholder')}
               rows={3}
             />
           </Form.Item>
@@ -55,13 +55,13 @@ const ParseRuleTabs = () => {
     },
     {
       key: 'structured',
-      label: t('ConfigLogRuleModal.ParseRuleTabs.structuredLabel'),
+      label: t('configLogRuleModal.parseRuleTabs.structuredLabel'),
       children: (
         <>
           <div className="flex mb-2">
             <AiOutlineInfoCircle size={16} className="mx-1" />
             <span className="text-xs text-gray-400">
-              {t('ConfigLogRuleModal.ParseRuleTabs.structuredDescription')}
+              {t('configLogRuleModal.parseRuleTabs.structuredDescription')}
             </span>
           </div>
           <Form.Item
@@ -70,14 +70,14 @@ const ParseRuleTabs = () => {
               {
                 validator: async (_, value) => {
                   if (form.getFieldError('isStructured') && value && !checkyIsJson(value)) {
-                    return Promise.reject(t('ConfigLogRuleModal.ParseRuleTabs.structuredRuleError'))
+                    return Promise.reject(t('configLogRuleModal.parseRuleTabs.structuredRuleError'))
                   }
                 },
               },
             ]}
           >
             <TextArea
-              placeholder={t('ConfigLogRuleModal.ParseRuleTabs.structuredRulePlaceholder')}
+              placeholder={t('ConfigLogRuleModal.parseRuleTabs.structuredRulePlaceholder')}
               rows={3}
               onChange={(e) => {
                 changeStructuredRule(e.target.value)

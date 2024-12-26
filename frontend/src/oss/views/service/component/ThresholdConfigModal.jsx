@@ -19,7 +19,7 @@ function ThresholdConfigModal() {
   return (
     <>
       <CButton color="primary" size="sm" onClick={() => setVisible(true)}>
-        {t('ThresholdConfigModal.configurationComparedtoThresholdText')}
+        {t('thresholdConfigModal.configurationComparedtoThresholdText')}
       </CButton>
       <CModal
         visible={visible}
@@ -29,51 +29,51 @@ function ThresholdConfigModal() {
       >
         <CModalHeader>
           <CModalTitle>
-            {t('ThresholdConfigModal.configurationComparedtoThresholdText')}
+            {t('thresholdConfigModal.configurationComparedtoThresholdText')}
           </CModalTitle>
         </CModalHeader>
 
         <CModalBody className="w-[500px] text-sm">
           <CForm>
             <CFormLabel htmlFor="basic-url">
-              {t('ThresholdConfigModal.averageResponseThresholdLabel')}
+              {t('thresholdConfigModal.averageResponseThresholdLabel')}
             </CFormLabel>
             <CInputGroup className="mb-3">
               <CFormInput
-                placeholder={t('ThresholdConfigModal.averageResponseThresholdPlaceHolder')}
+                placeholder={t('thresholdConfigModal.averageResponseThresholdPlaceHolder')}
                 aria-describedby="basic-addon2"
                 className="text-sm"
               />
               <CInputGroupText id="basic-addon2">%</CInputGroupText>
             </CInputGroup>
             <CFormLabel htmlFor="basic-url">
-              {t('ThresholdConfigModal.errorRateThresholdLabel')}
+              {t('thresholdConfigModal.errorRateThresholdLabel')}
             </CFormLabel>
             <CInputGroup className="mb-3">
               <CFormInput
-                placeholder={t('ThresholdConfigModal.errorRateThresholdPlaceHolder')}
+                placeholder={t('thresholdConfigModal.errorRateThresholdPlaceHolder')}
                 aria-describedby="basic-addon2"
                 className="text-sm"
               />
               <CInputGroupText id="basic-addon2">%</CInputGroupText>
             </CInputGroup>
             <CFormLabel htmlFor="basic-url">
-              {t('ThresholdConfigModal.requestsThresholdLabel')}
+              {t('thresholdConfigModal.requestsThresholdLabel')}
             </CFormLabel>
             <CInputGroup className="mb-3">
               <CFormInput
-                placeholder={t('ThresholdConfigModal.requestsThresholdPlaceHolder')}
+                placeholder={t('thresholdConfigModal.requestsThresholdPlaceHolder')}
                 aria-describedby="basic-addon2"
                 className="text-sm"
               />
               <CInputGroupText id="basic-addon2">%</CInputGroupText>
             </CInputGroup>
             <CFormLabel htmlFor="basic-url">
-              {t('ThresholdConfigModal.logFaultCountThresholdLabel')}
+              {t('thresholdConfigModal.logFaultCountThresholdLabel')}
             </CFormLabel>
             <CInputGroup className="mb-3">
               <CFormInput
-                placeholder={t('ThresholdConfigModal.logFaultCountThresholdPlaceHolder')}
+                placeholder={t('thresholdConfigModal.logFaultCountThresholdPlaceHolder')}
                 aria-describedby="basic-addon2"
                 className="text-sm"
               />
@@ -82,7 +82,7 @@ function ThresholdConfigModal() {
           </CForm>
         </CModalBody>
         <CModalFooter>
-          <CButton color="primary">{t('ThresholdConfigModal.saveText')}</CButton>
+          <CButton color="primary">{t('thresholdConfigModal.saveText')}</CButton>
         </CModalFooter>
       </CModal>
     </>

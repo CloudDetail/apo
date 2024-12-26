@@ -20,10 +20,10 @@ export default function AlertInfoTabs(props) {
 
   const RuleGroupMap = useMemo(
     () => ({
-      app: t('RuleGroupMap.app'),
-      infra: t('RuleGroupMap.infra'),
-      network: t('RuleGroupMap.network'),
-      container: t('RuleGroupMap.container'),
+      app: t('ruleGroupMap.app'),
+      infra: t('ruleGroupMap.infra'),
+      network: t('ruleGroupMap.network'),
+      container: t('ruleGroupMap.container'),
     }),
     [t],
   )

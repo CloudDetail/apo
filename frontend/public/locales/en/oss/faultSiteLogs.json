@@ -1,5 +1,5 @@
 {
-  "FaultSiteLogs": {
+  "faultSiteLogs": {
     "faultLogTableToast": "The default collection of console logs, for configuring log collection from files, please refer to \u00A0",
     "documentText": "document",
     "faultLogsText": "FaultLogs",

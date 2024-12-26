@@ -39,7 +39,7 @@ export default function LogRouteRuleFormList() {
             label={
               <>
                 {/* <div className="flex flex-row"> */}
-                {t('ConfigLogRuleModal.logRouteRuleFormList.matchRuleLabel')}{' '}
+                {t('configLogRuleModal.logRouteRuleFormList.matchRuleLabel')}{' '}
                 <IoMdAddCircleOutline
                   onClick={() => add()}
                   size={20}
@@ -49,7 +49,7 @@ export default function LogRouteRuleFormList() {
                 <div className="flex flex-row"> */}
                 <AiOutlineInfoCircle size={16} className="ml-1 mr-1" />
                 <span className="text-xs text-gray-400">
-                  {t('ConfigLogRuleModal.logRouteRuleFormList.matchRuleDescribeText')}
+                  {t('configLogRuleModal.logRouteRuleFormList.matchRuleDescribeText')}
                 </span>
                 {/* </div> */}
               </>
@@ -70,7 +70,7 @@ export default function LogRouteRuleFormList() {
                             // 检查是否有重复的key
                             if (!value) {
                               return Promise.reject(
-                                t('ConfigLogRuleModal.logRouteRuleFormList.errorInfo1'),
+                                t('configLogRuleModal.logRouteRuleFormList.errorInfo1'),
                               )
                             }
                             const duplicate = routeRule.filter(
@@ -78,7 +78,7 @@ export default function LogRouteRuleFormList() {
                             )
                             if (duplicate.length) {
                               return Promise.reject(
-                                t('ConfigLogRuleModal.logRouteRuleFormList.errorInfo2'),
+                                t('configLogRuleModal.logRouteRuleFormList.errorInfo2'),
                               )
                             }
                           },
@@ -88,7 +88,7 @@ export default function LogRouteRuleFormList() {
                       <Select
                         options={routeKeyList}
                         labelInValue
-                        placeholder={t('ConfigLogRuleModal.logRouteRuleFormList.selectPlaceholder')}
+                        placeholder={t('configLogRuleModal.logRouteRuleFormList.selectPlaceholder')}
                       />
                     </Form.Item>
                   </Col>
@@ -104,7 +104,7 @@ export default function LogRouteRuleFormList() {
                             // 检查是否有重复的key
                             if (!value) {
                               return Promise.reject(
-                                t('ConfigLogRuleModal.logRouteRuleFormList.errorInfo3'),
+                                t('configLogRuleModal.logRouteRuleFormList.errorInfo3'),
                               )
                             }
                           },
@@ -112,7 +112,7 @@ export default function LogRouteRuleFormList() {
                       ]}
                     >
                       <Input
-                        placeholder={t('ConfigLogRuleModal.logRouteRuleFormList.inputPlaceholder')}
+                        placeholder={t('configLogRuleModal.logRouteRuleFormList.inputPlaceholder')}
                       />
                     </Form.Item>
                   </Col>

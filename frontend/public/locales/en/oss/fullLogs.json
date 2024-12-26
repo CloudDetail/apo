@@ -8,7 +8,7 @@
       "cancelText": "Cancel",
       "RepositoryText": "Repository"
     },
-    "DataSourceTree": {
+    "dataSourceTree": {
       "deleteLogSuccessToast": "Delete external database successfully",
       "confirmDeleteLogRulePart1Text": "Are you sure you want to delete the external database named '",
       "confirmDeleteLogRulePart2Text": "'?",
@@ -51,7 +51,7 @@
     "endTimeText": "End Time",
     "times": "Times"
   },
-  "ConfigLogRuleModal": {
+  "configLogRuleModal": {
     "repositoryConfigSuccessToast": "Repository configuration successful",
     "matchRuleErrorToast": "Match rule cannot be empty",
     "structureErrorToast": "In structured logs, the data type of log fields cannot be empty",
@@ -76,7 +76,7 @@
       "errorInfo3": "Match rule value cannot be empty",
       "inputPlaceholder": "Match value, matched by prefix"
     },
-    "ParseRuleTabs": {
+    "parseRuleTabs": {
       "unStructuredLabel": "Unstructured Logs",
       "unStructuredDescription": "Structure logs that meet the rules and speed up query, see ",
       "unStructuredHelpLink": "Help Document",
@@ -86,7 +86,7 @@
       "structuredDescription": "Please enter a JSON formatted log sample to automatically generate the log format (only supports parsing the outermost keys of JSON)",
       "structuredRulePlaceholder": "Log Sample",
       "structuredRuleError": "JSON parsing failed, please check if the format is correct",
-      "LogStructRuleFormList": {
+      "logStructRuleFormList": {
         "fieldTypeLabel": "Log Field Data Type",
         "fieldNamePlaceholder": "Field Name",
         "fieldTypePlaceholder": "Select Match Rule Key",
@@ -96,7 +96,7 @@
       }
     }
   },
-  "ConfigTableModal": {
+  "configTableModal": {
     "configSuccessToast": "Log table configuration successful",
     "modalTitle": "Log Table Configuration",
     "saveText": "Save",

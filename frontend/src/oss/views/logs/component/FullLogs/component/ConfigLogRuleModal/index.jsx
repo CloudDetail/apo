@@ -85,7 +85,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   function addLogRule(logRuleParams) {
     addLogRuleApi(logRuleParams).then((res) => {
       showToast({
-        title: t('ConfigLogRuleModal.repositoryConfigSuccessToast'),
+        title: t('configLogRuleModal.repositoryConfigSuccessToast'),
         color: 'success',
       })
 
@@ -100,7 +100,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       tableName: logRuleInfo.tableName,
     }).then((res) => {
       showToast({
-        title: t('ConfigLogRuleModal.repositoryConfigSuccessToast'),
+        title: t('configLogRuleModal.repositoryConfigSuccessToast'),
         color: 'success',
       })
       closeModal()
@@ -137,7 +137,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         logRuleParams.routeRule = routeRule
         if (Object.keys(routeRule).length === 0) {
           showToast({
-            title: t('ConfigLogRuleModal.matchRuleErrorToast'),
+            title: t('configLogRuleModal.matchRuleErrorToast'),
             color: 'danger',
           })
           return
@@ -160,7 +160,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
           delete logRuleParams.parseRule
           if (logRuleParams.tableFields.length === 0) {
             showToast({
-              title: t('ConfigLogRuleModal.structureErrorToast'),
+              title: t('configLogRuleModal.structureErrorToast'),
               color: 'danger',
             })
             return
@@ -214,13 +214,13 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   }
   return (
     <Modal
-      title={t('ConfigLogRuleModal.modalTitle')}
+      title={t('configLogRuleModal.modalTitle')}
       open={modalVisible}
       onCancel={closeModal}
       destroyOnClose
       centered
-      okText={t('ConfigLogRuleModal.saveText')}
-      cancelText={t('ConfigLogRuleModal.cancelText')}
+      okText={t('configLogRuleModal.saveText')}
+      cancelText={t('configLogRuleModal.cancelText')}
       maskClosable={false}
       onOk={saveLogRule}
       width={1000}
@@ -255,38 +255,38 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         }}
       >
         <Form.Item
-          label={t('ConfigLogRuleModal.repositoryNameLabel')}
+          label={t('configLogRuleModal.repositoryNameLabel')}
           name="parseName"
           required
           rules={[
             {
               pattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/, // 仅允许英文字符
-              message: t('ConfigLogRuleModal.repositoryNameMessage1'),
+              message: t('configLogRuleModal.repositoryNameMessage1'),
             },
             {
               required: true,
-              message: t('ConfigLogRuleModal.repositoryNameMessage2'),
+              message: t('configLogRuleModal.repositoryNameMessage2'),
             },
           ]}
         >
           <Input
-            placeholder={t('ConfigLogRuleModal.repositoryNamePlaceholder')}
+            placeholder={t('configLogRuleModal.repositoryNamePlaceholder')}
             disabled={logRuleInfo?.parseName}
           />
         </Form.Item>
-        <Form.Item label={t('ConfigLogRuleModal.repositoryDescriptionLabel')} name="parseInfo">
-          <Input placeholder={t('ConfigLogRuleModal.repositoryDescriptionPlaceholder')} />
+        <Form.Item label={t('configLogRuleModal.repositoryDescriptionLabel')} name="parseInfo">
+          <Input placeholder={t('configLogRuleModal.repositoryDescriptionPlaceholder')} />
         </Form.Item>
-        <Form.Item label={t('ConfigLogRuleModal.executiveApplicationLabel')} name="serviceName">
+        <Form.Item label={t('configLogRuleModal.executiveApplicationLabel')} name="serviceName">
           <Select
             options={serviceList}
-            placeholder={t('ConfigLogRuleModal.executiveApplicationPlaceholder')}
+            placeholder={t('configLogRuleModal.executiveApplicationPlaceholder')}
             mode="multiple"
             onChange={(value) => getServiceRouteRule(value)}
           ></Select>
         </Form.Item>
         <LogRouteRuleFormList />
-        <Form.Item label={t('ConfigLogRuleModal.logConfigLabel')} required name="isStructured">
+        <Form.Item label={t('configLogRuleModal.logConfigLabel')} required name="isStructured">
           <ParseRuleTabs />
         </Form.Item>
       </Form>

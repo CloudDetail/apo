@@ -36,15 +36,15 @@
       "monitoredLinkText": "故障排除手册"
     }
   },
-  "TableFilter": {
-    "NamespacesLabel": "命名空间：",
-    "NamespacePlaceholder": "请选择",
-    "ApplicationsLabel": "服务名：",
-    "ApplicationsPlaceholder": "请选择",
-    "EndpointsLabel": "服务端点：",
-    "EndpointsPlaceholder": "请选择"
+  "tableFilter": {
+    "namespacesLabel": "命名空间",
+    "namespacePlaceholder": "请选择",
+    "applicationsLabel": "服务名",
+    "applicationsPlaceholder": "请选择",
+    "endpointsLabel": "服务端点",
+    "endpointsPlaceholder": "请选择"
   },
-  "EndpointTableModal": {
+  "endpointTableModal": {
     "columns": {
       "endpoint": "服务端点",
       "delaySource": {
@@ -60,7 +60,7 @@
     },
     "serviceEndpointDataText": "下所有服务端点数据"
   },
-  "ThresholdConfigModal": {
+  "thresholdConfigModal": {
     "configurationComparedtoThresholdText": "配置同比阈值",
     "averageResponseThresholdLabel": "平均响应时间同比阈值",
     "averageResponseThresholdPlaceHolder": "输入平均响应时间 类同比阈值",
@@ -72,13 +72,13 @@
     "logFaultCountThresholdPlaceHolder": "输入日志错误数量同比阈值",
     "saveText": "保存"
   },
-  "TempCell": {
+  "tempCell": {
     "times/minuteText": "次/分",
     "unitsText": "个",
     "DailyYoYText": "日同比",
     "WeeklyYoYText": "周同比"
   },
-  "StatusInfo": {
+  "statusInfo": {
     "alertObjectText": "告警对象",
     "alertTimeText": "告警时间",
     "alertReasonText": "告警原因",

@@ -45,22 +45,23 @@ export default function ModifyAlertRuleModal({
   const [expr, setExpr] = useState(null)
   const [forUnit, setForUnit] = useState('s')
   const [keepUnit, setKeepUnit] = useState('s')
+  const namespace = 'oss/alert'
   const options = [
     {
       value: 's',
-      label: <TranslationCom text="ModifyAlertRuleModal.option.secondText" url={'oss/alert'} />,
+      label: <TranslationCom text="modifyAlertRuleModal.option.secondText" space={namespace} />,
     },
     {
       value: 'm',
-      label: <TranslationCom text="ModifyAlertRuleModal.option.minuteText" url={'oss/alert'} />,
+      label: <TranslationCom text="modifyAlertRuleModal.option.minuteText" space={namespace} />,
     },
     {
       value: 'h',
-      label: <TranslationCom text="ModifyAlertRuleModal.option.hourText" url={'oss/alert'} />,
+      label: <TranslationCom text="modifyAlertRuleModal.option.hourText" space={namespace} />,
     },
     {
       value: 'd',
-      label: <TranslationCom text="ModifyAlertRuleModal.option.dayText" url={'oss/alert'} />,
+      label: <TranslationCom text="modifyAlertRuleModal.option.dayText" space={namespace} />,
     },
   ]
   const { groupLabelSelectOptions, groupLabel } = useSelector((state) => state.groupLabelReducer)
@@ -69,7 +70,7 @@ export default function ModifyAlertRuleModal({
     return isValidKeyValue(value) ? (
       <Tag closeIcon>{value}</Tag>
     ) : (
-      <Tooltip title={t('ModifyAlertRuleModal.invalidLabelFormat')}>
+      <Tooltip title={t('modifyAlertRuleModal.invalidLabelFormat')}>
         <Tag closeIcon color={'error'}>
           {value}
         </Tag>
@@ -85,7 +86,7 @@ export default function ModifyAlertRuleModal({
       }
     }
     if (!pass) {
-      return Promise.reject(new Error(t('ModifyAlertRuleModal.invalidLabelFormat')))
+      return Promise.reject(new Error(t('modifyAlertRuleModal.invalidLabelFormat')))
     }
     return Promise.resolve()
   }
@@ -147,7 +148,7 @@ export default function ModifyAlertRuleModal({
     }
     api(params).then(() => {
       showToast({
-        title: t('ModifyAlertRuleModal.saveSuccess'),
+        title: t('modifyAlertRuleModal.saveSuccess'),
         color: 'success',
       })
       closeModal()
@@ -236,13 +237,13 @@ export default function ModifyAlertRuleModal({
   return (
     <>
       <Modal
-        title={t('ModifyAlertRuleModal.title')}
+        title={t('modifyAlertRuleModal.title')}
         open={modalVisible}
         onCancel={closeModal}
         destroyOnClose
         centered
-        okText={t('ModifyAlertRuleModal.save')}
-        cancelText={t('ModifyAlertRuleModal.cancel')}
+        okText={t('modifyAlertRuleModal.save')}
+        cancelText={t('modifyAlertRuleModal.cancel')}
         maskClosable={false}
         onOk={saveRule}
         width={1000}
@@ -257,7 +258,7 @@ export default function ModifyAlertRuleModal({
           }}
         >
           <Form.Item
-            label={t('ModifyAlertRuleModal.groupName')}
+            label={t('modifyAlertRuleModal.groupName')}
             name="group"
             required
             rules={[
@@ -266,9 +267,9 @@ export default function ModifyAlertRuleModal({
                   if (!value)
                     return Promise.reject(
                       new Error(
-                        t('ModifyAlertRuleModal.groupName') +
+                        t('modifyAlertRuleModal.groupName') +
                           ' ' +
-                          t('ModifyAlertRuleModal.invalidLabelFormat'),
+                          t('modifyAlertRuleModal.invalidLabelFormat'),
                       ),
                     )
                 },
@@ -278,25 +279,25 @@ export default function ModifyAlertRuleModal({
             <Select
               options={groupLabelSelectOptions}
               labelInValue
-              placeholder={t('ModifyAlertRuleModal.groupName')}
+              placeholder={t('modifyAlertRuleModal.groupName')}
               onChange={(value) => changeGroupLabel('group', value?.key)}
             />
           </Form.Item>
-          <Form.Item label={t('ModifyAlertRuleModal.alertRuleName')} name="alert" required>
-            <Input placeholder={t('ModifyAlertRuleModal.alertRuleName')} />
+          <Form.Item label={t('modifyAlertRuleModal.alertRuleName')} name="alert" required>
+            <Input placeholder={t('modifyAlertRuleModal.alertRuleName')} />
           </Form.Item>
-          <Form.Item label={t('ModifyAlertRuleModal.alertCondition')} name="condition">
+          <Form.Item label={t('modifyAlertRuleModal.alertCondition')} name="condition">
             <ALertConditionCom expr={expr} setExpr={setExpr} />
           </Form.Item>
           <Form.Item
-            label={t('ModifyAlertRuleModal.alertLevel')}
+            label={t('modifyAlertRuleModal.alertLevel')}
             name="severity"
             layout="horizontal"
           >
             <Radio.Group onChange={(e) => changeGroupLabel('severity', e.target.value)}>
-              <Radio value="critical">{t('ModifyAlertRuleModal.critical')}</Radio>
-              <Radio value="warning">{t('ModifyAlertRuleModal.warning')}</Radio>
-              <Radio value="info">{t('ModifyAlertRuleModal.info')}</Radio>
+              <Radio value="critical">{t('modifyAlertRuleModal.critical')}</Radio>
+              <Radio value="warning">{t('modifyAlertRuleModal.warning')}</Radio>
+              <Radio value="info">{t('modifyAlertRuleModal.info')}</Radio>
             </Radio.Group>
           </Form.Item>
           {/* <Form.Item label="查询语句" name="expr">
@@ -304,7 +305,7 @@ export default function ModifyAlertRuleModal({
               <MonacoEditorWrapper defaultValue={expr} handleEditorChange={setExpr} />
             </div>
           </Form.Item> */}
-          <Form.Item label={t('ModifyAlertRuleModal.duration')} name="for" required>
+          <Form.Item label={t('modifyAlertRuleModal.duration')} name="for" required>
             <InputNumber
               addonAfter={
                 <Select
@@ -317,8 +318,8 @@ export default function ModifyAlertRuleModal({
               placeholder=""
             />
           </Form.Item>
-          <Form.Item label={t('ModifyAlertRuleModal.alertMessage')} name="description">
-            <TextArea placeholder={t('ModifyAlertRuleModal.alertMessage')} rows={2} />
+          <Form.Item label={t('modifyAlertRuleModal.alertMessage')} name="description">
+            <TextArea placeholder={t('modifyAlertRuleModal.alertMessage')} rows={2} />
           </Form.Item>
           {!ruleInfo && (
             <div className="flex mb-4">
@@ -326,18 +327,18 @@ export default function ModifyAlertRuleModal({
                 onChange={(e) => updateDescription(e, 'VALUE = {{ $value }}')}
                 defaultChecked
               >
-                {t('ModifyAlertRuleModal.includeMetricValue')}
+                {t('modifyAlertRuleModal.includeMetricValue')}
               </Checkbox>
               <Checkbox
                 onChange={(e) => updateDescription(e, 'LABELS = {{ $labels }}')}
                 defaultChecked
               >
-                {t('ModifyAlertRuleModal.includeMetricLabels')}
+                {t('modifyAlertRuleModal.includeMetricLabels')}
               </Checkbox>
             </div>
           )}
           <Form.Item
-            label={t('ModifyAlertRuleModal.additionalLabels')}
+            label={t('modifyAlertRuleModal.additionalLabels')}
             name="labels"
             rules={[{ validator: labelsValidator }]}
           >
@@ -348,7 +349,7 @@ export default function ModifyAlertRuleModal({
               open={false}
               options={null}
               suffixIcon={null}
-              placeholder={t('ModifyAlertRuleModal.additionalLabels')}
+              placeholder={t('modifyAlertRuleModal.additionalLabels')}
             />
           </Form.Item>
           {/* <Input placeholder="input placeholder" value={annotations} /> */}
@@ -358,7 +359,7 @@ export default function ModifyAlertRuleModal({
                 <Form.Item
                   label={
                     <>
-                      {t('ModifyAlertRuleModal.additionalInfo')}{' '}
+                      {t('modifyAlertRuleModal.additionalInfo')}{' '}
                       <IoMdAddCircleOutline onClick={() => add()} size={20} className="mx-2" />
                     </>
                   }
@@ -377,21 +378,21 @@ export default function ModifyAlertRuleModal({
                               validator: async (_, value) => {
                                 if (!isValidKey(value)) {
                                   return Promise.reject(
-                                    new Error(t('ModifyAlertRuleModal.invalidKey')),
+                                    new Error(t('modifyAlertRuleModal.invalidKey')),
                                   )
                                 }
                               },
                             },
                           ]}
                         >
-                          <Input placeholder={t('ModifyAlertRuleModal.key')} />
+                          <Input placeholder={t('modifyAlertRuleModal.key')} />
                         </Form.Item>
                         <Form.Item
                           // layout="horizontal"
                           className="w-2/3 block test"
                           name={[field.name, 'value']}
                         >
-                          <TextArea placeholder={t('ModifyAlertRuleModal.value')} rows={2} />
+                          <TextArea placeholder={t('modifyAlertRuleModal.value')} rows={2} />
                         </Form.Item>
 
                         <IoIosRemoveCircleOutline

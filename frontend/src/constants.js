@@ -5,12 +5,12 @@ import {
 } from 'src/core/api/serviceInfo'
 import TranslationCom from './oss/components/TranslationCom'
 
-const translationUrl = 'constant'
+const namespace = 'common'
 
 export const DelaySourceTimeUnit = {
-  self: <TranslationCom text={'DelaySourceTimeUnit.selfText'} url={translationUrl} />,
-  dependency: <TranslationCom text={'DelaySourceTimeUnit.dependencyText'} url={translationUrl} />,
-  unknown: <TranslationCom text={'DelaySourceTimeUnit.unknownText'} url={translationUrl} />,
+  self: <TranslationCom text={'delaySourceTimeUnit.selfText'} space={namespace} />,
+  dependency: <TranslationCom text={'delaySourceTimeUnit.dependencyText'} space={namespace} />,
+  unknown: <TranslationCom text={'delaySourceTimeUnit.unknownText'} space={namespace} />,
 }
 
 export const MetricsLineChartColor = {
@@ -88,11 +88,11 @@ export const ChartColorList = [
 ]
 
 export const TableType = {
-  logs: <TranslationCom text={'TableType.logsText'} url={translationUrl} />,
-  trace: <TranslationCom text={'TableType.traceText'} url={translationUrl} />,
-  k8s: <TranslationCom text={'TableType.k8sText'} url={translationUrl} />,
-  topology: <TranslationCom text={'TableType.topologyText'} url={translationUrl} />,
-  other: <TranslationCom text={'TableType.otherText'} url={translationUrl} />,
+  logs: <TranslationCom text={'tableType.logsText'} space={namespace} />,
+  trace: <TranslationCom text={'tableType.traceText'} space={namespace} />,
+  k8s: <TranslationCom text={'tableType.k8sText'} space={namespace} />,
+  topology: <TranslationCom text={'tableType.topologyText'} space={namespace} />,
+  other: <TranslationCom text={'tableType.otherText'} space={namespace} />,
 }
 
 export const AlertSeverityMapList = [

@@ -38,7 +38,7 @@ export default function LogStructRuleFormList({ fieldName }) {
             label={
               <>
                 {/* <div className="flex flex-row"> */}
-                {t('ConfigLogRuleModal.ParseRuleTabs.LogStructRuleFormList.fieldTypeLabel')}{' '}
+                {t('configLogRuleModal.parseRuleTabs.logStructRuleFormList.fieldTypeLabel')}{' '}
                 <IoMdAddCircleOutline
                   onClick={() =>
                     add({
@@ -74,14 +74,14 @@ export default function LogStructRuleFormList({ fieldName }) {
                               if (!value) {
                                 return Promise.reject(
                                   t(
-                                    'ConfigLogRuleModal.ParseRuleTabs.LogStructRuleFormList.fieldNameError',
+                                    'configLogRuleModal.parseRuleTabs.logStructRuleFormList.fieldNameError',
                                   ),
                                 )
                               }
                             } else if (!form.getFieldValue('parseRule') && !value) {
                               return Promise.reject(
                                 t(
-                                  'ConfigLogRuleModal.ParseRuleTabs.LogStructRuleFormList.fieldNameError',
+                                  'configLogRuleModal.parseRuleTabs.logStructRuleFormList.fieldNameError',
                                 ),
                               )
                             }
@@ -91,7 +91,7 @@ export default function LogStructRuleFormList({ fieldName }) {
                             if (duplicate.length) {
                               return Promise.reject(
                                 t(
-                                  'ConfigLogRuleModal.ParseRuleTabs.LogStructRuleFormList.duplicateFieldNameError',
+                                  'configLogRuleModal.parseRuleTabs.logStructRuleFormList.duplicateFieldNameError',
                                 ),
                               )
                             }
@@ -101,7 +101,7 @@ export default function LogStructRuleFormList({ fieldName }) {
                     >
                       <Input
                         placeholder={t(
-                          'ConfigLogRuleModal.ParseRuleTabs.LogStructRuleFormList.fieldNamePlaceholder',
+                          'configLogRuleModal.parseRuleTabs.logStructRuleFormList.fieldNamePlaceholder',
                         )}
                       />
                     </Form.Item>
@@ -121,14 +121,14 @@ export default function LogStructRuleFormList({ fieldName }) {
                               if (!value) {
                                 return Promise.reject(
                                   t(
-                                    'ConfigLogRuleModal.ParseRuleTabs.LogStructRuleFormList.fieldTypeError',
+                                    'configLogRuleModal.parseRuleTabs.logStructRuleFormList.fieldTypeError',
                                   ),
                                 )
                               }
                             } else if (!form.getFieldValue('parseRule') && !value) {
                               return Promise.reject(
                                 t(
-                                  'ConfigLogRuleModal.ParseRuleTabs.LogStructRuleFormList.fieldTypeError',
+                                  'configLogRuleModal.parseRuleTabs.logStructRuleFormList.fieldTypeError',
                                 ),
                               )
                             }
@@ -140,7 +140,7 @@ export default function LogStructRuleFormList({ fieldName }) {
                         options={routeKeyList}
                         labelInValue
                         placeholder={t(
-                          'ConfigLogRuleModal.ParseRuleTabs.LogStructRuleFormList.fieldTypePlaceholder',
+                          'configLogRuleModal.parseRuleTabs.logStructRuleFormList.fieldTypePlaceholder',
                         )}
                         defaultValue={{
                           key: 'String',

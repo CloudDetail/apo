@@ -53,7 +53,7 @@ const ConfigTableModal = ({ modalVisible, closeModal }) => {
   function addOtherTable(params) {
     addLogOtherTableApi(params).then((res) => {
       showToast({
-        title: t('ConfigTableModal.configSuccessToast'),
+        title: t('configTableModal.configSuccessToast'),
         color: 'success',
       })
 
@@ -81,25 +81,25 @@ const ConfigTableModal = ({ modalVisible, closeModal }) => {
   }
   return (
     <Modal
-      title={t('ConfigTableModal.modalTitle')}
+      title={t('configTableModal.modalTitle')}
       open={modalVisible}
       onCancel={closeModal}
       destroyOnClose
       centered
-      okText={t('ConfigTableModal.saveText')}
-      cancelText={t('ConfigTableModal.cancelText')}
+      okText={t('configTableModal.saveText')}
+      cancelText={t('configTableModal.cancelText')}
       maskClosable={false}
       onOk={saveLogRule}
       width={1000}
       bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden' }}
     >
       <Form layout={'vertical'} form={form} preserve={false}>
-        <Form.Item label={t('ConfigTableModal.dataSourceLabel')} name="dataBase" required>
+        <Form.Item label={t('configTableModal.dataSourceLabel')} name="dataBase" required>
           <TreeSelect
             showSearch
             style={{ width: '100%' }}
             dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
-            placeholder={t('ConfigTableModal.dataSourcePlaceholder')}
+            placeholder={t('configTableModal.dataSourcePlaceholder')}
             allowClear
             treeDefaultExpandAll
             onChange={handleTreeSelectChange}
@@ -107,11 +107,11 @@ const ConfigTableModal = ({ modalVisible, closeModal }) => {
             // showCheckedStrategy="SHOW_ALL"
           />
         </Form.Item>
-        <Form.Item label={t('ConfigTableModal.timeFieldLabel')} name="timeField" required>
+        <Form.Item label={t('configTableModal.timeFieldLabel')} name="timeField" required>
           <Select
             options={tableColumns}
             labelInValue
-            placeholder={t('ConfigTableModal.timeFieldPlaceholder')}
+            placeholder={t('configTableModal.timeFieldPlaceholder')}
           />
         </Form.Item>
       </Form>

@@ -36,15 +36,15 @@
       "monitoredLinkText": " Troubleshooting Manual"
     }
   },
-  "TableFilter": {
-    "NamespacesLabel": "Namespaces：",
-    "NamespacePlaceholder": "Please Select",
-    "ApplicationsLabel": "Applications：",
-    "ApplicationsPlaceholder": "Please Select",
-    "EndpointsLabel": "Endpoints：",
-    "EndpointsPlaceholder": "Please Select"
+  "tableFilter": {
+    "namespacesLabel": "Namespaces",
+    "namespacePlaceholder": "Please Select",
+    "applicationsLabel": "Applications",
+    "applicationsPlaceholder": "Please Select",
+    "endpointsLabel": "Endpoints",
+    "endpointsPlaceholder": "Please Select"
   },
-  "EndpointTableModal": {
+  "endpointTableModal": {
     "columns": {
       "endpoint": "Endpoint",
       "delaySource": {
@@ -60,7 +60,7 @@
     },
     "serviceEndpointDataText": "All Server Endpoint Data Below"
   },
-  "ThresholdConfigModal": {
+  "thresholdConfigModal": {
     "configurationComparedtoThresholdText": "Configuration Year-on-Year Threshold",
     "averageResponseThresholdLabel": "Average Response Time Year-on-Year Threshold",
     "averageResponseThresholdPlaceHolder": "Enter Average Response Time Class Year-on-Year Threshold",
@@ -72,13 +72,13 @@
     "logFaultCountThresholdPlaceHolder": "Enter Log Error Count Year-on-Year Threshold",
     "saveText": "Save"
   },
-  "TempCell": {
+  "tempCell": {
     "times/minuteText": " tpm ",
     "unitsText": " Entry",
     "DailyYoYText": "DailyYoY",
     "WeeklyYoYText": "WeeklyYoY"
   },
-  "StatusInfo": {
+  "statusInfo": {
     "alertObjectText": "Alert Object",
     "alertTimeText": "Alert Time",
     "alertReasonText": " Alert Reason",

@@ -170,13 +170,13 @@ function FaultSiteLogs(props) {
         <div className="d-flex">
           <CToastBody className=" flex flex-row items-center text-xs">
             <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-            {t('FaultSiteLogs.faultLogTableToast')}
+            {t('faultSiteLogs.faultLogTableToast')}
             <a
               className="underline text-sky-500"
               target="_blank"
               href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置采集日志/"
             >
-              <span>{t('FaultSiteLogs.documentText')}</span>
+              <span>{t('faultSiteLogs.documentText')}</span>
             </a>
           </CToastBody>
         </div>
@@ -204,7 +204,7 @@ function FaultSiteLogs(props) {
                         onClick={() => changeActiveItemKey(index)}
                       >
                         {convertTime(logs.startTime, 'yyyy-mm-dd hh:mm:ss.SSS')}{' '}
-                        {t('FaultSiteLogs.faultLogsText')}
+                        {t('faultSiteLogs.faultLogsText')}
                       </CTab>
                     )
                   })}
@@ -227,7 +227,7 @@ function FaultSiteLogs(props) {
               <div className="p-3 w-full h-full overflow-hidden flex flex-col relative">
                 <LoadingSpinner loading={logContentLoading} />
                 <div className="flex-grow-0 flex-shrink-0">
-                  <div className="text-base font-bold">{t('FaultSiteLogs.faultSiteText')}</div>
+                  <div className="text-base font-bold">{t('faultSiteLogs.faultSiteText')}</div>
 
                   <CCard className="mx-4 my-2 p-2 font-bold">
                     <CRow className="my-1 ">
@@ -238,13 +238,13 @@ function FaultSiteLogs(props) {
                     </CRow>
                     <CRow className="my-1">
                       <CCol sm="2" className="text-gray-400 font-bold">
-                        {t('FaultSiteLogs.endpoint')}
+                        {t('faultSiteLogs.endpoint')}
                       </CCol>
                       <CCol sm="auto">{logsPageList[activeItemKey]?.endpoint}</CCol>
                     </CRow>
                     <CRow className="my-1">
                       <CCol sm="2" className="text-gray-400 font-bold">
-                        {t('FaultSiteLogs.timeOfFailure')}
+                        {t('faultSiteLogs.timeOfFailure')}
                       </CCol>
                       <CCol sm="auto">
                         {convertTime(
@@ -256,7 +256,7 @@ function FaultSiteLogs(props) {
                   </CCard>
                 </div>
                 <div className="text-base font-bold mb-2">
-                  {t('FaultSiteLogs.specificLogInformation')}
+                  {t('faultSiteLogs.specificLogInformation')}
                 </div>
                 <div className="flex flex-row items-center">
                   <span className="text-nowrap">Source：</span>

@@ -16,11 +16,11 @@ const DelayLineChart = ({ data, timeRange, type }) => {
   const { t } = useTranslation('core/delayLineChart')
 
   const DelayLineChartTitleMap = {
-    latency: t('DelayLineChartTitleMap.latency'),
-    p90: t('DelayLineChartTitleMap.p90'),
-    errorRate: t('DelayLineChartTitleMap.errorRate'),
-    logs: t('DelayLineChartTitleMap.logs'),
-    tps: t('DelayLineChartTitleMap.tps'),
+    latency: t('delayLineChartTitleMap.latency'),
+    p90: t('delayLineChartTitleMap.p90'),
+    errorRate: t('delayLineChartTitleMap.errorRate'),
+    logs: t('delayLineChartTitleMap.logs'),
+    tps: t('delayLineChartTitleMap.tps'),
   }
 
   const chartRef = useRef(null)

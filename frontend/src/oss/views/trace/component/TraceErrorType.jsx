@@ -2,7 +2,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
 export default function TraceErrorType({ type }) {
-  const { t } = useTranslation('LogsTraceFilter') // 使用i18n
+  const { t } = useTranslation('common') // 使用i18n
   const ErrorTypeMap = {
     error: {
       name: t('traceErrorType.error'),

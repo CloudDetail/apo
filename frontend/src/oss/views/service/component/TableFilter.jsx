@@ -135,13 +135,13 @@ export const TableFilter = (props) => {
     <>
       <div className="p-2 my-2 flex flex-row w-full">
         <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
-          <span className="text-nowrap">{t('TableFilter.NamespacesLabel')}</span>
+          <span className="text-nowrap">{t('tableFilter.namespacesLabel')}：</span>
           <Select
             mode="multiple"
             allowClear
             id="namespace"
             className="w-full"
-            placeholder={t('TableFilter.NamespacePlaceholder')}
+            placeholder={t('tableFilter.namespacePlaceholder')}
             value={serachNamespace}
             onChange={onChangeNamespace}
             options={namespaceOptions}
@@ -150,13 +150,13 @@ export const TableFilter = (props) => {
           />
         </div>
         <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
-          <span className="text-nowrap">{t('TableFilter.ApplicationsLabel')}</span>
+          <span className="text-nowrap">{t('tableFilter.applicationsLabel')}：</span>
           <Select
             mode="multiple"
             allowClear
             className="w-full"
             id="serviceName"
-            placeholder={t('TableFilter.ApplicationsPlaceholder')}
+            placeholder={t('tableFilter.applicationsPlaceholder')}
             value={serachServiceName}
             onChange={onChangeServiceName}
             options={serviceNameOptions}
@@ -166,11 +166,11 @@ export const TableFilter = (props) => {
           />
         </div>
         <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
-          <span className="text-nowrap">{t('TableFilter.EndpointsLabel')}</span>
+          <span className="text-nowrap">{t('tableFilter.endpointsLabel')}：</span>
           <Select
             mode="multiple"
             id="endpointName"
-            placeholder={t('TableFilter.EndpointsPlaceholder')}
+            placeholder={t('tableFilter.endpointsPlaceholder')}
             className="w-full"
             value={serachEndpointName}
             popupMatchSelectWidth={false}

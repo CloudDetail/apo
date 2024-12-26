@@ -40,7 +40,7 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
 
         setModalEditVisibility(false)
         getUserList()
-        showToast({ title: t('EditModal.saveSuccess'), color: 'success' })
+        showToast({ title: t('editModal.saveSuccess'), color: 'success' })
         form.resetFields()
       })
       .catch((error) => {
@@ -62,14 +62,14 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
           const params = { newPassword, confirmPassword }
           await updatePasswordWithNoOldPwd({ username: selectedUser, ...params })
           showToast({
-            title: t('EditModal.resetPasswordSuccess'),
+            title: t('editModal.resetPasswordSuccess'),
             color: 'success',
           })
           setModalEditVisibility(false)
         } catch (error) {
           console.error(error)
           showToast({
-            title: error.response?.data?.message || t('EditModal.resetPasswordFail'),
+            title: error.response?.data?.message || t('editModal.resetPasswordFail'),
             color: 'danger',
           })
           setModalEditVisibility(false)
@@ -98,7 +98,7 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
       })
     } catch (error) {
       showToast({
-        title: t('EditModal.getUserInfoFail'),
+        title: t('editModal.getUserInfoFail'),
         color: 'danger',
       })
       console.log(error)
@@ -117,7 +117,7 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
           }
         }}
         maskClosable={false}
-        title={t('EditModal.title')}
+        title={t('editModal.title')}
         width={1000}
         footer={null}
       >
@@ -125,81 +125,81 @@ const EditModal = ({ selectedUser, modalEditVisibility, setModalEditVisibility, 
         <Flex vertical className="w-full mt-4 mb-4 justify-center align-center">
           <div>
             <Form form={form} layout="vertical">
-              <Form.Item label={t('EditModal.username')} name="username">
+              <Form.Item label={t('editModal.username')} name="username">
                 <Input disabled={true} />
               </Form.Item>
               <Form.Item
-                label={t('EditModal.email')}
+                label={t('editModal.email')}
                 name="email"
                 rules={[
                   {
                     type: 'email',
-                    message: t('EditModal.emailInvalid'),
+                    message: t('editModal.emailInvalid'),
                   },
                 ]}
               >
-                <Input placeholder={t('EditModal.emailPlaceholder')} />
+                <Input placeholder={t('editModal.emailPlaceholder')} />
               </Form.Item>
               <Form.Item
-                label={t('EditModal.phone')}
+                label={t('editModal.phone')}
                 name="phone"
                 rules={[
                   {
                     pattern: /^1[3-9]\d{9}$/, // 中国大陆手机号正则
-                    message: t('EditModal.phoneInvalid'),
+                    message: t('editModal.phoneInvalid'),
                   },
                 ]}
               >
-                <Input placeholder={t('EditModal.phonePlaceholder')} />
+                <Input placeholder={t('editModal.phonePlaceholder')} />
               </Form.Item>
-              <Form.Item label={t('EditModal.corporation')} name="corporation">
-                <Input placeholder={t('EditModal.corporationPlaceholder')} />
+              <Form.Item label={t('editModal.corporation')} name="corporation">
+                <Input placeholder={t('editModal.corporationPlaceholder')} />
               </Form.Item>
               <Button type="primary" onClick={editUser}>
-                {t('EditModal.save')}
+                {t('editModal.save')}
               </Button>
               <Divider />
               <div className="mt-3">
                 <Form.Item
-                  label={t('EditModal.newPassword')}
+                  label={t('editModal.newPassword')}
                   name="newPassword"
                   rules={[
                     {
                       required: true,
-                      message: t('EditModal.newPasswordRequired'),
+                      message: t('editModal.newPasswordRequired'),
                     },
                     {
                       pattern:
                         /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()\-_+=<>?/{}[\]|:;.,~]).{9,}$/,
-                      message: t('EditModal.newPasswordPattern'),
+                      message: t('editModal.newPasswordPattern'),
                     },
                   ]}
                 >
-                  <Input.Password placeholder={t('EditModal.newPasswordPlaceholder')} />
+                  <Input.Password placeholder={t('editModal.newPasswordPlaceholder')} />
                 </Form.Item>
                 <Form.Item
-                  label={t('EditModal.confirmPassword')}
+                  label={t('editModal.confirmPassword')}
                   name="confirmPassword"
                   rules={[
                     {
                       required: true,
-                      message: t('EditModal.confirmPasswordRequired'),
+                      message: t('editModal.confirmPasswordRequired'),
                     },
                     ({ getFieldValue }) => ({
                       validator(_, value) {
                         if (!value || getFieldValue('newPassword') === value) {
                           return Promise.resolve()
                         }
-                        return Promise.reject(new Error(t('EditModal.confirmPasswordMismatch')))
+                        return Promise.reject(new Error(t('editModal.confirmPasswordMismatch')))
                       },
                     }),
                   ]}
                 >
-                  <Input.Password placeholder={t('EditModal.confirmPasswordPlaceholder')} />
+                  <Input.Password placeholder={t('editModal.confirmPasswordPlaceholder')} />
                 </Form.Item>
               </div>
               <Button type="primary" onClick={resetPassword}>
-                {t('EditModal.resetPassword')}
+                {t('editModal.resetPassword')}
               </Button>
             </Form>
           </div>

@@ -166,7 +166,7 @@
     "traceInfo": "故障现场Trace",
     "toastMessage": "根据日志错误数量、平均响应时间、错误率找到关键时刻Trace"
   },
-  "RuleGroupMap": {
+  "ruleGroupMap": {
     "app": "应用指标",
     "infra": "主机相关",
     "network": "网络相关",

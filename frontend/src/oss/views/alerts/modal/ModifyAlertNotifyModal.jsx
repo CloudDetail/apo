@@ -32,7 +32,7 @@ export default function ModifyAlertNotifyModal({
 
     api(params).then(() => {
       showToast({
-        title: t('ModifyAlertNotifyModal.saveSuccess'),
+        title: t('modifyAlertNotifyModal.saveSuccess'),
         color: 'success',
       })
       closeModal()
@@ -48,7 +48,7 @@ export default function ModifyAlertNotifyModal({
         setTip('')
       } else {
         console.log(config.to_user)
-        setTip(t('ModifyAlertNotifyModal.invalidNotifyType'))
+        setTip(t('modifyAlertNotifyModal.invalidNotifyType'))
       }
     }
     form
@@ -258,13 +258,13 @@ export default function ModifyAlertNotifyModal({
     <>
       {contextHolder}
       <Modal
-        title={t('ModifyAlertNotifyModal.title')}
+        title={t('modifyAlertNotifyModal.title')}
         open={modalVisible}
         onCancel={closeModal}
         destroyOnClose
         centered
-        okText={t('ModifyAlertNotifyModal.save')}
-        cancelText={t('ModifyAlertNotifyModal.cancel')}
+        okText={t('modifyAlertNotifyModal.save')}
+        cancelText={t('modifyAlertNotifyModal.cancel')}
         maskClosable={false}
         onOk={saveRule}
         width="100vw"
@@ -273,9 +273,9 @@ export default function ModifyAlertNotifyModal({
         afterClose={() => setTip('')}
       >
         <Form layout={'vertical'} form={form} preserve={false}>
-          <Card title={t('ModifyAlertNotifyModal.basicConfig')}>
+          <Card title={t('modifyAlertNotifyModal.basicConfig')}>
             <Form.Item
-              label={t('ModifyAlertNotifyModal.alertNotifyName')}
+              label={t('modifyAlertNotifyModal.alertNotifyName')}
               name="name"
               required
               rules={[
@@ -283,16 +283,16 @@ export default function ModifyAlertNotifyModal({
                   validator: async (_, value) => {
                     if (!value)
                       return Promise.reject(
-                        new Error(t('ModifyAlertNotifyModal.invalidNotifyName')),
+                        new Error(t('modifyAlertNotifyModal.invalidNotifyName')),
                       )
                   },
                 },
               ]}
             >
-              <Input placeholder={t('ModifyAlertNotifyModal.alertNotifyName')} />
+              <Input placeholder={t('modifyAlertNotifyModal.alertNotifyName')} />
             </Form.Item>
             <Form.Item
-              label={t('ModifyAlertNotifyModal.notifyType')}
+              label={t('modifyAlertNotifyModal.notifyType')}
               name="notifyType"
               required
               rules={[
@@ -300,7 +300,7 @@ export default function ModifyAlertNotifyModal({
                   validator: async (_, value) => {
                     if (!value)
                       return Promise.reject(
-                        new Error(t('ModifyAlertNotifyModal.invalidNotifyType')),
+                        new Error(t('modifyAlertNotifyModal.invalidNotifyType')),
                       )
                   },
                 },
@@ -308,10 +308,10 @@ export default function ModifyAlertNotifyModal({
             >
               <Select
                 options={[
-                  { label: t('ModifyAlertNotifyModal.email'), value: 'email' },
-                  { label: t('ModifyAlertNotifyModal.webhook'), value: 'webhook' },
-                  { label: t('ModifyAlertNotifyModal.dingtalk'), value: 'dingtalk' },
-                  { label: t('ModifyAlertNotifyModal.wechat'), value: 'wechat' },
+                  { label: t('modifyAlertNotifyModal.email'), value: 'email' },
+                  { label: t('modifyAlertNotifyModal.webhook'), value: 'webhook' },
+                  { label: t('modifyAlertNotifyModal.dingtalk'), value: 'dingtalk' },
+                  { label: t('modifyAlertNotifyModal.wechat'), value: 'wechat' },
                 ]}
                 disabled={notifyInfo}
               />

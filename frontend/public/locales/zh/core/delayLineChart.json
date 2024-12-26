@@ -1,5 +1,5 @@
 {
-  "DelayLineChartTitleMap": {
+  "delayLineChartTitleMap": {
     "latency": "平均响应时间",
     "p90": "90分位数",
     "errorRate": "错误率",

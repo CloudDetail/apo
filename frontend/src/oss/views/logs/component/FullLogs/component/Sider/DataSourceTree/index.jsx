@@ -24,7 +24,7 @@ const DataSourceTree = () => {
       tableName: table.tableName,
     }).then((res) => {
       showToast({
-        title: t('fullLogSider.DataSourceTree.deleteLogSuccessToast'),
+        title: t('fullLogSider.dataSourceTree.deleteLogSuccessToast'),
         color: 'success',
       })
       getLogTableInfo()
@@ -48,17 +48,17 @@ const DataSourceTree = () => {
             <Popconfirm
               title={
                 <>
-                  {t('fullLogSider.DataSourceTree.confirmDeleteLogRulePart1Text')}
+                  {t('fullLogSider.dataSourceTree.confirmDeleteLogRulePart1Text')}
                   <span className="font-bold ">{nodeData.tableName}</span>
-                  {t('fullLogSider.DataSourceTree.confirmDeleteLogRulePart2Text')}
+                  {t('fullLogSider.dataSourceTree.confirmDeleteLogRulePart2Text')}
                 </>
               }
               onConfirm={(e) => {
                 e.stopPropagation()
                 deleteLogRule(nodeData)
               }}
-              okText={t('fullLogSider.DataSourceTree.confirmText')}
-              cancelText={t('fullLogSider.DataSourceTree.cancelText')}
+              okText={t('fullLogSider.dataSourceTree.confirmText')}
+              cancelText={t('fullLogSider.dataSourceTree.cancelText')}
             >
               <Button
                 color="danger"
@@ -131,7 +131,7 @@ const DataSourceTree = () => {
   return (
     <Card
       className="overflow-y-auto h-1/2 w-full overflow-x-hidden"
-      title={t('fullLogSider.DataSourceTree.ExternalRepositoryText')}
+      title={t('fullLogSider.dataSourceTree.ExternalRepositoryText')}
       classNames={{
         body: 'p-0',
       }}

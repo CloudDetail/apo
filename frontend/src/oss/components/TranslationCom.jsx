@@ -1,8 +1,8 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-function TranslationCom({ text, url }) {
-  const { t } = useTranslation(url)
+function TranslationCom({ text, space }) {
+  const { t } = useTranslation(space)
   return t(text)
 }
 

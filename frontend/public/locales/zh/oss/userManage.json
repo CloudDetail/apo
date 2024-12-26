@@ -1,7 +1,7 @@
 {
   "index": {
     "userName": "用户名",
-    "corporration": "组织",
+    "corporation": "组织",
     "email": "邮箱",
     "phone": "电话",
     "search": "检索",
@@ -40,7 +40,7 @@
     "corporationPlaceholder": "请输入组织",
     "addSuccess": "用户添加成功"
   },
-  "EditModal": {
+  "editModal": {
     "title": "编辑用户",
     "username": "用户名",
     "email": "邮件",

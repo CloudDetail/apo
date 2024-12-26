@@ -19,13 +19,13 @@ export default function TimeSinceRefresh() {
 
     let timeString = ' '
     if (days > 0) {
-      timeString += `${days} ${t('TimeSinceRefresh.dayText')} `
+      timeString += `${days} ${t('timeSinceRefresh.dayText')} `
     } else if (hours > 0) {
-      timeString += `${hours} ${t('TimeSinceRefresh.hourText')} `
+      timeString += `${hours} ${t('timeSinceRefresh.hourText')} `
     } else if (minutes > 0) {
-      timeString += `${minutes} ${t('TimeSinceRefresh.minuteText')} `
+      timeString += `${minutes} ${t('timeSinceRefresh.minuteText')} `
     } else {
-      timeString += `${seconds} ${t('TimeSinceRefresh.secondText')} `
+      timeString += `${seconds} ${t('timeSinceRefresh.secondText')} `
     }
 
     // 动态调整时间更新的频率
@@ -51,9 +51,9 @@ export default function TimeSinceRefresh() {
 
   return (
     <div className="text-xs">
-      {t('TimeSinceRefresh.refreshTipText')}
+      {t('timeSinceRefresh.refreshTipText')}
       {timeDiff}
-      {t('TimeSinceRefresh.refreshTipTextAgo')}
+      {t('timeSinceRefresh.refreshTipTextAgo')}
     </div>
   )
 }

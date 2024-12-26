@@ -10,10 +10,10 @@
     "applyTimeRangeButtonText": "应用时间范围",
     "quickRangeTitle": "快速范围"
   },
-  "RefreshDateTime": {
+  "refreshDateTime": {
     "RefreshDateTimeOffText": "关"
   },
-  "TimeSinceRefresh": {
+  "timeSinceRefresh": {
     "dayText": "天",
     "hourText": "小时",
     "minuteText": "分钟",
@@ -21,7 +21,7 @@
     "refreshTipText": "刷新于",
     "refreshTipTextAgo": "前"
   },
-  "DataTimeCombine": {
+  "dataTimeCombine": {
     "absoluteTimeText": "绝对时间",
     "relativeTimeText": "相对时间"
   }

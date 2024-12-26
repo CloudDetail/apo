@@ -18,7 +18,6 @@ import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
 import { TableFilter } from './component/TableFilter'
 import { useTranslation } from 'react-i18next'
-import TranslationCom from 'src/oss/components/TranslationCom'
 export default function ServiceView() {
   const { t } = useTranslation('oss/service')
   const navigate = useNavigate()

@@ -1,7 +1,7 @@
 {
   "index": {
     "userName": "Username",
-    "corporation": "Corporation",
+    "corporation": "Organization",
     "email": "Email",
     "phone": "Phone",
     "search": "Search",
@@ -36,11 +36,11 @@
     "phone": "Phone",
     "phonePlaceholder": "Please enter phone number",
     "phoneInvalid": "Please enter a valid phone number",
-    "corporation": "Corporation",
-    "corporationPlaceholder": "Please enter corporation",
+    "corporation": "Organization",
+    "corporationPlaceholder": "Please enter organization",
     "addSuccess": "User added successfully"
   },
-  "EditModal": {
+  "editModal": {
     "title": "Edit User",
     "username": "Username",
     "email": "Email",
@@ -49,8 +49,8 @@
     "phone": "Phone",
     "phonePlaceholder": "Please enter phone number",
     "phoneInvalid": "Please enter a valid phone number",
-    "corporation": "Corporation",
-    "corporationPlaceholder": "Please enter corporation",
+    "corporation": "Organization",
+    "corporationPlaceholder": "Please enter organization",
     "save": "Save User Info",
     "newPassword": "New Password",
     "newPasswordPlaceholder": "Please enter password",

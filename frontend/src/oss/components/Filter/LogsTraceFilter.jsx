@@ -16,7 +16,7 @@ import TraceErrorType from 'src/oss/views/trace/component/TraceErrorType'
 import { useTranslation } from 'react-i18next'
 
 const LogsTraceFilter = React.memo(({ type }) => {
-  const { t } = useTranslation('LogsTraceFilter')
+  const { t } = useTranslation('common')
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [serviceList, setServiceList] = useState([])
@@ -352,7 +352,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
       <div className="flex flex-row my-2 justify-between">
         <div className="flex flex-row  flex-wrap">
           <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px] w-[250px]">
-            <span className="text-nowrap">{t('LogsTraceFilter.nameSpaceLabel')}</span>
+            <span className="text-nowrap">{t('logsTraceFilter.nameSpaceLabel')}：</span>
             <CustomSelect
               options={namespaceList}
               value={selectNamespace}
@@ -361,7 +361,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
             />
           </div>
           <div className="flex flex-row items-center mr-5 mt-2 w-[250px]">
-            <span className="text-nowrap">{t('LogsTraceFilter.applicationLabel')}</span>
+            <span className="text-nowrap">{t('logsTraceFilter.applicationLabel')}：</span>
             <div className="flex-1 w-0">
               <CustomSelect
                 options={serviceList}
@@ -372,7 +372,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
             </div>
           </div>
           <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px] w-[250px]">
-            <span className="text-nowrap">{t('LogsTraceFilter.instanceLabel')}</span>
+            <span className="text-nowrap">{t('logsTraceFilter.instanceLabel')}：</span>
             <div className="flex-1">
               <CustomSelect
                 options={Object.keys(instanceList)}
@@ -399,7 +399,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
         <>
           <div className="text-xs flex flex-row  flex-wrap w-full mb-2">
             <div className="flex flex-row items-center mr-5 mt-2">
-              <span className="text-nowrap">{t('LogsTraceFilter.durationLabel')}</span>
+              <span className="text-nowrap">{t('logsTraceFilter.durationLabel')}：</span>
               <div className="flex-1 flex flex-row items-center">
                 <div className="pr-2">
                   <InputNumber
@@ -411,7 +411,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
                     className=" w-[150px]"
                   />
                 </div>
-                {t('LogsTraceFilter.toText')}
+                {t('logsTraceFilter.toText')}
                 <div className="pl-2">
                   <InputNumber
                     addonBefore="MAX"
@@ -426,9 +426,9 @@ const LogsTraceFilter = React.memo(({ type }) => {
             </div>
             {type === 'trace' && (
               <div className="flex flex-row items-center mr-5 mt-2 w-[150px]">
-                <span className="text-nowrap ">{t('LogsTraceFilter.endpointLabel')}</span>
+                <span className="text-nowrap ">{t('logsTraceFilter.endpointLabel')}：</span>
                 <Input
-                  placeholder={t('LogsTraceFilter.search')}
+                  placeholder={t('logsTraceFilter.search')}
                   value={inputEndpoint}
                   onChange={onChangeEndpoint}
                 />
@@ -445,7 +445,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
               ：
               {traceType === 'TraceID' ? (
                 <Input
-                  placeholder={t('LogsTraceFilter.search')}
+                  placeholder={t('logsTraceFilter.search')}
                   value={inputTraceId}
                   onChange={onChangeTraceId}
                 />
@@ -453,12 +453,12 @@ const LogsTraceFilter = React.memo(({ type }) => {
                 <Tooltip
                   title={
                     convertTraceId
-                      ? t('LogsTraceFilter.autoConvert') + convertTraceId
-                      : t('LogsTraceFilter.enterSWTraceId')
+                      ? t('logsTraceFilter.autoConvert') + convertTraceId
+                      : t('logsTraceFilter.enterSWTraceId')
                   }
                 >
                   <Input
-                    placeholder={t('LogsTraceFilter.search')}
+                    placeholder={t('logsTraceFilter.search')}
                     value={inputSWTraceId}
                     onChange={onChangeSWTraceId}
                   />
@@ -466,7 +466,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
               )}
             </div>
             <div className="flex flex-row items-center mr-5 mt-2">
-              <span className="text-nowrap">{t('LogsTraceFilter.Status')}</span>
+              <span className="text-nowrap">{t('logsTraceFilter.status')}</span>
               <Checkbox.Group
                 onChange={onChangeTypeList}
                 options={options}

@@ -8,7 +8,7 @@
       "cancelText": "取消",
       "RepositoryText": "日志库"
     },
-    "DataSourceTree": {
+    "dataSourceTree": {
       "deleteLogSuccessToast": "删除接入数据库成功",
       "confirmDeleteLogRulePart1Text": "是否确定删除名为“",
       "confirmDeleteLogRulePart2Text": "”的接入数据库？",
@@ -51,7 +51,7 @@
     "endTimeText": "结束时间",
     "times": "次数"
   },
-  "ConfigLogRuleModal": {
+  "configLogRuleModal": {
     "repositoryConfigSuccessToast": "日志库配置成功",
     "matchRuleErrorToast": "匹配规则不能为空",
     "structureErrorToast": "结构化日志中，日志字段数据类型不可为空",
@@ -76,7 +76,7 @@
       "errorInfo3": "匹配规则值不可为空",
       "inputPlaceholder": "匹配值，按照前缀匹配"
     },
-    "ParseRuleTabs": {
+    "parseRuleTabs": {
       "unStructuredLabel": "非结构化日志",
       "unStructuredDescription": "将符合规则的日志进行结构化并加快查询速度，查看",
       "unStructuredHelpLink": "帮助文档",
@@ -86,7 +86,7 @@
       "structuredDescription": "请输入JSON格式的日志样本自动生成日志格式（仅支持解析JSON最外层的键）",
       "structuredRulePlaceholder": "日志样本",
       "structuredRuleError": "json解析失败，请检查格式是否正确",
-      "LogStructRuleFormList": {
+      "logStructRuleFormList": {
         "fieldTypeLabel": "日志字段数据类型",
         "fieldNamePlaceholder": "字段名",
         "fieldTypePlaceholder": "选择匹配规则Key",
@@ -96,7 +96,7 @@
       }
     }
   },
-  "ConfigTableModal": {
+  "configTableModal": {
     "configSuccessToast": "接入日志表配置成功",
     "modalTitle": "接入日志表配置",
     "saveText": "保存",

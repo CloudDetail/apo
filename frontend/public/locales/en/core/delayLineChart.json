@@ -1,5 +1,5 @@
 {
-  "DelayLineChartTitleMap": {
+  "delayLineChartTitleMap": {
     "latency": "Avg. Duration",
     "p90": "P90 Duration",
     "errorRate": "Error Rate",

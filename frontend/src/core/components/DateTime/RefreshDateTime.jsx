@@ -22,7 +22,7 @@ export default function RefreshDateTime() {
   }
   const items = [
     {
-      label: t('RefreshDateTime.refreshDateTimeOffText'),
+      label: t('refreshDateTime.refreshDateTimeOffText'),
       value: 0,
       key: '关',
     },

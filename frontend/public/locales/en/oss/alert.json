@@ -48,7 +48,7 @@
     "expression": "Expression",
     "unit": "Unit"
   },
-  "ModifyAlertRuleModal": {
+  "modifyAlertRuleModal": {
     "title": "Alert Rule Configuration",
     "saveSuccess": "Successfully saved alert rule",
     "save": "Save",
@@ -77,7 +77,7 @@
       "dayText": "d（day）"
     }
   },
-  "ModifyAlertNotifyModal": {
+  "modifyAlertNotifyModal": {
     "title": "Alert Notification Configuration",
     "saveSuccess": "Successfully saved alert notification configuration",
     "save": "Save",
