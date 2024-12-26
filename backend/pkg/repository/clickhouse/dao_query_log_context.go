@@ -40,9 +40,8 @@ func reverseSlice(s []map[string]any) {
 	}
 }
 func (ch *chRepo) QueryLogContext(req *request.LogQueryContextRequest) ([]map[string]any, []map[string]any, error) {
-	//condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
 	logtime := req.Time / 1000000
-	timefront := fmt.Sprintf("toUnixTimestamp(timestamp) < %d AND  toUnixTimestamp(timestamp) > %d ", logtime, logtime-60)
+	timefront := "toUnixTimestamp(timestamp) < ? AND  toUnixTimestamp(timestamp) > ? "
 	tags := tagsCondition(req.Tags)
 	//查前面50条，反转
 	bySqlfront := NewByLimitBuilder().
@@ -50,18 +49,18 @@ func (ch *chRepo) QueryLogContext(req *request.LogQueryContextRequest) ([]map[st
 		Limit(50).
 		String()
 	frontSql := fmt.Sprintf(querySQl, req.DataBase, req.TableName, timefront+tags, bySqlfront)
-	front, err := ch.queryRowsData(frontSql, nil)
+	front, err := ch.queryRowsData(frontSql, logtime, logtime-60)
 	if err != nil {
 		front = []map[string]any{}
 	}
 	reverseSlice(front)
-	timeend := fmt.Sprintf("toUnixTimestamp(timestamp) >= %d AND toUnixTimestamp(timestamp) < %d ", logtime, logtime+60)
+	timeend := "toUnixTimestamp(timestamp) >= ? AND toUnixTimestamp(timestamp) < ? "
 	bySqlend := NewByLimitBuilder().
 		OrderBy("timestamp", true).
 		Limit(50).
 		String()
 	endSql := fmt.Sprintf(querySQl, req.DataBase, req.TableName, timeend+tags, bySqlend)
-	end, err := ch.queryRowsData(endSql, nil)
+	end, err := ch.queryRowsData(endSql, logtime, logtime+60)
 	if err != nil {
 		end = []map[string]any{}
 	}

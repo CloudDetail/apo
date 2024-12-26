@@ -29,7 +29,7 @@ func calculateInterval(interval int64, timeField string) (string, int64) {
 
 func chartSQL(req *request.LogQueryRequest) (string, int64) {
 	group, interval := calculateInterval((req.EndTime-req.StartTime)/1000000, req.TimeField)
-	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
+	condition := NewQueryCondition(req.TimeField, req.Query)
 	sql := fmt.Sprintf("SELECT count(*) as count, %s as timeline FROM `%s`.`%s` WHERE %s GROUP BY %s ORDER BY %s ASC",
 		group,
 		req.DataBase,
@@ -42,7 +42,7 @@ func chartSQL(req *request.LogQueryRequest) (string, int64) {
 
 func (ch *chRepo) GetLogChart(req *request.LogQueryRequest) ([]map[string]any, int64, error) {
 	sql, interval := chartSQL(req)
-	results, err := ch.queryRowsData(sql, nil)
+	results, err := ch.queryRowsData(sql, req.StartTime/1000000, req.EndTime/1000000)
 	if err != nil {
 		return nil, interval, err
 	}
