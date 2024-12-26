@@ -35,13 +35,18 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 			return err
 		}
 
-		var featureIDs []int
+		var featureIDs, menuItemIDs []int
 		if err := tx.Model(&Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
 			return err
 		}
 
-		// delete mapping whose feature has been already deleted
-		if err := tx.Model(&FeatureMapping{}).Where("feature_id not in ?", featureIDs).Delete(nil).Error; err != nil {
+		if err := tx.Model(&MenuItem{}).Select("item_id").Find(&menuItemIDs).Error; err != nil {
+			return err
+		}
+		// delete mapping whose feature or menu has been already deleted
+		if err := tx.Model(&FeatureMapping{}).
+			Where("feature_id not in ? OR (mapped_id NOT IN ? AND mapped_type = ?)", featureIDs, menuItemIDs, model.MAPPED_TYP_MENU).
+			Delete(nil).Error; err != nil {
 			return err
 		}
 
