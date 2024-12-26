@@ -3,8 +3,8 @@
 
 package clickhouse
 
-func (ch *chRepo) queryRowsData(sql string, args ...interface{}) ([]map[string]any, error) {
-	rows, err := ch.db.Query(sql, args...)
+func (ch *chRepo) queryRowsData(query string, args ...interface{}) ([]map[string]any, error) {
+	rows, err := ch.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

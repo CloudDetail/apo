@@ -20,12 +20,12 @@ func (ch *chRepo) QueryAllLogs(req *request.LogQueryRequest) ([]map[string]any, 
 		Limit(req.PageSize).
 		Offset((req.PageNum - 1) * req.PageSize).
 		String()
-	sql := fmt.Sprintf(querySQl, req.DataBase, req.TableName, condition, bySql)
+	query := fmt.Sprintf(querySQl, req.DataBase, req.TableName, condition, bySql)
 
-	results, err := ch.queryRowsData(sql, req.StartTime/1000000, req.EndTime/1000000)
+	results, err := ch.queryRowsData(query, req.StartTime/1000000, req.EndTime/1000000)
 	if err != nil {
-		return nil, sql, err
+		return nil, query, err
 	}
 
-	return results, sql, nil
+	return results, query, nil
 }
