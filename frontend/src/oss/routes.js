@@ -15,8 +15,8 @@ const FullLogsPage = React.lazy(() => import('src/oss/views/logs/FullLogsPage'))
 const TracePage = React.lazy(() => import('src/oss/views/trace/index.js'))
 const Alerts = React.lazy(() => import('src/oss/views/alerts/index.js'))
 const ConfigPage = React.lazy(() => import('src/oss/views/config/index'))
-const UserPage = React.lazy(() => import('../core/views/userPage/index.jsx'))
-const UserManage = React.lazy(() => import('../core/views/userManage/index.jsx'))
+const UserPage = React.lazy(() => import('../core/views/UserPage'))
+const UserManage = React.lazy(() => import('../core/views/UserManage'))
 
 const namespace = 'oss/routes'
 
@@ -24,72 +24,72 @@ const ossRoutes = [
   {
     path: '/service',
     exact: true,
-    name: <TranslationCom text="servicesName" space={namespace} />,
+    name: <TranslationCom text="servicesName" namespace />,
     element: Service,
   },
   {
     path: '/service/info',
-    name: <TranslationCom text="serviceDetailName" space={namespace} />,
+    name: <TranslationCom text="serviceDetailName" namespace />,
     element: ServiceInfo,
   },
   {
     path: '/logs/fault-site',
-    name: <TranslationCom text="faultLogsName" space={namespace} />,
+    name: <TranslationCom text="faultLogsName" namespace />,
     element: FaultSiteLogsPage,
     hideSystemTimeRangePicker: true,
   },
   {
     path: '/logs/full',
-    name: <TranslationCom text="allLogsName" space={namespace} />,
+    name: <TranslationCom text="allLogsName" namespace />,
     element: FullLogsPage,
   },
   {
     path: '/trace',
-    name: <TranslationCom text="tracesName" space={namespace} />,
+    name: <TranslationCom text="tracesName" namespace />,
     element: TracePage,
     hideSystemTimeRangePicker: true,
   },
   {
     path: '/basic-dashboard',
-    name: <TranslationCom text="infrastructureDashboardName" space={namespace} />,
+    name: <TranslationCom text="infrastructureDashboardName" namespace />,
     element: BasicDashboard,
   },
   {
     path: '/system-dashboard',
-    name: <TranslationCom text="overviewDashboardName" space={namespace} />,
+    name: <TranslationCom text="overviewDashboardName" namespace />,
     element: SystemDashboard,
   },
   {
     path: '/application-dashboard',
-    name: <TranslationCom text="applicationDashboardName" space={namespace} />,
+    name: <TranslationCom text="applicationDashboardName" namespace />,
     element: ApplicationDashboard,
   },
   {
     path: '/middleware-dashboard',
-    name: <TranslationCom text="middlewareDashboardName" space={namespace} />,
+    name: <TranslationCom text="middlewareDashboardName" namespace />,
     element: MiddlewareDashboard,
   },
   {
     path: '/alerts',
-    name: <TranslationCom text="alertsName" space={namespace} />,
+    name: <TranslationCom text="alertsName" namespace />,
     element: Alerts,
     hideSystemTimeRangePicker: true,
   },
   {
     path: '/config',
-    name: <TranslationCom text="configurationsName" space={namespace} />,
+    name: <TranslationCom text="configurationsName" namespace />,
     element: ConfigPage,
     hideSystemTimeRangePicker: true,
   },
   {
     path: '/user',
-    name: <TranslationCom text="userCenterName" space={namespace} />,
+    name: <TranslationCom text="userCenterName" namespace />,
     element: UserPage,
     hideSystemTimeRangePicker: true,
   },
   {
     path: '/system/user-manage',
-    name: <TranslationCom text="userManageName" space={namespace} />,
+    name: <TranslationCom text="userManageName" url={namespace} />,
     element: UserManage,
     hideSystemTimeRangePicker: true,
   },
