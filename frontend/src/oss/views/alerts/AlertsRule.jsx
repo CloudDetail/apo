@@ -4,7 +4,7 @@
  */
 
 import { CCard, CToast, CToastBody } from '@coreui/react'
-import { Button, Input, Popconfirm, Select, Space } from 'antd'
+import { Button, Card, Input, Popconfirm, Select, Space } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
@@ -230,25 +230,20 @@ export default function AlertsRule() {
     }
   }, [data, pageIndex, pageSize, searchAlert, searchGroup])
   return (
-    <>
+    <Card
+      style={{ height: 'calc(100vh - 60px)' }}
+      styles={{
+        body: {
+          height: '100%',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '12px 24px',
+        },
+      }}
+    >
       <LoadingSpinner loading={loading} />
-      {/* <CToast autohide={false} visible={true} className="align-items-center w-full my-2">
-        <div className="d-flex">
-          <CToastBody className=" flex flex-row items-center text-xs">
-            <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-            配置后预计15s生效，请稍后刷新页面查看最新告警规则。
-            仅展示告警规则，如需配置请参考
-            <a
-              className="underline text-sky-500"
-              target="_blank"
-              href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置告警规则"
-            >
-              文档
-            </a>
-          </CToastBody>
-        </div>
-      </CToast> */}
-      <div className="flex items-center justify-betweeen text-sm p-2 my-2">
+      <div className="flex items-center justify-betweeen text-sm ">
         <Space className="flex-grow">
           <Space className="flex-1">
             <span className="text-nowrap">组名：</span>
@@ -284,20 +279,17 @@ export default function AlertsRule() {
           <span className="text-xs">新增告警规则</span>
         </Button>
       </div>
-      <CCard className="text-sm p-2">
-        <div
-          className="mb-4 h-full p-2 text-xs justify-between"
-          style={{ height: 'calc(100vh - 280px)' }}
-        >
+      <div className="text-sm flex-1 overflow-auto">
+        <div className="h-full text-xs justify-between">
           <BasicTable {...tableProps} />
         </div>
-      </CCard>
+      </div>
       <ModifyAlertRuleModal
         modalVisible={modalVisible}
         ruleInfo={modalInfo}
         closeModal={() => setModalVisible(false)}
         refresh={refreshTable}
       />
-    </>
+    </Card>
   )
 }

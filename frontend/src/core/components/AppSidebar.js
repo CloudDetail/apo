@@ -26,7 +26,7 @@ const AppSidebar = ({ collapsed }) => {
   const navigate = useNavigate()
   const [selectedKeys, setSelectedKeys] = useState([])
   const [openKeys, setOpenKeys] = useState([])
-  const [memoOpenKeys, setMemoOpenKeys] = useState(['logs', 'trace'])
+  const [memoOpenKeys, setMemoOpenKeys] = useState(['logs', 'trace', 'alerts'])
   const [menuList, setMenuList] = useState([])
 
   function prepareMenu(menu) {

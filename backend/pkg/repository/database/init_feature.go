@@ -28,13 +28,16 @@ func (repo *daoRepo) initFeature() error {
 		}
 
 		newFeatures := []Feature{
-			{FeatureName: "服务概览"}, {FeatureName: "日志检索"}, {FeatureName: "故障现场日志"},
-			{FeatureName: "全量日志"}, {FeatureName: "链路追踪"}, {FeatureName: "故障现场链路"},
-			{FeatureName: "全量链路"},
-			{FeatureName: "全局资源大盘"}, {FeatureName: "应用基础设施大盘"},
-			{FeatureName: "应用指标大盘"}, {FeatureName: "中间件大盘"}, {FeatureName: "告警规则"},
-			{FeatureName: "配置中心"}, {FeatureName: "系统管理"}, {FeatureName: "用户管理"},
-			{FeatureName: "菜单管理"},
+			{FeatureName: "服务概览"},
+			{FeatureName: "日志检索"}, {FeatureName: "故障现场日志"}, {FeatureName: "全量日志"},
+			{FeatureName: "链路追踪"}, {FeatureName: "故障现场链路"}, {FeatureName: "全量链路"},
+			{FeatureName: "全局资源大盘"},
+			{FeatureName: "应用基础设施大盘"},
+			{FeatureName: "应用指标大盘"},
+			{FeatureName: "中间件大盘"},
+			{FeatureName: "告警管理"}, {FeatureName: "告警规则"}, {FeatureName: "告警通知"},
+			{FeatureName: "配置中心"},
+			{FeatureName: "系统管理"}, {FeatureName: "用户管理"}, {FeatureName: "菜单管理"},
 		}
 
 		newFeatureMap := make(map[string]struct{})
@@ -80,6 +83,7 @@ func (repo *daoRepo) initFeature() error {
 			"日志检索": {"故障现场日志", "全量日志"},
 			"链路追踪": {"故障现场链路", "全量链路"},
 			"系统管理": {"用户管理", "菜单管理"},
+			"告警管理": {"告警规则", "告警通知"},
 		}
 		for parentName, childNames := range parentChildMapping {
 			var parent Feature

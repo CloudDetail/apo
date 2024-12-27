@@ -69,8 +69,12 @@ const _nav = [
   {
     key: 'alerts',
     icon: <FaRegBell />,
-    label: '告警规则',
+    label: '告警管理',
     to: '/alerts',
+    children: [
+      { key: 'alertsRule', label: '告警规则', to: '/alerts/rule' },
+      { key: 'alertsNotify', label: '告警通知', to: '/alerts/notify' },
+    ],
   },
   {
     key: 'config',

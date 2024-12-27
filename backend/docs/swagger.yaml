@@ -353,6 +353,8 @@ definitions:
         type: integer
       featureName:
         type: string
+      source:
+        type: string
     type: object
   database.InsertPage:
     properties:
@@ -377,8 +379,6 @@ definitions:
       label:
         description: AKA item name.
         type: string
-      page:
-        $ref: '#/definitions/database.InsertPage'
       router:
         allOf:
         - $ref: '#/definitions/database.Router'
@@ -395,6 +395,8 @@ definitions:
     properties:
       hideTimeSelector:
         type: boolean
+      page:
+        $ref: '#/definitions/database.InsertPage'
       routerId:
         type: integer
       to:

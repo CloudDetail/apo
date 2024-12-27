@@ -8,6 +8,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"sort"
 )
 
 // GetUserConfig Gets menus and routes that users can view.
@@ -105,6 +106,10 @@ func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.Get
 			}
 		}
 	}
+
+	sort.Slice(rootMenuItems, func(i, j int) bool {
+		return rootMenuItems[i].Order < rootMenuItems[j].Order
+	})
 
 	resp.MenuItem = rootMenuItems
 	return resp, nil

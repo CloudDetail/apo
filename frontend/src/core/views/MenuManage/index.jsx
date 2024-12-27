@@ -7,13 +7,17 @@ import { Button, Card, Tree } from 'antd'
 import Checkbox from 'antd/es/checkbox/Checkbox'
 import { useEffect, useState } from 'react'
 import { BsCheckAll } from 'react-icons/bs'
-import { configMenuApi, getAllPermissionApi } from 'src/core/api/permission'
+import {
+  configMenuApi,
+  getAllPermissionApi,
+  getSubjectPermissionApi,
+} from 'src/core/api/permission'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useUserContext } from 'src/core/contexts/UserContext'
 import { showToast } from 'src/core/utils/toast'
 
 function MenuManagePage() {
-  const { menuItems, getUserPermission } = useUserContext()
+  const { user, getUserPermission } = useUserContext()
   const [expandedKeys, setExpandedKeys] = useState([])
   const [checkedKeys, setCheckedKeys] = useState([])
   const [selectedKeys, setSelectedKeys] = useState([])
@@ -50,44 +54,35 @@ function MenuManagePage() {
     })
     return { allKeys, expandedKeys }
   }
-  // 获取所有叶子节点
-  const loopTreeForLeaf = (treeData = [], key = 'featureId') => {
-    const leafKeys = []
-
-    treeData.forEach((item) => {
-      // 如果有子节点，记录到 expandedKeys
-      if (item?.children?.length > 0) {
-        const keyResult = loopTreeForLeaf(item.children, key)
-        leafKeys.push(...keyResult)
-      } else {
-        leafKeys.push(item[key])
-      }
-    })
-    return leafKeys
-  }
-  const getAllPermission = () => {
+  const fetchData = async () => {
     setLoading(true)
-    getAllPermissionApi()
-      .then((res) => {
-        setPermissionTreeData(res || [])
-        // 展开所有节点
-        const { allKeys, expandedKeys } = loopTree(res || [])
+    try {
+      const [allPermissions, subjectPermissions] = await Promise.all([
+        getAllPermissionApi(),
+        getSubjectPermissionApi({
+          subjectId: user.userId,
+          subjectType: 'user',
+        }),
+      ])
 
-        setExpandedKeys(expandedKeys)
-        setAllKeys(allKeys)
-        //勾选已有权限（目前仅菜单
-      })
-      .finally(() => {
-        setLoading(false)
-      })
+      setPermissionTreeData(allPermissions || [])
+      // 展开所有节点
+      const { allKeys, expandedKeys } = loopTree(allPermissions || [])
+
+      setExpandedKeys(expandedKeys)
+      setAllKeys(allKeys)
+      setCheckedKeys((subjectPermissions || []).map((permission) => permission.featureId))
+      // 在这里处理两者的数据
+    } catch (error) {
+      console.error('Error fetching permissions:', error)
+    } finally {
+      setLoading(false)
+    }
   }
+
   useEffect(() => {
-    const leafKeys = loopTreeForLeaf(menuItems, 'itemId')
-    setCheckedKeys(leafKeys)
-  }, [menuItems])
-  useEffect(() => {
-    getAllPermission()
-  }, [])
+    if (user.userId) fetchData()
+  }, [user.userId])
 
   //保存配置
   function configMenu() {
@@ -105,6 +100,7 @@ function MenuManagePage() {
         console.error(error)
       })
       .finally(() => {
+        fetchData()
         getUserPermission()
         setLoading(false)
       })

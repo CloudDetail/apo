@@ -45,9 +45,12 @@ func (s *service) GetFeature(req *request.GetFeatureRequest) (response.GetFeatur
 	return rootFeatures, nil
 }
 
-func (s *service) GetSubjectFeature(req *request.GetSubjectFeatureRequest) (response.GetSubjectFeatureResponse, error) {
+func (s *service) GetSubjectFeature(req *request.GetSubjectFeatureRequest) (resp response.GetSubjectFeatureResponse, err error) {
+	if req.SubjectType == model.PERMISSION_SUB_TYP_USER {
+		return s.getUserFeature(req.SubjectID, req.Language)
+	}
+
 	featureIDs, err := s.dbRepo.GetSubjectPermission(req.SubjectID, req.SubjectType, model.PERMISSION_TYP_FEATURE)
-	var resp response.GetSubjectFeatureResponse
 	if err != nil {
 		return resp, err
 	}

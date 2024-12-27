@@ -12,6 +12,7 @@ type MenuItem struct {
 	ParentID     *int   `gorm:"column:parent_id" json:"-"`
 	Abbreviation string `gorm:"-" json:"abbreviation,omitempty"`
 	RouterID     int    `gorm:"column:router_id" json:"-"`
+	Order        int    `gorm:"column:sort_order;index:sort_order_idx" json:"-"` // The order of a menu item.
 
 	Children []MenuItem `gorm:"-" json:"children,omitempty" swaggerignore:"true"`
 	Router   *Router    `gorm:"-" json:"router,omitempty"` // Frontend router.

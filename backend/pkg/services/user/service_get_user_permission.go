@@ -5,46 +5,56 @@ package user
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) GetUserFeature(userID int64) ([]database.Feature, error) {
+func (s *service) getUserFeature(userID int64, language string) (resp response.GetSubjectFeatureResponse, err error) {
 	// 1. Get user's role
 	userRoles, err := s.dbRepo.GetUserRole(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	roleIDs := make([]int, len(userRoles))
+	roleIDs := make([]int64, len(userRoles))
 	for i := range userRoles {
-		roleIDs[i] = userRoles[i].RoleID
+		roleIDs[i] = int64(userRoles[i].RoleID)
+	}
+
+	rolePermission, err := s.dbRepo.GetSubjectsPermission(roleIDs, model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE)
+	rolePermIDs := make([]int, len(rolePermission))
+	for i, rolePerm := range rolePermission {
+		rolePermIDs[i] = rolePerm.PermissionID
+	}
+
+	roleFeatures, err := s.dbRepo.GetFeature(rolePermIDs)
+	for _, feature := range roleFeatures {
+		feature.Source = model.PERMISSION_SUB_TYP_ROLE
+		resp = append(resp, feature)
 	}
 	// 2. TODO Get user's team
-	subIDs := make([]int64, len(userRoles)+1)
-	var i int
-	for ; i < len(userRoles); i++ {
-		subIDs[i] = int64(userRoles[i].RoleID)
-	}
-	subIDs[i] = userID
-	// 3. Get feature permission.
-	permissions, err := s.dbRepo.GetSubjectsPermission(subIDs, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE)
-	if err != nil {
-		return nil, err
-	}
-	featureIDs := make([]int, len(permissions))
-	for i := range permissions {
-		featureIDs[i] = permissions[i].PermissionID
-	}
-	// 4. Get features.
-	features, err := s.dbRepo.GetFeature(featureIDs)
+
+	// 3. Get user's permission.
+	userPermissions, err := s.dbRepo.GetSubjectPermission(userID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE)
 	if err != nil {
 		return nil, err
 	}
 
-	// 5. Translation
-	err = s.dbRepo.GetFeatureTans(&features, "")
+	// 4. Get features.
+	features, err := s.dbRepo.GetFeature(userPermissions)
 	if err != nil {
 		return nil, err
 	}
-	return features, nil
+
+	for _, feature := range features {
+		feature.Source = model.PERMISSION_SUB_TYP_USER
+		resp = append(resp, feature)
+	}
+
+	// 5. Translation
+	err = s.dbRepo.GetFeatureTans((*[]database.Feature)(&resp), language)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

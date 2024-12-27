@@ -37,7 +37,7 @@ func (repo *daoRepo) initI18nTranslation() error {
 
 		existingMap := make(map[string]I18nTranslation)
 		for _, record := range existingTranslations {
-			key := fmt.Sprintf("%s:%s:%s", record.EntityType, record.Language, record.Translation)
+			key := fmt.Sprintf("%d:%s:%s:%s", record.EntityID, record.EntityType, record.Language, record.Translation)
 			existingMap[key] = record
 		}
 
@@ -61,7 +61,7 @@ func (repo *daoRepo) initI18nTranslation() error {
 			}
 
 			for _, newTranslation := range translations.I18n {
-				key := fmt.Sprintf("%s:%s:%s", newTranslation.EntityType, newTranslation.Language, newTranslation.Translation)
+				key := fmt.Sprintf("%d:%s:%s:%s", newTranslation.EntityID, newTranslation.EntityType, newTranslation.Language, newTranslation.Translation)
 				if _, exists := existingMap[key]; !exists {
 					toInsert = append(toInsert, newTranslation)
 				} else {
