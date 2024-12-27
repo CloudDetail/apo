@@ -53,7 +53,7 @@ type UpdateUserPasswordRequest struct {
 
 type GetUserListRequest struct {
 	Username    string `json:"username" form:"username"`
-	Role        string `json:"role" form:"role"`
+	RoleList    []int  `json:"roleList" form:"roleList"`
 	Corporation string `json:"corporation" form:"corporation"`
 	*PageParam
 }

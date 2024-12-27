@@ -1,7 +1,7 @@
 // Copyright 2024 CloudDetail
 // SPDX-License-Identifier: Apache-2.0
 
-package user
+package role
 
 import (
 	"context"

@@ -1,7 +1,7 @@
 // Copyright 2024 CloudDetail
 // SPDX-License-Identifier: Apache-2.0
 
-package user
+package role
 
 import (
 	"errors"
@@ -16,7 +16,7 @@ import (
 // RoleOperation Grant or revoke user's role.
 // @Summary Grant or revoke user's role.
 // @Description Grants permission to user
-// @Tags API.permission
+// @Tags API.role
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param userId formData int64 ture "用户id"
@@ -24,7 +24,7 @@ import (
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/permission/role/operation [post]
+// @Router /api/role/operation [post]
 func (h *handler) RoleOperation() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.RoleOperationRequest)
@@ -37,7 +37,7 @@ func (h *handler) RoleOperation() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.RoleOperation(req)
+		err := h.roleService.RoleOperation(req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {

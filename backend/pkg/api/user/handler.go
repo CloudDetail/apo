@@ -64,21 +64,6 @@ type Handler interface {
 	// @Router /api/user/reset [post]
 	ResetPassword() core.HandlerFunc
 
-	// RoleOperation Grant or revoke user's role.
-	// @Tags API.permission
-	// @Router /api/permission/role/operation [post]
-	RoleOperation() core.HandlerFunc
-
-	// GetRole Gets all roles.
-	// @Tags API.permission
-	// @Router /api/permission/roles [get]
-	GetRole() core.HandlerFunc
-
-	// GetUserRole Get user's role.
-	// @Tags API.permission
-	// @Router /api/permission/role [get]
-	GetUserRole() core.HandlerFunc
-
 	// GetUserConfig Gets user's menu config and which route can access.
 	// @Tags API.permission
 	// @Router /api/permission/config [get]

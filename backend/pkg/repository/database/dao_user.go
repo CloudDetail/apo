@@ -28,12 +28,11 @@ type User struct {
 	UserID      int64  `gorm:"column:user_id;primary_key" json:"userId,omitempty"`
 	Username    string `gorm:"column:username;uniqueIdx" json:"username,omitempty"`
 	Password    string `gorm:"column:password" json:"-"`
-	Role        string `gorm:"column:role" json:"role,omitempty"`
 	Phone       string `gorm:"column:phone" json:"phone,omitempty"`
 	Email       string `gorm:"column:email" json:"email,omitempty"`
 	Corporation string `gorm:"column:corporation" json:"corporation,omitempty"`
 
-	RoleList    []Role    `gorm:"-" json:"roleList,omitempty"`
+	RoleList    []Role    `gorm:"many2many:user_role;joinForeignKey:UserID;joinReferences:RoleID" json:"roleList,omitempty"`
 	FeatureList []Feature `gorm:"-" json:"featureList,omitempty"`
 }
 
@@ -234,25 +233,40 @@ func (repo *daoRepo) GetAnonymousUser() (User, error) {
 func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64, error) {
 	var users []User
 	var count int64
-	query := repo.db.Select(userFieldSql)
+
+	query := repo.db.Model(&User{}).Preload("RoleList")
+
 	if len(req.Username) > 0 {
-		query = query.Where("username like ?", fmt.Sprintf("%%%s%%", req.Username))
+		query = query.Where("username LIKE ?", fmt.Sprintf("%%%s%%", req.Username))
 	}
-	if len(req.Role) > 0 {
-		query = query.Where("role = ?", req.Role)
+
+	if len(req.RoleList) > 0 {
+		subQuery := repo.db.Table("user_role").
+			Select("user_id").
+			Joins("JOIN role r ON user_role.role_id = r.role_id").
+			Where("r.role_id IN ?", req.RoleList)
+		query = query.Where("user_id IN (?)", subQuery)
 	}
+
 	if len(req.Corporation) > 0 {
-		corporation := "%" + req.Corporation + "%"
-		query = query.Where("corporation like ?", corporation)
+		query = query.Where("corporation LIKE ?", fmt.Sprintf("%%%s%%", req.Corporation))
 	}
-	query = query.Where("username != ?", "anonymous")
-	err := query.Model(&User{}).Count(&count).Error
+
+	query = query.Where("username != ?", config.Get().User.AnonymousUser.Username)
+
+	err := query.Count(&count).Error
 	if err != nil {
 		return nil, 0, err
 	}
+
 	query = query.Limit(req.PageSize).Offset((req.CurrentPage - 1) * req.PageSize)
+
 	err = query.Find(&users).Error
-	return users, count, err
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return users, count, nil
 }
 
 func (repo *daoRepo) RemoveUser(ctx context.Context, userID int64) error {

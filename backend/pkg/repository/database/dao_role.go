@@ -63,7 +63,7 @@ func (repo *daoRepo) GetUserRole(userID int64) ([]UserRole, error) {
 // GetUsersRole Get user's role in batch.
 func (repo *daoRepo) GetUsersRole(userIDs []int64) ([]UserRole, error) {
 	var userRoles []UserRole
-	err := repo.db.Where("user_id in ?", userIDs).Error
+	err := repo.db.Where("user_id in ?", userIDs).Find(&userRoles).Error
 	return userRoles, err
 }
 
