@@ -11,6 +11,8 @@ import { useSelector } from 'react-redux'
 import { selectProcessedTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import TopologyModal from './component/dependent/TopologyModal'
 import { useDebounce } from 'react-use'
+import { useTranslation } from 'react-i18next'
+
 const ServiceInfo = () => {
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
@@ -23,6 +25,7 @@ const ServiceInfo = () => {
   })
   const [loading, setLoading] = useState(true)
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
+  const { t } = useTranslation('oss/serviceInfo')
   // current parent children的数据处理
   const prepareTopologyData = (data) => {
     if (!data) {
@@ -122,8 +125,11 @@ const ServiceInfo = () => {
             <CCard className="mb-4 mr-1 h-[350px] p-2 w-2/5">
               <CCardHeader className="py-0 flex flex-row justify-between">
                 <div>
-                  {serviceName}的直接上下游依赖关系图
-                  <div className="text-xs">服务端点: {endpoint}</div>
+                  {serviceName}
+                  {t('index.directDependencies')}
+                  <div className="text-xs">
+                    {t('index.serviceEndpoint')}: {endpoint}
+                  </div>
                 </div>
                 <TopologyModal startTime={startTime} endTime={endTime} />
               </CCardHeader>

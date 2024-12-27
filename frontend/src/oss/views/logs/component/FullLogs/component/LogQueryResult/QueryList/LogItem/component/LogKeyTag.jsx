@@ -13,18 +13,16 @@ const LogKeyTag = (props) => {
       <div>
         <Tag className="cursor-pointer text-gray-200">{formatValue(title)} :</Tag>
       </div>
-      {
-        description ? (
-          <div className="flex-1">
-            <LogTagDropDown
-              objKey={formatValue(title)}
-              value={formatValue(description)}
-              trigger={['contextMenu']}
-              children={<LogKeyTagValue title={title} description={description} />}
-            />
-          </div>
-        ) : null
-      }
+      {description ? (
+        <div className="flex-1">
+          <LogTagDropDown
+            objKey={formatValue(title)}
+            value={formatValue(description)}
+            trigger={['contextMenu']}
+            children={<LogKeyTagValue title={title} description={description} />}
+          />
+        </div>
+      ) : null}
     </div>
   )
 }

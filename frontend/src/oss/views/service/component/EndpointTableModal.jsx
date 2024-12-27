@@ -8,14 +8,18 @@ import BasicTable from 'src/core/components/Table/basicTable'
 import TempCell from 'src/core/components/Table/TempCell'
 import { DelaySourceTimeUnit } from 'src/constants'
 import { getStep } from 'src/core/utils/step'
+import { useTranslation } from 'react-i18next'
 
 function EndpointTableModal(props) {
+  const { i18n, t } = useTranslation('oss/service')
   const { visible, serviceName, closeModal, timeRange } = props
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState([])
   const navigate = useNavigate()
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+
+  const currentLanguage = i18n.language
 
   useEffect(() => {
     if (visible && serviceName) {
@@ -44,7 +48,7 @@ function EndpointTableModal(props) {
   }, [visible, serviceName, timeRange])
   const column = [
     {
-      title: '服务端点',
+      title: t('endpointTableModal.columns.endpoint'),
       accessor: 'endpoint',
       canExpand: false,
     },
@@ -53,16 +57,26 @@ function EndpointTableModal(props) {
         <Tooltip
           title={
             <div>
-              <div>自身：服务自身延时占比50%以上</div>
-              <div>依赖：请求下游服务延时占比50%以上</div>
-              <div>未知：未找到相关指标</div>
+              <p className="text-[#D3D3D3]">
+                {t('index.serviceTableColumns.serviceDetails.delaySource.title1')}
+              </p>
+              <p className="text-[#D3D3D3] mt-2">
+                {t('index.serviceTableColumns.serviceDetails.delaySource.title2')}
+              </p>
+              <p className="text-[#D3D3D3] mt-2">
+                {t('index.serviceTableColumns.serviceDetails.delaySource.title3')}
+              </p>
             </div>
           }
         >
           <div className="flex flex-row justify-center items-center">
             <div>
-              <div className="text-center flex flex-row ">延时主要来源</div>
-              <div className="block text-[10px] text-center">(自身/依赖/未知)</div>
+              <div className="text-center flex flex-row ">
+                {t('endpointTableModal.columns.delaySource.title4')}
+              </div>
+              <div className="block text-[10px] text-center">
+                {t('endpointTableModal.columns.delaySource.title5')}
+              </div>
             </div>
             <AiOutlineInfoCircle size={16} className="ml-2" />
           </div>
@@ -70,14 +84,14 @@ function EndpointTableModal(props) {
       ),
       accessor: 'delaySource',
       canExpand: false,
-      customWidth: 132,
+      customWidth: 200,
       Cell: (props) => {
         const { value } = props
         return <>{DelaySourceTimeUnit[value]}</>
       },
     },
     {
-      title: '平均响应时间',
+      title: t('endpointTableModal.columns.latency'),
       minWidth: 140,
       accessor: `latency`,
 
@@ -101,7 +115,7 @@ function EndpointTableModal(props) {
       },
     },
     {
-      title: '错误率',
+      title: t('endpointTableModal.columns.errorRate'),
       accessor: `errorRate`,
 
       minWidth: 140,
@@ -112,7 +126,7 @@ function EndpointTableModal(props) {
       },
     },
     {
-      title: '吞吐量',
+      title: t('endpointTableModal.columns.tps'),
       accessor: `tps`,
       minWidth: 140,
 
@@ -158,7 +172,18 @@ function EndpointTableModal(props) {
       onClose={closeModal}
     >
       <CModalHeader>
-        <CModalTitle>{serviceName}下所有服务端点数据</CModalTitle>
+        <CModalTitle>
+          {currentLanguage === 'zh' ? (
+            <span>
+              {serviceName} {t('endpointTableModal.serviceEndpointDataText')}
+            </span>
+          ) : (
+            <span>
+              {' '}
+              {t('endpointTableModal.serviceEndpointDataText')} {serviceName}
+            </span>
+          )}
+        </CModalTitle>
       </CModalHeader>
 
       <CModalBody className="text-sm h-4/5">

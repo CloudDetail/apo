@@ -1,0 +1,144 @@
+{
+  "index": {
+    "rule": "Rules",
+    "notify": "Notification Channels"
+  },
+  "rule": {
+    "groupName": "Groups",
+    "alertRuleName": "Alert Name",
+    "duration": "For",
+    "query": "Expression",
+    "alertStatus": {
+      "title": "Status",
+      "firing": "Firing",
+      "pending": "Pending",
+      "inactive": "Inactive",
+      "unknown": "Unknown"
+    },
+    "operation": "Operation",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete the alert rule named “{{name}}”?",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "addAlertRule": "Add Alert Rule",
+    "deleteSuccess": "Successfully deleted alert rule"
+  },
+  "notify": {
+    "type": {
+      "email": "Email",
+      "webhook": "Webhook",
+      "dingtalk": "DingTalk",
+      "wechat": "WeChat"
+    },
+    "alertNotifyName": "Alert Notification Name",
+    "notifyType": "Channel",
+    "operation": "Operation",
+    "notifyEmailOrWebhookUrl": "Notification Email or Webhook URL",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete the alert notification named “{{name}}”?",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "addAlertNotify": "Add Alert Notification",
+    "deleteSuccess": "Successfully deleted alert notification"
+  },
+  "alertConditionCom": {
+    "quickMetrics": "Quick Metrics",
+    "expression": "Expression",
+    "unit": "Unit"
+  },
+  "modifyAlertRuleModal": {
+    "title": "Alert Rule Configuration",
+    "saveSuccess": "Successfully saved alert rule",
+    "save": "Save",
+    "cancel": "Cancel",
+    "groupName": "Group",
+    "alertRuleName": "Alert Name",
+    "alertCondition": "Alert Condition",
+    "alertLevel": "Alert Level",
+    "critical": "Critical",
+    "warning": "Warning",
+    "info": "Info",
+    "duration": "For",
+    "alertMessage": "Alert Message",
+    "includeMetricValue": "Include Metric Value",
+    "includeMetricLabels": "Include Metric Labels",
+    "additionalLabels": "Additional Labels",
+    "additionalInfo": "Additional Info",
+    "key": "Key",
+    "value": "Value",
+    "invalidKey": "Please start with a letter or underscore",
+    "invalidLabelFormat": "Invalid label format, please check",
+    "option": {
+      "secondText": "s（second）",
+      "minuteText": "m（minute）",
+      "hourText": "h（hour）",
+      "dayText": "d（day）"
+    }
+  },
+  "modifyAlertNotifyModal": {
+    "title": "Alert Notification Configuration",
+    "saveSuccess": "Successfully saved alert notification configuration",
+    "save": "Save",
+    "cancel": "Cancel",
+    "alertNotifyName": "Alert Notification Name",
+    "notifyType": "Channel",
+    "email": "Email Notification",
+    "webhook": "Webhook Notification",
+    "dingtalk": "DingTalk",
+    "wechat": "WeChat",
+    "invalidNotifyName": "Alert notification name cannot be empty",
+    "invalidNotifyType": "Notification type cannot be empty",
+    "basicConfig": "Basic Configuration"
+  },
+  "webhookConfigsFormList": {
+    "title": "Webhook Configuration",
+    "url": "URL",
+    "authType": "Authentication Type",
+    "userAuth": "User Password",
+    "tokenAuth": "Token Authentication",
+    "username": "Username",
+    "password": "Password",
+    "token": "Token",
+    "addWebhook": "Add Webhook",
+    "removeWebhook": "Remove Webhook"
+  },
+  "emailConfigsFormList": {
+    "title": "Email Notification Configuration",
+    "to": "Recipient Email Address",
+    "from": "Sender Email Address",
+    "smarthost": "SMTP Server Domain",
+    "smarthostPort": "SMTP Server Port",
+    "authUsername": "SMTP Username",
+    "authPassword": "SMTP Password",
+    "requireTls": "Enable TLS",
+    "html": "Alert Email HTML Body",
+    "text": "Alert Email Text Body",
+    "addEmail": "Add Email Configuration",
+    "removeEmail": "Remove Email Configuration",
+    "empty": " cannot be empty"
+  },
+  "dingTalkConfigsFormList": {
+    "title": "DingTalk Notification Configuration",
+    "url": "Webhook URL",
+    "secret": "Secret Key",
+    "addDingTalk": "Add DingTalk Configuration",
+    "removeDingTalk": "Remove DingTalk Configuration",
+    "empty": " cannot be empty"
+  },
+  "wechatConfigsFormList": {
+    "title": "WeChat Notification Configuration",
+    "api_url": "API URL",
+    "api_secret": "API Secret",
+    "corp_id": "Corp ID",
+    "agent_id": "Agent ID",
+    "to_user": "Notify Users",
+    "to_party": "Notify Departments",
+    "to_tag": "Notify Tags",
+    "notificationType": "Notification Type",
+    "addWeChat": "Add WeChat Configuration",
+    "removeWeChat": "Remove WeChat Configuration",
+    "empty": " cannot be empty"
+  }
+}

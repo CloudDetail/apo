@@ -15,6 +15,7 @@ import { DefaultTraceFilters } from 'src/constants'
 import TraceErrorType from './component/TraceErrorType'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { Tooltip } from 'antd'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 function Trace() {
   // const [startTime, setStartTime] = useState(null)
@@ -62,6 +63,7 @@ function Trace() {
     minDuration: '',
     maxDuration: '',
   })
+  const { t } = useTranslation('oss/trace') // 使用i18n
   useEffect(() => {
     const prev = previousValues.current
     let paramsChange = false
@@ -163,22 +165,22 @@ function Trace() {
   }
   const column = [
     {
-      title: '服务名',
+      title: t('trace.serviceName'),
       accessor: 'serviceName',
     },
     {
-      title: '命名空间',
+      title: t('trace.namespace'),
       accessor: 'labels',
       Cell: ({ value }) => {
         return value?.namespace ? value?.namespace : <span className="text-slate-400">N/A</span>
       },
     },
     {
-      title: '实例名',
+      title: t('trace.instanceName'),
       accessor: 'instanceId',
     },
     {
-      title: '服务端点',
+      title: t('trace.endpoint'),
       accessor: 'endpoint',
     },
 
@@ -187,14 +189,14 @@ function Trace() {
         <Tooltip
           title={
             <div>
-              <div>慢故障：响应时间超过历史基线</div>
-              <div>错误故障：存在错误状态码或代码异常</div>
-              <div>无异常：被采样的正常数据</div>
+              <div className="text-[#D3D3D3]">{t('trace.slowFault')}</div>
+              <div className="text-[#D3D3D3] mt-2">{t('trace.errorFault')}</div>
+              <div className="text-[#D3D3D3] mt-2">{t('trace.noFault')}</div>
             </div>
           }
         >
           <div className="flex flex-row justify-center items-center">
-            故障状态
+            {t('trace.faultStatus')}
             <AiOutlineInfoCircle size={16} className="ml-2" />
           </div>
         </Tooltip>
@@ -215,21 +217,21 @@ function Trace() {
       },
     },
     {
-      title: '响应时间',
+      title: t('trace.responseTime'),
       accessor: 'duration',
       Cell: ({ value }) => {
         return convertTime(value, 'ms', 2) + 'ms'
       },
     },
     {
-      title: '发生时间',
+      title: t('trace.occurTime'),
       accessor: 'timestamp',
       Cell: ({ value }) => {
         return convertTime(value, 'yyyy-mm-dd hh:mm:ss')
       },
     },
     {
-      title: 'TraceID',
+      title: t('trace.traceId'),
       accessor: 'traceId',
       Cell: (props) => {
         const { value } = props
@@ -369,7 +371,7 @@ function Trace() {
         pageCount: Math.ceil(total / pageSize),
       },
     }
-  }, [tracePageList])
+  }, [column, tracePageList])
   return (
     // <PropsProvider
     //   value={{

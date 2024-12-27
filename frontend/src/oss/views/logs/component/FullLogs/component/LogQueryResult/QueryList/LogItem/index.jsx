@@ -5,12 +5,14 @@ import LogItemDetail from './component/LogItemDetail'
 import { Button } from 'antd'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { convertTime } from 'src/core/utils/time'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 // 自配类规则日志默认展开不可收起，tag+铺平（仅content）
 // 接入类数据库规则默认收起可展开，收起展示所有tag，展开展示所有（content + tag）
 const LogItem = (props) => {
   const { log, foldingChecked, openContextModal } = props
   const { tableInfo } = useLogsContext()
+  const { t } = useTranslation('oss/fullLogs') // 使用i18n
   // 是否折叠日志，true 为是，false 为否
   const [isFold, setIsFold] = useState(true)
 
@@ -41,7 +43,7 @@ const LogItem = (props) => {
               onClick={() => openContextModal(log)}
               className="text-xs"
             >
-              查看上下文
+              {t('queryList.logItem.viewContextText')}
             </Button>
           )}
         </div>
@@ -53,13 +55,11 @@ const LogItem = (props) => {
         {/* <LogItemFold tags={!tableInfo?.timeField || isFold ? log.tags : []} /> */}
         {tableInfo.timeField ? (
           <>
-            {
-              isFold ? (
-                <LogItemFold tags={log.tags} fields={log.logFields} />
-              ) : (
-                <LogItemDetail log={log} />
-              )
-            }
+            {isFold ? (
+              <LogItemFold tags={log.tags} fields={log.logFields} />
+            ) : (
+              <LogItemDetail log={log} />
+            )}
           </>
         ) : (
           <>

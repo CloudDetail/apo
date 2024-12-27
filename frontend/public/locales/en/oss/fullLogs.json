@@ -1,0 +1,109 @@
+{
+  "fullLogSider": {
+    "logRuleList": {
+      "deleteLogSuccessToast": "Delete log rule successfully",
+      "confirmDeleteLogRulePart1Text": "Are you sure you want to delete the log rule named '",
+      "confirmDeleteLogRulePart2Text": "'?",
+      "confirmText": "Confirm",
+      "cancelText": "Cancel",
+      "RepositoryText": "Repository"
+    },
+    "dataSourceTree": {
+      "deleteLogSuccessToast": "Delete external database successfully",
+      "confirmDeleteLogRulePart1Text": "Are you sure you want to delete the external database named '",
+      "confirmDeleteLogRulePart2Text": "'?",
+      "confirmText": "Confirm",
+      "cancelText": "Cancel",
+      "ExternalRepositoryText": "External Database"
+    }
+  },
+  "indexList": {
+    "basicFieldLabel": "Tags",
+    "logFieldLabel": "Log Fields",
+    "fullTextSearch": {
+      "fullTextSearchText": "Search",
+      "fullTextSearchPlaceholderText": "Full text search content"
+    }
+  },
+  "rawLogQuery": {
+    "placeholder": "Please enter a query statement"
+  },
+  "logQueryResult": {
+    "totalText": "Total number of log entries："
+  },
+  "queryList": {
+    "noDataText": "No log data available",
+    "logItem": {
+      "viewContextText": "Context"
+    }
+  },
+  "contextModal": {
+    "contextText": "Context",
+    "cancelText": "Cancel"
+  },
+  "logTagDropdown": {
+    "addToQueryText": "Add to query",
+    "copyValueText": "Copy value"
+  },
+  "histogram": {
+    "noDataText": "No histogram data available",
+    "startTimeText": "Start time",
+    "endTimeText": "End Time",
+    "times": "Times"
+  },
+  "configLogRuleModal": {
+    "repositoryConfigSuccessToast": "Repository configuration successful",
+    "matchRuleErrorToast": "Match rule cannot be empty",
+    "structureErrorToast": "In structured logs, the data type of log fields cannot be empty",
+    "modalTitle": "Repository Configuration",
+    "saveText": "Save",
+    "cancelText": "Cancel",
+    "repositoryNameLabel": "Name",
+    "repositoryNameMessage1": "Repository name can only contain English characters, numbers, and underscores",
+    "repositoryNameMessage2": "Please enter the repository name",
+    "repositoryNamePlaceholder": "Please enter the repository name, once created it cannot be modified",
+    "repositoryDescriptionLabel": "Description",
+    "repositoryDescriptionPlaceholder": "Repository Description",
+    "executiveApplicationLabel": "Executive Application",
+    "executiveApplicationPlaceholder": "Please select the application to execute the rule",
+    "logConfigLabel": "Log Configuration",
+    "logRouteRuleFormList": {
+      "matchRuleLabel": "Match Rule",
+      "matchRuleDescribeText": "The parsing rule only applies to logs that meet the match rule",
+      "errorInfo1": "Match rule key cannot be empty",
+      "errorInfo2": "The same key already exists",
+      "selectPlaceholder": "Select match rule key",
+      "errorInfo3": "Match rule value cannot be empty",
+      "inputPlaceholder": "Match value, matched by prefix"
+    },
+    "parseRuleTabs": {
+      "unStructuredLabel": "Unstructured Logs",
+      "unStructuredDescription": "Structure logs that meet the rules and speed up query, see ",
+      "unStructuredHelpLink": "Help Document",
+      "parseRulePlaceholder": "Parse Rule",
+      "parseRuleError": "Please enter the parse rule or fill in at least one log field data type",
+      "structuredLabel": "Structured Logs",
+      "structuredDescription": "Please enter a JSON formatted log sample to automatically generate the log format (only supports parsing the outermost keys of JSON)",
+      "structuredRulePlaceholder": "Log Sample",
+      "structuredRuleError": "JSON parsing failed, please check if the format is correct",
+      "logStructRuleFormList": {
+        "fieldTypeLabel": "Log Field Data Type",
+        "fieldNamePlaceholder": "Field Name",
+        "fieldTypePlaceholder": "Select Match Rule Key",
+        "fieldNameError": "Field name cannot be empty",
+        "fieldTypeError": "Field type cannot be empty",
+        "duplicateFieldNameError": "Duplicate field name exists"
+      }
+    }
+  },
+  "configTableModal": {
+    "configSuccessToast": "Log table configuration successful",
+    "modalTitle": "Log Table Configuration",
+    "saveText": "Save",
+    "cancelText": "Cancel",
+    "dataSourceLabel": "Data Source",
+    "dataSourcePlaceholder": "Please select",
+    "timeFieldLabel": "Time Field",
+    "timeFieldPlaceholder": "Select Match Rule Key"
+  }
+}

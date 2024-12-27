@@ -1,3 +1,29 @@
 {
-  "coachMaskTitle": "服务详情指南"
+  "coachMaskTitle": "服务详情指南",
+  "scenes": {
+    "alertAnalysis": "告警分析",
+    "impactAnalysis": "影响面分析",
+    "cascadeAlertAnalysis": "级联告警影响分析",
+    "saturationAnalysis": "饱和度分析",
+    "networkQualityAnalysis": "网络质量分析",
+    "errorClosedLoop": "错误闭环",
+    "latencyClosedLoop": "延时闭环",
+    "faultEvidence": "故障佐证",
+    "environmentImpact": "环境影响"
+  },
+  "descriptions": {
+    "alertInfo": "接口自身的告警信息、应用层告警和资源层告警",
+    "entryImpact": "可能受该接口影响的所有服务入口分析",
+    "cascadeAlert": "接口的下游依赖告警关联",
+    "instanceMetrics": "接口的实例和节点的资源指标",
+    "networkMetrics": "接口的网络指标",
+    "errorLogs": "接口的代码Exception，以及含有Exception的日志",
+    "polarisMetrics": "接口执行的北极星指标",
+    "logs": "接口执行的日志",
+    "trace": "接口执行的Trace",
+    "k8sEvents": "接口所依赖的容器环境关键事件"
+  },
+  "comingSoon": "敬请期待",
+  "closeGuide": "关闭指南",
+  "clickToEnlarge": "点击放大"
 }

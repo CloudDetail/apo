@@ -4,7 +4,7 @@ import { Virtuoso } from 'react-virtuoso'
 import LogTagDropDown from './LogTagDropdown'
 function isJSONString(str) {
   try {
-    return (typeof JSON.parse(str) === 'object' && JSON.parse(str) !== null)
+    return typeof JSON.parse(str) === 'object' && JSON.parse(str) !== null
   } catch (e) {
     return false
   }
@@ -12,21 +12,21 @@ function isJSONString(str) {
 const determineTypeAndValue = (description, title) => {
   if (typeof description === 'string') {
     if (isJSONString(description)) {
-      return { type: 'object', value: JSON.parse(description) };
+      return { type: 'object', value: JSON.parse(description) }
     }
     if (description.length < 1000 && title !== 'content') {
-      return { type: 'string', value: [description] };
+      return { type: 'string', value: [description] }
     }
-    return { type: 'longString', value: description.split('\n') };
+    return { type: 'longString', value: description.split('\n') }
   }
   if (typeof description === 'number' || typeof description === 'boolean') {
-    return { type: typeof description, value: [String(description)] };
+    return { type: typeof description, value: [String(description)] }
   }
   if (typeof description === 'object') {
-    return { type: 'object', value: [description] };
+    return { type: 'object', value: [description] }
   }
-  return { type: null, value: [null] }; // 默认情况
-};
+  return { type: null, value: [null] } // 默认情况
+}
 
 const formatValue = (value) => (typeof value === 'object' ? JSON.stringify(value) : value)
 
@@ -34,7 +34,7 @@ const LogKeyTagValue = ({ title, description }) => {
   const [type, setType] = useState(null)
   const [value, setValue] = useState([null])
   useEffect(() => {
-    const { type, value } = determineTypeAndValue(description, title);
+    const { type, value } = determineTypeAndValue(description, title)
     setType(type)
     setValue(value)
   }, [description, title])

@@ -28,11 +28,13 @@ const AppSidebar = ({ collapsed }) => {
   const [openKeys, setOpenKeys] = useState([])
   const [menuList, setMenuList] = useState([])
   const getItems = () => {
-    return user.user.username !== 'anonymous' ?
-      navigation.map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) })) :
-      navigation.filter((item) => {
-        if (item.key !== 'manage') return item
-      }).map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) }))
+    return user.user.username !== 'anonymous'
+      ? navigation.map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) }))
+      : navigation
+          .filter((item) => {
+            if (item.key !== 'manage') return item
+          })
+          .map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) }))
   }
 
   useEffect(() => {

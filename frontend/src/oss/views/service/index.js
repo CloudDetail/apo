@@ -18,7 +18,6 @@ import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
 import { TableFilter } from './component/TableFilter'
 import { useTranslation } from 'react-i18next'
-
 export default function ServiceView() {
   const { t } = useTranslation('oss/service')
   const navigate = useNavigate()
@@ -40,12 +39,12 @@ export default function ServiceView() {
 
   const column = [
     {
-      title: '应用名称',
+      title: t('index.serviceTableColumns.serviceName'),
       accessor: 'serviceName',
       customWidth: 150,
     },
     {
-      title: '命名空间',
+      title: t('index.serviceTableColumns.namespaces'),
       accessor: 'namespaces',
       customWidth: 120,
       Cell: (props) => {
@@ -57,7 +56,7 @@ export default function ServiceView() {
       },
     },
     {
-      title: '应用详情',
+      title: t('index.serviceTableColumns.serviceDetails.title'),
       accessor: 'serviceDetails',
       hide: true,
       isNested: true,
@@ -81,7 +80,7 @@ export default function ServiceView() {
         return (
           original.endpointCount > 3 && (
             <CButton color="info" variant="ghost" size="sm" onClick={clickMore}>
-              更多
+              {t('index.serviceTableColumns.serviceDetails.showMore')}
             </CButton>
           )
         )
@@ -90,7 +89,7 @@ export default function ServiceView() {
 
       children: [
         {
-          title: '服务端点',
+          title: t('index.serviceTableColumns.serviceDetails.endpoint'),
           accessor: 'endpoint',
           canExpand: false,
         },
@@ -99,16 +98,26 @@ export default function ServiceView() {
             <Tooltip
               title={
                 <div>
-                  <div>自身：服务自身延时占比50%以上</div>
-                  <div>依赖：请求下游服务延时占比50%以上</div>
-                  <div>未知：未找到相关指标</div>
+                  <p className="text-[#D3D3D3]">
+                    {t('index.serviceTableColumns.serviceDetails.delaySource.title1')}
+                  </p>
+                  <p className="text-[#D3D3D3] mt-2">
+                    {t('index.serviceTableColumns.serviceDetails.delaySource.title2')}
+                  </p>
+                  <p className="text-[#D3D3D3] mt-2">
+                    {t('index.serviceTableColumns.serviceDetails.delaySource.title3')}
+                  </p>
                 </div>
               }
             >
               <div className="flex flex-row justify-center items-center">
                 <div>
-                  <div className="text-center flex flex-row ">延时主要来源</div>
-                  <div className="block text-[10px]">(自身/依赖/未知)</div>
+                  <div className="text-center flex flex-row">
+                    {t('index.serviceTableColumns.serviceDetails.delaySource.title4')}
+                  </div>
+                  <div className="block text-[10px]">
+                    {t('index.serviceTableColumns.serviceDetails.delaySource.title5')}
+                  </div>
                 </div>
                 <AiOutlineInfoCircle size={16} className="ml-1" />
               </div>
@@ -116,14 +125,14 @@ export default function ServiceView() {
           ),
           accessor: 'delaySource',
           canExpand: false,
-          customWidth: 112,
+          customWidth: 150,
           Cell: (props) => {
             const { value } = props
             return <>{DelaySourceTimeUnit[value]}</>
           },
         },
         {
-          title: '平均响应时间',
+          title: t('index.serviceTableColumns.serviceDetails.latency'),
           minWidth: 140,
           accessor: (idx) => `latency`,
 
@@ -148,7 +157,7 @@ export default function ServiceView() {
           },
         },
         {
-          title: '错误率',
+          title: t('index.serviceTableColumns.serviceDetails.errorRate'),
           accessor: (idx) => `errorRate`,
 
           minWidth: 140,
@@ -159,7 +168,7 @@ export default function ServiceView() {
           },
         },
         {
-          title: '吞吐量',
+          title: t('index.serviceTableColumns.serviceDetails.tps'),
           accessor: (idx) => `tps`,
           minWidth: 140,
 
@@ -172,7 +181,7 @@ export default function ServiceView() {
       ],
     },
     {
-      title: '应用基础信息告警',
+      title: t('index.serviceTableColumns.serviceInfo.title'),
       accessor: 'serviceInfo',
       hide: true,
       isNested: true,
@@ -189,9 +198,9 @@ export default function ServiceView() {
       },
       children: [
         {
-          title: '日志错误数',
+          title: t('index.serviceTableColumns.serviceInfo.logs'),
           accessor: `logs`,
-          minWidth: 140,
+          minWidth: 160,
           Cell: (props) => {
             // eslint-disable-next-line react/prop-types
             const { value } = props
@@ -199,7 +208,7 @@ export default function ServiceView() {
           },
         },
         {
-          title: '基础设施状态',
+          title: t('index.serviceTableColumns.serviceInfo.infrastructureStatus'),
           accessor: `infrastructureStatus`,
           Cell: (props) => {
             // eslint-disable-next-line react/prop-types
@@ -213,7 +222,7 @@ export default function ServiceView() {
           },
         },
         {
-          title: '网络质量状态',
+          title: t('index.serviceTableColumns.serviceInfo.netStatus'),
           accessor: `netStatus`,
           Cell: (/** @type {{ value: any; }} */ props) => {
             // eslint-disable-next-line react/prop-types
@@ -227,7 +236,7 @@ export default function ServiceView() {
           },
         },
         {
-          title: 'K8s事件状态',
+          title: t('index.serviceTableColumns.serviceInfo.k8sStatus'),
           accessor: `k8sStatus`,
           Cell: (props) => {
             // eslint-disable-next-line react/prop-types
@@ -241,7 +250,7 @@ export default function ServiceView() {
           },
         },
         {
-          title: '末次部署或重启时间',
+          title: t('index.serviceTableColumns.serviceInfo.timestamp'),
           accessor: `timestamp`,
           minWidth: 90,
           Cell: (props) => {
@@ -343,26 +352,26 @@ export default function ServiceView() {
       },
       emptyContent: (
         <div className="text-center">
-          暂无数据
+          {t('index.tableProps.emptyText')}
           <div className="text-left p-2">
             <div className="py-2">
-              1. 如尚未监控应用，请参阅
+              {t('index.tableProps.unmonitoredText')}
               <a
                 className="underline text-sky-500"
                 target="_blank"
                 href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/监控%20Kubernetes%20集群中的服务器和应用使用OneAgent默认OTEL探针版本/"
               >
-                监控手册
+                {t('index.tableProps.unmonitoredLinkText')}
               </a>
             </div>
             <div>
-              2. 如已监控应用但仍无数据，请参阅
+              {t('index.tableProps.monitoredText')}
               <a
                 className="underline text-sky-500"
                 target="_blank"
                 href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/运维与故障排除/APO%20服务概览无数据排查文档/#常见基础问题排查"
               >
-                故障排除手册
+                {t('index.tableProps.monitoredLinkText')}
               </a>
             </div>
           </div>
@@ -370,7 +379,7 @@ export default function ServiceView() {
       ),
       showLoading: false,
     }
-  }, [data, pageIndex, pageSize, loading])
+  }, [column, data, pageIndex, pageSize, loading])
   return (
     <div style={{ width: '100%', overflow: 'hidden' }}>
       <LoadingSpinner loading={loading} />
@@ -378,7 +387,7 @@ export default function ServiceView() {
         <div className="d-flex">
           <CToastBody className=" flex flex-row items-center text-xs">
             <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-            {t('serviceTableToast')}
+            {t('index.serviceTableToast')}
           </CToastBody>
         </div>
       </CToast>

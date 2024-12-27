@@ -13,8 +13,10 @@ import { getServiceListApi } from 'core/api/service'
 import TextArea from 'antd/es/input/TextArea'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import ParseRuleTabs from './component/ParseRuleTabs'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
+  const { t } = useTranslation('oss/fullLogs') // 使用i18n
   const { getLogTableInfo, updateLoading } = useLogsContext()
   const [form] = Form.useForm()
   const [serviceList, setServiceList] = useState([])
@@ -83,7 +85,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   function addLogRule(logRuleParams) {
     addLogRuleApi(logRuleParams).then((res) => {
       showToast({
-        title: '日志库配置成功',
+        title: t('configLogRuleModal.repositoryConfigSuccessToast'),
         color: 'success',
       })
 
@@ -98,7 +100,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       tableName: logRuleInfo.tableName,
     }).then((res) => {
       showToast({
-        title: '日志库配置成功',
+        title: t('configLogRuleModal.repositoryConfigSuccessToast'),
         color: 'success',
       })
       closeModal()
@@ -135,7 +137,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         logRuleParams.routeRule = routeRule
         if (Object.keys(routeRule).length === 0) {
           showToast({
-            title: '匹配规则不可为空',
+            title: t('configLogRuleModal.matchRuleErrorToast'),
             color: 'danger',
           })
           return
@@ -158,7 +160,7 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
           delete logRuleParams.parseRule
           if (logRuleParams.tableFields.length === 0) {
             showToast({
-              title: '结构化日志中，日志字段数据类型不可为空',
+              title: t('configLogRuleModal.structureErrorToast'),
               color: 'danger',
             })
             return
@@ -212,13 +214,13 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
   }
   return (
     <Modal
-      title={'日志库配置'}
+      title={t('configLogRuleModal.modalTitle')}
       open={modalVisible}
       onCancel={closeModal}
       destroyOnClose
       centered
-      okText={'保存'}
-      cancelText="取消"
+      okText={t('configLogRuleModal.saveText')}
+      cancelText={t('configLogRuleModal.cancelText')}
       maskClosable={false}
       onOk={saveLogRule}
       width={1000}
@@ -253,38 +255,38 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         }}
       >
         <Form.Item
-          label="日志库名"
+          label={t('configLogRuleModal.repositoryNameLabel')}
           name="parseName"
           required
           rules={[
             {
               pattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/, // 仅允许英文字符
-              message: '日志库名只能包含英文字符、数字、下划线',
+              message: t('configLogRuleModal.repositoryNameMessage1'),
             },
             {
               required: true,
-              message: '请输入日志库名',
+              message: t('configLogRuleModal.repositoryNameMessage2'),
             },
           ]}
         >
           <Input
-            placeholder="请输入日志库名，一经创建暂不支持修改"
+            placeholder={t('configLogRuleModal.repositoryNamePlaceholder')}
             disabled={logRuleInfo?.parseName}
           />
         </Form.Item>
-        <Form.Item label="日志库描述" name="parseInfo">
-          <Input placeholder="日志库描述" />
+        <Form.Item label={t('configLogRuleModal.repositoryDescriptionLabel')} name="parseInfo">
+          <Input placeholder={t('configLogRuleModal.repositoryDescriptionPlaceholder')} />
         </Form.Item>
-        <Form.Item label="执行应用" name="serviceName">
+        <Form.Item label={t('configLogRuleModal.executiveApplicationLabel')} name="serviceName">
           <Select
             options={serviceList}
-            placeholder="请选择执行规则的应用"
+            placeholder={t('configLogRuleModal.executiveApplicationPlaceholder')}
             mode="multiple"
             onChange={(value) => getServiceRouteRule(value)}
           ></Select>
         </Form.Item>
         <LogRouteRuleFormList />
-        <Form.Item label="日志格式配置" required name="isStructured">
+        <Form.Item label={t('configLogRuleModal.logConfigLabel')} required name="isStructured">
           <ParseRuleTabs />
         </Form.Item>
       </Form>

@@ -1,0 +1,144 @@
+{
+  "index": {
+    "rule": "告警规则",
+    "notify": "告警通知"
+  },
+  "rule": {
+    "groupName": "组名",
+    "alertRuleName": "告警规则名",
+    "duration": "持续时间",
+    "query": "查询语句",
+    "alertStatus": {
+      "title": "告警状态",
+      "firing": "告警中",
+      "pending": "准备告警",
+      "inactive": "正常",
+      "unknown": "未知"
+    },
+    "operation": "操作",
+    "edit": "编辑",
+    "delete": "删除",
+    "confirmDelete": "是否确定删除名为“{{name}}”的告警规则",
+    "confirm": "确定",
+    "cancel": "取消",
+    "addAlertRule": "新增告警规则",
+    "deleteSuccess": "删除告警规则成功"
+  },
+  "notify": {
+    "type": {
+      "email": "邮件",
+      "webhook": "Webhook",
+      "dingtalk": "钉钉",
+      "wechat": "微信"
+    },
+    "alertNotifyName": "告警通知规则名",
+    "notifyType": "通知类型",
+    "operation": "操作",
+    "notifyEmailOrWebhookUrl": "通知邮箱或WebhookUrl",
+    "edit": "编辑",
+    "delete": "删除",
+    "confirmDelete": "是否确定删除名为“{{name}}”的告警通知",
+    "confirm": "确定",
+    "cancel": "取消",
+    "addAlertNotify": "新增告警通知",
+    "deleteSuccess": "删除告警通知成功"
+  },
+  "alertConditionCom": {
+    "quickMetrics": "快速指标",
+    "expression": "表达式",
+    "unit": "单位"
+  },
+  "modifyAlertRuleModal": {
+    "title": "告警规则配置",
+    "saveSuccess": "保存告警规则成功",
+    "save": "保存",
+    "cancel": "取消",
+    "groupName": "组名",
+    "alertRuleName": "告警规则名",
+    "alertCondition": "告警条件",
+    "alertLevel": "告警级别",
+    "critical": "严重",
+    "warning": "警告",
+    "info": "信息",
+    "duration": "持续时间",
+    "alertMessage": "告警信息",
+    "includeMetricValue": "包含指标值",
+    "includeMetricLabels": "包含指标标签",
+    "additionalLabels": "附加标签",
+    "additionalInfo": "附加信息",
+    "key": "键",
+    "value": "值",
+    "invalidKey": "请以字母或下划线开头",
+    "invalidLabelFormat": "标签格式不正确，请检查",
+    "option": {
+      "secondText": "s（秒）",
+      "minuteText": "m（分钟）",
+      "hourText": "h（小时）",
+      "dayText": "d（天）"
+    }
+  },
+  "modifyAlertNotifyModal": {
+    "title": "告警通知配置",
+    "saveSuccess": "保存告警通知配置成功",
+    "save": "保存",
+    "cancel": "取消",
+    "alertNotifyName": "告警通知名",
+    "notifyType": "通知类型",
+    "email": "邮件通知",
+    "webhook": "Webhook通知",
+    "dingtalk": "钉钉",
+    "wechat": "企业微信",
+    "invalidNotifyName": "告警通知名不可为空",
+    "invalidNotifyType": "告警类型不可为空",
+    "basicConfig": "基础配置"
+  },
+  "webhookConfigsFormList": {
+    "title": "Webhook配置",
+    "url": "URL",
+    "authType": "身份认证方式",
+    "userAuth": "用户密码",
+    "tokenAuth": "Token验证",
+    "username": "身份认证用户名",
+    "password": "身份认证密码",
+    "token": "Token验证",
+    "addWebhook": "添加Webhook",
+    "removeWebhook": "删除Webhook"
+  },
+  "emailConfigsFormList": {
+    "title": "邮件通知配置",
+    "to": "接收通知邮箱地址",
+    "from": "发送通知邮箱地址",
+    "smarthost": "SMTP服务器域名",
+    "smarthostPort": "SMTP服务器端口",
+    "authUsername": "SMTP用户名",
+    "authPassword": "SMTP密码",
+    "requireTls": "启用 TLS 安全传输",
+    "html": "告警邮件HTML正文",
+    "text": "告警邮件文本正文",
+    "addEmail": "添加邮件配置",
+    "removeEmail": "删除邮件配置",
+    "empty": "不能为空"
+  },
+  "dingTalkConfigsFormList": {
+    "title": "钉钉通知配置",
+    "url": "Webhook地址",
+    "secret": "加签密钥",
+    "addDingTalk": "添加钉钉配置",
+    "removeDingTalk": "删除钉钉配置",
+    "empty": "不能为空"
+  },
+  "wechatConfigsFormList": {
+    "title": "微信通知配置",
+    "api_url": "API地址",
+    "api_secret": "API 密钥",
+    "corp_id": "企业 ID",
+    "agent_id": "应用 ID",
+    "to_user": "通知到用户",
+    "to_party": "通知到部门",
+    "to_tag": "通知到标签",
+    "notificationType": "通知方式",
+    "addWeChat": "添加微信配置",
+    "removeWeChat": "删除微信配置",
+    "empty": "不能为空"
+  }
+}

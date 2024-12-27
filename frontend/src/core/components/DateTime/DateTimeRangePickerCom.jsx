@@ -26,11 +26,18 @@ import {
   timeRangeList,
   timeRangeMap,
 } from 'src/core/store/reducers/timeRangeReducer'
-import { convertTime, DateToISO, ISOToTimestamp, TimestampToISO, ValidDate } from 'src/core/utils/time'
+import {
+  convertTime,
+  DateToISO,
+  ISOToTimestamp,
+  TimestampToISO,
+  ValidDate,
+} from 'src/core/utils/time'
 import './index.css'
 import 'react-date-range/dist/styles.css' // main style file
 import 'react-date-range/dist/theme/default.css' // theme css file
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 // logs: logsFrom, logsTo
 // traces: traceFrom, traceTo
 const TypeUrlParamMap = {
@@ -44,6 +51,7 @@ const TypeUrlParamMap = {
   },
 }
 export default function DateTimeRangePickerCom(props) {
+  const { t } = useTranslation('core/dateTime')
   const { type } = props
   const [searchParams, setSearchParams] = useSearchParams()
   const [dropdownVisible, setDropdownVisible] = useState(false)
@@ -120,12 +128,12 @@ export default function DateTimeRangePickerCom(props) {
     updataUrlTimeRange(fromString, toString)
   }
   const validStartTime = () => {
-    let feedback = '请输入或选择正确的日期'
+    let feedback = t('dateTimeRangePicker.selectCorrectTimeRangeFeedback')
     let result = true
     if (!inputStartTime || inputStartTime?.length === 0 || !ValidDate(inputStartTime)) {
       result = false
     } else if (new Date(inputStartTime) > new Date(inputEndTime)) {
-      feedback = '开始时间不能晚于结束时间'
+      feedback = t('dateTimeRangePicker.startTimeLongerThanEndTimeFeedback')
       result = false
     }
     if (result) {
@@ -136,12 +144,12 @@ export default function DateTimeRangePickerCom(props) {
     return result
   }
   const validEndTime = () => {
-    let feedback = '请输入或选择正确的日期'
+    let feedback = t('dateTimeRangePicker.selectCorrectTimeRangeFeedback')
     let result = true
     if (!inputEndTime || inputEndTime?.length === 0 || !ValidDate(inputEndTime)) {
       result = false
     } else if (new Date(inputStartTime) > new Date(inputEndTime)) {
-      feedback = '结束时间不能早于开始时间'
+      feedback = t('dateTimeRangePicker.endTimeLessThanStartTimeFeedback')
       result = false
     }
     if (result) {
@@ -220,9 +228,11 @@ export default function DateTimeRangePickerCom(props) {
         <div className="w-[600px] flex">
           <div className="w-3/5 border-r border-r-slate-700  px-3 py-2">
             <CForm noValidate>
-              <div>绝对时间范围</div>
+              <div>{t('dateTimeRangePicker.absoluteTimeRangeTitle')}</div>
 
-              <CFormLabel className="text-sm mt-2 block">开始{startTimeInvalid && 1}</CFormLabel>
+              <CFormLabel className="text-sm mt-2 block">
+                {t('dateTimeRangePicker.startTitle')}
+              </CFormLabel>
 
               <CInputGroup className="mb-2">
                 <CFormInput
@@ -239,7 +249,7 @@ export default function DateTimeRangePickerCom(props) {
               </CInputGroup>
 
               <CFormLabel htmlFor="basic-url" className="text-sm block">
-                结束
+                {t('dateTimeRangePicker.endTitle')}
               </CFormLabel>
               <CInputGroup>
                 <CFormInput
@@ -254,7 +264,7 @@ export default function DateTimeRangePickerCom(props) {
                 <CFormFeedback invalid>{endTimeFeedback}</CFormFeedback>
               </CInputGroup>
               <CButton color="primary" size="sm" className="mt-3" onClick={confirmTimeRange}>
-                应用时间范围
+                {t('dateTimeRangePicker.applyTimeRangeButtonText')}
               </CButton>
             </CForm>
             <DateRange
@@ -267,7 +277,7 @@ export default function DateTimeRangePickerCom(props) {
             />
           </div>
           <div className="w-2/5">
-            <div className="p-2">快速范围</div>
+            <div className="p-2">{t('dateTimeRangePicker.quickRangeTitle')}</div>
             <CDropdownMenu className="w-2/5 border-0 text-base">
               {Object.keys(timeRangeMap).map((key) => {
                 return (

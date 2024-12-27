@@ -20,8 +20,10 @@ import { useSelector } from 'react-redux'
 import AlertInfoTabs from './AlertInfo/AlertInfoTabs'
 import SqlMetrics from './SqlMetrics'
 import EntryImpact from './EntryImpact'
+import { useTranslation } from 'react-i18next'
 
 export default function InfoUni() {
+  const { t, i18n } = useTranslation('oss/serviceInfo')
   const [openedPanels, setOpenedPanels] = useState({
     polarisMetrics: true,
   })
@@ -67,7 +69,7 @@ export default function InfoUni() {
     {
       key: 'impact',
       loadBeforeOpen: true,
-      name: <>{serviceName}的影响面分析</>,
+      name: t('contentIndex.impactAnalysis', { serviceName }),
       component: EntryImpact,
 
       componentProps: {
@@ -77,7 +79,7 @@ export default function InfoUni() {
     {
       key: 'alert',
       loadBeforeOpen: true,
-      name: <>{serviceName}的告警事件</>,
+      name: t('contentIndex.alertEvents', { serviceName }),
       component: AlertInfoTabs,
       componentProps: {
         handlePanelStatus: (status) => handlePanelStatus('alert', status),
@@ -87,7 +89,7 @@ export default function InfoUni() {
     {
       key: 'instance',
       loadBeforeOpen: true,
-      name: `${serviceName}的服务端点实例`,
+      name: t('contentIndex.serviceEndpointInstance', { serviceName }),
       component: InstanceInfo,
       componentProps: {
         handleToggle,
@@ -98,7 +100,7 @@ export default function InfoUni() {
     {
       key: 'k8s',
       loadBeforeOpen: true,
-      name: `${serviceName}的k8s事件`,
+      name: t('contentIndex.k8sEvents', { serviceName }),
       component: K8sInfo,
       componentProps: {
         handleToggle,
@@ -108,7 +110,7 @@ export default function InfoUni() {
     {
       key: 'error',
       loadBeforeOpen: true,
-      name: `${serviceName}的错误实例`,
+      name: t('contentIndex.errorInstances', { serviceName }),
       component: ErrorInstanceInfo,
       componentProps: {
         handleToggle,
@@ -118,14 +120,14 @@ export default function InfoUni() {
     {
       key: 'sql',
       loadBeforeOpen: true,
-      name: `${serviceName}的数据库调用`,
+      name: t('contentIndex.databaseCalls', { serviceName }),
       component: SqlMetrics,
     },
     {
       key: 'metrics',
       showHeader: true,
       icon: <LuLayoutDashboard />,
-      name: '用户自定义指标大盘',
+      name: t('contentIndex.customMetricsDashboard'),
       component: MetricsDashboard,
       componentProps: {
         variable: dashboardVariable,
@@ -141,7 +143,7 @@ export default function InfoUni() {
       icon: <TbNorthStar />,
       name: (
         <div className="inline-flex items-center">
-          基于北极星因果指标的主要原因推荐: 根据数据确认是应用自身的问题，还是下游依赖的问题
+          {t('contentIndex.polarisMetricsRecommendation')}
           <CImage src={ThumbsUp} width={32} className="ml-2" />
         </div>
       ),
@@ -151,14 +153,14 @@ export default function InfoUni() {
       key: 'logs',
       showHeader: true,
       icon: <CIcon icon={cilDescription} />,
-      name: '日志',
+      name: t('contentIndex.logs'),
       component: LogsInfo,
     },
     {
       key: 'trace',
       showHeader: true,
       icon: <PiPath />,
-      name: '链路追踪',
+      name: t('contentIndex.trace'),
       component: TraceInfo,
     },
   ]
@@ -168,7 +170,7 @@ export default function InfoUni() {
   useEffect(() => {
     setAccordionList([])
     setAccordionList(mockAccordionList)
-  }, [serviceName])
+  }, [serviceName, i18n.language])
 
   return (
     <>

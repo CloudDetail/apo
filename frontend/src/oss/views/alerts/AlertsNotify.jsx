@@ -9,6 +9,7 @@ import { showToast } from 'src/core/utils/toast'
 import { MdAdd, MdOutlineEdit } from 'react-icons/md'
 import { useSelector } from 'react-redux'
 import ModifyAlertNotifyModal from './modal/ModifyAlertNotifyModal'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 export default function AlertsNotify() {
   const [data, setData] = useState([])
@@ -19,19 +20,21 @@ export default function AlertsNotify() {
   const [modalVisible, setModalVisible] = useState(false)
   const [modalInfo, setModalInfo] = useState(null)
   const [searchName, setSearchName] = useState(null)
+  const { t } = useTranslation('oss/alert') // 使用i18n
+
   const deleteAlertNotify = (row) => {
     deleteAlertNotifyApi(
-      row.dingTalkConfigs ?
-        {
-          name: row.name,
-          type: 'dingtalk'
-        } :
-        {
-          name: row.name,
-        }
+      row.dingTalkConfigs
+        ? {
+            name: row.name,
+            type: 'dingtalk',
+          }
+        : {
+            name: row.name,
+          },
     ).then((res) => {
       showToast({
-        title: '删除告警通知成功',
+        title: t('notify.deleteSuccess'),
         color: 'success',
       })
       refreshTable()
@@ -41,13 +44,13 @@ export default function AlertsNotify() {
   const judgmentType = (type) => {
     switch (type) {
       case 'emailConfigs':
-        return '邮件'
+        return t('notify.type.email')
       case 'webhookConfigs':
-        return 'webhook'
+        return t('notify.type.webhook')
       case 'dingTalkConfigs':
-        return '钉钉'
+        return t('notify.type.dingtalk')
       case 'wechatConfigs':
-        return '微信'
+        return t('notify.type.wechat')
     }
   }
 
@@ -66,50 +69,43 @@ export default function AlertsNotify() {
     }
   }
 
-  const typeList = [
-    'emailConfigs',
-    'webhookConfigs',
-    'dingTalkConfigs',
-    'wechatConfigs'
-  ];
-
-
-
+  const typeList = ['emailConfigs', 'webhookConfigs', 'dingTalkConfigs', 'wechatConfigs']
 
   const column = [
     {
-      title: '告警通知规则名',
+      title: t('notify.alertNotifyName'),
       accessor: 'name',
       justifyContent: 'left',
       customWidth: '20%',
     },
     {
-      title: '通知类型',
+      title: t('notify.notifyType'),
       accessor: 'type',
       customWidth: 120,
       Cell: (props) => {
-        const row = props.row.original;
-        let foundItem = typeList.find(item => Object.hasOwn(row, item));
+        const row = props.row.original
+        let foundItem = typeList.find((item) => Object.hasOwn(row, item))
         foundItem = judgmentType(foundItem)
-        return foundItem || null;
+        return foundItem || null
       },
     },
     {
-      title: '通知邮箱或WebhookUrl',
+      title: t('notify.notifyEmailOrWebhookUrl'),
       accessor: 'to',
       customWidth: '50%',
       Cell: (props) => {
-        const row = props.row.original;
-        let foundItem = typeList.find(item => Object.hasOwn(row, item));
+        const row = props.row.original
+        let foundItem = typeList.find((item) => Object.hasOwn(row, item))
         foundItem = getUrl(foundItem, row)
         return foundItem
       },
     },
     {
-      title: '操作',
+      title: t('notify.operation'),
       accessor: 'action',
       Cell: (props) => {
         const row = props.row.original
+        console.log('row', row)
         return (
           <div className="flex">
             <Button
@@ -117,35 +113,23 @@ export default function AlertsNotify() {
               onClick={() => clickEditRule(row)}
               icon={<MdOutlineEdit className="text-blue-400 hover:text-blue-400" />}
             >
-              <span className="text-blue-400 hover:text-blue-400">编辑</span>
+              <span className="text-blue-400 hover:text-blue-400">{t('notify.edit')}</span>
             </Button>
             <Popconfirm
-              title={
-                <>
-                  是否确定删除名为“<span className="font-bold ">{row.alert}</span>
-                  ”的告警规则
-                </>
-              }
+              title={<>{t('notify.confirmDelete', { name: row.name })}</>}
               onConfirm={() => deleteAlertNotify(row)}
-              okText="确定"
-              cancelText="取消"
+              okText={t('notify.confirm')}
+              cancelText={t('notify.cancel')}
             >
               <Button type="text" icon={<RiDeleteBin5Line />} danger>
-                删除
+                {t('notify.delete')}
               </Button>
             </Popconfirm>
           </div>
-          // <div className=" cursor-pointer">
-          //   <AiOutlineDelete color="#97242e" size={18} />
-          //   删除
-          // </div>
         )
       },
     },
   ]
-
-
-
 
   const clickAddRule = () => {
     setModalInfo(null)
@@ -165,7 +149,7 @@ export default function AlertsNotify() {
       currentPage: pageIndex,
       pageSize: pageSize,
       name: searchName,
-      refreshCache: true
+      refreshCache: true,
     })
       .then((res) => {
         setLoading(false)
@@ -186,7 +170,6 @@ export default function AlertsNotify() {
     setPageIndex(1)
   }
   const tableProps = useMemo(() => {
-    // 分页处理
     return {
       columns: column,
       data: data,
@@ -198,30 +181,14 @@ export default function AlertsNotify() {
       },
       loading: false,
     }
-  }, [data, pageIndex, pageSize])
+  }, [column, data, pageIndex, pageSize])
   return (
     <>
       <LoadingSpinner loading={loading} />
-      {/* <CToast autohide={false} visible={true} className="align-items-center w-full my-2">
-        <div className="d-flex">
-          <CToastBody className=" flex flex-row items-center text-xs">
-            <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-            配置后预计15s生效，请稍后刷新页面查看最新告警规则。
-            仅展示告警规则，如需配置请参考
-            <a
-              className="underline text-sky-500"
-              target="_blank"
-              href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置告警规则"
-            >
-              文档
-            </a>
-          </CToastBody>
-        </div>
-      </CToast> */}
       <div className="flex items-center justify-betweeen text-sm p-2 my-2">
         <Space className="flex-grow">
           <Space className="flex-1">
-            <span className="text-nowrap">通知规则名：</span>
+            <span className="text-nowrap">{t('notify.alertNotifyName')}：</span>
             <Input
               value={searchName}
               onChange={(e) => {
@@ -238,7 +205,7 @@ export default function AlertsNotify() {
           onClick={clickAddRule}
           className="flex-grow-0 flex-shrink-0"
         >
-          <span className="text-xs">新增告警通知</span>
+          <span className="text-xs">{t('notify.addAlertNotify')}</span>
         </Button>
       </div>
       <CCard className="text-sm p-2">
