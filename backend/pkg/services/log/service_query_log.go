@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package log
 
 import (
@@ -31,42 +34,47 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 	for _, row := range rows {
 		allFields = append(allFields, row["name"].(string))
 	}
-	res.DefaultFields = allFields
-
-	hiddenFields := []string{}
-	model := &database.LogTableInfo{
-		DataBase: req.DataBase,
-		Table:    req.TableName,
-	}
-	// query log field json
-	s.dbRepo.OperateLogTableInfo(model, database.QUERY)
-	var fields []request.Field
-	_ = json.Unmarshal([]byte(model.Fields), &fields)
-
-	for _, field := range fields {
-		hiddenFields = append(hiddenFields, field.Name)
-	}
 
 	hMap := make(map[string]struct{})
-	for _, item := range hiddenFields {
-		hMap[item] = struct{}{}
+
+	if req.IsExternal {
+		res.HiddenFields = allFields
+	} else {
+		hiddenFields := []string{}
+		model := &database.LogTableInfo{
+			DataBase: req.DataBase,
+			Table:    req.TableName,
+		}
+		// query log field json
+		s.dbRepo.OperateLogTableInfo(model, database.QUERY)
+		var fields []request.Field
+		_ = json.Unmarshal([]byte(model.Fields), &fields)
+
+		for _, field := range fields {
+			hiddenFields = append(hiddenFields, field.Name)
+		}
+
+		for _, item := range hiddenFields {
+			hMap[item] = struct{}{}
+		}
+
+		var defaultFields []string
+		for _, item := range allFields {
+			if _, exists := hMap[item]; !exists {
+				if item == req.TimeField || item == req.LogField {
+					continue
+				}
+				defaultFields = append(defaultFields, item)
+			}
+		}
+		res.HiddenFields = hiddenFields
+		res.DefaultFields = defaultFields
 	}
 
-	var defaultFields []string
-	for _, item := range allFields {
-		if _, exists := hMap[item]; !exists {
-			if item == req.TimeField || item == req.LogField {
-				continue
-			}
-			defaultFields = append(defaultFields, item)
-		}
-	}
 	res.Limited = req.PageSize
-	res.HiddenFields = hiddenFields
-	res.DefaultFields = defaultFields
 
 	if len(logs) == 0 {
-		res.Err = "未查询到任何日志数据"
+		res.Err = "No logs found"
 		return res, nil
 	}
 
@@ -101,13 +109,18 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 				delete(log, k)
 			}
 		}
-
-		logitems[i] = response.LogItem{
-			Content:   content,
-			Tags:      log,
-			Time:      timestamp,
-			LogFields: logFields,
+		item := response.LogItem{
+			Time: timestamp,
 		}
+		if req.IsExternal {
+			item.LogFields = log
+		} else {
+			item.Tags = log
+			item.Content = content
+			item.LogFields = logFields
+		}
+
+		logitems[i] = item
 	}
 
 	res.Logs = logitems

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useMemo, useState, useEffect, useRef } from 'react'
 import { traceTableMock } from './mock'
 import BasicTable from 'src/core/components/Table/basicTable'
@@ -5,8 +10,6 @@ import { getTimestampRange, timeRangeList } from 'src/core/store/reducers/timeRa
 import { convertTime, ISOToTimestamp } from 'src/core/utils/time'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { getTracePageListApi } from 'core/api/trace.js'
-import StatusInfo from 'src/core/components/StatusInfo'
-import { PropsProvider } from 'src/core/contexts/PropsContext'
 import EndpointTableModal from './component/JaegerIframeModal'
 import { useSelector } from 'react-redux'
 import LoadingSpinner from 'src/core/components/Spinner'
@@ -14,10 +17,9 @@ import LogsTraceFilter from 'src/oss/components/Filter/LogsTraceFilter'
 import { DefaultTraceFilters } from 'src/constants'
 import TraceErrorType from './component/TraceErrorType'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
-import { Tooltip } from 'antd'
-import { useTranslation } from 'react-i18next' // 引入i18n
+import { Card, Tooltip } from 'antd'
 
-function Trace() {
+function FaultSiteTrace() {
   // const [startTime, setStartTime] = useState(null)
   const [tracePageList, setTracePageList] = useState([])
   // const [endTime, setEndTime] = useState(null)
@@ -63,7 +65,6 @@ function Trace() {
     minDuration: '',
     maxDuration: '',
   })
-  const { t } = useTranslation('oss/trace') // 使用i18n
   useEffect(() => {
     const prev = previousValues.current
     let paramsChange = false
@@ -165,22 +166,22 @@ function Trace() {
   }
   const column = [
     {
-      title: t('trace.serviceName'),
+      title: '服务名',
       accessor: 'serviceName',
     },
     {
-      title: t('trace.namespace'),
+      title: '命名空间',
       accessor: 'labels',
       Cell: ({ value }) => {
         return value?.namespace ? value?.namespace : <span className="text-slate-400">N/A</span>
       },
     },
     {
-      title: t('trace.instanceName'),
+      title: '实例名',
       accessor: 'instanceId',
     },
     {
-      title: t('trace.endpoint'),
+      title: '服务端点',
       accessor: 'endpoint',
     },
 
@@ -189,14 +190,14 @@ function Trace() {
         <Tooltip
           title={
             <div>
-              <div className="text-[#D3D3D3]">{t('trace.slowFault')}</div>
-              <div className="text-[#D3D3D3] mt-2">{t('trace.errorFault')}</div>
-              <div className="text-[#D3D3D3] mt-2">{t('trace.noFault')}</div>
+              <div>慢故障：响应时间超过历史基线</div>
+              <div>错误故障：存在错误状态码或代码异常</div>
+              <div>无异常：被采样的正常数据</div>
             </div>
           }
         >
           <div className="flex flex-row justify-center items-center">
-            {t('trace.faultStatus')}
+            故障状态
             <AiOutlineInfoCircle size={16} className="ml-2" />
           </div>
         </Tooltip>
@@ -217,21 +218,21 @@ function Trace() {
       },
     },
     {
-      title: t('trace.responseTime'),
+      title: '响应时间',
       accessor: 'duration',
       Cell: ({ value }) => {
         return convertTime(value, 'ms', 2) + 'ms'
       },
     },
     {
-      title: t('trace.occurTime'),
+      title: '发生时间',
       accessor: 'timestamp',
       Cell: ({ value }) => {
         return convertTime(value, 'yyyy-mm-dd hh:mm:ss')
       },
     },
     {
-      title: t('trace.traceId'),
+      title: 'TraceID',
       accessor: 'traceId',
       Cell: (props) => {
         const { value } = props
@@ -371,19 +372,13 @@ function Trace() {
         pageCount: Math.ceil(total / pageSize),
       },
     }
-  }, [column, tracePageList])
+  }, [tracePageList])
   return (
-    // <PropsProvider
-    //   value={{
-    //     startTime,
-    //     endTime,
-    //     service,
-    //     instance,
-    //     traceId,
-    //     endpoint,
-    //   }}
-    // >
-    <>
+    <Card
+      className="h-full flex flex-col overflow-hidden text-xs px-2"
+      style={{ height: 'calc(100vh - 120px)' }}
+      styles={{ body: { padding: '8px', height: '100%' } }}
+    >
       <LoadingSpinner loading={loading} />
       <div className="text-xs flex flex-col h-full overflow-hidden">
         <div className="flex-shrink-0 flex-grow">
@@ -396,8 +391,8 @@ function Trace() {
         visible={modalVisible}
         closeModal={() => setModalVisible(false)}
       />
-    </>
+    </Card>
     // </PropsProvider>
   )
 }
-export default Trace
+export default FaultSiteTrace

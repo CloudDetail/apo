@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { element } from 'prop-types'
 import React from 'react'
 import TranslationCom from './components/TranslationCom.jsx'
@@ -12,13 +17,11 @@ const Service = React.lazy(() => import('src/oss/views/service/index.js'))
 const ServiceInfo = React.lazy(() => import('src/oss/views/serviceInfo/index.js'))
 const FaultSiteLogsPage = React.lazy(() => import('src/oss/views/logs/FaultSiteLogs'))
 const FullLogsPage = React.lazy(() => import('src/oss/views/logs/FullLogsPage'))
-const TracePage = React.lazy(() => import('src/oss/views/trace/index.js'))
-const Alerts = React.lazy(() => import('src/oss/views/alerts/index.js'))
+const FaultSiteTrace = React.lazy(() => import('src/oss/views/trace/FaultSiteTrace.jsx'))
+const FullTrace = React.lazy(() => import('src/oss/views/trace/FullTrace.jsx'))
+const AlertsRule = React.lazy(() => import('src/oss/views/alerts/AlertsRule'))
+const AlertsNotify = React.lazy(() => import('src/oss/views/alerts/AlertsNotify'))
 const ConfigPage = React.lazy(() => import('src/oss/views/config/index'))
-const UserPage = React.lazy(() => import('../core/views/UserPage/index.jsx'))
-const UserManage = React.lazy(() => import('../core/views/UserManage/index.jsx'))
-
-const namespace = 'oss/routes'
 
 const ossRoutes = [
   {
@@ -44,54 +47,29 @@ const ossRoutes = [
     element: FullLogsPage,
   },
   {
-    path: '/trace',
-    name: <TranslationCom text="tracesName" space={namespace} />,
-    element: TracePage,
+    path: '/trace/fault-site',
+    name: '故障现场链路',
+    element: FaultSiteTrace,
     hideSystemTimeRangePicker: true,
   },
   {
-    path: '/basic-dashboard',
-    name: <TranslationCom text="infrastructureDashboardName" space={namespace} />,
-    element: BasicDashboard,
-  },
-  {
-    path: '/system-dashboard',
-    name: <TranslationCom text="overviewDashboardName" space={namespace} />,
-    element: SystemDashboard,
-  },
-  {
-    path: '/application-dashboard',
-    name: <TranslationCom text="applicationDashboardName" space={namespace} />,
-    element: ApplicationDashboard,
-  },
-  {
-    path: '/middleware-dashboard',
-    name: <TranslationCom text="middlewareDashboardName" space={namespace} />,
-    element: MiddlewareDashboard,
-  },
-  {
-    path: '/alerts',
-    name: <TranslationCom text="alertsName" space={namespace} />,
-    element: Alerts,
+    path: '/trace/full',
+    name: '全量链路',
+    element: FullTrace,
     hideSystemTimeRangePicker: true,
   },
+  { path: '/basic-dashboard', name: '应用基础设施大盘', element: BasicDashboard },
+  { path: '/system-dashboard', name: '全局资源大盘', element: SystemDashboard },
+  { path: '/application-dashboard', name: '应用指标大盘', element: ApplicationDashboard },
+  { path: '/middleware-dashboard', name: '中间件大盘', element: MiddlewareDashboard },
+  // { path: '/alerts', name: '告警规则', hideSystemTimeRangePicker: true },
+  { path: '/alerts/rule', name: '告警规则', element: AlertsRule, hideSystemTimeRangePicker: true },
   {
-    path: '/config',
-    name: <TranslationCom text="configurationsName" space={namespace} />,
-    element: ConfigPage,
+    path: '/alerts/notify',
+    name: '告警通知',
+    element: AlertsNotify,
     hideSystemTimeRangePicker: true,
   },
-  {
-    path: '/user',
-    name: <TranslationCom text="userCenterName" space={namespace} />,
-    element: UserPage,
-    hideSystemTimeRangePicker: true,
-  },
-  {
-    path: '/system/user-manage',
-    name: <TranslationCom text="userManageName" space={namespace} />,
-    element: UserManage,
-    hideSystemTimeRangePicker: true,
-  },
+  { path: '/config', name: '配置中心', element: ConfigPage, hideSystemTimeRangePicker: true },
 ]
 export default ossRoutes

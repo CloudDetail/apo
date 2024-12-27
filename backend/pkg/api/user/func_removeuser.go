@@ -1,9 +1,10 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package user
 
 import (
 	"errors"
-	"github.com/CloudDetail/apo/backend/config"
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
@@ -19,7 +20,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Authorization header string false "Bearer accessToken"
-// @Param username formData string true "请求信息"
+// @Param userId formData int64 true "请求信息"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/user/remove [post]
@@ -34,23 +35,8 @@ func (h *handler) RemoveUser() core.HandlerFunc {
 			)
 			return
 		}
-		if req.Username == config.Get().User.AnonymousUser.Username {
-			c.AbortWithError(core.Error(
-				http.StatusBadRequest,
-				code.UserNoPermissionError,
-				code.Text(code.UserNoPermissionError)))
-			return
-		}
-		username, _ := c.Get(middleware.UserKey)
-		if username == req.Username {
-			c.AbortWithError(core.Error(
-				http.StatusBadRequest,
-				code.UserRemoveSelfError,
-				code.Text(code.UserRemoveSelfError)))
-			return
-		}
 
-		err := h.userService.RemoveUser(req.Username, username.(string))
+		err := h.userService.RemoveUser(req.UserID)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {

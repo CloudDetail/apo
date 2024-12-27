@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { CCard } from '@coreui/react'
 import React, { useMemo } from 'react'
 import BasicTable from 'src/core/components/Table/basicTable'

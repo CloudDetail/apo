@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Descriptions, Dropdown, Space, theme } from 'antd'
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { MdOutlineManageSearch } from 'react-icons/md'

@@ -1,0 +1,49 @@
+header:
+  license:
+    spdx-id: Apache-2.0
+    copyright-owner: CloudDetail
+    content: |
+      SPDX-License-Identifier: Apache-2.0
+  
+  paths:
+    - 'backend/**'
+    - 'frontend/**'
+
+  paths-ignore:
+    - '**/*.md'
+    - '**/*.json'
+    - '**/*.yaml'
+    - '**/*.yml'
+    - '**/*.html'
+    - '**/*.sql'
+    - '**/*.svg'
+    - '**/*.tmpl'
+    - '**/Dockerfile'
+    - 'backend/docs/docs.go'
+    - 'backend/pkg/model/amconfig/config.go'
+    - 'backend/pkg/model/amconfig/httpconfig/config.go'
+    - 'backend/pkg/model/amconfig/httpconfig/headers.go'
+    - 'backend/pkg/model/amconfig/httpconfig/http_config.go'
+    - 'backend/pkg/model/amconfig/notifiers.go'
+    - 'backend/pkg/model/minheap.go'
+    - 'backend/pkg/services/alerts/notification/assets.go'
+    - 'backend/pkg/services/alerts/notification/funcs.go'
+    - 'backend/pkg/services/alerts/notification/template.go'
+    - 'backend/go.mod'
+    - 'backend/go.sum'
+    - 'frontend/.browserslistrc'
+    - 'frontend/.editorconfig'
+    - 'frontend/.eslintrc.js'
+    - 'frontend/.gitattributes'
+    - 'frontend/.prettierignore'
+    - 'frontend/.prettierrc.js'
+    - 'frontend/nginx.conf'
+    - 'frontend/postcss.config.js'
+    - 'frontend/tailwind.config.js'
+    - 'frontend/src/oss/views/alerts/modal/compontents/defaultHTMLcontext.js'
+    - 'LICENSE'
+    - 'NOTICE'
+    - ".gitignore"
+    - ".gitmodules"
+
+  comment: on-failure

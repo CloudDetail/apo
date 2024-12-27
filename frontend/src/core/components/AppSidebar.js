@@ -1,19 +1,19 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useEffect, useState } from 'react'
 
 // sidebar nav config
-import { _nav as navigation } from 'src/_nav'
+import { navIcon } from 'src/_nav'
 import { ConfigProvider, Menu } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
-import userReducer, { initialState } from '../store/reducers/userReducer'
-import { useReducer } from 'react'
-import { getUserInfoApi } from '../api/user'
-import { showToast } from '../utils/toast'
 import { useUserContext } from '../contexts/UserContext'
-
 const AppSidebarMenuIcon = (menuItem) => {
   return (
     <div className="appSidebarMenuIcon">
-      <div>{menuItem.icon}</div>
+      <div>{navIcon[menuItem.key]}</div>
       <span className="text-xs ">
         {menuItem.abbreviation ? menuItem.abbreviation : menuItem.label}
       </span>
@@ -21,25 +21,29 @@ const AppSidebarMenuIcon = (menuItem) => {
   )
 }
 const AppSidebar = ({ collapsed }) => {
-  const { user, dispatchUser } = useUserContext()
+  const { menuItems, user } = useUserContext()
   const location = useLocation()
   const navigate = useNavigate()
   const [selectedKeys, setSelectedKeys] = useState([])
   const [openKeys, setOpenKeys] = useState([])
+  const [memoOpenKeys, setMemoOpenKeys] = useState(['logs', 'trace', 'alerts'])
   const [menuList, setMenuList] = useState([])
-  const getItems = () => {
-    return user.user.username !== 'anonymous'
-      ? navigation.map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) }))
-      : navigation
-          .filter((item) => {
-            if (item.key !== 'manage') return item
-          })
-          .map((item) => ({ ...item, icon: AppSidebarMenuIcon(item) }))
+
+  function prepareMenu(menu) {
+    return {
+      key: menu.key,
+      label: menu.label,
+      abbreviation: menu.abbreviation,
+      icon: AppSidebarMenuIcon(menu),
+      to: menu.router?.to,
+      children: menu.children?.map((child) => prepareMenu(child)),
+    }
   }
 
   useEffect(() => {
-    setMenuList(getItems())
-  }, [user.user.username])
+    const items = menuItems?.length ? menuItems.map(prepareMenu) : []
+    setMenuList(items)
+  }, [menuItems])
 
   const onClick = ({ item, key, keyPath, domEvent }) => {
     navigate(item.props.to)
@@ -56,13 +60,19 @@ const AppSidebar = ({ collapsed }) => {
     })
     return result
   }
+  const onOpenChange = (openKeys) => {
+    if (!collapsed) {
+      setOpenKeys(openKeys)
+      setMemoOpenKeys(openKeys)
+    }
+  }
   useEffect(() => {
-    const result = getItemKey(navigation)
+    const result = getItemKey(menuList)
     setSelectedKeys(result)
-  }, [location.pathname])
+  }, [location.pathname, menuList])
   useEffect(() => {
     if (!collapsed) {
-      setOpenKeys(['logs', 'manage'])
+      setOpenKeys(memoOpenKeys)
     } else {
       setOpenKeys([])
     }
@@ -86,7 +96,8 @@ const AppSidebar = ({ collapsed }) => {
         onClick={onClick}
         selectedKeys={selectedKeys}
         openKeys={openKeys}
-        className="pb-20"
+        onOpenChange={onOpenChange}
+        className="sidebarMenu pb-20"
       ></Menu>
     </ConfigProvider>
   )

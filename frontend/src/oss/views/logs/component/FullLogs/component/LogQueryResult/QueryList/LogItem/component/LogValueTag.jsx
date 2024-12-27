@@ -1,8 +1,13 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Tag, Tooltip } from 'antd'
 import React from 'react'
 import LogTagDropDown from './LogTagDropdown'
 // value作为tag内容
-const LogValueTag = (props) => {
+const LogValueTag = React.memo((props) => {
   const { objKey, value } = props
   return (
     <LogTagDropDown
@@ -17,5 +22,5 @@ const LogValueTag = (props) => {
       }
     />
   )
-}
+})
 export default LogValueTag

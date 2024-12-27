@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useEffect, useMemo, useState } from 'react'
 import { CustomSelect } from 'src/core/components/Select'
 import BasicTable from 'src/core/components/Table/basicTable'

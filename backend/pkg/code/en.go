@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package code
 
 var enText = map[string]string{
@@ -123,4 +126,18 @@ var enText = map[string]string{
 	UserPasswordSimpleError:    "Password too week, contains at least one uppercase, lowercase, special characters, and numbers and length greater than 8",
 	UserRemoveSelfError:        "Cannot remove yourself",
 	UserNoPermissionError:      "You have no permission",
+	UserEmailUsed:              "Email was used",
+	UserPhoneUsed:              "Phone was used",
+	UserPhoneFormatError:       "Phone number format incorrect",
+	UserGrantRoleError:         "Failed to grant permission",
+	UserGetRolesERROR:          "Failed to get roles",
+	RoleNotExistsError:         "Role does not exist",
+	GetMenuConfigError:         "Failed to get menu config",
+	UpdateMenuConfigError:      "Failed to update menu config",
+	RoleGrantedError:           "Role already granted to user",
+	GetFeatureError:            "Failed to get feature list",
+	AuthSubjectNotExistError:   "Subject of authorisation does not exist",
+	UserGrantPermissionError:   "Failed to grant permission",
+	ConfigureMenuError:         "Failed to configure menu",
+	PermissionNotExistError:    "Menu item does not exist",
 }

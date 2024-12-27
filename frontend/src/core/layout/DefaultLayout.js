@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useState } from 'react'
 import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/index'
 import { Layout } from 'antd'
@@ -22,7 +27,7 @@ const DefaultLayout = () => {
         onMouseLeave={() => setCollapsed(true)}
         collapsedWidth={70}
         style={{
-          overflow: 'auto',
+          overflow: 'hidden',
           transition: 'all 0.3s',
           position: 'fixed',
           zIndex: 999,
@@ -31,15 +36,17 @@ const DefaultLayout = () => {
         width={250}
         className={collapsed ? 'siderCollapsed border-end' : 'border-end'}
       >
-        <div className="h-[60px] flex w-full overflow-hidden items-center">
-          <CImage
-            src={logo}
-            className="w-[42px] sidebar-brand-narrow flex-shrink-0 m-3"
-            alt="CoreuiVue"
-          />
-          <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span>
+        <div className="flex h-full flex-col">
+          <div className="h-[60px] flex w-full overflow-hidden items-center">
+            <CImage
+              src={logo}
+              className="w-[42px] sidebar-brand-narrow flex-shrink-0 m-3"
+              alt="CoreuiVue"
+            />
+            <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span>
+          </div>
+          <AppSidebar collapsed={collapsed} />
         </div>
-        <AppSidebar collapsed={collapsed} />
       </Sider>
       <Layout>
         <AppHeader />

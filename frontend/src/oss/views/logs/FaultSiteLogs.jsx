@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useEffect, useRef, useState } from 'react'
 import { CTab, CTabList, CTabs, CRow, CCol, CCard, CToast, CToastBody } from '@coreui/react'
 import { convertTime } from 'src/core/utils/time'
@@ -34,9 +39,9 @@ function FaultSiteLogs(props) {
     endTime: null,
     service: '',
     instance: '',
+    namespace: '',
     traceId: '',
     pageIndex: 1,
-    namespace: '',
     selectInstanceOption: {},
   })
   const changeActiveItemKey = (key) => {
@@ -130,6 +135,7 @@ function FaultSiteLogs(props) {
       endTime,
       service,
       instance,
+      namespace,
       traceId,
       namespace,
       pageIndex,

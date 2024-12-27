@@ -1,50 +1,27 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package middleware
 
 import (
-	"github.com/CloudDetail/apo/backend/config"
-	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
-	"github.com/CloudDetail/apo/backend/pkg/util"
-	"github.com/gin-gonic/gin"
-	"net/http"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/services/user"
 )
 
-const UserKey = "username"
+var _ Middleware = (*middleware)(nil)
 
-func Auth(tokenCache cache.Repo) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		rawToken := c.Request.Header.Get("Authorization")
-		token := util.ParseRawToken(rawToken)
-		if len(token) == 0 {
-			if config.Get().User.AnonymousUser.Enable {
-				c.Set(UserKey, config.Get().User.AnonymousUser.Username)
-				c.Next()
-				return
-			} else {
-				err := core.Error(http.StatusBadRequest, code.UnAuth, code.Text(code.UnAuth))
-				c.AbortWithStatus(http.StatusBadRequest)
-				c.Set("_abort_error_", err)
-				return
-			}
-		}
+type Middleware interface {
+	AuthMiddleware() core.HandlerFunc
+}
 
-		// TODO handle error when switch to redis
-		if ok, _ := tokenCache.IsInBlackList(token); ok {
-			err := core.Error(http.StatusBadRequest, code.InValidToken, code.Text(code.InValidToken))
-			c.AbortWithStatus(http.StatusBadRequest)
-			c.Set("_abort_error_", err)
-			return
-		}
-		claims, err := util.ParseAccessToken(token)
-		if err != nil {
-			err := core.Error(http.StatusBadRequest, code.InValidToken, code.Text(code.InValidToken))
-			c.AbortWithStatus(http.StatusBadRequest)
-			c.Set("_abort_error_", err)
-			return
-		}
+type middleware struct {
+	userService user.Service
+}
 
-		c.Set(UserKey, claims.Username)
-		c.Next()
+func New(cacheRepo cache.Repo, dbRepo database.Repo) Middleware {
+	return &middleware{
+		userService: user.New(dbRepo, cacheRepo),
 	}
 }

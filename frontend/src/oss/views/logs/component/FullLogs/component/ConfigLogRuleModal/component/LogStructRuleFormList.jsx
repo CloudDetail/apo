@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Col, Form, Input, Row, Select } from 'antd'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
 import { useTranslation } from 'react-i18next' // 引入i18n

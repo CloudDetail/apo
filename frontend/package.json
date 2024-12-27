@@ -21,7 +21,7 @@
     "@reactflow/core": "^11.11.4",
     "@reactflow/node-resizer": "^2.2.14",
     "@tisoap/react-flow-smart-edge": "^3.0.0",
-    "antd": "^5.20.2",
+    "antd": ">5.20.2 <5.22.6",
     "axios": "^1.7.2",
     "babel-plugin-import": "^1.13.8",
     "chart.js": "^4.4.3",

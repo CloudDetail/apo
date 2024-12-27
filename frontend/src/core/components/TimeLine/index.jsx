@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useState, useEffect, useRef } from 'react'
 import CIcon from '@coreui/icons-react'
 import { cilChevronCircleLeftAlt, cilChevronCircleRightAlt } from '@coreui/icons'
@@ -86,7 +91,7 @@ const Timeline = (props) => {
         url = `/logs/fault-site?service=${item.service}&endpoint=${item.endpoint}&instance=${item.instanceId}&traceId=${item.traceId}&logs-from=${TimestampToISO(chronoList[activeKey].start)}&logs-to=${TimestampToISO(chronoList[activeKey].end)}`
         break
       case 'traceLogs':
-        url = `/trace?service=${item.service}&endpoint=${item.endpoint}&instance=${item.instanceId}&traceId=${item.traceId}&trace-from=${TimestampToISO(chronoList[activeKey].start)}&trace-to=${TimestampToISO(chronoList[activeKey].end)}`
+        url = `/trace/fault-site?service=${item.service}&endpoint=${item.endpoint}&instance=${item.instanceId}&traceId=${item.traceId}&trace-from=${TimestampToISO(chronoList[activeKey].start)}&trace-to=${TimestampToISO(chronoList[activeKey].end)}`
         sessionStorage.setItem('openJaegerModalAfterLoad', 'true')
         break
       default:

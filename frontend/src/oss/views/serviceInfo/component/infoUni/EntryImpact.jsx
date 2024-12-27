@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { CAccordionBody, CButton, CToast, CToastBody } from '@coreui/react'
 import { Tooltip } from 'antd'
 import React, { useMemo, useEffect, useState } from 'react'

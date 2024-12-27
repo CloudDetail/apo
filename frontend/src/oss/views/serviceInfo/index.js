@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { CCard, CCardHeader } from '@coreui/react'
 import React, { useState, useEffect } from 'react'
 import Topology from 'src/core/components/ReactFlow/Topology'

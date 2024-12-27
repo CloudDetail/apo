@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useState, useEffect, useReducer } from 'react'
 import { Button, Input, Form, Flex, Checkbox } from 'antd'
 import { loginApi } from 'core/api/user'
@@ -38,12 +43,6 @@ export default function Login() {
               : localStorage.removeItem('username')
             localStorage.setItem('remeberMe', String(remeberMe))
           }
-          const user = await getUserInfoApi()
-          // @ts-ignore
-          dispatchUser({
-            type: 'addUser',
-            payload: JSON.stringify(user),
-          })
         } catch (error) {
           console.error(error)
         } finally {
@@ -98,7 +97,7 @@ export default function Login() {
             <label className="text-xs">{t('index.password')}</label>
             <Form.Item
               name="password"
-              rules={[{ required: true, message: t('index.enterPassword') }]}
+              rules={[{ required: true, message: t('index.enterUsername') }]}
             >
               <Input.Password
                 size="large"
@@ -112,7 +111,7 @@ export default function Login() {
               size="large"
               disabled={loading}
               onClick={login}
-              className="bg-[#455EEB] border-none w-full border-none"
+              className="bg-[#455EEB] w-full border-none"
             >
               {loading ? <AiOutlineLoading className="animate-spin" /> : t('index.login')}
             </Button>

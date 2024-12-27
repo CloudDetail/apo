@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React from 'react'
 import CIcon from '@coreui/icons-react'
 import { cilSpeedometer } from '@coreui/icons'
@@ -10,7 +15,6 @@ import { MdOutlineSettings } from 'react-icons/md'
 import { IoIosTrendingUp, IoMdCloudOutline } from 'react-icons/io'
 import { TbWaveSawTool } from 'react-icons/tb'
 import { GrSystem } from 'react-icons/gr'
-import TranslationCom from './oss/components/TranslationCom'
 
 const namespace = 'oss/routes'
 const commercialNav = []
@@ -24,8 +28,8 @@ const _nav = [
   },
   {
     key: 'logs',
-    label: <TranslationCom text="logsName" space={namespace} />,
-    to: '/logs',
+    label: '日志检索',
+    // to: '/logs',
     icon: <LuFileText />,
     children: [
       {
@@ -43,8 +47,11 @@ const _nav = [
   {
     key: 'trace',
     icon: <PiPath />,
-    label: <TranslationCom text="tracesName" space={namespace} />,
-    to: '/trace',
+    label: '链路追踪',
+    children: [
+      { key: 'faultSiteTrace', label: '故障现场链路', to: '/trace/fault-site' },
+      { key: 'fullTrace', label: '全量链路', to: '/trace/full' },
+    ],
   },
   {
     key: 'system',
@@ -79,8 +86,12 @@ const _nav = [
   {
     key: 'alerts',
     icon: <FaRegBell />,
-    label: <TranslationCom text="alertsName" space={namespace} />,
+    label: '告警管理',
     to: '/alerts',
+    children: [
+      { key: 'alertsRule', label: '告警规则', to: '/alerts/rule' },
+      { key: 'alertsNotify', label: '告警通知', to: '/alerts/notify' },
+    ],
   },
   {
     key: 'config',
@@ -95,13 +106,23 @@ const _nav = [
     label: <TranslationCom text="systemSettingsName" space={namespace} />,
     abbreviation: <TranslationCom text="systemSettingsAbbreviationName" space={namespace} />,
     children: [
-      {
-        key: 'userManage',
-        label: <TranslationCom text="userManageName" space={namespace} />,
-        to: '/system/user-manage',
-      },
+      { key: 'userManage', label: '用户管理', to: '/system/user-manage' },
+      { key: 'menuManage', label: '菜单管理', to: '/system/menu-manage' },
     ],
   },
 ]
-
-export { _nav, commercialNav }
+const navIcon = {
+  service: <IoMdCloudOutline />,
+  logs: <LuFileText />,
+  trace: <PiPath />,
+  system: <AiOutlineDashboard />,
+  basic: <AiOutlineDashboard />,
+  application: <AiOutlineDashboard />,
+  middleware: <AiOutlineDashboard />,
+  config: <MdOutlineSettings />,
+  manage: <GrSystem />,
+  alerts: <FaRegBell />,
+  mysql: <AiOutlineDashboard />,
+  healthy: <TbWaveSawTool />,
+}
+export { _nav, commercialNav, navIcon }

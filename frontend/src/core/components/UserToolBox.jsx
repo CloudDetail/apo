@@ -10,7 +10,7 @@ import { useUserContext } from '../contexts/UserContext'
 import { useTranslation } from 'react-i18next'
 
 const UserToolBox = () => {
-  const { user, dispatchUser } = useUserContext()
+  const { user, dispatch } = useUserContext()
   const navigate = useNavigate()
   const { t } = useTranslation('core/userToolBox')
 
@@ -79,6 +79,7 @@ const UserToolBox = () => {
         })
       })
       .catch((error) => {
+        navigate('/login')
         console.error(error)
       })
   }
@@ -96,7 +97,7 @@ const UserToolBox = () => {
               <HiUserCircle className="w-8 h-8" />
             </div>
             <div className="h-1/2 flex flex-col justify-center">
-              <p className="text-base relative -top-0.5">{user.user?.username}</p>
+              <p className="text-base relative -top-0.5">{user?.username}</p>
             </div>
           </div>
         </Popover>

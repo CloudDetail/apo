@@ -1,0 +1,489 @@
+service:
+  key: "service"
+  i18n:
+    - language: "en"
+      translation: "Services Overview"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "服务概览"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "Services"
+      field_name: "abbreviation"
+      entity_type: "menu"
+
+logs:
+  key: "logs"
+  i18n:
+  - language: "en"
+    translation: "Logs"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "日志检索"
+    field_name: "label"
+    entity_type: "menu"
+
+faultSite:
+  key: "faultSite"
+  i18n:
+  - language: "en"
+    translation: "Fault Logs"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "故障现场日志"
+    field_name: "label"
+    entity_type: "menu"
+
+full:
+  key: "full"
+  i18n:
+  - language: "en"
+    translation: "All Logs"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "全量日志"
+    field_name: "label"
+    entity_type: "menu"
+
+trace:
+  key: "trace"
+  i18n:
+  - language: "en"
+    translation: "Traces"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "链路追踪"
+    field_name: "label"
+    entity_type: "menu"
+
+faultSiteTrace:
+  key: "faultSiteTrace"
+  i18n:
+  - language: "en"
+    translation: "Fault Traces"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "故障现场链路"
+    field_name: "label"
+    entity_type: "menu"
+
+fullTrace:
+  key: "fullTrace"
+  i18n:
+  - language: "en"
+    translation: "All Traces"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "全量链路"
+    field_name: "label"
+    entity_type: "menu"
+
+system:
+  key: "system"
+  i18n:
+  - language: "en"
+    translation: "Overview Dashboard"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "全局资源大盘"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "全局资源"
+    field_name: "abbreviation"
+    entity_type: "menu"
+  - language: "en"
+    translation: "Overview"
+    field_name: "abbreviation"
+    entity_type: "menu"
+
+basic:
+  key: "basic"
+  i18n:
+  - language: "en"
+    translation: "Infrastructure Dashboard"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "应用基础设施大盘"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "en"
+    translation: "Infrastructure"
+    field_name: "abbreviation"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "基础设施"
+    field_name: "abbreviation"
+    entity_type: "menu"
+
+application:
+  key: "application"
+  i18n:
+  - language: "en"
+    translation: "Application Dashboard"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "应用指标大盘"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "en"
+    translation: "Application"
+    field_name: "abbreviation"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "应用指标"
+    field_name: "abbreviation"
+    entity_type: "menu"
+
+middleware:
+  key: "middleware"
+  i18n:
+  - language: "en"
+    translation: "Middleware Dashboard"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "中间件大盘"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "en"
+    translation: "Middleware"
+    field_name: "abbreviation"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "中间件"
+    field_name: "abbreviation"
+    entity_type: "menu"
+
+alerts:
+  key: "alerts"
+  i18n:
+  - language: "en"
+    translation: "Alerts Settings"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "告警管理"
+    field_name: "label"
+    entity_type: "menu"
+
+alertsRule:
+  key: "alertsRule"
+  i18n:
+    - language: "en"
+      translation: "Alerts Rules"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "告警规则"
+      field_name: "label"
+      entity_type: "menu"
+
+alertsNotify:
+  key: "alertsNotify"
+  i18n:
+    - language: "en"
+      translation: "Notification Channels"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "告警通知"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "Notification"
+      field_name: "abbreviation"
+      entity_type: "menu"
+
+config:
+  key: "config"
+  i18n:
+  - language: "en"
+    translation: "Configurations"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "配置中心"
+    field_name: "label"
+    entity_type: "menu"
+
+manage:
+  key: "manage"
+  i18n:
+  - language: "en"
+    translation: "System Settings"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "系统管理"
+    field_name: "label"
+    entity_type: "menu"
+
+userManage:
+  key: "userManage"
+  i18n:
+  - language: "en"
+    translation: "User Settings"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "用户管理"
+    field_name: "label"
+    entity_type: "menu"
+
+menuManage:
+  key: "menuManage"
+  i18n:
+  - language: "en"
+    translation: "Menu Settings"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "菜单管理"
+    field_name: "label"
+    entity_type: "menu"
+
+服务概览:
+  key: "服务概览"
+  i18n:
+  - language: "en"
+    translation: "Services Overview"
+    entity_type: "feature"
+    field_name: "featureName"
+  - language: "zh"
+    translation: "服务概览"
+    entity_type: "feature"
+    field_name: "featureName"
+
+日志检索:
+  key: "日志检索"
+  i18n:
+  - language: "en"
+    translation: "Logs"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "日志检索"
+    entity_type: "feature"
+    field_name: "featureName"
+
+故障现场日志:
+  key: "故障现场日志"
+  i18n:
+  - language: "en"
+    translation: "Fault Logs"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "故障现场日志"
+    entity_type: "feature"
+    field_name: "featureName"
+
+全量日志:
+  key: "全量日志"
+  i18n:
+  - language: "en"
+    translation: "All Logs"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "全量日志"
+    entity_type: "feature"
+    field_name: "featureName"
+
+链路追踪:
+  key: "链路追踪"
+  i18n:
+  - language: "en"
+    translation: "Traces"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "链路追踪"
+    entity_type: "feature"
+    field_name: "featureName"
+
+故障现场链路:
+  key: "故障现场链路"
+  i18n:
+  - language: "en"
+    translation: "Fault Traces"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "故障现场链路"
+    entity_type: "feature"
+    field_name: "featureName"
+
+全量链路:
+  key: "全量链路"
+  i18n:
+  - language: "en"
+    translation: "All Traces"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "全量链路"
+    entity_type: "feature"
+    field_name: "featureName"
+
+全局资源大盘:
+  key: "全局资源大盘"
+  i18n:
+  - language: "en"
+    translation: "Overview Dashboard"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "全局资源大盘"
+    entity_type: "feature"
+    field_name: "featureName"
+
+应用基础设施大盘:
+  key: "应用基础设施大盘"
+  i18n:
+  - language: "en"
+    translation: "Infrastructure Dashboard"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "应用基础设施大盘"
+    entity_type: "feature"
+    field_name: "featureName"
+
+应用指标大盘:
+  key: "应用指标大盘"
+  i18n:
+  - language: "en"
+    translation: "Application Dashboard"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "应用指标大盘"
+    entity_type: "feature"
+    field_name: "featureName"
+
+中间件大盘:
+  key: "中间件大盘"
+  i18n:
+  - language: "en"
+    translation: "Middleware Dashboard"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "中间件大盘"
+    entity_type: "feature"
+    field_name: "featureName"
+
+告警管理:
+  key: "告警管理"
+  i18n:
+    - language: "en"
+      translation: "Alerts Settings"
+      entity_type: "feature"
+      field_name: "featureName"
+
+    - language: "zh"
+      translation: "告警管理"
+      entity_type: "feature"
+      field_name: "featureName"
+
+
+告警规则:
+  key: "告警规则"
+  i18n:
+  - language: "en"
+    translation: "Alerts Rules"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "告警规则"
+    entity_type: "feature"
+    field_name: "featureName"
+
+告警通知:
+  key: "告警通知"
+  i18n:
+    - language: "en"
+      translation: "Notification Channels"
+      entity_type: "feature"
+      field_name: "featureName"
+    - language: "zh"
+      translation: "告警通知"
+      entity_type: "feature"
+      field_name: "featureName"
+
+配置中心:
+  key: "配置中心"
+  i18n:
+  - language: "en"
+    translation: "Configurations"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "配置中心"
+    entity_type: "feature"
+    field_name: "featureName"
+
+
+系统管理:
+  key: "系统管理"
+  i18n:
+  - language: "en"
+    translation: "System Settings"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "系统管理"
+    entity_type: "feature"
+    field_name: "featureName"
+
+用户管理:
+  key: "用户管理"
+  i18n:
+  - language: "en"
+    translation: "User Settings"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "用户管理"
+    entity_type: "feature"
+    field_name: "featureName"
+
+菜单管理:
+  key: "菜单管理"
+  i18n:
+  - language: "en"
+    translation: "Menu Management"
+    entity_type: "feature"
+    field_name: "featureName"
+
+  - language: "zh"
+    translation: "菜单管理"
+    entity_type: "feature"
+    field_name: "featureName"

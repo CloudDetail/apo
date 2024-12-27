@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Form, Input, InputNumber, Table, Typography } from 'antd'
 import React, { useState } from 'react'
 import { setSingleTableTTLApi } from 'core/api/config'

@@ -347,18 +347,81 @@ definitions:
       unit:
         type: string
     type: object
+  database.Feature:
+    properties:
+      featureId:
+        type: integer
+      featureName:
+        type: string
+      source:
+        type: string
+    type: object
+  database.InsertPage:
+    properties:
+      pageId:
+        type: integer
+      type:
+        description: For now it's grafana or jaeger.
+        type: string
+      url:
+        type: string
+    type: object
+  database.MenuItem:
+    properties:
+      abbreviation:
+        type: string
+      icon:
+        type: string
+      itemId:
+        type: integer
+      key:
+        type: string
+      label:
+        description: AKA item name.
+        type: string
+      router:
+        allOf:
+        - $ref: '#/definitions/database.Router'
+        description: Frontend router.
+    type: object
+  database.Role:
+    properties:
+      roleId:
+        type: integer
+      roleName:
+        type: string
+    type: object
+  database.Router:
+    properties:
+      hideTimeSelector:
+        type: boolean
+      page:
+        $ref: '#/definitions/database.InsertPage'
+      routerId:
+        type: integer
+      to:
+        type: string
+    type: object
   database.User:
     properties:
       corporation:
         type: string
       email:
         type: string
-      password:
-        type: string
+      featureList:
+        items:
+          $ref: '#/definitions/database.Feature'
+        type: array
       phone:
         type: string
       role:
         type: string
+      roleList:
+        items:
+          $ref: '#/definitions/database.Role'
+        type: array
+      userId:
+        type: integer
       username:
         type: string
     type: object
@@ -1151,6 +1214,8 @@ definitions:
         type: string
       endTime:
         type: integer
+      isExternal:
+        type: boolean
       logField:
         type: string
       pageNum:
@@ -1889,18 +1954,37 @@ definitions:
       pagination:
         $ref: '#/definitions/model.Pagination'
     type: object
+  response.GetUserConfigResponse:
+    properties:
+      menuItem:
+        items:
+          $ref: '#/definitions/database.MenuItem'
+        type: array
+      routes:
+        items:
+          type: string
+        type: array
+    type: object
   response.GetUserInfoResponse:
     properties:
       corporation:
         type: string
       email:
         type: string
-      password:
-        type: string
+      featureList:
+        items:
+          $ref: '#/definitions/database.Feature'
+        type: array
       phone:
         type: string
       role:
         type: string
+      roleList:
+        items:
+          $ref: '#/definitions/database.Role'
+        type: array
+      userId:
+        type: integer
       username:
         type: string
     type: object
@@ -2119,12 +2203,14 @@ definitions:
       cost:
         type: integer
       defaultFields:
+        description: tag field
         items:
           type: string
         type: array
       error:
         type: string
       hiddenFields:
+        description: log field
         items:
           type: string
         type: array
@@ -2164,8 +2250,28 @@ definitions:
       accessToken:
         description: accessToken用于调用接口获取资源
         type: string
+      corporation:
+        type: string
+      email:
+        type: string
+      featureList:
+        items:
+          $ref: '#/definitions/database.Feature'
+        type: array
+      phone:
+        type: string
       refreshToken:
         description: refreshToken用于刷新accessToken
+        type: string
+      role:
+        type: string
+      roleList:
+        items:
+          $ref: '#/definitions/database.Role'
+        type: array
+      userId:
+        type: integer
+      username:
         type: string
     type: object
   response.MonitorStatus:
@@ -3733,6 +3839,269 @@ paths:
       summary: 客户端对外调用Span网络耗时分段指标
       tags:
       - API.Network
+  /api/permission/config:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get user's menu config.
+      parameters:
+      - description: 用户id
+        in: query
+        name: userId
+        required: true
+        type: integer
+      - description: language
+        in: query
+        name: language
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetUserConfigResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Gets user's menu config and which route can access.
+      tags:
+      - API.permission
+  /api/permission/feature:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Gets all feature permission.
+      parameters:
+      - description: language
+        in: query
+        name: language
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Feature'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Gets all feature permission.
+      tags:
+      - API.permission
+  /api/permission/menu/configure:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Configure global menu.
+      parameters:
+      - collectionFormat: multi
+        description: 功能id列表
+        in: formData
+        items:
+          type: integer
+        name: permissionList
+        required: true
+        type: array
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Configure global menu.
+      tags:
+      - API.permission
+  /api/permission/operation:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Grant or revoke user's permission(feature).
+      parameters:
+      - description: 授权主体id
+        in: formData
+        name: subjectId
+        required: true
+        type: integer
+      - description: '授权主体类型: ''role'',''user'',''team'''
+        in: formData
+        name: subjectType
+        required: true
+        type: string
+      - description: '授权类型: ''feature'',''data'''
+        in: formData
+        name: type
+        required: true
+        type: string
+      - collectionFormat: multi
+        description: 权限id列表
+        in: formData
+        items:
+          type: integer
+        name: permissionList
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Grant or revoke user's permission(feature).
+      tags:
+      - API.permission
+  /api/permission/role:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get user's role.
+      parameters:
+      - description: 用户id
+        in: query
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Role'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get user's role.
+      tags:
+      - API.permission
+  /api/permission/role/operation:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Grants permission to user
+      parameters:
+      - description: 用户id
+        in: formData
+        name: userId
+        type: integer
+      - collectionFormat: multi
+        description: 角色id
+        in: formData
+        items:
+          type: integer
+        name: roleList
+        type: array
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Grant or revoke user's role.
+      tags:
+      - API.permission
+  /api/permission/roles:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Gets all roles.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Role'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Gets all roles.
+      tags:
+      - API.permission
+  /api/permission/sub/feature:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Gets subject's permission.
+      parameters:
+      - description: language
+        in: query
+        name: language
+        type: string
+      - description: 授权主体id
+        in: query
+        name: subjectId
+        required: true
+        type: integer
+      - description: 授权主体类型
+        in: query
+        name: subjectType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Feature'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Gets subject's permission.
+      tags:
+      - API.permission
   /api/service/alert/events:
     get:
       consumes:
@@ -4377,6 +4746,48 @@ paths:
       summary: 获取服务下拉实例列表
       tags:
       - API.service
+  /api/service/instanceinfo/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      deprecated: true
+      description: 获取服务实例列表
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取服务实例列表
+      tags:
+      - API.service
   /api/service/instances:
     get:
       consumes:
@@ -4406,7 +4817,6 @@ paths:
       - description: endpoint
         in: query
         name: endpoint
-        required: true
         type: string
       - description: Bearer accessToken
         in: header
@@ -5521,6 +5931,13 @@ paths:
         name: confirmPassword
         required: true
         type: string
+      - collectionFormat: multi
+        description: 角色id
+        in: formData
+        items:
+          type: integer
+        name: roleList
+        type: array
       - description: 邮箱
         in: formData
         name: email
@@ -5716,9 +6133,9 @@ paths:
         type: string
       - description: 请求信息
         in: formData
-        name: username
+        name: userId
         required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
@@ -5739,11 +6156,11 @@ paths:
       - application/x-www-form-urlencoded
       description: 重设密码
       parameters:
-      - description: 用户名
+      - description: 用户id
         in: formData
-        name: username
+        name: userId
         required: true
-        type: string
+        type: integer
       - description: 新密码
         in: formData
         name: newPassword
@@ -5779,11 +6196,11 @@ paths:
       - application/x-www-form-urlencoded
       description: 更新/绑定邮箱
       parameters:
-      - description: 用户名
+      - description: 用户id
         in: formData
-        name: username
+        name: userId
         required: true
-        type: string
+        type: integer
       - description: 邮箱
         in: formData
         name: email
@@ -5814,11 +6231,11 @@ paths:
       - application/x-www-form-urlencoded
       description: 更新个人信息
       parameters:
-      - description: 用户名
+      - description: 用户id
         in: formData
-        name: username
+        name: userId
         required: true
-        type: string
+        type: integer
       - description: 组织
         in: formData
         name: corporation
@@ -5856,11 +6273,11 @@ paths:
       - application/x-www-form-urlencoded
       description: 更新密码
       parameters:
-      - description: 用户名
+      - description: 用户id
         in: formData
-        name: username
+        name: userId
         required: true
-        type: string
+        type: integer
       - description: 原密码
         in: formData
         name: oldPassword
@@ -5901,11 +6318,11 @@ paths:
       - application/x-www-form-urlencoded
       description: 更新/绑定手机号
       parameters:
-      - description: 用户名
+      - description: 用户id
         in: formData
-        name: username
+        name: userId
         required: true
-        type: string
+        type: integer
       - description: 手机号
         in: formData
         name: phone

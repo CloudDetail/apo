@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import LogItem from './LogItem'
 import { Empty, List } from 'antd'
 import { useTranslation } from 'react-i18next' // 引入i18n

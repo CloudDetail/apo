@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useEffect, useState, useRef } from 'react'
 import ReactECharts from 'echarts-for-react'
 import { convertTime } from 'src/core/utils/time'

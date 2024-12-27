@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 import {
   getServiceListApi,
@@ -8,12 +13,9 @@ import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange, toNearestSecond } from 'src/core/store/reducers/timeRangeReducer'
 import { Select } from 'antd'
 import { getStep } from 'src/core/utils/step'
-import { useTranslation } from 'react-i18next'
 
 export const TableFilter = (props) => {
   const { setServiceName, setEndpoint, setNamespace } = props
-
-  const { t } = useTranslation('oss/service')
 
   const [serviceNameOptions, setServiceNameOptions] = useState([])
   const [endpointNameOptions, setEndpointNameOptions] = useState([])
@@ -53,7 +55,7 @@ export const TableFilter = (props) => {
     setEndpointNameOptions([])
     try {
       const newEndpointNameOptions = await Promise.all(
-        serviceNameList.map(async (element) => {
+        serviceNameList?.map(async (element) => {
           const params = {
             startTime,
             endTime,
@@ -122,7 +124,9 @@ export const TableFilter = (props) => {
   }, [])
 
   useEffect(() => {
-    removeEndpointNames()
+    if (serachServiceName) {
+      removeEndpointNames()
+    }
   }, [serachServiceName])
 
   useEffect(() => {
@@ -135,13 +139,13 @@ export const TableFilter = (props) => {
     <>
       <div className="p-2 my-2 flex flex-row w-full">
         <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
-          <span className="text-nowrap">{t('tableFilter.namespacesLabel')}：</span>
+          <span className="text-nowrap">命名空间：</span>
           <Select
             mode="multiple"
             allowClear
             id="namespace"
             className="w-full"
-            placeholder={t('tableFilter.namespacePlaceholder')}
+            placeholder="请选择"
             value={serachNamespace}
             onChange={onChangeNamespace}
             options={namespaceOptions}
@@ -150,13 +154,13 @@ export const TableFilter = (props) => {
           />
         </div>
         <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
-          <span className="text-nowrap">{t('tableFilter.applicationsLabel')}：</span>
+          <span className="text-nowrap">服务名：</span>
           <Select
             mode="multiple"
             allowClear
             className="w-full"
             id="serviceName"
-            placeholder={t('tableFilter.applicationsPlaceholder')}
+            placeholder="请选择"
             value={serachServiceName}
             onChange={onChangeServiceName}
             options={serviceNameOptions}
@@ -166,11 +170,11 @@ export const TableFilter = (props) => {
           />
         </div>
         <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
-          <span className="text-nowrap">{t('tableFilter.endpointsLabel')}：</span>
+          <span className="text-nowrap">服务端点：</span>
           <Select
             mode="multiple"
             id="endpointName"
-            placeholder={t('tableFilter.endpointsPlaceholder')}
+            placeholder="请选择"
             className="w-full"
             value={serachEndpointName}
             popupMatchSelectWidth={false}

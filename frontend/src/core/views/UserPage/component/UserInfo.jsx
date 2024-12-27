@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Button, Flex, Popconfirm, Form, Input, Collapse, Divider } from 'antd'
 import { MailOutlined, ApartmentOutlined, LockOutlined, PhoneOutlined } from '@ant-design/icons'
 import { updateEmailApi, updateCorporationApi, updatePhoneApi, getUserInfoApi } from 'core/api/user'
@@ -9,7 +14,7 @@ import { useTranslation } from 'react-i18next' // 添加i18n
 export default function UserInfo() {
   const { t } = useTranslation('oss/userPage') // 使用i18n
   const [form] = Form.useForm()
-  const { user, dispatchUser } = useUserContext()
+  const { user, dispatch } = useUserContext()
 
   async function getUserInfo() {
     try {
@@ -41,7 +46,7 @@ export default function UserInfo() {
         }
         await updateCorporationApi({ username: user.user.username, ...params })
         showToast({
-          title: t('userInfo.updateSuccess'),
+          title: '用户信息更新成功',
           color: 'success',
         })
         form.resetFields()
@@ -59,54 +64,46 @@ export default function UserInfo() {
             <Flex className="flex flex-col justify-between">
               <Flex className="flex items-center">
                 <Form.Item
-                  label={<p className="text-md">{t('userInfo.email')}</p>}
+                  label={<p className="text-md">邮件</p>}
                   name="email"
                   rules={[
                     {
                       type: 'email',
-                      message: t('userInfo.emailInvalid'),
+                      message: '请输入正确的邮箱格式',
                     },
                     {
                       required: true,
-                      message: t('userInfo.emailRequired'),
+                      message: '邮箱不能为空',
                     },
                   ]}
                 >
-                  <Input placeholder={t('userInfo.emailPlaceholder')} className="w-80" />
+                  <Input placeholder="请输入邮箱" className="w-80" />
                 </Form.Item>
               </Flex>
             </Flex>
             <Flex className="flex flex-col justify-betwwen w-full">
               <Flex className="flex items-center">
                 <Form.Item
-                  label={<p className="text-md">{t('userInfo.phone')}</p>}
+                  label={<p className="text-md">手机号</p>}
                   name="phone"
                   rules={[
-                    { required: true, message: t('userInfo.phoneRequired') },
-                    { pattern: /^1[3-9]\d{9}$/, message: t('userInfo.phoneInvalid') },
+                    { required: true, message: '请输入手机号' },
+                    { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' },
                   ]}
                 >
-                  <Input placeholder={t('userInfo.phonePlaceholder')} className="w-80" />
+                  <Input placeholder="请输入手机号" className="w-80" />
                 </Form.Item>
               </Flex>
             </Flex>
             <Flex className="flex flex-col justify-betwwen">
               <Flex className="flex items-center">
-                <Form.Item
-                  label={<p className="text-md">{t('userInfo.corporation')}</p>}
-                  name="corporation"
-                >
-                  <Input placeholder={t('userInfo.corporationPlaceholder')} className="w-80" />
+                <Form.Item label={<p className="text-md">组织</p>} name="corporation">
+                  <Input placeholder="请输入组织名" className="w-80" />
                 </Form.Item>
               </Flex>
             </Flex>
-            <Popconfirm
-              title={t('userInfo.confirmUpdate')}
-              okText={t('userInfo.okText')}
-              cancelText={t('userInfo.cancelText')}
-              onConfirm={updateEmail}
-            >
-              <Button type="primary">{t('userInfo.updateInfo')}</Button>
+            <Popconfirm title="确定要修改信息吗" onConfirm={updateEmail}>
+              <Button type="primary">修改信息</Button>
             </Popconfirm>
           </Form>
         </Flex>

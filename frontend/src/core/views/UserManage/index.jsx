@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import {
   Flex,
   Form,
@@ -37,13 +42,13 @@ export default function UserManage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [total, setTotal] = useState(0)
-  const [selectedUser, setSelectedUser] = useState('')
+  const [selectedUser, setSelectedUser] = useState(null)
   const [loading, setLoading] = useState(false)
-  const { user, dispatchUser } = useUserContext()
+  const { user, dispatch } = useUserContext()
   //移除用户
   async function removeUser(prop) {
     const params = {
-      username: prop,
+      userId: prop,
     }
     try {
       await removeUserApi(params)
@@ -53,15 +58,10 @@ export default function UserManage() {
         await getUserList()
       }
       showToast({
-        title: t('index.deleteSuccess'),
+        title: '移除用户成功',
         color: 'success',
       })
     } catch (error) {
-      const errorMessage = error.response?.data?.message || t('index.deleteFail')
-      showToast({
-        title: errorMessage,
-        color: 'danger',
-      })
       console.log(error)
     }
   }
@@ -87,7 +87,7 @@ export default function UserManage() {
     } catch (error) {
       console.error(error)
       showToast({
-        title: t('index.getUserListFail'),
+        title: '获取用户列表失败',
         color: 'danger',
       })
     } finally {
@@ -104,7 +104,7 @@ export default function UserManage() {
   //用户列表列定义
   const columns = [
     {
-      title: t('index.userName'),
+      title: '用户名',
       dataIndex: 'username',
       key: 'username',
       align: 'center',
@@ -118,28 +118,28 @@ export default function UserManage() {
     //     width: "16%"
     // },
     {
-      title: t('index.corporation'),
+      title: '组织',
       dataIndex: 'corporation',
       key: 'corporation',
       align: 'center',
       width: '16%',
     },
     {
-      title: t('index.phone'),
+      title: '手机',
       dataIndex: 'phone',
       key: 'phone',
       align: 'center',
       width: '16%',
     },
     {
-      title: t('index.email'),
+      title: '邮箱',
       dataIndex: 'email',
       key: 'email',
       align: 'center',
       width: '16%',
     },
     {
-      title: t('index.operation'),
+      title: '操作',
       dataIndex: 'username',
       key: 'username',
       align: 'center',
@@ -155,16 +155,14 @@ export default function UserManage() {
               type="text"
               className="mr-1"
             >
-              {t('index.edit')}
+              编辑
             </Button>
             <Popconfirm
-              title={t('index.confirmDelete', { name: prop })}
+              title={`确定要移除用户名为${prop}的用户吗`}
               onConfirm={() => removeUser(prop)}
-              okText={t('index.confirm')}
-              cancelText={t('index.cancel')}
             >
               <Button type="text" icon={<RiDeleteBin5Line />} danger>
-                {t('index.delete')}
+                删除
               </Button>
             </Popconfirm>
           </>
@@ -203,18 +201,18 @@ export default function UserManage() {
           <Flex className="w-full justify-between">
             <Flex className="w-full">
               <Flex className="w-auto items-center justify-start mr-5">
-                <p className="text-md mr-2">{t('index.userName')}:</p>
+                <p className="text-md mr-2">用户名称:</p>
                 <Input
-                  placeholder={t('index.search')}
+                  placeholder="检索"
                   className="w-2/3"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
               </Flex>
               <Flex className="w-auto items-center justify-start">
-                <p className="text-md mr-2">{t('index.corporation')}:</p>
+                <p className="text-md mr-2">组织:</p>
                 <Input
-                  placeholder={t('index.search')}
+                  placeholder="检索"
                   className="w-2/3"
                   value={corporation}
                   onChange={(e) => setCorporation(e.target.value)}
@@ -228,7 +226,7 @@ export default function UserManage() {
                 onClick={() => setModalAddVisibility(true)}
                 className="flex-grow-0 flex-shrink-0"
               >
-                <span className="text-xs">{t('index.addUser')}</span>
+                <span className="text-xs">新增用户</span>
               </Button>
             </Flex>
           </Flex>

@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package user
 
 import (
@@ -20,8 +23,8 @@ import (
 func (h *handler) GetUserInfo() core.HandlerFunc {
 	return func(c core.Context) {
 
-		username, _ := c.Get(middleware.UserKey)
-		resp, err := h.userService.GetUserInfo(username.(string))
+		userID := middleware.GetContextUserID(c)
+		resp, err := h.userService.GetUserInfo(userID)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

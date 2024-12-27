@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Button, Card, Popconfirm, Tree } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
@@ -113,12 +118,14 @@ const DataSourceTree = () => {
 
   const onSelect = (selectedKeys, { selected, selectedNodes }) => {
     if (selected && selectedNodes?.[0]?.tableName) {
+      updateLoading(true)
       updateTableInfo({
         dataBase: selectedNodes[0].dataBase,
         tableName: selectedNodes[0].tableName,
         cluster: selectedNodes[0].cluster,
         timeField: selectedNodes[0].timeField,
         instanceName: selectedNodes[0].instanceName,
+        type: 'database'
       })
     }
   }

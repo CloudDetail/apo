@@ -1,4 +1,9 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package request
+
+import "github.com/CloudDetail/apo/backend/pkg/model"
 
 type LoginRequest struct {
 	Username string `json:"username" form:"username" binding:"required"` // 用户名
@@ -9,6 +14,7 @@ type CreateUserRequest struct {
 	Username        string `json:"username" form:"username" binding:"required"`               // 用户名
 	Password        string `json:"password" form:"password" binding:"required"`               // 密码
 	ConfirmPassword string `json:"confirmPassword" form:"confirmPassword" binding:"required"` // 确认密码
+	RoleList        []int  `json:"roleList" form:"roleList"`                                  // Role id list
 	Email           string `json:"email" form:"email,omitempty"`
 	Phone           string `json:"phone" form:"phone,omitempty"`
 	Corporation     string `json:"corporation,omitempty" form:"corporation,omitempty"`
@@ -20,26 +26,26 @@ type LogoutRequest struct {
 }
 
 type UpdateUserInfoRequest struct {
-	Username    string `json:"username" form:"username" binding:"required"`
+	UserID      string `json:"userId" form:"userId" binding:"required"`
 	Corporation string `json:"corporation,omitempty" form:"corporation,omitempty"`
 	Phone       string `json:"phone" form:"phone,omitempty"`
 	Email       string `json:"email" form:"email,omitempty"`
 }
 
 type UpdateUserPhoneRequest struct {
-	Username string `json:"username" form:"username" binding:"required"`
-	Phone    string `json:"phone" form:"phone" binding:"required"` // 手机号
-	VCode    string `json:"vCode" form:"vCode,omitempty"`          // 验证码
+	UserID int64  `json:"userId" form:"userId" binding:"required"`
+	Phone  string `json:"phone" form:"phone" binding:"required"` // 手机号
+	VCode  string `json:"vCode" form:"vCode,omitempty"`          // 验证码
 }
 
 type UpdateUserEmailRequest struct {
-	Username string `json:"username" form:"username" binding:"required"`
-	Email    string `json:"email" form:"email" binding:"required"` // 邮箱
-	VCode    string `json:"vCode,omitempty"`                       // 验证码
+	UserID int64  `json:"userId" form:"userId" binding:"required"`
+	Email  string `json:"email" form:"email" binding:"required"` // 邮箱
+	VCode  string `json:"vCode,omitempty"`                       // 验证码
 }
 
 type UpdateUserPasswordRequest struct {
-	Username        string `json:"username" form:"username" binding:"required"`
+	UserID          int64  `json:"userId" form:"userId" binding:"required"`
 	OldPassword     string `json:"oldPassword" form:"oldPassword" binding:"required"`
 	NewPassword     string `json:"newPassword" form:"newPassword" binding:"required"`
 	ConfirmPassword string `json:"confirmPassword" form:"confirmPassword" binding:"required"`
@@ -53,11 +59,46 @@ type GetUserListRequest struct {
 }
 
 type RemoveUserRequest struct {
-	Username string `json:"username" form:"username" binding:"required"`
+	UserID int64 `json:"userId" form:"userId" binding:"required"`
 }
 
 type ResetPasswordRequest struct {
-	Username        string `json:"username" form:"username" binding:"required"`
+	UserID          int64  `json:"userId" form:"userId" binding:"required"`
 	NewPassword     string `json:"newPassword" form:"newPassword" binding:"required"`
 	ConfirmPassword string `json:"confirmPassword" form:"confirmPassword" binding:"required"`
+}
+
+type RoleOperationRequest struct {
+	UserID   int64 `form:"userId" binding:"required"`
+	RoleList []int `form:"roleList" binding:"required"`
+}
+
+type GetUserConfigRequest struct {
+	UserID int64 `form:"userId" binding:"required"`
+	model.I18nLanguage
+}
+
+type GetSubjectFeatureRequest struct {
+	SubjectID   int64  `form:"subjectId" binding:"required"`
+	SubjectType string `form:"subjectType" binding:"required"`
+	model.I18nLanguage
+}
+
+type PermissionOperationRequest struct {
+	SubjectID      int64  `form:"subjectId" binding:"required"`
+	SubjectType    string `form:"subjectType" binding:"required"` // "user", "role", "team"
+	Type           string `form:"type" binding:"required"`        // "feature", "data"
+	PermissionList []int  `form:"permissionList"`
+}
+
+type GetUserRoleRequest struct {
+	UserID int64 `form:"userId"`
+}
+
+type ConfigureMenuRequest struct {
+	PermissionList []int `form:"permissionList"`
+}
+
+type GetFeatureRequest struct {
+	model.I18nLanguage
 }

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Form, Input, Popconfirm, Button, Flex, Tooltip } from 'antd'
 import { showToast } from 'core/utils/toast'
 import { logoutApi, updatePasswordApi } from 'core/api/user'
@@ -21,8 +26,8 @@ export default function UpdatePassword() {
           const username = user.user.username
           if (!username) {
             showToast({
-              title: t('updatePassword.getUsernameFail'),
-              message: t('updatePassword.getUsernameFailMessage'),
+              title: '获取用户名失败',
+              message: '请重新登录',
               color: 'danger',
             })
             return navigate('/login')
@@ -44,15 +49,14 @@ export default function UpdatePassword() {
           localStorage.removeItem('refreshToken')
           navigate('/login')
           showToast({
-            title: t('updatePassword.updateSuccess'),
+            title: '密码重设成功,请重新登录',
             color: 'success',
           })
         } catch (error) {
           console.log(error.response.data.code)
-          const errorMessage =
-            error.response?.data?.message || error.message || t('updatePassword.updateFail')
+          const errorMessage = error.response?.data?.message || error.message || '更新密码失败'
           showToast({
-            title: t('updatePassword.error'),
+            title: '错误',
             message: errorMessage,
             color: 'danger',
           })
@@ -60,8 +64,8 @@ export default function UpdatePassword() {
       })
       .catch((error) => {
         showToast({
-          title: t('updatePassword.formValidationFail'),
-          message: error.message || t('updatePassword.formValidationFailMessage'),
+          title: '表单验证失败',
+          message: error.message || '请检查输入',
           color: 'danger',
         })
       })
@@ -74,64 +78,55 @@ export default function UpdatePassword() {
           <Flex vertical justify="start">
             <Form form={form} requiredMark={true} layout="vertical">
               <Form.Item
-                label={<p className="text-md">{t('updatePassword.oldPassword')}</p>}
+                label={<p className="text-md">旧密码</p>}
                 name="oldPassword"
-                rules={[{ required: true, message: t('updatePassword.oldPasswordRequired') }]}
+                rules={[{ required: true, message: '请输入旧密码' }]}
               >
-                <Input.Password
-                  placeholder={t('updatePassword.oldPasswordPlaceholder')}
-                  type="password"
-                  className="w-80"
-                />
+                <Input.Password placeholder="请输入旧密码" type="password" className="w-80" />
               </Form.Item>
               <Form.Item
-                label={<p className="text-md">{t('updatePassword.newPassword')}</p>}
+                label={<p className="text-md">新密码</p>}
                 name="newPassword"
                 rules={[
-                  { required: true, message: t('updatePassword.newPasswordRequired') },
+                  { required: true, message: '请输入新密码' },
                   {
                     pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()\-_+=<>?/{}[\]|:;.,~]).{9,}$/,
-                    message: t('updatePassword.newPasswordPattern'),
+                    message: (
+                      <p>
+                        密码必须包含大写字母、小写字母、
+                        <Tooltip title="(! @ # $ % ^ & * ( ) - _ + = < > ? / { } [ ] | : ; . , ~)">
+                          <span className="underline">特殊字符</span>
+                        </Tooltip>
+                        ，且长度大于8
+                      </p>
+                    ),
                   },
                 ]}
               >
-                <Input.Password
-                  placeholder={t('updatePassword.newPasswordPlaceholder')}
-                  type="password"
-                  className="w-80"
-                />
+                <Input.Password placeholder="请输入新密码" type="password" className="w-80" />
               </Form.Item>
               <Form.Item
-                label={<p className="text-md">{t('updatePassword.confirmPassword')}</p>}
+                label={<p className="text-md">确认新密码</p>}
                 name="confirmPassword"
                 dependencies={['newPassword']}
                 rules={[
-                  { required: true, message: t('updatePassword.confirmPasswordRequired') },
+                  { required: true, message: '请再次输入新密码' },
                   ({ getFieldValue }) => ({
                     validator(_, value) {
                       if (!value || getFieldValue('newPassword') === value) {
                         return Promise.resolve()
                       }
-                      return Promise.reject(new Error(t('updatePassword.confirmPasswordMismatch')))
+                      return Promise.reject(new Error('两次输入的密码不一致'))
                     },
                   }),
                 ]}
               >
-                <Input.Password
-                  placeholder={t('updatePassword.confirmPasswordPlaceholder')}
-                  type="password"
-                  className="w-80"
-                />
+                <Input.Password placeholder="请输入新密码" type="password" className="w-80" />
               </Form.Item>
               <div className="w-auto flex justify-start">
-                <Popconfirm
-                  title={t('updatePassword.confirmUpdate')}
-                  okText={t('updatePassword.okText')}
-                  cancelText={t('updatePassword.cancelText')}
-                  onConfirm={updatePassword}
-                >
+                <Popconfirm title="确定要修改密码吗" okText="确定" onConfirm={updatePassword}>
                   <Button type="primary" className="text-md">
-                    {t('updatePassword.updatePassword')}
+                    修改密码
                   </Button>
                 </Popconfirm>
               </div>

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Form, Modal, Select, TreeSelect } from 'antd'
 import React, { useEffect, useState } from 'react'
 import {

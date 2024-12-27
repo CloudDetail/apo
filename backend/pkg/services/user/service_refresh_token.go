@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package user
 
 import (
@@ -13,4 +16,8 @@ func (s *service) RefreshToken(token string) (response.RefreshTokenResponse, err
 	}
 	resp.AccessToken = accessToken
 	return resp, nil
+}
+
+func (s *service) IsInBlacklist(token string) (bool, error) {
+	return s.cacheRepo.IsInBlacklist(token)
 }

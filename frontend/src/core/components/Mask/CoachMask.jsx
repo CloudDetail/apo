@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Image, Empty, Modal } from 'antd'
 import React, { useEffect, useState } from 'react'
 import AlertPng from 'src/core/assets/snapshot/alert.png'

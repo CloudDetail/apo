@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useEffect, useRef, useState } from 'react'
 import ReactECharts from 'echarts-for-react'
 import dayjs from 'dayjs' // 用来格式化时间

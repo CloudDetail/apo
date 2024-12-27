@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useEffect, useState } from 'react'
 import AreaChart from '../Chart/LineAreaChart'
 import { BsArrowDown, BsArrowUp } from 'react-icons/bs'

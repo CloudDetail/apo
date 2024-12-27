@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package cache
 
 import (
@@ -8,14 +11,14 @@ import (
 
 type Repo interface {
 	AddToken(token string) error
-	IsInBlackList(token string) (bool, error)
+	IsInBlacklist(token string) (bool, error)
 }
 
 type cache struct {
 	blackList sync.Map
 }
 
-func (c *cache) IsInBlackList(token string) (bool, error) {
+func (c *cache) IsInBlacklist(token string) (bool, error) {
 	_, ok := c.blackList.Load(token)
 	return ok, nil
 }

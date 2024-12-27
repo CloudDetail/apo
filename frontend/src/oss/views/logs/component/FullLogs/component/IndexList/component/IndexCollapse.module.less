@@ -1,0 +1,33 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+ 
+.collapse {
+    height: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+}
+
+.collapse ::-webkit-scrollbar {
+    width: 0px;
+}
+
+.collapseItemContainer:hover>div:first-of-type {
+    background-color: rgba(211, 211, 211, 0.1);
+}
+
+.collapseItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .collapseItemButton {
+        width: 18px;
+        height: 18px;
+        border-radius: 3px;
+        border: none;
+        box-shadow: none;
+    }
+}

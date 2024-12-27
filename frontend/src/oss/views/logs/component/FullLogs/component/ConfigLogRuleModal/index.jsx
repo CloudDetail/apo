@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Form, Input, Modal, Select, Tabs, Tooltip } from 'antd'
 import React, { useEffect, useState } from 'react'
 import LogRouteRuleFormList from './component/LogRouteRuleFormList'

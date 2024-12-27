@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 // src/toastContext.js
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { CToast, CToastBody, CToastClose, CToastHeader, CToaster } from '@coreui/react'

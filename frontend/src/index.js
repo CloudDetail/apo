@@ -1,4 +1,9 @@
-import React, { useEffect, useState } from 'react'
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import 'core-js'

@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package service
 
 import (
@@ -151,9 +154,9 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 		filters := ExtractLogFilter(instance.InstanceKey)
 		var normalNowLog, normalDayLog, normalWeekLog []prometheus.MetricResult
 		if len(filters) > 0 {
-			normalNowLog = s.GetNormalLog(startTime, endTime, filters, "")
-			normalDayLog = s.GetNormalLog(startTime, endTime, filters, "offset 24h")
-			normalWeekLog = s.GetNormalLog(startTime, endTime, filters, "offset 7d")
+			normalNowLog = s.GetNormalLog(startTime, endTime, filters, 0)
+			normalDayLog = s.GetNormalLog(startTime, endTime, filters, time.Hour*24)
+			normalWeekLog = s.GetNormalLog(startTime, endTime, filters, time.Hour*24*7)
 		}
 
 		// 有正常数据，日志错误平均值应填充为0
