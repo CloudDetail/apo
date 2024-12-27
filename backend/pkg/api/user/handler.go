@@ -28,10 +28,16 @@ type Handler interface {
 	// @Tags API.user
 	// @Router /api/user/refresh [get]
 	RefreshToken() core.HandlerFunc
-	// UpdateUserInfo 更新个人信息
+
+	// UpdateUserInfo 更新用户信息
 	// @Tags API.user
 	// @Router /api/user/update/info [post]
 	UpdateUserInfo() core.HandlerFunc
+
+	// UpdateSelfInfo 更新个人信息
+	// @Tags API.user
+	// @Router /api/user/update/self [post]
+	UpdateSelfInfo() core.HandlerFunc
 	// UpdateUserPassword 更新密码
 	// @Tags API.user
 	// @Router /api/user/update/password [post]

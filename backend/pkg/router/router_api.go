@@ -156,6 +156,7 @@ func setApiRouter(r *resource) {
 		userApi.POST("/update/phone", userHandler.UpdateUserPhone())
 		userApi.POST("/update/email", userHandler.UpdateUserEmail())
 		userApi.POST("/update/info", userHandler.UpdateUserInfo())
+		userApi.POST("/update/self", userHandler.UpdateSelfInfo())
 		userApi.GET("/info", userHandler.GetUserInfo())
 		userApi.GET("/list", userHandler.GetUserList())
 		userApi.POST("/remove", userHandler.RemoveUser())

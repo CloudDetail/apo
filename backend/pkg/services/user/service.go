@@ -18,6 +18,7 @@ type Service interface {
 	CreateUser(req *request.CreateUserRequest) error
 	RefreshToken(token string) (response.RefreshTokenResponse, error)
 	UpdateUserInfo(req *request.UpdateUserInfoRequest) error
+	UpdateSelfInfo(req *request.UpdateSelfInfoRequest) error
 	UpdateUserPhone(req *request.UpdateUserPhoneRequest) error
 	UpdateUserEmail(req *request.UpdateUserEmailRequest) error
 	UpdateUserPassword(req *request.UpdateUserPasswordRequest) error

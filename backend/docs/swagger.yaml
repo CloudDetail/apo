@@ -6226,13 +6226,20 @@ paths:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: 更新个人信息
+      description: 更新用户信息
       parameters:
       - description: 用户id
         in: formData
         name: userId
         required: true
         type: integer
+      - collectionFormat: multi
+        description: 角色id列表
+        in: formData
+        items:
+          type: integer
+        name: roleList
+        type: array
       - description: 组织
         in: formData
         name: corporation
@@ -6261,7 +6268,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 更新个人信息
+      summary: 更新用户信息
       tags:
       - API.user
   /api/user/update/password:
@@ -6342,6 +6349,48 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 更新/绑定手机号
+      tags:
+      - API.user
+  /api/user/update/self:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 更新个人信息
+      parameters:
+      - description: 用户id
+        in: formData
+        name: userId
+        required: true
+        type: integer
+      - description: 组织
+        in: formData
+        name: corporation
+        type: string
+      - description: 手机号
+        in: formData
+        name: phone
+        type: string
+      - description: 邮箱
+        in: formData
+        name: email
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 更新个人信息
       tags:
       - API.user
 swagger: "2.0"

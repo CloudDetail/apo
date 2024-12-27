@@ -13,24 +13,23 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// UpdateUserInfo 更新用户信息
-// @Summary 更新用户信息
-// @Description 更新用户信息
+// UpdateSelfInfo 更新个人信息
+// @Summary 更新个人信息
+// @Description 更新个人信息
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param userId formData int64 true "用户id"
-// @Param roleList formData []int false "角色id列表" collectionFormat(multi)
 // @Param corporation formData string false "组织"
 // @Param phone formData string false "手机号"
 // @Param email formData string false "邮箱"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/user/update/info [post]
-func (h *handler) UpdateUserInfo() core.HandlerFunc {
+// @Router /api/user/update/self [post]
+func (h *handler) UpdateSelfInfo() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.UpdateUserInfoRequest)
+		req := new(request.UpdateSelfInfoRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -40,7 +39,7 @@ func (h *handler) UpdateUserInfo() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.UpdateUserInfo(req)
+		err := h.userService.UpdateSelfInfo(req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {

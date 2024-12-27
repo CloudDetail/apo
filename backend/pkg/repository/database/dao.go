@@ -43,7 +43,7 @@ type Repo interface {
 	UpdateUserPhone(userID int64, phone string) error
 	UpdateUserEmail(userID int64, email string) error
 	UpdateUserPassword(userID int64, oldPassword, newPassword string) error
-	UpdateUserInfo(req *request.UpdateUserInfoRequest) error
+	UpdateUserInfo(ctx context.Context, userID int64, phone string, email string, corporation string) error
 	GetUserInfo(userID int64) (User, error)
 	GetAnonymousUser() (User, error)
 	GetUserList(req *request.GetUserListRequest) ([]User, int64, error)

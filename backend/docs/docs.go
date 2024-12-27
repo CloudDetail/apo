@@ -5531,7 +5531,7 @@ const docTemplate = `{
         },
         "/api/user/update/info": {
             "post": {
-                "description": "更新个人信息",
+                "description": "更新用户信息",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5541,7 +5541,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "更新个人信息",
+                "summary": "更新用户信息",
                 "parameters": [
                     {
                         "type": "integer",
@@ -5549,6 +5549,16 @@ const docTemplate = `{
                         "name": "userId",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "角色id列表",
+                        "name": "roleList",
+                        "in": "formData"
                     },
                     {
                         "type": "string",
@@ -5685,6 +5695,69 @@ const docTemplate = `{
                         "name": "phone",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/update/self": {
+            "post": {
+                "description": "更新个人信息",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "更新个人信息",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "组织",
+                        "name": "corporation",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "手机号",
+                        "name": "phone",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "邮箱",
+                        "name": "email",
+                        "in": "formData"
                     },
                     {
                         "type": "string",

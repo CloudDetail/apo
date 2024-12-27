@@ -202,19 +202,19 @@ func (repo *daoRepo) RestPassword(userID int64, newPassword string) error {
 	return repo.db.Updates(&user).Error
 }
 
-func (repo *daoRepo) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
+func (repo *daoRepo) UpdateUserInfo(ctx context.Context, userID int64, phone string, email string, corporation string) error {
 	var user User
-	err := repo.db.Where("user_id = ?", req.UserID).First(&user).Error
+	err := repo.GetContextDB(ctx).Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return model.NewErrWithMessage(errors.New("user does not exist "), code.UserNotExistsError)
 	} else if err != nil {
 		return err
 	}
 
-	user.Corporation = req.Corporation
-	user.Phone = req.Phone
-	user.Email = req.Email
-	return repo.db.Updates(&user).Error
+	user.Corporation = corporation
+	user.Phone = phone
+	user.Email = email
+	return repo.GetContextDB(ctx).Updates(&user).Error
 }
 
 func (repo *daoRepo) GetUserInfo(userID int64) (User, error) {

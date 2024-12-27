@@ -10,6 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
 func (s *service) GetRoles() (response.GetRoleResponse, error) {
@@ -59,17 +60,37 @@ func (s *service) RoleOperation(req *request.RoleOperationRequest) error {
 		roleMap[role.RoleID] = struct{}{}
 	}
 
-	// 3. determine grant and revoke
-	var addRoles, deleteRoles []int
+	addRoles, deleteRoles, err := GetAddDeleteRoles(userRole, req.RoleList, roles)
+	if err != nil {
+		return err
+	}
+
+	var grantFunc = func(txCtx context.Context) error {
+		return s.dbRepo.GrantRole(txCtx, req.UserID, addRoles)
+	}
+
+	var revokeFunc = func(txCtx context.Context) error {
+		return s.dbRepo.RevokeRole(txCtx, req.UserID, deleteRoles)
+	}
+
+	return s.dbRepo.Transaction(context.Background(), grantFunc, revokeFunc)
+}
+
+// GetAddDeleteRoles Determine grant and revoke roles.
+func GetAddDeleteRoles(userRoles []database.UserRole, want []int, all []database.Role) (addRoles []int, deleteRoles []int, err error) {
+	roleMap := make(map[int]struct{})
+	for _, role := range all {
+		roleMap[role.RoleID] = struct{}{}
+	}
 
 	userRoleMap := make(map[int]struct{})
-	for _, ur := range userRole {
+	for _, ur := range userRoles {
 		userRoleMap[ur.RoleID] = struct{}{}
 	}
 
-	for _, role := range req.RoleList {
+	for _, role := range want {
 		if _, exists := roleMap[role]; !exists {
-			return model.NewErrWithMessage(errors.New("role does not exist"), code.RoleNotExistsError)
+			return nil, nil, model.NewErrWithMessage(errors.New("role does not exist"), code.RoleNotExistsError)
 		}
 		if _, hasRole := userRoleMap[role]; !hasRole {
 			addRoles = append(addRoles, role)
@@ -82,13 +103,5 @@ func (s *service) RoleOperation(req *request.RoleOperationRequest) error {
 		deleteRoles = append(deleteRoles, roleID)
 	}
 
-	var grantFunc = func(txCtx context.Context) error {
-		return s.dbRepo.GrantRole(txCtx, req.UserID, addRoles)
-	}
-
-	var revokeFunc = func(txCtx context.Context) error {
-		return s.dbRepo.RevokeRole(txCtx, req.UserID, deleteRoles)
-	}
-
-	return s.dbRepo.Transaction(context.Background(), grantFunc, revokeFunc)
+	return
 }
