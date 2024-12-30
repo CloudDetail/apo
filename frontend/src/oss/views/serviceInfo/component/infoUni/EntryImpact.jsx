@@ -79,9 +79,9 @@ export default function EntryImpact(props) {
               <Tooltip
                 title={
                   <div>
-                    <div className="mt-2">{t('entryImpact.delaySource.title1')}</div>
-                    <div className="mt-2">{t('entryImpact.delaySource.title2')}</div>
-                    <div className="mt-2">{t('entryImpact.delaySource.title3')}</div>
+                    <div className="text-[#D3D3D3]">{t('entryImpact.delaySource.title1')}</div>
+                    <div className="text-[#D3D3D3] mt-2">{t('entryImpact.delaySource.title2')}</div>
+                    <div className="text-[#D3D3D3] mt-2">{t('entryImpact.delaySource.title3')}</div>
                   </div>
                 }
               >

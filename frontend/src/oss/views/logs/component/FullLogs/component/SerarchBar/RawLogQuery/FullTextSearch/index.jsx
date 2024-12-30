@@ -9,7 +9,7 @@ import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
 const FullTextSearch = () => {
-  const { t } = useTranslation('oss/fullLogs') // 使用i18n
+  const { t } = useTranslation('oss/fullLogs')
   const [form] = Form.useForm()
   const { searchValue, setSearchValue, updateQuery } = useLogsContext()
   const [inputValue, setInputValue] = useState()

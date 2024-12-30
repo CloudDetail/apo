@@ -12,10 +12,10 @@ import { TableType } from 'src/constants'
 import TTLTable from './TTLTable'
 import { showToast } from 'src/core/utils/toast'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
-import { useTranslation } from 'react-i18next' // 添加i18n
+import { useTranslation } from 'react-i18next'
 
 function TTLConfigInput(props) {
-  const { t } = useTranslation('oss/config') // 使用i18n
+  const { t } = useTranslation('oss/config')
   const [inputValue, setInputValue] = useState(null)
   const change = (value) => {
     if (value && value > 0) {
@@ -68,7 +68,7 @@ function TTLConfigInput(props) {
 
 function CollapsePanelHeader(props) {
   const { type, list, refreshPage } = props
-  const { t } = useTranslation('oss/config') // 使用i18n
+  const { t } = useTranslation('oss/config')
   const [value, setValue] = useState(null)
   const confirmTypeTTL = (value) => {
     setTTLApi({
@@ -110,7 +110,7 @@ function CollapsePanelHeader(props) {
   )
 }
 export default function ConfigTTL() {
-  const { t } = useTranslation('oss/config') // 使用i18n
+  const { t } = useTranslation('oss/config')
   const [data, setData] = useState(null)
   const getCollapseItems = () => {
     return Object.keys(TableType).map((key) => {

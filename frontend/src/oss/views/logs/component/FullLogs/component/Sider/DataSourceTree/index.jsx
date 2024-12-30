@@ -15,7 +15,7 @@ import ConfigTableModal from '../../ConfigTableModal'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
 const DataSourceTree = () => {
-  const { t } = useTranslation('oss/fullLogs') // 使用i18n
+  const { t } = useTranslation('oss/fullLogs')
   const { instances, tableInfo, updateTableInfo, getLogTableInfo, updateLoading } = useLogsContext()
   const [treeData, setTreeData] = useState([])
   const [expandedKeys, setExpandedKeys] = useState([])
@@ -125,7 +125,7 @@ const DataSourceTree = () => {
         cluster: selectedNodes[0].cluster,
         timeField: selectedNodes[0].timeField,
         instanceName: selectedNodes[0].instanceName,
-        type: 'database'
+        type: 'database',
       })
     }
   }

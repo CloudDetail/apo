@@ -21,7 +21,7 @@ import ParseRuleTabs from './component/ParseRuleTabs'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
 const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
-  const { t } = useTranslation('oss/fullLogs') // 使用i18n
+  const { t } = useTranslation('oss/fullLogs')
   const { getLogTableInfo, updateLoading } = useLogsContext()
   const [form] = Form.useForm()
   const [serviceList, setServiceList] = useState([])

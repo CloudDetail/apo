@@ -6,10 +6,10 @@
 import { Card, Form, Input } from 'antd'
 import React from 'react'
 import { defaultHtml } from './defaultHTMLcontext'
-import { useTranslation } from 'react-i18next' // 添加i18n
+import { useTranslation } from 'react-i18next'
 
 export default function DingTalkConfigsFormList() {
-  const { t } = useTranslation('oss/alert') // 使用i18n
+  const { t } = useTranslation('oss/alert')
   const tlsConfigItemsList = [
     {
       label: t('dingTalkConfigsFormList.url'),

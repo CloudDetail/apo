@@ -44,7 +44,7 @@ const UserToolBox = () => {
   //退出登录
   async function logout() {
     // @ts-ignore
-    dispatchUser({
+    dispatch({
       type: 'removeUser',
     })
     try {
@@ -56,7 +56,7 @@ const UserToolBox = () => {
       localStorage.removeItem('token')
       localStorage.removeItem('refreshToken')
       // @ts-ignore
-      dispatchUser({
+      dispatch({
         type: 'removeUser',
       })
       navigate('/login')
@@ -72,9 +72,10 @@ const UserToolBox = () => {
   function getUserInfo() {
     getUserInfoApi()
       .then((res) => {
+        console.log('res', res)
         // @ts-ignore
-        dispatchUser({
-          type: 'addUser',
+        dispatch({
+          type: 'setUser',
           payload: res,
         })
       })

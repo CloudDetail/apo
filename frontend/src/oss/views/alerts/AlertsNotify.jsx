@@ -24,7 +24,7 @@ export default function AlertsNotify() {
   const [modalVisible, setModalVisible] = useState(false)
   const [modalInfo, setModalInfo] = useState(null)
   const [searchName, setSearchName] = useState(null)
-  const { t } = useTranslation('oss/alert') // 使用i18n
+  const { t } = useTranslation('oss/alert')
 
   const deleteAlertNotify = (row) => {
     deleteAlertNotifyApi(

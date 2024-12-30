@@ -13,8 +13,10 @@ import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange, toNearestSecond } from 'src/core/store/reducers/timeRangeReducer'
 import { Select } from 'antd'
 import { getStep } from 'src/core/utils/step'
+import { useTranslation } from 'react-i18next'
 
 export const TableFilter = (props) => {
+  const { t } = useTranslation('oss/service')
   const { setServiceName, setEndpoint, setNamespace } = props
 
   const [serviceNameOptions, setServiceNameOptions] = useState([])
@@ -139,13 +141,13 @@ export const TableFilter = (props) => {
     <>
       <div className="p-2 my-2 flex flex-row w-full">
         <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
-          <span className="text-nowrap">命名空间：</span>
+          <span className="text-nowrap">{t('tableFilter.namespacesLabel')}：</span>
           <Select
             mode="multiple"
             allowClear
             id="namespace"
             className="w-full"
-            placeholder="请选择"
+            placeholder={t('tableFilter.namespacePlaceholder')}
             value={serachNamespace}
             onChange={onChangeNamespace}
             options={namespaceOptions}
@@ -154,13 +156,13 @@ export const TableFilter = (props) => {
           />
         </div>
         <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
-          <span className="text-nowrap">服务名：</span>
+          <span className="text-nowrap">{t('tableFilter.applicationsLabel')}：</span>
           <Select
             mode="multiple"
             allowClear
             className="w-full"
             id="serviceName"
-            placeholder="请选择"
+            placeholder={t('tableFilter.applicationsPlaceholder')}
             value={serachServiceName}
             onChange={onChangeServiceName}
             options={serviceNameOptions}
@@ -170,11 +172,11 @@ export const TableFilter = (props) => {
           />
         </div>
         <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
-          <span className="text-nowrap">服务端点：</span>
+          <span className="text-nowrap">{t('tableFilter.endpointsLabel')}：</span>
           <Select
             mode="multiple"
             id="endpointName"
-            placeholder="请选择"
+            placeholder={t('tableFilter.endpointsPlaceholder')}
             className="w-full"
             value={serachEndpointName}
             popupMatchSelectWidth={false}

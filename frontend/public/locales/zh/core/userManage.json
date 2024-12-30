@@ -38,7 +38,10 @@
     "phoneInvalid": "请输入有效的电话号码",
     "corporation": "组织",
     "corporationPlaceholder": "请输入组织",
-    "addSuccess": "用户添加成功"
+    "addSuccess": "用户添加成功",
+    "address": "地址",
+    "addressPlaceholder": "请输入地址",
+    "addressRequired": "请输入地址"
   },
   "editModal": {
     "title": "编辑用户",
@@ -64,6 +67,9 @@
     "getUserInfoFail": "获取用户信息失败",
     "saveSuccess": "保存成功",
     "resetPasswordSuccess": "密码修改成功",
-    "resetPasswordFail": "未知错误"
+    "resetPasswordFail": "未知错误",
+    "address": "地址",
+    "addressPlaceholder": "请输入地址",
+    "addressRequired": "请输入地址"
   }
 }

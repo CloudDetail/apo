@@ -15,7 +15,7 @@ import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
 const ConfigTableModal = ({ modalVisible, closeModal }) => {
-  const { t } = useTranslation('oss/fullLogs') // 使用i18n
+  const { t } = useTranslation('oss/fullLogs')
   const { getLogTableInfo, updateLoading } = useLogsContext()
   const [form] = Form.useForm()
   const [tables, setTables] = useState([])

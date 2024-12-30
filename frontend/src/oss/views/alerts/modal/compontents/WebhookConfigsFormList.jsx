@@ -14,7 +14,7 @@ export default function WebhookConfigsFormList() {
   const [authType, setAuthType] = useState()
   const form = Form.useFormInstance()
   const formAuthType = Form.useWatch(['webhookConfigs'], form)
-  const { t } = useTranslation('oss/alert') // 使用i18n
+  const { t } = useTranslation('oss/alert')
 
   useEffect(() => {
     if (formAuthType?.length > 0) setAuthType(formAuthType[0].authType)

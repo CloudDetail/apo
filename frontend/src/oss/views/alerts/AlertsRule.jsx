@@ -16,10 +16,10 @@ import { MdAdd, MdOutlineEdit } from 'react-icons/md'
 import ModifyAlertRuleModal from './modal/ModifyAlertRuleModal'
 import Tag from 'src/core/components/Tag/Tag'
 import { useSelector } from 'react-redux'
-import { useTranslation } from 'react-i18next' // 添加i18n
+import { useTranslation } from 'react-i18next'
 
 export default function AlertsRule() {
-  const { t } = useTranslation('oss/alert') // 使用i18n
+  const { t } = useTranslation('oss/alert')
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(false)
   const [pageIndex, setPageIndex] = useState(1)

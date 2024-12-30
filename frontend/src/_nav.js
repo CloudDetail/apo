@@ -15,6 +15,7 @@ import { MdOutlineSettings } from 'react-icons/md'
 import { IoIosTrendingUp, IoMdCloudOutline } from 'react-icons/io'
 import { TbWaveSawTool } from 'react-icons/tb'
 import { GrSystem } from 'react-icons/gr'
+import TranslationCom from './oss/components/TranslationCom'
 
 const namespace = 'oss/routes'
 const commercialNav = []
@@ -106,8 +107,16 @@ const _nav = [
     label: <TranslationCom text="systemSettingsName" space={namespace} />,
     abbreviation: <TranslationCom text="systemSettingsAbbreviationName" space={namespace} />,
     children: [
-      { key: 'userManage', label: '用户管理', to: '/system/user-manage' },
-      { key: 'menuManage', label: '菜单管理', to: '/system/menu-manage' },
+      {
+        key: 'userManage',
+        label: <TranslationCom text="userManageName" space={namespace} />,
+        to: '/system/user-manage',
+      },
+      {
+        key: 'systemConfig',
+        label: '系统配置',
+        to: '/system/config',
+      },
     ],
   },
 ]

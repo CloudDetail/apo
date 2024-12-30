@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next' // 引入i18n
 const LogItem = (props) => {
   const { log, openContextModal } = props
   const { tableInfo } = useLogsContext()
-  const { t } = useTranslation('oss/fullLogs') // 使用i18n
+  const { t } = useTranslation('oss/fullLogs')
 
   return (
     <div className="flex overflow-hidden px-2 w-full">

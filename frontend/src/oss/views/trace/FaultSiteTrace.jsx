@@ -18,8 +18,10 @@ import { DefaultTraceFilters } from 'src/constants'
 import TraceErrorType from './component/TraceErrorType'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { Card, Tooltip } from 'antd'
+import { useTranslation } from 'react-i18next'
 
 function FaultSiteTrace() {
+  const { t } = useTranslation('oss/trace')
   // const [startTime, setStartTime] = useState(null)
   const [tracePageList, setTracePageList] = useState([])
   // const [endTime, setEndTime] = useState(null)
@@ -166,22 +168,22 @@ function FaultSiteTrace() {
   }
   const column = [
     {
-      title: '服务名',
+      title: t('trace.serviceName'),
       accessor: 'serviceName',
     },
     {
-      title: '命名空间',
+      title: t('trace.namespace'),
       accessor: 'labels',
       Cell: ({ value }) => {
         return value?.namespace ? value?.namespace : <span className="text-slate-400">N/A</span>
       },
     },
     {
-      title: '实例名',
+      title: t('trace.instanceName'),
       accessor: 'instanceId',
     },
     {
-      title: '服务端点',
+      title: t('trace.endpoint'),
       accessor: 'endpoint',
     },
 
@@ -190,14 +192,14 @@ function FaultSiteTrace() {
         <Tooltip
           title={
             <div>
-              <div>慢故障：响应时间超过历史基线</div>
-              <div>错误故障：存在错误状态码或代码异常</div>
-              <div>无异常：被采样的正常数据</div>
+              <div className="text-[#D3D3D3]">{t('trace.slowFault')}</div>
+              <div className="text-[#D3D3D3] mt-2">{t('trace.errorFault')}</div>
+              <div className="text-[#D3D3D3] mt-2">{t('trace.noFault')}</div>
             </div>
           }
         >
           <div className="flex flex-row justify-center items-center">
-            故障状态
+            {t('trace.faultStatus')}
             <AiOutlineInfoCircle size={16} className="ml-2" />
           </div>
         </Tooltip>
@@ -218,21 +220,21 @@ function FaultSiteTrace() {
       },
     },
     {
-      title: '响应时间',
+      title: t('trace.responseTime'),
       accessor: 'duration',
       Cell: ({ value }) => {
         return convertTime(value, 'ms', 2) + 'ms'
       },
     },
     {
-      title: '发生时间',
+      title: t('trace.occurTime'),
       accessor: 'timestamp',
       Cell: ({ value }) => {
         return convertTime(value, 'yyyy-mm-dd hh:mm:ss')
       },
     },
     {
-      title: 'TraceID',
+      title: t('trace.traceId'),
       accessor: 'traceId',
       Cell: (props) => {
         const { value } = props
@@ -372,7 +374,7 @@ function FaultSiteTrace() {
         pageCount: Math.ceil(total / pageSize),
       },
     }
-  }, [tracePageList])
+  }, [tracePageList, column])
   return (
     <Card
       className="h-full flex flex-col overflow-hidden text-xs px-2"

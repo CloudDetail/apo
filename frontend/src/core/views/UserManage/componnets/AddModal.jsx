@@ -8,10 +8,10 @@ import { showToast } from 'core/utils/toast'
 import { createUserApi } from 'core/api/user'
 import { useState } from 'react'
 import LoadingSpinner from 'src/core/components/Spinner'
-import { useTranslation } from 'react-i18next' // 添加i18n
+import { useTranslation } from 'react-i18next'
 
 const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) => {
-  const { t } = useTranslation('oss/userManage') // 使用i18n
+  const { t } = useTranslation('core/userManage')
   const [loading, setLoading] = useState(false)
   const [form] = Form.useForm()
 

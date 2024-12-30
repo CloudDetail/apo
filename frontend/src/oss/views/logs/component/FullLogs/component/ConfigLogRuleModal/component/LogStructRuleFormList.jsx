@@ -32,7 +32,7 @@ const routeKeyList = [
 ]
 
 export default function LogStructRuleFormList({ fieldName }) {
-  const { t } = useTranslation('oss/fullLogs') // 使用i18n
+  const { t } = useTranslation('oss/fullLogs')
   const form = Form.useFormInstance()
   return (
     <Form.List name={fieldName}>

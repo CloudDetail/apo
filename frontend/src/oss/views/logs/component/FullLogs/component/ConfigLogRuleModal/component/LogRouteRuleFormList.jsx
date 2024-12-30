@@ -33,7 +33,7 @@ function isValidKey(str) {
   return regex.test(str)
 }
 export default function LogRouteRuleFormList() {
-  const { t } = useTranslation('oss/fullLogs') // 使用i18n
+  const { t } = useTranslation('oss/fullLogs')
   const form = Form.useFormInstance()
   return (
     <Form.List name={'routeRule'}>

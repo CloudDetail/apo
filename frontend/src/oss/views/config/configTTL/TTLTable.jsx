@@ -7,7 +7,7 @@ import { Form, Input, InputNumber, Table, Typography } from 'antd'
 import React, { useState } from 'react'
 import { setSingleTableTTLApi } from 'core/api/config'
 import { showToast } from 'src/core/utils/toast'
-import { useTranslation } from 'react-i18next' // 添加i18n
+import { useTranslation } from 'react-i18next'
 
 const EditableCell = ({
   editing,
@@ -19,7 +19,7 @@ const EditableCell = ({
   children,
   ...restProps
 }) => {
-  const { t } = useTranslation('oss/config') // 使用i18n
+  const { t } = useTranslation('oss/config')
   const inputNode =
     inputType === 'number' ? (
       <InputNumber
@@ -58,7 +58,7 @@ const EditableCell = ({
 }
 
 export default function TTLTable(props) {
-  const { t } = useTranslation('oss/config') // 使用i18n
+  const { t } = useTranslation('oss/config')
   const [form] = Form.useForm()
   const { list = [], refreshPage } = props
   const [editingKey, setEditingKey] = useState('')

@@ -14,7 +14,7 @@ import { showToast } from 'src/core/utils/toast'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
 const LogRuleList = () => {
-  const { t } = useTranslation('oss/fullLogs') // 使用i18n
+  const { t } = useTranslation('oss/fullLogs')
   const { logRules, tableInfo, updateTableInfo, getLogTableInfo, updateLoading } = useLogsContext()
   const [treeData, setTreeData] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
@@ -105,7 +105,7 @@ const LogRuleList = () => {
       tableName: selectedNodes[0].tableName,
       cluster: '',
       parseName: selectedNodes[0].parseName,
-      type: 'logLibrary'
+      type: 'logLibrary',
     })
   }
   useEffect(() => {

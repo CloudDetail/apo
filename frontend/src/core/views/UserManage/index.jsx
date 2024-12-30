@@ -28,10 +28,10 @@ import { BsPersonFillAdd } from 'react-icons/bs'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useUserContext } from 'src/core/contexts/UserContext'
 import style from './index.module.css'
-import { useTranslation } from 'react-i18next' // 添加i18n
+import { useTranslation } from 'react-i18next'
 
 export default function UserManage() {
-  const { t } = useTranslation('oss/userManage') // 使用i18n
+  const { t } = useTranslation('core/userManage')
   const [modalAddVisibility, setModalAddVisibility] = useState(false)
   const [userList, setUserList] = useState([])
   const [username, setUsername] = useState('')
@@ -58,7 +58,7 @@ export default function UserManage() {
         await getUserList()
       }
       showToast({
-        title: '移除用户成功',
+        title: t('index.deleteSuccess'),
         color: 'success',
       })
     } catch (error) {
@@ -86,10 +86,6 @@ export default function UserManage() {
       setTableVisibility(true)
     } catch (error) {
       console.error(error)
-      showToast({
-        title: '获取用户列表失败',
-        color: 'danger',
-      })
     } finally {
       setLoading(false)
     }
@@ -104,7 +100,7 @@ export default function UserManage() {
   //用户列表列定义
   const columns = [
     {
-      title: '用户名',
+      title: t('index.userName'),
       dataIndex: 'username',
       key: 'username',
       align: 'center',
@@ -118,51 +114,52 @@ export default function UserManage() {
     //     width: "16%"
     // },
     {
-      title: '组织',
+      title: t('index.corporation'),
       dataIndex: 'corporation',
       key: 'corporation',
       align: 'center',
       width: '16%',
     },
     {
-      title: '手机',
+      title: t('index.phone'),
       dataIndex: 'phone',
       key: 'phone',
       align: 'center',
       width: '16%',
     },
     {
-      title: '邮箱',
+      title: t('index.email'),
       dataIndex: 'email',
       key: 'email',
       align: 'center',
       width: '16%',
     },
     {
-      title: '操作',
-      dataIndex: 'username',
-      key: 'username',
+      title: t('index.operation'),
+      dataIndex: 'userId',
+      key: 'userId',
       align: 'center',
-      render: (prop) => {
-        return user.user.username !== prop ? (
+      render: (userId, record) => {
+        const { username } = record
+        return user.userId !== userId ? (
           <>
             <Button
               onClick={() => {
-                setSelectedUser(prop)
+                setSelectedUser(record)
                 setModalEditVisibility(true)
               }}
               icon={<MdOutlineModeEdit />}
               type="text"
               className="mr-1"
             >
-              编辑
+              {t('index.edit')}
             </Button>
             <Popconfirm
-              title={`确定要移除用户名为${prop}的用户吗`}
-              onConfirm={() => removeUser(prop)}
+              title={t('index.confirmDelete', { name: username })}
+              onConfirm={() => removeUser(userId)}
             >
               <Button type="text" icon={<RiDeleteBin5Line />} danger>
-                删除
+                {t('index.delete')}
               </Button>
             </Popconfirm>
           </>
@@ -201,18 +198,18 @@ export default function UserManage() {
           <Flex className="w-full justify-between">
             <Flex className="w-full">
               <Flex className="w-auto items-center justify-start mr-5">
-                <p className="text-md mr-2">用户名称:</p>
+                <p className="text-md mr-2">{t('index.userName')}：</p>
                 <Input
-                  placeholder="检索"
+                  placeholder={t('index.search')}
                   className="w-2/3"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
               </Flex>
               <Flex className="w-auto items-center justify-start">
-                <p className="text-md mr-2">组织:</p>
+                <p className="text-md mr-2">{t('index.corporation')}：</p>
                 <Input
-                  placeholder="检索"
+                  placeholder={t('index.search')}
                   className="w-2/3"
                   value={corporation}
                   onChange={(e) => setCorporation(e.target.value)}
@@ -226,7 +223,7 @@ export default function UserManage() {
                 onClick={() => setModalAddVisibility(true)}
                 className="flex-grow-0 flex-shrink-0"
               >
-                <span className="text-xs">新增用户</span>
+                <span className="text-xs">{t('index.addUser')}</span>
               </Button>
             </Flex>
           </Flex>

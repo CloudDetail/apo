@@ -70,7 +70,7 @@ export default function ModifyAlertRuleModal({
     },
   ]
   const { groupLabelSelectOptions, groupLabel } = useSelector((state) => state.groupLabelReducer)
-  const { t } = useTranslation('oss/alert') // 使用i18n
+  const { t } = useTranslation('oss/alert')
   const labelsTag = ({ value }) => {
     return isValidKeyValue(value) ? (
       <Tag closeIcon>{value}</Tag>
