@@ -118,7 +118,7 @@ basic:
     field_name: "label"
     entity_type: "menu"
   - language: "en"
-    translation: "Infrastructure"
+    translation: "Infra"
     field_name: "abbreviation"
     entity_type: "menu"
   - language: "zh"
@@ -177,6 +177,10 @@ alerts:
     translation: "告警管理"
     field_name: "label"
     entity_type: "menu"
+  - language: "en"
+    translation: "Alerts"
+    field_name: "abbreviation"
+    entity_type: "menu"
 
 alertsRule:
   key: "alertsRule"
@@ -217,6 +221,10 @@ config:
     translation: "配置中心"
     field_name: "label"
     entity_type: "menu"
+  - language: "en"
+    translation: "Config"
+    field_name: "abbreviation"
+    entity_type: "menu"
 
 manage:
   key: "manage"
@@ -228,6 +236,10 @@ manage:
   - language: "zh"
     translation: "系统管理"
     field_name: "label"
+    entity_type: "menu"
+  - language: "en"
+    translation: "System"
+    field_name: "abbreviation"
     entity_type: "menu"
 
 userManage:
