@@ -11,10 +11,10 @@ import UpdatePassword from './component/UpdatePassword'
 import { LiaUser } from 'react-icons/lia'
 import { PiUsersDuotone } from 'react-icons/pi'
 import { IoMdLock } from 'react-icons/io'
-import { useTranslation } from 'react-i18next' // 添加i18n
+import { useTranslation } from 'react-i18next'
 
 export default function UserPage() {
-  const { t } = useTranslation('oss/userPage') // 使用i18n
+  const { t } = useTranslation('core/userPage')
   return (
     <>
       <Flex vertical className="w-full mt-4 pl-12 pb-20">

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Flex, Popover, Button } from 'antd'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import { showToast } from 'core/utils/toast'
@@ -44,7 +49,7 @@ const UserToolBox = () => {
   //退出登录
   async function logout() {
     // @ts-ignore
-    dispatchUser({
+    dispatch({
       type: 'removeUser',
     })
     try {
@@ -56,7 +61,7 @@ const UserToolBox = () => {
       localStorage.removeItem('token')
       localStorage.removeItem('refreshToken')
       // @ts-ignore
-      dispatchUser({
+      dispatch({
         type: 'removeUser',
       })
       navigate('/login')
@@ -72,9 +77,10 @@ const UserToolBox = () => {
   function getUserInfo() {
     getUserInfoApi()
       .then((res) => {
+        console.log('res', res)
         // @ts-ignore
-        dispatchUser({
-          type: 'addUser',
+        dispatch({
+          type: 'setUser',
           payload: res,
         })
       })

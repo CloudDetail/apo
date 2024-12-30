@@ -18,7 +18,10 @@
     "confirmUpdate": "Are you sure you want to update the information?",
     "updateSuccess": "User information updated successfully",
     "okText": "Confirm",
-    "cancelText": "Cancel"
+    "cancelText": "Cancel",
+    "address": "Address",
+    "addressPlaceholder": "Please enter address",
+    "addressRequired": "Address cannot be empty"
   },
   "updatePassword": {
     "oldPassword": "Old Password",

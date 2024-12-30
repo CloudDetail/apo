@@ -9,7 +9,7 @@ import { showToast } from './toast'
 import qs from 'qs'
 import TranslationCom from 'src/oss/components/TranslationCom'
 
-const namespace = 'oss/login'
+const namespace = 'core/login'
 
 // 创建axios实例
 const instance = axios.create({

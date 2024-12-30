@@ -10,7 +10,7 @@ import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
 const LogTagDropDown = ({ objKey, value, children, trigger = ['click', 'contextMenu'] }) => {
-  const { t } = useTranslation('oss/fullLogs') // 使用i18n
+  const { t } = useTranslation('oss/fullLogs')
   const { query, updateQuery } = useLogsContext()
   const addToQuery = () => {
     let newQueryPart

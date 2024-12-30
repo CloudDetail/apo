@@ -12,7 +12,7 @@ import ContextModal from './ContextModal'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
 const LogQueryResult = () => {
-  const { t } = useTranslation('oss/fullLogs') // 使用i18n
+  const { t } = useTranslation('oss/fullLogs')
   const { pagination, updateLogsPagination, logs, tableInfo, query, loading } = useLogsContext()
 
   const [modalVisible, setModalVisible] = useState(false)

@@ -24,7 +24,7 @@ export default function ModifyAlertNotifyModal({
   const [messageApi, contextHolder] = message.useMessage()
   const [form] = Form.useForm()
   const [tip, setTip] = useState('')
-  const { t } = useTranslation('oss/alert') // 使用i18n
+  const { t } = useTranslation('oss/alert')
 
   const updateAlertNotify = (amConfigReceiver, type) => {
     let api = addAlertNotifyApi

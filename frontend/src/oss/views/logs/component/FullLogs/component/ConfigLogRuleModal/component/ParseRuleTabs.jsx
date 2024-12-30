@@ -11,7 +11,7 @@ import LogStructRuleFormList from './LogStructRuleFormList'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
 const ParseRuleTabs = () => {
-  const { t } = useTranslation('oss/fullLogs') // 使用i18n
+  const { t } = useTranslation('oss/fullLogs')
   const form = Form.useFormInstance()
   const [activeKey, setActiveKey] = useState('unStructured')
   const items = [

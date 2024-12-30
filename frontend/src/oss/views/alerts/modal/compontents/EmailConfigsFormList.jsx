@@ -8,10 +8,10 @@ import TextArea from 'antd/es/input/TextArea'
 import React, { useState } from 'react'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
 import { defaultHtml } from './defaultHTMLcontext'
-import { useTranslation } from 'react-i18next' // 添加i18n
+import { useTranslation } from 'react-i18next'
 
 export default function EmailConfigsFormList() {
-  const { t } = useTranslation('oss/alert') // 使用i18n
+  const { t } = useTranslation('oss/alert')
   const labelCol = { span: 8 }
   const tlsConfigItemsList = [
     {

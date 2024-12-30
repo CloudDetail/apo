@@ -23,7 +23,7 @@ export default function Login() {
   const [form] = Form.useForm()
   const [remeberMe, setRemeberMe] = useState(true)
   const [loading, setLoading] = useState(false)
-  const { t } = useTranslation('oss/login')
+  const { t } = useTranslation('core/login')
 
   const login = () => {
     if (loading) return

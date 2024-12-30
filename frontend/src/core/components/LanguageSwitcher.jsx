@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Button, Dropdown, Popover } from 'antd'
 import i18next from 'i18next'
 import { useEffect, useState } from 'react'

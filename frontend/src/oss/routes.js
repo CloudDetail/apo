@@ -23,6 +23,8 @@ const AlertsRule = React.lazy(() => import('src/oss/views/alerts/AlertsRule'))
 const AlertsNotify = React.lazy(() => import('src/oss/views/alerts/AlertsNotify'))
 const ConfigPage = React.lazy(() => import('src/oss/views/config/index'))
 
+const namespace = 'oss/routes'
+
 const ossRoutes = [
   {
     path: '/service',
@@ -48,28 +50,54 @@ const ossRoutes = [
   },
   {
     path: '/trace/fault-site',
-    name: '故障现场链路',
+    name: <TranslationCom text="faultSiteTraces" space={namespace} />,
     element: FaultSiteTrace,
     hideSystemTimeRangePicker: true,
   },
   {
     path: '/trace/full',
-    name: '全量链路',
+    name: <TranslationCom text="allTrace" space={namespace} />,
     element: FullTrace,
     hideSystemTimeRangePicker: true,
   },
-  { path: '/basic-dashboard', name: '应用基础设施大盘', element: BasicDashboard },
-  { path: '/system-dashboard', name: '全局资源大盘', element: SystemDashboard },
-  { path: '/application-dashboard', name: '应用指标大盘', element: ApplicationDashboard },
-  { path: '/middleware-dashboard', name: '中间件大盘', element: MiddlewareDashboard },
+  {
+    path: '/system-dashboard',
+    name: <TranslationCom text="overviewDashboardName" space={namespace} />,
+    element: SystemDashboard,
+  },
+  {
+    path: '/basic-dashboard',
+    name: <TranslationCom text="infrastructureDashboardName" space={namespace} />,
+    element: BasicDashboard,
+  },
+  {
+    path: '/application-dashboard',
+    name: <TranslationCom text="applicationDashboardName" space={namespace} />,
+    element: ApplicationDashboard,
+  },
+  {
+    path: '/middleware-dashboard',
+    name: <TranslationCom text="middlewareDashboardName" space={namespace} />,
+    element: MiddlewareDashboard,
+  },
   // { path: '/alerts', name: '告警规则', hideSystemTimeRangePicker: true },
-  { path: '/alerts/rule', name: '告警规则', element: AlertsRule, hideSystemTimeRangePicker: true },
+  {
+    path: '/alerts/rule',
+    name: <TranslationCom text="alertRulesName" space={namespace} />,
+    element: AlertsRule,
+    hideSystemTimeRangePicker: true,
+  },
   {
     path: '/alerts/notify',
-    name: '告警通知',
+    name: <TranslationCom text="notificationChannelsName" space={namespace} />,
     element: AlertsNotify,
     hideSystemTimeRangePicker: true,
   },
-  { path: '/config', name: '配置中心', element: ConfigPage, hideSystemTimeRangePicker: true },
+  {
+    path: '/config',
+    name: <TranslationCom text="configurationsName" space={namespace} />,
+    element: ConfigPage,
+    hideSystemTimeRangePicker: true,
+  },
 ]
 export default ossRoutes

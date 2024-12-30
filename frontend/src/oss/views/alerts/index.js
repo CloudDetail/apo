@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next' // 引入i18n
 function AlertsPage() {
   const location = useLocation()
   const [activeItemKey, setActiveItemKey] = useState('rule')
-  const { t } = useTranslation('oss/alert') // 使用i18n
+  const { t } = useTranslation('oss/alert')
   return (
     <div
       style={{ width: '100%', overflow: 'hidden', height: 'calc(100vh - 100px)' }}
