@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import Backend from 'i18next-http-backend'
