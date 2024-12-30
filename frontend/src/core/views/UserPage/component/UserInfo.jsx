@@ -5,7 +5,7 @@
 
 import { Button, Flex, Popconfirm, Form, Input, Collapse, Divider } from 'antd'
 import { MailOutlined, ApartmentOutlined, LockOutlined, PhoneOutlined } from '@ant-design/icons'
-import { updateEmailApi, updateCorporationApi, updatePhoneApi, getUserInfoApi } from 'core/api/user'
+import { updateEmailApi, updateUserInfoApi, updatePhoneApi, getUserInfoApi } from 'core/api/user'
 import { showToast } from 'core/utils/toast'
 import { useEffect, useState } from 'react'
 import { useUserContext } from 'src/core/contexts/UserContext'
@@ -38,11 +38,12 @@ export default function UserInfo() {
       .validateFields(['email', 'corporation', 'phone'])
       .then(async ({ email, corporation, phone }) => {
         const params = {
+          userId: user.userId,
           email,
           corporation,
           phone,
         }
-        await updateCorporationApi({ userId: user.userId, ...params })
+        await updateUserInfoApi(params)
         showToast({
           title: '用户信息更新成功',
           color: 'success',

@@ -6,7 +6,6 @@
 import { Form, Input, Popconfirm, Button, Flex, Tooltip } from 'antd'
 import { showToast } from 'core/utils/toast'
 import { logoutApi, updatePasswordApi } from 'core/api/user'
-import { LockOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useUserContext } from 'src/core/contexts/UserContext'
 

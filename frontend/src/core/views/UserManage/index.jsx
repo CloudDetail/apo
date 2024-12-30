@@ -5,19 +5,16 @@
 
 import {
   Flex,
-  Form,
   Input,
   Button,
-  Divider,
-  Tooltip,
-  Modal,
   Table,
   ConfigProvider,
   Popconfirm,
-  Spin,
   Pagination,
+  Select,
+  Tag,
 } from 'antd'
-import { getUserListApi, removeUserApi } from 'core/api/user'
+import { getUserListApi, removeUserApi, getRoleListApi } from 'core/api/user'
 import { showToast } from 'core/utils/toast'
 import { useEffect, useState } from 'react'
 import { RiDeleteBin5Line } from 'react-icons/ri'
@@ -31,9 +28,10 @@ import style from './index.module.css'
 
 export default function UserManage() {
   const [modalAddVisibility, setModalAddVisibility] = useState(false)
-  const [userList, setUserList] = useState([])
+  const [userList, setUserList] = useState(null)
   const [username, setUsername] = useState('')
-  const [role, setRole] = useState('')
+  const [role, setRole] = useState([])
+  const [roleOptions, setRoleOptions] = useState(null)
   const [corporation, setCorporation] = useState('')
   const [tableVisibility, setTableVisibility] = useState(true)
   const [modalEditVisibility, setModalEditVisibility] = useState(false)
@@ -42,61 +40,63 @@ export default function UserManage() {
   const [total, setTotal] = useState(0)
   const [selectedUser, setSelectedUser] = useState(null)
   const [loading, setLoading] = useState(false)
-  const { user, dispatch } = useUserContext()
+  const { user } = useUserContext()
+
   //移除用户
-  async function removeUser(prop) {
-    const params = {
-      userId: prop,
-    }
-    try {
-      await removeUserApi(params)
-      if (userList.length <= 1) {
-        await getUserList(undefined, 'special')
-      } else {
-        await getUserList()
-      }
-      showToast({
-        title: '移除用户成功',
-        color: 'success',
-      })
-    } catch (error) {
-      console.log(error)
-    }
+  function removeUser(userId) {
+    removeUserApi({ userId })
+      .then(() => getUserList(userList.length <= 1 ? 'special' : undefined))
+      .then(() => showToast({ title: '移除用户成功', color: 'success' }))
+      .catch((error) => console.log(error))
   }
 
   //获取用户列表
-  async function getUserList(signal = undefined, type = 'normal', search = false) {
-    if (loading) return
-    setLoading(true)
-    const params =
-      type === 'special'
-        ? { currentPage: currentPage - 1, pageSize, username, role, corporation }
-        : search
-          ? { currentPage: 1, pageSize, username, role, corporation }
-          : { currentPage, pageSize, username, role, corporation }
-
-    try {
-      const { users, currentPage, pageSize, total } = await getUserListApi(params, signal)
-      setUserList(users)
-      setCurrentPage(currentPage)
-      setPageSize(pageSize)
-      setTotal(total)
-      setTableVisibility(true)
-    } catch (error) {
-      console.error(error)
-      showToast({
-        title: '获取用户列表失败',
-        color: 'danger',
-      })
-    } finally {
-      setLoading(false)
+  function getUserList(type = 'normal', search = false, signal) {
+    const params = {
+      currentPage: type === 'special' ? currentPage - 1 : search ? 1 : currentPage,
+      pageSize,
+      username,
+      roleList: role,
+      corporation,
     }
+
+    return getUserListApi(params, signal)
+      .then(({ users, currentPage, pageSize, total }) => {
+        setUserList(users)
+        setCurrentPage(currentPage)
+        setPageSize(pageSize)
+        setTotal(total)
+        setTableVisibility(true)
+      })
+      .catch((error) => {
+        console.error(error)
+        showToast({ title: '获取用户列表失败', color: 'danger' })
+      })
+  }
+
+  //获取角色列表
+  function getRoleList() {
+    return getRoleListApi()
+      .then((response) => {
+        const options = response.map((option) => ({
+          value: option.roleId,
+          label: option.roleName,
+        }))
+        setRoleOptions(options)
+      })
+      .catch((error) => console.log(error))
   }
 
   //改变分页器
   function paginationChange(page, pageSize) {
     setPageSize(pageSize)
     setCurrentPage(page)
+  }
+
+  const TagsColor = {
+    admin: 'magenta',
+    manager: 'orange',
+    viewer: 'lime',
   }
 
   //用户列表列定义
@@ -108,13 +108,24 @@ export default function UserManage() {
       align: 'center',
       width: '16%',
     },
-    // {
-    //     title: '角色',
-    //     dataIndex: 'role',
-    //     key: 'role',
-    //     align: 'center',
-    //     width: "16%"
-    // },
+    {
+      title: '角色',
+      dataIndex: 'roleList',
+      key: 'roleList',
+      align: 'center',
+      width: '16%',
+      render: (roleList) => {
+        return (
+          <div className="flex justify-center items-center flex-wrap">
+            {roleList?.map((role) => (
+              <div className="ml-1 mt-1">
+                <Tag color={TagsColor[role.roleName]}>{role.roleName}</Tag>
+              </div>
+            ))}
+          </div>
+        )
+      },
+    },
     {
       title: '组织',
       dataIndex: 'corporation',
@@ -174,20 +185,18 @@ export default function UserManage() {
   //初始化列表数据
   useEffect(() => {
     const controller = new AbortController()
-    const { signal } = controller // 获取信号对象
-    getUserList(signal)
-    return () => {
-      controller.abort
-    }
+    setLoading(true)
+    Promise.all([getUserList(undefined, false, controller.signal), getRoleList()]).finally(() =>
+      setLoading(false),
+    )
+    return () => controller.abort()
   }, [currentPage, pageSize])
 
   useEffect(() => {
     const controller = new AbortController()
-    const { signal } = controller // 获取信号对象
-    getUserList(signal, null, true)
-    return () => {
-      controller.abort
-    }
+    setLoading(true)
+    getUserList(null, true, controller.signal).finally(() => setLoading(false))
+    return () => controller.abort()
   }, [username, role, corporation])
 
   return (
@@ -197,24 +206,51 @@ export default function UserManage() {
         <Flex className="mb-3 h-[40px]">
           <Flex className="w-full justify-between">
             <Flex className="w-full">
-              <Flex className="w-auto items-center justify-start mr-5">
-                <p className="text-md mr-2">用户名称:</p>
-                <Input
-                  placeholder="检索"
-                  className="w-2/3"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </Flex>
-              <Flex className="w-auto items-center justify-start">
-                <p className="text-md mr-2">组织:</p>
-                <Input
-                  placeholder="检索"
-                  className="w-2/3"
-                  value={corporation}
-                  onChange={(e) => setCorporation(e.target.value)}
-                />
-              </Flex>
+              {[
+                { label: '用户名称:', value: username, onChange: setUsername, component: Input },
+                {
+                  label: '角色:',
+                  value: role,
+                  onChange: setRole,
+                  roleOptions: roleOptions,
+                  mode: 'multiple',
+                  allowClear: true,
+                  maxTagCount: 1,
+                  maxTagPlaceholder: (omittedValues) => `+${omittedValues.length} 更多`,
+                  component: Select,
+                },
+                { label: '组织:', value: corporation, onChange: setCorporation, component: Input },
+              ].map(
+                (
+                  {
+                    label,
+                    value,
+                    onChange,
+                    roleOptions,
+                    mode,
+                    allowClear,
+                    maxTagCount,
+                    maxTagPlaceholder,
+                    component: Component,
+                  },
+                  index,
+                ) => (
+                  <Flex key={index} className="whitespace-nowrap items-center justify-start mr-5">
+                    <p className="text-md mr-2">{label}</p>
+                    <Component
+                      placeholder="检索"
+                      className="min-w-48 max-w-60"
+                      value={value}
+                      options={roleOptions}
+                      mode={mode}
+                      maxTagCount={maxTagCount}
+                      maxTagPlaceholder={maxTagPlaceholder}
+                      allowClear={allowClear}
+                      onChange={(e) => onChange(e.target ? e.target.value : e)}
+                    />
+                  </Flex>
+                ),
+              )}
             </Flex>
             <Flex className="w-full justify-end items-center">
               <Button
