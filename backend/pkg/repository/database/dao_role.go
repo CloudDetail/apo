@@ -77,6 +77,9 @@ func (repo *daoRepo) RoleGranted(userID int64, roleID int) (bool, error) {
 }
 
 func (repo *daoRepo) GrantRole(ctx context.Context, userID int64, roleIDs []int) error {
+	if len(roleIDs) == 0 {
+		return nil
+	}
 	db := repo.GetContextDB(ctx)
 	userRole := make([]UserRole, len(roleIDs))
 	for i, roleID := range roleIDs {
