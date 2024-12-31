@@ -19,7 +19,7 @@ const queryProcessStartPromQL = "max by (node_name,pid,container_id) (last_over_
 
 const metricTimeseries = "originx_process_start_time{%s}[%s]"
 
-func (repo *promRepo) QueryProcessStartTime(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) (map[model.ServiceInstance]int64, error) {
+func (repo *promRepo) QueryProcessStartTime(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) (startTSmap map[model.ServiceInstance]int64, err error) {
 	vector := VecFromS2E(startTime.UnixMicro(), endTime.UnixMicro())
 
 	var pids []string
@@ -56,7 +56,7 @@ func (repo *promRepo) QueryProcessStartTime(startTime time.Time, endTime time.Ti
 	}
 
 	if len(timeseries) == 0 {
-		return nil, nil
+		return
 	}
 
 	query := fmt.Sprintf(queryProcessStartPromQL, strings.Join(timeseries, " or "))
@@ -70,7 +70,6 @@ func (repo *promRepo) QueryProcessStartTime(startTime time.Time, endTime time.Ti
 		return nil, fmt.Errorf("unexpected query result type %T, expected model.Vector", res)
 	}
 
-	var startTSmap = make(map[model.ServiceInstance]int64)
 	for _, sample := range samples {
 		if math.IsNaN(float64(sample.Value)) || math.IsInf(float64(sample.Value), 0) {
 			continue
