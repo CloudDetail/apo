@@ -55,6 +55,10 @@ func (repo *promRepo) QueryProcessStartTime(startTime time.Time, endTime time.Ti
 		timeseries = append(timeseries, fmt.Sprintf(metricTimeseries, strings.Join(filters, ","), vector))
 	}
 
+	if len(timeseries) == 0 {
+		return nil, nil
+	}
+
 	query := fmt.Sprintf(queryProcessStartPromQL, strings.Join(timeseries, " or "))
 	res, _, err := repo.GetApi().Query(context.Background(), query, endTime)
 	if err != nil {
