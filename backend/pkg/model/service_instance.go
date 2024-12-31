@@ -93,11 +93,25 @@ func (instances *ServiceInstances) GetInstanceIds() []string {
 func (instances *ServiceInstances) GetInstanceIdMap() map[string]*ServiceInstance {
 	// 使用Map去重
 	instanceMap := make(map[string]*ServiceInstance)
+	// HACK 当存在如下的实例时:
+	// instance1: "{container_id="xxx",namespace="xxx",node_name="xxx",pid="15340",pod="xxx",svc_name="xxx"}"
+	// instance2: "{container_id="xxx",namespace="xxx",node_name="xxx",pid="1",pod="xxx",svc_name="xxx"}"
+	// 根据instances.InstanceMap的遍历顺序,最终instanceMap可能返回instance1也可能返回instance2
 	for _, instance := range instances.InstanceMap {
 		if instance.PodName != "" {
-			instanceMap[instance.getPodInstanceId()] = instance
+			instanceId := instance.getPodInstanceId()
+			_, find := instanceMap[instanceId]
+			if !find || instance.Pid > 1 {
+				// 本质上,pid="1"的数据是指标生成初期的错误数据,其他指标相同时,优先返回pid大于1的实例
+				instanceMap[instanceId] = instance
+			}
 		} else if instance.ContainerId != "" {
-			instanceMap[instance.getContainerInstanceId()] = instance
+			instanceId := instance.getContainerInstanceId()
+			_, find := instanceMap[instanceId]
+			if !find || instance.Pid > 1 {
+				// 同上
+				instanceMap[instanceId] = instance
+			}
 		} else {
 			instanceMap[instance.getVMInstanceId()] = instance
 		}
