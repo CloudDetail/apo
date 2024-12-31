@@ -30,18 +30,17 @@ func IsInvalidData(m map[prometheus.InstanceKey]*prometheus.InstanceMetrics, met
 		return true
 	}
 
-	if metric.PID != "1" {
-		return false
-	}
-
-	for k := range m {
-		// 除了pid,其他都相同
-		if k.Pod == metric.Pod &&
-			k.ContainerId == metric.ContainerId &&
-			k.Namespace == metric.Namespace &&
-			k.NodeName == metric.NodeName &&
-			k.NodeIP == metric.NodeIP {
-			return true
+	if metric.PID == "1" {
+		// 跳过初期PID=1的进程实例
+		for k := range m {
+			// 除了pid,其他都相同
+			if k.Pod == metric.Pod &&
+				k.ContainerId == metric.ContainerId &&
+				k.Namespace == metric.Namespace &&
+				k.NodeName == metric.NodeName &&
+				k.NodeIP == metric.NodeIP {
+				return true
+			}
 		}
 	}
 
