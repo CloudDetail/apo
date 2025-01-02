@@ -15,7 +15,6 @@ import DateTimeCombine from './DateTime/DateTimeCombine'
 import { Menu } from 'antd'
 import { commercialNav } from 'src/_nav'
 import UserToolBox from './UserToolBox'
-import LanguageSwitcher from './LanguageSwitcher'
 
 const AppHeader = ({ type = 'default' }) => {
   const location = useLocation()
@@ -96,7 +95,6 @@ const AppHeader = ({ type = 'default' }) => {
         <CHeaderNav className="pr-4">
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
-          <LanguageSwitcher />
           <UserToolBox />
         </CHeaderNav>
       </div>

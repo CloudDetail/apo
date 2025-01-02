@@ -3,32 +3,36 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Dropdown, Popover } from 'antd'
+import { Select } from 'antd'
 import i18next from 'i18next'
 import { useEffect, useState } from 'react'
-import { IoLanguage } from 'react-icons/io5'
 import { useDispatch, useSelector } from 'react-redux'
+import { showToast } from '../utils/toast'
 
 const LanguageSwitcher = () => {
   const [selectedKeys, setSelectedKeys] = useState([])
   const dispatch = useDispatch()
   const currentLanguage = useSelector((state) => state.settingReducer.language)
 
-  const changeLanguage = (item) => {
-    i18next.changeLanguage(item.key).then(() => {
-      dispatch({ type: 'setLanguage', payload: item.key }) // 更新 Redux 中的语言状态
-    })
+  const changeLanguage = (value) => {
+    i18next
+      .changeLanguage(value)
+      .then(() => {
+        dispatch({ type: 'setLanguage', payload: value }) // 更新 Redux 中的语言状态
+      })
+      .then(() => {
+        showToast({
+          title: '语言切换成功',
+          color: 'success',
+        })
+      })
   }
-  const items = [
-    {
-      key: 'en',
-      label: <div className="w-24 text-center">English</div>,
-    },
-    {
-      key: 'zh',
-      label: <div className="w-24 text-center">简体中文</div>,
-    },
+
+  const options = [
+    { value: 'en', label: 'English' },
+    { value: 'zh', label: '简体中文' },
   ]
+
   useEffect(() => {
     if (!currentLanguage) {
       changeLanguage('zh')
@@ -36,16 +40,14 @@ const LanguageSwitcher = () => {
       setSelectedKeys([currentLanguage])
     }
   }, [currentLanguage])
+
   return (
-    //   <Popover content={content} title="Title">
-    //     <Button type="text" icon={<IoLanguage />}></Button>
-    //   </Popover>
-    <Dropdown
-      menu={{ items, selectable: true, selectedKeys, onClick: changeLanguage }}
-      placement="bottomCenter"
-    >
-      <Button type="text" icon={<IoLanguage size={20} />}></Button>
-    </Dropdown>
+    <Select
+      value={selectedKeys[0]}
+      onChange={changeLanguage}
+      options={options}
+      className="w-1/2 rounded-none"
+    />
   )
 }
 export default LanguageSwitcher

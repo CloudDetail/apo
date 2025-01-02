@@ -9,6 +9,7 @@ import TranslationCom from './oss/components/TranslationCom'
 const UserPage = React.lazy(() => import('src/core/views/UserPage/index.jsx'))
 const UserManage = React.lazy(() => import('src/core/views/UserManage/index.jsx'))
 const MenuManage = React.lazy(() => import('src/core/views/MenuManage/index.jsx'))
+const SystemConfiguration = React.lazy(() => import('src/core/views/SystemConfiguration/index.jsx'))
 const namespace = 'oss/routes'
 
 const baseRoutes = [
@@ -29,6 +30,12 @@ const baseRoutes = [
     path: '/system/menu-manage',
     name: <TranslationCom text="memuManageName" space={namespace} />,
     element: MenuManage,
+    hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/system/config',
+    name: '系统配置',
+    element: SystemConfiguration,
     hideSystemTimeRangePicker: true,
   },
 ]
