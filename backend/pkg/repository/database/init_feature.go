@@ -37,7 +37,7 @@ func (repo *daoRepo) initFeature() error {
 			{FeatureName: "中间件大盘"},
 			{FeatureName: "告警管理"}, {FeatureName: "告警规则"}, {FeatureName: "告警通知"},
 			{FeatureName: "配置中心"},
-			{FeatureName: "系统管理"}, {FeatureName: "用户管理"}, {FeatureName: "菜单管理"},
+			{FeatureName: "系统管理"}, {FeatureName: "用户管理"}, {FeatureName: "菜单管理"}, {FeatureName: "系统配置"},
 		}
 
 		newFeatureMap := make(map[string]struct{})
@@ -82,7 +82,7 @@ func (repo *daoRepo) initFeature() error {
 		parentChildMapping := map[string][]string{
 			"日志检索": {"故障现场日志", "全量日志"},
 			"链路追踪": {"故障现场链路", "全量链路"},
-			"系统管理": {"用户管理", "菜单管理"},
+			"系统管理": {"用户管理", "菜单管理", "系统配置"},
 			"告警管理": {"告警规则", "告警通知"},
 		}
 		for parentName, childNames := range parentChildMapping {
