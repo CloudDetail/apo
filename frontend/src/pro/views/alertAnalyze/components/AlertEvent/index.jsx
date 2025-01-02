@@ -72,7 +72,7 @@ const AlertEventTable = ({ scrolllHeight }) => {
             {value?.length > 0 ? (
               <div className="flex flex-wrap">
                 {value?.map((item) => (
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0 w-full">
                     <ServiceEndpointTag service={item.serviceName} endpoint={item.endpoint} />
                   </div>
                 ))}
