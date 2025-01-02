@@ -19,9 +19,9 @@ const queryProcessStartPromQL = "max by (node_name,pid,container_id) (last_over_
 
 const metricTimeseries = "originx_process_start_time{%s}[%s]"
 
-func (repo *promRepo) QueryProcessStartTime(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) (startTSmap map[model.ServiceInstance]int64, err error) {
+func (repo *promRepo) QueryProcessStartTime(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) (map[model.ServiceInstance]int64, error) {
 	vector := VecFromS2E(startTime.UnixMicro(), endTime.UnixMicro())
-
+	startTSmap := make(map[model.ServiceInstance]int64)
 	var pids []string
 	var nodeNames []string
 	var containerIDs []string
@@ -56,7 +56,7 @@ func (repo *promRepo) QueryProcessStartTime(startTime time.Time, endTime time.Ti
 	}
 
 	if len(timeseries) == 0 {
-		return
+		return startTSmap, nil
 	}
 
 	query := fmt.Sprintf(queryProcessStartPromQL, strings.Join(timeseries, " or "))
