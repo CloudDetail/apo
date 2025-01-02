@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { showToast } from '../utils/toast'
 
 const LanguageSwitcher = () => {
-  const [selectedKeys, setSelectedKeys] = useState([])
+  const [selectedKeys, setSelectedKeys] = useState('')
   const dispatch = useDispatch()
   const currentLanguage = useSelector((state) => state.settingReducer.language)
 
@@ -37,13 +37,13 @@ const LanguageSwitcher = () => {
     if (!currentLanguage) {
       changeLanguage('zh')
     } else {
-      setSelectedKeys([currentLanguage])
+      setSelectedKeys(currentLanguage)
     }
   }, [currentLanguage])
 
   return (
     <Select
-      value={selectedKeys[0]}
+      value={selectedKeys}
       onChange={changeLanguage}
       options={options}
       className="w-1/2 rounded-none"
