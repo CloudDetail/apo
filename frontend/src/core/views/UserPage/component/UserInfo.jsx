@@ -57,47 +57,35 @@ export default function UserInfo() {
   return (
     <div className="w-2/3 flex flex-col flex-wrap justify-start">
       <Form form={form} requiredMark={true} layout="vertical">
-        <div className="flex flex-col justify-between">
-          <div className="flex items-center">
-            <Form.Item
-              label={<p className="text-md">邮件</p>}
-              name="email"
-              rules={[
-                {
-                  type: 'email',
-                  message: '请输入正确的邮箱格式',
-                },
-                {
-                  required: true,
-                  message: '邮箱不能为空',
-                },
-              ]}
-            >
-              <Input placeholder="请输入邮箱" className="w-80" />
-            </Form.Item>
-          </div>
-        </div>
-        <div className="flex flex-col justify-between w-full">
-          <div className="flex items-center">
-            <Form.Item
-              label={<p className="text-md">手机号</p>}
-              name="phone"
-              rules={[
-                { required: true, message: '请输入手机号' },
-                { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' },
-              ]}
-            >
-              <Input placeholder="请输入手机号" className="w-80" />
-            </Form.Item>
-          </div>
-        </div>
-        <div className="flex flex-col justify-between">
-          <div className="flex items-center">
-            <Form.Item label={<p className="text-md">组织</p>} name="corporation">
-              <Input placeholder="请输入组织名" className="w-80" />
-            </Form.Item>
-          </div>
-        </div>
+        <Form.Item
+          label={<p className="text-md">邮件</p>}
+          name="email"
+          rules={[
+            {
+              type: 'email',
+              message: '请输入正确的邮箱格式',
+            },
+            {
+              required: true,
+              message: '邮箱不能为空',
+            },
+          ]}
+        >
+          <Input placeholder="请输入邮箱" className="w-80" />
+        </Form.Item>
+        <Form.Item
+          label={<p className="text-md">手机号</p>}
+          name="phone"
+          rules={[
+            { required: true, message: '请输入手机号' },
+            { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' },
+          ]}
+        >
+          <Input placeholder="请输入手机号" className="w-80" />
+        </Form.Item>
+        <Form.Item label={<p className="text-md">组织</p>} name="corporation">
+          <Input placeholder="请输入组织名" className="w-80" />
+        </Form.Item>
         <Popconfirm title="确定要修改信息吗" onConfirm={updateUserInfo}>
           <Button type="primary">修改信息</Button>
         </Popconfirm>
