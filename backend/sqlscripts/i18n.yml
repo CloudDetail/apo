@@ -266,6 +266,22 @@ menuManage:
     field_name: "label"
     entity_type: "menu"
 
+systemConfig:
+  key: "systemConfig"
+  i18n:
+    - language: "en"
+      translation: "System Configurations"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "系统配置"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "Configurations"
+      field_name: "abbreviation"
+      entity_type: "menu"
+
 服务概览:
   key: "服务概览"
   i18n:
@@ -497,5 +513,18 @@ menuManage:
 
   - language: "zh"
     translation: "菜单管理"
+    entity_type: "feature"
+    field_name: "featureName"
+
+系统配置:
+  key: "系统配置"
+  i18n:
+  - language: "en"
+    translation: "System Configurations"
+    entity_type: "feature"
+    filed_name: "featureName"
+
+  - language: "zh"
+    translation: "系统配置"
     entity_type: "feature"
     field_name: "featureName"

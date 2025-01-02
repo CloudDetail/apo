@@ -92,5 +92,4 @@ func (repo *daoRepo) initI18nTranslation() error {
 
 		return nil
 	})
-
 }
