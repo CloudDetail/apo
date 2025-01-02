@@ -3,17 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  Flex,
-  Input,
-  Button,
-  Table,
-  ConfigProvider,
-  Popconfirm,
-  Pagination,
-  Select,
-  Tag,
-} from 'antd'
+import { Input, Button, Table, ConfigProvider, Popconfirm, Pagination, Select, Tag } from 'antd'
 import { getUserListApi, removeUserApi, getRoleListApi } from 'core/api/user'
 import { showToast } from 'core/utils/toast'
 import { useEffect, useState } from 'react'
@@ -203,67 +193,50 @@ export default function UserManage() {
     <>
       <LoadingSpinner loading={loading} />
       <div className={style.userManageContainer}>
-        <Flex className="mb-3 h-[40px]">
-          <Flex className="w-full justify-between">
-            <Flex className="w-full">
-              {[
-                { label: '用户名称:', value: username, onChange: setUsername, component: Input },
-                {
-                  label: '角色:',
-                  value: role,
-                  onChange: setRole,
-                  roleOptions: roleOptions,
-                  mode: 'multiple',
-                  allowClear: true,
-                  maxTagCount: 1,
-                  maxTagPlaceholder: (omittedValues) => `+${omittedValues.length} 更多`,
-                  component: Select,
-                },
-                { label: '组织:', value: corporation, onChange: setCorporation, component: Input },
-              ].map(
-                (
-                  {
-                    label,
-                    value,
-                    onChange,
-                    roleOptions,
-                    mode,
-                    allowClear,
-                    maxTagCount,
-                    maxTagPlaceholder,
-                    component: Component,
-                  },
-                  index,
-                ) => (
-                  <Flex key={index} className="whitespace-nowrap items-center justify-start mr-5">
-                    <p className="text-md mr-2">{label}</p>
-                    <Component
-                      placeholder="检索"
-                      className="min-w-48 max-w-60"
-                      value={value}
-                      options={roleOptions}
-                      mode={mode}
-                      maxTagCount={maxTagCount}
-                      maxTagPlaceholder={maxTagPlaceholder}
-                      allowClear={allowClear}
-                      onChange={(e) => onChange(e.target ? e.target.value : e)}
-                    />
-                  </Flex>
-                ),
-              )}
-            </Flex>
-            <Flex className="w-full justify-end items-center">
-              <Button
-                type="primary"
-                icon={<BsPersonFillAdd size={20} />}
-                onClick={() => setModalAddVisibility(true)}
-                className="flex-grow-0 flex-shrink-0"
-              >
-                <span className="text-xs">新增用户</span>
-              </Button>
-            </Flex>
-          </Flex>
-        </Flex>
+        <div className="mb-3 h-[40px] flex justify-between">
+          <div className="flex">
+            <div className="whitespace-nowrap items-center justify-start mr-5 flex">
+              <p className="text-md mr-2">用户名称:</p>
+              <Input
+                placeholder="检索"
+                className="min-w-48 max-w-60"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+            <div className="whitespace-nowrap items-center justify-start mr-5 flex">
+              <p className="text-md mr-2">角色:</p>
+              <Select
+                placeholder="检索"
+                className="min-w-48 max-w-60"
+                value={role}
+                options={roleOptions}
+                mode="multiple"
+                maxTagCount={1}
+                maxTagPlaceholder={(omittedValues) => `+${omittedValues.length} 更多`}
+                allowClear
+                onChange={(e) => setRole(e)}
+              />
+            </div>
+            <div className="whitespace-nowrap items-center justify-start mr-5 flex">
+              <p className="text-md mr-2">组织:</p>
+              <Input
+                placeholder="检索"
+                className="min-w-48 max-w-60"
+                value={corporation}
+                onChange={(e) => setCorporation(e.target.value)}
+              />
+            </div>
+          </div>
+          <Button
+            type="primary"
+            icon={<BsPersonFillAdd size={20} />}
+            onClick={() => setModalAddVisibility(true)}
+            className="flex-grow-0 flex-shrink-0"
+          >
+            <span className="text-xs">新增用户</span>
+          </Button>
+        </div>
 
         <ConfigProvider
           theme={{
@@ -274,7 +247,7 @@ export default function UserManage() {
             },
           }}
         >
-          <Flex vertical className="w-full flex-1 pb-4 justify-between">
+          <div className="w-full flex-1 pb-4 justify-between flex flex-col">
             <Table
               dataSource={userList}
               columns={columns}
@@ -293,7 +266,7 @@ export default function UserManage() {
               onChange={paginationChange}
               showQuickJumper
             />
-          </Flex>
+          </div>
         </ConfigProvider>
       </div>
       <EditModal

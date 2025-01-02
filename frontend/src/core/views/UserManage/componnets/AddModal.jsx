@@ -97,101 +97,99 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) =>
         width={1000}
       >
         <LoadingSpinner loading={loading} />
-        <Flex vertical className="w-full mt-4 mb-4">
-          <Flex vertical className="w-full justify-center start">
-            <Form form={form} layout="vertical">
-              <Form.Item
-                label="用户名"
-                name="username"
-                rules={[{ required: true, message: '请输入用户名' }]}
-              >
-                <div className="flex justify-start items-start">
-                  <Input placeholder="请输入用户名" className="h-8" />
-                </div>
-              </Form.Item>
-              <Form.Item
-                label="密码"
-                name="password"
-                rules={[
-                  { required: true, message: '请输入密码' },
-                  {
-                    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()\-_+=<>?/{}[\]|:;.,~]).{9,}$/,
-                    message: (
-                      <p>
-                        密码必须包含大写字母、小写字母、
-                        <Tooltip title="(! @ # $ % ^ & * ( ) - _ + = < > ? / { } [ ] | : ; . , ~)">
-                          <span className="underline">特殊字符</span>
-                        </Tooltip>
-                        ，且长度大于8
-                      </p>
-                    ),
+        <div className="flex flex-col w-full mt-4 mb-4 justify-center start">
+          <Form form={form} layout="vertical">
+            <Form.Item
+              label="用户名"
+              name="username"
+              rules={[{ required: true, message: '请输入用户名' }]}
+            >
+              <div className="flex justify-start items-start">
+                <Input placeholder="请输入用户名" className="h-8" />
+              </div>
+            </Form.Item>
+            <Form.Item
+              label="密码"
+              name="password"
+              rules={[
+                { required: true, message: '请输入密码' },
+                {
+                  pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()\-_+=<>?/{}[\]|:;.,~]).{9,}$/,
+                  message: (
+                    <p>
+                      密码必须包含大写字母、小写字母、
+                      <Tooltip title="(! @ # $ % ^ & * ( ) - _ + = < > ? / { } [ ] | : ; . , ~)">
+                        <span className="underline">特殊字符</span>
+                      </Tooltip>
+                      ，且长度大于8
+                    </p>
+                  ),
+                },
+              ]}
+            >
+              <div className="flex justify-start items-start">
+                <Input.Password placeholder="请输入密码" />
+              </div>
+            </Form.Item>
+            <Form.Item
+              label="重复密码"
+              name="confirmPassword"
+              dependencies={['password']}
+              rules={[
+                { required: true, message: '请再次输入密码' },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue('password') === value) {
+                      return Promise.resolve()
+                    }
+                    return Promise.reject(new Error('两次输入的密码不一致'))
                   },
-                ]}
-              >
-                <div className="flex justify-start items-start">
-                  <Input.Password placeholder="请输入密码" />
-                </div>
-              </Form.Item>
-              <Form.Item
-                label="重复密码"
-                name="confirmPassword"
-                dependencies={['password']}
-                rules={[
-                  { required: true, message: '请再次输入密码' },
-                  ({ getFieldValue }) => ({
-                    validator(_, value) {
-                      if (!value || getFieldValue('password') === value) {
-                        return Promise.resolve()
-                      }
-                      return Promise.reject(new Error('两次输入的密码不一致'))
-                    },
-                  }),
-                ]}
-              >
-                <Input.Password placeholder="请再次输入密码" />
-              </Form.Item>
-              <Form.Item label="角色" name="roleList">
-                <Select
-                  mode="multiple"
-                  placeholder="请选择角色"
-                  options={roleOptions}
-                  className="h-8"
-                  maxTagCount={7}
-                  maxTagPlaceholder={(omittedValues) => `+${omittedValues.length} 更多`}
-                  optionLabelProp="label"
-                  allowClear
-                />
-              </Form.Item>
-              <Form.Item
-                label="邮件"
-                name="email"
-                rules={[
-                  {
-                    type: 'email',
-                    message: '请输入有效的邮箱地址',
-                  },
-                ]}
-              >
-                <Input placeholder="请输入用户邮箱" />
-              </Form.Item>
-              <Form.Item
-                label="电话号码"
-                name="phone"
-                rules={[
-                  {
-                    pattern: /^1[3-9]\d{9}$/, // 中国大陆手机号正则
-                    message: '请输入有效的电话号码',
-                  },
-                ]}
-              >
-                <Input placeholder="请输入电话号码" />
-              </Form.Item>
-              <Form.Item label="组织" name="corporation">
-                <Input placeholder="请输入组织" />
-              </Form.Item>
-            </Form>
-          </Flex>
-        </Flex>
+                }),
+              ]}
+            >
+              <Input.Password placeholder="请再次输入密码" />
+            </Form.Item>
+            <Form.Item label="角色" name="roleList">
+              <Select
+                mode="multiple"
+                placeholder="请选择角色"
+                options={roleOptions}
+                className="h-8"
+                maxTagCount={7}
+                maxTagPlaceholder={(omittedValues) => `+${omittedValues.length} 更多`}
+                optionLabelProp="label"
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item
+              label="邮件"
+              name="email"
+              rules={[
+                {
+                  type: 'email',
+                  message: '请输入有效的邮箱地址',
+                },
+              ]}
+            >
+              <Input placeholder="请输入用户邮箱" />
+            </Form.Item>
+            <Form.Item
+              label="电话号码"
+              name="phone"
+              rules={[
+                {
+                  pattern: /^1[3-9]\d{9}$/, // 中国大陆手机号正则
+                  message: '请输入有效的电话号码',
+                },
+              ]}
+            >
+              <Input placeholder="请输入电话号码" />
+            </Form.Item>
+            <Form.Item label="组织" name="corporation">
+              <Input placeholder="请输入组织" />
+            </Form.Item>
+          </Form>
+        </div>
       </Modal>
     </>
   )
