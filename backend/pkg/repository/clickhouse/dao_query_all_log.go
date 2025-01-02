@@ -18,7 +18,7 @@ func (ch *chRepo) QueryAllLogs(req *request.LogQueryRequest) ([]map[string]any, 
 	bySql := NewByLimitBuilder().
 		OrderBy(fmt.Sprintf("`%s`", req.TimeField), false).
 		Limit(req.PageSize).
-		Offset((req.PageNum - 1) * req.PageSize).
+		Offset(req.PageNum).
 		String()
 	sql := fmt.Sprintf(querySQl, req.DataBase, req.TableName, condition, bySql)
 

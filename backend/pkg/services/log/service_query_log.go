@@ -14,6 +14,21 @@ import (
 )
 
 func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResponse, error) {
+	offset := (req.PageNum - 1) * req.PageSize
+	if offset > 10000 {
+		logcharts, _ := s.GetLogChart(req)
+		var count = 0
+		for _, chart := range logcharts.Histograms {
+			count += int(chart.Count)
+			if count > offset {
+				offset = count - int(chart.Count)
+				req.StartTime = chart.From
+				break
+			}
+		}
+	}
+
+	req.PageNum = offset
 	logs, sql, err := s.chRepo.QueryAllLogs(req)
 	res := &response.LogQueryResponse{Query: sql}
 	if err != nil {
