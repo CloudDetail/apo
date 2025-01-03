@@ -120,24 +120,7 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	sqlDb.SetMaxIdleConns(databaseCfg.MaxIdle)
 	// 设置每个连接的过期时间
 	sqlDb.SetConnMaxLifetime(time.Duration(databaseCfg.MaxLife) * time.Second)
-	// 创建阈值表
-	err = database.AutoMigrate(&Threshold{})
-	if err != nil {
-		return nil, err
-	}
-	err = database.AutoMigrate(&LogTableInfo{})
-	if err != nil {
-		return nil, err
-	}
-	err = database.AutoMigrate(&OtherLogTable{})
-	if err != nil {
-		return nil, err
-	}
-	err = database.AutoMigrate(&amconfig.DingTalkConfig{})
-	if err != nil {
-		return nil, err
-	}
-	err = database.AutoMigrate(&User{})
+	err = migrateTable(database)
 	if err != nil {
 		return nil, err
 	}
@@ -190,4 +173,25 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		return nil, err
 	}
 	return daoRepo, nil
+}
+
+func migrateTable(db *gorm.DB) error {
+	return db.AutoMigrate(
+		&amconfig.DingTalkConfig{},
+		&Feature{},
+		&FeatureMapping{},
+		&I18nTranslation{},
+		&InsertPage{},
+		&LogTableInfo{},
+		&RouterInsertPage{},
+		&MenuItem{},
+		&OtherLogTable{},
+		&AuthPermission{},
+		&AlertMetricsData{},
+		&Role{},
+		&UserRole{},
+		&Router{},
+		&Threshold{},
+		&User{},
+	)
 }

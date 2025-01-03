@@ -10,13 +10,6 @@ import (
 
 func (repo *daoRepo) initFeature() error {
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&Feature{}); err != nil {
-			return err
-		}
-		if err := tx.AutoMigrate(&AuthPermission{}); err != nil {
-			return err
-		}
-
 		var existingFeatures []Feature
 		if err := tx.Where("custom = ?", false).Find(&existingFeatures).Error; err != nil {
 			return err

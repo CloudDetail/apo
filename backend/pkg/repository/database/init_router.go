@@ -28,10 +28,6 @@ func (repo *daoRepo) initRouterData() error {
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&Router{}); err != nil {
-			return err
-		}
-
 		var existingRouter, toAdd []Router
 		var toDelete []int
 

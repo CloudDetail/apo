@@ -35,9 +35,6 @@ func (repo *daoRepo) initMenuItems() error {
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&MenuItem{}); err != nil {
-			return err
-		}
 		// Menu item might include item which not support to existing
 		// but the mapping between item and feature will be deleted
 		// because once a menu was deleted, the feature should also be deleted.
