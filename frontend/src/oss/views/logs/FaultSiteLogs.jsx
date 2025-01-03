@@ -178,26 +178,26 @@ function FaultSiteLogs(props) {
             <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
             {i18n.language === 'zh' ? (
               <>
-                默认采集控制台日志，从文件中采集日志的配置方式请参考
+                {t('faultSiteLogs.faultLogTableToast')}
                 <a
                   className="underline text-sky-500"
                   target="_blank"
                   href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置采集日志/"
                 >
-                  <span>文档</span>
+                  <span>{t('faultSiteLogs.documentText')}</span>
                 </a>
               </>
             ) : (
               <p>
-                Console logs are collected by default. Refer to{' '}
+                {t('faultSiteLogs.faultLogTableToast1')}
                 <a
                   className="underline text-sky-500"
                   target="_blank"
                   href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置采集日志/"
                 >
-                  <span>documentation</span>
-                </a>{' '}
-                for file-based log collection setup.
+                  <span>{t('faultSiteLogs.documentText')}</span>
+                </a>
+                {t('faultSiteLogs.faultLogTableToast2')}
               </p>
             )}
           </CToastBody>

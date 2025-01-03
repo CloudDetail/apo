@@ -1,7 +1,11 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
 import { get, post, headers } from '../utils/request'
 
 /**
- * 获取团队列表
+ * Get team list
  * @param {object} params
  * @param {string} params.teamName
  * @param {number[]} params.featureList
@@ -15,7 +19,7 @@ export const getTeamListApi = (params) => {
 }
 
 /**
- * 创建团队
+ * create team
  * @param {object} params
  * @param {string} params.teamName
  * @param {number[]} params.featureList
@@ -27,7 +31,7 @@ export const createTeamApi = (params) => {
 }
 
 /**
- * 删除团队
+ * delete team
  * @param {object} params
  * @param {number} params.teamId
  * @returns {Promise<Object>}
@@ -37,7 +41,7 @@ export const deleteTeamApi = (params) => {
 }
 
 /**
- * 操作团队
+ * operation team
  * @param {object} params
  * @param {number} params.userId
  * @param {number} params.teamList
@@ -48,7 +52,7 @@ export const operationTeamApi = (params) => {
 }
 
 /**
- * 更新团队信息
+ * update team info
  * @param {object} params
  * @param {number} params.teamId
  * @param {string} params.teamName
@@ -61,7 +65,7 @@ export const updateTeamApi = (params) => {
 }
 
 /**
- * 获取团队用户列表
+ * get team's user list
  * @param {object} params
  * @param {number} params.teamId
  * @returns {Promise<Object>}
@@ -71,7 +75,7 @@ export const getTeamUserListApi = (params) => {
 }
 
 /**
- * 操作团队用户
+ * operation team user
  * @param {object} params
  * @param {number} params.teamId
  * @param {number[]} params.userList

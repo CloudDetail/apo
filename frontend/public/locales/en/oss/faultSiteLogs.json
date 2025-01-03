@@ -1,7 +1,8 @@
 {
   "faultSiteLogs": {
-    "faultLogTableToast": "Console logs are collected by default. Refer to documentation for file-based log collection setup \u00A0",
-    "documentText": "document",
+    "faultLogTableToast1": "Console logs are collected by default. Refer to ",
+    "faultLogTableToast2": " for file-based log collection setup.",
+    "documentText": "documentation",
     "faultLogsText": "FaultLogs",
     "endpoint": "Endpoint",
     "timeOfFailure": "Time",
