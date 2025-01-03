@@ -107,7 +107,6 @@ func (instances *ServiceInstances) GetInstanceIdMap() map[string]*ServiceInstanc
 			instanceId := instance.getContainerInstanceId()
 			_, find := instanceMap[instanceId]
 			if !find || instance.Pid > 1 {
-				// 同上
 				instanceMap[instanceId] = instance
 			}
 		} else {
