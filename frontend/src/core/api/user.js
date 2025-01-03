@@ -10,6 +10,7 @@ import { post, get, headers } from '../utils/request'
  * @param {Object} params
  * @param {string} params.username
  * @param {string} params.password
+ * @param {string} params.password
  * @returns {Promise<Object>}
  */
 const loginApi = (params) => {
@@ -20,6 +21,7 @@ const loginApi = (params) => {
  * 登出
  * @param {Object} params
  * @param {string} params.accessToken
+ * @param {string} params.refreshToken
  * @param {string} params.refreshToken
  * @returns {Promise<Object>}
  */
@@ -32,6 +34,7 @@ const logoutApi = (params) => {
  * @param {Object} params
  * @param {string} params.username
  * @param {string} params.email
+ * @param {string} params.email
  * @returns {Promise<Object>}
  */
 const updateEmailApi = (params) => {
@@ -41,11 +44,9 @@ const updateEmailApi = (params) => {
 /**
  * 更新用户信息
  * @param {Object} params
- * @param {string} params.userId
- * @param {string} params.corporation
  * @returns {Promise<Object>}
  */
-const updateCorporationApi = (params) => {
+const updateUserInfoApi = (params) => {
   return post(`/api/user/update/info`, params, headers.formUrlencoded)
 }
 
@@ -67,6 +68,7 @@ const updatePasswordApi = (params) => {
  * @param {Object} params
  * @param {string} params.username
  * @param {string} params.phone
+ * @param {string} params.phone
  * @returns {Promise<Object>}
  */
 const updatePhoneApi = (params) => {
@@ -75,6 +77,7 @@ const updatePhoneApi = (params) => {
 
 /**
  * 创建用户
+ * @param {any} params
  * @param {Object} params
  * @param {string} params.username
  * @param {string} params.password
@@ -101,6 +104,7 @@ const getUserInfoApi = () => {
  * @param {string} params.pageSize
  * @param {string} params.role
  * @param {string} params.corporation
+ * @param {*} signal
  * @param {*} signal
  * @returns {Promise<Object>}
  */
@@ -129,11 +133,15 @@ const updatePasswordWithNoOldPwdApi = (params) => {
   return post(`/api/user/reset`, params, headers.formUrlencoded)
 }
 
+const getRoleListApi = () => {
+  return get('/api/role/roles')
+}
+
 export {
   loginApi,
   logoutApi,
   updateEmailApi,
-  updateCorporationApi,
+  updateUserInfoApi,
   updatePasswordApi,
   updatePhoneApi,
   createUserApi,
@@ -141,4 +149,5 @@ export {
   getUserListApi,
   removeUserApi,
   updatePasswordWithNoOldPwdApi,
+  getRoleListApi,
 }
