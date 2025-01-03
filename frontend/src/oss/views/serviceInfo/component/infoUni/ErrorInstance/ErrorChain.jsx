@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import * as d3 from 'd3'
 import dagreD3 from 'dagre-d3'
 import React, { useEffect, useRef } from 'react'

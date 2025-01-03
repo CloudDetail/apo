@@ -11,7 +11,7 @@ RUN go build -v -o apo-backend
 
 FROM debian:bullseye-slim AS runner
 WORKDIR /app
-ENV TZ=Asia/Shanghai
+
 RUN apt-get update && \
     apt-get install -y sqlite3 ca-certificates && \
     rm -rf /var/lib/apt/lists/*

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Checkbox, Flex, Form, Input, InputNumber, Modal, Radio, Select, Tag, Tooltip } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
 import _ from 'lodash'

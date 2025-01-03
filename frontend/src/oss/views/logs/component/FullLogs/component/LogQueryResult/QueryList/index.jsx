@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import LogItem from './LogItem'
 import { Empty, List } from 'antd'
 const QueryList = ({ logs, openContextModal = null, loading }) => {

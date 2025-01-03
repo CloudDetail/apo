@@ -1,0 +1,28 @@
+name: CI
+
+on: 
+  pull_request:
+  schedule:
+    - cron: "0 18 * * *" # TimeZone: UTC 0
+
+concurrency:
+  group: apo-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-license-header:
+    if: (github.event_name == 'schedule' && github.repository == 'CloudDetail/apo') || (github.event_name != 'schedule')
+    name: Check License header
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: false
+      - name: Check license header
+        uses: apache/skywalking-eyes@cd7b195c51fd3d6ad52afceb760719ddc6b3ee91
+
+    

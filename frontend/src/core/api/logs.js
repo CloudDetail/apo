@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { del, get, post } from 'src/core/utils/request'
 
 // 获取故障现场分页日志

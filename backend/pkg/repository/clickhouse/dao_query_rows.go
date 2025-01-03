@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package clickhouse
 
 func (ch *chRepo) queryRowsData(sql string) ([]map[string]any, error) {

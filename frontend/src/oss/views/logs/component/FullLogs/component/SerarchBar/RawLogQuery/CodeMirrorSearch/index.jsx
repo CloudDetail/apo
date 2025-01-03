@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useRef, useState } from 'react'
 import 'codemirror/lib/codemirror.css' // CodeMirror 样式
 import 'codemirror/theme/material-darker.css' // material-darker 主题

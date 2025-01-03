@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 export const sygnet = [
   '102 115',
   `<g style="fill: currentColor">

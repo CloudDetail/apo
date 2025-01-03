@@ -1,8 +1,10 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package user
 
 import (
 	"errors"
-	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
 
@@ -18,7 +20,7 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param username formData string true "用户名"
+// @Param userId formData int64 true "用户id"
 // @Param oldPassword formData string true "原密码"
 // @Param newPassword formData string true "新密码"
 // @Param confirmPassword formData string true "确认密码"
@@ -35,13 +37,6 @@ func (h *handler) UpdateUserPassword() core.HandlerFunc {
 				code.ParamBindError,
 				code.Text(code.ParamBindError)).WithError(err),
 			)
-			return
-		}
-		if req.Username == config.Get().User.AnonymousUser.Username {
-			c.AbortWithError(core.Error(
-				http.StatusBadRequest,
-				code.UserNoPermissionError,
-				code.Text(code.UserNoPermissionError)))
 			return
 		}
 

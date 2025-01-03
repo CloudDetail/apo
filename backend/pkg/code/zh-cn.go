@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package code
 
 var zhCnText = map[string]string{
@@ -126,4 +129,18 @@ var zhCnText = map[string]string{
 	UserRemoveSelfError:        "不能删除自己",
 	K8sGetResourceError:        "获取k8s资源失败",
 	UserNoPermissionError:      "没有权限",
+	UserEmailUsed:              "邮箱已被使用",
+	UserPhoneUsed:              "手机号已被使用",
+	UserPhoneFormatError:       "手机号格式不正确",
+	UserGrantRoleError:         "分配权限失败",
+	UserGetRolesERROR:          "获取角色失败",
+	RoleNotExistsError:         "角色不存在",
+	GetMenuConfigError:         "获取菜单栏配置失败",
+	UpdateMenuConfigError:      "更新菜单栏配置失败",
+	RoleGrantedError:           "已经为用户分配过该权限",
+	GetFeatureError:            "获取功能列表失败",
+	AuthSubjectNotExistError:   "授权主体不存在",
+	UserGrantPermissionError:   "授权失败",
+	ConfigureMenuError:         "配置菜单失败",
+	PermissionNotExistError:    "菜单项不存在",
 }

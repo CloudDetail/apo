@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package user
 
 import (
@@ -18,10 +21,22 @@ type Service interface {
 	UpdateUserPhone(req *request.UpdateUserPhoneRequest) error
 	UpdateUserEmail(req *request.UpdateUserEmailRequest) error
 	UpdateUserPassword(req *request.UpdateUserPasswordRequest) error
-	GetUserInfo(username string) (response.GetUserInfoResponse, error)
+	GetUserInfo(userID int64) (response.GetUserInfoResponse, error)
 	GetUserList(req *request.GetUserListRequest) (response.GetUserListResponse, error)
-	RemoveUser(username string, operatorName string) error
+	RemoveUser(userID int64) error
 	RestPassword(req *request.ResetPasswordRequest) error
+
+	RoleOperation(req *request.RoleOperationRequest) error
+	GetRoles() (response.GetRoleResponse, error)
+	GetUserRole(req *request.GetUserRoleRequest) (response.GetUserRoleResponse, error)
+	GetFeature(req *request.GetFeatureRequest) (response.GetFeatureResponse, error)
+	GetSubjectFeature(req *request.GetSubjectFeatureRequest) (response.GetSubjectFeatureResponse, error)
+	PermissionOperation(req *request.PermissionOperationRequest) error
+	ConfigureMenu(req *request.ConfigureMenuRequest) error
+
+	IsInBlacklist(token string) (bool, error)
+
+	GetUserConfig(req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error)
 }
 
 type service struct {

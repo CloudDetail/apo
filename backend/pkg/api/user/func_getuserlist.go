@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package user
 
 import (
@@ -33,6 +36,13 @@ func (h *handler) GetUserList() core.HandlerFunc {
 				code.Text(code.ParamBindError)).WithError(err),
 			)
 			return
+		}
+
+		if req.PageParam == nil {
+			req.PageParam = &request.PageParam{
+				CurrentPage: 1,
+				PageSize:    99,
+			}
 		}
 
 		resp, err := h.userService.GetUserList(req)

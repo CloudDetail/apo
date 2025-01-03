@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 // repeat from backend/pkg/services/serviceoverview/log_filldata.go
 // TODO move to public package
 

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { combineReducers } from 'redux'
 import { persistReducer } from 'redux-persist'
 import timeRangePersistConfig from '../persist/timeRangePersistConfig'

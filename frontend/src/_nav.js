@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React from 'react'
 import CIcon from '@coreui/icons-react'
 import { cilSpeedometer } from '@coreui/icons'
@@ -9,7 +14,7 @@ import { FaRegBell } from 'react-icons/fa'
 import { MdOutlineSettings } from 'react-icons/md'
 import { IoIosTrendingUp, IoMdCloudOutline } from 'react-icons/io'
 import { TbWaveSawTool } from 'react-icons/tb'
-import { GrSystem } from "react-icons/gr";
+import { GrSystem } from 'react-icons/gr'
 
 const commercialNav = [
   {
@@ -34,14 +39,22 @@ let _nav = [
   {
     key: 'logs',
     label: '日志检索',
-    to: '/logs',
+    // to: '/logs',
     icon: <LuFileText />,
     children: [
       { key: 'faultSite', label: '故障现场日志', to: '/logs/fault-site' },
       { key: 'full', label: '全量日志', to: '/logs/full' },
     ],
   },
-  { key: 'trace', icon: <PiPath />, label: '链路追踪', to: '/trace' },
+  {
+    key: 'trace',
+    icon: <PiPath />,
+    label: '链路追踪',
+    children: [
+      { key: 'faultSiteTrace', label: '故障现场链路', to: '/trace/fault-site' },
+      { key: 'fullTrace', label: '全量链路', to: '/trace/full' },
+    ],
+  },
   {
     key: 'system',
     icon: <AiOutlineDashboard />,
@@ -80,8 +93,12 @@ let _nav = [
   {
     key: 'alerts',
     icon: <FaRegBell />,
-    label: '告警规则',
+    label: '告警管理',
     to: '/alerts',
+    children: [
+      { key: 'alertsRule', label: '告警规则', to: '/alerts/rule' },
+      { key: 'alertsNotify', label: '告警通知', to: '/alerts/notify' },
+    ],
   },
   {
     key: 'config',
@@ -101,14 +118,23 @@ let _nav = [
     icon: <GrSystem />,
     label: '系统管理',
     children: [
-      { key: 'userManage', label: '用户管理', to: '/system/user-manage' }
+      { key: 'userManage', label: '用户管理', to: '/system/user-manage' },
+      { key: 'menuManage', label: '菜单管理', to: '/system/menu-manage' },
     ],
-  }
+  },
 ]
-
-if (!VITE_SHOW_MIDWARE_HEALTH) {
-  _nav = _nav.filter((item) => item.key !== 'mysql' && item.key !== 'healthy')
+const navIcon = {
+  service: <IoMdCloudOutline />,
+  logs: <LuFileText />,
+  trace: <PiPath />,
+  system: <AiOutlineDashboard />,
+  basic: <AiOutlineDashboard />,
+  application: <AiOutlineDashboard />,
+  middleware: <AiOutlineDashboard />,
+  config: <MdOutlineSettings />,
+  manage: <GrSystem />,
+  alerts: <FaRegBell />,
+  mysql: <AiOutlineDashboard />,
+  healthy: <TbWaveSawTool />,
 }
-
-
-export { _nav, commercialNav }
+export { _nav, commercialNav, navIcon }

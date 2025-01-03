@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { CImage } from '@coreui/react'
 import React from 'react'
 import emptyImg from 'src/core/assets/images/empty.svg'

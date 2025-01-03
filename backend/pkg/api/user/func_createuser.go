@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package user
 
 import (
@@ -19,6 +22,7 @@ import (
 // @Param username formData string true "用户名"
 // @Param password formData string true "密码"
 // @Param confirmPassword formData string true "确认密码"
+// @Param roleList formData []int false "角色id" collectionFormat(multi)
 // @Param email formData string false "邮箱"
 // @Param phone formData string false "手机号"
 // @Param corporation formData string false "组织"
@@ -43,6 +47,14 @@ func (h *handler) CreateUser() core.HandlerFunc {
 				code.UserConfirmPasswordError,
 				code.Text(code.UserConfirmPasswordError)),
 			)
+			return
+		}
+
+		if len(req.Phone) > 0 && !phoneRegexp.MatchString(req.Phone) {
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.UserPhoneFormatError,
+				code.Text(code.UserPhoneFormatError)))
 			return
 		}
 

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useEffect, useState } from 'react'
 import { AiFillCaretDown, AiFillCaretRight } from 'react-icons/ai'
 import LogItemFold from './component/LogItemFold'

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { CButton, CCard, CCardBody, CCardHeader } from '@coreui/react'
 import React, { useEffect, useMemo } from 'react'
 import { useState } from 'react'

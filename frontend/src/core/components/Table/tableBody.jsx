@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /* eslint-disable react/prop-types */
 import React from 'react'
 import TableRow from './tableRow'

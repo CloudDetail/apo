@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 .selectedAlertAnalyzeNode {
     /* box-shadow: rgba(255, 158, 64, 0.25) 0px 54px 55px, rgba(255, 158, 64, 0.12) 0px -12px 30px, rgba(255, 158, 64, 0.12) 0px 4px 6px, rgba(255, 158, 64, 0.17) 0px 12px 13px, rgba(255, 158, 64, 0.09) 0px -3px 5px; */
     box-shadow: rgba(255, 158, 64, 0.3) 0px 0px 15px 5px, rgba(255, 158, 64, 1) 0px 0px 1px 1px;

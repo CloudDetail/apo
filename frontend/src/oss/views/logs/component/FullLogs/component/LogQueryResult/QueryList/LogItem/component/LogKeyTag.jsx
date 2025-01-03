@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Tag } from 'antd'
 import React from 'react'
 import LogTagDropDown from './LogTagDropdown'

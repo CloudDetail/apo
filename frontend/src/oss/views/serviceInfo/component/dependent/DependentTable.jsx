@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useMemo, useState, useEffect } from 'react'
 import StatusInfo from 'src/core/components/StatusInfo'
 import BasicTable from 'src/core/components/Table/basicTable'

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useSortBy, useTable, usePagination } from 'react-table'
 import './index.css'

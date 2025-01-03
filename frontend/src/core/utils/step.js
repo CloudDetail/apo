@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 // 时间范围 （a,b]	步长	点数
 // 0～15min	       30s	  1～30
 // 15～30 min	   1min	  15～30

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Collapse, List, Progress, Tag, Tooltip } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useCallback } from 'react'
 import { Handle, Position } from 'reactflow'
 import { BiCctv } from 'react-icons/bi'

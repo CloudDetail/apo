@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 // src/api/request.js
 import axios from 'axios'
 import { showToast } from './toast'

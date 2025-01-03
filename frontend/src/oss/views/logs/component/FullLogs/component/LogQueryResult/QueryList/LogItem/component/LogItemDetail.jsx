@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useEffect, useState, useMemo } from 'react'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import LogKeyTag from './LogKeyTag'

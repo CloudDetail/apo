@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Button, Card, Collapse, Input, Tooltip } from 'antd'
 import React, { useEffect, useRef, useState } from 'react'
 import IndexCollapse from './component/IndexCollapse'

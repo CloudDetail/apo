@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Highlighter from 'react-highlight-words'
 import { saveAs } from 'file-saver'

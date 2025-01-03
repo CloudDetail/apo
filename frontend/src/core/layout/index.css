@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 .appSidebarMenuIcon {
     div {
         font-size: 20px;
@@ -9,6 +14,9 @@
 }
 
 .siderCollapsed {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
 
     .appSidebarMenuIcon {
         width: 100%;
@@ -33,4 +41,27 @@
             font-weight: bolder;
         }
     }
+
+    .transparent-scrollbar {
+        overflow: auto;
+        /* 允许滚动 */
+        scrollbar-width: none;
+        /* Firefox */
+    }
+
+    .transparent-scrollbar::-webkit-scrollbar {
+        width: 0;
+        /* Chrome, Edge */
+        height: 0;
+    }
+
+
+}
+
+.sidebarMenu {
+    flex: 1;
+    overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
 }

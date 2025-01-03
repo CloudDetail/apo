@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import ReactFlow, {
   ReactFlowProvider,

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useEffect, useRef, useState, useMemo } from 'react'
 import { CAccordion, CAccordionHeader, CAccordionItem, CImage } from '@coreui/react'
 import StatusInfo from 'src/core/components/StatusInfo'

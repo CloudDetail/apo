@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Dropdown } from 'antd'
 import React from 'react'
 import { copyValue } from 'src/core/components/CopyButton'

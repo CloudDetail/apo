@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { CTab, CTabContent, CTabList, CTabPanel, CTabs } from '@coreui/react'
 import React, { useState } from 'react'
 import { useLocation } from 'react-router-dom'

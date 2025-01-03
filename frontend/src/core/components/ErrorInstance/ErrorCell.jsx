@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Select } from 'antd'
 import React, { useEffect, useState } from 'react'
 import Empty from 'src/core/components/Empty/Empty'

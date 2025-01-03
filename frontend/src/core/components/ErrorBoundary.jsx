@@ -1,3 +1,8 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { Component } from 'react'
 import ErrorPage from 'src/core/assets/errorPage.svg'
 import { Image } from 'antd'

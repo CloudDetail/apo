@@ -1,3 +1,6 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package core
 
 import (
@@ -173,9 +176,17 @@ func (r *Router) PUT(relativePath string, handlers ...HandlerFunc) {
 	r.group.PUT(relativePath, wrapHandlers(handlers...)...)
 }
 
-func (r *Router) Use(middleware gin.HandlerFunc) *Router {
-	r.group.Use(middleware)
+func (r *Router) Use(middleware HandlerFunc) *Router {
+	r.group.Use(wrapHandler(middleware))
 	return r
+}
+
+func wrapHandler(handler HandlerFunc) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := newContext(c)
+		defer releaseContext(ctx)
+		handler(ctx)
+	}
 }
 
 func wrapHandlers(handlers ...HandlerFunc) []gin.HandlerFunc {
