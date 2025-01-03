@@ -354,7 +354,7 @@ export default function ModifyAlertRuleModal({
               open={false}
               options={null}
               suffixIcon={null}
-              placeholder={t('modifyAlertRuleModal.additionalLabels')}
+              placeholder={t('modifyAlertRuleModal.additionalLabelsPlaceholder')}
             />
           </Form.Item>
           {/* <Input placeholder="input placeholder" value={annotations} /> */}

@@ -10,8 +10,8 @@
   "dependent": {
     "index": {
       "allDependencies": " All Dependencies View (Including All Recursive Dependencies)",
-      "timelapseComparison": "Timelapse Comparison of Dependency Hosts",
-      "similarityRanking": "Similarity Ranking of Dependency Hosts"
+      "timelapseComparison": "Duration Comparison of Dependencies",
+      "similarityRanking": "Similarity Ranking of Dependencies"
     },
     "dependentTable": {
       "serviceName": "Application",
@@ -92,7 +92,7 @@
     "networkQualityStatus": "Network",
     "k8sEventStatus": "K8s Events",
     "lastDeploymentOrRestartTime": "Last Start",
-    "toastMessage": "Analysis of all service entries that may be affected by this interface, where 'service entry' refers to the first service endpoint called when the business is accessed, which is the most upstream in the call chain."
+    "toastMessage": "Shows entry points potentially impacted by this endpoint's performance. An entry point is the first service endpoint in a call chain where the business transaction begins."
   },
   "contentIndex": {
     "impactAnalysis": "Impact Scope Analysis of {{serviceName}}",
@@ -102,9 +102,9 @@
     "errorInstances": "Error Instances of {{serviceName}}",
     "databaseCalls": "Database Calls of {{serviceName}}",
     "customMetricsDashboard": "Custom Metrics Dashboard",
-    "polarisMetricsRecommendation": "Polaris Metrics Recommendation: Determine whether the issue is with the application itself or downstream dependencies based on the data",
+    "polarisMetricsRecommendation": "Polaris Metrics: Isolate performance issues between application code and downstream dependencies",
     "logs": "Logs",
-    "trace": "Trace"
+    "trace": "Traces"
   },
   "instanceInfo": {
     "instanceName": "Instance",
@@ -142,7 +142,7 @@
     "responseTimeP90": "P90 Duration",
     "errorRate": "Error Rate",
     "logInfo": "Log Info",
-    "toastMessage": "Find key moment logs based on log error count, average response time, and error rate"
+    "toastMessage": "Find key moment logs based on log error count, P90 duration time, and error rate"
   },
   "sqlMetrics": {
     "dbConnection": "Database Connection",
@@ -155,8 +155,8 @@
   },
   "timeLine": {
     "errorLogs": "Error Logs",
-    "logsInfo": "Log Info",
-    "traceLogs": "Trace Logs"
+    "logsInfo": "Log",
+    "traceLogs": "Trace"
   },
   "traceInfo": {
     "instanceName": "Instance",
@@ -164,7 +164,7 @@
     "responseTimeP90": "P90 Duration",
     "errorRate": "Error Rate",
     "traceInfo": "Trace Info",
-    "toastMessage": "Find key moment traces based on log error count, average response time, and error rate"
+    "toastMessage": "Find key moment traces based on log error count, P90 duration time, and error rate"
   },
   "ruleGroupMap": {
     "app": "Application Metrics",

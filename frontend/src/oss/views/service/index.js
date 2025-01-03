@@ -48,18 +48,18 @@ export default function ServiceView() {
       accessor: 'serviceName',
       customWidth: 150,
     },
-    {
-      title: t('index.serviceTableColumns.namespaces'),
-      accessor: 'namespaces',
-      customWidth: 120,
-      Cell: (props) => {
-        return (props.value ?? []).length > 0 ? (
-          props.value.join()
-        ) : (
-          <span className="text-slate-400">N/A</span>
-        )
-      },
-    },
+    // {
+    //   title: t('index.serviceTableColumns.namespaces'),
+    //   accessor: 'namespaces',
+    //   customWidth: 120,
+    //   Cell: (props) => {
+    //     return (props.value ?? []).length > 0 ? (
+    //       props.value.join()
+    //     ) : (
+    //       <span className="text-slate-400">N/A</span>
+    //     )
+    //   },
+    // },
     {
       title: t('index.serviceTableColumns.serviceDetails.title'),
       accessor: 'serviceDetails',

@@ -18,7 +18,7 @@ import { useSelector } from 'react-redux'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
 import { useTranslation } from 'react-i18next'
 function FaultSiteLogs(props) {
-  const { t } = useTranslation('oss/faultSiteLogs')
+  const { t, i18n } = useTranslation('oss/faultSiteLogs')
   const { startTime, endTime, service, instance, traceId, instanceOption, namespace } = useSelector(
     (state) => state.urlParamsReducer,
   )
@@ -176,14 +176,30 @@ function FaultSiteLogs(props) {
         <div className="d-flex">
           <CToastBody className=" flex flex-row items-center text-xs">
             <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-            {t('faultSiteLogs.faultLogTableToast')}
-            <a
-              className="underline text-sky-500"
-              target="_blank"
-              href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置采集日志/"
-            >
-              <span>{t('faultSiteLogs.documentText')}</span>
-            </a>
+            {i18n.language === 'zh' ? (
+              <>
+                默认采集控制台日志，从文件中采集日志的配置方式请参考
+                <a
+                  className="underline text-sky-500"
+                  target="_blank"
+                  href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置采集日志/"
+                >
+                  <span>文档</span>
+                </a>
+              </>
+            ) : (
+              <p>
+                Console logs are collected by default. Refer to{' '}
+                <a
+                  className="underline text-sky-500"
+                  target="_blank"
+                  href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置采集日志/"
+                >
+                  <span>documentation</span>
+                </a>{' '}
+                for file-based log collection setup.
+              </p>
+            )}
           </CToastBody>
         </div>
       </CToast>
@@ -233,8 +249,6 @@ function FaultSiteLogs(props) {
               <div className="p-3 w-full h-full overflow-hidden flex flex-col relative">
                 <LoadingSpinner loading={logContentLoading} />
                 <div className="flex-grow-0 flex-shrink-0">
-                  <div className="text-base font-bold">{t('faultSiteLogs.faultSiteText')}</div>
-
                   <CCard className="mx-4 my-2 p-2 font-bold">
                     <CRow className="my-1 ">
                       <CCol sm="2" className="text-gray-400 font-bold">

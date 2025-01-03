@@ -21,7 +21,9 @@
     "endpointLabel": "Endpoint",
     "status": "Status：",
     "toText": "To",
-    "search": "Search"
+    "search": "Search",
+    "enterSWTraceId": "Enter the SkyWalking traceid, it will be automatically converted",
+    "autoConvert": "Auto convert to TraceID:"
   },
   "traceErrorType": {
     "error": "Error",
