@@ -4,7 +4,6 @@
 package database
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"gorm.io/gorm"
 )
 
@@ -38,27 +37,13 @@ func (repo *daoRepo) initFeature() error {
 			newFeatureMap[feature.FeatureName] = struct{}{}
 		}
 
-		var adminID int
-		err := tx.Model(&Role{}).Select("role_id").Where("role_name = ?", model.ROLE_ADMIN).First(&adminID).Error
-		if err != nil {
-			return err
-		}
 		for _, feature := range newFeatures {
-			// Add new feature and grant to admin.
-			if _, exists := existingFeatureMap[feature.FeatureName]; !exists {
-				if err = tx.Create(&feature).Error; err != nil {
-					return err
-				}
-
-				authPermission := AuthPermission{
-					PermissionID: feature.FeatureID,
-					Type:         model.PERMISSION_TYP_FEATURE,
-					SubjectType:  model.PERMISSION_SUB_TYP_ROLE,
-					SubjectID:    int64(adminID),
-				}
-				if err = tx.Create(&authPermission).Error; err != nil {
-					return err
-				}
+			// Add new feature.
+			if _, exists := existingFeatureMap[feature.FeatureName]; exists {
+				continue
+			}
+			if err := tx.Create(&feature).Error; err != nil {
+				return err
 			}
 		}
 
