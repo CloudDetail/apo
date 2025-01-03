@@ -14,6 +14,7 @@ import (
 )
 
 func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResponse, error) {
+	// calculate offset, if offset > 10000, calculate from histogram
 	offset := (req.PageNum - 1) * req.PageSize
 	if offset > 10000 {
 		logcharts, _ := s.GetLogChart(req)
@@ -21,7 +22,7 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 		for _, chart := range logcharts.Histograms {
 			count += int(chart.Count)
 			if count > offset {
-				offset = count - int(chart.Count)
+				offset = offset - count + int(chart.Count)
 				req.StartTime = chart.From
 				break
 			}
