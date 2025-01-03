@@ -1,7 +1,7 @@
 // Copyright 2024 CloudDetail
 // SPDX-License-Identifier: Apache-2.0
 
-package user
+package role
 
 import (
 	"errors"
@@ -13,24 +13,21 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// UpdateUserInfo 更新用户信息
-// @Summary 更新用户信息
-// @Description 更新用户信息
-// @Tags API.user
+// RoleOperation Grant or revoke user's role.
+// @Summary Grant or revoke user's role.
+// @Description Grants permission to user
+// @Tags API.role
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId formData int64 true "用户id"
-// @Param roleList formData []int false "角色id列表" collectionFormat(multi)
-// @Param corporation formData string false "组织"
-// @Param phone formData string false "手机号"
-// @Param email formData string false "邮箱"
+// @Param userId formData int64 ture "用户id"
+// @Param roleList formData []int ture "角色id" collectionFormat(multi)
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/user/update/info [post]
-func (h *handler) UpdateUserInfo() core.HandlerFunc {
+// @Router /api/role/operation [post]
+func (h *handler) RoleOperation() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.UpdateUserInfoRequest)
+		req := new(request.RoleOperationRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -40,19 +37,21 @@ func (h *handler) UpdateUserInfo() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.UpdateUserInfo(req)
+		err := h.roleService.RoleOperation(req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					vErr.Code,
-					code.Text(vErr.Code)).WithError(err))
+					code.Text(vErr.Code),
+				).WithError(err))
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
-					code.UserUpdateError,
-					code.Text(code.UserUpdateError)).WithError(err))
+					code.UserGrantRoleError,
+					code.Text(code.UserGrantRoleError),
+				).WithError(err))
 			}
 			return
 		}

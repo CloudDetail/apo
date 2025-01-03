@@ -13,21 +13,23 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// RoleOperation Grant or revoke user's role.
-// @Summary Grant or revoke user's role.
-// @Description Grants permission to user
-// @Tags API.permission
+// UpdateSelfInfo 更新个人信息
+// @Summary 更新个人信息
+// @Description 更新个人信息
+// @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId formData int64 ture "用户id"
-// @Param roleList formData []int ture "角色id" collectionFormat(multi)
+// @Param userId formData int64 true "用户id"
+// @Param corporation formData string false "组织"
+// @Param phone formData string false "手机号"
+// @Param email formData string false "邮箱"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/permission/role/operation [post]
-func (h *handler) RoleOperation() core.HandlerFunc {
+// @Router /api/user/update/self [post]
+func (h *handler) UpdateSelfInfo() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.RoleOperationRequest)
+		req := new(request.UpdateSelfInfoRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -37,21 +39,19 @@ func (h *handler) RoleOperation() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.RoleOperation(req)
+		err := h.userService.UpdateSelfInfo(req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					vErr.Code,
-					code.Text(vErr.Code),
-				).WithError(err))
+					code.Text(vErr.Code)).WithError(err))
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
-					code.UserGrantRoleError,
-					code.Text(code.UserGrantRoleError),
-				).WithError(err))
+					code.UserUpdateError,
+					code.Text(code.UserUpdateError)).WithError(err))
 			}
 			return
 		}

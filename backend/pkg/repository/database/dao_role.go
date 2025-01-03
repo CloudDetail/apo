@@ -63,7 +63,7 @@ func (repo *daoRepo) GetUserRole(userID int64) ([]UserRole, error) {
 // GetUsersRole Get user's role in batch.
 func (repo *daoRepo) GetUsersRole(userIDs []int64) ([]UserRole, error) {
 	var userRoles []UserRole
-	err := repo.db.Where("user_id in ?", userIDs).Error
+	err := repo.db.Where("user_id in ?", userIDs).Find(&userRoles).Error
 	return userRoles, err
 }
 
@@ -77,6 +77,9 @@ func (repo *daoRepo) RoleGranted(userID int64, roleID int) (bool, error) {
 }
 
 func (repo *daoRepo) GrantRole(ctx context.Context, userID int64, roleIDs []int) error {
+	if len(roleIDs) == 0 {
+		return nil
+	}
 	db := repo.GetContextDB(ctx)
 	userRole := make([]UserRole, len(roleIDs))
 	for i, roleID := range roleIDs {

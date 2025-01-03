@@ -52,15 +52,11 @@ func (s *service) GetUserInfo(userID int64) (response.GetUserInfoResponse, error
 	return resp, nil
 }
 
-func (s *service) GetUserList(req *request.GetUserListRequest) (response.GetUserListResponse, error) {
+func (s *service) GetUserList(req *request.GetUserListRequest) (resp response.GetUserListResponse, err error) {
 	users, count, err := s.dbRepo.GetUserList(req)
-	resp := response.GetUserListResponse{}
-	if err != nil {
-		return resp, err
-	}
 	resp.Users = users
 	resp.PageSize = req.PageSize
 	resp.CurrentPage = req.CurrentPage
 	resp.Total = count
-	return resp, nil
+	return
 }

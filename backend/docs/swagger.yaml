@@ -414,8 +414,6 @@ definitions:
         type: array
       phone:
         type: string
-      role:
-        type: string
       roleList:
         items:
           $ref: '#/definitions/database.Role'
@@ -1977,8 +1975,6 @@ definitions:
         type: array
       phone:
         type: string
-      role:
-        type: string
       roleList:
         items:
           $ref: '#/definitions/database.Role'
@@ -2262,8 +2258,6 @@ definitions:
         type: string
       refreshToken:
         description: refreshToken用于刷新accessToken
-        type: string
-      role:
         type: string
       roleList:
         items:
@@ -3976,96 +3970,6 @@ paths:
       summary: Grant or revoke user's permission(feature).
       tags:
       - API.permission
-  /api/permission/role:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Get user's role.
-      parameters:
-      - description: 用户id
-        in: query
-        name: userId
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/database.Role'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: Get user's role.
-      tags:
-      - API.permission
-  /api/permission/role/operation:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Grants permission to user
-      parameters:
-      - description: 用户id
-        in: formData
-        name: userId
-        type: integer
-      - collectionFormat: multi
-        description: 角色id
-        in: formData
-        items:
-          type: integer
-        name: roleList
-        type: array
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: Grant or revoke user's role.
-      tags:
-      - API.permission
-  /api/permission/roles:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Gets all roles.
-      parameters:
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/database.Role'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: Gets all roles.
-      tags:
-      - API.permission
   /api/permission/sub/feature:
     get:
       consumes:
@@ -4102,6 +4006,96 @@ paths:
       summary: Gets subject's permission.
       tags:
       - API.permission
+  /api/role/operation:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Grants permission to user
+      parameters:
+      - description: 用户id
+        in: formData
+        name: userId
+        type: integer
+      - collectionFormat: multi
+        description: 角色id
+        in: formData
+        items:
+          type: integer
+        name: roleList
+        type: array
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Grant or revoke user's role.
+      tags:
+      - API.role
+  /api/role/roles:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Gets all roles.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Role'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Gets all roles.
+      tags:
+      - API.role
+  /api/role/user:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get user's role.
+      parameters:
+      - description: 用户id
+        in: query
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Role'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get user's role.
+      tags:
+      - API.role
   /api/service/alert/events:
     get:
       consumes:
@@ -6014,10 +6008,13 @@ paths:
         in: query
         name: pageSize
         type: string
-      - description: 角色
+      - collectionFormat: multi
+        description: 角色
         in: query
-        name: role
-        type: string
+        items:
+          type: integer
+        name: roleList
+        type: array
       - description: 组织
         in: query
         name: corporation
@@ -6229,13 +6226,20 @@ paths:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: 更新个人信息
+      description: 更新用户信息
       parameters:
       - description: 用户id
         in: formData
         name: userId
         required: true
         type: integer
+      - collectionFormat: multi
+        description: 角色id列表
+        in: formData
+        items:
+          type: integer
+        name: roleList
+        type: array
       - description: 组织
         in: formData
         name: corporation
@@ -6264,7 +6268,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 更新个人信息
+      summary: 更新用户信息
       tags:
       - API.user
   /api/user/update/password:
@@ -6345,6 +6349,48 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: 更新/绑定手机号
+      tags:
+      - API.user
+  /api/user/update/self:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 更新个人信息
+      parameters:
+      - description: 用户id
+        in: formData
+        name: userId
+        required: true
+        type: integer
+      - description: 组织
+        in: formData
+        name: corporation
+        type: string
+      - description: 手机号
+        in: formData
+        name: phone
+        type: string
+      - description: 邮箱
+        in: formData
+        name: email
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 更新个人信息
       tags:
       - API.user
 swagger: "2.0"

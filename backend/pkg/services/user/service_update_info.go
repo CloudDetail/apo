@@ -4,15 +4,44 @@
 package user
 
 import (
+	"context"
 	"errors"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/services/role"
 	"unicode"
 )
 
 func (s *service) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
-	return s.dbRepo.UpdateUserInfo(req)
+	userRoles, err := s.dbRepo.GetUserRole(req.UserID)
+	if err != nil {
+		return err
+	}
+
+	roles, err := s.dbRepo.GetRoles(model.RoleFilter{})
+	if err != nil {
+		return err
+	}
+
+	addRole, deleteRole, err := role.GetAddDeleteRoles(userRoles, req.RoleList, roles)
+	if err != nil {
+		return err
+	}
+
+	var grantFunc = func(ctx context.Context) error {
+		return s.dbRepo.GrantRole(ctx, req.UserID, addRole)
+	}
+
+	var revokeFunc = func(ctx context.Context) error {
+		return s.dbRepo.RevokeRole(ctx, req.UserID, deleteRole)
+	}
+
+	var updateInfoFunc = func(ctx context.Context) error {
+		return s.dbRepo.UpdateUserInfo(ctx, req.UserID, req.Phone, req.Email, req.Corporation)
+	}
+
+	return s.dbRepo.Transaction(context.Background(), grantFunc, revokeFunc, updateInfoFunc)
 }
 
 func (s *service) UpdateUserPhone(req *request.UpdateUserPhoneRequest) error {
@@ -85,4 +114,8 @@ func (s *service) RestPassword(req *request.ResetPasswordRequest) error {
 		return err
 	}
 	return s.dbRepo.RestPassword(req.UserID, req.NewPassword)
+}
+
+func (s *service) UpdateSelfInfo(req *request.UpdateSelfInfoRequest) error {
+	return s.dbRepo.UpdateUserInfo(context.Background(), req.UserID, req.Phone, req.Email, req.Corporation)
 }

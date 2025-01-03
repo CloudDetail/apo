@@ -18,6 +18,7 @@ type Service interface {
 	CreateUser(req *request.CreateUserRequest) error
 	RefreshToken(token string) (response.RefreshTokenResponse, error)
 	UpdateUserInfo(req *request.UpdateUserInfoRequest) error
+	UpdateSelfInfo(req *request.UpdateSelfInfoRequest) error
 	UpdateUserPhone(req *request.UpdateUserPhoneRequest) error
 	UpdateUserEmail(req *request.UpdateUserEmailRequest) error
 	UpdateUserPassword(req *request.UpdateUserPasswordRequest) error
@@ -26,9 +27,6 @@ type Service interface {
 	RemoveUser(userID int64) error
 	RestPassword(req *request.ResetPasswordRequest) error
 
-	RoleOperation(req *request.RoleOperationRequest) error
-	GetRoles() (response.GetRoleResponse, error)
-	GetUserRole(req *request.GetUserRoleRequest) (response.GetUserRoleResponse, error)
 	GetFeature(req *request.GetFeatureRequest) (response.GetFeatureResponse, error)
 	GetSubjectFeature(req *request.GetSubjectFeatureRequest) (response.GetSubjectFeatureResponse, error)
 	PermissionOperation(req *request.PermissionOperationRequest) error

@@ -21,7 +21,7 @@ import (
 // @Param username query string false "用户名"
 // @Param currentPage query string false "当前页"
 // @Param pageSize query string false "页大小"
-// @Param role query string false "角色"
+// @Param roleList query []int false "角色" collectionFormat(multi)
 // @Param corporation query string false "组织"
 // @Success 200 {object} response.GetUserListResponse
 // @Failure 400 {object} code.Failure
@@ -41,7 +41,7 @@ func (h *handler) GetUserList() core.HandlerFunc {
 		if req.PageParam == nil {
 			req.PageParam = &request.PageParam{
 				CurrentPage: 1,
-				PageSize:    99,
+				PageSize:    10,
 			}
 		}
 

@@ -1,7 +1,7 @@
 // Copyright 2024 CloudDetail
 // SPDX-License-Identifier: Apache-2.0
 
-package user
+package role
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -12,17 +12,17 @@ import (
 // GetRole Gets all roles.
 // @Summary Gets all roles.
 // @Description Gets all roles.
-// @Tags API.permission
+// @Tags API.role
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} response.GetRoleResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/permission/roles [get]
+// @Router /api/role/roles [get]
 func (h *handler) GetRole() core.HandlerFunc {
 	return func(c core.Context) {
 
-		resp, err := h.userService.GetRoles()
+		resp, err := h.roleService.GetRoles()
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

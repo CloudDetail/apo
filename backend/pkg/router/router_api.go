@@ -11,6 +11,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
 	networkapi "github.com/CloudDetail/apo/backend/pkg/api/network"
+	"github.com/CloudDetail/apo/backend/pkg/api/role"
 	"github.com/CloudDetail/apo/backend/pkg/api/service"
 	"github.com/CloudDetail/apo/backend/pkg/api/serviceoverview"
 	"github.com/CloudDetail/apo/backend/pkg/api/trace"
@@ -155,6 +156,7 @@ func setApiRouter(r *resource) {
 		userApi.POST("/update/phone", userHandler.UpdateUserPhone())
 		userApi.POST("/update/email", userHandler.UpdateUserEmail())
 		userApi.POST("/update/info", userHandler.UpdateUserInfo())
+		userApi.POST("/update/self", userHandler.UpdateSelfInfo())
 		userApi.GET("/info", userHandler.GetUserInfo())
 		userApi.GET("/list", userHandler.GetUserList())
 		userApi.POST("/remove", userHandler.RemoveUser())
@@ -164,14 +166,19 @@ func setApiRouter(r *resource) {
 	permissionApi := r.mux.Group("/api/permission").Use(middlewares.AuthMiddleware())
 	{
 		permissionHandler := user.New(r.logger, r.pkg_db, r.cache)
-		permissionApi.GET("/roles", permissionHandler.GetRole())
-		permissionApi.GET("/role", permissionHandler.GetUserRole())
-		permissionApi.POST("/role/operation", permissionHandler.RoleOperation())
 		permissionApi.GET("/config", permissionHandler.GetUserConfig())
 		permissionApi.GET("/feature", permissionHandler.GetFeature())
 		permissionApi.GET("/sub/feature", permissionHandler.GetSubjectFeature())
 		permissionApi.POST("/operation", permissionHandler.PermissionOperation())
 		permissionApi.POST("/menu/configure", permissionHandler.ConfigureMenu())
+	}
+
+	roleApi := r.mux.Group("/api/role").Use(middlewares.AuthMiddleware())
+	{
+		roleHandler := role.New(r.logger, r.pkg_db)
+		roleApi.GET("/roles", roleHandler.GetRole())
+		roleApi.GET("/user", roleHandler.GetUserRole())
+		roleApi.POST("/operation", roleHandler.RoleOperation())
 	}
 
 	k8sApi := r.mux.Group("/api/k8s")

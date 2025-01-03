@@ -2181,9 +2181,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/permission/role": {
+        "/api/permission/sub/feature": {
             "get": {
-                "description": "Get user's role.",
+                "description": "Gets subject's permission.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -2193,12 +2193,25 @@ const docTemplate = `{
                 "tags": [
                     "API.permission"
                 ],
-                "summary": "Get user's role.",
+                "summary": "Gets subject's permission.",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "language",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
-                        "description": "用户id",
-                        "name": "userId",
+                        "description": "授权主体id",
+                        "name": "subjectId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "授权主体类型",
+                        "name": "subjectType",
                         "in": "query",
                         "required": true
                     }
@@ -2209,7 +2222,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.Role"
+                                "$ref": "#/definitions/database.Feature"
                             }
                         }
                     },
@@ -2222,7 +2235,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/permission/role/operation": {
+        "/api/role/operation": {
             "post": {
                 "description": "Grants permission to user",
                 "consumes": [
@@ -2232,7 +2245,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "API.permission"
+                    "API.role"
                 ],
                 "summary": "Grant or revoke user's role.",
                 "parameters": [
@@ -2276,7 +2289,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/permission/roles": {
+        "/api/role/roles": {
             "get": {
                 "description": "Gets all roles.",
                 "consumes": [
@@ -2286,7 +2299,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "API.permission"
+                    "API.role"
                 ],
                 "summary": "Gets all roles.",
                 "parameters": [
@@ -2317,9 +2330,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/permission/sub/feature": {
+        "/api/role/user": {
             "get": {
-                "description": "Gets subject's permission.",
+                "description": "Get user's role.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -2327,27 +2340,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "API.permission"
+                    "API.role"
                 ],
-                "summary": "Gets subject's permission.",
+                "summary": "Get user's role.",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "language",
-                        "name": "language",
-                        "in": "query"
-                    },
-                    {
                         "type": "integer",
-                        "description": "授权主体id",
-                        "name": "subjectId",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "授权主体类型",
-                        "name": "subjectType",
+                        "description": "用户id",
+                        "name": "userId",
                         "in": "query",
                         "required": true
                     }
@@ -2358,7 +2358,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.Feature"
+                                "$ref": "#/definitions/database.Role"
                             }
                         }
                     },
@@ -5214,9 +5214,13 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "string",
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
                         "description": "角色",
-                        "name": "role",
+                        "name": "roleList",
                         "in": "query"
                     },
                     {
@@ -5527,7 +5531,7 @@ const docTemplate = `{
         },
         "/api/user/update/info": {
             "post": {
-                "description": "更新个人信息",
+                "description": "更新用户信息",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5537,7 +5541,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "更新个人信息",
+                "summary": "更新用户信息",
                 "parameters": [
                     {
                         "type": "integer",
@@ -5545,6 +5549,16 @@ const docTemplate = `{
                         "name": "userId",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "角色id列表",
+                        "name": "roleList",
+                        "in": "formData"
                     },
                     {
                         "type": "string",
@@ -5681,6 +5695,69 @@ const docTemplate = `{
                         "name": "phone",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/update/self": {
+            "post": {
+                "description": "更新个人信息",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "更新个人信息",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "组织",
+                        "name": "corporation",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "手机号",
+                        "name": "phone",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "邮箱",
+                        "name": "email",
+                        "in": "formData"
                     },
                     {
                         "type": "string",
@@ -6327,9 +6404,6 @@ const docTemplate = `{
                     }
                 },
                 "phone": {
-                    "type": "string"
-                },
-                "role": {
                     "type": "string"
                 },
                 "roleList": {
@@ -8597,9 +8671,6 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
-                "role": {
-                    "type": "string"
-                },
                 "roleList": {
                     "type": "array",
                     "items": {
@@ -9024,9 +9095,6 @@ const docTemplate = `{
                 },
                 "refreshToken": {
                     "description": "refreshToken用于刷新accessToken",
-                    "type": "string"
-                },
-                "role": {
                     "type": "string"
                 },
                 "roleList": {
