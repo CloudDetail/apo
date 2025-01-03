@@ -17,10 +17,6 @@ func (repo *daoRepo) initInsertPages() error {
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&InsertPage{}); err != nil {
-			return err
-		}
-
 		var existingPage, toAdd []InsertPage
 		var toDelete []int
 

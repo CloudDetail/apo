@@ -19,10 +19,6 @@ func (repo *daoRepo) initRouterPage() error {
 		"/trace/full":            "/jaeger/search",
 	}
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&RouterInsertPage{}); err != nil {
-			return err
-		}
-
 		var routerIDs, pageIDs []int
 		if err := tx.Model(&Router{}).Select("router_id").Find(&routerIDs).Error; err != nil {
 			return err

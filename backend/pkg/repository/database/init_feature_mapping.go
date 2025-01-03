@@ -32,10 +32,6 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&FeatureMapping{}); err != nil {
-			return err
-		}
-
 		var featureIDs, menuItemIDs []int
 		if err := tx.Model(&Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
 			return err

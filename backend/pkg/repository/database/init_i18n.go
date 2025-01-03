@@ -26,10 +26,6 @@ func (repo *daoRepo) initI18nTranslation() error {
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&I18nTranslation{}); err != nil {
-			return err
-		}
-
 		var existingTranslations, toInsert, toDelete []I18nTranslation
 		if err := tx.Find(&existingTranslations).Error; err != nil {
 			return err
