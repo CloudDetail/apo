@@ -21,7 +21,9 @@
     "endpointLabel": "服务端点",
     "status": "故障状态：",
     "toText": "至",
-    "search": "检索"
+    "search": "检索",
+    "enterSWTraceId": "输入SkyWalking的traceid将自动转换",
+    "autoConvert": "自动转换为TraceID："
   },
   "traceErrorType": {
     "error": "错误故障",

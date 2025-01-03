@@ -1,11 +1,12 @@
 {
   "faultSiteLogs": {
-    "faultLogTableToast": "The default collection of console logs, for configuring log collection from files, please refer to \u00A0",
-    "documentText": "document",
+    "faultLogTableToast1": "Console logs are collected by default. Refer to ",
+    "faultLogTableToast2": " for file-based log collection setup.",
+    "documentText": "documentation",
     "faultLogsText": "FaultLogs",
-    "faultSiteText": "FaultSite",
     "endpoint": "Endpoint",
-    "timeOfFailure": "Time of failure",
-    "specificLogInformation": "Specific log information"
+    "timeOfFailure": "Time",
+    "specificLogInformation": "Specific log information",
+    "enterSWTraceId": "Enter the SkyWalking traceid, it will be automatically converted"
   }
 }

@@ -1,6 +1,6 @@
 {
   "index": {
-    "serviceTableToast": "Based on the various pieces of information provided on this page, select the server endpoint you suspect the most. After selecting the endpoint, you can view detailed related metrics, log and event information, and trace details.",
+    "serviceTableToast": "Use the information displayed to identify the problematic server endpoint. Click on any endpoint to explore its detailed metrics, logs, events, and trace data.",
     "serviceTableColumns": {
       "serviceName": "Application",
       "namespaces": "Namespace",
@@ -22,9 +22,9 @@
       "serviceInfo": {
         "title": "Application Basic Information Alert",
         "logs": "Logs Error",
-        "infrastructureStatus": "Infrastructure",
-        "netStatus": "Network",
-        "k8sStatus": "K8s Events",
+        "infrastructureStatus": "Infra",
+        "netStatus": "Net",
+        "k8sStatus": "K8s",
         "timestamp": "Last Start"
       }
     },

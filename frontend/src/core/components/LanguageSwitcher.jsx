@@ -8,8 +8,10 @@ import i18next from 'i18next'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { showToast } from '../utils/toast'
+import { useTranslation } from 'react-i18next'
 
 const LanguageSwitcher = () => {
+  const { t } = useTranslation('core/systemConfiguration')
   const [selectedKeys, setSelectedKeys] = useState('')
   const dispatch = useDispatch()
   const currentLanguage = useSelector((state) => state.settingReducer.language)
@@ -22,7 +24,7 @@ const LanguageSwitcher = () => {
       })
       .then(() => {
         showToast({
-          title: '语言切换成功',
+          title: t('languageSuccess'),
           color: 'success',
         })
       })

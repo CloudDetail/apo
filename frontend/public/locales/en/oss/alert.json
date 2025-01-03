@@ -21,10 +21,11 @@
     "confirmDelete": "Are you sure you want to delete the alert rule named “{{name}}”?",
     "confirm": "Confirm",
     "cancel": "Cancel",
-    "addAlertRule": "Add Alert Rule",
+    "addAlertRule": "Add",
     "deleteSuccess": "Successfully deleted alert rule"
   },
   "notify": {
+    "search": "Search",
     "type": {
       "email": "Email",
       "webhook": "Webhook",
@@ -40,7 +41,7 @@
     "confirmDelete": "Are you sure you want to delete the alert notification named “{{name}}”?",
     "confirm": "Confirm",
     "cancel": "Cancel",
-    "addAlertNotify": "Add Alert Notification",
+    "addAlertNotify": "Add",
     "deleteSuccess": "Successfully deleted alert notification"
   },
   "alertConditionCom": {
@@ -65,16 +66,17 @@
     "includeMetricValue": "Include Metric Value",
     "includeMetricLabels": "Include Metric Labels",
     "additionalLabels": "Additional Labels",
+    "additionalLabelsPlaceholder": "Format key=value pairs, separated by newline",
     "additionalInfo": "Additional Info",
     "key": "Key",
     "value": "Value",
     "invalidKey": "Please start with a letter or underscore",
     "invalidLabelFormat": "Invalid label format, please check",
     "option": {
-      "secondText": "s（second）",
-      "minuteText": "m（minute）",
-      "hourText": "h（hour）",
-      "dayText": "d（day）"
+      "secondText": "second",
+      "minuteText": "minute",
+      "hourText": "hour",
+      "dayText": "day"
     }
   },
   "modifyAlertNotifyModal": {
@@ -84,13 +86,14 @@
     "cancel": "Cancel",
     "alertNotifyName": "Alert Notification Name",
     "notifyType": "Channel",
-    "email": "Email Notification",
-    "webhook": "Webhook Notification",
+    "email": "Email",
+    "webhook": "Webhook",
     "dingtalk": "DingTalk",
     "wechat": "WeChat",
     "invalidNotifyName": "Alert notification name cannot be empty",
     "invalidNotifyType": "Notification type cannot be empty",
-    "basicConfig": "Basic Configuration"
+    "basicConfig": "Basic Configuration",
+    "typePlaceholder": "Select notification type"
   },
   "webhookConfigsFormList": {
     "title": "Webhook Configuration",

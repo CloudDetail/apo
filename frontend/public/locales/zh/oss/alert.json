@@ -25,6 +25,7 @@
     "deleteSuccess": "删除告警规则成功"
   },
   "notify": {
+    "search": "检索",
     "type": {
       "email": "邮件",
       "webhook": "Webhook",
@@ -65,6 +66,7 @@
     "includeMetricValue": "包含指标值",
     "includeMetricLabels": "包含指标标签",
     "additionalLabels": "附加标签",
+    "additionalLabelsPlaceholder": "格式key=value的键值对，以回车分隔",
     "additionalInfo": "附加信息",
     "key": "键",
     "value": "值",
@@ -90,7 +92,8 @@
     "wechat": "企业微信",
     "invalidNotifyName": "告警通知名不可为空",
     "invalidNotifyType": "告警类型不可为空",
-    "basicConfig": "基础配置"
+    "basicConfig": "基础配置",
+    "typePlaceholder": "请选择通知类型"
   },
   "webhookConfigsFormList": {
     "title": "Webhook配置",

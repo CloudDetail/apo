@@ -5,33 +5,40 @@
 
 import { Image, Empty, Modal } from 'antd'
 import React, { useEffect, useState } from 'react'
-import AlertPng from 'src/core/assets/snapshot/alert.png'
-import EntryPng from 'src/core/assets/snapshot/entry.png'
-import DashboardImg from 'src/core/assets/snapshot/dashboard.jpg'
-import ExceptionPng from 'src/core/assets/snapshot/exception.png'
-import InstancePng from 'src/core/assets/snapshot/instance.png'
-import K8sPng from 'src/core/assets/snapshot/k8s.png'
-import LogsPng from 'src/core/assets/snapshot/logs.png'
-import PolarisPng from 'src/core/assets/snapshot/polaris.png'
-import TracePng from 'src/core/assets/snapshot/trace.png'
-import CommingSoon from 'src/core/assets/images/commingSoon.svg'
-import CpuPng from 'src/core/assets/snapshot/cpu.png'
 import { QuestionCircleOutlined, EyeOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 
 export default function CoachMask() {
-  const { t } = useTranslation('core/mask')
+  const { t, i18n } = useTranslation('core/mask')
   const [visible, setVisible] = useState(false)
+
+  const language = i18n.language // 获取当前语言
+  const basePath = `src/core/assets/snapshot/${language}`
+
+  const images = {
+    alert: `${basePath}/alert.png`,
+    entry: `${basePath}/entry.png`,
+    dashboard: `${basePath}/dashboard.png`,
+    exception: `${basePath}/exception.png`,
+    instance: `${basePath}/instance.png`,
+    k8s: `${basePath}/k8s.png`,
+    logs: `${basePath}/logs.png`,
+    polaris: `${basePath}/polaris.png`,
+    trace: `${basePath}/trace.png`,
+    cpu: `${basePath}/cpu.png`,
+    commingSoon: 'src/core/assets/images/commingSoon.svg',
+  }
+
   const list = [
     {
       name: t('descriptions.alertInfo'),
       scene: t('scenes.alertAnalysis'),
-      img: [AlertPng],
+      img: [images.alert],
     },
     {
       name: t('descriptions.entryImpact'),
       scene: t('scenes.impactAnalysis'),
-      img: [EntryPng],
+      img: [images.entry],
     },
     {
       name: t('descriptions.cascadeAlert'),
@@ -40,37 +47,37 @@ export default function CoachMask() {
     {
       name: t('descriptions.instanceMetrics'),
       scene: t('scenes.saturationAnalysis'),
-      img: [InstancePng, CpuPng],
+      img: [images.instance, images.cpu],
     },
     {
       name: t('descriptions.networkMetrics'),
       scene: t('scenes.networkQualityAnalysis'),
-      img: [DashboardImg],
+      img: [images.dashboard],
     },
     {
       name: t('descriptions.errorLogs'),
       scene: t('scenes.errorClosedLoop'),
-      img: [ExceptionPng],
+      img: [images.exception],
     },
     {
       name: t('descriptions.polarisMetrics'),
       scene: t('scenes.latencyClosedLoop'),
-      img: [PolarisPng],
+      img: [images.polaris],
     },
     {
       name: t('descriptions.logs'),
       scene: t('scenes.faultEvidence'),
-      img: [LogsPng],
+      img: [images.logs],
     },
     {
       name: t('descriptions.trace'),
       scene: t('scenes.faultEvidence'),
-      img: [TracePng],
+      img: [images.trace],
     },
     {
       name: t('descriptions.k8sEvents'),
       scene: t('scenes.environmentImpact'),
-      img: [K8sPng],
+      img: [images.k8s],
     },
   ]
 
@@ -169,7 +176,7 @@ export default function CoachMask() {
                   ))
                 ) : (
                   <Empty
-                    image={CommingSoon}
+                    image={images.commingSoon}
                     description={t('comingSoon')}
                     imageStyle={{ height: 70 }}
                   />

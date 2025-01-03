@@ -64,7 +64,7 @@
     "repositoryNamePlaceholder": "Please enter the repository name, once created it cannot be modified",
     "repositoryDescriptionLabel": "Description",
     "repositoryDescriptionPlaceholder": "Repository Description",
-    "executiveApplicationLabel": "Executive Application",
+    "executiveApplicationLabel": "Apply to",
     "executiveApplicationPlaceholder": "Please select the application to execute the rule",
     "logConfigLabel": "Log Configuration",
     "logRouteRuleFormList": {

@@ -319,6 +319,7 @@ export default function ModifyAlertNotifyModal({
                   { label: t('modifyAlertNotifyModal.wechat'), value: 'wechat' },
                 ]}
                 disabled={notifyInfo}
+                placeholder={t('modifyAlertNotifyModal.typePlaceholder')}
               />
             </Form.Item>
           </Card>

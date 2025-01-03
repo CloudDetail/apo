@@ -210,6 +210,7 @@ export default function AlertsNotify() {
                 setSearchName(e.target.value)
                 setPageIndex(1)
               }}
+              placeholder={t('notify.search')}
             />
           </Space>
         </Space>

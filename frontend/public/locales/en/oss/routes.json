@@ -15,5 +15,6 @@
   "systemSettingsName": "System Settings",
   "userManageName": "User Manage",
   "userCenterName": "Profile",
-  "memuManageName": "Menu Manage"
+  "memuManageName": "Menu Manage",
+  "systemConfigName": "System Configurations"
 }

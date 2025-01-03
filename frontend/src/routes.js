@@ -34,7 +34,7 @@ const baseRoutes = [
   },
   {
     path: '/system/config',
-    name: '系统配置',
+    name: <TranslationCom text="systemConfigName" space={namespace} />,
     element: SystemConfiguration,
     hideSystemTimeRangePicker: true,
   },

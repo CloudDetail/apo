@@ -259,6 +259,7 @@ export default function AlertsRule() {
             <span className="text-nowrap">{t('rule.alertRuleName')}：</span>
             <Input
               value={searchAlert}
+              placeholder={t('rule.alertRuleName')}
               onChange={(e) => {
                 setSearchAlert(e.target.value)
                 setPageIndex(1)
