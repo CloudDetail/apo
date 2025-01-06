@@ -3,20 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useReducer } from 'react'
-import { Button, Input, Form, Flex, Checkbox } from 'antd'
+import React, { useState, useEffect } from 'react'
+import { Button, Input, Form, Checkbox } from 'antd'
 import { loginApi } from 'core/api/user'
 import { useNavigate } from 'react-router-dom'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { showToast } from 'core/utils/toast'
-import { getUserInfoApi } from 'core/api/user'
 import logo from 'core/assets/brand/logo.svg'
 import { AiOutlineLoading } from 'react-icons/ai'
 import style from './Login.module.css'
-import userReducer, { initialState } from 'src/core/store/reducers/userReducer'
 import { useUserContext } from 'src/core/contexts/UserContext'
+
 export default function Login() {
-  const { user, dispatchUser } = useUserContext()
   const navigate = useNavigate()
   const [form] = Form.useForm()
   const [remeberMe, setRemeberMe] = useState(true)
@@ -72,24 +70,31 @@ export default function Login() {
   }, [])
 
   return (
-    <Flex vertical className={style.loginBackground}>
-      <Flex vertical className="w-3/12 bg-[rgba(0,0,0,0.4)] rounded-lg p-10 drop-shadow-xl">
-        <Flex className="w-full justify-center items-center select-none">
+    <div className={style.loginBackground}>
+      <div className="w-3/12 bg-[rgba(0,0,0,0.4)] rounded-lg p-10 drop-shadow-xl flex flex-col">
+        <div className="w-full flex justify-center items-center select-none">
           <img src={logo} className="w-12 mr-2" />
           <p className="text-2xl">向导式可观测平台</p>
-        </Flex>
-        <Flex vertical className="w-full justify-center items-center mt-20">
-          <Form form={form} className="w-full">
-            <label className="text-xs">用户名</label>
-            <Form.Item name="username" rules={[{ required: true, message: '请输入用户名' }]}>
+        </div>
+        <div className="w-full flex flex-col justify-center items-center mt-20">
+          <Form form={form} className="w-full" layout="vertical">
+            <Form.Item
+              name="username"
+              label={<label className="text-xs">用户名</label>}
+              rules={[{ required: true, message: '请输入用户名' }]}
+            >
               <Input
                 size="large"
                 className="w-full bg-[rgba(17,18,23,0.5)] hover:bg-[rgba(17,18,23,0.5)]"
                 prefix={<UserOutlined />}
               />
             </Form.Item>
-            <label className="text-xs">密码</label>
-            <Form.Item name="password" rules={[{ required: true, message: '请输入密码' }]}>
+
+            <Form.Item
+              name="password"
+              label={<label className="text-xs">密码</label>}
+              rules={[{ required: true, message: '请输入密码' }]}
+            >
               <Input.Password
                 size="large"
                 className="w-full bg-[rgba(17,18,23,0.5)] hover:bg-[rgba(17,18,23,0.5)]"
@@ -97,7 +102,7 @@ export default function Login() {
               />
             </Form.Item>
           </Form>
-          <Flex className="w-full justify-between items-start mt-14">
+          <div className="w-full flex justify-between items-start mt-14">
             <Button
               size="large"
               disabled={loading}
@@ -106,9 +111,9 @@ export default function Login() {
             >
               {loading ? <AiOutlineLoading className="animate-spin" /> : '登录'}
             </Button>
-          </Flex>
-        </Flex>
-      </Flex>
-    </Flex>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
