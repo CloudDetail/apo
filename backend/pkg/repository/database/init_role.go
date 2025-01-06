@@ -18,9 +18,6 @@ func (repo *daoRepo) initRole() error {
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&Role{}); err != nil {
-			return err
-		}
 		return tx.Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "role_name"}},
 			DoNothing: true,

@@ -20,10 +20,6 @@ func (repo *daoRepo) initRouterPage() error {
 		"/mysql-dashboard":       "grafana/d/0D6dTg3Zk/mysql-e68c87-e6a087",
 	}
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&RouterInsertPage{}); err != nil {
-			return err
-		}
-
 		var routerIDs, pageIDs []int
 		if err := tx.Model(&Router{}).Select("router_id").Find(&routerIDs).Error; err != nil {
 			return err
