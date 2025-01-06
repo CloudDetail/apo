@@ -282,6 +282,38 @@ systemConfig:
       field_name: "abbreviation"
       entity_type: "menu"
 
+msyql:
+  key: "mysql"
+  i18n:
+    - language: "en"
+      translation: "MySQL Dashboard"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "MySQL大盘"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "MySQL"
+      field_name: "abbreviation"
+      entity_type: "menu"
+
+healthy:
+  key: "healthy"
+  i18n:
+    - language: "en"
+      translation: "Service Health"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "服务健康状态"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "Health"
+      field_name: "abbreviation"
+      entity_type: "menu"
+
 服务概览:
   key: "服务概览"
   i18n:
@@ -528,3 +560,27 @@ systemConfig:
     translation: "系统配置"
     entity_type: "feature"
     field_name: "featureName"
+
+MySQL大盘:
+  key: "MySQL大盘"
+  i18n:
+    - language: "en"
+      translation: "MySQL Dashboard"
+      field_name: "featureName"
+      entity_type: "feature"
+    - language: "zh"
+      translation: "MySQL大盘"
+      field_name: "featureName"
+      entity_type: "feature"
+
+服务健康状态:
+  key: "服务健康状态"
+  i18n:
+    - language: "en"
+      translation: "Service Health"
+      field_name: "featureName"
+      entity_type: "feature"
+    - language: "zh"
+      translation: "服务健康状态"
+      field_name: "featureName"
+      entity_type: "feature"

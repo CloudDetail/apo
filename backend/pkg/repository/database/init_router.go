@@ -25,6 +25,8 @@ func (repo *daoRepo) initRouterData() error {
 		{RouterTo: "/trace/fault-site", HideTimeSelector: true},
 		{RouterTo: "/trace/full", HideTimeSelector: true},
 		{RouterTo: "/system/config", HideTimeSelector: true},
+		{RouterTo: "/mysql-dashboard", HideTimeSelector: false},
+		{RouterTo: "/healthy-service", HideTimeSelector: false},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
