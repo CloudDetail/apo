@@ -8,6 +8,9 @@ import ossRoutes from './oss/routes'
 const UserPage = React.lazy(() => import('src/core/views/UserPage/index.jsx'))
 const UserManage = React.lazy(() => import('src/core/views/UserManage/index.jsx'))
 const MenuManage = React.lazy(() => import('src/core/views/MenuManage/index.jsx'))
+const AlertsIntegrationPage = React.lazy(
+  () => import('src/core/views/IntegrationCenter/AlertsIntegration'),
+)
 
 const baseRoutes = [
   { path: '/', exact: true, name: 'Home' },
@@ -23,6 +26,11 @@ const baseRoutes = [
     name: '菜单管理',
     element: MenuManage,
     hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/alerts-integration',
+    name: '告警接入',
+    element: AlertsIntegrationPage,
   },
 ]
 const routes = [...baseRoutes, ...ossRoutes]
