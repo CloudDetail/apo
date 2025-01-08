@@ -76,15 +76,6 @@ func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.
 	}, nil
 }
 
-/*
-splitByGroupAndName 将结果按Group和name分组
-
-	app:
-		alert1: [item1,item2...]
-		alert2: [...]
-	network:
-	...
-*/
 func splitByGroupAndName(events []clickhouse.AlertEventSample) map[string]map[string][]clickhouse.AlertEventSample {
 	var from int = 0
 	var lastGroup, lastName string
