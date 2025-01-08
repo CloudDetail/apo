@@ -10,19 +10,19 @@ import (
 )
 
 type Handler interface {
-	// GetNamespaceList 获取所有namespace信息
+	// GetNamespaceList get all namespace information
 	// @Tags API.k8s
 	// @Router /api/k8s/namespaces [get]
 	GetNamespaceList() core.HandlerFunc
-	// GetNamespaceInfo 获取namespace信息
+	// GetNamespaceInfo get namespace information
 	// @Tags API.k8s
 	// @Router /api/k8s/namespace/info [get]
 	GetNamespaceInfo() core.HandlerFunc
-	// GetPodList 获取namespace下所有pod信息
+	// GetPodList obtain information about all pods in the namespace
 	// @Tags API.k8s
 	// @Router /api/k8s/pods [get]
 	GetPodList() core.HandlerFunc
-	// GetPodInfo 获取pod信息
+	// GetPodInfo get pod information
 	// @Tags API.k8s
 	// @Router /api/k8s/pod/info [get]
 	GetPodInfo() core.HandlerFunc

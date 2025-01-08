@@ -199,7 +199,7 @@ func setApiRouter(r *resource) {
 func SetMetaServerRouter(srv *Server, meta source.MetaSource) {
 	api := srv.Mux.Group("/metadata")
 	for path, handler := range meta.Handlers() {
-		// 这组API同时支持GET和POST
+		// This set of APIs supports both GET and POST
 		api.POST_Gin(path, util.WrapHandlerFunctions(handler))
 		api.GET_Gin(path, util.WrapHandlerFunctions(handler))
 	}

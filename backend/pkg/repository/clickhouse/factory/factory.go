@@ -45,8 +45,8 @@ func GetDropTableSQL(params *request.LogTableRequest) []string {
 	return sqls
 }
 
-// 先删除view,然后调整log，再创建view
-// 分布式表先调整本地表，然后调分布式表
+// Delete view first, then adjust log, and then create view
+// The distributed table adjusts the local table first, and then the distributed table.
 func GetUpdateTableSQLByFields(params *request.LogTableRequest, old []request.Field) []string {
 	var sqls []string
 	viewfactory := &ViewTableFactory{}

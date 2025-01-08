@@ -11,9 +11,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// Detail xx详情
-// @Summary xx详情
-// @Description xx详情
+// Detail xx Details
+// @Summary xx details
+// @Description xx details
 // @Tags API.mock
 // @Accept json
 // @Produce json

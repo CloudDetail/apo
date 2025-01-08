@@ -51,11 +51,11 @@ const (
 	DBOperationGranularity Granularity = "svc_name, db_system, db_name, name, db_url"
 )
 
-// AggPQLWithFilters 生成PQL语句
-// 使用vector和filterKVs生成PQL
-// @ vector: 指定聚合时间范围
-// @ granularity: 指定聚合粒度
-// @ filterKVs: 过滤条件, 格式为 key1, value1, key2, value2
+// AggPQLWithFilters generate PQL statements
+// Generate PQL using vector and filterKVs
+// @vector: Specify the aggregation time range
+// @granularity: Specify aggregation granularity
+// @filterKVs: filter condition, in the format of key1, value1, key2, and value2
 type AggPQLWithFilters func(vector string, granularity string, filterKVs []string) string
 
 /*
@@ -84,19 +84,19 @@ func VecFromDuration(duration time.Duration) (vec string) {
 	return vec
 }
 
-// RegexMultipleValue 创建匹配多个目标值的正则表达式
-// 需要配合 xxxRegexPQLFilter 使用
+// RegexMultipleValue create a regular expression that matches multiple target values
+// need to be used with xxxRegexPQLFilter
 func RegexMultipleValue(key ...string) string {
 	escapedKeys := make([]string, len(key))
 	for i, key := range key {
 		escapedKeys[i] = EscapeRegexp(key)
 	}
-	// 使用 strings.Join 生成正则表达式模式
+	// Generate regex patterns using strings.Join
 	return strings.Join(escapedKeys, "|")
 }
 
-// RegexContainsValue 创建匹配单个目标值的正则表达式
-// 需要配合 xxxRegexPQLFilter 使用
+// RegexContainsValue create a regular expression that matches a single target value
+// need to be used with xxxRegexPQLFilter
 func RegexContainsValue(key string) string {
 	escapedKey := EscapeRegexp(key)
 	return ".*" + escapedKey + ".*"

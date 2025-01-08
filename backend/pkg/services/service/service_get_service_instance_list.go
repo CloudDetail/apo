@@ -11,7 +11,7 @@ import (
 )
 
 func (s *service) GetServiceInstanceList(req *request.GetServiceInstanceListRequest) ([]string, error) {
-	// 获取活跃服务实例列表
+	// Get the list of active service instances
 	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.ServiceName)
 	if err != nil {
 		return nil, err
@@ -22,13 +22,13 @@ func (s *service) GetServiceInstanceList(req *request.GetServiceInstanceListRequ
 
 func (s *service) GetServiceInstanceInfoList(req *request.GetServiceInstanceListRequest) ([]prometheus.InstanceKey, error) {
 	var ins []prometheus.InstanceKey
-	// 获取实例
+	// Get instance
 	instanceList, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, req.ServiceName, "")
 	if err != nil {
 		return ins, err
 	}
 
-	// 填充实例
+	// Fill the instance
 	for _, instance := range instanceList.GetInstanceIdMap() {
 		key := prometheus.InstanceKey{
 			PID:         strconv.FormatInt(instance.Pid, 10),

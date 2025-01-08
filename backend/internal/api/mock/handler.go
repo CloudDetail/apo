@@ -11,22 +11,22 @@ import (
 )
 
 type Handler interface {
-	// Create 创建/编辑xx
+	// Create/Edit xx
 	// @Tags API.mock
 	// @Router /api/mock [post]
 	Create() core.HandlerFunc
 
-	// List xx列表
+	// List xx list
 	// @Tags API.mock
 	// @Router /api/mock [get]
 	List() core.HandlerFunc
 
-	// Detail xx详情
+	// Detail xx Details
 	// @Tags API.mock
 	// @Router /api/mock/{id} [get]
 	Detail() core.HandlerFunc
 
-	// Delete 删除xx
+	// Delete Delete xx
 	// @Tags API.mock
 	// @Router /api/mock/{id} [delete]
 	Delete() core.HandlerFunc

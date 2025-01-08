@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// QueryLog 查询全量日志
-// @Summary 查询全量日志日志
-// @Description 查询全量日志
+// QueryLog query full logs
+// @Summary query all logs
+// @Description query full logs
 // @Tags API.log
 // @Accept json
 // @Produce json
-// @Param Request body request.LogQueryRequest true "请求信息"
+// @Param Request body request.LogQueryRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.LogQueryResponse
 // @Failure 400 {object} code.Failure

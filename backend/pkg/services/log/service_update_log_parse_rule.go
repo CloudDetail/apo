@@ -15,7 +15,7 @@ import (
 )
 
 func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*response.LogParseResponse, error) {
-	//更新日志表
+	// Update the log table
 	fields := make([]request.Field, 0)
 	if req.IsStructured {
 		fields = req.TableFields
@@ -52,7 +52,7 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 		return nil, err
 	}
 
-	// 更新k8s configmap
+	// update k8s configmap
 	data, err := s.k8sApi.GetVectorConfigFile()
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 	if err != nil {
 		return nil, err
 	}
-	// 结构化日志，不需要parse rule
+	// Structured log, no parse rule is required
 	if req.IsStructured {
 		req.ParseRule = ""
 	}
@@ -81,7 +81,7 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 		return nil, err
 	}
 
-	// 修改表记录
+	// modify table records
 	fieldsJSON, err := json.Marshal(logReq.Fields)
 	if err != nil {
 		return nil, err

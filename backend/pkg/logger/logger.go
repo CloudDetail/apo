@@ -52,12 +52,12 @@ func NewLogger(opts ...Option) *zap.Logger {
 		MessageKey:    "msg",
 		StacktraceKey: "stacktrace", // use by zap.AddStacktrace; optional; useless
 		LineEnding:    zapcore.DefaultLineEnding,
-		EncodeLevel:   zapcore.LowercaseLevelEncoder, // 小写编码器
+		EncodeLevel:   zapcore.LowercaseLevelEncoder, // lowercase encoder
 		EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 			enc.AppendString(t.Format(timeLayout))
 		},
 		EncodeDuration: zapcore.MillisDurationEncoder,
-		EncodeCaller:   zapcore.ShortCallerEncoder, // 全路径编码器
+		EncodeCaller:   zapcore.ShortCallerEncoder, // full path encoder
 	}
 
 	core := zapcore.NewTee()
@@ -148,11 +148,11 @@ func WithFileRotationP(enable bool, file string, size int, num int) Option {
 				panic(err)
 			}
 			opt.file = &lumberjack.Logger{ // concurrent-safed
-				Filename:   file, // 文件路径
-				MaxSize:    size, // 单个文件最大尺寸，默认单位 M
-				MaxBackups: num,  // 最多保留 10 个备份
-				LocalTime:  true, // 使用本地时间
-				Compress:   true, // 是否压缩 disabled by default
+				Filename:   file, // file path
+				MaxSize:    size, // maximum size of a single file, default unit M
+				MaxBackups: num,  // Keep up to 10 backups
+				LocalTime:  true, // use local time
+				Compress:   true, // whether to compress the disabled by default
 			}
 		}
 	}

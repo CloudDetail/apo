@@ -8,10 +8,10 @@ type LogTableInfo struct {
 	DataBase     string `gorm:"type:varchar(100);column:database"`
 	Table        string `gorm:"type:varchar(100);column:tablename"`
 	Cluster      string `gorm:"type:varchar(100)"`
-	Fields       string `gorm:"type:varchar(5000)"` // 日志字段类型
+	Fields       string `gorm:"type:varchar(5000)"` // log field type
 	ParseName    string `gorm:"type:varchar(100);column:parsename"`
-	RouteRule    string `gorm:"type:varchar(1000);column:routerule"` // 路由规则
-	ParseRule    string `gorm:"type:varchar(5000);column:parserule"` // 解析规则
+	RouteRule    string `gorm:"type:varchar(1000);column:routerule"` // routing rule
+	ParseRule    string `gorm:"type:varchar(5000);column:parserule"` // parsing rules
 	ParseInfo    string `gorm:"type:varchar(100);column:parseinfo"`
 	Service      string `gorm:"type:varchar(100)"`
 	IsStructured bool   `gorm:"type:bool;column:structured"`

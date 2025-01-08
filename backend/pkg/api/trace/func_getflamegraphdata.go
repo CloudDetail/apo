@@ -4,25 +4,26 @@
 package trace
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// GetFlameGraphData 获取指定时间段指定条件的火焰图数据
-// @Summary 获取指定时间段指定条件的火焰图数据
-// @Description 获取指定时间段指定条件的火焰图数据
+// GetFlameGraphData get the flame map data of the specified time period and specified conditions
+// @Summary get the flame chart data of the specified time period and specified conditions
+// @Description get the flame chart data of the specified time period and specified conditions
 // @Tags API.trace
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param sampleType query string true "采样类型"
-// @Param pid query uint64 true "进程id"
-// @Param tid query uint64 true "线程id"
-// @Param nodeName query string false "主机名称"
-// @Param startTime query int64 true "开始时间"
-// @Param endTime query int64 true "结束时间"
+// @Param sampleType query string true "sample type"
+// @Param pid query uint64 true "process id"
+// @Param tid query uint64 true "thread id"
+// @Param nodeName query string false "hostname"
+// @Param startTime query int64 true "start time"
+// @Param endTime query int64 true "end time"
 // @Param spanId query string true "span id"
 // @Param traceId query string true "trace id"
 // @Success 200 {object} response.GetFlameDataResponse

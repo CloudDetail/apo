@@ -9,14 +9,14 @@ import (
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-// 跟据日同比阈值进行排序,错误率同比相同，比较错误率值
+// Sort according to DoD/WoW Growth Rate threshold
 func sortByDODThreshold(endpoints []*prom.EndpointMetrics) {
 	sort.SliceStable(endpoints, func(i, j int) bool {
-		//先按照count排序
+		// Sort by count first
 		if endpoints[i].AlertCount != endpoints[j].AlertCount {
 			return endpoints[i].AlertCount > endpoints[j].AlertCount
 		}
-		//等于3时按照错误率排序
+		// Sort by error rate when equal to 3
 		if endpoints[i].AlertCount == endpoints[j].AlertCount && endpoints[i].AlertCount == 3 {
 			if endpoints[i].REDMetrics.DOD.ErrorRate != nil && endpoints[j].REDMetrics.DOD.ErrorRate != nil && endpoints[i].REDMetrics.DOD.ErrorRate != endpoints[j].REDMetrics.DOD.ErrorRate {
 				if *endpoints[i].REDMetrics.DOD.ErrorRate != *endpoints[j].REDMetrics.DOD.ErrorRate {
@@ -33,7 +33,7 @@ func sortByDODThreshold(endpoints []*prom.EndpointMetrics) {
 				return *endpoints[i].REDMetrics.DOD.TPM > *endpoints[j].REDMetrics.DOD.TPM
 			}
 		}
-		//count = 2的比较方式
+		// count = 2 comparison method
 		if endpoints[i].AlertCount == endpoints[j].AlertCount && endpoints[i].AlertCount == 2 {
 			if endpoints[i].IsErrorRateExceeded == true && endpoints[j].IsErrorRateExceeded == false {
 				return true
@@ -136,80 +136,80 @@ func sortByDODThreshold(endpoints []*prom.EndpointMetrics) {
 	})
 }
 
-// 突变排序
+// sort by mutation
 func sortByMutation(endpoints []*prom.EndpointMetrics) {
 	for i, _ := range endpoints {
-		//平均错误率和1m错误率都查不出来，突变率为0
+		// The average error rate and 1m error rate cannot be found, and the mutation rate is 0
 		if endpoints[i].REDMetrics.Avg.ErrorRate == nil && endpoints[i].REDMetrics.Realtime.ErrorRate == nil {
 			endpoints[i].Avg1MinErrorMutationRate = 0
 		}
-		//平均错误率查的出来，1m错误率查不出来
+		// The average error rate can be found, but the error rate of 1m cannot be found.
 		if endpoints[i].REDMetrics.Avg.ErrorRate != nil && endpoints[i].REDMetrics.Realtime.ErrorRate == nil {
-			//平均错误率为0 ：突变率为0
+			// Average error rate is 0: mutation rate is 0
 			if endpoints[i].REDMetrics.Avg.ErrorRate != nil && *endpoints[i].REDMetrics.Avg.ErrorRate == 0 {
 				endpoints[i].Avg1MinErrorMutationRate = 0
 			}
-			//平均错误率不为0，突变率为-1
+			// Average error rate is not 0, mutation rate is -1
 			if endpoints[i].REDMetrics.Avg.ErrorRate != nil && *endpoints[i].REDMetrics.Avg.ErrorRate != 0 {
 				endpoints[i].Avg1MinErrorMutationRate = -1
 			}
 		}
-		//平均错误率查不出来，1m错误率查的出来
+		// The average error rate cannot be found, and the error rate of 1m cannot be found.
 		if endpoints[i].REDMetrics.Avg.ErrorRate == nil && endpoints[i].REDMetrics.Realtime.ErrorRate != nil {
-			//1m错误率为0，突变率为0
+			// 1m error rate is 0, mutation rate is 0
 			if endpoints[i].REDMetrics.Realtime.ErrorRate != nil && *endpoints[i].REDMetrics.Realtime.ErrorRate == 0 {
 				endpoints[i].Avg1MinErrorMutationRate = 0
 			}
-			//1m错误率不为0，突变率为max
+			// 1m error rate is not 0, mutation rate is max
 			if endpoints[i].REDMetrics.Realtime.ErrorRate != nil && *endpoints[i].REDMetrics.Realtime.ErrorRate != 0 {
 				endpoints[i].Avg1MinErrorMutationRate = RES_MAX_VALUE
 			}
 		}
-		//平均错误率查不出来，1m错误率查的出来
+		// The average error rate cannot be found, and the error rate of 1m cannot be found.
 		if endpoints[i].REDMetrics.Avg.ErrorRate != nil && endpoints[i].REDMetrics.Realtime.ErrorRate != nil {
-			//1m错误率为0，突变率为0
+			// 1m error rate is 0, mutation rate is 0
 			if endpoints[i].REDMetrics.Avg.ErrorRate != nil && *endpoints[i].REDMetrics.Avg.ErrorRate == 0 {
 				endpoints[i].Avg1MinErrorMutationRate = RES_MAX_VALUE
 			}
-			//1m错误率不为0，突变率为max
+			// 1m error rate is not 0, mutation rate is max
 			if endpoints[i].REDMetrics.Avg.ErrorRate != nil && endpoints[i].REDMetrics.Realtime.ErrorRate != nil && *endpoints[i].REDMetrics.Avg.ErrorRate != 0 {
 				endpoints[i].Avg1MinErrorMutationRate = *endpoints[i].REDMetrics.Realtime.ErrorRate / *endpoints[i].REDMetrics.Avg.ErrorRate
 			}
 		}
 		//latency
-		//平均延时和1m延时都查不出来，突变率为0(不可能的情况)
+		// The average delay and 1m delay cannot be found, and the mutation rate is 0 (impossible)
 		if endpoints[i].REDMetrics.Avg.Latency == nil && endpoints[i].REDMetrics.Realtime.Latency == nil {
 			endpoints[i].Avg1MinLatencyMutationRate = 0
 		}
-		//平均延时查的出来，1m延时查不出来
+		// The average delay can be found, but the 1m delay cannot be found.
 		if endpoints[i].REDMetrics.Avg.Latency != nil && endpoints[i].REDMetrics.Realtime.Latency == nil {
-			//平均延时为0 ：突变率为0
+			// average delay is 0: mutation rate is 0
 			if endpoints[i].REDMetrics.Avg.Latency != nil && *endpoints[i].REDMetrics.Avg.Latency == 0 {
 				endpoints[i].Avg1MinLatencyMutationRate = 0
 			}
-			//平均延时不为0，突变率为-1
+			// average delay is not 0, mutation rate is -1
 			if endpoints[i].REDMetrics.Avg.Latency != nil && *endpoints[i].REDMetrics.Avg.Latency != 0 {
 				endpoints[i].Avg1MinLatencyMutationRate = -1
 			}
 		}
-		//平均错误率查不出来，1m错误率查的出来
+		// The average error rate cannot be found, and the error rate of 1m cannot be found.
 		if endpoints[i].REDMetrics.Avg.Latency == nil && endpoints[i].REDMetrics.Realtime.Latency != nil {
-			//1m延时为0，突变率为0
+			// 1m delay is 0, mutation rate is 0
 			if endpoints[i].REDMetrics.Realtime.Latency != nil && *endpoints[i].REDMetrics.Realtime.Latency == 0 {
 				endpoints[i].Avg1MinLatencyMutationRate = 0
 			}
-			//1m延时不为0，突变率为max
+			// 1m delay is not 0, mutation rate is max
 			if endpoints[i].REDMetrics.Realtime.Latency != nil && *endpoints[i].REDMetrics.Realtime.Latency != 0 {
 				endpoints[i].Avg1MinLatencyMutationRate = RES_MAX_VALUE
 			}
 		}
-		//平均错误率查不出来，1m错误率查的出来
+		// The average error rate cannot be found, and the error rate of 1m cannot be found.
 		if endpoints[i].REDMetrics.Avg.Latency != nil && endpoints[i].REDMetrics.Realtime.Latency != nil {
-			//平均延时为0，突变率为max
+			// average delay is 0, mutation rate is max
 			if endpoints[i].REDMetrics.Avg.Latency != nil && *endpoints[i].REDMetrics.Avg.Latency == 0 {
 				endpoints[i].Avg1MinLatencyMutationRate = RES_MAX_VALUE
 			}
-			//平均延时不为0，突变率为1m延时/平均延时
+			// average delay is not 0, mutation rate is 1m delay/average delay
 			if endpoints[i].REDMetrics.Avg.Latency != nil && endpoints[i].REDMetrics.Realtime.Latency != nil && *endpoints[i].REDMetrics.Avg.Latency != 0 {
 				endpoints[i].Avg1MinLatencyMutationRate = *endpoints[i].REDMetrics.Realtime.Latency / *endpoints[i].REDMetrics.Avg.Latency
 			}
@@ -230,41 +230,41 @@ func sortByMutation(endpoints []*prom.EndpointMetrics) {
 		//}
 	}
 	sort.SliceStable(endpoints, func(i, j int) bool {
-		// Case 1: 如果有一个错误率突变率大于1（错误率上升）
+		// Case 1: If there is an error rate mutation rate greater than 1 (error rate increases)
 		if endpoints[i].Avg1MinErrorMutationRate > 1 || endpoints[j].Avg1MinErrorMutationRate > 1 {
 			return endpoints[i].Avg1MinErrorMutationRate > endpoints[j].Avg1MinErrorMutationRate
 		}
 
-		// Case 2: 如果错误率突变率都小于等于1
+		// Case 2: If the error rate mutation rate is less than or equal to 1
 		if endpoints[i].Avg1MinErrorMutationRate <= 1 && endpoints[j].Avg1MinErrorMutationRate <= 1 {
-			// 优先按延迟突变率排序，较大的排在前面
+			// Sort by delayed mutation rate first, with larger ones first
 			if endpoints[i].Avg1MinLatencyMutationRate != endpoints[j].Avg1MinLatencyMutationRate {
 				return endpoints[i].Avg1MinLatencyMutationRate > endpoints[j].Avg1MinLatencyMutationRate
 			}
 
-			// 如果延迟突变率相同，按错误率排序
+			// Sort by error rate if the delay mutation rate is the same
 			if endpoints[i].REDMetrics.Realtime.ErrorRate != nil && endpoints[j].REDMetrics.Realtime.ErrorRate != nil {
 				return *endpoints[i].REDMetrics.Realtime.ErrorRate > *endpoints[j].REDMetrics.Realtime.ErrorRate
 			}
-			// 如果一个错误率为nil，另一个不为nil，错误率不为nil的排在前面
+			// If one error rate is nil and the other is not nil, the error rate is not nil.
 			if endpoints[i].REDMetrics.Realtime.ErrorRate != nil && endpoints[j].REDMetrics.Realtime.ErrorRate == nil {
 				return true
 			}
 			if endpoints[i].REDMetrics.Realtime.ErrorRate == nil && endpoints[j].REDMetrics.Realtime.ErrorRate != nil {
 				return false
 			}
-			// 如果延迟突变率相同，按错误率排序
+			// Sort by error rate if the delay mutation rate is the same
 			if endpoints[i].REDMetrics.Avg.ErrorRate != nil && endpoints[j].REDMetrics.Avg.ErrorRate != nil {
 				return *endpoints[i].REDMetrics.Avg.ErrorRate > *endpoints[j].REDMetrics.Avg.ErrorRate
 			}
-			// 如果一个错误率为nil，另一个不为nil，错误率不为nil的排在前面
+			// If one error rate is nil and the other is not nil, the error rate is not nil.
 			if endpoints[i].REDMetrics.Avg.ErrorRate != nil && endpoints[j].REDMetrics.Avg.ErrorRate == nil {
 				return true
 			}
 			if endpoints[i].REDMetrics.Avg.ErrorRate == nil && endpoints[j].REDMetrics.Avg.ErrorRate != nil {
 				return false
 			}
-			// 如果错误率相同或都为nil，按延迟排序
+			// if error rates are the same or nil, sort by latency
 			if endpoints[i].REDMetrics.Realtime.Latency != nil && endpoints[j].REDMetrics.Realtime.Latency != nil {
 				return *endpoints[i].REDMetrics.Realtime.Latency > *endpoints[j].REDMetrics.Realtime.Latency
 			}
@@ -274,7 +274,7 @@ func sortByMutation(endpoints []*prom.EndpointMetrics) {
 			if endpoints[i].REDMetrics.Realtime.Latency == nil && endpoints[j].REDMetrics.Realtime.Latency != nil {
 				return false
 			}
-			// 如果错误率相同或都为nil，按延迟排序
+			// if error rates are the same or nil, sort by latency
 			if endpoints[i].REDMetrics.Avg.Latency != nil && endpoints[j].REDMetrics.Avg.Latency != nil {
 				return *endpoints[i].REDMetrics.Avg.Latency > *endpoints[j].REDMetrics.Avg.Latency
 			}
@@ -293,7 +293,7 @@ func sortByMutation(endpoints []*prom.EndpointMetrics) {
 func fillServices(endpoints []*prom.EndpointMetrics) []ServiceDetail {
 	var services []ServiceDetail
 	for _, url := range endpoints {
-		//如果没有数据则不返回
+		// No return if there is no data
 		if (url.REDMetrics.Avg.Latency == nil && url.REDMetrics.Avg.ErrorRate == nil) || (url.REDMetrics.Avg.Latency == nil && url.REDMetrics.Avg.ErrorRate != nil && *url.REDMetrics.Avg.ErrorRate == 0 && url.REDMetrics.Avg.TPM == nil) {
 			continue
 		}

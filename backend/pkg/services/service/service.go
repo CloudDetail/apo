@@ -18,54 +18,54 @@ import (
 var _ Service = (*service)(nil)
 
 type Service interface {
-	// 获取上下游调用关系
+	// Obtain the relationship between upstream and downstream calls
 	GetServiceEndpointRelation(req *request.GetServiceEndpointRelationRequest) (*response.GetServiceEndpointRelationResponse, error)
-	// 获取上下游拓扑图
+	// Obtain the upstream and downstream topology map
 	GetServiceEndpointTopology(req *request.GetServiceEndpointTopologyRequest) (*response.GetServiceEndpointTopologyResponse, error)
-	// 获取依赖服务的延时曲线
+	// Obtain the delay curve of the dependent service
 	GetDescendantMetrics(req *request.GetDescendantMetricsRequest) ([]response.GetDescendantMetricsResponse, error)
-	// 获取依赖节点延时关联度
+	// Obtain the dependent node delay correlation.
 	GetDescendantRelevance(req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error)
-	// 获取北极星指标分析情况
+	// Get Polaris metric analysis
 	GetPolarisInfer(req *request.GetPolarisInferRequest) (*response.GetPolarisInferResponse, error)
-	// 获取错误实例
+	// Get error instance
 	GetErrorInstance(req *request.GetErrorInstanceRequest) (*response.GetErrorInstanceResponse, error)
-	// 获取错误实例故障现场日志
+	// Get the error instance fault site log
 	GetErrorInstanceLogs(req *request.GetErrorInstanceLogsRequest) ([]clickhouse.FaultLogResult, error)
-	// 获取日志相关指标
+	// Obtain log metrics
 	GetLogMetrics(req *request.GetLogMetricsRequest) ([]*response.GetLogMetricsResponse, error)
-	// 获取Log故障现场日志
+	// Get Log fault field log
 	GetLogLogs(req *request.GetLogLogsRequest) ([]clickhouse.FaultLogResult, error)
-	// 获取Trace相关指标
+	// Get Trace related metrics
 	GetTraceMetrics(req *request.GetTraceMetricsRequest) ([]*response.GetTraceMetricsResponse, error)
-	// 获取SQL相关指标
+	// Get SQL related metrics
 	GetSQLMetrics(req *request.GetSQLMetricsRequest) (*response.GetSQLMetricsResponse, error)
-	// 获取Trace故障现场日志
+	// Get trace fault site log
 	GetTraceLogs(req *request.GetTraceLogsRequest) ([]clickhouse.FaultLogResult, error)
-	// 获取服务列表
+	// Get the list of services
 	GetServiceList(req *request.GetServiceListRequest) ([]string, error)
-	// 获取服务实例列表
-	// 新接口
+	// Get the list of service instances
+	// New interface
 	GetInstancesNew(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error)
-	// 旧接口
+	// Old interface
 	GetInstances(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error)
-	// 获取服务实例列表
+	// Get the list of service instances
 	// DEPRECATED
 	GetServiceInstanceList(req *request.GetServiceInstanceListRequest) ([]string, error)
-	// 获取服务实例详情
+	// Get service instance details
 	GetServiceInstanceInfoList(req *request.GetServiceInstanceListRequest) ([]prometheus.InstanceKey, error)
-	// 获取服务实例下拉列表
+	// Get service instance drop-down list
 	GetServiceInstanceOptions(req *request.GetServiceInstanceOptionsRequest) (map[string]*model.ServiceInstance, error)
-	// 获取服务Endpoint列表
+	// Get the list of service Endpoint
 	GetServiceEndPointList(req *request.GetServiceEndPointListRequest) ([]string, error)
-	// 获取服务入口Endpoint列表
+	// Get the list of service portal Endpoint
 	GetServiceEntryEndpoints(req *request.GetServiceEntryEndpointsRequest) ([]clickhouse.EntryNode, error)
-	// CountK8sEvents 获取K8s事件数量
+	// CountK8sEvents get the number of K8s events
 	CountK8sEvents(req *request.GetK8sEventsRequest) (*response.GetK8sEventsResponse, error)
-	// GetAlertEvents 获取告警事件
+	// GetAlertEvents get alarm events
 	GetAlertEvents(req *request.GetAlertEventsRequest) (*response.GetAlertEventsResponse, error)
 
-	// GetAlertEventsSample 获取告警事件
+	// GetAlertEventsSample get sampled alarm events
 	GetAlertEventsSample(req *request.GetAlertEventsSampleRequest) (*response.GetAlertEventsSampleResponse, error)
 
 	GetServiceNamespaceList(req *request.GetServiceNamespaceListRequest) (response.GetServiceNamespaceListResponse, error)

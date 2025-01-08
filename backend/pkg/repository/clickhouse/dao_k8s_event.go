@@ -14,7 +14,7 @@ import (
 const (
 	startTimeLayout = "2006-01-02 15:04:05 -0700 MST"
 
-	// SQL_GET_K8S_EVENTS 获取K8s事件告警
+	// SQL _GET_K8S_EVENTS get K8s event alarm
 	SQL_GET_K8S_EVENTS = `WITH grouped_events AS (
 			SELECT Timestamp,SeverityText,Body,ResourceAttributes,LogAttributes,
 				ROW_NUMBER() OVER (PARTITION BY ResourceAttributes['k8s.object.kind'] ORDER BY SeverityNumber) AS rn
@@ -26,7 +26,7 @@ const (
 		WHERE rn <= %d`
 )
 
-// K8sAlert   查询K8S告警
+// K8sAlert query K8S alarm
 func (ch *chRepo) GetK8sAlertEventsSample(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) ([]K8sEvents, error) {
 	relatedObj := make([]string, 0)
 	for _, instance := range instances {
@@ -48,9 +48,9 @@ func (ch *chRepo) GetK8sAlertEventsSample(startTime time.Time, endTime time.Time
 		InStrings("ResourceAttributes['k8s.object.kind']", []string{"Pod", "Node"}).
 		GreaterThan("SeverityNumber", 9)
 
-	// 每个ObjectKind取一个事件
+	// Take one event per ObjectKind
 	query := fmt.Sprintf(SQL_GET_K8S_EVENTS, builder.String(), 1)
-	// 执行查询
+	// Execute query
 	var res []K8sEvents
 	err := ch.conn.Select(context.Background(), &res, query, builder.values...)
 	if err != nil {

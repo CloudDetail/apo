@@ -32,14 +32,14 @@ func (p *polRepo) QueryPolarisInfer(
 	if err != nil {
 		return &PolarisInferRes{}, err
 	}
-	// 发送http请求
+	// Send http request
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return &PolarisInferRes{}, err
 	}
 	defer res.Body.Close()
 
-	// 从res body中解析json数据
+	// parse json data from res body
 	var inferRes PolarisInferRes
 	err = json.NewDecoder(res.Body).Decode(&inferRes)
 	if err != nil {

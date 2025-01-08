@@ -9,7 +9,7 @@ import (
 )
 
 func (s *service) GetServiceInstanceOptions(req *request.GetServiceInstanceOptionsRequest) (map[string]*model.ServiceInstance, error) {
-	// 获取活跃服务实例列表
+	// Get the list of active service instances
 	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.ServiceName)
 	if err != nil {
 		return nil, err

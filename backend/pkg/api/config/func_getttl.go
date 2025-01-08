@@ -10,9 +10,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// GetTTL 获取TTL
-// @Summary 获取TTL
-// @Description 获取TTL
+// GetTTL Get TTL
+// @Summary get TTL
+// @Description get TTL
 // @Tags API.config
 // @Accept application/x-www-form-urlencoded
 // @Produce json

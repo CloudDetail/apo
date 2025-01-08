@@ -14,24 +14,24 @@ import (
 )
 
 type getServiceMoreUrlListRequest struct {
-	StartTime   int64  `form:"startTime" binding:"required"`                 // 查询开始时间
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Step        int64  `form:"step" binding:"required"`                      // 步长
-	ServiceName string `form:"serviceName" binding:"required"`               // 应用名
-	SortRule    int    `form:"sortRule" binding:"required"`                  //排序逻辑
+	StartTime   int64  `form:"startTime" binding:"required"`                   // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
+	Step        int64  `form:"step" binding:"required"`                        // step size
+	ServiceName string `form:"serviceName" binding:"required"`                 // application name
+	SortRule    int    `form:"sortRule" binding:"required"`                    // sort logic
 }
 
-// GetServiceMoreUrlList 获取服务的更多url列表
-// @Summary 获取服务的更多url列表
-// @Description 获取服务的更多url列表
+// GetServiceMoreUrlList get more url list of services
+// @Summary get more url list of services
+// @Description get more url list of services
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "查询开始时间"
-// @Param endTime query int64 true "查询结束时间"
-// @Param step query int64 true "步长"
-// @Param serviceName query string true "应用名称"
-// @Param sortRule query int true "排序逻辑"
+// @Param startTime query int64 true "query start time"
+// @Param endTime query int64 true "query end time"
+// @Param step query int64 true "step"
+// @Param serviceName query string true "app name"
+// @Param sortRule query int true "sort logic"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []response.ServiceDetail
 // @Failure 400 {object} code.Failure
@@ -49,8 +49,8 @@ func (h *handler) GetServiceMoreUrlList() core.HandlerFunc {
 		}
 		var startTime time.Time
 		var endTime time.Time
-		req.StartTime = req.StartTime / 1000000 //接收的微秒级别的startTime和endTime需要先转成秒级别
-		req.EndTime = req.EndTime / 1000000     //接收的微秒级别的startTime和endTime需要先转成秒级别
+		req.StartTime = req.StartTime / 1000000 // received microsecond-level startTime and endTime need to be converted to second-level first
+		req.EndTime = req.EndTime / 1000000     // received microsecond-level startTime and endTime need to be converted to second-level first
 		startTime = time.Unix(req.StartTime, 0)
 		endTime = time.Unix(req.EndTime, 0)
 		step := time.Duration(req.Step * 1000)
@@ -70,7 +70,7 @@ func (h *handler) GetServiceMoreUrlList() core.HandlerFunc {
 		if data != nil {
 			res = data
 		} else {
-			res = []response.ServiceDetail{} // 确保返回一个空数组
+			res = []response.ServiceDetail{} // Make sure to return an empty array
 		}
 
 		c.Payload(res)

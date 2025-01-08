@@ -5,23 +5,24 @@ package user
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// ResetPassword 重设密码
-// @Summary 重设密码
-// @Description 重设密码
+// ResetPassword reset password
+// @Summary reset password
+// @Description reset password
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId formData int64 true "用户id"
-// @Param newPassword formData string true "新密码"
-// @Param confirmPassword formData string true "重复密码"
+// @Param userId formData int64 true "user id"
+// @Param newPassword formData string true "new password"
+// @Param confirmPassword formData string true "repeat password"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure

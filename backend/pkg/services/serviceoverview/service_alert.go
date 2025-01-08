@@ -4,10 +4,11 @@
 package serviceoverview
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -128,8 +129,8 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		normalNowLog := s.getNormalLog(service, startTime, endTime, 0)
 		normalDayLog := s.getNormalLog(service, startTime, endTime, time.Hour*24)
 		normalWeekLog := s.getNormalLog(service, startTime, endTime, time.Hour*24*7)
-		var allLogNow, allLogDay, allLogWeek *float64 // 当前、昨天、上周的总日志错误数
-		// 整合instance的now，day，week，avg数据
+		var allLogNow, allLogDay, allLogWeek *float64 // Total log errors for current, yesterday, and last week
+		// Integrate instance now,day,week,avg data
 		for _, instance := range service.Instances {
 			if instance.LogNow != nil {
 				if allLogNow == nil {
@@ -160,7 +161,7 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 			}
 		}
 
-		// 计算同比并填充数据
+		// Calculate YoY and populate data
 		if allLogDay == nil && normalDayLog != nil {
 			allLogDay = new(float64)
 		}
@@ -175,10 +176,10 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		minVal := new(float64)
 		*minVal = -100
 		if allLogNow != nil && *allLogNow > 0 && allLogDay != nil && *allLogDay == 0 {
-			// 昨天错误为0，今天有错误 正无穷
+			// Yesterday's error was 0, today's error is infinite
 			newLogs.Ratio.DayOverDay = maxVal
 		} else if allLogNow != nil && *allLogNow == 0 && allLogDay != nil && *allLogDay > 0 {
-			// 昨天错有错误，今天错误为0 负无穷
+			// Yesterday's mistake was wrong, today's mistake is 0 negative infinity
 			newLogs.Ratio.DayOverDay = minVal
 		} else if allLogNow != nil && allLogDay != nil && *allLogNow > 0 && *allLogDay > 0 {
 			dod := new(float64)
@@ -187,10 +188,10 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		}
 
 		if allLogNow != nil && *allLogNow > 0 && allLogWeek != nil && *allLogWeek == 0 {
-			// 上周错误为0，今天有错误 正无穷
+			// Last week's error was 0, today's error is infinite
 			newLogs.Ratio.WeekOverDay = maxVal
 		} else if allLogNow != nil && *allLogNow == 0 && allLogWeek != nil && *allLogWeek > 0 {
-			// 上周错有错误，今天错误为0 负无穷
+			// Last week there was a mistake, today's mistake is 0 negative infinity
 			newLogs.Ratio.WeekOverDay = minVal
 		} else if allLogNow != nil && allLogWeek != nil && *allLogNow > 0 && *allLogWeek > 0 {
 			wow := new(float64)
@@ -225,14 +226,14 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 			})
 		}
 
-		// 填充告警状态
+		// fill alarm status
 		newServiceRes.AlertStatusCH = GetAlertStatusCH(
 			s.chRepo, &newServiceRes.AlertReason, nil,
 			returnData, service.ServiceName, serviceInstances,
 			startTime, endTime,
 		)
 
-		// 填充末次启动时间
+		// Fill in last start time
 		if returnData == nil || contains(returnData, "lastStartTime") {
 			startTSmap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, serviceInstances)
 			latestStartTime := getLatestStartTime(startTSmap) * 1e6
@@ -246,7 +247,7 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 	return servicesAlertResMsg, err
 }
 
-// 填充来自Clickhouse的告警信息,并填充alertReason
+// Fill in the alarm information from the Clickhouse and fill in the alertReason
 func GetAlertStatusCH(chRepo clickhouse.Repo,
 	alertReason *model.AlertReason, alertEventsCountMap *model.AlertEventLevelCountMap,
 	alertTypes []string, serviceName string, instances []*model.ServiceInstance, // filter
@@ -263,11 +264,11 @@ func GetAlertStatusCH(chRepo clickhouse.Repo,
 		contains(alertTypes, "netStatus") ||
 		contains(alertTypes, "appStatus") ||
 		contains(alertTypes, "containerStatus") {
-		// 查询实例相关的告警信息
+		// Query the alarm information related to the instance
 		events, _ := chRepo.GetAlertEventsSample(1, startTime, endTime,
 			request.AlertFilter{Service: serviceName, Status: "firing"}, instances)
 
-		// 按告警原因修改告警状态/
+		// Modify alarm status by alarm reason/
 		for _, event := range events {
 			alertGroup := clickhouse.AlertGroup(event.Group)
 			switch alertGroup {
@@ -280,7 +281,7 @@ func GetAlertStatusCH(chRepo clickhouse.Repo,
 			case clickhouse.CONTAINER_GROUP:
 				alertStatus.ContainerStatus = model.STATUS_CRITICAL
 			default:
-				// 忽略 未知 告警
+				// Ignore unknown alarms
 				continue
 			}
 
@@ -299,7 +300,7 @@ func GetAlertStatusCH(chRepo clickhouse.Repo,
 	}
 
 	if len(alertTypes) == 0 || contains(alertTypes, "k8sStatus") {
-		// 查询warning及以上级别的K8s事件
+		// Query K8s events of warning level and above
 		k8sEvents, _ := chRepo.GetK8sAlertEventsSample(startTime, endTime, instances)
 		if len(k8sEvents) > 0 {
 			alertStatus.K8sStatus = model.STATUS_CRITICAL
@@ -327,7 +328,7 @@ func getLatestStartTime(startTSmap map[model.ServiceInstance]int64) int64 {
 	return latestStartTime
 }
 
-// getNormalLog 查询service下所有实例是否有正常log指标
+// getNormalLog whether all instances in the service have normal log metrics.
 func (s *service) getNormalLog(service ServiceDetail, startTime, endTime time.Time, offset time.Duration) []prometheus.MetricResult {
 	startTS, endTS := startTime.UnixMicro(), endTime.UnixMicro()
 	var pods, pids, nodeNames []string

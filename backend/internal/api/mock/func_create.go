@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// Create 创建/编辑xx
-// @Summary 创建/编辑xx
-// @Description 创建/编辑xx
+// Create/Edit xx
+// @Summary create/edit xx
+// @Description create/edit xx
 // @Tags API.mock
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param name formData string true "名称"
+// @Param name formData string true "name"
 // @Success 200 {object} response.CreateResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/mock [post]

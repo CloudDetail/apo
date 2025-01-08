@@ -44,7 +44,7 @@ const (
 	`
 )
 
-// 查询实例相关的错误传播链
+// Query instance-related error propagation chain
 func (ch *chRepo) ListErrorPropagation(req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
@@ -56,7 +56,7 @@ func (ch *chRepo) ListErrorPropagation(req *request.GetErrorInstanceRequest) ([]
 		Equals("nodes.is_error", true).
 		EqualsNotEmpty("entry_service", req.EntryService).
 		EqualsNotEmpty("entry_url", req.EntryEndpoint).
-		Statement("LENGTH(nodes.error_types) > 0") // 返回的数据必须有ErrorTypes
+		Statement("LENGTH(nodes.error_types) > 0") // The data returned must be ErrorTypes
 	bySql := NewByLimitBuilder().
 		OrderBy("timestamp", false).
 		Limit(2000).String()

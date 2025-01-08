@@ -17,37 +17,37 @@ func (s *service) GetServicesEndPointData(startTime time.Time, endTime time.Time
 	var stepNS = endTime.Sub(startTime).Nanoseconds()
 	duration = strconv.FormatInt(stepNS/int64(time.Minute), 10) + "m"
 	filters := filter.ExtractFilterStr()
-	// step1 查询满足Filter的Endpoint,并返回对应的RED指标
-	// RED指标包含了选定时间段内的平均值,日同比变化率和周同比变化率
+	// step1 Query that meets the Endpoint of the Filter and return the corresponding RED metric
+	// RED metric contains the average, day-to-year rate of change and week-to-week rate of change over the selected time period
 	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filters)
 
-	// step2 填充延时依赖关系
+	// step2 fill delay dependency
 	err = s.EndpointsDelaySource(endpointsMap, startTime, endTime, filters)
 	if err != nil {
-		// TODO 输出错误日志, DelaySource查询失败
+		// TODO output error log, DelaySource query failed
 	}
 
-	// step2.. 填充Namespace信息
+	// step2.. Fill Namespace information
 	err = s.EndpointsNamespaceInfo(endpointsMap, startTime, endTime, filters)
 	if err != nil {
-		// TODO 输出错误日志, Namespace查询失败
+		// TODO output error log, Namespace query failed
 	}
 
-	// step3 根据排序规则对URL进行排序, 并填充前期未查询到的数据
+	// step3 Sort the URL according to the sorting rule and fill in the data that has not been queried in the previous period.
 	if sortRule == MUTATIONSORT {
-		// 填充实时RED指标用于排序(当前时间往前3分钟之间的情况)
+		// Fill the real-time RED metric for sorting (the case between 3 minutes before the current time)
 		s.EndpointsRealtimeREDMetric(filter, endpointsMap, startTime, endTime)
 	}
-	// 根据排序规则对endpoints进行排序并填充部分未查询到的数据
+	// Sort the endpoints according to the sorting rule and fill some unqueried data
 	err = s.sortWithRule(sortRule, endpointsMap)
 
-	// step4 将Endpoints按service分组,并维持service排序
+	// step4 Group Endpoints by service and maintain service ordering
 	services := fillServices(endpointsMap.MetricGroupList)
 
-	// step5 填充每个service分组前三url的RED图表数据
+	// step5 fills the RED chart data of the first three urls of each service group
 	s.EndpointRangeREDChart(&services, startTime, endTime, duration, step)
 
-	// step6 填充空值并调整返回结构
+	// step6 Fill null values and adjust the return structure
 	var servicesResMsg []response.ServiceEndPointsRes
 	for _, service := range services {
 		if service.ServiceName == "" {
@@ -59,7 +59,7 @@ func (s *service) GetServicesEndPointData(startTime time.Time, endTime time.Time
 			continue
 		}
 
-		// endpoint的namespaceList去重
+		// endpoint namespaceList to remove weight
 		tmpSet := make(map[string]struct{})
 		nsList := make([]string, 0)
 		for _, endpoint := range service.Endpoints {
@@ -86,19 +86,19 @@ func (s *service) GetServicesEndPointData(startTime time.Time, endTime time.Time
 
 func (s *service) sortWithRule(sortRule SortType, endpointsMap *EndpointsMap) error {
 	switch sortRule {
-	case DODThreshold: //按照日同比阈值排序
+	case DODThreshold: //Sort by Day-to-Year Threshold
 		threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
 		if err != nil {
 			return err
 		}
 		errorThreshold := threshold.ErrorRate
-		//不对吞吐量进行比较
+		// No throughput comparison
 		//tpsThreshold := threshold.Tps
 		latencyThreshold := threshold.Latency
 		for i, _ := range endpointsMap.MetricGroupList {
 			endpoint := endpointsMap.MetricGroupList[i]
 
-			//填充错误率不等于0，且有请求时查不出同比，填充为最大值（通过判断是否有请求，有请求进行填充）
+			// The filling error rate is not equal to 0, and the year-on-year comparison cannot be found when there is a request. The filling is the maximum value (filling is performed by determining whether there is a request and when there is a request)
 			if endpoint.REDMetrics.DOD.Latency != nil && endpoint.REDMetrics.DOD.ErrorRate == nil && endpoint.REDMetrics.Avg.ErrorRate != nil && *endpoint.REDMetrics.Avg.ErrorRate != 0 {
 				endpoint.REDMetrics.DOD.ErrorRate = new(float64)
 				*endpoint.REDMetrics.DOD.ErrorRate = RES_MAX_VALUE
@@ -107,24 +107,24 @@ func (s *service) sortWithRule(sortRule SortType, endpointsMap *EndpointsMap) er
 				endpoint.REDMetrics.WOW.ErrorRate = new(float64)
 				*endpoint.REDMetrics.WOW.ErrorRate = RES_MAX_VALUE
 			}
-			//过滤错误率
+			// Filter error rate
 			if endpoint.REDMetrics.DOD.ErrorRate != nil && *endpoint.REDMetrics.DOD.ErrorRate > errorThreshold {
 				endpoint.IsErrorRateExceeded = true
 				endpoint.AlertCount += ErrorCount
 			}
-			//过滤延时
+			// Filter delay
 			if endpoint.REDMetrics.DOD.Latency != nil && *endpoint.REDMetrics.DOD.Latency > latencyThreshold {
 				endpoint.IsLatencyExceeded = true
 				endpoint.AlertCount += LatencyCount
 			}
-			////过滤TPS 不对吞吐量进行比较
+			//// Filter TPS does not compare throughput
 			//if Urls[i].TPSDayOverDay != nil && *Urls[i].TPSDayOverDay > tpsThreshold {
 			//	Urls[i].IsTPSExceeded = true
 			//	Urls[i].Count += TPSCount
 			//}
 		}
 		sortByDODThreshold(endpointsMap.MetricGroupList)
-	case MUTATIONSORT: // 按照实时突变率排序
+	case MUTATIONSORT: //Sort by real-time mutation rate
 		sortByMutation(endpointsMap.MetricGroupList)
 	}
 
@@ -142,16 +142,16 @@ func (*service) extractDetail(service ServiceDetail, startTime time.Time, endTim
 			//ChartData: map[int64]float64{},
 			Ratio: newErrorRadio,
 		}
-		if endpoint.REDMetrics.Avg.ErrorRate != nil && !math.IsInf(*endpoint.REDMetrics.Avg.ErrorRate, 0) { //为无穷大时则不赋值
+		if endpoint.REDMetrics.Avg.ErrorRate != nil && !math.IsInf(*endpoint.REDMetrics.Avg.ErrorRate, 0) { // does not assign a value when it is infinite
 			newErrorRate.Value = endpoint.REDMetrics.Avg.ErrorRate
 		}
 		if endpoint.ErrorRateData != nil {
 			data := make(map[int64]float64)
-			// 将chartData转换为map
+			// Convert chartData to map
 			for _, item := range endpoint.ErrorRateData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
@@ -179,22 +179,22 @@ func (*service) extractDetail(service ServiceDetail, startTime time.Time, endTim
 			//ChartData: map[int64]float64{},
 			Ratio: newtpsRadio,
 		}
-		if endpoint.REDMetrics.Avg.TPM != nil && !math.IsInf(*endpoint.REDMetrics.Avg.TPM, 0) { //为无穷大时则不赋值
+		if endpoint.REDMetrics.Avg.TPM != nil && !math.IsInf(*endpoint.REDMetrics.Avg.TPM, 0) { // is not assigned when it is infinite
 			newtpsRate.Value = endpoint.REDMetrics.Avg.TPM
 		}
 		if endpoint.TPMData != nil {
 			data := make(map[int64]float64)
-			// 将chartData转换为map
+			// Convert chartData to map
 			for _, item := range endpoint.TPMData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
 			newtpsRate.ChartData = data
 		}
-		//没有查询到数据，is_error=true，填充为0
+		// No data found, is_error = true, filled with 0
 		if newErrorRate.Value == nil && newtpsRate.Value != nil {
 			values := make(map[int64]float64)
 			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {
@@ -220,22 +220,22 @@ func (*service) extractDetail(service ServiceDetail, startTime time.Time, endTim
 			//ChartData: map[int64]float64{},
 			Ratio: newlatencyRadio,
 		}
-		if endpoint.REDMetrics.Avg.Latency != nil && !math.IsInf(*endpoint.REDMetrics.Avg.Latency, 0) { //为无穷大时则不赋值
+		if endpoint.REDMetrics.Avg.Latency != nil && !math.IsInf(*endpoint.REDMetrics.Avg.Latency, 0) { // does not assign a value when it is infinite
 			newlatencyRate.Value = endpoint.REDMetrics.Avg.Latency
 		}
 		if endpoint.LatencyData != nil {
 			data := make(map[int64]float64)
-			// 将chartData转换为map
+			// Convert chartData to map
 			for _, item := range endpoint.LatencyData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
 			newlatencyRate.ChartData = data
 		}
-		//填充错误率等于0查不出同比，统一填充为0（通过判断是否有请求，有请求进行填充）
+		// The filling error rate is equal to 0 and cannot be found year-on-year. The uniform filling is 0 (filling is performed by judging whether there is a request and if there is a request)
 		if newlatencyRadio.DayOverDay != nil && newErrorRadio.DayOverDay == nil && newErrorRate.Value != nil && *newErrorRate.Value == 0 {
 			newErrorRate.Ratio.DayOverDay = new(float64)
 			*newErrorRate.Ratio.DayOverDay = 0
@@ -244,7 +244,7 @@ func (*service) extractDetail(service ServiceDetail, startTime time.Time, endTim
 			newErrorRate.Ratio.WeekOverDay = new(float64)
 			*newErrorRate.Ratio.WeekOverDay = 0
 		}
-		//填充错误率不等于0查不出同比，填充为最大值（通过判断是否有请求，有请求进行填充）
+		// If the filling error rate is not equal to 0, no year-on-year comparison can be found, and the filling is the maximum value (filling is performed by judging whether there is a request and if there is a request)
 		if newlatencyRadio.DayOverDay != nil && newErrorRadio.DayOverDay == nil && newErrorRate.Value != nil && *newErrorRate.Value != 0 {
 			newErrorRate.Ratio.DayOverDay = new(float64)
 			*newErrorRate.Ratio.DayOverDay = RES_MAX_VALUE

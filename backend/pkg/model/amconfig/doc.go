@@ -3,8 +3,8 @@
 
 package amconfig
 
-// 用于解析和删除alertmanager的配置文件
-// 主体来自于 github.com/prometheus/alertmanager@v0.27.0/config
+// Configuration file for parsing and deleting alertmanager
+// Body from github.com/prometheus/alertmanager@v0.27.0/config
 
 /**
 修改内容:

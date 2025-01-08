@@ -34,7 +34,7 @@ func getRouteRule(routeMap map[string]string) string {
 var fieldsRegexp = regexp.MustCompile(`\?P<(?P<name>\w+)>`)
 
 func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.LogParseResponse, error) {
-	// 先去建表
+	// build the table first
 	logReq := &request.LogTableRequest{
 		TableName: "logs_" + req.ParseName,
 	}
@@ -72,7 +72,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 	if err != nil {
 		return nil, err
 	}
-	// 更新k8s configmap
+	// update k8s configmap
 	data, err := s.k8sApi.GetVectorConfigFile()
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 		return nil, err
 	}
 
-	// 结构化日志，不需要parse rule
+	// Structured log, no parse rule is required
 	if req.IsStructured {
 		req.ParseRule = ""
 	}
@@ -107,7 +107,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 		return nil, err
 	}
 
-	// 更新sqlite表信息
+	// Update sqlite table information
 	log := database.LogTableInfo{
 		ParseInfo:    req.ParseInfo,
 		ParseName:    req.ParseName,

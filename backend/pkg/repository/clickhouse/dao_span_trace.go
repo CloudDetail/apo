@@ -64,7 +64,7 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 	}
 	whereClause := queryBuilder.String()
 	var countResults []QueryCount
-	// 查询记录数
+	// Number of query records
 	err := ch.conn.Select(context.Background(), &countResults, fmt.Sprintf(TEMPLATE_COUNT_SPAN_TRACE, whereClause), queryBuilder.values...)
 	if err != nil {
 		return nil, 0, err
@@ -92,7 +92,7 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 		Limit(query.PageSize).
 		Offset((query.PageNum - 1) * query.PageSize).
 		String()
-	// 查询列表数据
+	// Query list data
 	sql := fmt.Sprintf(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, whereClause, bySql)
 	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
@@ -149,7 +149,7 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 	}
 	whereClause := queryBuilder.String()
 	var countResults []QueryCount
-	// 查询记录数
+	// Number of query records
 	err := ch.conn.Select(context.Background(), &countResults, fmt.Sprintf(TEMPLATE_COUNT_SPAN_TRACE, whereClause), queryBuilder.values...)
 	if err != nil {
 		return nil, 0, err
@@ -180,7 +180,7 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 		Limit(req.PageSize).
 		Offset((req.PageNum - 1) * req.PageSize).
 		String()
-	// 查询列表数据
+	// Query list data
 	sql := fmt.Sprintf(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, whereClause, bySql)
 	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
@@ -202,8 +202,8 @@ type FaultLogQuery struct {
 	PageNum        int
 	PageSize       int
 	Type           int      // 0 - slow & error, 1 - error
-	MultiServices  []string // 匹配多个service
-	MultiNamespace []string // 匹配多个namespace
+	MultiServices  []string // Match multiple service
+	MultiNamespace []string // Match multiple namespace
 }
 
 type QueryCount struct {
@@ -244,11 +244,11 @@ type QueryTraceResult struct {
 	Metrics map[string]uint64 `ch:"metrics" json:"metrics"`
 
 	MutatedValue uint64 `ch:"mutated_value" json:"mutatedValue"`
-	IsMutated    uint8  `ch:"is_mutated" json:"isMutated"` // 延时是否突变
+	IsMutated    uint8  `ch:"is_mutated" json:"isMutated"` // whether the delay changes abruptly
 }
 
 func AppendToBuilder(builder *QueryBuilder, f *request.SpanTraceFilter) error {
-	// TODO 检查key合法性
+	// TODO check key validity
 	if !ValidCheckAndAdjust(f) {
 		return nil
 	}
@@ -408,7 +408,7 @@ func (ch *chRepo) GetFieldValues(searchText string, filter *request.SpanTraceFil
 		Limit(100).
 		OrderBy("label_value", false)
 
-	// TODO 检查key是否合法
+	// TODO check whether the key is legal
 	sql := fmt.Sprintf(SQL_GET_FILTER_VALUES, field, builder.String(), byLimits.String())
 
 	rows, err := ch.GetConn().Query(context.Background(), sql, builder.values...)
@@ -467,7 +467,7 @@ func (ch *chRepo) GetFieldValues(searchText string, filter *request.SpanTraceFil
 }
 
 func ValidCheckAndAdjust(f *request.SpanTraceFilter) bool {
-	// TODO 检查filter合法性
+	// TODO check the validity of filter
 
 	switch f.Key {
 	case "duration":

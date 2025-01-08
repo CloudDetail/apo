@@ -5,22 +5,23 @@ package user
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// Login 登录
-// @Summary 登录
-// @Description 登录
+// Login
+// @Summary login
+// @Description login
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param username formData string true "用户名"
-// @Param password formData string true "密码"
+// @Param username formData string true "username"
+// @Param password formData string true "password"
 // @Success 200 {object} response.LoginResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/user/login [post]

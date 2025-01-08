@@ -30,11 +30,11 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-// TODO 迁移到 model/request包中
+ // TODO move to model/request package
 type %sRequest struct {
 }
 
-// TODO 迁移到 model/response包中
+ // TODO move to model/response package
 type %sResponse struct {
 }
 
@@ -44,8 +44,8 @@ type %sResponse struct {
 %s
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// TODO 下面的请求参数类型和返回类型需根据实际需求进行变更
-// @Param Request body request.%sRequest true "请求信息"
+ // TODO The request parameter types and return types must be changed according to actual requirements.
+ // @Param Request body request.%sRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.%sResponse
 // @Failure 400 {object} code.
@@ -53,7 +53,7 @@ type %sResponse struct {
 func (h *handler) %s() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(%sRequest)
-		// TODO 根据请求参数类型调整API
+ // TODO Adjust the API based on the request parameter type
 		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -63,7 +63,7 @@ func (h *handler) %s() core.HandlerFunc {
 			return
 		}
 
-		// TODO 替换为Service调用
+ // replace TODO with Service call
 		resp := new(%sResponse)
 		c.Payload(resp)
 	}
@@ -135,7 +135,7 @@ func main() {
 						handlerName,
 						methodKey,
 						methodKey,
-						comments[0], // 首行注释
+						comments[0], // first line comment
 						methodDesc,
 						methodDesc,
 						comments[1], // Tags

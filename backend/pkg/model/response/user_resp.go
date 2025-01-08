@@ -9,13 +9,13 @@ import (
 )
 
 type LoginResponse struct {
-	AccessToken  string `json:"accessToken"`  // accessToken用于调用接口获取资源
-	RefreshToken string `json:"refreshToken"` // refreshToken用于刷新accessToken
+	AccessToken  string `json:"accessToken"`  // accessToken is used to call the interface get resources
+	RefreshToken string `json:"refreshToken"` // refreshToken for refreshing accessToken
 	database.User
 }
 
 type RefreshTokenResponse struct {
-	AccessToken string `json:"accessToken"` // accessToken用于调用接口获取资源
+	AccessToken string `json:"accessToken"` // accessToken is used to call the interface get resources
 }
 
 type GetUserInfoResponse struct {

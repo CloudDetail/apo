@@ -4,9 +4,10 @@
 package user
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -18,7 +19,7 @@ import (
 // @Tags API.permission
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId query int64 true "用户id"
+// @Param userId query int64 true "user id"
 // @Param language query string false "language"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetUserConfigResponse

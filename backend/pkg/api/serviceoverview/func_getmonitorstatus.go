@@ -13,14 +13,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetMonitorStatus 获取kuma监控的服务状态
-// @Summary 获取kuma监控的服务状态
-// @Description 获取kuma监控的服务状态
+// GetMonitorStatus get the service status monitored by kuma
+// @Summary get the service status monitored by kuma
+// @Description get the service status monitored by kuma
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "查询开始时间"
-// @Param endTime query int64 true "查询结束时间"
+// @Param startTime query int64 true "query start time"
+// @Param endTime query int64 true "query end time"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetMonitorStatusResponse
 // @Failure 400 {object} code.Failure

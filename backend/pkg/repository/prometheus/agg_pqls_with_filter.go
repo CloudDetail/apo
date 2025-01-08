@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-// PQLAvgDepLatencyWithFilters 查询来自外部依赖的平均耗时
-// 返回结果为 外部依赖的平均耗时
+// Average time spent on PQLAvgDepLatencyWithFilters queries from external dependencies
+// Average time taken to return results for external dependencies
 func PQLAvgDepLatencyWithFilters(vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")
 	allDepNetworkLatency := `sum by (` + granularity + `) (
@@ -24,8 +24,8 @@ func PQLAvgDepLatencyWithFilters(vector string, granularity string, filters []st
 	return allDepNetworkLatency + "/" + allRequestCount
 }
 
-// PQLDepLatencyRadioWithFilters 查询来自外部依赖的耗时占比
-// 返回结果为 外部依赖的耗时占总耗时的比例 (0~1)
+// Percentage of time spent by PQLDepLatencyRadioWithFilters queries from external dependencies.
+// The percentage of the returned result that is externally dependent time to the total time consumed (0~1)
 func PQLDepLatencyRadioWithFilters(vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")
 	allDepNetworkLatency := `sum by (` + granularity + `) (
@@ -40,7 +40,7 @@ func PQLDepLatencyRadioWithFilters(vector string, granularity string, filters []
 	return allDepNetworkLatency + "/" + allRequestLatencySum
 }
 
-// PQLIsPolarisMetricExitsWithFilters 采用北极星指标中的onCPU耗时判断是否存在北极星指标
+// PQLIsPolarisMetricExitsWithFilters uses the onCPU time in the Polaris indicator to determine whether the Polaris metric exists.
 func PQLIsPolarisMetricExitsWithFilters(vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")
 	onCpuLatency := `sum by (` + granularity + `) (
@@ -50,7 +50,7 @@ func PQLIsPolarisMetricExitsWithFilters(vector string, granularity string, filte
 	return onCpuLatency
 }
 
-// PQLAvgLatencyWithFilters 查询自身平均耗时
+// Average time consumption of PQLAvgLatencyWithFilters query
 func PQLAvgLatencyWithFilters(vector string, granularity string, filters []string) string {
 	return avgLatencyWithFilters(
 		"kindling_span_trace_duration_nanoseconds_sum",
@@ -73,14 +73,14 @@ func avgLatencyWithFilters(sumMetric string, countMetric string, vector string, 
 	return durationSum + "/" + requestCount
 }
 
-// PQLAvgErrorRateWithFilters 查询SQL请求的平均错误率
+// Average error rate of PQLAvgErrorRateWithFilters query SQL requests
 func PQLAvgErrorRateWithFilters(vector string, granularity string, filters []string) string {
 	return avgErrorRateWithFilters(
 		"kindling_span_trace_duration_nanoseconds_count",
 		vector, granularity, filters)
 }
 
-// PQLAvgSQLErrorRateWithFilters 查询SQL请求的平均错误率
+// Average error rate of PQLAvgSQLErrorRateWithFilters query SQL requests
 func PQLAvgSQLErrorRateWithFilters(vector string, granularity string, filters []string) string {
 	return avgErrorRateWithFilters(
 		"kindling_db_duration_nanoseconds_count",
@@ -101,18 +101,18 @@ func avgErrorRateWithFilters(metric string, vector string, granularity string, f
 	requestCount := `sum by (` + granularity + `) (increase(` + metric + `{` + filtersStr + `}[` + vector + `]))`
 
 	// ( errorCount or requestCount * 0 ) / requestCount
-	// 用于保留requestCount中存在而errorCount中不存在的标签,记录该标签的请求失败率为0
+	// Used to retain a tag that exists in the requestCount but does not exist in the errorCount. Record that the request failure rate of this tag is 0
 	return "(" + errorCount + "/" + requestCount + ") or (" + requestCount + " * 0)"
 }
 
-// PQLAvgTPSWithFilters 查询平均TPS
+// Average TPS for PQLAvgTPSWithFilters query
 func PQLAvgTPSWithFilters(vector string, granularity string, filters []string) string {
 	return avgTPSWithFilters(
 		"kindling_span_trace_duration_nanoseconds_count",
 		vector, granularity, filters)
 }
 
-// PQLAvgTPSWithFilters 查询平均TPS
+// Average TPS for PQLAvgTPSWithFilters query
 func PQLAvgSQLTPSWithFilters(vector string, granularity string, filters []string) string {
 	return avgTPSWithFilters(
 		"kindling_db_duration_nanoseconds_count",
@@ -141,7 +141,7 @@ func PQLAvgLogErrorCountWithFilters(vector string, granularity string, filters [
 	return "((" + errorLevelCount + ") + (" + exceptionCount + ")) or (" + errorLevelCount + ") or (" + exceptionCount + ")"
 }
 
-// PQLNormalLogCountWithFilters 检查有无正常日志
+// PQLNormalLogCountWithFilters check for normal logs
 func PQLNormalLogCountWithFilters(vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")
 
@@ -157,13 +157,13 @@ func PQLNormalLogCountWithFilters(vector string, granularity string, filters []s
 	return "((" + errorLevelCount + ") + (" + exceptionCount + ")) or (" + errorLevelCount + ") or (" + exceptionCount + ")"
 }
 
-// PQLMonitorStatus uptime-kuma监控项状态
+// PQLMonitorStatus uptime-kuma monitoring item status
 func PQLMonitorStatus(vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")
 	return `last_over_time(monitor_status{` + filtersStr + `}[` + vector + `])`
 }
 
-// PQLInstanceLog 获取instance级别log指标的pql pod or vm
+// PQLInstanceLog get the pql pod or vm of the instance-level log metric
 func PQLInstanceLog(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, granularity Granularity, podFilterKVs, vmFilterKVs []string) (string, error) {
 	if len(podFilterKVs)%2 != 0 {
 		return "", fmt.Errorf("size of podFilterKVs is not even: %d", len(podFilterKVs))
