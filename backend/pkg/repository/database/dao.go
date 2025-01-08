@@ -49,28 +49,65 @@ type Repo interface {
 	GetUserList(req *request.GetUserListRequest) ([]User, int64, error)
 	RemoveUser(ctx context.Context, userID int64) error
 	RestPassword(userID int64, newPassword string) error
-	UserExists(userID int64) (bool, error)
+	UserExists(userID ...int64) (bool, error)
 
 	GetUserRole(userID int64) ([]UserRole, error)
 	GetUsersRole(userIDs []int64) ([]UserRole, error)
 	GetRoles(filter model.RoleFilter) ([]Role, error)
 	GetFeature(featureIDs []int) ([]Feature, error)
-	GrantRole(ctx context.Context, userID int64, roleIDs []int) error
+	GrantRoleWithUser(ctx context.Context, userID int64, roleIDs []int) error
+	GrantRoleWithRole(ctx context.Context, roleID int, userIDs []int64) error
 	RevokeRole(ctx context.Context, userID int64, roleIDs []int) error
 	GetSubjectPermission(subID int64, subType string, typ string) ([]int, error)
 	GetSubjectsPermission(subIDs []int64, subType string, typ string) ([]AuthPermission, error)
-	RoleExists(roleID int64) (bool, error)
+	RoleExists(roleID int) (bool, error)
 	GrantPermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
 	RevokePermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
+	GetAddAndDeletePermissions(subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error)
 	RoleGranted(userID int64, roleID int) (bool, error)
 	GetItemRouter(items *[]MenuItem) error
 	GetRouterInsertedPage(routers []*Router) error
 	GetFeatureTans(features *[]Feature, language string) error
 	GetMenuItemTans(menuItems *[]MenuItem, language string) error
 
-	GetFeatureMapping(featureIDs []int, mappedType string) ([]FeatureMapping, error)
+	CreateDataGroup(ctx context.Context, groupID int64, groupName string, description string) error
+	DeleteDataGroup(ctx context.Context, groupID int64) error
+	CreateDatasourceGroup(ctx context.Context, datasource []model.Datasource, dataGroupID int64) error
+	DeleteDSGroup(ctx context.Context, groupID int64) error
+	DataGroupExist(filter model.DataGroupFilter) (bool, error)
+	UpdateDataGroupName(ctx context.Context, groupID int64, groupName string, description string) error
+	GetDataGroup(filter model.DataGroupFilter) ([]DataGroup, error)
+	RetrieveDataFromGroup(ctx context.Context, groupID int64, datasource []string) error
+	GetGroupDatasource(groupID ...int64) ([]DatasourceGroup, error)
 
+	GetFeatureMapping(featureIDs []int, mappedType string) ([]FeatureMapping, error)
 	GetMenuItems() ([]MenuItem, error)
+
+	GetTeamList(req *request.GetTeamRequest) ([]Team, int64, error)
+	DeleteTeam(ctx context.Context, teamID int64) error
+	CreateTeam(ctx context.Context, team Team) error
+	TeamExist(teamID ...int64) (bool, error)
+	UpdateTeam(ctx context.Context, team Team) error
+	InviteUserToTeam(ctx context.Context, teamID int64, userIDs []int64) error
+	AssignUserToTeam(ctx context.Context, userID int64, teamIDs []int64) error
+	GetUserTeams(userID int64) ([]int64, error)
+	GetTeamUsers(teamID int64) ([]int64, error)
+	GetTeamUserList(teamID int64) ([]User, error)
+	RemoveFromTeamByUser(ctx context.Context, userID int64, teamIDs []int64) error
+	RemoveFromTeamByTeam(ctx context.Context, teamID int64, userIDs []int64) error
+	DeleteAllUserTeam(ctx context.Context, id int64, by string) error
+	GetAssignedTeam(userID int64) ([]Team, error)
+
+	CreateRole(ctx context.Context, role *Role) error
+	DeleteRole(ctx context.Context, roleID int) error
+	UpdateRole(ctx context.Context, roleID int, roleName, description string) error
+
+	GetSubjectAuthDataGroups(subjectID int64, subjectType string) ([]AuthDataGroup, error)
+	AssignDataGroup(ctx context.Context, authDataGroups []AuthDataGroup) error
+	RevokeDataGroup(ctx context.Context, dataGroupIDs []int64) error
+	GetSubjectDataGroupList(subjectID int64, subjectType string) ([]DataGroup, error)
+	GetModifyAndDeleteDataGroup(subjectID int64, subjectType string, dgPermissions []request.DataGroupPermission) (toModify []AuthDataGroup, toDelete []int64, err error)
+	DeleteAuthDataGroup(ctx context.Context, subjectID int64, subjectType string) error
 
 	// GetContextDB Gets transaction form ctx.
 	GetContextDB(ctx context.Context) *gorm.DB
@@ -141,7 +178,14 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err != nil {
 		return nil, err
 	}
-
+	err = database.AutoMigrate(&Team{}, &UserTeam{})
+	if err != nil {
+		return nil, err
+	}
+	err = database.AutoMigrate(&DataGroup{}, &AuthDataGroup{}, &DatasourceGroup{})
+	if err != nil {
+		return nil, err
+	}
 	daoRepo := &daoRepo{
 		db:    database,
 		sqlDB: sqlDb,

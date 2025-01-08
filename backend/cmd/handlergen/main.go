@@ -18,7 +18,10 @@ import (
 
 var handlerName string
 
-const handlerTemplate = `package %s
+const handlerTemplate = `// Copyright 2025 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
+package %s
 
 import (
 	"net/http"
@@ -48,7 +51,7 @@ type %sResponse struct {
 // @Param Request body request.%sRequest true "请求信息"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.%sResponse
-// @Failure 400 {object} code.
+// @Failure 400 {object} code.Failure
 %s
 func (h *handler) %s() core.HandlerFunc {
 	return func(c core.Context) {

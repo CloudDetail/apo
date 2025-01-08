@@ -66,7 +66,7 @@ func (s *service) RoleOperation(req *request.RoleOperationRequest) error {
 	}
 
 	var grantFunc = func(txCtx context.Context) error {
-		return s.dbRepo.GrantRole(txCtx, req.UserID, addRoles)
+		return s.dbRepo.GrantRoleWithUser(txCtx, req.UserID, addRoles)
 	}
 
 	var revokeFunc = func(txCtx context.Context) error {

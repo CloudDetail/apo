@@ -1,9 +1,10 @@
 // Copyright 2024 CloudDetail
 // SPDX-License-Identifier: Apache-2.0
 
-package user
+package permission
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
 
@@ -11,21 +12,20 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// GetSubjectFeature Gets subject's feature permission.
-// @Summary Gets subject's permission.
-// @Description Gets subject's permission.
+// GetFeature Gets all feature permission.
+// @Summary Gets all feature permission.
+// @Description Gets all feature permission.
 // @Tags API.permission
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param language query string false "language"
-// @Param subjectId query int64 true "授权主体id"
-// @Param subjectType query string true "授权主体类型"
-// @Success 200 {object} response.GetSubjectFeatureResponse
+// @Param Authorization header string false "Bearer accessToken"
+// @Success 200 {object} response.GetFeatureResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/permission/sub/feature [get]
-func (h *handler) GetSubjectFeature() core.HandlerFunc {
+// @Router /api/permission/feature [get]
+func (h *handler) GetFeature() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.GetSubjectFeatureRequest)
+		req := new(request.GetFeatureRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -35,12 +35,17 @@ func (h *handler) GetSubjectFeature() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.userService.GetSubjectFeature(req)
+		if len(req.Language) == 0 {
+			req.Language = model.TRANSLATION_ZH
+		}
+
+		resp, err := h.permissionService.GetFeature(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetFeatureError,
 				code.Text(code.GetFeatureError)).WithError(err))
+			return
 		}
 		c.Payload(resp)
 	}

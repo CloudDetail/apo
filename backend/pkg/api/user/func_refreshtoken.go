@@ -11,9 +11,9 @@ import (
 	"net/http"
 )
 
-// RefreshToken 刷新accessToken
-// @Summary 刷新accessToken
-// @Description 刷新accessToken
+// RefreshToken Refresh accessToken
+// @Summary Refresh accessToken
+// @Description Refresh accessToken
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json

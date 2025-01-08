@@ -19,8 +19,8 @@ import (
 // @Tags API.role
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId formData int64 ture "用户id"
-// @Param roleList formData []int ture "角色id" collectionFormat(multi)
+// @Param userId formData int64 ture "User's id"
+// @Param roleList formData []int ture "The id list of role which user has." collectionFormat(multi)
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure

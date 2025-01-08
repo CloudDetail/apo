@@ -11,17 +11,18 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// GetUserList 获取用户列表
-// @Summary 获取用户列表
-// @Description 获取用户列表
+// GetUserList Get user list.
+// @Summary Get user list.
+// @Description Get user list.
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Authorization header string false "Bearer accessToken"
-// @Param username query string false "用户名"
-// @Param currentPage query string false "当前页"
-// @Param pageSize query string false "页大小"
-// @Param roleList query []int false "角色" collectionFormat(multi)
+// @Param username query string false "Username"
+// @Param currentPage query string false "Current page"
+// @Param pageSize query string false "The size of page"
+// @Param roleList query []int false "Role id list" collectionFormat(multi)
+// @Param teamList query []int false "Team id list" collectionFormat(multi)
 // @Param corporation query string false "组织"
 // @Success 200 {object} response.GetUserListResponse
 // @Failure 400 {object} code.Failure

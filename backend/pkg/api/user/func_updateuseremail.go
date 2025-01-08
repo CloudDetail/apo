@@ -13,14 +13,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// UpdateUserEmail 更新/绑定邮箱
-// @Summary 更新/绑定邮箱
-// @Description 更新/绑定邮箱
+// UpdateUserEmail Update email.
+// @Summary Update email.
+// @Description Update email.
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId formData int64 true "用户id"
-// @Param email formData string true "邮箱"
+// @Param userId formData int64 true "User's id"
+// @Param email formData string true "Email"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure

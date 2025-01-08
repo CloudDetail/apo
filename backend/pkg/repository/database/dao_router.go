@@ -6,7 +6,7 @@ package database
 // Router front end router.
 type Router struct {
 	RouterID         int    `gorm:"column:router_id;primary_key" json:"routerId"`
-	RouterTo         string `gorm:"column:router_to;uniqueIndex" json:"to"`
+	RouterTo         string `gorm:"column:router_to;uniqueIndex;type:varchar(20)" json:"to"`
 	Custom           bool   `gorm:"column:custom;default:false" json:"-"`
 	HideTimeSelector bool   `gorm:"column:hide_time_selector" json:"hideTimeSelector"`
 

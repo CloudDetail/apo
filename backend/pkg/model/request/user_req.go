@@ -11,13 +11,15 @@ type LoginRequest struct {
 }
 
 type CreateUserRequest struct {
-	Username        string `json:"username" form:"username" binding:"required"`               // 用户名
-	Password        string `json:"password" form:"password" binding:"required"`               // 密码
-	ConfirmPassword string `json:"confirmPassword" form:"confirmPassword" binding:"required"` // 确认密码
-	RoleList        []int  `json:"roleList" form:"roleList"`                                  // Role id list
-	Email           string `json:"email" form:"email,omitempty"`
-	Phone           string `json:"phone" form:"phone,omitempty"`
-	Corporation     string `json:"corporation,omitempty" form:"corporation,omitempty"`
+	Username             string                `json:"username" form:"username" binding:"required"`               // 用户名
+	Password             string                `json:"password" form:"password" binding:"required"`               // 密码
+	ConfirmPassword      string                `json:"confirmPassword" form:"confirmPassword" binding:"required"` // 确认密码
+	Email                string                `json:"email" form:"email,omitempty"`
+	Phone                string                `json:"phone" form:"phone,omitempty"`
+	Corporation          string                `json:"corporation,omitempty" form:"corporation,omitempty"`
+	RoleList             []int                 `json:"roleList" form:"roleList"` // Role id list
+	TeamList             []int64               `json:"teamList" form:"teamList"`
+	DataGroupPermissions []DataGroupPermission `json:"dataGroupPermission" form:"dataGroupPermission"`
 }
 
 type LogoutRequest struct {
@@ -60,9 +62,10 @@ type UpdateUserPasswordRequest struct {
 }
 
 type GetUserListRequest struct {
-	Username    string `json:"username" form:"username"`
-	RoleList    []int  `json:"roleList" form:"roleList"`
-	Corporation string `json:"corporation" form:"corporation"`
+	Username    string  `json:"username" form:"username"`
+	RoleList    []int   `json:"roleList" form:"roleList"`
+	TeamList    []int64 `json:"teamList" form:"teamList"`
+	Corporation string  `json:"corporation" form:"corporation"`
 	*PageParam
 }
 
@@ -74,11 +77,6 @@ type ResetPasswordRequest struct {
 	UserID          int64  `json:"userId" form:"userId" binding:"required"`
 	NewPassword     string `json:"newPassword" form:"newPassword" binding:"required"`
 	ConfirmPassword string `json:"confirmPassword" form:"confirmPassword" binding:"required"`
-}
-
-type RoleOperationRequest struct {
-	UserID   int64 `form:"userId" binding:"required"`
-	RoleList []int `form:"roleList" binding:"required"`
 }
 
 type GetUserConfigRequest struct {
@@ -109,4 +107,8 @@ type ConfigureMenuRequest struct {
 
 type GetFeatureRequest struct {
 	model.I18nLanguage
+}
+
+type GetUserInfoRequest struct {
+	UserID int64 `form:"userId"`
 }

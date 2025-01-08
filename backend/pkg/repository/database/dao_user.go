@@ -26,13 +26,14 @@ const (
 
 type User struct {
 	UserID      int64  `gorm:"column:user_id;primary_key" json:"userId,omitempty"`
-	Username    string `gorm:"column:username;uniqueIdx" json:"username,omitempty"`
-	Password    string `gorm:"column:password" json:"-"`
-	Phone       string `gorm:"column:phone" json:"phone,omitempty"`
-	Email       string `gorm:"column:email" json:"email,omitempty"`
-	Corporation string `gorm:"column:corporation" json:"corporation,omitempty"`
+	Username    string `gorm:"column:username;uniqueIdx;type:varchar(20)" json:"username,omitempty"`
+	Password    string `gorm:"column:password;type:varchar(200)" json:"-"`
+	Phone       string `gorm:"column:phone;type:varchar(20)" json:"phone,omitempty"`
+	Email       string `gorm:"column:email;type:varchar(50)" json:"email,omitempty"`
+	Corporation string `gorm:"column:corporation;type:varchar(50)" json:"corporation,omitempty"`
 
 	RoleList    []Role    `gorm:"many2many:user_role;joinForeignKey:UserID;joinReferences:RoleID" json:"roleList,omitempty"`
+	TeamList    []Team    `gorm:"many2many:user_team;joinForeignKey:UserID;joinReferences:TeamID" json:"teamList,omitempty"`
 	FeatureList []Feature `gorm:"-" json:"featureList,omitempty"`
 }
 
@@ -142,7 +143,10 @@ func (repo *daoRepo) Login(username, password string) (*User, error) {
 func (repo *daoRepo) CreateUser(ctx context.Context, user *User) error {
 	db := repo.GetContextDB(ctx)
 	var count int64
-	db.Model(&User{}).Where("username = ?", user.Username).Count(&count)
+	err := db.Model(&User{}).Where("username = ?", user.Username).Count(&count).Error
+	if err != nil {
+		return err
+	}
 	if count > 0 {
 		return model.NewErrWithMessage(errors.New("user already exists"), code.UserAlreadyExists)
 	}
@@ -219,7 +223,12 @@ func (repo *daoRepo) UpdateUserInfo(ctx context.Context, userID int64, phone str
 
 func (repo *daoRepo) GetUserInfo(userID int64) (User, error) {
 	var user User
-	err := repo.db.Select(userFieldSql).Where("user_id = ?", userID).First(&user).Error
+	err := repo.db.
+		Select(userFieldSql).
+		Preload("RoleList").
+		Preload("TeamList").
+		Where("user_id = ?", userID).
+		First(&user).Error
 	return user, err
 }
 
@@ -234,7 +243,7 @@ func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64
 	var users []User
 	var count int64
 
-	query := repo.db.Model(&User{}).Preload("RoleList")
+	query := repo.db.Model(&User{}).Preload("RoleList").Preload("TeamList")
 
 	if len(req.Username) > 0 {
 		query = query.Where("username LIKE ?", fmt.Sprintf("%%%s%%", req.Username))
@@ -243,8 +252,14 @@ func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64
 	if len(req.RoleList) > 0 {
 		subQuery := repo.db.Table("user_role").
 			Select("user_id").
-			Joins("JOIN role r ON user_role.role_id = r.role_id").
-			Where("r.role_id IN ?", req.RoleList)
+			Where("role_id IN ?", req.RoleList)
+		query = query.Where("user_id IN (?)", subQuery)
+	}
+
+	if len(req.TeamList) > 0 {
+		subQuery := repo.db.Table("user_team").
+			Select("user_id").
+			Where("team_id IN ?", req.TeamList)
 		query = query.Where("user_id IN (?)", subQuery)
 	}
 
@@ -270,14 +285,33 @@ func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64
 }
 
 func (repo *daoRepo) RemoveUser(ctx context.Context, userID int64) error {
-	return repo.GetContextDB(ctx).Model(&User{}).Where("user_id = ?", userID).Delete(nil).Error
+	err := repo.GetContextDB(ctx).Model(&User{}).Where("user_id = ?", userID).Delete(nil).Error
+	if err != nil {
+		return err
+	}
+
+	err = repo.GetContextDB(ctx).
+		Model(&UserRole{}).
+		Where("user_id = ?", userID).
+		Delete(nil).
+		Error
+
+	if err != nil {
+		return err
+	}
+
+	return repo.GetContextDB(ctx).
+		Model(&UserTeam{}).
+		Where("user_id = ?", userID).
+		Delete(nil).
+		Error
 }
 
-func (repo *daoRepo) UserExists(userID int64) (bool, error) {
+func (repo *daoRepo) UserExists(userIDs ...int64) (bool, error) {
 	var count int64
-	if err := repo.db.Model(&User{}).Where("user_id = ?", userID).Count(&count).Error; err != nil {
+	if err := repo.db.Model(&User{}).Where("user_id IN ?", userIDs).Count(&count).Error; err != nil {
 		return false, err
 	}
 
-	return count > 0, nil
+	return count == int64(len(userIDs)), nil
 }

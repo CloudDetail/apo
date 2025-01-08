@@ -9,17 +9,19 @@ import (
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Role is a collection of feature permission.
 type Role struct {
-	RoleID   int    `gorm:"column:role_id;primary_key" json:"roleId"`
-	RoleName string `gorm:"column:role_name;uniqueIndex" json:"roleName"`
+	RoleID      int    `gorm:"column:role_id;primary_key;auto_increment" json:"roleId"`
+	RoleName    string `gorm:"column:role_name;type:varchar(20);uniqueIndex" json:"roleName"`
+	Description string `gorm:"column:description;type:varchar(50)" json:"description"`
 }
 
 type UserRole struct {
-	UserID int64 `gorm:"column:user_id;primary_key;"`
-	RoleID int   `gorm:"column:role_id;primary_key;"`
+	UserID int64 `gorm:"column:user_id;primary_key"`
+	RoleID int   `gorm:"column:role_id;primary_key"`
 }
 
 func (t *Role) TableName() string {
@@ -76,7 +78,7 @@ func (repo *daoRepo) RoleGranted(userID int64, roleID int) (bool, error) {
 	return count > 0, nil
 }
 
-func (repo *daoRepo) GrantRole(ctx context.Context, userID int64, roleIDs []int) error {
+func (repo *daoRepo) GrantRoleWithUser(ctx context.Context, userID int64, roleIDs []int) error {
 	if len(roleIDs) == 0 {
 		return nil
 	}
@@ -97,7 +99,7 @@ func (repo *daoRepo) RevokeRole(ctx context.Context, userID int64, roleIDs []int
 		Model(&UserRole{}).Where("user_id = ? AND role_id in ?", userID, roleIDs).Delete(nil).Error
 }
 
-func (repo *daoRepo) RoleExists(roleID int64) (bool, error) {
+func (repo *daoRepo) RoleExists(roleID int) (bool, error) {
 	var count int64
 	if err := repo.db.Model(&Role{}).Where("role_id = ?", roleID).Count(&count).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -107,4 +109,46 @@ func (repo *daoRepo) RoleExists(roleID int64) (bool, error) {
 	}
 
 	return count > 0, nil
+}
+
+func (repo *daoRepo) CreateRole(ctx context.Context, role *Role) error {
+	return repo.GetContextDB(ctx).Create(&role).Error
+}
+
+func (repo *daoRepo) DeleteRole(ctx context.Context, roleID int) error {
+	err := repo.GetContextDB(ctx).Model(&Role{}).Where("role_id = ?", roleID).Delete(nil).Error
+	if err != nil {
+		return err
+	}
+
+	return repo.GetContextDB(ctx).
+		Model(&UserRole{}).
+		Where("role_id = ?", roleID).
+		Delete(nil).Error
+}
+
+func (repo *daoRepo) UpdateRole(ctx context.Context, roleID int, roleName, description string) error {
+	role := Role{
+		RoleID:      roleID,
+		RoleName:    roleName,
+		Description: description,
+	}
+
+	return repo.GetContextDB(ctx).Updates(&role).Error
+}
+
+func (repo *daoRepo) GrantRoleWithRole(ctx context.Context, roleID int, userIDs []int64) error {
+	userRoles := make([]UserRole, len(userIDs))
+	for i, userID := range userIDs {
+		userRoles[i] = UserRole{
+			UserID: userID,
+			RoleID: roleID,
+		}
+	}
+
+	return repo.GetContextDB(ctx).Clauses(
+		clause.OnConflict{
+			Columns:   []clause.Column{{Name: "user_id"}, {Name: "role_id"}},
+			DoNothing: true,
+		}).Create(&userRoles).Error
 }

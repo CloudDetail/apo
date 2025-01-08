@@ -14,14 +14,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// UpdateUserPhone 更新/绑定手机号
-// @Summary 更新/绑定手机号
-// @Description 更新/绑定手机号
+// UpdateUserPhone Update phone number
+// @Summary Update phone number
+// @Description Update phone number
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId formData int64 true "用户id"
-// @Param phone formData string true "手机号"
+// @Param userId formData int64 true "User's id"
+// @Param phone formData string true "Phone number"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure

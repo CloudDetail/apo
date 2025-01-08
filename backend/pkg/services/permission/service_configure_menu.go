@@ -1,7 +1,7 @@
 // Copyright 2024 CloudDetail
 // SPDX-License-Identifier: Apache-2.0
 
-package user
+package permission
 
 import (
 	"context"
@@ -23,7 +23,7 @@ func (s *service) ConfigureMenu(req *request.ConfigureMenuRequest) error {
 	for i, role := range roles {
 		var err error
 		addPermissions[i], deletePermissions[i], err =
-			s.getAddAndDeletePermissions(
+			s.dbRepo.GetAddAndDeletePermissions(
 				int64(role.RoleID),
 				model.PERMISSION_SUB_TYP_ROLE,
 				model.PERMISSION_TYP_FEATURE,

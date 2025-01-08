@@ -14,9 +14,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// Logout 退出登录
-// @Summary 退出登录
-// @Description 退出登录
+// Logout Logout
+// @Summary Logout
+// @Description Logout
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json

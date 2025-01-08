@@ -30,7 +30,7 @@ func (s *service) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
 	}
 
 	var grantFunc = func(ctx context.Context) error {
-		return s.dbRepo.GrantRole(ctx, req.UserID, addRole)
+		return s.dbRepo.GrantRoleWithUser(ctx, req.UserID, addRole)
 	}
 
 	var revokeFunc = func(ctx context.Context) error {

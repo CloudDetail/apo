@@ -801,6 +801,374 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/data/datasource": {
+            "get": {
+                "description": "Gets all datasource.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Gets all datasource.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Datasource"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/group": {
+            "post": {
+                "description": "Get data group.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Get data group.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/request.GetDataGroupRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.DataGroup"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/group/create": {
+            "post": {
+                "description": "Create a data group.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Create a data group.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateDataGroupRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/group/data": {
+            "get": {
+                "description": "Get group's datasource.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.permission"
+                ],
+                "summary": "Get group's datasource.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Data group's id",
+                        "name": "groupId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetGroupDatasourceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/group/delete": {
+            "post": {
+                "description": "Delete the data group.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Delete the data group.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Data group's id",
+                        "name": "groupId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/group/operation": {
+            "post": {
+                "description": "Assign data groups to users or teams, or remove them from data groups.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Assign data groups to users or teams, or remove them from data groups.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DataGroupOperationRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/group/update": {
+            "post": {
+                "description": "Updates data group.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Updates data group.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateDataGroupNameRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/sub/group": {
+            "get": {
+                "description": "Get subject's assigned data group.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Get subject's assigned data group.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "The id of authorized subject",
+                        "name": "subjectId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The type of authorized subject",
+                        "name": "subjectType",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.DataGroup"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/health": {
             "get": {
                 "description": "用于k8s检查后端健康状态",
@@ -1991,7 +2359,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "query",
                         "required": true
@@ -2091,7 +2459,7 @@ const docTemplate = `{
                             "type": "integer"
                         },
                         "collectionFormat": "multi",
-                        "description": "功能id列表",
+                        "description": "The list of feature's id",
                         "name": "permissionList",
                         "in": "formData",
                         "required": true
@@ -2135,21 +2503,21 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "授权主体id",
+                        "description": "The id of authorized subject",
                         "name": "subjectId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "授权主体类型: 'role','user','team'",
+                        "description": "The type of authorized subject: 'role','user','team'",
                         "name": "subjectType",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "授权类型: 'feature','data'",
+                        "description": "The type of authorization: 'feature','data'",
                         "name": "type",
                         "in": "formData",
                         "required": true
@@ -2160,7 +2528,7 @@ const docTemplate = `{
                             "type": "integer"
                         },
                         "collectionFormat": "multi",
-                        "description": "权限id列表",
+                        "description": "The list of permissions' id",
                         "name": "permissionList",
                         "in": "formData"
                     }
@@ -2203,14 +2571,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "授权主体id",
+                        "description": "The id of authorized subject",
                         "name": "subjectId",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "授权主体类型",
+                        "description": "user, role, team",
                         "name": "subjectType",
                         "in": "query",
                         "required": true
@@ -2224,6 +2592,120 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/database.Feature"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/role/create": {
+            "post": {
+                "description": "Creates a role.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.role"
+                ],
+                "summary": "Creates a role.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Role's name",
+                        "name": "roleName",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The description of role.",
+                        "name": "description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Role's initial feature permission id list.",
+                        "name": "permissionList",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "The id of users which will be granted the role.",
+                        "name": "userList",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/role/delete": {
+            "post": {
+                "description": "Delete a role.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.role"
+                ],
+                "summary": "Delete a role.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Role's id",
+                        "name": "roleId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -2251,7 +2733,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "formData"
                     },
@@ -2261,7 +2743,7 @@ const docTemplate = `{
                             "type": "integer"
                         },
                         "collectionFormat": "multi",
-                        "description": "角色id",
+                        "description": "The id list of role which user has.",
                         "name": "roleList",
                         "in": "formData"
                     },
@@ -2330,6 +2812,73 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/role/update": {
+            "post": {
+                "description": "Update role's name and permission.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.role"
+                ],
+                "summary": "Update role's name and permission.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Role's id.",
+                        "name": "roleId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Role's name",
+                        "name": "roleName",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The description of role.",
+                        "name": "description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Role's feature permission id list.",
+                        "name": "permissionList",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/role/user": {
             "get": {
                 "description": "Get user's role.",
@@ -2346,7 +2895,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "query",
                         "required": true
@@ -4649,6 +5198,372 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/team": {
+            "get": {
+                "description": "Get teams.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.team"
+                ],
+                "summary": "Get teams.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Team's name",
+                        "name": "teamName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "The list of feature's id",
+                        "name": "featureList",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "The list of data group's id",
+                        "name": "dataGroupList",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Current page",
+                        "name": "currentPage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetTeamResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/team/create": {
+            "post": {
+                "description": "Creates a team.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.team"
+                ],
+                "summary": "Creates a team.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateTeamRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/team/delete": {
+            "post": {
+                "description": "Delete a team.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.team"
+                ],
+                "summary": "Delete a team.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Team's id",
+                        "name": "teamId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/team/operation": {
+            "post": {
+                "description": "Assigns a user to teams or removes a user from teams.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.team"
+                ],
+                "summary": "Assigns a user to teams or removes a user from teams.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User's id",
+                        "name": "userId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "The list of team id.",
+                        "name": "teamList",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/team/update": {
+            "post": {
+                "description": "Update team's information.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.team"
+                ],
+                "summary": "Update team's information.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateTeamRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/team/user": {
+            "get": {
+                "description": "Get team's users.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.team"
+                ],
+                "summary": "Get team's users.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Team's id",
+                        "name": "teamId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.User"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/team/user/operation": {
+            "post": {
+                "description": "Assigns users to a team or remove users from a team.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.team"
+                ],
+                "summary": "Assigns users to a team or remove users from a team.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Team's id",
+                        "name": "teamId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "The list of users' id.",
+                        "name": "userList",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/trace/flame": {
             "get": {
                 "description": "获取指定时间段指定条件的火焰图数据",
@@ -5054,7 +5969,7 @@ const docTemplate = `{
         },
         "/api/user/create": {
             "post": {
-                "description": "创建用户",
+                "description": "Create a user.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5064,60 +5979,20 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "创建用户",
+                "summary": "Create a user.",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "username",
-                        "in": "formData",
-                        "required": true
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateUserRequest"
+                        }
                     },
                     {
                         "type": "string",
-                        "description": "密码",
-                        "name": "password",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "确认密码",
-                        "name": "confirmPassword",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "multi",
-                        "description": "角色id",
-                        "name": "roleList",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "邮箱",
-                        "name": "email",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "手机号",
-                        "name": "phone",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "组织",
-                        "name": "corporation",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer 令牌",
+                        "description": "Bearer token",
                         "name": "Authorization",
                         "in": "header"
                     }
@@ -5140,7 +6015,7 @@ const docTemplate = `{
         },
         "/api/user/info": {
             "get": {
-                "description": "获取个人信息",
+                "description": "获取用户信息",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5150,8 +6025,14 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "获取个人信息",
+                "summary": "获取用户信息",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "userId",
+                        "in": "query"
+                    },
                     {
                         "type": "string",
                         "description": "Bearer accessToken",
@@ -5177,7 +6058,7 @@ const docTemplate = `{
         },
         "/api/user/list": {
             "get": {
-                "description": "获取用户列表",
+                "description": "Get user list.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5187,7 +6068,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "获取用户列表",
+                "summary": "Get user list.",
                 "parameters": [
                     {
                         "type": "string",
@@ -5197,19 +6078,19 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "用户名",
+                        "description": "Username",
                         "name": "username",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "当前页",
+                        "description": "Current page",
                         "name": "currentPage",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "页大小",
+                        "description": "The size of page",
                         "name": "pageSize",
                         "in": "query"
                     },
@@ -5219,8 +6100,18 @@ const docTemplate = `{
                             "type": "integer"
                         },
                         "collectionFormat": "multi",
-                        "description": "角色",
+                        "description": "Role id list",
                         "name": "roleList",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Team id list",
+                        "name": "teamList",
                         "in": "query"
                     },
                     {
@@ -5248,7 +6139,7 @@ const docTemplate = `{
         },
         "/api/user/login": {
             "post": {
-                "description": "登录",
+                "description": "Login",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5258,18 +6149,18 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "登录",
+                "summary": "Login",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "用户名",
+                        "description": "Username",
                         "name": "username",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "密码",
+                        "description": "Password",
                         "name": "password",
                         "in": "formData",
                         "required": true
@@ -5293,7 +6184,7 @@ const docTemplate = `{
         },
         "/api/user/logout": {
             "post": {
-                "description": "退出登录",
+                "description": "Logout",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5303,7 +6194,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "退出登录",
+                "summary": "Logout",
                 "parameters": [
                     {
                         "type": "string",
@@ -5338,7 +6229,7 @@ const docTemplate = `{
         },
         "/api/user/refresh": {
             "get": {
-                "description": "刷新accessToken",
+                "description": "Refresh accessToken",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5348,7 +6239,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "刷新accessToken",
+                "summary": "Refresh accessToken",
                 "parameters": [
                     {
                         "type": "string",
@@ -5376,7 +6267,7 @@ const docTemplate = `{
         },
         "/api/user/remove": {
             "post": {
-                "description": "移除用户",
+                "description": "Remove a user.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5386,7 +6277,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "移除用户",
+                "summary": "Remove a user.",
                 "parameters": [
                     {
                         "type": "string",
@@ -5396,7 +6287,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "请求信息",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
@@ -5420,7 +6311,7 @@ const docTemplate = `{
         },
         "/api/user/reset": {
             "post": {
-                "description": "重设密码",
+                "description": "Reset user's password.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5430,25 +6321,25 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "重设密码",
+                "summary": "Reset user's password.",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "新密码",
+                        "description": "New password",
                         "name": "newPassword",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "重复密码",
+                        "description": "Confirm password",
                         "name": "confirmPassword",
                         "in": "formData",
                         "required": true
@@ -5477,9 +6368,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/user/update/email": {
-            "post": {
-                "description": "更新/绑定邮箱",
+        "/api/user/team": {
+            "get": {
+                "description": "Get user's team.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5489,18 +6380,65 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "更新/绑定邮箱",
+                "summary": "Get user's team.",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "User's is",
+                        "name": "userId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Team"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/update/email": {
+            "post": {
+                "description": "Update email.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "Update email.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "邮箱",
+                        "description": "Email",
                         "name": "email",
                         "in": "formData",
                         "required": true
@@ -5531,7 +6469,7 @@ const docTemplate = `{
         },
         "/api/user/update/info": {
             "post": {
-                "description": "更新用户信息",
+                "description": "Update user's info.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5541,11 +6479,11 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "更新用户信息",
+                "summary": "Update user's info.",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
@@ -5556,25 +6494,25 @@ const docTemplate = `{
                             "type": "integer"
                         },
                         "collectionFormat": "multi",
-                        "description": "角色id列表",
+                        "description": "The list of user's role.",
                         "name": "roleList",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "组织",
+                        "description": "Corporation",
                         "name": "corporation",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "手机号",
+                        "description": "Phone number",
                         "name": "phone",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "邮箱",
+                        "description": "Email",
                         "name": "email",
                         "in": "formData"
                     },
@@ -5604,7 +6542,7 @@ const docTemplate = `{
         },
         "/api/user/update/password": {
             "post": {
-                "description": "更新密码",
+                "description": "Update password.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5614,32 +6552,32 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "更新密码",
+                "summary": "Update password.",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "原密码",
+                        "description": "Original password",
                         "name": "oldPassword",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "新密码",
+                        "description": "New password",
                         "name": "newPassword",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "确认密码",
+                        "description": "Confirm password",
                         "name": "confirmPassword",
                         "in": "formData",
                         "required": true
@@ -5670,7 +6608,7 @@ const docTemplate = `{
         },
         "/api/user/update/phone": {
             "post": {
-                "description": "更新/绑定手机号",
+                "description": "Update phone number",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5680,18 +6618,18 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "更新/绑定手机号",
+                "summary": "Update phone number",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "手机号",
+                        "description": "Phone number",
                         "name": "phone",
                         "in": "formData",
                         "required": true
@@ -5722,7 +6660,7 @@ const docTemplate = `{
         },
         "/api/user/update/self": {
             "post": {
-                "description": "更新个人信息",
+                "description": "Update self info.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5732,30 +6670,30 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "更新个人信息",
+                "summary": "Update self info.",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "组织",
+                        "description": "Corporation",
                         "name": "corporation",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "手机号",
+                        "description": "Phone number",
                         "name": "phone",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "邮箱",
+                        "description": "Email",
                         "name": "email",
                         "in": "formData"
                     },
@@ -6302,6 +7240,44 @@ const docTemplate = `{
                 }
             }
         },
+        "database.DataGroup": {
+            "type": "object",
+            "properties": {
+                "authType": {
+                    "type": "string"
+                },
+                "datasourceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.DatasourceGroup"
+                    }
+                },
+                "description": {
+                    "description": "The description of data group.",
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "groupName": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.DatasourceGroup": {
+            "type": "object",
+            "properties": {
+                "datasource": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "database.Feature": {
             "type": "object",
             "properties": {
@@ -6363,6 +7339,9 @@ const docTemplate = `{
         "database.Role": {
             "type": "object",
             "properties": {
+                "description": {
+                    "type": "string"
+                },
                 "roleId": {
                     "type": "integer"
                 },
@@ -6384,6 +7363,26 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "to": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.Team": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Feature"
+                    }
+                },
+                "teamId": {
+                    "type": "integer"
+                },
+                "teamName": {
                     "type": "string"
                 }
             }
@@ -6410,6 +7409,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/database.Role"
+                    }
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Team"
                     }
                 },
                 "userId": {
@@ -6737,6 +7742,19 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Datasource": {
+            "type": "object",
+            "properties": {
+                "datasource": {
+                    "description": "namespaceName or serviceName",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "namespace or service",
+                    "type": "string"
+                }
+            }
+        },
         "model.ModifyTableTTLMap": {
             "type": "object",
             "properties": {
@@ -7039,6 +8057,20 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AuthDataGroup": {
+            "type": "object",
+            "properties": {
+                "subjectId": {
+                    "type": "integer"
+                },
+                "subjectType": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "request.BufferEngineConfig": {
             "type": "object",
             "properties": {
@@ -7062,6 +8094,151 @@ const docTemplate = `{
                 },
                 "numLayers": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.CreateDataGroupRequest": {
+            "type": "object",
+            "required": [
+                "groupName"
+            ],
+            "properties": {
+                "assignedSubjects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.AuthDataGroup"
+                    }
+                },
+                "datasourceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Datasource"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "groupName": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.CreateTeamRequest": {
+            "type": "object",
+            "required": [
+                "description",
+                "teamName"
+            ],
+            "properties": {
+                "dataGroupPermission": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.DataGroupPermission"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "teamName": {
+                    "type": "string"
+                },
+                "userList": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "request.CreateUserRequest": {
+            "type": "object",
+            "required": [
+                "confirmPassword",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "confirmPassword": {
+                    "description": "确认密码",
+                    "type": "string"
+                },
+                "corporation": {
+                    "type": "string"
+                },
+                "dataGroupPermission": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.DataGroupPermission"
+                    }
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "description": "密码",
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "roleList": {
+                    "description": "Role id list",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "username": {
+                    "description": "用户名",
+                    "type": "string"
+                }
+            }
+        },
+        "request.DataGroupOperationRequest": {
+            "type": "object",
+            "required": [
+                "subjectId",
+                "subjectType"
+            ],
+            "properties": {
+                "dataGroupPermission": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.DataGroupPermission"
+                    }
+                },
+                "subjectId": {
+                    "type": "integer"
+                },
+                "subjectType": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.DataGroupPermission": {
+            "type": "object",
+            "required": [
+                "dataGroupId",
+                "type"
+            ],
+            "properties": {
+                "dataGroupId": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
                 }
             }
         },
@@ -7241,6 +8418,26 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "request.GetDataGroupRequest": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "datasourceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Datasource"
+                    }
+                },
+                "groupName": {
+                    "type": "string"
+                },
+                "pageSize": {
+                    "type": "integer"
                 }
             }
         },
@@ -7753,6 +8950,30 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateDataGroupNameRequest": {
+            "type": "object",
+            "required": [
+                "groupId",
+                "groupName"
+            ],
+            "properties": {
+                "datasourceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Datasource"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "groupName": {
+                    "type": "string"
+                }
+            }
+        },
         "request.UpdateLogParseRequest": {
             "type": "object",
             "properties": {
@@ -7790,6 +9011,36 @@ const docTemplate = `{
                     }
                 },
                 "tableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateTeamRequest": {
+            "type": "object",
+            "required": [
+                "teamId",
+                "teamName"
+            ],
+            "properties": {
+                "dataGroupPermission": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.DataGroupPermission"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "teamId": {
+                    "type": "integer"
+                },
+                "teamName": {
                     "type": "string"
                 }
             }
@@ -8273,6 +9524,33 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetGroupDatasourceResponse": {
+            "type": "object",
+            "properties": {
+                "authType": {
+                    "type": "string"
+                },
+                "datasourceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.DatasourceGroup"
+                    }
+                },
+                "description": {
+                    "description": "The description of data group.",
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "groupName": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
         "response.GetGroupListResponse": {
             "type": "object",
             "properties": {
@@ -8561,6 +9839,29 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetTeamResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "每页条数",
+                    "type": "integer"
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Team"
+                    }
+                },
+                "total": {
+                    "description": "总记录数",
+                    "type": "integer"
+                }
+            }
+        },
         "response.GetTraceFilterValueResponse": {
             "type": "object",
             "properties": {
@@ -8675,6 +9976,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/database.Role"
+                    }
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Team"
                     }
                 },
                 "userId": {
@@ -9101,6 +10408,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/database.Role"
+                    }
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Team"
                     }
                 },
                 "userId": {

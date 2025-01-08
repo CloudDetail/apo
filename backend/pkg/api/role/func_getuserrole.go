@@ -17,7 +17,7 @@ import (
 // @Tags API.role
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId query int64 true "用户id"
+// @Param userId query int64 true "User's id"
 // @Success 200 {object} response.GetUserRoleResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/role/user [get]

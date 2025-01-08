@@ -7,13 +7,16 @@ import (
 	"github.com/CloudDetail/apo/backend/internal/api/mock"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
+	"github.com/CloudDetail/apo/backend/pkg/api/data"
 	"github.com/CloudDetail/apo/backend/pkg/api/health"
 	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
 	networkapi "github.com/CloudDetail/apo/backend/pkg/api/network"
+	"github.com/CloudDetail/apo/backend/pkg/api/permission"
 	"github.com/CloudDetail/apo/backend/pkg/api/role"
 	"github.com/CloudDetail/apo/backend/pkg/api/service"
 	"github.com/CloudDetail/apo/backend/pkg/api/serviceoverview"
+	"github.com/CloudDetail/apo/backend/pkg/api/team"
 	"github.com/CloudDetail/apo/backend/pkg/api/trace"
 	"github.com/CloudDetail/apo/backend/pkg/api/user"
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
@@ -161,11 +164,12 @@ func setApiRouter(r *resource) {
 		userApi.GET("/list", userHandler.GetUserList())
 		userApi.POST("/remove", userHandler.RemoveUser())
 		userApi.POST("/reset", userHandler.ResetPassword())
+		userApi.GET("/team", userHandler.GetUserTeam())
 	}
 
 	permissionApi := r.mux.Group("/api/permission").Use(middlewares.AuthMiddleware())
 	{
-		permissionHandler := user.New(r.logger, r.pkg_db, r.cache)
+		permissionHandler := permission.New(r.logger, r.pkg_db)
 		permissionApi.GET("/config", permissionHandler.GetUserConfig())
 		permissionApi.GET("/feature", permissionHandler.GetFeature())
 		permissionApi.GET("/sub/feature", permissionHandler.GetSubjectFeature())
@@ -179,6 +183,34 @@ func setApiRouter(r *resource) {
 		roleApi.GET("/roles", roleHandler.GetRole())
 		roleApi.GET("/user", roleHandler.GetUserRole())
 		roleApi.POST("/operation", roleHandler.RoleOperation())
+		roleApi.POST("/create", roleHandler.CreateRole())
+		roleApi.POST("/update", roleHandler.UpdateRole())
+		roleApi.POST("/delete", roleHandler.DeleteRole())
+	}
+
+	dataApi := r.mux.Group("/api/data").Use(middlewares.AuthMiddleware())
+	{
+		dataHandler := data.New(r.logger, r.pkg_db, r.prom, r.k8sApi)
+		dataApi.GET("/datasource", dataHandler.GetDatasource())
+		dataApi.POST("/group", dataHandler.GetDataGroup())
+		dataApi.GET("/group/data", dataHandler.GetGroupDatasource())
+		dataApi.POST("/group/update", dataHandler.UpdateDataGroup())
+		dataApi.POST("/group/create", dataHandler.CreateDataGroup())
+		dataApi.POST("/group/delete", dataHandler.DeleteDataGroup())
+		dataApi.GET("/sub/group", dataHandler.GetSubjectDataGroup())
+		dataApi.POST("/group/operation", dataHandler.DataGroupOperation())
+	}
+
+	teamApi := r.mux.Group("/api/team").Use(middlewares.AuthMiddleware())
+	{
+		teamHandler := team.New(r.logger, r.pkg_db)
+		teamApi.POST("/create", teamHandler.CreateTeam())
+		teamApi.POST("/update", teamHandler.UpdateTeam())
+		teamApi.GET("", teamHandler.GetTeam())
+		teamApi.POST("/delete", teamHandler.DeleteTeam())
+		teamApi.POST("/operation", teamHandler.TeamOperation())
+		teamApi.POST("/user/operation", teamHandler.TeamUserOperation())
+		teamApi.GET("/user", teamHandler.GetTeamUser())
 	}
 
 	k8sApi := r.mux.Group("/api/k8s")

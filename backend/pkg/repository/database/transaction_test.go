@@ -29,7 +29,7 @@ func TestTransaction(t *testing.T) {
 	}
 
 	var grantFunc = func(ctx context.Context) error {
-		return repo.GrantRole(ctx, 239077004960, []int{2})
+		return repo.GrantRoleWithUser(ctx, 239077004960, []int{2})
 	}
 
 	var boomFunc = func(ctx context.Context) error {

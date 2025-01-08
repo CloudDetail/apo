@@ -22,6 +22,21 @@ type Handler interface {
 	// @Tags API.role
 	// @Router /api/role/user [get]
 	GetUserRole() core.HandlerFunc
+
+	// CreateRole Creates a role.
+	// @Tags API.role
+	// @Router /api/role/create [post]
+	CreateRole() core.HandlerFunc
+
+	// UpdateRole Update role's name and permission.
+	// @Tags API.role
+	// @Router /api/role/update [post]
+	UpdateRole() core.HandlerFunc
+
+	// DeleteRole Delete a role.
+	// @Tags API.role
+	// @router /api/role/delete [post]
+	DeleteRole() core.HandlerFunc
 }
 
 type handler struct {

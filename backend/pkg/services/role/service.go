@@ -12,6 +12,9 @@ type Service interface {
 	RoleOperation(req *request.RoleOperationRequest) error
 	GetRoles() (response.GetRoleResponse, error)
 	GetUserRole(req *request.GetUserRoleRequest) (response.GetUserRoleResponse, error)
+	CreateRole(req *request.CreateRoleRequest) error
+	UpdateRole(req *request.UpdateRoleRequest) error
+	DeleteRole(req *request.DeleteRoleRequest) error
 }
 
 type service struct {

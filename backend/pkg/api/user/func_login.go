@@ -13,14 +13,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// Login 登录
-// @Summary 登录
-// @Description 登录
+// Login Login
+// @Summary Login
+// @Description Login
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param username formData string true "用户名"
-// @Param password formData string true "密码"
+// @Param username formData string true "Username"
+// @Param password formData string true "Password"
 // @Success 200 {object} response.LoginResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/user/login [post]

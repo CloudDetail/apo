@@ -13,14 +13,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// RemoveUser 移除用户
-// @Summary 移除用户
-// @Description 移除用户
+// RemoveUser Remove a user.
+// @Summary Remove a user.
+// @Description Remove a user.
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Authorization header string false "Bearer accessToken"
-// @Param userId formData int64 true "请求信息"
+// @Param userId formData int64 true "User's id"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/user/remove [post]

@@ -1,7 +1,4 @@
-// Copyright 2024 CloudDetail
-// SPDX-License-Identifier: Apache-2.0
-
-package user
+package data
 
 import (
 	"errors"
@@ -13,21 +10,21 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// ConfigureMenu Configure global menu.
-// @Summary Configure global menu.
-// @Description Configure global menu.
-// @Tags API.permission
+// UpdateDataGroup Updates data group.
+// @Summary Updates data group.
+// @Description Updates data group.
+// @Tags API.data
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param permissionList formData []int true "功能id列表" collectionFormat(multi)
+// @Param Request body request.UpdateDataGroupNameRequest true "Request"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/permission/menu/configure [post]
-func (h *handler) ConfigureMenu() core.HandlerFunc {
+// @Router /api/data/group/update [post]
+func (h *handler) UpdateDataGroup() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.ConfigureMenuRequest)
-		if err := c.ShouldBindPostForm(req); err != nil {
+		req := new(request.UpdateDataGroupNameRequest)
+		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -36,21 +33,19 @@ func (h *handler) ConfigureMenu() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.ConfigureMenu(req)
+		err := h.dataService.UpdateDataGroupName(req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					vErr.Code,
-					code.Text(vErr.Code),
-				).WithError(err))
+					code.Text(vErr.Code)).WithError(err))
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
-					code.ConfigureMenuError,
-					code.Text(code.ConfigureMenuError)).WithError(err),
-				)
+					code.UpdateDataGroupError,
+					code.Text(code.UpdateDataGroupError)).WithError(err))
 			}
 			return
 		}

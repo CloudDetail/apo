@@ -14,16 +14,16 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// UpdateUserPassword 更新密码
-// @Summary 更新密码
-// @Description 更新密码
+// UpdateUserPassword Update password.
+// @Summary Update password.
+// @Description Update password.
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId formData int64 true "用户id"
-// @Param oldPassword formData string true "原密码"
-// @Param newPassword formData string true "新密码"
-// @Param confirmPassword formData string true "确认密码"
+// @Param userId formData int64 true "User's id"
+// @Param oldPassword formData string true "Original password"
+// @Param newPassword formData string true "New password"
+// @Param confirmPassword formData string true "Confirm password"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure

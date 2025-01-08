@@ -1,7 +1,7 @@
 // Copyright 2024 CloudDetail
 // SPDX-License-Identifier: Apache-2.0
 
-package user
+package team
 
 import (
 	"errors"
@@ -13,22 +13,20 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// PermissionOperation Grant or revoke user's permission(feature).
-// @Summary Grant or revoke user's permission(feature).
-// @Description Grant or revoke user's permission(feature).
-// @Tags API.permission
+// DeleteTeam Delete a team.
+// @Summary Delete a team.
+// @Description Delete a team.
+// @Tags API.team
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param subjectId formData int64 true "授权主体id"
-// @Param subjectType formData string true "授权主体类型: 'role','user','team'"
-// @Param type formData string true "授权类型: 'feature','data'"
-// @Param permissionList formData []int false "权限id列表" collectionFormat(multi)
+// @Param teamId formData int true "Team's id"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/permission/operation [post]
-func (h *handler) PermissionOperation() core.HandlerFunc {
+// @Router /api/team/delete [post]
+func (h *handler) DeleteTeam() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.PermissionOperationRequest)
+		req := new(request.DeleteTeamRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -38,21 +36,21 @@ func (h *handler) PermissionOperation() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.PermissionOperation(req)
+		err := h.teamService.DeleteTeam(req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					vErr.Code,
-					code.Text(vErr.Code),
-				).WithError(err))
+					code.Text(vErr.Code)).WithError(err),
+				)
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
-					code.UserGrantPermissionError,
-					code.Text(code.UserGrantPermissionError),
-				).WithError(err))
+					code.DeleteTeamError,
+					code.Text(code.DeleteTeamError)).WithError(err),
+				)
 			}
 			return
 		}

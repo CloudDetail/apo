@@ -27,14 +27,9 @@ type Service interface {
 	RemoveUser(userID int64) error
 	RestPassword(req *request.ResetPasswordRequest) error
 
-	GetFeature(req *request.GetFeatureRequest) (response.GetFeatureResponse, error)
-	GetSubjectFeature(req *request.GetSubjectFeatureRequest) (response.GetSubjectFeatureResponse, error)
-	PermissionOperation(req *request.PermissionOperationRequest) error
-	ConfigureMenu(req *request.ConfigureMenuRequest) error
+	GetUserTeam(req *request.GetUserTeamRequest) (response.GetUserTeamResponse, error)
 
 	IsInBlacklist(token string) (bool, error)
-
-	GetUserConfig(req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error)
 }
 
 type service struct {

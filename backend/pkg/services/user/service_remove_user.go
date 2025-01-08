@@ -31,26 +31,21 @@ func (s *service) RemoveUser(userID int64) error {
 		roleIDs = append(roleIDs, role.RoleID)
 	}
 
-	// 2. Get feature permissions.
-	fPermissionIDs, err := s.dbRepo.GetSubjectPermission(userID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE)
-	if err != nil {
-		return err
+	var deleteAuthDataGroupFunc = func(ctx context.Context) error {
+		return s.dbRepo.DeleteAuthDataGroup(ctx, userID, model.DATA_GROUP_SUB_TYP_USER)
 	}
 
-	// 3. TODO Get data permission.
-	// 4. TODO Get teams.
+	var removeFromTeam = func(ctx context.Context) error {
+		return s.dbRepo.DeleteAllUserTeam(ctx, userID, "user")
+	}
 
 	var removeUserFunc = func(ctx context.Context) error {
 		return s.dbRepo.RemoveUser(ctx, userID)
 	}
 
-	var revokeRoleFunc = func(ctx context.Context) error {
-		return s.dbRepo.RevokeRole(ctx, userID, roleIDs)
-	}
-
 	var revokeFeaturePermFunc = func(ctx context.Context) error {
-		return s.dbRepo.RevokePermission(ctx, userID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE, fPermissionIDs)
+		return s.dbRepo.RevokePermission(ctx, userID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE, nil)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), revokeRoleFunc, revokeFeaturePermFunc, removeUserFunc)
+	return s.dbRepo.Transaction(context.Background(), revokeFeaturePermFunc, removeUserFunc, removeFromTeam, deleteAuthDataGroupFunc)
 }

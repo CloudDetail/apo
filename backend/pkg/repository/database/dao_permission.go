@@ -3,14 +3,19 @@
 
 package database
 
-import "context"
+import (
+	"context"
+	"errors"
+	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/model"
+)
 
 // AuthPermission Records which feature are authorised to which subjects.
 type AuthPermission struct {
 	ID           int    `gorm:"primary_key;auto_increment" json:"id"`
-	Type         string `gorm:"column:type;index:idx_sub_id_type" json:"type"`            // feature data
-	SubjectID    int64  `gorm:"column:subject_id;index:idx_sub_id_type" json:"subjectId"` // Role id, user id or team id.
-	SubjectType  string `gorm:"column:subject_type" json:"subjectType"`                   // role user team.
+	Type         string `gorm:"column:type;index:idx_sub_id_type;type:varchar(20)" json:"type"` // feature data data group
+	SubjectID    int64  `gorm:"column:subject_id;index:idx_sub_id_type" json:"subjectId"`       // Role id, user id or team id.
+	SubjectType  string `gorm:"column:subject_type;type:varchar(10)" json:"subjectType"`        // role user team.
 	PermissionID int    `gorm:"column:permission_id" json:"permissionId"`
 }
 
@@ -36,6 +41,10 @@ func (repo *daoRepo) GetSubjectsPermission(subIDs []int64, subType string, typ s
 }
 
 func (repo *daoRepo) GrantPermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error {
+	if len(permissionIDs) == 0 {
+		return nil
+	}
+
 	db := repo.GetContextDB(ctx)
 	permission := make([]AuthPermission, len(permissionIDs))
 	for i := range permissionIDs {
@@ -50,10 +59,52 @@ func (repo *daoRepo) GrantPermission(ctx context.Context, subID int64, subType s
 	return db.Create(&permission).Error
 }
 
+// RevokePermission It will delete all record related to sub if permissionIDs is empty.
 func (repo *daoRepo) RevokePermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error {
-	return repo.GetContextDB(ctx).
+	query := repo.GetContextDB(ctx).
 		Model(&AuthPermission{}).
-		Where("subject_id = ? AND subject_type = ? AND type = ? AND permission_id in ?", subID, subType, typ, permissionIDs).
-		Delete(nil).
-		Error
+		Where("subject_id = ? AND subject_type = ? AND type = ?", subID, subType, typ)
+
+	if len(permissionIDs) > 0 {
+		query = query.Where("permission_id in ?", permissionIDs)
+	}
+
+	return query.Delete(nil).Error
+}
+
+func (repo *daoRepo) GetAddAndDeletePermissions(subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error) {
+	subPermissions, err := repo.GetSubjectPermission(subID, subType, typ)
+	if err != nil {
+		return
+	}
+
+	permissions, err := repo.GetFeature(nil)
+
+	permissionMap := make(map[int]struct{})
+	for _, permission := range permissions {
+		permissionMap[permission.FeatureID] = struct{}{}
+	}
+
+	subPermissionMap := make(map[int]struct{})
+	for _, id := range subPermissions {
+		subPermissionMap[id] = struct{}{}
+	}
+
+	for _, permission := range permList {
+		if _, exists := permissionMap[permission]; !exists {
+			err = model.NewErrWithMessage(errors.New("permission does not exist"), code.PermissionNotExistError)
+			return
+		}
+		if _, hasRole := subPermissionMap[permission]; !hasRole {
+			toAdd = append(toAdd, permission)
+		} else {
+			delete(subPermissionMap, permission)
+		}
+	}
+
+	for permission := range subPermissionMap {
+		toDelete = append(toDelete, permission)
+	}
+
+	return
 }

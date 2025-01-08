@@ -12,88 +12,68 @@ import (
 )
 
 type Handler interface {
-	// Login 登录
+	// Login Login
 	// @Tags API.user
 	// @Router /api/user/login [post]
 	Login() core.HandlerFunc
-	// Logout 退出登录
+	// Logout Logout
 	// @Tags API.user
 	// @Router /api/user/logout [post]
 	Logout() core.HandlerFunc
-	// CreateUser 创建用户
+	// CreateUser Create a user.
 	// @Tags API.user
 	// @Router /api/user/create [post]
 	CreateUser() core.HandlerFunc
-	// RefreshToken 刷新accessToken
+	// RefreshToken Refresh accessToken
 	// @Tags API.user
 	// @Router /api/user/refresh [get]
 	RefreshToken() core.HandlerFunc
 
-	// UpdateUserInfo 更新用户信息
+	// UpdateUserInfo Update user's info.
 	// @Tags API.user
 	// @Router /api/user/update/info [post]
 	UpdateUserInfo() core.HandlerFunc
 
-	// UpdateSelfInfo 更新个人信息
+	// UpdateSelfInfo Update self info.
 	// @Tags API.user
 	// @Router /api/user/update/self [post]
 	UpdateSelfInfo() core.HandlerFunc
-	// UpdateUserPassword 更新密码
+	// UpdateUserPassword Update password.
 	// @Tags API.user
 	// @Router /api/user/update/password [post]
 	UpdateUserPassword() core.HandlerFunc
-	// UpdateUserPhone 更新/绑定手机号
+	// UpdateUserPhone Update phone number.
 	// @Tags API.user
 	// @Router /api/user/update/phone [post]
 	UpdateUserPhone() core.HandlerFunc
-	// UpdateUserEmail 更新/绑定邮箱
+	// UpdateUserEmail Update email.
 	// @Tags API.user
 	// @Router /api/user/update/email [post]
 	UpdateUserEmail() core.HandlerFunc
-	// GetUserInfo 获取个人信息
+	// GetUserInfo Get user's info.
 	// @Tags API.user
 	// @Router /api/user/info [get]
 	GetUserInfo() core.HandlerFunc
 
-	// GetUserList 获取用户列表
+	// GetUserList Get user list.
 	// @Tags API.user
 	// @Router /api/user/list [get]
 	GetUserList() core.HandlerFunc
 
-	// RemoveUser 移除用户
+	// RemoveUser Remove a user.
 	// @Tags API.user
 	// @Router /api/user/remove [post]
 	RemoveUser() core.HandlerFunc
 
-	// ResetPassword 重设密码
+	// ResetPassword Reset password.
 	// @Tags API.user
 	// @Router /api/user/reset [post]
 	ResetPassword() core.HandlerFunc
 
-	// GetUserConfig Gets user's menu config and which route can access.
-	// @Tags API.permission
-	// @Router /api/permission/config [get]
-	GetUserConfig() core.HandlerFunc
-
-	// GetFeature Gets all feature permission.
-	// @Tags API.permission
-	// @Router /api/permission/feature [get]
-	GetFeature() core.HandlerFunc
-
-	// GetSubjectFeature Gets subject's feature permission.
-	// @Tags API.permission
-	// @Router /api/permission/sub/feature [get]
-	GetSubjectFeature() core.HandlerFunc
-
-	// PermissionOperation Grant or revoke user's permission(feature).
-	// @Tags API.permission
-	// @Router /api/permission/operation [post]
-	PermissionOperation() core.HandlerFunc
-
-	// ConfigureMenu Configure global menu.
-	// @Tags API.permission
-	// @Router /api/permission/menu/configure [post]
-	ConfigureMenu() core.HandlerFunc
+	// GetUserTeam Get user's team.
+	// @Tags API.user
+	// @Router /api/user/team [post]
+	GetUserTeam() core.HandlerFunc
 }
 
 type handler struct {

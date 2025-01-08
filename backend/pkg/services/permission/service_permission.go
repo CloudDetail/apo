@@ -1,7 +1,7 @@
 // Copyright 2024 CloudDetail
 // SPDX-License-Identifier: Apache-2.0
 
-package user
+package permission
 
 import (
 	"context"
@@ -45,23 +45,32 @@ func (s *service) GetFeature(req *request.GetFeatureRequest) (response.GetFeatur
 	return rootFeatures, nil
 }
 
-func (s *service) GetSubjectFeature(req *request.GetSubjectFeatureRequest) (resp response.GetSubjectFeatureResponse, err error) {
+func (s *service) GetSubjectFeature(req *request.GetSubjectFeatureRequest) (response.GetSubjectFeatureResponse, error) {
 	if req.SubjectType == model.PERMISSION_SUB_TYP_USER {
-		return s.getUserFeature(req.SubjectID, req.Language)
+		featureIDs, err := s.getUserFeatureIDs(req.SubjectID)
+		if err != nil {
+			return nil, err
+		}
+
+		features, err := s.dbRepo.GetFeature(featureIDs)
+		if err != nil {
+			return nil, err
+		}
+		err = s.dbRepo.GetFeatureTans(&features, req.Language)
+		return features, err
 	}
 
 	featureIDs, err := s.dbRepo.GetSubjectPermission(req.SubjectID, req.SubjectType, model.PERMISSION_TYP_FEATURE)
 	if err != nil {
-		return resp, err
+		return nil, err
 	}
 
 	featureList, err := s.dbRepo.GetFeature(featureIDs)
 	if err != nil {
-		return resp, err
+		return nil, err
 	}
 	err = s.dbRepo.GetFeatureTans(&featureList, req.Language)
-	resp = featureList
-	return resp, nil
+	return featureList, nil
 }
 
 func (s *service) PermissionOperation(req *request.PermissionOperationRequest) error {
@@ -69,7 +78,7 @@ func (s *service) PermissionOperation(req *request.PermissionOperationRequest) e
 	var err error
 	switch req.SubjectType {
 	case model.PERMISSION_SUB_TYP_ROLE:
-		exists, err = s.dbRepo.RoleExists(req.SubjectID)
+		exists, err = s.dbRepo.RoleExists(int(req.SubjectID))
 	case model.PERMISSION_SUB_TYP_USER:
 		exists, err = s.dbRepo.UserExists(req.SubjectID)
 	}
@@ -80,7 +89,7 @@ func (s *service) PermissionOperation(req *request.PermissionOperationRequest) e
 		return model.NewErrWithMessage(errors.New("subject of authorisation does not exist"), code.AuthSubjectNotExistError)
 	}
 
-	addPermissions, deletePermissions, err := s.getAddAndDeletePermissions(req.SubjectID, req.SubjectType, req.Type, req.PermissionList)
+	addPermissions, deletePermissions, err := s.dbRepo.GetAddAndDeletePermissions(req.SubjectID, req.SubjectType, req.Type, req.PermissionList)
 	if err != nil {
 		return err
 	}
@@ -99,41 +108,4 @@ func (s *service) PermissionOperation(req *request.PermissionOperationRequest) e
 	}
 
 	return s.dbRepo.Transaction(context.Background(), grantFunc, revokeFunc)
-}
-
-func (s *service) getAddAndDeletePermissions(subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error) {
-	subPermissions, err := s.dbRepo.GetSubjectPermission(subID, subType, typ)
-	if err != nil {
-		return
-	}
-
-	permissions, err := s.dbRepo.GetFeature(nil)
-
-	permissionMap := make(map[int]struct{})
-	for _, permission := range permissions {
-		permissionMap[permission.FeatureID] = struct{}{}
-	}
-
-	subPermissionMap := make(map[int]struct{})
-	for _, id := range subPermissions {
-		subPermissionMap[id] = struct{}{}
-	}
-
-	for _, permission := range permList {
-		if _, exists := permissionMap[permission]; !exists {
-			err = model.NewErrWithMessage(errors.New("permission does not exist"), code.PermissionNotExistError)
-			return
-		}
-		if _, hasRole := subPermissionMap[permission]; !hasRole {
-			toAdd = append(toAdd, permission)
-		} else {
-			delete(subPermissionMap, permission)
-		}
-	}
-
-	for permission := range subPermissionMap {
-		toDelete = append(toDelete, permission)
-	}
-
-	return
 }

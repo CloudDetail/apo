@@ -13,17 +13,17 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// UpdateUserInfo 更新用户信息
-// @Summary 更新用户信息
-// @Description 更新用户信息
+// UpdateUserInfo Update user's info.
+// @Summary Update user's info.
+// @Description Update user's info.
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId formData int64 true "用户id"
-// @Param roleList formData []int false "角色id列表" collectionFormat(multi)
-// @Param corporation formData string false "组织"
-// @Param phone formData string false "手机号"
-// @Param email formData string false "邮箱"
+// @Param userId formData int64 true "User's id"
+// @Param roleList formData []int false "The list of user's role." collectionFormat(multi)
+// @Param corporation formData string false "Corporation"
+// @Param phone formData string false "Phone number"
+// @Param email formData string false "Email"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
