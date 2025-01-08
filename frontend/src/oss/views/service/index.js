@@ -10,10 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import TempCell from 'src/core/components/Table/TempCell'
 import StatusInfo from 'src/core/components/StatusInfo'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
-import {
-  getServicesAlertApi,
-  getServicesEndpointsApi,
-} from 'core/api/service'
+import { getServicesAlertApi, getServicesEndpointsApi } from 'core/api/service'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { getStep } from 'src/core/utils/step'
@@ -69,7 +66,6 @@ export default function ServiceView() {
       isNested: true,
       customWidth: '55%',
       clickCell: (props) => {
-        console.log("props", props)
         // const navigate = useNavigate()
         // toServiceInfo()
         const serviceName = props.cell.row.values.serviceName
@@ -357,7 +353,7 @@ export default function ServiceView() {
               <a
                 className="underline text-sky-500"
                 target="_blank"
-                href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/监控%20Kubernetes%20集群中的服务器和应用使用OneAgent默认OTEL探针版本/"
+                href="https://kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/安装%20APO-OneAgent/"
               >
                 监控手册
               </a>
@@ -367,9 +363,9 @@ export default function ServiceView() {
               <a
                 className="underline text-sky-500"
                 target="_blank"
-                href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/运维与故障排除/APO%20服务概览无数据排查文档/#常见基础问题排查"
+                href="https://kindlingx.com/docs/APO%20向导式可观测性中心/常见问题/运维与故障排除/APO%20服务概览无数据排查文档"
               >
-                故障排除手册
+                服务概览无数据排查文档
               </a>
             </div>
           </div>

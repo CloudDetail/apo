@@ -19,9 +19,9 @@ function MiddlewareDashboard() {
             <a
               className="underline text-sky-500"
               target="_blank"
-              href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/监控中间件"
+              href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/监控中间件/"
             >
-              文档
+              监控中间件配置指南
             </a>
           </CToastBody>
         </div>
