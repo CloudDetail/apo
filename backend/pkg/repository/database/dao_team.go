@@ -17,9 +17,8 @@ type Team struct {
 }
 
 type UserTeam struct {
-	ID     int   `gorm:"column:id;primary_key"`
-	UserID int64 `gorm:"column:user_id;index:user_team_idx"`
-	TeamID int64 `gorm:"column:team_id;index:user_team_idx"`
+	UserID int64 `gorm:"column:user_id;primary_key"`
+	TeamID int64 `gorm:"column:team_id;primary_key"`
 }
 
 func (UserTeam) TableName() string {
