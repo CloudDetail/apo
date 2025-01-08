@@ -18,13 +18,13 @@ import (
 var _ Service = (*service)(nil)
 
 type Service interface {
-	// Obtain the relationship between upstream and downstream calls
+	// Get the relationship between upstream and downstream calls
 	GetServiceEndpointRelation(req *request.GetServiceEndpointRelationRequest) (*response.GetServiceEndpointRelationResponse, error)
-	// Obtain the upstream and downstream topology map
+	// Get the upstream and downstream topology map
 	GetServiceEndpointTopology(req *request.GetServiceEndpointTopologyRequest) (*response.GetServiceEndpointTopologyResponse, error)
-	// Obtain the delay curve of the dependent service
+	// Get the delay curve of the dependent service
 	GetDescendantMetrics(req *request.GetDescendantMetricsRequest) ([]response.GetDescendantMetricsResponse, error)
-	// Obtain the dependent node delay correlation.
+	// Get the dependent node delay correlation.
 	GetDescendantRelevance(req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error)
 	// Get Polaris metric analysis
 	GetPolarisInfer(req *request.GetPolarisInferRequest) (*response.GetPolarisInferResponse, error)
@@ -32,7 +32,7 @@ type Service interface {
 	GetErrorInstance(req *request.GetErrorInstanceRequest) (*response.GetErrorInstanceResponse, error)
 	// Get the error instance fault site log
 	GetErrorInstanceLogs(req *request.GetErrorInstanceLogsRequest) ([]clickhouse.FaultLogResult, error)
-	// Obtain log metrics
+	// Get log metrics
 	GetLogMetrics(req *request.GetLogMetricsRequest) ([]*response.GetLogMetricsResponse, error)
 	// Get Log fault field log
 	GetLogLogs(req *request.GetLogLogsRequest) ([]clickhouse.FaultLogResult, error)

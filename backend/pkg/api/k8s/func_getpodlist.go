@@ -11,7 +11,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetPodList obtain information about all pods in the namespace
+// GetPodList get information about all pods in the namespace
 // @Summary get all pod information
 // @Description get all pod information
 // @Tags API.k8s

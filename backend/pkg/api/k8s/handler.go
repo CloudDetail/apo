@@ -18,7 +18,7 @@ type Handler interface {
 	// @Tags API.k8s
 	// @Router /api/k8s/namespace/info [get]
 	GetNamespaceInfo() core.HandlerFunc
-	// GetPodList obtain information about all pods in the namespace
+	// GetPodList get information about all pods in the namespace
 	// @Tags API.k8s
 	// @Router /api/k8s/pods [get]
 	GetPodList() core.HandlerFunc

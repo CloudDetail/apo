@@ -9,7 +9,7 @@ import (
 )
 
 func (s *service) GetLogMetrics(req *request.GetLogMetricsRequest) ([]*response.GetLogMetricsResponse, error) {
-	// Obtain log metrics
+	// Get log metrics
 	serviceInstances, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, req.Service, req.Endpoint)
 	if err != nil {
 		return nil, err

@@ -67,7 +67,7 @@ type Context interface {
 
 	// Header Gets the Header object
 	Header() http.Header
-	// Obtain the header GetHeader
+	// Get the header GetHeader
 	GetHeader(key string) string
 	// Set the header SetHeader
 	SetHeader(key, value string)
