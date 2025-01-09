@@ -18,7 +18,8 @@ import (
 
 var handlerName string
 
-const handlerTemplate = `package %s
+const handlerTemplate = `// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0package %s
 
 import (
 	"net/http"
@@ -44,7 +45,7 @@ type %sResponse struct {
 %s
 // @Accept application/x-www-form-urlencoded
 // @Produce json
- // TODO The request parameter types and return types must be changed according to actual requirements.
+ // TODO The following request parameter types and response types must be changed according to actual requirements.
  // @Param Request body request.%sRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.%sResponse
@@ -63,7 +64,7 @@ func (h *handler) %s() core.HandlerFunc {
 			return
 		}
 
- // replace TODO with Service call
+ // TODO replace with Service call
 		resp := new(%sResponse)
 		c.Payload(resp)
 	}

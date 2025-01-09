@@ -11,7 +11,7 @@ import (
 )
 
 type Handler interface {
-	// Create/Edit xx
+	// Create Create/Edit xx
 	// @Tags API.mock
 	// @Router /api/mock [post]
 	Create() core.HandlerFunc

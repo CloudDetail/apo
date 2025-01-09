@@ -11,7 +11,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// Create/Edit xx
+// Create Create/Edit xx
 // @Summary create/edit xx
 // @Description create/edit xx
 // @Tags API.mock
