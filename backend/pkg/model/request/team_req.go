@@ -2,7 +2,7 @@ package request
 
 type CreateTeamRequest struct {
 	TeamName             string                `json:"teamName" form:"teamName" binding:"required"`
-	Description          string                `json:"description" form:"description" binding:"required"`
+	Description          string                `json:"description" form:"description"`
 	FeatureList          []int                 `json:"featureList" form:"featureList"`
 	DataGroupPermissions []DataGroupPermission `json:"dataGroupPermission" form:"dataGroupPermission"`
 	UserList             []int64               `json:"userList" form:"userList"`

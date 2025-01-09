@@ -31,21 +31,23 @@ func (s *service) CreateTeam(req *request.CreateTeamRequest) error {
 		}
 	}
 
-	filter := model.DataGroupFilter{}
-	for _, dgPermission := range req.DataGroupPermissions {
-		filter.IDs = append(filter.IDs, dgPermission.DataGroupID)
+	if len(req.DataGroupPermissions) > 0 {
+		filter := model.DataGroupFilter{}
+		for _, dgPermission := range req.DataGroupPermissions {
+			filter.IDs = append(filter.IDs, dgPermission.DataGroupID)
+		}
+
+		exist, err := s.dbRepo.DataGroupExist(filter)
+		if err != nil {
+			return err
+		}
+
+		if !exist {
+			return model.NewErrWithMessage(errors.New("data group does not exist"), code.DataGroupNotExistError)
+		}
 	}
 
-	exist, err := s.dbRepo.DataGroupExist(filter)
-	if err != nil {
-		return err
-	}
-
-	if !exist {
-		return model.NewErrWithMessage(errors.New("data group does not exist"), code.DataGroupNotExistError)
-	}
-
-	exist, err = s.dbRepo.UserExists(req.UserList...)
+	exist, err := s.dbRepo.UserExists(req.UserList...)
 	if err != nil {
 		return err
 	}
