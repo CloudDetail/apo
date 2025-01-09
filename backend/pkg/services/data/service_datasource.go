@@ -46,7 +46,7 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest) (re
 		ID: req.GroupID,
 	}
 
-	dataGroup, err := s.dbRepo.GetDataGroup(filter)
+	dataGroup, _, err := s.dbRepo.GetDataGroup(filter)
 	if err != nil {
 		return resp, err
 	}

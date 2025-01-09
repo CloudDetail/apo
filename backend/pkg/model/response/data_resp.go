@@ -7,7 +7,10 @@ import (
 
 type GetDatasourceResponse []model.Datasource
 
-type GetDataGroupResponse []database.DataGroup
+type GetDataGroupResponse struct {
+	DataGroupList    []database.DataGroup `json:"dataGroupList"`
+	model.Pagination `json:",inline"`
+}
 
 type GetGroupDatasourceResponse database.DataGroup
 

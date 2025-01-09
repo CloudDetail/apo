@@ -54,7 +54,7 @@ func (repo *daoRepo) GetModifyAndDeleteDataGroup(subjectID int64, subjectType st
 	filter := model.DataGroupFilter{
 		IDs: ids,
 	}
-	dataGroups, err := repo.GetDataGroup(filter)
+	dataGroups, _, err := repo.GetDataGroup(filter)
 	if err != nil {
 		return nil, nil, err
 	}

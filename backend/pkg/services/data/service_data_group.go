@@ -196,11 +196,14 @@ func (s *service) GetDataGroup(req *request.GetDataGroupRequest) (resp response.
 		DatasourceList: req.DataSourceList,
 	}
 
-	dataGroups, err := s.dbRepo.GetDataGroup(filter)
+	dataGroups, count, err := s.dbRepo.GetDataGroup(filter)
 	if err != nil {
 		return
 	}
 
-	resp = dataGroups
+	resp.DataGroupList = dataGroups
+	resp.Total = count
+	resp.CurrentPage = req.CurrentPage
+	resp.PageSize = req.PageSize
 	return
 }

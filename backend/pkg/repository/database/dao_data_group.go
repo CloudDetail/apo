@@ -104,8 +104,11 @@ func (repo *daoRepo) DataGroupExist(filter model.DataGroupFilter) (bool, error) 
 	return count > 0, nil
 }
 
-func (repo *daoRepo) GetDataGroup(filter model.DataGroupFilter) ([]DataGroup, error) {
-	var dataGroups []DataGroup
+func (repo *daoRepo) GetDataGroup(filter model.DataGroupFilter) ([]DataGroup, int64, error) {
+	var (
+		dataGroups []DataGroup
+		count      int64
+	)
 	query := repo.db
 	if len(filter.Name) > 0 {
 		query = query.Where("group_name like ?", "%"+filter.Name+"%")
@@ -118,9 +121,6 @@ func (repo *daoRepo) GetDataGroup(filter model.DataGroupFilter) ([]DataGroup, er
 	}
 	if len(filter.IDs) > 0 {
 		query = query.Where("group_id in ?", filter.IDs)
-	}
-	if filter.CurrentPage != nil && filter.PageSize != nil {
-		query = query.Offset((*filter.CurrentPage - 1) * (*filter.PageSize)).Limit(*filter.PageSize)
 	}
 	if len(filter.DatasourceList) > 0 {
 		conditions := make([][]interface{}, 0, len(filter.DatasourceList))
@@ -135,8 +135,16 @@ func (repo *daoRepo) GetDataGroup(filter model.DataGroupFilter) ([]DataGroup, er
 		query.Where("group_id IN (?)", subQuery)
 	}
 
+	if err := query.Model(&DataGroup{}).Count(&count).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if filter.CurrentPage != nil && filter.PageSize != nil {
+		query = query.Offset((*filter.CurrentPage - 1) * (*filter.PageSize)).Limit(*filter.PageSize)
+	}
+
 	err := query.Preload("DatasourceList").Find(&dataGroups).Error
-	return dataGroups, err
+	return dataGroups, count, err
 }
 
 func (repo *daoRepo) RetrieveDataFromGroup(ctx context.Context, groupID int64, datasource []string) error {

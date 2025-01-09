@@ -76,7 +76,7 @@ type Repo interface {
 	DeleteDSGroup(ctx context.Context, groupID int64) error
 	DataGroupExist(filter model.DataGroupFilter) (bool, error)
 	UpdateDataGroupName(ctx context.Context, groupID int64, groupName string, description string) error
-	GetDataGroup(filter model.DataGroupFilter) ([]DataGroup, error)
+	GetDataGroup(filter model.DataGroupFilter) ([]DataGroup, int64, error)
 	RetrieveDataFromGroup(ctx context.Context, groupID int64, datasource []string) error
 	GetGroupDatasource(groupID ...int64) ([]DatasourceGroup, error)
 
