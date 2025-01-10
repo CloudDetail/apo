@@ -30,6 +30,9 @@ type GetPolarisInferRequest struct {
 	Step      int64  `form:"step" binding:"required"`                      // 查询步长(us)
 	Service   string `form:"service" binding:"required"`                   // 查询服务名
 	Endpoint  string `form:"endpoint" binding:"required"`                  // 查询Endpoint
+
+	Lanaguage string `form:"language" json:"language"` // 图片使用的语言
+	Timezone  string `form:"timezone" json:"timezone"` // 查询使用的时区
 }
 
 type GetDescendantRelevanceRequest = GetDescendantMetricsRequest
