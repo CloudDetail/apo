@@ -47,3 +47,9 @@ func (repo *daoRepo) GetFeatureMapping(featureIDs []int, mappedType string) ([]F
 	err := repo.db.Where("feature_id in ? AND mapped_type = ?", featureIDs, mappedType).Order("mapped_id").Find(&featureMenuItem).Error
 	return featureMenuItem, err
 }
+
+func (repo *daoRepo) GetFeatureByName(name string) (int, error) {
+	var id int
+	err := repo.db.Model(&Feature{}).Select("feature_id").Where("feature_name = ?", name).Find(&id).Error
+	return id, err
+}

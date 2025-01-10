@@ -19,7 +19,10 @@ func (s *service) ConfigureMenu(req *request.ConfigureMenuRequest) error {
 	}
 
 	addPermissions, deletePermissions := make([][]int, len(roles)), make([][]int, len(roles))
-
+	menuPermissionID, err := s.dbRepo.GetFeatureByName("菜单管理")
+	if err != nil {
+		return err
+	}
 	for i, role := range roles {
 		var err error
 		addPermissions[i], deletePermissions[i], err =
@@ -30,6 +33,14 @@ func (s *service) ConfigureMenu(req *request.ConfigureMenuRequest) error {
 				req.PermissionList)
 		if err != nil {
 			return err
+		}
+	}
+
+	for i := 0; i < len(deletePermissions[0]); {
+		if deletePermissions[0][i] == menuPermissionID {
+			deletePermissions[0] = append(deletePermissions[0][:i], deletePermissions[0][i+1:]...)
+		} else {
+			i++
 		}
 	}
 
