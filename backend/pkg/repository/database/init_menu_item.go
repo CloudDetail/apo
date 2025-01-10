@@ -31,7 +31,6 @@ func (repo *daoRepo) initMenuItems() error {
 		{MenuItem: MenuItem{Key: "manage", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/system.svg", Order: 16}},
 		{MenuItem: MenuItem{Key: "userManage", Order: 17}, RouterKey: "/system/user-manage"},
 		{MenuItem: MenuItem{Key: "menuManage", Order: 18}, RouterKey: "/system/menu-manage"},
-		{MenuItem: MenuItem{Key: "systemConfig", Order: 19}, RouterKey: "/system/config"},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {

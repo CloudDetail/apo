@@ -29,7 +29,7 @@ func (repo *daoRepo) initFeature() error {
 			{FeatureName: "中间件大盘"},
 			{FeatureName: "告警管理"}, {FeatureName: "告警规则"}, {FeatureName: "告警通知"},
 			{FeatureName: "配置中心"},
-			{FeatureName: "系统管理"}, {FeatureName: "用户管理"}, {FeatureName: "菜单管理"}, {FeatureName: "系统配置"},
+			{FeatureName: "系统管理"}, {FeatureName: "用户管理"}, {FeatureName: "菜单管理"},
 		}
 
 		newFeatureMap := make(map[string]struct{})
