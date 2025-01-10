@@ -60,7 +60,7 @@ func (repo *daoRepo) initFeature() error {
 		parentChildMapping := map[string][]string{
 			"日志检索": {"故障现场日志", "全量日志"},
 			"链路追踪": {"故障现场链路", "全量链路"},
-			"系统管理": {"用户管理", "菜单管理", "系统配置"},
+			"系统管理": {"用户管理", "菜单管理"},
 			"告警管理": {"告警规则", "告警通知"},
 		}
 		for parentName, childNames := range parentChildMapping {

@@ -69,7 +69,6 @@ func (repo *daoRepo) initMenuItems() error {
 			"menuManage":     "manage",
 			"alertsRule":     "alerts",
 			"alertsNotify":   "alerts",
-			"systemConfig":   "manage",
 		}
 
 		// update parent_id
