@@ -25,7 +25,7 @@ const ParseRuleTabs = () => {
             <span className="text-xs text-gray-400">
               {t('configLogRuleModal.parseRuleTabs.unStructuredDescription')}
               <a
-                href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/日志解析规则配置/"
+                href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/日志解析规则配置/"
                 className="underline"
                 target="_blank"
               >

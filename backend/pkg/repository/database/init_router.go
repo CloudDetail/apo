@@ -24,13 +24,10 @@ func (repo *daoRepo) initRouterData() error {
 		{RouterTo: "/system/menu-manage", HideTimeSelector: false},
 		{RouterTo: "/trace/fault-site", HideTimeSelector: true},
 		{RouterTo: "/trace/full", HideTimeSelector: true},
+		{RouterTo: "/system/config", HideTimeSelector: true},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&Router{}); err != nil {
-			return err
-		}
-
 		var existingRouter, toAdd []Router
 		var toDelete []int
 

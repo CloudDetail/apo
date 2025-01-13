@@ -2,7 +2,7 @@
   "faultSiteLogs": {
     "faultLogTableToast1": "Console logs are collected by default. Refer to ",
     "faultLogTableToast2": " for file-based log collection setup.",
-    "documentText": "documentation",
+    "documentText": "Configure Log Collection",
     "faultLogsText": "FaultLogs",
     "endpoint": "Endpoint",
     "timeOfFailure": "Time",

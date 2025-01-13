@@ -4,15 +4,16 @@
 package service
 
 import (
+	"log"
+	"math"
+	"strconv"
+	"time"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
-	"log"
-	"math"
-	"strconv"
-	"time"
 )
 
 func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error) {
@@ -93,7 +94,7 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 	}
 
 	for _, instance := range instances.MetricGroupList {
-		if len(instance.Pod) == 0 && len(instance.PID) == 0 && len(instance.ContainerId) == 0 {
+		if IsInvalidData(instances.MetricGroupMap, instance) {
 			continue
 		}
 

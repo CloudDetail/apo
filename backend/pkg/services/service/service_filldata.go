@@ -5,9 +5,10 @@ package service
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-multierror"
 	"math"
 	"time"
+
+	"github.com/hashicorp/go-multierror"
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
@@ -23,6 +24,27 @@ const (
 )
 
 type InstanceMap = prometheus.MetricGroupMap[prometheus.InstanceKey, *prometheus.InstanceMetrics]
+
+func IsInvalidData(m map[prometheus.InstanceKey]*prometheus.InstanceMetrics, metric *prometheus.InstanceMetrics) bool {
+	if len(metric.Pod) == 0 && len(metric.PID) == 0 && len(metric.ContainerId) == 0 {
+		return true
+	}
+
+	if metric.PID == "1" {
+		// skip process with the same information except pid = 1
+		for k := range m {
+			if k.Pod == metric.Pod &&
+				k.ContainerId == metric.ContainerId &&
+				k.Namespace == metric.Namespace &&
+				k.NodeName == metric.NodeName &&
+				k.NodeIP == metric.NodeIP {
+				return true
+			}
+		}
+	}
+
+	return false
+}
 
 // mergeChartMetrics 用于将指标结果合并到map中
 // 功能上与MetricGroup.MergeMetricResults类似但是MergeMetricResults并不能完全复用

@@ -68,10 +68,6 @@ instance.interceptors.response.use(
               return instance(originalRequest)
             } else {
               window.location.href = '/#/login'
-              showToast({
-                title: <TranslationCom text="request.loginExpired" space={namespace} />,
-                color: 'danger',
-              })
             }
           } else {
             showToast({

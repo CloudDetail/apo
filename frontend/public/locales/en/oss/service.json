@@ -33,7 +33,7 @@
       "unmonitoredText": "1. If the application is not yet monitored, please refer to",
       "unmonitoredLinkText": " Monitoring Manual",
       "monitoredText": "2. If the application is already monitored but still shows no data, please refer to",
-      "monitoredLinkText": " Troubleshooting Manual"
+      "monitoredLinkText": "Service Overview No Data Troubleshooting Documentation"
     }
   },
   "tableFilter": {

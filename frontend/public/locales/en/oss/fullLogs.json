@@ -79,7 +79,7 @@
     "parseRuleTabs": {
       "unStructuredLabel": "Unstructured Logs",
       "unStructuredDescription": "Structure logs that meet the rules and speed up query, see ",
-      "unStructuredHelpLink": "Help Document",
+      "unStructuredHelpLink": "Log Parsing Rule Configuration",
       "parseRulePlaceholder": "Parse Rule",
       "parseRuleError": "Please enter the parse rule or fill in at least one log field data type",
       "structuredLabel": "Structured Logs",

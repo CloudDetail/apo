@@ -364,7 +364,7 @@ export default function ServiceView() {
               <a
                 className="underline text-sky-500"
                 target="_blank"
-                href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/监控%20Kubernetes%20集群中的服务器和应用使用OneAgent默认OTEL探针版本/"
+                href="https://kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/安装%20APO-OneAgent/"
               >
                 {t('index.tableProps.unmonitoredLinkText')}
               </a>
@@ -374,7 +374,7 @@ export default function ServiceView() {
               <a
                 className="underline text-sky-500"
                 target="_blank"
-                href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/运维与故障排除/APO%20服务概览无数据排查文档/#常见基础问题排查"
+                href="https://kindlingx.com/docs/APO%20向导式可观测性中心/常见问题/运维与故障排除/APO%20服务概览无数据排查文档"
               >
                 {t('index.tableProps.monitoredLinkText')}
               </a>

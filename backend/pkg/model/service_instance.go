@@ -90,14 +90,25 @@ func (instances *ServiceInstances) GetInstanceIds() []string {
 	return instanceIdList
 }
 
+// find out the non-duplicate instance list from the collected instance information
+//
+// HACK when two process with the same information except one of them has pid = 1,
+// we always return the instance with pid > 1
 func (instances *ServiceInstances) GetInstanceIdMap() map[string]*ServiceInstance {
-	// 使用Map去重
 	instanceMap := make(map[string]*ServiceInstance)
 	for _, instance := range instances.InstanceMap {
 		if instance.PodName != "" {
-			instanceMap[instance.getPodInstanceId()] = instance
+			instanceId := instance.getPodInstanceId()
+			_, find := instanceMap[instanceId]
+			if !find || instance.Pid > 1 {
+				instanceMap[instanceId] = instance
+			}
 		} else if instance.ContainerId != "" {
-			instanceMap[instance.getContainerInstanceId()] = instance
+			instanceId := instance.getContainerInstanceId()
+			_, find := instanceMap[instanceId]
+			if !find || instance.Pid > 1 {
+				instanceMap[instanceId] = instance
+			}
 		} else {
 			instanceMap[instance.getVMInstanceId()] = instance
 		}

@@ -33,7 +33,7 @@
       "unmonitoredText": "1. 如尚未监控应用，请参阅",
       "unmonitoredLinkText": "监控手册",
       "monitoredText": " 2. 如已监控应用但仍无数据，请参阅",
-      "monitoredLinkText": "故障排除手册"
+      "monitoredLinkText": "服务概览无数据排查文档"
     }
   },
   "tableFilter": {

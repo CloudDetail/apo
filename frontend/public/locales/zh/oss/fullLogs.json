@@ -79,7 +79,7 @@
     "parseRuleTabs": {
       "unStructuredLabel": "非结构化日志",
       "unStructuredDescription": "将符合规则的日志进行结构化并加快查询速度，查看",
-      "unStructuredHelpLink": "帮助文档",
+      "unStructuredHelpLink": "日志解析规则配置",
       "parseRulePlaceholder": "解析规则",
       "parseRuleError": "请输入解析规则或填写至少一个日志字段数据类型",
       "structuredLabel": "结构化日志",

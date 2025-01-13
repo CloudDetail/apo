@@ -34,10 +34,6 @@ func (repo *daoRepo) initPermissions() error {
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&AuthPermission{}); err != nil {
-			return err
-		}
-
 		var featureIDs []int
 		if err := tx.Model(&Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
 			return err
