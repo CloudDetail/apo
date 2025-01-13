@@ -79,6 +79,9 @@ type Context interface {
 	Get(key string) (any, bool)
 
 	Next()
+	Request() *http.Request
+
+	ClientIP() string
 }
 
 type context struct {
@@ -175,3 +178,11 @@ func (c *context) Get(key string) (any, bool) {
 func (c *context) Next() { c.ctx.Next() }
 
 func (c *context) Abort() { c.ctx.Abort() }
+
+func (c *context) Request() *http.Request {
+	return c.ctx.Request
+}
+
+func (c *context) ClientIP() string {
+	return c.ctx.ClientIP()
+}
