@@ -7,9 +7,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// HealthCheck 用于k8s检查后端健康状态
-// @Summary 用于k8s检查后端健康状态
-// @Description 用于k8s检查后端健康状态
+// HealthCheck for k8s to check backend health status
+// @Summary for k8s to check backend health status
+// @Description for k8s to check backend health status
 // @Tag API.health
 // @Accept application/x-www-form-urlencoded
 // @Produce json

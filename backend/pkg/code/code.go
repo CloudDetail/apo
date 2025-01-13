@@ -18,7 +18,7 @@ const (
 	MockDeleteError = "B0104"
 
 	GetServiceUrlRelationError          = "B0301"
-	GetServiceUrlTopologyError          = "B0301" // TODO 待删除
+	GetServiceUrlTopologyError          = "B0301" // TODO to be deleted
 	GetDescendantMetricsError           = "B0302"
 	GetDescendantRelevanceError         = "B0303"
 	GetPolarisInferError                = "B0304"
@@ -29,7 +29,7 @@ const (
 	GetTraceMetricsError                = "B0310"
 	GetTraceLogsError                   = "B0311"
 	GetServiceListError                 = "B0312"
-	GetServiceInstanceListError         = "B0313" // TODO 待删除.
+	GetServiceInstanceListError         = "B0313" // TODO to be deleted.
 	GetServiceInstanceOptionsError      = "B0313"
 	GetK8sEventError                    = "B0314"
 	GetOverviewServiceInstanceListError = "B0315"
@@ -174,8 +174,8 @@ func Text(code string) string {
 	return zhCnText[code]
 }
 
-// Failure 返回结构
+// Failure return structure
 type Failure struct {
-	Code    string `json:"code"`    // 业务码
-	Message string `json:"message"` // 错误信息
+	Code    string `json:"code"`    // business code
+	Message string `json:"message"` // error message
 }

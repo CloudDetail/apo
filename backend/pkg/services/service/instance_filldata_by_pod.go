@@ -34,7 +34,7 @@ func (s *service) InstanceAVGByPod(Instances *[]serviceoverview.Instance, servic
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == pod {
 				found = true
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].AvgLatency = &value
 				}
 				break
@@ -54,7 +54,7 @@ func (s *service) InstanceAVGByPod(Instances *[]serviceoverview.Instance, servic
 				Pid:          pid,
 				NodeIP:       nodeIP,
 			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
+			if !math.IsInf(value, 0) { // does not assign value when it is infinity
 				newInstance.AvgLatency = &value
 			}
 			*Instances = append(*Instances, newInstance)
@@ -71,7 +71,7 @@ func (s *service) InstanceAVGByPod(Instances *[]serviceoverview.Instance, servic
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == pod {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].AvgErrorRate = &value
 				}
 				break
@@ -89,7 +89,7 @@ func (s *service) InstanceAVGByPod(Instances *[]serviceoverview.Instance, servic
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == pod {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].AvgTPS = &value
 				}
 				break
@@ -117,7 +117,7 @@ func (s *service) InstanceDODByPod(Instances *[]serviceoverview.Instance, servic
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == pod {
 				found = true
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].LatencyDayOverDay = &value
 				}
 				break
@@ -137,7 +137,7 @@ func (s *service) InstanceDODByPod(Instances *[]serviceoverview.Instance, servic
 				Pid:          pid,
 				NodeIP:       nodeIP,
 			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
+			if !math.IsInf(value, 0) { // does not assign value when it is infinity
 				newInstance.LatencyDayOverDay = &value
 			}
 			*Instances = append(*Instances, newInstance)
@@ -146,7 +146,7 @@ func (s *service) InstanceDODByPod(Instances *[]serviceoverview.Instance, servic
 
 	errorDODquery := prometheus.QueryPodPromql(duration, prometheus.ErrorDOD, serviceName, contentKey)
 	errorDoDres, err := s.promRepo.QueryData(endTime, errorDODquery)
-	// 更新wrongUrls中的内容
+	// Update the contents of the wrongUrls
 	for _, result := range errorDoDres {
 		contentKey := result.Metric.ContentKey
 		serviceName := result.Metric.SvcName
@@ -154,7 +154,7 @@ func (s *service) InstanceDODByPod(Instances *[]serviceoverview.Instance, servic
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == pod {
-				if !math.IsInf(value, 0) { //为无穷大时则赋值Int64
+				if !math.IsInf(value, 0) { // if value is infinity, then Int64 is assigned
 					(*Instances)[i].ErrorRateDayOverDay = &value
 				} else {
 					var value float64
@@ -176,7 +176,7 @@ func (s *service) InstanceDODByPod(Instances *[]serviceoverview.Instance, servic
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == pod {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].TPSDayOverDay = &value
 				}
 				break
@@ -202,7 +202,7 @@ func (s *service) InstanceWOWByPod(Instances *[]serviceoverview.Instance, servic
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == pod {
 				found = true
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].LatencyWeekOverWeek = &value
 				}
 				break
@@ -219,7 +219,7 @@ func (s *service) InstanceWOWByPod(Instances *[]serviceoverview.Instance, servic
 				Pid:          pid,
 				NodeIP:       nodeIP,
 			}
-			if !math.IsInf(value, 0) { //为无穷大时则不赋值
+			if !math.IsInf(value, 0) { // does not assign value when it is infinity
 				newInstance.LatencyWeekOverWeek = &value
 			}
 			*Instances = append(*Instances, newInstance)
@@ -236,7 +236,7 @@ func (s *service) InstanceWOWByPod(Instances *[]serviceoverview.Instance, servic
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == pod {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].TPSWeekOverWeek = &value
 				}
 				break
@@ -254,7 +254,7 @@ func (s *service) InstanceWOWByPod(Instances *[]serviceoverview.Instance, servic
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ContentKey == contentKey && Instance.SvcName == serviceName && Instance.InstanceName == pod {
-				if !math.IsInf(value, 0) { //为无穷大时则赋值MaxInt64
+				if !math.IsInf(value, 0) { //  the assignment is MaxInt64 when it is infinity
 					(*Instances)[i].ErrorRateWeekOverWeek = &value
 				} else {
 					var value float64
@@ -269,7 +269,7 @@ func (s *service) InstanceWOWByPod(Instances *[]serviceoverview.Instance, servic
 	return Instances, err
 }
 
-// InstanceRangeDataByPod  查询曲线图
+// InstanceRangeDataByPod query graph
 func (s *service) InstanceRangeDataByPod(Instances *[]serviceoverview.Instance, contentKey string, serviceName string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]serviceoverview.Instance, error) {
 	if Instances == nil {
 		return nil, errors.New("instances is nil")
@@ -277,7 +277,7 @@ func (s *service) InstanceRangeDataByPod(Instances *[]serviceoverview.Instance, 
 	var stepToStr string
 
 	stepMinutes := float64(step) / float64(time.Minute)
-	// 格式化为字符串，保留一位小数
+	// Format as a string, keeping one decimal place
 	stepToStr = fmt.Sprintf("%.1fm", stepMinutes)
 
 	errorDataQuery := prometheus.QueryPodRangePromql(stepToStr, prometheus.ErrorData, contentKey, serviceName)
@@ -296,7 +296,7 @@ func (s *service) InstanceRangeDataByPod(Instances *[]serviceoverview.Instance, 
 	}
 
 	var LatencyDataRes []prometheus.MetricResult
-	// 分批处理 ContentKeys
+	// Batch ContentKeys
 
 	latencyDataQuery := prometheus.QueryPodRangePromql(stepToStr, prometheus.LatencyData, contentKey, serviceName)
 	LatencyDataRes, err = s.promRepo.QueryRangeLatencyData(startTime, endTime, latencyDataQuery, step)
@@ -313,7 +313,7 @@ func (s *service) InstanceRangeDataByPod(Instances *[]serviceoverview.Instance, 
 	}
 
 	var TPSLastDataRes []prometheus.MetricResult
-	// 分批处理 ContentKeys
+	//Batch ContentKeys
 	//TPSLastDataRes, err = s.promRepo.QueryRangePrometheusTPSLast30min(searchTime)
 	TPSDataQuery := prometheus.QueryPodRangePromql(stepToStr, prometheus.TPSData, contentKey, serviceName)
 	TPSLastDataRes, err = s.promRepo.QueryRangeData(startTime, endTime, TPSDataQuery, step)

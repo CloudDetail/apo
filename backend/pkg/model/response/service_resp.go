@@ -12,29 +12,29 @@ import (
 )
 
 type GetServiceEndpointRelationResponse struct {
-	Parents       []*model.TopologyNode    `json:"parents"`        // 上游节点列表
-	Current       *model.TopologyNode      `json:"current"`        // 当前服务
-	ChildRelation []*model.ToplogyRelation `json:"childRelations"` // 下游节点调用关系列表
+	Parents       []*model.TopologyNode    `json:"parents"`        // upstream node list
+	Current       *model.TopologyNode      `json:"current"`        // current service
+	ChildRelation []*model.ToplogyRelation `json:"childRelations"` // downstream node call relationship list
 }
 
 type GetServiceEndpointTopologyResponse struct {
-	Parents  []*model.TopologyNode `json:"parents"`  // 上游节点列表
-	Current  *model.TopologyNode   `json:"current"`  // 当前服务
-	Children []*model.TopologyNode `json:"children"` // 下游节点列表
+	Parents  []*model.TopologyNode `json:"parents"`  // upstream node list
+	Current  *model.TopologyNode   `json:"current"`  // current service
+	Children []*model.TopologyNode `json:"children"` // downstream node list
 }
 
 type GetDescendantMetricsResponse = prometheus.DescendantMetrics
 
 type GetDescendantRelevanceResponse struct {
-	ServiceName      string  `json:"serviceName"`  // 服务名
-	EndPoint         string  `json:"endpoint"`     // Endpoint
-	Group            string  `json:"group"`        // 服务类型
-	IsTraced         bool    `json:"isTraced"`     // 是否跟踪
-	Distance         float64 `json:"distance"`     // 延时曲线差异
-	DistanceType     string  `json:"distanceType"` // 延时曲线差异计算方式, 有euclidean/pearson/dtw/failed/net_failed四种
-	DelaySource      string  `json:"delaySource"`  // 延时主要来源 unknown/self/dependency
-	REDMetricsStatus string  `json:"REDStatus"`    // RED指标告警
-	LastUpdateTime   *int64  `json:"timestamp"`    // 末次部署时间
+	ServiceName      string  `json:"serviceName"`   // service name
+	EndPoint         string  `json:"endpoint"`      // Endpoint
+	Group            string  `json:"group"`         // service type
+	IsTraced         bool    `json:"isTraced"`      // whether to trace
+	Distance         float64 `json:"distance"`      // delay curve difference
+	DistanceType     string  `json: "distanceType"` // delay curve difference calculation method, there are four types of euclidean/pearson/dtw/failed/net_failed
+	DelaySource      string  `json: "delaySource"`  // main source of delay unknown/self/dependency
+	REDMetricsStatus string  `json:"REDStatus"`     // RED metric alarm
+	LastUpdateTime   *int64  `json:"timestamp"`     // Last deployment time
 
 	model.AlertStatus
 	AlertReason model.AlertReason `json:"alertReason"`
@@ -43,31 +43,31 @@ type GetDescendantRelevanceResponse struct {
 type GetPolarisInferResponse = polarisanalyzer.PolarisInferRes
 
 type GetErrorInstanceResponse struct {
-	Status    string           `json:"status"`    // 错误实例状态
-	Instances []*ErrorInstance `json:"instances"` // 错误实例列表
+	Status    string           `json:"status"`    // Bad instance status
+	Instances []*ErrorInstance `json:"instances"` // error instance list
 }
 
 type ErrorInstance struct {
-	Name        string            `json:"name"`        // 错误实例名
-	ContainerId string            `json:"containerId"` // 容器ID
-	NodeName    string            `json:"nodeName"`    // 主机名
-	Pid         int64             `json:"pid"`         // 进程号
-	Propations  []*ErrorPropation `json:"propations"`  // 错误传播信息
-	Logs        map[int64]float64 `json:"logs"`        // 日志告警
+	Name        string            `json:"name"`        // Bad instance name
+	ContainerId string            `json:"containerId"` // container ID
+	NodeName    string            `json:"nodeName"`    // hostname
+	Pid         int64             `json:"pid"`         // process number
+	Propations  []*ErrorPropation `json:"propations"`  // error propagation info
+	Logs        map[int64]float64 `json:"logs"`        // log alarm
 }
 
 type ErrorPropation struct {
-	Timestamp  int64           `json:"timestamp"` // 时间戳
+	Timestamp  int64           `json:"timestamp"` // timestamp
 	TraceId    string          `json:"traceId"`   // TraceId
-	ErrorInfos []*ErrorInfo    `json:"errors"`    // 错误信息
-	Parents    []*InstanceNode `json:"parents"`   // 上游节点列表
-	Current    *InstanceNode   `json:"current"`   // 当前节点
-	Children   []*InstanceNode `json:"children"`  // 下游节点列表
+	ErrorInfos []*ErrorInfo    `json:"errors"`    // error message
+	Parents    []*InstanceNode `json:"parents"`   // upstream node list
+	Current    *InstanceNode   `json:"current"`   // current node
+	Children   []*InstanceNode `json:"children"`  // downstream node list
 }
 
 type ErrorInfo struct {
-	Type    string `json:"type"`    // 错误类型
-	Message string `json:"message"` // 错误消息
+	Type    string `json:"type"`    // error type
+	Message string `json:"message"` // error message
 }
 
 type InstanceNode struct {
@@ -77,35 +77,35 @@ type InstanceNode struct {
 }
 
 type GetLogMetricsResponse struct {
-	Name        string            `json:"name"`        // 实例名
-	ContainerId string            `json:"containerId"` // 容器ID
-	NodeName    string            `json:"nodeName"`    // 主机名
-	Pid         int64             `json:"pid"`         // 进程号
-	Logs        map[int64]float64 `json:"logs"`        // 日志告警
-	Latency     map[int64]float64 `json:"latency"`     // 延时P90
-	ErrorRate   map[int64]float64 `json:"errorRate"`   // 错误率
+	Name        string            `json:"name"`        // Instance name
+	ContainerId string            `json:"containerId"` // container ID
+	NodeName    string            `json:"nodeName"`    // hostname
+	Pid         int64             `json:"pid"`         // process number
+	Logs        map[int64]float64 `json:"logs"`        // log alarm
+	Latency     map[int64]float64 `json:"latency"`     // delay P90
+	ErrorRate   map[int64]float64 `json:"errorRate"`   // error rate
 }
 
 type GetTraceMetricsResponse = GetLogMetricsResponse
 
 type AlarmStatus struct {
-	Name   string // 告警项
-	Status bool   // 是否告警 true: 告警 false: 未告警
+	Name   string // Alarm entry
+	Status bool   // alarm true: alarm false: no alarm
 }
 
 type Ratio struct {
-	// DayOverDay 日同比变化率
+	// Day-over-Day Growth Rate
 	DayOverDay *float64 `json:"dayOverDay"`
-	// WeekOverDay 周同比变化率
+	// Week-over-Week Growth Rate
 	WeekOverDay *float64 `json:"weekOverDay"`
 }
 
 type TempChartObject struct {
-	// ChartData 图表数据
+	// ChartData chart data
 	ChartData map[int64]float64 `json:"chartData"`
-	// Value 指标平均值
+	// Value metric average
 	Value *float64 `json:"value"`
-	// Ratio 指标同比变化率
+	// Ratio metric Day-over-Day Growth Rate rate
 	Ratio Ratio `json:"ratio"`
 }
 
@@ -114,7 +114,7 @@ type ServiceDetail struct {
 	DelaySource string          `json:"delaySource"`
 	Latency     TempChartObject `json:"latency"`
 	ErrorRate   TempChartObject `json:"errorRate"`
-	Tps         TempChartObject `json:"tps"` // FIXME 名称为tps,实际为每分钟请求数
+	Tps         TempChartObject `json:"tps"` // FIXME name is tps, actual requests per minute
 }
 
 type ServiceRes struct {
@@ -139,7 +139,7 @@ type ServiceAlertRes struct {
 
 type ServiceEndPointsRes struct {
 	ServiceName    string          `json:"serviceName"`
-	Namespaces     []string        `json:"namespaces"` // 应用所属命名空间,可能为空
+	Namespaces     []string        `json:"namespaces"` // The namespace of the application. It may be empty
 	EndpointCount  int             `json:"endpointCount"`
 	ServiceDetails []ServiceDetail `json:"serviceDetails"`
 }
@@ -168,8 +168,8 @@ const (
 )
 
 type RYGResult struct {
-	PercentScore int       `json:"percentScore"` // 百分比总分
-	Score        int       `json:"score"`        // 总分
+	PercentScore int       `json:"percentScore"` // percentage total score
+	Score        int       `json:"score"`        // total score
 	Status       RYGStatus `json:"status"`
 
 	ScoreDetail []RYGScoreDetail `json:"scoreDetail"`
@@ -182,7 +182,7 @@ type RYGScoreDetail struct {
 }
 
 type InstanceData struct {
-	Name      string          `json:"name"` //实例名
+	Name      string          `json:"name"` // Instance name
 	Namespace string          `json:"namespace"`
 	NodeName  string          `json:"nodeName"`
 	NodeIP    string          `json:"nodeIP"`
@@ -256,7 +256,7 @@ type GetServiceEntryEndpointsResponse struct {
 
 type EntryInstanceData struct {
 	ServiceName    string          `json:"serviceName"`
-	Namespaces     []string        `json:"namespaces"` // 应用所属命名空间,可能为空
+	Namespaces     []string        `json:"namespaces"` // The namespace of the application. It may be empty
 	EndpointCount  int             `json:"endpointCount"`
 	ServiceDetails []ServiceDetail `json:"serviceDetails"`
 

@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// DeleteLogParseRule 删除日志表解析规则
-// @Summary 删除日志表解析规则
-// @Description 删除日志表解析规则
+// DeleteLogParseRule delete log table parsing rules
+// @Summary delete log table parsing rules
+// @Description delete log table parsing rules
 // @Tags API.log
 // @Accept json
 // @Produce json
-// @Param Request body request.DeleteLogParseRequest true "请求信息"
+// @Param Request body request.DeleteLogParseRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.LogParseResponse
 // @Failure 400 {object} code.Failure

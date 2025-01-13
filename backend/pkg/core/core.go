@@ -56,12 +56,12 @@ func New(logger *zap.Logger) (*Mux, error) {
 				abortErr        error
 			)
 
-			// 发生 Panic
+			// Panic occurs
 			if err := recover(); err != nil {
 				stackInfo := string(debug.Stack())
 				logger.Error("got panic", zap.String("panic", fmt.Sprintf("%+v", err)), zap.String("stack", stackInfo))
 
-				// BuisnessError 返回码为500
+				// BuisnessError return code is 500
 				context.AbortWithError(Error(
 					http.StatusInternalServerError,
 					code.ServerError,
@@ -69,7 +69,7 @@ func New(logger *zap.Logger) (*Mux, error) {
 				))
 			}
 
-			// 发生错误，进行返回
+			// Error occurred, return
 			if ctx.IsAborted() {
 				for i := range ctx.Errors {
 					multierr.AppendInto(&abortErr, ctx.Errors[i])
@@ -81,7 +81,7 @@ func New(logger *zap.Logger) (*Mux, error) {
 					businessCode = err.BusinessCode()
 					businessCodeMsg = err.Message()
 				} else {
-					// 存在没有Error的情况
+					// There is no Error
 					httpCode = http.StatusInternalServerError
 					businessCode = code.ServerError
 					businessCodeMsg = code.Text(code.ServerError)
@@ -92,12 +92,12 @@ func New(logger *zap.Logger) (*Mux, error) {
 				})
 			} else {
 				if len(ctx.GetHeader("X-Data-Flow")) > 0 {
-					// 不需要为 X-Data-Flow = Meta 类型数据记录debug日志
-					// 同时响应数据在handler内部处理并返回过了
+					// No need to log debug for X-Data-Flow = Meta type data
+					// At the same time, the response data is processed and returned inside the handler.
 					return
 				}
 
-				// region 正确返回
+				// region returned correctly
 				ctx.JSON(http.StatusOK, context.getPayload())
 			}
 

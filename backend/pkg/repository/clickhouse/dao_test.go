@@ -26,14 +26,14 @@ func TestRepo(t *testing.T) {
 		t.Fatalf("Error to connect clickhouse: %v", err)
 	}
 
-	testListParentNodes(t, repo) // 查询上游节点列表
+	testListParentNodes(t, repo) // Query the list of upstream nodes
 	testKafkaListParentNodes(t, repo)
-	testListChildNodes(t, repo)           // 查询下游节点列表
-	testDescendantNodes(t, repo)          // 查询所有子孙节点列表
-	testDescendantRelations(t, repo)      // 查询下游节点调用关系列表
-	testKafkaDescendantRelations(t, repo) // 查询下游节点调用关系列表
+	testListChildNodes(t, repo)           // Query the list of downstream nodes
+	testDescendantNodes(t, repo)          // query the list of all descendant nodes
+	testDescendantRelations(t, repo)      // Query the call relationship list of downstream nodes
+	testKafkaDescendantRelations(t, repo) // Query the call relationship list of downstream nodes
 
-	// testCountK8sEvents(t, repo) // 计算K8s事件数量
+	// testCountK8sEvents(t, repo) // count the number of K8s events
 }
 
 func testListParentNodes(t *testing.T, repo Repo) {

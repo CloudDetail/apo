@@ -5,7 +5,7 @@ package prometheus
 
 type EndpointKey struct {
 	ContentKey string // URL
-	SvcName    string // url所属的服务名
+	SvcName    string // Name of the service to which the url belongs
 }
 
 type InstanceKey struct {
@@ -70,7 +70,7 @@ func (k SQLKey) ConvertFromLabels(labels Labels) ConvertFromLabels {
 }
 
 type ServiceKey struct {
-	SvcName string // url所属的服务名
+	SvcName string // Name of the service to which the url belongs
 }
 
 func (S ServiceKey) ConvertFromLabels(labels Labels) ConvertFromLabels {

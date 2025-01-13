@@ -5,22 +5,23 @@ package user
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// UpdateUserEmail 更新/绑定邮箱
-// @Summary 更新/绑定邮箱
-// @Description 更新/绑定邮箱
+// UpdateUserEmail update/bind mailbox
+// @Summary update/bind mailbox
+// @Description update/bind mailbox
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId formData int64 true "用户id"
-// @Param email formData string true "邮箱"
+// @Param userId formData int64 true "user id"
+// @Param email formData string true "mailbox"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure

@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// OtherTableInfo 获取外部日志表信息
-// @Summary 获取外部日志表信息
-// @Description 获取外部日志表信息
+// OtherTableInfo get external log table information
+// @Summary get external log table information
+// @Description get external log table information
 // @Tags API.log
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.OtherTableInfoRequest true "请求信息"
+// @Param Request body request.OtherTableInfoRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.OtherTableInfoResponse
 // @Failure 400 {object} code.Failure

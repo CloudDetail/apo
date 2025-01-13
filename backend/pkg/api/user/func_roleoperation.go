@@ -5,9 +5,10 @@ package user
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -19,8 +20,8 @@ import (
 // @Tags API.permission
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId formData int64 ture "用户id"
-// @Param roleList formData []int ture "角色id" collectionFormat(multi)
+// @Param userId formData int64 ture "user id"
+// @Param roleList formData []int ture "role id" collectionFormat(multi)
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure

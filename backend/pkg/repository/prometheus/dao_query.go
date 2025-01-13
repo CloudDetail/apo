@@ -82,7 +82,7 @@ func (repo *promRepo) QueryRangeData(startTime time.Time, endTime time.Time, que
 	return results, nil
 }
 
-//latency查询曲线图需要处理，将其转成微秒
+// latency the query graph needs to be processed, turn it into microseconds
 
 func (repo *promRepo) QueryLatencyData(searchTime time.Time, query string) ([]MetricResult, error) {
 	value, warnings, err := repo.GetApi().Query(context.Background(), query, searchTime)
@@ -154,7 +154,7 @@ func (repo *promRepo) QueryRangeLatencyData(startTime time.Time, endTime time.Ti
 	return results, nil
 }
 
-// 错误率需要处理为百分比
+// Error rate needs to be handled as a percentage
 func (repo *promRepo) QueryErrorRateData(searchTime time.Time, query string) ([]MetricResult, error) {
 	value, warnings, err := repo.GetApi().Query(context.Background(), query, searchTime)
 	if err != nil {

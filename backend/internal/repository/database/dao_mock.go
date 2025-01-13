@@ -8,7 +8,7 @@ import (
 	"github.com/CloudDetail/apo/backend/internal/model/response"
 )
 
-// BaseModel 模型基类
+// BaseModel model base class
 type BaseModel struct {
 	ID uint `gorm:"AUTO_INCREMENT"`
 }
@@ -19,7 +19,7 @@ type Mock struct {
 }
 
 func (Mock) TableName() string {
-	// 必须实现TableName()，不然会变为mocks表
+	// TableName() must be implemented, otherwise it will become a mocks table.
 	return "mock"
 }
 
@@ -40,7 +40,7 @@ func (repo *daoRepo) GetMockById(id uint) (model *Mock, err error) {
 func (repo *daoRepo) ListMocksByCondition(req *request.ListRequest) (r []*response.ListData, count int64, err error) {
 	d := repo.db.Model(&Mock{}).
 		Where("name = ?", req.Name)
-	d.Count(&count) // 总数
+	d.Count(&count) // Total
 
 	repo.db.
 		Model(&Mock{}).

@@ -67,7 +67,7 @@ func (p *ParseInfo) UpdateParseRule(config VectorConfig) ([]byte, error) {
 		return nil, errors.New("配置文件更新出错")
 	}
 
-	// 更新 parse_test 的 source 字段
+	// Update the source field of the parse_test
 	parseTest, ok := config.Transforms["parse_"+p.ParseName].(map[string]interface{})
 	if ok {
 		parseTest["source"] = p.ParseRule

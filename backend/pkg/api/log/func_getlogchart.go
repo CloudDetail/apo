@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetLogChart 获取日志趋势图
-// @Summary 获取日志趋势图
-// @Description 获取日志趋势图
+// GetLogChart get the log trend chart
+// @Summary get the log trend chart
+// @Description get the log trend chart
 // @Tags API.log
 // @Accept json
 // @Produce json
-// @Param Request body request.LogQueryRequest true "请求信息"
+// @Param Request body request.LogQueryRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.LogChartResponse
 // @Failure 400 {object} code.Failure

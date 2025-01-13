@@ -122,7 +122,7 @@ func ValidateAMConfigReceiver(receiver amconfig.Receiver) error {
 	}
 
 	for _, receiver := range receiver.WebhookConfigs {
-		// HACK 丢弃接口中设置的HEADER
+		// HACK discard HEADER set in interface
 		if receiver.HTTPConfig != nil {
 			receiver.HTTPConfig.HTTPHeaders = nil
 		}

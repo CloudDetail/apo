@@ -49,7 +49,7 @@ func (s *service) InitParseLogTable(req *request.LogTableRequest) (*response.Log
 		ParseRule: defaultParseRule,
 		ParseInfo: defaultParseInfo,
 	}
-	// 不存在才去插入logtableinfo
+	// does not exist to insert logtableinfo
 	err = s.dbRepo.OperateLogTableInfo(logtable, database.QUERY)
 	if err != nil {
 		err = s.dbRepo.OperateLogTableInfo(logtable, database.INSERT)

@@ -37,18 +37,18 @@ func (p *polRepo) QueryPolarisInfer(req *request.GetPolarisInferRequest) (*Polar
 	if err != nil {
 		return &PolarisInferRes{}, err
 	}
+	// Send http request
 
 	// request.Header.Add("Accept-Language", req.Lanaguage)
 	// request.Header.Add("X-Timezone", req.Timezone)
 
-	// 发送http请求
 	res, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return &PolarisInferRes{}, err
 	}
 	defer res.Body.Close()
 
-	// 从res body中解析json数据
+	// parse json data from res body
 	var inferRes PolarisInferRes
 	err = json.NewDecoder(res.Body).Decode(&inferRes)
 	return &inferRes, err
