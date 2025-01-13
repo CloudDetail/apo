@@ -11,7 +11,7 @@ import TableBody from './tableBody'
 import LoadingSpinner from '../Spinner'
 import BasicPagination from './basicPagination'
 
-const BasicTable = (props) => {
+const BasicTable = React.memo((props) => {
   const {
     data,
     columns,
@@ -165,6 +165,6 @@ const BasicTable = (props) => {
       )}
     </div>
   )
-}
+})
 
-export default React.memo(BasicTable)
+export default BasicTable

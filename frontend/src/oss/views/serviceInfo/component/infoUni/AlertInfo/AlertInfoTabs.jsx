@@ -13,6 +13,7 @@ import AlertInfoTable from './AlertInfoTable'
 import Empty from 'src/core/components/Empty/Empty'
 import { useDebounce } from 'react-use'
 import { useTranslation } from 'react-i18next'
+import { RuleGroupMap } from 'src/constants'
 
 export default function AlertInfoTabs(props) {
   const { handlePanelStatus } = props
@@ -22,16 +23,6 @@ export default function AlertInfoTabs(props) {
   const { t, i18n } = useTranslation('oss/serviceInfo')
 
   const [tabList, setTabList] = useState([])
-
-  const RuleGroupMap = useMemo(
-    () => ({
-      app: t('ruleGroupMap.app'),
-      infra: t('ruleGroupMap.infra'),
-      network: t('ruleGroupMap.network'),
-      container: t('ruleGroupMap.container'),
-    }),
-    [t],
-  )
 
   const prepareData = (result) => {
     let tabList = []

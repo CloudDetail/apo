@@ -11,6 +11,7 @@ import { format } from 'date-fns'
 import { MetricsLineChartColor, YValueMinInterval } from 'src/constants'
 import { useDispatch } from 'react-redux'
 import { useTranslation } from 'react-i18next'
+import { DelayLineChartTitleMap } from 'src/constants'
 
 export const adjustAlpha = (color, alpha) => {
   const rgba = color.match(/\d+/g)
@@ -18,16 +19,6 @@ export const adjustAlpha = (color, alpha) => {
 }
 
 const DelayLineChart = ({ data, timeRange, type }) => {
-  const { t } = useTranslation('core/delayLineChart')
-
-  const DelayLineChartTitleMap = {
-    latency: t('delayLineChartTitleMap.latency'),
-    p90: t('delayLineChartTitleMap.p90'),
-    errorRate: t('delayLineChartTitleMap.errorRate'),
-    logs: t('delayLineChartTitleMap.logs'),
-    tps: t('delayLineChartTitleMap.tps'),
-  }
-
   const chartRef = useRef(null)
   const dispatch = useDispatch()
   const setStoreTimeRange = (value) => {

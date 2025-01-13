@@ -17,8 +17,6 @@ export const UserProvider = ({ children }) => {
   const { i18n } = useTranslation()
   const { user, menuItems } = state
 
-  console.log('lang', i18n.language)
-
   const getUserPermission = () => {
     // getUserPermissionApi(state.user?.userId).then((res) => {
     getUserPermissionApi({ userId: user.userId, language: i18n.language }).then((res) => {
