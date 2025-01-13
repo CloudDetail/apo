@@ -8,10 +8,8 @@ import ReactECharts from 'echarts-for-react'
 import { getStep } from 'src/core/utils/step'
 import { convertTime } from 'src/core/utils/time'
 import { format } from 'date-fns'
-import { MetricsLineChartColor, YValueMinInterval } from 'src/constants'
+import { DelayLineChartTitleMap, MetricsLineChartColor, YValueMinInterval } from 'src/constants'
 import { useDispatch } from 'react-redux'
-import { useTranslation } from 'react-i18next'
-import { DelayLineChartTitleMap } from 'src/constants'
 
 export const adjustAlpha = (color, alpha) => {
   const rgba = color.match(/\d+/g)
