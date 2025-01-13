@@ -66,7 +66,6 @@ func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.
 		}
 		instances = instanceList.GetInstances()
 	}
-	}
 
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)

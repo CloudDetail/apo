@@ -15,7 +15,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
-	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 

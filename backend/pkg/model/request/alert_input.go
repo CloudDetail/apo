@@ -8,7 +8,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
-	"github.com/prometheus/common/model"
 	pmodel "github.com/prometheus/common/model"
 )
 

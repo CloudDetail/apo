@@ -37,7 +37,7 @@ func (s *service) GetServicesEndpointDataByFilter(startTime time.Time, endTime t
 	// step3 Sort the URL according to the sorting rule and fill in the data that has not been queried in the previous period.
 	if sortRule == MUTATIONSORT {
 		// Fill the real-time RED metric for sorting (the case between 3 minutes before the current time)
-		s.EndpointsRealtimeREDMetric(filter, endpointsMap, startTime, endTime)
+		s.EndpointsRealtimeREDMetric(filters, endpointsMap, startTime, endTime)
 	}
 	// Sort the endpoints according to the sorting rule and fill some unqueried data
 	err = s.sortWithRule(sortRule, endpointsMap)

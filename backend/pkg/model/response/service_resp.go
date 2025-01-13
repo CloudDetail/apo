@@ -30,7 +30,6 @@ type TopologyExternalClientCall struct {
 	model.TopologyNode
 
 	Childs []model.TopologyNode `json:"childs"`
-
 }
 
 type GetServiceEndpointTopologyResponse struct {
