@@ -165,11 +165,5 @@
     "errorRate": "Error Rate",
     "traceInfo": "Trace Info",
     "toastMessage": "Find key moment traces based on log error count, P90 duration time, and error rate"
-  },
-  "ruleGroupMap": {
-    "app": "Application Metrics",
-    "infra": "Host Related",
-    "network": "Network Related",
-    "container": "Container Related"
   }
 }

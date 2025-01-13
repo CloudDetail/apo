@@ -48,10 +48,6 @@ const UserToolBox = () => {
 
   //退出登录
   async function logout() {
-    // @ts-ignore
-    dispatch({
-      type: 'removeUser',
-    })
     try {
       const params = {
         accessToken: localStorage.getItem('token'),
@@ -96,7 +92,7 @@ const UserToolBox = () => {
 
   return (
     <>
-      {user.user?.username !== 'anonymous' ? (
+      {user?.username !== 'anonymous' ? (
         <Popover content={content}>
           <div className="relative flex items-center select-none w-auto pl-2 pr-2 rounded-md hover:bg-[#30333C] cursor-pointer">
             <div>

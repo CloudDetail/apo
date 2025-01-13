@@ -23,15 +23,6 @@ export default function UpdatePassword() {
       .validateFields(['oldPassword', 'newPassword', 'confirmPassword'])
       .then(async ({ oldPassword, newPassword, confirmPassword }) => {
         try {
-          const username = user.username
-          if (!username) {
-            showToast({
-              title: t('updatePassword.getUsernameFail'),
-              message: t('updatePassword.getUsernameFailMessage'),
-              color: 'danger',
-            })
-            return navigate('/login')
-          }
           const paramsForUpdatePassword = {
             oldPassword,
             newPassword,

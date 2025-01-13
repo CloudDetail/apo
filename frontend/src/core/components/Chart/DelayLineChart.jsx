@@ -8,9 +8,8 @@ import ReactECharts from 'echarts-for-react'
 import { getStep } from 'src/core/utils/step'
 import { convertTime } from 'src/core/utils/time'
 import { format } from 'date-fns'
-import { MetricsLineChartColor, YValueMinInterval } from 'src/constants'
+import { DelayLineChartTitleMap, MetricsLineChartColor, YValueMinInterval } from 'src/constants'
 import { useDispatch } from 'react-redux'
-import { useTranslation } from 'react-i18next'
 
 export const adjustAlpha = (color, alpha) => {
   const rgba = color.match(/\d+/g)
@@ -18,16 +17,6 @@ export const adjustAlpha = (color, alpha) => {
 }
 
 const DelayLineChart = ({ data, timeRange, type }) => {
-  const { t } = useTranslation('core/delayLineChart')
-
-  const DelayLineChartTitleMap = {
-    latency: t('delayLineChartTitleMap.latency'),
-    p90: t('delayLineChartTitleMap.p90'),
-    errorRate: t('delayLineChartTitleMap.errorRate'),
-    logs: t('delayLineChartTitleMap.logs'),
-    tps: t('delayLineChartTitleMap.tps'),
-  }
-
   const chartRef = useRef(null)
   const dispatch = useDispatch()
   const setStoreTimeRange = (value) => {

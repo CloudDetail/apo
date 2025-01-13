@@ -29,5 +29,22 @@
     "error": "Error",
     "slow": "Slow",
     "normal": "OK"
+  },
+  "delayLineChartTitleMap": {
+    "latency": "Avg. Duration",
+    "p90": "P90 Duration",
+    "errorRate": "Error Rate",
+    "logs": "Logs Error",
+    "tps": "Throughput"
+  },
+  "units": {
+    "unit": "unit",
+    "timesPerMinute": "tpm"
+  },
+  "ruleGroupMap": {
+    "app": "Application Metrics",
+    "infra": "Host Related",
+    "network": "Network Related",
+    "container": "Container Related"
   }
 }

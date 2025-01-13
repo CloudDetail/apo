@@ -8,14 +8,12 @@ import {
   getServiceLogLogsApi,
   getServiceTraceLogsApi,
 } from 'src/core/api/serviceInfo'
-import TranslationCom from './oss/components/TranslationCom'
-
-const namespace = 'common'
+import i18n from './i18n'
 
 export const DelaySourceTimeUnit = {
-  self: <TranslationCom text={'delaySourceTimeUnit.selfText'} space={namespace} />,
-  dependency: <TranslationCom text={'delaySourceTimeUnit.dependencyText'} space={namespace} />,
-  unknown: <TranslationCom text={'delaySourceTimeUnit.unknownText'} space={namespace} />,
+  self: i18n.t('common:delaySourceTimeUnit.selfText'),
+  dependency: i18n.t('common:delaySourceTimeUnit.dependencyText'),
+  unknown: i18n.t('common:delaySourceTimeUnit.unknownText'),
 }
 
 export const MetricsLineChartColor = {
@@ -93,11 +91,26 @@ export const ChartColorList = [
 ]
 
 export const TableType = {
-  logs: <TranslationCom text={'tableType.logsText'} space={namespace} />,
-  trace: <TranslationCom text={'tableType.traceText'} space={namespace} />,
-  k8s: <TranslationCom text={'tableType.k8sText'} space={namespace} />,
-  topology: <TranslationCom text={'tableType.topologyText'} space={namespace} />,
-  other: <TranslationCom text={'tableType.otherText'} space={namespace} />,
+  logs: i18n.t('common:tableType.logsText'),
+  trace: i18n.t('common:tableType.traceText'),
+  k8s: i18n.t('common:tableType.k8sText'),
+  topology: i18n.t('common:tableType.topologyText'),
+  other: i18n.t('common:tableType.otherText'),
+}
+
+export const DelayLineChartTitleMap = {
+  latency: i18n.t('common:delayLineChartTitleMap.latency'),
+  p90: i18n.t('common:delayLineChartTitleMap.p90'),
+  errorRate: i18n.t('common:delayLineChartTitleMap.errorRate'),
+  logs: i18n.t('common:delayLineChartTitleMap.logs'),
+  tps: i18n.t('common:delayLineChartTitleMap.tps'),
+}
+
+export const RuleGroupMap = {
+  app: i18n.t('common:ruleGroupMap.app'),
+  infra: i18n.t('common:ruleGroupMap.infra'),
+  network: i18n.t('common:ruleGroupMap.network'),
+  container: i18n.t('common:ruleGroupMap.container'),
 }
 
 export const AlertSeverityMapList = [

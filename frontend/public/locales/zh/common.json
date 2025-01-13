@@ -29,5 +29,22 @@
     "error": "错误故障",
     "slow": "慢故障",
     "normal": "无异常"
+  },
+  "delayLineChartTitleMap": {
+    "latency": "平均响应时间",
+    "p90": "90分位数",
+    "errorRate": "错误率",
+    "logs": "日志错误数量",
+    "tps": "吞吐量"
+  },
+  "units": {
+    "unit": "个",
+    "timesPerMinute": "次/分"
+  },
+  "ruleGroupMap": {
+    "app": "应用指标",
+    "infra": "主机相关",
+    "network": "网络相关",
+    "container": "容器相关"
   }
 }
