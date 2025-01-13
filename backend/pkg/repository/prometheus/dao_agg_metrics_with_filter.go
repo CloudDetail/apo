@@ -12,7 +12,7 @@ import (
 
 const DefaultDepLatency int64 = -1
 
-// FillMetric 查询并填充RED指标
+// FillMetric query and populate RED metric
 func (repo *promRepo) FillMetric(res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filters []string, granularity Granularity) {
 	var decorator = func(apf AggPQLWithFilters) AggPQLWithFilters {
 		return apf
@@ -80,7 +80,7 @@ func (repo *promRepo) QueryAggMetricsWithFilter(pqlTemplate AggPQLWithFilters, s
 	return repo.QueryData(time.UnixMicro(endTime), pql)
 }
 
-// 计算指标日同比变化率
+// Calculate the Day-over-Day Growth Rate rate of the metric.
 func DayOnDay(pqlTemplate AggPQLWithFilters) AggPQLWithFilters {
 	return func(vector string, granularity string, filterKVs []string) string {
 		nowPql := pqlTemplate(vector, granularity, filterKVs)
@@ -89,7 +89,7 @@ func DayOnDay(pqlTemplate AggPQLWithFilters) AggPQLWithFilters {
 	}
 }
 
-// 计算指标周同比变化率
+// Calculate Week-over-Week Growth Rate of the metric.
 func WeekOnWeek(pqlTemplate AggPQLWithFilters) AggPQLWithFilters {
 	return func(vector string, granularity string, filterKVs []string) string {
 		nowPql := pqlTemplate(vector, granularity, filterKVs)

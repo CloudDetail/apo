@@ -8,6 +8,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
+	"github.com/prometheus/common/model"
 	pmodel "github.com/prometheus/common/model"
 )
 
@@ -155,7 +156,7 @@ type GetAlertManagerConfigReceverRequest struct {
 type AlertRuleFilter struct {
 	Group    string   `form:"group" json:"group"`
 	Alert    string   `form:"alert" json:"alert"`
-	Severity []string `form:"severity" json:"severity"` // 告警级别 info warning ...
+	Severity []string `form:"severity" json:"severity"` // alarm level info warning...
 	Keyword  string   `form:"keyword" json:"keyword"`
 }
 
@@ -182,7 +183,7 @@ type AddAlertManagerConfigReceiver UpdateAlertManagerConfigReceiver
 type UpdateAlertManagerConfigReceiver struct {
 	AMConfigFile string `form:"amConfigFile" json:"amConfigFile"`
 
-	Type             string            `form:"type" json:"type"` // receiver类型
+	Type             string            `form:"type" json:"type"` // receiver type
 	OldName          string            `form:"oldName" json:"oldName"`
 	AMConfigReceiver amconfig.Receiver `form:"amConfigReceiver" json:"amConfigReceiver"`
 }

@@ -18,7 +18,7 @@ func (s *service) DeleteLogParseRule(req *request.DeleteLogParseRequest) (*respo
 	}
 	logReq.FillerValue()
 
-	// 更新k8s configmap
+	// update k8s configmap
 	res := &response.LogParseResponse{
 		ParseName: req.ParseName,
 	}
@@ -48,7 +48,7 @@ func (s *service) DeleteLogParseRule(req *request.DeleteLogParseRequest) (*respo
 		return nil, err
 	}
 
-	// 更新sqlite表信息
+	// Update sqlite table information
 	log := database.LogTableInfo{
 		ParseName: req.ParseName,
 		Table:     req.TableName,

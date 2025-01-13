@@ -11,7 +11,7 @@ import (
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
-// 基于服务列表、URL列表和时段、步长，查询P90曲线
+// Query the P90 curve based on the service list, URL list, time period and step size.
 func (repo *promRepo) QueryDbRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error) {
 	svcs, endpoints, systems := nodes.GetLabels(model.GROUP_DB)
 	if len(svcs) == 0 {

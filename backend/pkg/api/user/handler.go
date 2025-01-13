@@ -12,54 +12,54 @@ import (
 )
 
 type Handler interface {
-	// Login 登录
+	// Login
 	// @Tags API.user
 	// @Router /api/user/login [post]
 	Login() core.HandlerFunc
-	// Logout 退出登录
+	// Logout Logout
 	// @Tags API.user
 	// @Router /api/user/logout [post]
 	Logout() core.HandlerFunc
-	// CreateUser 创建用户
+	// Create user CreateUser
 	// @Tags API.user
 	// @Router /api/user/create [post]
 	CreateUser() core.HandlerFunc
-	// RefreshToken 刷新accessToken
+	// RefreshToken refresh accessToken
 	// @Tags API.user
 	// @Router /api/user/refresh [get]
 	RefreshToken() core.HandlerFunc
-	// UpdateUserInfo 更新个人信息
+	// UpdateUserInfo update personal information
 	// @Tags API.user
 	// @Router /api/user/update/info [post]
 	UpdateUserInfo() core.HandlerFunc
-	// UpdateUserPassword 更新密码
+	// UpdateUserPassword update password
 	// @Tags API.user
 	// @Router /api/user/update/password [post]
 	UpdateUserPassword() core.HandlerFunc
-	// UpdateUserPhone 更新/绑定手机号
+	// UpdateUserPhone update/bind phone number
 	// @Tags API.user
 	// @Router /api/user/update/phone [post]
 	UpdateUserPhone() core.HandlerFunc
-	// UpdateUserEmail 更新/绑定邮箱
+	// UpdateUserEmail update/bind mailbox
 	// @Tags API.user
 	// @Router /api/user/update/email [post]
 	UpdateUserEmail() core.HandlerFunc
-	// GetUserInfo 获取个人信息
+	// GetUserInfo access to personal information
 	// @Tags API.user
 	// @Router /api/user/info [get]
 	GetUserInfo() core.HandlerFunc
 
-	// GetUserList 获取用户列表
+	// GetUserList get user list
 	// @Tags API.user
 	// @Router /api/user/list [get]
 	GetUserList() core.HandlerFunc
 
-	// RemoveUser 移除用户
+	// Remove user RemoveUser
 	// @Tags API.user
 	// @Router /api/user/remove [post]
 	RemoveUser() core.HandlerFunc
 
-	// ResetPassword 重设密码
+	// ResetPassword reset password
 	// @Tags API.user
 	// @Router /api/user/reset [post]
 	ResetPassword() core.HandlerFunc

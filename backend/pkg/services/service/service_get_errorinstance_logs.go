@@ -9,7 +9,7 @@ import (
 )
 
 func (s *service) GetErrorInstanceLogs(req *request.GetErrorInstanceLogsRequest) ([]clickhouse.FaultLogResult, error) {
-	// 获取错误实例故障现场日志
+	// Get the error instance fault site log
 	query := &clickhouse.FaultLogQuery{
 		StartTime: req.StartTime,
 		EndTime:   req.EndTime,

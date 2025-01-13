@@ -17,7 +17,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// 定义Database查询接口
+// Define the Database query interface
 type Repo interface {
 	CreateMock(model *Mock) (id uint, err error)
 	GetMockById(id uint) (model *Mock, err error)
@@ -31,7 +31,7 @@ type daoRepo struct {
 	sqlDB *sql.DB
 }
 
-// Connect 连接数据库
+// Connect to connect to the database
 func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	var dbConfig gorm.Dialector
 	databaseCfg := config.Get().Database
@@ -44,29 +44,29 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		return nil, errors.New("database connection not supported")
 	}
 
-	// 连接数据库，并设置 GORM 的日志模式
+	// Connect to the database and set the log mode of GORM
 	database, err := gorm.Open(dbConfig, &gorm.Config{
 		Logger: logger.NewGormLogger(zapLogger),
 	})
-	// 处理错误
+	// Handling errors
 	if err != nil {
 		return nil, err
 	}
 
-	// 获取底层的 sqlDB
+	// Get the underlying sqlDB
 	sqlDb, err := database.DB()
 	if err != nil {
 		return nil, err
 	}
 
-	// 设置最大连接数
+	// Set the maximum number of connections
 	sqlDb.SetMaxOpenConns(databaseCfg.MaxOpen)
-	// 设置最大空闲连接数
+	// Set the maximum number of idle connections
 	sqlDb.SetMaxIdleConns(databaseCfg.MaxIdle)
-	// 设置每个连接的过期时间
+	// Set the expiration time for each connection
 	sqlDb.SetConnMaxLifetime(time.Duration(databaseCfg.MaxLife) * time.Second)
 
-	// 自动创建表 mock
+	// Automatically create table mock
 	err = database.AutoMigrate(&Mock{})
 	if err != nil {
 		return nil, err

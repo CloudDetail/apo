@@ -15,7 +15,7 @@ import (
 var _ Service = (*service)(nil)
 
 type Service interface {
-	// 获取故障现场分页日志
+	// Get fault site paging log
 	GetFaultLogPageList(req *request.GetFaultLogPageListRequest) (*response.GetFaultLogPageListResponse, error)
 
 	GetFaultLogContent(req *request.GetFaultLogContentRequest) (*response.GetFaultLogContentResponse, error)
@@ -28,13 +28,13 @@ type Service interface {
 
 	GetLogTableInfo(req *request.LogTableInfoRequest) (*response.LogTableInfoResponse, error)
 
-	// 查询全量日志
+	// Query full logs
 	QueryLog(req *request.LogQueryRequest) (*response.LogQueryResponse, error)
 
 	QueryLogContext(req *request.LogQueryContextRequest) (*response.LogQueryContextResponse, error)
-	// 日志趋势图
+	// Log Trend Chart
 	GetLogChart(req *request.LogQueryRequest) (*response.LogChartResponse, error)
-	// 字段分析
+	// Field Analysis
 	GetLogIndex(req *request.LogIndexRequest) (*response.LogIndexResponse, error)
 
 	GetServiceRoute(req *request.GetServiceRouteRequest) (*response.GetServiceRouteResponse, error)

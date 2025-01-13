@@ -17,8 +17,8 @@ import (
 
 func (ch *chRepo) InsertBatchAlertEvents(ctx context.Context, events []*model.AlertEvent) error {
 	batch, err := ch.conn.PrepareBatch(ctx, `
-		INSERT INTO alert_event (source, id, create_time, update_time, end_time, received_time, severity, group, 
-		                         name, detail, tags, status) 
+		INSERT INTO alert_event (source, id, create_time, update_time, end_time, received_time, severity, group,
+		                         name, detail, tags, status)
 		VALUES
 	`)
 	if err != nil {
@@ -38,7 +38,7 @@ func (ch *chRepo) InsertBatchAlertEvents(ctx context.Context, events []*model.Al
 	return nil
 }
 
-// ReadAlertEvent 实现AlertEventDAO接口的Read方法
+// ReadAlertEvent implement the Read method of the AlertEventDAO interface
 func (ch *chRepo) ReadAlertEvent(ctx context.Context, id uuid.UUID) (*model.AlertEvent, error) {
 	var event model.AlertEvent
 	query := `

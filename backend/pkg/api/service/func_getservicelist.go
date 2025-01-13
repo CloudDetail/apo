@@ -11,14 +11,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetServiceList 获取服务列表
-// @Summary 获取服务列表
-// @Description 获取服务列表
+// GetServiceList get the list of services
+// @Summary get the list of services
+// @Description get the list of services
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "查询开始时间"
-// @Param endTime query int64 true "查询结束时间"
+// @Param startTime query int64 true "query start time"
+// @Param endTime query int64 true "query end time"
 // @Param namespace query []string false "namespace" collectionFormat(multi)
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []string

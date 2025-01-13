@@ -11,15 +11,15 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// CountK8sEvents 获取K8s事件
-// @Summary 获取K8s事件
-// @Description 获取K8s事件
+// CountK8sEvents get K8s events
+// @Summary get K8s events
+// @Description get K8s events
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "查询开始时间"
-// @Param endTime query int64 true "查询结束时间"
-// @Param service query string true "查询服务名"
+// @Param startTime query int64 true "query start time"
+// @Param endTime query int64 true "query end time"
+// @Param service query string true "Query service name"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetK8sEventsResponse
 // @Failure 400 {object} code.Failure

@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// UpdateLogParseRule 更新日志表解析规则
-// @Summary 更新日志表解析规则
-// @Description 更新日志表解析规则
+// UpdateLogParseRule update log table parsing rules
+// @Summary update log table parsing rules
+// @Description update log table parsing rules
 // @Tags API.log
 // @Accept json
 // @Produce json
-// @Param Request body request.UpdateLogParseRequest true "请求信息"
+// @Param Request body request.UpdateLogParseRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.LogParseResponse
 // @Failure 400 {object} code.Failure

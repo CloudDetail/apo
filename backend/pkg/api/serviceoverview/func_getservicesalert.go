@@ -15,17 +15,17 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetServicesAlert 获取Service的日志告警和状态灯信息
-// @Summary 获取Service的日志告警和状态灯信息
-// @Description 获取Service的日志告警和状态灯信息
+// GetServicesAlert get the log alarm and status light information of the Service
+// @Summary get the log alarm and status light information of the Service
+// @Description get the log alarm and status light information of the Service
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "查询开始时间"
-// @Param endTime query int64 true "查询结束时间"
-// @Param step query int64 true "步长"
-// @Param serviceNames query []string true "应用名称" collectionFormat(multi)
-// @Param returnData query []string false "返回数据内容" collectionFormat(multi)
+// @Param startTime query int64 true "query start time"
+// @Param endTime query int64 true "query end time"
+// @Param step query int64 true "step"
+// @Param serviceNames query []string true "application name" collectionFormat(multi)
+// @Param returnData query []string false "return data content" collectionFormat(multi)
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.ServiceAlertRes
 // @Failure 400 {object} code.Failure
@@ -44,8 +44,8 @@ func (h *handler) GetServicesAlert() core.HandlerFunc {
 		}
 		var startTime time.Time
 		var endTime time.Time
-		req.StartTime = req.StartTime / 1000000 //接收的微秒级别的startTime和endTime需要先转成秒级别
-		req.EndTime = req.EndTime / 1000000     //接收的微秒级别的startTime和endTime需要先转成秒级别
+		req.StartTime = req.StartTime / 1000000 // received microsecond-level startTime and endTime need to be converted to second-level first
+		req.EndTime = req.EndTime / 1000000     // received microsecond-level startTime and endTime need to be converted to second-level first
 		startTime = time.Unix(req.StartTime, 0)
 		endTime = time.Unix(req.EndTime, 0)
 		step := time.Duration(req.Step * 1000)

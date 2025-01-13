@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetAlertManagerConfigReceiver 列出告警通知对象
-// @Summary 列出告警通知对象
-// @Description 列出告警通知对象
+// GetAlertManagerConfigReceiver list alarm notification objects
+// @Summary list alarm notification objects
+// @Description list alarm notification objects
 // @Tags API.alerts
 // @Accept json
 // @Produce json
-// @Param Request body request.GetAlertManagerConfigReceverRequest true "请求信息"
+// @Param Request body request.GetAlertManagerConfigReceverRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetAlertManagerConfigReceiverResponse
 // @Failure 400 {object} code.Failure

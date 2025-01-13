@@ -6,8 +6,9 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/magiconair/properties/assert"
 	"testing"
+
+	"github.com/magiconair/properties/assert"
 )
 
 type Flame struct {
@@ -41,13 +42,13 @@ func TestMergeFlameGraph(t *testing.T) {
 	assert.Equal(t, output, oldFlame)
 }
 
-// TestLength 测试下层节点的长度大于上层
-// 结果：&{[total root func1 func2] [[0 50 0 0] [0 50 0 1] [0 50 20 2] [20 60 60 3]] 50 60}
-// 下层大于上层，展示时显示为120%，点击之后下层比上层宽
+// TestLength test that the length of the lower node is greater than that of the upper node
+// Result :&{[total root func1 func2] [[0 50 0] [0 50 0 1] [0 50 20 2] [20 60 60 3]] 50 60}
+// The lower layer is larger than the upper layer, which is displayed as 120%. After clicking, the lower layer is wider than the upper layer
 func TestLength(t *testing.T) {
 	root := newNode("root", 0, 50)
 	func1 := newNode("func1", 20, 50)
-	// 下层节点比上层大，属于错误数据
+	// The lower node is larger than the upper node and belongs to error data.
 	func2 := newNode("func2", 60, 60)
 	root.children = append(root.children, func1)
 	func1.children = append(func1.children, func2)
@@ -57,7 +58,7 @@ func TestLength(t *testing.T) {
 	fmt.Println(wrapToFlame(*flame))
 }
 
-// TestFilterNodeNum 测试maxNodes过滤节点数量
+// Number of TestFilterNodeNum test maxNodes filter nodes
 func TestFilterNodeNum(t *testing.T) {
 	nodeNum := 10
 	nodes := make([]*node, 10)
@@ -83,12 +84,12 @@ func TestFilterNodeNum(t *testing.T) {
 }
 
 // TestFlameGroup
-// 1. 测试两个节点的子节点不同（1->2 3->4 | 1->4 2->3）√
-// 2. 测试偏移相同的节点是否会被覆盖 (1->2 offset30 | 1->3 offset30) √
-// 3. 测试相同节点合并（1->2 | 1->2） √
-// 4. 测试同级节点顺序不同（1->2,3 | 1->3,2）√
-// 5. 测试层级数量不同（1->2 | 1->2->3）√
-// 6. 测试两个完全不同的火焰图（1->2 | 3->4）√
+// 1. Test that the children of two nodes are different (1->2 3->4 | 1->4 2->3)√
+// 2. Test whether nodes with the same offset will be overwritten (1->2 offset30 | 1->3 offset30) √
+// 3. Test the same node merge (1->2 | 1->2) √
+// 4. Test that the order of nodes at the same level is different (1->2,3 | 1->3,2)√
+// 5. Different number of test levels (1->2 | 1->2->3)√
+// 6. Test two completely different flame diagrams (1->2 | 3->4)√
 func TestFlameGroup(t *testing.T) {
 	root := newNode("root", 0, 60)
 	func1 := newNode("func1", 20, 60)
@@ -98,7 +99,7 @@ func TestFlameGroup(t *testing.T) {
 	func1.children = append(func1.children, func2, func3)
 	tree := &Tree{root: []*node{root}}
 	flame1 := NewFlameGraph(tree, 0)
-	// 交换，func3 offset与flame1 func2 offset相同
+	// exchange. func3 offset is the same as flame1 func2 offset
 	func1.children[0], func1.children[1] = func3, func2
 	flame2 := NewFlameGraph(tree, 0)
 	mergeTree := &Tree{}

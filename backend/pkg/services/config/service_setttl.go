@@ -15,7 +15,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// 包级别的正则表达式变量
+// Regular expression variables at the package level
 var ttlRegex = regexp.MustCompile(`TTL\s+(toDateTime\(([^)]+)\)|([^+\s]+))\s*\+\s*toIntervalDay\((\d+)\)`)
 var toIntervalDayRegex = regexp.MustCompile(`toIntervalDay\((\d+)\)`)
 

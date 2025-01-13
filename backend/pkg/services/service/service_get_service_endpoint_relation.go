@@ -10,7 +10,7 @@ import (
 )
 
 func (s *service) GetServiceEndpointRelation(req *request.GetServiceEndpointRelationRequest) (*response.GetServiceEndpointRelationResponse, error) {
-	// 查询所有上游节点
+	// Query all upstream nodes
 	parents, err := s.chRepo.ListParentNodes(&req.GetServiceEndpointTopologyRequest)
 	if err != nil {
 		return nil, err
@@ -20,7 +20,7 @@ func (s *service) GetServiceEndpointRelation(req *request.GetServiceEndpointRela
 	if req.RemoveClientCall {
 		relations, err = s.chRepo.ListDescendantRelationsWithoutEdge(&req.GetServiceEndpointTopologyRequest)
 	} else {
-		// 查询所有下游节点的调用关系列表
+		// Query the calling relationship list of all downstream nodes
 		relations, err = s.chRepo.ListDescendantRelations(&req.GetServiceEndpointTopologyRequest)
 	}
 

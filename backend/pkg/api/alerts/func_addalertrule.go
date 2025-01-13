@@ -15,13 +15,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// AddAlertRule 新增告警规则
-// @Summary 新增告警规则
-// @Description 新增告警规则
+// AddAlertRule new alarm rules
+// @Summary new alarm rules
+// @Description new alarm rules
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.AddAlertRuleRequest true "请求信息"
+// @Param Request body request.AddAlertRuleRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200
 // @Failure 400 {object} code.Failure

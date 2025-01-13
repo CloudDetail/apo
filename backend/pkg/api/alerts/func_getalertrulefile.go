@@ -12,13 +12,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetAlertRuleFile 获取基础告警规则
-// @Summary 获取基础告警规则
-// @Description 获取基础告警规则
+// GetAlertRuleFile get basic alarm rules
+// @Summary get basic alarm rules
+// @Description get basic alarm rules
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param alertRuleFile query string false "查询告警规则文件名,为空返回所有"
+// @Param alertRuleFile query string false "Query alarm rule file name, if empty, return all"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetAlertRuleFileResponse
 // @Failure 400 {object} code.Failure

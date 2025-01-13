@@ -5,6 +5,7 @@ package router
 
 import (
 	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
 	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
 
@@ -52,21 +53,21 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	r.logger = logger
 	r.mux = mux
 
-	// 初始化 Database
+	// Initialize Database
 	dbRepo, err := internal_database.New(logger)
 	if err != nil {
 		logger.Fatal("new database err", zap.Error(err))
 	}
 	r.internal_db = dbRepo
 
-	//初始化 sqlite
+	// initialize sqlite
 	pkgRepo, err := pkg_database.New(logger)
 	if err != nil {
 		logger.Fatal("new database err", zap.Error(err))
 	}
 	r.pkg_db = pkgRepo
 
-	// 初始化 ClickHouse
+	// Initialize ClickHouse
 	cfg := config.Get().ClickHouse
 	chRepo, err := clickhouse.New(logger, []string{cfg.Address}, cfg.Database, cfg.Username, cfg.Password)
 	if err != nil {
@@ -75,7 +76,7 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	r.ch = chRepo
 
 	deepflowCfg := config.Get().DeepFlow
-	// 没有配置时，默认采用 apo 的 ClickHouse
+	// If no configuration is used, apo ClickHouse is used by default.
 	if deepflowCfg.ChAddress == "" {
 		r.deepflowClickhouse = chRepo
 	} else {
@@ -87,7 +88,7 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 		r.deepflowClickhouse = deepflowChRepo
 	}
 
-	// 初始化 Prometheus
+	// Initialize Prometheus
 	promCfg := config.Get().Promethues
 	promRepo, err := prometheus.New(logger, promCfg.Address, promCfg.Storage)
 	if err != nil {
@@ -95,14 +96,14 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	}
 	r.prom = promRepo
 
-	// 初始化 PolarisAnalyzer
+	// Initialize PolarisAnalyzer
 	polRepo, err := polarisanalyzer.New()
 	if err != nil {
 		logger.Fatal("new polarisanalyzer err", zap.Error(err))
 	}
 	r.pol = polRepo
 
-	// 初始化 cache
+	// Initialize cache
 	cacheRepo, err := cache.New()
 	if err != nil {
 		logger.Fatal("new cache err", zap.Error(err))
@@ -121,7 +122,7 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	jaegerRepo, err := jaeger.New()
 	r.jaegerRepo = jaegerRepo
 
-	// 设置 API 路由
+	// Set API routing
 	setApiRouter(r)
 
 	s := new(Server)

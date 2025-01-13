@@ -5,23 +5,24 @@ package user
 
 import (
 	"errors"
-	"github.com/CloudDetail/apo/backend/pkg/model"
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
 	"regexp"
+
+	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// UpdateUserPhone 更新/绑定手机号
-// @Summary 更新/绑定手机号
-// @Description 更新/绑定手机号
+// UpdateUserPhone update/bind phone number
+// @Summary update/bind phone number
+// @Description update/bind phone number
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId formData int64 true "用户id"
-// @Param phone formData string true "手机号"
+// @Param userId formData int64 true "user id"
+// @Param phone formData string true "phone number"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure

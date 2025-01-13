@@ -7,9 +7,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// GetGroupList 获取group和label对应接口
-// @Summary 获取group和label对应接口
-// @Description 获取group和label对应接口
+// GetGroupList get the corresponding interfaces of group and label
+// @Summary get the corresponding interfaces of group and label
+// @Description get the corresponding interfaces of group and label
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json

@@ -4,8 +4,9 @@
 package user
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -18,8 +19,8 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param language query string false "language"
-// @Param subjectId query int64 true "授权主体id"
-// @Param subjectType query string true "授权主体类型"
+// @Param subjectId query int64 true "authorization principal id"
+// @Param subjectType query string true "Authorization Principal Type"
 // @Success 200 {object} response.GetSubjectFeatureResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/permission/sub/feature [get]

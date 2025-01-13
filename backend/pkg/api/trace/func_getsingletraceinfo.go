@@ -4,16 +4,17 @@
 package trace
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// GetSingleTraceInfo 获取单链路Trace详情
-// @Summary 获取单链路Trace详情
-// @Description 获取单链路Trace详情
+// GetSingleTraceInfo get single-link Trace details
+// @Summary get single link trace details
+// @Description get single link trace details
 // @Tags API.trace
 // @Accept application/x-www-form-urlencoded
 // @Produce json

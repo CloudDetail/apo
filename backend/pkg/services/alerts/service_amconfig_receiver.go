@@ -22,7 +22,7 @@ func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigRecever
 			PageSize:    999,
 		}
 	}
-	// 从内存中获取am的配置
+	// get the configuration of am from memory
 	receivers, totalCount := s.k8sApi.GetAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiverFilter, req.PageParam, req.RefreshCache)
 	resp := response.GetAlertManagerConfigReceiverResponse{
 		AMConfigReceivers: receivers,
@@ -36,7 +36,7 @@ func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigRecever
 	if req.AMConfigReceiverFilter != nil && req.AMConfigReceiverFilter.RType != "" && req.AMConfigReceiverFilter.RType != "dingtalk" {
 		return resp
 	}
-	// 计算db的分页参数
+	// Calculate the paging parameters of db.
 	page := req.PageParam.CurrentPage - totalCount/req.PageParam.PageSize
 	pageSize := req.PageParam.PageSize - len(receivers)
 	name := ""

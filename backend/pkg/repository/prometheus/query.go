@@ -10,9 +10,9 @@ import (
 
 type QueryType int
 
-// atodo 将正则表达式转换
+// atodo Convert regular expressions
 const (
-	AvgError QueryType = iota //平均错误率
+	AvgError QueryType = iota // average error rate
 	ErrorDOD
 	ErrorWOW
 	ErrorData
@@ -49,7 +49,7 @@ const (
     }
   )
 
-) by(content_key,svc_name,pod,node_name,pid,container_id) 
+) by(content_key,svc_name,pod,node_name,pid,container_id)
 `
 )
 
@@ -60,7 +60,7 @@ func QueryNodeName(serviceName string, contentKey string) string {
 
 const (
 	AVG_1MIN_ERROR_BY_SERVICE = `
-		sum by(svc_name, content_key) 
+		sum by(svc_name, content_key)
 (
 			increase(kindling_span_trace_duration_nanoseconds_count{is_error="true", svc_name=~"%s"}[3m]
 		)) / sum by(svc_name, content_key) (
@@ -116,7 +116,7 @@ sum(
 	`
 
 	AVG_ERROR_BY_SERVICE = `
-		sum by(svc_name, content_key) 
+		sum by(svc_name, content_key)
 (
 			increase(kindling_span_trace_duration_nanoseconds_count{is_error="true", svc_name=~"%s"}[%s]
 		)) / sum by(svc_name, content_key) (
@@ -216,7 +216,7 @@ sum(
 				content_key=~"%s",pod=~".+"}[%s] offset 24h)
   ) by(content_key, svc_name,pod,container_id, node_name, namespace, node_ip)
 )-1)*100`
-	ERROR_DOD_BY_SERVICE = ` 
+	ERROR_DOD_BY_SERVICE = `
 
 ((
   sum(
@@ -998,31 +998,31 @@ sum(
 	ERROR_DATA_BY_POD = `
 (
   (
-    sum(increase(kindling_span_trace_duration_nanoseconds_count{content_key=~"%s",svc_name=~"%s", is_error="true",pod=~".+"}[%s])) 
+    sum(increase(kindling_span_trace_duration_nanoseconds_count{content_key=~"%s",svc_name=~"%s", is_error="true",pod=~".+"}[%s]))
     by (content_key, svc_name, pod, node_name, namespace, node_ip)
     or 0
-  ) 
-  / 
-  sum(increase(kindling_span_trace_duration_nanoseconds_count{content_key=~"%s",svc_name=~"%s",pod=~".+"}[%s])) 
+  )
+  /
+  sum(increase(kindling_span_trace_duration_nanoseconds_count{content_key=~"%s",svc_name=~"%s",pod=~".+"}[%s]))
   by (content_key, svc_name, pod, node_name, namespace, node_ip)
-) 
-or 
+)
+or
 (
-  sum(increase(kindling_span_trace_duration_nanoseconds_count{content_key=~"%s",svc_name=~"%s",pod=~".+"}[%s])) 
+  sum(increase(kindling_span_trace_duration_nanoseconds_count{content_key=~"%s",svc_name=~"%s",pod=~".+"}[%s]))
   by (content_key, svc_name, pod, node_name, namespace, node_ip) * 0
 )`
 )
 
 func QueryEndPointPromql(duration string, queryType QueryType, serviceNames string) string {
 	switch queryType {
-	//突变排序的1m平均指标数据
+	// 1m average metric data for mutation sorting
 	case Avg1minError:
 		if serviceNames != "" {
 			return fmt.Sprintf(AVG_1MIN_ERROR_BY_SERVICE, serviceNames, serviceNames)
 		} else {
 			return fmt.Sprintf(AVG_1MIN_ERROR)
 		}
-		//突变排序的1m平均指标数据
+	// 1m average metric data for mutation sorting
 	case Avg1minLatency:
 		if serviceNames != "" {
 			return fmt.Sprintf(AVG_1MIN_LATENCY_BY_SERVICE, serviceNames, serviceNames)
@@ -1113,7 +1113,7 @@ func QueryEndPointRangePromql(step string, duration string, queryType QueryType,
 		escapedKeys[i] = EscapeRegexp(key)
 	}
 
-	// 使用 strings.Join 生成正则表达式模式
+	// Generate regex patterns using strings.Join
 	regexPattern := strings.Join(escapedKeys, "|")
 	switch queryType {
 	case TPSData:
@@ -1257,7 +1257,7 @@ const queryPodLogCountTemplate = `(
   (sum(increase(originx_logparser_level_count_total{pod_name=~"%s",level=~"error|critical"}[%s]) offset %s) by(pod_name)
     +
   sum(increase(originx_logparser_exception_count_total{pod_name=~"%s"}[%s]) offset %s) by(pod_name))
-  or 
+  or
   sum(increase(originx_logparser_level_count_total{pod_name=~"%s",level=~"error|critical"}[%s] offset %s)) by(pod_name)
   or
   sum(increase(originx_logparser_exception_count_total{pod_name=~"%s"}[%s] offset %s)) by(pod_name))`
@@ -1267,7 +1267,7 @@ func QueryLogPromql(duration string, queryType QueryType, pods []string) string 
 	for i, key := range pods {
 		escapedKeys[i] = EscapeRegexp(key)
 	}
-	// 使用 strings.Join 生成正则表达式模式
+	// Generate regex patterns using strings.Join
 	regexPattern := strings.Join(escapedKeys, "|")
 
 	switch queryType {
@@ -1308,7 +1308,7 @@ const queryContainerLogCountTemplate = `(
   (sum(increase(originx_logparser_level_count_total{container_id=~"%s",level=~"error|critical"}[%s]) offset %s) by(container_id)
     +
   sum(increase(originx_logparser_exception_count_total{container_id=~"%s"}[%s]) offset %s) by(container_id))
-  or 
+  or
   sum(increase(originx_logparser_level_count_total{container_id=~"%s",level=~"error|critical"}[%s] offset %s)) by(container_id)
   or
   sum(increase(originx_logparser_exception_count_total{container_id=~"%s"}[%s] offset %s)) by(container_id))`
@@ -1318,7 +1318,7 @@ func QueryLogByContainerIdPromql(duration string, queryType QueryType, container
 	for i, key := range containerIds {
 		escapedKeys[i] = EscapeRegexp(key)
 	}
-	// 使用 strings.Join 生成正则表达式模式
+	// Generate regex patterns using strings.Join
 	regexPattern := strings.Join(escapedKeys, "|")
 
 	switch queryType {
@@ -1359,13 +1359,13 @@ const queryPidLogCountTemplate = `(
   (sum(increase(originx_logparser_level_count_total{pid=~"%s",level=~"error|critical"}[%s]) offset %s) by(pid)
     +
   sum(increase(originx_logparser_exception_count_total{pid=~"%s"}[%s]) offset %s) by(pid))
-  or 
+  or
   sum(increase(originx_logparser_level_count_total{pid=~"%s",level=~"error|critical"}[%s] offset %s)) by(pid)
   or
   sum(increase(originx_logparser_exception_count_total{pid=~"%s"}[%s] offset %s)) by(pid))`
 
 func QueryLogByPidPromql(duration string, queryType QueryType, pids []string) string {
-	// 使用 strings.Join 生成正则表达式模式
+	// Generate regex patterns using strings.Join
 	regexPattern := strings.Join(pids, "|")
 	switch queryType {
 	case AvgLog:

@@ -23,7 +23,7 @@ func init() {
 		panic(err)
 	}
 
-	// 默认设置为中国时区
+	// default to China time zone
 	time.Local = cst
 }
 
@@ -38,19 +38,19 @@ func RFC3339ToCSTLayout(value string) (string, error) {
 	return ts.In(cst).Format(CSTLayout), nil
 }
 
-// CSTLayoutString 格式化时间
-// 返回 "2006-01-02 15:04:05" 格式的时间
+// CSTLayoutString formatting time
+// Returns the time in the format "2006-01-02 15:04:05"
 func CSTLayoutString() string {
 	ts := time.Now()
 	return ts.In(cst).Format(CSTLayout)
 }
 
-// ParseCSTInLocation 格式化时间
+// ParseCSTInLocation formatting time
 func ParseCSTInLocation(date string) (time.Time, error) {
 	return time.ParseInLocation(CSTLayout, date, cst)
 }
 
-// CSTLayoutStringToUnix 返回 unix 时间戳
+// CSTLayoutStringToUnix return a unix timestamp
 // 2020-01-24 21:11:11 => 1579871471
 func CSTLayoutStringToUnix(cstLayoutString string) (int64, error) {
 	stamp, err := time.ParseInLocation(CSTLayout, cstLayoutString, cst)
@@ -60,24 +60,24 @@ func CSTLayoutStringToUnix(cstLayoutString string) (int64, error) {
 	return stamp.Unix(), nil
 }
 
-// GMTLayoutString 格式化时间
-// 返回 "Mon, 02 Jan 2006 15:04:05 GMT" 格式的时间
+// GMTLayoutString formatting time
+// Returns the time in the format "Mon, 02 Jan 2006 15:04:05 GMT"
 func GMTLayoutString() string {
 	return time.Now().In(cst).Format(http.TimeFormat)
 }
 
-// ParseGMTInLocation 格式化时间
+// ParseGMTInLocation formatting time
 func ParseGMTInLocation(date string) (time.Time, error) {
 	return time.ParseInLocation(http.TimeFormat, date, cst)
 }
 
-// SubInLocation 计算时间差
+// SubInLocation calculate time difference
 func SubInLocation(ts time.Time) float64 {
 	return math.Abs(time.Now().In(cst).Sub(ts).Seconds())
 }
 
-// MicrosecondsStr 将 time.Duration 类型（nano seconds 为单位）
-// 输出为小数点后 3 位的 ms （microsecond 毫秒，千分之一秒）
+// MicrosecondsStr time.Duration type (nano seconds)
+// output as 3 decimal ms (microsecond ms, 1‰ seconds)
 func MicrosecondsStr(elapsed time.Duration) string {
 	return fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)
 }

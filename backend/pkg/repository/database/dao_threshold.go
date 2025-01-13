@@ -5,10 +5,11 @@ package database
 
 import (
 	"errors"
+
 	"gorm.io/gorm"
 )
 
-// 用户配置阈值表
+// User-configured threshold table
 const GLOBAL = "global"
 const LATENCY = 5.0
 const ERROR_RATE = 5.0
@@ -27,7 +28,7 @@ type Threshold struct {
 }
 
 func (Threshold) TableName() string {
-	// 必须实现TableName()，不然会变为mocks表
+	// TableName() must be implemented, otherwise it will become a mocks table.
 	return "threshold"
 }
 
@@ -35,26 +36,26 @@ func (repo *daoRepo) CreateOrUpdateThreshold(model *Threshold) error {
 	var existing Threshold
 	result := repo.db.Where("service_name = ? AND end_point = ? AND Level = ?", model.ServiceName, model.EndPoint, model.Level).First(&existing)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		// 如果没有找到记录，则插入新记录
+		// If no record is found, insert a new record
 		return repo.db.Create(model).Error
 	} else if result.Error != nil {
-		// 如果出现其他错误，返回错误
+		// return error if other errors occur
 		return result.Error
 	} else {
-		// 如果找到记录，则更新记录
+		// Update record if found
 		return repo.db.Model(&existing).Updates(model).Error
 	}
 }
 
 func (repo *daoRepo) GetOrCreateThreshold(serviceName string, endPoint string, level string) (Threshold, error) {
 	var threshold Threshold
-	// 根据提供的 serviceName 和 endPoint 查询
+	// Query based on serviceName and endPoint provided
 	result := repo.db.Where("service_name = ? AND end_point = ? AND Level = ?", serviceName, endPoint, level).First(&threshold)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		// 如果没有找到记录，再次根据 serviceName = "global" 和 endPoint = "global" 查询
+		// If no record is found, query again based on serviceName = "global" and endPoint = "global"
 		result = repo.db.Where("Level = ?", GLOBAL).First(&threshold)
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			// 如果仍然没有找到记录，创建一个新的阈值数据
+			// If the record is still not found, create a new threshold data
 			newThreshold := Threshold{
 				Level:     GLOBAL,
 				Latency:   LATENCY,
@@ -73,7 +74,7 @@ func (repo *daoRepo) GetOrCreateThreshold(serviceName string, endPoint string, l
 	return threshold, nil
 }
 func (repo *daoRepo) DeleteThreshold(serviceName string, endPoint string) error {
-	// 根据 serviceName 和 endPoint 删除记录
+	// Delete records based on serviceName and endPoint
 	result := repo.db.Where("service_name = ? AND end_point = ?", serviceName, endPoint).Delete(&Threshold{})
 	if result.Error != nil {
 		return result.Error

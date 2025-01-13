@@ -19,27 +19,27 @@ import (
 
 type Repo interface {
 	// ========== span_trace_duration_bucket Start ==========
-	// 基于服务列表、URL列表和时段、步长，查询P90曲线
+	// Query the P90 curve based on the service list, URL list, time period and step size.
 	QueryRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
-	// 查询实例的P90延时曲线
+	// Query the P90 delay curve of the instance
 	QueryInstanceP90(startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error)
 	// ========== span_trace_duration_bucket END ==========
 
 	// ========== span_trace_duration_count Start ==========
-	// 查询服务列表
+	// Query the service list
 	GetServiceList(startTime int64, endTime int64, namespace []string) ([]string, error)
 	// 根据过滤规则查询服务列表
 	GetServiceListByFilter(startTime time.Time, endTime time.Time, filterKVs ...string) ([]string, error)
-	// 查询服务实例列表, URL允许为空
+	// Query the service instance list. The URL can be empty.
 	GetInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
-	// 查询活跃实例列表
+	// Query the list of active instances
 	GetActiveInstanceList(startTime int64, endTime int64, serviceName string) (*model.ServiceInstances, error)
 	// 查询在时间点过去一小时活跃过的实例
 	GetActiveRequestInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
-	// 查询服务Endpoint列表，服务允许为空
+	// Query the service Endpoint list. The service permission is empty.
 	GetServiceEndPointList(startTime int64, endTime int64, serviceName string) ([]string, error)
 	GetMultiServicesInstanceList(startTime int64, endTime int64, services []string) (map[string]*model.ServiceInstances, error)
-	// 查询服务实例失败率
+	// Query service instance failure rate
 	QueryInstanceErrorRate(startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error)
 	FillMetric(res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filters []string, granularity Granularity)
 	// ========== span_trace_duration_count END ==========
@@ -55,24 +55,24 @@ type Repo interface {
 	ExecutedMutationCheck(c *MutationPQLCheck, startTime, endTime time.Time, step time.Duration) ([]MetricResult, error)
 
 	// ========== originx_logparser_level_count_total Start ==========
-	// 查询实例日志Error数
+	// Query the number of errors in the instance log
 	QueryLogCountByInstanceId(instance *model.ServiceInstance, startTime int64, endTime int64, step int64) (map[int64]float64, error)
-	// QueryInstanceLogRangeData 查询实例级别的日志曲线图
+	// QueryInstanceLogRangeData query instance-level log graphs
 	QueryInstanceLogRangeData(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, stepMicroS int64, granularity Granularity, podFilterKVs, vmFilterKVs []string) ([]MetricResult, error)
 	// ========== originx_logparser_level_count_total END ==========
 
 	// ========== db_duration_bucket Start ==========
-	// 基于服务列表、URL列表和时段、步长，查询P90曲线
+	// Query the P90 curve based on the service list, URL list, time period and step size.
 	QueryDbRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
 	// ========== db_duration_bucket END ==========
 
 	// ========== external_duration_bucket Start ==========
-	// 基于服务列表、URL列表和时段、步长，查询P90曲线
+	// Query the P90 curve based on the service list, URL list, time period and step size.
 	QueryExternalRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
 	// ========== external_duration_bucket END ==========
 
 	// ========== mq_duration_bucket Start ==========
-	// 基于服务列表、URL列表和时段、步长，查询P90曲线
+	// Query the P90 curve based on the service list, URL list, time period and step size.
 	QueryMqRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
 	// ========== mq_duration_nanoseconds_bucket END ==========
 
@@ -107,7 +107,7 @@ func New(
 		return nil, fmt.Errorf("failed to connect to promethues: %s", err)
 	}
 	api := v1.NewAPI(prometheusClient)
-	// Debug 日志等级时使用包装的Conn，输出执行SQL的耗时
+	// Use the wrapped Conn at the Debug log level, and output the time taken to execute SQL.
 	if logger.Level() == zap.DebugLevel {
 		return &promRepo{
 			api: &WrappedApi{
@@ -143,7 +143,7 @@ type Labels struct {
 	SvcName     string `json:"svc_name"`
 	TopSpan     string `json:"top_span"`
 	PID         string `json:"pid"`
-	PodName     string `json:"pod_name"` // TODO 统一为pod之后可以删除
+	PodName     string `json:"pod_name"` // TODO can be deleted after being unified as pod
 	Namespace   string `json:"namespace"`
 	NodeIP      string `json:"node_ip"`
 
@@ -157,8 +157,8 @@ type Labels struct {
 	MonitorName string `json:"monitor_name"`
 }
 
-// Extract 提取出需要的label
-// 需要同步Labels字段的变化
+// Extract extract the required label
+// Changes of Labels field need to be synchronized
 func (l *Labels) Extract(metric prommodel.Metric) {
 	for name, value := range metric {
 		switch string(name) {

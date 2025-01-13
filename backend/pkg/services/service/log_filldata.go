@@ -29,7 +29,7 @@ func (s *service) AvgLogByPod(Instances *[]serviceoverview.Instance, pods []stri
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == podName {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].AvgLog = &value
 				}
 				break
@@ -51,7 +51,7 @@ func (s *service) LogDODByPod(Instances *[]serviceoverview.Instance, pods []stri
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == podName {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].LogDayOverDay = &value
 				} else {
 					var value float64
@@ -77,7 +77,7 @@ func (s *service) LogWOWByPod(Instances *[]serviceoverview.Instance, pods []stri
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == podName {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].LogWeekOverWeek = &value
 				} else {
 					var value float64
@@ -92,7 +92,7 @@ func (s *service) LogWOWByPod(Instances *[]serviceoverview.Instance, pods []stri
 	return Instances, err
 }
 
-// 查询曲线图
+// Query the graph
 
 func (s *service) LogRangeDataByPod(Instances *[]serviceoverview.Instance, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]serviceoverview.Instance, error) {
 	if Instances == nil {
@@ -137,7 +137,7 @@ func (s *service) AvgLogByContainerId(Instances *[]serviceoverview.Instance, con
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == containerId {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].AvgLog = &value
 				}
 				break
@@ -159,7 +159,7 @@ func (s *service) LogDODByContainerId(Instances *[]serviceoverview.Instance, con
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == contianerId {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].LogDayOverDay = &value
 				}
 				break
@@ -180,7 +180,7 @@ func (s *service) LogWOWByContainerId(Instances *[]serviceoverview.Instance, con
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == containerId {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].LogWeekOverWeek = &value
 				}
 				break
@@ -190,7 +190,7 @@ func (s *service) LogWOWByContainerId(Instances *[]serviceoverview.Instance, con
 	return Instances, err
 }
 
-// 查询曲线图
+// Query the graph
 
 func (s *service) LogRangeDataByContainerId(Instances *[]serviceoverview.Instance, containerIds []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]serviceoverview.Instance, error) {
 	if Instances == nil {
@@ -235,7 +235,7 @@ func (s *service) AvgLogByPid(Instances *[]serviceoverview.Instance, pods []stri
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == pid {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].AvgLog = &value
 				}
 				break
@@ -257,7 +257,7 @@ func (s *service) LogDODByPid(Instances *[]serviceoverview.Instance, pods []stri
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == pid {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].LogDayOverDay = &value
 				}
 				break
@@ -278,7 +278,7 @@ func (s *service) LogWOWByPid(Instances *[]serviceoverview.Instance, pods []stri
 		value := result.Values[0].Value
 		for i, Instance := range *Instances {
 			if Instance.ConvertName == pid {
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					(*Instances)[i].LogWeekOverWeek = &value
 				}
 				break
@@ -288,7 +288,7 @@ func (s *service) LogWOWByPid(Instances *[]serviceoverview.Instance, pods []stri
 	return Instances, err
 }
 
-// 查询曲线图
+// Query the graph
 
 func (s *service) LogRangeDataByPid(Instances *[]serviceoverview.Instance, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]serviceoverview.Instance, error) {
 	if Instances == nil {

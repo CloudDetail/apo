@@ -11,12 +11,12 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetFaultLogContent 获取故障现场日志内容
-// @Summary 获取故障现场日志内容
-// @Description 获取故障现场日志内容
+// GetFaultLogContent get the contents of the fault site log
+// @Summary get the contents of the fault site log
+// @Description get the contents of the fault site log
 // @Tags API.log
 // @Produce json
-// @Param Request body request.GetFaultLogContentRequest true "请求信息"
+// @Param Request body request.GetFaultLogContentRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetFaultLogContentResponse
 // @Failure 400 {object} code.Failure

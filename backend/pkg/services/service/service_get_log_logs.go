@@ -9,7 +9,7 @@ import (
 )
 
 func (s *service) GetLogLogs(req *request.GetLogLogsRequest) ([]clickhouse.FaultLogResult, error) {
-	// 获取Log故障现场日志
+	// Get Log fault field log
 	query := &clickhouse.FaultLogQuery{
 		StartTime:   req.StartTime,
 		EndTime:     req.EndTime,

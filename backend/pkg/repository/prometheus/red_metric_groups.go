@@ -7,7 +7,7 @@ import (
 	"math"
 )
 
-// RES_MAX_VALUE 返回前端的最大值，同比为该值时表示最大值
+// RES_MAX_VALUE returns the maximum value of the front end. If the value is equal to the same period last year, the maximum value is indicated.
 const RES_MAX_VALUE float64 = 9999999
 
 var _ MetricGroup = &REDMetrics{}

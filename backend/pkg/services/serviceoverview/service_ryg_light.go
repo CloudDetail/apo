@@ -25,7 +25,7 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 
 	filters := filter.ExtractFilterStr()
 
-	// FIX 用于展示没有LatencyDOD的服务
+	// FIX for showing services without LatencyDay-over-Day Growth Rate
 	avgLatency, err := s.promRepo.QueryAggMetricsWithFilter(
 		prom.PQLAvgLatencyWithFilters,
 		startMicroTS, endMicroTs,
@@ -88,19 +88,19 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 // Red/Green/Yellow Status
 type RYGLightStatus struct {
 	// From Prometheus
-	LatencyAvg       *float64 // 平均延时 用于统计服务
-	ErrorRateAvg     *float64 // 平均错误率 用于获得当前错误情况
-	LogErrorCountAvg *float64 // 平均日志错误数 用于获取当前日志错误情况
+	LatencyAvg       *float64 // average latency for statistical services
+	ErrorRateAvg     *float64 // The average error rate is used get the current error situation
+	LogErrorCountAvg *float64 // average number of log errors is used to get the current log error condition
 
-	LatencyDoD       *float64 // 延迟日同比
-	ErrorRateDoD     *float64 // 错误率日同比
-	LogErrorCountDoD *float64 // 日志错误数日同比
+	LatencyDoD       *float64 // Delay Day-over-Day Growth Rate
+	ErrorRateDoD     *float64 // Error Rate Day-over-Day Growth Rate
+	LogErrorCountDoD *float64 // log error Day-over-Day Growth Rate
 
 	Instances []*model.ServiceInstance
 
 	// From Clickhouse
-	model.AlertStatus             // 告警状态
-	model.AlertEventLevelCountMap // 告警事件级别统计
+	model.AlertStatus             // alarm status
+	model.AlertEventLevelCountMap // Alarm event level statistics
 }
 
 func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {

@@ -12,12 +12,12 @@ import (
 )
 
 // GetLogTableInfo
-// @Summary 获取日志表信息
-// @Description 获取日志表信息
+// @Summary get log table information
+// @Description get log table information
 // @Tags API.log
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.LogTableInfoRequest true "请求信息"
+// @Param Request body request.LogTableInfoRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.LogTableInfoResponse
 // @Failure 400 {object} code.Failure

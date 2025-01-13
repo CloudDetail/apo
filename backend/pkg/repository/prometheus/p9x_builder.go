@@ -27,7 +27,7 @@ func NewUnionP9xBuilder(value string, tableName string, labels []string, duratio
 		labels:          labels,
 		duration:        duration,
 		count:           0,
-		conditions:      make([]*P9xCondition, 0), // 保证有序
+		conditions:      make([]*P9xCondition, 0), // to ensure order
 		extraConditions: make([]string, 0),
 	}
 }
@@ -124,6 +124,6 @@ func getDurationFromStep(step time.Duration) string {
 		return strconv.FormatInt(stepNS/TIME_SECOND, 10) + "s"
 	}
 
-	// 默认时间
+	// Default time
 	return "1m"
 }

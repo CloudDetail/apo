@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetTracePageList 查询Trace分页列表
-// @Summary 查询Trace分页列表
-// @Description 查询Trace分页列表
+// GetTracePageList to query the trace paging list
+// @Summary to query the trace paging list
+// @Description to query the trace paging list
 // @Tags API.trace
 // @Accept json
 // @Produce json
-// @Param Request body request.GetTracePageListRequest true "请求信息"
+// @Param Request body request.GetTracePageListRequest true "Request information"
 // @Success 200 {object} response.GetTracePageListResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/trace/pagelist [post]

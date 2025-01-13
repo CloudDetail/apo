@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// DeleteAlertRule 删除告警规则
-// @Summary 删除告警规则
-// @Description 删除告警规则
+// DeleteAlertRule delete alarm rules
+// @Summary delete alarm rules
+// @Description delete alarm rules
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.DeleteAlertRuleRequest true "删除对象"
+// @Param Request body request.DeleteAlertRuleRequest true "Delete object"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 string ok
 // @Failure 400 {object} code.Failure

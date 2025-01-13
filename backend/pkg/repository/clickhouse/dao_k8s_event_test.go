@@ -15,7 +15,7 @@ import (
 func TestChRepo_K8sAlert(t *testing.T) {
 	repo := NewTestRepo(t)
 	currentTime := time.Now()
-	// 获取1小时前的时间
+	// Get the time 1 hour ago
 	oneHourAgo := currentTime.Add(-1 * time.Hour)
 	instances := []*model.ServiceInstance{
 		{

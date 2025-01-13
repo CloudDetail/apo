@@ -21,7 +21,7 @@ const docTemplate = `{
     "paths": {
         "/api/alerts/alertmanager/receiver": {
             "post": {
-                "description": "更新告警通知对象",
+                "description": "update alarm notification object",
                 "consumes": [
                     "application/json"
                 ],
@@ -31,10 +31,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "更新告警通知对象",
+                "summary": "update alarm notification object",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -65,7 +65,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "删除告警通知对象",
+                "description": "delete alarm notification object",
                 "consumes": [
                     "application/json"
                 ],
@@ -75,10 +75,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "删除告警通知对象",
+                "summary": "delete alarm notification object",
                 "parameters": [
                     {
-                        "description": "删除对象",
+                        "description": "Delete object",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -111,7 +111,7 @@ const docTemplate = `{
         },
         "/api/alerts/alertmanager/receiver/add": {
             "post": {
-                "description": "新增告警通知对象",
+                "description": "new alarm notification object",
                 "consumes": [
                     "application/json"
                 ],
@@ -121,10 +121,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "新增告警通知对象",
+                "summary": "new alarm notification object",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -157,7 +157,7 @@ const docTemplate = `{
         },
         "/api/alerts/alertmanager/receiver/list": {
             "post": {
-                "description": "列出告警通知对象",
+                "description": "list alarm notification objects",
                 "consumes": [
                     "application/json"
                 ],
@@ -167,10 +167,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "列出告警通知对象",
+                "summary": "list alarm notification objects",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -724,7 +724,7 @@ const docTemplate = `{
         },
         "/api/alerts/inputs/alertmanager": {
             "post": {
-                "description": "获取 AlertManager 的告警事件",
+                "description": "get AlertManager alarm events",
                 "consumes": [
                     "application/json"
                 ],
@@ -734,10 +734,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "获取 AlertManager 的告警事件",
+                "summary": "get AlertManager alarm events",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -764,7 +764,7 @@ const docTemplate = `{
         },
         "/api/alerts/outputs/dingtalk/{uuid}": {
             "post": {
-                "description": "接收告警转发到钉钉",
+                "description": "the received alarm is forwarded to the DingTalk",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -774,10 +774,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "接收告警转发到钉钉",
+                "summary": "the received alarm is forwarded to the DingTalk",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -787,7 +787,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "钉钉webhook对应的uuid",
+                        "description": "DingTalk the uuid corresponding to the webhook",
                         "name": "uuid",
                         "in": "path",
                         "required": true
@@ -808,7 +808,7 @@ const docTemplate = `{
         },
         "/api/alerts/rule": {
             "post": {
-                "description": "更新告警规则",
+                "description": "update alarm rules",
                 "consumes": [
                     "application/json"
                 ],
@@ -818,10 +818,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "更新告警规则",
+                "summary": "update alarm rules",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -852,7 +852,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "删除告警规则",
+                "description": "delete alarm rules",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -862,10 +862,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "删除告警规则",
+                "summary": "delete alarm rules",
                 "parameters": [
                     {
-                        "description": "删除对象",
+                        "description": "Delete object",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -898,7 +898,7 @@ const docTemplate = `{
         },
         "/api/alerts/rule/add": {
             "post": {
-                "description": "新增告警规则",
+                "description": "new alarm rules",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -908,10 +908,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "新增告警规则",
+                "summary": "new alarm rules",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -941,7 +941,7 @@ const docTemplate = `{
         },
         "/api/alerts/rule/available": {
             "get": {
-                "description": "检查告警规则名是否可用",
+                "description": "check whether the alarm rule name is available",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -951,24 +951,24 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "检查告警规则名是否可用",
+                "summary": "check whether the alarm rule name is available",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "查询告警规则文件名",
+                        "description": "Query alarm rule file name",
                         "name": "alertRuleFile",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "组名",
+                        "description": "group name",
                         "name": "group",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "告警规则名",
+                        "description": "Alarm rule name",
                         "name": "alert",
                         "in": "query",
                         "required": true
@@ -998,7 +998,7 @@ const docTemplate = `{
         },
         "/api/alerts/rule/groups": {
             "get": {
-                "description": "获取group和label对应接口",
+                "description": "get the corresponding interfaces of group and label",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -1008,7 +1008,7 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "获取group和label对应接口",
+                "summary": "get the corresponding interfaces of group and label",
                 "parameters": [
                     {
                         "type": "string",
@@ -1035,7 +1035,7 @@ const docTemplate = `{
         },
         "/api/alerts/rule/list": {
             "post": {
-                "description": "列出告警规则",
+                "description": "list alarm rules",
                 "consumes": [
                     "application/json"
                 ],
@@ -1045,10 +1045,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "列出告警规则",
+                "summary": "list alarm rules",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -1081,7 +1081,7 @@ const docTemplate = `{
         },
         "/api/alerts/rule/metrics": {
             "get": {
-                "description": "获取告警规则中指标和PQL",
+                "description": "get metrics and PQL in alarm rules",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -1091,7 +1091,7 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "获取告警规则中指标和PQL",
+                "summary": "get metrics and PQL in alarm rules",
                 "parameters": [
                     {
                         "type": "string",
@@ -1118,7 +1118,7 @@ const docTemplate = `{
         },
         "/api/alerts/rules": {
             "get": {
-                "description": "获取基础告警规则",
+                "description": "get basic alarm rules",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -1128,11 +1128,11 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "获取基础告警规则",
+                "summary": "get basic alarm rules",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "查询告警规则文件名,为空返回所有",
+                        "description": "Query alarm rule file name, if empty, return all",
                         "name": "alertRuleFile",
                         "in": "query"
                     },
@@ -1161,7 +1161,7 @@ const docTemplate = `{
         },
         "/api/alerts/rules/file": {
             "post": {
-                "description": "更新基础告警规则",
+                "description": "update basic alarm rules",
                 "consumes": [
                     "application/json"
                 ],
@@ -1171,10 +1171,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alerts"
                 ],
-                "summary": "更新基础告警规则",
+                "summary": "update basic alarm rules",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -1207,7 +1207,7 @@ const docTemplate = `{
         },
         "/api/config/getTTL": {
             "get": {
-                "description": "获取TTL",
+                "description": "get TTL",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -1217,7 +1217,7 @@ const docTemplate = `{
                 "tags": [
                     "API.config"
                 ],
-                "summary": "获取TTL",
+                "summary": "get TTL",
                 "parameters": [
                     {
                         "type": "string",
@@ -1244,7 +1244,7 @@ const docTemplate = `{
         },
         "/api/config/setSingleTableTTL": {
             "post": {
-                "description": "配置单个表格的TTL",
+                "description": "configure the TTL of a single table",
                 "consumes": [
                     "application/json"
                 ],
@@ -1254,10 +1254,10 @@ const docTemplate = `{
                 "tags": [
                     "API.config"
                 ],
-                "summary": "配置单个表格的TTL",
+                "summary": "configure the TTL of a single table",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -1284,7 +1284,7 @@ const docTemplate = `{
         },
         "/api/config/setTTL": {
             "post": {
-                "description": "配置TTL",
+                "description": "configuration TTL",
                 "consumes": [
                     "application/json"
                 ],
@@ -1294,10 +1294,10 @@ const docTemplate = `{
                 "tags": [
                     "API.config"
                 ],
-                "summary": "配置TTL",
+                "summary": "configuration TTL",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -1508,14 +1508,14 @@ const docTemplate = `{
         },
         "/api/health": {
             "get": {
-                "description": "用于k8s检查后端健康状态",
+                "description": "for k8s to check backend health status",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "application/json"
                 ],
-                "summary": "用于k8s检查后端健康状态",
+                "summary": "for k8s to check backend health status",
                 "responses": {
                     "200": {
                         "description": "ok",
@@ -1534,7 +1534,7 @@ const docTemplate = `{
         },
         "/api/k8s/namespace/info": {
             "get": {
-                "description": "获取namespace信息",
+                "description": "get namespace information",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -1544,11 +1544,11 @@ const docTemplate = `{
                 "tags": [
                     "API.k8s"
                 ],
-                "summary": "获取namespace信息",
+                "summary": "get namespace information",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "namespace名",
+                        "description": "namespace name",
                         "name": "namespace",
                         "in": "query",
                         "required": true
@@ -1572,7 +1572,7 @@ const docTemplate = `{
         },
         "/api/k8s/namespaces": {
             "get": {
-                "description": "获取所有namespace信息",
+                "description": "get all namespace information",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -1582,7 +1582,7 @@ const docTemplate = `{
                 "tags": [
                     "API.k8s"
                 ],
-                "summary": "获取所有namespace信息",
+                "summary": "get all namespace information",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1601,7 +1601,7 @@ const docTemplate = `{
         },
         "/api/k8s/pod/info": {
             "get": {
-                "description": "获取pod信息",
+                "description": "get pod information",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -1611,18 +1611,18 @@ const docTemplate = `{
                 "tags": [
                     "API.k8s"
                 ],
-                "summary": "获取pod信息",
+                "summary": "get pod information",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "namespace名",
+                        "description": "namespace name",
                         "name": "namespace",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "pod名",
+                        "description": "pod name",
                         "name": "pod",
                         "in": "query",
                         "required": true
@@ -1646,7 +1646,7 @@ const docTemplate = `{
         },
         "/api/k8s/pods": {
             "get": {
-                "description": "获取所有pod信息",
+                "description": "get all pod information",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -1656,11 +1656,11 @@ const docTemplate = `{
                 "tags": [
                     "API.k8s"
                 ],
-                "summary": "获取所有pod信息",
+                "summary": "get all pod information",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "namespace名",
+                        "description": "namespace name",
                         "name": "namespace",
                         "in": "query",
                         "required": true
@@ -1684,7 +1684,7 @@ const docTemplate = `{
         },
         "/api/log/chart": {
             "post": {
-                "description": "获取日志趋势图",
+                "description": "get the log trend chart",
                 "consumes": [
                     "application/json"
                 ],
@@ -1694,10 +1694,10 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "获取日志趋势图",
+                "summary": "get the log trend chart",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -1730,7 +1730,7 @@ const docTemplate = `{
         },
         "/api/log/context": {
             "post": {
-                "description": "获取日志上下文",
+                "description": "get log context",
                 "consumes": [
                     "application/json"
                 ],
@@ -1740,10 +1740,10 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "获取日志上下文",
+                "summary": "get log context",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -1776,17 +1776,17 @@ const docTemplate = `{
         },
         "/api/log/fault/content": {
             "post": {
-                "description": "获取故障现场日志内容",
+                "description": "get the contents of the fault site log",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "API.log"
                 ],
-                "summary": "获取故障现场日志内容",
+                "summary": "get the contents of the fault site log",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -1819,7 +1819,7 @@ const docTemplate = `{
         },
         "/api/log/fault/pagelist": {
             "post": {
-                "description": "获取故障现场分页日志",
+                "description": "get fault site paging log",
                 "consumes": [
                     "application/json"
                 ],
@@ -1829,10 +1829,10 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "获取故障现场分页日志",
+                "summary": "get fault site paging log",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -1865,7 +1865,7 @@ const docTemplate = `{
         },
         "/api/log/index": {
             "post": {
-                "description": "分析字段索引",
+                "description": "analysis field index",
                 "consumes": [
                     "application/json"
                 ],
@@ -1875,10 +1875,10 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "分析字段索引",
+                "summary": "analysis field index",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -1911,7 +1911,7 @@ const docTemplate = `{
         },
         "/api/log/other": {
             "get": {
-                "description": "获取外部日志表",
+                "description": "get external log table",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -1921,10 +1921,10 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "获取外部日志表",
+                "summary": "get external log table",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -1957,7 +1957,7 @@ const docTemplate = `{
         },
         "/api/log/other/add": {
             "post": {
-                "description": "添加外部日志表",
+                "description": "add external log table",
                 "consumes": [
                     "application/json"
                 ],
@@ -1967,10 +1967,10 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "添加外部日志表",
+                "summary": "add external log table",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -2003,7 +2003,7 @@ const docTemplate = `{
         },
         "/api/log/other/delete": {
             "delete": {
-                "description": "移除外部日志表",
+                "description": "remove external log table",
                 "consumes": [
                     "application/json"
                 ],
@@ -2013,10 +2013,10 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "移除外部日志表",
+                "summary": "remove external log table",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -2049,7 +2049,7 @@ const docTemplate = `{
         },
         "/api/log/other/table": {
             "get": {
-                "description": "获取外部日志表信息",
+                "description": "get external log table information",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -2059,10 +2059,10 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "获取外部日志表信息",
+                "summary": "get external log table information",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -2095,7 +2095,7 @@ const docTemplate = `{
         },
         "/api/log/query": {
             "post": {
-                "description": "查询全量日志",
+                "description": "query full logs",
                 "consumes": [
                     "application/json"
                 ],
@@ -2105,10 +2105,10 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "查询全量日志日志",
+                "summary": "query all logs",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -2141,7 +2141,7 @@ const docTemplate = `{
         },
         "/api/log/rule/add": {
             "post": {
-                "description": "新增日志表解析规则",
+                "description": "new log table parsing rules",
                 "consumes": [
                     "application/json"
                 ],
@@ -2151,10 +2151,10 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "新增日志表解析规则",
+                "summary": "new log table parsing rules",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -2187,7 +2187,7 @@ const docTemplate = `{
         },
         "/api/log/rule/delete": {
             "delete": {
-                "description": "删除日志表解析规则",
+                "description": "delete log table parsing rules",
                 "consumes": [
                     "application/json"
                 ],
@@ -2197,10 +2197,10 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "删除日志表解析规则",
+                "summary": "delete log table parsing rules",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -2233,7 +2233,7 @@ const docTemplate = `{
         },
         "/api/log/rule/get": {
             "get": {
-                "description": "获取日志表解析规则",
+                "description": "get log table parsing rules",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -2243,18 +2243,18 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "获取日志表解析规则",
+                "summary": "get log table parsing rules",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "数据库",
+                        "description": "database",
                         "name": "dataBase",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "表",
+                        "description": "Table",
                         "name": "tableName",
                         "in": "query",
                         "required": true
@@ -2284,7 +2284,7 @@ const docTemplate = `{
         },
         "/api/log/rule/service": {
             "get": {
-                "description": "获取服务对应的应用日志",
+                "description": "get the application log corresponding to the service",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -2294,10 +2294,10 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "获取服务对应的应用日志",
+                "summary": "get the application log corresponding to the service",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -2330,7 +2330,7 @@ const docTemplate = `{
         },
         "/api/log/rule/update": {
             "post": {
-                "description": "更新日志表解析规则",
+                "description": "update log table parsing rules",
                 "consumes": [
                     "application/json"
                 ],
@@ -2340,10 +2340,10 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "更新日志表解析规则",
+                "summary": "update log table parsing rules",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -2376,7 +2376,7 @@ const docTemplate = `{
         },
         "/api/log/table": {
             "get": {
-                "description": "获取日志表信息",
+                "description": "get log table information",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -2386,10 +2386,10 @@ const docTemplate = `{
                 "tags": [
                     "API.log"
                 ],
-                "summary": "获取日志表信息",
+                "summary": "get log table information",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -2422,7 +2422,7 @@ const docTemplate = `{
         },
         "/api/mock": {
             "get": {
-                "description": "xx列表",
+                "description": "xx list",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -2432,12 +2432,12 @@ const docTemplate = `{
                 "tags": [
                     "API.mock"
                 ],
-                "summary": "xx列表",
+                "summary": "xx list",
                 "parameters": [
                     {
                         "type": "integer",
                         "default": 1,
-                        "description": "第几页",
+                        "description": "which page",
                         "name": "page_num",
                         "in": "query",
                         "required": true
@@ -2445,13 +2445,13 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "default": 10,
-                        "description": "每页显示条数",
+                        "description": "Number of displays per page",
                         "name": "page_size",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "用户名",
+                        "description": "username",
                         "name": "name",
                         "in": "query"
                     }
@@ -2472,7 +2472,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "创建/编辑xx",
+                "description": "create/edit xx",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -2482,11 +2482,11 @@ const docTemplate = `{
                 "tags": [
                     "API.mock"
                 ],
-                "summary": "创建/编辑xx",
+                "summary": "create/edit xx",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "名称",
+                        "description": "name",
                         "name": "name",
                         "in": "formData",
                         "required": true
@@ -2510,7 +2510,7 @@ const docTemplate = `{
         },
         "/api/mock/{id}": {
             "get": {
-                "description": "xx详情",
+                "description": "xx details",
                 "consumes": [
                     "application/json"
                 ],
@@ -2520,7 +2520,7 @@ const docTemplate = `{
                 "tags": [
                     "API.mock"
                 ],
-                "summary": "xx详情",
+                "summary": "xx details",
                 "parameters": [
                     {
                         "type": "integer",
@@ -2546,7 +2546,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "删除xx",
+                "description": "delete xx",
                 "consumes": [
                     "application/json"
                 ],
@@ -2556,7 +2556,7 @@ const docTemplate = `{
                 "tags": [
                     "API.mock"
                 ],
-                "summary": "删除xx",
+                "summary": "delete xx",
                 "parameters": [
                     {
                         "type": "integer",
@@ -2584,7 +2584,7 @@ const docTemplate = `{
         },
         "/api/network/podmap": {
             "get": {
-                "description": "查询 Pod 网络调用拓扑与调用指标",
+                "description": "query pod network call topology and call metrics",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -2594,31 +2594,31 @@ const docTemplate = `{
                 "tags": [
                     "API.Network"
                 ],
-                "summary": "查询 Pod 网络调用拓扑与调用指标",
+                "summary": "query pod network call topology and call metrics",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "起始时间，单位微秒",
+                        "description": "Start time, in microseconds",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "结束时间，单位微秒",
+                        "description": "End time, in microseconds",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "要查询的Namespace，值为空则查询所有",
+                        "description": "Namespace to query, if the value is empty, query all",
                         "name": "namespace",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "要查询的工作负载，值为空则查询所有",
+                        "description": "Workload to be queried. If the value is empty, all of them will be queried",
                         "name": "workload",
                         "in": "query"
                     }
@@ -2641,14 +2641,12 @@ const docTemplate = `{
         },
         "/api/network/segments": {
             "get": {
-                "description": "客户端对外调用Span网络耗时分段指标",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
                 "tags": [
                     "API.Network"
                 ],
-                "summary": "客户端对外调用Span网络耗时分段指标",
                 "parameters": [
                     {
                         "type": "string",
@@ -2659,7 +2657,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "spanId, 值为空则查询所有",
+                        "description": "spanId. If the value is blank, all items are queried",
                         "name": "spanId",
                         "in": "query"
                     }
@@ -2696,7 +2694,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "user id",
                         "name": "userId",
                         "in": "query",
                         "required": true
@@ -2796,7 +2794,7 @@ const docTemplate = `{
                             "type": "integer"
                         },
                         "collectionFormat": "multi",
-                        "description": "功能id列表",
+                        "description": "function id list",
                         "name": "permissionList",
                         "in": "formData",
                         "required": true
@@ -2840,21 +2838,21 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "授权主体id",
+                        "description": "authorization principal id",
                         "name": "subjectId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "授权主体类型: 'role','user','team'",
+                        "description": "Authorization principal type: 'role','user','team '",
                         "name": "subjectType",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "授权类型: 'feature','data'",
+                        "description": "Authorization type: 'feature','data '",
                         "name": "type",
                         "in": "formData",
                         "required": true
@@ -2865,7 +2863,7 @@ const docTemplate = `{
                             "type": "integer"
                         },
                         "collectionFormat": "multi",
-                        "description": "权限id列表",
+                        "description": "list of permission ids",
                         "name": "permissionList",
                         "in": "formData"
                     }
@@ -2902,7 +2900,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "user id",
                         "name": "userId",
                         "in": "query",
                         "required": true
@@ -2943,7 +2941,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "user id",
                         "name": "userId",
                         "in": "formData"
                     },
@@ -2953,7 +2951,7 @@ const docTemplate = `{
                             "type": "integer"
                         },
                         "collectionFormat": "multi",
-                        "description": "角色id",
+                        "description": "role id",
                         "name": "roleList",
                         "in": "formData"
                     },
@@ -3044,14 +3042,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "授权主体id",
+                        "description": "authorization principal id",
                         "name": "subjectId",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "授权主体类型",
+                        "description": "Authorization Principal Type",
                         "name": "subjectType",
                         "in": "query",
                         "required": true
@@ -3078,7 +3076,7 @@ const docTemplate = `{
         },
         "/api/service/alert/events": {
             "get": {
-                "description": "获取告警事件",
+                "description": "get alarm events",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3088,67 +3086,67 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取告警事件",
+                "summary": "get alarm events",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "查询告警来源",
+                        "description": "Query the alarm source",
                         "name": "source",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "查询告警类型",
+                        "description": "Query alarm type",
                         "name": "group",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "查询告警名称",
+                        "description": "Query alarm name",
                         "name": "name",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "查询告警ID",
+                        "description": "Query alarm ID",
                         "name": "id",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "查询告警状态",
+                        "description": "Query alarm status",
                         "name": "status",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "分页参数,当前页数",
+                        "description": "Paging parameter, current number of pages",
                         "name": "currentPage",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "分页参数, 每页数量",
+                        "description": "Pagination parameter, quantity per page",
                         "name": "pageSize",
                         "in": "query"
                     },
@@ -3177,7 +3175,7 @@ const docTemplate = `{
         },
         "/api/service/alert/sample/events": {
             "get": {
-                "description": "获取采样告警事件",
+                "description": "get sampling alarm events",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3187,62 +3185,62 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取采样告警事件",
+                "summary": "get sampling alarm events",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询告警来源",
+                        "description": "Query the alarm source",
                         "name": "source",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "查询告警类型",
+                        "description": "Query alarm type",
                         "name": "group",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "查询告警名称",
+                        "description": "Query alarm name",
                         "name": "name",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "查询告警ID",
+                        "description": "Query alarm ID",
                         "name": "id",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "查询告警状态",
+                        "description": "Query alarm status",
                         "name": "status",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "采样告警数量",
+                        "description": "Number of sample alarms",
                         "name": "sampleCount",
                         "in": "query"
                     },
@@ -3271,7 +3269,7 @@ const docTemplate = `{
         },
         "/api/service/descendant/metrics": {
             "get": {
-                "description": "获取所有下游服务的延时曲线数据",
+                "description": "get the delay curve data of all downstream services",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3281,52 +3279,52 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取所有下游服务的延时曲线数据",
+                "summary": "get the delay curve data of all downstream services",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询Endpoint",
+                        "description": "Query Endpoint",
                         "name": "endpoint",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询步长(us)",
+                        "description": "query step (us)",
                         "name": "step",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "入口服务名",
+                        "description": "Ingress service name",
                         "name": "entryService",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "入口Endpoint",
+                        "description": "entry Endpoint",
                         "name": "entryEndpoint",
                         "in": "query"
                     },
@@ -3358,7 +3356,7 @@ const docTemplate = `{
         },
         "/api/service/descendant/relevance": {
             "get": {
-                "description": "获取依赖节点延时关联度",
+                "description": "get the dependent node delay correlation degree",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3368,52 +3366,52 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取依赖节点延时关联度",
+                "summary": "get the dependent node delay correlation degree",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询Endpoint",
+                        "description": "Query Endpoint",
                         "name": "endpoint",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询步长(us)",
+                        "description": "query step (us)",
                         "name": "step",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "入口服务名",
+                        "description": "Ingress service name",
                         "name": "entryService",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "入口Endpoint",
+                        "description": "entry Endpoint",
                         "name": "entryEndpoint",
                         "in": "query"
                     },
@@ -3451,7 +3449,7 @@ const docTemplate = `{
         },
         "/api/service/endpoint/list": {
             "get": {
-                "description": "获取服务EndPoint列表",
+                "description": "get the list of service EndPoint",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3461,25 +3459,25 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取服务EndPoint列表",
+                "summary": "get the list of service EndPoint",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query"
                     },
@@ -3511,7 +3509,7 @@ const docTemplate = `{
         },
         "/api/service/endpoints": {
             "get": {
-                "description": "获取endpoints服务列表",
+                "description": "get the list of endpoints services",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3521,25 +3519,25 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取endpoints服务列表",
+                "summary": "get the list of endpoints services",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "步长",
+                        "description": "step",
                         "name": "step",
                         "in": "query",
                         "required": true
@@ -3550,7 +3548,7 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "collectionFormat": "multi",
-                        "description": "服务名称",
+                        "description": "service name",
                         "name": "serviceName",
                         "in": "query"
                     },
@@ -3560,7 +3558,7 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "collectionFormat": "multi",
-                        "description": "命名空间",
+                        "description": "namespace",
                         "name": "namespace",
                         "in": "query"
                     },
@@ -3570,13 +3568,13 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "collectionFormat": "multi",
-                        "description": "服务端点",
+                        "description": "service endpoint",
                         "name": "endpointName",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "排序逻辑",
+                        "description": "sort logic",
                         "name": "sortRule",
                         "in": "query",
                         "required": true
@@ -3606,7 +3604,7 @@ const docTemplate = `{
         },
         "/api/service/entry/endpoints": {
             "get": {
-                "description": "获取服务入口Endpoint列表",
+                "description": "get the service entry Endpoint list",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3616,46 +3614,46 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取服务入口Endpoint列表",
+                "summary": "get the service entry Endpoint list",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询Endpoint",
+                        "description": "Query Endpoint",
                         "name": "endpoint",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询步长(us)",
+                        "description": "query step (us)",
                         "name": "step",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "boolean",
-                        "description": "显示缺失入口",
+                        "description": "Show missing entry",
                         "name": "showMissTop",
                         "in": "query"
                     },
@@ -3687,7 +3685,7 @@ const docTemplate = `{
         },
         "/api/service/error/instance": {
             "get": {
-                "description": "获取错误实例",
+                "description": "get the error instance",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3697,52 +3695,52 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取错误实例",
+                "summary": "get the error instance",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询Endpoint",
+                        "description": "Query Endpoint",
                         "name": "endpoint",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询步长(us)",
+                        "description": "query step (us)",
                         "name": "step",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "入口服务名",
+                        "description": "Ingress service name",
                         "name": "entryService",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "入口Endpoint",
+                        "description": "entry Endpoint",
                         "name": "entryEndpoint",
                         "in": "query"
                     },
@@ -3777,7 +3775,7 @@ const docTemplate = `{
         },
         "/api/service/errorinstance/logs": {
             "get": {
-                "description": "获取错误实例故障现场日志",
+                "description": "get the error instance failure site log",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3787,57 +3785,57 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取错误实例故障现场日志",
+                "summary": "get the error instance failure site log",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询Endpoint",
+                        "description": "Query Endpoint",
                         "name": "endpoint",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "实例名",
+                        "description": "instance name",
                         "name": "instance",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "主机名",
+                        "description": "hostname",
                         "name": "nodeName",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "容器名",
+                        "description": "container name",
                         "name": "containerId",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "进程号",
+                        "description": "process number",
                         "name": "pid",
                         "in": "query"
                     },
@@ -3869,7 +3867,7 @@ const docTemplate = `{
         },
         "/api/service/getThreshold": {
             "get": {
-                "description": "获取单个阈值配置信息",
+                "description": "get individual threshold configuration information",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3879,11 +3877,11 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取单个阈值配置信息",
+                "summary": "get individual threshold configuration information",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "应用名称",
+                        "description": "app name",
                         "name": "serviceName",
                         "in": "query"
                     },
@@ -3895,7 +3893,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "阈值等级",
+                        "description": "Threshold level",
                         "name": "level",
                         "in": "query",
                         "required": true
@@ -3922,7 +3920,7 @@ const docTemplate = `{
         },
         "/api/service/instance/list": {
             "get": {
-                "description": "获取服务实例列表",
+                "description": "get the list of service instances",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3932,26 +3930,26 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取服务实例列表",
+                "summary": "get the list of service instances",
                 "deprecated": true,
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
@@ -3984,7 +3982,7 @@ const docTemplate = `{
         },
         "/api/service/instance/options": {
             "get": {
-                "description": "获取服务下拉实例列表",
+                "description": "get the drop-down list of service instances",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3994,25 +3992,25 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取服务下拉实例列表",
+                "summary": "get the drop-down list of service instances",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
@@ -4045,7 +4043,7 @@ const docTemplate = `{
         },
         "/api/service/instanceinfo/list": {
             "get": {
-                "description": "获取服务实例列表",
+                "description": "get the list of service instances",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4055,26 +4053,26 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取服务实例列表",
+                "summary": "get the list of service instances",
                 "deprecated": true,
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
@@ -4107,7 +4105,7 @@ const docTemplate = `{
         },
         "/api/service/instances": {
             "get": {
-                "description": "获取service对应url实例",
+                "description": "get the URL instance corresponding to the service",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4117,32 +4115,32 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取service对应url实例",
+                "summary": "get the URL instance corresponding to the service",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "步长",
+                        "description": "step",
                         "name": "step",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "应用名称",
+                        "description": "app name",
                         "name": "serviceName",
                         "in": "query",
                         "required": true
@@ -4178,7 +4176,7 @@ const docTemplate = `{
         },
         "/api/service/k8s/events/count": {
             "get": {
-                "description": "获取K8s事件",
+                "description": "get K8s events",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4188,25 +4186,25 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取K8s事件",
+                "summary": "get K8s events",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
@@ -4236,7 +4234,7 @@ const docTemplate = `{
         },
         "/api/service/list": {
             "get": {
-                "description": "获取服务列表",
+                "description": "get the list of services",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4246,18 +4244,18 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取服务列表",
+                "summary": "get the list of services",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
@@ -4300,7 +4298,7 @@ const docTemplate = `{
         },
         "/api/service/log/logs": {
             "get": {
-                "description": "获取Log故障现场日志",
+                "description": "get Log fault site log",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4310,57 +4308,57 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取Log故障现场日志",
+                "summary": "get Log fault site log",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询Endpoint",
+                        "description": "Query Endpoint",
                         "name": "endpoint",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "实例名",
+                        "description": "instance name",
                         "name": "instance",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "主机名",
+                        "description": "hostname",
                         "name": "nodeName",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "容器名",
+                        "description": "container name",
                         "name": "containerId",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "进程号",
+                        "description": "process number",
                         "name": "pid",
                         "in": "query"
                     },
@@ -4392,7 +4390,7 @@ const docTemplate = `{
         },
         "/api/service/log/metrics": {
             "get": {
-                "description": "获取日志相关指标",
+                "description": "get log related metrics",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4402,52 +4400,52 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取日志相关指标",
+                "summary": "get log related metrics",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询Endpoint",
+                        "description": "Query Endpoint",
                         "name": "endpoint",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询步长(us)",
+                        "description": "query step (us)",
                         "name": "step",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "入口服务名",
+                        "description": "Ingress service name",
                         "name": "entryService",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "入口Endpoint",
+                        "description": "entry Endpoint",
                         "name": "entryEndpoint",
                         "in": "query"
                     },
@@ -4479,7 +4477,7 @@ const docTemplate = `{
         },
         "/api/service/monitor/status": {
             "get": {
-                "description": "获取kuma监控的服务状态",
+                "description": "get the service status monitored by kuma",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4489,18 +4487,18 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取kuma监控的服务状态",
+                "summary": "get the service status monitored by kuma",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
@@ -4530,7 +4528,7 @@ const docTemplate = `{
         },
         "/api/service/moreUrl": {
             "get": {
-                "description": "获取服务的更多url列表",
+                "description": "get more url list of services",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4540,39 +4538,39 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取服务的更多url列表",
+                "summary": "get more url list of services",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "步长",
+                        "description": "step",
                         "name": "step",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "应用名称",
+                        "description": "app name",
                         "name": "serviceName",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "排序逻辑",
+                        "description": "sort logic",
                         "name": "sortRule",
                         "in": "query",
                         "required": true
@@ -4619,14 +4617,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "开始时间",
+                        "description": "start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "结束时间",
+                        "description": "end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
@@ -4650,7 +4648,7 @@ const docTemplate = `{
         },
         "/api/service/polaris/infer": {
             "get": {
-                "description": "获取北极星指标分析情况",
+                "description": "Get Polaris metric Analysis",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4660,39 +4658,39 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取北极星指标分析情况",
+                "summary": "Get Polaris metric Analysis",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询步长(us)",
+                        "description": "query step (us)",
                         "name": "step",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询Endpoint",
+                        "description": "Query Endpoint",
                         "name": "endpoint",
                         "in": "query",
                         "required": true
@@ -4722,7 +4720,7 @@ const docTemplate = `{
         },
         "/api/service/relation": {
             "get": {
-                "description": "获取服务上下游调用关系",
+                "description": "the call relationship between the upstream and downstream service",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4732,45 +4730,45 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取服务上下游调用关系",
+                "summary": "get the call relationship between the upstream and downstream services",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询Endpoint",
+                        "description": "Query Endpoint",
                         "name": "endpoint",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "入口服务名",
+                        "description": "Ingress service name",
                         "name": "entryService",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "入口Endpoint",
+                        "description": "entry Endpoint",
                         "name": "entryEndpoint",
                         "in": "query"
                     },
@@ -4799,7 +4797,7 @@ const docTemplate = `{
         },
         "/api/service/ryglight": {
             "get": {
-                "description": "获取红绿灯结果",
+                "description": "get traffic light results",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4809,37 +4807,37 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取红绿灯结果",
+                "summary": "get traffic light results",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "服务名称",
+                        "description": "Service name",
                         "name": "serviceName",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "接口名称",
+                        "description": "interface name",
                         "name": "endpointName",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "命名空间",
+                        "description": "namespace",
                         "name": "namespace",
                         "in": "query"
                     },
@@ -4868,7 +4866,7 @@ const docTemplate = `{
         },
         "/api/service/servicesAlert": {
             "get": {
-                "description": "获取Service的日志告警和状态灯信息",
+                "description": "get the log alarm and status light information of the Service",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4878,25 +4876,25 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取Service的日志告警和状态灯信息",
+                "summary": "get the log alarm and status light information of the Service",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "步长",
+                        "description": "step",
                         "name": "step",
                         "in": "query",
                         "required": true
@@ -4907,7 +4905,7 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "collectionFormat": "multi",
-                        "description": "应用名称",
+                        "description": "application name",
                         "name": "serviceNames",
                         "in": "query",
                         "required": true
@@ -4918,7 +4916,7 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "collectionFormat": "multi",
-                        "description": "返回数据内容",
+                        "description": "return data content",
                         "name": "returnData",
                         "in": "query"
                     },
@@ -4947,7 +4945,7 @@ const docTemplate = `{
         },
         "/api/service/setThreshold": {
             "post": {
-                "description": "配置单个阈值配置信息",
+                "description": "configuration single threshold configuration information",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4957,18 +4955,18 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "配置单个阈值配置信息",
+                "summary": "configuration single threshold configuration information",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "阈值等级",
+                        "description": "threshold level",
                         "name": "level",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "应用名称",
+                        "description": "app name",
                         "name": "serviceName",
                         "in": "formData"
                     },
@@ -4980,28 +4978,28 @@ const docTemplate = `{
                     },
                     {
                         "type": "number",
-                        "description": "同比延时",
+                        "description": "YoY Delay",
                         "name": "latency",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "number",
-                        "description": "同比错误率",
+                        "description": "YoY Error Rate",
                         "name": "errorRate",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "number",
-                        "description": "同比请求次数",
+                        "description": "Number of requests compared with the same period last year",
                         "name": "tps",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "number",
-                        "description": "同比日志告警",
+                        "description": "year-on-year log alarm",
                         "name": "log",
                         "in": "formData",
                         "required": true
@@ -5028,7 +5026,7 @@ const docTemplate = `{
         },
         "/api/service/sql/metrics": {
             "get": {
-                "description": "获取SQL指标",
+                "description": "get SQL metrics",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5038,52 +5036,52 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取SQL指标",
+                "summary": "get SQL metrics",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询步长(us)",
+                        "description": "query step (us)",
                         "name": "step",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "排序方法(latency/errorRate/tps)",
+                        "description": "Sort method (latency/errorRate/tps)",
                         "name": "sortBy",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "分页参数,当前页数",
+                        "description": "Paging parameter, current number of pages",
                         "name": "currentPage",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "分页参数, 每页数量",
+                        "description": "Pagination parameter, quantity per page",
                         "name": "pageSize",
                         "in": "query"
                     },
@@ -5112,7 +5110,7 @@ const docTemplate = `{
         },
         "/api/service/topology": {
             "get": {
-                "description": "获取服务上下游拓扑",
+                "description": "get the upstream and downstream topology of the service",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5122,45 +5120,45 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取服务上下游拓扑",
+                "summary": "get the upstream and downstream topology of the service",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询Endpoint",
+                        "description": "Query Endpoint",
                         "name": "endpoint",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "入口服务名",
+                        "description": "Ingress service name",
                         "name": "entryService",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "入口Endpoint",
+                        "description": "entry Endpoint",
                         "name": "entryEndpoint",
                         "in": "query"
                     },
@@ -5189,7 +5187,7 @@ const docTemplate = `{
         },
         "/api/service/trace/logs": {
             "get": {
-                "description": "获取Trace故障现场日志",
+                "description": "get trace fault site log",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5199,57 +5197,57 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取Trace故障现场日志",
+                "summary": "get trace fault site log",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询Endpoint",
+                        "description": "Query Endpoint",
                         "name": "endpoint",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "实例名",
+                        "description": "instance name",
                         "name": "instance",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "主机名",
+                        "description": "hostname",
                         "name": "nodeName",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "容器名",
+                        "description": "container name",
                         "name": "containerId",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "进程号",
+                        "description": "process number",
                         "name": "pid",
                         "in": "query"
                     },
@@ -5281,7 +5279,7 @@ const docTemplate = `{
         },
         "/api/service/trace/metrics": {
             "get": {
-                "description": "获取Trace相关指标",
+                "description": "get Trace related metrics",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5291,52 +5289,52 @@ const docTemplate = `{
                 "tags": [
                     "API.service"
                 ],
-                "summary": "获取Trace相关指标",
+                "summary": "get Trace related metrics",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询服务名",
+                        "description": "Query service name",
                         "name": "service",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "查询Endpoint",
+                        "description": "Query Endpoint",
                         "name": "endpoint",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询步长(us)",
+                        "description": "query step (us)",
                         "name": "step",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "入口服务名",
+                        "description": "Ingress service name",
                         "name": "entryService",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "入口Endpoint",
+                        "description": "entry Endpoint",
                         "name": "entryEndpoint",
                         "in": "query"
                     },
@@ -5368,7 +5366,7 @@ const docTemplate = `{
         },
         "/api/trace/flame": {
             "get": {
-                "description": "获取指定时间段指定条件的火焰图数据",
+                "description": "get the flame chart data of the specified time period and specified conditions",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5378,45 +5376,45 @@ const docTemplate = `{
                 "tags": [
                     "API.trace"
                 ],
-                "summary": "获取指定时间段指定条件的火焰图数据",
+                "summary": "get the flame chart data of the specified time period and specified conditions",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "采样类型",
+                        "description": "sample type",
                         "name": "sampleType",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "进程id",
+                        "description": "process id",
                         "name": "pid",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "线程id",
+                        "description": "thread id",
                         "name": "tid",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "主机名称",
+                        "description": "hostname",
                         "name": "nodeName",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "开始时间",
+                        "description": "start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "结束时间",
+                        "description": "end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
@@ -5454,7 +5452,7 @@ const docTemplate = `{
         },
         "/api/trace/flame/process": {
             "get": {
-                "description": "获取并整合进程级别火焰图数据",
+                "description": "get and integrate process-level flame graph data",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5464,44 +5462,44 @@ const docTemplate = `{
                 "tags": [
                     "API.trace"
                 ],
-                "summary": "获取并整合进程级别火焰图数据",
+                "summary": "get and integrate process-level flame graph data",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "限制节点数",
+                        "description": "Limit number of nodes",
                         "name": "maxNodes",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "开始时间",
+                        "description": "start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "结束时间",
+                        "description": "end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "进程id",
+                        "description": "process id",
                         "name": "pid",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "主机名称",
+                        "description": "hostname",
                         "name": "nodeName",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "采样类型",
+                        "description": "sample type",
                         "name": "sampleType",
                         "in": "query",
                         "required": true
@@ -5525,7 +5523,7 @@ const docTemplate = `{
         },
         "/api/trace/info": {
             "get": {
-                "description": "获取单链路Trace详情",
+                "description": "get single link trace details",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5535,7 +5533,7 @@ const docTemplate = `{
                 "tags": [
                     "API.trace"
                 ],
-                "summary": "获取单链路Trace详情",
+                "summary": "get single link trace details",
                 "parameters": [
                     {
                         "type": "string",
@@ -5569,7 +5567,7 @@ const docTemplate = `{
         },
         "/api/trace/onoffcpu": {
             "get": {
-                "description": "获取span执行消耗",
+                "description": "get span execution consumption",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5579,32 +5577,32 @@ const docTemplate = `{
                 "tags": [
                     "API.trace"
                 ],
-                "summary": "获取span执行消耗",
+                "summary": "get span execution consumption",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "开始时间",
+                        "description": "start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "结束时间",
+                        "description": "end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "进程id",
+                        "description": "process id",
                         "name": "pid",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "节点名",
+                        "description": "node name",
                         "name": "nodeName",
                         "in": "query",
                         "required": true
@@ -5628,7 +5626,7 @@ const docTemplate = `{
         },
         "/api/trace/pagelist": {
             "post": {
-                "description": "查询Trace分页列表",
+                "description": "to query the trace paging list",
                 "consumes": [
                     "application/json"
                 ],
@@ -5638,10 +5636,10 @@ const docTemplate = `{
                 "tags": [
                     "API.trace"
                 ],
-                "summary": "查询Trace分页列表",
+                "summary": "to query the trace paging list",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -5668,7 +5666,7 @@ const docTemplate = `{
         },
         "/api/trace/pagelist/filter/value": {
             "post": {
-                "description": "查询指定过滤器的可用数值",
+                "description": "query the available values of the specified filter",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5678,10 +5676,10 @@ const docTemplate = `{
                 "tags": [
                     "API.trace"
                 ],
-                "summary": "查询指定过滤器的可用数值",
+                "summary": "query the available values of the specified filter",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request information",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -5714,7 +5712,7 @@ const docTemplate = `{
         },
         "/api/trace/pagelist/filters": {
             "get": {
-                "description": "查询Trace列表可用的过滤器",
+                "description": "the available filters for querying the Trace list",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5724,25 +5722,25 @@ const docTemplate = `{
                 "tags": [
                     "API.trace"
                 ],
-                "summary": "查询Trace列表可用的过滤器",
+                "summary": "the available filters for querying the Trace list",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "查询开始时间",
+                        "description": "query start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "查询结束时间",
+                        "description": "query end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "boolean",
-                        "description": "是否根据用户输入的时间立即更新可用过滤器",
+                        "description": "Whether to update the available filters immediately based on the time entered by the user",
                         "name": "needUpdate",
                         "in": "query"
                     },
@@ -5771,7 +5769,7 @@ const docTemplate = `{
         },
         "/api/user/create": {
             "post": {
-                "description": "创建用户",
+                "description": "create user",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5781,25 +5779,25 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "创建用户",
+                "summary": "create user",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "用户名",
+                        "description": "username",
                         "name": "username",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "密码",
+                        "description": "password",
                         "name": "password",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "确认密码",
+                        "description": "Confirm password",
                         "name": "confirmPassword",
                         "in": "formData",
                         "required": true
@@ -5810,31 +5808,31 @@ const docTemplate = `{
                             "type": "integer"
                         },
                         "collectionFormat": "multi",
-                        "description": "角色id",
+                        "description": "role id",
                         "name": "roleList",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "邮箱",
+                        "description": "mailbox",
                         "name": "email",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "手机号",
+                        "description": "Phone number",
                         "name": "phone",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "组织",
+                        "description": "organization",
                         "name": "corporation",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "Bearer 令牌",
+                        "description": "Bearer token",
                         "name": "Authorization",
                         "in": "header"
                     }
@@ -5857,7 +5855,7 @@ const docTemplate = `{
         },
         "/api/user/info": {
             "get": {
-                "description": "获取个人信息",
+                "description": "get personal information",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5867,7 +5865,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "获取个人信息",
+                "summary": "get personal information",
                 "parameters": [
                     {
                         "type": "string",
@@ -5894,7 +5892,7 @@ const docTemplate = `{
         },
         "/api/user/list": {
             "get": {
-                "description": "获取用户列表",
+                "description": "get user list",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5904,7 +5902,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "获取用户列表",
+                "summary": "get user list",
                 "parameters": [
                     {
                         "type": "string",
@@ -5914,31 +5912,31 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "用户名",
+                        "description": "username",
                         "name": "username",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "当前页",
+                        "description": "current page",
                         "name": "currentPage",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "页大小",
+                        "description": "Page size",
                         "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "角色",
+                        "description": "role",
                         "name": "role",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "组织",
+                        "description": "organization",
                         "name": "corporation",
                         "in": "query"
                     }
@@ -5961,7 +5959,7 @@ const docTemplate = `{
         },
         "/api/user/login": {
             "post": {
-                "description": "登录",
+                "description": "login",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5971,18 +5969,18 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "登录",
+                "summary": "login",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "用户名",
+                        "description": "username",
                         "name": "username",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "密码",
+                        "description": "password",
                         "name": "password",
                         "in": "formData",
                         "required": true
@@ -6006,7 +6004,7 @@ const docTemplate = `{
         },
         "/api/user/logout": {
             "post": {
-                "description": "退出登录",
+                "description": "logout",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6016,7 +6014,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "退出登录",
+                "summary": "logout",
                 "parameters": [
                     {
                         "type": "string",
@@ -6051,7 +6049,7 @@ const docTemplate = `{
         },
         "/api/user/refresh": {
             "get": {
-                "description": "刷新accessToken",
+                "description": "refresh accessToken",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6061,7 +6059,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "刷新accessToken",
+                "summary": "refresh accessToken",
                 "parameters": [
                     {
                         "type": "string",
@@ -6089,7 +6087,7 @@ const docTemplate = `{
         },
         "/api/user/remove": {
             "post": {
-                "description": "移除用户",
+                "description": "remove user",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6099,7 +6097,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "移除用户",
+                "summary": "remove user",
                 "parameters": [
                     {
                         "type": "string",
@@ -6109,7 +6107,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "请求信息",
+                        "description": "request information",
                         "name": "userId",
                         "in": "formData",
                         "required": true
@@ -6133,7 +6131,7 @@ const docTemplate = `{
         },
         "/api/user/reset": {
             "post": {
-                "description": "重设密码",
+                "description": "reset password",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6143,25 +6141,25 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "重设密码",
+                "summary": "reset password",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "user id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "新密码",
+                        "description": "new password",
                         "name": "newPassword",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "重复密码",
+                        "description": "repeat password",
                         "name": "confirmPassword",
                         "in": "formData",
                         "required": true
@@ -6192,7 +6190,7 @@ const docTemplate = `{
         },
         "/api/user/update/email": {
             "post": {
-                "description": "更新/绑定邮箱",
+                "description": "update/bind mailbox",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6202,18 +6200,18 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "更新/绑定邮箱",
+                "summary": "update/bind mailbox",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "user id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "邮箱",
+                        "description": "mailbox",
                         "name": "email",
                         "in": "formData",
                         "required": true
@@ -6244,7 +6242,7 @@ const docTemplate = `{
         },
         "/api/user/update/info": {
             "post": {
-                "description": "更新个人信息",
+                "description": "update personal information",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6254,30 +6252,30 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "更新个人信息",
+                "summary": "update personal information",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "user id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "组织",
+                        "description": "organization",
                         "name": "corporation",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "手机号",
+                        "description": "Phone number",
                         "name": "phone",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "邮箱",
+                        "description": "mailbox",
                         "name": "email",
                         "in": "formData"
                     },
@@ -6307,7 +6305,7 @@ const docTemplate = `{
         },
         "/api/user/update/password": {
             "post": {
-                "description": "更新密码",
+                "description": "update password",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6317,32 +6315,32 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "更新密码",
+                "summary": "update password",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "user id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "原密码",
+                        "description": "original password",
                         "name": "oldPassword",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "新密码",
+                        "description": "new password",
                         "name": "newPassword",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "确认密码",
+                        "description": "Confirm password",
                         "name": "confirmPassword",
                         "in": "formData",
                         "required": true
@@ -6373,7 +6371,7 @@ const docTemplate = `{
         },
         "/api/user/update/phone": {
             "post": {
-                "description": "更新/绑定手机号",
+                "description": "update/bind phone number",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6383,18 +6381,18 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "更新/绑定手机号",
+                "summary": "update/bind phone number",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "user id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "手机号",
+                        "description": "phone number",
                         "name": "phone",
                         "in": "formData",
                         "required": true
@@ -6614,18 +6612,18 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "createTime": {
-                    "description": "故障触发时间",
+                    "description": "fault trigger time",
                     "type": "string"
                 },
                 "detail": {
                     "type": "string"
                 },
                 "endTime": {
-                    "description": "故障恢复时间（仅恢复时存在）",
+                    "description": "Recovery time (only present at recovery)",
                     "type": "string"
                 },
                 "group": {
-                    "description": "故障所属分组信息",
+                    "description": "Fault group information",
                     "type": "string"
                 },
                 "id": {
@@ -6635,7 +6633,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "receivedTime": {
-                    "description": "故障事件接收时间（用于记录数据对接，无业务含义）",
+                    "description": "Failure event reception time (used to record data connection, no business meaning)",
                     "type": "string"
                 },
                 "severity": {
@@ -6654,7 +6652,7 @@ const docTemplate = `{
                     }
                 },
                 "updateTime": {
-                    "description": "故障最后一次发生时间",
+                    "description": "Last time the fault occurred",
                     "type": "string"
                 }
             }
@@ -6723,18 +6721,18 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "createTime": {
-                    "description": "故障触发时间",
+                    "description": "fault trigger time",
                     "type": "string"
                 },
                 "detail": {
                     "type": "string"
                 },
                 "endTime": {
-                    "description": "故障恢复时间（仅恢复时存在）",
+                    "description": "Recovery time (only present at recovery)",
                     "type": "string"
                 },
                 "group": {
-                    "description": "故障所属分组信息",
+                    "description": "Fault group information",
                     "type": "string"
                 },
                 "id": {
@@ -6744,7 +6742,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "receivedTime": {
-                    "description": "故障事件接收时间（用于记录数据对接，无业务含义）",
+                    "description": "Failure event reception time (used to record data connection, no business meaning)",
                     "type": "string"
                 },
                 "severity": {
@@ -6763,7 +6761,7 @@ const docTemplate = `{
                     }
                 },
                 "updateTime": {
-                    "description": "故障最后一次发生时间",
+                    "description": "Last time the fault occurred",
                     "type": "string"
                 }
             }
@@ -6802,7 +6800,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "threadName": {
-                    "description": "线程名 表中在labels中",
+                    "description": "thread name table in labels",
                     "type": "string"
                 },
                 "tid": {
@@ -6841,7 +6839,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "isMutated": {
-                    "description": "延时是否突变",
+                    "description": "whether the delay changes abruptly",
                     "type": "integer"
                 },
                 "isSlow": {
@@ -6916,11 +6914,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "code": {
-                    "description": "业务码",
+                    "description": "business code",
                     "type": "string"
                 },
                 "message": {
-                    "description": "错误信息",
+                    "description": "error message",
                     "type": "string"
                 }
             }
@@ -7531,15 +7529,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "currentPage": {
-                    "description": "当前页码",
+                    "description": "current page number",
                     "type": "integer"
                 },
                 "pageSize": {
-                    "description": "每页条数",
+                    "description": "number of entries per page",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "总记录数",
+                    "description": "total number of records",
                     "type": "integer"
                 }
             }
@@ -7577,26 +7575,26 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "containerId": {
-                    "description": "容器ID",
+                    "description": "container ID",
                     "type": "string"
                 },
                 "nodeIp": {
                     "type": "string"
                 },
                 "nodeName": {
-                    "description": "主机名",
+                    "description": "hostname",
                     "type": "string"
                 },
                 "pid": {
-                    "description": "进程号",
+                    "description": "process number",
                     "type": "integer"
                 },
                 "podName": {
-                    "description": "Pod名",
+                    "description": "Pod name",
                     "type": "string"
                 },
                 "service": {
-                    "description": "服务名",
+                    "description": "service name",
                     "type": "string"
                 }
             }
@@ -7679,11 +7677,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "timestamp": {
-                    "description": "时间(微秒)",
+                    "description": "time (microseconds)",
                     "type": "integer"
                 },
                 "value": {
-                    "description": "值",
+                    "description": "value",
                     "type": "number"
                 }
             }
@@ -7701,7 +7699,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "description": "receiver类型",
+                    "description": "receiver type",
                     "type": "string"
                 }
             }
@@ -7748,7 +7746,7 @@ const docTemplate = `{
                     }
                 },
                 "tableFields": {
-                    "description": "自定义表字段",
+                    "description": "custom table fields",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/request.Field"
@@ -8122,7 +8120,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "severity": {
-                    "description": "告警级别 info warning ...",
+                    "description": "alarm level info warning...",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -8235,7 +8233,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sourceFrom": {
-                    "description": "日志数据源",
+                    "description": "log data source",
                     "type": "string"
                 },
                 "startTime": {
@@ -8253,15 +8251,15 @@ const docTemplate = `{
             ],
             "properties": {
                 "containerId": {
-                    "description": "容器名",
+                    "description": "container name",
                     "type": "string"
                 },
                 "endTime": {
-                    "description": "查询结束时间",
+                    "description": "query end time",
                     "type": "integer"
                 },
                 "instance": {
-                    "description": "实例名",
+                    "description": "instance name",
                     "type": "string"
                 },
                 "namespaces": {
@@ -8271,32 +8269,31 @@ const docTemplate = `{
                     }
                 },
                 "nodeName": {
-                    "description": "主机名",
+                    "description": "hostname",
                     "type": "string"
                 },
                 "pageNum": {
-                    "description": "第几页",
+                    "description": "page",
                     "type": "integer"
                 },
                 "pageSize": {
-                    "description": "每页显示条数",
+                    "description": "display number per page",
                     "type": "integer"
                 },
                 "pid": {
-                    "description": "进程号",
+                    "description": "process number",
                     "type": "integer"
                 },
                 "service": {
-                    "description": "查询服务名",
+                    "description": "query service name",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "startTime": {
-                    "description": "查询开始时间",
-                    "type": "integer",
-                    "minimum": 0
+                    "description": "query start time",
+                    "type": "integer"
                 },
                 "traceId": {
                     "description": "TraceId",
@@ -8322,20 +8319,19 @@ const docTemplate = `{
             ],
             "properties": {
                 "endTime": {
-                    "description": "查询结束时间",
+                    "description": "query end time",
                     "type": "integer"
                 },
                 "filter": {
                     "$ref": "#/definitions/request.SpanTraceFilter"
                 },
                 "searchText": {
-                    "description": "查询关键字",
+                    "description": "query keyword",
                     "type": "string"
                 },
                 "startTime": {
-                    "description": "查询开始时间",
-                    "type": "integer",
-                    "minimum": 0
+                    "description": "query start time",
+                    "type": "integer"
                 }
             }
         },
@@ -8346,26 +8342,26 @@ const docTemplate = `{
             ],
             "properties": {
                 "containerId": {
-                    "description": "容器名",
+                    "description": "container name",
                     "type": "string"
                 },
                 "endTime": {
-                    "description": "查询结束时间",
+                    "description": "query end time",
                     "type": "integer"
                 },
                 "endpoint": {
-                    "description": "查询Endpoint",
+                    "description": "query Endpoint",
                     "type": "string"
                 },
                 "filters": {
-                    "description": "过滤器",
+                    "description": "filter",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/request.SpanTraceFilter"
                     }
                 },
                 "instance": {
-                    "description": "实例名",
+                    "description": "instance name",
                     "type": "string"
                 },
                 "namespace": {
@@ -8375,31 +8371,30 @@ const docTemplate = `{
                     }
                 },
                 "nodeName": {
-                    "description": "主机名",
+                    "description": "hostname",
                     "type": "string"
                 },
                 "pageNum": {
-                    "description": "第几页",
+                    "description": "page",
                     "type": "integer"
                 },
                 "pageSize": {
                     "type": "integer"
                 },
                 "pid": {
-                    "description": "进程号",
+                    "description": "process number",
                     "type": "integer"
                 },
                 "service": {
-                    "description": "查询服务名",
+                    "description": "query service name",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "startTime": {
-                    "description": "查询开始时间",
-                    "type": "integer",
-                    "minimum": 0
+                    "description": "query start time",
+                    "type": "integer"
                 },
                 "traceId": {
                     "description": "TraceId",
@@ -8621,11 +8616,11 @@ const docTemplate = `{
             ],
             "properties": {
                 "day": {
-                    "description": "保存数据周期天数",
+                    "description": "save data cycle days",
                     "type": "integer"
                 },
                 "name": {
-                    "description": "表名",
+                    "description": "table name",
                     "type": "string"
                 }
             }
@@ -8638,18 +8633,11 @@ const docTemplate = `{
             ],
             "properties": {
                 "dataType": {
-                    "description": "类型（日志、trace、Kubernetes、其他）",
-                    "type": "string",
-                    "enum": [
-                        "logs",
-                        "trace",
-                        "k8s",
-                        "other",
-                        "topology"
-                    ]
+                    "description": "type (log, trace, Kubernetes, other)",
+                    "type": "string"
                 },
                 "day": {
-                    "description": "保存数据周期天数",
+                    "description": "save data cycle days",
                     "type": "integer"
                 }
             }
@@ -8690,7 +8678,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "description": "receiver类型",
+                    "description": "receiver type",
                     "type": "string"
                 }
             }
@@ -8803,7 +8791,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
-                    "description": "主键ID",
+                    "description": "primary key ID",
                     "type": "integer"
                 }
             }
@@ -8848,7 +8836,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
-                    "description": "主键ID",
+                    "description": "primary key ID",
                     "type": "integer"
                 }
             }
@@ -8918,15 +8906,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "endTime": {
-                    "description": "响应网络包时间戳，单位微秒",
+                    "description": "Timestamp of the response network packet, in microseconds",
                     "type": "integer"
                 },
                 "responseDuration": {
-                    "description": "响应延时",
+                    "description": "Response delay",
                     "type": "integer"
                 },
                 "startTime": {
-                    "description": "请求网络包时间戳，单位微秒",
+                    "description": "The timestamp of the request network packet, in microseconds.",
                     "type": "integer"
                 }
             }
@@ -8938,40 +8926,40 @@ const docTemplate = `{
                     "$ref": "#/definitions/model.AlertReason"
                 },
                 "appStatus": {
-                    "description": "应用告警",
+                    "description": "application alarm",
                     "type": "string"
                 },
                 "containerStatus": {
-                    "description": "容器告警",
+                    "description": "container alarm",
                     "type": "string"
                 },
                 "endpointCount": {
                     "type": "integer"
                 },
                 "infrastructureStatus": {
-                    "description": "基础设施告警",
+                    "description": "infrastructure alarm",
                     "type": "string"
                 },
                 "k8sStatus": {
-                    "description": "K8s状态告警",
+                    "description": "K8s status alarm",
                     "type": "string"
                 },
                 "logs": {
                     "$ref": "#/definitions/response.TempChartObject"
                 },
                 "logsStatus": {
-                    "description": "日志指标告警",
+                    "description": "log metric alarm",
                     "type": "string"
                 },
                 "namespaces": {
-                    "description": "应用所属命名空间,可能为空",
+                    "description": "The namespace of the application. It may be empty",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "netStatus": {
-                    "description": "网络告警",
+                    "description": "network alarm",
                     "type": "string"
                 },
                 "serviceDetails": {
@@ -8992,11 +8980,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
-                    "description": "错误消息",
+                    "description": "error message",
                     "type": "string"
                 },
                 "type": {
-                    "description": "错误类型",
+                    "description": "error type",
                     "type": "string"
                 }
             }
@@ -9005,30 +8993,30 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "containerId": {
-                    "description": "容器ID",
+                    "description": "container ID",
                     "type": "string"
                 },
                 "logs": {
-                    "description": "日志告警",
+                    "description": "log alarm",
                     "type": "object",
                     "additionalProperties": {
                         "type": "number"
                     }
                 },
                 "name": {
-                    "description": "错误实例名",
+                    "description": "Bad instance name",
                     "type": "string"
                 },
                 "nodeName": {
-                    "description": "主机名",
+                    "description": "hostname",
                     "type": "string"
                 },
                 "pid": {
-                    "description": "进程号",
+                    "description": "process number",
                     "type": "integer"
                 },
                 "propations": {
-                    "description": "错误传播信息",
+                    "description": "error propagation info",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.ErrorPropation"
@@ -9040,14 +9028,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "children": {
-                    "description": "下游节点列表",
+                    "description": "downstream node list",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.InstanceNode"
                     }
                 },
                 "current": {
-                    "description": "当前节点",
+                    "description": "current node",
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.InstanceNode"
@@ -9055,21 +9043,21 @@ const docTemplate = `{
                     ]
                 },
                 "errors": {
-                    "description": "错误信息",
+                    "description": "error message",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.ErrorInfo"
                     }
                 },
                 "parents": {
-                    "description": "上游节点列表",
+                    "description": "upstream node list",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.InstanceNode"
                     }
                 },
                 "timestamp": {
-                    "description": "时间戳",
+                    "description": "timestamp",
                     "type": "integer"
                 },
                 "traceId": {
@@ -9296,14 +9284,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "latencyP90": {
-                    "description": "P90曲线值",
+                    "description": "P90 curve value",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/prometheus.MetricsPoint"
                     }
                 },
                 "serviceName": {
-                    "description": "服务名",
+                    "description": "service name",
                     "type": "string"
                 }
             }
@@ -9312,30 +9300,30 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "REDStatus": {
-                    "description": "RED指标告警",
+                    "description": "RED metric alarm",
                     "type": "string"
                 },
                 "alertReason": {
                     "$ref": "#/definitions/model.AlertReason"
                 },
                 "appStatus": {
-                    "description": "应用告警",
+                    "description": "application alarm",
                     "type": "string"
                 },
                 "containerStatus": {
-                    "description": "容器告警",
+                    "description": "container alarm",
                     "type": "string"
                 },
                 "delaySource": {
-                    "description": "延时主要来源 unknown/self/dependency",
+                    "description": "main source of delay unknown/self/dependency",
                     "type": "string"
                 },
                 "distance": {
-                    "description": "延时曲线差异",
+                    "description": "delay curve difference",
                     "type": "number"
                 },
                 "distanceType": {
-                    "description": "延时曲线差异计算方式, 有euclidean/pearson/dtw/failed/net_failed四种",
+                    "description": "delay curve difference calculation method, there are four types of euclidean/pearson/dtw/failed/net_failed",
                     "type": "string"
                 },
                 "endpoint": {
@@ -9343,35 +9331,35 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "group": {
-                    "description": "服务类型",
+                    "description": "service type",
                     "type": "string"
                 },
                 "infrastructureStatus": {
-                    "description": "基础设施告警",
+                    "description": "infrastructure alarm",
                     "type": "string"
                 },
                 "isTraced": {
-                    "description": "是否跟踪",
+                    "description": "whether to trace",
                     "type": "boolean"
                 },
                 "k8sStatus": {
-                    "description": "K8s状态告警",
+                    "description": "K8s status alarm",
                     "type": "string"
                 },
                 "logsStatus": {
-                    "description": "日志指标告警",
+                    "description": "log metric alarm",
                     "type": "string"
                 },
                 "netStatus": {
-                    "description": "网络告警",
+                    "description": "network alarm",
                     "type": "string"
                 },
                 "serviceName": {
-                    "description": "服务名",
+                    "description": "service name",
                     "type": "string"
                 },
                 "timestamp": {
-                    "description": "末次部署时间",
+                    "description": "Last deployment time",
                     "type": "integer"
                 }
             }
@@ -9380,14 +9368,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "instances": {
-                    "description": "错误实例列表",
+                    "description": "error instance list",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.ErrorInstance"
                     }
                 },
                 "status": {
-                    "description": "错误实例状态",
+                    "description": "Bad instance status",
                     "type": "string"
                 }
             }
@@ -9487,40 +9475,40 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "containerId": {
-                    "description": "容器ID",
+                    "description": "container ID",
                     "type": "string"
                 },
                 "errorRate": {
-                    "description": "错误率",
+                    "description": "error rate",
                     "type": "object",
                     "additionalProperties": {
                         "type": "number"
                     }
                 },
                 "latency": {
-                    "description": "延时P90",
+                    "description": "delay P90",
                     "type": "object",
                     "additionalProperties": {
                         "type": "number"
                     }
                 },
                 "logs": {
-                    "description": "日志告警",
+                    "description": "log alarm",
                     "type": "object",
                     "additionalProperties": {
                         "type": "number"
                     }
                 },
                 "name": {
-                    "description": "实例名",
+                    "description": "Instance name",
                     "type": "string"
                 },
                 "nodeName": {
-                    "description": "主机名",
+                    "description": "hostname",
                     "type": "string"
                 },
                 "pid": {
-                    "description": "进程号",
+                    "description": "process number",
                     "type": "integer"
                 }
             }
@@ -9630,14 +9618,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "childRelations": {
-                    "description": "下游节点调用关系列表",
+                    "description": "downstream node call relationship list",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.ToplogyRelation"
                     }
                 },
                 "current": {
-                    "description": "当前服务",
+                    "description": "current service",
                     "allOf": [
                         {
                             "$ref": "#/definitions/model.TopologyNode"
@@ -9645,7 +9633,7 @@ const docTemplate = `{
                     ]
                 },
                 "parents": {
-                    "description": "上游节点列表",
+                    "description": "upstream node list",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.TopologyNode"
@@ -9669,14 +9657,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "children": {
-                    "description": "下游节点列表",
+                    "description": "downstream node list",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.TopologyNode"
                     }
                 },
                 "current": {
-                    "description": "当前服务",
+                    "description": "current service",
                     "allOf": [
                         {
                             "$ref": "#/definitions/model.TopologyNode"
@@ -9684,7 +9672,7 @@ const docTemplate = `{
                     ]
                 },
                 "parents": {
-                    "description": "上游节点列表",
+                    "description": "upstream node list",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.TopologyNode"
@@ -9786,40 +9774,40 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "containerId": {
-                    "description": "容器ID",
+                    "description": "container ID",
                     "type": "string"
                 },
                 "errorRate": {
-                    "description": "错误率",
+                    "description": "error rate",
                     "type": "object",
                     "additionalProperties": {
                         "type": "number"
                     }
                 },
                 "latency": {
-                    "description": "延时P90",
+                    "description": "delay P90",
                     "type": "object",
                     "additionalProperties": {
                         "type": "number"
                     }
                 },
                 "logs": {
-                    "description": "日志告警",
+                    "description": "log alarm",
                     "type": "object",
                     "additionalProperties": {
                         "type": "number"
                     }
                 },
                 "name": {
-                    "description": "实例名",
+                    "description": "Instance name",
                     "type": "string"
                 },
                 "nodeName": {
-                    "description": "主机名",
+                    "description": "hostname",
                     "type": "string"
                 },
                 "pid": {
-                    "description": "进程号",
+                    "description": "process number",
                     "type": "integer"
                 }
             }
@@ -9894,15 +9882,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "currentPage": {
-                    "description": "当前页码",
+                    "description": "current page number",
                     "type": "integer"
                 },
                 "pageSize": {
-                    "description": "每页条数",
+                    "description": "number of entries per page",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "总记录数",
+                    "description": "total number of records",
                     "type": "integer"
                 },
                 "users": {
@@ -9948,22 +9936,22 @@ const docTemplate = `{
                     "$ref": "#/definitions/model.AlertReason"
                 },
                 "appStatus": {
-                    "description": "应用告警",
+                    "description": "application alarm",
                     "type": "string"
                 },
                 "containerStatus": {
-                    "description": "容器告警",
+                    "description": "container alarm",
                     "type": "string"
                 },
                 "errorRate": {
                     "$ref": "#/definitions/response.TempChartObject"
                 },
                 "infrastructureStatus": {
-                    "description": "基础设施告警",
+                    "description": "infrastructure alarm",
                     "type": "string"
                 },
                 "k8sStatus": {
-                    "description": "K8s状态告警",
+                    "description": "K8s status alarm",
                     "type": "string"
                 },
                 "latency": {
@@ -9973,18 +9961,18 @@ const docTemplate = `{
                     "$ref": "#/definitions/response.TempChartObject"
                 },
                 "logsStatus": {
-                    "description": "日志指标告警",
+                    "description": "log metric alarm",
                     "type": "string"
                 },
                 "name": {
-                    "description": "实例名",
+                    "description": "Instance name",
                     "type": "string"
                 },
                 "namespace": {
                     "type": "string"
                 },
                 "netStatus": {
-                    "description": "网络告警",
+                    "description": "network alarm",
                     "type": "string"
                 },
                 "nodeIP": {
@@ -10069,7 +10057,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
-                    "description": "用户名",
+                    "description": "username",
                     "type": "string"
                 }
             }
@@ -10280,7 +10268,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "accessToken": {
-                    "description": "accessToken用于调用接口获取资源",
+                    "description": "accessToken is used to call the interface get resources",
                     "type": "string"
                 },
                 "corporation": {
@@ -10299,7 +10287,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "refreshToken": {
-                    "description": "refreshToken用于刷新accessToken",
+                    "description": "refreshToken for refreshing accessToken",
                     "type": "string"
                 },
                 "role": {
@@ -10381,15 +10369,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "current_page": {
-                    "description": "当前页码",
+                    "description": "current page number",
                     "type": "integer"
                 },
                 "per_page_count": {
-                    "description": "每页条数",
+                    "description": "number of pieces per page",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "总记录数",
+                    "description": "total number of records",
                     "type": "integer"
                 }
             }
@@ -10483,11 +10471,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "dayOverDay": {
-                    "description": "DayOverDay 日同比变化率",
+                    "description": "Day-over-Day Growth Rate",
                     "type": "number"
                 },
                 "weekOverDay": {
-                    "description": "WeekOverDay 周同比变化率",
+                    "description": "Week-over-Week Growth Rate",
                     "type": "number"
                 }
             }
@@ -10496,7 +10484,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "accessToken": {
-                    "description": "accessToken用于调用接口获取资源",
+                    "description": "accessToken is used to call the interface get resources",
                     "type": "string"
                 }
             }
@@ -10529,7 +10517,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tps": {
-                    "description": "FIXME Tps 名称为tps,实际为每分钟请求数",
+                    "description": "FIXME Tps name is tps, actual requests per minute",
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.TempChartObject"
@@ -10542,7 +10530,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "clientK8SNodeNic": {
-                    "description": "在客户端主机网卡处采集到的请求和响应时间",
+                    "description": "Request and response time collected at the client host NIC",
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.Duration"
@@ -10550,7 +10538,7 @@ const docTemplate = `{
                     ]
                 },
                 "clientNic": {
-                    "description": "在客户端网卡处采集到的请求和响应时间",
+                    "description": "Request and response time collected at the client NIC",
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.Duration"
@@ -10558,7 +10546,7 @@ const docTemplate = `{
                     ]
                 },
                 "clientProcess": {
-                    "description": "在客户端进程处采集到的请求和响应时间",
+                    "description": "Request and response times collected at the client process",
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.Duration"
@@ -10566,7 +10554,7 @@ const docTemplate = `{
                     ]
                 },
                 "serverK8SNodeNic": {
-                    "description": "在服务端主机网卡处采集到的请求和响应时间",
+                    "description": "Request and response time collected at the server host NIC",
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.Duration"
@@ -10574,7 +10562,7 @@ const docTemplate = `{
                     ]
                 },
                 "serverNic": {
-                    "description": "在服务端网卡处采集到的请求和响应时间",
+                    "description": "Request and response time collected at the server NIC",
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.Duration"
@@ -10582,7 +10570,7 @@ const docTemplate = `{
                     ]
                 },
                 "serverProcess": {
-                    "description": "在服务端进程处采集到的请求和响应时间",
+                    "description": "Request and response time collected at the server process",
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.Duration"
@@ -10598,30 +10586,30 @@ const docTemplate = `{
                     "$ref": "#/definitions/model.AlertReason"
                 },
                 "appStatus": {
-                    "description": "应用告警",
+                    "description": "application alarm",
                     "type": "string"
                 },
                 "containerStatus": {
-                    "description": "容器告警",
+                    "description": "container alarm",
                     "type": "string"
                 },
                 "infrastructureStatus": {
-                    "description": "基础设施告警",
+                    "description": "infrastructure alarm",
                     "type": "string"
                 },
                 "k8sStatus": {
-                    "description": "K8s状态告警",
+                    "description": "K8s status alarm",
                     "type": "string"
                 },
                 "logs": {
                     "$ref": "#/definitions/response.TempChartObject"
                 },
                 "logsStatus": {
-                    "description": "日志指标告警",
+                    "description": "log metric alarm",
                     "type": "string"
                 },
                 "netStatus": {
-                    "description": "网络告警",
+                    "description": "network alarm",
                     "type": "string"
                 },
                 "serviceName": {
@@ -10648,7 +10636,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/response.TempChartObject"
                 },
                 "tps": {
-                    "description": "FIXME 名称为tps,实际为每分钟请求数",
+                    "description": "FIXME name is tps, actual requests per minute",
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.TempChartObject"
@@ -10664,7 +10652,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "namespaces": {
-                    "description": "应用所属命名空间,可能为空",
+                    "description": "The namespace of the application. It may be empty",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -10696,11 +10684,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "percentScore": {
-                    "description": "百分比总分",
+                    "description": "percentage total score",
                     "type": "integer"
                 },
                 "score": {
-                    "description": "总分",
+                    "description": "total score",
                     "type": "integer"
                 },
                 "scoreDetail": {
@@ -10727,14 +10715,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "chartData": {
-                    "description": "ChartData 图表数据",
+                    "description": "ChartData chart data",
                     "type": "object",
                     "additionalProperties": {
                         "type": "number"
                     }
                 },
                 "ratio": {
-                    "description": "Ratio 指标同比变化率",
+                    "description": "Ratio metric Day-over-Day Growth Rate rate",
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.Ratio"
@@ -10742,7 +10730,7 @@ const docTemplate = `{
                     ]
                 },
                 "value": {
-                    "description": "Value 指标平均值",
+                    "description": "Value metric average",
                     "type": "number"
                 }
             }
@@ -10796,7 +10784,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "swagger 接口文档",
+	Title:            "swagger interface documentation",
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

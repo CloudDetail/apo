@@ -6,24 +6,24 @@ package prometheus
 type EndpointMetrics struct {
 	EndpointKey
 
-	DelaySource   *float64 //延时主要来源
+	DelaySource   *float64 // main source of delay
 	AlertCount    int
-	NamespaceList []string // 包含该端点的Namespace
+	NamespaceList []string // Namespace containing the endpoint
 
-	// TODO DelaySource值为nil和值为0是两种场景。
-	//  nil表示没有查询到数据（可能没有这个指标），显示未知；0表示无网络占比，显示自身
+	// TODO DelaySource values of nil and 0 are two scenarios.
+	// nil indicates that no data has been queried (this metric may not be available) and the display is unknown; 0 indicates that there is no network percentage and the display itself
 	IsLatencyExceeded   bool
 	IsErrorRateExceeded bool
 	IsTPSExceeded       bool
 
-	Avg1MinLatencyMutationRate float64 //延时突变率
-	Avg1MinErrorMutationRate   float64 //错误率突变率
+	Avg1MinLatencyMutationRate float64 // delayed mutation rate
+	Avg1MinErrorMutationRate   float64 // error rate mutation rate
 
 	REDMetrics REDMetrics
 
-	LatencyData   []Points // 延时时间段的数据
-	ErrorRateData []Points // 错误率时间段的数据
-	TPMData       []Points // TPM 时间段的数据
+	LatencyData   []Points // Data of delay time period
+	ErrorRateData []Points // Data for the error rate time period
+	TPMData       []Points // Data for TPM time period
 }
 
 func (e *EndpointMetrics) InitEmptyGroup(key ConvertFromLabels) MetricGroup {

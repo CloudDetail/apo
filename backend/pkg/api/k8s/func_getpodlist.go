@@ -4,19 +4,20 @@
 package k8s
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 )
 
-// GetPodList 获取namespace下所有pod信息
-// @Summary 获取所有pod信息
-// @Description 获取所有pod信息
+// GetPodList get information about all pods in the namespace
+// @Summary get all pod information
+// @Description get all pod information
 // @Tags API.k8s
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param namespace query string true "namespace名"
+// @Param namespace query string true "namespace name"
 // @Success 200 {object} string
 // @Failure 400 {object} code.Failure
 // @Router /api/k8s/pods [get]

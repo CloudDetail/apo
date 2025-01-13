@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetServiceRoute 获取服务对应的应用日志
-// @Summary 获取服务对应的应用日志
-// @Description 获取服务对应的应用日志
+// GetServiceRoute get the application log corresponding to the service
+// @Summary get the application log corresponding to the service
+// @Description get the application log corresponding to the service
 // @Tags API.log
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.GetServiceRouteRequest true "请求信息"
+// @Param Request body request.GetServiceRouteRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetServiceRouteResponse
 // @Failure 400 {object} code.Failure

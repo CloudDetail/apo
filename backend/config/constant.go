@@ -4,9 +4,9 @@
 package config
 
 const (
-	// 简体中文
+	// Simplified Chinese
 	LANG_ZH_CN = "zh-cn"
-	// 英文
+	// English
 	LANG_EN = "en"
 
 	// Prometheus

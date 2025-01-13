@@ -7,7 +7,7 @@ import (
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-// RES_MAX_VALUE 返回前端的最大值，同比为该值时表示最大值
+// RES_MAX_VALUE returns the maximum value of the front end. If the value is equal to the same period last year, the maximum value is indicated.
 const RES_MAX_VALUE = 9999999
 
 type ServiceDetail struct {
@@ -16,7 +16,7 @@ type ServiceDetail struct {
 	ServiceSize          int
 	Endpoints            []*prom.EndpointMetrics
 	Instances            []Instance
-	LogData              []prom.Points // 日志告警次数 30min的数据
+	LogData              []prom.Points // Data of log alarm times for 30min
 	InfrastructureStatus string
 	NetStatus            string
 	K8sStatus            string
@@ -30,10 +30,10 @@ const (
 )
 
 type Instance struct {
-	InstanceName           string //实例名
+	InstanceName           string // instance name
 	ContentKey             string // URL
 	ConvertName            string
-	SvcName                string //url所属的服务名
+	SvcName                string // Name of the service to which the url belongs
 	Pod                    string
 	Namespace              string
 	NodeName               string
@@ -48,28 +48,28 @@ type Instance struct {
 	IsLatencyWOWExceeded   bool
 	IsErrorRateWOWExceeded bool
 	IsTPSWOWExceeded       bool
-	AvgLatency             *float64      // 30min内的平均延时时间
-	LatencyDayOverDay      *float64      // 延时日同比
-	LatencyWeekOverWeek    *float64      // 延时周同比
-	LatencyData            []prom.Points // 延时30min的数据
+	AvgLatency             *float64      // Average delay time within 30min
+	LatencyDayOverDay      *float64      // Delay Day-over-Day Growth Rate
+	LatencyWeekOverWeek    *float64      // Delay Week YoY
+	LatencyData            []prom.Points // Data with 30min delay
 
-	AvgErrorRate          *float64      // 30min内的平均错误率
-	ErrorRateDayOverDay   *float64      // 错误率日同比
-	ErrorRateWeekOverWeek *float64      // 错误率周同比
-	ErrorRateData         []prom.Points // 错误率30min的数据
+	AvgErrorRate          *float64      // Average error rate over 30min
+	ErrorRateDayOverDay   *float64      // Error Rate Day-over-Day Growth Rate
+	ErrorRateWeekOverWeek *float64      // Error Rate Week-on-Week
+	ErrorRateData         []prom.Points // error rate data for 30min
 
-	AvgTPS          *float64      // 30min内的平均TPS
-	TPSDayOverDay   *float64      // TPS日同比
-	TPSWeekOverWeek *float64      // TPS周同比
-	TPSData         []prom.Points // TPS 30min的数据
+	AvgTPS          *float64      // Average TPS over 30min
+	TPSDayOverDay   *float64      // TPS Day-over-Day Growth Rate
+	TPSWeekOverWeek *float64      // TPS Week YoY
+	TPSData         []prom.Points // TPS 30min
 
-	AvgLog          *float64      // 30min内的日志告警次数
-	LogDayOverDay   *float64      // 日志告警次数日同比
-	LogWeekOverWeek *float64      // 日志告警次数周同比
-	LogData         []prom.Points // 日志告警次数 30min的数据
+	AvgLog          *float64      // Number of log alarms in 30min
+	LogDayOverDay   *float64      // Number of log alarms per day
+	LogWeekOverWeek *float64      // Number of log alarms week-on-week
+	LogData         []prom.Points // Data of log alarm times for 30min
 
-	// 用于计算service下的同比
-	LogNow       *float64 // 查询时间段内的日志错误数
-	LogYesterday *float64 // 查询时间段内昨天的日志错误数
-	LogLastWeek  *float64 // 查询时间段内上周的日志错误数
+	// used to calculate YoY under service
+	LogNow       *float64 // Number of log errors during the query period
+	LogYesterday *float64 // Query the number of log errors from yesterday during the time period
+	LogLastWeek  *float64 // Number of log errors in the last week during the query period
 }

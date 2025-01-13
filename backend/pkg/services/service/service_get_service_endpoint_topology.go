@@ -10,13 +10,13 @@ import (
 )
 
 func (s *service) GetServiceEndpointTopology(req *request.GetServiceEndpointTopologyRequest) (*response.GetServiceEndpointTopologyResponse, error) {
-	// 查询所有上游节点
+	// Query all upstream nodes
 	parents, err := s.chRepo.ListParentNodes(req)
 	if err != nil {
 		return nil, err
 	}
 
-	// 查询所有下游节点
+	// Query all downstream nodes
 	children, err := s.chRepo.ListChildNodes(req)
 	if err != nil {
 		return nil, err

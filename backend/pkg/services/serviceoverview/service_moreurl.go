@@ -26,15 +26,15 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filters)
 	endpoints := endpointsMap.MetricGroupList
 
-	// step2 填充延时依赖关系
+	// step2 fill delay dependency
 	err = s.EndpointsDelaySource(endpointsMap, startTime, endTime, filters)
 	if err != nil {
-		// TODO 输出错误日志, DelaySource查询失败
+		// TODO output error log, DelaySource query failed
 	}
 
 	if len(endpoints) == 0 {
-		// NOTE 通过moreUrl进入的请求,原则上不可能出现未查询到数据的情况
-		// 不应该进入该分支
+		// NOTE requests entered through moreUrl. In principle, it is impossible to fail to query data.
+		// should not enter this branch
 		return nil, nil
 	}
 
@@ -43,11 +43,11 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 		return nil, err
 	}
 	errorThreshold := threshold.ErrorRate
-	//不对吞吐量进行比较
+	// No throughput comparison
 	//tpsThreshold := threshold.Tps
 	latencyThreshold := threshold.Latency
 	for i := range endpoints {
-		//填充错误率不等于0查不出同比，填充为最大值（通过判断是否有请求，有请求进行填充）
+		// If the filling error rate is not equal to 0, no year-on-year comparison can be found, and the filling is the maximum value (filling is performed by judging whether there is a request and if there is a request)
 		if endpoints[i].REDMetrics.DOD.Latency != nil && endpoints[i].REDMetrics.DOD.ErrorRate == nil && endpoints[i].REDMetrics.Avg.ErrorRate != nil && *endpoints[i].REDMetrics.Avg.ErrorRate != 0 {
 			endpoints[i].REDMetrics.DOD.ErrorRate = new(float64)
 			*endpoints[i].REDMetrics.DOD.ErrorRate = RES_MAX_VALUE
@@ -57,20 +57,20 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 			*endpoints[i].REDMetrics.WOW.ErrorRate = RES_MAX_VALUE
 		}
 
-		//过滤错误率
+		// Filter error rate
 		if endpoints[i].REDMetrics.DOD.ErrorRate != nil && *endpoints[i].REDMetrics.DOD.ErrorRate > errorThreshold {
 			endpoints[i].IsErrorRateExceeded = true
 			endpoints[i].AlertCount += ErrorCount
 		}
 
-		//过滤延时
+		// Filter delay
 
 		if endpoints[i].REDMetrics.DOD.Latency != nil && *endpoints[i].REDMetrics.DOD.Latency > latencyThreshold {
 			endpoints[i].IsLatencyExceeded = true
 			endpoints[i].AlertCount += LatencyCount
 		}
-		//不对吞吐量进行比较
-		////过滤TPS
+		// No throughput comparison
+		//// Filter TPS
 		//
 		//if Urls[i].TPSDayOverDay != nil && *Urls[i].TPSDayOverDay > tpsThreshold {
 		//	Urls[i].IsTPSExceeded = true
@@ -78,26 +78,26 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 		//}
 
 	}
-	//对所有的url进行排序
+	// Sort all URLs
 	switch sortRule {
-	case DODThreshold: //按照日同比阈值排序
+	case DODThreshold: //Sort by Day-to-Year Threshold
 		sortByDODThreshold(endpoints)
 	}
 
-	//将所有url存到对应的service中
+	// Save all URLs to the corresponding service
 	services := fillOneService(endpoints)
 
-	//查询service的所有url数据,并填充
+	// query all url data of the service and populate
 	s.EndpointRangeREDChart(&services, startTime, endTime, duration, step)
 	//(searchTime.Add(-30*time.Minute), searchTime, errorDataQuery, time.Minute)
 
 	if len(services) == 0 {
-		// NOTE 通过moreUrl进入的请求,原则上不可能出现未查询到数据的情况
+		// NOTE requests entered through moreUrl. In principle, it is impossible to fail to query data.
 		// DOUBLE CHECK
 		return nil, nil
 	}
 
-	// NOTE 原则上进入这个入口的服务指定了Service,所以只会有一个
+	// NOTE In principle, the service that enters this entrance has a specified Service, so there will only be one
 	service := services[0]
 	var newServiceDetails []response.ServiceDetail
 	for _, url := range service.Endpoints {
@@ -109,17 +109,17 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 			//ChartData: map[int64]float64{},
 			Ratio: newErrorRadio,
 		}
-		if url.REDMetrics.Avg.ErrorRate != nil && !math.IsInf(*url.REDMetrics.Avg.ErrorRate, 0) { //为无穷大时则不赋值
+		if url.REDMetrics.Avg.ErrorRate != nil && !math.IsInf(*url.REDMetrics.Avg.ErrorRate, 0) { // does not assign a value when it is infinite
 			newErrorRate.Value = url.REDMetrics.Avg.ErrorRate
 		}
 		if url.ErrorRateData != nil {
 			data := make(map[int64]float64)
 
-			// 将chartData转换为map
+			// Convert chartData to map
 			for _, item := range url.ErrorRateData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
@@ -147,10 +147,10 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 			//ChartData: map[int64]float64{},
 			Ratio: newtpsRadio,
 		}
-		if url.REDMetrics.Avg.TPM != nil && !math.IsInf(*url.REDMetrics.Avg.TPM, 0) { //为无穷大时则不赋值
+		if url.REDMetrics.Avg.TPM != nil && !math.IsInf(*url.REDMetrics.Avg.TPM, 0) { // is not assigned when it is infinite
 			newtpsRate.Value = url.REDMetrics.Avg.TPM
 		}
-		//没有查询到数据，is_error=true，填充为0
+		// No data found, is_error = true, filled with 0
 		if newErrorRate.Value == nil && newtpsRate.Value != nil {
 			values := make(map[int64]float64)
 			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {
@@ -162,11 +162,11 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 		}
 		if url.TPMData != nil {
 			data := make(map[int64]float64)
-			// 将chartData转换为map
+			// Convert chartData to map
 			for _, item := range url.TPMData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
@@ -189,22 +189,22 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 			//ChartData: map[int64]float64{},
 			Ratio: newlatencyRadio,
 		}
-		if url.REDMetrics.Avg.Latency != nil && !math.IsInf(*url.REDMetrics.Avg.Latency, 0) { //为无穷大时则不赋值
+		if url.REDMetrics.Avg.Latency != nil && !math.IsInf(*url.REDMetrics.Avg.Latency, 0) { // does not assign a value when it is infinite
 			newlatencyRate.Value = url.REDMetrics.Avg.Latency
 		}
 		if url.LatencyData != nil {
 			data := make(map[int64]float64)
-			// 将chartData转换为map
+			// Convert chartData to map
 			for _, item := range url.LatencyData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
 			newlatencyRate.ChartData = data
 		}
-		//填充错误率等于0查不出同比，统一填充为0（通过判断是否有请求，有请求进行填充）
+		// The filling error rate is equal to 0 and cannot be found year-on-year. The uniform filling is 0 (filling is performed by judging whether there is a request and if there is a request)
 		if newlatencyRadio.DayOverDay != nil && newErrorRadio.DayOverDay == nil && newErrorRate.Value != nil && *newErrorRate.Value == 0 {
 			newErrorRate.Ratio.DayOverDay = new(float64)
 			*newErrorRate.Ratio.DayOverDay = 0
@@ -213,7 +213,7 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 			newErrorRate.Ratio.WeekOverDay = new(float64)
 			*newErrorRate.Ratio.WeekOverDay = 0
 		}
-		//填充错误率不等于0查不出同比，填充为最大值（通过判断是否有请求，有请求进行填充）
+		// If the filling error rate is not equal to 0, no year-on-year comparison can be found, and the filling is the maximum value (filling is performed by judging whether there is a request and if there is a request)
 		if newlatencyRadio.DayOverDay != nil && newErrorRadio.DayOverDay == nil && newErrorRate.Value != nil && *newErrorRate.Value != 0 {
 			newErrorRate.Ratio.DayOverDay = new(float64)
 			*newErrorRate.Ratio.DayOverDay = RES_MAX_VALUE

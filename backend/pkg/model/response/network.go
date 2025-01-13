@@ -16,26 +16,26 @@ type PodMapResponse struct {
 }
 
 type SegmentLatency struct {
-	// 在客户端进程处采集到的请求和响应时间
+	// Request and response times collected at the client process
 	ClientProcess Duration `json:"clientProcess"`
-	// 在客户端网卡处采集到的请求和响应时间
+	// Request and response time collected at the client NIC
 	ClientNic Duration `json:"clientNic"`
-	// 在客户端主机网卡处采集到的请求和响应时间
+	// Request and response time collected at the client host NIC
 	ClientK8sNodeNic Duration `json:"clientK8SNodeNic"`
-	// 在服务端主机网卡处采集到的请求和响应时间
+	// Request and response time collected at the server host NIC
 	ServerK8sNodeNic Duration `json:"serverK8SNodeNic"`
-	// 在服务端网卡处采集到的请求和响应时间
+	// Request and response time collected at the server NIC
 	ServerNic Duration `json:"serverNic"`
-	// 在服务端进程处采集到的请求和响应时间
+	// Request and response time collected at the server process
 	ServerProcess Duration `json:"serverProcess"`
 }
 
 type Duration struct {
-	// 请求网络包时间戳，单位微秒
+	// The timestamp of the request network packet, in microseconds.
 	StartTime int64 `json:"startTime"`
-	// 响应网络包时间戳，单位微秒
+	// Timestamp of the response network packet, in microseconds
 	EndTime int64 `json:"endTime"`
-	// 响应延时
+	// Response delay
 	ResponseDuration uint64 `json:"responseDuration"`
 }
 

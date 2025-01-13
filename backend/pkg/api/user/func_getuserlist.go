@@ -4,25 +4,26 @@
 package user
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// GetUserList 获取用户列表
-// @Summary 获取用户列表
-// @Description 获取用户列表
+// GetUserList get user list
+// @Summary get user list
+// @Description get user list
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Authorization header string false "Bearer accessToken"
-// @Param username query string false "用户名"
-// @Param currentPage query string false "当前页"
-// @Param pageSize query string false "页大小"
-// @Param role query string false "角色"
-// @Param corporation query string false "组织"
+// @Param username query string false "username"
+// @Param currentPage query string false "current page"
+// @Param pageSize query string false "Page size"
+// @Param role query string false "role"
+// @Param corporation query string false "organization"
 // @Success 200 {object} response.GetUserListResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/user/list [get]

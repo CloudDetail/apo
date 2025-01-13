@@ -5,9 +5,10 @@ package user
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -19,10 +20,10 @@ import (
 // @Tags API.permission
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param subjectId formData int64 true "授权主体id"
-// @Param subjectType formData string true "授权主体类型: 'role','user','team'"
-// @Param type formData string true "授权类型: 'feature','data'"
-// @Param permissionList formData []int false "权限id列表" collectionFormat(multi)
+// @Param subjectId formData int64 true "authorization principal id"
+// @Param subjectType formData string true "Authorization principal type: 'role','user','team '"
+// @Param type formData string true "Authorization type: 'feature','data '"
+// @Param permissionList formData []int false "list of permission ids" collectionFormat(multi)
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/permission/operation [post]

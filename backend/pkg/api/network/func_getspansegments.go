@@ -4,19 +4,20 @@
 package deepflow
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 )
 
-// GetSpanSegmentsMetrics 客户端对外调用Span网络耗时分段指标
-// @Summary 客户端对外调用Span网络耗时分段指标
-// @Description 客户端对外调用Span网络耗时分段指标
+// Segmentation metric of the time consumed by the GetSpanSegmentsMetrics client to call the Span network.
+// @Segment metric of the time consumed by the Summary client to call the Span network
+// @Segment metric of the time consumed by the Description client to call the Span network
 // @Tags API.Network
 // @Accept application/x-www-form-urlencoded
 // @Param traceId query string true "traceId"
-// @Param spanId query string false "spanId, 值为空则查询所有"
+// @Param spanId query string false "spanId. If the value is blank, all items are queried"
 // @Success 200 {object} response.SpanSegmentMetricsResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/network/segments [get]

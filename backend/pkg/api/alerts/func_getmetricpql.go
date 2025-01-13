@@ -10,9 +10,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// GetMetricPQL 获取告警规则中指标和PQL
-// @Summary 获取告警规则中指标和PQL
-// @Description 获取告警规则中指标和PQL
+// GetMetricPQL get metrics and PQL in alarm rules
+// @Summary get metrics and PQL in alarm rules
+// @Description get metrics and PQL in alarm rules
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json

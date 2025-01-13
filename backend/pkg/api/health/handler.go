@@ -8,7 +8,7 @@ import (
 )
 
 type Handler interface {
-	// HealthCheck 用于k8s检查后端健康状态
+	// HealthCheck for k8s to check backend health status
 	// @Tags API.health
 	// @Router /api/health [get]
 	HealthCheck() core.HandlerFunc

@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetLogIndex 分析字段索引
-// @Summary 分析字段索引
-// @Description 分析字段索引
+// GetLogIndex analysis field index
+// @Summary analysis field index
+// @Description analysis field index
 // @Tags API.log
 // @Accept json
 // @Produce json
-// @Param Request body request.LogIndexRequest true "请求信息"
+// @Param Request body request.LogIndexRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.LogIndexResponse
 // @Failure 400 {object} code.Failure

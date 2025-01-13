@@ -20,7 +20,7 @@ const (
 	TIME_DAY    = TIME_HOUR * 24
 )
 
-// 基于服务列表、URL列表和时段、步长，查询P90曲线
+// Query the P90 curve based on the service list, URL list, time period and step size.
 func (repo *promRepo) QueryRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error) {
 	svcs, endpoints, _ := nodes.GetLabels(model.GROUP_SERVICE)
 	if len(svcs) == 0 {
@@ -66,7 +66,7 @@ func (repo *promRepo) QueryInstanceP90(startTime int64, endTime int64, step int6
 	} else if instance.ContainerId != "" {
 		extraCondition = fmt.Sprintf("node_name='%s', container_id='%s'", instance.NodeName, instance.ContainerId)
 	} else {
-		// VM场景
+		// VM scenario
 		extraCondition = fmt.Sprintf("node_name='%s', pid='%d'", instance.NodeName, instance.Pid)
 	}
 	sql := getSpanTraceInstanceP9xSql(repo.GetRange(), tRange.Step, endpoint, extraCondition)
@@ -84,7 +84,7 @@ func (repo *promRepo) QueryInstanceP90(startTime int64, endTime int64, step int6
 	if len(values) == 1 {
 		val := values[0]
 		for _, pair := range val.Values {
-			result[int64(pair.Timestamp)*1000] = float64(pair.Value / 1000) // 返回时间为us
+			result[int64(pair.Timestamp)*1000] = float64(pair.Value / 1000) // return time is us
 		}
 	}
 	return result, nil
@@ -104,14 +104,14 @@ func getSpanTraceInstanceP9xSql(promRange string, step time.Duration, endpoint s
 }
 
 type DescendantMetrics struct {
-	ServiceName string         `json:"serviceName"` // 服务名
+	ServiceName string         `json:"serviceName"` // service name
 	EndPoint    string         `json:"endpoint"`    // Endpoint
-	LatencyP90  []MetricsPoint `json:"latencyP90"`  // P90曲线值
+	LatencyP90  []MetricsPoint `json:"latencyP90"`  // P90 curve value
 }
 
 type MetricsPoint struct {
-	Timestamp int64   `json:"timestamp"` // 时间(微秒)
-	Value     float64 `json:"value"`     // 值
+	Timestamp int64   `json:"timestamp"` // time (microseconds)
+	Value     float64 `json:"value"`     // value
 }
 
 func getDescendantMetrics(svcNameLabel prometheus_model.LabelName, contentKeyLabel prometheus_model.LabelName, tRange v1.Range, res prometheus_model.Value) []DescendantMetrics {
@@ -139,7 +139,7 @@ func getDescendantMetrics(svcNameLabel prometheus_model.LabelName, contentKeyLab
 
 		tsMark := tRange.Start.UnixMicro()
 		for _, pair := range val.Values {
-			// 未获取到数据的时间点填充0
+			// The time point at which the data is not obtained is filled with 0
 			for tsMark < int64(pair.Timestamp)*1000 {
 				ts.LatencyP90 = append(ts.LatencyP90, MetricsPoint{
 					Timestamp: tsMark,

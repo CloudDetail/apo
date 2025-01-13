@@ -13,13 +13,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// DeleteAlertManagerConfigReceiver 删除告警通知对象
-// @Summary 删除告警通知对象
-// @Description 删除告警通知对象
+// DeleteAlertManagerConfigReceiver delete alarm notification object
+// @Summary delete alarm notification object
+// @Description delete alarm notification object
 // @Tags API.alerts
 // @Accept json
 // @Produce json
-// @Param Request body request.DeleteAlertManagerConfigReceiverRequest true "删除对象"
+// @Param Request body request.DeleteAlertManagerConfigReceiverRequest true "Delete object"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 string ok
 // @Failure 400 {object} code.Failure

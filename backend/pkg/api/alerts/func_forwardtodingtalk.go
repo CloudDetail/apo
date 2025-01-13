@@ -4,21 +4,22 @@
 package alerts
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// ForwardToDingTalk 接收告警转发到钉钉
-// @Summary 接收告警转发到钉钉
-// @Description 接收告警转发到钉钉
+// ForwardToDingTalk the received alarm is forwarded to the DingTalk
+// @Summary the received alarm is forwarded to the DingTalk
+// @Description the received alarm is forwarded to the DingTalk
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.ForwardToDingTalkRequest true "请求信息"
-// @Param uuid path string true "钉钉webhook对应的uuid"
+// @Param Request body request.ForwardToDingTalkRequest true "Request information"
+// @Param uuid path string true "DingTalk the uuid corresponding to the webhook"
 // @Success 200
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/outputs/dingtalk/{uuid} [post]

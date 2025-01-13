@@ -21,7 +21,7 @@ type ProfilingEvent struct {
 	InnerCalls      string            `json:"innerCalls" ch:"innerCalls"`
 	JavaFutexEvents string            `json:"javaFutexEvents" ch:"javaFutexEvents"`
 	Spans           string            `json:"spans" ch:"spans"`
-	ThreadName      string            `json:"threadName" ch:"threadName"` // 线程名 表中在labels中
+	ThreadName      string            `json:"threadName" ch:"threadName"` // thread name table in labels
 	Labels          map[string]string `json:"labels" ch:"labels"`
 }
 

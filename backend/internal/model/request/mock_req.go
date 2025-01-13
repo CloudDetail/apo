@@ -4,13 +4,13 @@
 package request
 
 type CreateRequest struct {
-	Name string `form:"name" binding:"required"` // 名称
+	Name string `form:"name" binding:"required"` // name
 }
 
 type ListRequest struct {
-	PageNum  int    `form:"page_num" binding:"required"` // 第几页
-	PageSize int    `form:"page_size"`                   // 每页显示条数
-	Name     string `form:"name"`                        // 用户名
+	PageNum  int    `form:"page_num" binding:"required"` // page
+	PageSize int    `form:"page_size"`                   // display number per page
+	Name     string `form:"name"`                        // username
 }
 
 type DetailRequest struct {

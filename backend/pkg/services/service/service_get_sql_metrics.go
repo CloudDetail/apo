@@ -26,7 +26,7 @@ func (s *service) GetSQLMetrics(req *request.GetSQLMetricsRequest) (*response.Ge
 	step := time.Duration(req.Step) * time.Microsecond
 
 	sqlMetricMap := s.SQLREDMetric(startTime, endTime, req.Service)
-	// 按平均延时/错误率/TPS 排序并分页
+	// Sort and page by average latency/error rate/TPS
 	switch req.SortBy {
 	case SortByErrorRate:
 		sort.Slice(sqlMetricMap.MetricGroupList, func(i, j int) bool {
@@ -48,7 +48,7 @@ func (s *service) GetSQLMetrics(req *request.GetSQLMetricsRequest) (*response.Ge
 		})
 	}
 
-	// 分页
+	// Paging
 	var totalCount int
 	if req.PageParam == nil {
 		req.PageParam = &request.PageParam{
@@ -66,9 +66,9 @@ func (s *service) GetSQLMetrics(req *request.GetSQLMetricsRequest) (*response.Ge
 		SQLOperationDetails: []response.SQLOperationDetail{},
 	}
 
-	// 填充chart
+	// Fill the chart
 	_ = s.FillSQLREDChart(sqlMetricMap, req.Service, startTime, endTime, step)
-	// 转换格式
+	// Convert format
 	for _, metricGroups := range sqlMetricMap.MetricGroupList {
 		res.SQLOperationDetails = append(res.SQLOperationDetails, response.SQLOperationDetail{
 			SQLKey: metricGroups.SQLKey,
@@ -139,7 +139,7 @@ func (s *SQLMetricsWithChart) SetValue(metricGroup prom.MGroupName, metricName p
 	s.REDMetrics.SetValue(metricGroup, metricName, value)
 }
 
-// EndpointsREDMetric 查询Endpoint级别的RED指标结果(包括平均值,日同比变化率,周同比变化率)
+// EndpointsREDMetric query Endpoint-level RED metric results (including average value, DoD/WoW Growth Rate)
 func (s *service) SQLREDMetric(startTime, endTime time.Time, service string) *SQLMetricMap {
 	var res = &SQLMetricMap{
 		MetricGroupList: []*SQLMetricsWithChart{},
@@ -151,25 +151,25 @@ func (s *service) SQLREDMetric(startTime, endTime time.Time, service string) *SQ
 		filters = append(filters, prom.ServicePQLFilter, service)
 	}
 
-	// 填充时间段内的平均RED指标
+	// Average RED metric over the fill time period
 	s.fillSQLMetric(res, prom.AVG, startTime, endTime, filters)
-	// 填充时间段内的RED指标日同比
+	// RED metric day-to-day-on-da during the fill period
 	s.fillSQLMetric(res, prom.DOD, startTime, endTime, filters)
-	// 填充时间段内的RED指标周同比
+	// RED metric week-on-week in the fill time period
 	s.fillSQLMetric(res, prom.WOW, startTime, endTime, filters)
 	return res
 }
 
 func (s *service) fillSQLMetric(res *SQLMetricMap, metricGroup prom.MGroupName, startTime, endTime time.Time, filters []string) {
-	// 装饰器,默认不修改PQL语句,用于AVG或REALTIME两个metricGroup
+	// Decorator, PQL statement is not modified by default, for AVG or REALTIME two metricGroup
 	var decorator = func(apf prom.AggPQLWithFilters) prom.AggPQLWithFilters {
 		return apf
 	}
 
 	switch metricGroup {
 	case prom.REALTIME:
-		// 实时值使用当前时间往前3分钟作为时间间隔
-		// 时间单位为microsecond
+		// real-time value uses 3 minutes ahead of current time as time interval
+		// Time unit is microsecond
 		startTime = endTime.Add(-3 * time.Minute)
 	case prom.DOD:
 		decorator = prom.DayOnDay
@@ -187,7 +187,7 @@ func (s *service) fillSQLMetric(res *SQLMetricMap, metricGroup prom.MGroupName, 
 		filters...,
 	)
 	if err != nil {
-		// TODO 输出日志或记录错误到Endpoint中
+		// TODO output log or log errors to Endpoint
 	}
 
 	res.MergeMetricResults(metricGroup, prom.LATENCY, latency)
@@ -199,12 +199,12 @@ func (s *service) fillSQLMetric(res *SQLMetricMap, metricGroup prom.MGroupName, 
 		filters...,
 	)
 	if err != nil {
-		// TODO 输出日志或记录错误到Endpoint中
+		// TODO output log or log errors to Endpoint
 	}
 	res.MergeMetricResults(metricGroup, prom.ERROR_RATE, errorRate)
 
 	if metricGroup == prom.REALTIME {
-		// 目前不计算TPS的实时值
+		// Currently, the real-time value of TPS is not calculated.
 		return
 	}
 	tps, err := s.promRepo.QueryAggMetricsWithFilter(
@@ -214,16 +214,16 @@ func (s *service) fillSQLMetric(res *SQLMetricMap, metricGroup prom.MGroupName, 
 		filters...,
 	)
 	if err != nil {
-		// TODO 输出日志或记录错误到Endpoint中
+		// TODO output log or log errors to Endpoint
 	}
 
 	res.MergeMetricResults(metricGroup, prom.THROUGHPUT, tps)
 }
 
-// EndpointRangeREDChart 查询曲线图
+// EndpointRangeREDChart query graph
 func (s *service) FillSQLREDChart(sqlMap *SQLMetricMap, service string, startTime time.Time, endTime time.Time, step time.Duration) error {
 	var opNames []string
-	// 遍历 services 数组，获取每个 URL 的 ContentKey 并存储到切片中
+	// Traverse the services array, get the ContentKey of each URL and store it in the slice.
 	for _, sqlOperation := range sqlMap.MetricGroupList {
 		opNames = append(opNames, sqlOperation.DBOperation)
 		service = sqlOperation.Service

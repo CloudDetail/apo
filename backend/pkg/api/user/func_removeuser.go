@@ -5,22 +5,23 @@ package user
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// RemoveUser 移除用户
-// @Summary 移除用户
-// @Description 移除用户
+// Remove user RemoveUser
+// @Summary remove user
+// @Description remove user
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Authorization header string false "Bearer accessToken"
-// @Param userId formData int64 true "请求信息"
+// @Param userId formData int64 true "request information"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/user/remove [post]

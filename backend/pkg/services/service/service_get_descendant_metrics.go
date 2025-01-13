@@ -11,7 +11,7 @@ import (
 )
 
 func (s *service) GetDescendantMetrics(req *request.GetDescendantMetricsRequest) ([]response.GetDescendantMetricsResponse, error) {
-	// 查询所有子孙节点
+	// Query all descendant nodes
 	nodes, err := s.chRepo.ListDescendantNodes(req)
 	if err != nil {
 		return nil, err
@@ -20,7 +20,7 @@ func (s *service) GetDescendantMetrics(req *request.GetDescendantMetricsRequest)
 		return make([]response.GetDescendantMetricsResponse, 0), nil
 	}
 
-	// 除了子孙节点，还需补充当前节点
+	// In addition to descendant nodes, the current node needs to be supplemented
 	nodes.AddServerNode(fmt.Sprintf("%s.%s", req.Service, req.Endpoint), req.Service, req.Endpoint, true)
 
 	serverResult, err := s.promRepo.QueryRangePercentile(req.StartTime, req.EndTime, req.Step, nodes)

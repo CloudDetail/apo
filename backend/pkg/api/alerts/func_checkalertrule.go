@@ -14,15 +14,15 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// CheckAlertRule 检查告警规则名是否可用
-// @Summary 检查告警规则名是否可用
-// @Description 检查告警规则名是否可用
+// CheckAlertRule check whether the alarm rule name is available
+// @Summary check whether the alarm rule name is available
+// @Description check whether the alarm rule name is available
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param alertRuleFile query string false "查询告警规则文件名"
-// @Param group query string true "组名"
-// @Param alert query string true "告警规则名"
+// @Param alertRuleFile query string false "Query alarm rule file name"
+// @Param group query string true "group name"
+// @Param alert query string true "Alarm rule name"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.CheckAlertRuleResponse
 // @Failure 400 {object} code.Failure

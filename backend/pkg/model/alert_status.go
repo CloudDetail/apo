@@ -17,7 +17,7 @@ const (
 )
 
 type AlertStatusPROM struct {
-	LogMetricsStatus string `json:"logsStatus"` // 日志指标告警
+	LogMetricsStatus string `json:"logsStatus"` // log metric alarm
 }
 
 func (s *AlertStatusPROM) IsAllNormal() bool {
@@ -25,12 +25,12 @@ func (s *AlertStatusPROM) IsAllNormal() bool {
 }
 
 type AlertStatusCH struct {
-	InfrastructureStatus string `json:"infrastructureStatus"` // 基础设施告警
-	NetStatus            string `json:"netStatus"`            // 网络告警
-	K8sStatus            string `json:"k8sStatus"`            // K8s状态告警
+	InfrastructureStatus string `json:"infrastructureStatus"` // infrastructure alarm
+	NetStatus            string `json:"netStatus"`            // network alarm
+	K8sStatus            string `json:"k8sStatus"`            // K8s status alarm
 
-	AppStatus       string `json:"appStatus"`       // 应用告警
-	ContainerStatus string `json:"containerStatus"` // 容器告警
+	AppStatus       string `json:"appStatus"`       // application alarm
+	ContainerStatus string `json:"containerStatus"` // container alarm
 }
 
 func (s *AlertStatusCH) IsAllNormal() bool {

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/config"
-	_ "github.com/CloudDetail/apo/backend/docs" // 导入Swagger docs 包
+	_ "github.com/CloudDetail/apo/backend/docs" // import Swagger docs package
 	"github.com/CloudDetail/apo/backend/pkg/logger"
 	"github.com/CloudDetail/apo/backend/pkg/router"
 	"github.com/CloudDetail/apo/backend/pkg/util"
@@ -18,7 +18,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// @title swagger 接口文档
+// @title swagger interface documentation
 // @version 2.0
 // @description
 
@@ -31,7 +31,7 @@ import (
 
 // @BasePath /
 func main() {
-	// 初始化 access logger
+	// Initialize access logger
 	logCfg := config.Get().Logger
 	accessLogger := logger.NewLogger(
 		logger.WithConsole(logCfg.EnableConsole),
@@ -43,20 +43,20 @@ func main() {
 		_ = accessLogger.Sync()
 	}()
 
-	// 初始化 HTTP 服务
+	// Initialize the HTTP service
 	s, err := router.NewHTTPServer(accessLogger)
 	if err != nil {
 		panic(err)
 	}
 
 	if config.Get().MetaServer.Enable {
-		// 创建缓存结构
+		// Create cache structure
 		ms := source.CreateMetaSourceFromConfig(&config.Get().MetaServer.MetaSourceConfig)
 		err := ms.Run()
 		if err != nil {
 			accessLogger.Error("start meta server err", zap.Error(err))
 		}
-		// 注册服务端点
+		// Register the service endpoint
 		router.SetMetaServerRouter(s, ms)
 	}
 
@@ -75,7 +75,7 @@ func main() {
 
 	// Graceful shutdown
 	util.NewShutdownHook().Close(
-		// 关闭 http server
+		// Close http server
 		func() {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 			defer cancel()

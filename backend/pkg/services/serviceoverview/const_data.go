@@ -3,24 +3,16 @@
 
 package serviceoverview
 
-/**
-错误率，延时，TPS指标异常的排序权重
-*/
-
+// Error rate, delay, TPS sort weight
 const ErrorCount = 1
 const TPSCount = 1
 const LatencyCount = 1
 
-/*
-*
-排序逻辑
-*/
-
 type SortType int
 
 const (
-	// DODThreshold 日同比阈值排序
+	// Sort by Day-over-Day Growth Rate Threshold
 	DODThreshold SortType = iota + 1
-	// MUTATIONSORT 突变排序
+	// Sort by mutation
 	MUTATIONSORT
 )

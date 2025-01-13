@@ -3,7 +3,7 @@
 
 package prometheus
 
-// InstanceMetrics instance粒度的指标结果
+// InstanceMetrics instance granularity metric results
 type InstanceMetrics struct {
 	InstanceKey
 

@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// DeleteOtherTable 移除外部日志表
-// @Summary 移除外部日志表
-// @Description 移除外部日志表
+// DeleteOtherTable remove external log table
+// @Summary remove external log table
+// @Description remove external log table
 // @Tags API.log
 // @Accept json
 // @Produce json
-// @Param Request body request.DeleteOtherTableRequest true "请求信息"
+// @Param Request body request.DeleteOtherTableRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.DeleteOtherTableResponse
 // @Failure 400 {object} code.Failure

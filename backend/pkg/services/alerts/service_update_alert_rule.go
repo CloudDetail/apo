@@ -30,7 +30,7 @@ func (s *service) UpdateAlertRuleFile(req *request.UpdateAlertRuleConfigRequest)
 	return s.k8sApi.UpdateAlertRuleConfigFile(req.AlertRuleFile, []byte(req.Content))
 }
 
-// checkOrFillGroupsLabel 检查group与label的对应关系，如果label为空则填充
+// checkOrFillGroupsLabel check the correspondence between the group and the label. if the label is empty, fill it
 func checkOrFillGroupsLabel(group string, labels map[string]string) bool {
 	groupLabel := labels["group"]
 	label, ok := kubernetes.GetLabel(group)

@@ -16,113 +16,113 @@ import (
 )
 
 type Handler interface {
-	// GetServiceEndpointRelation 获取服务上下游调用关系
+	// GetServiceEndpointRelation get the call relationship between the upstream and downstream services.
 	// @Tags API.service
 	// @Router /api/service/relation [get]
 	GetServiceEndpointRelation() core.HandlerFunc
 
-	// GetServiceEndpointTopology 获取服务上下游拓扑
+	// GetServiceEndpointTopology get the upstream and downstream topology of a service
 	// @Tags API.service
 	// @Router /api/service/topology [get]
 	GetServiceEndpointTopology() core.HandlerFunc
 
-	// GetDescendantMetrics 获取所有下游服务的延时曲线数据
+	// GetDescendantMetrics get the delay curve data of all downstream services
 	// @Tags API.service
 	// @Router /api/service/descendant/metrics [get]
 	GetDescendantMetrics() core.HandlerFunc
 
-	// GetDescendantRelevance 获取依赖节点延时关联度
+	// GetDescendantRelevance get the dependent node delay correlation degree
 	// @Tags API.service
 	// @Router /api/service/descendant/relevance [get]
 	GetDescendantRelevance() core.HandlerFunc
 
-	// GetPolarisInfer 获取北极星指标分析情况
+	// GetPolarisInfer access to Polaris metric analysis
 	// @Tags API.service
 	// @Router /api/service/polaris/infer [get]
 	GetPolarisInfer() core.HandlerFunc
 
-	// GetErrorInstance 获取错误实例
+	// GetErrorInstance get error instance
 	// @Tags API.service
 	// @Router /api/service/error/instance [get]
 	GetErrorInstance() core.HandlerFunc
 
-	// GetErrorInstanceLogs 获取错误实例故障现场日志
+	// GetErrorInstanceLogs get the error instance fault site log
 	// @Tags API.service
 	// @Router /api/service/errorinstance/logs [get]
 	GetErrorInstanceLogs() core.HandlerFunc
 
-	// GetLogMetrics 获取日志相关指标
+	// GetLogMetrics get log metrics
 	// @Tags API.service
 	// @Router /api/service/log/metrics [get]
 	GetLogMetrics() core.HandlerFunc
 
-	// GetLogLogs 获取Log故障现场日志
+	// GetLogLogs get Log fault site log
 	// @Tags API.service
 	// @Router /api/service/log/logs [get]
 	GetLogLogs() core.HandlerFunc
 
-	// GetTraceMetrics 获取Trace相关指标
+	// GetTraceMetrics get Trace related metrics
 	// @Tags API.service
 	// @Router /api/service/trace/metrics [get]
 	GetTraceMetrics() core.HandlerFunc
 
-	// GetTraceLogs 获取Trace故障现场日志
+	// GetTraceLogs get trace fault site log
 	// @Tags API.service
 	// @Router /api/service/trace/logs [get]
 	GetTraceLogs() core.HandlerFunc
 
-	// GetServiceList 获取服务列表
+	// GetServiceList get the list of services
 	// @Tags API.service
 	// @Router /api/service/list [get]
 	GetServiceList() core.HandlerFunc
 
-	// GetServiceInstance 获取服务实例列表
+	// GetServiceInstance get the list of service instances
 	// @Tags API.service
 	// @Router /api/service/instance [get]
 	GetServiceInstance() core.HandlerFunc
 
-	// GetServiceInstanceList 获取服务的更多url列表
+	// GetServiceInstanceList get more url list of services
 	// @Tags API.service
 	// @DEPRECATED
 	// @Router /api/service/instances/list [get]
 	GetServiceInstanceList() core.HandlerFunc
 
-	// GetServiceInstanceList 获取服务的实例详情
+	// GetServiceInstanceList get the details of the service instance.
 	// @Tags API.service
 	// @Router /api/service/instanceinfo/list [get]
 	GetServiceInstanceInfoList() core.HandlerFunc
 
-	// GetServiceInstanceOptions 获取服务下拉实例列表
+	// GetServiceInstanceOptions get the drop-down list of service instances
 	// @Tags API.service
 	// @Router /api/service/instance/options [get]
 	GetServiceInstanceOptions() core.HandlerFunc
 
-	// GetServiceEndPointList 获取服务EndPoint列表
+	// GetServiceEndPointList get the list of service EndPoint
 	// @Tags API.service
 	// @Router /api/service/endpoint/list [get]
 	GetServiceEndPointList() core.HandlerFunc
 
-	// CountK8sEvents 获取K8s事件数量
+	// CountK8sEvents get the number of K8s events
 	// @Tags API.service
 	// @Router /api/service/k8s/events/count [get]
 	CountK8sEvents() core.HandlerFunc
 
-	// GetAlertEventsSample 获取采样告警事件
+	// GetAlertEventsSample get sampling alarm events
 	// @Tags API.service
 	// @Router /api/service/alert/sample/events [get]
 	GetAlertEventsSample() core.HandlerFunc
 
-	// GetAlertEvents 获取告警事件
+	// GetAlertEvents get alarm events
 	// @Tags API.service
 	// @Router /api/service/alert/events [get]
 	GetAlertEvents() core.HandlerFunc
 
-	// GetSQLMetrics 获取SQL指标
+	// Get SQL metrics GetSQLMetrics
 	// @Tags API.service
 	// @Router /api/service/sql/metrics [get]
 	GetSQLMetrics() core.HandlerFunc
 
-	// GetServiceEntryEndpoints 获取服务入口Endpoint列表
+	// GetServiceEntryEndpoints get the list of service portal Endpoint
 	// @Tags API.service
 	// @Router /api/service/entry/endpoints [get]
 	GetServiceEntryEndpoints() core.HandlerFunc

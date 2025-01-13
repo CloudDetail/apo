@@ -13,13 +13,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetTraceFilterValue 查询指定过滤器的可用数值
-// @Summary 查询指定过滤器的可用数值
-// @Description 查询指定过滤器的可用数值
+// GetTraceFilterValue query the available values of the specified filter
+// @Summary query the available values of the specified filter
+// @Description query the available values of the specified filter
 // @Tags API.trace
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.GetTraceFilterValueRequest true "请求信息"
+// @Param Request body request.GetTraceFilterValueRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetTraceFilterValueResponse
 // @Failure 400 {object} code.Failure

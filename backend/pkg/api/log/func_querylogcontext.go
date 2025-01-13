@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// QueryLogContext 获取日志上下文
-// @Summary 获取日志上下文
-// @Description 获取日志上下文
+// QueryLogContext get the log context
+// @Summary get log context
+// @Description get log context
 // @Tags API.log
 // @Accept json
 // @Produce json
-// @Param Request body request.LogQueryContextRequest true "请求信息"
+// @Param Request body request.LogQueryContextRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.LogQueryContextResponse
 // @Failure 400 {object} code.Failure

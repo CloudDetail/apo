@@ -4,8 +4,9 @@
 package service
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -17,8 +18,8 @@ import (
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "开始时间"
-// @Param endTime query int64 true "结束时间"
+// @Param startTime query int64 true "start time"
+// @Param endTime query int64 true "end time"
 // @Success 200 {object} response.GetServiceNamespaceListResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/service/namespace/list [get]
