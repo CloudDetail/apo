@@ -19,7 +19,8 @@ import (
 var handlerName string
 
 const handlerTemplate = `// Copyright 2024 CloudDetail
-// SPDX-License-Identifier: Apache-2.0package %s
+// SPDX-License-Identifier: Apache-2.0
+package %s
 
 import (
 	"net/http"
