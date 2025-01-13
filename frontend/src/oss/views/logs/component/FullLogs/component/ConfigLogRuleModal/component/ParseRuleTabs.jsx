@@ -23,11 +23,11 @@ const ParseRuleTabs = () => {
             <span className="text-xs text-gray-400">
               将符合规则的日志进行结构化并加快查询速度，查看
               <a
-                href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/日志解析规则配置/"
+                href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/日志解析规则配置/"
                 className="underline"
                 target="_blank"
               >
-                帮助文档
+                日志解析规则配置
               </a>
             </span>
           </div>

@@ -25,11 +25,14 @@ type GetDescendantMetricsRequest struct {
 }
 
 type GetPolarisInferRequest struct {
-	StartTime int64  `form:"startTime" binding:"min = 0"`                    // query start time
-	EndTime   int64  `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	Step      int64  `form:"step" binding:"required"`                        // query step (us)
-	Service   string `form:"service" binding:"required"`                     // query service name
-	Endpoint  string `form:"endpoint" binding:"required"`                    // query Endpoint
+	StartTime int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime   int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step      int64  `form:"step" binding:"required"`                      // query step (us)
+	Service   string `form:"service" binding:"required"`                   // query service name
+	Endpoint  string `form:"endpoint" binding:"required"`                  // query Endpoint
+
+	Lanaguage string `form:"language" json:"language"` // language of result
+	Timezone  string `form:"timezone" json:"timezone"` // timezone of result
 }
 
 type GetDescendantRelevanceRequest = GetDescendantMetricsRequest

@@ -72,7 +72,7 @@ function FaultSiteLogs(props) {
         setLogsPageList([])
         setLoading(false)
       })
-      .finally(() => { })
+      .finally(() => {})
   }
   const getLogContent = () => {
     const params = logsPageList?.[activeItemKey]
@@ -176,9 +176,9 @@ function FaultSiteLogs(props) {
             <a
               className="underline text-sky-500"
               target="_blank"
-              href="https://originx.kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置采集日志/"
+              href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置采集日志"
             >
-              文档
+              配置采集日志
             </a>
           </CToastBody>
         </div>

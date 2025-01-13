@@ -21,7 +21,7 @@ instance.interceptors.request.use(
   (config) => {
     // 在发送请求之前做些什么，比如添加token
     const token = localStorage.getItem('token')
-    if (token && config.url != "/api/user/refresh") {
+    if (token && config.url != '/api/user/refresh') {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
@@ -53,10 +53,10 @@ instance.interceptors.response.use(
       switch (status) {
         case 400:
           if (data.code === 'A0004') {
-            window.location.href = "/#/login"
+            window.location.href = '/#/login'
             showToast({
-              title: "未登录,请先登录",
-              color: 'danger'
+              title: '未登录,请先登录',
+              color: 'danger',
             })
           } else if (data.code === 'A0005') {
             const newToken = await refreshAccessToken()
@@ -64,11 +64,7 @@ instance.interceptors.response.use(
               originalRequest.headers.Authorization = `Bearer ${newToken}`
               return instance(originalRequest)
             } else {
-              window.location.href = "/#/login"
-              showToast({
-                title: "登录过期,请重新登录",
-                color: 'danger'
-              })
+              window.location.href = '/#/login'
             }
           } else {
             showToast({
@@ -115,7 +111,7 @@ export const refreshAccessToken = async () => {
     const response = await instance.get(`/api/user/refresh`, {
       headers: {
         Authorization: `Bearer ${refreshToken}`,
-      }
+      },
     })
     const { accessToken } = response
     localStorage.setItem('token', accessToken)
@@ -135,9 +131,9 @@ const get = (url, params = {}, config = {}) => {
 // 封装POST请求
 const post = (url, data = {}, config = {}) => {
   return instance.post(url, data, config).catch((error) => {
-    throw error;
-  });
-};
+    throw error
+  })
+}
 
 // 封装DELETE请求
 const del = (url, data = {}, config = {}) => {
@@ -150,8 +146,8 @@ const del = (url, data = {}, config = {}) => {
 // 封装常用的请求头配置
 const headers = {
   formUrlencoded: {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-  }
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  },
 }
 
 // 导出axios实例和封装的请求方法
