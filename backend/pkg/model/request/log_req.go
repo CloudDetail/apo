@@ -4,9 +4,9 @@
 package request
 
 type GetFaultLogPageListRequest struct {
-	StartTime   int64    `json:"startTime" binding:"min = 0"`                    // query start time
-	EndTime     int64    `json:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	Service     []string `json:"service"`                                        // query service name
+	StartTime   int64    `json:"startTime" binding:"min=0"`                    // query start time
+	EndTime     int64    `json:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Service     []string `json:"service"`                                      // query service name
 	Namespaces  []string `json:"namespaces"`
 	Instance    string   `json:"instance"`    // instance name
 	NodeName    string   `json:"nodeName"`    // hostname

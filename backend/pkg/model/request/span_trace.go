@@ -9,15 +9,15 @@ import (
 )
 
 type GetTraceFiltersRequest struct {
-	StartTime  int64 `form:"statTime" json:"startTime" binding:"min = 0"`                   // query start time
-	EndTime    int64 `form:"endTime" json:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	NeedUpdate bool  `form: "needUpdate" json:"needUpdate"`                                 // whether it needs to be updated immediately
+	StartTime  int64 `form:"statTime" json:"startTime" binding:"min=0"`                   // query start time
+	EndTime    int64 `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	NeedUpdate bool  `form:"needUpdate" json:"needUpdate"`                                // whether it needs to be updated immediately
 }
 
 type GetTraceFilterValueRequest struct {
-	StartTime  int64           `json:"startTime" binding:"min = 0"`                    // query start time
-	EndTime    int64           `json:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	SearchText string          `json:"searchText"`                                     // query keyword
+	StartTime  int64           `json:"startTime" binding:"min=0"`                    // query start time
+	EndTime    int64           `json:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	SearchText string          `json:"searchText"`                                   // query keyword
 	Filter     SpanTraceFilter `json:"filter"`
 }
 

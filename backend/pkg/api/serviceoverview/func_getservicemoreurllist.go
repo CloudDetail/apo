@@ -4,6 +4,7 @@
 package serviceoverview
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
 	"time"
 
@@ -12,14 +13,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
-
-type getServiceMoreUrlListRequest struct {
-	StartTime   int64  `form:"startTime" binding:"required"`                   // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	Step        int64  `form:"step" binding:"required"`                        // step size
-	ServiceName string `form:"serviceName" binding:"required"`                 // application name
-	SortRule    int    `form:"sortRule" binding:"required"`                    // sort logic
-}
 
 // GetServiceMoreUrlList get more url list of services
 // @Summary get more url list of services
@@ -38,7 +31,7 @@ type getServiceMoreUrlListRequest struct {
 // @Router /api/service/moreUrl [get]
 func (h *handler) GetServiceMoreUrlList() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(getServiceMoreUrlListRequest)
+		req := new(request.GetServiceMoreUrlListRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

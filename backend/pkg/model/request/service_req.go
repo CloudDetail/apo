@@ -4,24 +4,24 @@
 package request
 
 type GetServiceEndpointTopologyRequest struct {
-	StartTime     int64  `form:"startTime" binding:"min = 0"`                    // query start time
-	EndTime       int64  `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	Service       string `form:"service" binding:"required"`                     // query service name
-	Endpoint      string `form:"endpoint" binding:"required"`                    // query Endpoint
-	EntryService  string `form:"entryService"`                                   // Ingress service name
-	EntryEndpoint string `form:"entryEndpoint"`                                  // entry Endpoint
+	StartTime     int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Service       string `form:"service" binding:"required"`                   // query service name
+	Endpoint      string `form:"endpoint" binding:"required"`                  // query Endpoint
+	EntryService  string `form:"entryService"`                                 // Ingress service name
+	EntryEndpoint string `form:"entryEndpoint"`                                // entry Endpoint
 }
 
 type GetServiceEndpointRelationRequest = GetServiceEndpointTopologyRequest
 
 type GetDescendantMetricsRequest struct {
-	StartTime     int64  `form:"startTime" binding:"min = 0"`                    // query start time
-	EndTime       int64  `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	Service       string `form:"service" binding:"required"`                     // query service name
-	Endpoint      string `form:"endpoint" binding:"required"`                    // query Endpoint
-	Step          int64  `form:"step" binding:"min = 1000000"`                   // query step size (us)
-	EntryService  string `form:"entryService"`                                   // Ingress service name
-	EntryEndpoint string `form:"entryEndpoint"`                                  // entry Endpoint
+	StartTime     int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Service       string `form:"service" binding:"required"`                   // query service name
+	Endpoint      string `form:"endpoint" binding:"required"`                  // query Endpoint
+	Step          int64  `form:"step" binding:"min=1000000"`                   // query step size (us)
+	EntryService  string `form:"entryService"`                                 // Ingress service name
+	EntryEndpoint string `form:"entryEndpoint"`                                // entry Endpoint
 }
 
 type GetPolarisInferRequest struct {
@@ -40,14 +40,14 @@ type GetDescendantRelevanceRequest = GetDescendantMetricsRequest
 type GetErrorInstanceRequest = GetDescendantMetricsRequest
 
 type GetErrorInstanceLogsRequest struct {
-	StartTime   int64  `form:"startTime" binding:"min = 0"`                    // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	Service     string `form:"service" binding:"required"`                     // query service name
-	Endpoint    string `form:"endpoint" binding:"required"`                    // query Endpoint
-	Instance    string `form:"instance"`                                       // instance name
-	NodeName    string `form:"nodeName"`                                       // hostname
-	ContainerId string `form:"containerId"`                                    // container name
-	Pid         uint32 `form:"pid"`                                            // process number
+	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Service     string `form:"service" binding:"required"`                   // query service name
+	Endpoint    string `form:"endpoint" binding:"required"`                  // query Endpoint
+	Instance    string `form:"instance"`                                     // instance name
+	NodeName    string `form:"nodeName"`                                     // hostname
+	ContainerId string `form:"containerId"`                                  // container name
+	Pid         uint32 `form:"pid"`                                          // process number
 }
 
 type GetLogMetricsRequest = GetDescendantMetricsRequest
@@ -73,49 +73,49 @@ type SetThresholdRequest struct {
 }
 
 type GetK8sEventsRequest struct {
-	StartTime   int64  `form:"startTime" binding:"required"`                   // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	ServiceName string `form:"service" binding:"required"`                     // query service name
+	StartTime   int64  `form:"startTime" binding:"required"`                 // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	ServiceName string `form:"service" binding:"required"`                   // query service name
 }
 
 type GetServiceListRequest struct {
-	StartTime int64    `form:"startTime" binding:"min = 0"`                    // query start time
-	EndTime   int64    `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
+	StartTime int64    `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime   int64    `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 	Namespace []string `form:"namespace"`
 }
 
 type GetServiceInstanceListRequest struct {
-	StartTime   int64  `form:"startTime" binding:"min = 0"`                    // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	ServiceName string `form:"service" binding:"required"`                     // query service name
+	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	ServiceName string `form:"service" binding:"required"`                   // query service name
 }
 
 type GetServiceInstanceRequest struct {
-	StartTime   int64  `form:"startTime" binding:"required"`                   // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	Step        int64  `form:"step" binding:"required"`                        // step size
-	ServiceName string `form:"serviceName" binding:"required"`                 // application name
+	StartTime   int64  `form:"startTime" binding:"required"`                 // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step        int64  `form:"step" binding:"required"`                      // step size
+	ServiceName string `form:"serviceName" binding:"required"`               // application name
 	Endpoint    string `form:"endpoint"`
 }
 
 type GetServiceInstanceOptionsRequest struct {
-	StartTime   int64  `form:"startTime" binding:"min = 0"`                    // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	ServiceName string `form:"service" binding:"required"`                     // query service name
+	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	ServiceName string `form:"service" binding:"required"`                   // query service name
 }
 
 type GetServiceAlertRequest struct {
-	StartTime    int64    `form:"startTime" binding:"required"`                   // query start time
-	EndTime      int64    `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	Step         int64    `form:"step" binding:"required"`                        // step size
-	ServiceNames []string `form:"serviceNames" binding:"required"`                // application name
+	StartTime    int64    `form:"startTime" binding:"required"`                 // query start time
+	EndTime      int64    `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step         int64    `form:"step" binding:"required"`                      // step size
+	ServiceNames []string `form:"serviceNames" binding:"required"`              // application name
 	ReturnData   []string `form:"returnData"`
 }
 
 type GetServiceEndPointListRequest struct {
-	StartTime   int64  `form:"startTime" binding:"min = 0"`                    // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	ServiceName string `form:"service"`                                        // query service name
+	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	ServiceName string `form:"service"`                                      // query service name
 }
 type GetEndPointsDataRequest struct {
 	// Filter Criteria
@@ -124,10 +124,10 @@ type GetEndPointsDataRequest struct {
 	EndpointName []string `form:"endpointName,omitempty"` // endpoint name, exact match
 
 	// Query condition
-	StartTime int64 `form:"startTime" binding:"required"`                   // query start time
-	EndTime   int64 `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	Step      int64 `form:"step" binding:"required"`                        // step size
-	SortRule  int   `form:"sortRule" binding:"required"`                    // sort logic
+	StartTime int64 `form:"startTime" binding:"required"`                 // query start time
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step      int64 `form:"step" binding:"required"`                      // step size
+	SortRule  int   `form:"sortRule" binding:"required"`                  // sort logic
 }
 
 type GetRygLightRequest struct {
@@ -137,13 +137,13 @@ type GetRygLightRequest struct {
 	Namespace    string `form:"namespace"`    // specify namespace, exact match
 
 	// Query condition
-	StartTime int64 `form:"startTime" binding:"required"`                   // query start time
-	EndTime   int64 `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
+	StartTime int64 `form:"startTime" binding:"required"`                 // query start time
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 }
 
 type GetAlertEventsRequest struct {
-	StartTime int64 `form:"startTime" binding:"required"`                   // query start time
-	EndTime   int64 `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
+	StartTime int64 `form:"startTime" binding:"required"`                 // query start time
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 
 	AlertFilter // filter parameters
 	*PageParam  // Paging Parameters
@@ -167,8 +167,8 @@ type PageParam struct {
 }
 
 type GetAlertEventsSampleRequest struct {
-	StartTime int64 `form:"startTime" binding:"required"`                   // query start time
-	EndTime   int64 `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
+	StartTime int64 `form:"startTime" binding:"required"`                 // query start time
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 
 	AlertFilter // filter parameters
 
@@ -176,20 +176,28 @@ type GetAlertEventsSampleRequest struct {
 }
 
 type GetServiceEntryEndpointsRequest struct {
-	StartTime   int64  `form:"startTime" binding:"min = 0"`                    // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
-	Service     string `form:"service" binding:"required"`                     // query service name
-	Endpoint    string `form:"endpoint" binding:"required"`                    // query Endpoint
-	Step        int64  `form:"step" binding:"required"`                        // query step (us)
-	ShowMissTop bool   `form: "showMissTop"`                                   // whether to display the lost non-portal service
+	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Service     string `form:"service" binding:"required"`                   // query service name
+	Endpoint    string `form:"endpoint" binding:"required"`                  // query Endpoint
+	Step        int64  `form:"step" binding:"required"`                      // query step (us)
+	ShowMissTop bool   `form:"showMissTop"`                                  // whether to display the lost non-portal service
 }
 
 type GetMonitorStatusRequest struct {
-	StartTime int64 `form:"startTime" binding:"min = 0"`                    // query start time
-	EndTime   int64 `form:"endTime" binding:"required,gtfield = StartTime"` // query end time
+	StartTime int64 `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 }
 
 type GetServiceNamespaceListRequest struct {
 	StartTime int64 `form:"startTime" binding:"min=0"`
 	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"`
+}
+
+type GetServiceMoreUrlListRequest struct {
+	StartTime   int64  `form:"startTime" binding:"required"`                 // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step        int64  `form:"step" binding:"required"`                      // step size
+	ServiceName string `form:"serviceName" binding:"required"`               // application name
+	SortRule    int    `form:"sortRule" binding:"required"`                  // sort logic
 }
