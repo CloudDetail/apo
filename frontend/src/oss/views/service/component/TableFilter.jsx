@@ -28,18 +28,29 @@ export const TableFilter = (props) => {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
 
   //从给定的 API 函数获取选项并设置选项状态。
-  const fetchOptions = (apiFunc, setOptions, mapFunc) => {
-    const params = { startTime, endTime }
-    apiFunc(params)
-      .then((data) => setOptions(mapFunc(data)))
-      .catch((error) => console.error('获取数据失败:', error))
+  const fetchOptions = (apiFunc, setOptions, mapFunc, externParam) => {
+    const params = { startTime, endTime, ...externParam }
+    return apiFunc(params).then((data) => {
+      setOptions(mapFunc(data))
+      return data
+    })
   }
 
-  //获取并设置服务名称选项。
+  //获取并设置服务名称选项
   const getServiceNameOptions = () =>
-    fetchOptions(getServiceListApi, setServiceNameOptions, (data) =>
-      data.map((value) => ({ value, label: value })),
+    fetchOptions(
+      getServiceListApi,
+      setServiceNameOptions,
+      (data) => data.map((value) => ({ value, label: value })),
+      { namespace: serachNamespace || undefined },
     )
+      .then((data) => {
+        //在改变namespace后过滤掉不包含在选中的namespace的服务名
+        if (serachServiceName.length) {
+          onChangeServiceName(serachServiceName.filter((item) => data.includes(item)))
+        }
+      })
+      .catch((error) => console.error('获取数据失败:', error))
 
   //获取并设置命名空间选项。
   const getNamespaceOptions = () =>
@@ -48,7 +59,7 @@ export const TableFilter = (props) => {
         value: namespace,
         label: namespace,
       })),
-    )
+    ).catch((error) => console.error('获取数据失败:', error))
 
   //根据选定的服务名称获取并设置端点名称选项。
   const getEndpointNameOptions = (serviceNameList) => {
@@ -106,7 +117,7 @@ export const TableFilter = (props) => {
     if (startTime && endTime) {
       Promise.all([getServiceNameOptions(), getNamespaceOptions()])
     }
-  }, [startTime, endTime])
+  }, [startTime, endTime, serachNamespace])
 
   useEffect(() => {
     if (serachServiceName) {

@@ -5,7 +5,11 @@
 
 import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { getServiceInstancOptionsListApi, getServiceListApi, getNamespacesApi } from 'core/api/service'
+import {
+  getServiceInstancOptionsListApi,
+  getServiceListApi,
+  getNamespacesApi,
+} from 'core/api/service'
 import DateTimeRangePickerCom from 'src/core/components/DateTime/DateTimeRangePickerCom'
 import { CustomSelect } from 'src/core/components/Select'
 import { getTimestampRange, timeRangeList } from 'src/core/store/reducers/timeRangeReducer'
@@ -131,7 +135,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     })
   }
   const getServiceListData = () => {
-    getServiceListApi({ startTime, endTime })
+    getServiceListApi({ startTime, endTime, namespace: selectNamespace || undefined })
       .then((res) => {
         setServiceList(res ?? [])
 
@@ -194,7 +198,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
             traceId: inputTraceId,
             endpoint: inputEndpoint,
             instanceOption: res,
-            namespace: selectNamespace
+            namespace: selectNamespace,
           })
         })
         .catch((error) => {
@@ -202,7 +206,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
           setInstanceList(null)
           // updateInstanceOption({})
         })
-        .finally(() => { })
+        .finally(() => {})
     }
   }
   const getNamespaceList = () => {
@@ -214,7 +218,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
       .catch((error) => {
         console.error(error)
       })
-      .finally(() => { })
+      .finally(() => {})
   }
   useEffect(() => {
     const urlService = searchParams.get('service') ?? ''
@@ -223,7 +227,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     const urlEndpoint = searchParams.get('endpoint') ?? ''
     const urlFrom = searchParams.get(type + '-from')
     const urlTo = searchParams.get(type + '-to')
-    const namespace = searchParams.get('namespace') || null;
+    const namespace = searchParams.get('namespace') || null
     const minDuration = searchParams.get('minDuration') ?? ''
     const maxDuration = searchParams.get('maxDuration') ?? ''
     const faultTypeList = searchParams.get('faultTypeList') ?? ''
@@ -291,13 +295,17 @@ const LogsTraceFilter = React.memo(({ type }) => {
       urlParam.endTime = endTime
     }
     if (startTime && endTime) {
-      // console.log(urlParam.service, selectServiceName)
       if (changeTime || urlParam.service !== selectServiceName) {
         getServiceListData()
         getNamespaceList()
       }
     }
   }, [startTime, endTime, urlParam])
+  useEffect(() => {
+    if (startTime && endTime) {
+      getServiceListData()
+    }
+  }, [selectNamespace])
   const changeUrlParams = (props) => {
     // console.log(props, urlParam)
     // const { service: storeService, instance: storeInstance } = props
@@ -430,7 +438,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
               </div>
             )}
           </div>
-          <div className='flex'>
+          <div className="flex">
             <div className="flex flex-row items-center mr-5 mt-2 w-[300px] text-sm">
               {type === 'trace' ? (
                 <Segmented options={['TraceID', 'SWTraceId']} onChange={setTraceType} />

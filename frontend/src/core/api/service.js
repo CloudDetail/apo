@@ -16,6 +16,7 @@ export const getEndpointTableApi = (params) => {
  * @param {Object} params - 包含开始和结束时间的参数对象
  * @param {number} params.startTime - 开始微秒级时间戳
  * @param {number} params.endTime - 结束微秒级时间戳
+ * @param {string} params.namespace - 服务名称
  * @returns {Promise<Object>} - 包含服务列表的Promise对象
  */
 export const getServiceListApi = (params) => {
@@ -110,17 +111,16 @@ export const getServiceRelationApi = (params) => {
 
 /**
  * 告警分析页面->获取告警分析服务端点数据
- * @param {*} params 
+ * @param {*} params
  * @returns {Promise<Object>}
  */
 export const getServiceEndpointNameApi = (params) => {
   return get(`/api/service/moreUrl`, params)
 }
 
-
 /**
  * 获取所有命名空间
- * @param {*} params 
+ * @param {*} params
  * @returns {Promise<Object>}
  */
 export const getNamespacesApi = (params) => {
