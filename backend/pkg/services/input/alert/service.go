@@ -5,6 +5,7 @@ package alert
 
 import (
 	"log"
+	"strings"
 	"sync"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
@@ -77,7 +78,7 @@ func New(
 	}
 
 	for source, enricherRules := range enrichMaps {
-		if source.SourceName == defaultSourceName {
+		if strings.HasPrefix(source.SourceName, defaultSourceName) {
 			service.defaultEnrichRules.Store(source.SourceType, enricherRules)
 			continue
 		}
