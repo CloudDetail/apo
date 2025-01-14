@@ -3,34 +3,34 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CCard } from '@coreui/react'
 import React, { useMemo } from 'react'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { useTranslation } from 'react-i18next'
+import { Card } from 'antd'
 
 function GlossaryTable() {
-  const { t } = useTranslation('oss/serviceInfo')
+  const { t } = useTranslation('core/polarisMetrics')
   const data = useMemo(
     () => [
       {
         code: 'network_time',
-        value: t('polarisMetricsInfo.glossaryTable.networkTime'),
+        value: t('glossaryTable.networkTime'),
       },
       {
         code: 'CPU_time',
-        value: t('polarisMetricsInfo.glossaryTable.cpuTime'),
+        value: t('glossaryTable.cpuTime'),
       },
       {
         code: 'lock_gc_time',
-        value: t('polarisMetricsInfo.glossaryTable.lockGcTime'),
+        value: t('glossaryTable.lockGcTime'),
       },
       {
         code: 'disk_io_time',
-        value: t('polarisMetricsInfo.glossaryTable.diskIoTime'),
+        value: t('glossaryTable.diskIoTime'),
       },
       {
         code: 'schedule_time',
-        value: t('polarisMetricsInfo.glossaryTable.scheduleTime'),
+        value: t('glossaryTable.scheduleTime'),
       },
     ],
     [t],
@@ -39,12 +39,12 @@ function GlossaryTable() {
   const columns = useMemo(
     () => [
       {
-        title: t('polarisMetricsInfo.glossaryTable.type'),
+        title: t('glossaryTable.type'),
         accessor: 'code',
-        customWidth: 100,
+        customWidth: 120,
       },
       {
-        title: t('polarisMetricsInfo.glossaryTable.meaning'),
+        title: t('glossaryTable.meaning'),
         justifyContent: 'left',
         accessor: 'value',
       },
@@ -61,9 +61,9 @@ function GlossaryTable() {
   }, [columns, data])
 
   return (
-    <CCard>
+    <Card classNames={{ body: 'py-0' }}>
       <BasicTable {...tableProps}></BasicTable>
-    </CCard>
+    </Card>
   )
 }
 

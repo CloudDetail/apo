@@ -1,0 +1,11 @@
+{
+  "glossaryTable": {
+    "type": "Type",
+    "meaning": "Meaning",
+    "networkTime": "Time spent on external service calls and any database and middleware, DNS and other network operations",
+    "cpuTime": "The execution time of the program code on the CPU. If the CPU time is too long, it is due to too many nested levels or too many loops causing the execution time on the CPU",
+    "lockGcTime": "The delay caused by GC or lock waiting. If GC is frequent, the delay should be distributed at different time points. If it is a lock, it is usually continuous time",
+    "diskIoTime": "Program write file time",
+    "scheduleTime": "Waiting time due to CPU contention"
+  }
+}
