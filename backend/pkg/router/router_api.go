@@ -106,10 +106,10 @@ func setApiRouter(r *resource) {
 	{
 		traceHandler := trace.New(r.logger, r.pkg_db, r.ch, r.jaegerRepo, r.prom, r.k8sApi)
 		traceApi.GET("/onoffcpu", traceHandler.GetOnOffCPU())
-		traceApi.POST("/pagelist", traceHandler.GetTracePageList())
 		traceApi.GET("/flame", traceHandler.GetFlameGraphData())
 		traceApi.GET("/flame/process", traceHandler.GetProcessFlameGraph())
 		traceApi.Use(middlewares.AuthMiddleware())
+		traceApi.POST("/pagelist", traceHandler.GetTracePageList())
 		traceApi.GET("/pagelist/filters", traceHandler.GetTraceFilters())
 		traceApi.POST("/pagelist/filter/value", traceHandler.GetTraceFilterValue())
 		traceApi.GET("/info", traceHandler.GetSingleTraceInfo())
