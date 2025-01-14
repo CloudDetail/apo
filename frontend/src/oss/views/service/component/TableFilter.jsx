@@ -16,7 +16,6 @@ import { getStep } from 'src/core/utils/step'
 
 export const TableFilter = (props) => {
   const { setServiceName, setEndpoint, setNamespace } = props
-
   const [serviceNameOptions, setServiceNameOptions] = useState([])
   const [endpointNameOptions, setEndpointNameOptions] = useState([])
   const [namespaceOptions, setNamespaceOptions] = useState([])
@@ -24,43 +23,39 @@ export const TableFilter = (props) => {
   const [serachEndpointName, setSerachEndpointName] = useState(null)
   const [serachNamespace, setSerachNamespace] = useState(null)
   const [prevSearchServiceName, setPrevSearchServiceName] = useState(null)
-
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
 
-  //从给定的 API 函数获取选项并设置选项状态。
-  const fetchOptions = (apiFunc, setOptions, mapFunc, externParam) => {
-    const params = { startTime, endTime, ...externParam }
-    return apiFunc(params).then((data) => {
-      setOptions(mapFunc(data))
-      return data
-    })
-  }
-
   //获取并设置服务名称选项
-  const getServiceNameOptions = () =>
-    fetchOptions(
-      getServiceListApi,
-      setServiceNameOptions,
-      (data) => data.map((value) => ({ value, label: value })),
-      { namespace: serachNamespace || undefined },
-    )
+  const getServiceNameOptions = () => {
+    const params = {
+      startTime,
+      endTime,
+      namespace: serachNamespace || undefined,
+    }
+    getServiceListApi(params)
       .then((data) => {
+        setServiceNameOptions(data.map((value) => ({ value, label: value })))
         //在改变namespace后过滤掉不包含在选中的namespace的服务名
         if (serachServiceName.length) {
           onChangeServiceName(serachServiceName.filter((item) => data.includes(item)))
         }
       })
       .catch((error) => console.error('获取数据失败:', error))
-
+  }
   //获取并设置命名空间选项。
-  const getNamespaceOptions = () =>
-    fetchOptions(getNamespacesApi, setNamespaceOptions, (data) =>
-      (data?.namespaceList || []).map((namespace) => ({
-        value: namespace,
-        label: namespace,
-      })),
-    ).catch((error) => console.error('获取数据失败:', error))
-
+  const getNamespaceOptions = () => {
+    const params = { startTime, endTime }
+    getNamespacesApi(params)
+      .then((data) => {
+        setNamespaceOptions(
+          (data?.namespaceList || []).map((namespace) => ({
+            value: namespace,
+            label: namespace,
+          })),
+        )
+      })
+      .catch((error) => console.error('获取数据失败:', error))
+  }
   //根据选定的服务名称获取并设置端点名称选项。
   const getEndpointNameOptions = (serviceNameList) => {
     setEndpointNameOptions([])
@@ -86,16 +81,13 @@ export const TableFilter = (props) => {
       .then((newEndpointNameOptions) => setEndpointNameOptions(newEndpointNameOptions))
       .catch((error) => console.error('获取 endpoint 失败:', error))
   }
-
   //处理命名空间选择更改。
   const onChangeNamespace = (event) => setSerachNamespace(event)
-
   //处理服务名称选择更改。
   const onChangeServiceName = (event) => {
     setPrevSearchServiceName(serachServiceName)
     setSerachServiceName(event)
   }
-
   //移除不再相关的端点名称。
   const removeEndpointNames = () => {
     if (prevSearchServiceName?.length > serachServiceName?.length) {

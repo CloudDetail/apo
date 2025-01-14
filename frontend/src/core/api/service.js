@@ -14,7 +14,7 @@ export const getEndpointTableApi = (params) => {
 /**
  * 获取所有服务列表（通常用于下拉选择）
  * @param {Object} params - 包含开始和结束时间的参数对象
- * @param {number} params.startTime - 开始微秒级时间戳
+ * @param {number | Date} params.startTime - 开始微秒级时间戳
  * @param {number} params.endTime - 结束微秒级时间戳
  * @param {string} params.namespace - 服务名称
  * @returns {Promise<Object>} - 包含服务列表的Promise对象
