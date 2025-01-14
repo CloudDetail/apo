@@ -11,7 +11,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-func (ch *chRepo) InsertExtraAlertEvent(ctx context.Context, alertEvents []alert.AlertEvent, sourceFrom alert.SourceFrom) error {
+func (ch *chRepo) InsertAlertEvent(ctx context.Context, alertEvents []alert.AlertEvent, sourceFrom alert.SourceFrom) error {
 	batch, err := ch.conn.PrepareBatch(ctx, `
 		INSERT INTO alert_event (id,name,group,severity, status, detail, alert_id, raw_tags, tags,create_time, update_time, end_time, received_time, source_id, source)
 		VALUES

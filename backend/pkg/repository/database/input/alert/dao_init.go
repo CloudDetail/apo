@@ -9,7 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-func (repo *subRepo) initDefaultExternalAlertTagMapping(sqlScript string) error {
+func (repo *subRepo) initDefaultAlertTagMapping(sqlScript string) error {
 	if err := repo.db.AutoMigrate(
 		&alert.AlertSource{},
 		&alert.TargetTag{},

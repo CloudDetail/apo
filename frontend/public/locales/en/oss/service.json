@@ -29,11 +29,11 @@
       }
     },
     "tableProps": {
-      "emptyText": "No Data Available",
-      "unmonitoredText": "1. If the application is not yet monitored, please refer to",
-      "unmonitoredLinkText": " Monitoring Manual",
-      "monitoredText": "2. If the application is already monitored but still shows no data, please refer to",
-      "monitoredLinkText": "Service Overview No Data Troubleshooting Documentation"
+      "emptyText": "No Data",
+      "unmonitoredText": "1. New to monitoring? See the",
+      "unmonitoredLinkText": " Monitoring Guide.",
+      "monitoredText": "2. Already monitoring but no data appears? Check the",
+      "monitoredLinkText": " Troubleshooting Guide."
     }
   },
   "tableFilter": {

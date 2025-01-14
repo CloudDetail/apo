@@ -7,10 +7,12 @@ import React, { useCallback } from 'react'
 import { Handle, Position } from 'reactflow'
 import { BiCctv } from 'react-icons/bi'
 import { MdRemoveRedEye } from 'react-icons/md'
+import { useTranslation } from 'react-i18next'
 const handleStyle = { left: 10 }
 const MoreNode = React.memo((prop) => {
   const { data, isConnectable } = prop
   const onChange = useCallback((evt) => {}, [])
+  const { t } = useTranslation('oss/serviceInfo')
 
   return (
     <div className="text-updater-node cursor-pointer">
@@ -25,7 +27,7 @@ const MoreNode = React.memo((prop) => {
         style={{ backgroundColor: 'rgba(19, 25, 32, 0.6)' }}
       >
         <MdRemoveRedEye className="mr-2" />
-        查看更多下游
+        {t('moreNode.seeMore')}
         {/* <div className="absolute top-0 left-0">
           {' '}
           <BiCctv size={35} color={data.isTraced ? '#80ce8dff' : '#a1a1a1'} />

@@ -39,5 +39,5 @@ func (s *service) ProcessAlertEvents(source alert.SourceFrom, data []byte) error
 		return fmt.Errorf("enrich alertEvent failed, err: %v", err)
 	}
 
-	return s.ckRepo.InsertExtraAlertEvent(context.Background(), events, source)
+	return s.ckRepo.InsertAlertEvent(context.Background(), events, source)
 }
