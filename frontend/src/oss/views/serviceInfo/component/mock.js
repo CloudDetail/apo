@@ -490,8 +490,8 @@ export const dependentTableMock = [
 export const logsMockList = [
   {
     timestamp: 1722254280000000,
-    name:'1'
-  }
+    name: '1',
+  },
 ]
 export const logsMock = `2024-07-02 12:00:56.885 [http-nio-14322-exec-13] INFO  travelplan.service.TravelPlanServiceImpl - [getRestTicketNumber][Seat Request][Seat Request is: Seat(travelDate=2024-07-02 00:00:00, trainNumber=G1235, startStation=shanghai, destStation=nanjing, seatType=2, totalNum=2147483647, stations=[nanjing, shanghai])]
 2024-07-02 12:00:57.119 [http-nio-14322-exec-13] INFO  travelplan.service.TravelPlanServiceImpl - [getRestTicketNumber][Seat Request][Seat Request is: Seat(travelDate=2024-07-02 00:00:00, trainNumber=G1235, startStation=shanghai, destStation=nanjing, seatType=3, totalNum=2147483647, stations=[nanjing, shanghai])]

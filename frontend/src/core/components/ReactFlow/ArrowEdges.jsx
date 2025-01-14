@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from "react";
-import { getBezierPath, getMarkerEnd } from "reactflow";
+import React from 'react'
+import { getBezierPath, getMarkerEnd } from 'reactflow'
 
 const ArrowEdges = ({
   id,
@@ -24,9 +24,9 @@ const ArrowEdges = ({
     targetY,
     sourcePosition,
     targetPosition,
-  });
+  })
 
-  const markerEnd = getMarkerEnd(markerEndId);
+  const markerEnd = getMarkerEnd(markerEndId)
 
   return (
     <>
@@ -53,6 +53,6 @@ const ArrowEdges = ({
         </defs>
       </svg> */}
     </>
-  );
-};
-export default ArrowEdges;
+  )
+}
+export default ArrowEdges

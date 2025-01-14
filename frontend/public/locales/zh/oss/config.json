@@ -1,0 +1,22 @@
+{
+  "configTTL": {
+    "title": "数据保留周期配置",
+    "updateInfo": "更新可能需一定时间生效，请稍后刷新页面查看结果。",
+    "confirmUpdate": "确认后将同步更新{{type}}数据下所有表格的数据保留周期",
+    "confirm": "确认",
+    "cancel": "取消",
+    "update": "更新",
+    "days": "天",
+    "data": "数据"
+  },
+  "TTLTable": {
+    "tableName": "表名",
+    "dataRetention": "数据保留（天）",
+    "operation": "操作",
+    "update": "更新",
+    "cancel": "取消",
+    "edit": "编辑",
+    "updateInfo": "配置数据保留周期可能需一定时间生效，请稍后刷新页面查看结果",
+    "validationMessage": "{{title}}必须为大于0 的数字"
+  }
+}

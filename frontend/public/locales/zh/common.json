@@ -1,0 +1,50 @@
+{
+  "apoTitle": "向导式可观测平台",
+  "serviceTableToast": "请根据本页提供的各种提示信息，选择您最怀疑的服务端点，选择服务端点之后可以查看具体的相关指标、日志和事件信息、Trace信息",
+  "delaySourceTimeUnit": {
+    "selfText": "自身",
+    "dependencyText": "依赖",
+    "unknownText": "未知"
+  },
+  "tableType": {
+    "logsText": "日志",
+    "traceText": "链路",
+    "k8sText": "Kubernetes事件",
+    "topologyText": "拓扑图",
+    "otherText": "其他"
+  },
+  "logsTraceFilter": {
+    "nameSpaceLabel": "命名空间",
+    "applicationLabel": "服务名",
+    "instanceLabel": "实例名",
+    "durationLabel": "响应时间",
+    "endpointLabel": "服务端点",
+    "status": "故障状态：",
+    "toText": "至",
+    "search": "检索",
+    "enterSWTraceId": "输入SkyWalking的traceid将自动转换",
+    "autoConvert": "自动转换为TraceID："
+  },
+  "traceErrorType": {
+    "error": "错误故障",
+    "slow": "慢故障",
+    "normal": "无异常"
+  },
+  "delayLineChartTitleMap": {
+    "latency": "平均响应时间",
+    "p90": "90分位数",
+    "errorRate": "错误率",
+    "logs": "日志错误数量",
+    "tps": "吞吐量"
+  },
+  "units": {
+    "unit": "个",
+    "timesPerMinute": "次/分"
+  },
+  "ruleGroupMap": {
+    "app": "应用指标",
+    "infra": "主机相关",
+    "network": "网络相关",
+    "container": "容器相关"
+  }
+}

@@ -7,6 +7,7 @@ import { Form, Input, InputNumber, Table, Typography } from 'antd'
 import React, { useState } from 'react'
 import { setSingleTableTTLApi } from 'core/api/config'
 import { showToast } from 'src/core/utils/toast'
+import { useTranslation } from 'react-i18next'
 
 const EditableCell = ({
   editing,
@@ -18,11 +19,12 @@ const EditableCell = ({
   children,
   ...restProps
 }) => {
+  const { t } = useTranslation('oss/config')
   const inputNode =
     inputType === 'number' ? (
       <InputNumber
         min={1}
-        addonAfter="天"
+        addonAfter={t('configTTL.days')}
         controls={false}
         className="w-28"
         changeOnBlur={true}
@@ -42,7 +44,7 @@ const EditableCell = ({
           rules={[
             {
               required: true,
-              message: `${title}必须为大于0 的数字`,
+              message: t('TTLTable.validationMessage', { title }),
             },
           ]}
         >
@@ -56,6 +58,7 @@ const EditableCell = ({
 }
 
 export default function TTLTable(props) {
+  const { t } = useTranslation('oss/config')
   const [form] = Form.useForm()
   const { list = [], refreshPage } = props
   const [editingKey, setEditingKey] = useState('')
@@ -64,7 +67,7 @@ export default function TTLTable(props) {
     setSingleTableTTLApi({ name: editingKey, day: form.getFieldValue('originalDays') })
       .then((res) => {
         showToast({
-          title: '配置数据保留周期可能需一定时间生效，请稍后刷新页面查看结果',
+          title: t('TTLTable.updateInfo'),
           color: 'info',
         })
       })
@@ -83,19 +86,19 @@ export default function TTLTable(props) {
   }
   const columns = [
     {
-      title: '表名',
+      title: t('TTLTable.tableName'),
       dataIndex: 'name',
       width: '50%',
       editable: false,
     },
     {
-      title: '数据保留（天）',
+      title: t('TTLTable.dataRetention'),
       dataIndex: 'originalDays',
       width: '30%',
       editable: true,
     },
     {
-      title: '操作',
+      title: t('TTLTable.operation'),
       dataIndex: 'operation',
       render: (_, record) => {
         const editable = isEditing(record)
@@ -108,7 +111,7 @@ export default function TTLTable(props) {
                 marginInlineEnd: 8,
               }}
             >
-              更新
+              {t('TTLTable.update')}
             </Typography.Link>
             <Typography.Link
               onClick={() => setEditingKey('')}
@@ -116,7 +119,7 @@ export default function TTLTable(props) {
                 marginInlineEnd: 8,
               }}
             >
-              取消
+              {t('TTLTable.cancel')}
             </Typography.Link>
           </span>
         ) : (
@@ -124,7 +127,7 @@ export default function TTLTable(props) {
             disabled={editingKey !== '' || !record.originalDays}
             onClick={() => edit(record)}
           >
-            编辑
+            {t('TTLTable.edit')}
           </Typography.Link>
         )
       },

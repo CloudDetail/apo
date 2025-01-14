@@ -7,6 +7,9 @@
 import axios from 'axios'
 import { showToast } from './toast'
 import qs from 'qs'
+import TranslationCom from 'src/oss/components/TranslationCom'
+
+const namespace = 'core/login'
 
 // 创建axios实例
 const instance = axios.create({
@@ -55,7 +58,7 @@ instance.interceptors.response.use(
           if (data.code === 'A0004') {
             window.location.href = '/#/login'
             showToast({
-              title: '未登录,请先登录',
+              title: <TranslationCom text="request.notLoggedIn" space={namespace} />,
               color: 'danger',
             })
           } else if (data.code === 'A0005') {
@@ -79,14 +82,14 @@ instance.interceptors.response.use(
 
         case 403:
           showToast({
-            title: '拒绝访问',
+            title: <TranslationCom text="request.accessDenied" space={namespace} />,
             color: 'danger',
           })
           break
 
         default:
           showToast({
-            title: '请求失败',
+            title: <TranslationCom text="request.requestFailed" space={namespace} />,
             message: data.message,
             color: 'danger',
           })

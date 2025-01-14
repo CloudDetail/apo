@@ -5,6 +5,8 @@
 
 import { Col, Form, Input, Row, Select } from 'antd'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
+import { useTranslation } from 'react-i18next' // 引入i18n
+
 const routeKeyList = [
   { value: 'Int8', label: 'Int8' },
   { value: 'Int16', label: 'Int16' },
@@ -30,6 +32,7 @@ const routeKeyList = [
 ]
 
 export default function LogStructRuleFormList({ fieldName }) {
+  const { t } = useTranslation('oss/fullLogs')
   const form = Form.useFormInstance()
   return (
     <Form.List name={fieldName}>
@@ -40,7 +43,7 @@ export default function LogStructRuleFormList({ fieldName }) {
             label={
               <>
                 {/* <div className="flex flex-row"> */}
-                日志字段数据类型{' '}
+                {t('configLogRuleModal.parseRuleTabs.logStructRuleFormList.fieldTypeLabel')}{' '}
                 <IoMdAddCircleOutline
                   onClick={() =>
                     add({
@@ -74,22 +77,38 @@ export default function LogStructRuleFormList({ fieldName }) {
                             const isStructured = form.getFieldValue('isStructured')
                             if (isStructured) {
                               if (!value) {
-                                return Promise.reject('字段名不可为空')
+                                return Promise.reject(
+                                  t(
+                                    'configLogRuleModal.parseRuleTabs.logStructRuleFormList.fieldNameError',
+                                  ),
+                                )
                               }
                             } else if (!form.getFieldValue('parseRule') && !value) {
-                              return Promise.reject('字段名不可为空')
+                              return Promise.reject(
+                                t(
+                                  'configLogRuleModal.parseRuleTabs.logStructRuleFormList.fieldNameError',
+                                ),
+                              )
                             }
                             const duplicate = tableFields.filter(
                               (item, i) => item?.name === value && i !== index,
                             )
                             if (duplicate.length) {
-                              return Promise.reject('已存在相同的字段名')
+                              return Promise.reject(
+                                t(
+                                  'configLogRuleModal.parseRuleTabs.logStructRuleFormList.duplicateFieldNameError',
+                                ),
+                              )
                             }
                           },
                         },
                       ]}
                     >
-                      <Input placeholder="字段名" />
+                      <Input
+                        placeholder={t(
+                          'configLogRuleModal.parseRuleTabs.logStructRuleFormList.fieldNamePlaceholder',
+                        )}
+                      />
                     </Form.Item>
                   </Col>
                   <Col span={11}>
@@ -105,10 +124,18 @@ export default function LogStructRuleFormList({ fieldName }) {
                             const isStructured = form.getFieldValue('isStructured')
                             if (isStructured) {
                               if (!value) {
-                                return Promise.reject('字段类型不可为空')
+                                return Promise.reject(
+                                  t(
+                                    'configLogRuleModal.parseRuleTabs.logStructRuleFormList.fieldTypeError',
+                                  ),
+                                )
                               }
                             } else if (!form.getFieldValue('parseRule') && !value) {
-                              return Promise.reject('字段类型不可为空')
+                              return Promise.reject(
+                                t(
+                                  'configLogRuleModal.parseRuleTabs.logStructRuleFormList.fieldTypeError',
+                                ),
+                              )
                             }
                           },
                         },
@@ -117,7 +144,9 @@ export default function LogStructRuleFormList({ fieldName }) {
                       <Select
                         options={routeKeyList}
                         labelInValue
-                        placeholder="选择匹配规则Key"
+                        placeholder={t(
+                          'configLogRuleModal.parseRuleTabs.logStructRuleFormList.fieldTypePlaceholder',
+                        )}
                         defaultValue={{
                           key: 'String',
                           label: 'String',

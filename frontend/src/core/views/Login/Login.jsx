@@ -15,12 +15,15 @@ import { AiOutlineLoading } from 'react-icons/ai'
 import style from './Login.module.css'
 import userReducer, { initialState } from 'src/core/store/reducers/userReducer'
 import { useUserContext } from 'src/core/contexts/UserContext'
+import { useTranslation } from 'react-i18next'
+
 export default function Login() {
   const { user, dispatchUser } = useUserContext()
   const navigate = useNavigate()
   const [form] = Form.useForm()
   const [remeberMe, setRemeberMe] = useState(true)
   const [loading, setLoading] = useState(false)
+  const { t } = useTranslation('core/login')
 
   const login = () => {
     if (loading) return
@@ -34,7 +37,7 @@ export default function Login() {
             window.localStorage.setItem('token', accessToken)
             window.localStorage.setItem('refreshToken', refreshToken)
             navigate('/')
-            showToast({ title: '登录成功', color: 'success' })
+            showToast({ title: t('index.loginSuccess'), color: 'success' })
             remeberMe
               ? localStorage.setItem('username', values.username)
               : localStorage.removeItem('username')
@@ -76,20 +79,26 @@ export default function Login() {
       <Flex vertical className="w-3/12 bg-[rgba(0,0,0,0.4)] rounded-lg p-10 drop-shadow-xl">
         <Flex className="w-full justify-center items-center select-none">
           <img src={logo} className="w-12 mr-2" />
-          <p className="text-2xl">向导式可观测平台</p>
+          <p className="text-2xl">{t('index.title')}</p>
         </Flex>
         <Flex vertical className="w-full justify-center items-center mt-20">
           <Form form={form} className="w-full">
-            <label className="text-xs">用户名</label>
-            <Form.Item name="username" rules={[{ required: true, message: '请输入用户名' }]}>
+            <label className="text-xs">{t('index.username')}</label>
+            <Form.Item
+              name="username"
+              rules={[{ required: true, message: t('index.enterUsername') }]}
+            >
               <Input
                 size="large"
                 className="w-full bg-[rgba(17,18,23,0.5)] hover:bg-[rgba(17,18,23,0.5)]"
                 prefix={<UserOutlined />}
               />
             </Form.Item>
-            <label className="text-xs">密码</label>
-            <Form.Item name="password" rules={[{ required: true, message: '请输入密码' }]}>
+            <label className="text-xs">{t('index.password')}</label>
+            <Form.Item
+              name="password"
+              rules={[{ required: true, message: t('index.enterUsername') }]}
+            >
               <Input.Password
                 size="large"
                 className="w-full bg-[rgba(17,18,23,0.5)] hover:bg-[rgba(17,18,23,0.5)]"
@@ -104,7 +113,7 @@ export default function Login() {
               onClick={login}
               className="bg-[#455EEB] w-full border-none"
             >
-              {loading ? <AiOutlineLoading className="animate-spin" /> : '登录'}
+              {loading ? <AiOutlineLoading className="animate-spin" /> : t('index.login')}
             </Button>
           </Flex>
         </Flex>

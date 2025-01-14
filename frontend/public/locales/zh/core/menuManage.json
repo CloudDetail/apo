@@ -1,0 +1,8 @@
+{
+  "index": {
+    "selectAll": "选择全部",
+    "save": "保存",
+    "menuConfigSuccess": "菜单配置成功",
+    "errorFetchingPermissions": "获取权限时出错"
+  }
+}

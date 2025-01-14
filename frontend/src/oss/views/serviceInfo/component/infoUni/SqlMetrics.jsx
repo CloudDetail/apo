@@ -14,8 +14,10 @@ import { getStep } from 'src/core/utils/step'
 import { getServiceSqlMetrics } from 'core/api/serviceInfo'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useDebounce, useUpdateEffect } from 'react-use'
+import { useTranslation } from 'react-i18next'
 
 export default function SqlMetrics() {
+  const { t } = useTranslation('oss/serviceInfo')
   const [data, setData] = useState()
   const [status, setStatus] = useState()
   const { serviceName } = usePropsContext()
@@ -26,14 +28,14 @@ export default function SqlMetrics() {
   const [total, setTotal] = useState(0)
   const column = [
     {
-      title: '数据库连接',
+      title: t('sqlMetrics.dbConnection'),
       accessor: 'dbUrl',
       Cell: ({ value }) => {
         return <>{value ? value : <span className="text-slate-400">N/A</span>}</>
       },
     },
     {
-      title: '数据库操作',
+      title: t('sqlMetrics.dbOperation'),
       accessor: 'dbOperation',
       Cell: ({ value }) => {
         return <>{value ? value : <span className="text-slate-400">N/A</span>}</>
@@ -41,11 +43,11 @@ export default function SqlMetrics() {
     },
 
     {
-      title: '数据库名',
+      title: t('sqlMetrics.dbName'),
       accessor: 'dbName',
     },
     {
-      title: '平均响应时间',
+      title: t('sqlMetrics.avgResponseTime'),
       accessor: 'latency',
       minWidth: 200,
       Cell: (props) => {
@@ -54,7 +56,7 @@ export default function SqlMetrics() {
       },
     },
     {
-      title: '错误率',
+      title: t('sqlMetrics.errorRate'),
       accessor: 'errorRate',
       minWidth: 200,
 
@@ -64,7 +66,7 @@ export default function SqlMetrics() {
       },
     },
     {
-      title: '吞吐量',
+      title: t('sqlMetrics.throughput'),
       accessor: 'tps',
 
       minWidth: 200,
@@ -75,7 +77,7 @@ export default function SqlMetrics() {
     },
 
     {
-      title: '数据库源',
+      title: t('sqlMetrics.dbSource'),
       accessor: 'dbSystem',
     },
   ]
@@ -147,7 +149,7 @@ export default function SqlMetrics() {
         pageCount: Math.ceil(total / pageSize),
       },
     }
-  }, [serviceName, data])
+  }, [serviceName, data, column])
   return (
     <>
       <CAccordionBody className="text-xs relative">

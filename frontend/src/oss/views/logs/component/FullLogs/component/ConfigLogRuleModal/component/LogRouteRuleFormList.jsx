@@ -8,6 +8,8 @@ import React from 'react'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
 import LogStructRuleFormList from './LogStructRuleFormList'
+import { useTranslation } from 'react-i18next' // 引入i18n
+
 const routeKeyList = [
   { label: '_container_id_', value: '_container_id_' },
   { label: '_source_', value: '_source_' },
@@ -31,6 +33,7 @@ function isValidKey(str) {
   return regex.test(str)
 }
 export default function LogRouteRuleFormList() {
+  const { t } = useTranslation('oss/fullLogs')
   const form = Form.useFormInstance()
   return (
     <Form.List name={'routeRule'}>
@@ -41,7 +44,7 @@ export default function LogRouteRuleFormList() {
             label={
               <>
                 {/* <div className="flex flex-row"> */}
-                匹配规则{' '}
+                {t('configLogRuleModal.logRouteRuleFormList.matchRuleLabel')}{' '}
                 <IoMdAddCircleOutline
                   onClick={() => add()}
                   size={20}
@@ -50,7 +53,9 @@ export default function LogRouteRuleFormList() {
                 {/* </div>
                 <div className="flex flex-row"> */}
                 <AiOutlineInfoCircle size={16} className="ml-1 mr-1" />
-                <span className="text-xs text-gray-400">解析规则只应用于满足匹配规则的日志</span>
+                <span className="text-xs text-gray-400">
+                  {t('configLogRuleModal.logRouteRuleFormList.matchRuleDescribeText')}
+                </span>
                 {/* </div> */}
               </>
             }
@@ -69,19 +74,27 @@ export default function LogRouteRuleFormList() {
                             const routeRule = form.getFieldValue('routeRule') || []
                             // 检查是否有重复的key
                             if (!value) {
-                              return Promise.reject('匹配规则key不可为空')
+                              return Promise.reject(
+                                t('configLogRuleModal.logRouteRuleFormList.errorInfo1'),
+                              )
                             }
                             const duplicate = routeRule.filter(
                               (item, i) => item?.key?.key === value.key && i !== index,
                             )
                             if (duplicate.length) {
-                              return Promise.reject('已存在相同的Key')
+                              return Promise.reject(
+                                t('configLogRuleModal.logRouteRuleFormList.errorInfo2'),
+                              )
                             }
                           },
                         },
                       ]}
                     >
-                      <Select options={routeKeyList} labelInValue placeholder="选择匹配规则Key" />
+                      <Select
+                        options={routeKeyList}
+                        labelInValue
+                        placeholder={t('configLogRuleModal.logRouteRuleFormList.selectPlaceholder')}
+                      />
                     </Form.Item>
                   </Col>
                   <Col span={11} key={index}>
@@ -95,13 +108,17 @@ export default function LogRouteRuleFormList() {
                             const routeRule = form.getFieldValue('routeRule') || []
                             // 检查是否有重复的key
                             if (!value) {
-                              return Promise.reject('匹配规则值不可为空')
+                              return Promise.reject(
+                                t('configLogRuleModal.logRouteRuleFormList.errorInfo3'),
+                              )
                             }
                           },
                         },
                       ]}
                     >
-                      <Input placeholder="匹配值，按照前缀匹配" />
+                      <Input
+                        placeholder={t('configLogRuleModal.logRouteRuleFormList.inputPlaceholder')}
+                      />
                     </Form.Item>
                   </Col>
                   <Col span={1}>

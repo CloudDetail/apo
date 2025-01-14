@@ -1,0 +1,109 @@
+{
+  "fullLogSider": {
+    "logRuleList": {
+      "deleteLogSuccessToast": "删除日志规则成功",
+      "confirmDeleteLogRulePart1Text": "是否确定删除名为“",
+      "confirmDeleteLogRulePart2Text": "”的日志规则？",
+      "confirmText": "确定",
+      "cancelText": "取消",
+      "RepositoryText": "日志库"
+    },
+    "dataSourceTree": {
+      "deleteLogSuccessToast": "删除接入数据库成功",
+      "confirmDeleteLogRulePart1Text": "是否确定删除名为“",
+      "confirmDeleteLogRulePart2Text": "”的接入数据库？",
+      "confirmText": "确定",
+      "cancelText": "取消",
+      "ExternalRepositoryText": "接入数据库"
+    }
+  },
+  "indexList": {
+    "basicFieldLabel": "基础字段",
+    "logFieldLabel": "日志字段",
+    "fullTextSearch": {
+      "fullTextSearchText": "全文检索",
+      "fullTextSearchPlaceholderText": "请输入全文检索内容"
+    }
+  },
+  "rawLogQuery": {
+    "placeholder": "请输入查询语句"
+  },
+  "logQueryResult": {
+    "totalText": "日志总条数："
+  },
+  "queryList": {
+    "noDataText": "暂无日志数据",
+    "logItem": {
+      "viewContextText": "查看上下文"
+    }
+  },
+  "contextModal": {
+    "contextText": "上下文",
+    "cancelText": "取消"
+  },
+  "logTagDropdown": {
+    "addToQueryText": "添加到查询",
+    "copyValueText": "复制值"
+  },
+  "histogram": {
+    "noDataText": "暂无直方图数据",
+    "startTimeText": "开始时间",
+    "endTimeText": "结束时间",
+    "times": "次数"
+  },
+  "configLogRuleModal": {
+    "repositoryConfigSuccessToast": "日志库配置成功",
+    "matchRuleErrorToast": "匹配规则不能为空",
+    "structureErrorToast": "结构化日志中，日志字段数据类型不可为空",
+    "modalTitle": "日志库配置",
+    "saveText": "保存",
+    "cancelText": "取消",
+    "repositoryNameLabel": "日志库名",
+    "repositoryNameMessage1": "日志库名只能包含英文字符、数字、下划线",
+    "repositoryNameMessage2": "请输入日志库名",
+    "repositoryNamePlaceholder": "请输入日志库名，一经创建暂不支持修改",
+    "repositoryDescriptionLabel": "日志库描述",
+    "repositoryDescriptionPlaceholder": "日志库描述",
+    "executiveApplicationLabel": "执行应用",
+    "executiveApplicationPlaceholder": "请选择执行规则的应用",
+    "logConfigLabel": "日志配置",
+    "logRouteRuleFormList": {
+      "matchRuleLabel": "匹配规则",
+      "matchRuleDescribeText": "解析规则只应用于满足匹配规则的日志",
+      "errorInfo1": "匹配规则key不可为空",
+      "errorInfo2": "已存在相同的Key",
+      "selectPlaceholder": "选择匹配规则Key",
+      "errorInfo3": "匹配规则值不可为空",
+      "inputPlaceholder": "匹配值，按照前缀匹配"
+    },
+    "parseRuleTabs": {
+      "unStructuredLabel": "非结构化日志",
+      "unStructuredDescription": "将符合规则的日志进行结构化并加快查询速度，查看",
+      "unStructuredHelpLink": "日志解析规则配置",
+      "parseRulePlaceholder": "解析规则",
+      "parseRuleError": "请输入解析规则或填写至少一个日志字段数据类型",
+      "structuredLabel": "结构化日志",
+      "structuredDescription": "请输入JSON格式的日志样本自动生成日志格式（仅支持解析JSON最外层的键）",
+      "structuredRulePlaceholder": "日志样本",
+      "structuredRuleError": "json解析失败，请检查格式是否正确",
+      "logStructRuleFormList": {
+        "fieldTypeLabel": "日志字段数据类型",
+        "fieldNamePlaceholder": "字段名",
+        "fieldTypePlaceholder": "选择匹配规则Key",
+        "fieldNameError": "字段名不可为空",
+        "fieldTypeError": "字段类型不可为空",
+        "duplicateFieldNameError": "已存在相同的字段名"
+      }
+    }
+  },
+  "configTableModal": {
+    "configSuccessToast": "接入日志表配置成功",
+    "modalTitle": "接入日志表配置",
+    "saveText": "保存",
+    "cancelText": "取消",
+    "dataSourceLabel": "数据源",
+    "dataSourcePlaceholder": "请选择",
+    "timeFieldLabel": "时间解析字段",
+    "timeFieldPlaceholder": "选择匹配规则Key"
+  }
+}

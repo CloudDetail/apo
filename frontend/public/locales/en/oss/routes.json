@@ -1,0 +1,20 @@
+{
+  "servicesName": "Services Overview",
+  "serviceDetailName": "Service Detail",
+  "faultLogsName": "Fault Logs",
+  "allLogsName": "All Logs",
+  "faultSiteTraces": "Fault Site Traces",
+  "allTrace": "All Tarces",
+  "infrastructureDashboardName": "Infrastructure Dashboard",
+  "overviewDashboardName": "Overview Dashboard",
+  "applicationDashboardName": "Application Dashboard",
+  "middlewareDashboardName": "Middleware Dashboard",
+  "alertRulesName": "Alert Rules",
+  "notificationChannelsName": "Notification Channels",
+  "configurationsName": "Configurations",
+  "systemSettingsName": "System Settings",
+  "userManageName": "User Manage",
+  "userCenterName": "Profile",
+  "memuManageName": "Menu Manage",
+  "systemConfigName": "System Configurations"
+}

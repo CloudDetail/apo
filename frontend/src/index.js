@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import 'core-js'
@@ -17,8 +17,12 @@ import posthog from 'posthog-js'
 import { PostHogProvider } from 'posthog-js/react'
 import { MessageProvider } from 'src/core/contexts/MessageContext'
 import ErrorBoundary from 'src/core/components/ErrorBoundary'
-import zhCN from 'antd/es/locale/zh_CN' // 引入中文包
+import zhCN from 'antd/es/locale/zh_CN'
+import enUS from 'antd/es/locale/en_US'
 import { UserProvider } from './core/contexts/UserContext'
+import './i18n'
+import { useTranslation } from 'react-i18next'
+
 const apiHost = import.meta.env.VITE_PUBLIC_POSTHOG_HOST
 const apiKey = import.meta.env.VITE_PUBLIC_POSTHOG_KEY
 
@@ -26,13 +30,21 @@ posthog.init(apiKey, {
   api_host: apiHost,
   person_profiles: 'identified_only',
 })
+
 const AppWrapper = () => {
+  const { i18n } = useTranslation()
+  const [locale, setLocale] = useState(zhCN)
+
+  useEffect(() => {
+    setLocale(i18n.language === 'en' ? enUS : zhCN)
+  }, [i18n.language])
+
   return (
     <ErrorBoundary>
       <Provider store={store}>
         <ToastProvider>
           <ConfigProvider
-            locale={zhCN}
+            locale={locale}
             theme={{
               algorithm: theme.darkAlgorithm,
               components: {
@@ -60,6 +72,7 @@ const AppWrapper = () => {
     </ErrorBoundary>
   )
 }
+
 createRoot(document.getElementById('root')).render(
   apiKey && apiHost ? (
     <PostHogProvider client={posthog}>

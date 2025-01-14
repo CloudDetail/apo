@@ -11,8 +11,10 @@ import { Header } from 'antd/es/layout/layout'
 import { CImage } from '@coreui/react'
 import logo from 'src/core/assets/brand/logo.svg'
 import './index.css'
+import { useTranslation } from 'react-i18next'
 
 const DefaultLayout = () => {
+  const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(true)
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -41,7 +43,7 @@ const DefaultLayout = () => {
               className="w-[42px] sidebar-brand-narrow flex-shrink-0 m-3"
               alt="CoreuiVue"
             />
-            <span className="flex-shrink-0 text-lg">向导式可观测平台</span>
+            <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span>
           </div>
           <AppSidebar collapsed={collapsed} />
         </div>

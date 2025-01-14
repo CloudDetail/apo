@@ -5,11 +5,13 @@
 
 import { Select } from 'antd'
 import React, { useEffect, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const CustomSelect = React.memo((props) => {
   const { options, value, onChange, defaultValue, isClearable = false } = props
   const [standardOptions, setStandardOptions] = useState([])
   const [selectedValue, setSelectedValue] = useState(null)
+  const { t } = useTranslation('core/customSelect')
 
   const darkThemeStyles = {
     indicatorSeparator: () => ({ display: 'none' }),
@@ -108,7 +110,7 @@ const CustomSelect = React.memo((props) => {
       allowClear={isClearable}
       popupMatchSelectWidth={false}
       className="w-full"
-      placeholder="请选择"
+      placeholder={t('placeholderText')}
       showSearch
     />
   )

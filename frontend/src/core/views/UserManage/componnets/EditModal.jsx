@@ -14,9 +14,11 @@ import {
 } from 'core/api/user'
 import { showToast } from 'core/utils/toast'
 import LoadingSpinner from 'src/core/components/Spinner'
+import { useTranslation } from 'react-i18next'
 
 const EditModal = React.memo(
   ({ selectedUser, modalEditVisibility, setModalEditVisibility, getUserList }) => {
+    const { t } = useTranslation('core/userManage')
     const [loading, setLoading] = useState(false)
     const [form] = Form.useForm()
 
@@ -49,7 +51,7 @@ const EditModal = React.memo(
 
           setModalEditVisibility(false)
           getUserList()
-          showToast({ title: '保存成功', color: 'success' })
+          showToast({ title: t('editModal.saveSuccess'), color: 'success' })
           form.resetFields()
         })
         .catch((error) => {
@@ -70,12 +72,16 @@ const EditModal = React.memo(
             const params = { newPassword, confirmPassword }
             await updatePasswordWithNoOldPwdApi({ userId: selectedUser?.userId, ...params })
             showToast({
-              title: '密码修改成功',
+              title: t('editModal.resetPasswordSuccess'),
               color: 'success',
             })
             setModalEditVisibility(false)
           } catch (error) {
             console.error(error)
+            showToast({
+              title: error.response?.data?.message || t('editModal.resetPasswordFail'),
+              color: 'danger',
+            })
             setModalEditVisibility(false)
           } finally {
             form.resetFields()
@@ -94,7 +100,7 @@ const EditModal = React.memo(
             }
           }}
           maskClosable={false}
-          title="编辑用户"
+          title={t('editModal.title')}
           width={1000}
           footer={null}
         >
@@ -102,89 +108,81 @@ const EditModal = React.memo(
           <Flex vertical className="w-full mt-4 mb-4 justify-center align-center">
             <div>
               <Form form={form} layout="vertical">
-                <Form.Item label="用户名" name="username">
+                <Form.Item label={t('editModal.username')} name="username">
                   <Input disabled={true} />
                 </Form.Item>
                 <Form.Item
-                  label="邮件"
+                  label={t('editModal.email')}
                   name="email"
                   rules={[
                     {
                       type: 'email',
-                      message: '请输入有效的邮箱地址',
+                      message: t('editModal.emailInvalid'),
                     },
                   ]}
                 >
-                  <Input placeholder="请输入用户邮箱" />
+                  <Input placeholder={t('editModal.emailPlaceholder')} />
                 </Form.Item>
                 <Form.Item
-                  label="电话号码"
+                  label={t('editModal.phone')}
                   name="phone"
                   rules={[
                     {
                       pattern: /^1[3-9]\d{9}$/, // 中国大陆手机号正则
-                      message: '请输入有效的电话号码',
+                      message: t('editModal.phoneInvalid'),
                     },
                   ]}
                 >
-                  <Input placeholder="请输入电话号码" />
+                  <Input placeholder={t('editModal.phonePlaceholder')} />
                 </Form.Item>
-                <Form.Item label="组织" name="corporation">
-                  <Input placeholder="请输入组织" />
+                <Form.Item label={t('editModal.corporation')} name="corporation">
+                  <Input placeholder={t('editModal.corporationPlaceholder')} />
                 </Form.Item>
                 <Button type="primary" onClick={editUser}>
-                  修改用户信息
+                  {t('editModal.save')}
                 </Button>
                 <Divider />
                 <div className="mt-3">
                   <Form.Item
-                    label="新密码"
+                    label={t('editModal.newPassword')}
                     name="newPassword"
                     rules={[
                       {
                         required: true,
-                        message: '请输入密码',
+                        message: t('editModal.newPasswordPlaceholder'),
                       },
                       {
                         pattern:
                           /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()\-_+=<>?/{}[\]|:;.,~]).{9,}$/,
-                        message: (
-                          <p>
-                            密码必须包含大写字母、小写字母、
-                            <Tooltip title="(! @ # $ % ^ & * ( ) - _ + = < > ? / { } [ ] | : ; . , ~)">
-                              <span className="underline">特殊字符</span>
-                            </Tooltip>
-                            ，且长度大于8
-                          </p>
-                        ),
+                        message: t('editModal.newPasswordPattern'),
                       },
                     ]}
                   >
-                    <Input.Password placeholder="请输入密码" />
+                    <Input.Password placeholder={t('editModal.newPasswordPlaceholder')} />
                   </Form.Item>
                   <Form.Item
-                    label="重复新密码"
+                    label={t('editModal.confirmPassword')}
                     name="confirmPassword"
                     rules={[
                       {
                         required: true,
-                        message: '请确认密码',
+                        message: t('editModal.confirmPasswordRequired'),
                       },
                       ({ getFieldValue }) => ({
                         validator(_, value) {
                           if (!value || getFieldValue('newPassword') === value) {
                             return Promise.resolve()
                           }
-                          return Promise.reject(new Error('两次输入的密码不一致'))
+                          return Promise.reject(new Error(t('editModal.confirmPasswordMismatch')))
                         },
                       }),
                     ]}
                   >
-                    <Input.Password placeholder="请重复密码" />
+                    <Input.Password placeholder={t('editModal.confirmPasswordPlaceholder')} />
                   </Form.Item>
                 </div>
                 <Button type="primary" onClick={resetPassword}>
-                  修改密码
+                  {t('editModal.resetPassword')}
                 </Button>
               </Form>
             </div>

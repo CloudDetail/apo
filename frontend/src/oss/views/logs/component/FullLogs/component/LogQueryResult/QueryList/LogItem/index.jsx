@@ -10,10 +10,12 @@ import LogItemDetail from './component/LogItemDetail'
 import { Button } from 'antd'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { convertTime } from 'src/core/utils/time'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 const LogItem = (props) => {
   const { log, openContextModal } = props
   const { tableInfo } = useLogsContext()
+  const { t } = useTranslation('oss/fullLogs')
 
   return (
     <div className="flex overflow-hidden px-2 w-full">
@@ -31,7 +33,7 @@ const LogItem = (props) => {
               onClick={() => openContextModal(log)}
               className="text-xs"
             >
-              查看上下文
+              {t('queryList.logItem.viewContextText')}
             </Button>
           )}
         </div>

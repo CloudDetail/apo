@@ -6,9 +6,9 @@
 import React from 'react'
 import { logsMock } from '../mock'
 function HighLightCode(props) {
-    const {timestamp} = props
-    const text = logsMock
-    return (
+  const { timestamp } = props
+  const text = logsMock
+  return (
     <pre className="h-full w-full p-2 bg-[#141414] rounded border border-solid border-[#343436] overflow-y-auto overflow-x-hidden">
       {/* <div className="flex-center">
         <TextArea
@@ -31,7 +31,10 @@ function HighLightCode(props) {
         ></Button>
         <Button icon="cloud-download" fill="text" onClick={exportCode}></Button>
       </div> */}
-      <div style={{ height: '100%', overflowY: 'auto',textWrap: 'pretty' }} className="text-[#ccccdc] leading-5 overflow-x-hidden" >
+      <div
+        style={{ height: '100%', overflowY: 'auto', textWrap: 'pretty' }}
+        className="text-[#ccccdc] leading-5 overflow-x-hidden"
+      >
         {text}
       </div>
     </pre>

@@ -7,8 +7,10 @@ import { Dropdown } from 'antd'
 import React from 'react'
 import { copyValue } from 'src/core/components/CopyButton'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 const LogTagDropDown = ({ objKey, value, children, trigger = ['click', 'contextMenu'] }) => {
+  const { t } = useTranslation('oss/fullLogs')
   const { query, updateQuery } = useLogsContext()
   const addToQuery = () => {
     let newQueryPart
@@ -44,7 +46,7 @@ const LogTagDropDown = ({ objKey, value, children, trigger = ['click', 'contextM
       key: 'filter',
       label: (
         <div onClick={addToQuery} className="w-full">
-          添加到查询
+          {t('logTagDropdown.addToQueryText')}
         </div>
       ),
     },
@@ -52,7 +54,7 @@ const LogTagDropDown = ({ objKey, value, children, trigger = ['click', 'contextM
       key: 'copy',
       label: (
         <div onClick={clickCopy} className="w-full">
-          复制值
+          {t('logTagDropdown.copyValueText')}
         </div>
       ),
     },

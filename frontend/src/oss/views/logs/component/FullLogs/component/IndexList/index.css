@@ -4,12 +4,12 @@
  */
 
 .indexList .ant-collapse-content-box {
-    padding: 0 !important;
+  padding: 0 !important;
 }
 
 .ant-collapse-header-text {
-    overflow: hidden;
-    white-space: nowrap;
-    text-align: left;
-    text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: left;
+  text-overflow: ellipsis;
 }

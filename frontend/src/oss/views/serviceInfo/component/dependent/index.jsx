@@ -13,21 +13,29 @@ import {
   CTabPanel,
   CTabs,
 } from '@coreui/react'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import DependentTable from './DependentTable'
 import { usePropsContext } from 'src/core/contexts/PropsContext'
 import TimelapseLineChart from './TimelapseLineChart'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
+import { useTranslation } from 'react-i18next'
+import i18next from 'i18next'
 
 function DependentTabs() {
   const { serviceName, endpoint } = usePropsContext()
   const [serviceList, setServiceList] = useState([])
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [activeItemKey, setActiveItemKey] = useState('timelapse')
+  const { t } = useTranslation('oss/serviceInfo')
+  const [language, setLanguage] = useState(i18next.language)
+
   return (
     <CCard className="mb-4 ml-1 h-[350px] p-2  w-3/5">
-      <CCardHeader>{serviceName}的所有依赖视图（包括所有递归依赖）</CCardHeader>
+      <CCardHeader>
+        {serviceName}
+        {t('dependent.index.allDependencies')}
+      </CCardHeader>
       <CCardBody className="text-xs overflow-hidden p-0">
         <CTabs
           activeItemKey={activeItemKey}
@@ -35,8 +43,8 @@ function DependentTabs() {
           onChange={(value) => setActiveItemKey(value)}
         >
           <CTabList variant="tabs" className="flex-grow-0 flex-shrink-0">
-            <CTab itemKey="timelapse">依赖节点延时曲线全览对比图</CTab>
-            <CTab itemKey="table">依赖节点延时曲线相似度排序</CTab>
+            <CTab itemKey="timelapse">{t('dependent.index.timelapseComparison')}</CTab>
+            <CTab itemKey="table">{t('dependent.index.similarityRanking')}</CTab>
           </CTabList>
           <CTabContent className="h-full overflow-hidden flex-grow">
             <CTabPanel itemKey="timelapse" className="overflow-hidden h-full">

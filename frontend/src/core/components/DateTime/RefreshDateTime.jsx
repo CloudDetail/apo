@@ -8,8 +8,10 @@ import React, { useEffect, useState } from 'react'
 import { LuRefreshCw } from 'react-icons/lu'
 import { MdArrowDropDown } from 'react-icons/md'
 import { useDispatch, useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 
 export default function RefreshDateTime() {
+  const { t } = useTranslation('core/dateTime')
   const [refreshKey, setRefreshKey] = useState(null)
   const { refreshTimestamp } = useSelector((state) => state.timeRange)
   const dispatch = useDispatch()
@@ -25,7 +27,7 @@ export default function RefreshDateTime() {
   }
   const items = [
     {
-      label: '关',
+      label: t('refreshDateTime.refreshDateTimeOffText'),
       value: 0,
       key: '关',
     },

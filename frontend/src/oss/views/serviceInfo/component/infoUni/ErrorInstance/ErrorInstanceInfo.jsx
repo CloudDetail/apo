@@ -16,6 +16,7 @@ import { ErrorChain } from './ErrorChain'
 import Timeline from '../TimeLine'
 import { useDebounce } from 'react-use'
 import ErrorCell from 'src/core/components/ErrorInstance/ErrorCell'
+import { useTranslation } from 'react-i18next'
 
 export default function ErrorInstanceInfo(props) {
   const { handlePanelStatus } = props
@@ -25,6 +26,7 @@ export default function ErrorInstanceInfo(props) {
   const { serviceName, endpoint } = usePropsContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const tableRef = useRef(null)
+  const { t } = useTranslation('oss/serviceInfo')
 
   const prepareTopologyData = (data) => {
     if (!data) {
@@ -77,82 +79,79 @@ export default function ErrorInstanceInfo(props) {
         id: parent.instance + '-' + current.instance,
         source: 'parent-' + parent.instance,
         target: 'current-' + current.instance,
-        // markerEnd: markerEnd,
-        // style:{
-        //   stroke: '#6293FF'
-        // }
       })
     })
     return { nodes, edges }
   }
-  const column = [
-    {
-      title: '实例名',
-      accessor: 'name',
-      customWidth: 150,
-    },
-    {
-      title: '当前节点异常',
-      accessor: 'propations',
-      Cell: (props) => {
-        const { value, updateSelectedValue, column } = props
-        // updateSelectedValue(column.id, value[0]);
-        const update = (item) => {
-          updateSelectedValue(column.id, item)
-        }
+  const column = useMemo(
+    () => [
+      {
+        title: t('errorInstance.errorInstanceInfo.instanceName'),
+        accessor: 'name',
+        customWidth: 150,
+      },
+      {
+        title: t('errorInstance.errorInstanceInfo.currentNodeException'),
+        accessor: 'propations',
+        Cell: (props) => {
+          const { value, updateSelectedValue, column } = props
+          const update = (item) => {
+            updateSelectedValue(column.id, item)
+          }
 
-        return <ErrorCell data={value} update={update} />
+          return <ErrorCell data={value} update={update} />
+        },
       },
-    },
-    {
-      title: '错误故障传播链',
-      accessor: 'chain',
-      dependsOn: 'propations', // 该列依赖于第一列的值
-      Cell: (props) => {
-        const { value, dependsValue, originalRow } = props
-        return (
-          <ErrorChain
-            data={dependsValue?.customAbbreviation}
-            instance={originalRow.name}
-            chartId={originalRow.name}
-          />
-        )
-        // return  nodes?.length > 0 ? <Topology canZoom={false} data={{nodes, edges}}  /> : <Empty />
+      {
+        title: t('errorInstance.errorInstanceInfo.errorPropagationChain'),
+        accessor: 'chain',
+        dependsOn: 'propations',
+        Cell: (props) => {
+          const { value, dependsValue, originalRow } = props
+          return (
+            <ErrorChain
+              data={dependsValue?.customAbbreviation}
+              instance={originalRow.name}
+              chartId={originalRow.name}
+            />
+          )
+        },
       },
-    },
+      {
+        title: t('errorInstance.errorInstanceInfo.logErrorCount'),
+        accessor: 'logs',
+        Cell: (props) => {
+          const { value } = props
+          return (
+            <div className="h-52 w-80">
+              <DelayLineChart data={value} timeRange={{ startTime, endTime }} type="logs" />
+            </div>
+          )
+        },
+      },
+      {
+        title: t('errorInstance.errorInstanceInfo.logInfo'),
+        accessor: 'detail',
+        customWidth: 320,
+        Cell: (props) => {
+          const { value, row } = props
+          return (
+            <Timeline
+              instance={row.original.name}
+              nodeName={row.original.nodeName}
+              pid={row.original.pid}
+              containerId={row.original.containerId}
+              type="errorLogs"
+              startTime={startTime}
+              endTime={endTime}
+            />
+          )
+        },
+      },
+    ],
+    [t, startTime, endTime],
+  )
 
-    {
-      title: '日志错误数量',
-      accessor: 'logs',
-      Cell: (props) => {
-        const { value } = props
-        return (
-          <div className="h-52 w-80">
-            <DelayLineChart data={value} timeRange={{ startTime, endTime }} type="logs" />
-          </div>
-        )
-      },
-    },
-    {
-      title: '日志信息',
-      accessor: 'detail',
-      customWidth: 320,
-      Cell: (props) => {
-        const { value, row } = props
-        return (
-          <Timeline
-            instance={row.original.name}
-            nodeName={row.original.nodeName}
-            pid={row.original.pid}
-            containerId={row.original.containerId}
-            type="errorLogs"
-            startTime={startTime}
-            endTime={endTime}
-          />
-        )
-      },
-    },
-  ]
   const getData = () => {
     if (startTime && endTime) {
       setLoading(true)
@@ -176,15 +175,11 @@ export default function ErrorInstanceInfo(props) {
         })
     }
   }
-  // useEffect(() => {
-  //   getData()
-  // }, [serviceName, startTime, endTime])
-  //防抖避免跳转使用旧时间
   useDebounce(
     () => {
       getData()
     },
-    300, // 延迟时间 300ms
+    300,
     [serviceName, startTime, endTime, endpoint],
   )
   const tableProps = useMemo(() => {
@@ -194,14 +189,9 @@ export default function ErrorInstanceInfo(props) {
       showBorder: false,
       loading: false,
     }
-  }, [data, serviceName])
+  }, [column, data, serviceName])
   return (
     <>
-      {/* <CAccordionHeader onClick={() => handleToggle('error')}>
-        {status && <StatusInfo status={status} />}
-        <span className="ml-2">{serviceName}的错误实例</span>
-      </CAccordionHeader> */}
-
       <CAccordionBody className="text-xs">
         {data && (
           <div ref={tableRef}>

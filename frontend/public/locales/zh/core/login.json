@@ -1,0 +1,17 @@
+{
+  "index": {
+    "title": "向导式可观测平台",
+    "username": "用户名",
+    "password": "密码",
+    "login": "登录",
+    "loginSuccess": "登录成功",
+    "enterUsername": "请输入用户名",
+    "enterPassword": "请输入密码"
+  },
+  "request": {
+    "notLoggedIn": "未登录,请先登录",
+    "loginExpired": "登录过期,请重新登录",
+    "accessDenied": "拒绝访问",
+    "requestFailed": "请求失败"
+  }
+}

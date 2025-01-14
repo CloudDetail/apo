@@ -12,10 +12,12 @@ import { HiUserCircle } from 'react-icons/hi'
 import { useEffect, useState, useReducer } from 'react'
 import userReducer, { initialState } from '../store/reducers/userReducer'
 import { useUserContext } from '../contexts/UserContext'
+import { useTranslation } from 'react-i18next'
 
 const UserToolBox = () => {
   const { user, dispatch } = useUserContext()
   const navigate = useNavigate()
+  const { t } = useTranslation('core/userToolBox')
 
   const content = (
     <>
@@ -27,7 +29,7 @@ const UserToolBox = () => {
         >
           <Flex className="w-2/3 justify-around p-2">
             <UserOutlined className="text-md" />
-            <p className="text-md select-none">个人中心</p>
+            <p className="text-md select-none">{t('personalCenter')}</p>
           </Flex>
         </Flex>
         <Flex
@@ -37,7 +39,7 @@ const UserToolBox = () => {
         >
           <Flex className="w-2/3 justify-around p-2">
             <LogoutOutlined className="text-md" />
-            <p className="text-md select-none">退出登录</p>
+            <p className="text-md select-none">{t('logout')}</p>
           </Flex>
         </Flex>
       </Flex>
@@ -60,7 +62,7 @@ const UserToolBox = () => {
       })
       navigate('/login')
       showToast({
-        title: '退出登录成功',
+        title: t('logoutSuccess'),
         color: 'success',
       })
     } catch (error) {
@@ -71,6 +73,8 @@ const UserToolBox = () => {
   function getUserInfo() {
     getUserInfoApi()
       .then((res) => {
+        console.log('res', res)
+        // @ts-ignore
         dispatch({
           type: 'setUser',
           payload: res,
@@ -101,7 +105,7 @@ const UserToolBox = () => {
         </Popover>
       ) : (
         <Button type="link" onClick={() => navigate('/login')}>
-          登录
+          {t('login')}
         </Button>
       )}
     </>
