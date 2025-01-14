@@ -52,6 +52,7 @@ func (repo *promRepo) GetServiceList(startTime int64, endTime int64, namespace [
 }
 
 // GetServiceEndPointList 查询服务Endpoint列表, 服务名允许为空
+// TODO not allowed empty?
 func (repo *promRepo) GetServiceEndPointList(startTime int64, endTime int64, serviceName string) ([]string, error) {
 	queryCondition := ""
 	if serviceName != "" {

@@ -21,6 +21,7 @@ func (s *service) CheckDatasourcePermission(userID int64, namespaces, services i
 		serviceList  []string
 	)
 
+	// Get user's data group
 	groups, err := s.getUserDataGroup(userID, "")
 	if err != nil {
 		return err
@@ -48,13 +49,6 @@ func (s *service) CheckDatasourcePermission(userID int64, namespaces, services i
 		return err
 	}
 
-	// fill request with user's datasource
-	if len(namespacesSlice) == 0 && len(servicesSlice) == 0 {
-		namespacesSlice = namespaceDs
-		setInterface(namespaces, namespacesSlice)
-		return nil
-	}
-
 	if len(namespaceDs) > 0 {
 		serviceList, err = s.promRepo.GetServiceList(startTime.UnixMicro(), endTime.UnixMicro(), namespaceDs)
 		if err != nil {
@@ -66,16 +60,30 @@ func (s *service) CheckDatasourcePermission(userID int64, namespaces, services i
 		serviceMap[srv] = struct{}{}
 	}
 
+	serviceDs := util.MapKeysToArray[string, struct{}](serviceMap)
+
+	// The request didn't offer parameters.
+	// Fill with datasource which user is authorized to view.
+	if len(namespacesSlice) == 0 && len(servicesSlice) == 0 {
+		if len(namespaceDs) > 0 {
+			setInterface(namespaces, namespacesSlice)
+		} else if len(serviceDs) > 0 {
+			setInterface(services, serviceDs)
+		}
+		return nil
+	}
+
 	filteredNamespaces := filterByMap(namespacesSlice, namespaceMap)
 	filteredServices := filterByMap(servicesSlice, serviceMap)
-
-	setInterface(namespaces, filteredNamespaces)
-	setInterface(services, filteredServices)
 
 	// This means all the namespaces and services are filtered.
 	if len(filteredNamespaces) == 0 && len(filteredServices) == 0 {
 		return model.NewErrWithMessage(errors.New("no permission"), code.UserNoPermissionError)
 	}
+
+	setInterface(namespaces, filteredNamespaces)
+	setInterface(services, filteredServices)
+
 	return nil
 }
 
