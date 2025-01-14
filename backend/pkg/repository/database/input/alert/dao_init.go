@@ -30,13 +30,10 @@ func (repo *subRepo) initDefaultExternalAlertTagMapping(sqlScript string) error 
 		return nil
 	}
 	if sqlScript == "" {
-		// 默认的初始化脚本
 		sqlScript = "./sqlscripts/default_alert_tag_mapping.sql"
 	}
 
-	// 检查初始化脚本是否存在
 	if _, err := os.Stat(sqlScript); err == nil {
-		// 读取文件并执行初始化脚本
 		sql, err := os.ReadFile(sqlScript)
 		if err != nil {
 			return err

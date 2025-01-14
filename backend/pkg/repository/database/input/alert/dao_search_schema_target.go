@@ -21,7 +21,7 @@ func (repo *subRepo) SearchSchemaTarget(
 	columns, _ := rows.Columns()
 
 	var targetsValues = make([]string, 0, len(targets))
-	// 只会有一条记录
+
 	if rows.Next() {
 		values := make([]interface{}, len(columns))
 		valuePtrs := make([]interface{}, len(columns))

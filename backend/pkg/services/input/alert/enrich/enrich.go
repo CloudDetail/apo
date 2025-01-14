@@ -33,7 +33,7 @@ func (e *AlertEnricher) Enrich(events []alert.AlertEvent) error {
 func (e *AlertEnricher) RemoveRuleByDeletedSchema(schema string) {
 	e.enrichersMutex.Lock()
 	defer e.enrichersMutex.Unlock()
-	// 从TagEnrichers中移除指定的对象
+
 	e.removeEnricherBySchema(schema)
 }
 

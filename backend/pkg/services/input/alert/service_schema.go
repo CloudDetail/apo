@@ -32,7 +32,6 @@ func (s *service) CheckSchemaIsUsed(schema string) ([]string, error) {
 }
 
 func (s *service) DeleteSchema(schema string) error {
-	// 重载enricher
 	s.dispatcher.EnricherMap.Range(func(key, value any) bool {
 		enricher := value.(*enrich.AlertEnricher)
 		enricher.RemoveRuleByDeletedSchema(schema)

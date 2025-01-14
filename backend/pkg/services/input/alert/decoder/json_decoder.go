@@ -12,7 +12,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-// JsonDecoder 解析通用的JSON事件结构
 type JsonDecoder struct{}
 
 func (d JsonDecoder) Decode(sourceFrom ainput.SourceFrom, data []byte) ([]ainput.AlertEvent, error) {

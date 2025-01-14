@@ -18,7 +18,7 @@ func ConvertSeverity(sourceType string, severity string) string {
 	case "prometheus":
 		return severity
 	case "zabbix":
-		// 尝试判断数据类型
+		// Try to determine the data type
 		if level, err := strconv.Atoi(severity); err == nil {
 			switch level {
 			case 0:

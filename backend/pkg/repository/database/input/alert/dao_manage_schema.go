@@ -5,7 +5,6 @@ package alert
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 
@@ -23,7 +22,6 @@ func (repo *subRepo) CreateSchema(schema string, columns []string) error {
 
 	schema = SchemaPrefix + schema
 
-	// 拼接字段定义
 	var fields []string
 	for _, col := range columns {
 		if !AllowSchema.MatchString(col) {
@@ -33,11 +31,8 @@ func (repo *subRepo) CreateSchema(schema string, columns []string) error {
 		fields = append(fields, fmt.Sprintf("%s VARCHAR(255)", col))
 	}
 
-	// 拼接 SQL 语句
 	sql := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (schema_row_id integer PRIMARY KEY AUTOINCREMENT,%s);", schema, strings.Join(fields, ", "))
-	log.Printf("Generated SQL: %s", sql)
 
-	// 执行 SQL
 	return repo.db.Exec(sql).Error
 }
 
@@ -88,8 +83,8 @@ func (repo *subRepo) GetSchemaData(schema string) ([]string, map[int64][]string,
 	return append(columns[:idIdx], columns[idIdx+1:]...), entry, nil
 }
 
+// Delete schema and related alertRules
 func (repo *subRepo) DeleteSchema(schema string) error {
-	// 查询相关的告警规则, 删除规则和对应的映射字段
 	var enrichRules []alert.AlertEnrichRule
 
 	err := repo.db.Find(&enrichRules, "schema = ?", schema).Error
@@ -107,7 +102,6 @@ func (repo *subRepo) DeleteSchema(schema string) error {
 		return err
 	}
 
-	// 删除数据表
 	schema = SchemaPrefix + schema
 	err = repo.db.Exec("DROP TABLE IF EXISTS " + schema).Error
 	return err
@@ -197,19 +191,19 @@ func EscapeString(input string) string {
 	var builder strings.Builder
 	for _, c := range input {
 		switch c {
-		case 0: // NULL 字符
+		case 0:
 			builder.WriteString("\\0")
-		case '\n': // 换行符
+		case '\n':
 			builder.WriteString("\\n")
-		case '\r': // 回车符
+		case '\r':
 			builder.WriteString("\\r")
-		case '\\': // 反斜杠
+		case '\\':
 			builder.WriteString("\\\\")
-		case '\'': // 单引号
+		case '\'':
 			builder.WriteString("\\'")
-		case '"': // 双引号
+		case '"':
 			builder.WriteString("\\\"")
-		case '\x1A': // 控制字符
+		case '\x1A':
 			builder.WriteString("\\Z")
 		default:
 			builder.WriteRune(c)
@@ -243,6 +237,5 @@ func (repo *subRepo) InsertSchemaData(schema string, columns []string, fullRows 
 }
 
 func (repo *subRepo) clearSchemaData(schema string) error {
-	// 删除表中的数据
 	return repo.db.Exec("TRUNCATE TABLE " + schema + ";").Error
 }

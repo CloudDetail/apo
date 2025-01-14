@@ -10,8 +10,7 @@ import (
 	"sort"
 )
 
-// fastAlertID 通过告警名和原始Tag计算AlertID
-// 注意会跳过所有非String类型的Tag
+// calculate AlertID based on alertName and raw_tag
 func fastAlertID(alertName string, tags map[string]any) string {
 	buf := new(bytes.Buffer)
 	buf.WriteString(alertName)

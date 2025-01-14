@@ -127,7 +127,6 @@ func (repo *subRepo) DeleteAlertSource(alertSource alert.SourceFrom) (*alert.Ale
 
 	err = repo.db.Delete(&alert.AlertSource{}, "source_id = ?", alertSource.SourceID).Error
 	if err != nil {
-		// 删除失败
 		return nil, err
 	}
 	return &deletedSource, nil

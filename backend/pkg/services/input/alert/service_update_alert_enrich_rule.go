@@ -13,7 +13,6 @@ import (
 )
 
 func (s *service) UpdateAlertEnrichRule(req *alert.AlerEnrichRuleConfigRequest) error {
-	// 取出现有的告警源配置
 	oldEnricherPtr, find := s.dispatcher.EnricherMap.Load(req.SourceId)
 	if !find {
 		return alert.ErrAlertSourceNotExist{}
@@ -23,7 +22,7 @@ func (s *service) UpdateAlertEnrichRule(req *alert.AlerEnrichRuleConfigRequest) 
 	sourceFrom := &alert.SourceFrom{SourceID: req.SourceId}
 	newTagEnricher, err := s.createAlertSource(sourceFrom, req.EnrichRuleConfigs)
 	if err != nil {
-		// 配置有问题
+
 		return err
 	}
 
@@ -50,14 +49,12 @@ func (s *service) UpdateAlertEnrichRule(req *alert.AlerEnrichRuleConfigRequest) 
 
 		existedRule = append(existedRule, newE.Order)
 
-		// 比较Conditions
 		if oldE.JQParser.FromJQExpression != newE.JQParser.FromJQExpression {
 			conditionsModifiedRules = append(conditionsModifiedRules, old.RuleID())
 
 			newConditions = append(newConditions, req.EnrichRuleConfigs[newE.Order].Conditions...)
 		}
 
-		// 比较AlertEnrichRule
 		if oldE.Order != newE.Order ||
 			oldE.TargetTagId != newE.Order ||
 			oldE.CustomTag != newE.CustomTag ||
@@ -98,7 +95,6 @@ func (s *service) UpdateAlertEnrichRule(req *alert.AlerEnrichRuleConfigRequest) 
 		newSchemaTargets = append(newSchemaTargets, req.EnrichRuleConfigs[newE.Order].SchemaTargets...)
 	}
 
-	// 覆盖旧的告警源配置
 	s.dispatcher.AddOrUpdateAlertSourceRule(alert.SourceFrom{SourceID: req.SourceId}, newTagEnricher)
 
 	var storeError error
@@ -110,7 +106,6 @@ func (s *service) UpdateAlertEnrichRule(req *alert.AlerEnrichRuleConfigRequest) 
 		}
 	}
 
-	// 删除deleteRule和相关的Conditions,schemaTarget
 	err = s.dbRepo.DeleteAlertEnrichRule(deletedRules)
 	storeError = multierr.Append(storeError, err)
 	err = s.dbRepo.DeleteAlertEnrichConditions(deletedRules)
@@ -118,19 +113,16 @@ func (s *service) UpdateAlertEnrichRule(req *alert.AlerEnrichRuleConfigRequest) 
 	err = s.dbRepo.DeleteAlertEnrichSchemaTarget(deletedRules)
 	storeError = multierr.Append(storeError, err)
 
-	// 删除modifiedConditions,重新添加conditions
 	err = s.dbRepo.DeleteAlertEnrichConditions(conditionsModifiedRules)
 	storeError = multierr.Append(storeError, err)
 	err = s.dbRepo.AddAlertEnrichConditions(newConditions)
 	storeError = multierr.Append(storeError, err)
 
-	// 删除modifiedAlertSchemaTarget,重新添加AlertEnrichRule
 	err = s.dbRepo.DeleteAlertEnrichSchemaTarget(schemaTargetModifiedRules)
 	storeError = multierr.Append(storeError, err)
 	err = s.dbRepo.AddAlertEnrichSchemaTarget(newSchemaTargets)
 	storeError = multierr.Append(storeError, err)
 
-	// 删除modifiedAlertEnrichRule,重新添加AlertEnrichRule
 	err = s.dbRepo.DeleteAlertEnrichRule(modifiedAlertEnrichRules)
 	storeError = multierr.Append(storeError, err)
 	err = s.dbRepo.AddAlertEnrichRule(newAlertEnrichRules)
@@ -151,8 +143,6 @@ func schemaTargetSliceEqual(a, b []alert.AlertEnrichSchemaTarget) bool {
 	return true
 }
 
-// prepareAlertEnrichRule 将未持久化的告警增强规则索引
-// 任何传入的索引RuleID将会被覆盖
 func (s *service) prepareAlertEnrichRule(
 	sourceFrom *alert.SourceFrom,
 	tagEnrichRules []alert.AlertEnrichRuleVO,

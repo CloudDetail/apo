@@ -1,6 +1,3 @@
-// 接收输入的告警事件信息
-// 使用http接收告警事件时,走原有的handler结构
-
 // Copyright 2024 CloudDetail
 // SPDX-License-Identifier: Apache-2.0
 

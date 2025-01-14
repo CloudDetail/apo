@@ -30,9 +30,10 @@ func (s *service) CreateAlertSource(source *alertin.AlertSource) (*alertin.Alert
 	return source, err
 }
 
-// initDefaultAlertSource 一定会返回一个enricher
-// - 如果已存在会取出已有的
-// - 如果默认规则错误会创建一个空的
+// create default enrich for specific alertSource
+// always return a vaild enricher
+// - If already exists, return existing enricher
+// - If the default rule is wrong, return empty enricher
 func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.AlertEnricher, error) {
 	s.AddAlertSourceLock.Lock()
 	defer s.AddAlertSourceLock.Unlock()
@@ -44,19 +45,17 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 				Name: source.SourceName,
 			}
 		}
-		// 准备创建新的告警源
 		source.SourceID = uuid.NewString()
 	} else if enricher, find := s.dispatcher.EnricherMap.Load(source.SourceID); find {
 		return enricher.(*enrich.AlertEnricher), alertin.ErrAlertSourceAlreadyExist{}
 	}
 
-	// 应用默认规则
 	_, defaultRules := s.GetDefaultAlertEnrichRule(source.SourceType)
 	storedRules, newR, newC, newS := s.prepareAlertEnrichRule(source, defaultRules)
 
 	enricher, err := s.createAlertSource(source, storedRules)
 	if err != nil {
-		// 创建空的Enricher
+		// return empty enricher
 		enricher = &enrich.AlertEnricher{
 			SourceFrom: source,
 			Enrichers:  []enrich.Enricher{},
@@ -66,7 +65,6 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 		return enricher, err
 	}
 
-	// 持久化规则
 	var storeError error
 	err = s.dbRepo.AddAlertEnrichRule(newR)
 	storeError = multierr.Append(storeError, err)
@@ -80,7 +78,10 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 	return enricher, storeError
 }
 
-func (s *service) createAlertSource(source *alertin.SourceFrom, enrichRules []alertin.AlertEnrichRuleVO) (*enrich.AlertEnricher, error) { // 不存在则创建
+func (s *service) createAlertSource(
+	source *alertin.SourceFrom,
+	enrichRules []alertin.AlertEnrichRuleVO,
+) (*enrich.AlertEnricher, error) {
 	if len(source.SourceID) == 0 {
 		source.SourceID = uuid.New().String()
 	}
@@ -133,7 +134,7 @@ func (s *service) createAlertSource(source *alertin.SourceFrom, enrichRules []al
 	return enricher, nil
 }
 
-// initExistedAlertSource 用于程序启动时,初始化数据库中记录的数据源
+// load existed enricher from db when process initializing
 func (s *service) initExistedAlertSource(source *alertin.SourceFrom, enrichRules []alertin.AlertEnrichRuleVO) (*enrich.AlertEnricher, error) {
 	enricher := &enrich.AlertEnricher{
 		SourceFrom: source,

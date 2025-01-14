@@ -7,28 +7,24 @@ import "github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 
 func (repo *subRepo) LoadAlertEnrichRule() ([]alert.AlertSource, map[alert.SourceFrom][]alert.AlertEnrichRuleVO, error) {
 	var sources []alert.AlertSource
-	// 找到所有告警源
 	err := repo.db.Find(&sources).Error
 	if err != nil {
 		return nil, nil, err
 	}
 
 	var enrichRules []alert.AlertEnrichRule
-	// 找到所有告警源的告警规则
 	err = repo.db.Find(&enrichRules).Error
 	if err != nil {
 		return nil, nil, err
 	}
 
 	var enrichConditions []alert.AlertEnrichCondition
-	// 找到所有告警源的告警规则
 	err = repo.db.Find(&enrichConditions).Error
 	if err != nil {
 		return nil, nil, err
 	}
 
 	var enrichSchemaTarget []alert.AlertEnrichSchemaTarget
-	// 找到所有告警源的告警规则
 	err = repo.db.Find(&enrichSchemaTarget).Error
 	if err != nil {
 		return nil, nil, err

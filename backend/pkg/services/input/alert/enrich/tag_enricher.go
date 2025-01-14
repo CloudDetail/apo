@@ -119,8 +119,8 @@ func (e *TagEnricher) RuleOrder() int {
 }
 
 type JQParser struct {
-	FromJQExpression string      // 条件和提取配置组成的JQ表达式
-	JQParser         *gojq.Query // 预解析的JQ表达式
+	FromJQExpression string // JQ expression composed of condition and fromField
+	JQParser         *gojq.Query
 }
 
 func newJQEnricher(enrichRule alert.AlertEnrichRuleVO) (*JQParser, error) {

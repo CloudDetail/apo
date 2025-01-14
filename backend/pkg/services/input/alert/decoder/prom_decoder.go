@@ -17,7 +17,6 @@ import (
 type PrometheusDecoder struct{}
 
 func (d PrometheusDecoder) Decode(sourceFrom inputa.SourceFrom, data []byte) ([]inputa.AlertEvent, error) {
-	// 拆分接收到的数据成单个的告警事件json.
 	var promAlertList map[string]any
 	err := json.Unmarshal(data, &promAlertList)
 	if err != nil {

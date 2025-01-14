@@ -17,7 +17,7 @@ import (
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json
-// @Param Request body alert.SetDefaultAlertEnrichRuleRequest true "请求信息"
+// @Param Request body alert.SetDefaultAlertEnrichRuleRequest true "Default EnrichRule"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/source/enrich/default/set [post]
