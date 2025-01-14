@@ -14,8 +14,10 @@ import { CListGroup, CListGroupItem } from '@coreui/react'
 import Empty from 'src/core/components/Empty/Empty'
 import { TimeLineTypeApiMap, TimeLineTypeTitleMap } from 'src/constants'
 import LoadingSpinner from 'src/core/components/Spinner'
+import { useTranslation } from 'react-i18next'
 
 const Timeline = (props) => {
+  const { t } = useTranslation('oss/serviceInfo')
   const navigate = useNavigate()
   const { type, startTime, endTime, instance, pid, nodeName, containerId } = props
   const { serviceName, endpoint } = usePropsContext()
@@ -28,14 +30,14 @@ const Timeline = (props) => {
     const result = splitTimeRange(startTime, endTime)
     const newChronoList = result.map((time) => ({
       title: convertTime(time.start, 'HH:MM'),
-      contentTitle: '错误日志',
+      contentTitle: t('timeLine.errorLogs'),
       list: null,
       start: time.start,
       end: time.end,
     }))
     setChronoList(newChronoList)
     setActiveKey(0)
-  }, [startTime, endTime])
+  }, [startTime, endTime, t])
 
   useEffect(() => {
     if (activeKey > -1 && chronoList.length > 0) {
@@ -141,7 +143,7 @@ const Timeline = (props) => {
             {chronoList[activeKey].list.map((item, index) => (
               <CListGroupItem className="cursor-pointer" key={index} onClick={() => toPage(item)}>
                 <div className="text-center">
-                  {convertTime(item.startTime, 'yyyy-mm-dd hh:mm:ss')} {TimeLineTypeTitleMap[type]}
+                  {convertTime(item.startTime, 'yyyy-mm-dd hh:mm:ss')} {t(`timeLine.${type}`)}
                 </div>
               </CListGroupItem>
             ))}

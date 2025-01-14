@@ -7,20 +7,23 @@ import { CAccordionBody, CTab, CTabContent, CTabList, CTabPanel, CTabs } from '@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { getServiceAlertEventApi } from 'core/api/serviceInfo'
-import { RuleGroupMap } from 'src/constants'
 import { usePropsContext } from 'src/core/contexts/PropsContext'
 import { selectProcessedTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import AlertInfoTable from './AlertInfoTable'
 import Empty from 'src/core/components/Empty/Empty'
 import { useDebounce } from 'react-use'
+import { useTranslation } from 'react-i18next'
+import { RuleGroupMap } from 'src/constants'
 
 export default function AlertInfoTabs(props) {
   const { handlePanelStatus } = props
   const { serviceName, endpoint } = usePropsContext()
   const [loading, setLoading] = useState(true)
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
+  const { t, i18n } = useTranslation('oss/serviceInfo')
 
   const [tabList, setTabList] = useState([])
+
   const prepareData = (result) => {
     let tabList = []
     Object.keys(result.events).forEach((group) => {
@@ -43,6 +46,7 @@ export default function AlertInfoTabs(props) {
     })
     setTabList(tabList)
   }
+
   const getAlertEvents = () => {
     if (startTime && endTime) {
       setLoading(true)
@@ -65,18 +69,20 @@ export default function AlertInfoTabs(props) {
         })
     }
   }
-  // useEffect(() => {
-  //   getAlertEvents()
-  // }, [startTime, endTime, serviceName])
 
-  //防抖避免跳转使用旧时间
   useDebounce(
     () => {
       getAlertEvents()
     },
-    300, // 延迟时间 300ms
+    300,
     [serviceName, startTime, endTime, endpoint],
   )
+
+  useEffect(() => {
+    // 监听语言变化，重新获取告警事件
+    getAlertEvents()
+  }, [i18n.language])
+
   return (
     <CAccordionBody>
       {tabList?.length > 0 && (
@@ -95,7 +101,9 @@ export default function AlertInfoTabs(props) {
           </CTabContent>
         </CTabs>
       )}
-      {tabList?.length === 0 && !loading && <Empty context="无告警事件" />}
+      {tabList?.length === 0 && !loading && (
+        <Empty context={t('alertInfo.alertInfoTabs.noAlertEvents')} />
+      )}
     </CAccordionBody>
   )
 }

@@ -14,7 +14,7 @@ import { promLanguageDefinition } from 'monaco-promql'
 import { getRuleGroupLabelApi } from 'src/core/api/alerts'
 // Containers
 const DefaultLayout = React.lazy(() => import('src/core/layout/DefaultLayout'))
-const Login = React.lazy(() => import('./core/views/Login/Login.jsx'))
+const Login = React.lazy(() => import('./core/views/Login/Login'))
 
 // // Pages
 // const Login = React.lazy(() => import('./community/1/pages/login/Login'))
@@ -51,7 +51,7 @@ const App = () => {
     const urlParams = new URLSearchParams(window.location.href.split('?')[1])
     const theme = urlParams.get('theme') && urlParams.get('theme').match(/^[A-Za-z0-9\s]+/)[0]
     setColorMode('dark')
-    if (window.location.hash !== "#/login") {
+    if (window.location.hash !== '#/login') {
       getRuleGroupLabels()
     }
     // if (theme) {

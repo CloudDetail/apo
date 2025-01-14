@@ -11,15 +11,15 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// List xx列表
-// @Summary xx列表
-// @Description xx列表
+// List xx list
+// @Summary xx list
+// @Description xx list
 // @Tags API.mock
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param page_num query int true "第几页" default(1)
-// @Param page_size query int false "每页显示条数" default(10)
-// @Param name query string false "用户名"
+// @Param page_num query int true "which page" default(1)
+// @Param page_size query int false "Number of displays per page" default(10)
+// @Param name query string false "username"
 // @Success 200 {object} response.ListResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/mock [get]

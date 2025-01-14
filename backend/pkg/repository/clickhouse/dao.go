@@ -18,32 +18,33 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/input"
 )
 
 type Repo interface {
 	// ========== service_relationship ==========
-	// 查询上游节点列表
+	// Query the list of upstream nodes
 	ListParentNodes(req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error)
-	// 查询下游节点列表
+	// Query the list of downstream nodes
 	ListChildNodes(req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error)
-	// 查询所有子孙服务节点列表
+	// Query the list of all descendant service nodes
 	ListDescendantNodes(req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error)
-	// 查询所有子孙节点的调用关系
+	// Query the calling relationship of all descendant nodes
 	ListDescendantRelations(req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error)
-	// 查询入口节点列表
+	// Query the entry node list
 	ListEntryEndpoints(req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error)
 
 	// ========== error_propagation ==========
-	// 查询实例相关的错误传播链
+	// Query instance-related error propagation chain
 	ListErrorPropagation(req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error)
 
 	// ========== span_trace ==========
 	GetAvailableFilterKey(startTime, endTime time.Time, needUpdate bool) ([]request.SpanTraceFilter, error)
 	UpdateFilterKey(startTime, endTime time.Time) ([]request.SpanTraceFilter, error)
 	GetFieldValues(searchText string, filter *request.SpanTraceFilter, startTime, endTime time.Time) (*SpanTraceOptions, error)
-	// 分页查询故障现场日志列表
+	// Paging query the fault site log list
 	GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, int64, error)
-	// 分页Trace列表
+	// Paged Trace List
 	GetTracePageList(req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error)
 
 	// InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (*model.AlertEvent, bool, error)
@@ -52,9 +53,9 @@ type Repo interface {
 	CountK8sEvents(startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error)
 
 	// ========== application_logs ==========
-	// 查询故障现场日志内容, sourceFrom 可为空, 将返回可查到的第一个来源中的日志
+	// Query the log content of the fault site. The sourceFrom can be blank. The log in the first source that can be found will be returned.
 	QueryApplicationLogs(req *request.GetFaultLogContentRequest) (logContents *Logs, availableSource []string, err error)
-	// 查询故障现场日志内容可用的来源
+	// Query the available source of the fault field log content
 	QueryApplicationLogsAvailableSource(faultLog FaultLogResult) ([]string, error)
 
 	CreateLogTable(req *request.LogTableRequest) ([]string, error)
@@ -80,11 +81,11 @@ type Repo interface {
 	GetTables(tables []model.Table) ([]model.TablesQuery, error)
 
 	// ========== alert events ==========
-	// 查询按group和级别采样的告警事件,sampleCount为每个group和级别采样的数量
+	// Query the alarm events sampled by group and level, and sampleCount the number of samples for each group and level.
 	GetAlertEventCountGroupByInstance(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]model.AlertEventCount, error)
-	// 查询按labels采样的告警事件,sampleCount为每个labels采样的数量
+	// Query alarm events sampled by labels, sampleCount the number of samples for each label.
 	GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]AlertEventSample, error)
-	// 查询按pageParam分页的告警事件
+	// Query alarm events by pageParam
 	GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance, pageParam *request.PageParam) ([]PagedAlertEvent, int, error)
 
 	// ========== k8s events ============
@@ -92,7 +93,7 @@ type Repo interface {
 	GetK8sAlertEventsSample(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) ([]K8sEvents, error)
 
 	// profiling_event
-	// GetOnOffCPU 获取span执行消耗
+	// GetOnOffCPU get span execution consumption
 	GetOnOffCPU(pid uint32, nodeName string, startTime, endTime int64) (*[]ProfilingEvent, error)
 
 	// ========== network (deepflow) ==========
@@ -100,6 +101,8 @@ type Repo interface {
 
 	// ========== flame graph ===========
 	GetFlameGraphData(startTime, endTime int64, nodeName string, pid, tid int64, sampleType, spanId, traceId string) (*[]FlameGraphData, error)
+
+	input.Input
 }
 
 type chRepo struct {
@@ -107,6 +110,8 @@ type chRepo struct {
 	database string
 	AvailableFilters
 	db *sql.DB
+
+	input.Input
 }
 
 type AvailableFilters struct {
@@ -140,7 +145,7 @@ func New(logger *zap.Logger, address []string, database string, username string,
 		return nil, err
 	}
 	var repo *chRepo
-	// Debug 日志等级时使用包装的Conn，输出执行SQL的耗时
+	// Use the wrapped Conn at the Debug log level, and output the time taken to execute SQL.
 	if logger.Level() == zap.DebugLevel {
 		repo = &chRepo{
 			database: database,
@@ -163,6 +168,11 @@ func New(logger *zap.Logger, address []string, database string, username string,
 	if err == nil {
 		repo.Filters = filters
 		repo.FilterUpdateTime = now
+	}
+
+	repo.Input, err = input.NewInputRepo(repo.conn, repo.database)
+	if err != nil {
+		return nil, err
 	}
 
 	return repo, nil

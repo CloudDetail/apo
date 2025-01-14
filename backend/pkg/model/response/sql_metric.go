@@ -18,6 +18,6 @@ type SQLOperationDetail struct {
 
 	Latency   TempChartObject `json:"latency"`
 	ErrorRate TempChartObject `json:"errorRate"`
-	// FIXME Tps 名称为tps,实际为每分钟请求数
+	// FIXME Tps name is tps, actual requests per minute
 	Tps TempChartObject `json:"tps"`
 }

@@ -5,8 +5,9 @@ package user
 
 import (
 	"errors"
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -14,16 +15,16 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// UpdateUserPassword 更新密码
-// @Summary 更新密码
-// @Description 更新密码
+// UpdateUserPassword update password
+// @Summary update password
+// @Description update password
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId formData int64 true "用户id"
-// @Param oldPassword formData string true "原密码"
-// @Param newPassword formData string true "新密码"
-// @Param confirmPassword formData string true "确认密码"
+// @Param userId formData int64 true "user id"
+// @Param oldPassword formData string true "original password"
+// @Param newPassword formData string true "new password"
+// @Param confirmPassword formData string true "Confirm password"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure

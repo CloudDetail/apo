@@ -4,14 +4,15 @@
 package k8s
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"net/http"
 )
 
-// GetNamespaceList 获取所有namespace信息
-// @Summary 获取所有namespace信息
-// @Description 获取所有namespace信息
+// GetNamespaceList get all namespace information
+// @Summary get all namespace information
+// @Description get all namespace information
 // @Tags API.k8s
 // @Accept application/x-www-form-urlencoded
 // @Produce json

@@ -1,0 +1,47 @@
+{
+  "index": {
+    "basicInfo": "基本信息",
+    "updatePassword": "修改密码"
+  },
+  "userInfo": {
+    "email": "邮件",
+    "emailPlaceholder": "请输入邮箱",
+    "emailInvalid": "请输入正确的邮箱格式",
+    "emailRequired": "邮箱不能为空",
+    "phone": "手机号",
+    "phonePlaceholder": "请输入手机号",
+    "phoneInvalid": "请输入有效的手机号",
+    "phoneRequired": "请输入手机号",
+    "corporation": "组织",
+    "corporationPlaceholder": "请输入组织名",
+    "updateInfo": "修改信息",
+    "confirmUpdate": "确定要修改信息吗",
+    "updateSuccess": "用户信息更新成功",
+    "okText": "确定",
+    "cancelText": "取消"
+  },
+  "updatePassword": {
+    "oldPassword": "旧密码",
+    "oldPasswordPlaceholder": "请输入旧密码",
+    "oldPasswordRequired": "请输入旧密码",
+    "newPassword": "新密码",
+    "newPasswordPlaceholder": "请输入新密码",
+    "newPasswordRequired": "请输入新密码",
+    "newPasswordPattern": "密码必须包含大写字母、小写字母、特殊字符，且长度大于8",
+    "confirmPassword": "确认新密码",
+    "confirmPasswordPlaceholder": "请再次输入新密码",
+    "confirmPasswordRequired": "请再次输入新密码",
+    "confirmPasswordMismatch": "两次输入的密码不一致",
+    "confirmUpdate": "确定要修改密码吗",
+    "updateSuccess": "密码重设成功,请重新登录",
+    "updateFail": "更新密码失败",
+    "formValidationFail": "表单验证失败",
+    "formValidationFailMessage": "请检查输入",
+    "getUsernameFail": "获取用户名失败",
+    "getUsernameFailMessage": "请重新登录",
+    "error": "错误",
+    "updatePassword": "修改密码",
+    "okText": "确定",
+    "cancelText": "取消"
+  }
+}

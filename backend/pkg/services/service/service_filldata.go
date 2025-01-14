@@ -20,7 +20,7 @@ const (
 	metricLog         = "log"
 	metricLogDOD      = "logDOD"
 	metricLogWOW      = "logWOW"
-	metricLogData     = "logData" // 图表
+	metricLogData     = "logData" // chart
 )
 
 type InstanceMap = prometheus.MetricGroupMap[prometheus.InstanceKey, *prometheus.InstanceMetrics]
@@ -46,17 +46,17 @@ func IsInvalidData(m map[prometheus.InstanceKey]*prometheus.InstanceMetrics, met
 	return false
 }
 
-// mergeChartMetrics 用于将指标结果合并到map中
-// 功能上与MetricGroup.MergeMetricResults类似但是MergeMetricResults并不能完全复用
-// TODO 修改MergeMetricResults，为所有指标提供setValue方法。使其能复用到所有结果的赋值
-// TODO 无法合并指标labels中不含instanceKey的情况
+// mergeChartMetrics is used to merge metric results into map
+// Functionally similar to MetricGroup.MergeMetricResults but MergeMetricResults not fully reusable
+// TODO modify the MergeMetricResults to provide setValue methods for all metrics. Assignment to enable reuse to all results
+// TODO cannot merge the situation that the metric labels do not contain instanceKey
 func mergeChartMetrics(instances *InstanceMap, results []prometheus.MetricResult, metricName string) {
 	for _, res := range results {
 		var kType prometheus.InstanceKey
 		key := kType.ConvertFromLabels(res.Metric).(prometheus.InstanceKey)
 
 		instance, ok := instances.MetricGroupMap[key]
-		// 之前获取过延时信息，这里没有对应instance的延时信息故不再填充
+		// The delay information obtained before is no longer filled because there is no delay information corresponding to the instance.
 		if !ok {
 			continue
 		}
@@ -99,7 +99,7 @@ func (f InstancesFilter) ExtractFilterStr() []string {
 	return filters
 }
 
-// InstanceRED 获取instance粒度的RED指标
+// InstanceRED get the RED metric of instance granularity
 func (s *service) InstanceRED(startTime, endTime time.Time, filters []string, res *InstanceMap) {
 	s.promRepo.FillMetric(res, prometheus.AVG, startTime, endTime, filters, prometheus.InstanceGranularity)
 	s.promRepo.FillMetric(res, prometheus.DOD, startTime, endTime, filters, prometheus.InstanceGranularity)
@@ -107,7 +107,7 @@ func (s *service) InstanceRED(startTime, endTime time.Time, filters []string, re
 
 }
 
-// InstanceRangeData 获取instance粒度的RED指标的图表数据
+// InstanceRangeData get chart data for the RED metric with instance granularity
 func (s *service) InstanceRangeData(instances *InstanceMap, startTime, endTime time.Time, step time.Duration, filters []string) *multierror.Error {
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
@@ -179,7 +179,7 @@ func mergeLogMetrics(instances *InstanceMap, results []prometheus.MetricResult, 
 	}
 }
 
-// InstanceLog 填充instance级别的log指标的均值、日同比、周同比、图表
+// InstanceLog fill the mean value, DoD/WoW Growth Rate, and chart of log metrics filled with instance levels.
 func (s *service) InstanceLog(instances *InstanceMap, startTime, endTime time.Time, step time.Duration) *multierror.Error {
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()

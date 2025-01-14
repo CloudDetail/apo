@@ -5,8 +5,10 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 
 export default function TimeSinceRefresh() {
+  const { t } = useTranslation('core/dateTime')
   const { refreshTimestamp } = useSelector((state) => state.timeRange)
   const [timeDiff, setTimeDiff] = useState('')
   const [intervalTime, setIntervalTime] = useState(1000)
@@ -22,13 +24,13 @@ export default function TimeSinceRefresh() {
 
     let timeString = ' '
     if (days > 0) {
-      timeString += `${days} 天 `
+      timeString += `${days} ${t('timeSinceRefresh.dayText')} `
     } else if (hours > 0) {
-      timeString += `${hours} 小时 `
+      timeString += `${hours} ${t('timeSinceRefresh.hourText')} `
     } else if (minutes > 0) {
-      timeString += `${minutes} 分钟 `
+      timeString += `${minutes} ${t('timeSinceRefresh.minuteText')} `
     } else {
-      timeString += `${seconds} 秒`
+      timeString += `${seconds} ${t('timeSinceRefresh.secondText')} `
     }
 
     // 动态调整时间更新的频率
@@ -52,5 +54,11 @@ export default function TimeSinceRefresh() {
     return () => clearInterval(intervalId)
   }, [calculateTimeDifference, intervalTime])
 
-  return <div className="text-xs">刷新于 {timeDiff}前</div>
+  return (
+    <div className="text-xs">
+      {t('timeSinceRefresh.refreshTipText')}
+      {timeDiff}
+      {t('timeSinceRefresh.refreshTipTextAgo')}
+    </div>
+  )
 }

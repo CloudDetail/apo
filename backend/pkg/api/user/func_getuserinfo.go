@@ -4,15 +4,16 @@
 package user
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
-	"net/http"
 )
 
-// GetUserInfo 获取个人信息
-// @Summary 获取个人信息
-// @Description 获取个人信息
+// GetUserInfo access to personal information
+// @Summary get personal information
+// @Description get personal information
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json

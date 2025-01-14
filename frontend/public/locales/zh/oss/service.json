@@ -1,0 +1,89 @@
+{
+  "index": {
+    "serviceTableToast": "请根据本页提供的各种提示信息，选择您最怀疑的服务端点，选择服务端点之后可以查看具体的相关指标、日志和事件信息、Trace信息",
+    "serviceTableColumns": {
+      "serviceName": "应用名称",
+      "namespaces": "命名空间",
+      "serviceDetails": {
+        "title": "应用详情",
+        "showMore": "更多",
+        "endpoint": "服务端点",
+        "delaySource": {
+          "title1": "自身：服务自身延时占比50%以上",
+          "title2": "依赖：请求下游服务延时占比50%以上",
+          "title3": "未知：未找到相关指标",
+          "title4": "延时主要来源",
+          "title5": "(自身/依赖/未知)"
+        },
+        "latency": "平均响应时间",
+        "errorRate": "错误率",
+        "tps": "吞吐量"
+      },
+      "serviceInfo": {
+        "title": "应用基础信息告警",
+        "logs": "日志错误数",
+        "infrastructureStatus": "基础设施状态",
+        "netStatus": "网络质量状态",
+        "k8sStatus": "K8s事件状态",
+        "timestamp": "末次部署或重启时间"
+      }
+    },
+    "tableProps": {
+      "emptyText": "暂无数据",
+      "unmonitoredText": "1. 如尚未监控应用，请参阅",
+      "unmonitoredLinkText": "监控手册",
+      "monitoredText": " 2. 如已监控应用但仍无数据，请参阅",
+      "monitoredLinkText": "服务概览无数据排查文档"
+    }
+  },
+  "tableFilter": {
+    "namespacesLabel": "命名空间",
+    "namespacePlaceholder": "请选择",
+    "applicationsLabel": "服务名",
+    "applicationsPlaceholder": "请选择",
+    "endpointsLabel": "服务端点",
+    "endpointsPlaceholder": "请选择"
+  },
+  "endpointTableModal": {
+    "columns": {
+      "endpoint": "服务端点",
+      "delaySource": {
+        "title1": "自身：服务自身延时占比50%以上",
+        "title2": "依赖：请求下游服务延时占比50%以上",
+        "title3": "未知：未找到相关指标",
+        "title4": "延时主要来源",
+        "title5": "(自身/依赖/未知)"
+      },
+      "latency": "平均响应时间",
+      "errorRate": "错误率",
+      "tps": "吞吐量"
+    },
+    "serviceEndpointDataText": "下所有服务端点数据"
+  },
+  "thresholdConfigModal": {
+    "configurationComparedtoThresholdText": "配置同比阈值",
+    "averageResponseThresholdLabel": "平均响应时间同比阈值",
+    "averageResponseThresholdPlaceHolder": "输入平均响应时间 类同比阈值",
+    "errorRateThresholdLabel": "错误率同比阈值",
+    "errorRateThresholdPlaceHolder": "输入错误率同比阈值",
+    "requestsThresholdLabel": "请求次数同比阈值",
+    "requestsThresholdPlaceHolder": "输入请求次数同比阈值",
+    "logFaultCountThresholdLabel": "日志错误数量同比阈值",
+    "logFaultCountThresholdPlaceHolder": "输入日志错误数量同比阈值",
+    "saveText": "保存"
+  },
+  "tempCell": {
+    "times/minuteText": "次/分",
+    "unitsText": "个",
+    "DailyYoYText": "日同比",
+    "WeeklyYoYText": "周同比"
+  },
+  "statusInfo": {
+    "alertObjectText": "告警对象",
+    "alertTimeText": "告警时间",
+    "alertReasonText": "告警原因",
+    "detailsText": "细节",
+    "moreDetailsText": "更多请查看服务详情的告警事件",
+    "noReasonText": "暂未检测到告警原因"
+  }
+}

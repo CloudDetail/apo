@@ -4,7 +4,7 @@
 package response
 
 type CreateResponse struct {
-	Id uint `json:"id"` // 主键ID
+	Id uint `json:"id"` // primary key ID
 }
 
 type ListResponse struct {
@@ -14,13 +14,13 @@ type ListResponse struct {
 
 type ListData struct {
 	Id   int    `json:"id"`   // ID
-	Name string `json:"name"` // 用户名
+	Name string `json:"name"` // username
 }
 
 type Pagination struct {
-	Total        int64 `json:"total"`          // 总记录数
-	CurrentPage  int   `json:"current_page"`   // 当前页码
-	PerPageCount int   `json:"per_page_count"` // 每页条数
+	Total        int64 `json:"total"`          // total number of records
+	CurrentPage  int   `json:"current_page"`   // current page number
+	PerPageCount int   `json:"per_page_count"` // number of pieces per page
 }
 
 type DetailResponse struct {
@@ -29,5 +29,5 @@ type DetailResponse struct {
 }
 
 type DeleteResponse struct {
-	Id uint `json:"id"` // 主键ID
+	Id uint `json:"id"` // primary key ID
 }

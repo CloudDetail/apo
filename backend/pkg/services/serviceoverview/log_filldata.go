@@ -101,7 +101,7 @@ func (s *service) LogWOWByPod(Instances *[]Instance, pods []string, endTime time
 	return Instances, err
 }
 
-// 查询曲线图
+// Query the graph
 func (s *service) LogRangeDataByPod(Instances *[]Instance, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]Instance, error) {
 	if Instances == nil {
 		return nil, errors.New("instances is nil")
@@ -223,7 +223,7 @@ func (s *service) LogWOWByContainerId(Instances *[]Instance, containerIds []stri
 	return Instances, err
 }
 
-// 查询曲线图
+// Query the graph
 
 func (s *service) LogRangeDataByContainerId(Instances *[]Instance, containerIds []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]Instance, error) {
 	if Instances == nil {
@@ -347,7 +347,7 @@ func (s *service) LogWOWByPid(Instances *[]Instance, pids []string, endTime time
 	return Instances, err
 }
 
-// 查询曲线图
+// Query the graph
 func (s *service) LogRangeDataByPid(Instances *[]Instance, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]Instance, error) {
 	if Instances == nil {
 		return nil, errors.New("instances is nil")

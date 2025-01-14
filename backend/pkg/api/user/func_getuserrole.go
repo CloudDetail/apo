@@ -4,8 +4,9 @@
 package user
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -17,7 +18,7 @@ import (
 // @Tags API.permission
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId query int64 true "用户id"
+// @Param userId query int64 true "user id"
 // @Success 200 {object} response.GetUserRoleResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/permission/role [get]

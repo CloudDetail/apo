@@ -13,15 +13,15 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetTraceFilters 查询Trace列表可用的过滤器
-// @Summary 查询Trace列表可用的过滤器
-// @Description 查询Trace列表可用的过滤器
+// GetTraceFilters the available filters for querying the Trace list
+// @Summary the available filters for querying the Trace list
+// @Description the available filters for querying the Trace list
 // @Tags API.trace
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "查询开始时间"
-// @Param endTime query int64 true "查询结束时间"
-// @Param needUpdate query bool false "是否根据用户输入的时间立即更新可用过滤器"
+// @Param startTime query int64 true "query start time"
+// @Param endTime query int64 true "query end time"
+// @Param needUpdate query bool false "Whether to update the available filters immediately based on the time entered by the user"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetTraceFiltersResponse
 // @Failure 400 {object} code.Failure

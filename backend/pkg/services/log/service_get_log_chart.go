@@ -61,7 +61,7 @@ func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResp
 	}
 	// fill head
 	if st+interval < firstFrom {
-		// 说明有很多数据需要填充
+		// Explain that there is a lot of data to fill
 		fillNum := (firstFrom - st) / interval
 		for i := int64(0); i < (fillNum); i++ {
 			from := firstFrom - interval*(i+1)
@@ -79,7 +79,7 @@ func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResp
 	}
 	// fill tail
 	if et-interval > latestFrom {
-		// 说明有很多数据需要填充
+		// Explain that there is a lot of data to fill
 		fillNum := (et - latestFrom) / interval
 		for i := int64(0); i < (fillNum); i++ {
 			// to := latestFrom + interval*(i+2)

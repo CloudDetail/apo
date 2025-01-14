@@ -3,27 +3,27 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useLogsContext } from 'src/core/contexts/LogsContext';
-import LogValueTag from './LogValueTag';
-import LogKeyTag from './LogKeyTag';
-import { useMemo } from 'react';
+import { useLogsContext } from 'src/core/contexts/LogsContext'
+import LogValueTag from './LogValueTag'
+import LogKeyTag from './LogKeyTag'
+import { useMemo } from 'react'
 
 const LogItemFold = ({ tags }) => {
-  const { tableInfo, displayFields } = useLogsContext();
+  const { tableInfo, displayFields } = useLogsContext()
   //由tableName和type组成的唯一标识
   const tableId = `${tableInfo.tableName}_${tableInfo.type}`
   // 计算过滤后的 tags
   const filteredTags = useMemo(() => {
-    if (!tags) return [];
+    if (!tags) return []
 
     const isFieldValid = ([key, value]) =>
       displayFields[tableId]?.includes(key) &&
       value !== '' &&
       key !== (tableInfo?.timeField || 'timestamp') &&
-      typeof value !== 'object';
+      typeof value !== 'object'
 
-    return Object.entries(tags).filter(isFieldValid);
-  }, [tags, displayFields, tableInfo?.timeField]);
+    return Object.entries(tags).filter(isFieldValid)
+  }, [tags, displayFields, tableInfo?.timeField])
 
   return (
     <>
@@ -34,7 +34,7 @@ const LogItemFold = ({ tags }) => {
         ))}
       </div>
     </>
-  );
-};
+  )
+}
 
-export default LogItemFold;
+export default LogItemFold

@@ -13,7 +13,7 @@ import (
 )
 
 func NewMySqlDialector() gorm.Dialector {
-	// 构建 DSN 信息
+	// Build DSN information
 	mysqlCfg := config.Get().Database.MySql
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=%v&parseTime=True&multiStatements=true&loc=Local",
 		mysqlCfg.UserName,

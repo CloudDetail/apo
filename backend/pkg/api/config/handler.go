@@ -11,17 +11,17 @@ import (
 )
 
 type Handler interface {
-	// SetTTL 配置TTL
+	// SetTTL Configure TTL
 	// @Tags API.config
 	// @Router /api/config/setTTL [post]
 	SetTTL() core.HandlerFunc
 
-	// GetTTL 获取TTL
+	// GetTTL Get TTL
 	// @Tags API.config
 	// @Router /api/config/getTTL [get]
 	GetTTL() core.HandlerFunc
 
-	// SetSingleTableTTL 配置单个表格的TTL
+	// SetSingleTableTTL to configure the TTL of a single table
 	// @Tags API.config
 	// @Router /api/config/setSingleTableTTL [post]
 	SetSingleTableTTL() core.HandlerFunc

@@ -11,7 +11,7 @@ import (
 )
 
 func (s *service) GetFaultLogPageList(req *request.GetFaultLogPageListRequest) (*response.GetFaultLogPageListResponse, error) {
-	// 分页查询故障现场日志
+	// Paging query fault site logs
 	query := &clickhouse.FaultLogQuery{
 		StartTime:      req.StartTime,
 		EndTime:        req.EndTime,

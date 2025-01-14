@@ -12,15 +12,15 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// GetThreshold 获取单个阈值配置信息
-// @Summary 获取单个阈值配置信息
-// @Description 获取单个阈值配置信息
+// GetThreshold get the configuration information of a single threshold
+// @Summary get individual threshold configuration information
+// @Description get individual threshold configuration information
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param serviceName query string false "应用名称"
+// @Param serviceName query string false "app name"
 // @Param endpoint query string false "endpoint"
-// @Param level query string true "阈值等级"
+// @Param level query string true "Threshold level"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200
 // @Failure 400 {object} code.Failure

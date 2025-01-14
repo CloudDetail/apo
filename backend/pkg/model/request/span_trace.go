@@ -9,15 +9,15 @@ import (
 )
 
 type GetTraceFiltersRequest struct {
-	StartTime  int64 `form:"statTime" json:"startTime" binding:"min=0"`                   // 查询开始时间
-	EndTime    int64 `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	NeedUpdate bool  `form:"needUpdate" json:"needUpdate"`                                // 是否需要立刻更新
+	StartTime  int64 `form:"statTime" json:"startTime" binding:"min=0"`                   // query start time
+	EndTime    int64 `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	NeedUpdate bool  `form:"needUpdate" json:"needUpdate"`                                // whether it needs to be updated immediately
 }
 
 type GetTraceFilterValueRequest struct {
-	StartTime  int64           `json:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime    int64           `json:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	SearchText string          `json:"searchText"`                                   // 查询关键字
+	StartTime  int64           `json:"startTime" binding:"min=0"`                    // query start time
+	EndTime    int64           `json:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	SearchText string          `json:"searchText"`                                   // query keyword
 	Filter     SpanTraceFilter `json:"filter"`
 }
 

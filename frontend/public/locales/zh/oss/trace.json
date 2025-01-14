@@ -1,0 +1,19 @@
+{
+  "index": {
+    "faultSite": "故障现场链路",
+    "full": "全量链路"
+  },
+  "trace": {
+    "serviceName": "服务名",
+    "namespace": "命名空间",
+    "instanceName": "实例名",
+    "endpoint": "服务端点",
+    "faultStatus": "故障状态",
+    "slowFault": "慢故障：响应时间超过历史基线",
+    "errorFault": "错误故障：存在错误状态码或代码异常",
+    "noFault": "无异常：被采样的正常数据",
+    "responseTime": "响应时间",
+    "occurTime": "发生时间",
+    "traceId": "TraceID"
+  }
+}

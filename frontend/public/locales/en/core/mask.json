@@ -1,0 +1,29 @@
+{
+  "coachMaskTitle": "Service details guide",
+  "scenes": {
+    "alertAnalysis": "Alert Analysis",
+    "impactAnalysis": "Impact Analysis",
+    "cascadeAlertAnalysis": "Cascade Alert Analysis",
+    "saturationAnalysis": "Saturation Analysis",
+    "networkQualityAnalysis": "Network Quality Analysis",
+    "errorClosedLoop": "Error Closed Loop",
+    "latencyClosedLoop": "Latency Closed Loop",
+    "faultEvidence": "Fault Evidence",
+    "environmentImpact": "Environment Impact"
+  },
+  "descriptions": {
+    "alertInfo": "Alert information of the interface itself, application layer alerts and resource layer alerts",
+    "entryImpact": "Analysis of all service entries that may be affected by this interface",
+    "cascadeAlert": "Alert association of downstream dependencies of the interface",
+    "instanceMetrics": "Resource metrics of the interface's instances and nodes",
+    "networkMetrics": "Network metrics of the interface",
+    "errorLogs": "Code exceptions of the interface and logs containing exceptions",
+    "polarisMetrics": "Polaris metrics executed by the interface",
+    "logs": "Logs executed by the interface",
+    "trace": "Trace executed by the interface",
+    "k8sEvents": "Key events of the container environment on which the interface depends"
+  },
+  "comingSoon": "Coming Soon",
+  "closeGuide": "Close Guide",
+  "clickToEnlarge": "Click to Enlarge"
+}

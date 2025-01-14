@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// SetSingleTableTTL 配置单个表格的TTL
-// @Summary  配置单个表格的TTL
-// @Description  配置单个表格的TTL
+// SetSingleTableTTL to configure the TTL of a single table
+// @Summary configure the TTL of a single table
+// @Description configure the TTL of a single table
 // @Tags Api.config
 // @Accept json
 // @Produce json
-// @Param Request body request.SetSingleTTLRequest true "请求信息"
+// @Param Request body request.SetSingleTTLRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200
 // @Failure 400

@@ -22,7 +22,7 @@ type AlertGroup struct {
 	Limit       int             `json:"limit,omitempty"`
 
 	// TODO record alert group label
-	// e.g 应用指标 -> group: app
+	// e.g application metrics-> group: app
 }
 
 func ParseAlertRules(strContent string) (*AlertRules, error) {

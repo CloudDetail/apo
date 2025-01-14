@@ -4,79 +4,83 @@
  */
 
 import { Image, Empty, Modal } from 'antd'
-import React, { useEffect, useRef, useState } from 'react'
-import AlertPng from 'src/core/assets/snapshot/alert.png'
-import EntryPng from 'src/core/assets/snapshot/entry.png'
-import DashboardImg from 'src/core/assets/snapshot/dashboard.jpg'
-import ExceptionPng from 'src/core/assets/snapshot/exception.png'
-import InstancePng from 'src/core/assets/snapshot/instance.png'
-import K8sPng from 'src/core/assets/snapshot/k8s.png'
-import LogsPng from 'src/core/assets/snapshot/logs.png'
-import PolarisPng from 'src/core/assets/snapshot/polaris.png'
-import TracePng from 'src/core/assets/snapshot/trace.png'
-import CommingSoon from 'src/core/assets/images/commingSoon.svg'
-import CpuPng from 'src/core/assets/snapshot/cpu.png'
+import React, { useEffect, useState } from 'react'
 import { QuestionCircleOutlined, EyeOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
+
 export default function CoachMask() {
+  const { t, i18n } = useTranslation('core/mask')
   const [visible, setVisible] = useState(false)
+
+  const language = i18n.language // 获取当前语言
+  const basePath = `src/core/assets/snapshot/${language}`
+
+  const images = {
+    alert: `${basePath}/alert.png`,
+    entry: `${basePath}/entry.png`,
+    dashboard: `${basePath}/dashboard.png`,
+    exception: `${basePath}/exception.png`,
+    instance: `${basePath}/instance.png`,
+    k8s: `${basePath}/k8s.png`,
+    logs: `${basePath}/logs.png`,
+    polaris: `${basePath}/polaris.png`,
+    trace: `${basePath}/trace.png`,
+    cpu: `${basePath}/cpu.png`,
+    commingSoon: 'src/core/assets/images/commingSoon.svg',
+  }
+
   const list = [
     {
-      name: '接口自身的告警信息、应用层告警和资源层告警',
-      scene: '告警分析',
-      img: [AlertPng],
+      name: t('descriptions.alertInfo'),
+      scene: t('scenes.alertAnalysis'),
+      img: [images.alert],
     },
     {
-      name: '可能受该接口影响的所有服务入口分析',
-      scene: '影响面分析',
-      img: [EntryPng],
+      name: t('descriptions.entryImpact'),
+      scene: t('scenes.impactAnalysis'),
+      img: [images.entry],
     },
     {
-      name: '接口的下游依赖告警关联',
-      scene: '级联告警影响分析',
+      name: t('descriptions.cascadeAlert'),
+      scene: t('scenes.cascadeAlertAnalysis'),
     },
-    //实例
     {
-      name: '接口的实例和节点的资源指标',
-      scene: '饱和度分析',
-      img: [InstancePng, CpuPng],
+      name: t('descriptions.instanceMetrics'),
+      scene: t('scenes.saturationAnalysis'),
+      img: [images.instance, images.cpu],
     },
-    //大盘rtt
     {
-      name: '接口的网络指标',
-      scene: '网络质量分析',
-      img: [DashboardImg],
+      name: t('descriptions.networkMetrics'),
+      scene: t('scenes.networkQualityAnalysis'),
+      img: [images.dashboard],
     },
-    //错误实例
     {
-      name: '接口的代码Exception，以及含有Exception的日志',
-      scene: '错误闭环',
-      img: [ExceptionPng],
+      name: t('descriptions.errorLogs'),
+      scene: t('scenes.errorClosedLoop'),
+      img: [images.exception],
     },
-    //北极性
     {
-      name: '接口执行的北极星指标',
-      scene: '延时闭环',
-      img: [PolarisPng],
+      name: t('descriptions.polarisMetrics'),
+      scene: t('scenes.latencyClosedLoop'),
+      img: [images.polaris],
     },
-    //日志
     {
-      name: '接口执行的日志',
-      scene: '故障佐证',
-      img: [LogsPng],
+      name: t('descriptions.logs'),
+      scene: t('scenes.faultEvidence'),
+      img: [images.logs],
     },
-    //trace
     {
-      name: '接口执行的Trace',
-      scene: '故障佐证',
-      img: [TracePng],
+      name: t('descriptions.trace'),
+      scene: t('scenes.faultEvidence'),
+      img: [images.trace],
     },
-    //🉑k8s
     {
-      name: '接口所依赖的容器环境关键事件',
-      scene: '环境影响',
-      img: [K8sPng],
+      name: t('descriptions.k8sEvents'),
+      scene: t('scenes.environmentImpact'),
+      img: [images.k8s],
     },
   ]
+
   const shouldShowPopup = () => {
     const hasShown = localStorage.getItem('CoachMaskShown')
 
@@ -94,6 +98,7 @@ export default function CoachMask() {
 
     return true // 未找到标记，应该显示弹窗
   }
+
   const setPopupShown = () => {
     const expirationDate = new Date()
     expirationDate.setMonth(expirationDate.getMonth() + 1) // 设置过期时间为一个月后
@@ -106,30 +111,26 @@ export default function CoachMask() {
     localStorage.setItem('CoachMaskShown', JSON.stringify(popupData))
     setVisible(true)
   }
+
   useEffect(() => {
     const visible = shouldShowPopup()
     if (visible) {
       setPopupShown()
     }
-  })
+  }, [])
+
   return (
     <>
       <QuestionCircleOutlined className="text-lg text-[#6261cc] px-3" onClick={setPopupShown} />
       <Modal
-        title={'服务详情指南'}
+        title={t('coachMaskTitle')}
         open={visible}
-        // footer={null}
-        // style={{ width: '100vw', height: '100vh' }}
-        // bodyStyle={{
-        //   height: 'calc(100vh - 125px)',
-        //   overflowY: 'auto',
-        // }}
         width="100vw"
         onCancel={() => setVisible(false)}
         onOk={() => setVisible(false)}
         destroyOnClose
         centered
-        okText={'关闭指南'}
+        okText={t('closeGuide')}
         footer={(_, { OkBtn }) => (
           <>
             <OkBtn />
@@ -142,7 +143,7 @@ export default function CoachMask() {
             <div className="flex w-full justify-center " key={index}>
               <div className="w-[400px] text-left p-1">
                 <span className="text-[#46A5F7] font-bold text-xl">{item.scene}</span>
-                <div className="w-[500px] text-base">{item.name}</div>
+                <div className="w-[400px] text-base">{item.name}</div>
               </div>
 
               <div className="flex-shrink-0 flex justify-center w-[800px] h-[100px] overflow-hidden relative ">
@@ -166,47 +167,25 @@ export default function CoachMask() {
                           ),
                           mask: (
                             <div className="flex absolute top-12">
-                              <EyeOutlined /> <div className="pl-2">点击放大</div>{' '}
+                              <EyeOutlined /> <div className="pl-2">{t('clickToEnlarge')}</div>{' '}
                             </div>
                           ),
                         }}
-                        // preview={{
-                        //   toolbarRender: (_, { image: { url }, transform: { scale } }) => (
-                        //     <div className="text-left p-1 flex items-center">
-                        //       <span className="text-[#46A5F7] font-bold text-xl">{item.scene}</span>
-                        //       <div className="w-[500px] text-base">{item.name}</div>
-                        //     </div>
-                        //   ),
-                        // }}
                       />
                     </div>
                   ))
                 ) : (
-                  <Empty image={CommingSoon} description="敬请期待" imageStyle={{ height: 70 }} />
+                  <Empty
+                    image={images.commingSoon}
+                    description={t('comingSoon')}
+                    imageStyle={{ height: 70 }}
+                  />
                 )}
               </div>
             </div>
           ))}
         </div>
       </Modal>
-      {/* <div
-        className="fixed w-full h-full top-0 left-0 bg-[#000000] bg-opacity-70 flex items-center justify-center"
-        style={{ zIndex: 1000 }}
-      >
-        <div className="bg-black p-3 rounded">
-          {list.map((item, index) => (
-            <div className="flex w-full mt-6 items-center justify-center ">
-              <div className="flex-shrink-0 flex justify-end">
-                <div className="w-[20px] bg-[#66bb6a] h-[20px] rounded-full mr-10"></div>
-              </div>
-              <div className="w-[700px] text-left flex justify-between items-center text-sm">
-                <div className="w-[500px]">{item.name}</div>
-                <span className="text-[#46A5F7] font-bold">{item.scene}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div> */}
     </>
   )
 }

@@ -5,11 +5,17 @@
 
 import { Form, Modal, Select, TreeSelect } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { addLogOtherTableApi, getLogOtherTableInfoApi, getLogOtherTableListApi } from 'core/api/logs'
+import {
+  addLogOtherTableApi,
+  getLogOtherTableInfoApi,
+  getLogOtherTableListApi,
+} from 'core/api/logs'
 import { showToast } from 'src/core/utils/toast'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 const ConfigTableModal = ({ modalVisible, closeModal }) => {
+  const { t } = useTranslation('oss/fullLogs')
   const { getLogTableInfo, updateLoading } = useLogsContext()
   const [form] = Form.useForm()
   const [tables, setTables] = useState([])
@@ -52,7 +58,7 @@ const ConfigTableModal = ({ modalVisible, closeModal }) => {
   function addOtherTable(params) {
     addLogOtherTableApi(params).then((res) => {
       showToast({
-        title: '接入日志表配置成功',
+        title: t('configTableModal.configSuccessToast'),
         color: 'success',
       })
 
@@ -80,25 +86,25 @@ const ConfigTableModal = ({ modalVisible, closeModal }) => {
   }
   return (
     <Modal
-      title={'接入日志表配置'}
+      title={t('configTableModal.modalTitle')}
       open={modalVisible}
       onCancel={closeModal}
       destroyOnClose
       centered
-      okText={'保存'}
-      cancelText="取消"
+      okText={t('configTableModal.saveText')}
+      cancelText={t('configTableModal.cancelText')}
       maskClosable={false}
       onOk={saveLogRule}
       width={1000}
       bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden' }}
     >
       <Form layout={'vertical'} form={form} preserve={false}>
-        <Form.Item label="数据源" name="dataBase" required>
+        <Form.Item label={t('configTableModal.dataSourceLabel')} name="dataBase" required>
           <TreeSelect
             showSearch
             style={{ width: '100%' }}
             dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
-            placeholder="Please select"
+            placeholder={t('configTableModal.dataSourcePlaceholder')}
             allowClear
             treeDefaultExpandAll
             onChange={handleTreeSelectChange}
@@ -106,8 +112,12 @@ const ConfigTableModal = ({ modalVisible, closeModal }) => {
             // showCheckedStrategy="SHOW_ALL"
           />
         </Form.Item>
-        <Form.Item label="时间解析字段" name="timeField" required>
-          <Select options={tableColumns} labelInValue placeholder="选择匹配规则Key" />
+        <Form.Item label={t('configTableModal.timeFieldLabel')} name="timeField" required>
+          <Select
+            options={tableColumns}
+            labelInValue
+            placeholder={t('configTableModal.timeFieldPlaceholder')}
+          />
         </Form.Item>
       </Form>
     </Modal>

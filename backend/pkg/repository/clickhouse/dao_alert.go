@@ -44,7 +44,7 @@ func GetAlertType(g string) string {
 }
 
 const (
-	// SQL_GET_SAMPLE_ALERT_EVENT 按alarm_event的name分组,每组取发生事件最晚的记录,并在返回结果中记录同name的告警次数数量
+	// The SQL _GET_SAMPLE_ALERT_EVENT are grouped by the alarm_event name. Each group takes the record with the latest event and records the number of alarms with the same name in the returned result.
 	SQL_GET_SAMPLE_ALERT_EVENT = `WITH grouped_alarm AS (
 		SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,status,
         	arrayStringConcat(arrayMap(x -> x.2, arraySort(arrayZip(mapKeys(tags), mapValues(tags)))), ', ') AS alert_key,
@@ -68,7 +68,7 @@ const (
 	FROM grouped_alarm
 	WHERE rn <= 1`
 
-	// SQL_GET_PAGED_ALERT_EVENT 分页取出所有满足条件的告警事件
+	// SQL _GET_PAGED_ALERT_EVENT paging out all alarm events that meet the conditions
 	SQL_GET_PAGED_ALERT_EVENT = `WITH paginatedEvent AS (
 		SELECT
 			source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,status,
@@ -82,7 +82,7 @@ const (
 	%s ORDER BY rn`
 )
 
-// GetAlertEventCountGroupByInstance 快速查询每个Instance关联的告警数量(按告警级别分别计数)
+// GetAlertEventCountGroupByInstance to quickly query the number of alarms associated with each Instance (counted separately by alarm level)
 func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]model.AlertEventCount, error) {
 	builder := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
@@ -94,7 +94,7 @@ func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime
 		EqualsNotEmpty("status", filter.Status)
 
 	if len(instances) > 0 {
-		// 组合生成:
+		// Combined generation:
 		//  1. group = 'app' AND svc = svc_name
 		//  2. group = 'container' AND ((namespace,pod) in (...))
 		//  3. group = 'network' AND ((src_namespace,pod) in (...) OR (src_node,pid) in (...))
@@ -112,9 +112,9 @@ func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime
 	return events, err
 }
 
-// GetAlarmsEvents 获取实例所有的告警事件
+// Obtain all alarm events of the instance GetAlarmsEvents
 func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]AlertEventSample, error) {
-	// 组合生成:
+	// Combined generation:
 	//  1. group = 'app' AND svc = svc_name
 	//  2. group = 'container' AND ((namespace,pod) in (...))
 	//  3. group = 'network' AND ((src_namespace,pod) in (...) OR (src_node,pid) in (...))
@@ -155,8 +155,8 @@ func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter 
 		EqualsNotEmpty("status", filter.Status).
 		And(whereInstance)
 
-	// HACK 基于窗口函数实现数据分页,和不同查询语句不同
-	// !!! 该位置不得添加Limit / Group 参数
+	// HACK implements data paging based on window functions, which is different from different query statements.
+	// !!! Limit / Group parameter must not be added at this location
 	orderBuilder := NewByLimitBuilder().
 		OrderBy("group", true).
 		OrderBy("name", true).
@@ -268,7 +268,7 @@ func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstanc
 type AlertEventSample struct {
 	model.AlertEvent
 
-	// 记录行号
+	// Record line number
 	Rn         uint64 `ch:"rn" json:"-"`
 	AlarmCount uint64 `ch:"alarm_count" json:"alarmCount"`
 
@@ -278,7 +278,7 @@ type AlertEventSample struct {
 type PagedAlertEvent struct {
 	model.AlertEvent
 
-	// 记录行号
+	// Record line number
 	Rn         uint64 `ch:"rn" json:"-"`
 	TotalCount uint64 `ch:"total_count" json:"-"`
 }

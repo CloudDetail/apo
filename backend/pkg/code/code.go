@@ -18,7 +18,7 @@ const (
 	MockDeleteError = "B0104"
 
 	GetServiceUrlRelationError          = "B0301"
-	GetServiceUrlTopologyError          = "B0301" // TODO 待删除
+	GetServiceUrlTopologyError          = "B0301" // TODO to be deleted
 	GetDescendantMetricsError           = "B0302"
 	GetDescendantRelevanceError         = "B0303"
 	GetPolarisInferError                = "B0304"
@@ -29,7 +29,7 @@ const (
 	GetTraceMetricsError                = "B0310"
 	GetTraceLogsError                   = "B0311"
 	GetServiceListError                 = "B0312"
-	GetServiceInstanceListError         = "B0313" // TODO 待删除.
+	GetServiceInstanceListError         = "B0313" // TODO to be deleted.
 	GetServiceInstanceOptionsError      = "B0313"
 	GetK8sEventError                    = "B0314"
 	GetOverviewServiceInstanceListError = "B0315"
@@ -163,6 +163,32 @@ const (
 	UserGrantPermissionError   = "B0925"
 	ConfigureMenuError         = "B0926"
 	PermissionNotExistError    = "B0927"
+
+	// alertinput
+	GetAlertsInputTargetTagsError     = "B1301"
+	CreateAlertSourceFailed           = "B1302"
+	AlertSourceAlreadyExisted         = "B1303"
+	DeleteAlertSourceFailed           = "B1304"
+	GetAlertSourceFailed              = "B1305"
+	CreateClusterFailed               = "B1306"
+	CreateSchemaFailed                = "B1307"
+	ListSchemaFailed                  = "B1308"
+	DeleteSchemaFailed                = "B1309"
+	GetSchemaColumnsFailed            = "B1310"
+	UpdateSchemaDataFailed            = "B1311"
+	CheckSchemaUsedFailed             = "B1312"
+	GetSchemaDataFailed               = "B1313"
+	SetDefaultAlertEnrichRuleFailed   = "B1314"
+	ClearDefaultAlertEnrichRuleFailed = "B1315"
+	UpdateAlertEnrichRuleFailed       = "B1316"
+	UpdateAlertSourceFailed           = "B1317"
+	AcceptAlertEventFailed            = "B1318"
+	ProcessAlertEventFailed           = "B1319"
+	DeleteClusterFailed               = "B1320"
+	ListAlertSourceFailed             = "B1321"
+	ListClusterFailed                 = "B1322"
+	GetAlertEnrichRuleFailed          = "B1323"
+	AlertSourceNotExisted             = "B1324"
 )
 
 func Text(code string) string {
@@ -174,8 +200,8 @@ func Text(code string) string {
 	return zhCnText[code]
 }
 
-// Failure 返回结构
+// Failure return structure
 type Failure struct {
-	Code    string `json:"code"`    // 业务码
-	Message string `json:"message"` // 错误信息
+	Code    string `json:"code"`    // business code
+	Message string `json:"message"` // error message
 }

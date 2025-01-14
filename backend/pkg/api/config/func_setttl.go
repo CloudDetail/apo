@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// SetTTL 配置TTL
-// @Summary  配置TTL
-// @Description  配置TTL
+// SetTTL Configure TTL
+// @Summary configuration TTL
+// @Description configuration TTL
 // @Tags Api.config
 // @Accept json
 // @Produce json
-// @Param Request body request.SetTTLRequest true "请求信息"
+// @Param Request body request.SetTTLRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200
 // @Failure 400

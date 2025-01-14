@@ -4,20 +4,21 @@
 package k8s
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// GetNamespaceInfo 获取namespace信息
-// @Summary 获取namespace信息
-// @Description 获取namespace信息
+// GetNamespaceInfo get namespace information
+// @Summary get namespace information
+// @Description get namespace information
 // @Tags API.k8s
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param namespace query string true "namespace名"
+// @Param namespace query string true "namespace name"
 // @Success 200 {object} string
 // @Failure 400 {object} code.Failure
 // @Router /api/k8s/namespace/info [get]

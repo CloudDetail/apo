@@ -44,7 +44,7 @@ func (ch *chRepo) QueryLogContext(req *request.LogQueryContextRequest) ([]map[st
 	logtime := req.Time / 1000000
 	timefront := fmt.Sprintf("toUnixTimestamp(timestamp) < %d AND  toUnixTimestamp(timestamp) > %d ", logtime, logtime-60)
 	tags := tagsCondition(req.Tags)
-	//查前面50条，反转
+	// check the first 50, reverse
 	bySqlfront := NewByLimitBuilder().
 		OrderBy("timestamp", false).
 		Limit(50).

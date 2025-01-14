@@ -18,7 +18,7 @@ import (
 
 // GetDescendantRelevance implements Service.
 func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
-	// 查询所有子孙节点
+	// Query all descendant nodes
 	nodes, err := s.chRepo.ListDescendantNodes(req)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 		endpoints = append(endpoints, node.Endpoint)
 	}
 
-	// 按延时相似度排序
+	// Sort by Delay Similarity
 	sortResp, err := s.polRepo.SortDescendantByRelevance(
 		req.StartTime, req.EndTime, prom.VecFromDuration(time.Duration(req.Step)*time.Microsecond),
 		req.Service, req.Endpoint,
@@ -63,18 +63,18 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 	} else {
 		sortResult = sortResp.SortedDescendant
 		sortType = sortResp.DistanceType
-		// 将未能排序成功的下游添加到descendants后(可能是没有北极星指标)
+		// Add the downstream that failed to sort successfully to the descendants (maybe there is no Polaris metric)
 		sortResult = append(sortResult, sortResp.UnsortedDescendant...)
 	}
 
 	var resp []response.GetDescendantRelevanceResponse
 	descendantStatus, err := s.queryDescendantStatus(services, endpoints, req.StartTime, req.EndTime)
 	if err != nil {
-		// TODO 添加日志,查询RED指标失败
+		// Failed to query RED metric when adding log to TODO
 	}
 	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
 	if err != nil {
-		// TODO 添加日志,查询阈值失败
+		// Failed to query the threshold when adding logs to TODO
 	}
 	for _, descendant := range sortResult {
 		var descendantResp = response.GetDescendantRelevanceResponse{
@@ -91,10 +91,10 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 			LastUpdateTime:   nil,
 		}
 
-		// 填充延时源和RED告警 (DelaySource/REDMetricsStatus)
+		// Fill delay source and RED alarm (DelaySource/REDMetricsStatus)
 		fillServiceDelaySourceAndREDAlarm(&descendantResp, descendantStatus, threshold)
 
-		// 获取每个endpoint下的所有实例
+		// Get all instances under each endpoint
 		instances, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
 		if err != nil {
 			// TODO deal error
@@ -106,14 +106,14 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 
 		instanceList := instances.GetInstances()
 
-		// 填充告警状态
+		// fill alarm status
 		descendantResp.AlertStatusCH = serviceoverview.GetAlertStatusCH(
 			s.chRepo, &descendantResp.AlertReason, nil,
 			[]string{}, descendant.Service, instanceList,
 			startTime, endTime,
 		)
 
-		// 查询并填充进程启动时间
+		// Query and populate the process start time
 		startTSmap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, instanceList)
 		latestStartTime := getLatestStartTime(startTSmap) * 1e6
 		if latestStartTime > 0 {
@@ -234,9 +234,9 @@ type DescendantStatus struct {
 	DepLatency *float64
 	Latency    *float64
 
-	LatencyDoD          *float64 // 延迟日同比
-	ErrorRateDoD        *float64 // 错误率日同比
-	RequestPerSecondDoD *float64 // 请求数日同比
+	LatencyDoD          *float64 // Delay Day-over-Day Growth Rate
+	ErrorRateDoD        *float64 // Error Rate Day-over-Day Growth Rate
+	RequestPerSecondDoD *float64 // Request Day-over-Day Growth Rate
 }
 
 func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRelevanceResponse, descendantStatus *DescendantStatusMap, threshold database.Threshold) {

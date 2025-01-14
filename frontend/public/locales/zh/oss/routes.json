@@ -1,0 +1,20 @@
+{
+  "servicesName": "服务概览",
+  "serviceDetailName": "服务详情",
+  "faultLogsName": "故障现场日志",
+  "allLogsName": "全量日志",
+  "faultSiteTraces": "故障现场链路",
+  "allTrace": "全量链路",
+  "infrastructureDashboardName": "应用基础设施大盘",
+  "overviewDashboardName": "全局资源大盘",
+  "applicationDashboardName": "应用指标大盘",
+  "middlewareDashboardName": "中间件大盘",
+  "alertRulesName": "告警规则",
+  "notificationChannelsName": "告警通知",
+  "configurationsName": "配置中心",
+  "systemSettingsName": "系统管理",
+  "userManageName": "用户管理",
+  "userCenterName": "个人中心",
+  "memuManageName": "菜单管理",
+  "systemConfigName": "系统配置"
+}

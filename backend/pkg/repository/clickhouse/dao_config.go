@@ -6,9 +6,10 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"log"
 )
 
 func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTableTTLMap) error {
@@ -75,7 +76,7 @@ func (ch *chRepo) GetTables(tables []model.Table) ([]model.TablesQuery, error) {
 		result = append(result, row)
 	}
 
-	// 检查迭代过程中是否有错误
+	// Check for errors during iteration
 	if err := rows.Err(); err != nil {
 		return result, err
 	}

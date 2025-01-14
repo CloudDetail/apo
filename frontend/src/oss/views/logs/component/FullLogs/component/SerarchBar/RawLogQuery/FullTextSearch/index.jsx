@@ -6,8 +6,10 @@
 import { Button, Col, Form, Input, Popover, Row, Space } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 const FullTextSearch = () => {
+  const { t } = useTranslation('oss/fullLogs')
   const [form] = Form.useForm()
   const { searchValue, setSearchValue, updateQuery } = useLogsContext()
   const [inputValue, setInputValue] = useState()
@@ -24,12 +26,12 @@ const FullTextSearch = () => {
   return (
     <Space>
       <Input
-        placeholder="请输入全文检索内容"
+        placeholder={t('indexList.fullTextSearch.fullTextSearchPlaceholderText')}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
       />
       <Button type="primary" size="small" onClick={clickSubmit}>
-        全文检索
+        {t('indexList.fullTextSearch.fullTextSearchText')}
       </Button>
     </Space>
     // <div>

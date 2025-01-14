@@ -4,23 +4,25 @@
  */
 
 import React from 'react'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 export default function TraceErrorType({ type }) {
+  const { t } = useTranslation('common')
   const ErrorTypeMap = {
     error: {
-      name: '错误故障',
+      name: t('traceErrorType.error'),
       color: 'rgba(220,38,38,.85)',
       background: '#ef444433',
       border: 'rgb(75,85,99)',
     },
     slow: {
-      name: '慢故障',
+      name: t('traceErrorType.slow'),
       color: 'rgba(245,158,11,1)',
       background: '#f59e0b33',
       border: 'rgb(75,85,99)',
     },
     normal: {
-      name: '无异常',
+      name: t('traceErrorType.normal'),
       color: 'rgba(52,211,153,1)',
       background: '#10b98133',
       border: 'rgb(75,85,99)',

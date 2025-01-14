@@ -8,27 +8,27 @@ import "github.com/pkg/errors"
 var _ BusinessError = (*businessError)(nil)
 
 type BusinessError interface {
-	// WithError 设置错误信息
+	// WithError setting error message
 	WithError(err error) BusinessError
 
-	// BusinessCode 获取业务码
+	// BusinessCode get business code
 	BusinessCode() string
 
-	// HTTPCode 获取 HTTP 状态码
+	// HTTPCode get the HTTP status code
 	HTTPCode() int
 
-	// Message 获取错误描述
+	// Message get the error description
 	Message() string
 
-	// StackError 获取带堆栈的错误信息
+	// StackError get the error message with stack
 	StackError() error
 }
 
 type businessError struct {
-	httpCode     int    // HTTP 状态码
-	businessCode string // 业务码
-	message      string // 错误描述
-	stackError   error  // 含有堆栈信息的错误
+	httpCode     int    // HTTP status code
+	businessCode string // business code
+	message      string // error description
+	stackError   error  // error with stack information
 }
 
 func Error(httpCode int, businessCode, message string) BusinessError {
