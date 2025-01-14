@@ -39,4 +39,5 @@ type GetGroupDatasourceRequest struct {
 type GetSubjectDataGroupRequest struct {
 	SubjectID   int64  `form:"subjectId" binding:"required"`
 	SubjectType string `form:"subjectType" binding:"required"`
+	Category    string `form:"category"`
 }
