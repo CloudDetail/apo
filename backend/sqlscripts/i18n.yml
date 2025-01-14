@@ -214,8 +214,12 @@ integration:
   key: "integration"
   i18n:
     - language: "en"
-      translation: "Integrations"
+      translation: "Integration Center"
       field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "IC"
+      field_name: "abbreviation"
       entity_type: "menu"
     - language: "zh"
       translation: "接入中心"
