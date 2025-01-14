@@ -18,6 +18,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/input"
 )
 
 type Repo interface {
@@ -119,6 +120,7 @@ type Repo interface {
 	AddDetectMutation(mutation model.DetectMutation) error
 	// GetDistinctDetectExecList 获取异常检测规则
 	GetDistinctDetectExecList(req *request.GetDefectDetectRuleListRequest) ([]model.DetectMutation, int64, error)
+	input.Input
 }
 
 type chRepo struct {
@@ -126,6 +128,8 @@ type chRepo struct {
 	database string
 	AvailableFilters
 	db *sql.DB
+
+	input.Input
 }
 
 type AvailableFilters struct {
@@ -182,6 +186,11 @@ func New(logger *zap.Logger, address []string, database string, username string,
 	if err == nil {
 		repo.Filters = filters
 		repo.FilterUpdateTime = now
+	}
+
+	repo.Input, err = input.NewInputRepo(repo.conn, repo.database)
+	if err != nil {
+		return nil, err
 	}
 
 	return repo, nil

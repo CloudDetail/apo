@@ -6,6 +6,7 @@ package router
 import (
 	"github.com/CloudDetail/apo/backend/internal/api/mock"
 	"github.com/CloudDetail/apo/backend/pkg/api/alertanalyze"
+	alertinput "github.com/CloudDetail/apo/backend/pkg/api/alertinput"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
 	"github.com/CloudDetail/apo/backend/pkg/api/custom"
@@ -215,6 +216,41 @@ func setApiRouter(r *resource) {
 		customApi.POST("/update", handler.UpdateCustomQuery())
 		customApi.GET("/get", handler.GetCustomQuery())
 		customApi.DELETE("/delete", handler.DeleteCustomQuery())
+	}
+
+	alertInputApi := r.mux.Group("/api/alertinput")
+	{
+		handler := alertinput.New(r.logger, r.ch, r.prom, r.pkg_db)
+		alertInputApi.POST("/event/source/:SourceId", handler.SourceHandler())
+		alertInputApi.POST("/event/json", handler.JsonHandler())
+		alertInputApi.POST("/event/json/:SourceType", handler.JsonHandler())
+		alertInputApi.POST("/event/json/:SourceType/:SourceName", handler.JsonHandler())
+		alertInputApi.POST("/source/create", handler.CreateAlertSource())
+		alertInputApi.POST("/source/update", handler.UpdateAlertSource())
+		alertInputApi.POST("/source/get", handler.GetAlertSource())
+		alertInputApi.POST("/source/delete", handler.DeleteAlertSource())
+		alertInputApi.GET("/source/list", handler.ListAlertSource())
+		alertInputApi.POST("/source/enrich/update", handler.UpdateAlertSourceEnrichRule())
+		alertInputApi.POST("/source/enrich/get", handler.GetAlertSourceEnrichRule())
+		alertInputApi.GET("/enrich/tags/list", handler.ListTargetTags())
+
+		alertInputApi.POST("/cluster/create", handler.CreateCluster())
+		alertInputApi.GET("/cluster/list", handler.ListCluster())
+		alertInputApi.POST("/cluster/update", handler.UpdateCluster())
+		alertInputApi.POST("/cluster/delete", handler.DeleteCluster())
+
+		alertInputApi.POST("/schema/create", handler.CreateSchema())
+		alertInputApi.GET("/schema/delete", handler.DeleteSchema())
+		alertInputApi.GET("/schema/used/check", handler.CheckSchemaIsUsed())
+		alertInputApi.GET("/schema/list", handler.ListSchema())
+		alertInputApi.GET("/schema/listwithcolumns", handler.ListSchemaWithColumns())
+		alertInputApi.GET("/schema/column/get", handler.GetSchemaColumns())
+		alertInputApi.POST("/schema/data/update", handler.UpdateSchemaData())
+		alertInputApi.GET("/schema/data/get", handler.GetSchemaData())
+
+		alertInputApi.GET("/source/enrich/default/clear", handler.ClearDefaultAlertEnrichRule())
+		alertInputApi.GET("/source/enrich/default/get", handler.GetDefaultAlertEnrichRule())
+		alertInputApi.POST("/source/enrich/default/set", handler.SetDefaultAlertEnrichRule())
 	}
 }
 
