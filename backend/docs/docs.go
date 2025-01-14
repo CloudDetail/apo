@@ -19,6 +19,900 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/alertinput/cluster/create": {
+            "post": {
+                "description": "创建集群",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "创建集群",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.Cluster"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/cluster/delete": {
+            "post": {
+                "description": "删除集群",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "删除集群",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.Cluster"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/cluster/list": {
+            "get": {
+                "description": "列出集群",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "列出集群",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.ListClusterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/cluster/update": {
+            "post": {
+                "description": "更新集群",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "更新集群",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.Cluster"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/event/json/:sourceType/:sourceName": {
+            "post": {
+                "description": "基于JSON结构接收来自特定数据源的数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "基于JSON结构接收来自特定数据源的数据",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/event/source/:sourceID": {
+            "post": {
+                "description": "基于告警源配置接收数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "基于告警源配置接收数据",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/schema/column/get": {
+            "get": {
+                "description": "获取映射结构中的列信息",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "获取映射结构中的列信息",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.AlertSchemaRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.GetSchemaColumnsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/schema/create": {
+            "post": {
+                "description": "创建映射结构",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "创建映射结构",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.CreateSchemaRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/schema/data/get": {
+            "get": {
+                "description": "core.HandlerFunc",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "core.HandlerFunc",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.AlertSchemaRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.GetSchemaDataReponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/schema/data/update": {
+            "post": {
+                "description": "更新映射结构中的数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "更新映射结构中的数据",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.UpdateSchemaDataRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/schema/delete": {
+            "post": {
+                "description": "删除映射结构",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "删除映射结构",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.AlertSchemaRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/schema/list": {
+            "get": {
+                "description": "列出映射结构",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.ListSchema"
+                ],
+                "summary": "列出映射结构",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.ListSchemaResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/schema/listwithcolumns": {
+            "get": {
+                "description": "列出映射表及结构",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "列出映射表及结构",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.ListSchemaWithColumnsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/schema/used/check": {
+            "get": {
+                "description": "检查映射结构是否被使用",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "检查映射结构是否被使用",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.AlertSchemaRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.CheckSchemaIsUsedReponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/source/create": {
+            "post": {
+                "description": "创建告警源",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "创建告警源",
+                "parameters": [
+                    {
+                        "description": "告警源信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.AlertSource"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.AlertSource"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/source/delete": {
+            "post": {
+                "description": "删除告警源",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "删除告警源",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.SourceFrom"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.SourceFrom"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/source/enrich/default": {
+            "get": {
+                "description": "获取默认的告警丰富规则",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "获取默认的告警丰富规则",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.DefaultAlertEnrichRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.DefaultAlertEnrichRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/source/enrich/default/clear": {
+            "get": {
+                "description": "清除默认的告警丰富规则",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "清除默认的告警丰富规则",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.DefaultAlertEnrichRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/source/enrich/default/set": {
+            "post": {
+                "description": "设置默认的告警丰富规则",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "设置默认的告警丰富规则",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.SetDefaultAlertEnrichRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/source/enrich/get": {
+            "get": {
+                "description": "获取告警源增强配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "获取告警源增强配置",
+                "parameters": [
+                    {
+                        "description": "告警源信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.SourceFrom"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.GetAlertEnrichRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/source/enrich/update": {
+            "post": {
+                "description": "更新告警源增强配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "更新告警源增强配置",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.AlerEnrichRuleConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/source/get": {
+            "post": {
+                "description": "获取告警源信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "获取告警源信息",
+                "parameters": [
+                    {
+                        "description": "告警源信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.SourceFrom"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.AlertSource"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/source/list": {
+            "get": {
+                "description": "列出告警源",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "列出告警源",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.ListAlertSourceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/source/update": {
+            "post": {
+                "description": "更新告警源",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "更新告警源",
+                "parameters": [
+                    {
+                        "description": "告警源信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/alert.AlertSource"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/alertmanager/receiver": {
             "post": {
                 "description": "update alarm notification object",
@@ -673,6 +1567,35 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertsinput/enrich/tags/list": {
+            "get": {
+                "description": "获取预先定义的关联用标签",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "获取预先定义的关联用标签",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.GetTargetTagsResponse"
                         }
                     },
                     "400": {
@@ -5706,6 +6629,393 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "alert.AlerEnrichRuleConfigRequest": {
+            "type": "object",
+            "properties": {
+                "enrichRuleConfigs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.AlertEnrichRuleVO"
+                    }
+                },
+                "setAsDefault": {
+                    "type": "boolean"
+                },
+                "sourceId": {
+                    "type": "string"
+                }
+            }
+        },
+        "alert.AlertEnrichCondition": {
+            "type": "object",
+            "properties": {
+                "expr": {
+                    "description": "比较表达式",
+                    "type": "string"
+                },
+                "fromField": {
+                    "description": "来源字段",
+                    "type": "string"
+                },
+                "operation": {
+                    "description": "比较方式 match,not match,gt,lt,ge,le,eq",
+                    "type": "string"
+                }
+            }
+        },
+        "alert.AlertEnrichRuleVO": {
+            "type": "object",
+            "properties": {
+                "conditions": {
+                    "description": "--------------- conditions ----------------",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.AlertEnrichCondition"
+                    }
+                },
+                "customTag": {
+                    "description": "自定义Tag字段",
+                    "type": "string"
+                },
+                "enrichRuleId": {
+                    "description": "关联规则ID",
+                    "type": "string"
+                },
+                "fromField": {
+                    "description": "来源字段 (支持拼接)",
+                    "type": "string"
+                },
+                "fromRegex": {
+                    "description": "从来源字段中正则截取",
+                    "type": "string"
+                },
+                "rType": {
+                    "description": "规则类型",
+                    "type": "string"
+                },
+                "schema": {
+                    "description": "---------------- schemaMapping --------------",
+                    "type": "string"
+                },
+                "schemaSource": {
+                    "description": "匹配的映射结构的源字段",
+                    "type": "string"
+                },
+                "schemaTargets": {
+                    "description": "--------------- schemaMapping -------------",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.AlertEnrichSchemaTarget"
+                    }
+                },
+                "sourceId": {
+                    "description": "告警源ID",
+                    "type": "string"
+                },
+                "targetTagId": {
+                    "description": "---------------- tagMapping -----------------",
+                    "type": "integer"
+                }
+            }
+        },
+        "alert.AlertEnrichSchemaTarget": {
+            "type": "object",
+            "properties": {
+                "customTag": {
+                    "description": "自定义Tag字段",
+                    "type": "string"
+                },
+                "schemaField": {
+                    "description": "来自于映射表的指定字段",
+                    "type": "string"
+                },
+                "targetTagId": {
+                    "description": "目标TagID",
+                    "type": "integer"
+                }
+            }
+        },
+        "alert.AlertSchemaRequest": {
+            "type": "object",
+            "properties": {
+                "schema": {
+                    "type": "string"
+                }
+            }
+        },
+        "alert.AlertSource": {
+            "type": "object",
+            "properties": {
+                "clusters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.Cluster"
+                    }
+                },
+                "sourceId": {
+                    "type": "string"
+                },
+                "sourceName": {
+                    "type": "string"
+                },
+                "sourceType": {
+                    "type": "string"
+                }
+            }
+        },
+        "alert.CheckSchemaIsUsedReponse": {
+            "type": "object",
+            "properties": {
+                "alertSourceNames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "isUsing": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "alert.Cluster": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "alert.CreateSchemaRequest": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "fullRows": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "schema": {
+                    "type": "string"
+                }
+            }
+        },
+        "alert.DefaultAlertEnrichRuleRequest": {
+            "type": "object",
+            "properties": {
+                "sourceType": {
+                    "type": "string"
+                }
+            }
+        },
+        "alert.DefaultAlertEnrichRuleResponse": {
+            "type": "object",
+            "properties": {
+                "enrichRuleConfigs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.AlertEnrichRuleVO"
+                    }
+                },
+                "sourceType": {
+                    "type": "string"
+                }
+            }
+        },
+        "alert.GetAlertEnrichRuleResponse": {
+            "type": "object",
+            "properties": {
+                "enrichRuleConfigs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.AlertEnrichRuleVO"
+                    }
+                },
+                "sourceId": {
+                    "type": "string"
+                }
+            }
+        },
+        "alert.GetSchemaColumnsResponse": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "alert.GetSchemaDataReponse": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "rows": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "alert.GetTargetTagsResponse": {
+            "type": "object",
+            "properties": {
+                "targetTags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.TargetTag"
+                    }
+                }
+            }
+        },
+        "alert.ListAlertSourceResponse": {
+            "type": "object",
+            "properties": {
+                "alertSources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.AlertSource"
+                    }
+                }
+            }
+        },
+        "alert.ListClusterResponse": {
+            "type": "object",
+            "properties": {
+                "clusters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.Cluster"
+                    }
+                }
+            }
+        },
+        "alert.ListSchemaResponse": {
+            "type": "object",
+            "properties": {
+                "schemas": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "alert.ListSchemaWithColumnsResponse": {
+            "type": "object",
+            "properties": {
+                "schemas": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "alert.SetDefaultAlertEnrichRuleRequest": {
+            "type": "object",
+            "properties": {
+                "enrichRuleConfigs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.AlertEnrichRuleVO"
+                    }
+                },
+                "sourceType": {
+                    "type": "string"
+                }
+            }
+        },
+        "alert.SourceFrom": {
+            "type": "object",
+            "properties": {
+                "sourceId": {
+                    "type": "string"
+                },
+                "sourceName": {
+                    "type": "string"
+                },
+                "sourceType": {
+                    "type": "string"
+                }
+            }
+        },
+        "alert.TargetTag": {
+            "type": "object",
+            "properties": {
+                "describe": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "tagName": {
+                    "type": "string"
+                },
+                "targetTag": {
+                    "type": "string"
+                }
+            }
+        },
+        "alert.UpdateSchemaDataRequest": {
+            "type": "object",
+            "properties": {
+                "clearAll": {
+                    "type": "boolean"
+                },
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "newRows": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "schema": {
+                    "type": "string"
+                },
+                "updateRows": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "amconfig.DingTalkConfig": {
             "type": "object",
             "properties": {

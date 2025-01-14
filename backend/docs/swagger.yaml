@@ -1,5 +1,261 @@
 basePath: /
 definitions:
+  alert.AlerEnrichRuleConfigRequest:
+    properties:
+      enrichRuleConfigs:
+        items:
+          $ref: '#/definitions/alert.AlertEnrichRuleVO'
+        type: array
+      setAsDefault:
+        type: boolean
+      sourceId:
+        type: string
+    type: object
+  alert.AlertEnrichCondition:
+    properties:
+      expr:
+        description: 比较表达式
+        type: string
+      fromField:
+        description: 来源字段
+        type: string
+      operation:
+        description: 比较方式 match,not match,gt,lt,ge,le,eq
+        type: string
+    type: object
+  alert.AlertEnrichRuleVO:
+    properties:
+      conditions:
+        description: '--------------- conditions ----------------'
+        items:
+          $ref: '#/definitions/alert.AlertEnrichCondition'
+        type: array
+      customTag:
+        description: 自定义Tag字段
+        type: string
+      enrichRuleId:
+        description: 关联规则ID
+        type: string
+      fromField:
+        description: 来源字段 (支持拼接)
+        type: string
+      fromRegex:
+        description: 从来源字段中正则截取
+        type: string
+      rType:
+        description: 规则类型
+        type: string
+      schema:
+        description: '---------------- schemaMapping --------------'
+        type: string
+      schemaSource:
+        description: 匹配的映射结构的源字段
+        type: string
+      schemaTargets:
+        description: '--------------- schemaMapping -------------'
+        items:
+          $ref: '#/definitions/alert.AlertEnrichSchemaTarget'
+        type: array
+      sourceId:
+        description: 告警源ID
+        type: string
+      targetTagId:
+        description: '---------------- tagMapping -----------------'
+        type: integer
+    type: object
+  alert.AlertEnrichSchemaTarget:
+    properties:
+      customTag:
+        description: 自定义Tag字段
+        type: string
+      schemaField:
+        description: 来自于映射表的指定字段
+        type: string
+      targetTagId:
+        description: 目标TagID
+        type: integer
+    type: object
+  alert.AlertSchemaRequest:
+    properties:
+      schema:
+        type: string
+    type: object
+  alert.AlertSource:
+    properties:
+      clusters:
+        items:
+          $ref: '#/definitions/alert.Cluster'
+        type: array
+      sourceId:
+        type: string
+      sourceName:
+        type: string
+      sourceType:
+        type: string
+    type: object
+  alert.CheckSchemaIsUsedReponse:
+    properties:
+      alertSourceNames:
+        items:
+          type: string
+        type: array
+      isUsing:
+        type: boolean
+    type: object
+  alert.Cluster:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  alert.CreateSchemaRequest:
+    properties:
+      columns:
+        items:
+          type: string
+        type: array
+      fullRows:
+        items:
+          items:
+            type: string
+          type: array
+        type: array
+      schema:
+        type: string
+    type: object
+  alert.DefaultAlertEnrichRuleRequest:
+    properties:
+      sourceType:
+        type: string
+    type: object
+  alert.DefaultAlertEnrichRuleResponse:
+    properties:
+      enrichRuleConfigs:
+        items:
+          $ref: '#/definitions/alert.AlertEnrichRuleVO'
+        type: array
+      sourceType:
+        type: string
+    type: object
+  alert.GetAlertEnrichRuleResponse:
+    properties:
+      enrichRuleConfigs:
+        items:
+          $ref: '#/definitions/alert.AlertEnrichRuleVO'
+        type: array
+      sourceId:
+        type: string
+    type: object
+  alert.GetSchemaColumnsResponse:
+    properties:
+      columns:
+        items:
+          type: string
+        type: array
+    type: object
+  alert.GetSchemaDataReponse:
+    properties:
+      columns:
+        items:
+          type: string
+        type: array
+      rows:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+    type: object
+  alert.GetTargetTagsResponse:
+    properties:
+      targetTags:
+        items:
+          $ref: '#/definitions/alert.TargetTag'
+        type: array
+    type: object
+  alert.ListAlertSourceResponse:
+    properties:
+      alertSources:
+        items:
+          $ref: '#/definitions/alert.AlertSource'
+        type: array
+    type: object
+  alert.ListClusterResponse:
+    properties:
+      clusters:
+        items:
+          $ref: '#/definitions/alert.Cluster'
+        type: array
+    type: object
+  alert.ListSchemaResponse:
+    properties:
+      schemas:
+        items:
+          type: string
+        type: array
+    type: object
+  alert.ListSchemaWithColumnsResponse:
+    properties:
+      schemas:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+    type: object
+  alert.SetDefaultAlertEnrichRuleRequest:
+    properties:
+      enrichRuleConfigs:
+        items:
+          $ref: '#/definitions/alert.AlertEnrichRuleVO'
+        type: array
+      sourceType:
+        type: string
+    type: object
+  alert.SourceFrom:
+    properties:
+      sourceId:
+        type: string
+      sourceName:
+        type: string
+      sourceType:
+        type: string
+    type: object
+  alert.TargetTag:
+    properties:
+      describe:
+        type: string
+      id:
+        type: integer
+      tagName:
+        type: string
+      targetTag:
+        type: string
+    type: object
+  alert.UpdateSchemaDataRequest:
+    properties:
+      clearAll:
+        type: boolean
+      columns:
+        items:
+          type: string
+        type: array
+      newRows:
+        items:
+          items:
+            type: string
+          type: array
+        type: array
+      schema:
+        type: string
+      updateRows:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+    type: object
   amconfig.DingTalkConfig:
     properties:
       secret:
@@ -2551,6 +2807,588 @@ info:
   title: swagger interface documentation
   version: "2.0"
 paths:
+  /api/alertinput/cluster/create:
+    post:
+      consumes:
+      - application/json
+      description: 创建集群
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 创建集群
+      tags:
+      - API.alertinput
+  /api/alertinput/cluster/delete:
+    post:
+      consumes:
+      - application/json
+      description: 删除集群
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 删除集群
+      tags:
+      - API.alertinput
+  /api/alertinput/cluster/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 列出集群
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.ListClusterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 列出集群
+      tags:
+      - API.alertinput
+  /api/alertinput/cluster/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新集群
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 更新集群
+      tags:
+      - API.alertinput
+  /api/alertinput/event/json/:sourceType/:sourceName:
+    post:
+      consumes:
+      - application/json
+      description: 基于JSON结构接收来自特定数据源的数据
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 基于JSON结构接收来自特定数据源的数据
+      tags:
+      - API.alertinput
+  /api/alertinput/event/source/:sourceID:
+    post:
+      consumes:
+      - application/json
+      description: 基于告警源配置接收数据
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 基于告警源配置接收数据
+      tags:
+      - API.alertinput
+  /api/alertinput/schema/column/get:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取映射结构中的列信息
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.AlertSchemaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.GetSchemaColumnsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取映射结构中的列信息
+      tags:
+      - API.alertinput
+  /api/alertinput/schema/create:
+    post:
+      consumes:
+      - application/json
+      description: 创建映射结构
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.CreateSchemaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 创建映射结构
+      tags:
+      - API.alertinput
+  /api/alertinput/schema/data/get:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: core.HandlerFunc
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.AlertSchemaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.GetSchemaDataReponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: core.HandlerFunc
+      tags:
+      - API.alertinput
+  /api/alertinput/schema/data/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新映射结构中的数据
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.UpdateSchemaDataRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 更新映射结构中的数据
+      tags:
+      - API.alertinput
+  /api/alertinput/schema/delete:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 删除映射结构
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.AlertSchemaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 删除映射结构
+      tags:
+      - API.alertinput
+  /api/alertinput/schema/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 列出映射结构
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.ListSchemaResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 列出映射结构
+      tags:
+      - API.ListSchema
+  /api/alertinput/schema/listwithcolumns:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 列出映射表及结构
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.ListSchemaWithColumnsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 列出映射表及结构
+      tags:
+      - API.alertinput
+  /api/alertinput/schema/used/check:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 检查映射结构是否被使用
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.AlertSchemaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.CheckSchemaIsUsedReponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 检查映射结构是否被使用
+      tags:
+      - API.alertinput
+  /api/alertinput/source/create:
+    post:
+      consumes:
+      - application/json
+      description: 创建告警源
+      parameters:
+      - description: 告警源信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.AlertSource'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.AlertSource'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 创建告警源
+      tags:
+      - API.alertinput
+  /api/alertinput/source/delete:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 删除告警源
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.SourceFrom'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.SourceFrom'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 删除告警源
+      tags:
+      - API.alertinput
+  /api/alertinput/source/enrich/default:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取默认的告警丰富规则
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.DefaultAlertEnrichRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.DefaultAlertEnrichRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取默认的告警丰富规则
+      tags:
+      - API.alertinput
+  /api/alertinput/source/enrich/default/clear:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 清除默认的告警丰富规则
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.DefaultAlertEnrichRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 清除默认的告警丰富规则
+      tags:
+      - API.alertinput
+  /api/alertinput/source/enrich/default/set:
+    post:
+      consumes:
+      - application/json
+      description: 设置默认的告警丰富规则
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.SetDefaultAlertEnrichRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 设置默认的告警丰富规则
+      tags:
+      - API.alertinput
+  /api/alertinput/source/enrich/get:
+    get:
+      consumes:
+      - application/json
+      description: 获取告警源增强配置
+      parameters:
+      - description: 告警源信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.SourceFrom'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.GetAlertEnrichRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取告警源增强配置
+      tags:
+      - API.alertinput
+  /api/alertinput/source/enrich/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新告警源增强配置
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.AlerEnrichRuleConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 更新告警源增强配置
+      tags:
+      - API.alertinput
+  /api/alertinput/source/get:
+    post:
+      consumes:
+      - application/json
+      description: 获取告警源信息
+      parameters:
+      - description: 告警源信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.SourceFrom'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.AlertSource'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取告警源信息
+      tags:
+      - API.alertinput
+  /api/alertinput/source/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 列出告警源
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.ListAlertSourceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 列出告警源
+      tags:
+      - API.alertinput
+  /api/alertinput/source/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新告警源
+      parameters:
+      - description: 告警源信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.AlertSource'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 更新告警源
+      tags:
+      - API.alertinput
   /api/alerts/alertmanager/receiver:
     delete:
       consumes:
@@ -2986,6 +3824,25 @@ paths:
       summary: update basic alarm rules
       tags:
       - API.alerts
+  /api/alertsinput/enrich/tags/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取预先定义的关联用标签
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.GetTargetTagsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取预先定义的关联用标签
+      tags:
+      - API.alertinput
   /api/config/getTTL:
     get:
       consumes:

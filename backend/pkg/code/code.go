@@ -163,6 +163,32 @@ const (
 	UserGrantPermissionError   = "B0925"
 	ConfigureMenuError         = "B0926"
 	PermissionNotExistError    = "B0927"
+
+	// alertinput
+	GetAlertsInputTargetTagsError     = "B1301"
+	CreateAlertSourceFailed           = "B1302"
+	AlertSourceAlreadyExisted         = "B1303"
+	DeleteAlertSourceFailed           = "B1304"
+	GetAlertSourceFailed              = "B1305"
+	CreateClusterFailed               = "B1306"
+	CreateSchemaFailed                = "B1307"
+	ListSchemaFailed                  = "B1308"
+	DeleteSchemaFailed                = "B1309"
+	GetSchemaColumnsFailed            = "B1310"
+	UpdateSchemaDataFailed            = "B1311"
+	CheckSchemaUsedFailed             = "B1312"
+	GetSchemaDataFailed               = "B1313"
+	SetDefaultAlertEnrichRuleFailed   = "B1314"
+	ClearDefaultAlertEnrichRuleFailed = "B1315"
+	UpdateAlertEnrichRuleFailed       = "B1316"
+	UpdateAlertSourceFailed           = "B1317"
+	AcceptAlertEventFailed            = "B1318"
+	ProcessAlertEventFailed           = "B1319"
+	DeleteClusterFailed               = "B1320"
+	ListAlertSourceFailed             = "B1321"
+	ListClusterFailed                 = "B1322"
+	GetAlertEnrichRuleFailed          = "B1323"
+	AlertSourceNotExisted             = "B1324"
 )
 
 func Text(code string) string {

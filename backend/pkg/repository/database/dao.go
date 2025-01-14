@@ -16,6 +16,7 @@ import (
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/logger"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database/input/alert"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -80,18 +81,23 @@ type Repo interface {
 	WithTransaction(ctx context.Context, tx *gorm.DB) context.Context
 	// Transaction Starts a transaction and automatically commit and rollback.
 	Transaction(ctx context.Context, funcs ...func(txCtx context.Context) error) error
+
+	alert.AlertInput
 }
 
 type daoRepo struct {
 	db             *gorm.DB
 	sqlDB          *sql.DB
 	transactionCtx struct{}
+
+	alert.AlertInput
 }
 
 // Connect to connect to the database
 func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	var dbConfig gorm.Dialector
-	databaseCfg := config.Get().Database
+	globalCfg := config.Get()
+	databaseCfg := globalCfg.Database
 	switch databaseCfg.Connection {
 	case config.DB_MYSQL:
 		dbConfig = driver.NewMySqlDialector()
@@ -174,6 +180,11 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err = daoRepo.createAnonymousUser(); err != nil {
 		return nil, err
 	}
+
+	if daoRepo.AlertInput, err = alert.NewAlertInputRepo(daoRepo.db, globalCfg); err != nil {
+		return nil, err
+	}
+
 	return daoRepo, nil
 }
 
