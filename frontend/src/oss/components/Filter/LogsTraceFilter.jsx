@@ -295,17 +295,12 @@ const LogsTraceFilter = React.memo(({ type }) => {
       urlParam.endTime = endTime
     }
     if (startTime && endTime) {
+      getServiceListData()
       if (changeTime || urlParam.service !== selectServiceName) {
-        getServiceListData()
         getNamespaceList()
       }
     }
   }, [startTime, endTime, urlParam])
-  useEffect(() => {
-    if (startTime && endTime) {
-      getServiceListData()
-    }
-  }, [selectNamespace])
   const changeUrlParams = (props) => {
     // console.log(props, urlParam)
     // const { service: storeService, instance: storeInstance } = props
