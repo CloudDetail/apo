@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// DeleteSchema 删除映射结构
-// @Summary 删除映射结构
-// @Description 删除映射结构
+// DeleteSchema DeleteSchema
+// @Summary DeleteSchema
+// @Description DeleteSchema
 // @Tags API.alertinput
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body alert.AlertSchemaRequest true "请求信息"
+// @Param Request body alert.AlertSchemaRequest true "SchemaInfo"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/schema/delete [post]

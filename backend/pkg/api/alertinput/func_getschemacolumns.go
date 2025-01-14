@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// GetSchemaColumns 获取映射结构中的列信息
-// @Summary 获取映射结构中的列信息
-// @Description 获取映射结构中的列信息
+// GetSchemaColumns GetSchemaColumns
+// @Summary GetSchemaColumns
+// @Description GetSchemaColumns
 // @Tags API.alertinput
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body alert.AlertSchemaRequest true "请求信息"
+// @Param Request body alert.AlertSchemaRequest true "Schema Info"
 // @Success 200 {object} alert.GetSchemaColumnsResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/schema/column/get [get]

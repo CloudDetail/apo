@@ -11,9 +11,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// ListSchema 列出映射结构
-// @Summary 列出映射结构
-// @Description 列出映射结构
+// ListSchema ListSchema
+// @Summary ListSchema
+// @Description ListSchema
 // @Tags API.ListSchema
 // @Accept application/x-www-form-urlencoded
 // @Produce json

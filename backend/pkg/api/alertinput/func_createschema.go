@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// CreateSchema 创建映射结构
-// @Summary 创建映射结构
-// @Description 创建映射结构
+// CreateSchema CreateSchema
+// @Summary CreateSchema
+// @Description CreateSchema
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json
-// @Param Request body alert.CreateSchemaRequest true "请求信息"
+// @Param Request body alert.CreateSchemaRequest true "Schema Info"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/schema/create [post]

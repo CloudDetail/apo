@@ -12,9 +12,9 @@ import (
 	input "github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// SourceHandler 基于告警源配置接收数据
-// @Summary 基于告警源配置接收数据
-// @Description 基于告警源配置接收数据
+// SourceHandler Receive data based on alarm source configuration
+// @Summary Receive data based on alarm source configuration
+// @Description Receive data based on alarm source configuration
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json

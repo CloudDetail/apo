@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// CheckSchemaIsUsed 检查映射结构是否被使用
-// @Summary 检查映射结构是否被使用
-// @Description 检查映射结构是否被使用
+// CheckSchemaIsUsed Check whether the mapping structure is used
+// @Summary Check whether the mapping structure is used
+// @Description Check whether the mapping structure is used
 // @Tags API.alertinput
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body alert.AlertSchemaRequest true "请求信息"
+// @Param Request body alert.AlertSchemaRequest true "Schema Info"
 // @Success 200 {object} alert.CheckSchemaIsUsedReponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/schema/used/check [get]

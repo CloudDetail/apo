@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// GetDefaultAlertEnrichRule 获取默认的告警丰富规则
-// @Summary 获取默认的告警丰富规则
-// @Description 获取默认的告警丰富规则
+// GetDefaultAlertEnrichRule GetDefaultAlertEnrichRule
+// @Summary GetDefaultAlertEnrichRule
+// @Description GetDefaultAlertEnrichRule
 // @Tags API.alertinput
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body alert.DefaultAlertEnrichRuleRequest true "请求信息"
+// @Param Request body alert.DefaultAlertEnrichRuleRequest true "Source Type"
 // @Success 200 {object} alert.DefaultAlertEnrichRuleResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/source/enrich/default [get]

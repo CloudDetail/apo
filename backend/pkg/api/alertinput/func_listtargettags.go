@@ -11,9 +11,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// GetTargetTags 获取预先定义的关联用标签
-// @Summary 获取预先定义的关联用标签
-// @Description 获取预先定义的关联用标签
+// GetTargetTags GetTargetTags
+// @Summary GetTargetTags
+// @Description GetTargetTags
 // @Tags API.alertinput
 // @Accept application/x-www-form-urlencoded
 // @Produce json

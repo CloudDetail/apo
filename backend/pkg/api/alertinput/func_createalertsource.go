@@ -12,13 +12,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// CreateAlertSource 创建告警源
-// @Summary 创建告警源
-// @Description 创建告警源
+// CreateAlertSource Create Alarm Source
+// @Summary Create Alarm Source
+// @Description Create Alarm Source
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json
-// @Param Request body alert.AlertSource true "告警源信息"
+// @Param Request body alert.AlertSource true "AlertSource"
 // @Success 200 {object} alert.AlertSource
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/source/create [post]

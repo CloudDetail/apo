@@ -13,9 +13,9 @@ import (
 	input "github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// JsonHandler 基于JSON结构接收来自特定数据源的数据
-// @Summary 基于JSON结构接收来自特定数据源的数据
-// @Description 基于JSON结构接收来自特定数据源的数据
+// JsonHandler Receive data from a specific data source based on a JSON structure
+// @Summary Receive data from a specific data source based on a JSON structure
+// @Description Receive data from a specific data source based on a JSON structure
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json
@@ -35,7 +35,7 @@ func (h *handler) JsonHandler() core.HandlerFunc {
 			return
 		}
 
-		// 填充基础的SourceFrom信息
+		// Fill the SourceFrom information of the base
 		if len(sourceFrom.SourceType) == 0 {
 			sourceFrom.SourceType = "unkonwn"
 		}

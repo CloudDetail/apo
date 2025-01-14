@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// CreateCluster 创建集群
-// @Summary 创建集群
-// @Description 创建集群
+// CreateCluster Create Cluster
+// @Summary Create Cluster
+// @Description Create Cluster
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json
-// @Param Request body alert.Cluster true "请求信息"
+// @Param Request body alert.Cluster true "Cluster Info"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/cluster/create [post]

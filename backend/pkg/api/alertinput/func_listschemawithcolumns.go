@@ -11,9 +11,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// ListSchemaWithColumns 列出映射表及结构
-// @Summary 列出映射表及结构
-// @Description 列出映射表及结构
+// ListSchemaWithColumns ListSchemaWithColumns
+// @Summary ListSchemaWithColumns
+// @Description ListSchemaWithColumns
 // @Tags API.alertinput
 // @Accept application/x-www-form-urlencoded
 // @Produce json

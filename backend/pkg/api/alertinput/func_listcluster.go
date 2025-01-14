@@ -11,9 +11,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// ListCluster 列出集群
-// @Summary 列出集群
-// @Description 列出集群
+// ListCluster ListCluster
+// @Summary ListCluster
+// @Description ListCluster
 // @Tags API.alertinput
 // @Accept application/x-www-form-urlencoded
 // @Produce json

@@ -11,9 +11,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// SetDefaultAlertEnrichRule 设置默认的告警丰富规则
-// @Summary 设置默认的告警丰富规则
-// @Description 设置默认的告警丰富规则
+// SetDefaultAlertEnrichRule SetDefaultAlertEnrichRule
+// @Summary SetDefaultAlertEnrichRule
+// @Description SetDefaultAlertEnrichRule
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json

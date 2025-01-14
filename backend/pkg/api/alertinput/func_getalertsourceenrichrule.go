@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// GetAlertSourceEnrichRule 获取告警源增强配置
-// @Summary 获取告警源增强配置
-// @Description 获取告警源增强配置
+// GetAlertSourceEnrichRule GetAlertSourceEnrichRule
+// @Summary GetAlertSourceEnrichRule
+// @Description GetAlertSourceEnrichRule
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json
-// @Param Request body alert.SourceFrom true "告警源信息"
+// @Param Request body alert.SourceFrom true "Source Info"
 // @Success 200 {object} alert.GetAlertEnrichRuleResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/source/enrich/get [get]

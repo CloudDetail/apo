@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// DeleteCluster 删除集群
-// @Summary 删除集群
-// @Description 删除集群
+// DeleteCluster DeleteCluster
+// @Summary DeleteCluster
+// @Description DeleteCluster
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json
-// @Param Request body alert.Cluster true "请求信息"
+// @Param Request body alert.Cluster true "Cluster Info"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/cluster/delete [post]

@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// DeleteAlertSource 删除告警源
-// @Summary 删除告警源
-// @Description 删除告警源
+// DeleteAlertSource DeleteAlertSource
+// @Summary DeleteAlertSource
+// @Description DeleteAlertSource
 // @Tags API.alertinput
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body alert.SourceFrom true "请求信息"
+// @Param Request body alert.SourceFrom true "alertSource"
 // @Success 200 {object} alert.SourceFrom
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/source/delete [post]

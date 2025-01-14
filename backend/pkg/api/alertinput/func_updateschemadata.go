@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// UpdateSchemaData 更新映射结构中的数据
-// @Summary 更新映射结构中的数据
-// @Description 更新映射结构中的数据
+// UpdateSchemaData UpdateSchemaData
+// @Summary UpdateSchemaData
+// @Description UpdateSchemaData
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json
-// @Param Request body alert.UpdateSchemaDataRequest true "请求信息"
+// @Param Request body alert.UpdateSchemaDataRequest true "Update SchemaData Request"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/schema/data/update [post]
