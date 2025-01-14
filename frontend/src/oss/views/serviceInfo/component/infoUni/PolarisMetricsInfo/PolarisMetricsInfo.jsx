@@ -12,8 +12,8 @@ import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer
 import 'react-image-lightbox/style.css'
 import Lightbox from 'react-image-lightbox'
 import { getStep } from 'src/core/utils/step'
-import GlossaryTable from './GlossaryTable'
 import { useDebounce } from 'react-use'
+import GlossaryTable from 'src/core/components/PolarisMetrics/GlossaryTable'
 
 function PolarisMetricsInfo() {
   const [image, setImage] = useState()
