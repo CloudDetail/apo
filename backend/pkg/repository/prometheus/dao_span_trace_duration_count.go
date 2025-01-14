@@ -22,9 +22,9 @@ const (
 	TEMPLATE_GET_SERVICE_INSTANCE        = `sum by(svc_name, pod, pid, container_id, node_name, namespace, node_ip) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_ACTIVE_SERVICE_INSTANCE = `sum by(svc_name, pod, pid, container_id, node_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_ERROR_RATE_INSTANCE         = "100*(" +
-		"(sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s, is_error = 'true'}[%s]))) or 0)" + // or 0 Supplements missing data scenarios
+		"(sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s, is_error = 'true'}[%s])) or 0)" + // or 0 Supplements missing data scenarios
 		"/sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))" +
-		") or (sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))) * 0)" // or * 0 Supplementing the scenario of missing data in the middle
+		") or (sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])) * 0)" // or * 0 Supplementing the scenario of missing data in the middle
 	TEMPLATE_GET_NAMESPACES = `sum(kindling_span_trace_duration_nanoseconds_count{namespace=~".+"}[%s]) by (namespace)`
 )
 
