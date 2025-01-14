@@ -16,6 +16,7 @@ import { IoIosTrendingUp, IoMdCloudOutline } from 'react-icons/io'
 import { TbWaveSawTool } from 'react-icons/tb'
 import { GrSystem } from 'react-icons/gr'
 import TranslationCom from './oss/components/TranslationCom'
+import { BsBezier2 } from 'react-icons/bs'
 
 const namespace = 'oss/routes'
 const commercialNav = []
@@ -133,5 +134,6 @@ const navIcon = {
   alerts: <FaRegBell />,
   mysql: <AiOutlineDashboard />,
   healthy: <TbWaveSawTool />,
+  integration: <BsBezier2 />,
 }
 export { _nav, commercialNav, navIcon }
