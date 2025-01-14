@@ -18,6 +18,7 @@ func (s *service) CheckDatasourcePermission(userID int64, namespaces, services i
 		serviceMap   = map[string]struct{}{}
 		endTime      = time.Now()
 		startTime    = endTime.Add(-24 * time.Hour)
+		serviceList  []string
 	)
 
 	groups, err := s.getUserDataGroup(userID, "")
@@ -54,9 +55,11 @@ func (s *service) CheckDatasourcePermission(userID int64, namespaces, services i
 		return nil
 	}
 
-	serviceList, err := s.promRepo.GetServiceList(startTime.UnixMicro(), endTime.UnixMicro(), namespaceDs)
-	if err != nil {
-		return err
+	if len(namespaceDs) > 0 {
+		serviceList, err = s.promRepo.GetServiceList(startTime.UnixMicro(), endTime.UnixMicro(), namespaceDs)
+		if err != nil {
+			return err
+		}
 	}
 
 	for _, srv := range serviceList {
