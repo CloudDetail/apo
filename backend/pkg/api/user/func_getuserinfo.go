@@ -7,6 +7,7 @@ import (
 	"errors"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
@@ -32,6 +33,12 @@ func (h *handler) GetUserInfo() core.HandlerFunc {
 				code.ParamBindError,
 				code.Text(code.ParamBindError)).WithError(err))
 			return
+		}
+		// TODO remove
+		// TODO remove
+		// TODO remove
+		if req.UserID == 0 {
+			req.UserID = middleware.GetContextUserID(c)
 		}
 		resp, err := h.userService.GetUserInfo(req.UserID)
 		if err != nil {
