@@ -41,8 +41,13 @@ func (s *service) CreateDataGroup(req *request.CreateDataGroupRequest) error {
 	}
 
 	var users, teams []int64
-	groupID := util.Generator.GenerateID()
 	authDataGroup := make([]database.AuthDataGroup, 0, len(req.AssignedSubjects))
+
+	group := database.DataGroup{
+		Description: req.Description,
+		GroupName:   req.GroupName,
+		GroupID:     util.Generator.GenerateID(),
+	}
 
 	for _, sub := range req.AssignedSubjects {
 		switch sub.SubjectType {
@@ -58,7 +63,7 @@ func (s *service) CreateDataGroup(req *request.CreateDataGroupRequest) error {
 			SubjectType: sub.SubjectType,
 			SubjectID:   sub.SubjectID,
 			Type:        sub.Type,
-			DataGroupID: groupID,
+			DataGroupID: group.GroupID,
 		}
 		authDataGroup = append(authDataGroup, dg)
 	}
@@ -86,11 +91,11 @@ func (s *service) CreateDataGroup(req *request.CreateDataGroupRequest) error {
 	}
 
 	var createGroupFunc = func(ctx context.Context) error {
-		return s.dbRepo.CreateDataGroup(ctx, groupID, req.GroupName, req.Description)
+		return s.dbRepo.CreateDataGroup(ctx, &group)
 	}
 
 	var createDSGroupFunc = func(ctx context.Context) error {
-		return s.dbRepo.CreateDatasourceGroup(ctx, req.DatasourceList, groupID)
+		return s.dbRepo.CreateDatasourceGroup(ctx, req.DatasourceList, group.GroupID)
 	}
 
 	return s.dbRepo.Transaction(context.Background(), createGroupFunc, createDSGroupFunc, assignToTeamFunc)

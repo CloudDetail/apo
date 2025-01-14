@@ -1,0 +1,3 @@
+服务概览:
+  - path: "/api/service/endpoints"
+    method: "GET"

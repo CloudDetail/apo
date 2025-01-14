@@ -4,6 +4,7 @@
 package serviceoverview
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"net/http"
 	"time"
 
@@ -40,6 +41,12 @@ func (h *handler) GetRYGLight() core.HandlerFunc {
 			return
 		}
 
+		userID := middleware.GetContextUserID(c)
+		err := h.dataService.CheckDatasourcePermission(userID, &req.Namespace, &req.ServiceName)
+		if err != nil {
+			c.HandleError(err, code.AuthError)
+			return
+		}
 		startTime := time.UnixMicro(req.StartTime)
 		endTime := time.UnixMicro(req.EndTime)
 		filter := serviceoverview.EndpointsFilter{

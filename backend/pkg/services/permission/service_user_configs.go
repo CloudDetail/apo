@@ -16,7 +16,7 @@ func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.Get
 	var resp response.GetUserConfigResponse
 	featureIDs, err := s.getUserFeatureIDs(req.UserID)
 
-	res, err := s.dbRepo.GetFeatureMapping(featureIDs, model.MAPPED_TYP_MENU)
+	res, err := s.dbRepo.GetFeatureMappingByFeature(featureIDs, model.MAPPED_TYP_MENU)
 	itemIDs := make([]int, len(res))
 	for i := range res {
 		itemIDs[i] = res[i].MappedID
@@ -79,7 +79,11 @@ func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.Get
 		}
 	}
 
-	// TODO Get routers.
+	// Get routers.
+	resp.Routes = make([]string, len(routers))
+	for i, router := range routers {
+		resp.Routes[i] = router.RouterTo
+	}
 
 	sort.Slice(rootMenuItems, func(i, j int) bool {
 		return rootMenuItems[i].Order < rootMenuItems[j].Order

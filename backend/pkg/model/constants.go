@@ -39,6 +39,11 @@ const (
 )
 
 const (
-	DATA_GROUP_SUB_TYP_USER = "user"
-	DATA_GROUP_SUB_TYP_TEAM = "team"
+	DATA_GROUP_SUB_TYP_USER    = "user"
+	DATA_GROUP_SUB_TYP_TEAM    = "team"
+	DATA_GROUP_SOURCE_DEFAULT  = "default"
+	DATASOURCE_TYP_NAMESPACE   = "namespace"
+	DATASOURCE_TYP_SERVICE     = "service"
+	DATASOURCE_CATEGORY_APM    = "apm"
+	DATASOURCE_CATEGORY_NORMAL = "normal"
 )

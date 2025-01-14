@@ -6,11 +6,12 @@ package code
 import "github.com/CloudDetail/apo/backend/config"
 
 const (
-	ServerError    = "A0001"
-	ParamBindError = "A0002"
-	DbConnectError = "A0003"
-	UnAuth         = "A0004"
-	InValidToken   = "A0005"
+	ServerError           = "A0001"
+	ParamBindError        = "A0002"
+	DbConnectError        = "A0003"
+	UnAuth                = "A0004"
+	InValidToken          = "A0005"
+	UserNoPermissionError = "A0006"
 
 	MockCreateError = "B0101"
 	MockListError   = "B0102"
@@ -148,7 +149,6 @@ const (
 	RemoveUserError            = "B0910"
 	UserPasswordSimpleError    = "B0911"
 	UserRemoveSelfError        = "B0912"
-	UserNoPermissionError      = "B0913"
 	UserEmailUsed              = "B0914"
 	UserPhoneUsed              = "B0915"
 	UserPhoneFormatError       = "B0916"
@@ -179,6 +179,8 @@ const (
 	CreateRoleError            = "B0941"
 	UpdateRoleError            = "B0942"
 	DeleteRoleError            = "B0943"
+	APINotExist                = "B0944"
+	AuthError                  = "B0945"
 
 	CreateTeamError       = "B1101"
 	TeamAlreadyExistError = "B1102"

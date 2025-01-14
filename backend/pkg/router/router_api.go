@@ -37,7 +37,7 @@ func setApiRouter(r *resource) {
 
 	serviceApi := r.mux.Group("/api/service").Use(middlewares.AuthMiddleware())
 	{
-		serviceOverviewHandler := serviceoverview.New(r.logger, r.ch, r.prom, r.pkg_db)
+		serviceOverviewHandler := serviceoverview.New(r.logger, r.ch, r.prom, r.pkg_db, r.k8sApi)
 		serviceApi.GET("/endpoints", serviceOverviewHandler.GetEndPointsData())
 		serviceApi.GET("/servicesAlert", serviceOverviewHandler.GetServicesAlert())
 		serviceApi.GET("/moreUrl", serviceOverviewHandler.GetServiceMoreUrlList())
@@ -46,7 +46,7 @@ func setApiRouter(r *resource) {
 		serviceApi.GET("/ryglight", serviceOverviewHandler.GetRYGLight())
 		serviceApi.GET("/monitor/status", serviceOverviewHandler.GetMonitorStatus())
 
-		serviceHandler := service.New(r.logger, r.ch, r.prom, r.pol, r.pkg_db)
+		serviceHandler := service.New(r.logger, r.ch, r.prom, r.pol, r.pkg_db, r.k8sApi)
 		serviceApi.GET("/entry/endpoints", serviceHandler.GetServiceEntryEndpoints())
 		serviceApi.GET("/relation", serviceHandler.GetServiceEndpointRelation())
 		serviceApi.GET("/topology", serviceHandler.GetServiceEndpointTopology())
@@ -104,7 +104,7 @@ func setApiRouter(r *resource) {
 
 	traceApi := r.mux.Group("/api/trace")
 	{
-		traceHandler := trace.New(r.logger, r.ch, r.jaegerRepo)
+		traceHandler := trace.New(r.logger, r.pkg_db, r.ch, r.jaegerRepo, r.prom, r.k8sApi)
 		traceApi.GET("/onoffcpu", traceHandler.GetOnOffCPU())
 		traceApi.POST("/pagelist", traceHandler.GetTracePageList())
 		traceApi.GET("/flame", traceHandler.GetFlameGraphData())
@@ -223,7 +223,7 @@ func setApiRouter(r *resource) {
 	}
 	networkApi := r.mux.Group("/api/network/")
 	{
-		handler := networkapi.New(r.logger, r.deepflowClickhouse)
+		handler := networkapi.New(r.logger, r.pkg_db, r.deepflowClickhouse, r.prom, r.k8sApi)
 		networkApi.GET("/podmap", handler.GetPodMap())
 		networkApi.GET("/segments", handler.GetSpanSegmentsMetrics())
 	}

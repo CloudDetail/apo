@@ -874,10 +874,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/database.DataGroup"
-                            }
+                            "$ref": "#/definitions/response.GetDataGroupResponse"
                         }
                     },
                     "400": {
@@ -1142,6 +1139,12 @@ const docTemplate = `{
                         "name": "subjectType",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "apm or normal, return all if is empty",
+                        "name": "category",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -6015,7 +6018,7 @@ const docTemplate = `{
         },
         "/api/user/info": {
             "get": {
-                "description": "获取用户信息",
+                "description": "Get user's info.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6025,11 +6028,11 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "获取用户信息",
+                "summary": "Get user's info.",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户id",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "query"
                     },
@@ -7270,6 +7273,10 @@ const docTemplate = `{
         "database.DatasourceGroup": {
             "type": "object",
             "properties": {
+                "category": {
+                    "description": "apm or normal",
+                    "type": "string"
+                },
                 "datasource": {
                     "type": "string"
                 },
@@ -7745,6 +7752,10 @@ const docTemplate = `{
         "model.Datasource": {
             "type": "object",
             "properties": {
+                "category": {
+                    "description": "normal or apm",
+                    "type": "string"
+                },
                 "datasource": {
                     "description": "namespaceName or serviceName",
                     "type": "string"
@@ -8126,7 +8137,6 @@ const docTemplate = `{
         "request.CreateTeamRequest": {
             "type": "object",
             "required": [
-                "description",
                 "teamName"
             ],
             "properties": {
@@ -8466,6 +8476,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "serviceName": {
+                    "description": "unused",
                     "type": "string"
                 },
                 "sourceFrom": {
@@ -9357,6 +9368,29 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetDataGroupResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "dataGroupList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.DataGroup"
+                    }
+                },
+                "pageSize": {
+                    "description": "每页条数",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总记录数",
+                    "type": "integer"
                 }
             }
         },

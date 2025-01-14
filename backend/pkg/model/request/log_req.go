@@ -18,7 +18,7 @@ type GetFaultLogPageListRequest struct {
 }
 
 type GetFaultLogContentRequest struct {
-	ServiceName string `json:"serviceName"`
+	ServiceName string `json:"serviceName"` // unused
 	InstanceId  string `json:"instanceId"`
 	TraceId     string `json:"traceId"`
 	StartTime   uint64 `json:"startTime"`

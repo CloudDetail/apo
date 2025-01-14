@@ -15,3 +15,5 @@ type GetDataGroupResponse struct {
 type GetGroupDatasourceResponse database.DataGroup
 
 type GetSubjectDataGroupResponse []database.DataGroup
+
+type GetUserDatasourceResponse []model.Datasource

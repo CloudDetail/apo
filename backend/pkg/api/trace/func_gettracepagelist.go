@@ -4,6 +4,7 @@
 package trace
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -33,6 +34,12 @@ func (h *handler) GetTracePageList() core.HandlerFunc {
 			return
 		}
 
+		userID := middleware.GetContextUserID(c)
+		err := h.dataService.CheckDatasourcePermission(userID, &req.Namespace, &req.Service)
+		if err != nil {
+			c.HandleError(err, code.AuthError)
+			return
+		}
 		if req.PageNum == 0 {
 			req.PageNum = 1
 		}

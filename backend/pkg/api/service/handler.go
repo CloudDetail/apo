@@ -4,6 +4,8 @@
 package service
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
+	"github.com/CloudDetail/apo/backend/pkg/services/data"
 	"go.uber.org/zap"
 
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -137,12 +139,14 @@ type handler struct {
 	logger                 *zap.Logger
 	serviceInfoService     service.Service
 	serviceoverviewService serviceoverview.Service
+	dataService            data.Service
 }
 
-func New(logger *zap.Logger, chRepo clickhouse.Repo, promRepo prometheus.Repo, polRepo polarisanalyzer.Repo, dbRepo database.Repo) Handler {
+func New(logger *zap.Logger, chRepo clickhouse.Repo, promRepo prometheus.Repo, polRepo polarisanalyzer.Repo, dbRepo database.Repo, k8sRepo kubernetes.Repo) Handler {
 	return &handler{
 		logger:                 logger,
 		serviceInfoService:     service.New(chRepo, promRepo, polRepo, dbRepo),
 		serviceoverviewService: serviceoverview.New(chRepo, dbRepo, promRepo),
+		dataService:            data.New(dbRepo, promRepo, k8sRepo),
 	}
 }

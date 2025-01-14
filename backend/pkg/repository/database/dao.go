@@ -70,7 +70,7 @@ type Repo interface {
 	GetFeatureTans(features *[]Feature, language string) error
 	GetMenuItemTans(menuItems *[]MenuItem, language string) error
 
-	CreateDataGroup(ctx context.Context, groupID int64, groupName string, description string) error
+	CreateDataGroup(ctx context.Context, group *DataGroup) error
 	DeleteDataGroup(ctx context.Context, groupID int64) error
 	CreateDatasourceGroup(ctx context.Context, datasource []model.Datasource, dataGroupID int64) error
 	DeleteDSGroup(ctx context.Context, groupID int64) error
@@ -80,7 +80,8 @@ type Repo interface {
 	RetrieveDataFromGroup(ctx context.Context, groupID int64, datasource []string) error
 	GetGroupDatasource(groupID ...int64) ([]DatasourceGroup, error)
 
-	GetFeatureMapping(featureIDs []int, mappedType string) ([]FeatureMapping, error)
+	GetFeatureMappingByFeature(featureIDs []int, mappedType string) ([]FeatureMapping, error)
+	GetFeatureMappingByMapped(mappedID int, mappedType string) (FeatureMapping, error)
 	GetMenuItems() ([]MenuItem, error)
 
 	GetTeamList(req *request.GetTeamRequest) ([]Team, int64, error)
@@ -105,9 +106,11 @@ type Repo interface {
 	GetSubjectAuthDataGroups(subjectID int64, subjectType string) ([]AuthDataGroup, error)
 	AssignDataGroup(ctx context.Context, authDataGroups []AuthDataGroup) error
 	RevokeDataGroup(ctx context.Context, dataGroupIDs []int64) error
-	GetSubjectDataGroupList(subjectID int64, subjectType string) ([]DataGroup, error)
+	GetSubjectDataGroupList(subjectID int64, subjectType string, category string) ([]DataGroup, error)
 	GetModifyAndDeleteDataGroup(subjectID int64, subjectType string, dgPermissions []request.DataGroupPermission) (toModify []AuthDataGroup, toDelete []int64, err error)
 	DeleteAuthDataGroup(ctx context.Context, subjectID int64, subjectType string) error
+
+	GetAPIByPath(path string, method string) (*API, error)
 
 	// GetContextDB Gets transaction form ctx.
 	GetContextDB(ctx context.Context) *gorm.DB
@@ -182,7 +185,7 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = database.AutoMigrate(&DataGroup{}, &AuthDataGroup{}, &DatasourceGroup{})
+	err = database.AutoMigrate(&DataGroup{}, &AuthDataGroup{}, &DatasourceGroup{}, &API{})
 	if err != nil {
 		return nil, err
 	}
@@ -198,6 +201,9 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		alertScript = "./sqlscripts/default_quick_alert_rule_metric.sql"
 	}
 	if err = daoRepo.initSql(AlertMetricsData{}, alertScript); err != nil {
+		return nil, err
+	}
+	if err = daoRepo.initApi(); err != nil {
 		return nil, err
 	}
 	if err = daoRepo.initRole(); err != nil {
@@ -219,6 +225,9 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		return nil, err
 	}
 	if err = daoRepo.initFeatureMenuItems(); err != nil {
+		return nil, err
+	}
+	if err = daoRepo.initFeatureAPI(); err != nil {
 		return nil, err
 	}
 	if err = daoRepo.initPermissions(); err != nil {

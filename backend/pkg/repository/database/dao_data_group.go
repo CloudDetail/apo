@@ -3,12 +3,13 @@ package database
 import (
 	"context"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 // DataGroup is a collection of Datasource.
 type DataGroup struct {
-	GroupID     int64  `gorm:"column:group_id;primary_key" json:"groupId"`
+	GroupID     int64  `gorm:"column:group_id;primary_key;auto_increment" json:"groupId"`
 	GroupName   string `gorm:"column:group_name;type:varchar(20)" json:"groupName"`
 	Description string `gorm:"column:description;type:varchar(50)" json:"description"` // The description of data group.
 
@@ -22,6 +23,7 @@ type DatasourceGroup struct {
 	GroupID    int64  `gorm:"column:group_id;primary_key" json:"-"`
 	Datasource string `gorm:"column:datasource;primary_key" json:"datasource"`
 	Type       string `gorm:"type" json:"type"`
+	Category   string `gorm:"category" json:"category"` // apm or normal
 }
 
 func (dg *DataGroup) TableName() string {
@@ -32,14 +34,8 @@ func (dsg *DatasourceGroup) TableName() string {
 	return "datasource_group"
 }
 
-func (repo *daoRepo) CreateDataGroup(ctx context.Context, groupID int64, groupName string, description string) error {
-	group := DataGroup{
-		GroupID:     groupID,
-		GroupName:   groupName,
-		Description: description,
-	}
-
-	return repo.GetContextDB(ctx).Create(&group).Error
+func (repo *daoRepo) CreateDataGroup(ctx context.Context, group *DataGroup) error {
+	return repo.GetContextDB(ctx).Create(group).Error
 }
 
 func (repo *daoRepo) DeleteDataGroup(ctx context.Context, groupID int64) error {
@@ -64,6 +60,7 @@ func (repo *daoRepo) CreateDatasourceGroup(ctx context.Context, datasource []mod
 			GroupID:    dataGroupID,
 			Datasource: ds.Datasource,
 			Type:       ds.Type,
+			Category:   ds.Category,
 		}
 		datasourceGroups = append(datasourceGroups, dsGroup)
 	}
@@ -158,11 +155,18 @@ func (repo *daoRepo) GetGroupDatasource(groupID ...int64) ([]DatasourceGroup, er
 	return dsGroup, err
 }
 
-func (repo *daoRepo) GetSubjectDataGroupList(subjectID int64, subjectType string) ([]DataGroup, error) {
+func (repo *daoRepo) GetSubjectDataGroupList(subjectID int64, subjectType string, category string) ([]DataGroup, error) {
 	var dataGroups []DataGroup
 
+	preloadQuery := func(db *gorm.DB) *gorm.DB {
+		if len(category) > 0 {
+			return db.Where("category = ?", category)
+		}
+		return db
+	}
+
 	err := repo.db.Table("data_group").
-		Preload("DatasourceList").
+		Preload("DatasourceList", preloadQuery).
 		Select("data_group.group_id, data_group.group_name, data_group.description, auth_data_group.type as auth_type").
 		Joins("JOIN auth_data_group ON auth_data_group.data_group_id = data_group.group_id").
 		Where("auth_data_group.subject_id = ? AND auth_data_group.subject_type = ?", subjectID, subjectType).

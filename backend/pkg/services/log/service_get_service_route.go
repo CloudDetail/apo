@@ -22,7 +22,7 @@ func (s *service) GetServiceRoute(req *request.GetServiceRouteRequest) (*respons
 		if err != nil {
 			return nil, err
 		}
-		for instanceName, _ := range instances.GetInstanceIdMap() {
+		for instanceName := range instances.GetInstanceIdMap() {
 			parts := strings.Split(instanceName, "-")
 			if len(parts) >= 3 {
 				serviceNames = append(serviceNames, strings.Join(parts[:len(parts)-2], "-"))
@@ -34,5 +34,4 @@ func (s *service) GetServiceRoute(req *request.GetServiceRouteRequest) (*respons
 	return &response.GetServiceRouteResponse{
 		RouteRule: map[string]string{"k8s.pod.name": strings.Join(serviceNames, ",")},
 	}, nil
-
 }

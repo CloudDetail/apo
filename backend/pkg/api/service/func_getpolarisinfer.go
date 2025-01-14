@@ -4,6 +4,7 @@
 package service
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -38,6 +39,12 @@ func (h *handler) GetPolarisInfer() core.HandlerFunc {
 			return
 		}
 
+		userID := middleware.GetContextUserID(c)
+		err := h.dataService.CheckDatasourcePermission(userID, nil, &req.Service)
+		if err != nil {
+			c.HandleError(err, code.AuthError)
+			return
+		}
 		res, err := h.serviceInfoService.GetPolarisInfer(req)
 		if err != nil {
 			c.AbortWithError(core.Error(

@@ -6,6 +6,7 @@ package deepflow
 import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
 )
@@ -32,6 +33,12 @@ func (h *handler) GetPodMap() core.HandlerFunc {
 				code.ParamBindError,
 				code.Text(code.ParamBindError)).WithError(err),
 			)
+			return
+		}
+		userID := middleware.GetContextUserID(c)
+		err := h.dataService.CheckDatasourcePermission(userID, &req.Namespace, nil)
+		if err != nil {
+			c.HandleError(err, code.AuthError)
 			return
 		}
 		resp, err := h.networkService.GetPodMap(req)

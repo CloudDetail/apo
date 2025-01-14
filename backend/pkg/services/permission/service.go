@@ -12,6 +12,7 @@ type Service interface {
 	ConfigureMenu(req *request.ConfigureMenuRequest) error
 	GetUserConfig(req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error)
 	GetSubjectFeature(req *request.GetSubjectFeatureRequest) (resp response.GetSubjectFeatureResponse, err error)
+	CheckApiPermission(userID int64, method string, path string) (ok bool, err error)
 }
 
 type service struct {

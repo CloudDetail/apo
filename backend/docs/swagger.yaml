@@ -367,6 +367,9 @@ definitions:
     type: object
   database.DatasourceGroup:
     properties:
+      category:
+        description: apm or normal
+        type: string
       datasource:
         type: string
       type:
@@ -709,6 +712,9 @@ definitions:
     type: object
   model.Datasource:
     properties:
+      category:
+        description: normal or apm
+        type: string
       datasource:
         description: namespaceName or serviceName
         type: string
@@ -983,7 +989,6 @@ definitions:
           type: integer
         type: array
     required:
-    - description
     - teamName
     type: object
   request.CreateUserRequest:
@@ -1195,6 +1200,7 @@ definitions:
       podName:
         type: string
       serviceName:
+        description: unused
         type: string
       sourceFrom:
         description: 日志数据源
@@ -1807,6 +1813,22 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetDataGroupResponse:
+    properties:
+      currentPage:
+        description: 当前页码
+        type: integer
+      dataGroupList:
+        items:
+          $ref: '#/definitions/database.DataGroup'
+        type: array
+      pageSize:
+        description: 每页条数
+        type: integer
+      total:
+        description: 总记录数
+        type: integer
     type: object
   response.GetDescendantMetricsResponse:
     properties:
@@ -3360,9 +3382,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/database.DataGroup'
-            type: array
+            $ref: '#/definitions/response.GetDataGroupResponse'
         "400":
           description: Bad Request
           schema:
@@ -3534,6 +3554,10 @@ paths:
         in: query
         name: subjectType
         required: true
+        type: string
+      - description: apm or normal, return all if is empty
+        in: query
+        name: category
         type: string
       - description: Bearer accessToken
         in: header
@@ -6794,9 +6818,9 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取用户信息
+      description: Get user's info.
       parameters:
-      - description: 用户id
+      - description: User's id
         in: query
         name: userId
         type: integer
@@ -6815,7 +6839,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取用户信息
+      summary: Get user's info.
       tags:
       - API.user
   /api/user/list:

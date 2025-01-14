@@ -4,6 +4,7 @@
 package log
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -31,6 +32,12 @@ func (h *handler) GetServiceRoute() core.HandlerFunc {
 				code.ParamBindError,
 				code.Text(code.ParamBindError)).WithError(err),
 			)
+			return
+		}
+		userID := middleware.GetContextUserID(c)
+		err := h.dataService.CheckDatasourcePermission(userID, nil, &req.Service)
+		if err != nil {
+			c.HandleError(err, code.AuthError)
 			return
 		}
 		resp, err := h.logService.GetServiceRoute(req)

@@ -4,6 +4,7 @@
 package service
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"net/http"
 	"time"
 
@@ -44,13 +45,19 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			)
 			return
 		}
-
 		var (
 			err           error
 			threshold     response.GetThresholdResponse
 			endpointResps []response.ServiceEndPointsRes
 			alertResps    []response.ServiceAlertRes
 		)
+
+		userID := middleware.GetContextUserID(c)
+		err = h.dataService.CheckDatasourcePermission(userID, nil, &req.Service)
+		if err != nil {
+			c.HandleError(err, code.AuthError)
+			return
+		}
 
 		result := make(map[string]*response.EntryInstanceData, 0)
 		resp := response.GetServiceEntryEndpointsResponse{

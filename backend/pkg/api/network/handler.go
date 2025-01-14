@@ -6,6 +6,10 @@ package deepflow
 import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/data"
 	"github.com/CloudDetail/apo/backend/pkg/services/network"
 	"go.uber.org/zap"
 )
@@ -24,11 +28,13 @@ type Handler interface {
 type handler struct {
 	logger         *zap.Logger
 	networkService network.Service
+	dataService    data.Service
 }
 
-func New(logger *zap.Logger, chRepo clickhouse.Repo) Handler {
+func New(logger *zap.Logger, dbRepo database.Repo, chRepo clickhouse.Repo, promRepo prometheus.Repo, k8sRepo kubernetes.Repo) Handler {
 	return &handler{
 		logger:         logger,
 		networkService: network.New(chRepo),
+		dataService:    data.New(dbRepo, promRepo, k8sRepo),
 	}
 }

@@ -155,6 +155,8 @@ var enText = map[string]string{
 	RoleExistsError:            "Role already exists",
 	CreateRoleError:            "Failed to create role",
 	UpdateRoleError:            "Failed to update role",
+	APINotExist:                "Api does not exist",
+	AuthError:                  "Failed to authorize permission",
 
 	CreateTeamError:       "Failed to create team",
 	TeamAlreadyExistError: "Team already exists",

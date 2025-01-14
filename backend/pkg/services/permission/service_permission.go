@@ -6,6 +6,7 @@ package permission
 import (
 	"context"
 	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -47,17 +48,7 @@ func (s *service) GetFeature(req *request.GetFeatureRequest) (response.GetFeatur
 
 func (s *service) GetSubjectFeature(req *request.GetSubjectFeatureRequest) (response.GetSubjectFeatureResponse, error) {
 	if req.SubjectType == model.PERMISSION_SUB_TYP_USER {
-		featureIDs, err := s.getUserFeatureIDs(req.SubjectID)
-		if err != nil {
-			return nil, err
-		}
-
-		features, err := s.dbRepo.GetFeature(featureIDs)
-		if err != nil {
-			return nil, err
-		}
-		err = s.dbRepo.GetFeatureTans(&features, req.Language)
-		return features, err
+		return s.getUserFeatureWithSource(req.SubjectID, req.Language)
 	}
 
 	featureIDs, err := s.dbRepo.GetSubjectPermission(req.SubjectID, req.SubjectType, model.PERMISSION_TYP_FEATURE)
@@ -73,6 +64,71 @@ func (s *service) GetSubjectFeature(req *request.GetSubjectFeatureRequest) (resp
 	return featureList, nil
 }
 
+func (s *service) getUserFeatureWithSource(userID int64, language string) (response.GetSubjectFeatureResponse, error) {
+	// Get user's roles and teams
+	roles, err := s.dbRepo.GetUserRole(userID)
+	if err != nil {
+		return nil, err
+	}
+	roleIDs := make([]int64, len(roles))
+	for i := range roleIDs {
+		roleIDs[i] = int64(roles[i].RoleID)
+	}
+
+	teamIDs, err := s.dbRepo.GetUserTeams(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get feature sources
+	roleFeatures, err := s.dbRepo.GetSubjectsPermission(roleIDs, model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE)
+	if err != nil {
+		return nil, err
+	}
+	teamFeatures, err := s.dbRepo.GetSubjectsPermission(teamIDs, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE)
+	if err != nil {
+		return nil, err
+	}
+	userFeatures, err := s.dbRepo.GetSubjectPermission(userID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE)
+	if err != nil {
+		return nil, err
+	}
+
+	features, err := s.dbRepo.GetFeature(nil)
+	featureMap := make(map[int]database.Feature)
+	for _, f := range features {
+		featureMap[f.FeatureID] = f
+	}
+
+	resp := make([]database.Feature, 0, len(roleFeatures)+len(teamFeatures)+len(userFeatures))
+	for _, rf := range roleFeatures {
+		f, ok := featureMap[rf.PermissionID]
+		f.Source = model.PERMISSION_SUB_TYP_ROLE
+		if ok {
+			resp = append(resp, f)
+		}
+	}
+
+	for _, rf := range teamFeatures {
+		f, ok := featureMap[rf.PermissionID]
+		f.Source = model.PERMISSION_SUB_TYP_TEAM
+		if ok {
+			resp = append(resp, f)
+		}
+	}
+
+	for _, id := range userFeatures {
+		f, ok := featureMap[id]
+		f.Source = model.PERMISSION_SUB_TYP_USER
+		if ok {
+			resp = append(resp, f)
+		}
+	}
+
+	err = s.dbRepo.GetFeatureTans(&features, language)
+	return resp, err
+}
+
 func (s *service) PermissionOperation(req *request.PermissionOperationRequest) error {
 	var exists bool
 	var err error
@@ -81,6 +137,10 @@ func (s *service) PermissionOperation(req *request.PermissionOperationRequest) e
 		exists, err = s.dbRepo.RoleExists(int(req.SubjectID))
 	case model.PERMISSION_SUB_TYP_USER:
 		exists, err = s.dbRepo.UserExists(req.SubjectID)
+	case model.PERMISSION_SUB_TYP_TEAM:
+		exists, err = s.dbRepo.TeamExist(req.SubjectID)
+	default:
+		return nil
 	}
 	if err != nil {
 		return err

@@ -4,6 +4,7 @@
 package serviceoverview
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"net/http"
 	"time"
 
@@ -51,12 +52,18 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 		step := time.Duration(req.Step * 1000)
 		sortRule := serviceoverview.SortType(req.SortRule)
 
+		userID := middleware.GetContextUserID(c)
+		err := h.dataService.CheckDatasourcePermission(userID, &req.Namespace, &req.ServiceName)
+		if err != nil {
+			c.HandleError(err, code.AuthError)
+			return
+		}
+
 		filter := serviceoverview.EndpointsFilter{
 			MultiService:   req.ServiceName,
 			MultiEndpoint:  req.EndpointName,
 			MultiNamespace: req.Namespace,
 		}
-
 		data, err := h.serviceoverview.GetServicesEndPointData(startTime, endTime, step, filter, sortRule)
 		if err != nil {
 			c.AbortWithError(core.Error(

@@ -4,6 +4,7 @@
 package service
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"net/http"
 	"time"
 
@@ -37,6 +38,12 @@ func (h *handler) GetServiceInstance() core.HandlerFunc {
 				code.ParamBindError,
 				code.Text(code.ParamBindError)).WithError(err),
 			)
+			return
+		}
+		userID := middleware.GetContextUserID(c)
+		err := h.dataService.CheckDatasourcePermission(userID, nil, &req.ServiceName)
+		if err != nil {
+			c.HandleError(err, code.AuthError)
 			return
 		}
 		var startTime time.Time

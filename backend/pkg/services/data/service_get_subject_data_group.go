@@ -8,20 +8,15 @@ import (
 )
 
 func (s *service) GetSubjectDataGroup(req *request.GetSubjectDataGroupRequest) (response.GetSubjectDataGroupResponse, error) {
-	var (
-		resp response.GetSubjectDataGroupResponse
-		err  error
-	)
 	if req.SubjectType == model.DATA_GROUP_SUB_TYP_TEAM {
-		resp, err = s.dbRepo.GetSubjectDataGroupList(req.SubjectID, req.SubjectType)
-	} else if req.SubjectType == model.DATA_GROUP_SUB_TYP_USER {
-		resp, err = s.getUserDataGroup(req.SubjectID)
+		return s.dbRepo.GetSubjectDataGroupList(req.SubjectID, req.SubjectType, req.Category)
 	}
 
-	return resp, err
+	return s.getUserDataGroup(req.SubjectID, req.Category)
 }
 
-func (s *service) getUserDataGroup(userID int64) ([]database.DataGroup, error) {
+// getUserDataGroup Get user's data group or default data group.
+func (s *service) getUserDataGroup(userID int64, category string) ([]database.DataGroup, error) {
 	teamIDs, err := s.dbRepo.GetUserTeams(userID)
 	if err != nil {
 		return nil, err
@@ -29,7 +24,7 @@ func (s *service) getUserDataGroup(userID int64) ([]database.DataGroup, error) {
 
 	var groups []database.DataGroup
 	for _, teamID := range teamIDs {
-		gs, err := s.dbRepo.GetSubjectDataGroupList(teamID, model.DATA_GROUP_SUB_TYP_TEAM)
+		gs, err := s.dbRepo.GetSubjectDataGroupList(teamID, model.DATA_GROUP_SUB_TYP_TEAM, category)
 		if err != nil {
 			return nil, err
 		}
@@ -41,7 +36,7 @@ func (s *service) getUserDataGroup(userID int64) ([]database.DataGroup, error) {
 		groups[i].Source = model.DATA_GROUP_SUB_TYP_TEAM
 	}
 
-	gs, err := s.dbRepo.GetSubjectDataGroupList(userID, model.DATA_GROUP_SUB_TYP_USER)
+	gs, err := s.dbRepo.GetSubjectDataGroupList(userID, model.DATA_GROUP_SUB_TYP_USER, category)
 	for i := range gs {
 		gs[i].Source = model.DATA_GROUP_SUB_TYP_USER
 	}
@@ -51,5 +46,37 @@ func (s *service) getUserDataGroup(userID int64) ([]database.DataGroup, error) {
 	}
 
 	groups = append(groups, gs...)
+
+	if len(groups) == 0 {
+		dataSources, err := s.GetDataSource()
+		if err != nil {
+			return nil, err
+		}
+
+		filteredSources := make([]model.Datasource, 0)
+		for _, ds := range dataSources {
+			if category == "" || ds.Category == category {
+				filteredSources = append(filteredSources, ds)
+			}
+		}
+
+		defaultGroup := database.DataGroup{
+			GroupName: "default",
+			Source:    model.DATA_GROUP_SOURCE_DEFAULT,
+		}
+
+		items := make([]database.DatasourceGroup, 0, len(filteredSources))
+		for _, ds := range filteredSources {
+			items = append(items, database.DatasourceGroup{
+				Datasource: ds.Datasource,
+				Type:       ds.Type,
+				Category:   ds.Category,
+			})
+		}
+
+		defaultGroup.DatasourceList = items
+		groups = append(groups, defaultGroup)
+	}
+
 	return groups, nil
 }
