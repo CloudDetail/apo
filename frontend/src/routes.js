@@ -36,7 +36,7 @@ const baseRoutes = [
     hideSystemTimeRangePicker: true,
   },
   {
-    path: '/alerts-integration',
+    path: '/integration/alerts',
     name: '告警接入',
     element: AlertsIntegrationPage,
   },
