@@ -11,7 +11,7 @@ import (
 )
 
 type Input interface {
-	InsertAlertEventExternal(ctx context.Context, alertEvents []alert.AlertEvent) error
+	InsertExtraAlertEvent(ctx context.Context, alertEvents []alert.AlertEvent, sourceFrom alert.SourceFrom) error
 }
 
 type chRepo struct {
