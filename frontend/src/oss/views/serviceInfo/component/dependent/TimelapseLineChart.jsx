@@ -14,11 +14,13 @@ import { getStep } from 'src/core/utils/step'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useDispatch } from 'react-redux'
 import { useDebounce } from 'react-use'
+import { useTranslation } from 'react-i18next'
 
 const TimelapseLineChart = (props) => {
   const { startTime, endTime, serviceName, endpoint } = props
   const chartRef = useRef(null)
   const dispatch = useDispatch()
+  const { t } = useTranslation('oss/serviceInfo')
   const setStoreTimeRange = (value) => {
     dispatch({ type: 'SET_TIMERANGE', payload: value })
   }
@@ -72,17 +74,16 @@ const TimelapseLineChart = (props) => {
       //     return [posX, posY];
       // },
       // appendToBody: true,
-      className: 'w-[70%]',
       // extraCssText: 'white-space: normal;word-break: break-all;',
       formatter: (params) => {
         let result = `<div class="rgb(102, 102, 102)">${convertTime(params.data[0] * 1000, 'yyyy-mm-dd hh:mm:ss')}<br/></div>
         <div class="overflow-hidden" >`
         result += `<div class="flex flex-row items-center justify-between">
-                      <div class="flex flex-row items-center flex-nowrap flex-shrink w-0 flex-1 whitespace-normal break-words">
+                      <div class="flex flex-row items-center flex-nowrap flex-shrink flex-1 break-words">
                         <div class=" my-2 mr-2 rounded-full w-3 h-3 flex-grow-0 flex-shrink-0" style="background:${params.color}"></div>
-                        <div class="flex-1 w-0">${params.seriesName}</div>
+                        <div class="flex-1">${params.seriesName}</div>
                       </div>
-                      <span class="font-bold flex-shrink-0 ">${convertTime(params.data[1], 'ms', 2)} ms</span>
+                      <span class="font-bold flex-shrink-0 ml-2">${convertTime(params.data[1], 'ms', 2)} ms</span>
                       </div>`
         // params.forEach((param) => {
         //   result += `<div class="flex flex-row items-center justify-between">
@@ -134,7 +135,7 @@ const TimelapseLineChart = (props) => {
           return convertTime(value, 'ms', 2)
         },
       },
-      name: '耗时（ms）', // Y轴说明
+      name: t('dependent.dependentTable.timestamp'), // Y轴说明
       // nameLocation: 'middle', // 说明位置
       // nameTextStyle: {
       //     fontWeight: 'bold',
@@ -319,7 +320,11 @@ const TimelapseLineChart = (props) => {
           </div>
         </div>
       ) : (
-        !loading && <Empty context={serviceName + ' 无下游依赖节点'} />
+        !loading && (
+          <Empty
+            context={serviceName + ' ' + t('dependent.timelapseLineChart.noDownstreamDependencies')}
+          />
+        )
       )}
     </>
   )

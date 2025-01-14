@@ -16,7 +16,9 @@ import LoadingSpinner from 'src/core/components/Spinner'
 import LogsTraceFilter from 'src/oss/components/Filter/LogsTraceFilter'
 import { useSelector } from 'react-redux'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
+import { useTranslation } from 'react-i18next'
 function FaultSiteLogs(props) {
+  const { t, i18n } = useTranslation('oss/faultSiteLogs')
   const { startTime, endTime, service, instance, traceId, instanceOption, namespace } = useSelector(
     (state) => state.urlParamsReducer,
   )
@@ -101,6 +103,7 @@ function FaultSiteLogs(props) {
   //   }
   // }, [pageIndex])
   useEffect(() => {
+    console.log('useEffect')
     const prev = previousValues.current
     let paramsChange = false
 
@@ -134,6 +137,7 @@ function FaultSiteLogs(props) {
       instance,
       namespace,
       traceId,
+      namespace,
       pageIndex,
       selectInstanceOption,
     }
@@ -172,14 +176,30 @@ function FaultSiteLogs(props) {
         <div className="d-flex">
           <CToastBody className=" flex flex-row items-center text-xs">
             <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-            默认采集控制台日志，从文件中采集日志的配置方式请参考
-            <a
-              className="underline text-sky-500"
-              target="_blank"
-              href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置采集日志"
-            >
-              配置采集日志
-            </a>
+            {i18n.language === 'zh' ? (
+              <>
+                {t('faultSiteLogs.faultLogTableToast')}
+                <a
+                  className="underline text-sky-500"
+                  target="_blank"
+                  href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置采集日志"
+                >
+                  <span>{t('faultSiteLogs.documentText')}</span>
+                </a>
+              </>
+            ) : (
+              <p>
+                {t('faultSiteLogs.faultLogTableToast1')}
+                <a
+                  className="underline text-sky-500"
+                  target="_blank"
+                  href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置采集日志"
+                >
+                  <span>{t('faultSiteLogs.documentText')}</span>
+                </a>
+                {t('faultSiteLogs.faultLogTableToast2')}
+              </p>
+            )}
           </CToastBody>
         </div>
       </CToast>
@@ -205,7 +225,8 @@ function FaultSiteLogs(props) {
                         ref={(el) => (refs.current[index] = el)}
                         onClick={() => changeActiveItemKey(index)}
                       >
-                        {convertTime(logs.startTime, 'yyyy-mm-dd hh:mm:ss.SSS')} 故障现场日志
+                        {convertTime(logs.startTime, 'yyyy-mm-dd hh:mm:ss.SSS')}{' '}
+                        {t('faultSiteLogs.faultLogsText')}
                       </CTab>
                     )
                   })}
@@ -228,8 +249,6 @@ function FaultSiteLogs(props) {
               <div className="p-3 w-full h-full overflow-hidden flex flex-col relative">
                 <LoadingSpinner loading={logContentLoading} />
                 <div className="flex-grow-0 flex-shrink-0">
-                  <div className="text-base font-bold">故障现场</div>
-
                   <CCard className="mx-4 my-2 p-2 font-bold">
                     <CRow className="my-1 ">
                       <CCol sm="2" className="text-gray-400 font-bold">
@@ -239,13 +258,13 @@ function FaultSiteLogs(props) {
                     </CRow>
                     <CRow className="my-1">
                       <CCol sm="2" className="text-gray-400 font-bold">
-                        服务端点
+                        {t('faultSiteLogs.endpoint')}
                       </CCol>
                       <CCol sm="auto">{logsPageList[activeItemKey]?.endpoint}</CCol>
                     </CRow>
                     <CRow className="my-1">
                       <CCol sm="2" className="text-gray-400 font-bold">
-                        故障发生时间
+                        {t('faultSiteLogs.timeOfFailure')}
                       </CCol>
                       <CCol sm="auto">
                         {convertTime(
@@ -256,7 +275,9 @@ function FaultSiteLogs(props) {
                     </CRow>
                   </CCard>
                 </div>
-                <div className="text-base font-bold mb-2">具体日志信息</div>
+                <div className="text-base font-bold mb-2">
+                  {t('faultSiteLogs.specificLogInformation')}
+                </div>
                 <div className="flex flex-row items-center">
                   <span className="text-nowrap">Source：</span>
                   <CustomSelect

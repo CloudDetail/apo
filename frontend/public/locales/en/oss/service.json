@@ -1,0 +1,89 @@
+{
+  "index": {
+    "serviceTableToast": "Use the information displayed to identify the problematic server endpoint. Click on any endpoint to explore its detailed metrics, logs, events, and trace data.",
+    "serviceTableColumns": {
+      "serviceName": "Application",
+      "namespaces": "Namespace",
+      "serviceDetails": {
+        "title": "Application Details",
+        "showMore": "More",
+        "endpoint": "Endpoint",
+        "delaySource": {
+          "title1": "Self Processing Time: Over 50% of latency is due to the service itself.",
+          "title2": "Dependency Time: Over 50% of latency is from downstream services.",
+          "title3": "Unknown: No relevant metrics found.",
+          "title4": "Duration Contribute",
+          "title5": ""
+        },
+        "latency": "Avg. Duration",
+        "errorRate": "Error Rate",
+        "tps": "Throughput"
+      },
+      "serviceInfo": {
+        "title": "Application Basic Information Alert",
+        "logs": "Logs Error",
+        "infrastructureStatus": "Infra",
+        "netStatus": "Net",
+        "k8sStatus": "K8s",
+        "timestamp": "Last Start"
+      }
+    },
+    "tableProps": {
+      "emptyText": "No Data Available",
+      "unmonitoredText": "1. If the application is not yet monitored, please refer to",
+      "unmonitoredLinkText": " Monitoring Manual",
+      "monitoredText": "2. If the application is already monitored but still shows no data, please refer to",
+      "monitoredLinkText": "Service Overview No Data Troubleshooting Documentation"
+    }
+  },
+  "tableFilter": {
+    "namespacesLabel": "Namespaces",
+    "namespacePlaceholder": "Please Select",
+    "applicationsLabel": "Applications",
+    "applicationsPlaceholder": "Please Select",
+    "endpointsLabel": "Endpoints",
+    "endpointsPlaceholder": "Please Select"
+  },
+  "endpointTableModal": {
+    "columns": {
+      "endpoint": "Endpoint",
+      "delaySource": {
+        "title1": "Self Processing Time: Over 50% of latency is due to the service itself.",
+        "title2": "Dependency Time: Over 50% of latency is from downstream services.",
+        "title3": "Unknown: No relevant metrics found.",
+        "title4": "Duration Contribute",
+        "title5": ""
+      },
+      "latency": "Avg. Duration",
+      "errorRate": "Error Rate",
+      "tps": "Throughput"
+    },
+    "serviceEndpointDataText": "All Server Endpoint Data Below"
+  },
+  "thresholdConfigModal": {
+    "configurationComparedtoThresholdText": "Configuration Year-on-Year Threshold",
+    "averageResponseThresholdLabel": "Average Response Time Year-on-Year Threshold",
+    "averageResponseThresholdPlaceHolder": "Enter Average Response Time Class Year-on-Year Threshold",
+    "errorRateThresholdLabel": "Error Rate Year-on-Year Threshold",
+    "errorRateThresholdPlaceHolder": "Enter Error Rate Year-on-Year Threshold",
+    "requestsThresholdLabel": "Request Count Year-on-Year Threshold",
+    "requestsThresholdPlaceHolder": "Enter Request Count Year-on-Year Threshold",
+    "logFaultCountThresholdLabel": "Log Error Count Year-on-Year Threshold",
+    "logFaultCountThresholdPlaceHolder": "Enter Log Error Count Year-on-Year Threshold",
+    "saveText": "Save"
+  },
+  "tempCell": {
+    "times/minuteText": " tpm ",
+    "unitsText": " Entry",
+    "DailyYoYText": "DailyYoY",
+    "WeeklyYoYText": "WeeklyYoY"
+  },
+  "statusInfo": {
+    "alertObjectText": "Alert Object",
+    "alertTimeText": "Alert Time",
+    "alertReasonText": " Alert Reason",
+    "detailsText": "Details",
+    "moreDetailsText": "For more details, please check the service alert events",
+    "noReasonText": "No alert reason detected yet"
+  }
+}

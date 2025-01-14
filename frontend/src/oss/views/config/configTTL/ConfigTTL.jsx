@@ -12,8 +12,10 @@ import { TableType } from 'src/constants'
 import TTLTable from './TTLTable'
 import { showToast } from 'src/core/utils/toast'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
+import { useTranslation } from 'react-i18next'
 
 function TTLConfigInput(props) {
+  const { t } = useTranslation('oss/config')
   const [inputValue, setInputValue] = useState(null)
   const change = (value) => {
     if (value && value > 0) {
@@ -35,7 +37,7 @@ function TTLConfigInput(props) {
       <InputNumber
         value={inputValue}
         min={1}
-        addonAfter="天"
+        addonAfter={t('configTTL.days')}
         controls={false}
         className="w-28"
         onChange={change}
@@ -44,11 +46,11 @@ function TTLConfigInput(props) {
       />
       {props.value !== inputValue && (
         <Popconfirm
-          description={'确认后将同步更新' + TableType[props.type] + '数据下所有表格的数据保留周期'}
+          description={t('configTTL.confirmUpdate', { type: TableType[props.type] })}
           onConfirm={confirm}
           onCancel={() => setInputValue(props.value)}
-          okText="确认"
-          cancelText="取消"
+          okText={t('configTTL.confirm')}
+          cancelText={t('configTTL.cancel')}
           title={''}
         >
           <Typography.Link
@@ -56,7 +58,7 @@ function TTLConfigInput(props) {
               marginInlineEnd: 8,
             }}
           >
-            更新
+            {t('configTTL.update')}
           </Typography.Link>
         </Popconfirm>
       )}
@@ -66,6 +68,7 @@ function TTLConfigInput(props) {
 
 function CollapsePanelHeader(props) {
   const { type, list, refreshPage } = props
+  const { t } = useTranslation('oss/config')
   const [value, setValue] = useState(null)
   const confirmTypeTTL = (value) => {
     setTTLApi({
@@ -74,7 +77,7 @@ function CollapsePanelHeader(props) {
     })
       .then(() => {
         showToast({
-          title: '配置数据保留周期可能需一定时间生效，请稍后刷新页面查看结果',
+          title: t('configTTL.updateInfo'),
           color: 'info',
         })
       })
@@ -97,13 +100,17 @@ function CollapsePanelHeader(props) {
   return (
     <>
       <Space>
-        <div className="w-36">{TableType[type]}数据</div>
+        <div className="w-36">
+          {TableType[type]}
+          {t('configTTL.data')}
+        </div>
         <TTLConfigInput value={value} confirmTTL={confirmTypeTTL} type={type} />
       </Space>
     </>
   )
 }
 export default function ConfigTTL() {
+  const { t } = useTranslation('oss/config')
   const [data, setData] = useState(null)
   const getCollapseItems = () => {
     return Object.keys(TableType).map((key) => {
@@ -130,10 +137,10 @@ export default function ConfigTTL() {
   return (
     <CCard className="w-full">
       <CCardHeader className="inline-flex items-center">
-        数据保留周期配置
+        {t('configTTL.title')}
         <Space className="text-xs ml-3 text-gray-300">
           <IoMdInformationCircleOutline size={18} color="#f7c01a" />
-          更新可能需一定时间生效，请稍后刷新页面查看结果。
+          {t('configTTL.updateInfo')}
         </Space>
       </CCardHeader>
       <Collapse ghost size="small" items={getCollapseItems()} collapsible="icon"></Collapse>

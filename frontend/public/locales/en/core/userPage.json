@@ -1,0 +1,50 @@
+{
+  "index": {
+    "basicInfo": "Basic Information",
+    "updatePassword": "Update Password"
+  },
+  "userInfo": {
+    "email": "Email",
+    "emailPlaceholder": "Please enter email",
+    "emailInvalid": "Please enter a valid email address",
+    "emailRequired": "Email cannot be empty",
+    "phone": "Phone",
+    "phonePlaceholder": "Please enter phone number",
+    "phoneInvalid": "Please enter a valid phone number",
+    "phoneRequired": "Please enter phone number",
+    "corporation": "Organization",
+    "corporationPlaceholder": "Please enter organization name",
+    "updateInfo": "Update Info",
+    "confirmUpdate": "Are you sure you want to update the information?",
+    "updateSuccess": "User information updated successfully",
+    "okText": "Confirm",
+    "cancelText": "Cancel",
+    "address": "Address",
+    "addressPlaceholder": "Please enter address",
+    "addressRequired": "Address cannot be empty"
+  },
+  "updatePassword": {
+    "oldPassword": "Old Password",
+    "oldPasswordPlaceholder": "Please enter old password",
+    "oldPasswordRequired": "Please enter old password",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Please enter new password",
+    "newPasswordRequired": "Please enter new password",
+    "newPasswordPattern": "Password must contain uppercase letters, lowercase letters, special characters, and be longer than 8 characters",
+    "confirmPassword": "Confirm New Password",
+    "confirmPasswordPlaceholder": "Please re-enter new password",
+    "confirmPasswordRequired": "Please re-enter new password",
+    "confirmPasswordMismatch": "The two passwords do not match",
+    "confirmUpdate": "Are you sure you want to update the password?",
+    "updateSuccess": "Password reset successful, please log in again",
+    "updateFail": "Failed to update password",
+    "formValidationFail": "Form validation failed",
+    "formValidationFailMessage": "Please check the input",
+    "getUsernameFail": "Failed to get username",
+    "getUsernameFailMessage": "Please log in again",
+    "error": "Error",
+    "updatePassword": "Update Password",
+    "okText": "Confirm",
+    "cancelText": "Cancel"
+  }
+}

@@ -8,11 +8,12 @@ import {
   getServiceLogLogsApi,
   getServiceTraceLogsApi,
 } from 'src/core/api/serviceInfo'
+import i18n from './i18n'
 
 export const DelaySourceTimeUnit = {
-  self: '自身',
-  dependency: '依赖',
-  unknown: '未知',
+  self: i18n.t('common:delaySourceTimeUnit.selfText'),
+  dependency: i18n.t('common:delaySourceTimeUnit.dependencyText'),
+  unknown: i18n.t('common:delaySourceTimeUnit.unknownText'),
 }
 
 export const MetricsLineChartColor = {
@@ -44,14 +45,6 @@ export const TimeLineTypeTitleMap = {
   errorLogs: '错误日志',
   logsInfo: '故障现场日志',
   traceLogs: '故障现场Trace',
-}
-
-export const DelayLineChartTitleMap = {
-  latency: '平均响应时间',
-  p90: '90分位数',
-  errorRate: '错误率',
-  logs: '日志错误数量',
-  tps: '吞吐量',
 }
 
 export const YValueMinInterval = {
@@ -98,18 +91,26 @@ export const ChartColorList = [
 ]
 
 export const TableType = {
-  logs: '日志',
-  trace: '链路',
-  k8s: 'Kubernetes事件',
-  topology: '拓扑图',
-  other: '其他',
+  logs: i18n.t('common:tableType.logsText'),
+  trace: i18n.t('common:tableType.traceText'),
+  k8s: i18n.t('common:tableType.k8sText'),
+  topology: i18n.t('common:tableType.topologyText'),
+  other: i18n.t('common:tableType.otherText'),
+}
+
+export const DelayLineChartTitleMap = {
+  latency: i18n.t('common:delayLineChartTitleMap.latency'),
+  p90: i18n.t('common:delayLineChartTitleMap.p90'),
+  errorRate: i18n.t('common:delayLineChartTitleMap.errorRate'),
+  logs: i18n.t('common:delayLineChartTitleMap.logs'),
+  tps: i18n.t('common:delayLineChartTitleMap.tps'),
 }
 
 export const RuleGroupMap = {
-  app: '应用指标',
-  infra: '主机相关',
-  network: '网络相关',
-  container: '容器相关',
+  app: i18n.t('common:ruleGroupMap.app'),
+  infra: i18n.t('common:ruleGroupMap.infra'),
+  network: i18n.t('common:ruleGroupMap.network'),
+  container: i18n.t('common:ruleGroupMap.container'),
 }
 
 export const AlertSeverityMapList = [

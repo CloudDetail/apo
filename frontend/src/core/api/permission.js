@@ -10,8 +10,8 @@ export function getUserPermissionApi(params) {
   return get('/api/permission/config', params)
 }
 //获取所有可配置权限
-export function getAllPermissionApi() {
-  return get('/api/permission/feature')
+export function getAllPermissionApi(params) {
+  return get('/api/permission/feature', params)
 }
 //配置全局菜单
 export function configMenuApi(params) {

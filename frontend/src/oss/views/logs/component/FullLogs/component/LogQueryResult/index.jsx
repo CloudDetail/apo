@@ -9,8 +9,10 @@ import { Pagination } from 'antd'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import Histogram from './Histogram'
 import ContextModal from './ContextModal'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 const LogQueryResult = () => {
+  const { t } = useTranslation('oss/fullLogs')
   const { pagination, updateLogsPagination, logs, tableInfo, query, loading } = useLogsContext()
 
   const [modalVisible, setModalVisible] = useState(false)
@@ -50,7 +52,7 @@ const LogQueryResult = () => {
         className="flex-shrink-0 flex-grow-0 p-2"
         align="end"
         onChange={changePagination}
-        showTotal={(total) => `日志总条数: ${total} `}
+        showTotal={(total) => `${t('logQueryResult.totalText')} ${total} `}
       />
       <ContextModal
         modalVisible={modalVisible}

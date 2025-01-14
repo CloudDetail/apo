@@ -25,7 +25,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
   const convertYValue = (value) => {
     switch (type) {
       case 'logs':
-        return Math.floor(value) + '个'
+        return Math.floor(value) + t('units.unit')
       case 'latency':
         if (value > 0 && value < 10) {
           return '< 0.01 ms'
@@ -45,9 +45,9 @@ const DelayLineChart = ({ data, timeRange, type }) => {
         return parseFloat(value.toFixed(2)) + '%'
       case 'tps':
         if (value > 0 && value < 0.01) {
-          return '< 0.01次/分'
+          return '< 0.01' + t('units.timesPerMinute')
         }
-        return parseFloat((Math.floor(value * 100) / 100).toString()) + '次/分'
+        return parseFloat((Math.floor(value * 100) / 100).toString()) + t('units.timesPerMinute')
     }
   }
   const [option, setOption] = useState({
@@ -72,43 +72,15 @@ const DelayLineChart = ({ data, timeRange, type }) => {
           },
         },
       },
-      //   position: function (point, params, dom, rect, size) {
-      //     // point 是鼠标位置 [x, y]
-      //     // size 包含 dom 的宽高 {contentSize: [width, height], viewSize: [width, height]}
-      //     var x = point[0];
-      //     var y = point[1];
-      //     var viewWidth = size.viewSize[0];
-      //     var viewHeight = size.viewSize[1];
-      //     var boxWidth = size.contentSize[0];
-      //     var boxHeight = size.contentSize[1];
-
-      //     var posX = x + 20; // 偏移量
-      //     var posY = y + 20; // 偏移量
-
-      //     // 防止 tooltip 超出右边界
-      //     if (posX + boxWidth > viewWidth) {
-      //         posX = x - boxWidth - 20;
-      //     }
-
-      //     // 防止 tooltip 超出下边界
-      //     if (posY + boxHeight > viewHeight) {
-      //         posY = y - boxHeight - 20;
-      //     }
-
-      //     return [posX, posY];
-      // },
-      // appendToBody: true,
-      // className: 'w-[70%] overflow-x-hidden overflow-y-auto fixed ',
-      // extraCssText: 'white-space: normal;word-break: break-all;',
       formatter: (params) => {
         let result = `<div class="rgb(102, 102, 102)">${convertTime(params.data[0] * 1000, 'yyyy-mm-dd hh:mm:ss')}<br/></div>
         <div class="overflow-hidden w-full " >`
         result += `<div class="flex flex-row items-center justify-between">
-                      <div class="flex flex-row items-center flex-nowrap flex-shrink w-0 flex-1 whitespace-normal break-words">
+                      <div class="flex flex-row items-center flex-nowrap flex-shrink flex-1 whitespace-normal break-words">
                         <div class=" my-2 mr-2 rounded-full w-3 h-3 flex-grow-0 flex-shrink-0" style="background:${params.color}"></div>
-                        <div class="flex-1 w-0">${params.seriesName}</div>
+                        <div class="flex-1">${params.seriesName}</div>
                       </div>
-                      <span class="font-bold flex-shrink-0 ">${convertYValue(params.data[1])}</span>
+                      <span class="font-bold flex-shrink-0 ml-2">${convertYValue(params.data[1])}</span>
                       </div>`
         // params.forEach((param) => {
         //   result += `<div class="flex flex-row items-center justify-between">

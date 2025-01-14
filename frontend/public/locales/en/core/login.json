@@ -1,0 +1,17 @@
+{
+  "index": {
+    "title": "APO",
+    "username": "Username",
+    "password": "Password",
+    "login": "Login",
+    "loginSuccess": "Login successful",
+    "enterUsername": "Please enter username",
+    "enterPassword": "Please enter password"
+  },
+  "request": {
+    "notLoggedIn": "Not logged in, please log in first",
+    "loginExpired": "Login expired, please log in again",
+    "accessDenied": "Access denied",
+    "requestFailed": "Request failed"
+  }
+}

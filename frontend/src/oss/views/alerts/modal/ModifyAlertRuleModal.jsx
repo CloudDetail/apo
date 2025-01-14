@@ -12,6 +12,9 @@ import { useSelector } from 'react-redux'
 import { addRuleApi, updateRuleApi } from 'core/api/alerts'
 import { showToast } from 'src/core/utils/toast'
 import ALertConditionCom from './ALertConditionCom'
+import { useTranslation } from 'react-i18next' // 引入i18n
+import TranslationCom from 'src/oss/components/TranslationCom'
+
 function isValidKeyValue(str) {
   // 定义正则表达式，key 以字母或下划线开头，后面可以跟字母、数字或下划线
   const regex = /^[a-zA-Z_][a-zA-Z0-9_]*=.*$/
@@ -47,18 +50,32 @@ export default function ModifyAlertRuleModal({
   const [expr, setExpr] = useState(null)
   const [forUnit, setForUnit] = useState('s')
   const [keepUnit, setKeepUnit] = useState('s')
+  const namespace = 'oss/alert'
   const options = [
-    { value: 's', label: 's（秒）' },
-    { value: 'm', label: 'm（分钟）' },
-    { value: 'h', label: 'h（小时）' },
-    { value: 'd', label: 'd（天）' },
+    {
+      value: 's',
+      label: <TranslationCom text="modifyAlertRuleModal.option.secondText" space={namespace} />,
+    },
+    {
+      value: 'm',
+      label: <TranslationCom text="modifyAlertRuleModal.option.minuteText" space={namespace} />,
+    },
+    {
+      value: 'h',
+      label: <TranslationCom text="modifyAlertRuleModal.option.hourText" space={namespace} />,
+    },
+    {
+      value: 'd',
+      label: <TranslationCom text="modifyAlertRuleModal.option.dayText" space={namespace} />,
+    },
   ]
   const { groupLabelSelectOptions, groupLabel } = useSelector((state) => state.groupLabelReducer)
+  const { t } = useTranslation('oss/alert')
   const labelsTag = ({ value }) => {
     return isValidKeyValue(value) ? (
       <Tag closeIcon>{value}</Tag>
     ) : (
-      <Tooltip title="格式应为 key=value 的键值对，且key 以字母或下划线开头，可以由字母、下划线、数字组成。">
+      <Tooltip title={t('modifyAlertRuleModal.invalidLabelFormat')}>
         <Tag closeIcon color={'error'}>
           {value}
         </Tag>
@@ -74,7 +91,7 @@ export default function ModifyAlertRuleModal({
       }
     }
     if (!pass) {
-      return Promise.reject(new Error('标签格式不正确，请检查'))
+      return Promise.reject(new Error(t('modifyAlertRuleModal.invalidLabelFormat')))
     }
     return Promise.resolve()
   }
@@ -136,7 +153,7 @@ export default function ModifyAlertRuleModal({
     }
     api(params).then(() => {
       showToast({
-        title: '保存告警规则成功',
+        title: t('modifyAlertRuleModal.saveSuccess'),
         color: 'success',
       })
       closeModal()
@@ -225,13 +242,13 @@ export default function ModifyAlertRuleModal({
   return (
     <>
       <Modal
-        title={'告警规则配置'}
+        title={t('modifyAlertRuleModal.title')}
         open={modalVisible}
         onCancel={closeModal}
         destroyOnClose
         centered
-        okText={'保存'}
-        cancelText="取消"
+        okText={t('modifyAlertRuleModal.save')}
+        cancelText={t('modifyAlertRuleModal.cancel')}
         maskClosable={false}
         onOk={saveRule}
         width={1000}
@@ -246,13 +263,20 @@ export default function ModifyAlertRuleModal({
           }}
         >
           <Form.Item
-            label="组名"
+            label={t('modifyAlertRuleModal.groupName')}
             name="group"
             required
             rules={[
               {
                 validator: async (_, value) => {
-                  if (!value) return Promise.reject(new Error('组名不可为空'))
+                  if (!value)
+                    return Promise.reject(
+                      new Error(
+                        t('modifyAlertRuleModal.groupName') +
+                          ' ' +
+                          t('modifyAlertRuleModal.invalidLabelFormat'),
+                      ),
+                    )
                 },
               },
             ]}
@@ -260,21 +284,25 @@ export default function ModifyAlertRuleModal({
             <Select
               options={groupLabelSelectOptions}
               labelInValue
-              placeholder="选择组名"
+              placeholder={t('modifyAlertRuleModal.groupName')}
               onChange={(value) => changeGroupLabel('group', value?.key)}
             />
           </Form.Item>
-          <Form.Item label="告警规则名" name="alert" required>
-            <Input placeholder="告警规则名" />
+          <Form.Item label={t('modifyAlertRuleModal.alertRuleName')} name="alert" required>
+            <Input placeholder={t('modifyAlertRuleModal.alertRuleName')} />
           </Form.Item>
-          <Form.Item label="告警条件" name="condition">
+          <Form.Item label={t('modifyAlertRuleModal.alertCondition')} name="condition">
             <ALertConditionCom expr={expr} setExpr={setExpr} />
           </Form.Item>
-          <Form.Item label="告警级别" name="severity" layout="horizontal">
+          <Form.Item
+            label={t('modifyAlertRuleModal.alertLevel')}
+            name="severity"
+            layout="horizontal"
+          >
             <Radio.Group onChange={(e) => changeGroupLabel('severity', e.target.value)}>
-              <Radio value="critical">critical</Radio>
-              <Radio value="warning">warning</Radio>
-              <Radio value="info">info</Radio>
+              <Radio value="critical">{t('modifyAlertRuleModal.critical')}</Radio>
+              <Radio value="warning">{t('modifyAlertRuleModal.warning')}</Radio>
+              <Radio value="info">{t('modifyAlertRuleModal.info')}</Radio>
             </Radio.Group>
           </Form.Item>
           {/* <Form.Item label="查询语句" name="expr">
@@ -282,7 +310,7 @@ export default function ModifyAlertRuleModal({
               <MonacoEditorWrapper defaultValue={expr} handleEditorChange={setExpr} />
             </div>
           </Form.Item> */}
-          <Form.Item label="持续时间" name="for" required>
+          <Form.Item label={t('modifyAlertRuleModal.duration')} name="for" required>
             <InputNumber
               addonAfter={
                 <Select
@@ -295,8 +323,8 @@ export default function ModifyAlertRuleModal({
               placeholder=""
             />
           </Form.Item>
-          <Form.Item label="告警信息" name="description">
-            <TextArea placeholder="告警信息" rows={2} />
+          <Form.Item label={t('modifyAlertRuleModal.alertMessage')} name="description">
+            <TextArea placeholder={t('modifyAlertRuleModal.alertMessage')} rows={2} />
           </Form.Item>
           {!ruleInfo && (
             <div className="flex mb-4">
@@ -304,17 +332,21 @@ export default function ModifyAlertRuleModal({
                 onChange={(e) => updateDescription(e, 'VALUE = {{ $value }}')}
                 defaultChecked
               >
-                包含指标值
+                {t('modifyAlertRuleModal.includeMetricValue')}
               </Checkbox>
               <Checkbox
                 onChange={(e) => updateDescription(e, 'LABELS = {{ $labels }}')}
                 defaultChecked
               >
-                包含指标标签
+                {t('modifyAlertRuleModal.includeMetricLabels')}
               </Checkbox>
             </div>
           )}
-          <Form.Item label="附加标签" name="labels" rules={[{ validator: labelsValidator }]}>
+          <Form.Item
+            label={t('modifyAlertRuleModal.additionalLabels')}
+            name="labels"
+            rules={[{ validator: labelsValidator }]}
+          >
             <Select
               mode="tags"
               style={{ width: '100%' }}
@@ -322,7 +354,7 @@ export default function ModifyAlertRuleModal({
               open={false}
               options={null}
               suffixIcon={null}
-              placeholder="格式key=value 的键值对，以回车分隔"
+              placeholder={t('modifyAlertRuleModal.additionalLabelsPlaceholder')}
             />
           </Form.Item>
           {/* <Input placeholder="input placeholder" value={annotations} /> */}
@@ -332,7 +364,7 @@ export default function ModifyAlertRuleModal({
                 <Form.Item
                   label={
                     <>
-                      附加信息{' '}
+                      {t('modifyAlertRuleModal.additionalInfo')}{' '}
                       <IoMdAddCircleOutline onClick={() => add()} size={20} className="mx-2" />
                     </>
                   }
@@ -350,20 +382,22 @@ export default function ModifyAlertRuleModal({
                             {
                               validator: async (_, value) => {
                                 if (!isValidKey(value)) {
-                                  return Promise.reject(new Error('请以字母或下划线开头'))
+                                  return Promise.reject(
+                                    new Error(t('modifyAlertRuleModal.invalidKey')),
+                                  )
                                 }
                               },
                             },
                           ]}
                         >
-                          <Input placeholder="键" />
+                          <Input placeholder={t('modifyAlertRuleModal.key')} />
                         </Form.Item>
                         <Form.Item
                           // layout="horizontal"
                           className="w-2/3 block test"
                           name={[field.name, 'value']}
                         >
-                          <TextArea placeholder="值" rows={2} />
+                          <TextArea placeholder={t('modifyAlertRuleModal.value')} rows={2} />
                         </Form.Item>
 
                         <IoIosRemoveCircleOutline

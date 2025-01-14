@@ -3,47 +3,59 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Descriptions, Dropdown, Input, List, Menu, Popover, Select, Space, theme } from 'antd'
-import { Tooltip } from 'chart.js'
-import React, { useEffect, useState } from 'react'
-import { IoMdSearch } from 'react-icons/io'
+import { Descriptions, Dropdown, Space, theme } from 'antd'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { MdOutlineManageSearch } from 'react-icons/md'
 import { getRuleMetricsApi } from 'core/api/alerts'
 import MonacoEditorWrapper from 'src/core/components/Editor/MonacoEditor'
+import { useTranslation } from 'react-i18next'
 
 export default function ALertConditionCom({ expr, setExpr }) {
+  const { t } = useTranslation('oss/alert')
   const [metricsList, setMetricsList] = useState([])
   const [metricsDetail, setMetricsDetail] = useState()
   const { useToken } = theme
   const { token } = useToken()
-  const contentStyle = {
-    backgroundColor: token.colorBgElevated,
-    borderRadius: token.borderRadiusLG,
-    boxShadow: token.boxShadowSecondary,
-  }
-  const menuStyle = {
-    boxShadow: 'none',
-  }
+
+  const contentStyle = useMemo(
+    () => ({
+      backgroundColor: token.colorBgElevated,
+      borderRadius: token.borderRadiusLG,
+      boxShadow: token.boxShadowSecondary,
+    }),
+    [token],
+  )
+
+  const menuStyle = useMemo(
+    () => ({
+      boxShadow: 'none',
+    }),
+    [],
+  )
+
   useEffect(() => {
     if (metricsList.length <= 0) {
       getRuleMetricsApi().then((res) => {
         setMetricsList(res.alertMetricsData ?? [])
       })
     }
-  }, [])
-  const handlePopoverOpen = (item) => {
+  }, [metricsList.length])
+
+  const handlePopoverOpen = useCallback((item) => {
     setMetricsDetail(item)
-  }
-  const convertMetricsListToMenuItems = () => {
-    return metricsList.map((item) => ({
-      key: item.name,
+  }, [])
+
+  const convertMetricsListToMenuItems = useCallback(() => {
+    return metricsList.map((item, index) => ({
+      key: `${item.name}-${index}`, // 确保 key 是唯一的
       label: <div onMouseEnter={() => handlePopoverOpen(item)}>{item.name}</div>,
       onClick: () => setExpr(item.pql),
     }))
-  }
+  }, [metricsList, handlePopoverOpen, setExpr])
+
   return (
     <>
-      <div className=" flex border-1 border-solid rounded  border-[#424242] hover:border-[#3c89e8]  focus:border-[#3c89e8] ">
+      <div className="flex border-1 border-solid rounded border-[#424242] hover:border-[#3c89e8] focus:border-[#3c89e8]">
         <div className="flex-grow-0 flex-shrink-0 flex items-center px-2">
           <Dropdown
             menu={{
@@ -62,12 +74,12 @@ export default function ALertConditionCom({ expr, setExpr }) {
                       items={[
                         {
                           key: 'pql',
-                          label: '表达式',
+                          label: t('alertConditionCom.expression'),
                           children: metricsDetail.pql,
                         },
                         {
                           key: 'unit',
-                          label: '单位',
+                          label: t('alertConditionCom.unit'),
                           children: metricsDetail.unit,
                         },
                       ]}
@@ -78,8 +90,8 @@ export default function ALertConditionCom({ expr, setExpr }) {
             )}
           >
             <a onClick={(e) => e.preventDefault()}>
-              <Space className=" cursor-pointer text-blue-400">
-                快速指标 <MdOutlineManageSearch />
+              <Space className="cursor-pointer text-blue-400">
+                {t('alertConditionCom.quickMetrics')} <MdOutlineManageSearch />
               </Space>
             </a>
           </Dropdown>
@@ -88,44 +100,6 @@ export default function ALertConditionCom({ expr, setExpr }) {
           <MonacoEditorWrapper defaultValue={expr} handleEditorChange={setExpr} />
         </div>
       </div>
-
-      {/* <div className="flex items-center mt-2">
-        当
-        <Popover
-          content={
-            <div className="w-[500px]">
-              <MonacoEditorWrapper defaultValue={expr} handleEditorChange={setExpr} />
-            </div>
-          }
-        >
-          <span className="text-blue-400 cursor-pointer">指标</span>
-        </Popover>
-        <Select
-          value={symbol}
-          className="w-auto mx-1"
-          defaultValue={'>'}
-          options={[
-            { label: '>', value: '>' },
-            { label: '<', value: '<' },
-            { label: '=', value: '=' },
-          ]}
-        />
-        <Input value={condition} placeholder="条件值" className="w-[80px] mx-1" />
-        <Input value={unit} placeholder="单位" className="w-[80px] mx-1" /> 触发通知, 查看
-        <Popover
-          title="最终查询语句"
-          content={
-            <div className="w-[500px]">
-              <MonacoEditorWrapper defaultValue={expr} handleEditorChange={setExpr} />
-            </div>
-          }
-        >
-          <span className="text-blue-400 cursor-pointer inline-flex items-center">
-            {' '}
-            最终查询语句 <IoMdSearch />
-          </span>
-        </Popover>
-      </div> */}
     </>
   )
 }
