@@ -61,8 +61,8 @@ type subRepo struct {
 
 func NewAlertInputRepo(db *gorm.DB, cfg *config.Config) (*subRepo, error) {
 	repo := &subRepo{db}
-	err := repo.initDefaultExternalAlertTagMapping(
-		cfg.Database.InitScript.QuickAlertRuleMetric)
+	err := repo.initDefaultAlertTagMapping(
+		cfg.Database.InitScript.DefaultAlertTagMapping)
 
 	return repo, err
 }
