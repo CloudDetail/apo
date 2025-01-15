@@ -1,11 +1,6 @@
 {
   "glossaryTable": {
     "type": "类型",
-    "meaning": "含义",
-    "networkTime": "耗时为对外的服务调用和任何数据库和中间件，DNS等网络操作耗时",
-    "cpuTime": "程序代码在cpu上的执行时间.如果cpu_time过长，是由于嵌入层次过多或者循环过多导致在cpu上执行时间",
-    "lockGcTime": "程序由于GC或者锁等待产生时延，如果是GC频繁，延时应该分布在不同时间点，如果是锁，一般是连续时间",
-    "diskIoTime": "程序写文件时间",
-    "scheduleTime": "由于CPU争抢而产生的等待时间"
+    "meaning": "含义"
   }
 }

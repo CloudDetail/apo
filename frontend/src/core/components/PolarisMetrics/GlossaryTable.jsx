@@ -7,50 +7,26 @@ import React, { useMemo } from 'react'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { useTranslation } from 'react-i18next'
 import { Card } from 'antd'
+import { SlowErrorType } from 'src/constants'
 
 function GlossaryTable() {
   const { t } = useTranslation('core/polarisMetrics')
-  const data = useMemo(
-    () => [
-      {
-        code: 'network_time',
-        value: t('glossaryTable.networkTime'),
-      },
-      {
-        code: 'CPU_time',
-        value: t('glossaryTable.cpuTime'),
-      },
-      {
-        code: 'lock_gc_time',
-        value: t('glossaryTable.lockGcTime'),
-      },
-      {
-        code: 'disk_io_time',
-        value: t('glossaryTable.diskIoTime'),
-      },
-      {
-        code: 'schedule_time',
-        value: t('glossaryTable.scheduleTime'),
-      },
-    ],
-    [t],
-  )
-
-  const columns = useMemo(
-    () => [
-      {
-        title: t('glossaryTable.type'),
-        accessor: 'code',
-        customWidth: 120,
-      },
-      {
-        title: t('glossaryTable.meaning'),
-        justifyContent: 'left',
-        accessor: 'value',
-      },
-    ],
-    [t],
-  )
+  const data = Object.entries(SlowErrorType).map(([key, value]) => ({
+    code: key,
+    value: value,
+  }))
+  const columns = [
+    {
+      title: t('glossaryTable.type'),
+      accessor: 'code',
+      customWidth: 120,
+    },
+    {
+      title: t('glossaryTable.meaning'),
+      justifyContent: 'left',
+      accessor: 'value',
+    },
+  ]
 
   const tableProps = useMemo(() => {
     return {
