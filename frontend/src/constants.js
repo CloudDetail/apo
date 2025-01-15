@@ -8,12 +8,12 @@ import {
   getServiceLogLogsApi,
   getServiceTraceLogsApi,
 } from 'src/core/api/serviceInfo'
-import i18n from './i18n'
+import { t } from 'i18next'
 
 export const DelaySourceTimeUnit = {
-  self: i18n.t('common:delaySourceTimeUnit.selfText'),
-  dependency: i18n.t('common:delaySourceTimeUnit.dependencyText'),
-  unknown: i18n.t('common:delaySourceTimeUnit.unknownText'),
+  self: t('common:delaySourceTimeUnit.selfText'),
+  dependency: t('common:delaySourceTimeUnit.dependencyText'),
+  unknown: t('common:delaySourceTimeUnit.unknownText'),
 }
 
 export const MetricsLineChartColor = {
@@ -91,26 +91,26 @@ export const ChartColorList = [
 ]
 
 export const TableType = {
-  logs: i18n.t('common:tableType.logsText'),
-  trace: i18n.t('common:tableType.traceText'),
-  k8s: i18n.t('common:tableType.k8sText'),
-  topology: i18n.t('common:tableType.topologyText'),
-  other: i18n.t('common:tableType.otherText'),
+  logs: t('common:tableType.logsText'),
+  trace: t('common:tableType.traceText'),
+  k8s: t('common:tableType.k8sText'),
+  topology: t('common:tableType.topologyText'),
+  other: t('common:tableType.otherText'),
 }
 
 export const DelayLineChartTitleMap = {
-  latency: i18n.t('common:delayLineChartTitleMap.latency'),
-  p90: i18n.t('common:delayLineChartTitleMap.p90'),
-  errorRate: i18n.t('common:delayLineChartTitleMap.errorRate'),
-  logs: i18n.t('common:delayLineChartTitleMap.logs'),
-  tps: i18n.t('common:delayLineChartTitleMap.tps'),
+  latency: t('common:delayLineChartTitleMap.latency'),
+  p90: t('common:delayLineChartTitleMap.p90'),
+  errorRate: t('common:delayLineChartTitleMap.errorRate'),
+  logs: t('common:delayLineChartTitleMap.logs'),
+  tps: t('common:delayLineChartTitleMap.tps'),
 }
 
 export const RuleGroupMap = {
-  app: i18n.t('common:ruleGroupMap.app'),
-  infra: i18n.t('common:ruleGroupMap.infra'),
-  network: i18n.t('common:ruleGroupMap.network'),
-  container: i18n.t('common:ruleGroupMap.container'),
+  app: t('common:ruleGroupMap.app'),
+  infra: t('common:ruleGroupMap.infra'),
+  network: t('common:ruleGroupMap.network'),
+  container: t('common:ruleGroupMap.container'),
 }
 
 export const AlertSeverityMapList = [
@@ -189,4 +189,12 @@ export const ThemeStyle = {
       background: { primary: '#181B1F' },
     },
   },
+}
+// TODO: cache clean
+export const SlowErrorType = {
+  network_time: t('common:slowCauseType.networkTime'),
+  CPU_time: t('common:slowCauseType.cpuTime'),
+  lock_gc_time: t('common:slowCauseType.lockGcTime'),
+  disk_io_time: t('common:slowCauseType.diskIoTime'),
+  schedule_time: t('common:slowCauseType.scheduleTime'),
 }
