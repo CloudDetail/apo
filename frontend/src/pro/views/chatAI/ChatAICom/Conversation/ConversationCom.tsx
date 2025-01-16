@@ -3,7 +3,6 @@ import AIMessage from './AIMessage'
 import HumanMessage from './HumanMessage'
 import { Divider } from 'antd'
 import ExampleCom from './ExampleCom'
-import { mockDialogue } from '../mock'
 
 interface CnversationData {
   message: string
@@ -50,7 +49,7 @@ const ConversationCom = ({ dialogue, index, loading }: ConversationComProps) => 
           <Divider type="vertical" className="h-full" />
         </div>
 
-        <ExampleCom children={mockDialogue[index]?.explanation || <>{dialogue?.explanation}</>} />
+        <ExampleCom children={<>{dialogue?.explanation}</>} />
       </div>
       {!loading && <Divider />}
     </>

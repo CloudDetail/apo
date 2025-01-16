@@ -15,6 +15,7 @@ import streamFetch from 'src/pro/util/streamFetch'
 import React from 'react'
 import { anormalTypes } from 'src/pro/constants'
 import { FaLocationCrosshairs } from 'react-icons/fa6'
+import { Explanations } from './Explanations'
 const ChatAICom = () => {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   //上下文
@@ -58,6 +59,7 @@ const ChatAICom = () => {
                   img: parsedData?.img,
                 },
               ],
+              explanation: Explanations[currentIndex],
             }
           }
           // 如果当前对话框有两条消息，则切换到下一个对话框
@@ -73,6 +75,7 @@ const ChatAICom = () => {
                     img: parsedData?.img,
                   },
                 ],
+                explanation: Explanations[currentIndex],
               }
             }
           }
