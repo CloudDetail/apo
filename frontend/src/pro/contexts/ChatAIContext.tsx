@@ -24,6 +24,7 @@ import ErrorInstanceTable from '../components/DataViewCom/ErrorInstanceTable'
 import PolarisPng from 'src/pro/assets/9-1.png'
 import MetricsDashboardCom from '../components/DataViewCom/MetricsDashboard'
 import { showToast } from 'src/core/utils/toast'
+import GlossaryTable from 'src/core/components/PolarisMetrics/GlossaryTable'
 // 定义上下文的数据类型
 const dataViewType = {
   service: {
@@ -153,6 +154,7 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setController(controller)
     const step = getStep(startTime, endTime)
     setIsDone(false)
+    setIsAutoScroll(false)
     setStreamType('analyze')
     setCauseConfirmvisibilit(false)
     const typeTitle = type.map((item) => dataViewType[item].title)
@@ -203,6 +205,7 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           // 读取流数据
           const { value, done } = await reader.read()
           if (done) {
+            setIsAutoScroll(false)
             setCauseConfirmvisibilit(true)
             setIsDone(true)
             break
@@ -243,6 +246,15 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                     ...(currentConversation.components || []),
                     parsedData.components[i],
                   ]
+                  if (type.includes('slow')) {
+                    updatedDialogue[updatedDialogue.length - 1].explanation = (
+                      <>
+                        通过 eBPF
+                        技术，我们已将延时分解为以下几个部分，延时的变化必然由以下某一项或多项因素构成。
+                        <GlossaryTable />
+                      </>
+                    )
+                  }
                   return updatedDialogue
                 })
               }
@@ -257,6 +269,7 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       }
     } catch {
       setIsDone(true)
+      setIsAutoScroll(false)
       setCauseConfirmvisibilit(true)
       return
     }

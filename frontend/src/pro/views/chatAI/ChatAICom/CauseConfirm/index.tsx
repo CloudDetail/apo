@@ -1,23 +1,18 @@
-import { Button, Card, Carousel, Col, Flex, FloatButton, Row, Steps, Tooltip } from 'antd'
-import { useEffect, useRef, useState } from 'react'
+import { Button, Card, Steps } from 'antd'
+import { useEffect, useState } from 'react'
 import CauseConfirmStep from './CauseConfirmStep'
 import DataViewConfirmStep from './DataViewConfirmStep/index'
-import { IoMdClose } from 'react-icons/io'
 import { FaChevronRight } from 'react-icons/fa'
 import React from 'react'
 import { useChatAIContext } from 'src/pro/contexts/ChatAIContext'
 import GlassCard from 'src/pro/components/GlassCard'
-import { FaLocationCrosshairs } from 'react-icons/fa6'
 import styles from './index.module.scss'
 const CauseConfirm = () => {
   const causeConfirmvisibility = useChatAIContext((ctx) => ctx.causeConfirmvisibility)
   const setCauseConfirmvisibilit = useChatAIContext((ctx) => ctx.setCauseConfirmvisibilit)
   const suspectedNodeList = useChatAIContext((ctx) => ctx.suspectedNodeList)
   const selectedSuspectedNode = useChatAIContext((ctx) => ctx.selectedSuspectedNode)
-  const isDone = useChatAIContext((ctx) => ctx.isDone)
-  const setIsAutoScroll = useChatAIContext((ctx) => ctx.setIsAutoScroll)
   const [current, setCurrent] = useState(0)
-  const carouselRef = useRef(null)
   const [stepItems, setStepItems] = useState()
   const steps = [
     {
@@ -45,12 +40,6 @@ const CauseConfirm = () => {
   }, [selectedSuspectedNode])
   useEffect(() => {
     setCurrent(current)
-    // carouselRef.current?.goTo(current)
-  }, [causeConfirmvisibility])
-  useEffect(() => {
-    if (causeConfirmvisibility) {
-      setIsAutoScroll(true)
-    }
   }, [causeConfirmvisibility])
   return (
     <>
@@ -68,6 +57,7 @@ const CauseConfirm = () => {
           </Button>
         }
         className={`${styles.causeConfirmCard} ${causeConfirmvisibility ? styles.fadeIn : styles.fadeOut}`}
+        classNames={{ body: 'py-0' }}
       >
         {suspectedNodeList?.length === 0 && <GlassCard content={<p>未分析出可选择的疑似节点</p>} />}
 
@@ -77,10 +67,11 @@ const CauseConfirm = () => {
           onChange={onChangeStep}
           type="navigation"
           className={styles.steps}
+
           // size="small"
         />
         <div
-          className="grid h-full min-h-[380px]"
+          className="grid h-full "
           style={{
             gridTemplateColumns: '1fr 30px 1fr', // 左右均分，中间固定宽度
             gap: '16px', // 左中右间距
@@ -137,18 +128,6 @@ const CauseConfirm = () => {
           ))}
         </Carousel> */}
       </Card>
-
-      <Tooltip title="确认根因节点、查看数据">
-        <Button
-          className="absolute top-0 right-5 "
-          onClick={() => setCauseConfirmvisibilit(!causeConfirmvisibility)}
-          type="primary"
-          icon={<FaLocationCrosshairs />}
-          disabled={!isDone}
-          shape="circle"
-          size="large"
-        ></Button>
-      </Tooltip>
     </>
   )
 }

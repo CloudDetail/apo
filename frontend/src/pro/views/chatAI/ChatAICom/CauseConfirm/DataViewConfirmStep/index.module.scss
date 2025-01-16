@@ -3,6 +3,18 @@
     button {
       padding: 8px 12px !important;
       font-size: 12px;
+
+      span {
+        white-space: nowrap; /* 禁止换行 */
+        overflow: hidden; /* 隐藏超出部分 */
+        text-overflow: ellipsis; /* 显示省略号 */
+      }
     }
   }
+}
+
+.textEllipsis {
+  white-space: nowrap; /* 禁止换行 */
+  overflow: hidden; /* 隐藏超出部分 */
+  text-overflow: ellipsis; /* 显示省略号 */
 }

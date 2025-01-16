@@ -50,7 +50,7 @@ const ConversationCom = ({ dialogue, index, loading }: ConversationComProps) => 
           <Divider type="vertical" className="h-full" />
         </div>
 
-        <ExampleCom children={mockDialogue[index]?.explanation || <></>} />
+        <ExampleCom children={mockDialogue[index]?.explanation || <>{dialogue?.explanation}</>} />
       </div>
       {!loading && <Divider />}
     </>

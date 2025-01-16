@@ -37,9 +37,9 @@ const CauseConfirmStep = ({ nextStep }: CauseConfirmStepProps) => {
     )
   }
   return (
-    <div className="w-full text-center">
+    <div className="w-full text-center text-xs">
       末次大模型推断根因节点为{' '}
-      <span className="text-lg font-bold">
+      <span className="text-sm font-bold">
         {causeNode?.service}
         <span className="text-xs font-normal">（{causeNode?.endpoint}）</span>
       </span>

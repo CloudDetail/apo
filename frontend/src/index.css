@@ -7,9 +7,35 @@
 @tailwind components;
 @tailwind utilities;
 
-.accordion-item .show{
+
+.accordion-item .show {
     visibility: visible !important;
 }
-.collapse.show{
+
+.collapse.show {
     visibility: visible
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    /* 滚动条宽度 */
+    height: 10px;
+    /* 水平滚动条高度 */
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+    /* 轨道背景色透明 */
+}
+
+::-webkit-scrollbar-thumb {
+    background: #424242;
+    /* 滑块颜色 */
+    border-radius: 5px;
+    /* 滑块圆角 */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+    /* 鼠标悬停滑块颜色 */
 }

@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux'
 import { useDebounce } from 'react-use'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { useChatAIContext } from 'src/pro/contexts/ChatAIContext'
-import { Card } from 'antd'
+import { Button, Card, Divider, Tooltip } from 'antd'
 import ChartInput from './ChartInput'
 import ConversationCom from './Conversation/ConversationCom'
 import { getStep } from 'src/core/utils/step'
@@ -14,6 +14,7 @@ import CauseConfirm from './CauseConfirm'
 import streamFetch from 'src/pro/util/streamFetch'
 import React from 'react'
 import { anormalTypes } from 'src/pro/constants'
+import { FaLocationCrosshairs } from 'react-icons/fa6'
 const ChatAICom = () => {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   //上下文
@@ -29,6 +30,7 @@ const ChatAICom = () => {
   const streamType = useChatAIContext((ctx) => ctx.streamType)
   const setStreamType = useChatAIContext((ctx) => ctx.setStreamType)
   const setCauseConfirmvisibilit = useChatAIContext((ctx) => ctx.setCauseConfirmvisibilit)
+  const causeConfirmvisibility = useChatAIContext((ctx) => ctx.causeConfirmvisibility)
   const isAutoScroll = useChatAIContext((ctx) => ctx.isAutoScroll)
   const setIsAutoScroll = useChatAIContext((ctx) => ctx.setIsAutoScroll)
   // const [dialogue, setDialogue] = useState([])
@@ -167,7 +169,11 @@ const ChatAICom = () => {
         if (done) {
           setIsDone(true)
           isPaused = true
-          if (hasNodeList) setCauseConfirmvisibilit(true)
+
+          if (hasNodeList) {
+            setIsAutoScroll(false)
+            setCauseConfirmvisibilit(true)
+          }
           return // 流结束时退出
         }
         // 确保 `value` 是字符串类型
@@ -196,7 +202,7 @@ const ChatAICom = () => {
           }
           buffer = ''
           // 处理内容
-          if (parsedData.nodeList) {
+          if (parsedData?.nodeList?.length > 0) {
             hasNodeList = true
             changeSuspectedNodeList(parsedData.nodeList)
           }
@@ -367,40 +373,53 @@ const ChatAICom = () => {
     chatContainer.addEventListener('scroll', handleScroll)
     return () => chatContainer.removeEventListener('scroll', handleScroll)
   }, [])
-
-  useEffect(() => {
+  const scrollToBottom = () => {
     const chatContainer = chatContainerRef.current
-    console.log(chatContainer && isAutoScroll)
-    if (chatContainer && isAutoScroll) {
-      // 如果是自动滚动模式，则滚动到最底部
-      chatContainer.scrollTop = chatContainer.scrollHeight
+    if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight
+  }
+  useEffect(() => {
+    if (isAutoScroll) {
+      scrollToBottom()
     }
-  }, [dialogue, isAutoScroll]) // 在消息更新时检查自动滚动状态
+  }, [dialogue, isAutoScroll, causeConfirmvisibility]) // 在消息更新时检查自动滚动状态
   return (
     <Card className="h-full overflow-hidden" classNames={{ body: 'p-0 h-full' }}>
       <LoadingSpinner loading={!isDone && dialogue?.length === 0} />
       <div className="h-full w-full flex overflow-hidden flex-col">
         <div
-          className="flex "
+          className="flex overflow-y-scroll px-4"
           style={{
             borderBottom: '1px solid #303030',
-            paddingLeft: '1.5rem',
-            paddingRight: '1.6rem',
           }}
         >
           <div className="w-2/3 p-3  text-lg font-bold flex items-center">
             大模型对话 <HintCom />
           </div>
-          <div
-            className=" p-3  text-lg font-bold flex-grow"
-            style={{ borderLeft: '1.5px solid #303030' }}
-          >
+          <Divider type="vertical" className="h-full" />
+          <div className=" p-3  text-lg font-bold flex-grow ml-1">
             <div className="w-full  flex justify-between">
               <div>数据与规则说明</div>
             </div>
           </div>
         </div>
-        <div ref={chatContainerRef} className="w-full overflow-y-auto flex-1 ">
+        <Tooltip title="确认根因节点、查看数据">
+          <Button
+            className="absolute right-5 bottom-20 z-20"
+            onClick={() => {
+              if (!causeConfirmvisibility) {
+                setIsAutoScroll(true)
+              }
+
+              setCauseConfirmvisibilit(!causeConfirmvisibility)
+            }}
+            type="primary"
+            icon={<FaLocationCrosshairs />}
+            disabled={!isDone}
+            shape="circle"
+            size="large"
+          ></Button>
+        </Tooltip>
+        <div ref={chatContainerRef} className="w-full overflow-y-scroll flex-1 relative">
           {!isConfigure && (
             <GlassCard
               content={
@@ -418,7 +437,7 @@ const ChatAICom = () => {
               }
             />
           )}
-          <div className=" p-4 ">
+          <div className=" px-4 pt-4" id="conversation">
             {dialogue.map((item, index) => (
               <ConversationCom
                 dialogue={item}

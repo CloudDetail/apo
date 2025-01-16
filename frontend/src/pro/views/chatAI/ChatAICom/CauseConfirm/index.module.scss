@@ -46,6 +46,7 @@
 
 .steps {
   // background: red !important;  #1668dc
+  font-size: 12px;
 
   :global(.ant-steps-item::before) {
     background: none !important;

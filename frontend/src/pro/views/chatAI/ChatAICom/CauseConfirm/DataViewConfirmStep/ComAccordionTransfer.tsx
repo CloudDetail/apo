@@ -1,5 +1,5 @@
 import { CAccordion, CAccordionBody, CAccordionHeader, CAccordionItem } from '@coreui/react'
-import { Transfer, TransferProps, Image, Checkbox, Button, Form } from 'antd'
+import { Transfer, TransferProps, Image, Checkbox, Button, Form, ConfigProvider } from 'antd'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
 import { useChatAIContext } from 'src/pro/contexts/ChatAIContext'
@@ -107,24 +107,22 @@ const ComAccordionTransfer = () => {
       {(props) => {
         const { direction, onItemRemove } = props
         return (
-          <div>
+          <div className="h-[180px] overflow-auto">
             {(direction === 'left' ? sourceKeys : targetKeys).map((item, index) => (
-              <div key={item} className="w-full flex items-center ">
+              <div key={item} className="w-full flex items-center overflow-hidden">
                 {direction === 'left' && (
                   <Checkbox
                     className="mx-2"
                     onChange={(e) => onChange(e.target.checked, item)}
                   ></Checkbox>
                 )}
-                <div className="w-full flex-grow p-2" style={{ flexGrow: 1 }}>
-                  {accordion(direction, item, index)}
-                </div>
+                <div className="flex-1 p-2 w-0">{accordion(direction, item, index)}</div>
                 {direction === 'right' && (
                   <Button
                     color="danger"
                     variant="text"
                     size="small"
-                    className="mr-2"
+                    className="mr-0 flex-shrink-0 flex-grow-0"
                     icon={<MdDeleteOutline />}
                     onClick={(e) => {
                       onItemRemove([item])

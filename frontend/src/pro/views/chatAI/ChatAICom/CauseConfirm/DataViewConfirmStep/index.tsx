@@ -12,6 +12,7 @@ import { getStep } from 'src/core/utils/step'
 import React from 'react'
 import { showToast } from 'src/core/utils/toast'
 import ErrorDataTypeExample from './ErrorDataTypeExample'
+import styles from './index.module.scss'
 
 const DataViewConfirmStep = () => {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
@@ -114,7 +115,7 @@ const DataViewConfirmStep = () => {
     }
   }
   return (
-    <div className=" w-full h-full">
+    <div className=" w-full h-full flex flex-col justify-between">
       <Tabs
         type="editable-card"
         items={items}
@@ -122,15 +123,15 @@ const DataViewConfirmStep = () => {
         onChange={setActiveKey}
         onEdit={onEdit}
         addIcon={
-          <Flex>
+          <Flex className={styles.textEllipsis}>
             <MdAdd size={20} />
             用户自定义数据确认故障
           </Flex>
         }
       />
-      <div className="absolute bottom-2 right-2">
+      <div className="text-right">
         {(activeKey === 'slow' || activeKey === 'error') && (
-          <Button type="primary" onClick={onClick}>
+          <Button type="primary" onClick={onClick} className="">
             确认根因并查看数据
           </Button>
         )}
