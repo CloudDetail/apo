@@ -264,9 +264,16 @@ func GetAlertStatusCH(chRepo clickhouse.Repo,
 		contains(alertTypes, "netStatus") ||
 		contains(alertTypes, "appStatus") ||
 		contains(alertTypes, "containerStatus") {
+
 		// Query the alarm information related to the instance
-		events, _ := chRepo.GetAlertEventsSample(1, startTime, endTime,
-			request.AlertFilter{Service: serviceName, Status: "firing"}, instances)
+		events, _ := chRepo.GetAlertEventsSample(
+			1, startTime, endTime,
+			request.AlertFilter{Service: serviceName, Status: "firing"},
+			&model.RelatedInstances{
+				SIs: instances,
+				MIs: []model.MiddlewareInstance{}, // TODO middleware alert status
+			},
+		)
 
 		// Modify alarm status by alarm reason/
 		for _, event := range events {
