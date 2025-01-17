@@ -16,6 +16,7 @@
     "@coreui/react": "^5.1.0",
     "@coreui/react-chartjs": "^3.0.0",
     "@coreui/utils": "^2.0.2",
+    "@fluentui/react-context-selector": "^9.1.69",
     "@monaco-editor/react": "^4.6.0",
     "@popperjs/core": "^2.11.8",
     "@reactflow/core": "^11.11.4",

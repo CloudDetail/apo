@@ -2,7 +2,6 @@
  * Copyright 2024 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
-
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
@@ -23,8 +22,8 @@ export default defineConfig(() => {
       },
     },
     esbuild: {
-      loader: 'jsx',
-      include: /src\/.*\.jsx?$/,
+      loader: 'tsx',
+      include: /src\/.*\.[tj]sx?$/,
       exclude: [],
     },
     optimizeDeps: {

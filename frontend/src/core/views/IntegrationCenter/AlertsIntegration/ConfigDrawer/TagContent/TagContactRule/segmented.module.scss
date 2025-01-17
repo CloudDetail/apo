@@ -1,0 +1,13 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.segmented {
+  :global(.ant-segmented-item) {
+    border: 1px solid rgb(77 130 255 / var(--tw-border-opacity, 0));
+  }
+  :global(.ant-segmented-item.ant-segmented-item-selected) {
+    border: 1px solid rgb(77 130 255 / var(--tw-border-opacity, 1));
+  }
+}
