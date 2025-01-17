@@ -137,7 +137,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     })
   }
   const getServiceListData = () => {
-    getServiceListApi({ startTime, endTime })
+    getServiceListApi({ startTime, endTime, namespace: selectNamespace || undefined })
       .then((res) => {
         setServiceList(res ?? [])
 
@@ -297,9 +297,8 @@ const LogsTraceFilter = React.memo(({ type }) => {
       urlParam.endTime = endTime
     }
     if (startTime && endTime) {
-      // console.log(urlParam.service, selectServiceName)
+      getServiceListData()
       if (changeTime || urlParam.service !== selectServiceName) {
-        getServiceListData()
         getNamespaceList()
       }
     }

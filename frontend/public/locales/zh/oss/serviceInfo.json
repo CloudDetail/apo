@@ -165,5 +165,18 @@
     "errorRate": "错误率",
     "traceInfo": "故障现场Trace",
     "toastMessage": "根据日志错误数量、平均响应时间、错误率找到关键时刻Trace"
+  },
+  "ruleGroupMap": {
+    "app": "应用指标",
+    "infra": "主机相关",
+    "network": "网络相关",
+    "container": "容器相关"
+  },
+  "moreNode": {
+    "seeMore": "查看更多上下游"
+  },
+  "topology": {
+    "clickToReturn": "点击回退上级入口",
+    "clickToReturnUpperTopology": "点击回退上级入口拓扑图"
   }
 }

@@ -11,8 +11,10 @@ import (
 )
 
 type Input interface {
-	InsertExtraAlertEvent(ctx context.Context, alertEvents []alert.AlertEvent, sourceFrom alert.SourceFrom) error
+	InsertAlertEvent(ctx context.Context, alertEvents []alert.AlertEvent, sourceFrom alert.SourceFrom) error
 }
+
+var _ Input = &chRepo{}
 
 type chRepo struct {
 	conn     driver.Conn

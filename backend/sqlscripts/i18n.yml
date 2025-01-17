@@ -277,10 +277,6 @@ systemConfig:
       translation: "系统配置"
       field_name: "label"
       entity_type: "menu"
-    - language: "en"
-      translation: "Configurations"
-      field_name: "abbreviation"
-      entity_type: "menu"
 
 服务概览:
   key: "服务概览"

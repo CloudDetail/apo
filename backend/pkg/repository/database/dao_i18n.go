@@ -7,11 +7,11 @@ import "github.com/CloudDetail/apo/backend/pkg/model"
 
 type I18nTranslation struct {
 	ID          int    `gorm:"column:id;primary_key;auto_increment" json:"-"`
-	Language    string `gorm:"column:language" json:"-" mapstructure:"language"` // en, zh, etc.
+	Language    string `gorm:"column:language;index:idx_entity_lang,priority:3" json:"-" mapstructure:"language"` // en, zh, etc.
 	Translation string `gorm:"column:translation" json:"translation" mapstructure:"translation"`
 	FieldName   string `gorm:"column:field_name" json:"field_name" mapstructure:"field_name"` // which field is translated
-	EntityID    int    `gorm:"column:entity_id" json:"-"`
-	EntityType  string `gorm:"column:entity_type" json:"-" mapstructure:"entity_type"` // menu_item or feature
+	EntityID    int    `gorm:"column:entity_id;index:idx_entity_lang,priority:1" json:"-"`
+	EntityType  string `gorm:"column:entity_type;index:idx_entity_lang,priority:2" json:"-" mapstructure:"entity_type"` // menu_item or feature
 }
 
 func (I18nTranslation) TableName() string {
