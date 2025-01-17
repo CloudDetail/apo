@@ -18,7 +18,7 @@ i18n
     backend: {
       loadPath: '/locales/{{lng}}/{{ns}}.json', // 翻译文件路径
     },
-    ns: ['common', 'oss', 'core', 'pro'], // 命名空间
+    ns: ['common', 'oss', 'core', 'pro', 'core/mask'], // 命名空间
     defaultNS: 'common', // 默认命名空间
     interpolation: {
       escapeValue: false, // 防止 XSS，React 已经默认转义

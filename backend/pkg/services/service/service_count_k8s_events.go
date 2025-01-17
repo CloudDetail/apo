@@ -43,7 +43,7 @@ func (s *service) CountK8sEvents(req *request.GetK8sEventsRequest) (*response.Ge
 		if !ok {
 			eventCountMap[count.Reason] = &response.K8sEventStatistics{
 				EventName:   count.Reason,
-				DisplayName: convertReason(count.Reason),
+				DisplayName: count.Reason,
 				Severity:    count.Severity,
 				Counts:      response.K8sEventCountValues{},
 			}

@@ -6,80 +6,101 @@
 import { Image, Empty, Modal } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { QuestionCircleOutlined, EyeOutlined } from '@ant-design/icons'
-import { useTranslation } from 'react-i18next'
+import commingSoon from 'src/core/assets/images/commingSoon.svg'
+import i18n from 'i18next'
 
-export default function CoachMask() {
-  const { t, i18n } = useTranslation('core/mask')
+const CoachMask = React.memo(() => {
   const [visible, setVisible] = useState(false)
+  const [images, setImages] = useState({})
+  const [list, setList] = useState([])
 
-  const language = i18n.language // 获取当前语言
-  const basePath = `src/core/assets/snapshot/${language}`
+  const imageModules = import.meta.glob('src/core/assets/snapshot/**/*.png', { eager: true })
 
-  const images = {
-    alert: `${basePath}/alert.png`,
-    entry: `${basePath}/entry.png`,
-    dashboard: `${basePath}/dashboard.png`,
-    exception: `${basePath}/exception.png`,
-    instance: `${basePath}/instance.png`,
-    k8s: `${basePath}/k8s.png`,
-    logs: `${basePath}/logs.png`,
-    polaris: `${basePath}/polaris.png`,
-    trace: `${basePath}/trace.png`,
-    cpu: `${basePath}/cpu.png`,
-    commingSoon: 'src/core/assets/images/commingSoon.svg',
+  const getImagePath = (imageName, language) => {
+    const path = `/src/core/assets/snapshot/${language}/${imageName}.png`
+    const module = imageModules[path]
+    console.log('Available modules:', imageModules, path)
+    // console.log('Target path:', path)
+
+    if (!module?.default) {
+      console.log(`Image not found: ${path}`)
+      return ''
+    }
+    return module.default
   }
 
-  const list = [
-    {
-      name: t('descriptions.alertInfo'),
-      scene: t('scenes.alertAnalysis'),
-      img: [images.alert],
-    },
-    {
-      name: t('descriptions.entryImpact'),
-      scene: t('scenes.impactAnalysis'),
-      img: [images.entry],
-    },
-    {
-      name: t('descriptions.cascadeAlert'),
-      scene: t('scenes.cascadeAlertAnalysis'),
-    },
-    {
-      name: t('descriptions.instanceMetrics'),
-      scene: t('scenes.saturationAnalysis'),
-      img: [images.instance, images.cpu],
-    },
-    {
-      name: t('descriptions.networkMetrics'),
-      scene: t('scenes.networkQualityAnalysis'),
-      img: [images.dashboard],
-    },
-    {
-      name: t('descriptions.errorLogs'),
-      scene: t('scenes.errorClosedLoop'),
-      img: [images.exception],
-    },
-    {
-      name: t('descriptions.polarisMetrics'),
-      scene: t('scenes.latencyClosedLoop'),
-      img: [images.polaris],
-    },
-    {
-      name: t('descriptions.logs'),
-      scene: t('scenes.faultEvidence'),
-      img: [images.logs],
-    },
-    {
-      name: t('descriptions.trace'),
-      scene: t('scenes.faultEvidence'),
-      img: [images.trace],
-    },
-    {
-      name: t('descriptions.k8sEvents'),
-      scene: t('scenes.environmentImpact'),
-      img: [images.k8s],
-    },
-  ]
+  const generateContent = (language) => {
+    const images = {
+      alert: getImagePath('alert', language),
+      entry: getImagePath('entry', language),
+      dashboard: getImagePath('dashboard', language),
+      exception: getImagePath('exception', language),
+      instance: getImagePath('instance', language),
+      k8s: getImagePath('k8s', language),
+      logs: getImagePath('logs', language),
+      polaris: getImagePath('polaris', language),
+      trace: getImagePath('trace', language),
+      cpu: getImagePath('cpu', language),
+    }
+
+    const list = [
+      {
+        name: i18n.t('core/mask:descriptions.alertInfo'),
+        scene: i18n.t('core/mask:scenes.alertAnalysis'),
+        img: [images.alert],
+      },
+      {
+        name: i18n.t('core/mask:descriptions.entryImpact'),
+        scene: i18n.t('core/mask:scenes.impactAnalysis'),
+        img: [images.entry],
+      },
+      {
+        name: i18n.t('core/mask:descriptions.cascadeAlert'),
+        scene: i18n.t('core/mask:scenes.cascadeAlertAnalysis'),
+      },
+      {
+        name: i18n.t('core/mask:descriptions.instanceMetrics'),
+        scene: i18n.t('core/mask:scenes.saturationAnalysis'),
+        img: [images.instance, images.cpu],
+      },
+      {
+        name: i18n.t('core/mask:descriptions.networkMetrics'),
+        scene: i18n.t('core/mask:scenes.networkQualityAnalysis'),
+        img: [images.dashboard],
+      },
+      {
+        name: i18n.t('core/mask:descriptions.errorLogs'),
+        scene: i18n.t('core/mask:scenes.errorClosedLoop'),
+        img: [images.exception],
+      },
+      {
+        name: i18n.t('core/mask:descriptions.polarisMetrics'),
+        scene: i18n.t('core/mask:scenes.latencyClosedLoop'),
+        img: [images.polaris],
+      },
+      {
+        name: i18n.t('core/mask:descriptions.logs'),
+        scene: i18n.t('core/mask:scenes.faultEvidence'),
+        img: [images.logs],
+      },
+      {
+        name: i18n.t('core/mask:descriptions.trace'),
+        scene: i18n.t('core/mask:scenes.faultEvidence'),
+        img: [images.trace],
+      },
+      {
+        name: i18n.t('core/mask:descriptions.k8sEvents'),
+        scene: i18n.t('core/mask:scenes.environmentImpact'),
+        img: [images.k8s],
+      },
+    ]
+    setImages(images)
+    setList(list)
+  }
+  useEffect(() => {
+    console.log(i18n.language)
+    generateContent(i18n.language)
+  }, [i18n.language])
 
   const shouldShowPopup = () => {
     const hasShown = localStorage.getItem('CoachMaskShown')
@@ -123,14 +144,14 @@ export default function CoachMask() {
     <>
       <QuestionCircleOutlined className="text-lg text-[#6261cc] px-3" onClick={setPopupShown} />
       <Modal
-        title={t('coachMaskTitle')}
+        title={i18n.t('core/mask:coachMaskTitle')}
         open={visible}
         width="100vw"
         onCancel={() => setVisible(false)}
         onOk={() => setVisible(false)}
         destroyOnClose
         centered
-        okText={t('closeGuide')}
+        okText={i18n.t('core/mask:closeGuide')}
         footer={(_, { OkBtn }) => (
           <>
             <OkBtn />
@@ -167,7 +188,8 @@ export default function CoachMask() {
                           ),
                           mask: (
                             <div className="flex absolute top-12">
-                              <EyeOutlined /> <div className="pl-2">{t('clickToEnlarge')}</div>{' '}
+                              <EyeOutlined />{' '}
+                              <div className="pl-2">{i18n.t('core/mask:clickToEnlarge')}</div>{' '}
                             </div>
                           ),
                         }}
@@ -176,8 +198,8 @@ export default function CoachMask() {
                   ))
                 ) : (
                   <Empty
-                    image={images.commingSoon}
-                    description={t('comingSoon')}
+                    image={commingSoon}
+                    description={i18n.t('core/mask:comingSoon')}
                     imageStyle={{ height: 70 }}
                   />
                 )}
@@ -188,4 +210,5 @@ export default function CoachMask() {
       </Modal>
     </>
   )
-}
+})
+export default CoachMask
