@@ -24,14 +24,16 @@ func (repo *daoRepo) initMenuItems() error {
 		{MenuItem: MenuItem{Key: "basic", Order: 9}, RouterKey: "/basic-dashboard"},
 		{MenuItem: MenuItem{Key: "application", Order: 10}, RouterKey: "/application-dashboard"},
 		{MenuItem: MenuItem{Key: "middleware", Order: 11}, RouterKey: "/middleware-dashboard"},
-		{MenuItem: MenuItem{Key: "alerts", Order: 12}},
-		{MenuItem: MenuItem{Key: "alertsRule", Order: 13}, RouterKey: "/alerts/rule"},
-		{MenuItem: MenuItem{Key: "alertsNotify", Order: 14}, RouterKey: "/alerts/notify"},
-		{MenuItem: MenuItem{Key: "config", Order: 15}, RouterKey: "/config"},
-		{MenuItem: MenuItem{Key: "manage", Order: 16}},
-		{MenuItem: MenuItem{Key: "userManage", Order: 17}, RouterKey: "/system/user-manage"},
-		{MenuItem: MenuItem{Key: "menuManage", Order: 18}, RouterKey: "/system/menu-manage"},
-		{MenuItem: MenuItem{Key: "systemConfig", Order: 19}, RouterKey: "/system/config"},
+		{MenuItem: MenuItem{Key: "alerts", Order: 15}},
+		{MenuItem: MenuItem{Key: "alertsRule", Order: 16}, RouterKey: "/alerts/rule"},
+		{MenuItem: MenuItem{Key: "alertsNotify", Order: 17}, RouterKey: "/alerts/notify"},
+		{MenuItem: MenuItem{Key: "integration", Order: 20}},
+		{MenuItem: MenuItem{Key: "alertsIntegration", Order: 21}, RouterKey: "/integration/alerts"},
+		{MenuItem: MenuItem{Key: "config", Order: 25}, RouterKey: "/config"},
+		{MenuItem: MenuItem{Key: "manage", Order: 30}},
+		{MenuItem: MenuItem{Key: "userManage", Order: 31}, RouterKey: "/system/user-manage"},
+		{MenuItem: MenuItem{Key: "menuManage", Order: 32}, RouterKey: "/system/menu-manage"},
+		{MenuItem: MenuItem{Key: "systemConfig", Order: 33}, RouterKey: "/system/config"},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
@@ -62,15 +64,16 @@ func (repo *daoRepo) initMenuItems() error {
 		}
 
 		relations := map[string]string{
-			"faultSite":      "logs",
-			"full":           "logs",
-			"faultSiteTrace": "trace",
-			"fullTrace":      "trace",
-			"userManage":     "manage",
-			"menuManage":     "manage",
-			"alertsRule":     "alerts",
-			"alertsNotify":   "alerts",
-			"systemConfig":   "manage",
+			"faultSite":         "logs",
+			"full":              "logs",
+			"faultSiteTrace":    "trace",
+			"fullTrace":         "trace",
+			"userManage":        "manage",
+			"menuManage":        "manage",
+			"alertsRule":        "alerts",
+			"alertsNotify":      "alerts",
+			"systemConfig":      "manage",
+			"alertsIntegration": "integration",
 		}
 
 		// update parent_id
