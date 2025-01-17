@@ -27,6 +27,7 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 		{"告警规则", "alertsRule"},
 		{"服务健康状态", "healthy"},
 		{"告警通知", "alertsNotify"},
+		{"告警接入", "alertsIntegration"},
 		{"配置中心", "config"},
 		{"用户管理", "userManage"},
 		{"菜单管理", "menuManage"},

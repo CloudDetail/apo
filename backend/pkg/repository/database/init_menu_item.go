@@ -28,6 +28,8 @@ func (repo *daoRepo) initMenuItems() error {
 		{MenuItem: MenuItem{Key: "alerts", Order: 13}},
 		{MenuItem: MenuItem{Key: "alertsRule", Order: 14}, RouterKey: "/alerts/rule"},
 		{MenuItem: MenuItem{Key: "alertsNotify", Order: 15}, RouterKey: "/alerts/notify"},
+		{MenuItem: MenuItem{Key: "integration", Order: 20}},
+		{MenuItem: MenuItem{Key: "alertsIntegration", Order: 21}, RouterKey: "/integration/alerts"},
 		{MenuItem: MenuItem{Key: "config", Order: 16}, RouterKey: "/config"},
 		{MenuItem: MenuItem{Key: "healthy", Order: 17}, RouterKey: "/healthy-service"},
 		{MenuItem: MenuItem{Key: "manage", Order: 18}},
@@ -64,15 +66,16 @@ func (repo *daoRepo) initMenuItems() error {
 		}
 
 		relations := map[string]string{
-			"faultSite":      "logs",
-			"full":           "logs",
-			"faultSiteTrace": "trace",
-			"fullTrace":      "trace",
-			"userManage":     "manage",
-			"menuManage":     "manage",
-			"alertsRule":     "alerts",
-			"alertsNotify":   "alerts",
-			"systemConfig":   "manage",
+			"faultSite":         "logs",
+			"full":              "logs",
+			"faultSiteTrace":    "trace",
+			"fullTrace":         "trace",
+			"userManage":        "manage",
+			"menuManage":        "manage",
+			"alertsRule":        "alerts",
+			"alertsNotify":      "alerts",
+			"systemConfig":      "manage",
+			"alertsIntegration": "integration",
 		}
 
 		// update parent_id
