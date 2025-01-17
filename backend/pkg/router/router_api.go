@@ -199,6 +199,8 @@ func setApiRouter(r *resource) {
 		dataApi.POST("/group/delete", dataHandler.DeleteDataGroup())
 		dataApi.GET("/sub/group", dataHandler.GetSubjectDataGroup())
 		dataApi.POST("/group/operation", dataHandler.DataGroupOperation())
+		dataApi.GET("/subs", dataHandler.GetGroupSubs())
+		dataApi.POST("/subs/operation", dataHandler.GroupSubsOperation())
 	}
 
 	teamApi := r.mux.Group("/api/team").Use(middlewares.AuthMiddleware())

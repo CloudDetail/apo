@@ -103,12 +103,16 @@ type Repo interface {
 	DeleteRole(ctx context.Context, roleID int) error
 	UpdateRole(ctx context.Context, roleID int, roleName, description string) error
 
-	GetSubjectAuthDataGroups(subjectID int64, subjectType string) ([]AuthDataGroup, error)
+	GetAuthDataGroupBySub(subjectID int64, subjectType string) ([]AuthDataGroup, error)
+	GetGroupAuthDataGroupByGroup(groupID int64, subjectType string) ([]AuthDataGroup, error)
 	AssignDataGroup(ctx context.Context, authDataGroups []AuthDataGroup) error
-	RevokeDataGroup(ctx context.Context, dataGroupIDs []int64) error
+	RevokeDataGroupByGroup(ctx context.Context, dataGroupIDs []int64) error
+	RevokeDataGroupBySub(ctx context.Context, subjectIDs []int64) error
 	GetSubjectDataGroupList(subjectID int64, subjectType string, category string) ([]DataGroup, error)
 	GetModifyAndDeleteDataGroup(subjectID int64, subjectType string, dgPermissions []request.DataGroupPermission) (toModify []AuthDataGroup, toDelete []int64, err error)
 	DeleteAuthDataGroup(ctx context.Context, subjectID int64, subjectType string) error
+	GetDataGroupUsers(groupID int64) ([]AuthDataGroup, error)
+	GetDataGroupTeams(groupID int64) ([]AuthDataGroup, error)
 
 	GetAPIByPath(path string, method string) (*API, error)
 

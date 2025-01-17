@@ -24,7 +24,8 @@ type DataGroupFilter struct {
 }
 
 type Datasource struct {
-	Datasource string `json:"datasource"` // namespaceName or serviceName
-	Type       string `json:"type"`       // namespace or service
-	Category   string `json:"category"`   // normal or apm
+	Datasource string   `json:"datasource"`       // namespaceName or serviceName
+	Type       string   `json:"type,omitempty"`   // namespace or service
+	Category   string   `json:"category"`         // normal or apm
+	Nested     []string `json:"nested,omitempty"` // Nested datasource (namespace service belongs to or service under namespace)
 }

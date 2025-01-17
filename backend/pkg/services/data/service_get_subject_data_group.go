@@ -47,14 +47,21 @@ func (s *service) getUserDataGroup(userID int64, category string) ([]database.Da
 
 	groups = append(groups, gs...)
 
+	// default data group which is all
 	if len(groups) == 0 {
-		dataSources, err := s.GetDataSource()
+		datasource, err := s.GetDataSource()
 		if err != nil {
 			return nil, err
 		}
 
 		filteredSources := make([]model.Datasource, 0)
-		for _, ds := range dataSources {
+		for _, ds := range datasource.NamespaceList {
+			if category == "" || ds.Category == category {
+				filteredSources = append(filteredSources, ds)
+			}
+		}
+
+		for _, ds := range datasource.ServiceList {
 			if category == "" || ds.Category == category {
 				filteredSources = append(filteredSources, ds)
 			}

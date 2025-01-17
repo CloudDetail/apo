@@ -16,14 +16,14 @@ import (
 // @Tags API.data
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.UpdateDataGroupNameRequest true "Request"
+// @Param Request body request.UpdateDataGroupRequest true "Request"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/data/group/update [post]
 func (h *handler) UpdateDataGroup() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.UpdateDataGroupNameRequest)
+		req := new(request.UpdateDataGroupRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -33,7 +33,7 @@ func (h *handler) UpdateDataGroup() core.HandlerFunc {
 			return
 		}
 
-		err := h.dataService.UpdateDataGroupName(req)
+		err := h.dataService.UpdateDataGroup(req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {

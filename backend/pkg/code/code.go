@@ -181,6 +181,7 @@ const (
 	DeleteRoleError            = "B0943"
 	APINotExist                = "B0944"
 	AuthError                  = "B0945"
+	GetGroupSubsError          = "B0946"
 
 	CreateTeamError       = "B1101"
 	TeamAlreadyExistError = "B1102"

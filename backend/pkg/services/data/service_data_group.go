@@ -23,72 +23,71 @@ func (s *service) CreateDataGroup(req *request.CreateDataGroupRequest) error {
 	if exists {
 		return model.NewErrWithMessage(errors.New("data group already exists"), code.DataGroupExistError)
 	}
-
-	datasource, err := s.GetDataSource()
-	if err != nil {
-		return err
-	}
-
-	dsMap := make(map[model.Datasource]struct{})
-	for _, data := range datasource {
-		dsMap[data] = struct{}{}
-	}
-
-	for _, ds := range req.DatasourceList {
-		if _, ok := dsMap[ds]; !ok {
-			return model.NewErrWithMessage(errors.New("datasource does not exist"), code.DatasourceNotExistError)
-		}
-	}
-
-	var users, teams []int64
-	authDataGroup := make([]database.AuthDataGroup, 0, len(req.AssignedSubjects))
-
 	group := database.DataGroup{
 		Description: req.Description,
 		GroupName:   req.GroupName,
 		GroupID:     util.Generator.GenerateID(),
 	}
 
-	for _, sub := range req.AssignedSubjects {
-		switch sub.SubjectType {
-		case model.DATA_GROUP_SUB_TYP_USER:
-			users = append(users, sub.SubjectID)
-		case model.DATA_GROUP_SUB_TYP_TEAM:
-			teams = append(teams, sub.SubjectID)
-		default:
-			continue
-		}
+	//datasource, err := s.GetDataSource()
+	//if err != nil {
+	//	return err
+	//}
 
-		dg := database.AuthDataGroup{
-			SubjectType: sub.SubjectType,
-			SubjectID:   sub.SubjectID,
-			Type:        sub.Type,
-			DataGroupID: group.GroupID,
-		}
-		authDataGroup = append(authDataGroup, dg)
-	}
+	//dsMap := make(map[model.Datasource]struct{})
+	//for _, data := range datasource {
+	//	dsMap[data] = struct{}{}
+	//}
 
-	exists, err = s.dbRepo.UserExists(users...)
-	if err != nil {
-		return err
-	}
+	//for _, ds := range req.DatasourceList {
+	//	if _, ok := dsMap[ds]; !ok {
+	//		return model.NewErrWithMessage(errors.New("datasource does not exist"), code.DatasourceNotExistError)
+	//	}
+	//}
 
-	if !exists {
-		return model.NewErrWithMessage(errors.New("user does not exist"), code.UserNotExistsError)
-	}
+	//var users, teams []int64
+	//authDataGroup := make([]database.AuthDataGroup, 0, len(req.AssignedSubjects))
 
-	exists, err = s.dbRepo.TeamExist(teams...)
-	if err != nil {
-		return err
-	}
+	//for _, sub := range req.AssignedSubjects {
+	//	switch sub.SubjectType {
+	//	case model.DATA_GROUP_SUB_TYP_USER:
+	//		users = append(users, sub.SubjectID)
+	//	case model.DATA_GROUP_SUB_TYP_TEAM:
+	//		teams = append(teams, sub.SubjectID)
+	//	default:
+	//		continue
+	//	}
+	//
+	//	dg := database.AuthDataGroup{
+	//		SubjectType: sub.SubjectType,
+	//		SubjectID:   sub.SubjectID,
+	//		Type:        sub.Type,
+	//		DataGroupID: group.GroupID,
+	//	}
+	//	authDataGroup = append(authDataGroup, dg)
+	//}
+	//
+	//exists, err = s.dbRepo.UserExists(users...)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//if !exists {
+	//	return model.NewErrWithMessage(errors.New("user does not exist"), code.UserNotExistsError)
+	//}
+	//
+	//exists, err = s.dbRepo.TeamExist(teams...)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//if !exists {
+	//	return model.NewErrWithMessage(errors.New("team does not exist"), code.TeamNotExistError)
+	//}
 
-	if !exists {
-		return model.NewErrWithMessage(errors.New("team does not exist"), code.TeamNotExistError)
-	}
-
-	var assignToTeamFunc = func(ctx context.Context) error {
-		return s.dbRepo.AssignDataGroup(ctx, authDataGroup)
-	}
+	//var assignToTeamFunc = func(ctx context.Context) error {
+	//	return s.dbRepo.AssignDataGroup(ctx, authDataGroup)
+	//}
 
 	var createGroupFunc = func(ctx context.Context) error {
 		return s.dbRepo.CreateDataGroup(ctx, &group)
@@ -98,7 +97,7 @@ func (s *service) CreateDataGroup(req *request.CreateDataGroupRequest) error {
 		return s.dbRepo.CreateDatasourceGroup(ctx, req.DatasourceList, group.GroupID)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), createGroupFunc, createDSGroupFunc, assignToTeamFunc)
+	return s.dbRepo.Transaction(context.Background(), createGroupFunc, createDSGroupFunc)
 }
 
 func (s *service) DeleteDataGroup(req *request.DeleteDataGroupRequest) error {
@@ -125,7 +124,7 @@ func (s *service) DeleteDataGroup(req *request.DeleteDataGroupRequest) error {
 	return s.dbRepo.Transaction(context.Background(), deleteGroupFunc, deleteDSGroupFunc)
 }
 
-func (s *service) UpdateDataGroupName(req *request.UpdateDataGroupNameRequest) error {
+func (s *service) UpdateDataGroup(req *request.UpdateDataGroupRequest) error {
 	filter := model.DataGroupFilter{
 		ID: req.GroupID,
 	}
@@ -151,7 +150,10 @@ func (s *service) UpdateDataGroupName(req *request.UpdateDataGroupNameRequest) e
 	}
 
 	dsMap := make(map[string]struct{})
-	for _, data := range datasource {
+	for _, data := range datasource.NamespaceList {
+		dsMap[data.Datasource] = struct{}{}
+	}
+	for _, data := range datasource.ServiceList {
 		dsMap[data.Datasource] = struct{}{}
 	}
 
@@ -165,7 +167,8 @@ func (s *service) UpdateDataGroupName(req *request.UpdateDataGroupNameRequest) e
 	var deleteData []string
 	for _, data := range req.DatasourceList {
 		if _, exists = dsMap[data.Datasource]; !exists {
-			return model.NewErrWithMessage(errors.New("datasource does not exist"), code.DataSourceNotExistError)
+			// skip if datasource does not exist
+			continue
 		}
 		if _, hasData := groupDsMap[data.Datasource]; !hasData {
 			addData = append(addData, data)

@@ -38,7 +38,7 @@ func (s *service) DataGroupOperation(req *request.DataGroupOperationRequest) err
 	}
 
 	var revokeDataGroupFunc = func(ctx context.Context) error {
-		return s.dbRepo.RevokeDataGroup(ctx, toDelete)
+		return s.dbRepo.RevokeDataGroupByGroup(ctx, toDelete)
 	}
 
 	return s.dbRepo.Transaction(context.Background(), assignDataGroupFunc, revokeDataGroupFunc)

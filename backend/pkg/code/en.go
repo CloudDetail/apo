@@ -157,6 +157,7 @@ var enText = map[string]string{
 	UpdateRoleError:            "Failed to update role",
 	APINotExist:                "Api does not exist",
 	AuthError:                  "Failed to authorize permission",
+	GetGroupSubsError:          "Failed to get data group's assigned subjects",
 
 	CreateTeamError:       "Failed to create team",
 	TeamAlreadyExistError: "Team already exists",

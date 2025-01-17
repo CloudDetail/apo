@@ -347,6 +347,16 @@ definitions:
       unit:
         type: string
     type: object
+  database.AuthDataGroup:
+    properties:
+      team:
+        $ref: '#/definitions/database.Team'
+      type:
+        description: view, edit
+        type: string
+      user:
+        $ref: '#/definitions/database.User'
+    type: object
   database.DataGroup:
     properties:
       authType:
@@ -371,6 +381,9 @@ definitions:
         description: apm or normal
         type: string
       datasource:
+        type: string
+      namespace:
+        description: the namespace that service belongs to
         type: string
       type:
         type: string
@@ -718,6 +731,12 @@ definitions:
       datasource:
         description: namespaceName or serviceName
         type: string
+      nested:
+        description: Nested datasource (namespace service belongs to or service under
+          namespace)
+        items:
+          type: string
+        type: array
       type:
         description: namespace or service
         type: string
@@ -934,6 +953,7 @@ definitions:
       subjectType:
         type: string
       type:
+        description: edit or view
         type: string
     type: object
   request.BufferEngineConfig:
@@ -955,10 +975,6 @@ definitions:
     type: object
   request.CreateDataGroupRequest:
     properties:
-      assignedSubjects:
-        items:
-          $ref: '#/definitions/request.AuthDataGroup'
-        type: array
       datasourceList:
         items:
           $ref: '#/definitions/model.Datasource'
@@ -1325,6 +1341,21 @@ definitions:
     required:
     - endTime
     type: object
+  request.GroupSubsOperationRequest:
+    properties:
+      dataGroupId:
+        type: integer
+      teamList:
+        items:
+          $ref: '#/definitions/request.AuthDataGroup'
+        type: array
+      userList:
+        items:
+          $ref: '#/definitions/request.AuthDataGroup'
+        type: array
+    required:
+    - dataGroupId
+    type: object
   request.InputAlertManagerRequest:
     properties:
       ExternalURL:
@@ -1540,7 +1571,7 @@ definitions:
     - oldAlert
     - oldGroup
     type: object
-  request.UpdateDataGroupNameRequest:
+  request.UpdateDataGroupRequest:
     properties:
       datasourceList:
         items:
@@ -1829,6 +1860,17 @@ definitions:
       total:
         description: 总记录数
         type: integer
+    type: object
+  response.GetDatasourceResponse:
+    properties:
+      namespaceList:
+        items:
+          $ref: '#/definitions/model.Datasource'
+        type: array
+      serviceList:
+        items:
+          $ref: '#/definitions/model.Datasource'
+        type: array
     type: object
   response.GetDescendantMetricsResponse:
     properties:
@@ -3351,9 +3393,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/model.Datasource'
-            type: array
+            $ref: '#/definitions/response.GetDatasourceResponse'
         "400":
           description: Bad Request
           schema:
@@ -3520,7 +3560,7 @@ paths:
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/request.UpdateDataGroupNameRequest'
+          $ref: '#/definitions/request.UpdateDataGroupRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -3577,6 +3617,71 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Get subject's assigned data group.
+      tags:
+      - API.data
+  /api/data/subs:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get group's assigned subjects.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      - description: data group's id
+        in: query
+        name: dataGroupId
+        required: true
+        type: integer
+      - description: subject type that you want to query
+        in: query
+        name: subjectType
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.AuthDataGroup'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get group's assigned subjects.
+      tags:
+      - API.data
+  /api/data/subs/operation:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Manage group's assigned subject.
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GroupSubsOperationRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Manage group's assigned subject.
       tags:
       - API.data
   /api/health:

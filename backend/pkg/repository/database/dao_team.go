@@ -11,7 +11,7 @@ import (
 type Team struct {
 	TeamID      int64  `gorm:"column:team_id;primary_key" json:"teamId"`
 	TeamName    string `gorm:"column:team_name;type:varchar(20)" json:"teamName"`
-	Description string `gorm:"column:description;type:varchar(50)"`
+	Description string `gorm:"column:description;type:varchar(50)" json:"description,omitempty"`
 
 	FeatureList []Feature `gorm:"many2many:auth_permission;foreignKey:TeamID;joinForeignKey:SubjectID;References:FeatureID;joinReferences:PermissionID" json:"featureList,omitempty"`
 }

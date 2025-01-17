@@ -826,10 +826,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.Datasource"
-                            }
+                            "$ref": "#/definitions/response.GetDatasourceResponse"
                         }
                     },
                     "400": {
@@ -1086,7 +1083,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.UpdateDataGroupNameRequest"
+                            "$ref": "#/definitions/request.UpdateDataGroupRequest"
                         }
                     },
                     {
@@ -1161,6 +1158,105 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/database.DataGroup"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/subs": {
+            "get": {
+                "description": "Get group's assigned subjects.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Get group's assigned subjects.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "data group's id",
+                        "name": "dataGroupId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "subject type that you want to query",
+                        "name": "subjectType",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.AuthDataGroup"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/subs/operation": {
+            "post": {
+                "description": "Manage group's assigned subject.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Manage group's assigned subject.",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GroupSubsOperationRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -7243,6 +7339,21 @@ const docTemplate = `{
                 }
             }
         },
+        "database.AuthDataGroup": {
+            "type": "object",
+            "properties": {
+                "team": {
+                    "$ref": "#/definitions/database.Team"
+                },
+                "type": {
+                    "description": "view, edit",
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/database.User"
+                }
+            }
+        },
         "database.DataGroup": {
             "type": "object",
             "properties": {
@@ -7278,6 +7389,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "datasource": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "description": "the namespace that service belongs to",
                     "type": "string"
                 },
                 "type": {
@@ -7760,6 +7875,13 @@ const docTemplate = `{
                     "description": "namespaceName or serviceName",
                     "type": "string"
                 },
+                "nested": {
+                    "description": "Nested datasource (namespace service belongs to or service under namespace)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "type": {
                     "description": "namespace or service",
                     "type": "string"
@@ -8078,6 +8200,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
+                    "description": "edit or view",
                     "type": "string"
                 }
             }
@@ -8114,12 +8237,6 @@ const docTemplate = `{
                 "groupName"
             ],
             "properties": {
-                "assignedSubjects": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/request.AuthDataGroup"
-                    }
-                },
                 "datasourceList": {
                     "type": "array",
                     "items": {
@@ -8652,6 +8769,29 @@ const docTemplate = `{
                 }
             }
         },
+        "request.GroupSubsOperationRequest": {
+            "type": "object",
+            "required": [
+                "dataGroupId"
+            ],
+            "properties": {
+                "dataGroupId": {
+                    "type": "integer"
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.AuthDataGroup"
+                    }
+                },
+                "userList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.AuthDataGroup"
+                    }
+                }
+            }
+        },
         "request.InputAlertManagerRequest": {
             "type": "object",
             "properties": {
@@ -8961,7 +9101,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request.UpdateDataGroupNameRequest": {
+        "request.UpdateDataGroupRequest": {
             "type": "object",
             "required": [
                 "groupId",
@@ -9391,6 +9531,23 @@ const docTemplate = `{
                 "total": {
                     "description": "总记录数",
                     "type": "integer"
+                }
+            }
+        },
+        "response.GetDatasourceResponse": {
+            "type": "object",
+            "properties": {
+                "namespaceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Datasource"
+                    }
+                },
+                "serviceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Datasource"
+                    }
                 }
             }
         },

@@ -13,12 +13,15 @@ type Service interface {
 	CreateDataGroup(req *request.CreateDataGroupRequest) error
 	DeleteDataGroup(req *request.DeleteDataGroupRequest) error
 	GetDataGroup(req *request.GetDataGroupRequest) (response.GetDataGroupResponse, error)
-	UpdateDataGroupName(req *request.UpdateDataGroupNameRequest) error
-	GetGroupDatasource(req *request.GetGroupDatasourceRequest) (response.GetGroupDatasourceResponse, error)
+	UpdateDataGroup(req *request.UpdateDataGroupRequest) error
+	//GetGroupDatasource(req *request.GetGroupDatasourceRequest) (response.GetGroupDatasourceResponse, error)
 	DataGroupOperation(req *request.DataGroupOperationRequest) error
 	GetSubjectDataGroup(req *request.GetSubjectDataGroupRequest) (response.GetSubjectDataGroupResponse, error)
 	// CheckDatasourcePermission Filtering data sources that users are not authorised to view. Expected *string or *[]string.
 	CheckDatasourcePermission(userID int64, namespaces, services interface{}) (err error)
+	GroupSubsOperation(req *request.GroupSubsOperationRequest) error
+	GetGroupSubs(req *request.GetGroupSubsRequest) (response.GetGroupSubsResponse, error)
+	//GetUserDatasource(req *request.GetUserDatasourceRequest, userID int64) (response.GetUserDatasourceResponse, error)
 }
 
 type service struct {
