@@ -37,7 +37,7 @@ func (d PrometheusDecoder) Decode(sourceFrom inputa.SourceFrom, data []byte) ([]
 		}
 		alertEvent.ID = uuid.New()
 		if len(alertEvent.AlertID) == 0 {
-			alertEvent.AlertID = fastAlertID(alertEvent.Name, alertEvent.RawTags)
+			alertEvent.AlertID = fastAlertID(alertEvent.Name, alertEvent.Tags)
 		}
 		alertEvent.SourceID = sourceFrom.SourceID
 		alertEvent.Severity = inputa.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
@@ -75,14 +75,14 @@ func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any) (*inputa.Ale
 	var alertEvent = inputa.AlertEvent{
 		Name:       promAlert.Labels["alertname"],
 		Detail:     string(annotationsJson),
-		RawTags:    tags,
-		Tags:       map[string]string{},
+		Tags:       tags,
+		EnrichTags: map[string]string{},
 		CreateTime: startsAt,
 		UpdateTime: startsAt,
 		EndTime:    endsAt,
 	}
-	if alertEvent.RawTags == nil {
-		alertEvent.RawTags = map[string]any{}
+	if alertEvent.Tags == nil {
+		alertEvent.Tags = map[string]any{}
 	}
 	return &alertEvent, nil
 }

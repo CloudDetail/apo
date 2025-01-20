@@ -10,16 +10,10 @@ import (
 	"log"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
-	"github.com/CloudDetail/apo/backend/pkg/services/input/alert/decoder"
 )
 
 func (s *service) ProcessAlertEvents(source alert.SourceFrom, data []byte) error {
-	events, err := decoder.Decode(source, data)
-	if err != nil {
-		return fmt.Errorf("decode alertEvent failed, err: %v", err)
-	}
-
-	err = s.dispatcher.DispatchEvents(source, events)
+	events, err := s.dispatcher.DispatchEvents(&source, data)
 	if err != nil {
 		var errSourceNotExist alert.ErrAlertSourceNotExist
 
