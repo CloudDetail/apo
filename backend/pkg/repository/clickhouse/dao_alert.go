@@ -17,10 +17,11 @@ import (
 type AlertGroup string
 
 const (
-	APP_GROUP       AlertGroup = "app"
-	NETWORK_GROUP   AlertGroup = "network"
-	CONTAINER_GROUP AlertGroup = "container"
-	INFRA_GROUP     AlertGroup = "infra"
+	APP_GROUP        AlertGroup = "app"
+	NETWORK_GROUP    AlertGroup = "network"
+	CONTAINER_GROUP  AlertGroup = "container"
+	INFRA_GROUP      AlertGroup = "infra"
+	MIDDLEWARE_GROUP AlertGroup = "middleware"
 )
 
 func (g AlertGroup) GetAlertType() string {
@@ -83,7 +84,7 @@ const (
 )
 
 // GetAlertEventCountGroupByInstance to quickly query the number of alarms associated with each Instance (counted separately by alarm level)
-func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]model.AlertEventCount, error) {
+func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]model.AlertEventCount, error) {
 	builder := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
 		EqualsNotEmpty("source", filter.Source).
@@ -93,7 +94,7 @@ func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime
 		EqualsNotEmpty("severity", filter.Severity).
 		EqualsNotEmpty("status", filter.Status)
 
-	if len(instances) > 0 {
+	if len(instances.SIs) > 0 {
 		// Combined generation:
 		//  1. group = 'app' AND svc = svc_name
 		//  2. group = 'container' AND ((namespace,pod) in (...))
@@ -113,7 +114,7 @@ func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime
 }
 
 // Obtain all alarm events of the instance GetAlarmsEvents
-func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]AlertEventSample, error) {
+func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error) {
 	// Combined generation:
 	//  1. group = 'app' AND svc = svc_name
 	//  2. group = 'container' AND ((namespace,pod) in (...))
@@ -142,7 +143,7 @@ func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, end
 	return events, err
 }
 
-func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance, pageParam *request.PageParam) ([]PagedAlertEvent, int, error) {
+func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam) ([]PagedAlertEvent, int, error) {
 	whereInstance := extractFilter(filter, instances)
 
 	builder := NewQueryBuilder().
@@ -173,7 +174,7 @@ func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter 
 	return events, total_count, err
 }
 
-func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstance) *whereSQL {
+func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances) *whereSQL {
 	var whereInstance []*whereSQL
 	if len(filter.Group) == 0 || filter.Group == "app" {
 		whereGroup := EqualsIfNotEmpty("group", "app")
@@ -190,7 +191,7 @@ func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstanc
 		var k8sPods ValueInGroups = ValueInGroups{
 			Keys: []string{"tags['namespace']", "tags['pod']"},
 		}
-		for _, instance := range instances {
+		for _, instance := range instances.SIs {
 			if instance == nil {
 				continue
 			}
@@ -217,7 +218,7 @@ func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstanc
 			Keys: []string{"tags['node_name']", "tags['pid']"},
 		}
 
-		for _, instance := range instances {
+		for _, instance := range instances.SIs {
 			if instance == nil {
 				continue
 			}
@@ -244,7 +245,7 @@ func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstanc
 		whereGroup := EqualsIfNotEmpty("group", "infra")
 		var tmpSet = map[string]struct{}{}
 		var nodes clickhouse.ArraySet
-		for _, instance := range instances {
+		for _, instance := range instances.SIs {
 			if instance == nil {
 				continue
 			}
@@ -259,6 +260,28 @@ func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstanc
 			AndSep,
 			whereGroup,
 			In("tags['instance_name']", nodes),
+		))
+	}
+
+	if len(filter.Group) == 0 || filter.Group == "middleware" {
+		var dbUrls clickhouse.ArraySet
+		var ipPorts ValueInGroups = ValueInGroups{
+			Keys: []string{"tags['db_ip']", "tags['db_port']"},
+		}
+		for _, middleware := range instances.MIs {
+			if len(middleware.DatabaseURL) > 0 {
+				dbUrls = append(dbUrls, middleware.DatabaseURL)
+			}
+			if len(middleware.DatabaseIP) > 0 {
+				ipPorts.ValueGroups = append(ipPorts.ValueGroups, clickhouse.GroupSet{
+					Value: []any{middleware.DatabaseIP, middleware.DatabasePort},
+				})
+			}
+		}
+		whereInstance = append(whereInstance, MergeWheres(
+			OrSep,
+			In("tags['db_url']", dbUrls),
+			InGroup(ipPorts),
 		))
 	}
 

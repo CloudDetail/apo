@@ -76,9 +76,9 @@ func NewTagEnricher(
 }
 
 func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
-	iter := e.JQParser.JQParser.Run(alertEvent.RawTags)
+	iter := e.JQParser.Run(alertEvent.Tags)
 	v, ok := iter.Next()
-	if !ok {
+	if !ok || v == nil {
 		return
 	}
 
@@ -93,7 +93,7 @@ func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
 
 	switch e.RType {
 	case "tagMapping":
-		alertEvent.Tags[e.targetTag] = value
+		alertEvent.EnrichTags[e.targetTag] = value
 	case "schemaMapping":
 		targets, err := e.DBRepo.SearchSchemaTarget(e.Schema, e.SchemaSource, value, e.SchemaTarget)
 		if err != nil {
@@ -102,9 +102,9 @@ func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
 
 		for idx, schemaTarget := range e.SchemaTarget {
 			if schemaTarget.TargetTagID == 0 {
-				alertEvent.Tags[schemaTarget.CustomTag] = targets[idx]
+				alertEvent.EnrichTags[schemaTarget.CustomTag] = targets[idx]
 			} else if len(e.TargetTags) > schemaTarget.TargetTagID {
-				alertEvent.Tags[e.TargetTags[schemaTarget.TargetTagID].Field] = targets[idx]
+				alertEvent.EnrichTags[e.TargetTags[schemaTarget.TargetTagID].Field] = targets[idx]
 			}
 		}
 	}
@@ -120,7 +120,7 @@ func (e *TagEnricher) RuleOrder() int {
 
 type JQParser struct {
 	FromJQExpression string // JQ expression composed of condition and fromField
-	JQParser         *gojq.Query
+	*gojq.Query
 }
 
 func newJQEnricher(enrichRule alert.AlertEnrichRuleVO) (*JQParser, error) {
@@ -146,7 +146,7 @@ func newJQEnricher(enrichRule alert.AlertEnrichRuleVO) (*JQParser, error) {
 
 	var jqExpression string
 	if len(conditions) > 0 {
-		jqExpression = fmt.Sprintf(`if %s then %s else "" end`, strings.Join(conditions, " and "), enrichRule.FromField)
+		jqExpression = fmt.Sprintf(`if %s then %s else null end`, strings.Join(conditions, " and "), enrichRule.FromField)
 	} else {
 		jqExpression = fmt.Sprintf(` %s `, enrichRule.FromField)
 	}
@@ -158,6 +158,6 @@ func newJQEnricher(enrichRule alert.AlertEnrichRuleVO) (*JQParser, error) {
 
 	return &JQParser{
 		FromJQExpression: jqExpression,
-		JQParser:         jqParser,
+		Query:            jqParser,
 	}, nil
 }

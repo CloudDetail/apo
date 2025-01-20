@@ -83,12 +83,12 @@ func New(
 			continue
 		}
 
-		enricher, err := service.initExistedAlertSource(&source, enricherRules)
+		enricher, err := service.initExistedAlertSource(source, enricherRules)
 		if err != nil {
 			log.Printf("failed to init enricherFor AlertSource,err: %v", err)
 			continue
 		}
-		service.dispatcher.AddAlertSource(&source, enricher)
+		service.dispatcher.AddAlertSource(source, enricher)
 	}
 
 	return service

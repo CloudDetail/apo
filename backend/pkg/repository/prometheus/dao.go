@@ -30,6 +30,8 @@ type Repo interface {
 	GetServiceList(startTime int64, endTime int64, namespace []string) ([]string, error)
 	// Query the service instance list. The URL can be empty.
 	GetInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
+	// Query the db instance for specified service
+	GetDescendantDatabase(startTime int64, endTime int64, serviceName string, endpoint string) ([]model.MiddlewareInstance, error)
 	// Query the list of active instances
 	GetActiveInstanceList(startTime int64, endTime int64, serviceName string) (*model.ServiceInstances, error)
 	// Query the service Endpoint list. The service permission is empty.

@@ -45,6 +45,11 @@ func (a *AlertEvent) GetTargetObj() string {
 		return fmt.Sprintf("%s->%s", a.Tags["src_ip"], a.Tags["dst_ip"])
 	case "container":
 		return fmt.Sprintf("%s(%s)", a.Tags["pod"], a.Tags["container"])
+	case "database":
+		return fmt.Sprintf("%s(%s:%s)",
+			a.GetDatabaseURL(),
+			a.GetDatabaseIP(),
+			a.GetDatabasePort())
 	}
 	return ""
 }

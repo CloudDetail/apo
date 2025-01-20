@@ -27,7 +27,7 @@ func (d JsonDecoder) Decode(sourceFrom ainput.SourceFrom, data []byte) ([]ainput
 	}
 	alertEvent.ID = uuid.New()
 	if len(alertEvent.AlertID) == 0 {
-		alertEvent.AlertID = fastAlertID(alertEvent.Name, alertEvent.RawTags)
+		alertEvent.AlertID = fastAlertID(alertEvent.Name, alertEvent.Tags)
 	}
 	alertEvent.SourceID = sourceFrom.SourceID
 	alertEvent.Severity = ainput.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
@@ -42,15 +42,15 @@ func (d JsonDecoder) convertAlertEvent(rawMap map[string]any) (*ainput.AlertEven
 	if err != nil {
 		return nil, err
 	}
-	if alertEvent.RawTags == nil {
-		alertEvent.RawTags = make(map[string]any)
+	if alertEvent.Tags == nil {
+		alertEvent.Tags = make(map[string]any)
 	}
 	if len(alertEvent.AlertID) == 0 {
-		alertEvent.AlertID = fastAlertID(alertEvent.Name, alertEvent.RawTags)
+		alertEvent.AlertID = fastAlertID(alertEvent.Name, alertEvent.Tags)
 	}
-	if alertEvent.RawTags == nil {
-		alertEvent.RawTags = map[string]any{}
+	if alertEvent.Tags == nil {
+		alertEvent.Tags = map[string]any{}
 	}
-	alertEvent.Tags = map[string]string{}
+	alertEvent.EnrichTags = map[string]string{}
 	return &alertEvent, err
 }

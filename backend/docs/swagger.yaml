@@ -14,13 +14,11 @@ definitions:
   alert.AlertEnrichCondition:
     properties:
       expr:
-        description: 比较表达式
         type: string
       fromField:
-        description: 来源字段
         type: string
       operation:
-        description: 比较方式 match,not match,gt,lt,ge,le,eq
+        description: support match,not match,gt,lt,ge,le,eq
         type: string
     type: object
   alert.AlertEnrichRuleVO:
@@ -31,25 +29,19 @@ definitions:
           $ref: '#/definitions/alert.AlertEnrichCondition'
         type: array
       customTag:
-        description: 自定义Tag字段
         type: string
       enrichRuleId:
-        description: 关联规则ID
         type: string
       fromField:
-        description: 来源字段 (支持拼接)
         type: string
       fromRegex:
-        description: 从来源字段中正则截取
         type: string
       rType:
-        description: 规则类型
         type: string
       schema:
         description: '---------------- schemaMapping --------------'
         type: string
       schemaSource:
-        description: 匹配的映射结构的源字段
         type: string
       schemaTargets:
         description: '--------------- schemaMapping -------------'
@@ -57,7 +49,6 @@ definitions:
           $ref: '#/definitions/alert.AlertEnrichSchemaTarget'
         type: array
       sourceId:
-        description: 告警源ID
         type: string
       targetTagId:
         description: '---------------- tagMapping -----------------'
@@ -66,13 +57,10 @@ definitions:
   alert.AlertEnrichSchemaTarget:
     properties:
       customTag:
-        description: 自定义Tag字段
         type: string
       schemaField:
-        description: 来自于映射表的指定字段
         type: string
       targetTagId:
-        description: 目标TagID
         type: integer
     type: object
   alert.AlertSchemaRequest:
@@ -1325,6 +1313,7 @@ definitions:
         type: array
       startTime:
         description: query start time
+        minimum: 0
         type: integer
       traceId:
         description: TraceId
@@ -1351,6 +1340,7 @@ definitions:
         type: string
       startTime:
         description: query start time
+        minimum: 0
         type: integer
     required:
     - endTime
@@ -1396,6 +1386,7 @@ definitions:
         type: array
       startTime:
         description: query start time
+        minimum: 0
         type: integer
       traceId:
         description: TraceId
@@ -1563,6 +1554,12 @@ definitions:
     properties:
       dataType:
         description: type (log, trace, Kubernetes, other)
+        enum:
+        - logs
+        - trace
+        - k8s
+        - other
+        - topology
         type: string
       day:
         description: save data cycle days
@@ -2811,9 +2808,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: 创建集群
+      description: Create Cluster
       parameters:
-      - description: 请求信息
+      - description: Cluster Info
         in: body
         name: Request
         required: true
@@ -2830,16 +2827,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 创建集群
+      summary: Create Cluster
       tags:
       - API.alertinput
   /api/alertinput/cluster/delete:
     post:
       consumes:
       - application/json
-      description: 删除集群
+      description: DeleteCluster
       parameters:
-      - description: 请求信息
+      - description: Cluster Info
         in: body
         name: Request
         required: true
@@ -2856,14 +2853,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 删除集群
+      summary: DeleteCluster
       tags:
       - API.alertinput
   /api/alertinput/cluster/list:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 列出集群
+      description: ListCluster
       produces:
       - application/json
       responses:
@@ -2875,16 +2872,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 列出集群
+      summary: ListCluster
       tags:
       - API.alertinput
   /api/alertinput/cluster/update:
     post:
       consumes:
       - application/json
-      description: 更新集群
+      description: UpdateCluster
       parameters:
-      - description: 请求信息
+      - description: Cluster Info
         in: body
         name: Request
         required: true
@@ -2901,14 +2898,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 更新集群
+      summary: UpdateCluster
       tags:
       - API.alertinput
-  /api/alertinput/event/json/:sourceType/:sourceName:
+  /api/alertinput/event/json:
     post:
       consumes:
       - application/json
-      description: 基于JSON结构接收来自特定数据源的数据
+      description: Receive data from a specific data source based on a JSON structure
       produces:
       - application/json
       responses:
@@ -2920,14 +2917,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 基于JSON结构接收来自特定数据源的数据
+      summary: Receive data from a specific data source based on a JSON structure
       tags:
       - API.alertinput
-  /api/alertinput/event/source/:sourceID:
+  /api/alertinput/event/source:
     post:
       consumes:
       - application/json
-      description: 基于告警源配置接收数据
+      description: Receive data based on alarm source configuration
       produces:
       - application/json
       responses:
@@ -2939,16 +2936,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 基于告警源配置接收数据
+      summary: Receive data based on alarm source configuration
       tags:
       - API.alertinput
   /api/alertinput/schema/column/get:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取映射结构中的列信息
+      description: GetSchemaColumns
       parameters:
-      - description: 请求信息
+      - description: Schema Info
         in: body
         name: Request
         required: true
@@ -2965,16 +2962,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取映射结构中的列信息
+      summary: GetSchemaColumns
       tags:
       - API.alertinput
   /api/alertinput/schema/create:
     post:
       consumes:
       - application/json
-      description: 创建映射结构
+      description: CreateSchema
       parameters:
-      - description: 请求信息
+      - description: Schema Info
         in: body
         name: Request
         required: true
@@ -2991,7 +2988,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 创建映射结构
+      summary: CreateSchema
       tags:
       - API.alertinput
   /api/alertinput/schema/data/get:
@@ -3000,7 +2997,7 @@ paths:
       - application/x-www-form-urlencoded
       description: core.HandlerFunc
       parameters:
-      - description: 请求信息
+      - description: Schema Info
         in: body
         name: Request
         required: true
@@ -3024,9 +3021,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: 更新映射结构中的数据
+      description: UpdateSchemaData
       parameters:
-      - description: 请求信息
+      - description: Update SchemaData Request
         in: body
         name: Request
         required: true
@@ -3043,16 +3040,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 更新映射结构中的数据
+      summary: UpdateSchemaData
       tags:
       - API.alertinput
   /api/alertinput/schema/delete:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: 删除映射结构
+      description: DeleteSchema
       parameters:
-      - description: 请求信息
+      - description: SchemaInfo
         in: body
         name: Request
         required: true
@@ -3069,14 +3066,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 删除映射结构
+      summary: DeleteSchema
       tags:
       - API.alertinput
   /api/alertinput/schema/list:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 列出映射结构
+      description: ListSchema
       produces:
       - application/json
       responses:
@@ -3088,14 +3085,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 列出映射结构
+      summary: ListSchema
       tags:
       - API.ListSchema
   /api/alertinput/schema/listwithcolumns:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 列出映射表及结构
+      description: ListSchemaWithColumns
       produces:
       - application/json
       responses:
@@ -3107,16 +3104,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 列出映射表及结构
+      summary: ListSchemaWithColumns
       tags:
       - API.alertinput
   /api/alertinput/schema/used/check:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 检查映射结构是否被使用
+      description: Check whether the mapping structure is used
       parameters:
-      - description: 请求信息
+      - description: Schema Info
         in: body
         name: Request
         required: true
@@ -3133,16 +3130,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 检查映射结构是否被使用
+      summary: Check whether the mapping structure is used
       tags:
       - API.alertinput
   /api/alertinput/source/create:
     post:
       consumes:
       - application/json
-      description: 创建告警源
+      description: Create Alarm Source
       parameters:
-      - description: 告警源信息
+      - description: AlertSource
         in: body
         name: Request
         required: true
@@ -3159,16 +3156,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 创建告警源
+      summary: Create Alarm Source
       tags:
       - API.alertinput
   /api/alertinput/source/delete:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: 删除告警源
+      description: DeleteAlertSource
       parameters:
-      - description: 请求信息
+      - description: alertSource
         in: body
         name: Request
         required: true
@@ -3185,16 +3182,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 删除告警源
+      summary: DeleteAlertSource
       tags:
       - API.alertinput
   /api/alertinput/source/enrich/default:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取默认的告警丰富规则
+      description: GetDefaultAlertEnrichRule
       parameters:
-      - description: 请求信息
+      - description: Source Type
         in: body
         name: Request
         required: true
@@ -3211,16 +3208,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取默认的告警丰富规则
+      summary: GetDefaultAlertEnrichRule
       tags:
       - API.alertinput
   /api/alertinput/source/enrich/default/clear:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 清除默认的告警丰富规则
+      description: Clear default alarm rich rules
       parameters:
-      - description: 请求信息
+      - description: Request info
         in: body
         name: Request
         required: true
@@ -3237,16 +3234,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 清除默认的告警丰富规则
+      summary: Clear default alarm rich rules
       tags:
       - API.alertinput
   /api/alertinput/source/enrich/default/set:
     post:
       consumes:
       - application/json
-      description: 设置默认的告警丰富规则
+      description: SetDefaultAlertEnrichRule
       parameters:
-      - description: 请求信息
+      - description: Default EnrichRule
         in: body
         name: Request
         required: true
@@ -3263,16 +3260,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 设置默认的告警丰富规则
+      summary: SetDefaultAlertEnrichRule
       tags:
       - API.alertinput
   /api/alertinput/source/enrich/get:
     get:
       consumes:
       - application/json
-      description: 获取告警源增强配置
+      description: GetAlertSourceEnrichRule
       parameters:
-      - description: 告警源信息
+      - description: Source Info
         in: body
         name: Request
         required: true
@@ -3289,16 +3286,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取告警源增强配置
+      summary: GetAlertSourceEnrichRule
       tags:
       - API.alertinput
   /api/alertinput/source/enrich/update:
     post:
       consumes:
       - application/json
-      description: 更新告警源增强配置
+      description: UpdateAlertSourceEnrichRule
       parameters:
-      - description: 请求信息
+      - description: Update Config
         in: body
         name: Request
         required: true
@@ -3315,16 +3312,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 更新告警源增强配置
+      summary: UpdateAlertSourceEnrichRule
       tags:
       - API.alertinput
   /api/alertinput/source/get:
     post:
       consumes:
       - application/json
-      description: 获取告警源信息
+      description: GetAlertSource
       parameters:
-      - description: 告警源信息
+      - description: Source Info
         in: body
         name: Request
         required: true
@@ -3341,14 +3338,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取告警源信息
+      summary: GetAlertSource
       tags:
       - API.alertinput
   /api/alertinput/source/list:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 列出告警源
+      description: ListAlertSource
       produces:
       - application/json
       responses:
@@ -3360,16 +3357,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 列出告警源
+      summary: ListAlertSource
       tags:
       - API.alertinput
   /api/alertinput/source/update:
     post:
       consumes:
       - application/json
-      description: 更新告警源
+      description: UpdateAlertSource
       parameters:
-      - description: 告警源信息
+      - description: alertSource Info
         in: body
         name: Request
         required: true
@@ -3386,7 +3383,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 更新告警源
+      summary: UpdateAlertSource
       tags:
       - API.alertinput
   /api/alerts/alertmanager/receiver:
@@ -3828,7 +3825,7 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取预先定义的关联用标签
+      description: GetTargetTags
       produces:
       - application/json
       responses:
@@ -3840,7 +3837,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取预先定义的关联用标签
+      summary: GetTargetTags
       tags:
       - API.alertinput
   /api/config/getTTL:

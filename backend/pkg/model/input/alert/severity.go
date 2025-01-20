@@ -5,19 +5,18 @@ package alert
 
 import "strconv"
 
-const (
-	SeverityCriticalLevel = "critical"
-	SeverityErrorLevel    = "error"
-	SeverityWarnLevel     = "warn"
-	SeverityInfoLevel     = "info"
-	SeverityUnknownLevel  = "unknown"
-)
+var severityMap = map[string]map[string]string{
+	PrometheusType: {
+		// Just Use Default
+	},
+	ZabbixType: {},
+}
 
 func ConvertSeverity(sourceType string, severity string) string {
 	switch sourceType {
-	case "prometheus":
+	case PrometheusType:
 		return severity
-	case "zabbix":
+	case ZabbixType:
 		// Try to determine the data type
 		if level, err := strconv.Atoi(severity); err == nil {
 			switch level {
@@ -34,15 +33,15 @@ func ConvertSeverity(sourceType string, severity string) string {
 			}
 		} else {
 			switch severity {
-			case "Disaster":
+			case ZabbixSeverityDisaster:
 				return SeverityCriticalLevel
-			case "High":
+			case ZabbixSeverityHigh:
 				return SeverityErrorLevel
-			case "Average", "Warning":
+			case ZabbixSeverityAverage, ZabbixSeverityWarning:
 				return SeverityWarnLevel
-			case "Information":
+			case ZabbixSeverityInfo:
 				return SeverityInfoLevel
-			case "Not classified":
+			case ZabbixSeverityUnknown:
 				return SeverityUnknownLevel
 			}
 		}
