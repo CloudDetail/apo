@@ -939,7 +939,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "API.permission"
+                    "API.data"
                 ],
                 "summary": "Get group's datasource.",
                 "parameters": [
@@ -947,8 +947,13 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Data group's id",
                         "name": "groupId",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "apm or normal, return all when empty",
+                        "name": "category",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -7391,11 +7396,8 @@ const docTemplate = `{
                 "datasource": {
                     "type": "string"
                 },
-                "namespace": {
-                    "description": "the namespace that service belongs to",
-                    "type": "string"
-                },
                 "type": {
+                    "description": "service or namespace",
                     "type": "string"
                 }
             }
@@ -8195,9 +8197,6 @@ const docTemplate = `{
             "properties": {
                 "subjectId": {
                     "type": "integer"
-                },
-                "subjectType": {
-                    "type": "string"
                 },
                 "type": {
                     "description": "edit or view",
@@ -9718,27 +9717,20 @@ const docTemplate = `{
         "response.GetGroupDatasourceResponse": {
             "type": "object",
             "properties": {
-                "authType": {
-                    "type": "string"
-                },
-                "datasourceList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.DatasourceGroup"
+                "namespaceMap": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 },
-                "description": {
-                    "description": "The description of data group.",
-                    "type": "string"
-                },
-                "groupId": {
-                    "type": "integer"
-                },
-                "groupName": {
-                    "type": "string"
-                },
-                "source": {
-                    "type": "string"
+                "serviceList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

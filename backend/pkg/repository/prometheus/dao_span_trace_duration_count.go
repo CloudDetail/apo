@@ -25,7 +25,8 @@ const (
 		"(sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s, is_error='true'}[%s])) or 0)" + // or 0补充缺失数据场景
 		"/sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))" +
 		") or (sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])) * 0)" // or * 0补充中间缺失数据的场景
-	TEMPLATE_GET_NAMESPACES = `sum(kindling_span_trace_duration_nanoseconds_count{namespace=~".+"}[%s]) by (namespace)`
+	TEMPLATE_GET_NAMESPACES            = `sum(kindling_span_trace_duration_nanoseconds_count{namespace=~".+"}[%s]) by (namespace)`
+	TEMPLATE_GET_NAMESPACES_BY_SERVICE = `sum(kindling_span_trace_duration_nanoseconds_count{%s}[%s]) by (namespace)`
 )
 
 // GetServiceList 查询服务名列表
@@ -90,7 +91,7 @@ func (repo *promRepo) GetServiceNamespace(startTime, endTime int64, service stri
 	if len(service) > 0 {
 		serviceFilter = fmt.Sprintf(`%s"%s"`, ServicePQLFilter, service)
 	}
-	query := fmt.Sprintf(TEMPLATE_GET_NAMESPACES, serviceFilter, VecFromS2E(startTime, endTime))
+	query := fmt.Sprintf(TEMPLATE_GET_NAMESPACES_BY_SERVICE, serviceFilter, VecFromS2E(startTime, endTime))
 	value, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
 
 	if err != nil {

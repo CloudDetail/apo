@@ -59,11 +59,6 @@ type Handler interface {
 	// @Tags API.data
 	// @Router /api/data/subs [get]
 	GetGroupSubs() core.HandlerFunc
-
-	// GetUserDatasource Get datasource that user authorized to view.
-	// @Tags API.data
-	// @Router /api/data/user [get]
-	GetUserDatasource() core.HandlerFunc
 }
 
 type handler struct {

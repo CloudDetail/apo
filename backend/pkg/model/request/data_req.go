@@ -32,7 +32,8 @@ type GetDataGroupRequest struct {
 }
 
 type GetGroupDatasourceRequest struct {
-	GroupID int64 `form:"groupId"`
+	GroupID  int64  `form:"groupId"`
+	Category string `form:"category"` // apm or normal
 }
 
 type GetSubjectDataGroupRequest struct {
