@@ -32,7 +32,7 @@ type GetDataGroupRequest struct {
 }
 
 type GetGroupDatasourceRequest struct {
-	GroupID int64 `form:"groupId" binding:"required"`
+	GroupID int64 `form:"groupId"`
 }
 
 type GetSubjectDataGroupRequest struct {

@@ -5,7 +5,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"strings"
 )
 
 // DataGroup is a collection of Datasource.
@@ -23,9 +22,8 @@ type DataGroup struct {
 type DatasourceGroup struct {
 	GroupID    int64  `gorm:"column:group_id;primary_key" json:"-"`
 	Datasource string `gorm:"column:datasource;primary_key" json:"datasource"`
-	Type       string `gorm:"column:type" json:"type"`
-	Category   string `gorm:"column:category" json:"category"`              // apm or normal
-	Namespaces string `gorm:"column:namespaces" json:"namespace,omitempty"` // the namespace that service belongs to
+	Type       string `gorm:"column:type" json:"type"`         // service or namespace
+	Category   string `gorm:"column:category" json:"category"` // apm or normal
 }
 
 func (dg *DataGroup) TableName() string {
@@ -63,7 +61,6 @@ func (repo *daoRepo) CreateDatasourceGroup(ctx context.Context, datasource []mod
 			Datasource: ds.Datasource,
 			Type:       ds.Type,
 			Category:   ds.Category,
-			Namespaces: strings.Join(ds.Nested, ","),
 		}
 		datasourceGroups = append(datasourceGroups, dsGroup)
 	}

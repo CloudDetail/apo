@@ -85,6 +85,34 @@ func (repo *promRepo) GetServiceWithNamespace(startTime, endTime int64, namespac
 	return result, nil
 }
 
+func (repo *promRepo) GetServiceNamespace(startTime, endTime int64, service string) ([]string, error) {
+	var serviceFilter string
+	if len(service) > 0 {
+		serviceFilter = fmt.Sprintf(`%s"%s"`, ServicePQLFilter, service)
+	}
+	query := fmt.Sprintf(TEMPLATE_GET_NAMESPACES, serviceFilter, VecFromS2E(startTime, endTime))
+	value, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]string, 0)
+	vector, ok := value.(prometheus_model.Vector)
+	if !ok {
+		return result, nil
+	}
+
+	for _, sample := range vector {
+		namespace := string(sample.Metric["namespace"])
+		if len(namespace) > 0 {
+			result = append(result, namespace)
+		}
+	}
+
+	return result, nil
+}
+
 // GetNamespaceWithService Get namespace list and service that under it.
 func (repo *promRepo) GetNamespaceWithService(startTime, endTime int64) (map[string][]string, error) {
 	var namespaceFilter string

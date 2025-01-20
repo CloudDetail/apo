@@ -22,6 +22,7 @@ func (s *service) getUserDataGroup(userID int64, category string) ([]database.Da
 		return nil, err
 	}
 
+	// Get user's teams.
 	var groups []database.DataGroup
 	for _, teamID := range teamIDs {
 		gs, err := s.dbRepo.GetSubjectDataGroupList(teamID, model.DATA_GROUP_SUB_TYP_TEAM, category)

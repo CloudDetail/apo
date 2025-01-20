@@ -29,6 +29,8 @@ type Repo interface {
 	// 查询服务列表
 	GetServiceList(startTime int64, endTime int64, namespace []string) ([]string, error)
 	GetServiceWithNamespace(startTime, endTime int64, namespace []string) (map[string][]string, error)
+	// GetServiceNamespace  Get service's namespaces.
+	GetServiceNamespace(startTime, endTime int64, service string) ([]string, error)
 	// 查询服务实例列表, URL允许为空
 	GetInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
 	// 查询活跃实例列表

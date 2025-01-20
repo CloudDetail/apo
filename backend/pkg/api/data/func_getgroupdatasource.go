@@ -3,6 +3,7 @@ package data
 import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
 )
@@ -30,22 +31,12 @@ func (h *handler) GetGroupDatasource() core.HandlerFunc {
 			return
 		}
 
-		//resp, err := h.dataService.GetGroupDatasource(req)
-		//if err != nil {
-		//	var vErr model.ErrWithMessage
-		//	if errors.As(err, &vErr) {
-		//		c.AbortWithError(core.Error(
-		//			http.StatusBadRequest,
-		//			vErr.Code,
-		//			code.Text(vErr.Code)).WithError(err))
-		//	} else {
-		//		c.AbortWithError(core.Error(
-		//			http.StatusBadRequest,
-		//			code.GetGroupDatasourceError,
-		//			code.Text(code.GetGroupDatasourceError)).WithError(err))
-		//	}
-		//	return
-		//}
-		c.Payload("resp")
+		userID := middleware.GetContextUserID(c)
+		resp, err := h.dataService.GetGroupDatasource(req, userID)
+		if err != nil {
+			c.HandleError(err, code.GetGroupDatasourceError)
+			return
+		}
+		c.Payload(resp)
 	}
 }
