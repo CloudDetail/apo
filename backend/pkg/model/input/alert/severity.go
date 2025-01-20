@@ -5,13 +5,6 @@ package alert
 
 import "strconv"
 
-var severityMap = map[string]map[string]string{
-	PrometheusType: {
-		// Just Use Default
-	},
-	ZabbixType: {},
-}
-
 func ConvertSeverity(sourceType string, severity string) string {
 	switch sourceType {
 	case PrometheusType:

@@ -16,7 +16,7 @@ const (
 const (
 	SeverityCriticalLevel = "critical"
 	SeverityErrorLevel    = "error"
-	SeverityWarnLevel     = "warn"
+	SeverityWarnLevel     = "warning"
 	SeverityInfoLevel     = "info"
 	SeverityUnknownLevel  = "unknown"
 )
