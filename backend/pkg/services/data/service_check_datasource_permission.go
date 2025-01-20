@@ -99,6 +99,18 @@ func (s *service) CheckDatasourcePermission(userID int64, namespaces, services i
 
 	filteredNs = make([]string, 0, len(namespacesSlice))
 	filteredSrv = make([]string, 0, len(servicesSlice))
+	for _, srv := range servicesSlice {
+		_, exists := serviceMap[srv]
+		if !exists {
+			continue
+		}
+
+		if _, ok := filteredSrvMap[srv]; !ok {
+			filteredSrv = append(filteredSrv, srv)
+		}
+		filteredSrvMap[srv] = struct{}{}
+	}
+
 	for _, ns := range namespacesSlice {
 		has, exists := namespaceMap[ns]
 		if !exists {
@@ -111,24 +123,18 @@ func (s *service) CheckDatasourcePermission(userID int64, namespaces, services i
 		}
 		// user has permissions to some of the services under this namespace
 		namespaceServices := namespaceSrvMap[ns]
+		var toAppend []string
+		needed := true
 		for _, service := range namespaceServices {
 			if _, ok := filteredSrvMap[service]; !ok {
-				filteredSrv = append(filteredSrv, service)
+				toAppend = append(toAppend, service)
+			} else {
+				needed = false
 			}
-			filteredSrvMap[service] = struct{}{}
 		}
-	}
-
-	for _, srv := range servicesSlice {
-		_, exists := serviceMap[srv]
-		if !exists {
-			continue
+		if needed {
+			filteredSrv = append(filteredSrv, toAppend...)
 		}
-
-		if _, ok := serviceMap[srv]; !ok {
-			filteredSrv = append(filteredSrv, srv)
-		}
-		filteredSrvMap[srv] = struct{}{}
 	}
 
 	// This means all the namespaces and services are filtered.

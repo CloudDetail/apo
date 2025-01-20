@@ -82,7 +82,7 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 	if req.GroupID != 0 {
 		groups, err = s.getDataGroup(req.GroupID)
 	} else {
-		groups, err = s.getUserDataGroup(userID, "")
+		groups, err = s.getUserDataGroup(userID, req.Category)
 	}
 
 	if err != nil {
