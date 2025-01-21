@@ -1197,7 +1197,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "data group's id",
-                        "name": "dataGroupId",
+                        "name": "groupId",
                         "in": "query",
                         "required": true
                     },
@@ -8356,11 +8356,11 @@ const docTemplate = `{
         "request.DataGroupPermission": {
             "type": "object",
             "required": [
-                "dataGroupId",
+                "groupId",
                 "type"
             ],
             "properties": {
-                "dataGroupId": {
+                "groupId": {
                     "type": "integer"
                 },
                 "type": {
@@ -8771,10 +8771,10 @@ const docTemplate = `{
         "request.GroupSubsOperationRequest": {
             "type": "object",
             "required": [
-                "dataGroupId"
+                "groupId"
             ],
             "properties": {
-                "dataGroupId": {
+                "groupId": {
                     "type": "integer"
                 },
                 "teamList": {

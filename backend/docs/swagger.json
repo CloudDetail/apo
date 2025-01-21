@@ -1189,7 +1189,7 @@
                     {
                         "type": "integer",
                         "description": "data group's id",
-                        "name": "dataGroupId",
+                        "name": "groupId",
                         "in": "query",
                         "required": true
                     },
@@ -8348,11 +8348,11 @@
         "request.DataGroupPermission": {
             "type": "object",
             "required": [
-                "dataGroupId",
+                "groupId",
                 "type"
             ],
             "properties": {
-                "dataGroupId": {
+                "groupId": {
                     "type": "integer"
                 },
                 "type": {
@@ -8763,10 +8763,10 @@
         "request.GroupSubsOperationRequest": {
             "type": "object",
             "required": [
-                "dataGroupId"
+                "groupId"
             ],
             "properties": {
-                "dataGroupId": {
+                "groupId": {
                     "type": "integer"
                 },
                 "teamList": {

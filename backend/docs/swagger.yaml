@@ -1054,12 +1054,12 @@ definitions:
     type: object
   request.DataGroupPermission:
     properties:
-      dataGroupId:
+      groupId:
         type: integer
       type:
         type: string
     required:
-    - dataGroupId
+    - groupId
     - type
     type: object
   request.DataType:
@@ -1339,7 +1339,7 @@ definitions:
     type: object
   request.GroupSubsOperationRequest:
     properties:
-      dataGroupId:
+      groupId:
         type: integer
       teamList:
         items:
@@ -1350,7 +1350,7 @@ definitions:
           $ref: '#/definitions/request.AuthDataGroup'
         type: array
     required:
-    - dataGroupId
+    - groupId
     type: object
   request.InputAlertManagerRequest:
     properties:
@@ -3625,7 +3625,7 @@ paths:
         type: string
       - description: data group's id
         in: query
-        name: dataGroupId
+        name: groupId
         required: true
         type: integer
       - description: subject type that you want to query

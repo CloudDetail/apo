@@ -69,7 +69,7 @@ func (s *service) GroupSubsOperation(req *request.GroupSubsOperationRequest) err
 				toAdd = append(toAdd, database.AuthDataGroup{
 					SubjectID:   sub.SubjectID,
 					SubjectType: subjectType,
-					DataGroupID: req.DataGroupID,
+					GroupID:     req.DataGroupID,
 					Type:        sub.Type,
 				})
 			} else {

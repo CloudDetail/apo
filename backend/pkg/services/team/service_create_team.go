@@ -59,7 +59,7 @@ func (s *service) CreateTeam(req *request.CreateTeamRequest) error {
 	authDataGroup := make([]database.AuthDataGroup, len(req.DataGroupPermissions))
 	for i, dgPermission := range req.DataGroupPermissions {
 		authDataGroup[i] = database.AuthDataGroup{
-			DataGroupID: dgPermission.DataGroupID,
+			GroupID:     dgPermission.DataGroupID,
 			SubjectType: model.DATA_GROUP_SUB_TYP_TEAM,
 			SubjectID:   team.TeamID,
 			Type:        dgPermission.PermissionType,

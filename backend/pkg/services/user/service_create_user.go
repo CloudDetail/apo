@@ -81,7 +81,7 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 	authDataGroups := make([]database.AuthDataGroup, len(req.DataGroupPermissions))
 	for i, dgPermission := range req.DataGroupPermissions {
 		authDataGroups[i] = database.AuthDataGroup{
-			DataGroupID: dgPermission.DataGroupID,
+			GroupID:     dgPermission.DataGroupID,
 			SubjectID:   user.UserID,
 			SubjectType: model.DATA_GROUP_SUB_TYP_USER,
 			Type:        dgPermission.PermissionType,
