@@ -7,7 +7,12 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"strings"
 	"time"
+)
+
+import (
+	"sort"
 )
 
 func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err error) {
@@ -35,6 +40,9 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 
 	serviceList := make([]model.Datasource, 0, len(servicesMap))
 	for service, namespaces := range servicesMap {
+		sort.Slice(namespaces, func(i, j int) bool {
+			return namespaces[i] < namespaces[j]
+		})
 		ds := model.Datasource{
 			Datasource: service,
 			Type:       model.DATASOURCE_TYP_SERVICE,
@@ -57,6 +65,9 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 	}
 
 	for namespace, services := range namespaceMap {
+		sort.Slice(services, func(i, j int) bool {
+			return services[i] < services[j]
+		})
 		ds := model.Datasource{
 			Datasource: namespace,
 			Type:       model.DATASOURCE_TYP_NAMESPACE,
@@ -65,6 +76,14 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 		}
 		namespaceList = append(namespaceList, ds)
 	}
+
+	sort.Slice(serviceList, func(i, j int) bool {
+		return strings.Compare(serviceList[i].Datasource, serviceList[j].Datasource) < 0
+	})
+
+	sort.Slice(namespaceList, func(i, j int) bool {
+		return namespaceList[i].Datasource < namespaceList[j].Datasource
+	})
 
 	resp.NamespaceList = namespaceList
 	resp.ServiceList = serviceList
