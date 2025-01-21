@@ -75,7 +75,7 @@ func (repo *daoRepo) DeleteDSGroup(ctx context.Context, groupID int64) error {
 	return repo.GetContextDB(ctx).Model(&DatasourceGroup{}).Where("group_id = ?", groupID).Delete(&DatasourceGroup{}).Error
 }
 
-func (repo *daoRepo) UpdateDataGroupName(ctx context.Context, groupID int64, groupName string, description string) error {
+func (repo *daoRepo) UpdateDataGroup(ctx context.Context, groupID int64, groupName string, description string) error {
 	return repo.GetContextDB(ctx).
 		Model(&DataGroup{}).
 		Where("group_id = ?", groupID).

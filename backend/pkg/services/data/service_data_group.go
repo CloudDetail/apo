@@ -65,16 +65,32 @@ func (s *service) DeleteDataGroup(req *request.DeleteDataGroupRequest) error {
 }
 
 func (s *service) UpdateDataGroup(req *request.UpdateDataGroupRequest) error {
-	filter := model.DataGroupFilter{
+	idFilter := model.DataGroupFilter{
 		ID: req.GroupID,
 	}
-	exists, err := s.dbRepo.DataGroupExist(filter)
+	groups, _, err := s.dbRepo.GetDataGroup(idFilter)
 	if err != nil {
 		return err
 	}
 
-	if !exists {
+	if len(groups) == 0 {
 		return model.NewErrWithMessage(errors.New("data group does not exist"), code.DataGroupNotExistError)
+	}
+
+	group := groups[0]
+	nameFilter := model.DataGroupFilter{
+		Name: req.GroupName,
+	}
+
+	if group.GroupName != req.GroupName {
+		exists, err := s.dbRepo.DataGroupExist(nameFilter)
+		if err != nil {
+			return err
+		}
+
+		if exists {
+			return model.NewErrWithMessage(errors.New("data group already exist"), code.DataGroupExistError)
+		}
 	}
 
 	// 1. Get data group's datasource
@@ -106,7 +122,7 @@ func (s *service) UpdateDataGroup(req *request.UpdateDataGroupRequest) error {
 	var addData []model.Datasource
 	var deleteData []string
 	for _, data := range req.DatasourceList {
-		if _, exists = dsMap[data.Datasource]; !exists {
+		if _, exists := dsMap[data.Datasource]; !exists {
 			// skip if datasource does not exist
 			continue
 		}
@@ -122,7 +138,7 @@ func (s *service) UpdateDataGroup(req *request.UpdateDataGroupRequest) error {
 	}
 
 	var updateNameFunc = func(ctx context.Context) error {
-		return s.dbRepo.UpdateDataGroupName(ctx, req.GroupID, req.GroupName, req.Description)
+		return s.dbRepo.UpdateDataGroup(ctx, req.GroupID, req.GroupName, req.Description)
 	}
 
 	var assignFunc = func(ctx context.Context) error {

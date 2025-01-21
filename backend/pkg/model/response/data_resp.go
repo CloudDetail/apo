@@ -22,7 +22,4 @@ type GetGroupDatasourceResponse struct {
 
 type GetSubjectDataGroupResponse []database.DataGroup
 
-type GetUserDatasourceResponse struct {
-}
-
 type GetGroupSubsResponse []database.AuthDataGroup
