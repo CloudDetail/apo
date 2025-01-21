@@ -18,7 +18,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Authorization header string false "Bearer accessToken"
-// @Param dataGroupId query int64 true "data group's id"
+// @Param groupId query int64 true "data group's id"
 // @Param subjectType query string false "subject type that you want to query"
 // @Success 200 {object} response.GetGroupSubsResponse
 // @Failure 400 {object} code.Failure

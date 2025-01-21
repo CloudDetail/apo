@@ -43,13 +43,13 @@ type GetSubjectDataGroupRequest struct {
 }
 
 type GroupSubsOperationRequest struct {
-	DataGroupID int64           `json:"dataGroupId" form:"dataGroupId" binding:"required"`
+	DataGroupID int64           `json:"groupId" form:"groupId" binding:"required"`
 	UserList    []AuthDataGroup `json:"userList"`
 	TeamList    []AuthDataGroup `json:"teamList"`
 }
 
 type GetGroupSubsRequest struct {
-	DataGroupID int64  `form:"dataGroupId" binding:"required"`
+	DataGroupID int64  `form:"groupId" binding:"required"`
 	SubjectType string `form:"subjectType"`
 }
 

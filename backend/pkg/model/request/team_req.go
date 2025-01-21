@@ -52,6 +52,6 @@ type DataGroupOperationRequest struct {
 }
 
 type DataGroupPermission struct {
-	DataGroupID    int64  `json:"dataGroupId" binding:"required"`
+	DataGroupID    int64  `json:"groupId" binding:"required"`
 	PermissionType string `json:"type" binding:"required"`
 }
