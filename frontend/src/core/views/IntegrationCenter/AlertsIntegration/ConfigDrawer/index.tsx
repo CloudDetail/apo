@@ -13,6 +13,7 @@ import TagContent from './TagContent'
 import { getAlertInputBaseInfoApi } from 'src/core/api/alertInput'
 import { useAlertIntegrationContext } from 'src/core/contexts/AlertIntegrationContext'
 import { AlertKey } from 'src/core/types/alertIntegration'
+import SourceTypeInfo from './SourceTypeInfo'
 
 interface DrawerTitleProps {
   sourceName: string | null
@@ -53,10 +54,12 @@ const IntegrationDrawer = () => {
     if (!sourceId) {
       setConfigDrawerVisible(false)
       setSourceId(null)
+      setSourceName(null)
     } else if (sourceId === 'add') {
       setSourceType(sourceType as AlertKey)
       setConfigDrawerVisible(true)
       setSourceId(null)
+      setSourceName(null)
     } else {
       getAlertIntegrationBaseInfo(sourceId)
       setConfigDrawerVisible(true)
@@ -90,6 +93,7 @@ const IntegrationDrawer = () => {
         clusters={clusters}
         refreshDrawer={() => getAlertIntegrationBaseInfo(sourceId)}
       />
+      {!sourceId && <SourceTypeInfo sourceType={sourceType} />}
       {sourceId && <TagContent sourceId={sourceId} />}
     </Drawer>
   )

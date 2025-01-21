@@ -38,12 +38,15 @@ export const copyValue = async (value) => {
   }
 }
 function CopyButton(props) {
-  const { value, iconText } = props
+  const { value, iconText = '', icon = <LuCopy /> } = props
 
   return (
     // <Button type="text" icon={<LuCopy />}>
-    <div className="cursor-pointer text-blue-500">
-      <LuCopy onClick={() => copyValue(value)} />
+    <div
+      className="cursor-pointer text-blue-500 flex items-center"
+      onClick={() => copyValue(value)}
+    >
+      {icon} <span className="p-2">{iconText}</span>
     </div>
     // </Button>
   )

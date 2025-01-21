@@ -14,6 +14,8 @@ import BaseInfoDescriptions from './BaseInfoDescriptions'
 import { useAlertIntegrationContext } from 'src/core/contexts/AlertIntegrationContext'
 import { useSearchParams } from 'react-router-dom'
 import { AlertInputSourceParams, AlertKey } from 'src/core/types/alertIntegration'
+import { copyValue } from 'src/core/components/CopyButton'
+import { LuCopy } from 'react-icons/lu'
 interface BaseInfoContentProps {
   sourceId?: string | null
   sourceName?: string | null
@@ -90,10 +92,20 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
   useEffect(() => {
     form.resetFields()
   }, [configDrawerVisible])
+  const getPublishUrl = () => {
+    const baseUrl = window.location.origin + '/api/alertinput/event/source?sourceId='
+    if (sourceId) {
+      return baseUrl + sourceId
+    } else {
+      return baseUrl + '${sourceID}'
+    }
+  }
   return (
     <Card className="bg-[#202023] rounded-3xl" classNames={{ body: 'px-4 py-3' }}>
       {type === 'view' ? (
-        sourceName && <BaseInfoDescriptions sourceName={sourceName} clusters={clusters} />
+        sourceName && (
+          <BaseInfoDescriptions sourceName={sourceName} clusters={clusters} sourceId={sourceId} />
+        )
       ) : (
         <Form labelCol={{ span: 3, offset: 1 }} colon={false} form={form}>
           <Typography>
@@ -110,8 +122,19 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
               <Form.Item name="sourceName" label="告警接入名" required rules={[{ required: true }]}>
                 <Input></Input>
               </Form.Item>
+              <Form.Item label="推送地址">
+                <Input
+                  addonAfter={
+                    <LuCopy
+                      className=" cursor-pointer "
+                      onClick={() => copyValue(getPublishUrl())}
+                    />
+                  }
+                  value={getPublishUrl()}
+                />
+              </Form.Item>
 
-              <ClusterSelector />
+              {/* <ClusterSelector /> */}
             </ConfigProvider>
           </Typography>
         </Form>

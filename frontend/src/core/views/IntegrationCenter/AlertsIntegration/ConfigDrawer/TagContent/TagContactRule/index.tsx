@@ -31,7 +31,7 @@ const TagContactRule = ({ sourceId }: TagContactRuleProps) => {
     saveAlertEnrichApi(params)
       .then((res) => {
         showToast({
-          title: '保存标签增强规则成功',
+          title: '保存关联应用规则规则成功',
           color: 'success',
         })
         refreshReadOnly()
