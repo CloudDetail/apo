@@ -33,7 +33,10 @@ func (adg AuthDataGroup) MarshalJSON() ([]byte, error) {
 			return nil, err
 		}
 		var userMap map[string]interface{}
-		json.Unmarshal(userData, &userMap)
+		err = json.Unmarshal(userData, &userMap)
+		if err != nil {
+			return nil, err
+		}
 		for k, v := range userMap {
 			result[k] = v
 		}
@@ -45,7 +48,10 @@ func (adg AuthDataGroup) MarshalJSON() ([]byte, error) {
 			return nil, err
 		}
 		var teamMap map[string]interface{}
-		json.Unmarshal(teamData, &teamMap)
+		err = json.Unmarshal(teamData, &teamMap)
+		if err != nil {
+			return nil, err
+		}
 		for k, v := range teamMap {
 			result[k] = v
 		}
