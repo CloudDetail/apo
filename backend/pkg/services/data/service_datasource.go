@@ -110,9 +110,12 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 
 	for _, group := range groups {
 		for _, ds := range group.DatasourceList {
-			nested, err := s.getNested(ds.Datasource, ds.Type)
-			if err != nil {
-				return resp, err
+			nested := make([]string, 0)
+			if ds.Category == model.DATASOURCE_CATEGORY_APM {
+				nested, err = s.getNested(ds.Datasource, ds.Type)
+				if err != nil {
+					return resp, err
+				}
 			}
 
 			if ds.Type == model.DATASOURCE_TYP_NAMESPACE {
