@@ -9,13 +9,11 @@ import Typography from 'antd/es/typography/Typography'
 import { creatAlertInputSourceApi, updateAlertsIntegrationApi } from 'src/core/api/alertInput'
 import { useEffect, useState } from 'react'
 import { showToast } from 'src/core/utils/toast'
-import ClusterSelector from './ClusterSelector'
 import BaseInfoDescriptions from './BaseInfoDescriptions'
 import { useAlertIntegrationContext } from 'src/core/contexts/AlertIntegrationContext'
 import { useSearchParams } from 'react-router-dom'
 import { AlertInputSourceParams, AlertKey } from 'src/core/types/alertIntegration'
-import { copyValue } from 'src/core/components/CopyButton'
-import { LuCopy } from 'react-icons/lu'
+import Text from 'antd/es/typography/Text'
 interface BaseInfoContentProps {
   sourceId?: string | null
   sourceName?: string | null
@@ -123,15 +121,7 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
                 <Input></Input>
               </Form.Item>
               <Form.Item label="推送地址">
-                <Input
-                  addonAfter={
-                    <LuCopy
-                      className=" cursor-pointer "
-                      onClick={() => copyValue(getPublishUrl())}
-                    />
-                  }
-                  value={getPublishUrl()}
-                />
+                <Text copyable={{ text: getPublishUrl }}>{getPublishUrl()}</Text>
               </Form.Item>
 
               {/* <ClusterSelector /> */}
