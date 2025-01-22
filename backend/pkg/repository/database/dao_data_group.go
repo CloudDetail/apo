@@ -46,7 +46,7 @@ func (repo *daoRepo) DeleteDataGroup(ctx context.Context, groupID int64) error {
 		return err
 	}
 
-	return repo.GetContextDB(ctx).Model(&AuthDataGroup{}).Where("group_id = ?", groupID).Delete(nil).Error
+	return repo.GetContextDB(ctx).Model(&AuthDataGroup{}).Where("data_group_id = ?", groupID).Delete(nil).Error
 }
 
 func (repo *daoRepo) CreateDatasourceGroup(ctx context.Context, datasource []model.Datasource, dataGroupID int64) error {
