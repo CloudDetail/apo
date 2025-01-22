@@ -13,6 +13,7 @@ const (
 	AnormalTypeAlertContainer                    // 容器告警         => group=container
 	AnormalTypeAlertInfra                        // 基础设施告警     => group=infra
 	AnormalTypeAlertNet                          // 网络告警         => group=net
+	AnormalTypeAlertDatabase                     // 数据库告警       => group=database
 
 	AnormalTypeError // 错误事件告警 => 来自JavaException等
 

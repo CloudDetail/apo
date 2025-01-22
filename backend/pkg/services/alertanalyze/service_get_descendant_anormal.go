@@ -36,6 +36,7 @@ func (s *service) GetDescendantAnormal(req *request.GetDescendantAnormalEventReq
 	}
 
 	var instances []*model.ServiceInstance
+	var databaseInstances []model.MiddlewareInstance
 	tmpServiceSet := map[string]struct{}{}
 	endpointList := make([]model.EndpointKey, 0)
 
@@ -59,12 +60,23 @@ func (s *service) GetDescendantAnormal(req *request.GetDescendantAnormalEventReq
 			continue
 		}
 		instances = append(instances, instanceList.GetInstances()...)
+
+		// 查询服务下游的数据库服务
+		dbInstance, err := s.promRepo.GetDescendantDatabase(req.StartTime, req.EndTime, node.Service, node.Endpoint)
+		if err != nil {
+			continue
+		}
+		// instanceMap.AddDatabaseInstance(endpoint, dbInstance)
+		databaseInstances = append(databaseInstances, dbInstance...)
 	}
 
 	// 通过下游节点查询告警事件
 	events, count, err := s.chRepo.GetAlertEventsByInstanceAndEndpoints(startTime, endTime,
 		request.AlertFilter{Status: "firing", WithMutation: true},
-		instances, endpointList, req.PageParam,
+		&model.RelatedInstances{
+			SIs: instances,
+			MIs: databaseInstances,
+		}, endpointList, req.PageParam,
 		clickhouse.OrderAlertByReceivedTime,
 	)
 

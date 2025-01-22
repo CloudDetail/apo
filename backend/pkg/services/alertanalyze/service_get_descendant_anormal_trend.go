@@ -35,6 +35,7 @@ func (s *service) GetAnormalTrendByEntry(req *request.GetDescendantAnormalTrendR
 	// 便于后续查询受告警影响的服务
 	var instances []*model.ServiceInstance
 	var endpoints []model.EndpointKey
+	var databaseInstances []model.MiddlewareInstance
 	instanceMap := newInstanceMap()
 	// TODO 优化,减少查询次数
 
@@ -55,6 +56,16 @@ func (s *service) GetAnormalTrendByEntry(req *request.GetDescendantAnormalTrendR
 
 		instances = append(instances, instancesForDescendant...)
 		endpoints = append(endpoints, endpoint)
+
+		// 查询服务下游的数据库服务
+		if isSelect(selectedEvents, "database") {
+			dbInstance, err := s.promRepo.GetDescendantDatabase(req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
+			if err != nil {
+				continue
+			}
+			instanceMap.AddDatabaseInstance(endpoint, dbInstance)
+			databaseInstances = append(databaseInstances, dbInstance...)
+		}
 	}
 
 	// 返回结果列表
@@ -78,7 +89,11 @@ func (s *service) GetAnormalTrendByEntry(req *request.GetDescendantAnormalTrendR
 			startTime, endTime,
 			// 同时获取Firing和Resolved故障
 			request.AlertFilter{WithMutation: true},
-			instances, endpoints,
+			&model.RelatedInstances{
+				SIs: instances,
+				MIs: databaseInstances,
+			},
+			endpoints,
 		)
 
 		if err == nil {

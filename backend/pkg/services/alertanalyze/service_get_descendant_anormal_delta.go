@@ -45,8 +45,8 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 	// 便于后续查询受告警影响的服务
 	var instances []*model.ServiceInstance
 	var endpoints []model.EndpointKey
+	var databaseInstances []model.MiddlewareInstance
 	instanceMap := newInstanceMap()
-
 	for _, descendant := range descendants.Nodes {
 		endpoint := model.EndpointKey{
 			ServiceName: descendant.Service,
@@ -64,6 +64,16 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 
 		instances = append(instances, instancesForDescendant...)
 		endpoints = append(endpoints, endpoint)
+
+		// 查询服务下游的数据库服务
+		if isSelect(selectedEvents, "database") {
+			dbInstance, err := s.promRepo.GetDescendantDatabase(req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
+			if err != nil {
+				continue
+			}
+			instanceMap.AddDatabaseInstance(endpoint, dbInstance)
+			databaseInstances = append(databaseInstances, dbInstance...)
+		}
 	}
 
 	// 返回结果列表
@@ -87,7 +97,11 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 			startTime, endTime,
 			// 同时获取Firing和Resolved故障
 			request.AlertFilter{WithMutation: true},
-			instances, endpoints,
+			&model.RelatedInstances{
+				SIs: instances,
+				MIs: databaseInstances,
+			},
+			endpoints,
 		)
 
 		if err == nil {
@@ -99,13 +113,13 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 		}
 	}
 
-	originAnormalCounts := map[model.EndpointKey]map[model.AnormalType]int64{}
+	existingCounts := map[model.EndpointKey]map[model.AnormalType]int64{}
 	alertTriggeredCounts := map[model.EndpointKey]map[model.AnormalType]int64{}
-	finalAnormalCounts := map[model.EndpointKey]map[model.AnormalType]int64{}
+	untreatedCounts := map[model.EndpointKey]map[model.AnormalType]int64{}
 
-	originAnormalEvents := []response.DescendantAnormalEventRecord{}
-	deltaAnormalEvents := []response.DescendantAnormalEventRecord{}
-	finalAnrmalEvents := []response.DescendantAnormalEventRecord{}
+	existingEvents := []response.DescendantAnormalEventRecord{}
+	deltaEvents := []response.DescendantAnormalEventRecord{}
+	untreatedEvents := []response.DescendantAnormalEventRecord{}
 
 	// anormalEventTimeGroup := make(map[int64][]model.AnormalEvent)
 	for _, event := range anormalEventList {
@@ -140,17 +154,17 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 
 		if statusBefore == model.StatusFiring {
 			for _, impactEndpoints := range event.ImpactEndpoints {
-				alertCounts, find := originAnormalCounts[impactEndpoints.EndpointKey]
+				alertCounts, find := existingCounts[impactEndpoints.EndpointKey]
 				if !find {
 					alertCounts = map[model.AnormalType]int64{}
-					originAnormalCounts[impactEndpoints.EndpointKey] = alertCounts
+					existingCounts[impactEndpoints.EndpointKey] = alertCounts
 				}
 				alertCounts[event.AnormalType]++
 			}
 
 			// 记录已经发生的告警事件和当时的状态
 			for _, impactEndpoint := range event.ImpactEndpoints {
-				originAnormalEvents = append(originAnormalEvents, response.DescendantAnormalEventRecord{
+				existingEvents = append(existingEvents, response.DescendantAnormalEventRecord{
 					EndpointKey:   impactEndpoint.EndpointKey,
 					AlertKey:      impactEndpoint.GetEventKey(),
 					AnormalType:   event.AnormalType,
@@ -176,17 +190,17 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 
 		if statusAfter == model.StatusFiring {
 			for _, impactEndpoints := range event.ImpactEndpoints {
-				alertCounts, find := finalAnormalCounts[impactEndpoints.EndpointKey]
+				alertCounts, find := untreatedCounts[impactEndpoints.EndpointKey]
 				if !find {
 					alertCounts = map[model.AnormalType]int64{}
-					finalAnormalCounts[impactEndpoints.EndpointKey] = alertCounts
+					untreatedCounts[impactEndpoints.EndpointKey] = alertCounts
 				}
 				alertCounts[event.AnormalType]++
 			}
 
 			// 记录已经发生的告警事件和当时的状态
 			for _, impactEndpoint := range event.ImpactEndpoints {
-				finalAnrmalEvents = append(finalAnrmalEvents, response.DescendantAnormalEventRecord{
+				untreatedEvents = append(untreatedEvents, response.DescendantAnormalEventRecord{
 					EndpointKey:   impactEndpoint.EndpointKey,
 					AlertKey:      impactEndpoint.GetEventKey(),
 					AnormalType:   event.AnormalType,
@@ -218,7 +232,7 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 				}
 
 				for _, impactEndpoint := range event.ImpactEndpoints {
-					deltaAnormalEvents = append(deltaAnormalEvents, response.DescendantAnormalEventRecord{
+					deltaEvents = append(deltaEvents, response.DescendantAnormalEventRecord{
 						EndpointKey:   impactEndpoint.EndpointKey,
 						AlertKey:      impactEndpoint.GetEventKey(),
 						AnormalType:   event.AnormalType,
@@ -234,7 +248,7 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 	}
 
 	var originAnormalCountsList = []response.DescendantAnormalCounts{}
-	for endpoint, anormalCounts := range originAnormalCounts {
+	for endpoint, anormalCounts := range existingCounts {
 		originAnormalCountsList = append(originAnormalCountsList, response.DescendantAnormalCounts{
 			EndpointKey:      endpoint,
 			AnormalCountsMap: anormalCounts,
@@ -250,7 +264,7 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 	}
 
 	var finalAnormalCountsList = []response.DescendantAnormalCounts{}
-	for endpoint, anormalCounts := range finalAnormalCounts {
+	for endpoint, anormalCounts := range untreatedCounts {
 		finalAnormalCountsList = append(finalAnormalCountsList, response.DescendantAnormalCounts{
 			EndpointKey:      endpoint,
 			AnormalCountsMap: anormalCounts,
@@ -262,9 +276,9 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 		AlertTriggeredCounts: alertTriggeredCountsList,
 		FinalAnormalCounts:   finalAnormalCountsList,
 
-		OriginAnormalEvents: originAnormalEvents,
-		DeltaAnormalEvents:  deltaAnormalEvents,
-		FinalAnormalEvents:  finalAnrmalEvents,
+		OriginAnormalEvents: existingEvents,
+		DeltaAnormalEvents:  deltaEvents,
+		FinalAnormalEvents:  untreatedEvents,
 	}, nil
 }
 
@@ -364,7 +378,7 @@ func (*service) parseAlertEvents(alertEvents []ck.AlertEventWithKey, instanceMap
 			anormalEvent.ImpactEndpoints = append(anormalEvent.ImpactEndpoints, model.AnormalEventDetail{
 				EndpointKey: model.EndpointKey{
 					ServiceName: alertEvent.GetServiceNameTag(),
-					Endpoint:    alertEvent.GetContentKeyTag(),
+					Endpoint:    alertEvent.GetEndpointTag(),
 				},
 				AlertKey:     alertEvent.AlertKey,
 				AlertObject:  alertEvent.GetTargetObj(),
@@ -446,6 +460,23 @@ func (*service) parseAlertEvents(alertEvents []ck.AlertEventWithKey, instanceMap
 					})
 				}
 			}
+		case ck.MIDDLEWARE_GROUP:
+			anormalEvent.AnormalType = model.AnormalTypeAlertDatabase
+			endpointsMaps := instanceMap.GetEndpointsByDatabase(
+				alertEvent.GetDatabaseURL(),
+				alertEvent.GetDatabaseIP(),
+				alertEvent.GetDatabasePort(),
+			)
+
+			for endpoint := range endpointsMaps {
+				anormalEvent.ImpactEndpoints = append(anormalEvent.ImpactEndpoints, model.AnormalEventDetail{
+					EndpointKey:  endpoint,
+					AlertKey:     alertEvent.AlertKey,
+					AlertObject:  alertEvent.GetTargetObj(),
+					AlertReason:  alertEvent.Name,
+					AlertMessage: alertMessage,
+				})
+			}
 		}
 
 		var tryMergeIndex = i + 1
@@ -485,6 +516,9 @@ type instanceMap struct {
 
 	Service2EndpointMap map[string]map[model.EndpointKey]struct{}
 	EndpointMap         map[model.EndpointKey]struct{}
+
+	DBURL2EndpointsMap    map[string]map[model.EndpointKey]struct{}
+	DBIPPort2EndpointsMap map[string]map[model.EndpointKey]struct{}
 }
 
 type NodePidKey struct {
@@ -535,18 +569,48 @@ func (m *instanceMap) AddInstances(endpointKey model.EndpointKey, instances []*m
 			m.Pod2InstanceMap[K8sPodNSKey{instance.Namespace, instance.PodName}] = *instance
 		}
 
-		if instance.Pid > 0 {
-			m.NodePid2InstanceMap[NodePidKey{instance.NodeName, int(instance.Pid)}] = *instance
+		if len(instance.NodeName) > 0 {
+			if instances, find := m.Node2InstancesMap[instance.NodeName]; find {
+				instances[*instance] = struct{}{}
+				m.Node2InstancesMap[instance.NodeName] = instances
+			} else {
+				m.Node2InstancesMap[instance.NodeName] = map[model.ServiceInstance]struct{}{
+					*instance: {},
+				}
+			}
+			if instance.Pid > 0 {
+				m.NodePid2InstanceMap[NodePidKey{instance.NodeName, int(instance.Pid)}] = *instance
+			}
+		}
+	}
+}
+
+func (m *instanceMap) AddDatabaseInstance(endpointKey model.EndpointKey, instances []model.MiddlewareInstance) {
+	m.EndpointMap[endpointKey] = struct{}{}
+
+	for i := 0; i < len(instances); i++ {
+		dbInstance := instances[i]
+		if len(dbInstance.DatabaseURL) > 0 {
+			contentKeys, find := m.DBURL2EndpointsMap[dbInstance.DatabaseURL]
+			if !find {
+				contentKeys = make(map[model.EndpointKey]struct{})
+			}
+			contentKeys[endpointKey] = struct{}{}
+			m.DBURL2EndpointsMap[dbInstance.DatabaseURL] = contentKeys
+			continue
 		}
 
-		if len(instance.NodeName) > 0 {
-			instancesOnNode, find := m.Node2InstancesMap[instance.NodeName]
+		if len(dbInstance.DatabaseIP) > 0 {
+			ipPort := fmt.Sprintf("%s:%s", dbInstance.DatabaseIP, dbInstance.DatabasePort)
+			contentKeys, find := m.DBIPPort2EndpointsMap[ipPort]
 			if !find {
-				instancesOnNode = make(map[model.ServiceInstance]struct{})
+				contentKeys = make(map[model.EndpointKey]struct{})
 			}
-			instancesOnNode[*instance] = struct{}{}
-			m.Node2InstancesMap[instance.NodeName] = instancesOnNode
+			contentKeys[endpointKey] = struct{}{}
+			m.DBURL2EndpointsMap[ipPort] = contentKeys
+			continue
 		}
+
 	}
 }
 
@@ -627,6 +691,18 @@ func (m *instanceMap) GetEndpointsByNode(node string) map[model.ServiceInstance]
 	return res
 }
 
+func (m *instanceMap) GetEndpointsByDatabase(dbURL string, dbIP, dbPort string) map[model.EndpointKey]struct{} {
+	endpoints1 := m.DBURL2EndpointsMap[dbURL]
+	endpoints2 := m.DBIPPort2EndpointsMap[fmt.Sprintf("%s:%s", dbIP, dbPort)]
+
+	// 合并相同的Key
+	for endpoint := range endpoints2 {
+		endpoints1[endpoint] = struct{}{}
+	}
+
+	return endpoints1
+}
+
 func (m *instanceMap) IsEndpointKeyExist(endpointKey model.EndpointKey) bool {
 	_, find := m.EndpointMap[endpointKey]
 	return find
@@ -639,7 +715,8 @@ func isSelect(selectedEvents []string, eventGroup string) bool {
 			if eventType == string(ck.APP_GROUP) ||
 				eventType == string(ck.CONTAINER_GROUP) ||
 				eventType == string(ck.INFRA_GROUP) ||
-				eventType == string(ck.NETWORK_GROUP) {
+				eventType == string(ck.NETWORK_GROUP) ||
+				eventType == string(ck.MIDDLEWARE_GROUP) {
 				return true
 			}
 		}

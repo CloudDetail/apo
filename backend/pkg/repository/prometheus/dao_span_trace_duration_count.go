@@ -6,6 +6,7 @@ package prometheus
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -28,6 +29,15 @@ const (
 		"/sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))" +
 		") or (sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])) * 0)" // or * 0 Supplementing the scenario of missing data in the middle
 	TEMPLATE_GET_NAMESPACES = `sum(kindling_span_trace_duration_nanoseconds_count{namespace=~".+"}[%s]) by (namespace)`
+
+	TEMPLATE_GET_SERVICE_BY_DB = `group by (svc_name)
+(
+	last_over_time(kindling_db_duration_nanoseconds_count{%s}[%s])
+	or
+	(apo_network_middleware_connect{%s} * on (node_name,pid,container_id)
+		group_left (svc_name) (group by(node_name,pid,container_id,svc_name)
+		(last_over_time(kindling_span_trace_duration_nanoseconds_count[%s]))))
+)`
 )
 
 // GetServiceList to query the service name list
@@ -51,6 +61,48 @@ func (repo *promRepo) GetServiceList(startTime int64, endTime int64, namespace [
 		result = append(result, string(sample.Metric["svc_name"]))
 	}
 	return result, nil
+}
+
+var svcDomainRegex = regexp.MustCompile(`(.*)\.svc\..*$`)
+
+func cutServiceSuffixFromURL(url string) string {
+	// <svc>.<ns>.svc.<cluster_domain> / <svc>.<ns>.svc.cluster.local
+	parts := svcDomainRegex.FindStringSubmatch(url)
+	if len(parts) > 1 {
+		url = parts[1]
+	}
+	// <svc>.<ns>
+	lastDot := strings.LastIndexByte(url, '.')
+	if lastDot != -1 {
+		return url[:lastDot]
+	}
+	// <svc>
+	return url
+}
+
+// GetServiceListByDBInfo 基于数据库信息获取关联的服务列表
+func (repo *promRepo) GetServiceListByDatabase(
+	startTime, endTime time.Time,
+	dbURL, dbIP, dbPort string,
+) ([]string, error) {
+	// 清理URL后面的Namespace信息,会导致无法查询namespace
+	dbURL = cutServiceSuffixFromURL(dbURL)
+	vector := VecFromS2E(startTime.UnixMicro(), endTime.UnixMicro())
+	pql := fmt.Sprintf(TEMPLATE_GET_SERVICE_BY_DB,
+		fmt.Sprintf(`db_url=~"%s.*",db_url!=""`, EscapeRegexp(dbURL)),
+		vector,
+		fmt.Sprintf(`db_ip="%s",db_port="%s",db_ip!="",db_port!=""`, dbIP, dbPort),
+		vector,
+	)
+	ress, err := repo.QueryData(endTime, pql)
+	if err != nil {
+		return nil, err
+	}
+	var services []string
+	for _, res := range ress {
+		services = append(services, res.Metric.SvcName)
+	}
+	return services, nil
 }
 
 func (repo *promRepo) GetServiceListByFilter(startTime time.Time, endTime time.Time, filterKVs ...string) ([]string, error) {

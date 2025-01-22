@@ -25,7 +25,9 @@ const (
 	INFRA_GROUP        AlertGroup = "infra"
 	MIDDLEWARE_GROUP   AlertGroup = "middleware"
 	APP_INSTANCE_GROUP AlertGroup = "app_instance"
+)
 
+const (
 	MUTATION_APP_GROUP          AlertGroup = "mutation-app"
 	MUTATION_NETWORK_GROUP      AlertGroup = "mutation-network"
 	MUTATION_CONTAINER_GROUP    AlertGroup = "mutation-container"
@@ -93,11 +95,11 @@ const (
 	FROM paginatedEvent
 	%s ORDER BY rn`
 
-	SQL_GET_ALERT_EVENT = `SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,status
+	SQL_GET_ALERT_EVENT = `SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status
 	FROM alert_event %s %s`
 
-	SQL_GET_ALERT_EVENT_WITH_LABEL_KEY = `SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,status
-        ,arrayStringConcat(arrayMap(x -> x.2, arraySort(arrayZip(mapKeys(tags), mapValues(tags)))), ', ') AS alert_key
+	SQL_GET_ALERT_EVENT_WITH_LABEL_KEY = `SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status
+        ,if(alert_id != '', alert_id, arrayStringConcat(arrayMap(x -> x.2, arraySort(arrayZip(mapKeys(tags), mapValues(tags)))), ', ')) AS alert_key
     FROM alert_event
 	%s %s`
 )
@@ -181,6 +183,7 @@ func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter 
 		(instances != nil && (len(instances.SIs) > 0 || len(instances.MIs) > 0)) {
 		whereInstance = extractFilter(filter, nil, instances)
 	}
+
 	return ch.getAlertEventsByWhere(startTime, endTime, filter, whereInstance, sortBy, pageParam)
 }
 
@@ -317,6 +320,7 @@ func extractFilter(filter request.AlertFilter, endpoints []model.EndpointKey, in
 	}
 
 	// filter by VMProcess
+	// filter by VMProcess
 	if len(filter.Group) == 0 || filter.Group == "network" {
 		var k8sPods ValueInGroups = ValueInGroups{
 			Keys: []string{"tags['src_namespace']", "tags['src_pod']"},
@@ -338,6 +342,9 @@ func extractFilter(filter request.AlertFilter, endpoints []model.EndpointKey, in
 				})
 			} else {
 				vmPods.ValueGroups = append(vmPods.ValueGroups, clickhouse.GroupSet{
+					Value: []any{instance.NodeName, instance.Pid},
+				})
+				vmPodsNew.ValueGroups = append(vmPodsNew.ValueGroups, clickhouse.GroupSet{
 					Value: []any{instance.NodeName, instance.Pid},
 				})
 				vmPodsNew.ValueGroups = append(vmPodsNew.ValueGroups, clickhouse.GroupSet{

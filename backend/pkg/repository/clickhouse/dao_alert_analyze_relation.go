@@ -65,8 +65,12 @@ func (r *EntryRelationship) GetEntryEndpoint() string {
 // 作为查询条件时,允许Endpoint为空
 // 表示对应Service下的所有Endpoint
 type AlertService struct {
-	Service  string `ch:"service" json:"serviceName"`
-	Endpoint string `ch:"url" json:"endpoint"`
+	Service  string `json:"serviceName"`
+	Endpoint string `json:"endpoint"`
+
+	DatabaseURL  string `json:"dbURL"`
+	DatabaseIP   string `json:"dbIP"`
+	DatabasePort string `json:"dbPort"`
 }
 
 // SearchEntryEndpointsByAlertService 根据下游节点查询入口节点
@@ -85,6 +89,10 @@ func (ch *chRepo) SearchEntryEndpointsByAlertService(alertServices []AlertServic
 	}
 
 	for _, endpoint := range alertServices {
+		if len(endpoint.DatabaseURL) > 0 {
+			// 跳过数据库节点
+			continue
+		}
 		if len(endpoint.Endpoint) > 0 {
 			endpoints.ValueGroups = append(endpoints.ValueGroups, clickhouse.GroupSet{
 				Value: []any{endpoint.Service, endpoint.Endpoint},

@@ -13,7 +13,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 	"github.com/CloudDetail/apo/backend/pkg/services/alerts"
 	alertinput "github.com/CloudDetail/apo/backend/pkg/services/input/alert"
-	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
+	so "github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
 type Handler interface {
@@ -97,15 +97,20 @@ type Handler interface {
 type handler struct {
 	logger                 *zap.Logger
 	alertService           alerts.Service
-	serviceoverviewService serviceoverview.Service
 	inputService           alertinput.Service
+	serviceoverviewService so.Service
 }
 
-func New(logger *zap.Logger, chRepo clickhouse.Repo, dbRepo database.Repo, k8sRepo kubernetes.Repo, promRepo prometheus.Repo) Handler {
+func New(
+	logger *zap.Logger,
+	chRepo clickhouse.Repo,
+	dbRepo database.Repo,
+	k8sRepo kubernetes.Repo,
+	promRepo prometheus.Repo) Handler {
 	return &handler{
 		logger:                 logger,
 		alertService:           alerts.New(chRepo, promRepo, k8sRepo, dbRepo),
-		serviceoverviewService: serviceoverview.New(chRepo, dbRepo, promRepo),
 		inputService:           alertinput.New(promRepo, dbRepo, chRepo),
+		serviceoverviewService: so.New(chRepo, dbRepo, promRepo),
 	}
 }

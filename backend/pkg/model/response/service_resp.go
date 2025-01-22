@@ -281,7 +281,7 @@ type ImpactAlertEvent struct {
 
 	IsAnalyzed      bool                      `json:"isAnalyzed"`
 	ImpactEndpoints []clickhouse.AlertService `json:"impactEndpoints"`
-	ImpactEntrys    []model.EndpointKey       `json:"impactEntrys"`
+	ImpactEntries   []model.EndpointKey       `json:"impactEntrys"`
 }
 
 type GetDescendantAlertContributationResponse struct {

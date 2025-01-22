@@ -30,6 +30,8 @@ type Repo interface {
 	GetServiceList(startTime int64, endTime int64, namespace []string) ([]string, error)
 	// 根据过滤规则查询服务列表
 	GetServiceListByFilter(startTime time.Time, endTime time.Time, filterKVs ...string) ([]string, error)
+	// 基于DatabaseURL,IP,Port查询上游服务列表
+	GetServiceListByDatabase(startTime, endTime time.Time, dbURL, dbIP, dbPort string) ([]string, error)
 	// Query the service instance list. The URL can be empty.
 	GetInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
 	// Query the db instance for specified service
