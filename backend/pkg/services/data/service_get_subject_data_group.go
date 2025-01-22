@@ -48,43 +48,42 @@ func (s *service) getUserDataGroup(userID int64, category string) ([]database.Da
 
 	groups = append(groups, gs...)
 
-	// default data group which is all
-	if len(groups) == 0 {
-		datasource, err := s.GetDataSource()
-		if err != nil {
-			return nil, err
-		}
+	return groups, nil
+}
 
-		filteredSources := make([]model.Datasource, 0)
-		for _, ds := range datasource.NamespaceList {
-			if category == "" || ds.Category == category {
-				filteredSources = append(filteredSources, ds)
-			}
-		}
-
-		for _, ds := range datasource.ServiceList {
-			if category == "" || ds.Category == category {
-				filteredSources = append(filteredSources, ds)
-			}
-		}
-
-		defaultGroup := database.DataGroup{
-			GroupName: "default",
-			Source:    model.DATA_GROUP_SOURCE_DEFAULT,
-		}
-
-		items := make([]database.DatasourceGroup, 0, len(filteredSources))
-		for _, ds := range filteredSources {
-			items = append(items, database.DatasourceGroup{
-				Datasource: ds.Datasource,
-				Type:       ds.Type,
-				Category:   ds.Category,
-			})
-		}
-
-		defaultGroup.DatasourceList = items
-		groups = append(groups, defaultGroup)
+func (s *service) getDefaultDataGroup(category string) (database.DataGroup, error) {
+	defaultGroup := database.DataGroup{
+		GroupName: "default",
+		Source:    model.DATA_GROUP_SOURCE_DEFAULT,
 	}
 
-	return groups, nil
+	datasource, err := s.GetDataSource()
+	if err != nil {
+		return defaultGroup, err
+	}
+
+	filteredSources := make([]model.Datasource, 0)
+	for _, ds := range datasource.NamespaceList {
+		if category == "" || ds.Category == category {
+			filteredSources = append(filteredSources, ds)
+		}
+	}
+
+	for _, ds := range datasource.ServiceList {
+		if category == "" || ds.Category == category {
+			filteredSources = append(filteredSources, ds)
+		}
+	}
+
+	items := make([]database.DatasourceGroup, 0, len(filteredSources))
+	for _, ds := range filteredSources {
+		items = append(items, database.DatasourceGroup{
+			Datasource: ds.Datasource,
+			Type:       ds.Type,
+			Category:   ds.Category,
+		})
+	}
+
+	defaultGroup.DatasourceList = items
+	return defaultGroup, nil
 }

@@ -31,6 +31,14 @@ func (s *service) CheckDatasourcePermission(userID int64, namespaces, services i
 	if err != nil {
 		return err
 	}
+	if len(groups) == 0 {
+		defaultGroup, err := s.getDefaultDataGroup("")
+		if err != nil {
+			return err
+		}
+
+		groups = append(groups, defaultGroup)
+	}
 
 	for _, group := range groups {
 		for _, gs := range group.DatasourceList {

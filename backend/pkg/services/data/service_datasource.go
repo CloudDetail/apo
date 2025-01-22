@@ -104,6 +104,15 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 		groups, err = s.getUserDataGroup(userID, req.Category)
 	}
 
+	if len(groups) == 0 {
+		defaultGroup, err := s.getDefaultDataGroup(req.Category)
+		if err != nil {
+			return resp, err
+		}
+
+		groups = append(groups, defaultGroup)
+	}
+
 	if err != nil {
 		return resp, err
 	}
