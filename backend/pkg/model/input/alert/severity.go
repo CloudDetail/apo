@@ -39,7 +39,18 @@ func ConvertSeverity(sourceType string, severity string) string {
 			}
 		}
 	default:
-		return severity
+		switch severity {
+		case "critical":
+			return SeverityCriticalLevel
+		case "error":
+			return SeverityErrorLevel
+		case "warning":
+			return SeverityWarnLevel
+		case "info":
+			return SeverityInfoLevel
+		default:
+			return SeverityUnknownLevel
+		}
 	}
 	return severity
 }

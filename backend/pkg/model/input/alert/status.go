@@ -25,6 +25,15 @@ func ConvertStatus(sourceType string, status string) string {
 				return StatusFiring
 			}
 		}
+	default:
+		switch status {
+		case "resolved":
+			return StatusResolved
+		case "firing":
+			return StatusFiring
+		default:
+			return StatusFiring
+		}
 	}
 
 	return status

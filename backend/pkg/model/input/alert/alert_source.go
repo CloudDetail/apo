@@ -3,6 +3,10 @@
 
 package alert
 
+// ApoVMAlertSourceID is the default alert source id of 'APO-VM-ALERT'
+// Comes from `uuid.NewMD5(uuid.UUID{}, []byte("APO-VM-ALERT")).String()`
+const ApoVMAlertSourceID = "efc91f08-86c4-3696-aba8-570d4a8dc069"
+
 type AlertSource struct {
 	SourceFrom
 

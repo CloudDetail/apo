@@ -4,6 +4,10 @@
 package alert
 
 import (
+	"bytes"
+	"crypto/md5"
+	"fmt"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,4 +33,41 @@ type AlertEvent struct {
 	ReceivedTime time.Time `ch:"receivedTime" json:"receivedTime" mapstructure:"receivedTime"`
 
 	SourceID string `ch:"sourceId" json:"sourceId" mapstructure:"sourceId"`
+}
+
+// calculate AlertID based on alertName and raw_tag
+func FastAlertID(alertName string, tags map[string]any) string {
+	buf := new(bytes.Buffer)
+	buf.WriteString(alertName)
+
+	keys := make([]string, 0)
+	for k, v := range tags {
+		if _, ok := v.(string); ok {
+			keys = append(keys, k)
+		}
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		buf.WriteString(tags[key].(string))
+	}
+
+	hash := md5.Sum(buf.Bytes())
+	return fmt.Sprintf("%x", hash)
+}
+
+func FastAlertIDByStringMap(alertName string, tags map[string]string) string {
+	buf := new(bytes.Buffer)
+	buf.WriteString(alertName)
+
+	keys := make([]string, 0)
+	for k := range tags {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		buf.WriteString(tags[key])
+	}
+
+	hash := md5.Sum(buf.Bytes())
+	return fmt.Sprintf("%x", hash)
 }
