@@ -56,6 +56,7 @@ func (s *service) UpdateAlertEnrichRule(req *alert.AlerEnrichRuleConfigRequest) 
 		}
 
 		if oldE.Order != newE.Order ||
+			oldE.FromRegex != newE.FromRegex ||
 			oldE.TargetTagId != newE.Order ||
 			oldE.CustomTag != newE.CustomTag ||
 			oldE.Schema != newE.Schema ||
