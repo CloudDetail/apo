@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"time"
 
+	ainput "github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 	inputa "github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/google/uuid"
-	"github.com/mitchellh/mapstructure"
 	"go.uber.org/multierr"
 )
 
@@ -35,10 +35,10 @@ func (d PrometheusDecoder) Decode(sourceFrom inputa.SourceFrom, data []byte) ([]
 			decodeErrs = multierr.Append(decodeErrs, err)
 			continue
 		}
-		alertEvent.ID = uuid.New()
 		if len(alertEvent.AlertID) == 0 {
-			alertEvent.AlertID = fastAlertID(alertEvent.Name, alertEvent.RawTags)
+			alertEvent.AlertID = ainput.FastAlertID(alertEvent.Name, alertEvent.Tags)
 		}
+		alertEvent.ID = uuid.New()
 		alertEvent.SourceID = sourceFrom.SourceID
 		alertEvent.Severity = inputa.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
 		alertEvent.Status = inputa.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)
@@ -51,7 +51,7 @@ func (d PrometheusDecoder) Decode(sourceFrom inputa.SourceFrom, data []byte) ([]
 
 func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any) (*inputa.AlertEvent, error) {
 	var promAlert request.Alert
-	err := mapstructure.Decode(rawMap, &promAlert)
+	err := DecodeEvent(rawMap, &promAlert)
 	if err != nil {
 		return nil, err
 	}
@@ -74,15 +74,18 @@ func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any) (*inputa.Ale
 	}
 	var alertEvent = inputa.AlertEvent{
 		Name:       promAlert.Labels["alertname"],
+		Group:      promAlert.Labels["group"],
 		Detail:     string(annotationsJson),
-		RawTags:    tags,
-		Tags:       map[string]string{},
+		Tags:       tags,
+		EnrichTags: map[string]string{},
 		CreateTime: startsAt,
 		UpdateTime: startsAt,
 		EndTime:    endsAt,
+		Status:     promAlert.Status,
+		Severity:   promAlert.Labels["severity"],
 	}
-	if alertEvent.RawTags == nil {
-		alertEvent.RawTags = map[string]any{}
+	if alertEvent.Tags == nil {
+		alertEvent.Tags = map[string]any{}
 	}
 	return &alertEvent, nil
 }

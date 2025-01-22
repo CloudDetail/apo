@@ -4,33 +4,70 @@
 package alert
 
 import (
+	"bytes"
+	"crypto/md5"
+	"fmt"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type AlertEvent struct {
-	ID uuid.UUID `json:"id" ch:"id"`
+	ID    uuid.UUID `json:"id" ch:"id"`
+	Group string    `json:"group" ch:"group" mapstructure:"group"`
 
-	Group string `json:"group" ch:"group"`
+	AlertID  string `json:"alertId" ch:"alert_id" mapstructure:"alertId"`
+	Name     string `json:"name" ch:"name" mapstructure:"name"`
+	Severity string `json:"severity" ch:"severity" mapstructure:"severity"`
+	Status   string `json:"status" ch:"status" mapstructure:"status"`
+	Detail   string `json:"detail" ch:"detail" mapstructure:"detail"`
+	// HACK the existing clickhouse query uses `tags` as the filter field
+	// so enrichTags in ch is named as 'tags' to filter new alertInput
+	Tags       map[string]any    `json:"tags" ch:"raw_tags" mapstructure:"tags"`
+	EnrichTags map[string]string `json:"enrich_tags" ch:"tags" mapstructure:"enrich_tags"`
 
-	AlertID  string            `json:"alertId" ch:"alert_id"`
-	Name     string            `json:"name" ch:"name"`
-	Severity string            `json:"severity" ch:"severity"`
-	Status   string            `json:"status" ch:"status"`
-	Detail   string            `json:"detail" ch:"detail"`
-	RawTags  map[string]any    `json:"raw_tags" ch:"raw_tags"`
-	Tags     map[string]string `json:"tags" ch:"tags"`
+	CreateTime   time.Time `ch:"createTime" json:"createTime" mapstructure:"createTime"`
+	UpdateTime   time.Time `ch:"updateTime" json:"updateTime" mapstructure:"updateTime"`
+	EndTime      time.Time `ch:"endTime" json:"endTime" mapstructure:"endTime"`
+	ReceivedTime time.Time `ch:"receivedTime" json:"receivedTime" mapstructure:"receivedTime"`
 
-	CreateTime   time.Time `ch:"create_time" json:"createTime"`
-	UpdateTime   time.Time `ch:"update_time" json:"updateTime"`
-	EndTime      time.Time `ch:"end_time" json:"endTime"`
-	ReceivedTime time.Time `ch:"received_time" json:"receivedTime"`
-
-	SourceID string `ch:"source_id"`
+	SourceID string `ch:"sourceId" json:"sourceId" mapstructure:"sourceId"`
 }
 
-type RelatedService struct {
-	ServiceName string `json:"serviceName"`
-	Endpoint    string `json:"endpoint"`
+// calculate AlertID based on alertName and raw_tag
+func FastAlertID(alertName string, tags map[string]any) string {
+	buf := new(bytes.Buffer)
+	buf.WriteString(alertName)
+
+	keys := make([]string, 0)
+	for k, v := range tags {
+		if _, ok := v.(string); ok {
+			keys = append(keys, k)
+		}
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		buf.WriteString(tags[key].(string))
+	}
+
+	hash := md5.Sum(buf.Bytes())
+	return fmt.Sprintf("%x", hash)
+}
+
+func FastAlertIDByStringMap(alertName string, tags map[string]string) string {
+	buf := new(bytes.Buffer)
+	buf.WriteString(alertName)
+
+	keys := make([]string, 0)
+	for k := range tags {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		buf.WriteString(tags[key])
+	}
+
+	hash := md5.Sum(buf.Bytes())
+	return fmt.Sprintf("%x", hash)
 }

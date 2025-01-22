@@ -4,11 +4,12 @@
 package alerts
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
 // InputAlertManager get AlertManager alarm events
@@ -23,21 +24,24 @@ import (
 // @Router /api/alerts/inputs/alertmanager [post]
 func (h *handler) InputAlertManager() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.InputAlertManagerRequest)
-		if err := c.ShouldBindJSON(req); err != nil {
+		data, err := io.ReadAll(c.Request().Body)
+		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				code.AcceptAlertEventFailed,
+				code.Text(code.AcceptAlertEventFailed)).WithError(err),
 			)
 			return
 		}
 
-		if err := h.alertService.InputAlertManager(req); err != nil {
+		// using APO-VM-ALERT as default source
+		sourceFrom := alert.SourceFrom{SourceID: alert.ApoVMAlertSourceID}
+		err = h.inputService.ProcessAlertEvents(sourceFrom, data)
+		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.DbConnectError,
-				code.Text(code.DbConnectError)).WithError(err),
+				code.ProcessAlertEventFailed,
+				code.Text(code.ProcessAlertEventFailed)).WithError(err),
 			)
 			return
 		}

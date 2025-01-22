@@ -23,7 +23,7 @@ func (ch *chRepo) InsertAlertEvent(ctx context.Context, alertEvents []alert.Aler
 
 	for _, event := range alertEvents {
 		rawTagsStr := map[string]string{}
-		for k, v := range event.RawTags {
+		for k, v := range event.Tags {
 			if str, ok := v.(string); ok {
 				rawTagsStr[k] = str
 			} else if bs, err := json.Marshal(v); err == nil {
@@ -35,7 +35,7 @@ func (ch *chRepo) InsertAlertEvent(ctx context.Context, alertEvents []alert.Aler
 			event.ID,
 			event.Name, event.Group, event.Severity, event.Status,
 			event.Detail, event.AlertID,
-			rawTagsStr, event.Tags,
+			rawTagsStr, event.EnrichTags,
 			event.CreateTime, event.UpdateTime, event.EndTime, event.ReceivedTime,
 			event.SourceID, sourceFrom.SourceName); err != nil {
 			log.Println("Failed to send data:", err)

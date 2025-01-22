@@ -61,7 +61,7 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 			Enrichers:  []enrich.Enricher{},
 		}
 		err = alertin.ErrIllegalAlertRule{Err: err}
-		s.dispatcher.AddAlertSource(source, enricher)
+		s.dispatcher.AddAlertSource(*source, enricher)
 		return enricher, err
 	}
 
@@ -73,7 +73,7 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 	err = s.dbRepo.AddAlertEnrichSchemaTarget(newS)
 	storeError = multierr.Append(storeError, err)
 
-	s.dispatcher.AddAlertSource(source, enricher)
+	s.dispatcher.AddAlertSource(*source, enricher)
 
 	return enricher, storeError
 }
@@ -135,9 +135,9 @@ func (s *service) createAlertSource(
 }
 
 // load existed enricher from db when process initializing
-func (s *service) initExistedAlertSource(source *alertin.SourceFrom, enrichRules []alertin.AlertEnrichRuleVO) (*enrich.AlertEnricher, error) {
+func (s *service) initExistedAlertSource(source alertin.SourceFrom, enrichRules []alertin.AlertEnrichRuleVO) (*enrich.AlertEnricher, error) {
 	enricher := &enrich.AlertEnricher{
-		SourceFrom: source,
+		SourceFrom: &source,
 		Enrichers:  make([]enrich.Enricher, 0, len(enrichRules)),
 	}
 	for idx, rule := range enrichRules {

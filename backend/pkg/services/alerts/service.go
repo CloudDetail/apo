@@ -18,6 +18,7 @@ type Service interface {
 	// ========================告警配置========================
 
 	// InputAlertManager receive AlertManager alarm events
+	// Deprecated: use alertinput.ProcessAlertEvents instead
 	InputAlertManager(req *request.InputAlertManagerRequest) error
 	ForwardToDingTalk(req *request.ForwardToDingTalkRequest, uuid string) error
 

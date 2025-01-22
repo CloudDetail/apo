@@ -32,6 +32,8 @@ type Repo interface {
 	GetServiceListByFilter(startTime time.Time, endTime time.Time, filterKVs ...string) ([]string, error)
 	// Query the service instance list. The URL can be empty.
 	GetInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
+	// Query the db instance for specified service
+	GetDescendantDatabase(startTime int64, endTime int64, serviceName string, endpoint string) ([]model.MiddlewareInstance, error)
 	// Query the list of active instances
 	GetActiveInstanceList(startTime int64, endTime int64, serviceName string) (*model.ServiceInstances, error)
 	// 查询在时间点过去一小时活跃过的实例

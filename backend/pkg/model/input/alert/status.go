@@ -5,16 +5,11 @@ package alert
 
 import "strconv"
 
-const (
-	StatusFiring   = "firing"
-	StatusResolved = "resolved"
-)
-
 func ConvertStatus(sourceType string, status string) string {
 	switch sourceType {
-	case "prometheus":
+	case PrometheusType:
 		return status
-	case "zabbix":
+	case ZabbixType:
 		if code, err := strconv.Atoi(status); err == nil {
 			switch code {
 			case 0:
@@ -24,11 +19,20 @@ func ConvertStatus(sourceType string, status string) string {
 			}
 		} else {
 			switch status {
-			case "OK":
+			case ZabbixStatusOK:
 				return StatusResolved
-			case "PROBLEM":
+			case ZabbixStatusProblem:
 				return StatusFiring
 			}
+		}
+	default:
+		switch status {
+		case "resolved":
+			return StatusResolved
+		case "firing":
+			return StatusFiring
+		default:
+			return StatusFiring
 		}
 	}
 

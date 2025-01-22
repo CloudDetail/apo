@@ -5,13 +5,14 @@ package alerts
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"go.uber.org/zap"
 
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
-	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/alerts"
+	alertinput "github.com/CloudDetail/apo/backend/pkg/services/input/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
@@ -97,6 +98,7 @@ type handler struct {
 	logger                 *zap.Logger
 	alertService           alerts.Service
 	serviceoverviewService serviceoverview.Service
+	inputService           alertinput.Service
 }
 
 func New(logger *zap.Logger, chRepo clickhouse.Repo, dbRepo database.Repo, k8sRepo kubernetes.Repo, promRepo prometheus.Repo) Handler {
@@ -104,5 +106,6 @@ func New(logger *zap.Logger, chRepo clickhouse.Repo, dbRepo database.Repo, k8sRe
 		logger:                 logger,
 		alertService:           alerts.New(chRepo, promRepo, k8sRepo, dbRepo),
 		serviceoverviewService: serviceoverview.New(chRepo, dbRepo, promRepo),
+		inputService:           alertinput.New(promRepo, dbRepo, chRepo),
 	}
 }

@@ -9,19 +9,14 @@ import (
 	ainput "github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-type InputType string
-
-const (
-	JSONType       InputType = "json"
-	PrometheusType InputType = "prometheus"
-)
-
 type Decoder interface {
 	Decode(sourceFrom ainput.SourceFrom, data []byte) ([]ainput.AlertEvent, error)
 }
 
-var decoders = map[InputType]Decoder{
-	JSONType: JsonDecoder{},
+var decoders = map[string]Decoder{
+	ainput.JSONType:       JsonDecoder{},
+	ainput.PrometheusType: PrometheusDecoder{},
+	ainput.ZabbixType:     ZabbixDecoder{},
 }
 
 type ErrDecoderNotFound struct {
@@ -33,7 +28,7 @@ func (e ErrDecoderNotFound) Error() string {
 }
 
 func Decode(sourceFrom ainput.SourceFrom, data []byte) ([]ainput.AlertEvent, error) {
-	decoder, ok := decoders[InputType(sourceFrom.SourceType)]
+	decoder, ok := decoders[sourceFrom.SourceType]
 	if !ok {
 		return nil, ErrDecoderNotFound{InputType: sourceFrom.SourceType}
 	}

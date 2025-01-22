@@ -3316,7 +3316,7 @@ paths:
       summary: UpdateCluster
       tags:
       - API.alertinput
-  /api/alertinput/event/json/:sourceType/:sourceName:
+  /api/alertinput/event/json:
     post:
       consumes:
       - application/json
@@ -3335,7 +3335,7 @@ paths:
       summary: Receive data from a specific data source based on a JSON structure
       tags:
       - API.alertinput
-  /api/alertinput/event/source/:sourceID:
+  /api/alertinput/event/source:
     post:
       consumes:
       - application/json

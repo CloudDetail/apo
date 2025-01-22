@@ -15,12 +15,12 @@ import (
 type Handler interface {
 	// JsonHandler Receive data from a specific data source based on a JSON structure
 	// @Tags API.alertinput
-	// @Router /api/alertinput/event/json/:sourceType/:sourceName [post]
+	// @Router /api/alertinput/event/json [post]
 	JsonHandler() core.HandlerFunc
 
 	// SourceHandler Receive data based on alarm source configuration
 	// @Tags API.alertinput
-	// @Router /api/alertinput/event/source/:sourceID [post]
+	// @Router /api/alertinput/event/source [post]
 	SourceHandler() core.HandlerFunc
 
 	// CreateAlertSource Create Alarm Source

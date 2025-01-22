@@ -25,12 +25,23 @@ func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest)
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 
+	var dbInstances []model.MiddlewareInstance
+	if len(req.AlertFilter.Group) == 0 || req.AlertFilter.Group == "middleware" {
+		dbInstances, err = s.promRepo.GetDescendantDatabase(req.StartTime, req.EndTime, req.Service, req.Endpoint)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// Query the AlertEvent of the instance
 	events, err := s.chRepo.GetAlertEventsSample(
 		req.SampleCount,
 		startTime, endTime,
 		req.AlertFilter,
-		instances.GetInstances(),
+		&model.RelatedInstances{
+			SIs: instances.GetInstances(),
+			MIs: dbInstances,
+		},
 	)
 	if err != nil {
 		return nil, err
@@ -74,11 +85,23 @@ func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.
 		req.SortBy = clickhouse.OrderAlertByReceivedTime
 	}
 
+	var dbInstances []model.MiddlewareInstance
+	if len(req.AlertFilter.Group) == 0 || req.AlertFilter.Group == "middleware" {
+		var err error
+		dbInstances, err = s.promRepo.GetDescendantDatabase(req.StartTime, req.EndTime, req.Service, req.Endpoint)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// Query the AlertEvent of the instance
 	events, totalCount, err := s.chRepo.GetAlertEvents(
 		startTime, endTime,
 		req.AlertFilter,
-		instances,
+		&model.RelatedInstances{
+			SIs: instances,
+			MIs: dbInstances,
+		},
 		req.PageParam,
 		req.SortBy,
 	)

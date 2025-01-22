@@ -89,13 +89,13 @@ type Repo interface {
 
 	// ========== alert events ==========
 	// Query the alarm events sampled by group and level, and sampleCount the number of samples for each group and level.
-	GetAlertEventCountGroupByInstance(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]model.AlertEventCount, error)
+	GetAlertEventCountGroupByInstance(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]model.AlertEventCount, error)
 	// Query alarm events sampled by labels, sampleCount the number of samples for each label.
-	GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]AlertEventSample, error)
+	GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error)
 	// Query alarm events by pageParam
-	GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error)
-	GetAlertEventsByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance, endpoints []model.EndpointKey, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error)
-	GetAlertEventsWithKeyByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance, endpoints []model.EndpointKey) ([]AlertEventWithKey, error)
+	GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error)
+	GetAlertEventsByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, endpoints []model.EndpointKey, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error)
+	GetAlertEventsWithKeyByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, endpoints []model.EndpointKey) ([]AlertEventWithKey, error)
 	// 查询指定EventId的告警事件
 	GetAlertEventById(eventId string, startTime, endTime time.Time) (*model.AlertEvent, error)
 

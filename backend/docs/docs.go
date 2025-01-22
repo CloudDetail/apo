@@ -168,7 +168,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/alertinput/event/json/:sourceType/:sourceName": {
+        "/api/alertinput/event/json": {
             "post": {
                 "description": "Receive data from a specific data source based on a JSON structure",
                 "consumes": [
@@ -197,7 +197,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/alertinput/event/source/:sourceID": {
+        "/api/alertinput/event/source": {
             "post": {
                 "description": "Receive data based on alarm source configuration",
                 "consumes": [
