@@ -94,6 +94,9 @@ func (repo *daoRepo) DataGroupExist(filter model.DataGroupFilter) (bool, error) 
 	if filter.ID > 0 {
 		query = query.Where("group_id = ?", filter.ID)
 	}
+	if len(filter.IDs) > 0 {
+		query = query.Where("group_id IN ?", filter.IDs)
+	}
 	if err := query.Model(&DataGroup{}).Count(&count).Error; err != nil {
 		return false, err
 	}

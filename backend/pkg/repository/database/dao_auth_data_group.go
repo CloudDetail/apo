@@ -90,20 +90,21 @@ func (repo *daoRepo) GetModifyAndDeleteDataGroup(subjectID int64, subjectType st
 		return nil, nil, err
 	}
 
-	ids := make([]int64, len(dgPermissions))
-	for _, dg := range dgPermissions {
-		ids = append(ids, dg.DataGroupID)
-	}
-	filter := model.DataGroupFilter{
-		IDs: ids,
-	}
-	dataGroups, _, err := repo.GetDataGroup(filter)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if len(dataGroups) != len(dgPermissions) {
-		return nil, nil, model.NewErrWithMessage(errors.New("data group not exist"), code.DataGroupNotExistError)
+	if len(dgPermissions) > 0 {
+		ids := make([]int64, len(dgPermissions))
+		for _, dg := range dgPermissions {
+			ids = append(ids, dg.DataGroupID)
+		}
+		filter := model.DataGroupFilter{
+			IDs: ids,
+		}
+		exists, err := repo.DataGroupExist(filter)
+		if err != nil {
+			return nil, nil, err
+		}
+		if !exists {
+			return nil, nil, model.NewErrWithMessage(errors.New("data group not exist"), code.DataGroupNotExistError)
+		}
 	}
 
 	hasAuthGroupMap := make(map[int64]AuthDataGroup)
