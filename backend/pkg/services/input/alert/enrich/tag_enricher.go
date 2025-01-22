@@ -5,6 +5,7 @@ package enrich
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
@@ -20,7 +21,9 @@ type TagEnricher struct {
 
 	*JQParser
 
-	DBRepo database.Repo
+	DBRepo      database.Repo
+	FromRegex   string
+	fromPattern *regexp.Regexp
 
 	// ---------------- tagMapping ----------------
 	TargetTagId int
@@ -51,11 +54,19 @@ func NewTagEnricher(
 		ID:           enrichRule.EnrichRuleID,
 		Order:        Order,
 		RType:        enrichRule.RType,
+		FromRegex:    enrichRule.FromRegex,
 		TargetTagId:  enrichRule.TargetTagId,
 		CustomTag:    enrichRule.CustomTag,
 		Schema:       enrichRule.Schema,
 		SchemaSource: enrichRule.SchemaSource,
 		SchemaTarget: enrichRule.SchemaTargets,
+	}
+
+	if enrichRule.FromRegex != "" {
+		fromPattern, err := regexp.Compile(enrichRule.FromRegex)
+		if err == nil {
+			tagEnricher.fromPattern = fromPattern
+		}
 	}
 
 	targetTags, err := dbRepo.ListAlertTargetTags()
@@ -89,6 +100,10 @@ func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
 		value = vStrs[0]
 	} else {
 		return
+	}
+
+	if e.fromPattern != nil {
+		value = e.fromPattern.FindString(value)
 	}
 
 	switch e.RType {
