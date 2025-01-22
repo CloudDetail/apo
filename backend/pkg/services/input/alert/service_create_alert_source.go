@@ -4,6 +4,8 @@
 package alert
 
 import (
+	"errors"
+
 	alertin "github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/input/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/input/alert/enrich"
@@ -19,7 +21,14 @@ func (s *service) CreateAlertSource(source *alertin.AlertSource) (*alertin.Alert
 		}
 	}
 
-	source.SourceID = uuid.NewString()
+	if len(source.SourceID) == 0 {
+		source.SourceID = uuid.NewString()
+	} else {
+		if _, err := uuid.Parse(source.SourceID); err != nil {
+			return nil, errors.New("sourceID is not a valid uuid")
+		}
+	}
+
 	err := s.dbRepo.CreateAlertSource(source)
 	if err != nil {
 		return nil, err
