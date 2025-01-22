@@ -15,6 +15,7 @@ var _ Service = (*service)(nil)
 
 type Service interface {
 	// InputAlertManager receive AlertManager alarm events
+	// Deprecated: use alertinput.ProcessAlertEvents instead
 	InputAlertManager(req *request.InputAlertManagerRequest) error
 	ForwardToDingTalk(req *request.ForwardToDingTalkRequest, uuid string) error
 

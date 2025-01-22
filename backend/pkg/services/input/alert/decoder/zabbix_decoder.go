@@ -9,6 +9,7 @@ import (
 	"time"
 
 	ainput "github.com/CloudDetail/apo/backend/pkg/model/input/alert"
+	"github.com/google/uuid"
 )
 
 type ZabbixDecoder struct {
@@ -43,6 +44,7 @@ func (d ZabbixDecoder) Decode(sourceFrom ainput.SourceFrom, data []byte) ([]ainp
 	}
 
 	alertEvent, err := d.jsDecoder.convertAlertEvent(event)
+	alertEvent.ID = uuid.New()
 	alertEvent.SourceID = sourceFrom.SourceID
 	alertEvent.Severity = ainput.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
 	alertEvent.Status = ainput.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)
@@ -81,10 +83,10 @@ func parseDuration(duration string) time.Duration {
 			}
 		case 's':
 			if second, err := strconv.Atoi(part[:len(part)-1]); err == nil {
-				durationSeconds += second
+				durationSeconds += second * int(time.Second)
 			}
 		}
 	}
 
-	return time.Duration(durationSeconds) * time.Second
+	return time.Duration(durationSeconds)
 }

@@ -5,6 +5,7 @@ package decoder
 
 import (
 	"encoding/json"
+	"reflect"
 	"time"
 
 	ainput "github.com/CloudDetail/apo/backend/pkg/model/input/alert"
@@ -25,10 +26,11 @@ func (d JsonDecoder) Decode(sourceFrom ainput.SourceFrom, data []byte) ([]ainput
 	if err != nil {
 		return nil, err
 	}
-	alertEvent.ID = uuid.New()
+
 	if len(alertEvent.AlertID) == 0 {
-		alertEvent.AlertID = fastAlertID(alertEvent.Name, alertEvent.Tags)
+		alertEvent.AlertID = ainput.FastAlertID(alertEvent.Name, alertEvent.Tags)
 	}
+	alertEvent.ID = uuid.New()
 	alertEvent.SourceID = sourceFrom.SourceID
 	alertEvent.Severity = ainput.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
 	alertEvent.Status = ainput.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)
@@ -38,7 +40,8 @@ func (d JsonDecoder) Decode(sourceFrom ainput.SourceFrom, data []byte) ([]ainput
 
 func (d JsonDecoder) convertAlertEvent(rawMap map[string]any) (*ainput.AlertEvent, error) {
 	var alertEvent ainput.AlertEvent
-	err := mapstructure.Decode(rawMap, &alertEvent)
+
+	err := DecodeEvent(rawMap, &alertEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -46,11 +49,51 @@ func (d JsonDecoder) convertAlertEvent(rawMap map[string]any) (*ainput.AlertEven
 		alertEvent.Tags = make(map[string]any)
 	}
 	if len(alertEvent.AlertID) == 0 {
-		alertEvent.AlertID = fastAlertID(alertEvent.Name, alertEvent.Tags)
+		alertEvent.AlertID = ainput.FastAlertID(alertEvent.Name, alertEvent.Tags)
 	}
 	if alertEvent.Tags == nil {
 		alertEvent.Tags = map[string]any{}
 	}
 	alertEvent.EnrichTags = map[string]string{}
 	return &alertEvent, err
+}
+
+func ToTimeHookFunc() mapstructure.DecodeHookFunc {
+	return func(
+		f reflect.Type,
+		t reflect.Type,
+		data interface{}) (interface{}, error) {
+		if t != reflect.TypeOf(time.Time{}) {
+			return data, nil
+		}
+
+		switch f.Kind() {
+		case reflect.String:
+			return time.Parse(time.RFC3339, data.(string))
+		case reflect.Float64:
+			return time.Unix(0, int64(data.(float64))*int64(time.Millisecond)), nil
+		case reflect.Int64:
+			return time.Unix(0, data.(int64)*int64(time.Millisecond)), nil
+		default:
+			return data, nil
+		}
+		// Convert it by parsing
+	}
+}
+
+func DecodeEvent(input map[string]interface{}, result interface{}) error {
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Metadata: nil,
+		DecodeHook: mapstructure.ComposeDecodeHookFunc(
+			ToTimeHookFunc()),
+		Result: result,
+	})
+	if err != nil {
+		return err
+	}
+
+	if err := decoder.Decode(input); err != nil {
+		return err
+	}
+	return err
 }
