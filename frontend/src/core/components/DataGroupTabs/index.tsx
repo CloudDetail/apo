@@ -27,7 +27,7 @@ export default function DataGroupTabs({ children }) {
             className="ml-3"
             icon={<AiOutlineSetting />}
             onClick={() => {
-              navigate('/data-group')
+              navigate('/system/data-group')
             }}
           >
             管理数据组
