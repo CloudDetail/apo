@@ -101,7 +101,7 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 		startTime    = endTime.Add(-time.Hour * 24)
 	)
 	if req.GroupID != 0 {
-		groups, err = s.getDataGroup(req.GroupID)
+		groups, err = s.getDataGroup(req.GroupID, req.Category)
 	} else {
 		groups, err = s.getUserDataGroup(userID, req.Category)
 	}
@@ -167,7 +167,7 @@ func (s *service) getNested(datasource string, typ string) ([]string, error) {
 	return nested, err
 }
 
-func (s *service) getDataGroup(groupID int64) ([]database.DataGroup, error) {
+func (s *service) getDataGroup(groupID int64, category string) ([]database.DataGroup, error) {
 	filter := model.DataGroupFilter{
 		ID: groupID,
 	}
@@ -179,6 +179,16 @@ func (s *service) getDataGroup(groupID int64) ([]database.DataGroup, error) {
 
 	if len(dataGroups) == 0 {
 		return nil, model.NewErrWithMessage(errors.New("data group does not exits"), code.DataGroupNotExistError)
+	}
+
+	for i, group := range dataGroups {
+		filteredDatasource := make([]database.DatasourceGroup, 0, len(group.DatasourceList))
+		for _, ds := range group.DatasourceList {
+			if len(category) == 0 || category == ds.Category {
+				filteredDatasource = append(filteredDatasource, ds)
+			}
+		}
+		dataGroups[i].DatasourceList = filteredDatasource
 	}
 
 	return dataGroups, nil
