@@ -14,10 +14,11 @@ import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer
 import { Select } from 'antd'
 import { getStep } from 'src/core/utils/step'
 import { useTranslation } from 'react-i18next'
+import { getDatasourceByGroup, getDatasourceByGroupApi } from 'src/core/api/dataGroup'
 
 export const TableFilter = (props) => {
   const { t } = useTranslation('oss/service')
-  const { setServiceName, setEndpoint, setNamespace } = props
+  const { setServiceName, setEndpoint, setNamespace, groupId } = props
   const [serviceNameOptions, setServiceNameOptions] = useState([])
   const [endpointNameOptions, setEndpointNameOptions] = useState([])
   const [namespaceOptions, setNamespaceOptions] = useState([])
@@ -25,39 +26,9 @@ export const TableFilter = (props) => {
   const [serachEndpointName, setSerachEndpointName] = useState(null)
   const [serachNamespace, setSerachNamespace] = useState(null)
   const [prevSearchServiceName, setPrevSearchServiceName] = useState(null)
+  const [datasource, setDatasource] = useState()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
 
-  //获取并设置服务名称选项
-  const getServiceNameOptions = () => {
-    const params = {
-      startTime,
-      endTime,
-      namespace: serachNamespace || undefined,
-    }
-    getServiceListApi(params)
-      .then((data) => {
-        setServiceNameOptions(data.map((value) => ({ value, label: value })))
-        //在改变namespace后过滤掉不包含在选中的namespace的服务名
-        if (serachServiceName.length) {
-          onChangeServiceName(serachServiceName.filter((item) => data.includes(item)))
-        }
-      })
-      .catch((error) => console.error('获取数据失败:', error))
-  }
-  //获取并设置命名空间选项。
-  const getNamespaceOptions = () => {
-    const params = { startTime, endTime }
-    getNamespacesApi(params)
-      .then((data) => {
-        setNamespaceOptions(
-          (data?.namespaceList || []).map((namespace) => ({
-            value: namespace,
-            label: namespace,
-          })),
-        )
-      })
-      .catch((error) => console.error('获取数据失败:', error))
-  }
   //根据选定的服务名称获取并设置端点名称选项。
   const getEndpointNameOptions = (serviceNameList) => {
     setEndpointNameOptions([])
@@ -83,8 +54,15 @@ export const TableFilter = (props) => {
       .then((newEndpointNameOptions) => setEndpointNameOptions(newEndpointNameOptions))
       .catch((error) => console.error('获取 endpoint 失败:', error))
   }
-  //处理命名空间选择更改。
-  const onChangeNamespace = (event) => setSerachNamespace(event)
+  const onChangeNamespace = (event) => {
+    setSerachNamespace(event)
+    setNamespaceOptions(
+      event.serviceList.map((service) => ({
+        label: service,
+        value: service,
+      })),
+    )
+  }
   //处理服务名称选择更改。
   const onChangeServiceName = (event) => {
     setPrevSearchServiceName(serachServiceName)
@@ -106,28 +84,72 @@ export const TableFilter = (props) => {
     }
     getEndpointNameOptions(serachServiceName)
   }
+  useEffect(() => {
+    if (serachNamespace && serachNamespace?.length > 0) {
+      const services = []
+      serachNamespace.map((namespace) => {
+        datasource?.namespaceMap[namespace]?.map((service) => {
+          services.push({
+            label: service,
+            value: service,
+          })
+        })
+      })
+      setServiceNameOptions(services)
+    } else {
+      setServiceNameOptions(
+        (datasource?.serviceList || []).map((service) => ({
+          label: service,
+          value: service,
+        })),
+      )
+    }
+  }, [serachNamespace])
+  const getDatasourceByGroup = () => {
+    getDatasourceByGroupApi({
+      groupId: groupId,
+      category: 'apm',
+    }).then((res) => {
+      //todo null
+      const namespaceOptions = Object.entries(res.namespaceMap).map(([namespace, serviceList]) => ({
+        label: namespace,
+        value: namespace,
+      }))
+      const serviceOption = (res.serviceList || []).map((service) => ({
+        label: service,
+        value: service,
+      }))
+      setDatasource(res)
+      setNamespaceOptions(namespaceOptions)
+      setServiceNameOptions(serviceOption)
+    })
+  }
 
   useEffect(() => {
     if (startTime && endTime) {
-      Promise.all([getServiceNameOptions(), getNamespaceOptions()])
+      getDatasourceByGroup()
+      // Promise.all([getServiceNameOptions(), getNamespaceOptions()])
     }
-  }, [startTime, endTime, serachNamespace])
+  }, [startTime, endTime, groupId])
 
   useEffect(() => {
     if (serachServiceName) {
       removeEndpointNames()
     }
   }, [serachServiceName])
-
+  useEffect(() => {
+    setNamespace(serachNamespace)
+  }, [serachNamespace])
   useEffect(() => {
     setServiceName(serachServiceName)
+  }, [serachServiceName])
+  useEffect(() => {
     setEndpoint(serachEndpointName)
-    setNamespace(serachNamespace)
-  }, [serachServiceName, serachEndpointName, serachNamespace])
+  }, [serachEndpointName])
 
   return (
     <>
-      <div className="p-2 my-2 flex flex-row w-full">
+      <div className="mb-2 flex flex-row w-full">
         <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
           <span className="text-nowrap">{t('tableFilter.namespacesLabel')}：</span>
           <Select

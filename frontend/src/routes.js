@@ -10,6 +10,7 @@ const UserPage = React.lazy(() => import('src/core/views/UserPage/index.jsx'))
 const UserManage = React.lazy(() => import('src/core/views/UserManage/index.jsx'))
 const MenuManage = React.lazy(() => import('src/core/views/MenuManage/index.jsx'))
 const SystemConfiguration = React.lazy(() => import('src/core/views/SystemConfiguration/index.jsx'))
+const DataGroupPage = React.lazy(() => import('src/core/views/DataGroup/index'))
 const namespace = 'oss/routes'
 
 const baseRoutes = [
@@ -36,6 +37,12 @@ const baseRoutes = [
     path: '/system/config',
     name: <TranslationCom text="systemConfigName" space={namespace} />,
     element: SystemConfiguration,
+    hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/data-group',
+    name: '数据组管理',
+    element: DataGroupPage,
     hideSystemTimeRangePicker: true,
   },
 ]

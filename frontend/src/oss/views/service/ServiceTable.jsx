@@ -1,0 +1,420 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { useEffect, useMemo, useState } from 'react'
+import BasicTable from 'src/core/components/Table/basicTable'
+import { CButton, CCard, CToast, CToastBody } from '@coreui/react'
+import { useNavigate } from 'react-router-dom'
+import TempCell from 'src/core/components/Table/TempCell'
+import StatusInfo from 'src/core/components/StatusInfo'
+import { IoMdInformationCircleOutline } from 'react-icons/io'
+import { getServicesAlertApi, getServicesEndpointsApi } from 'core/api/service'
+import { useSelector } from 'react-redux'
+import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
+import { getStep } from 'src/core/utils/step'
+import { DelaySourceTimeUnit } from 'src/constants'
+import { convertTime } from 'src/core/utils/time'
+import EndpointTableModal from './component/EndpointTableModal'
+import LoadingSpinner from 'src/core/components/Spinner'
+import { Tooltip } from 'antd'
+import { AiOutlineInfoCircle } from 'react-icons/ai'
+import { useDebounce } from 'react-use'
+import { TableFilter } from './component/TableFilter'
+import { useTranslation } from 'react-i18next'
+import React from 'react'
+const ServiceTable = React.memo(({ groupId }) => {
+  const { t } = useTranslation('oss/service')
+  const navigate = useNavigate()
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [modalVisible, setModalVisible] = useState(false)
+  const [modalServiceName, setModalServiceName] = useState()
+  const [requestTimeRange, setRequestTimeRange] = useState({
+    startTime: null,
+    endTime: null,
+  })
+  const [serviceName, setServiceName] = useState(null)
+  const [endpoint, setEndpoint] = useState(null)
+  const [namespace, setNamespace] = useState(null)
+
+  const [pageIndex, setPageIndex] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const { startTime, endTime } = useSelector(selectSecondsTimeRange)
+
+  const column = [
+    {
+      title: t('index.serviceTableColumns.serviceName'),
+      accessor: 'serviceName',
+      customWidth: 150,
+    },
+    // {
+    //   title: t('index.serviceTableColumns.namespaces'),
+    //   accessor: 'namespaces',
+    //   customWidth: 120,
+    //   Cell: (props) => {
+    //     return (props.value ?? []).length > 0 ? (
+    //       props.value.join()
+    //     ) : (
+    //       <span className="text-slate-400">N/A</span>
+    //     )
+    //   },
+    // },
+    {
+      title: t('index.serviceTableColumns.serviceDetails.title'),
+      accessor: 'serviceDetails',
+      hide: true,
+      isNested: true,
+      customWidth: '55%',
+      clickCell: (props) => {
+        // const navigate = useNavigate()
+        // toServiceInfo()
+        const serviceName = props.cell.row.values.serviceName
+        const endpoint = props.trs.endpoint
+        const namespace = props.cell.row.values.namespaces
+        // TODO encode
+        navigate(
+          `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}&namespace=${encodeURIComponent(namespace)}`,
+        )
+      },
+      showMore: (original) => {
+        const clickMore = () => {
+          setModalVisible(true)
+          setModalServiceName(original.serviceName)
+        }
+        return (
+          original.endpointCount > 3 && (
+            <CButton color="info" variant="ghost" size="sm" onClick={clickMore}>
+              {t('index.serviceTableColumns.serviceDetails.showMore')}
+            </CButton>
+          )
+        )
+        // return
+      },
+
+      children: [
+        {
+          title: t('index.serviceTableColumns.serviceDetails.endpoint'),
+          accessor: 'endpoint',
+          canExpand: false,
+        },
+        {
+          title: (
+            <Tooltip
+              title={
+                <div>
+                  <p className="text-[#D3D3D3]">
+                    {t('index.serviceTableColumns.serviceDetails.delaySource.title1')}
+                  </p>
+                  <p className="text-[#D3D3D3] mt-2">
+                    {t('index.serviceTableColumns.serviceDetails.delaySource.title2')}
+                  </p>
+                  <p className="text-[#D3D3D3] mt-2">
+                    {t('index.serviceTableColumns.serviceDetails.delaySource.title3')}
+                  </p>
+                </div>
+              }
+            >
+              <div className="flex flex-row justify-center items-center">
+                <div>
+                  <div className="text-center flex flex-row">
+                    {t('index.serviceTableColumns.serviceDetails.delaySource.title4')}
+                  </div>
+                  <div className="block text-[10px]">
+                    {t('index.serviceTableColumns.serviceDetails.delaySource.title5')}
+                  </div>
+                </div>
+                <AiOutlineInfoCircle size={16} className="ml-1" />
+              </div>
+            </Tooltip>
+          ),
+          accessor: 'delaySource',
+          canExpand: false,
+          customWidth: 150,
+          Cell: (props) => {
+            const { value } = props
+            return <>{DelaySourceTimeUnit[value]}</>
+          },
+        },
+        {
+          title: t('index.serviceTableColumns.serviceDetails.latency'),
+          minWidth: 140,
+          accessor: (idx) => `latency`,
+
+          Cell: (props) => {
+            // eslint-disable-next-line react/prop-types
+            const { value } = props
+
+            return (
+              <TempCell type="latency" data={value} timeRange={requestTimeRange} />
+              // <div display="flex" sx={{ alignItems: 'center' }} color="white">
+              //   <div sx={{ flex: 1, mr: 1 }} color="white">
+              //     {/* eslint-disable-next-line react/prop-types */}
+              //     {value.value}
+              //   </div>
+
+              //   <div display="flex" sx={{ alignItems: 'center', height: 30 }}>
+              //     {' '}
+              //     <AreaChart color="rgba(76, 192, 192, 1)" />
+              //   </div>
+              // </div>
+            )
+          },
+        },
+        {
+          title: t('index.serviceTableColumns.serviceDetails.errorRate'),
+          accessor: (idx) => `errorRate`,
+
+          minWidth: 140,
+          Cell: (props) => {
+            // eslint-disable-next-line react/prop-types
+            const { value } = props
+            return <TempCell type="errorRate" data={value} timeRange={requestTimeRange} />
+          },
+        },
+        {
+          title: t('index.serviceTableColumns.serviceDetails.tps'),
+          accessor: (idx) => `tps`,
+          minWidth: 140,
+
+          Cell: (props) => {
+            // eslint-disable-next-line react/prop-types
+            const { value } = props
+            return <TempCell type="tps" data={value} timeRange={requestTimeRange} />
+          },
+        },
+      ],
+    },
+    {
+      title: t('index.serviceTableColumns.serviceInfo.title'),
+      accessor: 'serviceInfo',
+      hide: true,
+      isNested: true,
+      // customWidth: '55%',
+      api: async (props) => {
+        const { serviceName } = props
+        try {
+          const result = await getServicesAlert([serviceName])
+          return { data: result, error: null }
+        } catch (error) {
+          console.error('Error calling getServicesAlert:', error)
+          return { data: [], error: error }
+        }
+      },
+      children: [
+        {
+          title: t('index.serviceTableColumns.serviceInfo.logs'),
+          accessor: `logs`,
+          minWidth: 160,
+          Cell: (props) => {
+            // eslint-disable-next-line react/prop-types
+            const { value } = props
+            return <TempCell type="logs" data={value} timeRange={requestTimeRange} />
+          },
+        },
+        {
+          title: t('index.serviceTableColumns.serviceInfo.infrastructureStatus'),
+          accessor: `infrastructureStatus`,
+          Cell: (props) => {
+            // eslint-disable-next-line react/prop-types
+            const { value, trs, column } = props
+            const alertReason = trs?.alertReason?.[column.accessor]
+            return (
+              <>
+                <StatusInfo status={value} alertReason={alertReason} title={column.title} />
+              </>
+            )
+          },
+        },
+        {
+          title: t('index.serviceTableColumns.serviceInfo.netStatus'),
+          accessor: `netStatus`,
+          Cell: (/** @type {{ value: any; }} */ props) => {
+            // eslint-disable-next-line react/prop-types
+            const { value, trs, column } = props
+            const alertReason = trs?.alertReason?.[column.accessor]
+            return (
+              <>
+                <StatusInfo status={value} alertReason={alertReason} title={column.title} />
+              </>
+            )
+          },
+        },
+        {
+          title: t('index.serviceTableColumns.serviceInfo.k8sStatus'),
+          accessor: `k8sStatus`,
+          Cell: (props) => {
+            // eslint-disable-next-line react/prop-types
+            const { value, trs, column } = props
+            const alertReason = trs?.alertReason?.[column.accessor]
+            return (
+              <>
+                <StatusInfo status={value} alertReason={alertReason} title={column.title} />
+              </>
+            )
+          },
+        },
+        {
+          title: t('index.serviceTableColumns.serviceInfo.timestamp'),
+          accessor: `timestamp`,
+          minWidth: 90,
+          Cell: (props) => {
+            const { value } = props
+            return (
+              <>
+                {value !== null ? (
+                  convertTime(value, 'yyyy-mm-dd hh:mm:ss')
+                ) : (
+                  <span className="text-slate-400">N/A</span>
+                )}{' '}
+              </>
+            )
+          },
+        },
+      ],
+    },
+  ]
+  const getTableData = () => {
+    if (startTime && endTime) {
+      setLoading(true)
+      // 记录请求的时间范围，以便后续趋势图补0
+      setRequestTimeRange({
+        startTime: startTime,
+        endTime: endTime,
+      })
+      getServicesEndpointsApi({
+        startTime: startTime,
+        endTime: endTime,
+        step: getStep(startTime, endTime),
+        serviceName: serviceName ?? undefined,
+        endpointName: endpoint ?? undefined,
+        namespace: namespace ?? undefined,
+        sortRule: 1,
+        groupId: groupId,
+      })
+        .then((res) => {
+          if (res && res?.length > 0) {
+            setData(res)
+          } else {
+            setData([])
+          }
+          setPageIndex(1)
+          setLoading(false)
+        })
+        .catch(() => {
+          setPageIndex(1)
+          setData([])
+          setLoading(false)
+        })
+    }
+  }
+  //防抖避免跳转使用旧时间
+  useDebounce(
+    () => {
+      getTableData()
+    },
+    300, // 延迟时间 300ms
+    [startTime, endTime, serviceName, endpoint, namespace, groupId],
+  )
+  const getServicesAlert = (serviceNames, returnData) => {
+    return getServicesAlertApi({
+      startTime: startTime,
+      endTime: endTime,
+      step: getStep(startTime, endTime),
+      serviceNames: serviceNames,
+      returnData: returnData,
+    })
+      .then((res) => {
+        if (res && res?.length > 0) {
+          return res
+        } else {
+          return []
+        }
+        // setLoading(false)
+      })
+      .catch(() => {
+        return []
+        // setLoading(false)
+      })
+  }
+  const handleTableChange = (props) => {
+    if (props.pageSize && props.pageIndex) {
+      setPageSize(props.pageSize), setPageIndex(props.pageIndex)
+    }
+  }
+  const tableProps = useMemo(() => {
+    console.log('tableProps重绘制', data, pageIndex, pageSize)
+    const paginatedData = data.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)
+    return {
+      columns: column,
+      data: paginatedData,
+      // data: [],
+      onChange: handleTableChange,
+      pagination: {
+        pageSize: pageSize,
+        pageIndex: pageIndex,
+        pageCount: Math.ceil(data.length / pageSize),
+      },
+      emptyContent: (
+        <div className="text-center">
+          {t('index.tableProps.emptyText')}
+          <div className="text-left p-2">
+            <div className="py-2">
+              {t('index.tableProps.unmonitoredText')}
+              <a
+                className="underline text-sky-500"
+                target="_blank"
+                href="https://kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/安装%20APO-OneAgent/"
+              >
+                {t('index.tableProps.unmonitoredLinkText')}
+              </a>
+            </div>
+            <div>
+              {t('index.tableProps.monitoredText')}
+              <a
+                className="underline text-sky-500"
+                target="_blank"
+                href="https://kindlingx.com/docs/APO%20向导式可观测性中心/常见问题/运维与故障排除/APO%20服务概览无数据排查文档"
+              >
+                {t('index.tableProps.monitoredLinkText')}
+              </a>
+            </div>
+          </div>
+        </div>
+      ),
+      showLoading: false,
+    }
+  }, [data, pageIndex, pageSize])
+  return (
+    <div style={{ width: '100%', overflow: 'hidden' }}>
+      <LoadingSpinner loading={loading} />
+      {/* <CToast autohide={false} visible={true} className="align-items-center w-full my-2">
+        <div className="d-flex">
+          <CToastBody className=" flex flex-row items-center text-xs">
+            <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
+            {t('index.serviceTableToast')}
+          </CToastBody>
+        </div>
+      </CToast> */}
+      <TableFilter
+        groupId={groupId}
+        setServiceName={setServiceName}
+        setEndpoint={setEndpoint}
+        setNamespace={setNamespace}
+      />
+      <CCard style={{ height: 'calc(100vh - 220px)' }}>
+        <div className="mb-4 h-full p-2 text-xs justify-between">
+          <BasicTable {...tableProps} />
+        </div>
+        <EndpointTableModal
+          visible={modalVisible}
+          serviceName={modalServiceName}
+          timeRange={requestTimeRange}
+          closeModal={() => setModalVisible(false)}
+        />
+      </CCard>
+    </div>
+  )
+})
+export default ServiceTable

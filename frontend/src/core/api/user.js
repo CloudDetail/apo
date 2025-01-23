@@ -96,15 +96,17 @@ const getUserInfoApi = () => {
 /**
  * 获取用户列表
  * @param {Object} params
- * @param {string} params.username
- * @param {string} params.currentPage
- * @param {string} params.pageSize
- * @param {string} params.role
- * @param {string} params.corporation
+ * @param {number} params.currentPage - 当前页码 (必填)
+ * @param {number} params.pageSize - 每页数量 (必填)
+ * @param {string} [params.username] - 用户名 (可选)
+ * @param {string} [params.role] - 角色 (可选)
+ * @param {string} [params.corporation] - 公司 (可选)
  * @param {*} signal
  * @returns {Promise<Object>}
  */
-const getUserListApi = (params, signal) => {
+const getUserListApi = ({ currentPage, pageSize, ...optionalParams }, signal = null) => {
+  const requiredParams = { currentPage, pageSize }
+  const params = { ...requiredParams, ...optionalParams }
   return get(`/api/user/list`, params, { signal })
 }
 

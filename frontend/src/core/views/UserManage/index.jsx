@@ -29,6 +29,8 @@ import LoadingSpinner from 'src/core/components/Spinner'
 import { useUserContext } from 'src/core/contexts/UserContext'
 import style from './index.module.css'
 import { useTranslation } from 'react-i18next'
+import { LuShieldCheck } from 'react-icons/lu'
+import DataGroupAuthorizeModal from './componnets/PermissionAuthorize'
 
 export default function UserManage() {
   const { t } = useTranslation('core/userManage')
@@ -45,6 +47,9 @@ export default function UserManage() {
   const [selectedUser, setSelectedUser] = useState(null)
   const [loading, setLoading] = useState(false)
   const { user, dispatch } = useUserContext()
+
+  const [authorizeModalVisibility, setAuthorizeModalVisibility] = useState(false)
+
   //移除用户
   async function removeUser(prop) {
     const params = {
@@ -104,7 +109,6 @@ export default function UserManage() {
       dataIndex: 'username',
       key: 'username',
       align: 'center',
-      width: '16%',
     },
     // {
     //     title: '角色',
@@ -118,21 +122,18 @@ export default function UserManage() {
       dataIndex: 'corporation',
       key: 'corporation',
       align: 'center',
-      width: '16%',
     },
     {
       title: t('index.phone'),
       dataIndex: 'phone',
       key: 'phone',
       align: 'center',
-      width: '16%',
     },
     {
       title: t('index.email'),
       dataIndex: 'email',
       key: 'email',
       align: 'center',
-      width: '16%',
     },
     {
       title: t('index.operation'),
@@ -158,16 +159,27 @@ export default function UserManage() {
               title={t('index.confirmDelete', { name: username })}
               onConfirm={() => removeUser(userId)}
             >
-              <Button type="text" icon={<RiDeleteBin5Line />} danger>
+              <Button type="text" icon={<RiDeleteBin5Line />} danger className="mr-1">
                 {t('index.delete')}
               </Button>
             </Popconfirm>
+            <Button
+              color="primary"
+              variant="outlined"
+              icon={<LuShieldCheck />}
+              onClick={() => {
+                setAuthorizeModalVisibility(true)
+                setSelectedUser(record)
+              }}
+            >
+              数据组授权
+            </Button>
           </>
         ) : (
           <></>
         )
       },
-      width: '16%',
+      width: 400,
     },
   ]
 
@@ -190,6 +202,14 @@ export default function UserManage() {
     }
   }, [username, role, corporation])
 
+  const closeAuthorizeModal = () => {
+    setAuthorizeModalVisibility(false)
+    setSelectedUser(null)
+  }
+  const refresh = () => {
+    getUserList()
+    closeAuthorizeModal()
+  }
   return (
     <>
       <LoadingSpinner loading={loading} />
@@ -270,6 +290,12 @@ export default function UserManage() {
         modalAddVisibility={modalAddVisibility}
         setModalAddVisibility={setModalAddVisibility}
         getUserList={getUserList}
+      />
+      <DataGroupAuthorizeModal
+        open={authorizeModalVisibility}
+        closeModal={closeAuthorizeModal}
+        userInfo={selectedUser}
+        refresh={refresh}
       />
     </>
   )
