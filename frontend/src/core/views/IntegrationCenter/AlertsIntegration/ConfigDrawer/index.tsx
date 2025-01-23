@@ -121,6 +121,7 @@ const IntegrationDrawer = () => {
             sourceName={sourceName}
             clusters={clusters}
             refreshDrawer={() => getAlertIntegrationBaseInfo(sourceId)}
+            closeDrawer={closeDrawer}
           />
           <SourceTypeInfo sourceType={sourceType} />
         </div>

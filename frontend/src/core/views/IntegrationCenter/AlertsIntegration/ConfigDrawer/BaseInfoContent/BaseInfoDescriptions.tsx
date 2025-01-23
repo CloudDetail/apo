@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Descriptions, DescriptionsProps } from 'antd'
+import { Descriptions, DescriptionsProps, Form } from 'antd'
 import Text from 'antd/es/typography/Text'
 
 interface BaseInfoDescriptionsProps {
@@ -16,12 +16,13 @@ const BaseInfoDescriptions = ({
   sourceId,
   clusters = [],
 }: BaseInfoDescriptionsProps) => {
+  const form = Form.useFormInstance()
   const getPublishUrl = () => {
     const baseUrl = window.location.origin + '/api/alertinput/event/source?sourceId='
     if (sourceId) {
       return baseUrl + sourceId
     } else {
-      return baseUrl + '${sourceID}'
+      return baseUrl + form.getFieldValue('sourceId')
     }
   }
   const items: DescriptionsProps['items'] = [

@@ -22,10 +22,11 @@ interface BaseInfoContentProps {
   sourceType: AlertKey
   clusters?: any[]
   refreshDrawer: any
+  closeDrawer?: any
 }
 const BaseInfoContent = (props: BaseInfoContentProps) => {
   const [searchParams, setSearchParams] = useSearchParams()
-  const { sourceId, sourceType, sourceName, clusters, refreshDrawer } = props
+  const { sourceId, sourceType, sourceName, clusters, refreshDrawer, closeDrawer } = props
   const configDrawerVisible = useAlertIntegrationContext((ctx) => ctx.configDrawerVisible)
   const [type, setType] = useState<'view' | 'edit'>('view')
   const [form] = Form.useForm()
@@ -98,7 +99,13 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
     if (sourceId) {
       return baseUrl + sourceId
     } else {
-      return baseUrl + '${sourceID}'
+      if (!form.getFieldValue('sourceId')) {
+        const uuid = uuidv4()
+        form.setFieldValue('sourceId', uuid)
+        return baseUrl + uuid
+      } else {
+        return baseUrl + form.getFieldValue('sourceId')
+      }
     }
   }
   return (
@@ -108,14 +115,7 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
           <BaseInfoDescriptions sourceName={sourceName} clusters={clusters} sourceId={sourceId} />
         )
       ) : (
-        <Form
-          labelCol={{ span: 3, offset: 1 }}
-          colon={false}
-          form={form}
-          initialValues={{
-            sourceId: uuidv4(),
-          }}
-        >
+        <Form labelCol={{ span: 3, offset: 1 }} colon={false} form={form}>
           <Typography>
             <Title level={5}>基础信息</Title>
             <ConfigProvider
@@ -127,7 +127,7 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
                 },
               }}
             >
-              <Form.Item name="sourceId" hidden></Form.Item>
+              <Form.Item name="sourceId" initialValue={uuidv4()} hidden></Form.Item>
               <Form.Item name="sourceName" label="告警接入名" required rules={[{ required: true }]}>
                 <Input></Input>
               </Form.Item>
@@ -150,7 +150,17 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
             <Button type="primary" onClick={saveBaseInfo} className="mr-2">
               保存
             </Button>
-            <Button onClick={() => setType('view')}>取消</Button>
+            <Button
+              onClick={() => {
+                if (sourceId) {
+                  setType('view')
+                } else {
+                  closeDrawer()
+                }
+              }}
+            >
+              取消
+            </Button>
           </>
         )}
       </div>
