@@ -6092,17 +6092,57 @@ const docTemplate = `{
                 "summary": "Create a user.",
                 "parameters": [
                     {
-                        "description": "Request",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateUserRequest"
-                        }
+                        "type": "string",
+                        "description": "用户名",
+                        "name": "username",
+                        "in": "formData",
+                        "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Bearer token",
+                        "description": "密码",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "确认密码",
+                        "name": "confirmPassword",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "角色id",
+                        "name": "roleList",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "邮箱",
+                        "name": "email",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "手机号",
+                        "name": "phone",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "组织",
+                        "name": "corporation",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer 令牌",
                         "name": "Authorization",
                         "in": "header"
                     }
@@ -8288,56 +8328,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.CreateUserRequest": {
-            "type": "object",
-            "required": [
-                "confirmPassword",
-                "password",
-                "username"
-            ],
-            "properties": {
-                "confirmPassword": {
-                    "description": "确认密码",
-                    "type": "string"
-                },
-                "corporation": {
-                    "type": "string"
-                },
-                "dataGroupPermission": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/request.DataGroupPermission"
-                    }
-                },
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "description": "密码",
-                    "type": "string"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "roleList": {
-                    "description": "Role id list",
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "teamList": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "username": {
-                    "description": "用户名",
-                    "type": "string"
-                }
-            }
-        },
         "request.DataGroupOperationRequest": {
             "type": "object",
             "required": [
@@ -9732,6 +9722,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "namespaceMap": {
+                    "description": "namespace: services",
                     "type": "object",
                     "additionalProperties": {
                         "type": "array",
@@ -9740,10 +9731,14 @@ const docTemplate = `{
                         }
                     }
                 },
-                "serviceList": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
+                "serviceMap": {
+                    "description": "service: endpoints",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             }

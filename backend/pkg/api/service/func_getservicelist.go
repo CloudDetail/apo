@@ -4,8 +4,6 @@
 package service
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -38,12 +36,6 @@ func (h *handler) GetServiceList() core.HandlerFunc {
 			return
 		}
 
-		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, 0, &req.Namespace, nil, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
-			c.HandleError(err, code.AuthError)
-			return
-		}
 		resp, err := h.serviceInfoService.GetServiceList(req)
 		if err != nil {
 			c.AbortWithError(core.Error(

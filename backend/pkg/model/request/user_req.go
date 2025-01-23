@@ -11,15 +11,15 @@ type LoginRequest struct {
 }
 
 type CreateUserRequest struct {
-	Username             string                `json:"username" form:"username" binding:"required"`               // 用户名
-	Password             string                `json:"password" form:"password" binding:"required"`               // 密码
-	ConfirmPassword      string                `json:"confirmPassword" form:"confirmPassword" binding:"required"` // 确认密码
-	Email                string                `json:"email" form:"email,omitempty"`
-	Phone                string                `json:"phone" form:"phone,omitempty"`
-	Corporation          string                `json:"corporation,omitempty" form:"corporation,omitempty"`
-	RoleList             []int                 `json:"roleList" form:"roleList"` // Role id list
-	TeamList             []int64               `json:"teamList" form:"teamList"`
-	DataGroupPermissions []DataGroupPermission `json:"dataGroupPermission" form:"dataGroupPermission"`
+	Username        string  `json:"username" form:"username" binding:"required"`               // 用户名
+	Password        string  `json:"password" form:"password" binding:"required"`               // 密码
+	ConfirmPassword string  `json:"confirmPassword" form:"confirmPassword" binding:"required"` // 确认密码
+	Email           string  `json:"email" form:"email,omitempty"`
+	Phone           string  `json:"phone" form:"phone,omitempty"`
+	Corporation     string  `json:"corporation,omitempty" form:"corporation,omitempty"`
+	RoleList        []int   `json:"roleList" form:"roleList"` // Role id list
+	TeamList        []int64 `json:"teamList" form:"teamList"`
+	//DataGroupPermissions []DataGroupPermission `json:"dataGroupPermission" form:"dataGroupPermission"`
 }
 
 type LogoutRequest struct {

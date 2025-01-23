@@ -19,15 +19,21 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.CreateUserRequest true "Request"
-// @Param Authorization header string false "Bearer token"
+// @Param username formData string true "用户名"
+// @Param password formData string true "密码"
+// @Param confirmPassword formData string true "确认密码"
+// @Param roleList formData []int false "角色id" collectionFormat(multi)
+// @Param email formData string false "邮箱"
+// @Param phone formData string false "手机号"
+// @Param corporation formData string false "组织"
+// @Param Authorization header string false "Bearer 令牌"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/user/create [post]
 func (h *handler) CreateUser() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.CreateUserRequest)
-		if err := c.ShouldBindJSON(req); err != nil {
+		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,

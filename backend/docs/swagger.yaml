@@ -1003,41 +1003,6 @@ definitions:
     required:
     - teamName
     type: object
-  request.CreateUserRequest:
-    properties:
-      confirmPassword:
-        description: 确认密码
-        type: string
-      corporation:
-        type: string
-      dataGroupPermission:
-        items:
-          $ref: '#/definitions/request.DataGroupPermission'
-        type: array
-      email:
-        type: string
-      password:
-        description: 密码
-        type: string
-      phone:
-        type: string
-      roleList:
-        description: Role id list
-        items:
-          type: integer
-        type: array
-      teamList:
-        items:
-          type: integer
-        type: array
-      username:
-        description: 用户名
-        type: string
-    required:
-    - confirmPassword
-    - password
-    - username
-    type: object
   request.DataGroupOperationRequest:
     properties:
       dataGroupPermission:
@@ -1995,11 +1960,15 @@ definitions:
           items:
             type: string
           type: array
+        description: 'namespace: services'
         type: object
-      serviceList:
-        items:
-          type: string
-        type: array
+      serviceMap:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        description: 'service: endpoints'
+        type: object
     type: object
   response.GetGroupListResponse:
     properties:
@@ -6899,13 +6868,41 @@ paths:
       - application/x-www-form-urlencoded
       description: Create a user.
       parameters:
-      - description: Request
-        in: body
-        name: Request
+      - description: 用户名
+        in: formData
+        name: username
         required: true
-        schema:
-          $ref: '#/definitions/request.CreateUserRequest'
-      - description: Bearer token
+        type: string
+      - description: 密码
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: 确认密码
+        in: formData
+        name: confirmPassword
+        required: true
+        type: string
+      - collectionFormat: multi
+        description: 角色id
+        in: formData
+        items:
+          type: integer
+        name: roleList
+        type: array
+      - description: 邮箱
+        in: formData
+        name: email
+        type: string
+      - description: 手机号
+        in: formData
+        name: phone
+        type: string
+      - description: 组织
+        in: formData
+        name: corporation
+        type: string
+      - description: Bearer 令牌
         in: header
         name: Authorization
         type: string
