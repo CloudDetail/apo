@@ -156,7 +156,6 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	database, err := gorm.Open(dbConfig, &gorm.Config{
 		Logger: logger.NewGormLogger(zapLogger),
 	})
-	// Handling errors
 	if err != nil {
 		return nil, err
 	}
@@ -174,14 +173,6 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	// Set the expiration time for each connection
 	sqlDb.SetConnMaxLifetime(time.Duration(databaseCfg.MaxLife) * time.Second)
 	err = migrateTable(database)
-	if err != nil {
-		return nil, err
-	}
-	err = database.AutoMigrate(&Team{}, &UserTeam{})
-	if err != nil {
-		return nil, err
-	}
-	err = database.AutoMigrate(&DataGroup{}, &AuthDataGroup{}, &DatasourceGroup{}, &API{})
 	if err != nil {
 		return nil, err
 	}
@@ -247,6 +238,10 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 }
 
 func migrateTable(db *gorm.DB) error {
+	err := db.AutoMigrate(&AuthPermission{})
+	if err != nil {
+		return err
+	}
 	return db.AutoMigrate(
 		&amconfig.DingTalkConfig{},
 		&Feature{},
@@ -257,12 +252,17 @@ func migrateTable(db *gorm.DB) error {
 		&RouterInsertPage{},
 		&MenuItem{},
 		&OtherLogTable{},
-		&AuthPermission{},
 		&AlertMetricsData{},
 		&Role{},
 		&UserRole{},
 		&Router{},
 		&Threshold{},
 		&User{},
+		&API{},
+		&AuthDataGroup{},
+		&DataGroup{},
+		&DatasourceGroup{},
+		&Team{},
+		&UserTeam{},
 	)
 }

@@ -10,16 +10,16 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
-// AuthPermission Records which feature are authorised to which subjects.
+// AuthPermission records which features are authorised to which subjects.
 type AuthPermission struct {
-	ID           int    `gorm:"column:id,primary_key;auto_increment" json:"id"`
-	Type         string `gorm:"column:type;index:idx_sub_id_type;type:varchar(20)" json:"type"` // feature data data group
-	SubjectID    int64  `gorm:"column:subject_id;index:idx_sub_id_type" json:"subjectId"`       // Role id, user id or team id.
-	SubjectType  string `gorm:"column:subject_type;type:varchar(10)" json:"subjectType"`        // role user team.
+	ID           int    `gorm:"primary_key;auto_increment" json:"id"`
+	Type         string `gorm:"column:type;index:idx_sub_id_type" json:"type"`            // feature
+	SubjectID    int64  `gorm:"column:subject_id;index:idx_sub_id_type" json:"subjectId"` // Role ID, user ID or team ID
+	SubjectType  string `gorm:"column:subject_type;type:varchar(10)" json:"subjectType"`  // role, user, team
 	PermissionID int    `gorm:"column:permission_id" json:"permissionId"`
 }
 
-func (t *AuthPermission) TableName() string {
+func (AuthPermission) TableName() string {
 	return "auth_permission"
 }
 
