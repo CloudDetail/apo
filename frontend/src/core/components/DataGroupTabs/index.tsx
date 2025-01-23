@@ -16,24 +16,28 @@ export default function DataGroupTabs({ children }) {
   }
   return (
     <>
-      <Tabs
-        defaultActiveKey="1"
-        items={getTabItems()}
-        animated={true}
-        tabBarExtraContent={
-          <Button
-            color="primary"
-            variant="outlined"
-            className="ml-3"
-            icon={<AiOutlineSetting />}
-            onClick={() => {
-              navigate('/system/data-group')
-            }}
-          >
-            管理数据组
-          </Button>
-        }
-      />
+      {dataGroupList && dataGroupList.length > 0 ? (
+        <Tabs
+          defaultActiveKey="1"
+          items={getTabItems()}
+          animated={true}
+          tabBarExtraContent={
+            <Button
+              color="primary"
+              variant="outlined"
+              className="ml-3"
+              icon={<AiOutlineSetting />}
+              onClick={() => {
+                navigate('/system/data-group')
+              }}
+            >
+              管理数据组
+            </Button>
+          }
+        />
+      ) : (
+        <>{children()}</>
+      )}
     </>
   )
 }

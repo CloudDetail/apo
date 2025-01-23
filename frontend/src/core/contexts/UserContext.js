@@ -26,25 +26,27 @@ export const UserProvider = ({ children }) => {
   }
 
   const getUserDataGroup = () => {
-    getSubsDataGroupApi({
-      subjectId: user.userId,
-      subjectType: 'user',
-    }).then((res) => {
-      dispatch({
-        type: 'setDataGroupList',
-        payload: (res || []).map((item) => ({
-          groupId: item.groupId,
-          groupName: item.groupName,
-          authType: item.authType,
-          source: item.source,
-        })),
+    if (user.userId) {
+      getSubsDataGroupApi({
+        subjectId: user.userId,
+        subjectType: 'user',
+      }).then((res) => {
+        dispatch({
+          type: 'setDataGroupList',
+          payload: (res || []).map((item) => ({
+            groupId: item.groupId,
+            groupName: item.groupName,
+            authType: item.authType,
+            source: item.source,
+          })),
+        })
       })
-    })
+    }
   }
   useEffect(() => {
     if (user.userId) {
       getUserPermission()
-      getUserDataGroup()
+      // getUserDataGroup()
     }
   }, [user.userId, i18n.language])
 
@@ -54,6 +56,7 @@ export const UserProvider = ({ children }) => {
     dispatch: dispatch,
     menuItems: menuItems,
     getUserPermission,
+    getUserDataGroup: () => getUserDataGroup(),
   }
 
   return (

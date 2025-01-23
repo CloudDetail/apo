@@ -387,7 +387,7 @@ const ServiceTable = React.memo(({ groupId }) => {
     }
   }, [data, pageIndex, pageSize])
   return (
-    <div style={{ width: '100%', overflow: 'hidden' }}>
+    <div style={{ width: '100%', overflow: 'hidden' }} className="h-full flex flex-col">
       <LoadingSpinner loading={loading} />
       {/* <CToast autohide={false} visible={true} className="align-items-center w-full my-2">
         <div className="d-flex">
@@ -403,7 +403,7 @@ const ServiceTable = React.memo(({ groupId }) => {
         setEndpoint={setEndpoint}
         setNamespace={setNamespace}
       />
-      <CCard style={{ height: 'calc(100vh - 220px)' }}>
+      <CCard className="flex-1 overflow-hidden">
         <div className="mb-4 h-full p-2 text-xs justify-between">
           <BasicTable {...tableProps} />
         </div>
