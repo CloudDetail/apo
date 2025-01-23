@@ -21,7 +21,7 @@ const AlertsIntegrationPage = () => {
             padding: 10,
           }}
         >
-          <div className="h-full w-[310px] px-1">
+          <div className="h-full w-[310px] px-1 flex-shrink-0">
             <AlertsDatasourceList />
           </div>
           <Divider type="vertical" className="h-full" />

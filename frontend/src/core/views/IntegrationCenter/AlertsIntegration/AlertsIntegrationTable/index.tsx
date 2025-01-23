@@ -102,13 +102,18 @@ const AlertsIntegrationTable = () => {
     }
   }, [configDrawerVisible])
   return (
-    <>
+    <div className="overflow-hidden h-full">
       <Typography>
         <Typography.Title level={5}>告警接入列表</Typography.Title>
       </Typography>
       {/* <Search placeholder="输入搜索告警接入名称" className="mb-3" /> */}
-      <Table columns={columns} dataSource={data} pagination={false} />
-    </>
+      <Table
+        columns={columns}
+        dataSource={data}
+        pagination={false}
+        scroll={{ y: 'calc(100vh - 120px)' }}
+      />
+    </div>
   )
 }
 export default AlertsIntegrationTable
