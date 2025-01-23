@@ -40,7 +40,7 @@ const baseRoutes = [
     hideSystemTimeRangePicker: true,
   },
   {
-    path: '/data-group',
+    path: '/system/data-group',
     name: '数据组管理',
     element: DataGroupPage,
     hideSystemTimeRangePicker: true,

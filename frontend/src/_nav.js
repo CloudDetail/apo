@@ -118,11 +118,12 @@ const _nav = [
         label: '系统配置',
         to: '/system/config',
       },
+      {
+        key: 'dataGroup',
+        label: '数据组管理',
+        to: '/system/data-group',
+      },
     ],
-  },
-  {
-    key: 'dataGroup',
-    label: '数据组管理',
   },
 ]
 const navIcon = {
