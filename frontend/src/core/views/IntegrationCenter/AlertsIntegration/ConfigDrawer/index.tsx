@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Drawer } from 'antd'
+import { Drawer, Tabs } from 'antd'
 import React from 'react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -81,20 +81,50 @@ const IntegrationDrawer = () => {
       width={'80%'}
       classNames={{
         content: 'bg-[#101215]',
+        body: 'pt-0',
       }}
       styles={{
         content: { background: '#101215', border: '1px solid #343a46' },
       }}
     >
-      <BaseInfoContent
-        sourceId={sourceId}
-        sourceType={sourceType}
-        sourceName={sourceName}
-        clusters={clusters}
-        refreshDrawer={() => getAlertIntegrationBaseInfo(sourceId)}
-      />
-      {!sourceId && <SourceTypeInfo sourceType={sourceType} />}
-      {sourceId && <TagContent sourceId={sourceId} />}
+      {sourceId ? (
+        <Tabs
+          items={[
+            {
+              key: '1',
+              label: '告警接入配置',
+              children: (
+                <>
+                  <BaseInfoContent
+                    sourceId={sourceId}
+                    sourceType={sourceType}
+                    sourceName={sourceName}
+                    clusters={clusters}
+                    refreshDrawer={() => getAlertIntegrationBaseInfo(sourceId)}
+                  />
+                  <TagContent sourceId={sourceId} />
+                </>
+              ),
+            },
+            {
+              key: '2',
+              label: '接入介绍文档',
+              children: <SourceTypeInfo sourceType={sourceType} />,
+            },
+          ]}
+        ></Tabs>
+      ) : (
+        <div className="pt-4">
+          <BaseInfoContent
+            sourceId={sourceId}
+            sourceType={sourceType}
+            sourceName={sourceName}
+            clusters={clusters}
+            refreshDrawer={() => getAlertIntegrationBaseInfo(sourceId)}
+          />
+          <SourceTypeInfo sourceType={sourceType} />
+        </div>
+      )}
     </Drawer>
   )
 }

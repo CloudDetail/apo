@@ -14,6 +14,8 @@ import { useAlertIntegrationContext } from 'src/core/contexts/AlertIntegrationCo
 import { useSearchParams } from 'react-router-dom'
 import { AlertInputSourceParams, AlertKey } from 'src/core/types/alertIntegration'
 import Text from 'antd/es/typography/Text'
+import { v4 as uuidv4 } from 'uuid'
+
 interface BaseInfoContentProps {
   sourceId?: string | null
   sourceName?: string | null
@@ -66,6 +68,7 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
         params.sourceId = sourceId
         updateAlertsIntegration(params)
       } else {
+        params.sourceId = values.sourceId
         creatAlertsIntegration(params)
       }
     })
@@ -105,7 +108,14 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
           <BaseInfoDescriptions sourceName={sourceName} clusters={clusters} sourceId={sourceId} />
         )
       ) : (
-        <Form labelCol={{ span: 3, offset: 1 }} colon={false} form={form}>
+        <Form
+          labelCol={{ span: 3, offset: 1 }}
+          colon={false}
+          form={form}
+          initialValues={{
+            sourceId: uuidv4(),
+          }}
+        >
           <Typography>
             <Title level={5}>基础信息</Title>
             <ConfigProvider
@@ -117,6 +127,7 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
                 },
               }}
             >
+              <Form.Item name="sourceId" hidden></Form.Item>
               <Form.Item name="sourceName" label="告警接入名" required rules={[{ required: true }]}>
                 <Input></Input>
               </Form.Item>
