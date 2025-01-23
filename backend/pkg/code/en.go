@@ -4,11 +4,13 @@
 package code
 
 var enText = map[string]string{
-	ServerError:    "Internal server error",
-	ParamBindError: "Parameter error",
-	DbConnectError: "Failed to connect Database",
-	UnAuth:         "not logged in",
-	InValidToken:   "invalid token",
+	ServerError:           "Internal server error",
+	ParamBindError:        "Parameter error",
+	DbConnectError:        "Failed to connect Database",
+	UnAuth:                "not logged in",
+	InValidToken:          "invalid token",
+	UserNoPermissionError: "You have no permission",
+	GroupNoDataError:      "There is no corresponding type of data in the data group",
 
 	MockCreateError: "Failed to create mock",
 	MockListError:   "Failed to get mock list",
@@ -125,7 +127,6 @@ var enText = map[string]string{
 	RemoveUserError:            "Failed to remove user",
 	UserPasswordSimpleError:    "Password too week, contains at least one uppercase, lowercase, special characters, and numbers and length greater than 8",
 	UserRemoveSelfError:        "Cannot remove yourself",
-	UserNoPermissionError:      "You have no permission",
 	UserEmailUsed:              "Email was used",
 	UserPhoneUsed:              "Phone was used",
 	UserPhoneFormatError:       "Phone number format incorrect",

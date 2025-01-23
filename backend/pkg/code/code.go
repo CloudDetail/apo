@@ -12,6 +12,7 @@ const (
 	UnAuth                = "A0004"
 	InValidToken          = "A0005"
 	UserNoPermissionError = "A0006"
+	GroupNoDataError      = "A0007"
 
 	MockCreateError = "B0101"
 	MockListError   = "B0102"

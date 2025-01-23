@@ -4,11 +4,13 @@
 package code
 
 var zhCnText = map[string]string{
-	ServerError:    "内部服务器错误",
-	ParamBindError: "参数信息错误",
-	DbConnectError: "数据库连接失败",
-	UnAuth:         "未登录",
-	InValidToken:   "无效的token",
+	ServerError:           "内部服务器错误",
+	ParamBindError:        "参数信息错误",
+	DbConnectError:        "数据库连接失败",
+	UnAuth:                "未登录",
+	InValidToken:          "无效的token",
+	UserNoPermissionError: "没有权限",
+	GroupNoDataError:      "数据组中暂无对应类型的数据",
 
 	MockCreateError: "创建mock失败",
 	MockListError:   "获取mock列表失败",
@@ -128,7 +130,6 @@ var zhCnText = map[string]string{
 	UserPasswordSimpleError:    "密码强度太弱，至少包含一个大写、小写、特殊字符、数字且长度大于8",
 	UserRemoveSelfError:        "不能删除自己",
 	K8sGetResourceError:        "获取k8s资源失败",
-	UserNoPermissionError:      "没有权限",
 	UserEmailUsed:              "邮箱已被使用",
 	UserPhoneUsed:              "手机号已被使用",
 	UserPhoneFormatError:       "手机号格式不正确",
