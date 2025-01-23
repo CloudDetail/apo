@@ -14,13 +14,14 @@ import (
 var _ Service = (*service)(nil)
 
 type Service interface {
-	// InputAlertManager 接收 AlertManager 的告警事件
+	// InputAlertManager receive AlertManager alarm events
+	// Deprecated: use alertinput.ProcessAlertEvents instead
 	InputAlertManager(req *request.InputAlertManagerRequest) error
 	ForwardToDingTalk(req *request.ForwardToDingTalkRequest, uuid string) error
 
-	// GetAlertRuleFile 获取基础告警规则
+	// GetAlertRuleFile get basic alarm rules
 	GetAlertRuleFile(req *request.GetAlertRuleConfigRequest) (*response.GetAlertRuleFileResponse, error)
-	// UpdateAlertRuleFile 更新告警基础规则
+	// UpdateAlertRuleFile update basic alarm rules
 	UpdateAlertRuleFile(req *request.UpdateAlertRuleConfigRequest) error
 
 	// AlertRule Options

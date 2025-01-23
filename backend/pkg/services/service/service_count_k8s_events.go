@@ -8,16 +8,16 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-// CountK8sEvents 获取K8s事件
+// CountK8sEvents get K8s events
 func (s *service) CountK8sEvents(req *request.GetK8sEventsRequest) (*response.GetK8sEventsResponse, error) {
 	startTime := req.StartTime
 	endTime := req.EndTime
-	// 首先获取所有该服务下的实例信息
+	// Get all the instance information of the service first
 	instanceList, err := s.promRepo.GetInstanceList(startTime, endTime, req.ServiceName, "")
 	if err != nil {
 		return nil, err
 	}
-	// 如果不存在Pod实例，则直接返回空
+	// If no Pod instance exists, null is returned.
 	podInstances := instanceList.GetPodInstances()
 	resp := &response.GetK8sEventsResponse{
 		Status:  "normal",
@@ -27,7 +27,7 @@ func (s *service) CountK8sEvents(req *request.GetK8sEventsRequest) (*response.Ge
 	if len(podInstances) == 0 {
 		return resp, nil
 	}
-	// 将所有Pod实例作为筛选条件，返回时间段相关的事件列表
+	// Use all pod instances as filter criteria to return a list of events related to the time period
 	counts, err := s.chRepo.CountK8sEvents(startTime, endTime, podInstances)
 	if err != nil {
 		return resp, err
@@ -43,7 +43,7 @@ func (s *service) CountK8sEvents(req *request.GetK8sEventsRequest) (*response.Ge
 		if !ok {
 			eventCountMap[count.Reason] = &response.K8sEventStatistics{
 				EventName:   count.Reason,
-				DisplayName: convertReason(count.Reason),
+				DisplayName: count.Reason,
 				Severity:    count.Severity,
 				Counts:      response.K8sEventCountValues{},
 			}
@@ -84,52 +84,52 @@ func convertReason(reason string) string {
 // Copied from kubernetes/pkg/kubelet/events/event.go
 // Container event reason list
 const (
-	// 容器创建
+	// Container creation
 	CreatedContainer = "Created"
-	// 容器启动
+	// Container start
 	StartedContainer = "Started"
-	// 启动容器失败
+	// Failed to start container
 	FailedToCreateContainer = "Failed"
 	FailedToStartContainer  = "Failed"
-	// 删除容器
+	// Delete container
 	KillingContainer = "Killing"
 	PreemptContainer = "Preempting"
-	// 启动容器失败重试
+	// Failed to start container and retry
 	BackOffStartContainer = "BackOff"
-	// 容器超时
+	// container timeout
 	ExceededGracePeriod = "ExceededGracePeriod"
 )
 
 // Pod event reason list
 const (
-	// 删除 Pod 失败
+	// Failed to delete pod
 	FailedToKillPod = "FailedKillPod"
-	// 创建 Pod 失败
+	// Failed to create pod
 	FailedToCreatePodContainer     = "FailedCreatePodContainer"
 	FailedToMakePodDataDirectories = "Failed"
-	// 网络未就绪
+	// Network not ready
 	NetworkNotReady = "NetworkNotReady"
 )
 
 // Image event reason list
 const (
-	// 正在获取镜像
+	// Getting mirror
 	PullingImage = "Pulling"
-	// 获取镜像成功
+	// Image obtained successfully
 	PulledImage = "Pulled"
-	// 获取镜像失败
+	// Failed to get mirror
 	FailedToPullImage       = "Failed"
 	FailedToInspectImage    = "InspectFailed"
 	ErrImageNeverPullPolicy = "ErrImageNeverPull"
-	// 重试拉取镜像
+	// Retry pulling image
 	BackOffPullImage = "BackOff"
 )
 
 // kubelet event reason list
 const (
-	// 主机节点就绪
+	// Host node is ready
 	NodeReady = "NodeReady"
-	// 主机节点未就绪
+	// Host node is not ready
 	NodeNotReady                         = "NodeNotReady"
 	NodeSchedulable                      = "NodeSchedulable"
 	NodeNotSchedulable                   = "NodeNotSchedulable"
@@ -168,7 +168,7 @@ const (
 
 // Probe event reason list
 const (
-	// 容器健康检查失败
+	// Container health check failed
 	ContainerUnhealthy    = "Unhealthy"
 	ContainerProbeWarning = "ProbeWarning"
 )

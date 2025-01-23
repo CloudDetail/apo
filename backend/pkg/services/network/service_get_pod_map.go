@@ -6,13 +6,14 @@ package network
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
-	"io"
-	"net/http"
-	"net/url"
 )
 
 type podMap struct {
@@ -44,26 +45,26 @@ func (s *service) GetPodMap(req *request.PodMapRequest) (*response.PodMapRespons
 	db := "flow_metrics"
 	dataPrecision := "1m"
 
-	// 构建请求体参数
+	// Build request body parameters
 	formData := url.Values{
 		"db":             {db},
 		"data_precision": {dataPrecision},
 		"sql":            {sql},
 	}
-	// 发起 POST 请求
+	// Initiate a POST request
 	resp, err := http.PostForm(deepflowServer+"/v1/query", formData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request to deepflow server: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// 读取响应体
+	// Read Response Body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	// 解析响应体到 podMapRequest 结构体
+	// Parse response body to podMapRequest structure
 	podMapResp := &podMap{
 		Result: new(response.PodMapResponse),
 	}

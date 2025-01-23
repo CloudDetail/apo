@@ -13,31 +13,31 @@ func (repo *daoRepo) initMenuItems() error {
 		MenuItem
 		RouterKey string
 	}{
-		{MenuItem: MenuItem{Key: "service", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/service.svg", Order: 1}, RouterKey: "/service"},
-		{MenuItem: MenuItem{Key: "logs", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/log.svg", Order: 2}},
+		{MenuItem: MenuItem{Key: "service", Order: 1}, RouterKey: "/service"},
+		{MenuItem: MenuItem{Key: "logs", Order: 2}},
 		{MenuItem: MenuItem{Key: "faultSite", Order: 3}, RouterKey: "/logs/fault-site"},
 		{MenuItem: MenuItem{Key: "full", Order: 4}, RouterKey: "/logs/full"},
-		{MenuItem: MenuItem{Key: "trace", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/trace.svg", Order: 5}},
+		{MenuItem: MenuItem{Key: "trace", Order: 5}},
 		{MenuItem: MenuItem{Key: "faultSiteTrace", Order: 6}, RouterKey: "/trace/fault-site"},
 		{MenuItem: MenuItem{Key: "fullTrace", Order: 7}, RouterKey: "/trace/full"},
-		{MenuItem: MenuItem{Key: "system", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg", Order: 8}, RouterKey: "/system-dashboard"},
-		{MenuItem: MenuItem{Key: "basic", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg", Order: 9}, RouterKey: "/basic-dashboard"},
-		{MenuItem: MenuItem{Key: "application", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg", Order: 10}, RouterKey: "/application-dashboard"},
-		{MenuItem: MenuItem{Key: "middleware", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/dashboard.svg", Order: 11}, RouterKey: "/middleware-dashboard"},
-		{MenuItem: MenuItem{Key: "alerts", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/alert.svg", Order: 12}},
-		{MenuItem: MenuItem{Key: "alertsRule", Order: 13}, RouterKey: "/alerts/rule"},
-		{MenuItem: MenuItem{Key: "alertsNotify", Order: 14}, RouterKey: "/alerts/notify"},
-		{MenuItem: MenuItem{Key: "config", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/setting.svg", Order: 15}, RouterKey: "/config"},
-		{MenuItem: MenuItem{Key: "manage", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/system.svg", Order: 16}},
-		{MenuItem: MenuItem{Key: "userManage", Order: 17}, RouterKey: "/system/user-manage"},
-		{MenuItem: MenuItem{Key: "menuManage", Order: 18}, RouterKey: "/system/menu-manage"},
+		{MenuItem: MenuItem{Key: "system", Order: 8}, RouterKey: "/system-dashboard"},
+		{MenuItem: MenuItem{Key: "basic", Order: 9}, RouterKey: "/basic-dashboard"},
+		{MenuItem: MenuItem{Key: "application", Order: 10}, RouterKey: "/application-dashboard"},
+		{MenuItem: MenuItem{Key: "middleware", Order: 11}, RouterKey: "/middleware-dashboard"},
+		{MenuItem: MenuItem{Key: "alerts", Order: 15}},
+		{MenuItem: MenuItem{Key: "alertsRule", Order: 16}, RouterKey: "/alerts/rule"},
+		{MenuItem: MenuItem{Key: "alertsNotify", Order: 17}, RouterKey: "/alerts/notify"},
+		{MenuItem: MenuItem{Key: "integration", Order: 20}},
+		{MenuItem: MenuItem{Key: "alertsIntegration", Order: 21}, RouterKey: "/integration/alerts"},
+		{MenuItem: MenuItem{Key: "config", Order: 25}, RouterKey: "/config"},
+		{MenuItem: MenuItem{Key: "manage", Order: 30}},
+		{MenuItem: MenuItem{Key: "userManage", Order: 31}, RouterKey: "/system/user-manage"},
+		{MenuItem: MenuItem{Key: "menuManage", Order: 32}, RouterKey: "/system/menu-manage"},
+		{MenuItem: MenuItem{Key: "systemConfig", Order: 33}, RouterKey: "/system/config"},
 		{MenuItem: MenuItem{Key: "dataGroup", Order: 19}, RouterKey: "/system/data-group"},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&MenuItem{}); err != nil {
-			return err
-		}
 		// Menu item might include item which not support to existing
 		// but the mapping between item and feature will be deleted
 		// because once a menu was deleted, the feature should also be deleted.
@@ -65,15 +65,17 @@ func (repo *daoRepo) initMenuItems() error {
 		}
 
 		relations := map[string]string{
-			"faultSite":      "logs",
-			"full":           "logs",
-			"faultSiteTrace": "trace",
-			"fullTrace":      "trace",
-			"userManage":     "manage",
-			"menuManage":     "manage",
+			"faultSite":         "logs",
+			"full":              "logs",
+			"faultSiteTrace":    "trace",
+			"fullTrace":         "trace",
+			"userManage":        "manage",
+			"menuManage":        "manage",
+			"alertsRule":        "alerts",
+			"alertsNotify":      "alerts",
+			"systemConfig":      "manage",
+			"alertsIntegration": "integration",
 			"dataGroup":      "manage",
-			"alertsRule":     "alerts",
-			"alertsNotify":   "alerts",
 		}
 
 		// update parent_id

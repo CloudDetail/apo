@@ -1,0 +1,8 @@
+{
+  "index": {
+    "selectAll": "Select All",
+    "save": "Save",
+    "menuConfigSuccess": "Menu configuration successful",
+    "errorFetchingPermissions": "Error fetching permissions"
+  }
+}

@@ -13,7 +13,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// Login Login
+// Login
 // @Summary Login
 // @Description Login
 // @Tags API.user

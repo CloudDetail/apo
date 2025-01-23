@@ -11,13 +11,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetAlertRules 列出告警规则
-// @Summary 列出告警规则
-// @Description 列出告警规则
+// GetAlertRules list alarm rules
+// @Summary list alarm rules
+// @Description list alarm rules
 // @Tags API.alerts
 // @Accept json
 // @Produce json
-// @Param Request body request.GetAlertRuleRequest true "请求信息"
+// @Param Request body request.GetAlertRuleRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetAlertRulesResponse
 // @Failure 400 {object} code.Failure

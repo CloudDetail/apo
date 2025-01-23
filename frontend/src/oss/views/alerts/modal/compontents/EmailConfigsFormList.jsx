@@ -8,47 +8,49 @@ import TextArea from 'antd/es/input/TextArea'
 import React, { useState } from 'react'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
 import { defaultHtml } from './defaultHTMLcontext'
+import { useTranslation } from 'react-i18next'
 
 export default function EmailConfigsFormList() {
+  const { t } = useTranslation('oss/alert')
   const labelCol = { span: 8 }
   const tlsConfigItemsList = [
     {
-      label: '接收通知邮箱地址',
+      label: t('emailConfigsFormList.to'),
       name: 'to',
-      placeholder: '接收告警通知邮件的邮箱地址',
+      placeholder: t('emailConfigsFormList.to'),
       required: true,
     },
     {
-      label: '发送通知邮箱地址',
+      label: t('emailConfigsFormList.from'),
       name: 'from',
-      placeholder: '发送告警通知邮件的发件人地址',
+      placeholder: t('emailConfigsFormList.from'),
       required: true,
     },
     {
-      label: 'SMTP服务器域名',
+      label: t('emailConfigsFormList.smarthost'),
       name: 'smarthost',
-      placeholder: 'SMTP服务器域名',
+      placeholder: t('emailConfigsFormList.smarthost'),
       required: true,
     },
     {
-      label: 'SMTP服务器端口',
+      label: t('emailConfigsFormList.smarthostPort'),
       name: 'smarthostPort',
-      placeholder: 'SMTP服务器端口',
+      placeholder: t('emailConfigsFormList.smarthostPort'),
       required: true,
       type: 'number',
     },
     {
-      label: 'SMTP用户名',
+      label: t('emailConfigsFormList.authUsername'),
       name: 'authUsername',
-      placeholder: 'SMTP用户名',
+      placeholder: t('emailConfigsFormList.authUsername'),
     },
     {
-      label: 'SMTP密码',
+      label: t('emailConfigsFormList.authPassword'),
       name: 'authPassword',
-      placeholder: 'SMTP密码',
+      placeholder: t('emailConfigsFormList.authPassword'),
     },
     {
-      label: '启用 TLS 安全传输',
+      label: t('emailConfigsFormList.requireTls'),
       name: 'requireTls',
       type: 'boolean',
       layout: 'horizontal',
@@ -56,16 +58,16 @@ export default function EmailConfigsFormList() {
       span: 24,
     },
     {
-      label: '告警邮件HTML正文',
+      label: t('emailConfigsFormList.html'),
       name: 'html',
       type: 'textarea',
-      placeholder: '告警邮件的 HTML 格式的正文内容',
+      placeholder: t('emailConfigsFormList.html'),
     },
     {
-      label: '告警邮件文本正文',
+      label: t('emailConfigsFormList.text'),
       name: 'text',
       type: 'textarea',
-      placeholder: '告警邮件的文本格式的正文内容',
+      placeholder: t('emailConfigsFormList.text'),
     },
   ]
 
@@ -76,7 +78,7 @@ export default function EmailConfigsFormList() {
           <Card
             title={
               <span className="flex items-center">
-                邮件通知
+                {t('emailConfigsFormList.title')}
                 {/* <IoMdAddCircleOutline onClick={() => add()} size={20} className="mx-2" /> */}
               </span>
             }
@@ -101,7 +103,7 @@ export default function EmailConfigsFormList() {
                         rules={[
                           {
                             required: item.required,
-                            message: item.label + '不可为空',
+                            message: item.label + t('emailConfigsFormList.empty'),
                           },
                           ...(item.rules ?? []),
                         ]}

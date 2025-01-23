@@ -42,40 +42,42 @@ func releaseContext(ctx Context) {
 var _ Context = (*context)(nil)
 
 type Context interface {
-	// ShouldBindQuery 反序列化 querystring
-	// tag: `form:"xxx"` (注：不要写成 query)
+	// ShouldBindQuery deserialization querystring
+	// tag: `form:"xxx"`(note: do not write query)
 	ShouldBindQuery(obj interface{}) error
 
-	// ShouldBindPostForm 反序列化 postform (querystring会被忽略)
+	// ShouldBindPostForm deserialization postform (querystring will be ignored)
 	// tag: `form:"xxx"`
 	ShouldBindPostForm(obj interface{}) error
 
-	// ShouldBindJSON 反序列化 postjson
+	// ShouldBindJSON deserialization postjson
 	// tag: `json:"xxx"`
 	ShouldBindJSON(obj interface{}) error
 
-	// ShouldBindURI 反序列化 path 参数(如路由路径为 /user/:name)
+	// ShouldBindURI the deserialization path parameter (if the routing path is/user/:name)
 	// tag: `uri:"xxx"`
 	ShouldBindURI(obj interface{}) error
 
 	Param(key string) string
 
+	// Payload returned correctly
 	GetMethodPath() (method string, path string)
 
 	// Payload 正确返回
 	Payload(payload interface{})
 	getPayload() interface{}
 
+	// AbortWithError error return
 	HandleError(err error, expectCode string)
 	// AbortWithError 错误返回
 	AbortWithError(err BusinessError)
 	abortError() BusinessError
 
-	// Header 获取 Header 对象
+	// Header Gets the Header object
 	Header() http.Header
-	// GetHeader 获取 Header
+	// Get the header GetHeader
 	GetHeader(key string) string
-	// SetHeader 设置 Header
+	// Set the header SetHeader
 	SetHeader(key, value string)
 
 	GetContext() go_context.Context
@@ -85,31 +87,34 @@ type Context interface {
 	Get(key string) (any, bool)
 
 	Next()
+	Request() *http.Request
+
+	ClientIP() string
 }
 
 type context struct {
 	ctx *gin.Context
 }
 
-// ShouldBindQuery 反序列化querystring
-// tag: `form:"xxx"` (注：不要写成query)
+// ShouldBindQuery deserialization querystring
+// tag: `form:"xxx"`(note: do not write query)
 func (c *context) ShouldBindQuery(obj interface{}) error {
 	return c.ctx.ShouldBindWith(obj, binding.Query)
 }
 
-// ShouldBindPostForm 反序列化 postform (querystring 会被忽略)
+// ShouldBindPostForm deserialization postform (querystring will be ignored)
 // tag: `form:"xxx"`
 func (c *context) ShouldBindPostForm(obj interface{}) error {
 	return c.ctx.ShouldBindWith(obj, binding.FormPost)
 }
 
-// ShouldBindJSON 反序列化postjson
+// ShouldBindJSON deserialization postjson
 // tag: `json:"xxx"`
 func (c *context) ShouldBindJSON(obj interface{}) error {
 	return c.ctx.ShouldBindWith(obj, binding.JSON)
 }
 
-// ShouldBindURI 反序列化path参数(如路由路径为 /user/:name)
+// ShouldBindURI the deserialization path parameter (if the routing path is/user/:name)
 // tag: `uri:"xxx"`
 func (c *context) ShouldBindURI(obj interface{}) error {
 	return c.ctx.ShouldBindUri(obj)
@@ -204,3 +209,11 @@ func (c *context) Get(key string) (any, bool) {
 func (c *context) Next() { c.ctx.Next() }
 
 func (c *context) Abort() { c.ctx.Abort() }
+
+func (c *context) Request() *http.Request {
+	return c.ctx.Request
+}
+
+func (c *context) ClientIP() string {
+	return c.ctx.ClientIP()
+}

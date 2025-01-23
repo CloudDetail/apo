@@ -15,19 +15,22 @@ import { useSelector } from 'react-redux'
 import { getStep } from 'src/core/utils/step'
 import { getTraceMetricsApi } from 'core/api/serviceInfo'
 import { useDebounce } from 'react-use'
+import { useTranslation } from 'react-i18next'
+
 function TraceInfo() {
+  const { t } = useTranslation('oss/serviceInfo')
   const [data, setData] = useState()
   const [loading, setLoading] = useState(false)
   const { serviceName, endpoint } = usePropsContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const column = [
     {
-      title: '实例名',
+      title: t('traceInfo.instanceName'),
       accessor: 'name',
       customWidth: 150,
     },
     {
-      title: '日志错误数量',
+      title: t('traceInfo.logErrorCount'),
       accessor: 'logs',
       Cell: (props) => {
         const { value } = props
@@ -35,7 +38,7 @@ function TraceInfo() {
       },
     },
     {
-      title: '响应时间90分位数',
+      title: t('traceInfo.responseTimeP90'),
       accessor: 'latency',
       Cell: (props) => {
         const { value } = props
@@ -43,7 +46,7 @@ function TraceInfo() {
       },
     },
     {
-      title: '错误率',
+      title: t('traceInfo.errorRate'),
       accessor: 'errorRate',
       Cell: (props) => {
         const { value } = props
@@ -51,7 +54,7 @@ function TraceInfo() {
       },
     },
     {
-      title: '故障现场Trace',
+      title: t('traceInfo.traceInfo'),
       accessor: 'logInfo',
       customWidth: 320,
       Cell: (props) => {
@@ -108,7 +111,7 @@ function TraceInfo() {
       showBorder: false,
       loading: false,
     }
-  }, [data, serviceName])
+  }, [data, serviceName, column])
   return (
     <>
       <CAccordionBody className="text-xs">
@@ -116,7 +119,7 @@ function TraceInfo() {
           <div className="d-flex">
             <CToastBody className=" flex flex-row items-center text-xs">
               <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-              根据日志错误数量、平均响应时间、错误率找到关键时刻Trace
+              {t('traceInfo.toastMessage')}
             </CToastBody>
           </div>
         </CToast>

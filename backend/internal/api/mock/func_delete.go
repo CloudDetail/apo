@@ -12,9 +12,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// Delete 删除xx
-// @Summary 删除xx
-// @Description 删除xx
+// Delete Delete xx
+// @Summary delete xx
+// @Description delete xx
 // @Tags API.mock
 // @Accept json
 // @Produce json

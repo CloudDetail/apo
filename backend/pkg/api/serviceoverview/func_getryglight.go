@@ -15,17 +15,17 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
-// GetRYGLight 获取红绿灯结果
-// @Summary 获取红绿灯结果
-// @Description 获取红绿灯结果
+// GetRYGLight get traffic light results
+// @Summary get traffic light results
+// @Description get traffic light results
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "查询开始时间"
-// @Param endTime query int64 true "查询结束时间"
-// @Param serviceName query string false "服务名称"
-// @Param endpointName query string false "接口名称"
-// @Param namespace query string false "命名空间"
+// @Param startTime query int64 true "query start time"
+// @Param endTime query int64 true "query end time"
+// @Param serviceName query string false "Service name"
+// @Param endpointName query string false "interface name"
+// @Param namespace query string false "namespace"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.ServiceRYGLightRes
 // @Failure 400 {object} code.Failure

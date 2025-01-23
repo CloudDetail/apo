@@ -17,20 +17,20 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// GetEndPointsData 获取endpoints服务列表
-// @Summary 获取endpoints服务列表
-// @Description 获取endpoints服务列表
+// GetEndPointsData get the list of endpoints services
+// @Summary get the list of endpoints services
+// @Description get the list of endpoints services
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param groupId query int64 false "data group id"
-// @Param startTime query int64 true "查询开始时间"
-// @Param endTime query int64 true "查询结束时间"
-// @Param step query int64 true "步长"
-// @Param serviceName query []string false "服务名称" collectionFormat(multi)
-// @Param namespace query []string false "命名空间" collectionFormat(multi)
-// @Param endpointName query []string false "服务端点" collectionFormat(multi)
-// @Param sortRule query int true "排序逻辑"
+// @Param startTime query int64 true "start time"
+// @Param endTime query int64 true "end time"
+// @Param step query int64 true "step"
+// @Param serviceName query []string false "service name" collectionFormat(multi)
+// @Param namespace query []string false "namespace" collectionFormat(multi)
+// @Param endpointName query []string false "endpoint" collectionFormat(multi)
+// @Param sortRule query int true "sort rule"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.ServiceEndPointsRes
 // @Failure 400 {object} code.Failure

@@ -5,20 +5,20 @@ package request
 
 type GetTracePageListRequest struct {
 	GroupID     int64    `form:"groupId,omitempty"`                            // Data group id
-	StartTime   int64    `json:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime     int64    `json:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Service     []string `json:"service"`                                      // 查询服务名
+	StartTime   int64    `json:"startTime" binding:"min=0"`                    // query start time
+	EndTime     int64    `json:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Service     []string `json:"service"`                                      // query service name
 	Namespace   []string `json:"namespace"`
-	EndPoint    string   `json:"endpoint"`    // 查询Endpoint
-	Instance    string   `json:"instance"`    // 实例名
-	NodeName    string   `json:"nodeName"`    // 主机名
-	ContainerId string   `json:"containerId"` // 容器名
-	Pid         uint32   `json:"pid"`         // 进程号
+	EndPoint    string   `json:"endpoint"`    // query Endpoint
+	Instance    string   `json:"instance"`    // instance name
+	NodeName    string   `json:"nodeName"`    // hostname
+	ContainerId string   `json:"containerId"` // container name
+	Pid         uint32   `json:"pid"`         // process number
 	TraceId     string   `json:"traceId"`     // TraceId
-	PageNum     int      `json:"pageNum"`     // 第几页
+	PageNum     int      `json:"pageNum"`     // page
 	PageSize    int      `json:"pageSize"`
 
-	Filters []*SpanTraceFilter `json:"filters"` // 过滤器
+	Filters []*SpanTraceFilter `json:"filters"` // filter
 }
 
 type GetOnOffCPURequest struct {
@@ -44,7 +44,7 @@ type GetFlameDataRequest struct {
 }
 
 type GetProcessFlameGraphRequest struct {
-	// 限制节点要展示的最小的total
+	// Limit the minimum total to be displayed by the node
 	MaxNodes   int64  `json:"maxNodes" form:"maxNodes"`
 	StartTime  int64  `json:"startTime" form:"startTime" binding:"required"`
 	EndTime    int64  `json:"endTime" form:"endTime" binding:"required,gtfield=StartTime"`

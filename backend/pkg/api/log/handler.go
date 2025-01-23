@@ -16,82 +16,82 @@ import (
 )
 
 type Handler interface {
-	// GetFaultLogPageList 获取故障现场分页日志
+	// GetFaultLogPageList get the fault site paging log
 	// @Tags API.log
 	// @Router /api/log/fault/pagelist [post]
 	GetFaultLogPageList() core.HandlerFunc
 
-	// GetFaultLogContent 获取故障现场日志内容
+	// GetFaultLogContent get the contents of the fault site log
 	// @Tags API.log
 	// @Router /api/log/fault/content [post]
 	GetFaultLogContent() core.HandlerFunc
 
-	// QueryLog 查询全量日志
+	// QueryLog query full logs
 	// @Tags API.log
 	// @Router /api/log/query [post]
 	QueryLog() core.HandlerFunc
 
-	// GetLogChart 获取日志趋势图
+	// GetLogChart get the log trend chart
 	// @Tags API.log
 	// @Router /api/log/chart [post]
 	GetLogChart() core.HandlerFunc
 
-	// GetLogIndex 分析字段索引
+	// GetLogIndex analysis field index
 	// @Tags API.log
 	// @Router /api/log/index [post]
 	GetLogIndex() core.HandlerFunc
 
-	// GetLogTableInfo 获取日志表信息
+	// GetLogTableInfo get log table information
 	// @Tags API.log
 	// @Router /api/log/table get
 	GetLogTableInfo() core.HandlerFunc
 
-	// GetServiceRoute 获取服务对应的应用日志
+	// GetServiceRoute get the application log corresponding to the service
 	// @Tags API.log
 	// @Router /api/log/rule/service get
 	GetServiceRoute() core.HandlerFunc
 
-	// GetLogParseRule 获取日志表解析规则
+	// GetLogParseRule get log table parsing rules
 	// @Tags API.log
 	// @Router /api/log/rule/get [get]
 	GetLogParseRule() core.HandlerFunc
 
-	// UpdateLogParseRule 更新日志表解析规则
+	// UpdateLogParseRule update log table parsing rules
 	// @Tags API.log
 	// @Router /api/log/rule/update [post]
 	UpdateLogParseRule() core.HandlerFunc
 
-	// AddLogParseRule 新增日志表解析规则
+	// AddLogParseRule new log table parsing rules
 	// @Tags API.log
 	// @Router /api/log/rule/add [post]
 	AddLogParseRule() core.HandlerFunc
 
-	// DeleteLogParseRule 删除日志表解析规则
+	// DeleteLogParseRule delete log table parsing rules
 	// @Tags API.log
 	// @Router /api/log/rule/delete [delete]
 	DeleteLogParseRule() core.HandlerFunc
 
-	// OtherTable 获取外部日志表
+	// OtherTable get the external log table
 	// @Tags API.log
 	// @Router /api/log/other get
 	OtherTable() core.HandlerFunc
 
-	// OtherTableInfo 获取外部日志表信息
+	// OtherTableInfo get external log table information
 	// @Tags API.log
 	// @Router /api/log/other/table [get]
 	OtherTableInfo() core.HandlerFunc
 
-	// AddOtherTable 添加外部日志表
+	// AddOtherTable add external log table
 	// @Tags API.log
 	// @Router /api/log/other/add [post]
 	AddOtherTable() core.HandlerFunc
 
-	// DeleteOtherTable 移除外部日志表
+	// DeleteOtherTable remove external log table
 	// @Tags API.log
 	// @Router /api/log/other/delete [delete]
 	DeleteOtherTable() core.HandlerFunc
 
-	// QueryLogContext 获取日志上下文
+	// QueryLogContext get the log context
 	// @Tags API.log
 	// @Router /api/log/context [post]
 	QueryLogContext() core.HandlerFunc

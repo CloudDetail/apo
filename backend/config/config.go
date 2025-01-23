@@ -41,8 +41,9 @@ type Config struct {
 			Database string `mapstructure:"database"`
 		} `mapstructure:"sqllite"`
 		InitScript struct {
-			QuickMutationMetric  string `mapstructure:"quick_mutation_metric"`
-			QuickAlertRuleMetric string `mapstructure:"quick_alert_rule_metric"`
+			QuickMutationMetric    string `mapstructure:"quick_mutation_metric"`
+			QuickAlertRuleMetric   string `mapstructure:"quick_alert_rule_metric"`
+			DefaultAlertTagMapping string `mapstructure:"default_alert_tag_mapping"`
 		} `mapstructure:"init_script"`
 	} `mapstructure:"database"`
 	ClickHouse struct {

@@ -15,6 +15,7 @@ import {
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useUserContext } from 'src/core/contexts/UserContext'
 import { showToast } from 'src/core/utils/toast'
+import { useTranslation } from 'react-i18next'
 
 function MenuManagePage() {
   const { user, getUserPermission } = useUserContext()
@@ -25,6 +26,7 @@ function MenuManagePage() {
   const [permissionTreeData, setPermissionTreeData] = useState([])
   const [allKeys, setAllKeys] = useState([])
   const [loading, setLoading] = useState(true)
+  const { t, i18n } = useTranslation('core/menuManage')
   const onExpand = (expandedKeysValue) => {
     setExpandedKeys(expandedKeysValue)
     setAutoExpandParent(false)
@@ -57,8 +59,9 @@ function MenuManagePage() {
   const fetchData = async () => {
     setLoading(true)
     try {
+      const params = { language: i18n.language }
       const [allPermissions, subjectPermissions] = await Promise.all([
-        getAllPermissionApi(),
+        getAllPermissionApi(params),
         getSubjectPermissionApi({
           subjectId: user.userId,
           subjectType: 'user',
@@ -74,7 +77,7 @@ function MenuManagePage() {
       setCheckedKeys((subjectPermissions || []).map((permission) => permission.featureId))
       // 在这里处理两者的数据
     } catch (error) {
-      console.error('Error fetching permissions:', error)
+      console.error(t('index.errorFetchingPermissions'), error)
     } finally {
       setLoading(false)
     }
@@ -82,7 +85,7 @@ function MenuManagePage() {
 
   useEffect(() => {
     if (user.userId) fetchData()
-  }, [user.userId])
+  }, [user.userId, i18n.language])
 
   //保存配置
   function configMenu() {
@@ -92,7 +95,7 @@ function MenuManagePage() {
     configMenuApi(params)
       .then((res) => {
         showToast({
-          title: '菜单配置成功',
+          title: t('index.menuConfigSuccess'),
           color: 'success',
         })
       })
@@ -107,7 +110,7 @@ function MenuManagePage() {
   }
   return (
     <>
-      <Card style={{ height: 'calc(100vh - 60px)' }}>
+      <Card style={{ height: 'calc(100vh - 60px)', overflow: 'auto' }}>
         <LoadingSpinner loading={loading} />
         <Button
           type="primary"
@@ -115,7 +118,7 @@ function MenuManagePage() {
           onClick={() => setCheckedKeys(allKeys)}
           icon={<BsCheckAll />}
         >
-          选择全部
+          {t('index.selectAll')}
         </Button>
         <Tree
           checkable
@@ -131,7 +134,7 @@ function MenuManagePage() {
           fieldNames={{ title: 'featureName', key: 'featureId' }}
         />
         <Button type="primary" className="m-4" onClick={configMenu}>
-          保存
+          {t('index.save')}
         </Button>
       </Card>
     </>

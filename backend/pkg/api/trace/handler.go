@@ -16,33 +16,33 @@ import (
 )
 
 type Handler interface {
-	// GetTraceFilters 查询Trace列表可用的过滤器
+	// GetTraceFilters the available filters for querying the Trace list
 	// @Tags API.trace
 	// @Router /api/trace/pagelist/filters [get]
 	GetTraceFilters() core.HandlerFunc
-	// GetTraceFilterValue 查询指定过滤器的可用数值
+	// GetTraceFilterValue query the available values of the specified filter
 	// @Tags API.trace
 	// @Router /api/trace/pagelist/filter/value [post]
 	GetTraceFilterValue() core.HandlerFunc
-	// GetTracePageList 查询Trace分页列表
+	// GetTracePageList to query the trace paging list
 	// @Tags API.trace
 	// @Router /api/trace/pagelist [post]
 	GetTracePageList() core.HandlerFunc
 
-	// GetOnOffCPU 获取span执行消耗
+	// GetOnOffCPU get span execution consumption
 	// @Tags API.trace
 	// @Router /api/trace/onoffcpu [get]
 	GetOnOffCPU() core.HandlerFunc
 
-	// GetSingleTraceInfo 获取单链路Trace详情
+	// GetSingleTraceInfo get single-link Trace details
 	// @Tags API.trace
 	// @Router /api/trace/info [get]
 	GetSingleTraceInfo() core.HandlerFunc
-	// GetFlameGraphData 获取指定时间段指定条件的火焰图数据
+	// GetFlameGraphData get the flame map data of the specified time period and specified conditions
 	// @Tags API.trace
 	// @Router /api/trace/flame [get]
 	GetFlameGraphData() core.HandlerFunc
-	// GetProcessFlameGraph 获取并整合进程级别火焰图数据
+	// GetProcessFlameGraph capture and integrate process-level flame graph data
 	// @Tags API.trace
 	// @Router /api/trace/flame/process [get]
 	GetProcessFlameGraph() core.HandlerFunc

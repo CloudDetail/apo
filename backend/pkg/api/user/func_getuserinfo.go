@@ -35,8 +35,6 @@ func (h *handler) GetUserInfo() core.HandlerFunc {
 			return
 		}
 		// TODO remove
-		// TODO remove
-		// TODO remove
 		if req.UserID == 0 {
 			req.UserID = middleware.GetContextUserID(c)
 		}

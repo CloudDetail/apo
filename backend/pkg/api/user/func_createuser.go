@@ -19,14 +19,14 @@ import (
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param username formData string true "用户名"
-// @Param password formData string true "密码"
-// @Param confirmPassword formData string true "确认密码"
-// @Param roleList formData []int false "角色id" collectionFormat(multi)
-// @Param email formData string false "邮箱"
-// @Param phone formData string false "手机号"
-// @Param corporation formData string false "组织"
-// @Param Authorization header string false "Bearer 令牌"
+// @Param username formData string true "username"
+// @Param password formData string true "password"
+// @Param confirmPassword formData string true "Confirm password"
+// @Param roleList formData []int false "role id" collectionFormat(multi)
+// @Param email formData string false "mailbox"
+// @Param phone formData string false "Phone number"
+// @Param corporation formData string false "organization"
+// @Param Authorization header string false "Bearer token"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/user/create [post]

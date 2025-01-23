@@ -26,17 +26,15 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 		{"中间件大盘", "middleware"},
 		{"告警规则", "alertsRule"},
 		{"告警通知", "alertsNotify"},
+		{"告警接入", "alertsIntegration"},
 		{"配置中心", "config"},
 		{"用户管理", "userManage"},
 		{"菜单管理", "menuManage"},
+		{"系统配置", "systemConfig"},
 		{"数据组管理", "dataGroup"},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&FeatureMapping{}); err != nil {
-			return err
-		}
-
 		var featureIDs, menuItemIDs []int
 		if err := tx.Model(&Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
 			return err

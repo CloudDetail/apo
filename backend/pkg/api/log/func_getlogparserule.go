@@ -11,14 +11,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetLogParseRule 获取日志表解析规则
-// @Summary 获取日志表解析规则
-// @Description 获取日志表解析规则
+// GetLogParseRule get log table parsing rules
+// @Summary get log table parsing rules
+// @Description get log table parsing rules
 // @Tags API.log
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param dataBase query string true "数据库"
-// @Param tableName query string true "表"
+// @Param dataBase query string true "database"
+// @Param tableName query string true "Table"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.LogParseResponse
 // @Failure 400 {object} code.Failure

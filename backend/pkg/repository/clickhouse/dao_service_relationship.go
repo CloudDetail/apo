@@ -53,14 +53,14 @@ const (
 	`
 )
 
-// 查询上游节点列表
+// Query the list of upstream nodes
 func (ch *chRepo) ListParentNodes(req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
 		Equals("service", req.Service).
 		Equals("url", req.Endpoint).
-		NotEquals("parentService", ""). // 过滤入口节点为空的数据
-		NotEquals("clientGroup", "").   // 此处需保证能查询到 MQ -> A的数据
+		NotEquals("parentService", ""). // Filter data with empty entry node
+		NotEquals("clientGroup", "").   // Ensure that the data of MQ -> A can be queried here.
 		EqualsNotEmpty("entry_service", req.EntryService).
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
 
@@ -73,7 +73,7 @@ func (ch *chRepo) ListParentNodes(req *request.GetServiceEndpointTopologyRequest
 	return getParentNodes(results), nil
 }
 
-// 查询下游对外调用列表
+// Query the downstream outbound call list
 func (ch *chRepo) ListChildNodes(req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
@@ -91,7 +91,7 @@ func (ch *chRepo) ListChildNodes(req *request.GetServiceEndpointTopologyRequest)
 	return getChildNodes(results), nil
 }
 
-// 查询所有子孙节点列表
+// Query the list of all descendant nodes
 func (ch *chRepo) ListDescendantNodes(req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
@@ -109,7 +109,7 @@ func (ch *chRepo) ListDescendantNodes(req *request.GetDescendantMetricsRequest) 
 	return getDescendantNodes(results), nil
 }
 
-// 查询所有子孙的拓扑关系
+// Query the topological relationships of all descendants
 func (ch *chRepo) ListDescendantRelations(req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
@@ -127,7 +127,7 @@ func (ch *chRepo) ListDescendantRelations(req *request.GetServiceEndpointTopolog
 	return getDescendantRelations(results), nil
 }
 
-// 查询相关入口节点列表
+// Query the list of related entry nodes
 func (ch *chRepo) ListEntryEndpoints(req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
@@ -156,7 +156,7 @@ type ParentNode struct {
 	ClientKey     string `ch:"clientKey"`
 }
 
-// 考虑2种场景
+// Consider 2 scenarios
 // MQ -> B
 // A -> B
 func getParentNodes(parentNodes []ParentNode) *model.TopologyNodes {
@@ -197,9 +197,9 @@ type ChildNode struct {
 	ClientKey   string `ch:"clientKey"`
 }
 
-// 考虑2种场景
+// Consider 2 scenarios
 // A -> MQ
-// A -> External -> B 存在B部分缺失，此时需补全为 A -> B
+// A -> External -> B has part B missing, which needs to be completed as A -> B
 func getChildNodes(childNodes []ChildNode) *model.TopologyNodes {
 	result := model.NewTopologyNodes()
 	if len(childNodes) == 0 {
@@ -209,7 +209,7 @@ func getChildNodes(childNodes []ChildNode) *model.TopologyNodes {
 	childMap := make(map[string]struct{})
 	for _, childNode := range childNodes {
 		if childNode.ClientGroup == model.GROUP_MQ {
-			// MQ数据
+			// MQ data
 			result.AddTopologyNode(
 				fmt.Sprintf("%s.%s", childNode.ClientPeer, childNode.ClientKey),
 				childNode.ClientPeer,
@@ -219,22 +219,22 @@ func getChildNodes(childNodes []ChildNode) *model.TopologyNodes {
 				childNode.ClientType,
 			)
 		} else if childNode.Service != "" {
-			// 已监控服务数据
+			// Monitored service data
 			result.AddServerNode(
 				fmt.Sprintf("%s.%s", childNode.Service, childNode.Url),
 				childNode.Service,
 				childNode.Url,
 				childNode.IsTraced,
 			)
-			// 边 缓存已关联标识
-			// 此处存在下游节点丢失可能，需尽可能补全该数据
+			// Edge cache associated identifier
+			// The downstream node may be lost. You need to complete the data as much as possible.
 			if childNode.ClientKey != "" {
 				childMap[fmt.Sprintf("%s.%s", childNode.ClientPeer, childNode.ClientKey)] = struct{}{}
 			}
 		}
 	}
 
-	// 未监控服务
+	// Service not monitored
 	for _, childNode := range childNodes {
 		if childNode.Service == "" && childNode.ClientGroup != model.GROUP_MQ {
 			key := fmt.Sprintf("%s.%s", childNode.ClientPeer, childNode.ClientKey)
@@ -262,7 +262,7 @@ func getDescendantNodes(relations []ChildRelation) *model.TopologyNodes {
 	childMap := make(map[string]struct{})
 	for _, relation := range relations {
 		if relation.ClientGroup == model.GROUP_MQ {
-			// MQ数据 A -> MQ -> B, 需生成2个节点 MQ 和 B
+			// MQ data A -> MQ -> B, two nodes MQ and B need to be generated
 			if relation.ClientKey != "" {
 				result.AddTopologyNode(
 					fmt.Sprintf("%s.%s", relation.ClientPeer, relation.ClientKey),
@@ -282,7 +282,7 @@ func getDescendantNodes(relations []ChildRelation) *model.TopologyNodes {
 				)
 			}
 		} else if relation.Service != "" {
-			// 已监控服务数据
+			// Monitored service data
 			// A -> B
 			result.AddServerNode(
 				fmt.Sprintf("%s.%s", relation.Service, relation.Url),
@@ -290,22 +290,22 @@ func getDescendantNodes(relations []ChildRelation) *model.TopologyNodes {
 				relation.Url,
 				relation.IsTraced,
 			)
-			// 存在 A -> B 有多个不同边的场景
-			// A -> 边 缓存关系
+			// There is a scene where A -> B has multiple different sides
+			// A -> Edge Cache Relationship
 			if relation.ClientKey != "" {
 				childMap[relation.getParentClientKey()] = struct{}{}
 			}
 		}
 	}
 
-	// 未监控服务
-	// 此处存在下游节点丢失可能，需尽可能补全该数据
+	// Service not monitored
+	// The downstream node may be lost. You need to complete the data as much as possible.
 	for _, relation := range relations {
 		if relation.ClientKey != "" && relation.Service == "" && relation.ClientGroup != model.GROUP_MQ {
-			// 读取 A -> 边缓存关系，剔除可能存在的脏数据
+			// read A -> edge cache relationship and remove possible dirty data
 			key := relation.getParentClientKey()
 			if _, exist := childMap[key]; !exist {
-				// 未监控服务
+				// Service not monitored
 				result.AddTopologyNode(
 					key,
 					relation.ClientPeer,
@@ -347,10 +347,10 @@ func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation 
 	}
 
 	relationMap := make(map[string]*model.ToplogyRelation)
-	childMap := make(map[string]struct{}) // 剔除脏数据
+	childMap := make(map[string]struct{}) // remove dirty data
 	for _, relation := range relations {
 		if relation.ClientGroup == model.GROUP_MQ {
-			// MQ数据 需补充一条调用链路
+			// MQ data needs to be supplemented with a call link
 			// A -> MQ
 			// MQ -> B
 			if relation.ParentService != "" {
@@ -380,7 +380,7 @@ func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation 
 				}
 			}
 		} else if relation.ParentService != "" && relation.Service != "" {
-			// 已监控服务数据
+			// Monitored service data
 			// A -> B
 			key := relation.getParentCurrentKey()
 			if _, exist := relationMap[key]; !exist {
@@ -392,20 +392,20 @@ func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation 
 					relation.IsTraced,
 				)
 			}
-			// 存在 A -> B 有多个不同边的场景
-			// A -> 边 缓存关系
+			// There is a scene where A -> B has multiple different sides
+			// A -> Edge Cache Relationship
 			childMap[relation.getParentClientKey()] = struct{}{}
 		}
 	}
 
-	// 未监控服务
-	// 此处存在下游节点丢失可能，需尽可能补全该数据
+	// Service not monitored
+	// The downstream node may be lost. You need to complete the data as much as possible.
 	for _, relation := range relations {
 		if relation.ParentService != "" && relation.Service == "" && relation.ClientGroup != model.GROUP_MQ {
-			// 读取 A -> 边缓存关系，剔除可能存在的脏数据
+			// read A -> edge cache relationship and remove possible dirty data
 			key := relation.getParentClientKey()
 			if _, exist := childMap[key]; !exist {
-				// 未监控服务
+				// Service not monitored
 				relationMap[key] = &model.ToplogyRelation{
 					ParentService:  relation.ParentService,
 					ParentEndpoint: relation.ParentUrl,

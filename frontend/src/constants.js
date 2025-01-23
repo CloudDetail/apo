@@ -8,11 +8,12 @@ import {
   getServiceLogLogsApi,
   getServiceTraceLogsApi,
 } from 'src/core/api/serviceInfo'
+import { t } from 'i18next'
 
 export const DelaySourceTimeUnit = {
-  self: '自身',
-  dependency: '依赖',
-  unknown: '未知',
+  self: t('common:delaySourceTimeUnit.selfText'),
+  dependency: t('common:delaySourceTimeUnit.dependencyText'),
+  unknown: t('common:delaySourceTimeUnit.unknownText'),
 }
 
 export const MetricsLineChartColor = {
@@ -44,14 +45,6 @@ export const TimeLineTypeTitleMap = {
   errorLogs: '错误日志',
   logsInfo: '故障现场日志',
   traceLogs: '故障现场Trace',
-}
-
-export const DelayLineChartTitleMap = {
-  latency: '平均响应时间',
-  p90: '90分位数',
-  errorRate: '错误率',
-  logs: '日志错误数量',
-  tps: '吞吐量',
 }
 
 export const YValueMinInterval = {
@@ -98,18 +91,26 @@ export const ChartColorList = [
 ]
 
 export const TableType = {
-  logs: '日志',
-  trace: '链路',
-  k8s: 'Kubernetes事件',
-  topology: '拓扑图',
-  other: '其他',
+  logs: t('common:tableType.logsText'),
+  trace: t('common:tableType.traceText'),
+  k8s: t('common:tableType.k8sText'),
+  topology: t('common:tableType.topologyText'),
+  other: t('common:tableType.otherText'),
+}
+
+export const DelayLineChartTitleMap = {
+  latency: t('common:delayLineChartTitleMap.latency'),
+  p90: t('common:delayLineChartTitleMap.p90'),
+  errorRate: t('common:delayLineChartTitleMap.errorRate'),
+  logs: t('common:delayLineChartTitleMap.logs'),
+  tps: t('common:delayLineChartTitleMap.tps'),
 }
 
 export const RuleGroupMap = {
-  app: '应用指标',
-  infra: '主机相关',
-  network: '网络相关',
-  container: '容器相关',
+  app: t('common:ruleGroupMap.app'),
+  infra: t('common:ruleGroupMap.infra'),
+  network: t('common:ruleGroupMap.network'),
+  container: t('common:ruleGroupMap.container'),
 }
 
 export const AlertSeverityMapList = [
@@ -188,4 +189,12 @@ export const ThemeStyle = {
       background: { primary: '#181B1F' },
     },
   },
+}
+// TODO: cache clean
+export const SlowErrorType = {
+  network_time: t('common:slowCauseType.networkTime'),
+  CPU_time: t('common:slowCauseType.cpuTime'),
+  lock_gc_time: t('common:slowCauseType.lockGcTime'),
+  disk_io_time: t('common:slowCauseType.diskIoTime'),
+  schedule_time: t('common:slowCauseType.scheduleTime'),
 }

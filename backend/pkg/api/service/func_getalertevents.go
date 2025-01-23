@@ -16,22 +16,22 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-// GetAlertEvents 获取告警事件
-// @Summary 获取告警事件
-// @Description 获取告警事件
+// GetAlertEvents get alarm events
+// @Summary get alarm events
+// @Description get alarm events
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "查询开始时间"
-// @Param endTime query int64 true "查询结束时间"
-// @Param service query string false "查询服务名"
-// @Param source query string false "查询告警来源"
-// @Param group query string false "查询告警类型"
-// @Param name query string false "查询告警名称"
-// @Param id query string false "查询告警ID"
-// @Param status query string false "查询告警状态"
-// @Param currentPage query int false "分页参数,当前页数"
-// @Param pageSize query int false "分页参数, 每页数量"
+// @Param startTime query int64 true "query start time"
+// @Param endTime query int64 true "query end time"
+// @Param service query string false "Query service name"
+// @Param source query string false "Query the alarm source"
+// @Param group query string false "Query alarm type"
+// @Param name query string false "Query alarm name"
+// @Param id query string false "Query alarm ID"
+// @Param status query string false "Query alarm status"
+// @Param currentPage query int false "Paging parameter, current number of pages"
+// @Param pageSize query int false "Pagination parameter, quantity per page"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetAlertEventsResponse
 // @Failure 400 {object} code.Failure

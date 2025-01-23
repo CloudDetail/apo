@@ -22,14 +22,14 @@ const (
 	TEMPLATE_GET_SERVICE_INSTANCE        = `sum by(svc_name, pod, pid, container_id, node_name, namespace, node_ip) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_ACTIVE_SERVICE_INSTANCE = `sum by(svc_name, pod, pid, container_id, node_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_ERROR_RATE_INSTANCE         = "100*(" +
-		"(sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s, is_error='true'}[%s])) or 0)" + // or 0补充缺失数据场景
+		"(sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s, is_error='true'}[%s])) or 0)" + // or 0 Supplements missing data scenarios
 		"/sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))" +
 		") or (sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])) * 0)" // or * 0补充中间缺失数据的场景
 	TEMPLATE_GET_NAMESPACES            = `sum(kindling_span_trace_duration_nanoseconds_count{namespace=~".+"}[%s]) by (namespace)`
 	TEMPLATE_GET_NAMESPACES_BY_SERVICE = `sum(kindling_span_trace_duration_nanoseconds_count{%s}[%s]) by (namespace)`
 )
 
-// GetServiceList 查询服务名列表
+// GetServiceList to query the service name list
 func (repo *promRepo) GetServiceList(startTime int64, endTime int64, namespace []string) ([]string, error) {
 	var namespaceFilter string
 	if len(namespace) > 0 {
@@ -146,7 +146,7 @@ func (repo *promRepo) GetNamespaceWithService(startTime, endTime int64) (map[str
 	return result, nil
 }
 
-// GetServiceEndPointList 查询服务Endpoint列表, 服务名允许为空
+// GetServiceEndPointList to query the service Endpoint list. The service name can be empty.
 func (repo *promRepo) GetServiceEndPointList(startTime int64, endTime int64, serviceName string) ([]string, error) {
 	queryCondition := ""
 	if serviceName != "" {
@@ -169,7 +169,7 @@ func (repo *promRepo) GetServiceEndPointList(startTime int64, endTime int64, ser
 	return result, nil
 }
 
-// 查询活跃实例列表
+// Query the list of active instances
 func (repo *promRepo) GetActiveInstanceList(startTime int64, endTime int64, serviceName string) (*model.ServiceInstances, error) {
 	queryCondition := fmt.Sprintf("svc_name='%s'", serviceName)
 	query := fmt.Sprintf(TEMPLATE_GET_ACTIVE_SERVICE_INSTANCE, queryCondition, VecFromS2E(startTime, endTime))
@@ -202,7 +202,7 @@ func (repo *promRepo) GetActiveInstanceList(startTime int64, endTime int64, serv
 	return result, nil
 }
 
-// GetInstanceList 查询服务实例列表, URL允许为空
+// GetInstanceList to query the service instance list. The URL can be empty.
 func (repo *promRepo) GetInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error) {
 	var queryCondition string
 	if url == "" {
@@ -304,7 +304,7 @@ func (repo *promRepo) QueryInstanceErrorRate(startTime int64, endTime int64, ste
 			instance.ContainerId,
 		)
 	} else {
-		// VM场景
+		// VM scenario
 		queryGroup = "node_name, pid"
 		queryCondition = fmt.Sprintf("svc_name='%s', content_key='%s', node_name='%s', pid='%d'",
 			instance.ServiceName,

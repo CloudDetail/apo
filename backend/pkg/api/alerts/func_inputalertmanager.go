@@ -4,40 +4,44 @@
 package alerts
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
-// InputAlertManager 获取 AlertManager 的告警事件
-// @Summary 获取 AlertManager 的告警事件
-// @Description 获取 AlertManager 的告警事件
+// InputAlertManager get AlertManager alarm events
+// @Summary get AlertManager alarm events
+// @Description get AlertManager alarm events
 // @Tags API.alerts
 // @Accept application/json
 // @Produce json
-// @Param Request body request.InputAlertManagerRequest true "请求信息"
+// @Param Request body request.InputAlertManagerRequest true "Request information"
 // @Success 200 string ok
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/inputs/alertmanager [post]
 func (h *handler) InputAlertManager() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.InputAlertManagerRequest)
-		if err := c.ShouldBindJSON(req); err != nil {
+		data, err := io.ReadAll(c.Request().Body)
+		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				code.AcceptAlertEventFailed,
+				code.Text(code.AcceptAlertEventFailed)).WithError(err),
 			)
 			return
 		}
 
-		if err := h.alertService.InputAlertManager(req); err != nil {
+		// using APO-VM-ALERT as default source
+		sourceFrom := alert.SourceFrom{SourceID: alert.ApoVMAlertSourceID}
+		err = h.inputService.ProcessAlertEvents(sourceFrom, data)
+		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.DbConnectError,
-				code.Text(code.DbConnectError)).WithError(err),
+				code.ProcessAlertEventFailed,
+				code.Text(code.ProcessAlertEventFailed)).WithError(err),
 			)
 			return
 		}

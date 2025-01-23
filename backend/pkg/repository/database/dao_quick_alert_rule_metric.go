@@ -5,7 +5,7 @@ package database
 
 import "os"
 
-// AlertMetricsData 提供用户可选择的指标对应的PQL
+// AlertMetricsData provide PQL corresponding to user selectable metrics
 type AlertMetricsData struct {
 	Id int `json:"-" gorm:"primaryKey;autoIncrement"`
 
@@ -19,7 +19,7 @@ func (a *AlertMetricsData) TableName() string {
 	return "quick_alert_rule_metric"
 }
 
-// ListQuickMutationMetric 列出所有的快速指标
+// ListQuickMutationMetric list of all quick metrics
 func (repo *daoRepo) ListQuickAlertRuleMetric() ([]AlertMetricsData, error) {
 	var quickAlertMetrics []AlertMetricsData
 	err := repo.db.Find(&quickAlertMetrics).Error
@@ -42,7 +42,7 @@ func (repo *daoRepo) InitPredefinedQuickAlertRuleMetric(sqlScript string) error 
 	}
 
 	if _, err := os.Stat(sqlScript); err == nil {
-		// 读取文件并执行初始化脚本
+		// Read the file and execute the initialization script
 		sql, err := os.ReadFile(sqlScript)
 		if err != nil {
 			return err

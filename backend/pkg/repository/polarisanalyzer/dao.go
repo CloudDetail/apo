@@ -7,22 +7,21 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 var polarisAnalyzerAddress = "http://localhost:5000"
 
 type Repo interface {
-	// SortDescendantByRelevance 查询依赖节点延时关联度
+	// SortDescendantByRelevance query dependency node latency correlation
 	SortDescendantByRelevance(
 		startTime, endTime int64, stepStr string,
 		targetService, targetEndpoint string,
 		unsortedDescendant []ServiceNode, sortBy string,
 	) (sortResp *RelevanceResponse, err error)
 
-	QueryPolarisInfer(
-		startTime, endTime int64, stepStr string,
-		service, endpoint string,
-	) (*PolarisInferRes, error)
+	QueryPolarisInfer(req *request.GetPolarisInferRequest) (*PolarisInferRes, error)
 }
 
 func New() (Repo, error) {

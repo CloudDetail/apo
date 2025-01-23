@@ -15,33 +15,33 @@ import (
 )
 
 type Handler interface {
-	// GetEndPointsData 获取endpoints服务列表
+	// GetEndPointsData get the list of endpoints services
 	// @Tags API.service
 	// @Router /api/service/endpoints [get]
 	GetEndPointsData() core.HandlerFunc
-	// GetServicesAlert 获取Service的日志告警和状态灯信息
+	// GetServicesAlert get the log alarm and status light information of the Service
 	// @Tags API.service
 	// @Router /api/service/servicesAlert [get]
 	GetServicesAlert() core.HandlerFunc
-	// GetServiceMoreUrlList 获取服务的更多url列表
+	// GetServiceMoreUrlList get more url list of services
 	// @Tags API.service
 	// @Router /api/service/moreUrl [get]
 	GetServiceMoreUrlList() core.HandlerFunc
-	// GetThreshold 获取单个阈值配置信息
+	// GetThreshold get the configuration information of a single threshold
 	// @Tags API.service
 	// @Router /api/service/getThreshold [get]
 	GetThreshold() core.HandlerFunc
-	// SetThreshold 配置单个阈值配置信息
+	// SetThreshold the configuration information of a single threshold.
 	// @Tags API.service
 	// @Router /api/service/setThreshold [post]
 	SetThreshold() core.HandlerFunc
 
-	// GetRYGLight 获取红绿灯结果
+	// GetRYGLight get traffic light results
 	// @Tags API.service
 	// @Router /api/service/ryglight [get]
 	GetRYGLight() core.HandlerFunc
 
-	// GetMonitorStatus 获取kuma监控的服务状态
+	// GetMonitorStatus get the service status monitored by kuma
 	// @Tags API.service
 	// @Router /api/service/monitor/status [get]
 	GetMonitorStatus() core.HandlerFunc

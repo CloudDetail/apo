@@ -15,7 +15,7 @@ func (s *service) GetErrorInstance(req *request.GetErrorInstanceRequest) (*respo
 		return nil, err
 	}
 
-	// 遍历服务实例，查询对应的日志告警数据
+	// Traverses the service instance and queries the corresponding log alarm data.
 	instanceList := make([]*response.ErrorInstance, 0)
 	for _, instance := range serviceInstances.GetInstances() {
 		logs, err := s.promRepo.QueryLogCountByInstanceId(instance, req.StartTime, req.EndTime, req.Step)
@@ -33,13 +33,13 @@ func (s *service) GetErrorInstance(req *request.GetErrorInstanceRequest) (*respo
 		})
 	}
 
-	// 获取错误传播链路
+	// Get error propagation link
 	propagations, err := s.chRepo.ListErrorPropagation(req)
 	if err != nil {
 		return nil, err
 	}
 
-	// 根据InstanceId进行分组
+	// Group according to InstanceId
 	errorPropationsMap := make(map[string][]*response.ErrorPropation)
 	newInstanceList := make(map[string]bool)
 	status := model.STATUS_NORMAL
@@ -63,7 +63,7 @@ func (s *service) GetErrorInstance(req *request.GetErrorInstanceRequest) (*respo
 				})
 			}
 
-			// 此处需考虑替换为Pod
+			// Consider replacing with Pod here
 			instanceId := propagation.InstanceId
 			if matchInstance, exist := serviceInstances.InstanceMap[propagation.InstanceId]; exist {
 				instanceId = matchInstance.GetInstanceId()
@@ -105,7 +105,7 @@ func (s *service) GetErrorInstance(req *request.GetErrorInstanceRequest) (*respo
 		}
 	}
 
-	// 存在未匹配的InstanceId
+	// Unmatched InstanceId exists
 	for instanceId := range newInstanceList {
 		instanceList = append(instanceList, &response.ErrorInstance{
 			Name:       instanceId,
@@ -114,7 +114,7 @@ func (s *service) GetErrorInstance(req *request.GetErrorInstanceRequest) (*respo
 		})
 	}
 
-	// 只显示有数据的实例列表
+	// Display only the list of instances with data
 	filteredInstanceList := make([]*response.ErrorInstance, 0)
 	for _, instance := range instanceList {
 		if exist_metrics(instance.Logs) || len(instance.Propations) > 0 {

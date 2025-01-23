@@ -22,6 +22,8 @@ import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer
 import { getStep } from 'src/core/utils/step'
 import { convertTime } from 'src/core/utils/time'
 import EndpointTableModal from 'src/oss/views/service/component/EndpointTableModal'
+import { useTranslation } from 'react-i18next'
+
 export default function EntryImpact(props) {
   const { handlePanelStatus } = props
   const navigate = useNavigate()
@@ -31,181 +33,174 @@ export default function EntryImpact(props) {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [modalVisible, setModalVisible] = useState(false)
   const [modalServiceName, setModalServiceName] = useState()
-  const column = [
-    {
-      title: '入口应用名称',
-      accessor: 'serviceName',
-      customWidth: 150,
-    },
-    {
-      title: '命名空间',
-      accessor: 'namespaces',
-      customWidth: 120,
-      Cell: (props) => {
-        return (props.value ?? []).length > 0 ? (
-          props.value.join()
-        ) : (
-          <span className="text-slate-400">N/A</span>
-        )
-      },
-    },
-    {
-      title: '应用详情',
-      accessor: 'serviceDetails',
-      hide: true,
-      isNested: true,
-      customWidth: '55%',
+  const { t } = useTranslation('oss/serviceInfo')
 
-      clickCell: (props) => {
-        // const navigate = useNavigate()
-        // toServiceInfo()
-        const serviceName = props.cell.row.values.serviceName
-        const endpoint = props.trs.endpoint
-        navigate(
-          `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}`,
-        )
-        window.scrollTo(0, 0)
+  const columns = useMemo(
+    () => [
+      {
+        title: t('entryImpact.entryAppName'),
+        accessor: 'serviceName',
+        customWidth: 150,
       },
-      children: [
-        {
-          title: '入口服务端点',
-          accessor: 'endpoint',
-          canExpand: false,
+      {
+        title: t('entryImpact.namespace'),
+        accessor: 'namespaces',
+        customWidth: 120,
+        Cell: (props) => {
+          return (props.value ?? []).length > 0 ? (
+            props.value.join()
+          ) : (
+            <span className="text-slate-400">N/A</span>
+          )
         },
-        {
-          title: (
-            <Tooltip
-              title={
-                <div>
-                  <div>自身：服务自身延时占比50%以上</div>
-                  <div>依赖：请求下游服务延时占比50%以上</div>
-                  <div>未知：未找到相关指标</div>
+      },
+      {
+        title: t('entryImpact.appDetails'),
+        accessor: 'serviceDetails',
+        hide: true,
+        isNested: true,
+        customWidth: '55%',
+        clickCell: (props) => {
+          const serviceName = props.cell.row.values.serviceName
+          const endpoint = props.trs.endpoint
+          navigate(
+            `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}`,
+          )
+          window.scrollTo(0, 0)
+        },
+        children: [
+          {
+            title: t('entryImpact.entryServiceEndpoint'),
+            accessor: 'endpoint',
+            canExpand: false,
+          },
+          {
+            title: (
+              <Tooltip
+                title={
+                  <div>
+                    <div className="text-[#D3D3D3]">{t('entryImpact.delaySource.title1')}</div>
+                    <div className="text-[#D3D3D3] mt-2">{t('entryImpact.delaySource.title2')}</div>
+                    <div className="text-[#D3D3D3] mt-2">{t('entryImpact.delaySource.title3')}</div>
+                  </div>
+                }
+              >
+                <div className="flex flex-row justify-center items-center">
+                  <div>
+                    <div className="text-center flex flex-row ">
+                      {t('entryImpact.delaySource.title4')}
+                    </div>
+                    <div className="block text-[10px]">{t('entryImpact.delaySource.title5')}</div>
+                  </div>
+                  <AiOutlineInfoCircle size={16} className="ml-1" />
                 </div>
-              }
-            >
-              <div className="flex flex-row justify-center items-center">
-                <div>
-                  <div className="text-center flex flex-row ">延时主要来源</div>
-                  <div className="block text-[10px]">(自身/依赖/未知)</div>
-                </div>
-                <AiOutlineInfoCircle size={16} className="ml-1" />
-              </div>
-            </Tooltip>
-          ),
-          accessor: 'delaySource',
-          canExpand: false,
-          customWidth: 112,
-          Cell: (props) => {
-            const { value } = props
-            return <>{DelaySourceTimeUnit[value]}</>
+              </Tooltip>
+            ),
+            accessor: 'delaySource',
+            canExpand: false,
+            customWidth: 112,
+            Cell: ({ value }) => {
+              return <>{DelaySourceTimeUnit[value]}</>
+            },
           },
-        },
-        {
-          title: '平均响应时间',
-          minWidth: 140,
-          accessor: (idx) => `latency`,
-
-          Cell: (props) => {
-            // eslint-disable-next-line react/prop-types
-            const { value } = props
-
-            return <TempCell type="latency" data={value} timeRange={{ startTime, endTime }} />
+          {
+            title: t('entryImpact.avgResponseTime'),
+            minWidth: 140,
+            accessor: (idx) => `latency`,
+            Cell: (props) => {
+              const { value } = props
+              return <TempCell type="latency" data={value} timeRange={{ startTime, endTime }} />
+            },
           },
-        },
-        {
-          title: '错误率',
-          accessor: (idx) => `errorRate`,
-
-          minWidth: 140,
-          Cell: (props) => {
-            // eslint-disable-next-line react/prop-types
-            const { value } = props
-            return <TempCell type="errorRate" data={value} timeRange={{ startTime, endTime }} />
+          {
+            title: t('entryImpact.errorRate'),
+            accessor: (idx) => `errorRate`,
+            minWidth: 140,
+            Cell: (props) => {
+              const { value } = props
+              return <TempCell type="errorRate" data={value} timeRange={{ startTime, endTime }} />
+            },
           },
-        },
-        {
-          title: '吞吐量',
-          accessor: (idx) => `tps`,
-          minWidth: 140,
-
-          Cell: (props) => {
-            // eslint-disable-next-line react/prop-types
-            const { value } = props
-            return <TempCell type="tps" data={value} timeRange={{ startTime, endTime }} />
+          {
+            title: t('entryImpact.throughput'),
+            accessor: (idx) => `tps`,
+            minWidth: 140,
+            Cell: (props) => {
+              const { value } = props
+              return <TempCell type="tps" data={value} timeRange={{ startTime, endTime }} />
+            },
           },
+        ],
+      },
+      {
+        title: t('entryImpact.logErrorCount'),
+        accessor: `logs`,
+        minWidth: 140,
+        Cell: (props) => {
+          const { value } = props
+          return <TempCell type="logs" data={value} timeRange={{ startTime, endTime }} />
         },
-      ],
-    },
-    {
-      title: '日志错误数',
-      accessor: `logs`,
-      minWidth: 140,
-      Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
-        const { value } = props
-        return <TempCell type="logs" data={value} timeRange={{ startTime, endTime }} />
       },
-    },
-    {
-      title: '基础设施状态',
-      accessor: `infrastructureStatus`,
-      Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
-        const { value, row, column } = props
-        const alertReason = row.original?.alertReason?.[column.id]
-        return (
-          <>
-            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
-          </>
-        )
+      {
+        title: t('entryImpact.infrastructureStatus'),
+        accessor: `infrastructureStatus`,
+        Cell: (props) => {
+          const { value, row, column } = props
+          const alertReason = row.original?.alertReason?.[column.id]
+          return (
+            <>
+              <StatusInfo status={value} alertReason={alertReason} title={column.title} />
+            </>
+          )
+        },
       },
-    },
-    {
-      title: '网络质量状态',
-      accessor: `netStatus`,
-      Cell: (/** @type {{ value: any; }} */ props) => {
-        // eslint-disable-next-line react/prop-types
-        const { value, row, column } = props
-        const alertReason = row.original?.alertReason?.[column.id]
-        return (
-          <>
-            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
-          </>
-        )
+      {
+        title: t('entryImpact.networkQualityStatus'),
+        accessor: `netStatus`,
+        Cell: (props) => {
+          const { value, row, column } = props
+          const alertReason = row.original?.alertReason?.[column.id]
+          return (
+            <>
+              <StatusInfo status={value} alertReason={alertReason} title={column.title} />
+            </>
+          )
+        },
       },
-    },
-    {
-      title: 'K8s事件状态',
-      accessor: `k8sStatus`,
-      Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
-        const { value, row, column } = props
-        const alertReason = row.original?.alertReason?.[column.id]
-        return (
-          <>
-            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
-          </>
-        )
+      {
+        title: t('entryImpact.k8sEventStatus'),
+        accessor: `k8sStatus`,
+        Cell: (props) => {
+          const { value, row, column } = props
+          const alertReason = row.original?.alertReason?.[column.id]
+          return (
+            <>
+              <StatusInfo status={value} alertReason={alertReason} title={column.title} />
+            </>
+          )
+        },
       },
-    },
-    {
-      title: '末次部署或重启时间',
-      accessor: `timestamp`,
-      minWidth: 90,
-      Cell: (props) => {
-        const { value } = props
-        return (
-          <>
-            {value !== null ? (
-              convertTime(value, 'yyyy-mm-dd hh:mm:ss')
-            ) : (
-              <span className="text-slate-400">N/A</span>
-            )}{' '}
-          </>
-        )
+      {
+        title: t('entryImpact.lastDeploymentOrRestartTime'),
+        accessor: `timestamp`,
+        minWidth: 90,
+        Cell: (props) => {
+          const { value } = props
+          return (
+            <>
+              {value !== null ? (
+                convertTime(value, 'yyyy-mm-dd hh:mm:ss')
+              ) : (
+                <span className="text-slate-400">N/A</span>
+              )}{' '}
+            </>
+          )
+        },
       },
-    },
-  ]
+    ],
+    [t, startTime, endTime, navigate],
+  )
+
   const getTableData = () => {
     if (startTime && endTime) {
       setLoading(true)
@@ -242,12 +237,12 @@ export default function EntryImpact(props) {
   )
   const tableProps = useMemo(() => {
     return {
-      columns: column,
+      columns: columns,
       data: data,
       showBorder: false,
       loading: false,
     }
-  }, [data])
+  }, [columns, data])
   return (
     <CAccordionBody className="text-xs relative">
       <LoadingSpinner loading={loading} />
@@ -255,7 +250,7 @@ export default function EntryImpact(props) {
         <div className="d-flex">
           <CToastBody className=" flex flex-row items-center text-xs">
             <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-            可能受该接口影响的所有服务入口分析，其中“服务入口”是指业务被访问时调用的第一个服务端点，是调用链路中的最上游。
+            {t('entryImpact.toastMessage')}
           </CToastBody>
         </div>
       </CToast>

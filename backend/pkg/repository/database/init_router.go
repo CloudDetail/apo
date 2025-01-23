@@ -19,12 +19,14 @@ func (repo *daoRepo) initRouterData() error {
 		{RouterTo: "/middleware-dashboard", HideTimeSelector: false},
 		{RouterTo: "/alerts/rule", HideTimeSelector: true},
 		{RouterTo: "/alerts/notify", HideTimeSelector: true},
+		{RouterTo: "/integration/alerts", HideTimeSelector: true},
 		{RouterTo: "/config", HideTimeSelector: true},
 		{RouterTo: "/system/user-manage", HideTimeSelector: true},
 		{RouterTo: "/system/menu-manage", HideTimeSelector: true},
 		{RouterTo: "/trace/fault-site", HideTimeSelector: true},
 		{RouterTo: "/trace/full", HideTimeSelector: true},
 		{RouterTo: "/system/data-group", HideTimeSelector: true},
+		{RouterTo: "/system/config", HideTimeSelector: true},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {

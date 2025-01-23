@@ -1,0 +1,182 @@
+{
+  "index": {
+    "title": "Service Information",
+    "serviceName": "Application",
+    "endpoint": "Endpoint",
+    "dependencyGraph": "Dependency Graph",
+    "directDependencies": " Direct Upstream and Downstream Dependencies",
+    "serviceEndpoint": "Endpoint"
+  },
+  "dependent": {
+    "index": {
+      "allDependencies": " All Dependencies View (Including All Recursive Dependencies)",
+      "timelapseComparison": "Duration Comparison of Dependencies",
+      "similarityRanking": "Similarity Ranking of Dependencies"
+    },
+    "dependentTable": {
+      "serviceName": "Application",
+      "endpoint": "Endpoint",
+      "delaySource": {
+        "title1": "Self Processing Time: Over 50% of latency is due to the service itself.",
+        "title2": "Dependency Time: Over 50% of latency is from downstream services.",
+        "title3": "Unknown: No relevant metrics found.",
+        "title4": "Duration Contribute",
+        "title5": ""
+      },
+      "REDStatus": "RED Alert",
+      "logsStatus": "Logs Error",
+      "infrastructureStatus": "Infrastructure",
+      "netStatus": "Network",
+      "k8sStatus": "K8s Events",
+      "timestamp": "Last Start",
+      "unmonitoredService": "This service is not monitored and cannot be navigated to."
+    },
+    "timelapseLineChart": {
+      "noDownstreamDependencies": "No downstream dependencies"
+    },
+    "topologyModal": {
+      "viewMoreDependencies": "More Downstream Dependencies",
+      "modalTitle": "More Downstream Dependencies",
+      "timelapseComparison": "Timelapse Comparison of Dependency Hosts",
+      "similarityRanking": "Similarity Ranking of Dependency Hosts"
+    }
+  },
+  "alertInfo": {
+    "alertInfoTable": {
+      "alertEventName": "Alert Event Name",
+      "alertList": "Alert List",
+      "recentAlertTime": "Recent Alert Time",
+      "alertDetails": "Alert Details"
+    },
+    "alertInfoTabs": {
+      "noAlertEvents": "No Alert Events"
+    }
+  },
+  "errorInstance": {
+    "errorInstanceInfo": {
+      "instanceName": "Instance Name",
+      "currentNodeException": "Current Node Exception",
+      "errorPropagationChain": "Error Propagation Chain",
+      "logErrorCount": "Log Error Count",
+      "logInfo": "Log Info"
+    }
+  },
+  "polarisMetricsInfo": {
+    "glossaryTable": {
+      "type": "Type",
+      "meaning": "Meaning",
+      "networkTime": "Time spent on external service calls and any database and middleware, DNS and other network operations",
+      "cpuTime": "The execution time of the program code on the CPU. If the CPU time is too long, it is due to too many nested levels or too many loops causing the execution time on the CPU",
+      "lockGcTime": "The delay caused by GC or lock waiting. If GC is frequent, the delay should be distributed at different time points. If it is a lock, it is usually continuous time",
+      "diskIoTime": "Program write file time",
+      "scheduleTime": "Waiting time due to CPU contention"
+    }
+  },
+  "entryImpact": {
+    "entryAppName": "Entry Application",
+    "namespace": "Namespace",
+    "appDetails": "Application Details",
+    "entryServiceEndpoint": "Entry Endpoint",
+    "delaySource": {
+      "title1": "Self Processing Time: Over 50% of latency is due to the service itself.",
+      "title2": "Dependency Time: Over 50% of latency is from downstream services.",
+      "title3": "Unknown: No relevant metrics found.",
+      "title4": "Duration Contribute",
+      "title5": ""
+    },
+    "avgResponseTime": "Avg. Duration",
+    "errorRate": "Error Rate",
+    "throughput": "Throughput",
+    "logErrorCount": "Logs Error",
+    "infrastructureStatus": "Infrastructure",
+    "networkQualityStatus": "Network",
+    "k8sEventStatus": "K8s Events",
+    "lastDeploymentOrRestartTime": "Last Start",
+    "toastMessage": "Shows entry points potentially impacted by this endpoint's performance. An entry point is the first service endpoint in a call chain where the business transaction begins."
+  },
+  "contentIndex": {
+    "impactAnalysis": "Impact Scope Analysis of {{serviceName}}",
+    "alertEvents": "Alert Events of {{serviceName}}",
+    "serviceEndpointInstance": "Service Endpoint Instance of {{serviceName}}",
+    "k8sEvents": "K8s Events of {{serviceName}}",
+    "errorInstances": "Error Instances of {{serviceName}}",
+    "databaseCalls": "Database Calls of {{serviceName}}",
+    "customMetricsDashboard": "Custom Metrics Dashboard",
+    "polarisMetricsRecommendation": "Polaris Metrics: Isolate performance issues between application code and downstream dependencies",
+    "logs": "Logs",
+    "trace": "Traces"
+  },
+  "instanceInfo": {
+    "instanceName": "Instance",
+    "avgResponseTime": "Avg. Duration",
+    "errorRate": "Error Rate",
+    "throughput": "Throughput",
+    "logErrorCount": "Logs Error",
+    "infrastructureStatus": "Infrastructure",
+    "networkQualityStatus": "Network",
+    "k8sEventStatus": "K8s Events",
+    "nodeInfo": "Host Info",
+    "nodeName": "Host",
+    "nodeIP": "Host IP",
+    "lastDeploymentOrRestartTime": "Last Start"
+  },
+  "K8sInfo": {
+    "appChangeFailed": "Application Change Failed",
+    "appScaling": "Application Scaling",
+    "appScalingLimit": "Application Scaling Limit Reached",
+    "isolationRemoval": "Isolation Removal",
+    "podStartFailed": "Pod Start Failed",
+    "imagePullFailed": "Image Pull Failed",
+    "podEvicted": "Pod Evicted",
+    "podOOM": "Pod OOM",
+    "clusterResourceInsufficient": "Cluster Resource Insufficient",
+    "nodeOOM": "Node OOM",
+    "nodeRestart": "Node Restart",
+    "nodeFDInsufficient": "Node FD Insufficient",
+    "timesIn7Days": "Times (7 days)",
+    "timesIn30Days": "Times (30 days)"
+  },
+  "logsInfo": {
+    "instanceName": "Instance",
+    "logErrorCount": "Logs Error",
+    "responseTimeP90": "P90 Duration",
+    "errorRate": "Error Rate",
+    "logInfo": "Log Info",
+    "toastMessage": "Find key moment logs based on log error count, P90 duration time, and error rate"
+  },
+  "sqlMetrics": {
+    "dbConnection": "Database Connection",
+    "dbOperation": "Database Operation",
+    "dbName": "Database",
+    "avgResponseTime": "Avg. Duration",
+    "errorRate": "Error Rate",
+    "throughput": "Throughput",
+    "dbSource": "Database Source"
+  },
+  "timeLine": {
+    "errorLogs": "Error Logs",
+    "logsInfo": "Log",
+    "traceLogs": "Trace"
+  },
+  "traceInfo": {
+    "instanceName": "Instance",
+    "logErrorCount": "Logs Error",
+    "responseTimeP90": "P90 Duration",
+    "errorRate": "Error Rate",
+    "traceInfo": "Trace Info",
+    "toastMessage": "Find key moment traces based on log error count, P90 duration time, and error rate"
+  },
+  "ruleGroupMap": {
+    "app": "Application Metrics",
+    "infra": "Host Related",
+    "network": "Network Related",
+    "container": "Container Related"
+  },
+  "moreNode": {
+    "seeMore": "More"
+  },
+  "topology": {
+    "clickToReturn": "Click back to the upper entry ",
+    "clickToReturnUpperTopology": "Click back to the upper entry topology "
+  }
+}

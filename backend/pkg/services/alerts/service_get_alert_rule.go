@@ -28,7 +28,7 @@ func (s *service) GetAlertRules(req *request.GetAlertRuleRequest) response.GetAl
 	}
 }
 
-// GetAlertRuleFile 获取告警规则
+// GetAlertRuleFile get alarm rules
 func (s *service) GetAlertRuleFile(req *request.GetAlertRuleConfigRequest) (*response.GetAlertRuleFileResponse, error) {
 	rules, err := s.k8sApi.GetAlertRuleConfigFile(req.AlertRuleFile)
 	if err != nil {

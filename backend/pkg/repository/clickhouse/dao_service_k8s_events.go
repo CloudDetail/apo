@@ -47,11 +47,11 @@ const (
 		)`
 )
 
-// CountK8sEvents 计算K8s事件数量
-// 时间单位为微秒
+// CountK8sEvents count the number of K8s events
+// Time in microseconds
 func (ch *chRepo) CountK8sEvents(startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error) {
 	result := make([]K8sEventsCount, 0)
-	// 执行查询
+	// Execute query
 	rows, err := ch.conn.Query(context.Background(), countK8sEventsSQL, startTime/1e6, endTim/1e6, pods)
 	if err != nil {
 		return result, err

@@ -79,7 +79,7 @@ func (m *Metadata) GetAMConfigReceiver(configFile string, filter *request.AMConf
 	for i := 0; i < len(amConfig.Receivers); i++ {
 		receiver := amConfig.Receivers[i]
 		filteredWebhookConfigs := []*amconfig.WebhookConfig{}
-		// webhook中存在钉钉配置，这里需要忽略 会从db获取
+		// DingTalk configuration exists in the webhook, which needs to be ignored and obtained from db.
 		for j := range receiver.WebhookConfigs {
 			if !strings.Contains(receiver.WebhookConfigs[j].URL.String(), "/outputs/dingtalk/") {
 				filteredWebhookConfigs = append(filteredWebhookConfigs, receiver.WebhookConfigs[j])
@@ -206,7 +206,7 @@ func (m *Metadata) DeleteAMConfigReceiver(configFile string, name string) (bool,
 		if amConfig.Receivers[i].Name == name {
 			amConfig.Receivers = removeElement(amConfig.Receivers, i)
 
-			// 移除不存在的路由
+			// Remove non-existent routes
 			for i, route := range amConfig.Route.Routes {
 				if route.Receiver == name {
 					amConfig.Route.Routes = removeElement(amConfig.Route.Routes, i)
@@ -231,9 +231,9 @@ func (m *Metadata) AddAlertRule(configFile string, alertRule request.AlertRule) 
 			code.AlertConfigFileNotExistError)
 	}
 
-	// 检查group是否存在
+	// Check whether the group exists
 	if checkGroupExists(alertRule.Group, *alertRules) {
-		// 组存在, 检查alert是否可用
+		// group exists, check whether alert is available
 		if checkAlertExists(alertRule.Group, alertRule.Alert, *alertRules) {
 			return model.NewErrWithMessage(
 				fmt.Errorf("alert already exists: %s", alertRule.Alert),
@@ -260,7 +260,7 @@ func (m *Metadata) UpdateAlertRule(configFile string, alertRule request.AlertRul
 			code.AlertConfigFileNotExistError)
 	}
 
-	// 先检查旧告警的存在性
+	// Check the existence of old alarms first
 	if !checkGroupExists(oldGroup, *alertRules) {
 		return model.NewErrWithMessage(
 			fmt.Errorf("old group not exists: %s", oldGroup),
@@ -273,21 +273,21 @@ func (m *Metadata) UpdateAlertRule(configFile string, alertRule request.AlertRul
 			code.AlertAlertNotExistError)
 	}
 
-	// 如果是移动操作，需要检查新告警的存在性
+	// If it is a move operation, you need to check the existence of new alarms.
 	if oldGroup != alertRule.Group || oldAlert != alertRule.Alert {
-		// 组中存在这个告警
+		// This alarm exists in the group
 		if checkAlertExists(alertRule.Group, alertRule.Alert, *alertRules) {
 			return model.NewErrWithMessage(
 				fmt.Errorf("alert already exists: %s", alertRule.Alert),
 				code.AlertAlertAlreadyExistError)
 		} else if !checkGroupExists(alertRule.Group, *alertRules) {
-			// 新增一个组
+			// Add a new group
 			name, _ := GetLabel(alertRule.Group)
 			alertRules.Groups = append(alertRules.Groups, AlertGroup{Name: name})
 		}
 	}
 
-	// 前面已经检查了旧告警的存在性
+	// The existence of the old alarm has been checked earlier
 	checkAndRemoveAlertRule(oldGroup, oldAlert, alertRules)
 	alertRules.Rules = append(alertRules.Rules, &alertRule)
 
@@ -494,7 +494,7 @@ func pageByParam[T any](list []T, param *request.PageParam) ([]T, int) {
 	return list[startIdx:endIdx], totalCount
 }
 
-// checkGroupExists 检查在alertRules中group是否存在，调用时默认已经取锁
+// checkGroupExists check whether the group exists in the alertRules, the lock has been fetched by default when the call is made.
 func checkGroupExists(group string, alertRules AlertRules) bool {
 	for _, g := range alertRules.Groups {
 		if g.Name == group {
@@ -505,8 +505,8 @@ func checkGroupExists(group string, alertRules AlertRules) bool {
 	return false
 }
 
-// checkAlertExists 检查alertRules中group下alert是否存在，调用时默认已经取锁
-// group不存在或者group中的alert不存在返回false
+// checkAlertExists check whether the alert under the group in the alertRules exists. By default, the lock has been fetched when the call is made.
+// false is returned if the group does not exist or the alert in the group does not exist.
 func checkAlertExists(group, alert string, alertRules AlertRules) bool {
 	for i := 0; i < len(alertRules.Rules); i++ {
 		if alertRules.Rules[i].Alert == alert && alertRules.Rules[i].Group == group {

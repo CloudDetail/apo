@@ -1,0 +1,19 @@
+{
+  "index": {
+    "faultSite": "Fault Tracese",
+    "full": "All Traces"
+  },
+  "trace": {
+    "serviceName": "Application",
+    "namespace": "Namespace",
+    "instanceName": "Instance",
+    "endpoint": "Endpoint",
+    "faultStatus": "Status",
+    "slowFault": "Slow: Response time exceeds historical baseline",
+    "errorFault": "Error: Error status code or code exception",
+    "noFault": "OK: Normal sampled data",
+    "responseTime": "Duration",
+    "occurTime": "Time",
+    "traceId": "TraceID"
+  }
+}

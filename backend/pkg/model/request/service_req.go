@@ -4,32 +4,35 @@
 package request
 
 type GetServiceEndpointTopologyRequest struct {
-	StartTime     int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Service       string `form:"service" binding:"required"`                   // 查询服务名
-	Endpoint      string `form:"endpoint" binding:"required"`                  // 查询Endpoint
-	EntryService  string `form:"entryService"`                                 // 入口服务名
-	EntryEndpoint string `form:"entryEndpoint"`                                // 入口Endpoint
+	StartTime     int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Service       string `form:"service" binding:"required"`                   // query service name
+	Endpoint      string `form:"endpoint" binding:"required"`                  // query Endpoint
+	EntryService  string `form:"entryService"`                                 // Ingress service name
+	EntryEndpoint string `form:"entryEndpoint"`                                // entry Endpoint
 }
 
 type GetServiceEndpointRelationRequest = GetServiceEndpointTopologyRequest
 
 type GetDescendantMetricsRequest struct {
-	StartTime     int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Service       string `form:"service" binding:"required"`                   // 查询服务名
-	Endpoint      string `form:"endpoint" binding:"required"`                  // 查询Endpoint
-	Step          int64  `form:"step" binding:"min=1000000"`                   // 查询步长(us)
-	EntryService  string `form:"entryService"`                                 // 入口服务名
-	EntryEndpoint string `form:"entryEndpoint"`                                // 入口Endpoint
+	StartTime     int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Service       string `form:"service" binding:"required"`                   // query service name
+	Endpoint      string `form:"endpoint" binding:"required"`                  // query Endpoint
+	Step          int64  `form:"step" binding:"min=1000000"`                   // query step size (us)
+	EntryService  string `form:"entryService"`                                 // Ingress service name
+	EntryEndpoint string `form:"entryEndpoint"`                                // entry Endpoint
 }
 
 type GetPolarisInferRequest struct {
-	StartTime int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime   int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Step      int64  `form:"step" binding:"required"`                      // 查询步长(us)
-	Service   string `form:"service" binding:"required"`                   // 查询服务名
-	Endpoint  string `form:"endpoint" binding:"required"`                  // 查询Endpoint
+	StartTime int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime   int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step      int64  `form:"step" binding:"required"`                      // query step (us)
+	Service   string `form:"service" binding:"required"`                   // query service name
+	Endpoint  string `form:"endpoint" binding:"required"`                  // query Endpoint
+
+	Lanaguage string `form:"language" json:"language"` // language of result
+	Timezone  string `form:"timezone" json:"timezone"` // timezone of result
 }
 
 type GetDescendantRelevanceRequest = GetDescendantMetricsRequest
@@ -37,14 +40,14 @@ type GetDescendantRelevanceRequest = GetDescendantMetricsRequest
 type GetErrorInstanceRequest = GetDescendantMetricsRequest
 
 type GetErrorInstanceLogsRequest struct {
-	StartTime   int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Service     string `form:"service" binding:"required"`                   // 查询服务名
-	Endpoint    string `form:"endpoint" binding:"required"`                  // 查询Endpoint
-	Instance    string `form:"instance"`                                     // 实例名
-	NodeName    string `form:"nodeName"`                                     // 主机名
-	ContainerId string `form:"containerId"`                                  // 容器名
-	Pid         uint32 `form:"pid"`                                          // 进程号
+	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Service     string `form:"service" binding:"required"`                   // query service name
+	Endpoint    string `form:"endpoint" binding:"required"`                  // query Endpoint
+	Instance    string `form:"instance"`                                     // instance name
+	NodeName    string `form:"nodeName"`                                     // hostname
+	ContainerId string `form:"containerId"`                                  // container name
+	Pid         uint32 `form:"pid"`                                          // process number
 }
 
 type GetLogMetricsRequest = GetDescendantMetricsRequest
@@ -70,80 +73,81 @@ type SetThresholdRequest struct {
 }
 
 type GetK8sEventsRequest struct {
-	StartTime   int64  `form:"startTime" binding:"required"`                 // 查询开始时间
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	ServiceName string `form:"service" binding:"required"`                   // 查询服务名
+	StartTime   int64  `form:"startTime" binding:"required"`                 // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	ServiceName string `form:"service" binding:"required"`                   // query service name
 }
 
 type GetServiceListRequest struct {
-	StartTime int64    `form:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime   int64    `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+	StartTime int64    `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime   int64    `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 	Namespace []string `form:"namespace"`
 }
 
 type GetServiceInstanceListRequest struct {
-	StartTime   int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	ServiceName string `form:"service" binding:"required"`                   // 查询服务名
+	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	ServiceName string `form:"service" binding:"required"`                   // query service name
 }
 
 type GetServiceInstanceRequest struct {
-	StartTime   int64  `form:"startTime" binding:"required"`                 // 查询开始时间
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Step        int64  `form:"step" binding:"required"`                      // 步长
-	ServiceName string `form:"serviceName" binding:"required"`               // 应用名
+	StartTime   int64  `form:"startTime" binding:"required"`                 // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step        int64  `form:"step" binding:"required"`                      // step size
+	ServiceName string `form:"serviceName" binding:"required"`               // application name
 	Endpoint    string `form:"endpoint"`
 }
 
 type GetServiceInstanceOptionsRequest struct {
-	StartTime   int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	ServiceName string `form:"service" binding:"required"`                   // 查询服务名
+	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	ServiceName string `form:"service" binding:"required"`                   // query service name
 }
 
 type GetServiceAlertRequest struct {
-	StartTime    int64    `form:"startTime" binding:"required"`                 // 查询开始时间
-	EndTime      int64    `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Step         int64    `form:"step" binding:"required"`                      // 步长
-	ServiceNames []string `form:"serviceNames" binding:"required"`              // 应用名
+	StartTime    int64    `form:"startTime" binding:"required"`                 // query start time
+	EndTime      int64    `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step         int64    `form:"step" binding:"required"`                      // step size
+	ServiceNames []string `form:"serviceNames" binding:"required"`              // application name
 	ReturnData   []string `form:"returnData"`
 }
 
 type GetServiceEndPointListRequest struct {
-	StartTime   int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	ServiceName string `form:"service"`                                      // 查询服务名
+	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	ServiceName string `form:"service"`                                      // query service name
 }
 type GetEndPointsDataRequest struct {
-	// 筛选条件
-	ServiceName  []string `form:"serviceName,omitempty"`  // 应用名,完全匹配
-	Namespace    []string `form:"namespace,omitempty"`    // 指定命名空间,完全匹配
-	EndpointName []string `form:"endpointName,omitempty"` // 端点名,完全匹配
+	// Filter Criteria
+	ServiceName  []string `form:"serviceName,omitempty"`  // application name, exact match
+	Namespace    []string `form:"namespace,omitempty"`    // specify namespace, exact match
+	EndpointName []string `form:"endpointName,omitempty"` // endpoint name, exact match
 	GroupID      int64    `form:"groupId,omitempty"`      // Data group id
-	// 查询条件
-	StartTime int64 `form:"startTime" binding:"required"`                 // 查询开始时间
-	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Step      int64 `form:"step" binding:"required"`                      // 步长
-	SortRule  int   `form:"sortRule" binding:"required"`                  //排序逻辑
+
+	// Query condition
+	StartTime int64 `form:"startTime" binding:"required"`                 // query start time
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step      int64 `form:"step" binding:"required"`                      // step size
+	SortRule  int   `form:"sortRule" binding:"required"`                  // sort logic
 }
 
 type GetRygLightRequest struct {
-	// 筛选条件
-	ServiceName  string `form:"serviceName"`  // 应用名,包含匹配
-	EndpointName string `form:"endpointName"` // 端点名,包含匹配
-	Namespace    string `form:"namespace"`    // 指定命名空间,完全匹配
+	// Filter Criteria
+	ServiceName  string `form:"serviceName"`  // application name, including matching
+	EndpointName string `form:"endpointName"` // endpoint name, including matches
+	Namespace    string `form:"namespace"`    // specify namespace, exact match
 
-	// 查询条件
-	StartTime int64 `form:"startTime" binding:"required"`                 // 查询开始时间
-	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+	// Query condition
+	StartTime int64 `form:"startTime" binding:"required"`                 // query start time
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 }
 
 type GetAlertEventsRequest struct {
-	StartTime int64 `form:"startTime" binding:"required"`                 // 查询开始时间
-	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+	StartTime int64 `form:"startTime" binding:"required"`                 // query start time
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 
-	AlertFilter // 过滤参数
-	*PageParam  // 分页参数
+	AlertFilter // filter parameters
+	*PageParam  // Paging Parameters
 }
 
 type AlertFilter struct {
@@ -164,29 +168,37 @@ type PageParam struct {
 }
 
 type GetAlertEventsSampleRequest struct {
-	StartTime int64 `form:"startTime" binding:"required"`                 // 查询开始时间
-	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+	StartTime int64 `form:"startTime" binding:"required"`                 // query start time
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 
-	AlertFilter // 过滤参数
+	AlertFilter // filter parameters
 
-	SampleCount int `form:"sampleCount"` // 采样数量
+	SampleCount int `form:"sampleCount"` // number of samples
 }
 
 type GetServiceEntryEndpointsRequest struct {
-	StartTime   int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Service     string `form:"service" binding:"required"`                   // 查询服务名
-	Endpoint    string `form:"endpoint" binding:"required"`                  // 查询Endpoint
-	Step        int64  `form:"step" binding:"required"`                      // 查询步长(us)
-	ShowMissTop bool   `form:"showMissTop"`                                  // 是否显示丢失后的非入口服务
+	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Service     string `form:"service" binding:"required"`                   // query service name
+	Endpoint    string `form:"endpoint" binding:"required"`                  // query Endpoint
+	Step        int64  `form:"step" binding:"required"`                      // query step (us)
+	ShowMissTop bool   `form:"showMissTop"`                                  // whether to display the lost non-portal service
 }
 
 type GetMonitorStatusRequest struct {
-	StartTime int64 `form:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+	StartTime int64 `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 }
 
 type GetServiceNamespaceListRequest struct {
 	StartTime int64 `form:"startTime" binding:"min=0"`
 	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"`
+}
+
+type GetServiceMoreUrlListRequest struct {
+	StartTime   int64  `form:"startTime" binding:"required"`                 // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step        int64  `form:"step" binding:"required"`                      // step size
+	ServiceName string `form:"serviceName" binding:"required"`               // application name
+	SortRule    int    `form:"sortRule" binding:"required"`                  // sort logic
 }

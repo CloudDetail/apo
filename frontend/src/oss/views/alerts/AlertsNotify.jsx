@@ -13,6 +13,7 @@ import { showToast } from 'src/core/utils/toast'
 import { MdAdd, MdOutlineEdit } from 'react-icons/md'
 import { useSelector } from 'react-redux'
 import ModifyAlertNotifyModal from './modal/ModifyAlertNotifyModal'
+import { useTranslation } from 'react-i18next' // 引入i18n
 
 export default function AlertsNotify() {
   const [data, setData] = useState([])
@@ -23,6 +24,8 @@ export default function AlertsNotify() {
   const [modalVisible, setModalVisible] = useState(false)
   const [modalInfo, setModalInfo] = useState(null)
   const [searchName, setSearchName] = useState(null)
+  const { t } = useTranslation('oss/alert')
+
   const deleteAlertNotify = (row) => {
     deleteAlertNotifyApi(
       row.dingTalkConfigs
@@ -35,7 +38,7 @@ export default function AlertsNotify() {
           },
     ).then((res) => {
       showToast({
-        title: '删除告警通知成功',
+        title: t('notify.deleteSuccess'),
         color: 'success',
       })
       refreshTable()
@@ -45,13 +48,13 @@ export default function AlertsNotify() {
   const judgmentType = (type) => {
     switch (type) {
       case 'emailConfigs':
-        return '邮件'
+        return t('notify.type.email')
       case 'webhookConfigs':
-        return 'webhook'
+        return t('notify.type.webhook')
       case 'dingTalkConfigs':
-        return '钉钉'
+        return t('notify.type.dingtalk')
       case 'wechatConfigs':
-        return '微信'
+        return t('notify.type.wechat')
     }
   }
 
@@ -74,13 +77,13 @@ export default function AlertsNotify() {
 
   const column = [
     {
-      title: '告警通知规则名',
+      title: t('notify.alertNotifyName'),
       accessor: 'name',
       justifyContent: 'left',
       customWidth: '20%',
     },
     {
-      title: '通知类型',
+      title: t('notify.notifyType'),
       accessor: 'type',
       customWidth: 120,
       Cell: (props) => {
@@ -91,7 +94,7 @@ export default function AlertsNotify() {
       },
     },
     {
-      title: '通知邮箱或WebhookUrl',
+      title: t('notify.notifyEmailOrWebhookUrl'),
       accessor: 'to',
       customWidth: '50%',
       Cell: (props) => {
@@ -102,10 +105,11 @@ export default function AlertsNotify() {
       },
     },
     {
-      title: '操作',
+      title: t('notify.operation'),
       accessor: 'action',
       Cell: (props) => {
         const row = props.row.original
+        console.log('row', row)
         return (
           <div className="flex">
             <Button
@@ -113,28 +117,19 @@ export default function AlertsNotify() {
               onClick={() => clickEditRule(row)}
               icon={<MdOutlineEdit className="text-blue-400 hover:text-blue-400" />}
             >
-              <span className="text-blue-400 hover:text-blue-400">编辑</span>
+              <span className="text-blue-400 hover:text-blue-400">{t('notify.edit')}</span>
             </Button>
             <Popconfirm
-              title={
-                <>
-                  是否确定删除名为“<span className="font-bold ">{row.alert}</span>
-                  ”的告警规则
-                </>
-              }
+              title={<>{t('notify.confirmDelete', { name: row.name })}</>}
               onConfirm={() => deleteAlertNotify(row)}
-              okText="确定"
-              cancelText="取消"
+              okText={t('notify.confirm')}
+              cancelText={t('notify.cancel')}
             >
               <Button type="text" icon={<RiDeleteBin5Line />} danger>
-                删除
+                {t('notify.delete')}
               </Button>
             </Popconfirm>
           </div>
-          // <div className=" cursor-pointer">
-          //   <AiOutlineDelete color="#97242e" size={18} />
-          //   删除
-          // </div>
         )
       },
     },
@@ -179,7 +174,6 @@ export default function AlertsNotify() {
     setPageIndex(1)
   }
   const tableProps = useMemo(() => {
-    // 分页处理
     return {
       columns: column,
       data: data,
@@ -191,7 +185,7 @@ export default function AlertsNotify() {
       },
       loading: false,
     }
-  }, [data, pageIndex, pageSize])
+  }, [column, data, pageIndex, pageSize])
   return (
     <Card
       style={{ height: 'calc(100vh - 60px)' }}
@@ -209,13 +203,14 @@ export default function AlertsNotify() {
       <div className="flex items-center justify-betweeen text-sm ">
         <Space className="flex-grow">
           <Space className="flex-1">
-            <span className="text-nowrap">通知规则名：</span>
+            <span className="text-nowrap">{t('notify.alertNotifyName')}：</span>
             <Input
               value={searchName}
               onChange={(e) => {
                 setSearchName(e.target.value)
                 setPageIndex(1)
               }}
+              placeholder={t('notify.search')}
             />
           </Space>
         </Space>
@@ -226,7 +221,7 @@ export default function AlertsNotify() {
           onClick={clickAddRule}
           className="flex-grow-0 flex-shrink-0"
         >
-          <span className="text-xs">新增告警通知</span>
+          <span className="text-xs">{t('notify.addAlertNotify')}</span>
         </Button>
       </div>
       <div className="text-sm flex-1 overflow-auto">

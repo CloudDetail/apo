@@ -13,19 +13,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// GetSQLMetrics 获取SQL指标
-// @Summary 获取SQL指标
-// @Description 获取SQL指标
+// Get SQL metrics GetSQLMetrics
+// @Summary get SQL metrics
+// @Description get SQL metrics
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "查询开始时间"
-// @Param endTime query int64 true "查询结束时间"
-// @Param service query string true "查询服务名"
-// @Param step query int64 true "查询步长(us)"
-// @Param sortBy query string true "排序方法(latency/errorRate/tps)"
-// @Param currentPage query int false "分页参数,当前页数"
-// @Param pageSize query int false "分页参数, 每页数量"
+// @Param startTime query int64 true "query start time"
+// @Param endTime query int64 true "query end time"
+// @Param service query string true "Query service name"
+// @Param step query int64 true "query step (us)"
+// @Param sortBy query string true "Sort method (latency/errorRate/tps)"
+// @Param currentPage query int false "Paging parameter, current number of pages"
+// @Param pageSize query int false "Pagination parameter, quantity per page"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetSQLMetricsResponse
 // @Failure 400 {object} code.Failure

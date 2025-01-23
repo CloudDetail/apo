@@ -1,0 +1,182 @@
+{
+  "index": {
+    "title": "服务信息",
+    "serviceName": "服务名称",
+    "endpoint": "端点",
+    "dependencyGraph": "依赖关系图",
+    "directDependencies": "的直接上下游依赖关系图",
+    "serviceEndpoint": "服务端点"
+  },
+  "dependent": {
+    "index": {
+      "allDependencies": "的所有依赖视图（包括所有递归依赖）",
+      "timelapseComparison": "依赖节点延时曲线全览对比图",
+      "similarityRanking": "依赖节点延时曲线相似度排序"
+    },
+    "dependentTable": {
+      "serviceName": "服务名",
+      "endpoint": "服务端点",
+      "delaySource": {
+        "title1": "自身：服务自身延时占比50%以上",
+        "title2": "依赖：请求下游服务延时占比50%以上",
+        "title3": "未知：未找到相关指标",
+        "title4": "延时主要来源",
+        "title5": "(自身/依赖/未知)"
+      },
+      "REDStatus": "RED告警",
+      "logsStatus": "日志错误数量",
+      "infrastructureStatus": "基础设施状态",
+      "netStatus": "网络质量状态",
+      "k8sStatus": "K8s事件状态",
+      "timestamp": "末次部署或重启时间",
+      "unmonitoredService": "该服务未被监控，无法跳转"
+    },
+    "timelapseLineChart": {
+      "noDownstreamDependencies": "无下游依赖节点"
+    },
+    "topologyModal": {
+      "viewMoreDependencies": "查看更多下游依赖",
+      "modalTitle": "更多下游依赖",
+      "timelapseComparison": "依赖节点延时曲线全览对比图",
+      "similarityRanking": "依赖节点延时曲线相似度排序"
+    }
+  },
+  "alertInfo": {
+    "alertInfoTable": {
+      "alertEventName": "告警事件名",
+      "alertList": "告警列表",
+      "recentAlertTime": "最近告警时间",
+      "alertDetails": "告警详情"
+    },
+    "alertInfoTabs": {
+      "noAlertEvents": "无告警事件"
+    }
+  },
+  "errorInstance": {
+    "errorInstanceInfo": {
+      "instanceName": "实例名",
+      "currentNodeException": "当前节点异常",
+      "errorPropagationChain": "错误故障传播链",
+      "logErrorCount": "日志错误数量",
+      "logInfo": "日志信息"
+    }
+  },
+  "polarisMetricsInfo": {
+    "glossaryTable": {
+      "type": "类型",
+      "meaning": "含义",
+      "networkTime": "耗时为对外的服务调用和任何数据库和中间件，DNS等网络操作耗时",
+      "cpuTime": "程序代码在cpu上的执行时间.如果cpu_time过长，是由于嵌入层次过多或者循环过多导致在cpu上执行时间",
+      "lockGcTime": "程序由于GC或者锁等待产生时延，如果是GC频繁，延时应该分布在不同时间点，如果是锁，一般是连续时间",
+      "diskIoTime": "程序写文件时间",
+      "scheduleTime": "由于CPU争抢而产生的等待时间"
+    }
+  },
+  "entryImpact": {
+    "entryAppName": "入口应用名称",
+    "namespace": "命名空间",
+    "appDetails": "应用详情",
+    "entryServiceEndpoint": "入口服务端点",
+    "delaySource": {
+      "title1": "自身：服务自身延时占比50%以上",
+      "title2": "依赖：请求下游服务延时占比50%以上",
+      "title3": "未知：未找到相关指标",
+      "title4": "延时主要来源",
+      "title5": "(自身/依赖/未知)"
+    },
+    "avgResponseTime": "平均响应时间",
+    "errorRate": "错误率",
+    "throughput": "吞吐量",
+    "logErrorCount": "日志错误数",
+    "infrastructureStatus": "基础设施状态",
+    "networkQualityStatus": "网络质量状态",
+    "k8sEventStatus": "K8s事件状态",
+    "lastDeploymentOrRestartTime": "末次部署或重启时间",
+    "toastMessage": "可能受该接口影响的所有服务入口分析，其中“服务入口”是指业务被访问时调用的第一个服务端点，是调用链路中的最上游。"
+  },
+  "contentIndex": {
+    "impactAnalysis": "{{serviceName}}的影响面分析",
+    "alertEvents": "{{serviceName}}的告警事件",
+    "serviceEndpointInstance": "{{serviceName}}的服务端点实例",
+    "k8sEvents": "{{serviceName}}的k8s事件",
+    "errorInstances": "{{serviceName}}的错误实例",
+    "databaseCalls": "{{serviceName}}的数据库调用",
+    "customMetricsDashboard": "用户自定义指标大盘",
+    "polarisMetricsRecommendation": "基于北极星因果指标的主要原因推荐: 根据数据确认是应用自身的问题，还是下游依赖的问题",
+    "logs": "日志",
+    "trace": "链路追踪"
+  },
+  "instanceInfo": {
+    "instanceName": "实例名",
+    "avgResponseTime": "平均响应时间",
+    "errorRate": "错误率",
+    "throughput": "吞吐量",
+    "logErrorCount": "日志错误数量",
+    "infrastructureStatus": "基础设施状态",
+    "networkQualityStatus": "网络质量状态",
+    "k8sEventStatus": "K8s事件状态",
+    "nodeInfo": "主机节点信息",
+    "nodeName": "主机名",
+    "nodeIP": "主机IP",
+    "lastDeploymentOrRestartTime": "末次部署或重启时间"
+  },
+  "K8sInfo": {
+    "appChangeFailed": "应用变更失败",
+    "appScaling": "应用扩缩容",
+    "appScalingLimit": "应用扩缩绒到达上下限",
+    "isolationRemoval": "离群摘除",
+    "podStartFailed": "pod启动失败",
+    "imagePullFailed": "镜像拉取失败",
+    "podEvicted": "POD被驱逐",
+    "podOOM": "POD OOM",
+    "clusterResourceInsufficient": "k8s集群资源不足",
+    "nodeOOM": "K8s节点 OOM",
+    "nodeRestart": "K8s节点重启",
+    "nodeFDInsufficient": "K8s节点FD不足",
+    "timesIn7Days": "次数(7天)",
+    "timesIn30Days": "次数(30天)"
+  },
+  "logsInfo": {
+    "instanceName": "实例名",
+    "logErrorCount": "日志错误数量",
+    "responseTimeP90": "响应时间90分位数",
+    "errorRate": "错误率",
+    "logInfo": "故障现场日志",
+    "toastMessage": "根据日志错误数量、平均响应时间、错误率找到关键时刻日志"
+  },
+  "sqlMetrics": {
+    "dbConnection": "数据库连接",
+    "dbOperation": "数据库操作",
+    "dbName": "数据库名",
+    "avgResponseTime": "平均响应时间",
+    "errorRate": "错误率",
+    "throughput": "吞吐量",
+    "dbSource": "数据库源"
+  },
+  "timeLine": {
+    "errorLogs": "错误日志",
+    "logsInfo": "故障现场日志",
+    "traceLogs": "链路日志"
+  },
+  "traceInfo": {
+    "instanceName": "实例名",
+    "logErrorCount": "日志错误数量",
+    "responseTimeP90": "响应时间90分位数",
+    "errorRate": "错误率",
+    "traceInfo": "故障现场Trace",
+    "toastMessage": "根据日志错误数量、平均响应时间、错误率找到关键时刻Trace"
+  },
+  "ruleGroupMap": {
+    "app": "应用指标",
+    "infra": "主机相关",
+    "network": "网络相关",
+    "container": "容器相关"
+  },
+  "moreNode": {
+    "seeMore": "查看更多上下游"
+  },
+  "topology": {
+    "clickToReturn": "点击回退上级入口",
+    "clickToReturnUpperTopology": "点击回退上级入口拓扑图"
+  }
+}

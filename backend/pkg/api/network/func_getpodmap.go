@@ -4,23 +4,24 @@
 package deepflow
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 )
 
-// GetPodMap 查询 Pod 网络调用拓扑与调用指标
-// @Summary 查询 Pod 网络调用拓扑与调用指标
-// @Description 查询 Pod 网络调用拓扑与调用指标
+// GetPodMap query pod network call topology and call metrics
+// @Summary query pod network call topology and call metrics
+// @Description query pod network call topology and call metrics
 // @Tags API.Network
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "起始时间，单位微秒"
-// @Param endTime query int64 true "结束时间，单位微秒"
-// @Param namespace query string false "要查询的Namespace，值为空则查询所有"
-// @Param workload query string false "要查询的工作负载，值为空则查询所有"
+// @Param startTime query int64 true "Start time, in microseconds"
+// @Param endTime query int64 true "End time, in microseconds"
+// @Param namespace query string false "Namespace to query, if the value is empty, query all"
+// @Param workload query string false "Workload to be queried. If the value is empty, all of them will be queried"
 // @Success 200 {object} response.PodMapResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/network/podmap [get]

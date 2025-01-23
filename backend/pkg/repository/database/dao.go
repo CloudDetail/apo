@@ -7,19 +7,21 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"time"
 
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/logger"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database/input/alert"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-// 定义Database查询接口
+// Define the Database query interface
 type Repo interface {
 	CreateOrUpdateThreshold(model *Threshold) error
 	GetOrCreateThreshold(serviceName string, endPoint string, level string) (Threshold, error)
@@ -30,7 +32,7 @@ type Repo interface {
 	GetAllOtherLogTable() ([]OtherLogTable, error)
 	OperatorOtherLogTable(model *OtherLogTable, op Operator) error
 	CreateDingTalkReceiver(dingTalkConfig *amconfig.DingTalkConfig) error
-	// GetDingTalkReceiver 获取uuid对应的webhook url secret
+	// GetDingTalkReceiver get the webhook URL secret corresponding to the uuid.
 	GetDingTalkReceiver(uuid string) (amconfig.DingTalkConfig, error)
 	GetDingTalkReceiverByAlertName(configFile string, alertName string, page, pageSize int) ([]*amconfig.DingTalkConfig, int64, error)
 	UpdateDingTalkReceiver(dingTalkConfig *amconfig.DingTalkConfig, oldName string) error
@@ -55,6 +57,8 @@ type Repo interface {
 	GetUsersRole(userIDs []int64) ([]UserRole, error)
 	GetRoles(filter model.RoleFilter) ([]Role, error)
 	GetFeature(featureIDs []int) ([]Feature, error)
+	GetFeatureByName(name string) (int, error)
+	GrantRole(ctx context.Context, userID int64, roleIDs []int) error
 	GrantRoleWithUser(ctx context.Context, userID int64, roleIDs []int) error
 	GrantRoleWithRole(ctx context.Context, roleID int, userIDs []int64) error
 	RevokeRole(ctx context.Context, userID int64, roleIDs []int) error
@@ -123,18 +127,23 @@ type Repo interface {
 	WithTransaction(ctx context.Context, tx *gorm.DB) context.Context
 	// Transaction Starts a transaction and automatically commit and rollback.
 	Transaction(ctx context.Context, funcs ...func(txCtx context.Context) error) error
+
+	alert.AlertInput
 }
 
 type daoRepo struct {
 	db             *gorm.DB
 	sqlDB          *sql.DB
 	transactionCtx struct{}
+
+	alert.AlertInput
 }
 
-// Connect 连接数据库
+// Connect to connect to the database
 func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	var dbConfig gorm.Dialector
-	databaseCfg := config.Get().Database
+	globalCfg := config.Get()
+	databaseCfg := globalCfg.Database
 	switch databaseCfg.Connection {
 	case config.DB_MYSQL:
 		dbConfig = driver.NewMySqlDialector()
@@ -144,45 +153,28 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		return nil, errors.New("database connection not supported")
 	}
 
-	// 连接数据库，并设置 GORM 的日志模式
+	// Connect to the database and set the log mode of GORM
 	database, err := gorm.Open(dbConfig, &gorm.Config{
 		Logger: logger.NewGormLogger(zapLogger),
 	})
-	// 处理错误
+	// Handling errors
 	if err != nil {
 		return nil, err
 	}
 
-	// 获取底层的 sqlDB
+	// Get the underlying sqlDB
 	sqlDb, err := database.DB()
 	if err != nil {
 		return nil, err
 	}
 
-	// 设置最大连接数
+	// Set the maximum number of connections
 	sqlDb.SetMaxOpenConns(databaseCfg.MaxOpen)
-	// 设置最大空闲连接数
+	// Set the maximum number of idle connections
 	sqlDb.SetMaxIdleConns(databaseCfg.MaxIdle)
-	// 设置每个连接的过期时间
+	// Set the expiration time for each connection
 	sqlDb.SetConnMaxLifetime(time.Duration(databaseCfg.MaxLife) * time.Second)
-	// 创建阈值表
-	err = database.AutoMigrate(&Threshold{})
-	if err != nil {
-		return nil, err
-	}
-	err = database.AutoMigrate(&LogTableInfo{})
-	if err != nil {
-		return nil, err
-	}
-	err = database.AutoMigrate(&OtherLogTable{})
-	if err != nil {
-		return nil, err
-	}
-	err = database.AutoMigrate(&amconfig.DingTalkConfig{})
-	if err != nil {
-		return nil, err
-	}
-	err = database.AutoMigrate(&User{})
+	err = migrateTable(database)
 	if err != nil {
 		return nil, err
 	}
@@ -247,5 +239,31 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err = daoRepo.createAnonymousUser(); err != nil {
 		return nil, err
 	}
+
+	if daoRepo.AlertInput, err = alert.NewAlertInputRepo(daoRepo.db, globalCfg); err != nil {
+		return nil, err
+	}
+
 	return daoRepo, nil
+}
+
+func migrateTable(db *gorm.DB) error {
+	return db.AutoMigrate(
+		&amconfig.DingTalkConfig{},
+		&Feature{},
+		&FeatureMapping{},
+		&I18nTranslation{},
+		&InsertPage{},
+		&LogTableInfo{},
+		&RouterInsertPage{},
+		&MenuItem{},
+		&OtherLogTable{},
+		&AuthPermission{},
+		&AlertMetricsData{},
+		&Role{},
+		&UserRole{},
+		&Router{},
+		&Threshold{},
+		&User{},
+	)
 }

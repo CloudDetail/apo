@@ -11,42 +11,26 @@ import (
 	"github.com/google/uuid"
 )
 
-// AlertEvent 表示alert_event表中的一个事件
+// AlertEvent indicates an event in the alert_event table
 type AlertEvent struct {
 	Source string    `ch:"source" json:"source,omitempty"`
 	ID     uuid.UUID `ch:"id" json:"id,omitempty"`
-	// 故障触发时间
+	// fault trigger time
 	CreateTime time.Time `ch:"create_time" json:"createTime"`
-	// 故障最后一次发生时间
+	// Last time the fault occurred
 	UpdateTime time.Time `ch:"update_time" json:"updateTime"`
-	// 故障恢复时间（仅恢复时存在）
+	// Recovery time (only present at recovery)
 	EndTime time.Time `ch:"end_time" json:"endTime"`
-	// 故障事件接收时间（用于记录数据对接，无业务含义）
+	// Failure event reception time (used to record data connection, no business meaning)
 	ReceivedTime time.Time     `ch:"received_time" json:"receivedTime"`
 	Severity     SeverityLevel `ch:"severity" json:"severity,omitempty"`
-	// 故障所属分组信息
-	Group  string            `ch:"group" json:"group,omitempty"`
-	Name   string            `ch:"name" json:"name,omitempty"`
-	Detail string            `ch:"detail" json:"detail,omitempty"`
-	Tags   map[string]string `ch:"tags" json:"tags,omitempty"`
-	Status Status            `ch:"status" json:"status,omitempty"`
-}
-
-func (a *AlertEvent) GetTargetObj() string {
-	if a.Tags == nil {
-		return ""
-	}
-	switch a.Group {
-	case "app":
-		return a.Tags["svc_name"]
-	case "infra":
-		return a.Tags["instance_name"]
-	case "network":
-		return fmt.Sprintf("%s->%s", a.Tags["src_ip"], a.Tags["dst_ip"])
-	case "container":
-		return fmt.Sprintf("%s(%s)", a.Tags["pod"], a.Tags["container"])
-	}
-	return ""
+	// Fault group information
+	Group   string            `ch:"group" json:"group,omitempty"`
+	Name    string            `ch:"name" json:"name,omitempty"`
+	Detail  string            `ch:"detail" json:"detail,omitempty"`
+	Tags    map[string]string `ch:"tags" json:"tags,omitempty"`
+	RawTags map[string]string `ch:"raw_tags" json:"raw_tags,omitempty"`
+	Status  Status            `ch:"status" json:"status,omitempty"`
 }
 
 func GenUUID() uuid.UUID {
@@ -127,7 +111,7 @@ func (s SeverityLevel) toString() string {
 	}
 }
 
-// Status 定义了事件的状态
+// Status defines the status of the event
 type Status int8
 
 const (

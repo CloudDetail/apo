@@ -5,6 +5,7 @@ package router
 
 import (
 	"github.com/CloudDetail/apo/backend/internal/api/mock"
+	alertinput "github.com/CloudDetail/apo/backend/pkg/api/alertinput"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
 	"github.com/CloudDetail/apo/backend/pkg/api/data"
@@ -117,7 +118,7 @@ func setApiRouter(r *resource) {
 
 	alertApi := r.mux.Group("/api/alerts")
 	{
-		alertHandler := alerts.New(r.logger, r.ch, r.k8sApi, r.pkg_db)
+		alertHandler := alerts.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom)
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.POST("/outputs/dingtalk/:uuid", alertHandler.ForwardToDingTalk())
 		alertApi.Use(middlewares.AuthMiddleware())
@@ -235,12 +236,45 @@ func setApiRouter(r *resource) {
 		handler := health.New()
 		healthApi.GET("", handler.HealthCheck())
 	}
+
+	alertInputApi := r.mux.Group("/api/alertinput")
+	{
+		handler := alertinput.New(r.logger, r.ch, r.prom, r.pkg_db)
+		alertInputApi.POST("/event/source", handler.SourceHandler())
+		alertInputApi.POST("/event/json", handler.JsonHandler())
+		alertInputApi.POST("/source/create", handler.CreateAlertSource())
+		alertInputApi.POST("/source/update", handler.UpdateAlertSource())
+		alertInputApi.POST("/source/get", handler.GetAlertSource())
+		alertInputApi.POST("/source/delete", handler.DeleteAlertSource())
+		alertInputApi.GET("/source/list", handler.ListAlertSource())
+		alertInputApi.POST("/source/enrich/update", handler.UpdateAlertSourceEnrichRule())
+		alertInputApi.POST("/source/enrich/get", handler.GetAlertSourceEnrichRule())
+		alertInputApi.GET("/enrich/tags/list", handler.ListTargetTags())
+
+		alertInputApi.POST("/cluster/create", handler.CreateCluster())
+		alertInputApi.GET("/cluster/list", handler.ListCluster())
+		alertInputApi.POST("/cluster/update", handler.UpdateCluster())
+		alertInputApi.POST("/cluster/delete", handler.DeleteCluster())
+
+		alertInputApi.POST("/schema/create", handler.CreateSchema())
+		alertInputApi.GET("/schema/delete", handler.DeleteSchema())
+		alertInputApi.GET("/schema/used/check", handler.CheckSchemaIsUsed())
+		alertInputApi.GET("/schema/list", handler.ListSchema())
+		alertInputApi.GET("/schema/listwithcolumns", handler.ListSchemaWithColumns())
+		alertInputApi.GET("/schema/column/get", handler.GetSchemaColumns())
+		alertInputApi.POST("/schema/data/update", handler.UpdateSchemaData())
+		alertInputApi.GET("/schema/data/get", handler.GetSchemaData())
+
+		alertInputApi.GET("/source/enrich/default/clear", handler.ClearDefaultAlertEnrichRule())
+		alertInputApi.GET("/source/enrich/default/get", handler.GetDefaultAlertEnrichRule())
+		alertInputApi.POST("/source/enrich/default/set", handler.SetDefaultAlertEnrichRule())
+	}
 }
 
 func SetMetaServerRouter(srv *Server, meta source.MetaSource) {
 	api := srv.Mux.Group("/metadata")
 	for path, handler := range meta.Handlers() {
-		// 这组API同时支持GET和POST
+		// This set of APIs supports both GET and POST
 		api.POST_Gin(path, util.WrapHandlerFunctions(handler))
 		api.GET_Gin(path, util.WrapHandlerFunctions(handler))
 	}

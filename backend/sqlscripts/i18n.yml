@@ -118,7 +118,7 @@ basic:
     field_name: "label"
     entity_type: "menu"
   - language: "en"
-    translation: "Infrastructure"
+    translation: "Infra"
     field_name: "abbreviation"
     entity_type: "menu"
   - language: "zh"
@@ -177,6 +177,10 @@ alerts:
     translation: "告警管理"
     field_name: "label"
     entity_type: "menu"
+  - language: "en"
+    translation: "Alerts"
+    field_name: "abbreviation"
+    entity_type: "menu"
 
 alertsRule:
   key: "alertsRule"
@@ -206,6 +210,38 @@ alertsNotify:
       field_name: "abbreviation"
       entity_type: "menu"
 
+integration:
+  key: "integration"
+  i18n:
+    - language: "en"
+      translation: "Integration Center"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "IC"
+      field_name: "abbreviation"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "接入中心"
+      field_name: "label"
+      entity_type: "menu"
+
+alertsIntegration:
+  key: "alertsIntegration"
+  i18n:
+    - language: "en"
+      translation: "Alerts Integrations"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "告警接入"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "Alerts"
+      field_name: "abbreviation"
+      entity_type: "menu"
+
 config:
   key: "config"
   i18n:
@@ -216,6 +252,10 @@ config:
   - language: "zh"
     translation: "配置中心"
     field_name: "label"
+    entity_type: "menu"
+  - language: "en"
+    translation: "Config"
+    field_name: "abbreviation"
     entity_type: "menu"
 
 manage:
@@ -228,6 +268,10 @@ manage:
   - language: "zh"
     translation: "系统管理"
     field_name: "label"
+    entity_type: "menu"
+  - language: "en"
+    translation: "System"
+    field_name: "abbreviation"
     entity_type: "menu"
 
 userManage:
@@ -253,6 +297,18 @@ menuManage:
     translation: "菜单管理"
     field_name: "label"
     entity_type: "menu"
+
+systemConfig:
+  key: "systemConfig"
+  i18n:
+    - language: "en"
+      translation: "System Configurations"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "系统配置"
+      field_name: "label"
+      entity_type: "menu"
 
 groupManage:
   key: "dataGroup"
@@ -447,6 +503,30 @@ groupManage:
       entity_type: "feature"
       field_name: "featureName"
 
+接入中心:
+  key: "接入中心"
+  i18n:
+    - language: "en"
+      translation: "Integrations"
+      field_name: "featureName"
+      entity_type: "feature"
+    - language: "zh"
+      translation: "接入中心"
+      field_name: "featureName"
+      entity_type: "feature"
+
+告警接入:
+  key: "告警接入"
+  i18n:
+    - language: "en"
+      translation: "Alerts Integrations"
+      field_name: "featureName"
+      entity_type: "feature"
+    - language: "zh"
+      translation: "告警接入"
+      field_name: "featureName"
+      entity_type: "feature"
+
 配置中心:
   key: "配置中心"
   i18n:
@@ -497,6 +577,19 @@ groupManage:
 
   - language: "zh"
     translation: "菜单管理"
+    entity_type: "feature"
+    field_name: "featureName"
+
+系统配置:
+  key: "系统配置"
+  i18n:
+  - language: "en"
+    translation: "System Configurations"
+    entity_type: "feature"
+    filed_name: "featureName"
+
+  - language: "zh"
+    translation: "系统配置"
     entity_type: "feature"
     field_name: "featureName"
 

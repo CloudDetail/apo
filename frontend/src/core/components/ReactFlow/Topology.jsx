@@ -24,6 +24,7 @@ import { AiOutlineRollback } from 'react-icons/ai'
 import { Tooltip } from 'antd'
 import CustomSelfLoopEdge from './LoopEdges'
 import './index.css'
+import { useTranslation } from 'react-i18next'
 const nodeWidth = 200
 const defaultNodeTypes = {
   serviceNode: ServiceNode,
@@ -164,7 +165,7 @@ const LayoutFlow = (props) => {
   )
 }
 function FlowWithProvider(props) {
-  console.log(props)
+  const { t } = useTranslation('oss/serviceInfo')
   const { modalDataUrl } = useSelector((state) => state.topologyReducer)
   const dispatch = useDispatch()
 
@@ -176,7 +177,7 @@ function FlowWithProvider(props) {
     <>
       {modalDataUrl?.length > 1 && (
         <Tooltip
-          title={'点击回退上级入口' + modalDataUrl[modalDataUrl.length - 2]?.modalService}
+          title={t('topology.clickToReturn') + modalDataUrl[modalDataUrl.length - 2]?.modalService}
           placement="bottom"
         >
           <div
@@ -184,7 +185,7 @@ function FlowWithProvider(props) {
             style={{ zIndex: 1 }}
             onClick={() => rollback()}
           >
-            点击回退上级入口拓扑图
+            {t('topology.clickToReturnUpperTopology')}
             <AiOutlineRollback size={28} />
           </div>
         </Tooltip>

@@ -18,18 +18,18 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-// GetServiceEntryEndpoints 获取服务入口Endpoint列表
-// @Summary 获取服务入口Endpoint列表
-// @Description 获取服务入口Endpoint列表
+// GetServiceEntryEndpoints get the list of service portal Endpoint
+// @Summary get the service entry Endpoint list
+// @Description get the service entry Endpoint list
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query uint64 true "查询开始时间"
-// @Param endTime query uint64 true "查询结束时间"
-// @Param service query string true "查询服务名"
-// @Param endpoint query string true "查询Endpoint"
-// @Param step query int64 true "查询步长(us)"
-// @Param showMissTop query bool false "显示缺失入口"
+// @Param startTime query uint64 true "query start time"
+// @Param endTime query uint64 true "query end time"
+// @Param service query string true "Query service name"
+// @Param endpoint query string true "Query Endpoint"
+// @Param step query int64 true "query step (us)"
+// @Param showMissTop query bool false "Show missing entry"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []response.GetServiceEntryEndpointsResponse
 // @Failure 400 {object} code.Failure
@@ -66,7 +66,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 		}
 		entryNodes, err := h.serviceInfoService.GetServiceEntryEndpoints(req)
 		if err == nil {
-			// TODO 先默认全局Threshold，后续调整为具体服务的Threshold
+			// TODO defaults to global Threshold first, and then adjusts to the Threshold of specific services.
 			threshold, err = h.serviceoverviewService.GetThreshold(database.GLOBAL, "", "")
 		}
 		if err == nil {
@@ -118,7 +118,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			}
 		}
 		if err == nil {
-			// 补全日志错误数等信息
+			// Complete information such as the number of log errors
 			startTime := time.Unix(req.StartTime/1000000, 0)
 			endTime := time.Unix(req.EndTime/1000000, 0)
 			step := time.Duration(req.Step * 1000)

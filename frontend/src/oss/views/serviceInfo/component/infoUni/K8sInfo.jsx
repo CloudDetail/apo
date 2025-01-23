@@ -12,6 +12,8 @@ import Empty from 'src/core/components/Empty/Empty'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { usePropsContext } from 'src/core/contexts/PropsContext'
 import { selectProcessedTimeRange } from 'src/core/store/reducers/timeRangeReducer'
+import { useTranslation } from 'react-i18next'
+
 function K8sInfo(props) {
   const { handlePanelStatus } = props
   const [data, setData] = useState({})
@@ -19,86 +21,87 @@ function K8sInfo(props) {
   const [colList, setColList] = useState([])
   const [loading, setLoading] = useState(false)
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
+  const { t } = useTranslation('oss/serviceInfo')
   const mockColList = [
     {
-      name: '应用变更失败',
+      name: t('K8sInfo.appChangeFailed'),
       status: 'success',
       value: 0,
       weekValue: 0,
       monthValue: 0,
     },
     {
-      name: '应用扩缩容',
+      name: t('K8sInfo.appScaling'),
       status: 'success',
       value: 2,
       weekValue: 664,
       monthValue: 881,
     },
     {
-      name: '应用扩缩绒到达上下限',
+      name: t('K8sInfo.appScalingLimit'),
       status: 'success',
       value: 2,
       weekValue: 642,
       monthValue: 848,
     },
     {
-      name: '离群摘除',
+      name: t('K8sInfo.isolationRemoval'),
       status: 'success',
       value: 0,
       weekValue: 0,
       monthValue: 0,
     },
     {
-      name: 'pod启动失败',
+      name: t('K8sInfo.podStartFailed'),
       status: 'error',
       value: 21,
       weekValue: 3700,
       monthValue: 15447,
     },
     {
-      name: '镜像拉取失败',
+      name: t('K8sInfo.imagePullFailed'),
       status: 'success',
       value: 3,
       weekValue: 98,
       monthValue: 98,
     },
     {
-      name: 'POD被驱逐',
+      name: t('K8sInfo.podEvicted'),
       status: 'success',
       value: 0,
       weekValue: 0,
       monthValue: 0,
     },
     {
-      name: 'POD OOM',
+      name: t('K8sInfo.podOOM'),
       status: 'error',
       value: 24,
       weekValue: 4243,
       monthValue: 18242,
     },
     {
-      name: 'k8s集群资源不足',
+      name: t('K8sInfo.clusterResourceInsufficient'),
       status: 'success',
       value: 0,
       weekValue: 0,
       monthValue: 0,
     },
     {
-      name: 'K8s节点 OOM',
+      name: t('K8sInfo.nodeOOM'),
       status: 'success',
       value: 0,
       weekValue: 0,
       monthValue: 0,
     },
     {
-      name: 'K8s节点重启',
+      name: t('K8sInfo.nodeRestart'),
       status: 'success',
       value: 0,
       weekValue: 0,
       monthValue: 0,
     },
     {
-      name: 'K8s节点FD不足',
+      name: t('K8sInfo.nodeFDInsufficient'),
       status: 'success',
       value: 0,
       weekValue: 0,
@@ -152,10 +155,10 @@ function K8sInfo(props) {
                   {item.counts.current ?? 0}
                 </div>
                 <div className="text-xs mb-1" style={{ color: 'rgba(248, 249, 250, 0.45)' }}>
-                  次数(7天):{item.counts.lastWeek}
+                  {t('K8sInfo.timesIn7Days')}:{item.counts.lastWeek}
                 </div>
                 <div className="text-xs" style={{ color: 'rgba(248, 249, 250, 0.45)' }}>
-                  次数(30天):{item.counts.lastMonth}
+                  {t('K8sInfo.timesIn30Days')}:{item.counts.lastMonth}
                 </div>
               </CCol>
             )

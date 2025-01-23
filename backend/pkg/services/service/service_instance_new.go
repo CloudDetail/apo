@@ -4,15 +4,16 @@
 package service
 
 import (
+	"log"
+	"math"
+	"strconv"
+	"time"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
-	"log"
-	"math"
-	"strconv"
-	"time"
 )
 
 func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error) {
@@ -26,12 +27,12 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 
 	filter := InstancesFilter{SrvName: serviceName, ContentKey: endPoint}
 	filters := filter.ExtractFilterStr()
-	// 获取实例
+	// Get instance
 	instanceList, err := s.promRepo.GetInstanceList(startTime.UnixMicro(), endTime.UnixMicro(), serviceName, endPoint)
 	if err != nil {
 		return res, err
 	}
-	// 填充实例
+	// Fill the instance
 	var instances = &InstanceMap{
 		MetricGroupList: []*prometheus.InstanceMetrics{},
 		MetricGroupMap:  map[prometheus.InstanceKey]*prometheus.InstanceMetrics{},
@@ -48,28 +49,28 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 		metric := &prometheus.InstanceMetrics{
 			InstanceKey: key,
 		}
-		// 去重，pod类型实例会添加containerID，PID，pod三个但最终指向的instance是一样的
+		// deduplication, pod type instance will add containerID,PID,pod three but finally point to the same instance
 		if _, ok := instances.MetricGroupMap[key]; !ok {
 			instances.MetricGroupMap[key] = metric
 			instances.MetricGroupList = append(instances.MetricGroupList, metric)
 		}
 	}
-	// 填充RED指标
+	// Fill RED metric
 	s.InstanceRED(startTime, endTime, filters, instances)
 
-	// 填充图表数据
+	// populate chart data
 	chartErr := s.InstanceRangeData(instances, startTime, endTime, step, filters)
 	if chartErr.ErrorOrNil() != nil {
 		log.Println("get instance range data error: ", chartErr)
 	}
-	// 填充日志数据
+	// Fill log data
 	logErr := s.InstanceLog(instances, startTime, endTime, step)
 	if logErr.ErrorOrNil() != nil {
 		log.Println("get instance log data error: ", logErr)
 	}
 	resData := []response.InstanceData{}
 	res.Status = model.STATUS_NORMAL
-	// 填充instance和RED指标的状态
+	// Status of filled instance and RED metrics
 	for _, instance := range instances.MetricGroupList {
 		if instance.REDMetrics.DOD.ErrorRate != nil && *instance.REDMetrics.DOD.ErrorRate > errorThreshold {
 			res.Status = model.STATUS_CRITICAL
@@ -93,11 +94,11 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 	}
 
 	for _, instance := range instances.MetricGroupList {
-		if len(instance.Pod) == 0 && len(instance.PID) == 0 && len(instance.ContainerId) == 0 {
+		if IsInvalidData(instances.MetricGroupMap, instance) {
 			continue
 		}
 
-		// 构造latency的返回值
+		// Construct the return value of the latency
 		latencyTempChartObject := response.TempChartObject{
 			Ratio: response.Ratio{
 				DayOverDay:  instance.REDMetrics.DOD.Latency,
@@ -111,7 +112,7 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 			latencyTempChartObject.ChartData = FillChart(startTime, endTime, step)
 		}
 
-		// 构造error的返回值
+		// Construct the return value of error
 		errorTempChartObject := response.TempChartObject{
 			Ratio: response.Ratio{
 				DayOverDay:  instance.REDMetrics.DOD.ErrorRate,
@@ -129,7 +130,7 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 			errorTempChartObject.ChartData = FillChart(startTime, endTime, step)
 		}
 
-		// 构造tps返回值
+		// construct tps return value
 		tpsTempChartObject := response.TempChartObject{
 			Ratio: response.Ratio{
 				DayOverDay:  instance.REDMetrics.DOD.TPM,
@@ -143,7 +144,7 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 			tpsTempChartObject.ChartData = FillChart(startTime, endTime, step)
 		}
 
-		// 构造log返回值
+		// Construct log return value
 		logTempChartObject := response.TempChartObject{
 			Ratio: response.Ratio{
 				DayOverDay:  instance.LogDayOverDay,
@@ -159,26 +160,26 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 			normalWeekLog = s.GetNormalLog(startTime, endTime, filters, time.Hour*24*7)
 		}
 
-		// 有正常数据，日志错误平均值应填充为0
+		// normal data, log error average should be filled with 0
 		if logTempChartObject.Value == nil && normalNowLog != nil {
 			zero := new(float64)
 			logTempChartObject.Value = zero
 		}
 
 		if logTempChartObject.Ratio.DayOverDay != nil && *logTempChartObject.Ratio.DayOverDay == prometheus.RES_MAX_VALUE && normalDayLog == nil {
-			// 昨天没有正常数据，同比应为nil
+			// There was no normal data yesterday, which should be nil year on year.
 			logTempChartObject.Ratio.DayOverDay = nil
 		} else if logTempChartObject.Ratio.DayOverDay != nil && logTempChartObject.Ratio.DayOverDay == nil && normalDayLog != nil && normalNowLog != nil {
-			// 有正常数据，同比应该为0
+			// normal data, year-on-year should be 0
 			zero := new(float64)
 			logTempChartObject.Ratio.DayOverDay = zero
 		}
 
 		if logTempChartObject.Ratio.WeekOverDay != nil && *logTempChartObject.Ratio.WeekOverDay == prometheus.RES_MAX_VALUE && normalWeekLog == nil {
-			// 上周没有正常数据，同比应为nil
+			// No normal data last week, year-on-year should be nil
 			logTempChartObject.Ratio.WeekOverDay = nil
 		} else if logTempChartObject.Ratio.WeekOverDay != nil && logTempChartObject.Ratio.WeekOverDay == nil && normalWeekLog != nil && normalNowLog != nil {
-			// 有正常数据，同比应该为0
+			// normal data, year-on-year should be 0
 			zero := new(float64)
 			logTempChartObject.Ratio.WeekOverDay = zero
 		}
@@ -218,14 +219,14 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 				Pid:         pidI64,
 			},
 		}
-		// 填充告警状态
+		// fill alarm status
 		newInstance.AlertStatusCH = serviceoverview.GetAlertStatusCH(
 			s.chRepo, &newInstance.AlertReason, nil,
 			nil, serviceName, instanceSingleList,
 			startTime, endTime,
 		)
 
-		// 填充末次启动时间
+		// Fill in last start time
 		startTSmap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, instanceSingleList)
 		latestStartTime := getLatestStartTime(startTSmap) * 1e6
 		if latestStartTime > 0 {
@@ -251,7 +252,7 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 	return
 }
 
-// DataToChart 将图表数据转为map
+// DataToChart convert chart data to map
 func DataToChart(data []prometheus.Points) map[int64]float64 {
 	chart := make(map[int64]float64)
 	for _, item := range data {

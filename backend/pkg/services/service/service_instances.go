@@ -31,7 +31,7 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 	duration = strconv.FormatInt(stepNS/int64(time.Minute), 10) + "m"
 
 	serviceName = prom.EscapeRegexp(serviceName)
-	// 查询 Prometheus 数据 svc_name 和 content_key 对应的 node_name 的日同比，周同比，平均值，曲线图
+	// Query the DoD/WoW Growth Rate, average value, and graph of the node_name corresponding to the svc_name and content_key of the Prometheus data.
 	_, err = s.InstanceAVGByPod(&instances, serviceName, endPoint, endTime, duration)
 	_, err = s.InstanceDODByPod(&instances, serviceName, endPoint, endTime, duration)
 	_, err = s.InstanceWOWByPod(&instances, serviceName, endPoint, endTime, duration)
@@ -80,7 +80,7 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 	_, err = s.LogWOWByPid(&instances, vmPids, endTime, duration)
 	_, err = s.LogRangeDataByPid(&instances, vmPids, startTime, endTime, duration, step)
 	res.Status = model.STATUS_NORMAL
-	// 填充instance的状态
+	// Fill the status of the instance
 	for i := range instances {
 		if instances[i].ErrorRateDayOverDay != nil && *instances[i].ErrorRateDayOverDay > errorThreshold {
 			instances[i].IsErrorRateDODExceeded = true
@@ -114,11 +114,11 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 		if (instance.InstanceName == "") || (instance.InstanceName == "@@") {
 			continue
 		}
-		//过滤空数据
+		// filter empty data
 		if (instance.AvgLatency == nil && instance.AvgTPS == nil) || (instance.AvgLatency == nil && instance.AvgTPS != nil && *instance.AvgTPS == 0) {
 			continue
 		}
-		// error的日同比和周同比
+		// error's DoD/WoW Growth Rate
 		newErrorRadio := response.Ratio{
 			DayOverDay:  instance.ErrorRateDayOverDay,
 			WeekOverDay: instance.ErrorRateWeekOverWeek,
@@ -126,16 +126,16 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 		newErrorRate := response.TempChartObject{
 			Ratio: newErrorRadio,
 		}
-		if instance.AvgErrorRate != nil && !math.IsInf(*instance.AvgErrorRate, 0) { //为无穷大时则不赋值
+		if instance.AvgErrorRate != nil && !math.IsInf(*instance.AvgErrorRate, 0) { // is not assigned when it is infinity.
 			newErrorRate.Value = instance.AvgErrorRate
 		}
 		if instance.ErrorRateData != nil {
 			data := make(map[int64]float64)
-			// 将chartData转换为map
+			// Convert chartData to map
 			for _, item := range instance.ErrorRateData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
@@ -164,10 +164,10 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 			//ChartData: map[int64]float64{},
 			Ratio: newtpsRadio,
 		}
-		if instance.AvgTPS != nil && !math.IsInf(*instance.AvgTPS, 0) { //为无穷大时则不赋值
+		if instance.AvgTPS != nil && !math.IsInf(*instance.AvgTPS, 0) { // No assignment when it is infinity
 			newtpsRate.Value = instance.AvgTPS
 		}
-		//没有查询到数据，is_error=true，填充为0
+		// No data found, is_error = true, filled with 0
 		if newErrorRate.Value == nil && newtpsRate.Value != nil {
 			values := make(map[int64]float64)
 			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {
@@ -179,11 +179,11 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 		}
 		if instance.TPSData != nil {
 			data := make(map[int64]float64)
-			// 将chartData转换为map
+			// Convert chartData to map
 			for _, item := range instance.TPSData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
@@ -196,22 +196,22 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 		newlatencyRate := response.TempChartObject{
 			Ratio: newlatencyRadio,
 		}
-		if instance.AvgLatency != nil && !math.IsInf(*instance.AvgLatency, 0) { //为无穷大时则不赋值
+		if instance.AvgLatency != nil && !math.IsInf(*instance.AvgLatency, 0) { // is not assigned when it is infinity.
 			newlatencyRate.Value = instance.AvgLatency
 		}
 		if instance.LatencyData != nil {
 			data := make(map[int64]float64)
-			// 将chartData转换为map
+			// Convert chartData to map
 			for _, item := range instance.LatencyData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
 			newlatencyRate.ChartData = data
 		}
-		//填充错误率等于0查不出同比，统一填充为0（通过判断是否有请求，有请求进行填充）
+		// The filling error rate is equal to 0 and cannot be found year-on-year. The uniform filling is 0 (filling is performed by judging whether there is a request and if there is a request)
 		if newlatencyRadio.DayOverDay != nil && newErrorRadio.DayOverDay == nil && newErrorRate.Value != nil && *newErrorRate.Value == 0 {
 			newErrorRate.Ratio.DayOverDay = new(float64)
 			*newErrorRate.Ratio.DayOverDay = 0
@@ -220,7 +220,7 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 			newErrorRate.Ratio.WeekOverDay = new(float64)
 			*newErrorRate.Ratio.WeekOverDay = 0
 		}
-		//填充错误率不等于0查不出同比，填充为最大值（通过判断是否有请求，有请求进行填充）
+		// If the filling error rate is not equal to 0, no year-on-year comparison can be found, and the filling is the maximum value (filling is performed by judging whether there is a request and if there is a request)
 		if newlatencyRadio.DayOverDay != nil && newErrorRadio.DayOverDay == nil && newErrorRate.Value != nil && *newErrorRate.Value != 0 {
 			newErrorRate.Ratio.DayOverDay = new(float64)
 			*newErrorRate.Ratio.DayOverDay = serviceoverview.RES_MAX_VALUE
@@ -244,17 +244,17 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 
 		if instance.LogData != nil {
 			data := make(map[int64]float64)
-			// 将chartData转换为map
+			// Convert chartData to map
 			for _, item := range instance.LogData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) { //为无穷大时则不赋值
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
 			newlogs.ChartData = data
 		}
-		//日志曲线图没有数据则进行填充
+		// If there is no data in the log graph, fill it in.
 		if instance.LogData == nil {
 			values := make(map[int64]float64)
 			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {
@@ -291,14 +291,14 @@ func (s *service) GetInstances(startTime time.Time, endTime time.Time, step time
 				Pid:         pidI64,
 			},
 		}
-		// 填充告警状态
+		// fill alarm status
 		newInstance.AlertStatusCH = serviceoverview.GetAlertStatusCH(
 			s.chRepo, &newInstance.AlertReason, nil,
 			nil, serviceName, instanceSingleList,
 			startTime, endTime,
 		)
 
-		// 填充末次启动时间
+		// Fill in last start time
 		startTSmap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, instanceSingleList)
 		latestStartTime := getLatestStartTime(startTSmap) * 1e6
 		if latestStartTime > 0 {

@@ -6,8 +6,8 @@ package request
 import "github.com/CloudDetail/apo/backend/pkg/model"
 
 type LoginRequest struct {
-	Username string `json:"username" form:"username" binding:"required"` // 用户名
-	Password string `json:"password" form:"password" binding:"required"` // 密码
+	Username string `json:"username" form:"username" binding:"required"` // username
+	Password string `json:"password" form:"password" binding:"required"` // password
 }
 
 type CreateUserRequest struct {
@@ -44,14 +44,14 @@ type UpdateSelfInfoRequest struct {
 
 type UpdateUserPhoneRequest struct {
 	UserID int64  `json:"userId" form:"userId" binding:"required"`
-	Phone  string `json:"phone" form:"phone" binding:"required"` // 手机号
-	VCode  string `json:"vCode" form:"vCode,omitempty"`          // 验证码
+	Phone  string `json:"phone" form:"phone" binding:"required"` // phone number
+	VCode  string `json:"vCode" form:"vCode,omitempty"`          // verification code
 }
 
 type UpdateUserEmailRequest struct {
 	UserID int64  `json:"userId" form:"userId" binding:"required"`
-	Email  string `json:"email" form:"email" binding:"required"` // 邮箱
-	VCode  string `json:"vCode,omitempty"`                       // 验证码
+	Email  string `json:"email" form:"email" binding:"required"` // email
+	VCode  string `json:"vCode,omitempty"`                       // verification code
 }
 
 type UpdateUserPasswordRequest struct {

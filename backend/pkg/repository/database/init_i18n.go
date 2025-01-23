@@ -26,18 +26,15 @@ func (repo *daoRepo) initI18nTranslation() error {
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.AutoMigrate(&I18nTranslation{}); err != nil {
-			return err
-		}
-
-		var existingTranslations, toInsert, toDelete []I18nTranslation
+		var existingTranslations []I18nTranslation
+		var toInsert, toDelete, toUpdate []I18nTranslation
 		if err := tx.Find(&existingTranslations).Error; err != nil {
 			return err
 		}
 
 		existingMap := make(map[string]I18nTranslation)
 		for _, record := range existingTranslations {
-			key := fmt.Sprintf("%d:%s:%s:%s", record.EntityID, record.EntityType, record.Language, record.Translation)
+			key := fmt.Sprintf("%d:%s:%s:%s", record.EntityID, record.EntityType, record.Language, record.FieldName)
 			existingMap[key] = record
 		}
 
@@ -61,10 +58,14 @@ func (repo *daoRepo) initI18nTranslation() error {
 			}
 
 			for _, newTranslation := range translations.I18n {
-				key := fmt.Sprintf("%d:%s:%s:%s", newTranslation.EntityID, newTranslation.EntityType, newTranslation.Language, newTranslation.Translation)
-				if _, exists := existingMap[key]; !exists {
+				key := fmt.Sprintf("%d:%s:%s:%s", newTranslation.EntityID, newTranslation.EntityType, newTranslation.Language, newTranslation.FieldName)
+				if existing, exists := existingMap[key]; !exists {
 					toInsert = append(toInsert, newTranslation)
 				} else {
+					if existing.Translation != newTranslation.Translation {
+						existing.Translation = newTranslation.Translation
+						toUpdate = append(toUpdate, existing)
+					}
 					delete(existingMap, key)
 				}
 			}
@@ -80,6 +81,14 @@ func (repo *daoRepo) initI18nTranslation() error {
 			}
 		}
 
+		if len(toUpdate) > 0 {
+			for _, updatedTranslation := range toUpdate {
+				if err := tx.Model(&I18nTranslation{}).Where("id = ?", updatedTranslation.ID).Updates(updatedTranslation).Error; err != nil {
+					return err
+				}
+			}
+		}
+
 		if len(toDelete) > 0 {
 			var ids []int
 			for _, record := range toDelete {
@@ -92,5 +101,4 @@ func (repo *daoRepo) initI18nTranslation() error {
 
 		return nil
 	})
-
 }

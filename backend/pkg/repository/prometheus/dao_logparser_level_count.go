@@ -22,7 +22,7 @@ const (
 	`
 )
 
-// 查询日志告警分布曲线
+// Query the log alarm distribution curve
 func (repo *promRepo) QueryLogCountByInstanceId(instance *model.ServiceInstance, startTime int64, endTime int64, step int64) (map[int64]float64, error) {
 	tRange := v1.Range{
 		Start: time.UnixMicro(startTime),
@@ -40,7 +40,7 @@ func (repo *promRepo) QueryLogCountByInstanceId(instance *model.ServiceInstance,
 		key = "host_name"
 		queryCondition = fmt.Sprintf("host_name='%s', container_id='%s'", instance.NodeName, instance.ContainerId)
 	} else {
-		// VM场景
+		// VM scenario
 		key = "host_name"
 		queryCondition = fmt.Sprintf("host_name='%s', pid='%d'", instance.NodeName, instance.Pid)
 	}

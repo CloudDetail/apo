@@ -9,7 +9,7 @@ import (
 )
 
 func (s *service) GetTraceMetrics(req *request.GetTraceMetricsRequest) ([]*response.GetTraceMetricsResponse, error) {
-	// 获取Trace相关指标
+	// Get Trace related metrics
 	serviceInstances, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, req.Service, req.Endpoint)
 	if err != nil {
 		return nil, err
@@ -17,22 +17,22 @@ func (s *service) GetTraceMetrics(req *request.GetTraceMetricsRequest) ([]*respo
 
 	result := make([]*response.GetTraceMetricsResponse, 0)
 	for _, instance := range serviceInstances.GetInstances() {
-		// 日志告警基于Instance分组查询
+		// Log alarm query based on Instance grouping
 		logs, err := s.promRepo.QueryLogCountByInstanceId(instance, req.StartTime, req.EndTime, req.Step)
 		if err != nil {
 			return nil, err
 		}
-		// P90延时 基于实例查询
+		// P90 delayed instance-based query
 		p90, err := s.promRepo.QueryInstanceP90(req.StartTime, req.EndTime, req.Step, req.Endpoint, instance)
 		if err != nil {
 			return nil, err
 		}
-		// 错误率 基于实例查询
+		// Error rate for instance-based queries
 		errorRate, err := s.promRepo.QueryInstanceErrorRate(req.StartTime, req.EndTime, req.Step, req.Endpoint, instance)
 		if err != nil {
 			return nil, err
 		}
-		// 只显示有数据的实例列表
+		// Display only the list of instances with data
 		if exist_metrics(logs) || exist_metrics(p90) || exist_metrics(errorRate) {
 			metricResponse := &response.GetTraceMetricsResponse{
 				Name:        instance.GetInstanceId(),

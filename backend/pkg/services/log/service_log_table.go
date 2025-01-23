@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultParseInfo = "默认应用Java格式的日志解析规则, 从满足条件的日志中解析出level、thread、method信息"
+	defaultParseInfo = ""
 	defaultParseName = "all_logs"
 	defaultRouteRule = `starts_with(string!(."k8s.pod.name"), "apo")`
 	defaultParseRule = `.msg, err = parse_regex(.content, r' \[(?P<level>.*?)\] \[(?P<thread>.*?)\] \[(?P<method>.*?)\(.*?\)\] - (?P<msg>.*)')
@@ -49,7 +49,7 @@ func (s *service) InitParseLogTable(req *request.LogTableRequest) (*response.Log
 		ParseRule: defaultParseRule,
 		ParseInfo: defaultParseInfo,
 	}
-	// 不存在才去插入logtableinfo
+	// does not exist to insert logtableinfo
 	err = s.dbRepo.OperateLogTableInfo(logtable, database.QUERY)
 	if err != nil {
 		err = s.dbRepo.OperateLogTableInfo(logtable, database.INSERT)

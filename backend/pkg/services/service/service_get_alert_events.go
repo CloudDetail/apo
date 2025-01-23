@@ -13,7 +13,7 @@ import (
 )
 
 func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest) (resp *response.GetAlertEventsSampleResponse, err error) {
-	// 查询Service所属实例
+	// Query the instance to which the Service belongs.
 	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.Service)
 	if err != nil || instances == nil {
 		return nil, err
@@ -25,12 +25,23 @@ func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest)
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 
-	// 查询实例的AlertEvent
+	var dbInstances []model.MiddlewareInstance
+	if len(req.AlertFilter.Group) == 0 || req.AlertFilter.Group == "middleware" {
+		dbInstances, err = s.promRepo.GetDescendantDatabase(req.StartTime, req.EndTime, req.Service, req.Endpoint)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Query the AlertEvent of the instance
 	events, err := s.chRepo.GetAlertEventsSample(
 		req.SampleCount,
 		startTime, endTime,
 		req.AlertFilter,
-		instances.GetInstances(),
+		&model.RelatedInstances{
+			SIs: instances.GetInstances(),
+			MIs: dbInstances,
+		},
 	)
 	if err != nil {
 		return nil, err
@@ -49,7 +60,7 @@ func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest)
 }
 
 func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.GetAlertEventsResponse, error) {
-	// 查询Service所属实例
+	// Query the instance to which the Service belongs.
 	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.Service)
 	if err != nil {
 		return nil, err
@@ -58,33 +69,35 @@ func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 
-	// 查询实例的AlertEvent
+	var dbInstances []model.MiddlewareInstance
+	if len(req.AlertFilter.Group) == 0 || req.AlertFilter.Group == "middleware" {
+		dbInstances, err = s.promRepo.GetDescendantDatabase(req.StartTime, req.EndTime, req.Service, req.Endpoint)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Query the AlertEvent of the instance
 	events, totalCount, err := s.chRepo.GetAlertEvents(
 		startTime, endTime,
 		req.AlertFilter,
-		instances.GetInstances(),
+		&model.RelatedInstances{
+			SIs: instances.GetInstances(),
+			MIs: dbInstances,
+		},
 		req.PageParam,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	// HACK 直接以列表形式返回数据
+	// HACK returns data directly as a list
 	return &response.GetAlertEventsResponse{
 		TotalCount: totalCount,
 		EventList:  events,
 	}, nil
 }
 
-/*
-splitByGroupAndName 将结果按Group和name分组
-
-	app:
-		alert1: [item1,item2...]
-		alert2: [...]
-	network:
-	...
-*/
 func splitByGroupAndName(events []clickhouse.AlertEventSample) map[string]map[string][]clickhouse.AlertEventSample {
 	var from int = 0
 	var lastGroup, lastName string
