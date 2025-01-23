@@ -34,7 +34,7 @@ func (repo *daoRepo) initMenuItems() error {
 		{MenuItem: MenuItem{Key: "userManage", Order: 31}, RouterKey: "/system/user-manage"},
 		{MenuItem: MenuItem{Key: "menuManage", Order: 32}, RouterKey: "/system/menu-manage"},
 		{MenuItem: MenuItem{Key: "systemConfig", Order: 33}, RouterKey: "/system/config"},
-		{MenuItem: MenuItem{Key: "dataGroup", Order: 19}, RouterKey: "/system/data-group"},
+		{MenuItem: MenuItem{Key: "dataGroup", Order: 34}, RouterKey: "/system/data-group"},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
@@ -75,7 +75,7 @@ func (repo *daoRepo) initMenuItems() error {
 			"alertsNotify":      "alerts",
 			"systemConfig":      "manage",
 			"alertsIntegration": "integration",
-			"dataGroup":      "manage",
+			"dataGroup":         "manage",
 		}
 
 		// update parent_id
