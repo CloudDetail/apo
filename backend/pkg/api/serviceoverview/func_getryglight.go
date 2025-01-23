@@ -5,6 +5,7 @@ package serviceoverview
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
 	"time"
 
@@ -42,7 +43,7 @@ func (h *handler) GetRYGLight() core.HandlerFunc {
 		}
 
 		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, &req.Namespace, &req.ServiceName)
+		err := h.dataService.CheckDatasourcePermission(userID, 0, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.HandleError(err, code.AuthError)
 			return

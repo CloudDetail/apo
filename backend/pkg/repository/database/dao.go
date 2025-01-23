@@ -113,6 +113,7 @@ type Repo interface {
 	DeleteAuthDataGroup(ctx context.Context, subjectID int64, subjectType string) error
 	GetDataGroupUsers(groupID int64) ([]AuthDataGroup, error)
 	GetDataGroupTeams(groupID int64) ([]AuthDataGroup, error)
+	CheckGroupPermission(userID, groupID int64, typ string) (bool, error)
 
 	GetAPIByPath(path string, method string) (*API, error)
 

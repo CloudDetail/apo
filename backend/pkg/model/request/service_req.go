@@ -119,7 +119,7 @@ type GetEndPointsDataRequest struct {
 	ServiceName  []string `form:"serviceName,omitempty"`  // 应用名,完全匹配
 	Namespace    []string `form:"namespace,omitempty"`    // 指定命名空间,完全匹配
 	EndpointName []string `form:"endpointName,omitempty"` // 端点名,完全匹配
-
+	GroupID      int64    `form:"groupId,omitempty"`      // Data group id
 	// 查询条件
 	StartTime int64 `form:"startTime" binding:"required"`                 // 查询开始时间
 	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间

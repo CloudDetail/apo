@@ -34,7 +34,7 @@ func (h *handler) GetFaultLogContent() core.HandlerFunc {
 			return
 		}
 		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, nil, &req.ServiceName)
+		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.ServiceName, "")
 		if err != nil {
 			c.HandleError(err, code.AuthError)
 			return

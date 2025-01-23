@@ -41,7 +41,7 @@ func (h *handler) GetFaultLogPageList() core.HandlerFunc {
 			req.PageSize = 10
 		}
 		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, &req.Namespaces, &req.Service)
+		err := h.dataService.CheckDatasourcePermission(userID, req.GroupID, &req.Namespaces, &req.Service, "")
 		if err != nil {
 			c.HandleError(err, code.AuthError)
 			return

@@ -5,6 +5,7 @@ package serviceoverview
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
 	"time"
 
@@ -23,6 +24,7 @@ import (
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
+// @Param groupId query int64 false "data group id"
 // @Param startTime query int64 true "查询开始时间"
 // @Param endTime query int64 true "查询结束时间"
 // @Param step query int64 true "步长"
@@ -53,7 +55,7 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 		sortRule := serviceoverview.SortType(req.SortRule)
 
 		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, &req.Namespace, &req.ServiceName)
+		err := h.dataService.CheckDatasourcePermission(userID, req.GroupID, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.HandleError(err, code.AuthError)
 			return

@@ -5,6 +5,7 @@ package service
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -42,7 +43,7 @@ func (h *handler) GetLogMetrics() core.HandlerFunc {
 		}
 
 		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, nil, &req.Service)
+		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.HandleError(err, code.AuthError)
 			return

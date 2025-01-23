@@ -36,7 +36,7 @@ func (h *handler) GetPodMap() core.HandlerFunc {
 			return
 		}
 		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, &req.Namespace, nil)
+		err := h.dataService.CheckDatasourcePermission(userID, 0, &req.Namespace, nil, "")
 		if err != nil {
 			c.HandleError(err, code.AuthError)
 			return

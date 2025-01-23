@@ -53,7 +53,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 		)
 
 		userID := middleware.GetContextUserID(c)
-		err = h.dataService.CheckDatasourcePermission(userID, nil, &req.Service)
+		err = h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.HandleError(err, code.AuthError)
 			return

@@ -18,7 +18,7 @@ type Service interface {
 	DataGroupOperation(req *request.DataGroupOperationRequest) error
 	GetSubjectDataGroup(req *request.GetSubjectDataGroupRequest) (response.GetSubjectDataGroupResponse, error)
 	// CheckDatasourcePermission Filtering and filling data sources that users are not authorised to view. Expected *string or *[]string.
-	CheckDatasourcePermission(userID int64, namespaces, services interface{}) (err error)
+	CheckDatasourcePermission(userID, groupID int64, namespaces, services interface{}, fillCategory string) (err error)
 	GroupSubsOperation(req *request.GroupSubsOperationRequest) error
 	GetGroupSubs(req *request.GetGroupSubsRequest) (response.GetGroupSubsResponse, error)
 }

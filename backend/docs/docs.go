@@ -3467,6 +3467,12 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "description": "data group id",
+                        "name": "groupId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
                         "description": "查询开始时间",
                         "name": "startTime",
                         "in": "query",
@@ -8621,6 +8627,10 @@ const docTemplate = `{
                     "description": "查询结束时间",
                     "type": "integer"
                 },
+                "groupId": {
+                    "description": "Data group id",
+                    "type": "integer"
+                },
                 "instance": {
                     "description": "实例名",
                     "type": "string"
@@ -8724,6 +8734,10 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/request.SpanTraceFilter"
                     }
+                },
+                "groupId": {
+                    "description": "Data group id",
+                    "type": "integer"
                 },
                 "instance": {
                     "description": "实例名",

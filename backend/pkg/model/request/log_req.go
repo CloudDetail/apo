@@ -8,13 +8,14 @@ type GetFaultLogPageListRequest struct {
 	EndTime     int64    `json:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
 	Service     []string `json:"service"`                                      // 查询服务名
 	Namespaces  []string `json:"namespaces"`
-	Instance    string   `json:"instance"`    // 实例名
-	NodeName    string   `json:"nodeName"`    // 主机名
-	ContainerId string   `json:"containerId"` // 容器名
-	Pid         uint32   `json:"pid"`         // 进程号
-	TraceId     string   `json:"traceId"`     // TraceId
-	PageNum     int      `json:"pageNum"`     // 第几页
-	PageSize    int      `json:"pageSize"`    // 每页显示条数
+	Instance    string   `json:"instance"`          // 实例名
+	NodeName    string   `json:"nodeName"`          // 主机名
+	ContainerId string   `json:"containerId"`       // 容器名
+	Pid         uint32   `json:"pid"`               // 进程号
+	TraceId     string   `json:"traceId"`           // TraceId
+	PageNum     int      `json:"pageNum"`           // 第几页
+	PageSize    int      `json:"pageSize"`          // 每页显示条数
+	GroupID     int64    `form:"groupId,omitempty"` // Data group id
 }
 
 type GetFaultLogContentRequest struct {

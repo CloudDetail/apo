@@ -1230,6 +1230,9 @@ definitions:
       endTime:
         description: 查询结束时间
         type: integer
+      groupId:
+        description: Data group id
+        type: integer
       instance:
         description: 实例名
         type: string
@@ -1304,6 +1307,9 @@ definitions:
         items:
           $ref: '#/definitions/request.SpanTraceFilter'
         type: array
+      groupId:
+        description: Data group id
+        type: integer
       instance:
         description: 实例名
         type: string
@@ -5126,6 +5132,10 @@ paths:
       - application/x-www-form-urlencoded
       description: 获取endpoints服务列表
       parameters:
+      - description: data group id
+        in: query
+        name: groupId
+        type: integer
       - description: 查询开始时间
         in: query
         name: startTime

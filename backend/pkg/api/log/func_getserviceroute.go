@@ -35,7 +35,7 @@ func (h *handler) GetServiceRoute() core.HandlerFunc {
 			return
 		}
 		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, nil, &req.Service)
+		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, "")
 		if err != nil {
 			c.HandleError(err, code.AuthError)
 			return

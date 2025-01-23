@@ -4,6 +4,7 @@
 package request
 
 type GetTracePageListRequest struct {
+	GroupID     int64    `form:"groupId,omitempty"`                            // Data group id
 	StartTime   int64    `json:"startTime" binding:"min=0"`                    // 查询开始时间
 	EndTime     int64    `json:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
 	Service     []string `json:"service"`                                      // 查询服务名

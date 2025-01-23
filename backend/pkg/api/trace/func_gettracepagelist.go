@@ -35,7 +35,7 @@ func (h *handler) GetTracePageList() core.HandlerFunc {
 		}
 
 		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, &req.Namespace, &req.Service)
+		err := h.dataService.CheckDatasourcePermission(userID, req.GroupID, &req.Namespace, &req.Service, "")
 		if err != nil {
 			c.HandleError(err, code.AuthError)
 			return

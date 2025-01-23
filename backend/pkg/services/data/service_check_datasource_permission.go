@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"time"
 )
 
-func (s *service) CheckDatasourcePermission(userID int64, namespaces, services interface{}) (err error) {
+func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, services interface{}, fillCategory string) (err error) {
 	var (
 		namespaceMap    = map[string]bool{}
 		serviceMap      = map[string]struct{}{}
@@ -24,13 +25,30 @@ func (s *service) CheckDatasourcePermission(userID int64, namespaces, services i
 		filteredNs      []string
 		filteredSrv     []string
 		filteredSrvMap  = map[string]struct{}{}
+		groups          = make([]database.DataGroup, 0)
 	)
 
 	// Get user's data group
-	groups, err := s.getUserDataGroup(userID, "")
+	if groupID != 0 {
+		has, err := s.dbRepo.CheckGroupPermission(userID, groupID, "view")
+		if err != nil {
+			return err
+		}
+
+		if !has {
+			return model.NewErrWithMessage(errors.New("does not have group permission"), code.UserNoPermissionError)
+		}
+		filter := model.DataGroupFilter{
+			ID: groupID,
+		}
+		groups, _, err = s.dbRepo.GetDataGroup(filter)
+	} else {
+		groups, err = s.getUserDataGroup(userID, "")
+	}
 	if err != nil {
 		return err
 	}
+
 	if len(groups) == 0 {
 		defaultGroup, err := s.getDefaultDataGroup("")
 		if err != nil {
@@ -42,6 +60,9 @@ func (s *service) CheckDatasourcePermission(userID int64, namespaces, services i
 
 	for _, group := range groups {
 		for _, gs := range group.DatasourceList {
+			if len(fillCategory) > 0 && gs.Category != fillCategory {
+				continue
+			}
 			ds := gs.Datasource
 			if gs.Type == model.DATASOURCE_TYP_NAMESPACE {
 				namespaceMap[ds] = true
@@ -53,7 +74,9 @@ func (s *service) CheckDatasourcePermission(userID int64, namespaces, services i
 
 				for _, namespace := range namespaceList {
 					// Doesn't really have the auth
-					namespaceMap[namespace] = false
+					if _, ok := namespaceMap[namespace]; !ok {
+						namespaceMap[namespace] = false
+					}
 					namespaceSrvMap[namespace] = append(namespaceSrvMap[namespace], ds)
 				}
 				serviceMap[ds] = struct{}{}
@@ -65,6 +88,7 @@ func (s *service) CheckDatasourcePermission(userID int64, namespaces, services i
 		if !has {
 			continue
 		}
+
 		namespaceDs = append(namespaceDs, namespace)
 	}
 
@@ -96,11 +120,11 @@ func (s *service) CheckDatasourcePermission(userID int64, namespaces, services i
 	// Fill with datasource which user is authorized to view.
 	if len(namespacesSlice) == 0 && len(servicesSlice) == 0 {
 		if namespaces != nil && len(namespaceDs) > 0 {
-			setInterface(namespaces, namespacesSlice)
+			setInterface(namespaces, namespaceDs)
 		} else if services != nil && len(serviceDs) > 0 {
 			setInterface(services, serviceDs)
 		} else {
-			return model.NewErrWithMessage(errors.New("no permission"), code.UserNoPermissionError)
+			return model.NewErrWithMessage(errors.New("does not have data permission"), code.UserNoPermissionError)
 		}
 		return nil
 	}

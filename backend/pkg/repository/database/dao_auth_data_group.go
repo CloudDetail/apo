@@ -16,7 +16,7 @@ type AuthDataGroup struct {
 	SubjectID   int64  `gorm:"column:subject_id;index:sub_type_id_idx,priority:1" json:"-"`
 	SubjectType string `gorm:"column:subject_type;index:sub_type_id_idx,priority:2" json:"-"` // user or team
 	GroupID     int64  `gorm:"column:data_group_id;index:group_id_idx" json:"-"`
-	Type        string `gorm:"column:type" json:"type"` // view, edit
+	Type        string `gorm:"column:type;default:view" json:"type"` // view, edit
 
 	User *User `gorm:"foreignKey:SubjectID;references:UserID" json:"user,omitempty"`
 	Team *Team `gorm:"foreignKey:SubjectID;references:TeamID" json:"team,omitempty"`
@@ -187,4 +187,46 @@ func (repo *daoRepo) GetDataGroupTeams(groupID int64) ([]AuthDataGroup, error) {
 		Where("data_group_id = ? AND subject_type = ?", groupID, model.DATA_GROUP_SUB_TYP_TEAM).
 		Find(&ags).Error
 	return ags, err
+}
+
+func (repo *daoRepo) CheckGroupPermission(userID, groupID int64, typ string) (bool, error) {
+	var (
+		count int64
+		err   error
+	)
+
+	query := repo.db.Model(&AuthDataGroup{}).
+		Where("subject_id = ? AND data_group_id = ? AND subject_type = ?", userID, groupID, model.DATA_GROUP_SUB_TYP_USER)
+
+	if typ == "edit" {
+		query = query.Where("type = ?", typ)
+	}
+
+	err = query.Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	teamIDs, err := repo.GetUserTeams(userID)
+	if err != nil {
+		return false, err
+	}
+
+	query = repo.db.Model(&AuthDataGroup{}).
+		Where("subject_id IN ? AND data_group_id = ? AND subject_type = ?", teamIDs, groupID, model.DATA_GROUP_SUB_TYP_TEAM)
+
+	if typ == "edit" {
+		query = query.Where("type = ?", typ)
+	}
+
+	err = query.Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
 }
