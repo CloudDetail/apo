@@ -58,7 +58,6 @@ type Repo interface {
 	GetRoles(filter model.RoleFilter) ([]Role, error)
 	GetFeature(featureIDs []int) ([]Feature, error)
 	GetFeatureByName(name string) (int, error)
-	GrantRole(ctx context.Context, userID int64, roleIDs []int) error
 	GrantRoleWithUser(ctx context.Context, userID int64, roleIDs []int) error
 	GrantRoleWithRole(ctx context.Context, roleID int, userIDs []int64) error
 	RevokeRole(ctx context.Context, userID int64, roleIDs []int) error

@@ -12,7 +12,7 @@ import (
 
 // AuthPermission Records which feature are authorised to which subjects.
 type AuthPermission struct {
-	ID           int    `gorm:"primary_key;auto_increment" json:"id"`
+	ID           int    `gorm:"column:id,primary_key;auto_increment" json:"id"`
 	Type         string `gorm:"column:type;index:idx_sub_id_type;type:varchar(20)" json:"type"` // feature data data group
 	SubjectID    int64  `gorm:"column:subject_id;index:idx_sub_id_type" json:"subjectId"`       // Role id, user id or team id.
 	SubjectType  string `gorm:"column:subject_type;type:varchar(10)" json:"subjectType"`        // role user team.
