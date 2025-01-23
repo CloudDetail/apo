@@ -21,7 +21,7 @@ import (
 const (
 	adminPassword = "APO2024@admin"
 
-	userFieldSql = "user_id, username, role, phone, email, corporation"
+	userFieldSql = "user_id, username, phone, email, corporation"
 )
 
 type User struct {
