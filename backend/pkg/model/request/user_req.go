@@ -28,8 +28,8 @@ type LogoutRequest struct {
 }
 
 type UpdateUserInfoRequest struct {
-	UserID      int64  `json:"userId" form:"userId" binding:"required"`
-	RoleList    []int  `json:"roleList" form:"roleList"`
+	UserID int64 `json:"userId" form:"userId" binding:"required"`
+	//RoleList    []int  `json:"roleList" form:"roleList"`
 	Corporation string `json:"corporation,omitempty" form:"corporation,omitempty"`
 	Phone       string `json:"phone" form:"phone,omitempty"`
 	Email       string `json:"email" form:"email,omitempty"`

@@ -9,39 +9,38 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"github.com/CloudDetail/apo/backend/pkg/services/role"
 	"unicode"
 )
 
 func (s *service) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
-	userRoles, err := s.dbRepo.GetUserRole(req.UserID)
-	if err != nil {
-		return err
-	}
+	//userRoles, err := s.dbRepo.GetUserRole(req.UserID)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//roles, err := s.dbRepo.GetRoles(model.RoleFilter{})
+	//if err != nil {
+	//	return err
+	//}
 
-	roles, err := s.dbRepo.GetRoles(model.RoleFilter{})
-	if err != nil {
-		return err
-	}
-
-	addRole, deleteRole, err := role.GetAddDeleteRoles(userRoles, req.RoleList, roles)
-	if err != nil {
-		return err
-	}
-
-	var grantFunc = func(ctx context.Context) error {
-		return s.dbRepo.GrantRoleWithUser(ctx, req.UserID, addRole)
-	}
-
-	var revokeFunc = func(ctx context.Context) error {
-		return s.dbRepo.RevokeRole(ctx, req.UserID, deleteRole)
-	}
+	//addRole, deleteRole, err := role.GetAddDeleteRoles(userRoles, req.RoleList, roles)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//var grantFunc = func(ctx context.Context) error {
+	//	return s.dbRepo.GrantRoleWithUser(ctx, req.UserID, addRole)
+	//}
+	//
+	//var revokeFunc = func(ctx context.Context) error {
+	//	return s.dbRepo.RevokeRole(ctx, req.UserID, deleteRole)
+	//}
 
 	var updateInfoFunc = func(ctx context.Context) error {
 		return s.dbRepo.UpdateUserInfo(ctx, req.UserID, req.Phone, req.Email, req.Corporation)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), grantFunc, revokeFunc, updateInfoFunc)
+	return s.dbRepo.Transaction(context.Background(), updateInfoFunc)
 }
 
 func (s *service) UpdateUserPhone(req *request.UpdateUserPhoneRequest) error {
