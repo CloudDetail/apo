@@ -92,11 +92,13 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 
 func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, userID int64) (response.GetGroupDatasourceResponse, error) {
 	var (
-		services     []string
 		groups       []database.DataGroup
 		err          error
 		namespaceMap = map[string][]string{}
+		serviceMap   = map[string][]string{}
 		resp         = response.GetGroupDatasourceResponse{}
+		endTime      = time.Now()
+		startTime    = endTime.Add(-time.Hour * 24)
 	)
 	if req.GroupID != 0 {
 		groups, err = s.getDataGroup(req.GroupID)
@@ -132,14 +134,19 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 			} else if ds.Type == model.DATASOURCE_TYP_SERVICE {
 				for _, namespace := range nested {
 					namespaceMap[namespace] = append(namespaceMap[namespace], ds.Datasource)
-					services = append(services, ds.Datasource)
 				}
+
+				endpoints, err := s.promRepo.GetServiceEndPointList(startTime.UnixMicro(), endTime.UnixMicro(), ds.Datasource)
+				if err != nil {
+					return response.GetGroupDatasourceResponse{}, err
+				}
+				serviceMap[ds.Datasource] = endpoints
 			}
 		}
 	}
 
 	resp.NamespaceMap = namespaceMap
-	resp.ServiceList = services
+	resp.ServiceMap = serviceMap
 	return resp, nil
 }
 

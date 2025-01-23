@@ -16,8 +16,8 @@ type GetDataGroupResponse struct {
 }
 
 type GetGroupDatasourceResponse struct {
-	NamespaceMap map[string][]string `json:"namespaceMap"`
-	ServiceList  []string            `json:"serviceList"`
+	NamespaceMap map[string][]string `json:"namespaceMap"` // namespace: services
+	ServiceMap   map[string][]string `json:"serviceMap"`   // service: endpoints
 }
 
 type GetSubjectDataGroupResponse []database.DataGroup

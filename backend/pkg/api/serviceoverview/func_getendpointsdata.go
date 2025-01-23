@@ -6,6 +6,7 @@ package serviceoverview
 import (
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"net/http"
 	"time"
 
@@ -14,8 +15,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-
-	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // GetEndPointsData 获取endpoints服务列表
@@ -47,6 +46,7 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 			)
 			return
 		}
+		var data []response.ServiceEndPointsRes
 		var startTime time.Time
 		var endTime time.Time
 		startTime = time.UnixMicro(req.StartTime)
@@ -66,7 +66,7 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 			MultiEndpoint:  req.EndpointName,
 			MultiNamespace: req.Namespace,
 		}
-		data, err := h.serviceoverview.GetServicesEndPointData(startTime, endTime, step, filter, sortRule)
+		data, err = h.serviceoverview.GetServicesEndPointData(startTime, endTime, step, filter, sortRule)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -74,10 +74,6 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 				code.Text(code.GetTop3UrlListError)).WithError(err),
 			)
 			return
-		}
-
-		if data == nil {
-			data = []response.ServiceEndPointsRes{}
 		}
 
 		c.Payload(data)

@@ -123,9 +123,8 @@ func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, s
 			setInterface(namespaces, namespaceDs)
 		} else if services != nil && len(serviceDs) > 0 {
 			setInterface(services, serviceDs)
-		} else {
-			return model.NewErrWithMessage(errors.New("does not have data permission"), code.UserNoPermissionError)
 		}
+		// TODO for now, data group wont be empty, but once it can be empty, this will lead to query all data.
 		return nil
 	}
 
@@ -170,7 +169,7 @@ func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, s
 	}
 
 	// This means all the namespaces and services are filtered.
-	if len(filteredNs) == 0 && len(filteredSrv) == 0 {
+	if len(filteredNs) == 0 && len(filteredSrv) == 0 && len(namespaceDs) > 0 && len(serviceDs) > 0 {
 		return model.NewErrWithMessage(errors.New("no permission"), code.UserNoPermissionError)
 	}
 

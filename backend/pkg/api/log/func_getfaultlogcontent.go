@@ -39,6 +39,7 @@ func (h *handler) GetFaultLogContent() core.HandlerFunc {
 			c.HandleError(err, code.AuthError)
 			return
 		}
+
 		resp, err := h.logService.GetFaultLogContent(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
