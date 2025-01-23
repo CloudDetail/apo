@@ -17,10 +17,11 @@ import (
 type AlertGroup string
 
 const (
-	APP_GROUP       AlertGroup = "app"
-	NETWORK_GROUP   AlertGroup = "network"
-	CONTAINER_GROUP AlertGroup = "container"
-	INFRA_GROUP     AlertGroup = "infra"
+	APP_GROUP        AlertGroup = "app"
+	NETWORK_GROUP    AlertGroup = "network"
+	CONTAINER_GROUP  AlertGroup = "container"
+	INFRA_GROUP      AlertGroup = "infra"
+	MIDDLEWARE_GROUP AlertGroup = "middleware"
 )
 
 func (g AlertGroup) GetAlertType() string {
@@ -46,8 +47,8 @@ func GetAlertType(g string) string {
 const (
 	// The SQL _GET_SAMPLE_ALERT_EVENT are grouped by the alarm_event name. Each group takes the record with the latest event and records the number of alarms with the same name in the returned result.
 	SQL_GET_SAMPLE_ALERT_EVENT = `WITH grouped_alarm AS (
-		SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,status,
-        	arrayStringConcat(arrayMap(x -> x.2, arraySort(arrayZip(mapKeys(tags), mapValues(tags)))), ', ') AS alert_key,
+		SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status,
+        	if(alert_id != '', alert_id, arrayStringConcat(arrayMap(x -> x.2, arraySort(arrayZip(mapKeys(tags), mapValues(tags)))), ', ')) AS alert_key,
 			ROW_NUMBER() OVER (PARTITION BY name, alert_key ORDER BY received_time) AS rn,
 			COUNT(*) OVER (PARTITION BY name, alert_key) AS alarm_count
     	FROM alert_event
@@ -71,7 +72,7 @@ const (
 	// SQL _GET_PAGED_ALERT_EVENT paging out all alarm events that meet the conditions
 	SQL_GET_PAGED_ALERT_EVENT = `WITH paginatedEvent AS (
 		SELECT
-			source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,status,
+			source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status,
 			COUNT(*) OVER () AS total_count,
 			ROW_NUMBER() OVER (%s) AS rn
 		FROM alert_event
@@ -83,7 +84,7 @@ const (
 )
 
 // GetAlertEventCountGroupByInstance to quickly query the number of alarms associated with each Instance (counted separately by alarm level)
-func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]model.AlertEventCount, error) {
+func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]model.AlertEventCount, error) {
 	builder := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
 		EqualsNotEmpty("source", filter.Source).
@@ -93,7 +94,7 @@ func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime
 		EqualsNotEmpty("severity", filter.Severity).
 		EqualsNotEmpty("status", filter.Status)
 
-	if len(instances) > 0 {
+	if len(instances.SIs) > 0 {
 		// Combined generation:
 		//  1. group = 'app' AND svc = svc_name
 		//  2. group = 'container' AND ((namespace,pod) in (...))
@@ -113,7 +114,7 @@ func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime
 }
 
 // Obtain all alarm events of the instance GetAlarmsEvents
-func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance) ([]AlertEventSample, error) {
+func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error) {
 	// Combined generation:
 	//  1. group = 'app' AND svc = svc_name
 	//  2. group = 'container' AND ((namespace,pod) in (...))
@@ -142,8 +143,13 @@ func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, end
 	return events, err
 }
 
-func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances []*model.ServiceInstance, pageParam *request.PageParam) ([]PagedAlertEvent, int, error) {
-	whereInstance := extractFilter(filter, instances)
+func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam) ([]PagedAlertEvent, int, error) {
+	var whereInstance *whereSQL = ALWAYS_TRUE
+	if len(filter.Service) > 0 ||
+		len(filter.Endpoint) > 0 ||
+		(instances != nil && (len(instances.SIs) > 0 || len(instances.MIs) > 0)) {
+		whereInstance = extractFilter(filter, instances)
+	}
 
 	builder := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
@@ -173,10 +179,11 @@ func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter 
 	return events, total_count, err
 }
 
-func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstance) *whereSQL {
+func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances) *whereSQL {
 	var whereInstance []*whereSQL
+	whereGroup := EqualsIfNotEmpty("group", filter.Group)
+
 	if len(filter.Group) == 0 || filter.Group == "app" {
-		whereGroup := EqualsIfNotEmpty("group", "app")
 		whereInstance = append(whereInstance, MergeWheres(
 			AndSep,
 			whereGroup,
@@ -185,12 +192,11 @@ func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstanc
 		))
 	}
 
-	if len(filter.Group) == 0 || filter.Group == "container" {
-		whereGroup := EqualsIfNotEmpty("group", "container")
+	if len(filter.Group) == 0 || filter.Group == "container" || filter.Group == "network" {
 		var k8sPods ValueInGroups = ValueInGroups{
 			Keys: []string{"tags['namespace']", "tags['pod']"},
 		}
-		for _, instance := range instances {
+		for _, instance := range instances.SIs {
 			if instance == nil {
 				continue
 			}
@@ -208,16 +214,19 @@ func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstanc
 		))
 	}
 
+	// filter by VMProcess
 	if len(filter.Group) == 0 || filter.Group == "network" {
-		whereGroup := EqualsIfNotEmpty("group", "network")
 		var k8sPods ValueInGroups = ValueInGroups{
 			Keys: []string{"tags['src_namespace']", "tags['src_pod']"},
 		}
 		var vmPods ValueInGroups = ValueInGroups{
 			Keys: []string{"tags['node_name']", "tags['pid']"},
 		}
+		var vmPodsNew ValueInGroups = ValueInGroups{
+			Keys: []string{"tags['node']", "tags['pid']"},
+		}
 
-		for _, instance := range instances {
+		for _, instance := range instances.SIs {
 			if instance == nil {
 				continue
 			}
@@ -229,10 +238,17 @@ func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstanc
 				vmPods.ValueGroups = append(vmPods.ValueGroups, clickhouse.GroupSet{
 					Value: []any{instance.NodeName, instance.Pid},
 				})
+				vmPodsNew.ValueGroups = append(vmPodsNew.ValueGroups, clickhouse.GroupSet{
+					Value: []any{instance.NodeName, instance.Pid},
+				})
 			}
 		}
 
-		k8sOrVm := MergeWheres(OrSep, InGroup(k8sPods), InGroup(vmPods))
+		k8sOrVm := MergeWheres(OrSep,
+			InGroup(k8sPods), // Compatible with older versions
+			InGroup(vmPods),  // Compatible with older versions
+			InGroup(vmPodsNew),
+		)
 		whereInstance = append(whereInstance, MergeWheres(
 			AndSep,
 			whereGroup,
@@ -241,10 +257,9 @@ func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstanc
 	}
 
 	if len(filter.Group) == 0 || filter.Group == "infra" {
-		whereGroup := EqualsIfNotEmpty("group", "infra")
 		var tmpSet = map[string]struct{}{}
 		var nodes clickhouse.ArraySet
-		for _, instance := range instances {
+		for _, instance := range instances.SIs {
 			if instance == nil {
 				continue
 			}
@@ -258,7 +273,32 @@ func extractFilter(filter request.AlertFilter, instances []*model.ServiceInstanc
 		whereInstance = append(whereInstance, MergeWheres(
 			AndSep,
 			whereGroup,
-			In("tags['instance_name']", nodes),
+			MergeWheres(OrSep,
+				In("tags['instance_name']", nodes),
+				In("tags['node']", nodes),
+			),
+		))
+	}
+
+	if len(filter.Group) == 0 || filter.Group == "middleware" {
+		var dbUrls clickhouse.ArraySet
+		var ipPorts ValueInGroups = ValueInGroups{
+			Keys: []string{"tags['db_ip']", "tags['db_port']"},
+		}
+		for _, middleware := range instances.MIs {
+			if len(middleware.DatabaseURL) > 0 {
+				dbUrls = append(dbUrls, middleware.DatabaseURL)
+			}
+			if len(middleware.DatabaseIP) > 0 {
+				ipPorts.ValueGroups = append(ipPorts.ValueGroups, clickhouse.GroupSet{
+					Value: []any{middleware.DatabaseIP, middleware.DatabasePort},
+				})
+			}
+		}
+		whereInstance = append(whereInstance, MergeWheres(
+			OrSep,
+			In("tags['db_url']", dbUrls),
+			InGroup(ipPorts),
 		))
 	}
 

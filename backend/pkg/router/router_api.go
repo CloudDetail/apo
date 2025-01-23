@@ -114,7 +114,7 @@ func setApiRouter(r *resource) {
 
 	alertApi := r.mux.Group("/api/alerts")
 	{
-		alertHandler := alerts.New(r.logger, r.ch, r.k8sApi, r.pkg_db)
+		alertHandler := alerts.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom)
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.POST("/outputs/dingtalk/:uuid", alertHandler.ForwardToDingTalk())
 		alertApi.Use(middlewares.AuthMiddleware())
@@ -199,10 +199,8 @@ func setApiRouter(r *resource) {
 	alertInputApi := r.mux.Group("/api/alertinput")
 	{
 		handler := alertinput.New(r.logger, r.ch, r.prom, r.pkg_db)
-		alertInputApi.POST("/event/source/:SourceId", handler.SourceHandler())
+		alertInputApi.POST("/event/source", handler.SourceHandler())
 		alertInputApi.POST("/event/json", handler.JsonHandler())
-		alertInputApi.POST("/event/json/:SourceType", handler.JsonHandler())
-		alertInputApi.POST("/event/json/:SourceType/:SourceName", handler.JsonHandler())
 		alertInputApi.POST("/source/create", handler.CreateAlertSource())
 		alertInputApi.POST("/source/update", handler.UpdateAlertSource())
 		alertInputApi.POST("/source/get", handler.GetAlertSource())

@@ -13,11 +13,12 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
 func (ch *chRepo) InsertBatchAlertEvents(ctx context.Context, events []*model.AlertEvent) error {
 	batch, err := ch.conn.PrepareBatch(ctx, `
-		INSERT INTO alert_event (source, id, create_time, update_time, end_time, received_time, severity, group,
+		INSERT INTO alert_event (source, id, alert_id, create_time, update_time, end_time, received_time, severity, group,
 		                         name, detail, tags, status)
 		VALUES
 	`)
@@ -25,7 +26,8 @@ func (ch *chRepo) InsertBatchAlertEvents(ctx context.Context, events []*model.Al
 		return err
 	}
 	for _, event := range events {
-		if err := batch.Append(event.Source, event.ID, event.CreateTime, event.UpdateTime, event.EndTime,
+		alertId := alert.FastAlertIDByStringMap(event.Name, event.Tags)
+		if err := batch.Append(event.Source, event.ID, alertId, event.CreateTime, event.UpdateTime, event.EndTime,
 			event.ReceivedTime, int8(event.Severity), event.Group, event.Name, event.Detail, event.Tags, int8(event.Status)); err != nil {
 			log.Println("Failed to send data:", err)
 			continue

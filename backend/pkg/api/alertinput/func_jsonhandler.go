@@ -21,11 +21,11 @@ import (
 // @Produce json
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/alertinput/event/json/:sourceType/:sourceName [post]
+// @Router /api/alertinput/event/json [post]
 func (h *handler) JsonHandler() core.HandlerFunc {
 	return func(c core.Context) {
 		var sourceFrom input.SourceFrom
-		err := c.ShouldBindURI(&sourceFrom)
+		err := c.ShouldBindQuery(&sourceFrom)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

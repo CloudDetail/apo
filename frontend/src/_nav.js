@@ -17,6 +17,7 @@ import { TbWaveSawTool } from 'react-icons/tb'
 import { GrSystem } from 'react-icons/gr'
 import TranslationCom from './oss/components/TranslationCom'
 import { FiDatabase } from 'react-icons/fi'
+import { BsBezier2 } from 'react-icons/bs'
 
 const namespace = 'oss/routes'
 const commercialNav = []
@@ -140,5 +141,6 @@ const navIcon = {
   mysql: <AiOutlineDashboard />,
   healthy: <TbWaveSawTool />,
   dataGroup: <FiDatabase />,
+  integration: <BsBezier2 />,
 }
 export { _nav, commercialNav, navIcon }

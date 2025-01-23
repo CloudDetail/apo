@@ -4,6 +4,8 @@
 package alert
 
 import (
+	"errors"
+
 	alertin "github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/input/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/input/alert/enrich"
@@ -19,7 +21,14 @@ func (s *service) CreateAlertSource(source *alertin.AlertSource) (*alertin.Alert
 		}
 	}
 
-	source.SourceID = uuid.NewString()
+	if len(source.SourceID) == 0 {
+		source.SourceID = uuid.NewString()
+	} else {
+		if _, err := uuid.Parse(source.SourceID); err != nil {
+			return nil, errors.New("sourceID is not a valid uuid")
+		}
+	}
+
 	err := s.dbRepo.CreateAlertSource(source)
 	if err != nil {
 		return nil, err
@@ -61,7 +70,7 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 			Enrichers:  []enrich.Enricher{},
 		}
 		err = alertin.ErrIllegalAlertRule{Err: err}
-		s.dispatcher.AddAlertSource(source, enricher)
+		s.dispatcher.AddAlertSource(*source, enricher)
 		return enricher, err
 	}
 
@@ -73,7 +82,7 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 	err = s.dbRepo.AddAlertEnrichSchemaTarget(newS)
 	storeError = multierr.Append(storeError, err)
 
-	s.dispatcher.AddAlertSource(source, enricher)
+	s.dispatcher.AddAlertSource(*source, enricher)
 
 	return enricher, storeError
 }
@@ -135,9 +144,9 @@ func (s *service) createAlertSource(
 }
 
 // load existed enricher from db when process initializing
-func (s *service) initExistedAlertSource(source *alertin.SourceFrom, enrichRules []alertin.AlertEnrichRuleVO) (*enrich.AlertEnricher, error) {
+func (s *service) initExistedAlertSource(source alertin.SourceFrom, enrichRules []alertin.AlertEnrichRuleVO) (*enrich.AlertEnricher, error) {
 	enricher := &enrich.AlertEnricher{
-		SourceFrom: source,
+		SourceFrom: &source,
 		Enrichers:  make([]enrich.Enricher, 0, len(enrichRules)),
 	}
 	for idx, rule := range enrichRules {

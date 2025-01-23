@@ -9,6 +9,9 @@ import TranslationCom from './oss/components/TranslationCom'
 const UserPage = React.lazy(() => import('src/core/views/UserPage/index.jsx'))
 const UserManage = React.lazy(() => import('src/core/views/UserManage/index.jsx'))
 const MenuManage = React.lazy(() => import('src/core/views/MenuManage/index.jsx'))
+const AlertsIntegrationPage = React.lazy(
+  () => import('src/core/views/IntegrationCenter/AlertsIntegration'),
+)
 const SystemConfiguration = React.lazy(() => import('src/core/views/SystemConfiguration/index.jsx'))
 const DataGroupPage = React.lazy(() => import('src/core/views/DataGroup/index'))
 const namespace = 'oss/routes'
@@ -32,6 +35,11 @@ const baseRoutes = [
     name: <TranslationCom text="memuManageName" space={namespace} />,
     element: MenuManage,
     hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/integration/alerts',
+    name: '告警接入',
+    element: AlertsIntegrationPage,
   },
   {
     path: '/system/config',

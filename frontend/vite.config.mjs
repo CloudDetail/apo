@@ -2,7 +2,6 @@
  * Copyright 2024 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
-
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
@@ -23,8 +22,8 @@ export default defineConfig(() => {
       },
     },
     esbuild: {
-      loader: 'tsx', // 主要是支持 TSX/JSX
-      include: /src\/.*\.[tj]sx?$/, // 包含 .js, .jsx, .ts, .tsx 文件
+      loader: 'tsx',
+      include: /src\/.*\.[tj]sx?$/,
       exclude: [],
     },
     optimizeDeps: {

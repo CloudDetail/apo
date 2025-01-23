@@ -21,7 +21,7 @@ const docTemplate = `{
     "paths": {
         "/api/alertinput/cluster/create": {
             "post": {
-                "description": "创建集群",
+                "description": "Create Cluster",
                 "consumes": [
                     "application/json"
                 ],
@@ -31,10 +31,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "创建集群",
+                "summary": "Create Cluster",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Cluster Info",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -61,7 +61,7 @@ const docTemplate = `{
         },
         "/api/alertinput/cluster/delete": {
             "post": {
-                "description": "删除集群",
+                "description": "DeleteCluster",
                 "consumes": [
                     "application/json"
                 ],
@@ -71,10 +71,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "删除集群",
+                "summary": "DeleteCluster",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Cluster Info",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -101,7 +101,7 @@ const docTemplate = `{
         },
         "/api/alertinput/cluster/list": {
             "get": {
-                "description": "列出集群",
+                "description": "ListCluster",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -111,7 +111,7 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "列出集群",
+                "summary": "ListCluster",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -130,7 +130,7 @@ const docTemplate = `{
         },
         "/api/alertinput/cluster/update": {
             "post": {
-                "description": "更新集群",
+                "description": "UpdateCluster",
                 "consumes": [
                     "application/json"
                 ],
@@ -140,10 +140,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "更新集群",
+                "summary": "UpdateCluster",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Cluster Info",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -168,9 +168,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/alertinput/event/json/:sourceType/:sourceName": {
+        "/api/alertinput/event/json": {
             "post": {
-                "description": "基于JSON结构接收来自特定数据源的数据",
+                "description": "Receive data from a specific data source based on a JSON structure",
                 "consumes": [
                     "application/json"
                 ],
@@ -180,7 +180,7 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "基于JSON结构接收来自特定数据源的数据",
+                "summary": "Receive data from a specific data source based on a JSON structure",
                 "responses": {
                     "200": {
                         "description": "ok",
@@ -197,9 +197,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/alertinput/event/source/:sourceID": {
+        "/api/alertinput/event/source": {
             "post": {
-                "description": "基于告警源配置接收数据",
+                "description": "Receive data based on alarm source configuration",
                 "consumes": [
                     "application/json"
                 ],
@@ -209,7 +209,7 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "基于告警源配置接收数据",
+                "summary": "Receive data based on alarm source configuration",
                 "responses": {
                     "200": {
                         "description": "ok",
@@ -228,7 +228,7 @@ const docTemplate = `{
         },
         "/api/alertinput/schema/column/get": {
             "get": {
-                "description": "获取映射结构中的列信息",
+                "description": "GetSchemaColumns",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -238,10 +238,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "获取映射结构中的列信息",
+                "summary": "GetSchemaColumns",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Schema Info",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -268,7 +268,7 @@ const docTemplate = `{
         },
         "/api/alertinput/schema/create": {
             "post": {
-                "description": "创建映射结构",
+                "description": "CreateSchema",
                 "consumes": [
                     "application/json"
                 ],
@@ -278,10 +278,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "创建映射结构",
+                "summary": "CreateSchema",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Schema Info",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -321,7 +321,7 @@ const docTemplate = `{
                 "summary": "core.HandlerFunc",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Schema Info",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -348,7 +348,7 @@ const docTemplate = `{
         },
         "/api/alertinput/schema/data/update": {
             "post": {
-                "description": "更新映射结构中的数据",
+                "description": "UpdateSchemaData",
                 "consumes": [
                     "application/json"
                 ],
@@ -358,10 +358,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "更新映射结构中的数据",
+                "summary": "UpdateSchemaData",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Update SchemaData Request",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -388,7 +388,7 @@ const docTemplate = `{
         },
         "/api/alertinput/schema/delete": {
             "post": {
-                "description": "删除映射结构",
+                "description": "DeleteSchema",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -398,10 +398,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "删除映射结构",
+                "summary": "DeleteSchema",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "SchemaInfo",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -428,7 +428,7 @@ const docTemplate = `{
         },
         "/api/alertinput/schema/list": {
             "get": {
-                "description": "列出映射结构",
+                "description": "ListSchema",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -438,7 +438,7 @@ const docTemplate = `{
                 "tags": [
                     "API.ListSchema"
                 ],
-                "summary": "列出映射结构",
+                "summary": "ListSchema",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -457,7 +457,7 @@ const docTemplate = `{
         },
         "/api/alertinput/schema/listwithcolumns": {
             "get": {
-                "description": "列出映射表及结构",
+                "description": "ListSchemaWithColumns",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -467,7 +467,7 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "列出映射表及结构",
+                "summary": "ListSchemaWithColumns",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -486,7 +486,7 @@ const docTemplate = `{
         },
         "/api/alertinput/schema/used/check": {
             "get": {
-                "description": "检查映射结构是否被使用",
+                "description": "Check whether the mapping structure is used",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -496,10 +496,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "检查映射结构是否被使用",
+                "summary": "Check whether the mapping structure is used",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Schema Info",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -526,7 +526,7 @@ const docTemplate = `{
         },
         "/api/alertinput/source/create": {
             "post": {
-                "description": "创建告警源",
+                "description": "Create Alarm Source",
                 "consumes": [
                     "application/json"
                 ],
@@ -536,10 +536,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "创建告警源",
+                "summary": "Create Alarm Source",
                 "parameters": [
                     {
-                        "description": "告警源信息",
+                        "description": "AlertSource",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -566,7 +566,7 @@ const docTemplate = `{
         },
         "/api/alertinput/source/delete": {
             "post": {
-                "description": "删除告警源",
+                "description": "DeleteAlertSource",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -576,10 +576,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "删除告警源",
+                "summary": "DeleteAlertSource",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "alertSource",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -606,7 +606,7 @@ const docTemplate = `{
         },
         "/api/alertinput/source/enrich/default": {
             "get": {
-                "description": "获取默认的告警丰富规则",
+                "description": "GetDefaultAlertEnrichRule",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -616,10 +616,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "获取默认的告警丰富规则",
+                "summary": "GetDefaultAlertEnrichRule",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Source Type",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -646,7 +646,7 @@ const docTemplate = `{
         },
         "/api/alertinput/source/enrich/default/clear": {
             "get": {
-                "description": "清除默认的告警丰富规则",
+                "description": "Clear default alarm rich rules",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -656,10 +656,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "清除默认的告警丰富规则",
+                "summary": "Clear default alarm rich rules",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Request info",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -686,7 +686,7 @@ const docTemplate = `{
         },
         "/api/alertinput/source/enrich/default/set": {
             "post": {
-                "description": "设置默认的告警丰富规则",
+                "description": "SetDefaultAlertEnrichRule",
                 "consumes": [
                     "application/json"
                 ],
@@ -696,10 +696,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "设置默认的告警丰富规则",
+                "summary": "SetDefaultAlertEnrichRule",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Default EnrichRule",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -726,7 +726,7 @@ const docTemplate = `{
         },
         "/api/alertinput/source/enrich/get": {
             "get": {
-                "description": "获取告警源增强配置",
+                "description": "GetAlertSourceEnrichRule",
                 "consumes": [
                     "application/json"
                 ],
@@ -736,10 +736,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "获取告警源增强配置",
+                "summary": "GetAlertSourceEnrichRule",
                 "parameters": [
                     {
-                        "description": "告警源信息",
+                        "description": "Source Info",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -766,7 +766,7 @@ const docTemplate = `{
         },
         "/api/alertinput/source/enrich/update": {
             "post": {
-                "description": "更新告警源增强配置",
+                "description": "UpdateAlertSourceEnrichRule",
                 "consumes": [
                     "application/json"
                 ],
@@ -776,10 +776,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "更新告警源增强配置",
+                "summary": "UpdateAlertSourceEnrichRule",
                 "parameters": [
                     {
-                        "description": "请求信息",
+                        "description": "Update Config",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -806,7 +806,7 @@ const docTemplate = `{
         },
         "/api/alertinput/source/get": {
             "post": {
-                "description": "获取告警源信息",
+                "description": "GetAlertSource",
                 "consumes": [
                     "application/json"
                 ],
@@ -816,10 +816,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "获取告警源信息",
+                "summary": "GetAlertSource",
                 "parameters": [
                     {
-                        "description": "告警源信息",
+                        "description": "Source Info",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -846,7 +846,7 @@ const docTemplate = `{
         },
         "/api/alertinput/source/list": {
             "get": {
-                "description": "列出告警源",
+                "description": "ListAlertSource",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -856,7 +856,7 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "列出告警源",
+                "summary": "ListAlertSource",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -875,7 +875,7 @@ const docTemplate = `{
         },
         "/api/alertinput/source/update": {
             "post": {
-                "description": "更新告警源",
+                "description": "UpdateAlertSource",
                 "consumes": [
                     "application/json"
                 ],
@@ -885,10 +885,10 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "更新告警源",
+                "summary": "UpdateAlertSource",
                 "parameters": [
                     {
-                        "description": "告警源信息",
+                        "description": "alertSource Info",
                         "name": "Request",
                         "in": "body",
                         "required": true,
@@ -1580,7 +1580,7 @@ const docTemplate = `{
         },
         "/api/alertsinput/enrich/tags/list": {
             "get": {
-                "description": "获取预先定义的关联用标签",
+                "description": "GetTargetTags",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -1590,7 +1590,7 @@ const docTemplate = `{
                 "tags": [
                     "API.alertinput"
                 ],
-                "summary": "获取预先定义的关联用标签",
+                "summary": "GetTargetTags",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -6650,15 +6650,13 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "expr": {
-                    "description": "比较表达式",
                     "type": "string"
                 },
                 "fromField": {
-                    "description": "来源字段",
                     "type": "string"
                 },
                 "operation": {
-                    "description": "比较方式 match,not match,gt,lt,ge,le,eq",
+                    "description": "support match,not match,gt,lt,ge,le,eq",
                     "type": "string"
                 }
             }
@@ -6674,23 +6672,18 @@ const docTemplate = `{
                     }
                 },
                 "customTag": {
-                    "description": "自定义Tag字段",
                     "type": "string"
                 },
                 "enrichRuleId": {
-                    "description": "关联规则ID",
                     "type": "string"
                 },
                 "fromField": {
-                    "description": "来源字段 (支持拼接)",
                     "type": "string"
                 },
                 "fromRegex": {
-                    "description": "从来源字段中正则截取",
                     "type": "string"
                 },
                 "rType": {
-                    "description": "规则类型",
                     "type": "string"
                 },
                 "schema": {
@@ -6698,7 +6691,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "schemaSource": {
-                    "description": "匹配的映射结构的源字段",
                     "type": "string"
                 },
                 "schemaTargets": {
@@ -6709,7 +6701,6 @@ const docTemplate = `{
                     }
                 },
                 "sourceId": {
-                    "description": "告警源ID",
                     "type": "string"
                 },
                 "targetTagId": {
@@ -6722,15 +6713,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "customTag": {
-                    "description": "自定义Tag字段",
                     "type": "string"
                 },
                 "schemaField": {
-                    "description": "来自于映射表的指定字段",
                     "type": "string"
                 },
                 "targetTagId": {
-                    "description": "目标TagID",
                     "type": "integer"
                 }
             }
@@ -8566,7 +8554,8 @@ const docTemplate = `{
                 },
                 "startTime": {
                     "description": "query start time",
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "traceId": {
                     "description": "TraceId",
@@ -8604,7 +8593,8 @@ const docTemplate = `{
                 },
                 "startTime": {
                     "description": "query start time",
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0
                 }
             }
         },
@@ -8667,7 +8657,8 @@ const docTemplate = `{
                 },
                 "startTime": {
                     "description": "query start time",
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "traceId": {
                     "description": "TraceId",
@@ -8907,7 +8898,14 @@ const docTemplate = `{
             "properties": {
                 "dataType": {
                     "description": "type (log, trace, Kubernetes, other)",
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "logs",
+                        "trace",
+                        "k8s",
+                        "other",
+                        "topology"
+                    ]
                 },
                 "day": {
                     "description": "save data cycle days",

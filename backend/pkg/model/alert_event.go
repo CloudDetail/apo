@@ -25,28 +25,12 @@ type AlertEvent struct {
 	ReceivedTime time.Time     `ch:"received_time" json:"receivedTime"`
 	Severity     SeverityLevel `ch:"severity" json:"severity,omitempty"`
 	// Fault group information
-	Group  string            `ch:"group" json:"group,omitempty"`
-	Name   string            `ch:"name" json:"name,omitempty"`
-	Detail string            `ch:"detail" json:"detail,omitempty"`
-	Tags   map[string]string `ch:"tags" json:"tags,omitempty"`
-	Status Status            `ch:"status" json:"status,omitempty"`
-}
-
-func (a *AlertEvent) GetTargetObj() string {
-	if a.Tags == nil {
-		return ""
-	}
-	switch a.Group {
-	case "app":
-		return a.Tags["svc_name"]
-	case "infra":
-		return a.Tags["instance_name"]
-	case "network":
-		return fmt.Sprintf("%s->%s", a.Tags["src_ip"], a.Tags["dst_ip"])
-	case "container":
-		return fmt.Sprintf("%s(%s)", a.Tags["pod"], a.Tags["container"])
-	}
-	return ""
+	Group   string            `ch:"group" json:"group,omitempty"`
+	Name    string            `ch:"name" json:"name,omitempty"`
+	Detail  string            `ch:"detail" json:"detail,omitempty"`
+	Tags    map[string]string `ch:"tags" json:"tags,omitempty"`
+	RawTags map[string]string `ch:"raw_tags" json:"raw_tags,omitempty"`
+	Status  Status            `ch:"status" json:"status,omitempty"`
 }
 
 func GenUUID() uuid.UUID {
