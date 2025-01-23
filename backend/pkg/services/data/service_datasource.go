@@ -71,7 +71,7 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 		ds := model.Datasource{
 			Datasource: namespace,
 			Type:       model.DATASOURCE_TYP_NAMESPACE,
-			Category:   model.DATASOURCE_CATEGORY_NORMAL,
+			Category:   model.DATASOURCE_CATEGORY_APM,
 			Nested:     services,
 		}
 		namespaceList = append(namespaceList, ds)
