@@ -254,6 +254,18 @@ menuManage:
     field_name: "label"
     entity_type: "menu"
 
+groupManage:
+  key: "dataGroup"
+  i18n:
+    - language: "en"
+      translation: "Group Settings"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "数据组管理"
+      field_name: "label"
+      entity_type: "menu"
+
 服务概览:
   key: "服务概览"
   i18n:
@@ -479,7 +491,7 @@ menuManage:
   key: "菜单管理"
   i18n:
   - language: "en"
-    translation: "Menu Management"
+    translation: "Menu Settings"
     entity_type: "feature"
     field_name: "featureName"
 
@@ -487,3 +499,16 @@ menuManage:
     translation: "菜单管理"
     entity_type: "feature"
     field_name: "featureName"
+
+数据组管理:
+  key: "数据组管理"
+  i18n:
+    - language: "en"
+      translation: "Group Setting"
+      entity_type: "feature"
+      field_name: "featureName"
+
+    - language: "zh"
+      translation: "数据组管理"
+      entity_type: "feature"
+      field_name: "featureName"

@@ -29,6 +29,7 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 		{"配置中心", "config"},
 		{"用户管理", "userManage"},
 		{"菜单管理", "menuManage"},
+		{"数据组管理", "dataGroup"},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {

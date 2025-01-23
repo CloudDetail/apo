@@ -31,6 +31,7 @@ func (repo *daoRepo) initMenuItems() error {
 		{MenuItem: MenuItem{Key: "manage", Icon: "https://apo-front.oss-cn-hangzhou.aliyuncs.com/menu-icon/system.svg", Order: 16}},
 		{MenuItem: MenuItem{Key: "userManage", Order: 17}, RouterKey: "/system/user-manage"},
 		{MenuItem: MenuItem{Key: "menuManage", Order: 18}, RouterKey: "/system/menu-manage"},
+		{MenuItem: MenuItem{Key: "dataGroup", Order: 19}, RouterKey: "/system/data-group"},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
@@ -70,6 +71,7 @@ func (repo *daoRepo) initMenuItems() error {
 			"fullTrace":      "trace",
 			"userManage":     "manage",
 			"menuManage":     "manage",
+			"dataGroup":      "manage",
 			"alertsRule":     "alerts",
 			"alertsNotify":   "alerts",
 		}
