@@ -23,8 +23,8 @@ export default defineConfig(() => {
       },
     },
     esbuild: {
-      loader: 'jsx',
-      include: /src\/.*\.jsx?$/,
+      loader: 'tsx', // 主要是支持 TSX/JSX
+      include: /src\/.*\.[tj]sx?$/, // 包含 .js, .jsx, .ts, .tsx 文件
       exclude: [],
     },
     optimizeDeps: {
