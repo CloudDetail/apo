@@ -27,7 +27,6 @@ func (repo *daoRepo) initRouterData() error {
 		{RouterTo: "/trace/full", HideTimeSelector: true},
 		{RouterTo: "/system/data-group", HideTimeSelector: true},
 		{RouterTo: "/system/config", HideTimeSelector: true},
-		{RouterTo: "/system/data-group", HideTimeSelector: true},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
@@ -47,7 +46,7 @@ func (repo *daoRepo) initRouterData() error {
 
 		var toAdd []Router
 		var toUpdate []Router
-		toDelete := make(map[int]struct{})
+		toDelete := make([]int, 0)
 
 		for _, router := range routers {
 			if existing, exists := existingMap[router.RouterTo]; exists {
@@ -62,7 +61,7 @@ func (repo *daoRepo) initRouterData() error {
 		}
 
 		for _, router := range existingMap {
-			toDelete[router.RouterID] = struct{}{}
+			toDelete = append(toDelete, router.RouterID)
 		}
 
 		if len(toAdd) > 0 {
@@ -84,11 +83,7 @@ func (repo *daoRepo) initRouterData() error {
 		}
 
 		if len(toDelete) > 0 {
-			var idsToDelete []int
-			for id := range toDelete {
-				idsToDelete = append(idsToDelete, id)
-			}
-			if err := tx.Model(&Router{}).Where("router_id IN ?", idsToDelete).Delete(nil).Error; err != nil {
+			if err := tx.Model(&Router{}).Where("router_id IN ?", toDelete).Delete(nil).Error; err != nil {
 				return err
 			}
 		}
