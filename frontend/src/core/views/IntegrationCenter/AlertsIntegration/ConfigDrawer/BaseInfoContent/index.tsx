@@ -30,6 +30,7 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
   const configDrawerVisible = useAlertIntegrationContext((ctx) => ctx.configDrawerVisible)
   const [type, setType] = useState<'view' | 'edit'>('view')
   const [form] = Form.useForm()
+  const uuid = uuidv4()
   const creatAlertsIntegration = (params: AlertInputSourceParams) => {
     creatAlertInputSourceApi(params)
       .then((res) => {
@@ -69,7 +70,7 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
         params.sourceId = sourceId
         updateAlertsIntegration(params)
       } else {
-        params.sourceId = values.sourceId
+        params.sourceId = uuid
         creatAlertsIntegration(params)
       }
     })
@@ -99,13 +100,7 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
     if (sourceId) {
       return baseUrl + sourceId
     } else {
-      if (!form.getFieldValue('sourceId')) {
-        const uuid = uuidv4()
-        form.setFieldValue('sourceId', uuid)
-        return baseUrl + uuid
-      } else {
-        return baseUrl + form.getFieldValue('sourceId')
-      }
+      return baseUrl + uuid
     }
   }
   return (
@@ -127,7 +122,7 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
                 },
               }}
             >
-              <Form.Item name="sourceId" initialValue={uuidv4()} hidden></Form.Item>
+              <Form.Item name="sourceId" hidden></Form.Item>
               <Form.Item name="sourceName" label="告警接入名" required rules={[{ required: true }]}>
                 <Input></Input>
               </Form.Item>

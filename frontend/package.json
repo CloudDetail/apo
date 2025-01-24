@@ -46,7 +46,7 @@
     "less-loader": "^12.2.0",
     "monaco-editor": "^0.52.0",
     "monaco-promql": "^1.7.4",
-    "posthog-js": "^1.158.1",
+    "posthog-js": "1.206.1",
     "prismjs": "^1.29.0",
     "prop-types": "^15.8.1",
     "qs": "^6.13.0",
