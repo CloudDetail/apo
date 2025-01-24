@@ -111,7 +111,7 @@ const AlertsIntegrationTable = () => {
         columns={columns}
         dataSource={data}
         pagination={false}
-        scroll={{ y: 'calc(100vh - 120px)' }}
+        scroll={{ y: 'calc(100vh - 220px)' }}
       />
     </div>
   )
