@@ -1,0 +1,11 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.ellipsisText {
+  white-space: nowrap; // 禁止换行
+  overflow: hidden; // 隐藏溢出的内容
+  text-overflow: ellipsis; // 显示省略号
+  margin-right: 0;
+}

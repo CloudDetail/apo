@@ -1,0 +1,19 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 140px)); /* 每列最小 200px，最大自动扩展 */
+  gap: 20px; /* 项目之间的间隙 */
+  justify-items: center; /* 水平对齐中心 */
+  align-items: center; /* 垂直对齐中心 */
+}
+
+.item {
+  padding: 10px;
+  //   background-color: #f0f0f0;
+  position: relative;
+  text-align: center;
+}
