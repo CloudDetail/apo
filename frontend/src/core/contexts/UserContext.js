@@ -8,13 +8,15 @@ import userReducer, { initialState } from '../store/reducers/userReducer'
 import { getUserPermissionApi } from '../api/permission'
 import { useTranslation } from 'react-i18next'
 import { getSubsDataGroupApi } from '../api/dataGroup'
+import { useDispatch, useSelector } from 'react-redux'
 
 const UserContext = createContext({})
 
 export const useUserContext = () => useContext(UserContext)
 
 export const UserProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(userReducer, initialState)
+  const dispatch = useDispatch()
+  const state = useSelector((state) => state.userReducer)
   const { i18n } = useTranslation()
   const { user, menuItems, dataGroupList } = state
 
