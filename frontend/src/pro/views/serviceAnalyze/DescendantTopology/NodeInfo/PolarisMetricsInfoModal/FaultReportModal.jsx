@@ -35,16 +35,17 @@ export default function FaultReportModal({
       customWidth: 200,
       Cell: (cell) => {
         const { original } = cell.cell.row
-        const { duration = 0, thresholdValue = 0 } = original
+        const { duration = 0, thresholdValue = 0, thresholdMultiple = 1 } = original
+        const baseline = thresholdValue / thresholdMultiple
         return (
           <div>
             {convertTime(duration, 'ms')}ms
             <Tag
-              color={(duration - thresholdValue) / thresholdValue > 0 ? 'red' : 'green'}
+              color={(duration - baseline) / baseline > 0 ? 'red' : 'green'}
               style={{ marginLeft: '5px' }}
             >
               偏离基线
-              {((duration - thresholdValue) / thresholdValue).toFixed(2)}%
+              {((duration - baseline) / baseline).toFixed(2)}%
             </Tag>
           </div>
         )
