@@ -140,7 +140,7 @@ const navIcon = {
   alerts: <FaRegBell />,
   mysql: <AiOutlineDashboard />,
   healthy: <TbWaveSawTool />,
-  dataGroup: <FiDatabase />,
+  // dataGroup: <FiDatabase />,
   integration: <BsBezier2 />,
 }
 export { _nav, commercialNav, navIcon }
