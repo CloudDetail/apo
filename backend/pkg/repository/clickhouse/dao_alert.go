@@ -257,6 +257,7 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 	}
 
 	if len(filter.Group) == 0 || filter.Group == "infra" {
+		infraGroup := Equals("group", "infra")
 		var tmpSet = map[string]struct{}{}
 		var nodes clickhouse.ArraySet
 		for _, instance := range instances.SIs {
@@ -272,7 +273,7 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 
 		whereInstance = append(whereInstance, MergeWheres(
 			AndSep,
-			whereGroup,
+			infraGroup,
 			MergeWheres(OrSep,
 				In("tags['instance_name']", nodes),
 				In("tags['node']", nodes),
