@@ -14,6 +14,7 @@ import { getAlertInputBaseInfoApi } from 'src/core/api/alertInput'
 import { useAlertIntegrationContext } from 'src/core/contexts/AlertIntegrationContext'
 import { AlertKey } from 'src/core/types/alertIntegration'
 import SourceTypeInfo from './SourceTypeInfo'
+import { useTranslation } from 'react-i18next'
 
 interface DrawerTitleProps {
   sourceName: string | null
@@ -33,6 +34,7 @@ const DrawerTitle = React.memo((props: DrawerTitleProps) => {
   )
 })
 const IntegrationDrawer = () => {
+  const { t } = useTranslation('core/alertsIntegration')
   const [searchParams, setSearchParams] = useSearchParams()
   const [sourceId, setSourceId] = useState<string | null>(null)
   const [sourceType, setSourceType] = useState<AlertKey>('json')
@@ -92,7 +94,7 @@ const IntegrationDrawer = () => {
           items={[
             {
               key: '1',
-              label: '告警接入配置',
+              label: t('setting'),
               children: (
                 <>
                   <BaseInfoContent
@@ -108,7 +110,7 @@ const IntegrationDrawer = () => {
             },
             {
               key: '2',
-              label: '接入介绍文档',
+              label: t('documentation'),
               children: <SourceTypeInfo sourceType={sourceType} />,
             },
           ]}

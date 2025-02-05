@@ -37,7 +37,7 @@ const baseRoutes = [
   },
   {
     path: '/integration/alerts',
-    name: '告警接入',
+    name: <TranslationCom text="alertsIntegration" space={namespace} />,
     element: AlertsIntegrationPage,
   },
   {

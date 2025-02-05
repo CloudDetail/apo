@@ -14,8 +14,10 @@ import { RiDeleteBin5Line } from 'react-icons/ri'
 import { useAlertIntegrationContext } from 'src/core/contexts/AlertIntegrationContext'
 import { showToast } from 'src/core/utils/toast'
 import { AlertInputBaseInfo, AlertKey, SourceInfo } from 'src/core/types/alertIntegration'
+import { Trans, useTranslation } from 'react-i18next'
 
 const AlertsIntegrationTable = () => {
+  const { t } = useTranslation('core/alertsIntegration')
   const [data, setData] = useState([])
 
   const [searchParams, setSearchParams] = useSearchParams()
@@ -38,7 +40,7 @@ const AlertsIntegrationTable = () => {
     deleteAlertIntegrationApi(sourceId)
       .then((res) => {
         showToast({
-          title: '删除告警接入成功',
+          title: t('deleteSuccess'),
           color: 'success',
         })
       })
@@ -48,7 +50,7 @@ const AlertsIntegrationTable = () => {
   }
   const columns: TableProps<AlertInputBaseInfo>['columns'] = [
     {
-      title: '告警源类型',
+      title: t('sourceType'),
       dataIndex: 'sourceType',
       key: 'sourceType',
       render: (text: AlertKey) => (
@@ -59,12 +61,12 @@ const AlertsIntegrationTable = () => {
       ),
     },
     {
-      title: '告警接入名称',
+      title: t('sourceName'),
       dataIndex: 'sourceName',
       key: 'sourceName',
     },
     {
-      title: '操作',
+      title: t('operation'),
       dataIndex: 'operation',
       render: (_, record) => {
         return (
@@ -74,21 +76,25 @@ const AlertsIntegrationTable = () => {
               onClick={() => openDrawer(record.sourceId, record.sourceType)}
               icon={<MdOutlineEdit className="text-blue-400 hover:text-blue-400" />}
             >
-              <span className="text-blue-400 hover:text-blue-400">编辑</span>
+              <span className="text-blue-400 hover:text-blue-400">{t('edit')}</span>
             </Button>
             <Popconfirm
               title={
                 <>
-                  是否确定删除名为“<span className="font-bold ">{record.sourceName}</span>
-                  ”的告警接入
+                  <Trans
+                    t={t}
+                    i18nKey="confirmDelete"
+                    values={{ sourceName: record.sourceName }}
+                    components={{ 1: <span className="font-bold" /> }}
+                  />
                 </>
               }
               onConfirm={() => deleteAlertIntegration(record.sourceId)}
-              okText="确定"
-              cancelText="取消"
+              okText={t('confirm')}
+              cancelText={t('cancel')}
             >
               <Button type="text" icon={<RiDeleteBin5Line />} danger>
-                删除
+                {t('delete')}
               </Button>
             </Popconfirm>
           </>
@@ -104,9 +110,9 @@ const AlertsIntegrationTable = () => {
   return (
     <div className="overflow-hidden h-full">
       <Typography>
-        <Typography.Title level={5}>告警接入列表</Typography.Title>
+        <Typography.Title level={5}>{t('list')}</Typography.Title>
       </Typography>
-      {/* <Search placeholder="输入搜索告警接入名称" className="mb-3" /> */}
+      {/* <Search  className="mb-3" /> */}
       <Table
         columns={columns}
         dataSource={data}

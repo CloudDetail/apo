@@ -5,6 +5,7 @@
 
 import { Form, Select } from 'antd'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAlertIntegrationContext } from 'src/core/contexts/AlertIntegrationContext'
 import { TargetTag } from 'src/core/views/IntegrationCenter/types'
 
@@ -13,6 +14,7 @@ interface TargetTagSelectorProps {
   noLabel?: boolean
 }
 const TargetTagSelector = ({ fieldName, noLabel = false }: TargetTagSelectorProps) => {
+  const { t } = useTranslation('core/alertsIntegration')
   const targetTags = useAlertIntegrationContext((ctx) => ctx.targetTags)
   const [options, setOptions] = useState<TargetTag[]>([])
   useEffect(() => {
@@ -31,7 +33,7 @@ const TargetTagSelector = ({ fieldName, noLabel = false }: TargetTagSelectorProp
   return (
     <Form.Item
       name={[fieldName, 'targetTag']}
-      label={!noLabel && '目标字段'}
+      label={!noLabel && t('target')}
       style={noLabel ? { marginBottom: 0, overflow: 'hidden', flexGrow: 1 } : {}}
       required
       rules={[
@@ -39,7 +41,7 @@ const TargetTagSelector = ({ fieldName, noLabel = false }: TargetTagSelectorProp
           validator: async (_, value) => {
             console.log(value)
             if (value === undefined || !value.hasOwnProperty('targetTagId')) {
-              return Promise.reject(new Error('请选择或输入目标字段'))
+              return Promise.reject(new Error(t('schemaFieldsRequired')))
             }
           },
         },
@@ -68,7 +70,7 @@ const TargetTagSelector = ({ fieldName, noLabel = false }: TargetTagSelectorProp
       <Select
         // allowClear
         className="overflow-hidden"
-        placeholder="请选择或输入目标字段"
+        placeholder={t('schemaFieldsRequired')}
         options={options}
         fieldNames={{ label: 'tagName', value: 'id' }}
         onSearch={handleChange}

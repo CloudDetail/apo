@@ -1,0 +1,186 @@
+{
+  "json": "Standard alert source",
+  "addAlertsIntegration": "Add Alerts Integration",
+  "deleteSuccess": "Delete Alerts Integration successfully",
+  "sourceType": "Source Type",
+  "sourceName": "Source Name",
+  "operation": "Operation",
+  "confirmDelete": "Are you sure you want to delete the integration <1>{{sourceName}}</1>?",
+  "edit": "Edit",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "list": "Alerts Integrations",
+  "setting": "Settings",
+  "documentation": "Documentation",
+  "addSuccess": "Added successfully",
+  "updatedSuccess": "Updated successfully",
+  "basicInfo": "Basic information",
+  "pushUrl": "Push URL",
+  "save": "Save",
+  "clusters": "Clusters",
+  "rulesTitle": "Associated application rules",
+  "rulesAlert": "Extract correlated information from the Tags/Labels of input alert events to associate alert events with monitored applications during alert analysis.",
+  "savedSuccess": "Saved successfully",
+  "addRules": "Add rules",
+  "match": "Match",
+  "misMatch": "Mismatch",
+  "fromField": "Compare source field",
+  "fromFieldRequired": "Please enter the source field for comparison",
+  "expr": "Regular expression",
+  "fromRegex": "Extract Regex",
+  "fromRegexRequired": "Please enter the Extract Regex",
+  "exprRequired": "Please enter the Regular expression",
+  "addConditions": "Add new filter condition",
+  "and": "And",
+  "schemaFields": "Source Field",
+  "schemaAndTarget": "Source and Target Field",
+  "target": "Target Field",
+  "targetFields": "Target Field",
+  "schemaFieldsRequired": "Please select or input Source Field and Target Field",
+  "mappingLabel": "Mapping Table and Column",
+  "mappingExtra": "Map the extracted field to a column in the mapping table.",
+  "tagMapping": "Extract Tag",
+  "staticEnrich": "Map Tag",
+  "rule": "Rule",
+  "preview": "Preview",
+  "ruleType": "Rule Type",
+  "conditions": "Conditions",
+  "extractedField": "Extracted Field",
+  "extractedFieldRequired": "Please enter the field you want to extract",
+  "tagRulePreview": {
+    "conditions": "In the alarm event, meet the filter conditions",
+    "tagMapping": "Extract content from field",
+    "useExpr": "using the regular expression",
+    "mapTo": "and map it to ",
+    "staticEnrichDes": "Extracted Field <1>{{fromField}}</1>is mapped to the <2>{{schemaField}}</2> field in table <2>{{schemaTable}}</2>，The extraction mapping is shown in the diagram below"
+  },
+  "zabbixDoc": {
+    "title": "Introduction to Zabbix Alert Integration",
+    "description": "Use Zabbix's webhook alert media to send alert events to the APO platform. The following configuration is suitable for Zabbix 7.x.",
+    "step1": {
+      "title": "1. Create an Alert Media",
+      "download": "Download the media configuration file or save the following configuration as a file",
+      "login": "Log in to the Zabbix console, select `Alerts` > `Media Types`",
+      "import": "Click the `Import` button in the upper right corner, select the file, choose the downloaded or saved file, and click Import",
+      "modifyWebhook": "Click on the imported media object and modify the `webhookURL` parameter to the alert push address"
+    },
+    "step2": {
+      "title": "2. Associate Alert Media to a User",
+      "recommendation": "It is recommended to use the Admin user to send alerts to avoid permission issues preventing alert event access",
+      "navigate": "In the Zabbix console, select `User` > `Users`",
+      "selectAdmin": "Click on the Admin user, select `Media Types` in the top left corner, and click `Add`",
+      "setType": "Select `Type` as `APO-Collector`, enter `APO` as `Send To`, and click `Add`",
+      "update": "Click `Update`"
+    },
+    "step3": {
+      "title": "3. Create an Alert Action",
+      "recommendation": "It is recommended to use the Admin user to send alerts to avoid permission issues preventing alert event access",
+      "navigate": "In the Zabbix console, select `Alerts` > `Actions`",
+      "createAction": "Click `Create action` in the upper right corner",
+      "name": "Enter `Send To APO` as `Name`",
+      "selectOperations": "Select `Operations`, then click `Add` under `Operation Steps`",
+      "addUser": "Click `Send to users`, select `Admin`, then click `Add`",
+      "repeatSteps": "Repeat the above steps under `Recovery operations` and `Update operations`, then click Add to complete"
+    },
+    "step4": {
+      "title": "4. Completion",
+      "description": "You can check the action status of newly added issues in the dashboard to see if they were sent successfully. If the status shows `Delivered`, the process is complete."
+    }
+  },
+  "jsonInfo": {
+    "title": "Standard Alert Source",
+    "description": "For alert sources that have not been adapted, you can try integrating them through the standard alert event input interface.",
+    "interface": {
+      "title": "Interface Information",
+      "method": "Request Method",
+      "headers": "Request Headers",
+      "params": "Request Parameters",
+      "body": "Request Body"
+    },
+    "table": {
+      "fieldName": "Field Name",
+      "meaning": "Meaning",
+      "type": "Field Type",
+      "description": "Description"
+    },
+    "fields": {
+      "sourceId": {
+        "meaning": "Alert Source ID",
+        "description": "The sourceId provided when creating a data source in APO"
+      },
+      "name": {
+        "meaning": "Alert Event Name",
+        "description": "The name of the alert event, such as the trigger name in Zabbix"
+      },
+      "status": {
+        "meaning": "Alert Event Status",
+        "description": "Indicates whether the alert is currently firing or resolved. Possible values: firing, resolved"
+      },
+      "severity": {
+        "meaning": "Alert Severity",
+        "description": "The severity of the alert. Possible values: critical, error, warning, info, unknown"
+      },
+      "detail": {
+        "meaning": "Alert Details",
+        "description": "The detailed content of the alert in text format"
+      },
+      "alertId": {
+        "meaning": "Alert Event ID",
+        "description": "A unique identifier for the alert event. Multiple events with the same alert ID refer to the same alert occurring over time"
+      },
+      "tags": {
+        "meaning": "Alert Event Tags",
+        "description": "Metadata tags associated with the alert, which remain unchanged after input"
+      },
+      "startTime": {
+        "meaning": "Alert Start Time",
+        "description": "The time when the alert event was first generated by the alert source. Repeated alerts for the same event will use the first occurrence time. Format: 2025-01-21T15:04:05+00:00 or as a numeric millisecond timestamp (e.g., 1737514800000)"
+      },
+      "updateTime": {
+        "meaning": "Alert Update Time",
+        "description": "The time when the alert was last updated. Format same as startTime"
+      },
+      "endTime": {
+        "meaning": "Alert End Time",
+        "description": "Only included for resolved alerts. Format same as startTime"
+      }
+    },
+    "example": { "title": "Request Example" },
+    "response": {
+      "title": "Response",
+      "success": "Success Response",
+      "failure": "Failure Response",
+      "errorMessage": "Failed to process alert event"
+    }
+  },
+  "prometheusDoc": {
+    "title": "Prometheus Alert Integration",
+    "description": "When using Prometheus as an alert data source, you can push alert events to the APO platform through AlertManager's Webhook component.",
+    "configInstructions": "Below is the configuration modification guide for AlertManager.",
+    "webhookUrl": "alert push url",
+    "step1": {
+      "title": "1. Add Webhook Notification Channel",
+      "description": "Modify the AlertManager instance configuration, usually located in the root directory as alertmanager.yml. Add a new webhook configuration item in the receivers list, as shown below:"
+    },
+    "step2": {
+      "title": "2. Add the New Webhook to the Notification Route",
+      "description": "It is recommended to add the new Webhook notification channel as a sub-route (routes) in the notification list, as shown below:",
+      "alternative": "Alternatively, if you do not want to use the original push channel, you can replace the root route with the new Webhook object:",
+      "note": "Note: AlertManager processes notifications in the following order:",
+      "order1": "First, it notifies the channels listed under route.routes.",
+      "order2": "Then, it notifies the channel specified in route.receiver.",
+      "warning": "If any previously notified channel has `continue: false` set, the subsequent channels will not receive notifications."
+    },
+    "step3": {
+      "title": "3. Save Configuration File"
+    },
+    "step4": {
+      "title": "4. Reload AlertManager Configuration",
+      "description": "You can restart AlertManager or send a POST request to the `/-/reload` endpoint to apply the changes."
+    },
+    "step5": {
+      "title": "5. Done"
+    }
+  }
+}

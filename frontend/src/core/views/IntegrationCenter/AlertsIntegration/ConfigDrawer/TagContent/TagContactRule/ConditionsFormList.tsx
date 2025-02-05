@@ -4,22 +4,24 @@
  */
 
 import { Button, Flex, Form, Input, Select, Tag } from 'antd'
+import { useTranslation } from 'react-i18next'
 import { AiOutlineLine } from 'react-icons/ai'
 interface ConditionsFormListProps {
   fieldName: string | number
 }
-const operationOptions = [
-  {
-    value: 'match',
-    label: <span>匹配</span>,
-  },
-  {
-    value: 'notMatch',
-    label: <span>不匹配</span>,
-  },
-]
 
 const ConditionsFormList = ({ fieldName }: ConditionsFormListProps) => {
+  const { t } = useTranslation('core/alertsIntegration')
+  const operationOptions = [
+    {
+      value: 'match',
+      label: <span>{t('match')}</span>,
+    },
+    {
+      value: 'notMatch',
+      label: <span>{t('misMatch')}</span>,
+    },
+  ]
   return (
     <Form.List name={[fieldName, 'conditions']}>
       {(subFields, subOpt) => (
@@ -29,16 +31,16 @@ const ConditionsFormList = ({ fieldName }: ConditionsFormListProps) => {
               <Flex justify="center" align="flex-start" gap={5}>
                 {index > 0 && (
                   <Form.Item style={{ marginBottom: 0 }}>
-                    <Tag color="processing">且</Tag>
+                    <Tag color="processing">{t('and')}</Tag>
                   </Form.Item>
                 )}
 
                 <Form.Item
                   name={[subField.name, 'fromField']}
-                  rules={[{ required: true, message: '请输入比较来源字段' }]}
+                  rules={[{ required: true, message: t('fromFieldRequired') }]}
                   style={{ marginBottom: 0 }}
                 >
-                  <Input placeholder="比较来源字段" />
+                  <Input placeholder={t('fromField')} />
                 </Form.Item>
                 <Form.Item
                   name={[subField.name, 'operation']}
@@ -50,10 +52,10 @@ const ConditionsFormList = ({ fieldName }: ConditionsFormListProps) => {
                 <Form.Item
                   name={[subField.name, 'expr']}
                   className="flex-1"
-                  rules={[{ required: true, message: '请输入正则表达式' }]}
+                  rules={[{ required: true, message: t('exprRequired') }]}
                   style={{ marginBottom: 0 }}
                 >
-                  <Input placeholder="正则表达式" />
+                  <Input placeholder={t('expr')} />
                 </Form.Item>
                 <Form.Item style={{ marginBottom: 0 }}>
                   <Button
@@ -70,7 +72,7 @@ const ConditionsFormList = ({ fieldName }: ConditionsFormListProps) => {
             </Form.Item>
           ))}
           <Button color="primary" variant="filled" onClick={() => subOpt.add()} block>
-            + 新增过滤条件
+            + {t('addConditions')}
           </Button>
         </div>
       )}

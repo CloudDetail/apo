@@ -25,7 +25,7 @@ const AlertsIntegrationPage = () => {
             <AlertsDatasourceList />
           </div>
           <Divider type="vertical" className="h-full" />
-          <div className="px-4 flex-1">
+          <div className="px-4 flex-1 overflow-hidden">
             <AlertsIntegrationTable />
           </div>
         </Flex>

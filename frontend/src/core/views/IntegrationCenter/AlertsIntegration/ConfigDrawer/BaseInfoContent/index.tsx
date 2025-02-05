@@ -15,6 +15,7 @@ import { useSearchParams } from 'react-router-dom'
 import { AlertInputSourceParams, AlertKey } from 'src/core/types/alertIntegration'
 import Text from 'antd/es/typography/Text'
 import { v4 as uuidv4 } from 'uuid'
+import { useTranslation } from 'react-i18next'
 
 interface BaseInfoContentProps {
   sourceId?: string | null
@@ -25,6 +26,7 @@ interface BaseInfoContentProps {
   closeDrawer?: any
 }
 const BaseInfoContent = (props: BaseInfoContentProps) => {
+  const { t } = useTranslation('core/alertsIntegration')
   const [searchParams, setSearchParams] = useSearchParams()
   const { sourceId, sourceType, sourceName, clusters, refreshDrawer, closeDrawer } = props
   const configDrawerVisible = useAlertIntegrationContext((ctx) => ctx.configDrawerVisible)
@@ -35,7 +37,7 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
     creatAlertInputSourceApi(params)
       .then((res) => {
         showToast({
-          title: '新增告警接入成功',
+          title: t('addSuccess'),
           color: 'success',
         })
         setType('view')
@@ -52,7 +54,7 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
   const updateAlertsIntegration = (params: AlertInputSourceParams) => {
     updateAlertsIntegrationApi(params).then((res) => {
       showToast({
-        title: '更新告警接入基础信息成功',
+        title: t('updatedSuccess'),
         color: 'success',
       })
       refreshDrawer()
@@ -110,9 +112,9 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
           <BaseInfoDescriptions sourceName={sourceName} clusters={clusters} sourceId={sourceId} />
         )
       ) : (
-        <Form labelCol={{ span: 3, offset: 1 }} colon={false} form={form}>
+        <Form labelCol={{ span: 5, offset: 1 }} wrapperCol={{ span: 15 }} colon={false} form={form}>
           <Typography>
-            <Title level={5}>基础信息</Title>
+            <Title level={5}>{t('basicInfo')}</Title>
             <ConfigProvider
               theme={{
                 components: {
@@ -123,10 +125,15 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
               }}
             >
               <Form.Item name="sourceId" hidden></Form.Item>
-              <Form.Item name="sourceName" label="告警接入名" required rules={[{ required: true }]}>
+              <Form.Item
+                name="sourceName"
+                label={t('sourceName')}
+                required
+                rules={[{ required: true }]}
+              >
                 <Input></Input>
               </Form.Item>
-              <Form.Item label="推送地址">
+              <Form.Item label={t('pushUrl')}>
                 <Text copyable={{ text: getPublishUrl }}>{getPublishUrl()}</Text>
               </Form.Item>
 
@@ -138,12 +145,12 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
       <div className="w-full text-right">
         {type === 'view' ? (
           <Button type="primary" onClick={() => setType('edit')}>
-            编辑
+            {t('edit')}
           </Button>
         ) : (
           <>
             <Button type="primary" onClick={saveBaseInfo} className="mr-2">
-              保存
+              {t('save')}
             </Button>
             <Button
               onClick={() => {
@@ -154,7 +161,7 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
                 }
               }}
             >
-              取消
+              {t('cancel')}
             </Button>
           </>
         )}
