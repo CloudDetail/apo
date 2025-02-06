@@ -3,16 +3,19 @@ package database
 import (
 	"context"
 	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"gorm.io/gorm"
 )
 
 type Team struct {
 	TeamID      int64  `gorm:"column:team_id;primary_key" json:"teamId"`
 	TeamName    string `gorm:"column:team_name;type:varchar(20)" json:"teamName"`
-	Description string `gorm:"column:description;type:varchar(50)" json:"description,omitempty"`
+	Description string `gorm:"column:description;type:varchar(50)" json:"description"`
 
+	UserList    []User    `gorm:"many2many:user_team;foreignKey:TeamID;joinForeignKey:TeamID;References:UserID;joinReferences:UserID" json:"userList,omitempty"`
 	FeatureList []Feature `gorm:"many2many:auth_permission;foreignKey:TeamID;joinForeignKey:SubjectID;References:FeatureID;joinReferences:PermissionID" json:"featureList,omitempty"`
 }
 
@@ -60,7 +63,10 @@ func (repo *daoRepo) GetTeamList(req *request.GetTeamRequest) ([]Team, int64, er
 	var teams []Team
 	var count int64
 	query := repo.db.Model(&Team{}).Preload("FeatureList")
-
+	
+	query.Preload("UserList", func(db *gorm.DB) *gorm.DB {
+		return db.Select("user_id, username")
+	})
 	if len(req.TeamName) > 0 {
 		query = query.Where("team_name LIKE ?", "%"+req.TeamName+"%")
 	}

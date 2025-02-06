@@ -1724,6 +1724,478 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/data/datasource": {
+            "get": {
+                "description": "Gets all datasource.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Gets all datasource.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetDatasourceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/group": {
+            "post": {
+                "description": "Get data group.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Get data group.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/request.GetDataGroupRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetDataGroupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/group/create": {
+            "post": {
+                "description": "Create a data group.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Create a data group.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateDataGroupRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/group/data": {
+            "get": {
+                "description": "Get group's datasource.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Get group's datasource.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Data group's id",
+                        "name": "groupId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "apm or normal, return all when empty",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetGroupDatasourceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/group/delete": {
+            "post": {
+                "description": "Delete the data group.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Delete the data group.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Data group's id",
+                        "name": "groupId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/group/operation": {
+            "post": {
+                "description": "Assign data groups to users or teams, or remove them from data groups.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Assign data groups to users or teams, or remove them from data groups.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DataGroupOperationRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/group/update": {
+            "post": {
+                "description": "Updates data group.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Updates data group.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateDataGroupRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/sub/group": {
+            "get": {
+                "description": "Get subject's assigned data group.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Get subject's assigned data group.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "The id of authorized subject",
+                        "name": "subjectId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The type of authorized subject",
+                        "name": "subjectType",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "apm or normal, return all if is empty",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.DataGroup"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/subs": {
+            "get": {
+                "description": "Get group's assigned subjects.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Get group's assigned subjects.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "data group's id",
+                        "name": "groupId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "subject type that you want to query",
+                        "name": "subjectType",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.AuthDataGroup"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/subs/operation": {
+            "post": {
+                "description": "Manage group's assigned subject.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Manage group's assigned subject.",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GroupSubsOperationRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/health": {
             "get": {
                 "description": "for k8s to check backend health status",
@@ -2912,7 +3384,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "user id",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "query",
                         "required": true
@@ -3012,7 +3484,7 @@ const docTemplate = `{
                             "type": "integer"
                         },
                         "collectionFormat": "multi",
-                        "description": "function id list",
+                        "description": "The list of feature's id",
                         "name": "permissionList",
                         "in": "formData",
                         "required": true
@@ -3056,21 +3528,21 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "authorization principal id",
+                        "description": "The id of authorized subject",
                         "name": "subjectId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Authorization principal type: 'role','user','team '",
+                        "description": "The type of authorized subject: 'role','user','team'",
                         "name": "subjectType",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Authorization type: 'feature','data '",
+                        "description": "The type of authorization: 'feature','data'",
                         "name": "type",
                         "in": "formData",
                         "required": true
@@ -3081,7 +3553,7 @@ const docTemplate = `{
                             "type": "integer"
                         },
                         "collectionFormat": "multi",
-                        "description": "list of permission ids",
+                        "description": "The list of permissions' id",
                         "name": "permissionList",
                         "in": "formData"
                     }
@@ -3091,142 +3563,6 @@ const docTemplate = `{
                         "description": "ok",
                         "schema": {
                             "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/permission/role": {
-            "get": {
-                "description": "Get user's role.",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.permission"
-                ],
-                "summary": "Get user's role.",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "user id",
-                        "name": "userId",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/database.Role"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/permission/role/operation": {
-            "post": {
-                "description": "Grants permission to user",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.permission"
-                ],
-                "summary": "Grant or revoke user's role.",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "user id",
-                        "name": "userId",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "multi",
-                        "description": "role id",
-                        "name": "roleList",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/permission/roles": {
-            "get": {
-                "description": "Gets all roles.",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.permission"
-                ],
-                "summary": "Gets all roles.",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/database.Role"
-                            }
                         }
                     },
                     "400": {
@@ -3260,14 +3596,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "authorization principal id",
+                        "description": "The id of authorized subject",
                         "name": "subjectId",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Authorization Principal Type",
+                        "description": "user, role, team",
                         "name": "subjectType",
                         "in": "query",
                         "required": true
@@ -3280,6 +3616,323 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/database.Feature"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/role/create": {
+            "post": {
+                "description": "Creates a role.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.role"
+                ],
+                "summary": "Creates a role.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Role's name",
+                        "name": "roleName",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The description of role.",
+                        "name": "description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Role's initial feature permission id list.",
+                        "name": "permissionList",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "The id of users which will be granted the role.",
+                        "name": "userList",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/role/delete": {
+            "post": {
+                "description": "Delete a role.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.role"
+                ],
+                "summary": "Delete a role.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Role's id",
+                        "name": "roleId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/role/operation": {
+            "post": {
+                "description": "Grants permission to user",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.role"
+                ],
+                "summary": "Grant or revoke user's role.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User's id",
+                        "name": "userId",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "The id list of role which user has.",
+                        "name": "roleList",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/role/roles": {
+            "get": {
+                "description": "Gets all roles.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.role"
+                ],
+                "summary": "Gets all roles.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Role"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/role/update": {
+            "post": {
+                "description": "Update role's name and permission.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.role"
+                ],
+                "summary": "Update role's name and permission.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Role's id.",
+                        "name": "roleId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Role's name",
+                        "name": "roleName",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The description of role.",
+                        "name": "description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Role's feature permission id list.",
+                        "name": "permissionList",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/role/user": {
+            "get": {
+                "description": "Get user's role.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.role"
+                ],
+                "summary": "Get user's role.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User's id",
+                        "name": "userId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Role"
                             }
                         }
                     },
@@ -3735,14 +4388,20 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "query start time",
+                        "description": "data group id",
+                        "name": "groupId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "start time",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "query end time",
+                        "description": "end time",
                         "name": "endTime",
                         "in": "query",
                         "required": true
@@ -3780,13 +4439,13 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "collectionFormat": "multi",
-                        "description": "service endpoint",
+                        "description": "endpoint",
                         "name": "endpointName",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "sort logic",
+                        "description": "sort rule",
                         "name": "sortRule",
                         "in": "query",
                         "required": true
@@ -5570,6 +6229,372 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/team": {
+            "get": {
+                "description": "Get teams.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.team"
+                ],
+                "summary": "Get teams.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Team's name",
+                        "name": "teamName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "The list of feature's id",
+                        "name": "featureList",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "The list of data group's id",
+                        "name": "dataGroupList",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Current page",
+                        "name": "currentPage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetTeamResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/team/create": {
+            "post": {
+                "description": "Creates a team.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.team"
+                ],
+                "summary": "Creates a team.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateTeamRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/team/delete": {
+            "post": {
+                "description": "Delete a team.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.team"
+                ],
+                "summary": "Delete a team.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Team's id",
+                        "name": "teamId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/team/operation": {
+            "post": {
+                "description": "Assigns a user to teams or removes a user from teams.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.team"
+                ],
+                "summary": "Assigns a user to teams or removes a user from teams.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User's id",
+                        "name": "userId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "The list of team id.",
+                        "name": "teamList",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/team/update": {
+            "post": {
+                "description": "Update team's information.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.team"
+                ],
+                "summary": "Update team's information.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateTeamRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/team/user": {
+            "get": {
+                "description": "Get team's users.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.team"
+                ],
+                "summary": "Get team's users.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Team's id",
+                        "name": "teamId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.User"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/team/user/operation": {
+            "post": {
+                "description": "Assigns users to a team or remove users from a team.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.team"
+                ],
+                "summary": "Assigns users to a team or remove users from a team.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Team's id",
+                        "name": "teamId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "The list of users' id.",
+                        "name": "userList",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/trace/flame": {
             "get": {
                 "description": "get the flame chart data of the specified time period and specified conditions",
@@ -5975,7 +7000,7 @@ const docTemplate = `{
         },
         "/api/user/create": {
             "post": {
-                "description": "create user",
+                "description": "Create a user.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -5985,7 +7010,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "create user",
+                "summary": "Create a user.",
                 "parameters": [
                     {
                         "type": "string",
@@ -6061,7 +7086,7 @@ const docTemplate = `{
         },
         "/api/user/info": {
             "get": {
-                "description": "get personal information",
+                "description": "Get user's info.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6071,8 +7096,14 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "get personal information",
+                "summary": "Get user's info.",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User's id",
+                        "name": "userId",
+                        "in": "query"
+                    },
                     {
                         "type": "string",
                         "description": "Bearer accessToken",
@@ -6098,7 +7129,7 @@ const docTemplate = `{
         },
         "/api/user/list": {
             "get": {
-                "description": "get user list",
+                "description": "Get user list.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6108,7 +7139,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "get user list",
+                "summary": "Get user list.",
                 "parameters": [
                     {
                         "type": "string",
@@ -6118,31 +7149,45 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "username",
+                        "description": "Username",
                         "name": "username",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "current page",
+                        "description": "Current page",
                         "name": "currentPage",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Page size",
+                        "description": "The size of page",
                         "name": "pageSize",
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "role",
-                        "name": "role",
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Role id list",
+                        "name": "roleList",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Team id list",
+                        "name": "teamList",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "organization",
+                        "description": "组织",
                         "name": "corporation",
                         "in": "query"
                     }
@@ -6165,7 +7210,7 @@ const docTemplate = `{
         },
         "/api/user/login": {
             "post": {
-                "description": "login",
+                "description": "Login",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6175,18 +7220,18 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "login",
+                "summary": "Login",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "username",
+                        "description": "Username",
                         "name": "username",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "password",
+                        "description": "Password",
                         "name": "password",
                         "in": "formData",
                         "required": true
@@ -6210,7 +7255,7 @@ const docTemplate = `{
         },
         "/api/user/logout": {
             "post": {
-                "description": "logout",
+                "description": "Logout",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6220,7 +7265,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "logout",
+                "summary": "Logout",
                 "parameters": [
                     {
                         "type": "string",
@@ -6255,7 +7300,7 @@ const docTemplate = `{
         },
         "/api/user/refresh": {
             "get": {
-                "description": "refresh accessToken",
+                "description": "Refresh accessToken",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6265,7 +7310,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "refresh accessToken",
+                "summary": "Refresh accessToken",
                 "parameters": [
                     {
                         "type": "string",
@@ -6293,7 +7338,7 @@ const docTemplate = `{
         },
         "/api/user/remove": {
             "post": {
-                "description": "remove user",
+                "description": "Remove a user.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6303,7 +7348,7 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "remove user",
+                "summary": "Remove a user.",
                 "parameters": [
                     {
                         "type": "string",
@@ -6313,7 +7358,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "request information",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
@@ -6337,7 +7382,7 @@ const docTemplate = `{
         },
         "/api/user/reset": {
             "post": {
-                "description": "reset password",
+                "description": "Reset user's password.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6347,25 +7392,25 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "reset password",
+                "summary": "Reset user's password.",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "user id",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "new password",
+                        "description": "New password",
                         "name": "newPassword",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "repeat password",
+                        "description": "Confirm password",
                         "name": "confirmPassword",
                         "in": "formData",
                         "required": true
@@ -6394,9 +7439,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/user/update/email": {
-            "post": {
-                "description": "update/bind mailbox",
+        "/api/user/team": {
+            "get": {
+                "description": "Get user's team.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6406,18 +7451,65 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "update/bind mailbox",
+                "summary": "Get user's team.",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "user id",
+                        "description": "User's is",
+                        "name": "userId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Team"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/update/email": {
+            "post": {
+                "description": "Update email.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "Update email.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "mailbox",
+                        "description": "Email",
                         "name": "email",
                         "in": "formData",
                         "required": true
@@ -6448,7 +7540,7 @@ const docTemplate = `{
         },
         "/api/user/update/info": {
             "post": {
-                "description": "update personal information",
+                "description": "Update user's info.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6458,18 +7550,28 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "update personal information",
+                "summary": "Update user's info.",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "user id",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "The list of user's role.",
+                        "name": "roleList",
+                        "in": "formData"
+                    },
+                    {
                         "type": "string",
-                        "description": "organization",
+                        "description": "Corporation",
                         "name": "corporation",
                         "in": "formData"
                     },
@@ -6481,7 +7583,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "mailbox",
+                        "description": "Email",
                         "name": "email",
                         "in": "formData"
                     },
@@ -6511,7 +7613,7 @@ const docTemplate = `{
         },
         "/api/user/update/password": {
             "post": {
-                "description": "update password",
+                "description": "Update password.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6521,25 +7623,25 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "update password",
+                "summary": "Update password.",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "user id",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "original password",
+                        "description": "Original password",
                         "name": "oldPassword",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "new password",
+                        "description": "New password",
                         "name": "newPassword",
                         "in": "formData",
                         "required": true
@@ -6577,7 +7679,7 @@ const docTemplate = `{
         },
         "/api/user/update/phone": {
             "post": {
-                "description": "update/bind phone number",
+                "description": "Update phone number",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6587,21 +7689,84 @@ const docTemplate = `{
                 "tags": [
                     "API.user"
                 ],
-                "summary": "update/bind phone number",
+                "summary": "Update phone number",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "user id",
+                        "description": "User's id",
                         "name": "userId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "phone number",
+                        "description": "Phone number",
                         "name": "phone",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/update/self": {
+            "post": {
+                "description": "Update self info.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "Update self info.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User's id",
+                        "name": "userId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Corporation",
+                        "name": "corporation",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Phone number",
+                        "name": "phone",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Email",
+                        "name": "email",
+                        "in": "formData"
                     },
                     {
                         "type": "string",
@@ -7213,6 +8378,12 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "raw_tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
                 "receivedTime": {
                     "description": "Failure event reception time (used to record data connection, no business meaning)",
                     "type": "string"
@@ -7321,6 +8492,12 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "raw_tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "receivedTime": {
                     "description": "Failure event reception time (used to record data connection, no business meaning)",
@@ -7521,6 +8698,64 @@ const docTemplate = `{
                 }
             }
         },
+        "database.AuthDataGroup": {
+            "type": "object",
+            "properties": {
+                "team": {
+                    "$ref": "#/definitions/database.Team"
+                },
+                "type": {
+                    "description": "view, edit",
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/database.User"
+                }
+            }
+        },
+        "database.DataGroup": {
+            "type": "object",
+            "properties": {
+                "authType": {
+                    "type": "string"
+                },
+                "datasourceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.DatasourceGroup"
+                    }
+                },
+                "description": {
+                    "description": "The description of data group.",
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "groupName": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.DatasourceGroup": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "apm or normal",
+                    "type": "string"
+                },
+                "datasource": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "service or namespace",
+                    "type": "string"
+                }
+            }
+        },
         "database.Feature": {
             "type": "object",
             "properties": {
@@ -7582,6 +8817,9 @@ const docTemplate = `{
         "database.Role": {
             "type": "object",
             "properties": {
+                "description": {
+                    "type": "string"
+                },
                 "roleId": {
                     "type": "integer"
                 },
@@ -7607,6 +8845,32 @@ const docTemplate = `{
                 }
             }
         },
+        "database.Team": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Feature"
+                    }
+                },
+                "teamId": {
+                    "type": "integer"
+                },
+                "teamName": {
+                    "type": "string"
+                },
+                "userList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.User"
+                    }
+                }
+            }
+        },
         "database.User": {
             "type": "object",
             "properties": {
@@ -7625,13 +8889,16 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
-                "role": {
-                    "type": "string"
-                },
                 "roleList": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/database.Role"
+                    }
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Team"
                     }
                 },
                 "userId": {
@@ -7959,6 +9226,30 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Datasource": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "normal or apm",
+                    "type": "string"
+                },
+                "datasource": {
+                    "description": "namespaceName or serviceName",
+                    "type": "string"
+                },
+                "nested": {
+                    "description": "Nested datasource (namespace service belongs to or service under namespace)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "type": {
+                    "description": "namespace or service",
+                    "type": "string"
+                }
+            }
+        },
         "model.ModifyTableTTLMap": {
             "type": "object",
             "properties": {
@@ -8261,6 +9552,18 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AuthDataGroup": {
+            "type": "object",
+            "properties": {
+                "subjectId": {
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "edit or view",
+                    "type": "string"
+                }
+            }
+        },
         "request.BufferEngineConfig": {
             "type": "object",
             "properties": {
@@ -8284,6 +9587,94 @@ const docTemplate = `{
                 },
                 "numLayers": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.CreateDataGroupRequest": {
+            "type": "object",
+            "required": [
+                "groupName"
+            ],
+            "properties": {
+                "datasourceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Datasource"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "groupName": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.CreateTeamRequest": {
+            "type": "object",
+            "required": [
+                "teamName"
+            ],
+            "properties": {
+                "dataGroupPermission": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.DataGroupPermission"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "teamName": {
+                    "type": "string"
+                },
+                "userList": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "request.DataGroupOperationRequest": {
+            "type": "object",
+            "required": [
+                "subjectId",
+                "subjectType"
+            ],
+            "properties": {
+                "dataGroupPermission": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.DataGroupPermission"
+                    }
+                },
+                "subjectId": {
+                    "type": "integer"
+                },
+                "subjectType": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.DataGroupPermission": {
+            "type": "object",
+            "required": [
+                "groupId",
+                "type"
+            ],
+            "properties": {
+                "groupId": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
                 }
             }
         },
@@ -8466,6 +9857,26 @@ const docTemplate = `{
                 }
             }
         },
+        "request.GetDataGroupRequest": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "datasourceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Datasource"
+                    }
+                },
+                "groupName": {
+                    "type": "string"
+                },
+                "pageSize": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.GetFaultLogContentRequest": {
             "type": "object",
             "properties": {
@@ -8491,6 +9902,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "serviceName": {
+                    "description": "unused",
                     "type": "string"
                 },
                 "sourceFrom": {
@@ -8517,6 +9929,10 @@ const docTemplate = `{
                 },
                 "endTime": {
                     "description": "query end time",
+                    "type": "integer"
+                },
+                "groupId": {
+                    "description": "Data group id",
                     "type": "integer"
                 },
                 "instance": {
@@ -8623,6 +10039,10 @@ const docTemplate = `{
                         "$ref": "#/definitions/request.SpanTraceFilter"
                     }
                 },
+                "groupId": {
+                    "description": "Data group id",
+                    "type": "integer"
+                },
                 "instance": {
                     "description": "instance name",
                     "type": "string"
@@ -8663,6 +10083,29 @@ const docTemplate = `{
                 "traceId": {
                     "description": "TraceId",
                     "type": "string"
+                }
+            }
+        },
+        "request.GroupSubsOperationRequest": {
+            "type": "object",
+            "required": [
+                "groupId"
+            ],
+            "properties": {
+                "groupId": {
+                    "type": "integer"
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.AuthDataGroup"
+                    }
+                },
+                "userList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.AuthDataGroup"
+                    }
                 }
             }
         },
@@ -8975,6 +10418,30 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateDataGroupRequest": {
+            "type": "object",
+            "required": [
+                "groupId",
+                "groupName"
+            ],
+            "properties": {
+                "datasourceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Datasource"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "groupName": {
+                    "type": "string"
+                }
+            }
+        },
         "request.UpdateLogParseRequest": {
             "type": "object",
             "properties": {
@@ -9012,6 +10479,36 @@ const docTemplate = `{
                     }
                 },
                 "tableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateTeamRequest": {
+            "type": "object",
+            "required": [
+                "teamId",
+                "teamName"
+            ],
+            "properties": {
+                "dataGroupPermission": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.DataGroupPermission"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "teamId": {
+                    "type": "integer"
+                },
+                "teamName": {
                     "type": "string"
                 }
             }
@@ -9331,6 +10828,46 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetDataGroupResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "description": "current page number",
+                    "type": "integer"
+                },
+                "dataGroupList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.DataGroup"
+                    }
+                },
+                "pageSize": {
+                    "description": "number of entries per page",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "total number of records",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.GetDatasourceResponse": {
+            "type": "object",
+            "properties": {
+                "namespaceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Datasource"
+                    }
+                },
+                "serviceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Datasource"
+                    }
+                }
+            }
+        },
         "response.GetDescendantMetricsResponse": {
             "type": "object",
             "properties": {
@@ -9492,6 +11029,31 @@ const docTemplate = `{
                 },
                 "tid": {
                     "type": "integer"
+                }
+            }
+        },
+        "response.GetGroupDatasourceResponse": {
+            "type": "object",
+            "properties": {
+                "namespaceMap": {
+                    "description": "namespace: services",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "serviceMap": {
+                    "description": "service: endpoints",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
                 }
             }
         },
@@ -9783,6 +11345,29 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetTeamResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "description": "current page number",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "number of entries per page",
+                    "type": "integer"
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Team"
+                    }
+                },
+                "total": {
+                    "description": "total number of records",
+                    "type": "integer"
+                }
+            }
+        },
         "response.GetTraceFilterValueResponse": {
             "type": "object",
             "properties": {
@@ -9893,13 +11478,16 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
-                "role": {
-                    "type": "string"
-                },
                 "roleList": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/database.Role"
+                    }
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Team"
                     }
                 },
                 "userId": {
@@ -10322,13 +11910,16 @@ const docTemplate = `{
                     "description": "refreshToken for refreshing accessToken",
                     "type": "string"
                 },
-                "role": {
-                    "type": "string"
-                },
                 "roleList": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/database.Role"
+                    }
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Team"
                     }
                 },
                 "userId": {

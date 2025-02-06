@@ -1,5 +1,249 @@
 basePath: /
 definitions:
+  alert.AlerEnrichRuleConfigRequest:
+    properties:
+      enrichRuleConfigs:
+        items:
+          $ref: '#/definitions/alert.AlertEnrichRuleVO'
+        type: array
+      setAsDefault:
+        type: boolean
+      sourceId:
+        type: string
+    type: object
+  alert.AlertEnrichCondition:
+    properties:
+      expr:
+        type: string
+      fromField:
+        type: string
+      operation:
+        description: support match,not match,gt,lt,ge,le,eq
+        type: string
+    type: object
+  alert.AlertEnrichRuleVO:
+    properties:
+      conditions:
+        description: '--------------- conditions ----------------'
+        items:
+          $ref: '#/definitions/alert.AlertEnrichCondition'
+        type: array
+      customTag:
+        type: string
+      enrichRuleId:
+        type: string
+      fromField:
+        type: string
+      fromRegex:
+        type: string
+      rType:
+        type: string
+      schema:
+        description: '---------------- schemaMapping --------------'
+        type: string
+      schemaSource:
+        type: string
+      schemaTargets:
+        description: '--------------- schemaMapping -------------'
+        items:
+          $ref: '#/definitions/alert.AlertEnrichSchemaTarget'
+        type: array
+      sourceId:
+        type: string
+      targetTagId:
+        description: '---------------- tagMapping -----------------'
+        type: integer
+    type: object
+  alert.AlertEnrichSchemaTarget:
+    properties:
+      customTag:
+        type: string
+      schemaField:
+        type: string
+      targetTagId:
+        type: integer
+    type: object
+  alert.AlertSchemaRequest:
+    properties:
+      schema:
+        type: string
+    type: object
+  alert.AlertSource:
+    properties:
+      clusters:
+        items:
+          $ref: '#/definitions/alert.Cluster'
+        type: array
+      sourceId:
+        type: string
+      sourceName:
+        type: string
+      sourceType:
+        type: string
+    type: object
+  alert.CheckSchemaIsUsedReponse:
+    properties:
+      alertSourceNames:
+        items:
+          type: string
+        type: array
+      isUsing:
+        type: boolean
+    type: object
+  alert.Cluster:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  alert.CreateSchemaRequest:
+    properties:
+      columns:
+        items:
+          type: string
+        type: array
+      fullRows:
+        items:
+          items:
+            type: string
+          type: array
+        type: array
+      schema:
+        type: string
+    type: object
+  alert.DefaultAlertEnrichRuleRequest:
+    properties:
+      sourceType:
+        type: string
+    type: object
+  alert.DefaultAlertEnrichRuleResponse:
+    properties:
+      enrichRuleConfigs:
+        items:
+          $ref: '#/definitions/alert.AlertEnrichRuleVO'
+        type: array
+      sourceType:
+        type: string
+    type: object
+  alert.GetAlertEnrichRuleResponse:
+    properties:
+      enrichRuleConfigs:
+        items:
+          $ref: '#/definitions/alert.AlertEnrichRuleVO'
+        type: array
+      sourceId:
+        type: string
+    type: object
+  alert.GetSchemaColumnsResponse:
+    properties:
+      columns:
+        items:
+          type: string
+        type: array
+    type: object
+  alert.GetSchemaDataReponse:
+    properties:
+      columns:
+        items:
+          type: string
+        type: array
+      rows:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+    type: object
+  alert.GetTargetTagsResponse:
+    properties:
+      targetTags:
+        items:
+          $ref: '#/definitions/alert.TargetTag'
+        type: array
+    type: object
+  alert.ListAlertSourceResponse:
+    properties:
+      alertSources:
+        items:
+          $ref: '#/definitions/alert.AlertSource'
+        type: array
+    type: object
+  alert.ListClusterResponse:
+    properties:
+      clusters:
+        items:
+          $ref: '#/definitions/alert.Cluster'
+        type: array
+    type: object
+  alert.ListSchemaResponse:
+    properties:
+      schemas:
+        items:
+          type: string
+        type: array
+    type: object
+  alert.ListSchemaWithColumnsResponse:
+    properties:
+      schemas:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+    type: object
+  alert.SetDefaultAlertEnrichRuleRequest:
+    properties:
+      enrichRuleConfigs:
+        items:
+          $ref: '#/definitions/alert.AlertEnrichRuleVO'
+        type: array
+      sourceType:
+        type: string
+    type: object
+  alert.SourceFrom:
+    properties:
+      sourceId:
+        type: string
+      sourceName:
+        type: string
+      sourceType:
+        type: string
+    type: object
+  alert.TargetTag:
+    properties:
+      describe:
+        type: string
+      id:
+        type: integer
+      tagName:
+        type: string
+      targetTag:
+        type: string
+    type: object
+  alert.UpdateSchemaDataRequest:
+    properties:
+      clearAll:
+        type: boolean
+      columns:
+        items:
+          type: string
+        type: array
+      newRows:
+        items:
+          items:
+            type: string
+          type: array
+        type: array
+      schema:
+        type: string
+      updateRows:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+    type: object
   amconfig.DingTalkConfig:
     properties:
       secret:
@@ -127,22 +371,27 @@ definitions:
       alertKey:
         type: string
       createTime:
-        description: 故障触发时间
+        description: fault trigger time
         type: string
       detail:
         type: string
       endTime:
-        description: 故障恢复时间（仅恢复时存在）
+        description: Recovery time (only present at recovery)
         type: string
       group:
-        description: 故障所属分组信息
+        description: Fault group information
         type: string
       id:
         type: string
       name:
         type: string
+      raw_tags:
+        additionalProperties:
+          type: string
+        type: object
       receivedTime:
-        description: 故障事件接收时间（用于记录数据对接，无业务含义）
+        description: Failure event reception time (used to record data connection,
+          no business meaning)
         type: string
       severity:
         $ref: '#/definitions/model.SeverityLevel'
@@ -155,7 +404,7 @@ definitions:
           type: string
         type: object
       updateTime:
-        description: 故障最后一次发生时间
+        description: Last time the fault occurred
         type: string
     type: object
   clickhouse.FaultLogResult:
@@ -200,22 +449,27 @@ definitions:
   clickhouse.PagedAlertEvent:
     properties:
       createTime:
-        description: 故障触发时间
+        description: fault trigger time
         type: string
       detail:
         type: string
       endTime:
-        description: 故障恢复时间（仅恢复时存在）
+        description: Recovery time (only present at recovery)
         type: string
       group:
-        description: 故障所属分组信息
+        description: Fault group information
         type: string
       id:
         type: string
       name:
         type: string
+      raw_tags:
+        additionalProperties:
+          type: string
+        type: object
       receivedTime:
-        description: 故障事件接收时间（用于记录数据对接，无业务含义）
+        description: Failure event reception time (used to record data connection,
+          no business meaning)
         type: string
       severity:
         $ref: '#/definitions/model.SeverityLevel'
@@ -228,7 +482,7 @@ definitions:
           type: string
         type: object
       updateTime:
-        description: 故障最后一次发生时间
+        description: Last time the fault occurred
         type: string
     type: object
   clickhouse.ProfilingEvent:
@@ -254,7 +508,7 @@ definitions:
       startTime:
         type: integer
       threadName:
-        description: 线程名 表中在labels中
+        description: thread name table in labels
         type: string
       tid:
         type: integer
@@ -280,7 +534,7 @@ definitions:
       isError:
         type: boolean
       isMutated:
-        description: 延时是否突变
+        description: whether the delay changes abruptly
         type: integer
       isSlow:
         type: boolean
@@ -330,10 +584,10 @@ definitions:
   code.Failure:
     properties:
       code:
-        description: 业务码
+        description: business code
         type: string
       message:
-        description: 错误信息
+        description: error message
         type: string
     type: object
   database.AlertMetricsData:
@@ -455,6 +709,10 @@ definitions:
         type: integer
       teamName:
         type: string
+      userList:
+        items:
+          $ref: '#/definitions/database.User'
+        type: array
     type: object
   database.User:
     properties:
@@ -751,33 +1009,33 @@ definitions:
   model.Pagination:
     properties:
       currentPage:
-        description: 当前页码
+        description: current page number
         type: integer
       pageSize:
-        description: 每页条数
+        description: number of entries per page
         type: integer
       total:
-        description: 总记录数
+        description: total number of records
         type: integer
     type: object
   model.ServiceInstance:
     properties:
       containerId:
-        description: 容器ID
+        description: container ID
         type: string
       nodeIp:
         type: string
       nodeName:
-        description: 主机名
+        description: hostname
         type: string
       pid:
-        description: 进程号
+        description: process number
         type: integer
       podName:
-        description: Pod名
+        description: Pod name
         type: string
       service:
-        description: 服务名
+        description: service name
         type: string
     type: object
   model.SeverityLevel:
@@ -835,10 +1093,10 @@ definitions:
   prometheus.MetricsPoint:
     properties:
       timestamp:
-        description: 时间(微秒)
+        description: time (microseconds)
         type: integer
       value:
-        description: 值
+        description: value
         type: number
     type: object
   request.AddAlertManagerConfigReceiver:
@@ -850,7 +1108,7 @@ definitions:
       oldName:
         type: string
       type:
-        description: receiver类型
+        description: receiver type
         type: string
     type: object
   request.AddAlertRuleRequest:
@@ -881,7 +1139,7 @@ definitions:
           type: string
         type: array
       tableFields:
-        description: 自定义表字段
+        description: custom table fields
         items:
           $ref: '#/definitions/request.Field'
         type: array
@@ -1142,7 +1400,7 @@ definitions:
       refreshCache:
         type: boolean
       severity:
-        description: 告警级别 info warning ...
+        description: alarm level info warning...
         items:
           type: string
         type: array
@@ -1180,7 +1438,7 @@ definitions:
         description: unused
         type: string
       sourceFrom:
-        description: 日志数据源
+        description: log data source
         type: string
       startTime:
         type: integer
@@ -1190,40 +1448,40 @@ definitions:
   request.GetFaultLogPageListRequest:
     properties:
       containerId:
-        description: 容器名
+        description: container name
         type: string
       endTime:
-        description: 查询结束时间
+        description: query end time
         type: integer
       groupId:
         description: Data group id
         type: integer
       instance:
-        description: 实例名
+        description: instance name
         type: string
       namespaces:
         items:
           type: string
         type: array
       nodeName:
-        description: 主机名
+        description: hostname
         type: string
       pageNum:
-        description: 第几页
+        description: page
         type: integer
       pageSize:
-        description: 每页显示条数
+        description: display number per page
         type: integer
       pid:
-        description: 进程号
+        description: process number
         type: integer
       service:
-        description: 查询服务名
+        description: query service name
         items:
           type: string
         type: array
       startTime:
-        description: 查询开始时间
+        description: query start time
         minimum: 0
         type: integer
       traceId:
@@ -1242,15 +1500,15 @@ definitions:
   request.GetTraceFilterValueRequest:
     properties:
       endTime:
-        description: 查询结束时间
+        description: query end time
         type: integer
       filter:
         $ref: '#/definitions/request.SpanTraceFilter'
       searchText:
-        description: 查询关键字
+        description: query keyword
         type: string
       startTime:
-        description: 查询开始时间
+        description: query start time
         minimum: 0
         type: integer
     required:
@@ -1259,16 +1517,16 @@ definitions:
   request.GetTracePageListRequest:
     properties:
       containerId:
-        description: 容器名
+        description: container name
         type: string
       endTime:
-        description: 查询结束时间
+        description: query end time
         type: integer
       endpoint:
-        description: 查询Endpoint
+        description: query Endpoint
         type: string
       filters:
-        description: 过滤器
+        description: filter
         items:
           $ref: '#/definitions/request.SpanTraceFilter'
         type: array
@@ -1276,30 +1534,30 @@ definitions:
         description: Data group id
         type: integer
       instance:
-        description: 实例名
+        description: instance name
         type: string
       namespace:
         items:
           type: string
         type: array
       nodeName:
-        description: 主机名
+        description: hostname
         type: string
       pageNum:
-        description: 第几页
+        description: page
         type: integer
       pageSize:
         type: integer
       pid:
-        description: 进程号
+        description: process number
         type: integer
       service:
-        description: 查询服务名
+        description: query service name
         items:
           type: string
         type: array
       startTime:
-        description: 查询开始时间
+        description: query start time
         minimum: 0
         type: integer
       traceId:
@@ -1470,10 +1728,10 @@ definitions:
   request.SetSingleTTLRequest:
     properties:
       day:
-        description: 保存数据周期天数
+        description: save data cycle days
         type: integer
       name:
-        description: 表名
+        description: table name
         type: string
     required:
     - day
@@ -1482,7 +1740,7 @@ definitions:
   request.SetTTLRequest:
     properties:
       dataType:
-        description: 类型（日志、trace、Kubernetes、其他）
+        description: type (log, trace, Kubernetes, other)
         enum:
         - logs
         - trace
@@ -1491,7 +1749,7 @@ definitions:
         - topology
         type: string
       day:
-        description: 保存数据周期天数
+        description: save data cycle days
         type: integer
     required:
     - dataType
@@ -1521,7 +1779,7 @@ definitions:
       oldName:
         type: string
       type:
-        description: receiver类型
+        description: receiver type
         type: string
     type: object
   request.UpdateAlertRuleRequest:
@@ -1621,7 +1879,7 @@ definitions:
   response.CreateResponse:
     properties:
       id:
-        description: 主键ID
+        description: primary key ID
         type: integer
     type: object
   response.DBInfo:
@@ -1641,7 +1899,7 @@ definitions:
   response.DeleteResponse:
     properties:
       id:
-        description: 主键ID
+        description: primary key ID
         type: integer
     type: object
   response.DetailResponse:
@@ -1654,13 +1912,13 @@ definitions:
   response.Duration:
     properties:
       endTime:
-        description: 响应网络包时间戳，单位微秒
+        description: Timestamp of the response network packet, in microseconds
         type: integer
       responseDuration:
-        description: 响应延时
+        description: Response delay
         type: integer
       startTime:
-        description: 请求网络包时间戳，单位微秒
+        description: The timestamp of the request network packet, in microseconds.
         type: integer
     type: object
   response.EntryInstanceData:
@@ -1668,31 +1926,31 @@ definitions:
       alertReason:
         $ref: '#/definitions/model.AlertReason'
       appStatus:
-        description: 应用告警
+        description: application alarm
         type: string
       containerStatus:
-        description: 容器告警
+        description: container alarm
         type: string
       endpointCount:
         type: integer
       infrastructureStatus:
-        description: 基础设施告警
+        description: infrastructure alarm
         type: string
       k8sStatus:
-        description: K8s状态告警
+        description: K8s status alarm
         type: string
       logs:
         $ref: '#/definitions/response.TempChartObject'
       logsStatus:
-        description: 日志指标告警
+        description: log metric alarm
         type: string
       namespaces:
-        description: 应用所属命名空间,可能为空
+        description: The namespace of the application. It may be empty
         items:
           type: string
         type: array
       netStatus:
-        description: 网络告警
+        description: network alarm
         type: string
       serviceDetails:
         items:
@@ -1706,33 +1964,33 @@ definitions:
   response.ErrorInfo:
     properties:
       message:
-        description: 错误消息
+        description: error message
         type: string
       type:
-        description: 错误类型
+        description: error type
         type: string
     type: object
   response.ErrorInstance:
     properties:
       containerId:
-        description: 容器ID
+        description: container ID
         type: string
       logs:
         additionalProperties:
           type: number
-        description: 日志告警
+        description: log alarm
         type: object
       name:
-        description: 错误实例名
+        description: Bad instance name
         type: string
       nodeName:
-        description: 主机名
+        description: hostname
         type: string
       pid:
-        description: 进程号
+        description: process number
         type: integer
       propations:
-        description: 错误传播信息
+        description: error propagation info
         items:
           $ref: '#/definitions/response.ErrorPropation'
         type: array
@@ -1740,26 +1998,26 @@ definitions:
   response.ErrorPropation:
     properties:
       children:
-        description: 下游节点列表
+        description: downstream node list
         items:
           $ref: '#/definitions/response.InstanceNode'
         type: array
       current:
         allOf:
         - $ref: '#/definitions/response.InstanceNode'
-        description: 当前节点
+        description: current node
       errors:
-        description: 错误信息
+        description: error message
         items:
           $ref: '#/definitions/response.ErrorInfo'
         type: array
       parents:
-        description: 上游节点列表
+        description: upstream node list
         items:
           $ref: '#/definitions/response.InstanceNode'
         type: array
       timestamp:
-        description: 时间戳
+        description: timestamp
         type: integer
       traceId:
         description: TraceId
@@ -1815,17 +2073,17 @@ definitions:
   response.GetDataGroupResponse:
     properties:
       currentPage:
-        description: 当前页码
+        description: current page number
         type: integer
       dataGroupList:
         items:
           $ref: '#/definitions/database.DataGroup'
         type: array
       pageSize:
-        description: 每页条数
+        description: number of entries per page
         type: integer
       total:
-        description: 总记录数
+        description: total number of records
         type: integer
     type: object
   response.GetDatasourceResponse:
@@ -1845,73 +2103,74 @@ definitions:
         description: Endpoint
         type: string
       latencyP90:
-        description: P90曲线值
+        description: P90 curve value
         items:
           $ref: '#/definitions/prometheus.MetricsPoint'
         type: array
       serviceName:
-        description: 服务名
+        description: service name
         type: string
     type: object
   response.GetDescendantRelevanceResponse:
     properties:
       REDStatus:
-        description: RED指标告警
+        description: RED metric alarm
         type: string
       alertReason:
         $ref: '#/definitions/model.AlertReason'
       appStatus:
-        description: 应用告警
+        description: application alarm
         type: string
       containerStatus:
-        description: 容器告警
+        description: container alarm
         type: string
       delaySource:
-        description: 延时主要来源 unknown/self/dependency
+        description: main source of delay unknown/self/dependency
         type: string
       distance:
-        description: 延时曲线差异
+        description: delay curve difference
         type: number
       distanceType:
-        description: 延时曲线差异计算方式, 有euclidean/pearson/dtw/failed/net_failed四种
+        description: delay curve difference calculation method, there are four types
+          of euclidean/pearson/dtw/failed/net_failed
         type: string
       endpoint:
         description: Endpoint
         type: string
       group:
-        description: 服务类型
+        description: service type
         type: string
       infrastructureStatus:
-        description: 基础设施告警
+        description: infrastructure alarm
         type: string
       isTraced:
-        description: 是否跟踪
+        description: whether to trace
         type: boolean
       k8sStatus:
-        description: K8s状态告警
+        description: K8s status alarm
         type: string
       logsStatus:
-        description: 日志指标告警
+        description: log metric alarm
         type: string
       netStatus:
-        description: 网络告警
+        description: network alarm
         type: string
       serviceName:
-        description: 服务名
+        description: service name
         type: string
       timestamp:
-        description: 末次部署时间
+        description: Last deployment time
         type: integer
     type: object
   response.GetErrorInstanceResponse:
     properties:
       instances:
-        description: 错误实例列表
+        description: error instance list
         items:
           $ref: '#/definitions/response.ErrorInstance'
         type: array
       status:
-        description: 错误实例状态
+        description: Bad instance status
         type: string
     type: object
   response.GetFaultLogContentResponse:
@@ -1993,31 +2252,31 @@ definitions:
   response.GetLogMetricsResponse:
     properties:
       containerId:
-        description: 容器ID
+        description: container ID
         type: string
       errorRate:
         additionalProperties:
           type: number
-        description: 错误率
+        description: error rate
         type: object
       latency:
         additionalProperties:
           type: number
-        description: 延时P90
+        description: delay P90
         type: object
       logs:
         additionalProperties:
           type: number
-        description: 日志告警
+        description: log alarm
         type: object
       name:
-        description: 实例名
+        description: Instance name
         type: string
       nodeName:
-        description: 主机名
+        description: hostname
         type: string
       pid:
-        description: 进程号
+        description: process number
         type: integer
     type: object
   response.GetMetricPQLResponse:
@@ -2081,16 +2340,16 @@ definitions:
   response.GetServiceEndpointRelationResponse:
     properties:
       childRelations:
-        description: 下游节点调用关系列表
+        description: downstream node call relationship list
         items:
           $ref: '#/definitions/model.ToplogyRelation'
         type: array
       current:
         allOf:
         - $ref: '#/definitions/model.TopologyNode'
-        description: 当前服务
+        description: current service
       parents:
-        description: 上游节点列表
+        description: upstream node list
         items:
           $ref: '#/definitions/model.TopologyNode'
         type: array
@@ -2098,16 +2357,16 @@ definitions:
   response.GetServiceEndpointTopologyResponse:
     properties:
       children:
-        description: 下游节点列表
+        description: downstream node list
         items:
           $ref: '#/definitions/model.TopologyNode'
         type: array
       current:
         allOf:
         - $ref: '#/definitions/model.TopologyNode'
-        description: 当前服务
+        description: current service
       parents:
-        description: 上游节点列表
+        description: upstream node list
         items:
           $ref: '#/definitions/model.TopologyNode'
         type: array
@@ -2161,17 +2420,17 @@ definitions:
   response.GetTeamResponse:
     properties:
       currentPage:
-        description: 当前页码
+        description: current page number
         type: integer
       pageSize:
-        description: 每页条数
+        description: number of entries per page
         type: integer
       teamList:
         items:
           $ref: '#/definitions/database.Team'
         type: array
       total:
-        description: 总记录数
+        description: total number of records
         type: integer
     type: object
   response.GetTraceFilterValueResponse:
@@ -2189,31 +2448,31 @@ definitions:
   response.GetTraceMetricsResponse:
     properties:
       containerId:
-        description: 容器ID
+        description: container ID
         type: string
       errorRate:
         additionalProperties:
           type: number
-        description: 错误率
+        description: error rate
         type: object
       latency:
         additionalProperties:
           type: number
-        description: 延时P90
+        description: delay P90
         type: object
       logs:
         additionalProperties:
           type: number
-        description: 日志告警
+        description: log alarm
         type: object
       name:
-        description: 实例名
+        description: Instance name
         type: string
       nodeName:
-        description: 主机名
+        description: hostname
         type: string
       pid:
-        description: 进程号
+        description: process number
         type: integer
     type: object
   response.GetTracePageListResponse:
@@ -2264,13 +2523,13 @@ definitions:
   response.GetUserListResponse:
     properties:
       currentPage:
-        description: 当前页码
+        description: current page number
         type: integer
       pageSize:
-        description: 每页条数
+        description: number of entries per page
         type: integer
       total:
-        description: 总记录数
+        description: total number of records
         type: integer
       users:
         items:
@@ -2300,33 +2559,33 @@ definitions:
       alertReason:
         $ref: '#/definitions/model.AlertReason'
       appStatus:
-        description: 应用告警
+        description: application alarm
         type: string
       containerStatus:
-        description: 容器告警
+        description: container alarm
         type: string
       errorRate:
         $ref: '#/definitions/response.TempChartObject'
       infrastructureStatus:
-        description: 基础设施告警
+        description: infrastructure alarm
         type: string
       k8sStatus:
-        description: K8s状态告警
+        description: K8s status alarm
         type: string
       latency:
         $ref: '#/definitions/response.TempChartObject'
       logs:
         $ref: '#/definitions/response.TempChartObject'
       logsStatus:
-        description: 日志指标告警
+        description: log metric alarm
         type: string
       name:
-        description: 实例名
+        description: Instance name
         type: string
       namespace:
         type: string
       netStatus:
-        description: 网络告警
+        description: network alarm
         type: string
       nodeIP:
         type: string
@@ -2382,7 +2641,7 @@ definitions:
         description: ID
         type: integer
       name:
-        description: 用户名
+        description: username
         type: string
     type: object
   response.ListResponse:
@@ -2521,7 +2780,7 @@ definitions:
   response.LoginResponse:
     properties:
       accessToken:
-        description: accessToken用于调用接口获取资源
+        description: accessToken is used to call the interface get resources
         type: string
       corporation:
         type: string
@@ -2534,7 +2793,7 @@ definitions:
       phone:
         type: string
       refreshToken:
-        description: refreshToken用于刷新accessToken
+        description: refreshToken for refreshing accessToken
         type: string
       roleList:
         items:
@@ -2589,13 +2848,13 @@ definitions:
   response.Pagination:
     properties:
       current_page:
-        description: 当前页码
+        description: current page number
         type: integer
       per_page_count:
-        description: 每页条数
+        description: number of pieces per page
         type: integer
       total:
-        description: 总记录数
+        description: total number of records
         type: integer
     type: object
   response.Parse:
@@ -2658,16 +2917,16 @@ definitions:
   response.Ratio:
     properties:
       dayOverDay:
-        description: DayOverDay 日同比变化率
+        description: Day-over-Day Growth Rate
         type: number
       weekOverDay:
-        description: WeekOverDay 周同比变化率
+        description: Week-over-Week Growth Rate
         type: number
     type: object
   response.RefreshTokenResponse:
     properties:
       accessToken:
-        description: accessToken用于调用接口获取资源
+        description: accessToken is used to call the interface get resources
         type: string
     type: object
   response.SQLOperationDetail:
@@ -2692,58 +2951,58 @@ definitions:
       tps:
         allOf:
         - $ref: '#/definitions/response.TempChartObject'
-        description: FIXME Tps 名称为tps,实际为每分钟请求数
+        description: FIXME Tps name is tps, actual requests per minute
     type: object
   response.SegmentLatency:
     properties:
       clientK8SNodeNic:
         allOf:
         - $ref: '#/definitions/response.Duration'
-        description: 在客户端主机网卡处采集到的请求和响应时间
+        description: Request and response time collected at the client host NIC
       clientNic:
         allOf:
         - $ref: '#/definitions/response.Duration'
-        description: 在客户端网卡处采集到的请求和响应时间
+        description: Request and response time collected at the client NIC
       clientProcess:
         allOf:
         - $ref: '#/definitions/response.Duration'
-        description: 在客户端进程处采集到的请求和响应时间
+        description: Request and response times collected at the client process
       serverK8SNodeNic:
         allOf:
         - $ref: '#/definitions/response.Duration'
-        description: 在服务端主机网卡处采集到的请求和响应时间
+        description: Request and response time collected at the server host NIC
       serverNic:
         allOf:
         - $ref: '#/definitions/response.Duration'
-        description: 在服务端网卡处采集到的请求和响应时间
+        description: Request and response time collected at the server NIC
       serverProcess:
         allOf:
         - $ref: '#/definitions/response.Duration'
-        description: 在服务端进程处采集到的请求和响应时间
+        description: Request and response time collected at the server process
     type: object
   response.ServiceAlertRes:
     properties:
       alertReason:
         $ref: '#/definitions/model.AlertReason'
       appStatus:
-        description: 应用告警
+        description: application alarm
         type: string
       containerStatus:
-        description: 容器告警
+        description: container alarm
         type: string
       infrastructureStatus:
-        description: 基础设施告警
+        description: infrastructure alarm
         type: string
       k8sStatus:
-        description: K8s状态告警
+        description: K8s status alarm
         type: string
       logs:
         $ref: '#/definitions/response.TempChartObject'
       logsStatus:
-        description: 日志指标告警
+        description: log metric alarm
         type: string
       netStatus:
-        description: 网络告警
+        description: network alarm
         type: string
       serviceName:
         type: string
@@ -2763,14 +3022,14 @@ definitions:
       tps:
         allOf:
         - $ref: '#/definitions/response.TempChartObject'
-        description: FIXME 名称为tps,实际为每分钟请求数
+        description: FIXME name is tps, actual requests per minute
     type: object
   response.ServiceEndPointsRes:
     properties:
       endpointCount:
         type: integer
       namespaces:
-        description: 应用所属命名空间,可能为空
+        description: The namespace of the application. It may be empty
         items:
           type: string
         type: array
@@ -2791,10 +3050,10 @@ definitions:
   response.ServiceRYGResult:
     properties:
       percentScore:
-        description: 百分比总分
+        description: percentage total score
         type: integer
       score:
-        description: 总分
+        description: total score
         type: integer
       scoreDetail:
         items:
@@ -2814,14 +3073,14 @@ definitions:
       chartData:
         additionalProperties:
           type: number
-        description: ChartData 图表数据
+        description: ChartData chart data
         type: object
       ratio:
         allOf:
         - $ref: '#/definitions/response.Ratio'
-        description: Ratio 指标同比变化率
+        description: Ratio metric Day-over-Day Growth Rate rate
       value:
-        description: Value 指标平均值
+        description: Value metric average
         type: number
     type: object
 info:
@@ -2829,16 +3088,598 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  title: swagger 接口文档
+  title: swagger interface documentation
   version: "2.0"
 paths:
+  /api/alertinput/cluster/create:
+    post:
+      consumes:
+      - application/json
+      description: Create Cluster
+      parameters:
+      - description: Cluster Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Create Cluster
+      tags:
+      - API.alertinput
+  /api/alertinput/cluster/delete:
+    post:
+      consumes:
+      - application/json
+      description: DeleteCluster
+      parameters:
+      - description: Cluster Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: DeleteCluster
+      tags:
+      - API.alertinput
+  /api/alertinput/cluster/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: ListCluster
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.ListClusterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: ListCluster
+      tags:
+      - API.alertinput
+  /api/alertinput/cluster/update:
+    post:
+      consumes:
+      - application/json
+      description: UpdateCluster
+      parameters:
+      - description: Cluster Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: UpdateCluster
+      tags:
+      - API.alertinput
+  /api/alertinput/event/json:
+    post:
+      consumes:
+      - application/json
+      description: Receive data from a specific data source based on a JSON structure
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Receive data from a specific data source based on a JSON structure
+      tags:
+      - API.alertinput
+  /api/alertinput/event/source:
+    post:
+      consumes:
+      - application/json
+      description: Receive data based on alarm source configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Receive data based on alarm source configuration
+      tags:
+      - API.alertinput
+  /api/alertinput/schema/column/get:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: GetSchemaColumns
+      parameters:
+      - description: Schema Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.AlertSchemaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.GetSchemaColumnsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: GetSchemaColumns
+      tags:
+      - API.alertinput
+  /api/alertinput/schema/create:
+    post:
+      consumes:
+      - application/json
+      description: CreateSchema
+      parameters:
+      - description: Schema Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.CreateSchemaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: CreateSchema
+      tags:
+      - API.alertinput
+  /api/alertinput/schema/data/get:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: core.HandlerFunc
+      parameters:
+      - description: Schema Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.AlertSchemaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.GetSchemaDataReponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: core.HandlerFunc
+      tags:
+      - API.alertinput
+  /api/alertinput/schema/data/update:
+    post:
+      consumes:
+      - application/json
+      description: UpdateSchemaData
+      parameters:
+      - description: Update SchemaData Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.UpdateSchemaDataRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: UpdateSchemaData
+      tags:
+      - API.alertinput
+  /api/alertinput/schema/delete:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: DeleteSchema
+      parameters:
+      - description: SchemaInfo
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.AlertSchemaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: DeleteSchema
+      tags:
+      - API.alertinput
+  /api/alertinput/schema/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: ListSchema
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.ListSchemaResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: ListSchema
+      tags:
+      - API.ListSchema
+  /api/alertinput/schema/listwithcolumns:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: ListSchemaWithColumns
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.ListSchemaWithColumnsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: ListSchemaWithColumns
+      tags:
+      - API.alertinput
+  /api/alertinput/schema/used/check:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Check whether the mapping structure is used
+      parameters:
+      - description: Schema Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.AlertSchemaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.CheckSchemaIsUsedReponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Check whether the mapping structure is used
+      tags:
+      - API.alertinput
+  /api/alertinput/source/create:
+    post:
+      consumes:
+      - application/json
+      description: Create Alarm Source
+      parameters:
+      - description: AlertSource
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.AlertSource'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.AlertSource'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Create Alarm Source
+      tags:
+      - API.alertinput
+  /api/alertinput/source/delete:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: DeleteAlertSource
+      parameters:
+      - description: alertSource
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.SourceFrom'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.SourceFrom'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: DeleteAlertSource
+      tags:
+      - API.alertinput
+  /api/alertinput/source/enrich/default:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: GetDefaultAlertEnrichRule
+      parameters:
+      - description: Source Type
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.DefaultAlertEnrichRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.DefaultAlertEnrichRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: GetDefaultAlertEnrichRule
+      tags:
+      - API.alertinput
+  /api/alertinput/source/enrich/default/clear:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Clear default alarm rich rules
+      parameters:
+      - description: Request info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.DefaultAlertEnrichRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Clear default alarm rich rules
+      tags:
+      - API.alertinput
+  /api/alertinput/source/enrich/default/set:
+    post:
+      consumes:
+      - application/json
+      description: SetDefaultAlertEnrichRule
+      parameters:
+      - description: Default EnrichRule
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.SetDefaultAlertEnrichRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: SetDefaultAlertEnrichRule
+      tags:
+      - API.alertinput
+  /api/alertinput/source/enrich/get:
+    get:
+      consumes:
+      - application/json
+      description: GetAlertSourceEnrichRule
+      parameters:
+      - description: Source Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.SourceFrom'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.GetAlertEnrichRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: GetAlertSourceEnrichRule
+      tags:
+      - API.alertinput
+  /api/alertinput/source/enrich/update:
+    post:
+      consumes:
+      - application/json
+      description: UpdateAlertSourceEnrichRule
+      parameters:
+      - description: Update Config
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.AlerEnrichRuleConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: UpdateAlertSourceEnrichRule
+      tags:
+      - API.alertinput
+  /api/alertinput/source/get:
+    post:
+      consumes:
+      - application/json
+      description: GetAlertSource
+      parameters:
+      - description: Source Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.SourceFrom'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.AlertSource'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: GetAlertSource
+      tags:
+      - API.alertinput
+  /api/alertinput/source/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: ListAlertSource
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.ListAlertSourceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: ListAlertSource
+      tags:
+      - API.alertinput
+  /api/alertinput/source/update:
+    post:
+      consumes:
+      - application/json
+      description: UpdateAlertSource
+      parameters:
+      - description: alertSource Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/alert.AlertSource'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: UpdateAlertSource
+      tags:
+      - API.alertinput
   /api/alerts/alertmanager/receiver:
     delete:
       consumes:
       - application/json
-      description: 删除告警通知对象
+      description: delete alarm notification object
       parameters:
-      - description: 删除对象
+      - description: Delete object
         in: body
         name: Request
         required: true
@@ -2859,15 +3700,15 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 删除告警通知对象
+      summary: delete alarm notification object
       tags:
       - API.alerts
     post:
       consumes:
       - application/json
-      description: 更新告警通知对象
+      description: update alarm notification object
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -2888,16 +3729,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 更新告警通知对象
+      summary: update alarm notification object
       tags:
       - API.alerts
   /api/alerts/alertmanager/receiver/add:
     post:
       consumes:
       - application/json
-      description: 新增告警通知对象
+      description: new alarm notification object
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -2918,16 +3759,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 新增告警通知对象
+      summary: new alarm notification object
       tags:
       - API.alerts
   /api/alerts/alertmanager/receiver/list:
     post:
       consumes:
       - application/json
-      description: 列出告警通知对象
+      description: list alarm notification objects
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -2948,16 +3789,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 列出告警通知对象
+      summary: list alarm notification objects
       tags:
       - API.alerts
   /api/alerts/inputs/alertmanager:
     post:
       consumes:
       - application/json
-      description: 获取 AlertManager 的告警事件
+      description: get AlertManager alarm events
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -2974,22 +3815,22 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取 AlertManager 的告警事件
+      summary: get AlertManager alarm events
       tags:
       - API.alerts
   /api/alerts/outputs/dingtalk/{uuid}:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: 接收告警转发到钉钉
+      description: the received alarm is forwarded to the DingTalk
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
         schema:
           $ref: '#/definitions/request.ForwardToDingTalkRequest'
-      - description: 钉钉webhook对应的uuid
+      - description: DingTalk the uuid corresponding to the webhook
         in: path
         name: uuid
         required: true
@@ -3003,16 +3844,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 接收告警转发到钉钉
+      summary: the received alarm is forwarded to the DingTalk
       tags:
       - API.alerts
   /api/alerts/rule:
     delete:
       consumes:
       - application/x-www-form-urlencoded
-      description: 删除告警规则
+      description: delete alarm rules
       parameters:
-      - description: 删除对象
+      - description: Delete object
         in: body
         name: Request
         required: true
@@ -3033,15 +3874,15 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 删除告警规则
+      summary: delete alarm rules
       tags:
       - API.alerts
     post:
       consumes:
       - application/json
-      description: 更新告警规则
+      description: update alarm rules
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -3062,16 +3903,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 更新告警规则
+      summary: update alarm rules
       tags:
       - API.alerts
   /api/alerts/rule/add:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: 新增告警规则
+      description: new alarm rules
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -3090,25 +3931,25 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 新增告警规则
+      summary: new alarm rules
       tags:
       - API.alerts
   /api/alerts/rule/available:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 检查告警规则名是否可用
+      description: check whether the alarm rule name is available
       parameters:
-      - description: 查询告警规则文件名
+      - description: Query alarm rule file name
         in: query
         name: alertRuleFile
         type: string
-      - description: 组名
+      - description: group name
         in: query
         name: group
         required: true
         type: string
-      - description: 告警规则名
+      - description: Alarm rule name
         in: query
         name: alert
         required: true
@@ -3128,14 +3969,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 检查告警规则名是否可用
+      summary: check whether the alarm rule name is available
       tags:
       - API.alerts
   /api/alerts/rule/groups:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取group和label对应接口
+      description: get the corresponding interfaces of group and label
       parameters:
       - description: Bearer accessToken
         in: header
@@ -3152,16 +3993,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取group和label对应接口
+      summary: get the corresponding interfaces of group and label
       tags:
       - API.alerts
   /api/alerts/rule/list:
     post:
       consumes:
       - application/json
-      description: 列出告警规则
+      description: list alarm rules
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -3182,14 +4023,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 列出告警规则
+      summary: list alarm rules
       tags:
       - API.alerts
   /api/alerts/rule/metrics:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取告警规则中指标和PQL
+      description: get metrics and PQL in alarm rules
       parameters:
       - description: Bearer accessToken
         in: header
@@ -3206,16 +4047,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取告警规则中指标和PQL
+      summary: get metrics and PQL in alarm rules
       tags:
       - API.alerts
   /api/alerts/rules:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取基础告警规则
+      description: get basic alarm rules
       parameters:
-      - description: 查询告警规则文件名,为空返回所有
+      - description: Query alarm rule file name, if empty, return all
         in: query
         name: alertRuleFile
         type: string
@@ -3234,16 +4075,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取基础告警规则
+      summary: get basic alarm rules
       tags:
       - API.alerts
   /api/alerts/rules/file:
     post:
       consumes:
       - application/json
-      description: 更新基础告警规则
+      description: update basic alarm rules
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -3264,14 +4105,33 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 更新基础告警规则
+      summary: update basic alarm rules
       tags:
       - API.alerts
+  /api/alertsinput/enrich/tags/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: GetTargetTags
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.GetTargetTagsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: GetTargetTags
+      tags:
+      - API.alertinput
   /api/config/getTTL:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取TTL
+      description: get TTL
       parameters:
       - description: Bearer accessToken
         in: header
@@ -3288,16 +4148,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取TTL
+      summary: get TTL
       tags:
       - API.config
   /api/config/setSingleTableTTL:
     post:
       consumes:
       - application/json
-      description: 配置单个表格的TTL
+      description: configure the TTL of a single table
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -3314,16 +4174,16 @@ paths:
           description: OK
         "400":
           description: Bad Request
-      summary: 配置单个表格的TTL
+      summary: configure the TTL of a single table
       tags:
       - Api.config
   /api/config/setTTL:
     post:
       consumes:
       - application/json
-      description: 配置TTL
+      description: configuration TTL
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -3340,7 +4200,7 @@ paths:
           description: OK
         "400":
           description: Bad Request
-      summary: 配置TTL
+      summary: configuration TTL
       tags:
       - Api.config
   /api/data/datasource:
@@ -3657,7 +4517,7 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 用于k8s检查后端健康状态
+      description: for k8s to check backend health status
       produces:
       - application/json
       responses:
@@ -3669,14 +4529,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 用于k8s检查后端健康状态
+      summary: for k8s to check backend health status
   /api/k8s/namespace/info:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取namespace信息
+      description: get namespace information
       parameters:
-      - description: namespace名
+      - description: namespace name
         in: query
         name: namespace
         required: true
@@ -3692,14 +4552,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取namespace信息
+      summary: get namespace information
       tags:
       - API.k8s
   /api/k8s/namespaces:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取所有namespace信息
+      description: get all namespace information
       produces:
       - application/json
       responses:
@@ -3711,21 +4571,21 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取所有namespace信息
+      summary: get all namespace information
       tags:
       - API.k8s
   /api/k8s/pod/info:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取pod信息
+      description: get pod information
       parameters:
-      - description: namespace名
+      - description: namespace name
         in: query
         name: namespace
         required: true
         type: string
-      - description: pod名
+      - description: pod name
         in: query
         name: pod
         required: true
@@ -3741,16 +4601,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取pod信息
+      summary: get pod information
       tags:
       - API.k8s
   /api/k8s/pods:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取所有pod信息
+      description: get all pod information
       parameters:
-      - description: namespace名
+      - description: namespace name
         in: query
         name: namespace
         required: true
@@ -3766,16 +4626,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取所有pod信息
+      summary: get all pod information
       tags:
       - API.k8s
   /api/log/chart:
     post:
       consumes:
       - application/json
-      description: 获取日志趋势图
+      description: get the log trend chart
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -3796,16 +4656,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取日志趋势图
+      summary: get the log trend chart
       tags:
       - API.log
   /api/log/context:
     post:
       consumes:
       - application/json
-      description: 获取日志上下文
+      description: get log context
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -3826,14 +4686,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取日志上下文
+      summary: get log context
       tags:
       - API.log
   /api/log/fault/content:
     post:
-      description: 获取故障现场日志内容
+      description: get the contents of the fault site log
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -3854,16 +4714,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取故障现场日志内容
+      summary: get the contents of the fault site log
       tags:
       - API.log
   /api/log/fault/pagelist:
     post:
       consumes:
       - application/json
-      description: 获取故障现场分页日志
+      description: get fault site paging log
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -3884,16 +4744,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取故障现场分页日志
+      summary: get fault site paging log
       tags:
       - API.log
   /api/log/index:
     post:
       consumes:
       - application/json
-      description: 分析字段索引
+      description: analysis field index
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -3914,16 +4774,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 分析字段索引
+      summary: analysis field index
       tags:
       - API.log
   /api/log/other:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取外部日志表
+      description: get external log table
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -3944,16 +4804,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取外部日志表
+      summary: get external log table
       tags:
       - API.log
   /api/log/other/add:
     post:
       consumes:
       - application/json
-      description: 添加外部日志表
+      description: add external log table
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -3974,16 +4834,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 添加外部日志表
+      summary: add external log table
       tags:
       - API.log
   /api/log/other/delete:
     delete:
       consumes:
       - application/json
-      description: 移除外部日志表
+      description: remove external log table
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -4004,16 +4864,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 移除外部日志表
+      summary: remove external log table
       tags:
       - API.log
   /api/log/other/table:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取外部日志表信息
+      description: get external log table information
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -4034,16 +4894,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取外部日志表信息
+      summary: get external log table information
       tags:
       - API.log
   /api/log/query:
     post:
       consumes:
       - application/json
-      description: 查询全量日志
+      description: query full logs
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -4064,16 +4924,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 查询全量日志日志
+      summary: query all logs
       tags:
       - API.log
   /api/log/rule/add:
     post:
       consumes:
       - application/json
-      description: 新增日志表解析规则
+      description: new log table parsing rules
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -4094,16 +4954,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 新增日志表解析规则
+      summary: new log table parsing rules
       tags:
       - API.log
   /api/log/rule/delete:
     delete:
       consumes:
       - application/json
-      description: 删除日志表解析规则
+      description: delete log table parsing rules
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -4124,21 +4984,21 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 删除日志表解析规则
+      summary: delete log table parsing rules
       tags:
       - API.log
   /api/log/rule/get:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取日志表解析规则
+      description: get log table parsing rules
       parameters:
-      - description: 数据库
+      - description: database
         in: query
         name: dataBase
         required: true
         type: string
-      - description: 表
+      - description: Table
         in: query
         name: tableName
         required: true
@@ -4158,16 +5018,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取日志表解析规则
+      summary: get log table parsing rules
       tags:
       - API.log
   /api/log/rule/service:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取服务对应的应用日志
+      description: get the application log corresponding to the service
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -4188,16 +5048,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取服务对应的应用日志
+      summary: get the application log corresponding to the service
       tags:
       - API.log
   /api/log/rule/update:
     post:
       consumes:
       - application/json
-      description: 更新日志表解析规则
+      description: update log table parsing rules
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -4218,16 +5078,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 更新日志表解析规则
+      summary: update log table parsing rules
       tags:
       - API.log
   /api/log/table:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取日志表信息
+      description: get log table information
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -4248,27 +5108,27 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取日志表信息
+      summary: get log table information
       tags:
       - API.log
   /api/mock:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: xx列表
+      description: xx list
       parameters:
       - default: 1
-        description: 第几页
+        description: which page
         in: query
         name: page_num
         required: true
         type: integer
       - default: 10
-        description: 每页显示条数
+        description: Number of displays per page
         in: query
         name: page_size
         type: integer
-      - description: 用户名
+      - description: username
         in: query
         name: name
         type: string
@@ -4283,15 +5143,15 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: xx列表
+      summary: xx list
       tags:
       - API.mock
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: 创建/编辑xx
+      description: create/edit xx
       parameters:
-      - description: 名称
+      - description: name
         in: formData
         name: name
         required: true
@@ -4307,14 +5167,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 创建/编辑xx
+      summary: create/edit xx
       tags:
       - API.mock
   /api/mock/{id}:
     delete:
       consumes:
       - application/json
-      description: 删除xx
+      description: delete xx
       parameters:
       - description: Id
         in: path
@@ -4332,13 +5192,13 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 删除xx
+      summary: delete xx
       tags:
       - API.mock
     get:
       consumes:
       - application/json
-      description: xx详情
+      description: xx details
       parameters:
       - description: ID
         in: path
@@ -4356,30 +5216,31 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: xx详情
+      summary: xx details
       tags:
       - API.mock
   /api/network/podmap:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 查询 Pod 网络调用拓扑与调用指标
+      description: query pod network call topology and call metrics
       parameters:
-      - description: 起始时间，单位微秒
+      - description: Start time, in microseconds
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 结束时间，单位微秒
+      - description: End time, in microseconds
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 要查询的Namespace，值为空则查询所有
+      - description: Namespace to query, if the value is empty, query all
         in: query
         name: namespace
         type: string
-      - description: 要查询的工作负载，值为空则查询所有
+      - description: Workload to be queried. If the value is empty, all of them will
+          be queried
         in: query
         name: workload
         type: string
@@ -4394,21 +5255,20 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 查询 Pod 网络调用拓扑与调用指标
+      summary: query pod network call topology and call metrics
       tags:
       - API.Network
   /api/network/segments:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 客户端对外调用Span网络耗时分段指标
       parameters:
       - description: traceId
         in: query
         name: traceId
         required: true
         type: string
-      - description: spanId, 值为空则查询所有
+      - description: spanId. If the value is blank, all items are queried
         in: query
         name: spanId
         type: string
@@ -4421,7 +5281,6 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 客户端对外调用Span网络耗时分段指标
       tags:
       - API.Network
   /api/permission/config:
@@ -4812,47 +5671,47 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取告警事件
+      description: get alarm events
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         type: string
-      - description: 查询告警来源
+      - description: Query the alarm source
         in: query
         name: source
         type: string
-      - description: 查询告警类型
+      - description: Query alarm type
         in: query
         name: group
         type: string
-      - description: 查询告警名称
+      - description: Query alarm name
         in: query
         name: name
         type: string
-      - description: 查询告警ID
+      - description: Query alarm ID
         in: query
         name: id
         type: string
-      - description: 查询告警状态
+      - description: Query alarm status
         in: query
         name: status
         type: string
-      - description: 分页参数,当前页数
+      - description: Paging parameter, current number of pages
         in: query
         name: currentPage
         type: integer
-      - description: 分页参数, 每页数量
+      - description: Pagination parameter, quantity per page
         in: query
         name: pageSize
         type: integer
@@ -4871,51 +5730,51 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取告警事件
+      summary: get alarm events
       tags:
       - API.service
   /api/service/alert/sample/events:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取采样告警事件
+      description: get sampling alarm events
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
         type: string
-      - description: 查询告警来源
+      - description: Query the alarm source
         in: query
         name: source
         type: string
-      - description: 查询告警类型
+      - description: Query alarm type
         in: query
         name: group
         type: string
-      - description: 查询告警名称
+      - description: Query alarm name
         in: query
         name: name
         type: string
-      - description: 查询告警ID
+      - description: Query alarm ID
         in: query
         name: id
         type: string
-      - description: 查询告警状态
+      - description: Query alarm status
         in: query
         name: status
         type: string
-      - description: 采样告警数量
+      - description: Number of sample alarms
         in: query
         name: sampleCount
         type: integer
@@ -4934,45 +5793,45 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取采样告警事件
+      summary: get sampling alarm events
       tags:
       - API.service
   /api/service/descendant/metrics:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取所有下游服务的延时曲线数据
+      description: get the delay curve data of all downstream services
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
         type: string
-      - description: 查询Endpoint
+      - description: Query Endpoint
         in: query
         name: endpoint
         required: true
         type: string
-      - description: 查询步长(us)
+      - description: query step (us)
         in: query
         name: step
         required: true
         type: integer
-      - description: 入口服务名
+      - description: Ingress service name
         in: query
         name: entryService
         type: string
-      - description: 入口Endpoint
+      - description: entry Endpoint
         in: query
         name: entryEndpoint
         type: string
@@ -4993,45 +5852,45 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取所有下游服务的延时曲线数据
+      summary: get the delay curve data of all downstream services
       tags:
       - API.service
   /api/service/descendant/relevance:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取依赖节点延时关联度
+      description: get the dependent node delay correlation degree
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
         type: string
-      - description: 查询Endpoint
+      - description: Query Endpoint
         in: query
         name: endpoint
         required: true
         type: string
-      - description: 查询步长(us)
+      - description: query step (us)
         in: query
         name: step
         required: true
         type: integer
-      - description: 入口服务名
+      - description: Ingress service name
         in: query
         name: entryService
         type: string
-      - description: 入口Endpoint
+      - description: entry Endpoint
         in: query
         name: entryEndpoint
         type: string
@@ -5052,26 +5911,26 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取依赖节点延时关联度
+      summary: get the dependent node delay correlation degree
       tags:
       - API.service
   /api/service/endpoint/list:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取服务EndPoint列表
+      description: get the list of service EndPoint
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         type: string
@@ -5092,56 +5951,56 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取服务EndPoint列表
+      summary: get the list of service EndPoint
       tags:
       - API.service
   /api/service/endpoints:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取endpoints服务列表
+      description: get the list of endpoints services
       parameters:
       - description: data group id
         in: query
         name: groupId
         type: integer
-      - description: 查询开始时间
+      - description: start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 步长
+      - description: step
         in: query
         name: step
         required: true
         type: integer
       - collectionFormat: multi
-        description: 服务名称
+        description: service name
         in: query
         items:
           type: string
         name: serviceName
         type: array
       - collectionFormat: multi
-        description: 命名空间
+        description: namespace
         in: query
         items:
           type: string
         name: namespace
         type: array
       - collectionFormat: multi
-        description: 服务端点
+        description: endpoint
         in: query
         items:
           type: string
         name: endpointName
         type: array
-      - description: 排序逻辑
+      - description: sort rule
         in: query
         name: sortRule
         required: true
@@ -5161,41 +6020,41 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取endpoints服务列表
+      summary: get the list of endpoints services
       tags:
       - API.service
   /api/service/entry/endpoints:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取服务入口Endpoint列表
+      description: get the service entry Endpoint list
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
         type: string
-      - description: 查询Endpoint
+      - description: Query Endpoint
         in: query
         name: endpoint
         required: true
         type: string
-      - description: 查询步长(us)
+      - description: query step (us)
         in: query
         name: step
         required: true
         type: integer
-      - description: 显示缺失入口
+      - description: Show missing entry
         in: query
         name: showMissTop
         type: boolean
@@ -5216,45 +6075,45 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取服务入口Endpoint列表
+      summary: get the service entry Endpoint list
       tags:
       - API.service
   /api/service/error/instance:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取错误实例
+      description: get the error instance
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
         type: string
-      - description: 查询Endpoint
+      - description: Query Endpoint
         in: query
         name: endpoint
         required: true
         type: string
-      - description: 查询步长(us)
+      - description: query step (us)
         in: query
         name: step
         required: true
         type: integer
-      - description: 入口服务名
+      - description: Ingress service name
         in: query
         name: entryService
         type: string
-      - description: 入口Endpoint
+      - description: entry Endpoint
         in: query
         name: entryEndpoint
         type: string
@@ -5273,48 +6132,48 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取错误实例
+      summary: get the error instance
       tags:
       - API.service
   /api/service/errorinstance/logs:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取错误实例故障现场日志
+      description: get the error instance failure site log
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
         type: string
-      - description: 查询Endpoint
+      - description: Query Endpoint
         in: query
         name: endpoint
         required: true
         type: string
-      - description: 实例名
+      - description: instance name
         in: query
         name: instance
         type: string
-      - description: 主机名
+      - description: hostname
         in: query
         name: nodeName
         type: string
-      - description: 容器名
+      - description: container name
         in: query
         name: containerId
         type: string
-      - description: 进程号
+      - description: process number
         in: query
         name: pid
         type: integer
@@ -5335,16 +6194,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取错误实例故障现场日志
+      summary: get the error instance failure site log
       tags:
       - API.service
   /api/service/getThreshold:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取单个阈值配置信息
+      description: get individual threshold configuration information
       parameters:
-      - description: 应用名称
+      - description: app name
         in: query
         name: serviceName
         type: string
@@ -5352,7 +6211,7 @@ paths:
         in: query
         name: endpoint
         type: string
-      - description: 阈值等级
+      - description: Threshold level
         in: query
         name: level
         required: true
@@ -5370,7 +6229,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取单个阈值配置信息
+      summary: get individual threshold configuration information
       tags:
       - API.service
   /api/service/instance/list:
@@ -5378,19 +6237,19 @@ paths:
       consumes:
       - application/x-www-form-urlencoded
       deprecated: true
-      description: 获取服务实例列表
+      description: get the list of service instances
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
@@ -5412,26 +6271,26 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取服务实例列表
+      summary: get the list of service instances
       tags:
       - API.service
   /api/service/instance/options:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取服务下拉实例列表
+      description: get the drop-down list of service instances
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
@@ -5453,7 +6312,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取服务下拉实例列表
+      summary: get the drop-down list of service instances
       tags:
       - API.service
   /api/service/instanceinfo/list:
@@ -5461,19 +6320,19 @@ paths:
       consumes:
       - application/x-www-form-urlencoded
       deprecated: true
-      description: 获取服务实例列表
+      description: get the list of service instances
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
@@ -5495,31 +6354,31 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取服务实例列表
+      summary: get the list of service instances
       tags:
       - API.service
   /api/service/instances:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取service对应url实例
+      description: get the URL instance corresponding to the service
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 步长
+      - description: step
         in: query
         name: step
         required: true
         type: integer
-      - description: 应用名称
+      - description: app name
         in: query
         name: serviceName
         required: true
@@ -5543,26 +6402,26 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取service对应url实例
+      summary: get the URL instance corresponding to the service
       tags:
       - API.service
   /api/service/k8s/events/count:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取K8s事件
+      description: get K8s events
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
@@ -5582,21 +6441,21 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取K8s事件
+      summary: get K8s events
       tags:
       - API.service
   /api/service/list:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取服务列表
+      description: get the list of services
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
@@ -5625,48 +6484,48 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取服务列表
+      summary: get the list of services
       tags:
       - API.service
   /api/service/log/logs:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取Log故障现场日志
+      description: get Log fault site log
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
         type: string
-      - description: 查询Endpoint
+      - description: Query Endpoint
         in: query
         name: endpoint
         required: true
         type: string
-      - description: 实例名
+      - description: instance name
         in: query
         name: instance
         type: string
-      - description: 主机名
+      - description: hostname
         in: query
         name: nodeName
         type: string
-      - description: 容器名
+      - description: container name
         in: query
         name: containerId
         type: string
-      - description: 进程号
+      - description: process number
         in: query
         name: pid
         type: integer
@@ -5687,45 +6546,45 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取Log故障现场日志
+      summary: get Log fault site log
       tags:
       - API.service
   /api/service/log/metrics:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取日志相关指标
+      description: get log related metrics
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
         type: string
-      - description: 查询Endpoint
+      - description: Query Endpoint
         in: query
         name: endpoint
         required: true
         type: string
-      - description: 查询步长(us)
+      - description: query step (us)
         in: query
         name: step
         required: true
         type: integer
-      - description: 入口服务名
+      - description: Ingress service name
         in: query
         name: entryService
         type: string
-      - description: 入口Endpoint
+      - description: entry Endpoint
         in: query
         name: entryEndpoint
         type: string
@@ -5746,21 +6605,21 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取日志相关指标
+      summary: get log related metrics
       tags:
       - API.service
   /api/service/monitor/status:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取kuma监控的服务状态
+      description: get the service status monitored by kuma
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
@@ -5780,36 +6639,36 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取kuma监控的服务状态
+      summary: get the service status monitored by kuma
       tags:
       - API.service
   /api/service/moreUrl:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取服务的更多url列表
+      description: get more url list of services
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 步长
+      - description: step
         in: query
         name: step
         required: true
         type: integer
-      - description: 应用名称
+      - description: app name
         in: query
         name: serviceName
         required: true
         type: string
-      - description: 排序逻辑
+      - description: sort logic
         in: query
         name: sortRule
         required: true
@@ -5831,7 +6690,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取服务的更多url列表
+      summary: get more url list of services
       tags:
       - API.service
   /api/service/namespace/list:
@@ -5840,12 +6699,12 @@ paths:
       - application/x-www-form-urlencoded
       description: Get monitored namespaces.
       parameters:
-      - description: 开始时间
+      - description: start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 结束时间
+      - description: end time
         in: query
         name: endTime
         required: true
@@ -5868,29 +6727,29 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取北极星指标分析情况
+      description: Get Polaris metric Analysis
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询步长(us)
+      - description: query step (us)
         in: query
         name: step
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
         type: string
-      - description: 查询Endpoint
+      - description: Query Endpoint
         in: query
         name: endpoint
         required: true
@@ -5910,40 +6769,40 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取北极星指标分析情况
+      summary: Get Polaris metric Analysis
       tags:
       - API.service
   /api/service/relation:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取服务上下游调用关系
+      description: the call relationship between the upstream and downstream service
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
         type: string
-      - description: 查询Endpoint
+      - description: Query Endpoint
         in: query
         name: endpoint
         required: true
         type: string
-      - description: 入口服务名
+      - description: Ingress service name
         in: query
         name: entryService
         type: string
-      - description: 入口Endpoint
+      - description: entry Endpoint
         in: query
         name: entryEndpoint
         type: string
@@ -5962,34 +6821,34 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取服务上下游调用关系
+      summary: get the call relationship between the upstream and downstream services
       tags:
       - API.service
   /api/service/ryglight:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取红绿灯结果
+      description: get traffic light results
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 服务名称
+      - description: Service name
         in: query
         name: serviceName
         type: string
-      - description: 接口名称
+      - description: interface name
         in: query
         name: endpointName
         type: string
-      - description: 命名空间
+      - description: namespace
         in: query
         name: namespace
         type: string
@@ -6008,32 +6867,32 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取红绿灯结果
+      summary: get traffic light results
       tags:
       - API.service
   /api/service/servicesAlert:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取Service的日志告警和状态灯信息
+      description: get the log alarm and status light information of the Service
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 步长
+      - description: step
         in: query
         name: step
         required: true
         type: integer
       - collectionFormat: multi
-        description: 应用名称
+        description: application name
         in: query
         items:
           type: string
@@ -6041,7 +6900,7 @@ paths:
         required: true
         type: array
       - collectionFormat: multi
-        description: 返回数据内容
+        description: return data content
         in: query
         items:
           type: string
@@ -6062,21 +6921,21 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取Service的日志告警和状态灯信息
+      summary: get the log alarm and status light information of the Service
       tags:
       - API.service
   /api/service/setThreshold:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: 配置单个阈值配置信息
+      description: configuration single threshold configuration information
       parameters:
-      - description: 阈值等级
+      - description: threshold level
         in: formData
         name: level
         required: true
         type: string
-      - description: 应用名称
+      - description: app name
         in: formData
         name: serviceName
         type: string
@@ -6084,22 +6943,22 @@ paths:
         in: formData
         name: endpoint
         type: string
-      - description: 同比延时
+      - description: YoY Delay
         in: formData
         name: latency
         required: true
         type: number
-      - description: 同比错误率
+      - description: YoY Error Rate
         in: formData
         name: errorRate
         required: true
         type: number
-      - description: 同比请求次数
+      - description: Number of requests compared with the same period last year
         in: formData
         name: tps
         required: true
         type: number
-      - description: 同比日志告警
+      - description: year-on-year log alarm
         in: formData
         name: log
         required: true
@@ -6117,45 +6976,45 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 配置单个阈值配置信息
+      summary: configuration single threshold configuration information
       tags:
       - API.service
   /api/service/sql/metrics:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取SQL指标
+      description: get SQL metrics
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
         type: string
-      - description: 查询步长(us)
+      - description: query step (us)
         in: query
         name: step
         required: true
         type: integer
-      - description: 排序方法(latency/errorRate/tps)
+      - description: Sort method (latency/errorRate/tps)
         in: query
         name: sortBy
         required: true
         type: string
-      - description: 分页参数,当前页数
+      - description: Paging parameter, current number of pages
         in: query
         name: currentPage
         type: integer
-      - description: 分页参数, 每页数量
+      - description: Pagination parameter, quantity per page
         in: query
         name: pageSize
         type: integer
@@ -6174,40 +7033,40 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取SQL指标
+      summary: get SQL metrics
       tags:
       - API.service
   /api/service/topology:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取服务上下游拓扑
+      description: get the upstream and downstream topology of the service
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
         type: string
-      - description: 查询Endpoint
+      - description: Query Endpoint
         in: query
         name: endpoint
         required: true
         type: string
-      - description: 入口服务名
+      - description: Ingress service name
         in: query
         name: entryService
         type: string
-      - description: 入口Endpoint
+      - description: entry Endpoint
         in: query
         name: entryEndpoint
         type: string
@@ -6226,48 +7085,48 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取服务上下游拓扑
+      summary: get the upstream and downstream topology of the service
       tags:
       - API.service
   /api/service/trace/logs:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取Trace故障现场日志
+      description: get trace fault site log
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
         type: string
-      - description: 查询Endpoint
+      - description: Query Endpoint
         in: query
         name: endpoint
         required: true
         type: string
-      - description: 实例名
+      - description: instance name
         in: query
         name: instance
         type: string
-      - description: 主机名
+      - description: hostname
         in: query
         name: nodeName
         type: string
-      - description: 容器名
+      - description: container name
         in: query
         name: containerId
         type: string
-      - description: 进程号
+      - description: process number
         in: query
         name: pid
         type: integer
@@ -6288,45 +7147,45 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取Trace故障现场日志
+      summary: get trace fault site log
       tags:
       - API.service
   /api/service/trace/metrics:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取Trace相关指标
+      description: get Trace related metrics
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 查询服务名
+      - description: Query service name
         in: query
         name: service
         required: true
         type: string
-      - description: 查询Endpoint
+      - description: Query Endpoint
         in: query
         name: endpoint
         required: true
         type: string
-      - description: 查询步长(us)
+      - description: query step (us)
         in: query
         name: step
         required: true
         type: integer
-      - description: 入口服务名
+      - description: Ingress service name
         in: query
         name: entryService
         type: string
-      - description: 入口Endpoint
+      - description: entry Endpoint
         in: query
         name: entryEndpoint
         type: string
@@ -6347,7 +7206,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取Trace相关指标
+      summary: get Trace related metrics
       tags:
       - API.service
   /api/team:
@@ -6596,33 +7455,34 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取指定时间段指定条件的火焰图数据
+      description: get the flame chart data of the specified time period and specified
+        conditions
       parameters:
-      - description: 采样类型
+      - description: sample type
         in: query
         name: sampleType
         required: true
         type: string
-      - description: 进程id
+      - description: process id
         in: query
         name: pid
         required: true
         type: integer
-      - description: 线程id
+      - description: thread id
         in: query
         name: tid
         required: true
         type: integer
-      - description: 主机名称
+      - description: hostname
         in: query
         name: nodeName
         type: string
-      - description: 开始时间
+      - description: start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 结束时间
+      - description: end time
         in: query
         name: endTime
         required: true
@@ -6648,39 +7508,40 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取指定时间段指定条件的火焰图数据
+      summary: get the flame chart data of the specified time period and specified
+        conditions
       tags:
       - API.trace
   /api/trace/flame/process:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取并整合进程级别火焰图数据
+      description: get and integrate process-level flame graph data
       parameters:
-      - description: 限制节点数
+      - description: Limit number of nodes
         in: query
         name: maxNodes
         type: integer
-      - description: 开始时间
+      - description: start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 结束时间
+      - description: end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 进程id
+      - description: process id
         in: query
         name: pid
         required: true
         type: integer
-      - description: 主机名称
+      - description: hostname
         in: query
         name: nodeName
         type: string
-      - description: 采样类型
+      - description: sample type
         in: query
         name: sampleType
         required: true
@@ -6696,14 +7557,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取并整合进程级别火焰图数据
+      summary: get and integrate process-level flame graph data
       tags:
       - API.trace
   /api/trace/info:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取单链路Trace详情
+      description: get single link trace details
       parameters:
       - description: trace id
         in: query
@@ -6725,31 +7586,31 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取单链路Trace详情
+      summary: get single link trace details
       tags:
       - API.trace
   /api/trace/onoffcpu:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取span执行消耗
+      description: get span execution consumption
       parameters:
-      - description: 开始时间
+      - description: start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 结束时间
+      - description: end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 进程id
+      - description: process id
         in: query
         name: pid
         required: true
         type: integer
-      - description: 节点名
+      - description: node name
         in: query
         name: nodeName
         required: true
@@ -6765,16 +7626,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取span执行消耗
+      summary: get span execution consumption
       tags:
       - API.trace
   /api/trace/pagelist:
     post:
       consumes:
       - application/json
-      description: 查询Trace分页列表
+      description: to query the trace paging list
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -6791,16 +7652,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 查询Trace分页列表
+      summary: to query the trace paging list
       tags:
       - API.trace
   /api/trace/pagelist/filter/value:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: 查询指定过滤器的可用数值
+      description: query the available values of the specified filter
       parameters:
-      - description: 请求信息
+      - description: Request information
         in: body
         name: Request
         required: true
@@ -6821,26 +7682,27 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 查询指定过滤器的可用数值
+      summary: query the available values of the specified filter
       tags:
       - API.trace
   /api/trace/pagelist/filters:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: 查询Trace列表可用的过滤器
+      description: the available filters for querying the Trace list
       parameters:
-      - description: 查询开始时间
+      - description: query start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: 查询结束时间
+      - description: query end time
         in: query
         name: endTime
         required: true
         type: integer
-      - description: 是否根据用户输入的时间立即更新可用过滤器
+      - description: Whether to update the available filters immediately based on
+          the time entered by the user
         in: query
         name: needUpdate
         type: boolean
@@ -6859,7 +7721,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 查询Trace列表可用的过滤器
+      summary: the available filters for querying the Trace list
       tags:
       - API.trace
   /api/user/create:
@@ -6868,41 +7730,41 @@ paths:
       - application/x-www-form-urlencoded
       description: Create a user.
       parameters:
-      - description: 用户名
+      - description: username
         in: formData
         name: username
         required: true
         type: string
-      - description: 密码
+      - description: password
         in: formData
         name: password
         required: true
         type: string
-      - description: 确认密码
+      - description: Confirm password
         in: formData
         name: confirmPassword
         required: true
         type: string
       - collectionFormat: multi
-        description: 角色id
+        description: role id
         in: formData
         items:
           type: integer
         name: roleList
         type: array
-      - description: 邮箱
+      - description: mailbox
         in: formData
         name: email
         type: string
-      - description: 手机号
+      - description: Phone number
         in: formData
         name: phone
         type: string
-      - description: 组织
+      - description: organization
         in: formData
         name: corporation
         type: string
-      - description: Bearer 令牌
+      - description: Bearer token
         in: header
         name: Authorization
         type: string
