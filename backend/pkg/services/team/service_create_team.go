@@ -20,6 +20,17 @@ func (s *service) CreateTeam(req *request.CreateTeamRequest) error {
 		Description: req.Description,
 	}
 
+	filter := model.TeamFilter {
+		Name: req.TeamName,
+	}
+	exists, err := s.dbRepo.TeamExist(filter)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		return model.NewErrWithMessage(errors.New("team already existed"), code.TeamAlreadyExistError)
+	}
 	if len(req.FeatureList) > 0 {
 		features, err := s.dbRepo.GetFeature(req.FeatureList)
 		if err != nil {

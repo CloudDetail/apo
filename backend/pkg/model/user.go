@@ -29,3 +29,9 @@ type Datasource struct {
 	Category   string   `json:"category"`         // normal or apm
 	Nested     []string `json:"nested,omitempty"` // Nested datasource (namespace service belongs to or service under namespace)
 }
+
+type TeamFilter struct {
+	ID   int64
+	IDs  []int64
+	Name string
+}

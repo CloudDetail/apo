@@ -1855,6 +1855,10 @@ definitions:
         type: integer
       teamName:
         type: string
+      userList:
+        items:
+          type: integer
+        type: array
     required:
     - teamId
     - teamName

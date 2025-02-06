@@ -10510,6 +10510,12 @@ const docTemplate = `{
                 },
                 "teamName": {
                     "type": "string"
+                },
+                "userList": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },

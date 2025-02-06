@@ -138,7 +138,10 @@ func (s *service) PermissionOperation(req *request.PermissionOperationRequest) e
 	case model.PERMISSION_SUB_TYP_USER:
 		exists, err = s.dbRepo.UserExists(req.SubjectID)
 	case model.PERMISSION_SUB_TYP_TEAM:
-		exists, err = s.dbRepo.TeamExist(req.SubjectID)
+		filter := model.TeamFilter {
+			ID: req.SubjectID,
+		}
+		exists, err = s.dbRepo.TeamExist(filter)
 	default:
 		return nil
 	}

@@ -55,7 +55,10 @@ func (s *service) GroupSubsOperation(req *request.GroupSubsOperationRequest) err
 			case model.DATA_GROUP_SUB_TYP_USER:
 				exists, err = s.dbRepo.UserExists(sub.SubjectID)
 			case model.DATA_GROUP_SUB_TYP_TEAM:
-				exists, err = s.dbRepo.TeamExist(sub.SubjectID)
+				filter := model.TeamFilter{
+					ID: sub.SubjectID,
+				}
+				exists, err = s.dbRepo.TeamExist(filter)
 			}
 			if err != nil {
 				return err

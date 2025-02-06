@@ -14,6 +14,7 @@ type UpdateTeamRequest struct {
 	Description          string                `json:"description" form:"description"`
 	FeatureList          []int                 `json:"featureList" form:"featureList"`
 	DataGroupPermissions []DataGroupPermission `json:"dataGroupPermission" form:"dataGroupPermission"`
+	UserList             []int64               `json:"userList" form:"userList"`
 }
 
 type GetTeamRequest struct {

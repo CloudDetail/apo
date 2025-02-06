@@ -52,7 +52,10 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 		}
 	}
 
-	exist, err := s.dbRepo.TeamExist(req.TeamList...)
+	filter := model.TeamFilter {
+		IDs: req.TeamList,
+	}
+	exist, err := s.dbRepo.TeamExist(filter)
 	if err != nil {
 		return err
 	}

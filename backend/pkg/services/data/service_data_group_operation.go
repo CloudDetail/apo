@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -13,7 +14,10 @@ func (s *service) DataGroupOperation(req *request.DataGroupOperationRequest) err
 	var err error
 	switch req.SubjectType {
 	case model.DATA_GROUP_SUB_TYP_TEAM:
-		exists, err = s.dbRepo.TeamExist(req.SubjectID)
+		filter := model.TeamFilter{
+			ID: req.SubjectID,
+		}
+		exists, err = s.dbRepo.TeamExist(filter)
 	case model.DATA_GROUP_SUB_TYP_USER:
 		exists, err = s.dbRepo.UserExists(req.SubjectID)
 	default:

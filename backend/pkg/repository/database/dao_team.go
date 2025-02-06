@@ -45,14 +45,30 @@ func (repo *daoRepo) CreateTeam(ctx context.Context, team Team) error {
 	return repo.GetContextDB(ctx).Create(&team).Error
 }
 
-func (repo *daoRepo) TeamExist(teamID ...int64) (bool, error) {
+func (repo *daoRepo) TeamExist(filter model.TeamFilter) (bool, error) {
 	var count int64
-	err := repo.db.Model(&Team{}).Where("team_id IN ?", teamID).Count(&count).Error
+	
+	query := repo.db.Model(&Team{})
+	if filter.ID != 0 {
+		query.Where("team_id = ?", filter.ID)
+	} else if len(filter.IDs) > 0 {
+		query.Where("team_id IN ?", filter.IDs)
+	} else if len(filter.Name) > 0 {
+		query.Where("team_name = ?", filter.Name)
+	}
+
+	err := query.Count(&count).Error
 	if err != nil {
 		return false, err
 	}
 
-	return count == int64(len(teamID)), nil
+	return count > 0, nil
+}
+
+func (repo *daoRepo) GetTeam(teamID int64) (Team, error) {
+	var team Team
+	err := repo.db.Find(&team, teamID).Error
+	return team, err
 }
 
 func (repo *daoRepo) UpdateTeam(ctx context.Context, team Team) error {

@@ -90,7 +90,8 @@ type Repo interface {
 	GetTeamList(req *request.GetTeamRequest) ([]Team, int64, error)
 	DeleteTeam(ctx context.Context, teamID int64) error
 	CreateTeam(ctx context.Context, team Team) error
-	TeamExist(teamID ...int64) (bool, error)
+	TeamExist(filter model.TeamFilter) (bool, error)
+	GetTeam(teamID int64) (Team, error)
 	UpdateTeam(ctx context.Context, team Team) error
 	InviteUserToTeam(ctx context.Context, teamID int64, userIDs []int64) error
 	AssignUserToTeam(ctx context.Context, userID int64, teamIDs []int64) error

@@ -9,7 +9,10 @@ import (
 )
 
 func (s *service) TeamUserOperation(req *request.AssignToTeamRequest) error {
-	exists, err := s.dbRepo.TeamExist(req.TeamID)
+	filter := model.TeamFilter {
+		ID: req.TeamID,
+	}
+	exists, err := s.dbRepo.TeamExist(filter)
 	if err != nil {
 		return err
 	}
@@ -36,12 +39,7 @@ func (s *service) TeamUserOperation(req *request.AssignToTeamRequest) error {
 	for _, id := range hasUsers {
 		hasUserMap[id] = struct{}{}
 	}
-
-	wantUserMap := make(map[int64]struct{})
-	for _, id := range req.UserList {
-		wantUserMap[id] = struct{}{}
-	}
-
+	
 	var toAdd, toDelete []int64
 	for _, id := range req.UserList {
 		if _, ok := hasUserMap[id]; !ok {

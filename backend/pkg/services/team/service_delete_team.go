@@ -9,7 +9,10 @@ import (
 )
 
 func (s *service) DeleteTeam(req *request.DeleteTeamRequest) error {
-	exists, err := s.dbRepo.TeamExist(req.TeamID)
+	filter := model.TeamFilter {
+		ID: req.TeamID,
+	}
+	exists, err := s.dbRepo.TeamExist(filter)
 	if err != nil {
 		return err
 	}
