@@ -1,0 +1,162 @@
+{
+  "josn": "标准告警源",
+  "addAlertsIntegration": "添加告警接入",
+  "deleteSuccess": "删除告警接入成功",
+  "sourceType": "告警源类型",
+  "sourceName": "告警接入名称",
+  "operation": "操作",
+  "confirmDelete": "是否确定删除名为 <1>{{sourceName}}</1>的告警接入?",
+  "edit": "编辑",
+  "confirm": "确定",
+  "cancel": "取消",
+  "delete": "删除",
+  "list": "告警接入列表",
+  "setting": "告警接入配置",
+  "documentation": "接入介绍文档",
+  "addSuccess": "添加成功",
+  "updatedSuccess": "更新成功",
+  "basicInfo": "基础信息",
+  "pushUrl": "推送地址",
+  "save": "保存",
+  "clusters": "集群",
+  "rulesTitle": "关联应用规则",
+  "rulesAlert": "从输入的告警事件的标签(Tag/Label)中取出关联信息,用于告警分析时关联告警事件和受监控应用",
+  "savedSuccess": "保存成功",
+  "addRules": "新增标签规则",
+  "match": "匹配",
+  "misMatch": "不匹配",
+  "fromField": "比较来源字段",
+  "fromFieldRequired": "请输入比较来源字段",
+  "expr": "正则表达式",
+  "fromRegex": "提取正则表达式",
+  "fromRegexRequired": "请输入提取正则表达式",
+  "exprRequired": "请输入正则表达式",
+  "conditions": "过滤条件",
+  "addConditions": "新增过滤条件",
+  "and": "且",
+  "schemaFields": "源字段",
+  "schemaAndTarget": "源字段与目标字段",
+  "target": "目标字段",
+  "targetFields": "提取后字段",
+  "schemaFieldsRequired": "请选择或输入目标字段",
+  "mappingLabel": "映射表和映射列",
+  "mappingExtra": "提取字段映射至映射表中某个列",
+  "tagMapping": "提取标签",
+  "staticEnrich": "映射标签",
+  "rule": "规则",
+  "preview": "标签规则预览",
+  "ruleType": "规则类型",
+  "extractedField": "提取字段",
+  "extractedFieldRequired": "请输入希望提取的字段",
+  "tagRulePreview": {
+    "conditions": "告警事件中满足过滤条件",
+    "tagMapping": "提取字段",
+    "useExpr": "通过正则表达式",
+    "mapTo": "提取内容到",
+    "staticEnrichDes": "提取字段<1>{{fromField}}</1>映射到表 <2>{{schemaTable}}</2> 中的<2>{{schemaField}}</2>字段，提取映射如下图示"
+  },
+  "zabbixDoc": {
+    "title": "Zabbix告警接入介绍",
+    "description": "通过Zabbix的webhook告警媒介, 发送告警事件到APO平台。下面的配置方式适用于Zabbix 7.x版本。",
+    "step1": {
+      "title": "1. 新建告警媒介",
+      "download": "下载媒介配置文件或将下面的配置保存成文件",
+      "login": "登录 Zabbix 控制台，选择 `告警(Alert)` > `媒介(Media Types)`",
+      "import": "点击右上角 `导入(Import)` 按钮，选择文件, 选择下载或保存的文件, 点击导入",
+      "modifyWebhook": "点击导入好的媒介对象, 修改参数中的 `webhookURL` 为 告警推送地址"
+    },
+    "step2": {
+      "title": "2. 关联告警媒介到用户",
+      "recommendation": "推荐使用Admin用户执行告警发送, 避免用户权限不足, 无法读取到告警事件",
+      "navigate": "在 Zabbix 控制台中, 选择 `用户(User) > 用户(Users)`",
+      "selectAdmin": "点击Admin用户, 左上角选择 `报警媒介(Media Types)`, 点击 `添加(Add)`",
+      "setType": "`类型(Type)` 选择 `APO-Collector`, `收件人(Send To)` 填写 `APO` , 点击 `添加(Add)`",
+      "update": "点击 `更新(Update)`"
+    },
+    "step3": {
+      "title": "3. 创建告警动作",
+      "recommendation": "推荐使用Admin用户执行告警发送, 避免用户权限不足, 无法读取到告警事件",
+      "navigate": "在 Zabbix 控制台中, 选择 `告警(Alerts) > 动作(Actions)`",
+      "createAction": "右上角点击 `创建动作(Create action)`",
+      "name": "`名称(Name)` 填写 `Send To APO`",
+      "selectOperations": "选择 `操作(Operations)`, 点击 `操作步骤(Operations)` 中的 `添加(Add)`",
+      "addUser": "点击 `发送给用户(Send to users)` 中的 `添加(Add)`, 选中 `Admin`, 再点击 `添加(Add)`",
+      "repeatSteps": "依次在 `恢复操作(Recovery operations)`, `更新操作(Update operations)` 中重复上述步骤, 完成后点击添加"
+    },
+    "step4": {
+      "title": "4. 完成",
+      "description": "后续可以查询仪表盘中新增问题的动作状态, 是否发送成功; 如果动作状态显示 `已送达`, 即可完成发送"
+    }
+  },
+  "jsonInfo": {
+    "title": "标准告警源",
+    "description": "对于还未进行适配的告警源,可以尝试通过标准告警事件输入接口进行集成.",
+    "interface": {
+      "title": "接口信息",
+      "method": "请求方式",
+      "headers": "请求头",
+      "params": "请求参数",
+      "body": "请求Body"
+    },
+    "table": {
+      "fieldName": "字段名",
+      "meaning": "含义",
+      "type": "字段类型",
+      "description": "说明"
+    },
+    "fields": {
+      "sourceId": {
+        "meaning": "告警源编号",
+        "description": "使用在APO上创建数据信源时,提供的sourceId"
+      },
+      "name": { "meaning": "告警事件名称", "description": "告警事件的名称, 比如Zabbix的触发器名" },
+      "status": { "meaning": "告警事件状态", "description": "表示告警当前是触发还是解决" },
+      "severity": { "meaning": "告警事件严重程度", "description": "告警的严重程度" },
+      "detail": { "meaning": "告警事件内容", "description": "告警的详细内容" },
+      "alertId": { "meaning": "告警事件编号", "description": "告警的编号" },
+      "tags": { "meaning": "告警事件标签", "description": "告警自身携带的信息" },
+      "startTime": { "meaning": "告警事件发生时间", "description": "告警事件从告警源生成的时间" },
+      "updateTime": { "meaning": "告警事件更新时间", "description": "告警再次发生的时间" },
+      "endTime": {
+        "meaning": "告警事件结束时间",
+        "description": "通常只有解决的事件会包含告警事件的结束时间"
+      }
+    },
+    "example": { "title": "请求示例" },
+    "response": {
+      "title": "响应",
+      "success": "成功响应",
+      "failure": "失败响应"
+    },
+    "code2Error": "处理告警事件失败"
+  },
+  "prometheusDoc": {
+    "title": "Prometheus 告警接入",
+    "description": "在使用 Prometheus 作为告警数据源时，可以通过 AlertManager 的 Webhook 组件将告警事件推送到 APO 平台。",
+    "configInstructions": "下面是 AlertManager 的配置修改说明。",
+    "webhookUrl": "告警推送地址",
+    "step1": {
+      "title": "1. 添加 Webhook 通知渠道",
+      "description": "需要修改 AlertManager 实例的配置信息，通常是 AlertManager 根目录的 alertmanager.yml；在 receivers 列表中添加新的 webhook 配置项，示例如下："
+    },
+    "step2": {
+      "title": "2. 将新增的 Webhook 项添加到通知路由中",
+      "description": "推荐将新增的 Webhook 通知渠道作为子路由（routes）加入到通知列表，示例如下：",
+      "alternative": "或者，如果不使用原有的推送渠道，可以将新增的 Webhook 对象替换根路由：",
+      "note": "注意，AlertManager 通知顺序为：",
+      "order1": "先依次通知 route.routes 下的通知渠道",
+      "order2": "再通知 route.receiver 指定的通知渠道",
+      "warning": "如果先通知的渠道中设置了 `continue: false` 的配置项，后续通知渠道不会接收到通知"
+    },
+    "step3": {
+      "title": "3. 保存配置文件"
+    },
+    "step4": {
+      "title": "4. 令 AlertManager 重新加载配置文件",
+      "description": "可以重启 AlertManager，或发送 POST 请求到 AlertManager 的 `/-/reload` 接口，使更改生效。"
+    },
+    "step5": {
+      "title": "5. 完成"
+    }
+  }
+}

@@ -14,6 +14,7 @@ import img4 from 'src/core/assets/alertsIntegration/zabbix/image-4.png'
 import img5 from 'src/core/assets/alertsIntegration/zabbix/image-5.png'
 import img6 from 'src/core/assets/alertsIntegration/zabbix/image-6.png'
 import CopyPre from './CopyPre'
+import { useTranslation } from 'react-i18next'
 const zabbixExport = `zabbix_export:
   version: '7.0'
   media_types:
@@ -133,73 +134,65 @@ const zabbixExport = `zabbix_export:
             {TRIGGER.URL}
 `
 const ZabbixInfo = () => {
+  const { t } = useTranslation('core/alertsIntegration')
   return (
     <>
       <Typography>
-        <Title level={4}>Zabbix告警接入介绍</Title>
-        <Paragraph>
-          通过Zabbix的webhook告警媒介,发送告警事件到APO平台. 下面的配置方式适用于Zabbix 7.x版本.
-        </Paragraph>
-        <Title level={5}>1. 新建告警媒介</Title>
+        <Title level={4}>{t('zabbixDoc.title')}</Title>
+        <Paragraph>{t('zabbixDoc.description')}</Paragraph>
+
+        <Title level={5}>{t('zabbixDoc.step1.title')}</Title>
         <Paragraph>
           <ol>
             <li>
-              <div>下载媒介配置文件或将下面的配置保存成文件</div>
+              <div>{t('zabbixDoc.step1.download')}</div>
               <CopyPre code={zabbixExport} />
             </li>
-            <li>登录 Zabbix 控制台，选择 `告警(Alert)` {`>`} `媒介(Media Types)`</li>
+            <li>{t('zabbixDoc.step1.login')}</li>
             <li>
-              <div>点击右上角 `导入(Import)` 按钮，选择文件, 选择下载或保存的文件,点击导入</div>
-              <Image src={img1}></Image>
+              <div>{t('zabbixDoc.step1.import')}</div>
+              <Image src={img1} />
             </li>
             <li>
-              <div>点击导入好的媒介对象, 修改参数中的 `webhookURL` 为 告警推送地址</div>
-              <Image src={img2}></Image>
+              <div>{t('zabbixDoc.step1.modifyWebhook')}</div>
+              <Image src={img2} />
             </li>
           </ol>
         </Paragraph>
 
-        <Title level={5}>2. 关联告警媒介到用户</Title>
-        <Paragraph>推荐使用Admin用户执行告警发送,避免用户权限不足,无法读取到告警事件</Paragraph>
+        <Title level={5}>{t('zabbixDoc.step2.title')}</Title>
+        <Paragraph>{t('zabbixDoc.step2.recommendation')}</Paragraph>
         <Paragraph>
           <ol className="list-decimal">
-            <li>在 Zabbix 控制台中, 选择 `用户(User) {`>`} 用户(Users)`</li>
-            <li>点击Admin用户,左上角选择 `报警媒介(Media Types)` ,点击 `添加(Add)`</li>
+            <li>{t('zabbixDoc.step2.navigate')}</li>
+            <li>{t('zabbixDoc.step2.selectAdmin')}</li>
             <li>
-              {' '}
-              `类型(Type)` 选择 `APO-Collector`, `收件人(Send To)` 填写 `APO` , 点击 `添加(Add)`
-              <Image src={img4}></Image>
+              {t('zabbixDoc.step2.setType')}
+              <Image src={img4} />
             </li>
-            <li>点击 `更新(Update)`</li>
+            <li>{t('zabbixDoc.step2.update')}</li>
           </ol>
         </Paragraph>
 
-        <Title level={5}>3. 创建告警动作</Title>
-        <Paragraph>推荐使用Admin用户执行告警发送,避免用户权限不足,无法读取到告警事件</Paragraph>
-
+        <Title level={5}>{t('zabbixDoc.step3.title')}</Title>
+        <Paragraph>{t('zabbixDoc.step3.recommendation')}</Paragraph>
         <Paragraph>
           <ol className="list-decimal">
-            <li>在 Zabbix 控制台中, 选择 `告警(Alerts) {`>`} 动作(Actions)`</li>
-            <li>右上角点击`创建动作(Create action)`</li>
-            <li>`名称(Name)` 填写 `Send To APO`</li>
-            <li>选择 `操作(Operations)`, 点击 `操作步骤(Operations)` 中的`添加(Add)`</li>
+            <li>{t('zabbixDoc.step3.navigate')}</li>
+            <li>{t('zabbixDoc.step3.createAction')}</li>
+            <li>{t('zabbixDoc.step3.name')}</li>
+            <li>{t('zabbixDoc.step3.selectOperations')}</li>
             <li>
-              点击 `发送给用户(Send to users)` 中的 `添加(Add)` , 选中 `Admin` , 再点击 `添加(Add)`
-              <Image src={img5}></Image>
+              <div>{t('zabbixDoc.step3.addUser')}</div>
+              <Image src={img5} />
             </li>
-            <li>
-              依次在 `恢复操作(Recovery operations)`, `更新操作(Update operations)` 中重复上述步骤,
-              完成后点击添加
-            </li>
+            <li>{t('zabbixDoc.step3.repeatSteps')}</li>
           </ol>
         </Paragraph>
 
-        <Title level={5}>4. 完成</Title>
-        <Paragraph>
-          后续可以查询仪表盘中新增问题的动作状态,是否发送成功; 如果动作状态显示`已送达`,
-          即可完成发送
-        </Paragraph>
-        <Image src={img6}></Image>
+        <Title level={5}>{t('zabbixDoc.step4.title')}</Title>
+        <Paragraph>{t('zabbixDoc.step4.description')}</Paragraph>
+        <Image src={img6} />
       </Typography>
     </>
   )

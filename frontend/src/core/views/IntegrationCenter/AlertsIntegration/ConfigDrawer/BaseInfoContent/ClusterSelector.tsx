@@ -5,9 +5,11 @@
 
 import { Form, Select } from 'antd'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getClusterListApi } from 'src/core/api/alertInput'
 
 const ClusterSelector = () => {
+  const { t } = useTranslation('core/alertsIntegration')
   const [clusterList, setClusterList] = useState([])
   const getgetClusterList = () => {
     getClusterListApi()
@@ -24,7 +26,7 @@ const ClusterSelector = () => {
   return (
     <Form.Item
       name="clusters"
-      label="集群"
+      label={t('clusters')}
       normalize={(value) => {
         if (Array.isArray(value)) {
           return value.map((option) => ({
@@ -50,7 +52,6 @@ const ClusterSelector = () => {
         mode="multiple"
         allowClear
         style={{ width: '100%' }}
-        placeholder="请选择集群"
         options={clusterList}
         fieldNames={{ label: 'name', value: 'id' }}
         labelInValue

@@ -10,8 +10,10 @@ import Search from 'antd/es/input/Search'
 import { useSearchParams } from 'react-router-dom'
 import { useAlertIntegrationContext } from 'src/core/contexts/AlertIntegrationContext'
 import { AlertKey } from 'src/core/types/alertIntegration'
+import { useTranslation } from 'react-i18next'
 
 const AlertsDatasourceList = () => {
+  const { t } = useTranslation('core/alertsIntegration')
   const [searchParams, setSearchParams] = useSearchParams()
   const setConfigDrawerVisible = useAlertIntegrationContext((ctx) => ctx.setConfigDrawerVisible)
   const openAddDrawer = (sourceType: AlertKey) => {
@@ -20,9 +22,9 @@ const AlertsDatasourceList = () => {
   }
   return (
     <div className="pr-2">
-      {/* <Search placeholder="输入搜索数据源" className="mb-3" /> */}
+      {/* <Search  className="mb-3" /> */}
       <Typography>
-        <Typography.Title level={5}>添加告警接入</Typography.Title>
+        <Typography.Title level={5}>{t('addAlertsIntegration')}</Typography.Title>
       </Typography>
       <Row gutter={[0, 18]} justify="space-between">
         {alertItems?.map((item) => (

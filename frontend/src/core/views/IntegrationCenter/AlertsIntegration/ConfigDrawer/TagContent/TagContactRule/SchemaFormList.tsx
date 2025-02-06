@@ -7,11 +7,14 @@ import { Flex, Form, Input, Select } from 'antd'
 import { useEffect } from 'react'
 import TargetTagSelector from './TargetTagSelector'
 import { useAlertIntegrationContext } from 'src/core/contexts/AlertIntegrationContext'
+import { t } from 'i18next'
+import { useTranslation } from 'react-i18next'
 
 interface SchemaFormListProps {
   fieldName: string | number
 }
 const SchemaFormList = ({ fieldName }: SchemaFormListProps) => {
+  const { t } = useTranslation('core/alertsIntegration')
   const form = Form.useFormInstance()
   const schemaObject = Form.useWatch(['enrichRuleConfigs', fieldName, 'schemaObject'], form)
   const enrichRuleConfigs = Form.useWatch(['enrichRuleConfigs', fieldName], form)
@@ -62,8 +65,8 @@ const SchemaFormList = ({ fieldName }: SchemaFormListProps) => {
     <>
       <Form.Item
         name={[fieldName, 'schemaFields']}
-        label="源字段与目标字段"
-        rules={[{ required: true, message: '请选择或输入目标字段' }]}
+        label={t('schemaAndTarget')}
+        rules={[{ required: true, message: t('schemaFieldsRequired') }]}
       >
         <Select mode="multiple" allowClear options={getOptions()}></Select>
       </Form.Item>
@@ -83,9 +86,9 @@ const SchemaFormList = ({ fieldName }: SchemaFormListProps) => {
                       style={{ marginBottom: 0 }}
                       className="w-[200px] flex-shrink-0"
                     >
-                      <Input className="w-[200px]" placeholder="源字段" readOnly />
+                      <Input className="w-[200px]" placeholder={t('schemaFields')} readOnly />
                     </Form.Item>
-                    <div className="flex-shrink-0 mt-1">提取后字段</div>
+                    <div className="flex-shrink-0 mt-1">{t('targetFields')}</div>
                     <TargetTagSelector fieldName={subField.name} noLabel />
                   </Flex>
                 </Form.Item>

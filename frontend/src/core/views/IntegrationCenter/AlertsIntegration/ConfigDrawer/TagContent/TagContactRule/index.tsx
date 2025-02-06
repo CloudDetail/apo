@@ -15,10 +15,12 @@ import {
   SaveAlertEnrichParams,
   SchemaTargetItem,
 } from 'src/core/types/alertIntegration'
+import { useTranslation } from 'react-i18next'
 interface TagContactRuleProps {
   sourceId: string
 }
 const TagContactRule = ({ sourceId }: TagContactRuleProps) => {
+  const { t } = useTranslation('core/alertsIntegration')
   const [form] = Form.useForm()
   const configDrawerVisible = useAlertIntegrationContext((ctx) => ctx.configDrawerVisible)
   const [readOnly, setReadOnly] = useState(true)
@@ -31,7 +33,7 @@ const TagContactRule = ({ sourceId }: TagContactRuleProps) => {
     saveAlertEnrichApi(params)
       .then((res) => {
         showToast({
-          title: '保存关联应用规则规则成功',
+          title: t('savedSuccess'),
           color: 'success',
         })
         refreshReadOnly()
@@ -102,17 +104,14 @@ const TagContactRule = ({ sourceId }: TagContactRuleProps) => {
       setIsFormEmpty(false)
 
       const enrichRuleConfigs = res.enrichRuleConfigs.map((config) => {
-        // 创建一个浅拷贝对象
         const newConfig = { ...config }
 
         if (config.rType === 'tagMapping') {
-          // 处理 tagMapping 类型
           newConfig.targetTag = {
             targetTagId: config.targetTagId,
             customTag: config.targetTagId === 0 ? config.customTag : '',
           }
         } else {
-          // 处理其他类型
           newConfig.schemaObject = [config.schema, config.schemaSource]
           newConfig.schemaTargets = config.schemaTargets.map((target) => ({
             schemaField: target.schemaField,
@@ -142,7 +141,6 @@ const TagContactRule = ({ sourceId }: TagContactRuleProps) => {
     try {
       await getAlertEnrichInfo()
       setReadOnly(true)
-      // 下一步操作放在这里
     } catch (error) {
       console.error('Error in refreshReadOnly:', error)
     }
@@ -170,15 +168,15 @@ const TagContactRule = ({ sourceId }: TagContactRuleProps) => {
             onClick={() => creatFirstRuleConfig()}
             className="mb-3"
           >
-            新增标签规则
+            {t('addRules')}
           </Button>
         </>
       ) : (
         <>
           <Form
             form={form}
-            labelCol={{ span: 3, offset: 1 }}
-            wrapperCol={{ span: 18 }}
+            labelCol={{ span: 5, offset: 1 }}
+            wrapperCol={{ span: 15 }}
             colon={false}
           >
             <LoadingSpinner loading={loading} />
@@ -203,7 +201,7 @@ const TagContactRule = ({ sourceId }: TagContactRuleProps) => {
                       block
                       className="mb-3"
                     >
-                      + 新增标签规则
+                      + {t('addRules')}
                     </Button>
                   )}
                 </div>
@@ -214,15 +212,15 @@ const TagContactRule = ({ sourceId }: TagContactRuleProps) => {
             {readOnly ? (
               <>
                 <Button type="primary" className="mr-2" onClick={() => setReadOnly(false)}>
-                  编辑
+                  {t('edit')}
                 </Button>
               </>
             ) : (
               <>
                 <Button type="primary" className="mr-2" onClick={saveForm}>
-                  保存
+                  {t('save')}
                 </Button>
-                <Button onClick={refreshReadOnly}>取消</Button>
+                <Button onClick={refreshReadOnly}>{t('cancel')}</Button>
               </>
             )}
           </div>

@@ -12,17 +12,8 @@ import TargetTagSelector from './TargetTagSelector'
 import SchemaSource from './SchemaSource'
 import styles from './segmented.module.scss'
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
-const rTypeOptions = [
-  {
-    value: 'tagMapping',
-    label: '提取标签',
-  },
-  {
-    value: 'staticEnrich',
-    label: '映射标签',
-  },
-]
 interface TagRuleFormListComProps {
   field: FormListFieldData
   remove: any
@@ -30,15 +21,25 @@ interface TagRuleFormListComProps {
   onEdit: any
 }
 const TagRuleFormListCom = ({ field, remove, readOnly, onEdit }: TagRuleFormListComProps) => {
+  const { t } = useTranslation('core/alertsIntegration')
   const [showPreview, setShowPreview] = useState(false)
   const form = Form.useFormInstance()
   const formListRef = useRef(null)
   const rType = Form.useWatch(['enrichRuleConfigs', field.name, 'rType'])
-
+  const rTypeOptions = [
+    {
+      value: 'tagMapping',
+      label: t('tagMapping'),
+    },
+    {
+      value: 'staticEnrich',
+      label: t('staticEnrich'),
+    },
+  ]
   return (
     <Card
       size="small"
-      title={`规则 ${field.name + 1} - ${rTypeOptions.find((item) => item.value === rType)?.label}`}
+      title={`${t('rule')} ${field.name + 1} - ${rTypeOptions.find((item) => item.value === rType)?.label}`}
       key={field.key}
       ref={formListRef}
       extra={
@@ -61,7 +62,7 @@ const TagRuleFormListCom = ({ field, remove, readOnly, onEdit }: TagRuleFormList
               }
             }}
           >
-            {showPreview || readOnly ? '编辑' : '标签规则预览'}
+            {showPreview || readOnly ? t('edit') : t('preview')}
           </Button>
           {readOnly || (
             <Button
@@ -96,22 +97,26 @@ const TagRuleFormListCom = ({ field, remove, readOnly, onEdit }: TagRuleFormList
             <Form.Item name="enrichRuleId" hidden>
               <Input></Input>
             </Form.Item>
-            <Form.Item label="规则类型" name={[field.name, 'rType']} initialValue={'tagMapping'}>
+            <Form.Item
+              label={t('ruleType')}
+              name={[field.name, 'rType']}
+              initialValue={'tagMapping'}
+            >
               <Segmented options={rTypeOptions} className={styles.segmented} />
             </Form.Item>
           </ConfigProvider>
 
-          <Form.Item label="过滤条件">
+          <Form.Item label={t('conditions')}>
             <ConditionsFormList fieldName={field.name} />
           </Form.Item>
           <Form.Item
             name={[field.name, 'fromField']}
-            label="提取字段"
-            labelCol={{ span: 3, offset: 1 }}
+            label={t('extractedField')}
+            labelCol={{ span: 5, offset: 1 }}
             required
             rules={[{ required: true }]}
           >
-            <Input placeholder="请输入希望提取的字段"></Input>
+            <Input placeholder={t('extractedFieldRequired')}></Input>
           </Form.Item>
           <Form.Item
             noStyle
@@ -128,12 +133,12 @@ const TagRuleFormListCom = ({ field, remove, readOnly, onEdit }: TagRuleFormList
                 <>
                   <Form.Item
                     name={[field.name, 'fromRegex']}
-                    label="提取正则表达式"
-                    labelCol={{ span: 3, offset: 1 }}
+                    label={t('fromRegex')}
+                    labelCol={{ span: 5, offset: 1 }}
                     // required
                     // rules={[{ required: true }]}
                   >
-                    <Input placeholder="请输入提取正则表达式"></Input>
+                    <Input placeholder={t('fromRegexRequired')}></Input>
                   </Form.Item>
                   {/* 目标字段 */}
                   <TargetTagSelector fieldName={field.name} />
