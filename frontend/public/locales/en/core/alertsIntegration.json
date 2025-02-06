@@ -152,7 +152,8 @@
       "success": "Success Response",
       "failure": "Failure Response",
       "errorMessage": "Failed to process alert event"
-    }
+    },
+    "code2Error": "Error"
   },
   "prometheusDoc": {
     "title": "Prometheus Alert Integration",

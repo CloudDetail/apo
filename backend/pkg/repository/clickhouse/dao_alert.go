@@ -277,22 +277,43 @@ func extractFilter(filter request.AlertFilter, endpoints []model.EndpointKey, in
 			whereInstance = append(whereInstance, MergeWheres(
 				AndSep,
 				whereGroup,
-				Equals("tags['svc_name']", filter.Service),
-				EqualsIfNotEmpty("tags['content_key']", filter.Endpoint),
+				MergeWheres(OrSep,
+					MergeWheres(
+						AndSep,
+						Equals("tags['svc_name']", filter.Service),
+						EqualsIfNotEmpty("tags['content_key']", filter.Endpoint),
+					),
+					MergeWheres(
+						AndSep,
+						Equals("tags['serviceName']", filter.Service),
+						EqualsIfNotEmpty("tags['endpoint']", filter.Endpoint),
+					),
+				),
 			))
 		} else {
 			whereEndpoints := ValueInGroups{
 				Keys: []string{"tags['svc_name']", "tags['content_key']"},
 			}
+
+			whereEndpointsNew := ValueInGroups{
+				Keys: []string{"tags['serviceName']", "tags['endpoint']"},
+			}
 			for _, endpoint := range endpoints {
 				whereEndpoints.ValueGroups = append(whereEndpoints.ValueGroups, clickhouse.GroupSet{
+					Value: []any{endpoint.ServiceName, endpoint.Endpoint},
+				})
+				whereEndpointsNew.ValueGroups = append(whereEndpointsNew.ValueGroups, clickhouse.GroupSet{
 					Value: []any{endpoint.ServiceName, endpoint.Endpoint},
 				})
 			}
 			whereInstance = append(whereInstance, MergeWheres(
 				AndSep,
 				whereGroup,
-				InGroup(whereEndpoints),
+				MergeWheres(
+					OrSep,
+					InGroup(whereEndpoints),
+					InGroup(whereEndpointsNew),
+				),
 			))
 		}
 	}
@@ -401,7 +422,7 @@ func extractFilter(filter request.AlertFilter, endpoints []model.EndpointKey, in
 	if len(filter.Group) == 0 || filter.Group == "middleware" {
 		var dbUrls clickhouse.ArraySet
 		var ipPorts ValueInGroups = ValueInGroups{
-			Keys: []string{"tags['db_ip']", "tags['db_port']"},
+			Keys: []string{"tags['dbIP']", "tags['dbPort']"},
 		}
 
 		if instances != nil {
@@ -417,7 +438,7 @@ func extractFilter(filter request.AlertFilter, endpoints []model.EndpointKey, in
 			}
 			whereInstance = append(whereInstance, MergeWheres(
 				OrSep,
-				In("tags['db_url']", dbUrls),
+				In("tags['dbURL']", dbUrls),
 				InGroup(ipPorts),
 			))
 		}
