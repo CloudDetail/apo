@@ -94,7 +94,7 @@ func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime
 		EqualsNotEmpty("severity", filter.Severity).
 		EqualsNotEmpty("status", filter.Status)
 
-	if len(instances.SIs) > 0 {
+	if instances != nil {
 		// Combined generation:
 		//  1. group = 'app' AND svc = svc_name
 		//  2. group = 'container' AND ((namespace,pod) in (...))
@@ -196,22 +196,25 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 		var k8sPods ValueInGroups = ValueInGroups{
 			Keys: []string{"tags['namespace']", "tags['pod']"},
 		}
-		for _, instance := range instances.SIs {
-			if instance == nil {
-				continue
-			}
-			if len(instance.PodName) > 0 {
-				k8sPods.ValueGroups = append(k8sPods.ValueGroups, clickhouse.GroupSet{
-					Value: []any{instance.Namespace, instance.PodName},
-				})
-			}
-		}
 
-		whereInstance = append(whereInstance, MergeWheres(
-			AndSep,
-			whereGroup,
-			InGroup(k8sPods),
-		))
+		if instances != nil {
+			for _, instance := range instances.SIs {
+				if instance == nil {
+					continue
+				}
+				if len(instance.PodName) > 0 {
+					k8sPods.ValueGroups = append(k8sPods.ValueGroups, clickhouse.GroupSet{
+						Value: []any{instance.Namespace, instance.PodName},
+					})
+				}
+			}
+
+			whereInstance = append(whereInstance, MergeWheres(
+				AndSep,
+				whereGroup,
+				InGroup(k8sPods),
+			))
+		}
 	}
 
 	// filter by VMProcess
@@ -226,58 +229,64 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 			Keys: []string{"tags['node']", "tags['pid']"},
 		}
 
-		for _, instance := range instances.SIs {
-			if instance == nil {
-				continue
+		if instances != nil {
+			for _, instance := range instances.SIs {
+				if instance == nil {
+					continue
+				}
+				if len(instance.PodName) > 0 {
+					k8sPods.ValueGroups = append(k8sPods.ValueGroups, clickhouse.GroupSet{
+						Value: []any{instance.Namespace, instance.PodName},
+					})
+				} else {
+					vmPods.ValueGroups = append(vmPods.ValueGroups, clickhouse.GroupSet{
+						Value: []any{instance.NodeName, instance.Pid},
+					})
+					vmPodsNew.ValueGroups = append(vmPodsNew.ValueGroups, clickhouse.GroupSet{
+						Value: []any{instance.NodeName, instance.Pid},
+					})
+				}
 			}
-			if len(instance.PodName) > 0 {
-				k8sPods.ValueGroups = append(k8sPods.ValueGroups, clickhouse.GroupSet{
-					Value: []any{instance.Namespace, instance.PodName},
-				})
-			} else {
-				vmPods.ValueGroups = append(vmPods.ValueGroups, clickhouse.GroupSet{
-					Value: []any{instance.NodeName, instance.Pid},
-				})
-				vmPodsNew.ValueGroups = append(vmPodsNew.ValueGroups, clickhouse.GroupSet{
-					Value: []any{instance.NodeName, instance.Pid},
-				})
-			}
-		}
 
-		k8sOrVm := MergeWheres(OrSep,
-			InGroup(k8sPods), // Compatible with older versions
-			InGroup(vmPods),  // Compatible with older versions
-			InGroup(vmPodsNew),
-		)
-		whereInstance = append(whereInstance, MergeWheres(
-			AndSep,
-			whereGroup,
-			k8sOrVm,
-		))
+			k8sOrVm := MergeWheres(OrSep,
+				InGroup(k8sPods), // Compatible with older versions
+				InGroup(vmPods),  // Compatible with older versions
+				InGroup(vmPodsNew),
+			)
+			whereInstance = append(whereInstance, MergeWheres(
+				AndSep,
+				whereGroup,
+				k8sOrVm,
+			))
+		}
 	}
 
 	if len(filter.Group) == 0 || filter.Group == "infra" {
+		infraGroup := Equals("group", "infra")
 		var tmpSet = map[string]struct{}{}
 		var nodes clickhouse.ArraySet
-		for _, instance := range instances.SIs {
-			if instance == nil {
-				continue
-			}
-			_, find := tmpSet[instance.NodeName]
-			if !find {
-				nodes = append(nodes, instance.NodeName)
-				tmpSet[instance.NodeName] = struct{}{}
-			}
-		}
 
-		whereInstance = append(whereInstance, MergeWheres(
-			AndSep,
-			whereGroup,
-			MergeWheres(OrSep,
-				In("tags['instance_name']", nodes),
-				In("tags['node']", nodes),
-			),
-		))
+		if instances != nil {
+			for _, instance := range instances.SIs {
+				if instance == nil {
+					continue
+				}
+				_, find := tmpSet[instance.NodeName]
+				if !find {
+					nodes = append(nodes, instance.NodeName)
+					tmpSet[instance.NodeName] = struct{}{}
+				}
+			}
+
+			whereInstance = append(whereInstance, MergeWheres(
+				AndSep,
+				infraGroup,
+				MergeWheres(OrSep,
+					In("tags['instance_name']", nodes),
+					In("tags['node']", nodes),
+				),
+			))
+		}
 	}
 
 	if len(filter.Group) == 0 || filter.Group == "middleware" {
@@ -285,21 +294,24 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 		var ipPorts ValueInGroups = ValueInGroups{
 			Keys: []string{"tags['db_ip']", "tags['db_port']"},
 		}
-		for _, middleware := range instances.MIs {
-			if len(middleware.DatabaseURL) > 0 {
-				dbUrls = append(dbUrls, middleware.DatabaseURL)
+
+		if instances != nil {
+			for _, middleware := range instances.MIs {
+				if len(middleware.DatabaseURL) > 0 {
+					dbUrls = append(dbUrls, middleware.DatabaseURL)
+				}
+				if len(middleware.DatabaseIP) > 0 {
+					ipPorts.ValueGroups = append(ipPorts.ValueGroups, clickhouse.GroupSet{
+						Value: []any{middleware.DatabaseIP, middleware.DatabasePort},
+					})
+				}
 			}
-			if len(middleware.DatabaseIP) > 0 {
-				ipPorts.ValueGroups = append(ipPorts.ValueGroups, clickhouse.GroupSet{
-					Value: []any{middleware.DatabaseIP, middleware.DatabasePort},
-				})
-			}
+			whereInstance = append(whereInstance, MergeWheres(
+				OrSep,
+				In("tags['db_url']", dbUrls),
+				InGroup(ipPorts),
+			))
 		}
-		whereInstance = append(whereInstance, MergeWheres(
-			OrSep,
-			In("tags['db_url']", dbUrls),
-			InGroup(ipPorts),
-		))
 	}
 
 	return MergeWheres(OrSep, whereInstance...)

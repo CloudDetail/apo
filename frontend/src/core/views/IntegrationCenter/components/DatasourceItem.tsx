@@ -14,7 +14,7 @@ const DatasourceItem = ({ src, name, description }: DatasourceItemData) => {
           <Image height={40} src={src} preview={false} />
         </div>
         <div className="h-[40px] font-bold text-sm text-gray-300 px-2 flex items-center flex-col">
-          {name}
+          <span className="text-center">{name}</span>
           <div className="text-xs text-gray-400">{description}</div>
         </div>
       </div>

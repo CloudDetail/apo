@@ -62,7 +62,12 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 		ServiceList: []*response.ServiceRYGResult{},
 	}
 
-	alertEventCount, _ := s.chRepo.GetAlertEventCountGroupByInstance(startTime, endTime, request.AlertFilter{Status: "firing"}, nil)
+	alertEventCount, _ := s.chRepo.GetAlertEventCountGroupByInstance(
+		startTime,
+		endTime,
+		request.AlertFilter{Status: "firing"},
+		nil,
+	)
 	for svcKey, status := range servicesMap.MetricGroupMap {
 		instances, err := s.promRepo.GetInstanceList(startMicroTS, endMicroTs, svcKey.SvcName, "")
 		if err != nil {

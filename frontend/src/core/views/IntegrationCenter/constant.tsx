@@ -31,6 +31,7 @@ import {
   TraceKey,
 } from './types'
 import { AlertKey } from 'src/core/types/alertIntegration'
+import { t } from 'i18next'
 export const defaultItem: DatasourceItemData = {
   key: 'apo',
   src: apo,
@@ -156,7 +157,7 @@ export const alertItems: DatasourceItemData<AlertKey>[] = [
   {
     key: 'json',
     src: setting,
-    name: '标准告警源',
+    name: t('core/alertsIntegration:json'),
   },
   {
     key: 'zabbix',

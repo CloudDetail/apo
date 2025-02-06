@@ -6,10 +6,12 @@
 import { Cascader, Form } from 'antd'
 import SchemaFormList from './SchemaFormList'
 import { useAlertIntegrationContext } from 'src/core/contexts/AlertIntegrationContext'
+import { useTranslation } from 'react-i18next'
 interface SchemaSourceProps {
   fieldName: string | number
 }
 const SchemaSource = ({ fieldName }: SchemaSourceProps) => {
+  const { t } = useTranslation('core/alertsIntegration')
   const schemas = useAlertIntegrationContext((ctx) => ctx.schemas)
   const getOptions = () => {
     return Object.entries(schemas).map(([key, value]) => ({
@@ -24,8 +26,8 @@ const SchemaSource = ({ fieldName }: SchemaSourceProps) => {
   return (
     <>
       <Form.Item
-        label="映射表和映射列"
-        extra="提取字段映射至映射表中某个列"
+        label={t('mappingLabel')}
+        extra={t('mappingExtra')}
         style={{ marginBottom: 0 }}
         name={[fieldName, 'schemaObject']}
         required

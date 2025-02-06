@@ -5,6 +5,8 @@
 
 import { Descriptions, DescriptionsProps, Form } from 'antd'
 import Text from 'antd/es/typography/Text'
+import { t } from 'i18next'
+import { useTranslation } from 'react-i18next'
 
 interface BaseInfoDescriptionsProps {
   sourceName?: string
@@ -16,6 +18,7 @@ const BaseInfoDescriptions = ({
   sourceId,
   clusters = [],
 }: BaseInfoDescriptionsProps) => {
+  const { t } = useTranslation('core/alertsIntegration')
   const form = Form.useFormInstance()
   const getPublishUrl = () => {
     const baseUrl = window.location.origin + '/api/alertinput/event/source?sourceId='
@@ -28,7 +31,7 @@ const BaseInfoDescriptions = ({
   const items: DescriptionsProps['items'] = [
     {
       key: '1',
-      label: '告警接入名',
+      label: t('sourceName'),
       children: sourceName,
       span: 'filled',
     },
@@ -48,7 +51,7 @@ const BaseInfoDescriptions = ({
     // },
     {
       key: '2',
-      label: '推送地址',
+      label: t('pushUrl'),
       children: (
         // <div className="flex">
         //   <span className="mr-3">{getPublishUrl()}</span>
@@ -59,6 +62,6 @@ const BaseInfoDescriptions = ({
       span: 'filled',
     },
   ]
-  return <Descriptions title="基础信息" items={items} />
+  return <Descriptions title={t('basicInfo')} items={items} />
 }
 export default BaseInfoDescriptions
