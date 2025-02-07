@@ -99,7 +99,7 @@ func (s *service) UpdateTeam(req *request.UpdateTeamRequest) error {
 	}
 
 	var removeDataGroupFunc = func(ctx context.Context) error {
-		return s.dbRepo.RevokeDataGroupByGroup(ctx, toDeleteDg)
+		return s.dbRepo.RevokeDataGroupByGroup(ctx, toDeleteDg, req.TeamID)	
 	}
 
 	return s.dbRepo.Transaction(context.Background(), updateTeamFunc, grantPermissionFunc, revokePermissionFunc, assignDataGroupFunc, removeDataGroupFunc, inviteFunc, removeFunc)

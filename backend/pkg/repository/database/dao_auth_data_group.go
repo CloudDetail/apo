@@ -77,11 +77,11 @@ func (repo *daoRepo) AssignDataGroup(ctx context.Context, authDataGroups []AuthD
 	return repo.GetContextDB(ctx).Save(&authDataGroups).Error
 }
 
-func (repo *daoRepo) RevokeDataGroupByGroup(ctx context.Context, dataGroupIDs []int64) error {
+func (repo *daoRepo) RevokeDataGroupByGroup(ctx context.Context, dataGroupIDs []int64, subjectID int64) error {
 	if len(dataGroupIDs) == 0 {
 		return nil
 	}
-	return repo.GetContextDB(ctx).Model(&AuthDataGroup{}).Where("data_group_id IN ?", dataGroupIDs).Delete(nil).Error
+	return repo.GetContextDB(ctx).Model(&AuthDataGroup{}).Where("data_group_id IN ? AND subject_id = ?", dataGroupIDs, subjectID).Delete(nil).Error
 }
 
 func (repo *daoRepo) GetModifyAndDeleteDataGroup(subjectID int64, subjectType string, dgPermissions []request.DataGroupPermission) (toModify []AuthDataGroup, toDelete []int64, err error) {
@@ -146,11 +146,11 @@ func (repo *daoRepo) DeleteAuthDataGroup(ctx context.Context, subjectID int64, s
 		Error
 }
 
-func (repo *daoRepo) RevokeDataGroupBySub(ctx context.Context, subjectIDs []int64) error {
+func (repo *daoRepo) RevokeDataGroupBySub(ctx context.Context, subjectIDs []int64, groupID int64) error {
 	if len(subjectIDs) == 0 {
 		return nil
 	}
-	return repo.GetContextDB(ctx).Model(&AuthDataGroup{}).Where("subject_id IN ?", subjectIDs).Delete(nil).Error
+	return repo.GetContextDB(ctx).Model(&AuthDataGroup{}).Where("subject_id IN ? AND data_group_id = ?", subjectIDs, groupID).Delete(nil).Error
 }
 
 func (repo *daoRepo) GetGroupAuthDataGroupByGroup(groupID int64, subjectType string) ([]AuthDataGroup, error) {

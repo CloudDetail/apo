@@ -103,7 +103,7 @@ func (s *service) GroupSubsOperation(req *request.GroupSubsOperationRequest) err
 	}
 
 	revokeFunc := func(ctx context.Context) error {
-		return s.dbRepo.RevokeDataGroupBySub(ctx, toDelete)
+		return s.dbRepo.RevokeDataGroupBySub(ctx, toDelete, req.DataGroupID)
 	}
 
 	return s.dbRepo.Transaction(context.Background(), assignFunc, revokeFunc)

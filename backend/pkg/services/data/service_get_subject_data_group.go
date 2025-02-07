@@ -22,6 +22,7 @@ func (s *service) getUserDataGroup(userID int64, category string) ([]database.Da
 		return nil, err
 	}
 
+	seen := make(map[int64]struct{})
 	// Get user's teams.
 	var groups []database.DataGroup
 	for _, teamID := range teamIDs {
@@ -30,7 +31,14 @@ func (s *service) getUserDataGroup(userID int64, category string) ([]database.Da
 			return nil, err
 		}
 
-		groups = append(groups, gs...)
+		for _, g := range gs {
+			if _, ok := seen[g.GroupID]; ok {
+				continue
+			}
+
+			seen[g.GroupID] = struct{}{}
+			groups = append(groups, g)
+		}
 	}
 
 	for i := range groups {
