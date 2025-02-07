@@ -195,6 +195,9 @@ const (
 	ListClusterFailed                 = "B1322"
 	GetAlertEnrichRuleFailed          = "B1323"
 	AlertSourceNotExisted             = "B1324"
+
+	GetIntegrationInstallDocFailed = "B1325"
+	GetIntegrationInstallConfigFileFailed = "B1326"
 )
 
 func Text(code string) string {

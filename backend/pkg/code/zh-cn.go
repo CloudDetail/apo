@@ -168,4 +168,7 @@ var zhCnText = map[string]string{
 	ListClusterFailed:                 "获取集群列表失败",
 	GetAlertEnrichRuleFailed:          "获取告警规则失败",
 	AlertSourceNotExisted:             "告警源不存在",
+
+	GetIntegrationInstallDocFailed:        "获取集群集成安装文档失败",
+	GetIntegrationInstallConfigFileFailed: "获取集群集成安装配置文件失败",
 }
