@@ -18,7 +18,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/input"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/integration"
 )
 
 type Repo interface {
@@ -101,7 +101,7 @@ type Repo interface {
 	// ========== flame graph ===========
 	GetFlameGraphData(startTime, endTime int64, nodeName string, pid, tid int64, sampleType, spanId, traceId string) (*[]FlameGraphData, error)
 
-	input.Input
+	integration.Input
 }
 
 type chRepo struct {
@@ -110,7 +110,7 @@ type chRepo struct {
 	AvailableFilters
 	db *sql.DB
 
-	input.Input
+	integration.Input
 }
 
 type AvailableFilters struct {
@@ -169,7 +169,7 @@ func New(logger *zap.Logger, address []string, database string, username string,
 		repo.FilterUpdateTime = now
 	}
 
-	repo.Input, err = input.NewInputRepo(repo.conn, repo.database)
+	repo.Input, err = integration.NewInputRepo(repo.conn, repo.database)
 	if err != nil {
 		return nil, err
 	}

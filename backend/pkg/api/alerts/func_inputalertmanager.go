@@ -9,7 +9,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
 // InputAlertManager get AlertManager alarm events

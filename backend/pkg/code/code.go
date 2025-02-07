@@ -218,6 +218,9 @@ const (
 	DeleteTeamError       = "B1106"
 	AssignToTeamError     = "B1107"
 	UnSupportedSubType    = "B1108"
+
+	GetIntegrationInstallDocFailed        = "B1325"
+	GetIntegrationInstallConfigFileFailed = "B1326"
 )
 
 func Text(code string) string {

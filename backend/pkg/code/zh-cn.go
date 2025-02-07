@@ -196,4 +196,7 @@ var zhCnText = map[string]string{
 	DeleteTeamError:       "删除团队失败",
 	AssignToTeamError:     "分配失败",
 	UnSupportedSubType:    "授权主体类型不支持",
+
+	GetIntegrationInstallDocFailed:        "获取集群集成安装文档失败",
+	GetIntegrationInstallConfigFileFailed: "获取集群集成安装配置文件失败",
 }

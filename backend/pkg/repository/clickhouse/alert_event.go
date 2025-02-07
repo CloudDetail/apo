@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
 func (ch *chRepo) InsertBatchAlertEvents(ctx context.Context, events []*model.AlertEvent) error {

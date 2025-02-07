@@ -90,6 +90,20 @@ func New(logger *zap.Logger) (*Mux, error) {
 					Code:    businessCode,
 					Message: businessCodeMsg,
 				})
+			} else if len(ctx.Writer.Header().Get("Content-Disposition")) > 0 {
+				content, ok := context.getPayload().([]byte)
+				if !ok {
+					httpCode = http.StatusInternalServerError
+					businessCode = code.ServerError
+					businessCodeMsg = code.Text(code.ServerError)
+					ctx.JSON(httpCode, &code.Failure{
+						Code:    businessCode,
+						Message: businessCodeMsg,
+					})
+					multierr.AppendInto(&abortErr, errors.New("only accept []byte as payload for Content-Disposition"))
+				}
+
+				ctx.Data(http.StatusOK, ctx.GetHeader("Content-Type"), content)
 			} else {
 				if len(ctx.GetHeader("X-Data-Flow")) > 0 {
 					// No need to log debug for X-Data-Flow = Meta type data
