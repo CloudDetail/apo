@@ -27,8 +27,8 @@ const AppHeader = ({ type = 'default' }) => {
   const sidebarShow = useSelector((state) => state.sidebarShow)
   const [selectedKeys, setSelectedKeys] = useState([])
 
-  const onClick = ({ item, key, keyPath, domEvent }) => {
-    navigate(item.props.to)
+  const onClick = (to) => {
+    navigate(to)
   }
 
   const getItemKey = (navList) => {
@@ -79,13 +79,17 @@ const AppHeader = ({ type = 'default' }) => {
               <CImage src={logo} className="w-[42px] sidebar-brand-narrow flex-shrink-0 mx-3" />
               <span className="flex-shrink-0 text-lg">向导式可观测平台</span>
             </div>
-            <Menu
-              mode="horizontal"
-              theme="dark"
-              items={commercialNav}
-              onClick={onClick}
-              selectedKeys={selectedKeys}
-            ></Menu>
+            {commercialNav.map((item) => (
+              <div
+                onClick={() => onClick(item.to)}
+                className="h-[50px] items-center px-3 flex justify-center text-sm cursor-pointer"
+                style={{
+                  backgroundColor: selectedKeys.includes(item.key) ? 'rgb(22, 104, 220)' : 'black',
+                }}
+              >
+                <span className="pr-2">{item.icon}</span> {item.label}
+              </div>
+            ))}
           </div>
         ) : (
           <CHeaderNav className="d-none d-md-flex px-4 py-2 text-base flex items-center h-[50px] flex-grow">
