@@ -19,7 +19,7 @@ import TranslationCom from './oss/components/TranslationCom'
 import { FiDatabase } from 'react-icons/fi'
 import { BsBezier2 } from 'react-icons/bs'
 
-const namespace = 'oss/routes'
+const namespace = 'core/routes'
 const commercialNav = []
 const _nav = [
   {
@@ -123,6 +123,12 @@ const _nav = [
         key: 'dataGroup',
         label: '数据组管理',
         to: '/system/data-group',
+      },
+
+      {
+        key: 'team',
+        label: '团队管理',
+        to: '/system/team',
       },
     ],
   },

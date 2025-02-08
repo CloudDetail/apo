@@ -53,5 +53,17 @@
     "lockGcTime": "The delay caused by GC or lock waiting. If GC is frequent, the delay should be distributed at different time points. If it is a lock, it is usually continuous time",
     "diskIoTime": "Program write file time",
     "scheduleTime": "Waiting time due to CPU contention"
-  }
+  },
+  "nameSpaceLabel": "Namespace",
+  "applicationLabel": "Application",
+  "save": "Save",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "delete": "Delete",
+  "add": "Add",
+  "edit": "Edit",
+  "saveSuccess": "Saved Successfully",
+  "deleteSuccess": "Deleted Successfully",
+  "addSuccess": "Added Successfully",
+  "operation": "Operation"
 }

@@ -14,7 +14,7 @@ import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer
 import { Select } from 'antd'
 import { getStep } from 'src/core/utils/step'
 import { useTranslation } from 'react-i18next'
-import { getDatasourceByGroup, getDatasourceByGroupApi } from 'src/core/api/dataGroup'
+import { getDatasourceByGroupApi } from 'src/core/api/dataGroup'
 
 export const TableFilter = (props) => {
   const { t } = useTranslation('oss/service')
@@ -25,39 +25,37 @@ export const TableFilter = (props) => {
   const [serachServiceName, setSerachServiceName] = useState(null)
   const [serachEndpointName, setSerachEndpointName] = useState(null)
   const [serachNamespace, setSerachNamespace] = useState(null)
-  const [prevSearchServiceName, setPrevSearchServiceName] = useState(null)
   const [datasource, setDatasource] = useState()
-  const { startTime, endTime } = useSelector(selectSecondsTimeRange)
 
   //根据选定的服务名称获取并设置端点名称选项。
-  const getEndpointNameOptions = (serviceNameList) => {
-    setEndpointNameOptions([])
-    Promise.all(
-      serviceNameList?.map((element) => {
-        const params = {
-          startTime,
-          endTime,
-          step: getStep(startTime, endTime),
-          serviceName: element,
-          sortRule: 1,
-        }
-        return getServiceEndpointNameApi(params).then((data) => ({
-          label: <span>{element}</span>,
-          title: element,
-          options: data.map((item) => ({
-            label: <span>{item?.endpoint}</span>,
-            value: item?.endpoint,
-          })),
-        }))
-      }),
-    )
-      .then((newEndpointNameOptions) => setEndpointNameOptions(newEndpointNameOptions))
-      .catch((error) => console.error('获取 endpoint 失败:', error))
+  const getEndpointNameOptions = () => {
+    const endpoints = []
+    const endpointsSet = new Set([])
+    const filterOptions =
+      serachServiceName?.length > 0
+        ? serviceNameOptions.filter((service) => serachServiceName.includes(service.label))
+        : serviceNameOptions
+
+    filterOptions.map((option) => {
+      endpoints.push({
+        label: option.label,
+        title: option.label,
+        options: datasource?.serviceMap[option.label]?.map((item) => {
+          endpointsSet.add(item)
+          return {
+            label: <span>{item}</span>,
+            value: item,
+          }
+        }),
+      })
+    })
+    setSerachEndpointName(serachEndpointName?.filter((endpoint) => endpointsSet.has(endpoint)))
+    setEndpointNameOptions(endpoints)
   }
   const onChangeNamespace = (event) => {
     setSerachNamespace(event)
     setNamespaceOptions(
-      event.serviceList.map((service) => ({
+      event.serviceMap.map((service) => ({
         label: service,
         value: service,
       })),
@@ -65,25 +63,9 @@ export const TableFilter = (props) => {
   }
   //处理服务名称选择更改。
   const onChangeServiceName = (event) => {
-    setPrevSearchServiceName(serachServiceName)
     setSerachServiceName(event)
   }
-  //移除不再相关的端点名称。
-  const removeEndpointNames = () => {
-    if (prevSearchServiceName?.length > serachServiceName?.length) {
-      const removeServiceNameSet = new Set(
-        prevSearchServiceName.filter((item) => !serachServiceName.includes(item)),
-      )
-      const removeEndpoint = endpointNameOptions
-        .flatMap((item) => (removeServiceNameSet.has(item.title) ? item.options : []))
-        .map((item) => item.value)
-      const removedSearchedName = serachEndpointName?.filter(
-        (item) => !removeEndpoint?.includes(item),
-      )
-      setSerachEndpointName(removedSearchedName)
-    }
-    getEndpointNameOptions(serachServiceName)
-  }
+
   useEffect(() => {
     if (serachNamespace && serachNamespace?.length > 0) {
       const services = []
@@ -98,9 +80,10 @@ export const TableFilter = (props) => {
       setServiceNameOptions(services)
     } else {
       setServiceNameOptions(
-        (datasource?.serviceList || []).map((service) => ({
+        Object.entries(datasource?.serviceMap || []).map(([service, endpoints]) => ({
           label: service,
           value: service,
+          endpoints: endpoints,
         })),
       )
     }
@@ -111,32 +94,28 @@ export const TableFilter = (props) => {
       category: 'apm',
     }).then((res) => {
       //todo null
-      const namespaceOptions = Object.entries(res.namespaceMap).map(([namespace, serviceList]) => ({
+      const namespaceOptions = Object.entries(res.namespaceMap).map(([namespace, service]) => ({
         label: namespace,
         value: namespace,
       }))
-      const serviceOption = (res.serviceList || []).map((service) => ({
+      const serviceOptions = Object.entries(res.serviceMap || []).map(([service, endpoints]) => ({
         label: service,
         value: service,
+        endpoints: endpoints,
       }))
       setDatasource(res)
       setNamespaceOptions(namespaceOptions)
-      setServiceNameOptions(serviceOption)
+      setServiceNameOptions(serviceOptions)
     })
   }
 
   useEffect(() => {
-    if (startTime && endTime) {
-      getDatasourceByGroup()
-      // Promise.all([getServiceNameOptions(), getNamespaceOptions()])
-    }
-  }, [startTime, endTime, groupId])
+    getDatasourceByGroup()
+  }, [groupId])
 
   useEffect(() => {
-    if (serachServiceName) {
-      removeEndpointNames()
-    }
-  }, [serachServiceName])
+    getEndpointNameOptions()
+  }, [serviceNameOptions, serachServiceName])
   useEffect(() => {
     setNamespace(serachNamespace)
   }, [serachNamespace])

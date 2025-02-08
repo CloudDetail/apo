@@ -30,7 +30,7 @@ import { useUserContext } from 'src/core/contexts/UserContext'
 import style from './index.module.css'
 import { useTranslation } from 'react-i18next'
 import { LuShieldCheck } from 'react-icons/lu'
-import DataGroupAuthorizeModal from './componnets/PermissionAuthorize'
+import DataGroupAuthorizeModal from 'src/core/components/PermissionAuthorize/DataGroupAuthorizeModal'
 
 export default function UserManage() {
   const { t } = useTranslation('core/userManage')
@@ -172,7 +172,7 @@ export default function UserManage() {
                 setSelectedUser(record)
               }}
             >
-              数据组授权
+              {t('index.dataGroup')}
             </Button>
           </>
         ) : (
@@ -294,7 +294,9 @@ export default function UserManage() {
       <DataGroupAuthorizeModal
         open={authorizeModalVisibility}
         closeModal={closeAuthorizeModal}
-        userInfo={selectedUser}
+        subjectId={selectedUser?.userId}
+        subjectName={selectedUser?.username}
+        type="user"
         refresh={refresh}
       />
     </>

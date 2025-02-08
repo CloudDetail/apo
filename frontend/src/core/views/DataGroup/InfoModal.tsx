@@ -10,6 +10,7 @@ import { creatDataGroupApi, updateDataGroupApi } from 'src/core/api/dataGroup'
 import { SaveDataGroupParams } from 'src/core/types/dataGroup'
 import { showToast } from 'src/core/utils/toast'
 import LoadingSpinner from 'src/core/components/Spinner'
+import { useTranslation } from 'react-i18next'
 
 interface InfoModalProps {
   open: boolean
@@ -18,6 +19,8 @@ interface InfoModalProps {
   refresh: any
 }
 const InfoModal = ({ open, closeModal, groupInfo, refresh }: InfoModalProps) => {
+  const { t } = useTranslation('core/dataGroup')
+
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const saveDataGroup = (params: SaveDataGroupParams) => {
@@ -31,7 +34,7 @@ const InfoModal = ({ open, closeModal, groupInfo, refresh }: InfoModalProps) => 
       .then((res) => {
         showToast({
           color: 'success',
-          title: '保存数据组成功',
+          title: t('saveSuccess'),
         })
         refresh()
       })
@@ -61,12 +64,12 @@ const InfoModal = ({ open, closeModal, groupInfo, refresh }: InfoModalProps) => 
     <>
       <Modal
         open={open}
-        title={groupInfo ? '编辑数据组' : '新建数据组'}
+        title={(groupInfo ? t('edit') : t('add')) + t('group')}
         onCancel={closeModal}
         destroyOnClose
         centered
-        okText={'保存'}
-        cancelText={'取消'}
+        okText={t('save')}
+        cancelText={t('cancel')}
         maskClosable={false}
         onOk={saveInfo}
         width={1000}
@@ -74,22 +77,17 @@ const InfoModal = ({ open, closeModal, groupInfo, refresh }: InfoModalProps) => 
       >
         <LoadingSpinner loading={loading} />
 
-        <Form form={form} labelCol={{ span: 3, offset: 1 }} wrapperCol={{ span: 18 }} colon={false}>
+        <Form form={form} labelCol={{ span: 4, offset: 1 }} wrapperCol={{ span: 15 }} colon={false}>
           <Form.Item name="groupId" hidden>
             <Input></Input>
           </Form.Item>
-          <Form.Item name="groupName" label="数据组名" rules={[{ required: true }]}>
+          <Form.Item name="groupName" label={t('dataGroupName')} rules={[{ required: true }]}>
             <Input></Input>
           </Form.Item>
-          <Form.Item name="description" label="数据组描述">
+          <Form.Item name="description" label={t('dataGroupDes')}>
             <Input></Input>
           </Form.Item>
-          <Form.Item
-            name="datasourceList"
-            label="数据源"
-            // rules={[{ required: true, message: '请选择至少一个数据源' }]}
-            valuePropName="datasourceList"
-          >
+          <Form.Item name="datasourceList" label={t('datasource')} valuePropName="datasourceList">
             <DatasourceSelector />
           </Form.Item>
         </Form>

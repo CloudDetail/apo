@@ -5,7 +5,9 @@
 
 import { Form, Input, Modal, Select } from 'antd'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getDataGroupPermissionSubsApi, updateDataGroupSubsApi } from 'src/core/api/dataGroup'
+import { getTeamsApi } from 'src/core/api/team'
 import { getUserListApi } from 'src/core/api/user'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { DataGroupSubsParams, SaveDataGroupParams } from 'src/core/types/dataGroup'
@@ -18,15 +20,18 @@ interface PermissionModalProps {
   refresh: any
 }
 const PermissionModal = ({ open, closeModal, groupInfo, refresh }: PermissionModalProps) => {
+  const { t } = useTranslation('core/dataGroup')
+  const { t: ct } = useTranslation('common')
   const [loading, setLoading] = useState(false)
   const [form] = Form.useForm()
   const [userList, setUserList] = useState([])
+  const [teamList, setTeamList] = useState([])
 
   const updateDataGroupSubs = (params: DataGroupSubsParams) => {
     updateDataGroupSubsApi(params).then((res) => {
       showToast({
         color: 'success',
-        title: '数据组授权成功',
+        title: t('savePermissionSuccess'),
       })
       refresh()
     })
@@ -37,6 +42,10 @@ const PermissionModal = ({ open, closeModal, groupInfo, refresh }: PermissionMod
         groupId: values.groupId,
         userList: values.userList.map((user) => ({
           subjectId: user,
+          type: 'view',
+        })),
+        teamList: values.teamList.map((team) => ({
+          subjectId: team,
           type: 'view',
         })),
       })
@@ -50,16 +59,26 @@ const PermissionModal = ({ open, closeModal, groupInfo, refresh }: PermissionMod
       setUserList(res?.users || [])
     })
   }
+  const getTeamList = () => {
+    getTeamsApi({
+      currentPage: 1,
+      pageSize: 1000,
+    }).then((res) => {
+      setTeamList(res?.teamList || [])
+    })
+  }
   const getDataGroupPermissionSubs = () => {
     getDataGroupPermissionSubsApi(groupInfo?.groupId).then((res) => {
       form.setFieldsValue({
-        userList: res?.map((user) => user.userId),
+        userList: res?.filter((user) => user.userId).map((user) => user.userId),
+        teamList: res?.filter((team) => team.teamId).map((team) => team.teamId),
       })
     })
   }
   useEffect(() => {
     if (open && groupInfo) {
       getUserList()
+      getTeamList()
       getDataGroupPermissionSubs()
       form.setFieldValue('groupId', groupInfo.groupId)
     }
@@ -67,28 +86,28 @@ const PermissionModal = ({ open, closeModal, groupInfo, refresh }: PermissionMod
   return (
     <Modal
       open={open}
-      title={'数据组授权'}
+      title={t('dataGroupAuthorize')}
       onCancel={closeModal}
       destroyOnClose
       centered
-      okText={'保存'}
-      cancelText={'取消'}
+      okText={t('save')}
+      cancelText={t('cancel')}
       maskClosable={false}
       onOk={savePermission}
       width={1000}
     >
       <LoadingSpinner loading={loading} />
 
-      <Form form={form} labelCol={{ span: 3, offset: 1 }} wrapperCol={{ span: 18 }} colon={false}>
+      <Form form={form} labelCol={{ span: 4, offset: 1 }} wrapperCol={{ span: 18 }} colon={false}>
         <Form.Item name="groupId" hidden>
           <Input></Input>
         </Form.Item>
-        <Form.Item label="数据组名">
+        <Form.Item label={t('dataGroupName')}>
           <Input readOnly defaultValue={groupInfo?.groupName} variant="borderless"></Input>
         </Form.Item>
         <Form.Item
           name="userList"
-          label="授权用户"
+          label={t('authorizeToUser')}
           //   normalize={(value) => {
           //     if (Array.isArray(value)) {
           //       return value.map((option) => ({
@@ -118,6 +137,17 @@ const PermissionModal = ({ open, closeModal, groupInfo, refresh }: PermissionMod
             style={{ width: '100%' }}
             optionFilterProp={'username'}
             fieldNames={{ label: 'username', value: 'userId' }}
+          />
+        </Form.Item>
+        <Form.Item name="teamList" label={t('authorizeToUser')}>
+          <Select
+            mode="multiple"
+            showSearch
+            allowClear
+            options={teamList}
+            style={{ width: '100%' }}
+            optionFilterProp={'teamName'}
+            fieldNames={{ label: 'teamName', value: 'teamId' }}
           />
         </Form.Item>
       </Form>

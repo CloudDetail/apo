@@ -29,6 +29,7 @@ export interface PermissionSub {
 export interface DataGroupSubsParams {
   groupId: string
   userList: PermissionSub[]
+  teamList: PermissionSub[]
 }
 export type subjectType = 'user' | 'team'
 export interface DataGroupPermission {

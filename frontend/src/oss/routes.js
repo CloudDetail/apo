@@ -25,7 +25,7 @@ const AlertsRule = React.lazy(() => import('src/oss/views/alerts/AlertsRule'))
 const AlertsNotify = React.lazy(() => import('src/oss/views/alerts/AlertsNotify'))
 const ConfigPage = React.lazy(() => import('src/oss/views/config/index'))
 
-const namespace = 'oss/routes'
+const namespace = 'core/routes'
 
 const ossRoutes = [
   {

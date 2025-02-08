@@ -10,6 +10,8 @@ import { getAllDatasourceApi } from 'src/core/api/dataGroup'
 import styles from './index.module.scss'
 import { DatasourceType } from 'src/core/types/dataGroup'
 import DatasourceTag from './component/DatasourceTag'
+import { t } from 'i18next'
+import { useTranslation } from 'react-i18next'
 interface DataType {
   datasource: React.Key
   nested?: string[]
@@ -17,24 +19,17 @@ interface DataType {
   type: string
 }
 const viewTypeList: { label: string; value: DatasourceType }[] = [
-  { label: '命名空间视图', value: 'namespace' },
-  { label: '服务名视图', value: 'service' },
+  { label: t('core/dataGroup:nsView'), value: 'namespace' },
+  { label: t('core/dataGroup:serviceView'), value: 'service' },
 ]
 const columns = [
   {
     dataIndex: 'datasource',
-    title: '服务名',
-    // filteredValue: ['营销前置'],
-    // filterSearch: true,
-    // onFilter: (value, record) =>
-    //   record['datasource']
-    //     .toString()
-    //     .toLowerCase()
-    //     .includes((value as string).toLowerCase()),
+    title: t('common:applicationLabel'),
   },
   {
     dataIndex: 'nested',
-    title: '所属命名空间',
+    title: t('core/dataGroup:nested'),
     render: (value: string[]) => {
       //           <Tag color="geekblue">geekblue</Tag>
       //   <Tag color="cyan">cyan</Tag>
@@ -78,6 +73,7 @@ const columns = [
 //   )
 // }
 const DatasourceSelector = (props) => {
+  const { t } = useTranslation('core/dataGroup')
   const { id, datasourceList = [], onChange } = props
   const [viewType, setViewType] = useState<DatasourceType>('namespace')
   const [checkedTreeKeys, setCheckedTreeKeys] = useState<React.Key[]>([])
@@ -234,13 +230,11 @@ const DatasourceSelector = (props) => {
             message={
               viewType === 'namespace' ? (
                 <ul>
-                  <li>
-                    整体监控：选中命名空间节点，自动监控该命名空间下的所有服务，服务变化时自动更新。
-                  </li>
-                  <li>精细监控：可单独选择服务节点，仅监控该服务。</li>
+                  <li>{t('nsViewAlert1')}</li>
+                  <li>{t('nsViewAlert2')}</li>
                 </ul>
               ) : (
-                '仅监控所选服务，独立于命名空间。'
+                t('appAlert')
               )
             }
             type="info"

@@ -1,4 +1,4 @@
-import { Button, Table, Tag } from 'antd'
+import { Alert, Button, Table, Tag, Tooltip } from 'antd'
 import { useEffect, useState } from 'react'
 import styles from './index.module.scss'
 import { getDataGroupsApi } from 'src/core/api/dataGroup'
@@ -6,56 +6,59 @@ import Paragraph from 'antd/es/typography/Paragraph'
 import DatasourceTag from 'src/core/views/DataGroup/component/DatasourceTag'
 import { SaveDataGroupParams } from 'src/core/types/dataGroup'
 import { AiOutlineCloseCircle } from 'react-icons/ai'
+import { useTranslation } from 'react-i18next'
 
 interface DataGroupPermissionProps {
   id: string
   dataGroupList: any[]
   onChange: any
+  type: 'team' | 'user'
+  permissionSourceTeam: any[]
 }
-const columns = [
-  {
-    title: 'groupId',
-    dataIndex: 'groupId',
-    key: 'groupId',
-    hidden: true,
-  },
-  {
-    title: '数据组名',
-    dataIndex: 'groupName',
-    width: 200,
 
-    key: 'groupName',
-  },
-  {
-    title: '数据组描述',
-    width: 200,
-    dataIndex: 'description',
-    key: 'description',
-  },
-  {
-    title: '数据源',
-    dataIndex: 'datasourceList',
-    key: 'datasourceList',
-    render: (value) => {
-      return (
-        <Paragraph
-          className="m-0"
-          ellipsis={{
-            expandable: true,
-            rows: 3,
-          }}
-        >
-          {value?.map((item) => <DatasourceTag type={item.type} datasource={item.datasource} />)}
-        </Paragraph>
-      )
-    },
-  },
-]
 const DataGroupPermission = (props: DataGroupPermissionProps) => {
-  const { id, dataGroupList = [], onChange } = props
+  const { t } = useTranslation('core/permission')
+  const { id, dataGroupList = [], onChange, type, permissionSourceTeam } = props
   const [checkedKeys, setcheckedKeys] = useState([])
   const [data, setData] = useState<SaveDataGroupParams[]>([])
-
+  const columns = [
+    {
+      title: 'groupId',
+      dataIndex: 'groupId',
+      key: 'groupId',
+      hidden: true,
+    },
+    {
+      title: t('dataGroupName'),
+      dataIndex: 'groupName',
+      width: 200,
+      key: 'groupName',
+    },
+    {
+      title: t('dataGroupDes'),
+      width: 200,
+      dataIndex: 'description',
+      key: 'description',
+    },
+    {
+      title: t('datasource'),
+      dataIndex: 'datasourceList',
+      key: 'datasourceList',
+      render: (value) => {
+        return (
+          <Paragraph
+            className="m-0"
+            ellipsis={{
+              expandable: true,
+              rows: 3,
+            }}
+          >
+            {value?.map((item) => <DatasourceTag type={item.type} datasource={item.datasource} />)}
+          </Paragraph>
+        )
+      },
+    },
+  ]
   const getDataGroups = () => {
     getDataGroupsApi({
       currentPage: 1,
@@ -116,11 +119,24 @@ const DataGroupPermission = (props: DataGroupPermissionProps) => {
               onClose={(e) => {
                 deleteDataGroup(e, item.groupId)
               }}
+              color="success"
             >
               {item.groupName}
             </Tag>
           ))}
+          {/* {permissionSourceTeam?.map((item) => (
+            <Tooltip title={t('tagTooltip')}>
+              <Tag
+                onClose={(e) => {
+                  deleteDataGroup(e, item.groupId)
+                }}
+              >
+                {item.groupName}
+              </Tag>
+            </Tooltip>
+          ))} */}
         </div>
+
         {dataGroupList?.length > 0 && (
           <Button
             size="small"
@@ -133,6 +149,12 @@ const DataGroupPermission = (props: DataGroupPermissionProps) => {
           ></Button>
         )}
       </div>
+      {/* <Alert
+        message={t('dataGroupAlert')}
+        type="warning"
+        showIcon
+        className="text-xs mb-2 mx-0"
+      ></Alert> */}
       <Table<SaveDataGroupParams>
         rowSelection={{ type: 'checkbox', ...rowSelection }}
         dataSource={data}

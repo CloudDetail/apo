@@ -7,7 +7,7 @@ import React, { createContext, useContext, useEffect, useMemo, useReducer, useSt
 import userReducer, { initialState } from '../store/reducers/userReducer'
 import { getUserPermissionApi } from '../api/permission'
 import { useTranslation } from 'react-i18next'
-import { getSubsDataGroupApi } from '../api/dataGroup'
+import { getUserGroupApi } from '../api/dataGroup'
 import { useDispatch, useSelector } from 'react-redux'
 
 const UserContext = createContext({})
@@ -29,10 +29,7 @@ export const UserProvider = ({ children }) => {
 
   const getUserDataGroup = () => {
     if (user.userId) {
-      getSubsDataGroupApi({
-        subjectId: user.userId,
-        subjectType: 'user',
-      }).then((res) => {
+      getUserGroupApi(user.userId, 'apm').then((res) => {
         dispatch({
           type: 'setDataGroupList',
           payload: (res || []).map((item) => ({

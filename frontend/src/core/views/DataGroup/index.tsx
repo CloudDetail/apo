@@ -15,8 +15,12 @@ import { LuShieldCheck } from 'react-icons/lu'
 import PermissionModal from './PermissionModal'
 import DatasourceTag from './component/DatasourceTag'
 import Paragraph from 'antd/es/typography/Paragraph'
+import { useTranslation } from 'react-i18next'
 
 export default function DataGroupPage() {
+  const { t } = useTranslation('core/dataGroup')
+  const { t: ct } = useTranslation('common')
+
   const [data, setData] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -58,7 +62,7 @@ export default function DataGroupPage() {
     deleteDataGroupApi(groupId).then((res) => {
       showToast({
         color: 'success',
-        title: '删除成功',
+        title: ct('deleteSuccess'),
       })
       getDataGroups()
     })
@@ -71,20 +75,20 @@ export default function DataGroupPage() {
       hidden: true,
     },
     {
-      title: '数据组名',
+      title: t('dataGroupName'),
       dataIndex: 'groupName',
       width: 200,
 
       key: 'groupName',
     },
     {
-      title: '数据组描述',
+      title: t('dataGroupDes'),
       width: 200,
       dataIndex: 'description',
       key: 'description',
     },
     {
-      title: '数据源',
+      title: t('datasource'),
       dataIndex: 'datasourceList',
       key: 'datasourceList',
       render: (value) => {
@@ -102,10 +106,10 @@ export default function DataGroupPage() {
       },
     },
     {
-      title: '操作',
+      title: ct('operation'),
       dataIndex: 'operation',
       key: 'operation',
-      width: 300,
+      width: 350,
       render: (_, record) => {
         return (
           <Flex align="center" justify="space-evenly">
@@ -117,16 +121,18 @@ export default function DataGroupPage() {
               }}
               icon={<MdOutlineEdit className="text-blue-400 hover:text-blue-400" />}
             >
-              <span className="text-blue-400 hover:text-blue-400">编辑</span>
+              <span className="text-blue-400 hover:text-blue-400">{t('edit')}</span>
             </Button>
             <Popconfirm
-              title={`是否确定删除${record.groupName}?`}
+              title={t('confirmDelete', {
+                groupName: record.groupName,
+              })}
               onConfirm={() => deleteDataGroup(record.groupId)}
-              okText={'确定'}
-              cancelText={'取消'}
+              okText={ct('confirm')}
+              cancelText={ct('cancel')}
             >
               <Button type="text" icon={<RiDeleteBin5Line />} danger>
-                删除
+                {ct('delete')}
               </Button>
             </Popconfirm>
             <Button
@@ -138,7 +144,7 @@ export default function DataGroupPage() {
                 setGroupInfo(record)
               }}
             >
-              授权
+              {t('authorize')}
             </Button>
           </Flex>
         )
@@ -155,7 +161,7 @@ export default function DataGroupPage() {
           {/* <DataGroupFilter /> */}
           <div></div>
           <Button type="primary" onClick={() => setInfoModalVisible(true)}>
-            新增
+            {t('add')}
           </Button>
         </div>
         <Table

@@ -5,6 +5,7 @@
 
 import {
   DataGroupSubsParams,
+  DatasourceCategory,
   GetDataGroupsParams,
   GetSubsDataGroupParams,
   SaveDataGroupParams,
@@ -31,8 +32,8 @@ export function deleteDataGroupApi(groupId: string) {
   return post('/api/data/group/delete', { groupId }, headers.formUrlencoded)
 }
 
-export function getDataGroupPermissionSubsApi(groupId: string) {
-  return get('/api/data/subs', { groupId })
+export function getDataGroupPermissionSubsApi(groupId: string, subjectType?: 'user' | 'team') {
+  return get('/api/data/subs', { groupId, subjectType })
 }
 
 export function updateDataGroupSubsApi(params: DataGroupSubsParams) {
@@ -48,4 +49,8 @@ export function getSubsDataGroupApi(params: GetSubsDataGroupParams) {
 
 export function getDatasourceByGroupApi(params) {
   return get('/api/data/group/data', params)
+}
+
+export function getUserGroupApi(userId: string, category: DatasourceCategory) {
+  return get('/api/data/user/group', { userId, category })
 }
