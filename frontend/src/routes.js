@@ -13,7 +13,9 @@ const AlertsIntegrationPage = React.lazy(
   () => import('src/core/views/IntegrationCenter/AlertsIntegration'),
 )
 const SystemConfiguration = React.lazy(() => import('src/core/views/SystemConfiguration/index.jsx'))
-const namespace = 'oss/routes'
+const DataGroupPage = React.lazy(() => import('src/core/views/DataGroup/index'))
+const TeamPage = React.lazy(() => import('src/core/views/Team/index'))
+const namespace = 'core/routes'
 
 const baseRoutes = [
   { path: '/', exact: true, name: 'Home' },
@@ -44,6 +46,18 @@ const baseRoutes = [
     path: '/system/config',
     name: <TranslationCom text="systemConfigName" space={namespace} />,
     element: SystemConfiguration,
+    hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/system/data-group',
+    name: <TranslationCom text="dataGroup" space={namespace} />,
+    element: DataGroupPage,
+    hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/system/team',
+    name: <TranslationCom text="team" space={namespace} />,
+    element: TeamPage,
     hideSystemTimeRangePicker: true,
   },
 ]

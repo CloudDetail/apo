@@ -1,0 +1,18 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.tagContainer {
+  background: #141414;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #424242;
+  border-radius: 6px;
+  padding: 4px 11px;
+  min-height: 32px;
+  flex-shrink: 0;
+  flex-grow: 0;
+  max-height: 80px;
+  overflow: auto;
+}

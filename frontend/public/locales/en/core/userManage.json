@@ -13,7 +13,8 @@
     "confirm": "Confirm",
     "cancel": "Cancel",
     "addUser": "Add User",
-    "deleteSuccess": "Successfully deleted user"
+    "deleteSuccess": "Successfully deleted user",
+    "dataGroup": "Data Permissions"
   },
   "addModal": {
     "title": "Add User",
@@ -65,5 +66,8 @@
     "saveSuccess": "Save successful",
     "resetPasswordSuccess": "Password reset successful",
     "resetPasswordFail": "Unknown error"
-  }
+  },
+
+  "save": "Save",
+  "cancel": "Cancel"
 }
