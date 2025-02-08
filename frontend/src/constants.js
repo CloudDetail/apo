@@ -193,8 +193,8 @@ export const ThemeStyle = {
 // TODO: cache clean
 export const SlowErrorType = {
   network_time: t('common:slowCauseType.networkTime'),
-  CPU_time: t('common:slowCauseType.cpuTime'),
+  cpu_time: t('common:slowCauseType.cpuTime'),
   lock_gc_time: t('common:slowCauseType.lockGcTime'),
   disk_io_time: t('common:slowCauseType.diskIoTime'),
-  schedule_time: t('common:slowCauseType.scheduleTime'),
+  scheduling_time: t('common:slowCauseType.scheduleTime'),
 }

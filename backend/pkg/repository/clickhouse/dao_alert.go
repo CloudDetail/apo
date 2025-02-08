@@ -187,8 +187,19 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 		whereInstance = append(whereInstance, MergeWheres(
 			AndSep,
 			whereGroup,
-			Equals("tags['svc_name']", filter.Service),
-			EqualsIfNotEmpty("tags['content_key']", filter.Endpoint),
+			MergeWheres(
+				OrSep,
+				MergeWheres(
+					AndSep,
+					Equals("tags['svc_name']", filter.Service),
+					EqualsIfNotEmpty("tags['content_key']", filter.Endpoint),
+				), // Compatible with older versions
+				MergeWheres(
+					AndSep,
+					Equals("tags['serviceName']", filter.Service),
+					EqualsIfNotEmpty("tags['endpoint']", filter.Endpoint),
+				),
+			),
 		))
 	}
 
@@ -292,7 +303,7 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 	if len(filter.Group) == 0 || filter.Group == "middleware" {
 		var dbUrls clickhouse.ArraySet
 		var ipPorts ValueInGroups = ValueInGroups{
-			Keys: []string{"tags['db_ip']", "tags['db_port']"},
+			Keys: []string{"tags['dbIP']", "tags['dbPort']"},
 		}
 
 		if instances != nil {
@@ -308,7 +319,7 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 			}
 			whereInstance = append(whereInstance, MergeWheres(
 				OrSep,
-				In("tags['db_url']", dbUrls),
+				In("tags['dbURL']", dbUrls),
 				InGroup(ipPorts),
 			))
 		}
