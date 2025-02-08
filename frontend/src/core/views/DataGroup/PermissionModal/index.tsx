@@ -139,7 +139,7 @@ const PermissionModal = ({ open, closeModal, groupInfo, refresh }: PermissionMod
             fieldNames={{ label: 'username', value: 'userId' }}
           />
         </Form.Item>
-        <Form.Item name="teamList" label={t('authorizeToUser')}>
+        <Form.Item name="teamList" label={t('authorizeToTeam')}>
           <Select
             mode="multiple"
             showSearch
