@@ -40,15 +40,15 @@ func (s *service) UpdateTeam(req *request.UpdateTeamRequest) error {
 	team.TeamName = req.TeamName
 	team.Description = req.Description
 
-	toAddFeature, toDeleteFeature, err := s.dbRepo.GetAddAndDeletePermissions(req.TeamID, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE, req.FeatureList)
-	if err != nil {
-		return err
-	}
+	// toAddFeature, toDeleteFeature, err := s.dbRepo.GetAddAndDeletePermissions(req.TeamID, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE, req.FeatureList)
+	// if err != nil {
+	// 	return err
+	// }
 
-	toModifyDg, toDeleteDg, err := s.dbRepo.GetModifyAndDeleteDataGroup(req.TeamID, model.DATA_GROUP_SUB_TYP_TEAM, req.DataGroupPermissions)
-	if err != nil {
-		return err
-	}
+	// toModifyDg, toDeleteDg, err := s.dbRepo.GetModifyAndDeleteDataGroup(req.TeamID, model.DATA_GROUP_SUB_TYP_TEAM, req.DataGroupPermissions)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// determine added or removed users
 	hasUsers, err := s.dbRepo.GetTeamUsers(req.TeamID)
@@ -86,21 +86,21 @@ func (s *service) UpdateTeam(req *request.UpdateTeamRequest) error {
 		return s.dbRepo.UpdateTeam(ctx, team)
 	}
 
-	var grantPermissionFunc = func(ctx context.Context) error {
-		return s.dbRepo.GrantPermission(ctx, req.TeamID, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE, toAddFeature)
-	}
+	// var grantPermissionFunc = func(ctx context.Context) error {
+	// 	return s.dbRepo.GrantPermission(ctx, req.TeamID, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE, toAddFeature)
+	// }
 
-	var revokePermissionFunc = func(ctx context.Context) error {
-		return s.dbRepo.RevokePermission(ctx, req.TeamID, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE, toDeleteFeature)
-	}
+	// var revokePermissionFunc = func(ctx context.Context) error {
+	// 	return s.dbRepo.RevokePermission(ctx, req.TeamID, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE, toDeleteFeature)
+	// }
 
-	var assignDataGroupFunc = func(ctx context.Context) error {
-		return s.dbRepo.AssignDataGroup(ctx, toModifyDg)
-	}
+	// var assignDataGroupFunc = func(ctx context.Context) error {
+	// 	return s.dbRepo.AssignDataGroup(ctx, toModifyDg)
+	// }
 
-	var removeDataGroupFunc = func(ctx context.Context) error {
-		return s.dbRepo.RevokeDataGroupByGroup(ctx, toDeleteDg, req.TeamID)	
-	}
+	// var removeDataGroupFunc = func(ctx context.Context) error {
+	// 	return s.dbRepo.RevokeDataGroupByGroup(ctx, toDeleteDg, req.TeamID)	
+	// }
 
-	return s.dbRepo.Transaction(context.Background(), updateTeamFunc, grantPermissionFunc, revokePermissionFunc, assignDataGroupFunc, removeDataGroupFunc, inviteFunc, removeFunc)
+	return s.dbRepo.Transaction(context.Background(), updateTeamFunc, inviteFunc, removeFunc)
 }
