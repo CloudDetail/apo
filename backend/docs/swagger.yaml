@@ -385,6 +385,10 @@ definitions:
         type: string
       name:
         type: string
+      raw_tags:
+        additionalProperties:
+          type: string
+        type: object
       receivedTime:
         description: Failure event reception time (used to record data connection,
           no business meaning)
@@ -459,6 +463,10 @@ definitions:
         type: string
       name:
         type: string
+      raw_tags:
+        additionalProperties:
+          type: string
+        type: object
       receivedTime:
         description: Failure event reception time (used to record data connection,
           no business meaning)
@@ -593,6 +601,45 @@ definitions:
       unit:
         type: string
     type: object
+  database.AuthDataGroup:
+    properties:
+      team:
+        $ref: '#/definitions/database.Team'
+      type:
+        description: view, edit
+        type: string
+      user:
+        $ref: '#/definitions/database.User'
+    type: object
+  database.DataGroup:
+    properties:
+      authType:
+        type: string
+      datasourceList:
+        items:
+          $ref: '#/definitions/database.DatasourceGroup'
+        type: array
+      description:
+        description: The description of data group.
+        type: string
+      groupId:
+        type: integer
+      groupName:
+        type: string
+      source:
+        type: string
+    type: object
+  database.DatasourceGroup:
+    properties:
+      category:
+        description: apm or normal
+        type: string
+      datasource:
+        type: string
+      type:
+        description: service or namespace
+        type: string
+    type: object
   database.Feature:
     properties:
       featureId:
@@ -632,6 +679,8 @@ definitions:
     type: object
   database.Role:
     properties:
+      description:
+        type: string
       roleId:
         type: integer
       roleName:
@@ -648,6 +697,23 @@ definitions:
       to:
         type: string
     type: object
+  database.Team:
+    properties:
+      description:
+        type: string
+      featureList:
+        items:
+          $ref: '#/definitions/database.Feature'
+        type: array
+      teamId:
+        type: integer
+      teamName:
+        type: string
+      userList:
+        items:
+          $ref: '#/definitions/database.User'
+        type: array
+    type: object
   database.User:
     properties:
       corporation:
@@ -660,11 +726,13 @@ definitions:
         type: array
       phone:
         type: string
-      role:
-        type: string
       roleList:
         items:
           $ref: '#/definitions/database.Role'
+        type: array
+      teamList:
+        items:
+          $ref: '#/definitions/database.Team'
         type: array
       userId:
         type: integer
@@ -911,6 +979,24 @@ definitions:
         $ref: '#/definitions/model.AlertDetail'
       type: array
     type: object
+  model.Datasource:
+    properties:
+      category:
+        description: normal or apm
+        type: string
+      datasource:
+        description: namespaceName or serviceName
+        type: string
+      nested:
+        description: Nested datasource (namespace service belongs to or service under
+          namespace)
+        items:
+          type: string
+        type: array
+      type:
+        description: namespace or service
+        type: string
+    type: object
   model.ModifyTableTTLMap:
     properties:
       TTLExpression:
@@ -1116,6 +1202,14 @@ definitions:
     - alert
     - group
     type: object
+  request.AuthDataGroup:
+    properties:
+      subjectId:
+        type: integer
+      type:
+        description: edit or view
+        type: string
+    type: object
   request.BufferEngineConfig:
     properties:
       maxBytes:
@@ -1132,6 +1226,64 @@ definitions:
         type: integer
       numLayers:
         type: integer
+    type: object
+  request.CreateDataGroupRequest:
+    properties:
+      datasourceList:
+        items:
+          $ref: '#/definitions/model.Datasource'
+        type: array
+      description:
+        type: string
+      groupName:
+        type: string
+    required:
+    - groupName
+    type: object
+  request.CreateTeamRequest:
+    properties:
+      dataGroupPermission:
+        items:
+          $ref: '#/definitions/request.DataGroupPermission'
+        type: array
+      description:
+        type: string
+      featureList:
+        items:
+          type: integer
+        type: array
+      teamName:
+        type: string
+      userList:
+        items:
+          type: integer
+        type: array
+    required:
+    - teamName
+    type: object
+  request.DataGroupOperationRequest:
+    properties:
+      dataGroupPermission:
+        items:
+          $ref: '#/definitions/request.DataGroupPermission'
+        type: array
+      subjectId:
+        type: integer
+      subjectType:
+        type: string
+    required:
+    - subjectId
+    - subjectType
+    type: object
+  request.DataGroupPermission:
+    properties:
+      groupId:
+        type: integer
+      type:
+        type: string
+    required:
+    - groupId
+    - type
     type: object
   request.DataType:
     enum:
@@ -1253,6 +1405,19 @@ definitions:
           type: string
         type: array
     type: object
+  request.GetDataGroupRequest:
+    properties:
+      currentPage:
+        type: integer
+      datasourceList:
+        items:
+          $ref: '#/definitions/model.Datasource'
+        type: array
+      groupName:
+        type: string
+      pageSize:
+        type: integer
+    type: object
   request.GetFaultLogContentRequest:
     properties:
       containerId:
@@ -1270,6 +1435,7 @@ definitions:
       podName:
         type: string
       serviceName:
+        description: unused
         type: string
       sourceFrom:
         description: log data source
@@ -1286,6 +1452,9 @@ definitions:
         type: string
       endTime:
         description: query end time
+        type: integer
+      groupId:
+        description: Data group id
         type: integer
       instance:
         description: instance name
@@ -1361,6 +1530,9 @@ definitions:
         items:
           $ref: '#/definitions/request.SpanTraceFilter'
         type: array
+      groupId:
+        description: Data group id
+        type: integer
       instance:
         description: instance name
         type: string
@@ -1393,6 +1565,21 @@ definitions:
         type: string
     required:
     - endTime
+    type: object
+  request.GroupSubsOperationRequest:
+    properties:
+      groupId:
+        type: integer
+      teamList:
+        items:
+          $ref: '#/definitions/request.AuthDataGroup'
+        type: array
+      userList:
+        items:
+          $ref: '#/definitions/request.AuthDataGroup'
+        type: array
+    required:
+    - groupId
     type: object
   request.InputAlertManagerRequest:
     properties:
@@ -1609,6 +1796,22 @@ definitions:
     - oldAlert
     - oldGroup
     type: object
+  request.UpdateDataGroupRequest:
+    properties:
+      datasourceList:
+        items:
+          $ref: '#/definitions/model.Datasource'
+        type: array
+      description:
+        type: string
+      groupId:
+        type: integer
+      groupName:
+        type: string
+    required:
+    - groupId
+    - groupName
+    type: object
   request.UpdateLogParseRequest:
     properties:
       dataBase:
@@ -1635,6 +1838,30 @@ definitions:
         type: array
       tableName:
         type: string
+    type: object
+  request.UpdateTeamRequest:
+    properties:
+      dataGroupPermission:
+        items:
+          $ref: '#/definitions/request.DataGroupPermission'
+        type: array
+      description:
+        type: string
+      featureList:
+        items:
+          type: integer
+        type: array
+      teamId:
+        type: integer
+      teamName:
+        type: string
+      userList:
+        items:
+          type: integer
+        type: array
+    required:
+    - teamId
+    - teamName
     type: object
   response.AddOtherTableResponse:
     properties:
@@ -1847,6 +2074,33 @@ definitions:
       pagination:
         $ref: '#/definitions/model.Pagination'
     type: object
+  response.GetDataGroupResponse:
+    properties:
+      currentPage:
+        description: current page number
+        type: integer
+      dataGroupList:
+        items:
+          $ref: '#/definitions/database.DataGroup'
+        type: array
+      pageSize:
+        description: number of entries per page
+        type: integer
+      total:
+        description: total number of records
+        type: integer
+    type: object
+  response.GetDatasourceResponse:
+    properties:
+      namespaceList:
+        items:
+          $ref: '#/definitions/model.Datasource'
+        type: array
+      serviceList:
+        items:
+          $ref: '#/definitions/model.Datasource'
+        type: array
+    type: object
   response.GetDescendantMetricsResponse:
     properties:
       endpoint:
@@ -1961,6 +2215,23 @@ definitions:
         type: integer
       tid:
         type: integer
+    type: object
+  response.GetGroupDatasourceResponse:
+    properties:
+      namespaceMap:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        description: 'namespace: services'
+        type: object
+      serviceMap:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        description: 'service: endpoints'
+        type: object
     type: object
   response.GetGroupListResponse:
     properties:
@@ -2150,6 +2421,22 @@ definitions:
           $ref: '#/definitions/model.ModifyTableTTLMap'
         type: array
     type: object
+  response.GetTeamResponse:
+    properties:
+      currentPage:
+        description: current page number
+        type: integer
+      pageSize:
+        description: number of entries per page
+        type: integer
+      teamList:
+        items:
+          $ref: '#/definitions/database.Team'
+        type: array
+      total:
+        description: total number of records
+        type: integer
+    type: object
   response.GetTraceFilterValueResponse:
     properties:
       traceFilterOptions:
@@ -2224,11 +2511,13 @@ definitions:
         type: array
       phone:
         type: string
-      role:
-        type: string
       roleList:
         items:
           $ref: '#/definitions/database.Role'
+        type: array
+      teamList:
+        items:
+          $ref: '#/definitions/database.Team'
         type: array
       userId:
         type: integer
@@ -2510,11 +2799,13 @@ definitions:
       refreshToken:
         description: refreshToken for refreshing accessToken
         type: string
-      role:
-        type: string
       roleList:
         items:
           $ref: '#/definitions/database.Role'
+        type: array
+      teamList:
+        items:
+          $ref: '#/definitions/database.Team'
         type: array
       userId:
         type: integer
@@ -3916,6 +4207,351 @@ paths:
       summary: configuration TTL
       tags:
       - Api.config
+  /api/data/datasource:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Gets all datasource.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetDatasourceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Gets all datasource.
+      tags:
+      - API.data
+  /api/data/group:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get data group.
+      parameters:
+      - description: Request
+        in: body
+        name: Request
+        schema:
+          $ref: '#/definitions/request.GetDataGroupRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetDataGroupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get data group.
+      tags:
+      - API.data
+  /api/data/group/create:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a data group.
+      parameters:
+      - description: Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateDataGroupRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Create a data group.
+      tags:
+      - API.data
+  /api/data/group/data:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get group's datasource.
+      parameters:
+      - description: Data group's id
+        in: query
+        name: groupId
+        type: integer
+      - description: apm or normal, return all when empty
+        in: query
+        name: category
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetGroupDatasourceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get group's datasource.
+      tags:
+      - API.data
+  /api/data/group/delete:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Delete the data group.
+      parameters:
+      - description: Data group's id
+        in: formData
+        name: groupId
+        required: true
+        type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Delete the data group.
+      tags:
+      - API.data
+  /api/data/group/operation:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Assign data groups to users or teams, or remove them from data
+        groups.
+      parameters:
+      - description: Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DataGroupOperationRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Assign data groups to users or teams, or remove them from data groups.
+      tags:
+      - API.data
+  /api/data/group/update:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Updates data group.
+      parameters:
+      - description: Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateDataGroupRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Updates data group.
+      tags:
+      - API.data
+  /api/data/sub/group:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get subject's assigned data group.
+      parameters:
+      - description: The id of authorized subject
+        in: query
+        name: subjectId
+        required: true
+        type: integer
+      - description: The type of authorized subject
+        in: query
+        name: subjectType
+        required: true
+        type: string
+      - description: apm or normal, return all if is empty
+        in: query
+        name: category
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.DataGroup'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get subject's assigned data group.
+      tags:
+      - API.data
+  /api/data/subs:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get group's assigned subjects.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      - description: data group's id
+        in: query
+        name: groupId
+        required: true
+        type: integer
+      - description: subject type that you want to query
+        in: query
+        name: subjectType
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.AuthDataGroup'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get group's assigned subjects.
+      tags:
+      - API.data
+  /api/data/subs/operation:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Manage group's assigned subject.
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GroupSubsOperationRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Manage group's assigned subject.
+      tags:
+      - API.data
+  /api/data/user/group:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get user's assigned data group.
+      parameters:
+      - description: user's id
+        in: query
+        name: userId
+        required: true
+        type: integer
+      - description: apm or normal, return all if is empty
+        in: query
+        name: category
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.DataGroup'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get user's assigned data group.
+      tags:
+      - API.data
   /api/health:
     get:
       consumes:
@@ -4692,7 +5328,7 @@ paths:
       - application/x-www-form-urlencoded
       description: Get user's menu config.
       parameters:
-      - description: user id
+      - description: User's id
         in: query
         name: userId
         required: true
@@ -4756,7 +5392,7 @@ paths:
       description: Configure global menu.
       parameters:
       - collectionFormat: multi
-        description: function id list
+        description: The list of feature's id
         in: formData
         items:
           type: integer
@@ -4787,23 +5423,23 @@ paths:
       - application/x-www-form-urlencoded
       description: Grant or revoke user's permission(feature).
       parameters:
-      - description: authorization principal id
+      - description: The id of authorized subject
         in: formData
         name: subjectId
         required: true
         type: integer
-      - description: 'Authorization principal type: ''role'',''user'',''team '''
+      - description: 'The type of authorized subject: ''role'',''user'',''team'''
         in: formData
         name: subjectType
         required: true
         type: string
-      - description: 'Authorization type: ''feature'',''data '''
+      - description: 'The type of authorization: ''feature'',''data'''
         in: formData
         name: type
         required: true
         type: string
       - collectionFormat: multi
-        description: list of permission ids
+        description: The list of permissions' id
         in: formData
         items:
           type: integer
@@ -4823,17 +5459,26 @@ paths:
       summary: Grant or revoke user's permission(feature).
       tags:
       - API.permission
-  /api/permission/role:
+  /api/permission/sub/feature:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: Get user's role.
+      description: Gets subject's permission.
       parameters:
-      - description: user id
+      - description: language
         in: query
-        name: userId
+        name: language
+        type: string
+      - description: The id of authorized subject
+        in: query
+        name: subjectId
         required: true
         type: integer
+      - description: user, role, team
+        in: query
+        name: subjectType
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -4841,27 +5486,103 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Role'
+              $ref: '#/definitions/database.Feature'
             type: array
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: Get user's role.
+      summary: Gets subject's permission.
       tags:
       - API.permission
-  /api/permission/role/operation:
+  /api/role/create:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Creates a role.
+      parameters:
+      - description: Role's name
+        in: formData
+        name: roleName
+        required: true
+        type: string
+      - description: The description of role.
+        in: formData
+        name: description
+        type: string
+      - collectionFormat: multi
+        description: Role's initial feature permission id list.
+        in: formData
+        items:
+          type: integer
+        name: permissionList
+        type: array
+      - collectionFormat: multi
+        description: The id of users which will be granted the role.
+        in: formData
+        items:
+          type: integer
+        name: userList
+        type: array
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Creates a role.
+      tags:
+      - API.role
+  /api/role/delete:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Delete a role.
+      parameters:
+      - description: Role's id
+        in: formData
+        name: roleId
+        required: true
+        type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Delete a role.
+      tags:
+      - API.role
+  /api/role/operation:
     post:
       consumes:
       - application/x-www-form-urlencoded
       description: Grants permission to user
       parameters:
-      - description: user id
+      - description: User's id
         in: formData
         name: userId
         type: integer
       - collectionFormat: multi
-        description: role id
+        description: The id list of role which user has.
         in: formData
         items:
           type: integer
@@ -4885,8 +5606,8 @@ paths:
             $ref: '#/definitions/code.Failure'
       summary: Grant or revoke user's role.
       tags:
-      - API.permission
-  /api/permission/roles:
+      - API.role
+  /api/role/roles:
     get:
       consumes:
       - application/x-www-form-urlencoded
@@ -4912,27 +5633,63 @@ paths:
             $ref: '#/definitions/code.Failure'
       summary: Gets all roles.
       tags:
-      - API.permission
-  /api/permission/sub/feature:
+      - API.role
+  /api/role/update:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Update role's name and permission.
+      parameters:
+      - description: Role's id.
+        in: formData
+        name: roleId
+        required: true
+        type: integer
+      - description: Role's name
+        in: formData
+        name: roleName
+        required: true
+        type: string
+      - description: The description of role.
+        in: formData
+        name: description
+        type: string
+      - collectionFormat: multi
+        description: Role's feature permission id list.
+        in: formData
+        items:
+          type: integer
+        name: permissionList
+        type: array
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Update role's name and permission.
+      tags:
+      - API.role
+  /api/role/user:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: Gets subject's permission.
+      description: Get user's role.
       parameters:
-      - description: language
+      - description: User's id
         in: query
-        name: language
-        type: string
-      - description: authorization principal id
-        in: query
-        name: subjectId
+        name: userId
         required: true
         type: integer
-      - description: Authorization Principal Type
-        in: query
-        name: subjectType
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -4940,15 +5697,15 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Feature'
+              $ref: '#/definitions/database.Role'
             type: array
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: Gets subject's permission.
+      summary: Get user's role.
       tags:
-      - API.permission
+      - API.role
   /api/service/alert/events:
     get:
       consumes:
@@ -5242,12 +5999,16 @@ paths:
       - application/x-www-form-urlencoded
       description: get the list of endpoints services
       parameters:
-      - description: query start time
+      - description: data group id
+        in: query
+        name: groupId
+        type: integer
+      - description: start time
         in: query
         name: startTime
         required: true
         type: integer
-      - description: query end time
+      - description: end time
         in: query
         name: endTime
         required: true
@@ -5272,13 +6033,13 @@ paths:
         name: namespace
         type: array
       - collectionFormat: multi
-        description: service endpoint
+        description: endpoint
         in: query
         items:
           type: string
         name: endpointName
         type: array
-      - description: sort logic
+      - description: sort rule
         in: query
         name: sortRule
         required: true
@@ -6487,6 +7248,248 @@ paths:
       summary: get Trace related metrics
       tags:
       - API.service
+  /api/team:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get teams.
+      parameters:
+      - description: Team's name
+        in: query
+        name: teamName
+        type: string
+      - collectionFormat: multi
+        description: The list of feature's id
+        in: query
+        items:
+          type: integer
+        name: featureList
+        type: array
+      - collectionFormat: multi
+        description: The list of data group's id
+        in: query
+        items:
+          type: integer
+        name: dataGroupList
+        type: array
+      - description: Current page
+        in: query
+        name: currentPage
+        type: integer
+      - description: Page size
+        in: query
+        name: pageSize
+        type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetTeamResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get teams.
+      tags:
+      - API.team
+  /api/team/create:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Creates a team.
+      parameters:
+      - description: Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateTeamRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Creates a team.
+      tags:
+      - API.team
+  /api/team/delete:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Delete a team.
+      parameters:
+      - description: Team's id
+        in: formData
+        name: teamId
+        required: true
+        type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Delete a team.
+      tags:
+      - API.team
+  /api/team/operation:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Assigns a user to teams or removes a user from teams.
+      parameters:
+      - description: User's id
+        in: formData
+        name: userId
+        required: true
+        type: integer
+      - collectionFormat: multi
+        description: The list of team id.
+        in: formData
+        items:
+          type: integer
+        name: teamList
+        type: array
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Assigns a user to teams or removes a user from teams.
+      tags:
+      - API.team
+  /api/team/update:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Update team's information.
+      parameters:
+      - description: Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateTeamRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Update team's information.
+      tags:
+      - API.team
+  /api/team/user:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get team's users.
+      parameters:
+      - description: Team's id
+        in: query
+        name: teamId
+        required: true
+        type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.User'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get team's users.
+      tags:
+      - API.team
+  /api/team/user/operation:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Assigns users to a team or remove users from a team.
+      parameters:
+      - description: Team's id
+        in: formData
+        name: teamId
+        required: true
+        type: integer
+      - collectionFormat: multi
+        description: The list of users' id.
+        in: formData
+        items:
+          type: integer
+        name: userList
+        type: array
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Assigns users to a team or remove users from a team.
+      tags:
+      - API.team
   /api/trace/flame:
     get:
       consumes:
@@ -6764,7 +7767,7 @@ paths:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: create user
+      description: Create a user.
       parameters:
       - description: username
         in: formData
@@ -6815,15 +7818,19 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: create user
+      summary: Create a user.
       tags:
       - API.user
   /api/user/info:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: get personal information
+      description: Get user's info.
       parameters:
+      - description: User's id
+        in: query
+        name: userId
+        type: integer
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -6839,36 +7846,46 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: get personal information
+      summary: Get user's info.
       tags:
       - API.user
   /api/user/list:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: get user list
+      description: Get user list.
       parameters:
       - description: Bearer accessToken
         in: header
         name: Authorization
         type: string
-      - description: username
+      - description: Username
         in: query
         name: username
         type: string
-      - description: current page
+      - description: Current page
         in: query
         name: currentPage
         type: string
-      - description: Page size
+      - description: The size of page
         in: query
         name: pageSize
         type: string
-      - description: role
+      - collectionFormat: multi
+        description: Role id list
         in: query
-        name: role
-        type: string
-      - description: organization
+        items:
+          type: integer
+        name: roleList
+        type: array
+      - collectionFormat: multi
+        description: Team id list
+        in: query
+        items:
+          type: integer
+        name: teamList
+        type: array
+      - description: 组织
         in: query
         name: corporation
         type: string
@@ -6883,21 +7900,21 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: get user list
+      summary: Get user list.
       tags:
       - API.user
   /api/user/login:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: login
+      description: Login
       parameters:
-      - description: username
+      - description: Username
         in: formData
         name: username
         required: true
         type: string
-      - description: password
+      - description: Password
         in: formData
         name: password
         required: true
@@ -6913,14 +7930,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: login
+      summary: Login
       tags:
       - API.user
   /api/user/logout:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: logout
+      description: Logout
       parameters:
       - description: accessToken
         in: formData
@@ -6943,14 +7960,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: logout
+      summary: Logout
       tags:
       - API.user
   /api/user/refresh:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: refresh accessToken
+      description: Refresh accessToken
       parameters:
       - description: Bearer refreshToken
         in: header
@@ -6968,20 +7985,20 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: refresh accessToken
+      summary: Refresh accessToken
       tags:
       - API.user
   /api/user/remove:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: remove user
+      description: Remove a user.
       parameters:
       - description: Bearer accessToken
         in: header
         name: Authorization
         type: string
-      - description: request information
+      - description: User's id
         in: formData
         name: userId
         required: true
@@ -6997,143 +8014,21 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: remove user
+      summary: Remove a user.
       tags:
       - API.user
   /api/user/reset:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: reset password
+      description: Reset user's password.
       parameters:
-      - description: user id
+      - description: User's id
         in: formData
         name: userId
         required: true
         type: integer
-      - description: new password
-        in: formData
-        name: newPassword
-        required: true
-        type: string
-      - description: repeat password
-        in: formData
-        name: confirmPassword
-        required: true
-        type: string
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: reset password
-      tags:
-      - API.user
-  /api/user/update/email:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: update/bind mailbox
-      parameters:
-      - description: user id
-        in: formData
-        name: userId
-        required: true
-        type: integer
-      - description: mailbox
-        in: formData
-        name: email
-        required: true
-        type: string
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: update/bind mailbox
-      tags:
-      - API.user
-  /api/user/update/info:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: update personal information
-      parameters:
-      - description: user id
-        in: formData
-        name: userId
-        required: true
-        type: integer
-      - description: organization
-        in: formData
-        name: corporation
-        type: string
-      - description: Phone number
-        in: formData
-        name: phone
-        type: string
-      - description: mailbox
-        in: formData
-        name: email
-        type: string
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: update personal information
-      tags:
-      - API.user
-  /api/user/update/password:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: update password
-      parameters:
-      - description: user id
-        in: formData
-        name: userId
-        required: true
-        type: integer
-      - description: original password
-        in: formData
-        name: oldPassword
-        required: true
-        type: string
-      - description: new password
+      - description: New password
         in: formData
         name: newPassword
         required: true
@@ -7159,21 +8054,181 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: update password
+      summary: Reset user's password.
+      tags:
+      - API.user
+  /api/user/team:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get user's team.
+      parameters:
+      - description: User's is
+        in: query
+        name: userId
+        required: true
+        type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Team'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get user's team.
+      tags:
+      - API.user
+  /api/user/update/email:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Update email.
+      parameters:
+      - description: User's id
+        in: formData
+        name: userId
+        required: true
+        type: integer
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Update email.
+      tags:
+      - API.user
+  /api/user/update/info:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Update user's info.
+      parameters:
+      - description: User's id
+        in: formData
+        name: userId
+        required: true
+        type: integer
+      - collectionFormat: multi
+        description: The list of user's role.
+        in: formData
+        items:
+          type: integer
+        name: roleList
+        type: array
+      - description: Corporation
+        in: formData
+        name: corporation
+        type: string
+      - description: Phone number
+        in: formData
+        name: phone
+        type: string
+      - description: Email
+        in: formData
+        name: email
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Update user's info.
+      tags:
+      - API.user
+  /api/user/update/password:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Update password.
+      parameters:
+      - description: User's id
+        in: formData
+        name: userId
+        required: true
+        type: integer
+      - description: Original password
+        in: formData
+        name: oldPassword
+        required: true
+        type: string
+      - description: New password
+        in: formData
+        name: newPassword
+        required: true
+        type: string
+      - description: Confirm password
+        in: formData
+        name: confirmPassword
+        required: true
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Update password.
       tags:
       - API.user
   /api/user/update/phone:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: update/bind phone number
+      description: Update phone number
       parameters:
-      - description: user id
+      - description: User's id
         in: formData
         name: userId
         required: true
         type: integer
-      - description: phone number
+      - description: Phone number
         in: formData
         name: phone
         required: true
@@ -7194,7 +8249,49 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: update/bind phone number
+      summary: Update phone number
+      tags:
+      - API.user
+  /api/user/update/self:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Update self info.
+      parameters:
+      - description: User's id
+        in: formData
+        name: userId
+        required: true
+        type: integer
+      - description: Corporation
+        in: formData
+        name: corporation
+        type: string
+      - description: Phone number
+        in: formData
+        name: phone
+        type: string
+      - description: Email
+        in: formData
+        name: email
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Update self info.
       tags:
       - API.user
 swagger: "2.0"

@@ -4,6 +4,9 @@
 package core
 
 import (
+	"errors"
+	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
 	"sync"
 
@@ -58,10 +61,15 @@ type Context interface {
 	Param(key string) string
 
 	// Payload returned correctly
+	GetMethodPath() (method string, path string)
+
+	// Payload 正确返回
 	Payload(payload interface{})
 	getPayload() interface{}
 
 	// AbortWithError error return
+	HandleError(err error, expectCode string)
+	// AbortWithError 错误返回
 	AbortWithError(err BusinessError)
 	abortError() BusinessError
 
@@ -140,12 +148,35 @@ func (c *context) Header() http.Header {
 	return clone
 }
 
+func (c *context) GetMethodPath() (method string, path string) {
+	m := c.ctx.Request.Method
+	path = c.ctx.FullPath()
+	return m, path
+}
+
 func (c *context) GetHeader(key string) string {
 	return c.ctx.GetHeader(key)
 }
 
 func (c *context) SetHeader(key, value string) {
 	c.ctx.Header(key, value)
+}
+
+func (c *context) HandleError(err error, expectCode string) {
+	var vErr model.ErrWithMessage
+	if errors.As(err, &vErr) {
+		c.AbortWithError(Error(
+			http.StatusBadRequest,
+			vErr.Code,
+			code.Text(vErr.Code),
+		).WithError(err))
+	} else {
+		c.AbortWithError(Error(
+			http.StatusBadRequest,
+			expectCode,
+			code.Text(expectCode),
+		).WithError(err))
+	}
 }
 
 func (c *context) AbortWithError(err BusinessError) {

@@ -5,9 +5,8 @@ package user
 
 import (
 	"errors"
-	"net/http"
-
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -16,8 +15,8 @@ import (
 )
 
 // Logout Logout
-// @Summary logout
-// @Description logout
+// @Summary Logout
+// @Description Logout
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json

@@ -21,19 +21,19 @@ import (
 const (
 	adminPassword = "APO2024@admin"
 
-	userFieldSql = "user_id, username, role, phone, email, corporation"
+	userFieldSql = "user_id, username, phone, email, corporation"
 )
 
 type User struct {
 	UserID      int64  `gorm:"column:user_id;primary_key" json:"userId,omitempty"`
-	Username    string `gorm:"column:username;uniqueIdx" json:"username,omitempty"`
-	Password    string `gorm:"column:password" json:"-"`
-	Role        string `gorm:"column:role" json:"role,omitempty"`
-	Phone       string `gorm:"column:phone" json:"phone,omitempty"`
-	Email       string `gorm:"column:email" json:"email,omitempty"`
-	Corporation string `gorm:"column:corporation" json:"corporation,omitempty"`
+	Username    string `gorm:"column:username;uniqueIdx;type:varchar(20)" json:"username,omitempty"`
+	Password    string `gorm:"column:password;type:varchar(200)" json:"-"`
+	Phone       string `gorm:"column:phone;type:varchar(20)" json:"phone,omitempty"`
+	Email       string `gorm:"column:email;type:varchar(50)" json:"email,omitempty"`
+	Corporation string `gorm:"column:corporation;type:varchar(50)" json:"corporation,omitempty"`
 
-	RoleList    []Role    `gorm:"-" json:"roleList,omitempty"`
+	RoleList    []Role    `gorm:"many2many:user_role;joinForeignKey:UserID;joinReferences:RoleID" json:"roleList,omitempty"`
+	TeamList    []Team    `gorm:"many2many:user_team;joinForeignKey:UserID;joinReferences:TeamID" json:"teamList,omitempty"`
 	FeatureList []Feature `gorm:"-" json:"featureList,omitempty"`
 }
 
@@ -143,7 +143,10 @@ func (repo *daoRepo) Login(username, password string) (*User, error) {
 func (repo *daoRepo) CreateUser(ctx context.Context, user *User) error {
 	db := repo.GetContextDB(ctx)
 	var count int64
-	db.Model(&User{}).Where("username = ?", user.Username).Count(&count)
+	err := db.Model(&User{}).Where("username = ?", user.Username).Count(&count).Error
+	if err != nil {
+		return err
+	}
 	if count > 0 {
 		return model.NewErrWithMessage(errors.New("user already exists"), code.UserAlreadyExists)
 	}
@@ -203,24 +206,29 @@ func (repo *daoRepo) RestPassword(userID int64, newPassword string) error {
 	return repo.db.Updates(&user).Error
 }
 
-func (repo *daoRepo) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
+func (repo *daoRepo) UpdateUserInfo(ctx context.Context, userID int64, phone string, email string, corporation string) error {
 	var user User
-	err := repo.db.Where("user_id = ?", req.UserID).First(&user).Error
+	err := repo.GetContextDB(ctx).Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return model.NewErrWithMessage(errors.New("user does not exist "), code.UserNotExistsError)
 	} else if err != nil {
 		return err
 	}
 
-	user.Corporation = req.Corporation
-	user.Phone = req.Phone
-	user.Email = req.Email
-	return repo.db.Updates(&user).Error
+	user.Corporation = corporation
+	user.Phone = phone
+	user.Email = email
+	return repo.GetContextDB(ctx).Updates(&user).Error
 }
 
 func (repo *daoRepo) GetUserInfo(userID int64) (User, error) {
 	var user User
-	err := repo.db.Select(userFieldSql).Where("user_id = ?", userID).First(&user).Error
+	err := repo.db.
+		Select(userFieldSql).
+		Preload("RoleList").
+		Preload("TeamList").
+		Where("user_id = ?", userID).
+		First(&user).Error
 	return user, err
 }
 
@@ -234,36 +242,76 @@ func (repo *daoRepo) GetAnonymousUser() (User, error) {
 func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64, error) {
 	var users []User
 	var count int64
-	query := repo.db.Select(userFieldSql)
+
+	query := repo.db.Model(&User{}).Preload("RoleList").Preload("TeamList")
+
 	if len(req.Username) > 0 {
-		query = query.Where("username like ?", fmt.Sprintf("%%%s%%", req.Username))
+		query = query.Where("username LIKE ?", fmt.Sprintf("%%%s%%", req.Username))
 	}
-	if len(req.Role) > 0 {
-		query = query.Where("role = ?", req.Role)
+
+	if len(req.RoleList) > 0 {
+		subQuery := repo.db.Table("user_role").
+			Select("user_id").
+			Where("role_id IN ?", req.RoleList)
+		query = query.Where("user_id IN (?)", subQuery)
 	}
+
+	if len(req.TeamList) > 0 {
+		subQuery := repo.db.Table("user_team").
+			Select("user_id").
+			Where("team_id IN ?", req.TeamList)
+		query = query.Where("user_id IN (?)", subQuery)
+	}
+
 	if len(req.Corporation) > 0 {
-		corporation := "%" + req.Corporation + "%"
-		query = query.Where("corporation like ?", corporation)
+		query = query.Where("corporation LIKE ?", fmt.Sprintf("%%%s%%", req.Corporation))
 	}
-	query = query.Where("username != ?", "anonymous")
-	err := query.Model(&User{}).Count(&count).Error
+
+	query = query.Where("username != ?", config.Get().User.AnonymousUser.Username)
+
+	err := query.Count(&count).Error
 	if err != nil {
 		return nil, 0, err
 	}
+
 	query = query.Limit(req.PageSize).Offset((req.CurrentPage - 1) * req.PageSize)
+
 	err = query.Find(&users).Error
-	return users, count, err
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return users, count, nil
 }
 
 func (repo *daoRepo) RemoveUser(ctx context.Context, userID int64) error {
-	return repo.GetContextDB(ctx).Model(&User{}).Where("user_id = ?", userID).Delete(nil).Error
+	err := repo.GetContextDB(ctx).Model(&User{}).Where("user_id = ?", userID).Delete(nil).Error
+	if err != nil {
+		return err
+	}
+
+	err = repo.GetContextDB(ctx).
+		Model(&UserRole{}).
+		Where("user_id = ?", userID).
+		Delete(nil).
+		Error
+
+	if err != nil {
+		return err
+	}
+
+	return repo.GetContextDB(ctx).
+		Model(&UserTeam{}).
+		Where("user_id = ?", userID).
+		Delete(nil).
+		Error
 }
 
-func (repo *daoRepo) UserExists(userID int64) (bool, error) {
+func (repo *daoRepo) UserExists(userIDs ...int64) (bool, error) {
 	var count int64
-	if err := repo.db.Model(&User{}).Where("user_id = ?", userID).Count(&count).Error; err != nil {
+	if err := repo.db.Model(&User{}).Where("user_id IN ?", userIDs).Count(&count).Error; err != nil {
 		return false, err
 	}
 
-	return count > 0, nil
+	return count == int64(len(userIDs)), nil
 }

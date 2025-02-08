@@ -7,7 +7,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/data"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 	"go.uber.org/zap"
 )
@@ -49,12 +51,14 @@ type handler struct {
 	logger          *zap.Logger
 	promClient      prometheus.Repo
 	serviceoverview serviceoverview.Service
+	dataService     data.Service
 }
 
-func New(logger *zap.Logger, chRepo clickhouse.Repo, promClient prometheus.Repo, dbRepo database.Repo) Handler {
+func New(logger *zap.Logger, chRepo clickhouse.Repo, promClient prometheus.Repo, dbRepo database.Repo, k8sRepo kubernetes.Repo) Handler {
 	return &handler{
 		logger:          logger,
 		promClient:      promClient,
 		serviceoverview: serviceoverview.New(chRepo, dbRepo, promClient),
+		dataService:     data.New(dbRepo, promClient, k8sRepo),
 	}
 }

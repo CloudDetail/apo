@@ -15,10 +15,11 @@ type GetFaultLogPageListRequest struct {
 	TraceId     string   `json:"traceId"`     // TraceId
 	PageNum     int      `json:"pageNum"`     // page
 	PageSize    int      `json:"pageSize"`    // display number per page
+	GroupID     int64    `form:"groupId,omitempty"` // Data group id
 }
 
 type GetFaultLogContentRequest struct {
-	ServiceName string `json:"serviceName"`
+	ServiceName string `json:"serviceName"` // unused
 	InstanceId  string `json:"instanceId"`
 	TraceId     string `json:"traceId"`
 	StartTime   uint64 `json:"startTime"`

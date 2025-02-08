@@ -32,6 +32,15 @@ func (h *handler) GetFaultLogContent() core.HandlerFunc {
 			)
 			return
 		}
+
+		// TODO GetFaultLogContentRequest's service is unused, won't check data permission
+		//userID := middleware.GetContextUserID(c)
+		//err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.ServiceName, "")
+		//if err != nil {
+		//	c.HandleError(err, code.AuthError)
+		//	return
+		//}
+
 		resp, err := h.logService.GetFaultLogContent(req)
 		if err != nil {
 			c.AbortWithError(core.Error(

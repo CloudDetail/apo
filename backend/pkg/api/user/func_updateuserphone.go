@@ -5,24 +5,23 @@ package user
 
 import (
 	"errors"
-	"net/http"
-	"regexp"
-
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"net/http"
+	"regexp"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// UpdateUserPhone update/bind phone number
-// @Summary update/bind phone number
-// @Description update/bind phone number
+// UpdateUserPhone Update phone number
+// @Summary Update phone number
+// @Description Update phone number
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId formData int64 true "user id"
-// @Param phone formData string true "phone number"
+// @Param userId formData int64 true "User's id"
+// @Param phone formData string true "Phone number"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure

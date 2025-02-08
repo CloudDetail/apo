@@ -5,16 +5,15 @@ package user
 
 import (
 	"errors"
-	"net/http"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"net/http"
 )
 
-// RefreshToken refresh accessToken
-// @Summary refresh accessToken
-// @Description refresh accessToken
+// RefreshToken Refresh accessToken
+// @Summary Refresh accessToken
+// @Description Refresh accessToken
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json

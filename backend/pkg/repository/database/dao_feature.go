@@ -7,7 +7,7 @@ package database
 // that represents the embodiment of access control.
 type Feature struct {
 	FeatureID   int    `gorm:"column:feature_id;primary_key;auto_increment" json:"featureId"`
-	FeatureName string `gorm:"column:feature_name" json:"featureName"`
+	FeatureName string `gorm:"column:feature_name;type:varchar(20)" json:"featureName"`
 	ParentID    *int   `gorm:"column:parent_id" json:"-"`
 	Custom      bool   `gorm:"column:custom;default:false" json:"-"`
 
@@ -42,10 +42,16 @@ func (repo *daoRepo) GetFeature(featureIDs []int) ([]Feature, error) {
 	return features, err
 }
 
-func (repo *daoRepo) GetFeatureMapping(featureIDs []int, mappedType string) ([]FeatureMapping, error) {
+func (repo *daoRepo) GetFeatureMappingByFeature(featureIDs []int, mappedType string) ([]FeatureMapping, error) {
 	var featureMenuItem []FeatureMapping
 	err := repo.db.Where("feature_id in ? AND mapped_type = ?", featureIDs, mappedType).Order("mapped_id").Find(&featureMenuItem).Error
 	return featureMenuItem, err
+}
+
+func (repo *daoRepo) GetFeatureMappingByMapped(mappedID int, mappedType string) (FeatureMapping, error) {
+	var fm FeatureMapping
+	err := repo.db.Where("mapped_id = ? AND mapped_type = ?", mappedID, mappedType).Find(&fm).Error
+	return fm, err
 }
 
 func (repo *daoRepo) GetFeatureByName(name string) (int, error) {

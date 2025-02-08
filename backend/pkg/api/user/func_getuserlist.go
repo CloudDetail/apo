@@ -4,26 +4,26 @@
 package user
 
 import (
-	"net/http"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// GetUserList get user list
-// @Summary get user list
-// @Description get user list
+// GetUserList Get user list.
+// @Summary Get user list.
+// @Description Get user list.
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Authorization header string false "Bearer accessToken"
-// @Param username query string false "username"
-// @Param currentPage query string false "current page"
-// @Param pageSize query string false "Page size"
-// @Param role query string false "role"
-// @Param corporation query string false "organization"
+// @Param username query string false "Username"
+// @Param currentPage query string false "Current page"
+// @Param pageSize query string false "The size of page"
+// @Param roleList query []int false "Role id list" collectionFormat(multi)
+// @Param teamList query []int false "Team id list" collectionFormat(multi)
+// @Param corporation query string false "组织"
 // @Success 200 {object} response.GetUserListResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/user/list [get]
@@ -42,7 +42,7 @@ func (h *handler) GetUserList() core.HandlerFunc {
 		if req.PageParam == nil {
 			req.PageParam = &request.PageParam{
 				CurrentPage: 1,
-				PageSize:    99,
+				PageSize:    10,
 			}
 		}
 

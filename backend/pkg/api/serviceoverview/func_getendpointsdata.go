@@ -4,6 +4,9 @@
 package serviceoverview
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
+	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"net/http"
 	"time"
 
@@ -12,8 +15,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-
-	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // GetEndPointsData get the list of endpoints services
@@ -22,13 +23,14 @@ import (
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "query start time"
-// @Param endTime query int64 true "query end time"
+// @Param groupId query int64 false "data group id"
+// @Param startTime query int64 true "start time"
+// @Param endTime query int64 true "end time"
 // @Param step query int64 true "step"
 // @Param serviceName query []string false "service name" collectionFormat(multi)
 // @Param namespace query []string false "namespace" collectionFormat(multi)
-// @Param endpointName query []string false "service endpoint" collectionFormat(multi)
-// @Param sortRule query int true "sort logic"
+// @Param endpointName query []string false "endpoint" collectionFormat(multi)
+// @Param sortRule query int true "sort rule"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.ServiceEndPointsRes
 // @Failure 400 {object} code.Failure
@@ -44,6 +46,7 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 			)
 			return
 		}
+		var data []response.ServiceEndPointsRes
 		var startTime time.Time
 		var endTime time.Time
 		startTime = time.UnixMicro(req.StartTime)
@@ -51,13 +54,19 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 		step := time.Duration(req.Step * 1000)
 		sortRule := serviceoverview.SortType(req.SortRule)
 
+		userID := middleware.GetContextUserID(c)
+		err := h.dataService.CheckDatasourcePermission(userID, req.GroupID, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
+		if err != nil {
+			c.HandleError(err, code.AuthError)
+			return
+		}
+
 		filter := serviceoverview.EndpointsFilter{
 			MultiService:   req.ServiceName,
 			MultiEndpoint:  req.EndpointName,
 			MultiNamespace: req.Namespace,
 		}
-
-		data, err := h.serviceoverview.GetServicesEndPointData(startTime, endTime, step, filter, sortRule)
+		data, err = h.serviceoverview.GetServicesEndPointData(startTime, endTime, step, filter, sortRule)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -65,10 +74,6 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 				code.Text(code.GetTop3UrlListError)).WithError(err),
 			)
 			return
-		}
-
-		if data == nil {
-			data = []response.ServiceEndPointsRes{}
 		}
 
 		c.Payload(data)

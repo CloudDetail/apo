@@ -6,7 +6,11 @@ package trace
 import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
+	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/data"
 	"github.com/CloudDetail/apo/backend/pkg/services/trace"
 	"go.uber.org/zap"
 )
@@ -47,11 +51,13 @@ type Handler interface {
 type handler struct {
 	logger       *zap.Logger
 	traceService trace.Service
+	dataService  data.Service
 }
 
-func New(logger *zap.Logger, chRepo clickhouse.Repo, jaegerRepo jaeger.JaegerRepo) Handler {
+func New(logger *zap.Logger, dbRepo database.Repo, chRepo clickhouse.Repo, jaegerRepo jaeger.JaegerRepo, promRepo prometheus.Repo, k8sRepo kubernetes.Repo) Handler {
 	return &handler{
 		logger:       logger,
 		traceService: trace.New(chRepo, jaegerRepo, logger),
+		dataService:  data.New(dbRepo, promRepo, k8sRepo),
 	}
 }

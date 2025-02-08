@@ -4,6 +4,7 @@
 package log
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -39,7 +40,12 @@ func (h *handler) GetFaultLogPageList() core.HandlerFunc {
 		if req.PageSize == 0 {
 			req.PageSize = 10
 		}
-
+		userID := middleware.GetContextUserID(c)
+		err := h.dataService.CheckDatasourcePermission(userID, req.GroupID, &req.Namespaces, &req.Service, "")
+		if err != nil {
+			c.HandleError(err, code.AuthError)
+			return
+		}
 		resp, err := h.logService.GetFaultLogPageList(req)
 		if err != nil {
 			c.AbortWithError(core.Error(

@@ -1,0 +1,16 @@
+INSERT INTO feature (feature_id, feature_name, parent_id) VALUES
+    (1, "服务概览", NULL),
+    (2, "日志检索", NULL),
+    (3, "故障现场日志", 2),
+    (4, "全量日志", 2),
+    (5, "链路追踪", NULL),
+    (6, "全局资源大盘", NULL),
+    (7, "应用基础设施大盘", NULL),
+    (8, "应用指标大盘", NULL),
+    (9, "中间件大盘", NULL),
+    (10, "MySQL大盘", NULL),
+    (11, "告警规则", NULL),
+    (12, "配置中心", NULL),
+    (13, "服务健康", NULL),
+    (14, "系统管理", NULL),
+    (15, "用户管理", 14);

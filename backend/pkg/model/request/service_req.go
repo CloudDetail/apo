@@ -122,6 +122,7 @@ type GetEndPointsDataRequest struct {
 	ServiceName  []string `form:"serviceName,omitempty"`  // application name, exact match
 	Namespace    []string `form:"namespace,omitempty"`    // specify namespace, exact match
 	EndpointName []string `form:"endpointName,omitempty"` // endpoint name, exact match
+	GroupID      int64    `form:"groupId,omitempty"`      // Data group id
 
 	// Query condition
 	StartTime int64 `form:"startTime" binding:"required"`                 // query start time

@@ -29,6 +29,10 @@ type Repo interface {
 	// Query the service list
 	GetServiceList(startTime int64, endTime int64, namespace []string) ([]string, error)
 	// Query the service instance list. The URL can be empty.
+	GetServiceWithNamespace(startTime, endTime int64, namespace []string) (map[string][]string, error)
+	// GetServiceNamespace  Get service's namespaces.
+	GetServiceNamespace(startTime, endTime int64, service string) ([]string, error)
+	// 查询服务实例列表, URL允许为空
 	GetInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
 	// Query the db instance for specified service
 	GetDescendantDatabase(startTime int64, endTime int64, serviceName string, endpoint string) ([]model.MiddlewareInstance, error)
@@ -79,6 +83,7 @@ type Repo interface {
 	GetRange() string
 
 	GetNamespaceList(startTime int64, endTime int64) ([]string, error)
+	GetNamespaceWithService(startTime, endTime int64) (map[string][]string, error)
 }
 
 type promRepo struct {

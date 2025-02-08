@@ -50,7 +50,7 @@ type %sResponse struct {
  // @Param Request body request.%sRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.%sResponse
-// @Failure 400 {object} code.
+// @Failure 400 {object} code.Failure
 %s
 func (h *handler) %s() core.HandlerFunc {
 	return func(c core.Context) {

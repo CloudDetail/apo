@@ -5,23 +5,22 @@ package user
 
 import (
 	"errors"
-	"net/http"
-
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// UpdateUserEmail update/bind mailbox
-// @Summary update/bind mailbox
-// @Description update/bind mailbox
+// UpdateUserEmail Update email.
+// @Summary Update email.
+// @Description Update email.
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param userId formData int64 true "user id"
-// @Param email formData string true "mailbox"
+// @Param userId formData int64 true "User's id"
+// @Param email formData string true "Email"
 // @Param Authorization header string true "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure

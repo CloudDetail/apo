@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -18,21 +17,23 @@ import (
 
 const (
 	TEMPLATE_GET_SERVICES                = `sum by(svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
+	TEMPLATE_GET_SERVICES_WITH_NAMESPACE = `sum by(svc_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_ENDPOINTS               = `sum by(content_key) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_SERVICE_INSTANCE        = `sum by(svc_name, pod, pid, container_id, node_name, namespace, node_ip) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_ACTIVE_SERVICE_INSTANCE = `sum by(svc_name, pod, pid, container_id, node_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_ERROR_RATE_INSTANCE         = "100*(" +
 		"(sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s, is_error='true'}[%s])) or 0)" + // or 0 Supplements missing data scenarios
 		"/sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))" +
-		") or (sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])) * 0)" // or * 0 Supplementing the scenario of missing data in the middle
-	TEMPLATE_GET_NAMESPACES = `sum(kindling_span_trace_duration_nanoseconds_count{namespace=~".+"}[%s]) by (namespace)`
+		") or (sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])) * 0)" // or * 0补充中间缺失数据的场景
+	TEMPLATE_GET_NAMESPACES            = `sum(kindling_span_trace_duration_nanoseconds_count{namespace=~".+"}[%s]) by (namespace)`
+	TEMPLATE_GET_NAMESPACES_BY_SERVICE = `sum(kindling_span_trace_duration_nanoseconds_count{%s}[%s]) by (namespace)`
 )
 
 // GetServiceList to query the service name list
 func (repo *promRepo) GetServiceList(startTime int64, endTime int64, namespace []string) ([]string, error) {
 	var namespaceFilter string
 	if len(namespace) > 0 {
-		namespaceFilter = fmt.Sprintf(`%s"%s"`, NamespaceRegexPQLFilter, strings.Join(namespace, "|"))
+		namespaceFilter = fmt.Sprintf(`%s"%s"`, NamespaceRegexPQLFilter, RegexMultipleValue(namespace...))
 	}
 	query := fmt.Sprintf(TEMPLATE_GET_SERVICES, namespaceFilter, VecFromS2E(startTime, endTime))
 	value, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
@@ -48,6 +49,100 @@ func (repo *promRepo) GetServiceList(startTime int64, endTime int64, namespace [
 	for _, sample := range vector {
 		result = append(result, string(sample.Metric["svc_name"]))
 	}
+	return result, nil
+}
+
+// GetServiceWithNamespace Get service list and namespace that belong to.
+func (repo *promRepo) GetServiceWithNamespace(startTime, endTime int64, namespaces []string) (map[string][]string, error) {
+	var namespaceFilter string
+	if len(namespaces) > 0 {
+		namespaceFilter = fmt.Sprintf(`%s"%s"`, NamespaceRegexPQLFilter, RegexMultipleValue(namespaces...))
+	}
+	query := fmt.Sprintf(TEMPLATE_GET_SERVICES_WITH_NAMESPACE, namespaceFilter, VecFromS2E(startTime, endTime))
+	value, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string][]string)
+	vector, ok := value.(prometheus_model.Vector)
+	if !ok {
+		return result, nil
+	}
+
+	for _, sample := range vector {
+		service := string(sample.Metric["svc_name"])
+		namespace := string(sample.Metric["namespace"])
+		if len(namespace) == 0 || len(service) == 0 {
+			continue
+		}
+		if _, exists := result[service]; !exists {
+			result[service] = []string{}
+		}
+		result[service] = append(result[service], namespace)
+	}
+
+	return result, nil
+}
+
+func (repo *promRepo) GetServiceNamespace(startTime, endTime int64, service string) ([]string, error) {
+	var serviceFilter string
+	if len(service) > 0 {
+		serviceFilter = fmt.Sprintf(`%s"%s"`, ServicePQLFilter, service)
+	}
+	query := fmt.Sprintf(TEMPLATE_GET_NAMESPACES_BY_SERVICE, serviceFilter, VecFromS2E(startTime, endTime))
+	value, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]string, 0)
+	vector, ok := value.(prometheus_model.Vector)
+	if !ok {
+		return result, nil
+	}
+
+	for _, sample := range vector {
+		namespace := string(sample.Metric["namespace"])
+		if len(namespace) > 0 {
+			result = append(result, namespace)
+		}
+	}
+
+	return result, nil
+}
+
+// GetNamespaceWithService Get namespace list and service that under it.
+func (repo *promRepo) GetNamespaceWithService(startTime, endTime int64) (map[string][]string, error) {
+	var namespaceFilter string
+
+	query := fmt.Sprintf(TEMPLATE_GET_SERVICES_WITH_NAMESPACE, namespaceFilter, VecFromS2E(startTime, endTime))
+	value, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string][]string)
+	vector, ok := value.(prometheus_model.Vector)
+	if !ok {
+		return result, nil
+	}
+
+	for _, sample := range vector {
+		service := string(sample.Metric["svc_name"])
+		namespace := string(sample.Metric["namespace"])
+		if len(namespace) == 0 || len(service) == 0 {
+			continue
+		}
+		if _, exists := result[namespace]; !exists {
+			result[namespace] = []string{}
+		}
+		result[namespace] = append(result[namespace], service)
+	}
+
 	return result, nil
 }
 

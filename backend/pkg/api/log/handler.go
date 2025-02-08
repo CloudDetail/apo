@@ -10,6 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/data"
 	"github.com/CloudDetail/apo/backend/pkg/services/log"
 	"go.uber.org/zap"
 )
@@ -97,8 +98,9 @@ type Handler interface {
 }
 
 type handler struct {
-	logger     *zap.Logger
-	logService log.Service
+	logger      *zap.Logger
+	logService  log.Service
+	dataService data.Service
 }
 
 func New(logger *zap.Logger, chRepo clickhouse.Repo, dbRepo database.Repo, k8sApi kubernetes.Repo, promRepo prometheus.Repo) Handler {
@@ -110,7 +112,8 @@ func New(logger *zap.Logger, chRepo clickhouse.Repo, dbRepo database.Repo, k8sAp
 		logger.Error("create default log table failed", zap.Error(err))
 	}
 	return &handler{
-		logger:     logger,
-		logService: logservice,
+		logger:      logger,
+		logService:  logservice,
+		dataService: data.New(dbRepo, promRepo, k8sApi),
 	}
 }

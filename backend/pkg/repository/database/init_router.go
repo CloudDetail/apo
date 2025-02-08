@@ -22,16 +22,20 @@ func (repo *daoRepo) initRouterData() error {
 		{RouterTo: "/integration/alerts", HideTimeSelector: true},
 		{RouterTo: "/config", HideTimeSelector: true},
 		{RouterTo: "/system/user-manage", HideTimeSelector: true},
-		{RouterTo: "/system/menu-manage", HideTimeSelector: false},
+		{RouterTo: "/system/menu-manage", HideTimeSelector: true},
 		{RouterTo: "/trace/fault-site", HideTimeSelector: true},
 		{RouterTo: "/trace/full", HideTimeSelector: true},
+		{RouterTo: "/system/data-group", HideTimeSelector: true},
 		{RouterTo: "/system/config", HideTimeSelector: true},
+		{RouterTo: "/system/team", HideTimeSelector: true},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
-		var existingRouter, toAdd []Router
-		var toDelete []int
+		if err := tx.AutoMigrate(&Router{}); err != nil {
+			return err
+		}
 
+		var existingRouter []Router
 		if err := tx.Where("custom = ?", false).Find(&existingRouter).Error; err != nil {
 			return err
 		}
@@ -41,29 +45,50 @@ func (repo *daoRepo) initRouterData() error {
 			existingMap[router.RouterTo] = router
 		}
 
+		var toAdd []Router
+		var toUpdate []Router
+		toDelete := make([]int, 0)
+
 		for _, router := range routers {
-			if _, exists := existingMap[router.RouterTo]; !exists {
-				toAdd = append(toAdd, router)
-			} else {
+			if existing, exists := existingMap[router.RouterTo]; exists {
+				if existing.HideTimeSelector != router.HideTimeSelector {
+					existing.HideTimeSelector = router.HideTimeSelector
+					toUpdate = append(toUpdate, existing)
+				}
 				delete(existingMap, router.RouterTo)
+			} else {
+				toAdd = append(toAdd, router)
 			}
 		}
 
 		for _, router := range existingMap {
 			toDelete = append(toDelete, router.RouterID)
 		}
+
 		if len(toAdd) > 0 {
 			if err := tx.Create(&toAdd).Error; err != nil {
 				return err
 			}
 		}
 
+		if len(toUpdate) > 0 {
+			for _, router := range toUpdate {
+				if err := tx.Model(&Router{}).
+					Where("router_id = ?", router.RouterID).
+					Updates(map[string]interface{}{
+						"hide_time_selector": router.HideTimeSelector,
+					}).Error; err != nil {
+					return err
+				}
+			}
+		}
+
 		if len(toDelete) > 0 {
-			err := tx.Model(&Router{}).Where("router_id in ?", toDelete).Delete(nil).Error
-			if err != nil {
+			if err := tx.Model(&Router{}).Where("router_id IN ?", toDelete).Delete(nil).Error; err != nil {
 				return err
 			}
 		}
+
 		return nil
 	})
 }

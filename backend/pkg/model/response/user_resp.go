@@ -37,3 +37,5 @@ type GetUserConfigResponse struct {
 type GetFeatureResponse []*database.Feature
 type GetSubjectFeatureResponse []database.Feature
 type GetUserRoleResponse []database.Role
+
+type GetUserTeamResponse []database.Team

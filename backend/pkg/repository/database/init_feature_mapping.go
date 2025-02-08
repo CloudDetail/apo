@@ -6,6 +6,7 @@ package database
 import (
 	"errors"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
@@ -30,6 +31,8 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 		{"用户管理", "userManage"},
 		{"菜单管理", "menuManage"},
 		{"系统配置", "systemConfig"},
+		{"数据组管理", "dataGroup"},
+		{"团队管理", "team"},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
@@ -89,3 +92,77 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 }
 
 // TODO add mapping of feature and router or api
+
+func (repo *daoRepo) initFeatureAPI() error {
+	featureAPI := map[string][]API{}
+	viper.SetConfigType("yaml")
+	viper.SetConfigFile("./sqlscripts/feature_api.yml")
+	if err := viper.ReadInConfig(); err != nil {
+		return err
+	}
+	if err := viper.Unmarshal(&featureAPI); err != nil {
+		return err
+	}
+
+	return repo.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.AutoMigrate(&FeatureMapping{}); err != nil {
+			return err
+		}
+
+		var featureIDs, apiIDs []int
+		if err := tx.Model(&Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&API{}).Select("id").Find(&apiIDs).Error; err != nil {
+			return err
+		}
+
+		// delete mapping whose feature or api has been already deleted
+		if err := tx.Model(&FeatureMapping{}).
+			Where("feature_id not in ? OR (mapped_id NOT IN ? AND mapped_type = ?)", featureIDs, apiIDs, model.MAPPED_TYP_API).
+			Delete(nil).Error; err != nil {
+			return err
+		}
+
+		for featureName, apis := range featureAPI {
+			var feature Feature
+			if err := tx.Where("feature_name = ?", featureName).First(&feature).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					continue
+				}
+				return err
+			}
+
+			for _, api := range apis {
+				var apiRecord API
+				if err := tx.Where("path = ? AND method = ?", api.Path, api.Method).First(&apiRecord).Error; err != nil {
+					if errors.Is(err, gorm.ErrRecordNotFound) {
+						continue
+					}
+					return err
+				}
+
+				var count int64
+				if err := tx.Model(&FeatureMapping{}).
+					Where("feature_id = ? AND mapped_id = ? AND mapped_type = ?", feature.FeatureID, apiRecord.ID, model.MAPPED_TYP_API).
+					Count(&count).Error; err != nil {
+					return err
+				}
+
+				if count == 0 {
+					featureAPI := FeatureMapping{
+						FeatureID:  feature.FeatureID,
+						MappedID:   apiRecord.ID,
+						MappedType: model.MAPPED_TYP_API,
+					}
+					if err := tx.Create(&featureAPI).Error; err != nil {
+						return err
+					}
+				}
+			}
+		}
+
+		return nil
+	})
+}

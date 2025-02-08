@@ -23,7 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-// createRestConfig creates an Kubernetes API config from user configuration.
+// createRestConfig creates a Kubernetes API config from user configuration.
 func createRestConfig(authType string, authFilePath string) (*rest.Config, error) {
 	var authConf *rest.Config
 	var err error

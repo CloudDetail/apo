@@ -12,7 +12,7 @@ import (
 )
 
 type Handler interface {
-	// Login
+	// Login Login
 	// @Tags API.user
 	// @Router /api/user/login [post]
 	Login() core.HandlerFunc
@@ -20,89 +20,60 @@ type Handler interface {
 	// @Tags API.user
 	// @Router /api/user/logout [post]
 	Logout() core.HandlerFunc
-	// Create user CreateUser
+	// CreateUser Create a user.
 	// @Tags API.user
 	// @Router /api/user/create [post]
 	CreateUser() core.HandlerFunc
-	// RefreshToken refresh accessToken
+	// RefreshToken Refresh accessToken
 	// @Tags API.user
 	// @Router /api/user/refresh [get]
 	RefreshToken() core.HandlerFunc
-	// UpdateUserInfo update personal information
+
+	// UpdateUserInfo Update user's info.
 	// @Tags API.user
 	// @Router /api/user/update/info [post]
 	UpdateUserInfo() core.HandlerFunc
-	// UpdateUserPassword update password
+
+	// UpdateSelfInfo Update self info.
+	// @Tags API.user
+	// @Router /api/user/update/self [post]
+	UpdateSelfInfo() core.HandlerFunc
+	// UpdateUserPassword Update password.
 	// @Tags API.user
 	// @Router /api/user/update/password [post]
 	UpdateUserPassword() core.HandlerFunc
-	// UpdateUserPhone update/bind phone number
+	// UpdateUserPhone Update phone number.
 	// @Tags API.user
 	// @Router /api/user/update/phone [post]
 	UpdateUserPhone() core.HandlerFunc
-	// UpdateUserEmail update/bind mailbox
+	// UpdateUserEmail Update email.
 	// @Tags API.user
 	// @Router /api/user/update/email [post]
 	UpdateUserEmail() core.HandlerFunc
-	// GetUserInfo access to personal information
+	// GetUserInfo Get user's info.
 	// @Tags API.user
 	// @Router /api/user/info [get]
 	GetUserInfo() core.HandlerFunc
 
-	// GetUserList get user list
+	// GetUserList Get user list.
 	// @Tags API.user
 	// @Router /api/user/list [get]
 	GetUserList() core.HandlerFunc
 
-	// Remove user RemoveUser
+	// RemoveUser Remove a user.
 	// @Tags API.user
 	// @Router /api/user/remove [post]
 	RemoveUser() core.HandlerFunc
 
-	// ResetPassword reset password
+	// ResetPassword Reset password.
 	// @Tags API.user
 	// @Router /api/user/reset [post]
 	ResetPassword() core.HandlerFunc
 
-	// RoleOperation Grant or revoke user's role.
-	// @Tags API.permission
-	// @Router /api/permission/role/operation [post]
-	RoleOperation() core.HandlerFunc
-
-	// GetRole Gets all roles.
-	// @Tags API.permission
-	// @Router /api/permission/roles [get]
-	GetRole() core.HandlerFunc
-
-	// GetUserRole Get user's role.
-	// @Tags API.permission
-	// @Router /api/permission/role [get]
-	GetUserRole() core.HandlerFunc
-
-	// GetUserConfig Gets user's menu config and which route can access.
-	// @Tags API.permission
-	// @Router /api/permission/config [get]
-	GetUserConfig() core.HandlerFunc
-
-	// GetFeature Gets all feature permission.
-	// @Tags API.permission
-	// @Router /api/permission/feature [get]
-	GetFeature() core.HandlerFunc
-
-	// GetSubjectFeature Gets subject's feature permission.
-	// @Tags API.permission
-	// @Router /api/permission/sub/feature [get]
-	GetSubjectFeature() core.HandlerFunc
-
-	// PermissionOperation Grant or revoke user's permission(feature).
-	// @Tags API.permission
-	// @Router /api/permission/operation [post]
-	PermissionOperation() core.HandlerFunc
-
-	// ConfigureMenu Configure global menu.
-	// @Tags API.permission
-	// @Router /api/permission/menu/configure [post]
-	ConfigureMenu() core.HandlerFunc
+	// GetUserTeam Get user's team.
+	// @Tags API.user
+	// @Router /api/user/team [post]
+	GetUserTeam() core.HandlerFunc
 }
 
 type handler struct {

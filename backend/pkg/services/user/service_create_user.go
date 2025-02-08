@@ -52,13 +52,29 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 		}
 	}
 
+	filter := model.TeamFilter {
+		IDs: req.TeamList,
+	}
+	exist, err := s.dbRepo.TeamExist(filter)
+	if err != nil {
+		return err
+	}
+
+	if !exist {
+		return model.NewErrWithMessage(errors.New("team does not exist"), code.TeamNotExistError)
+	}
+
+	var assignTeamFunc = func(ctx context.Context) error {
+		return s.dbRepo.AssignUserToTeam(ctx, user.UserID, req.TeamList)
+	}
+
 	var createUserFunc = func(ctx context.Context) error {
 		return s.dbRepo.CreateUser(ctx, user)
 	}
 
 	var grantRoleFunc = func(ctx context.Context) error {
-		return s.dbRepo.GrantRole(ctx, user.UserID, req.RoleList)
+		return s.dbRepo.GrantRoleWithUser(ctx, user.UserID, req.RoleList)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), createUserFunc, grantRoleFunc)
+	return s.dbRepo.Transaction(context.Background(), createUserFunc, grantRoleFunc, assignTeamFunc)
 }

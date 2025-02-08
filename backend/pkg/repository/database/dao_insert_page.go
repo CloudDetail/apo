@@ -6,8 +6,8 @@ package database
 // InsertPage saves embedded interface.
 type InsertPage struct {
 	PageID int    `gorm:"column:page_id;primary_key;auto_increment" json:"pageId"`
-	Url    string `gorm:"column:url" json:"url"`
-	Type   string `gorm:"column:type" json:"type"` // For now it's grafana or jaeger.
+	Url    string `gorm:"column:url;type:varchar(150)" json:"url"`
+	Type   string `gorm:"column:type;type:varchar(20)" json:"type"` // For now it's grafana or jaeger.
 	Custom bool   `gorm:"column:custom" json:"-"`
 }
 

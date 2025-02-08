@@ -5,18 +5,17 @@ package user
 
 import (
 	"errors"
-	"net/http"
-
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// Create user CreateUser
-// @Summary create user
-// @Description create user
+// CreateUser Create a user.
+// @Summary Create a user.
+// @Description Create a user.
 // @Tags API.user
 // @Accept application/x-www-form-urlencoded
 // @Produce json
