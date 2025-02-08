@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Alert, Form, Input, Modal, Select, Tag, Typography } from 'antd'
 import { useEffect, useState } from 'react'
 import DataGroupPermission from './DaraGroupPermission'

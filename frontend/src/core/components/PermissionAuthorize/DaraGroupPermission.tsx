@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Alert, Button, Table, Tag, Tooltip } from 'antd'
 import { useEffect, useState } from 'react'
 import styles from './index.module.scss'

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useUserContext } from 'src/core/contexts/UserContext'
 import { Button, Tabs } from 'antd'
 import { AiOutlineSetting } from 'react-icons/ai'
