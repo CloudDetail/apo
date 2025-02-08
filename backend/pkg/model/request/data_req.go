@@ -61,6 +61,3 @@ type GetGroupSubsRequest struct {
 	SubjectType string `form:"subjectType"`
 }
 
-type GetUserDatasourceRequest struct {
-	Category string `form:"category"`
-}
