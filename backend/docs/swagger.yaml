@@ -4517,6 +4517,37 @@ paths:
       summary: Manage group's assigned subject.
       tags:
       - API.data
+  /api/data/user/group:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get user's assigned data group.
+      parameters:
+      - description: user's id
+        in: query
+        name: userId
+        required: true
+        type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.DataGroup'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get user's assigned data group.
+      tags:
+      - API.data
   /api/health:
     get:
       consumes:

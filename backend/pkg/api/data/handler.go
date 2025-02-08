@@ -50,6 +50,11 @@ type Handler interface {
 	// @Router /api/data/sub/group [get]
 	GetSubjectDataGroup() core.HandlerFunc
 
+	// GetUserDataGroup Get user's assigned data group.
+	// @Tags API.data
+	// @Router /api/data/user/group [get]
+	GetUserDataGroup() core.HandlerFunc
+
 	// GroupSubsOperation Manage group's assigned subject.
 	// @Tags API.data
 	// @Router /api/data/subs/operation [post]

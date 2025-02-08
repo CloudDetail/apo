@@ -42,6 +42,10 @@ type GetSubjectDataGroupRequest struct {
 	Category    string `form:"category"`
 }
 
+type GetUserDataGroupRequest struct {
+	UserID int64 `form:"userId" binding:"required"`
+}
+
 type GroupSubsOperationRequest struct {
 	DataGroupID int64           `json:"groupId" form:"groupId" binding:"required"`
 	UserList    []AuthDataGroup `json:"userList"`

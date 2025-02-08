@@ -262,7 +262,7 @@ manage:
   key: "manage"
   i18n:
   - language: "en"
-    translation: "System Settings"
+    translation: "System Management"
     field_name: "label"
     entity_type: "menu"
   - language: "zh"
@@ -278,7 +278,7 @@ userManage:
   key: "userManage"
   i18n:
   - language: "en"
-    translation: "User Settings"
+    translation: "User"
     field_name: "label"
     entity_type: "menu"
   - language: "zh"
@@ -290,7 +290,7 @@ menuManage:
   key: "menuManage"
   i18n:
   - language: "en"
-    translation: "Menu Settings"
+    translation: "Menu"
     field_name: "label"
     entity_type: "menu"
   - language: "zh"
@@ -302,7 +302,7 @@ systemConfig:
   key: "systemConfig"
   i18n:
     - language: "en"
-      translation: "System Configurations"
+      translation: "System Settings"
       field_name: "label"
       entity_type: "menu"
     - language: "zh"
@@ -314,11 +314,23 @@ groupManage:
   key: "dataGroup"
   i18n:
     - language: "en"
-      translation: "Group Settings"
+      translation: "Group"
       field_name: "label"
       entity_type: "menu"
     - language: "zh"
       translation: "数据组管理"
+      field_name: "label"
+      entity_type: "menu"
+
+teamManage:
+  key: "team"
+  i18n:
+    - language: "en"
+      translation: "Group"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "团队管理"
       field_name: "label"
       entity_type: "menu"
 
@@ -545,7 +557,7 @@ groupManage:
   key: "系统管理"
   i18n:
   - language: "en"
-    translation: "System Settings"
+    translation: "System Management"
     entity_type: "feature"
     field_name: "featureName"
 
@@ -558,7 +570,7 @@ groupManage:
   key: "用户管理"
   i18n:
   - language: "en"
-    translation: "User Settings"
+    translation: "User Management"
     entity_type: "feature"
     field_name: "featureName"
 
@@ -571,7 +583,7 @@ groupManage:
   key: "菜单管理"
   i18n:
   - language: "en"
-    translation: "Menu Settings"
+    translation: "Menu Management"
     entity_type: "feature"
     field_name: "featureName"
 
@@ -584,7 +596,7 @@ groupManage:
   key: "系统配置"
   i18n:
   - language: "en"
-    translation: "System Configurations"
+    translation: "System Settings"
     entity_type: "feature"
     filed_name: "featureName"
 
@@ -597,7 +609,7 @@ groupManage:
   key: "数据组管理"
   i18n:
     - language: "en"
-      translation: "Group Setting"
+      translation: "Group Management"
       entity_type: "feature"
       field_name: "featureName"
 
@@ -605,3 +617,15 @@ groupManage:
       translation: "数据组管理"
       entity_type: "feature"
       field_name: "featureName"
+
+团队管理:
+  key: "团队管理"
+  i18n:
+    - language: "en"
+      translation: "Team Management"
+      field_name: "featureName"
+      entity_type: "feature"
+    - language: "zh"
+      translation: "团队管理"
+      field_name: "featureName"
+      entity_type: "feature"
