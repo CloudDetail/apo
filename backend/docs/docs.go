@@ -2219,6 +2219,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "apm or normal, return all if is empty",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
                         "in": "header"

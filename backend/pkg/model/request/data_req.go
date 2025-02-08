@@ -43,7 +43,8 @@ type GetSubjectDataGroupRequest struct {
 }
 
 type GetUserDataGroupRequest struct {
-	UserID int64 `form:"userId" binding:"required"`
+	UserID   int64  `form:"userId" binding:"required"`
+	Category string `form:"category"`
 }
 
 type GroupSubsOperationRequest struct {

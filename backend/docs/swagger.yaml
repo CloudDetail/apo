@@ -4528,6 +4528,10 @@ paths:
         name: userId
         required: true
         type: integer
+      - description: apm or normal, return all if is empty
+        in: query
+        name: category
+        type: string
       - description: Bearer accessToken
         in: header
         name: Authorization

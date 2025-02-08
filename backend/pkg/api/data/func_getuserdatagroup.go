@@ -19,6 +19,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param userId query int64 true "user's id"
+// @Param category query string false "apm or normal, return all if is empty"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetSubjectDataGroupResponse
 // @Failure 400 {object} code.Failure
@@ -38,7 +39,7 @@ func (h *handler) GetUserDataGroup() core.HandlerFunc {
 		subReq := new(request.GetSubjectDataGroupRequest)
 		subReq.SubjectID = req.UserID
 		subReq.SubjectType = model.DATA_GROUP_SUB_TYP_USER
-		subReq.Category = model.DATASOURCE_CATEGORY_APM
+		subReq.Category = req.Category
 		groups, err := h.dataService.GetSubjectDataGroup(subReq)
 		if err != nil {
 			c.AbortWithError(core.Error(
