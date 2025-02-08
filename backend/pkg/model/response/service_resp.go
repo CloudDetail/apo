@@ -26,15 +26,15 @@ type GetServiceEndpointTopologyResponse struct {
 type GetDescendantMetricsResponse = prometheus.DescendantMetrics
 
 type GetDescendantRelevanceResponse struct {
-	ServiceName      string  `json:"serviceName"`   // service name
-	EndPoint         string  `json:"endpoint"`      // Endpoint
-	Group            string  `json:"group"`         // service type
-	IsTraced         bool    `json:"isTraced"`      // whether to trace
-	Distance         float64 `json:"distance"`      // delay curve difference
-	DistanceType     string  `json: "distanceType"` // delay curve difference calculation method, there are four types of euclidean/pearson/dtw/failed/net_failed
-	DelaySource      string  `json: "delaySource"`  // main source of delay unknown/self/dependency
-	REDMetricsStatus string  `json:"REDStatus"`     // RED metric alarm
-	LastUpdateTime   *int64  `json:"timestamp"`     // Last deployment time
+	ServiceName      string  `json:"serviceName"`  // service name
+	EndPoint         string  `json:"endpoint"`     // Endpoint
+	Group            string  `json:"group"`        // service type
+	IsTraced         bool    `json:"isTraced"`     // whether to trace
+	Distance         float64 `json:"distance"`     // delay curve difference
+	DistanceType     string  `json:"distanceType"` // delay curve difference calculation method, there are four types of euclidean/pearson/dtw/failed/net_failed
+	DelaySource      string  `json:"delaySource"`  // main source of delay unknown/self/dependency
+	REDMetricsStatus string  `json:"REDStatus"`    // RED metric alarm
+	LastUpdateTime   *int64  `json:"timestamp"`    // Last deployment time
 
 	model.AlertStatus
 	AlertReason model.AlertReason `json:"alertReason"`

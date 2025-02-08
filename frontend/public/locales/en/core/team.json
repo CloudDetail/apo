@@ -1,0 +1,8 @@
+{
+  "teamName": "Team Name",
+  "authorize": "Data Permissions",
+  "description": "Description",
+  "team": "Team",
+  "userList": "Members",
+  "confirmDelete": "Are you sure you want to delete the team {{teamName}}？"
+}

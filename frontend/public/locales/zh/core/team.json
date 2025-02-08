@@ -1,0 +1,8 @@
+{
+  "teamName": "团队名",
+  "authorize": "数据权限",
+  "description": "描述",
+  "team": "团队",
+  "userList": "团队成员",
+  "confirmDelete": "是否确认删除名为{{teamName}}的团队？"
+}

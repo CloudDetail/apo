@@ -16,8 +16,10 @@ import { IoIosTrendingUp, IoMdCloudOutline } from 'react-icons/io'
 import { TbWaveSawTool } from 'react-icons/tb'
 import { GrSystem } from 'react-icons/gr'
 import TranslationCom from './oss/components/TranslationCom'
+import { FiDatabase } from 'react-icons/fi'
+import { BsBezier2 } from 'react-icons/bs'
 
-const namespace = 'oss/routes'
+const namespace = 'core/routes'
 const commercialNav = []
 const _nav = [
   {
@@ -117,6 +119,17 @@ const _nav = [
         label: '系统配置',
         to: '/system/config',
       },
+      {
+        key: 'dataGroup',
+        label: '数据组管理',
+        to: '/system/data-group',
+      },
+
+      {
+        key: 'team',
+        label: '团队管理',
+        to: '/system/team',
+      },
     ],
   },
 ]
@@ -133,5 +146,7 @@ const navIcon = {
   alerts: <FaRegBell />,
   mysql: <AiOutlineDashboard />,
   healthy: <TbWaveSawTool />,
+  // dataGroup: <FiDatabase />,
+  integration: <BsBezier2 />,
 }
 export { _nav, commercialNav, navIcon }

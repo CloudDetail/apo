@@ -6,6 +6,8 @@
 import { element } from 'prop-types'
 import React from 'react'
 import TranslationCom from './components/TranslationCom.jsx'
+import { Tooltip } from 'antd'
+import { IoMdInformationCircleOutline } from 'react-icons/io'
 
 const BasicDashboard = React.lazy(() => import('src/oss/views/dashboard/BasicDashboard'))
 const SystemDashboard = React.lazy(() => import('src/oss/views/dashboard/SystemDashboard'))
@@ -23,13 +25,20 @@ const AlertsRule = React.lazy(() => import('src/oss/views/alerts/AlertsRule'))
 const AlertsNotify = React.lazy(() => import('src/oss/views/alerts/AlertsNotify'))
 const ConfigPage = React.lazy(() => import('src/oss/views/config/index'))
 
-const namespace = 'oss/routes'
+const namespace = 'core/routes'
 
 const ossRoutes = [
   {
     path: '/service',
     exact: true,
-    name: <TranslationCom text="servicesName" space={namespace} />,
+    name: (
+      <Tooltip title={<TranslationCom text="index.serviceTableToast" space={'oss/service'} />}>
+        <div className="flex items-center">
+          <TranslationCom text="servicesName" space={namespace} />
+          <IoMdInformationCircleOutline size={20} color="#f7c01a" className="ml-2" />
+        </div>
+      </Tooltip>
+    ),
     element: Service,
   },
   {

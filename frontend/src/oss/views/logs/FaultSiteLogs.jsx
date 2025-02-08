@@ -29,7 +29,7 @@ function FaultSiteLogs(props) {
   const [logContent, setLogContent] = useState({})
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [source, setSource] = useState('')
   const [logContentLoading, setLogContentLoading] = useState(false)
   const [total, setTotal] = useState(0)

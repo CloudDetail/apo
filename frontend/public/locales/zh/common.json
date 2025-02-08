@@ -15,7 +15,7 @@
   },
   "logsTraceFilter": {
     "nameSpaceLabel": "命名空间",
-    "applicationLabel": "服务名",
+    "applicationLabel": "应用名",
     "instanceLabel": "实例名",
     "durationLabel": "响应时间",
     "endpointLabel": "服务端点",
@@ -53,5 +53,21 @@
     "lockGcTime": "程序由于GC或者锁等待产生时延，如果是GC频繁，延时应该分布在不同时间点，如果是锁，一般是连续时间",
     "diskIoTime": "程序写文件时间",
     "scheduleTime": "由于CPU争抢而产生的等待时间"
-  }
+  },
+  "nameSpaceLabel": "命名空间",
+  "applicationLabel": "应用名",
+  "nested": "服务名所属的命名空间",
+  "nsViewAlert1": "整体监控：选中命名空间节点，自动监控该命名空间下的所有服务，服务变化时自动更新。",
+  "nsViewAlert2": "精细监控：可单独选择服务节点，仅监控该服务。",
+  "appAlert": "仅监控所选服务，独立于命名空间。",
+  "confirm": "确定",
+  "cancel": "取消",
+  "delete": "删除",
+  "add": "新增",
+  "saveSuccess": "保存成功",
+  "edit": "编辑",
+  "save": "保存",
+  "deleteSuccess": "删除成功",
+  "addSuccess": "新增成功",
+  "operation": "操作"
 }
