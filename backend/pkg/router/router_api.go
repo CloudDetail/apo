@@ -275,7 +275,7 @@ func setApiRouter(r *resource) {
 	integrationAPI := r.mux.Group("/api/integration")
 	{
 		handler := integration.New(r.pkg_db)
-		integrationAPI.GET("/configuration", handler.GetStoreIntegration())
+		integrationAPI.GET("/configuration", handler.GetStaticIntegration())
 
 		integrationAPI.GET("/cluster/list", handler.ListCluster())
 		integrationAPI.GET("/cluster/get", handler.GetCluster())

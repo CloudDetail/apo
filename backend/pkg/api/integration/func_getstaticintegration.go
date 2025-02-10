@@ -4,7 +4,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// GetStoreIntegration
+// GetStaticIntegration
 // @Summary
 // @Description
 // @Tags API.integration
@@ -13,9 +13,9 @@ import (
 // @Success 200 {object} response.getStoreIntegrationResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/integration/configuration [get]
-func (h *handler) GetStoreIntegration() core.HandlerFunc {
+func (h *handler) GetStaticIntegration() core.HandlerFunc {
 	return func(c core.Context) {
-		storeIntegration := h.integrationService.GetDatasourceAndDatabase()
+		storeIntegration := h.integrationService.GetStaticIntegration()
 		c.Payload(storeIntegration)
 	}
 }
