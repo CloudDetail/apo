@@ -10,7 +10,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
