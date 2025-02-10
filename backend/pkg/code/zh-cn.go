@@ -168,6 +168,7 @@ var zhCnText = map[string]string{
 	ListClusterFailed:                 "获取集群列表失败",
 	GetAlertEnrichRuleFailed:          "获取告警规则失败",
 	AlertSourceNotExisted:             "告警源不存在",
+	
 	PermissionNotExistError:    "功能权限不存在",
 	GetDatasourceError:         "获取数据源失败",
 	DataSourceNotExistError:    "数据源不存在",
@@ -196,4 +197,7 @@ var zhCnText = map[string]string{
 	DeleteTeamError:       "删除团队失败",
 	AssignToTeamError:     "分配失败",
 	UnSupportedSubType:    "授权主体类型不支持",
+
+	GetIntegrationInstallDocFailed:        "获取集群集成安装文档失败",
+	GetIntegrationInstallConfigFileFailed: "获取集群集成安装配置文件失败",
 }

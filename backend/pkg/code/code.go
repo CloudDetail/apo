@@ -165,6 +165,12 @@ const (
 	ConfigureMenuError         = "B0926"
 	PermissionNotExistError    = "B0927"
 
+	// custom api
+	CreateCustomTypeError = "B1101"
+	GetCustomTypeError    = "B1102"
+	UpdateCustomTypeError = "B1103"
+	DeleteCustomTypeError = "B1104"
+
 	// alertinput
 	GetAlertsInputTargetTagsError     = "B1301"
 	CreateAlertSourceFailed           = "B1302"
@@ -218,6 +224,9 @@ const (
 	DeleteTeamError       = "B1106"
 	AssignToTeamError     = "B1107"
 	UnSupportedSubType    = "B1108"
+
+	GetIntegrationInstallDocFailed = "B1325"
+	GetIntegrationInstallConfigFileFailed = "B1326"
 )
 
 func Text(code string) string {

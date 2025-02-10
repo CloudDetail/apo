@@ -14,6 +14,7 @@ import { promLanguageDefinition } from 'monaco-promql'
 import { getRuleGroupLabelApi } from 'src/core/api/alerts'
 // Containers
 const DefaultLayout = React.lazy(() => import('src/core/layout/DefaultLayout'))
+const UnitedLayout = React.lazy(() => import('src/pro/layout/UnitedLayout'))
 const Login = React.lazy(() => import('./core/views/Login/Login'))
 
 // // Pages
@@ -75,7 +76,13 @@ const App = () => {
       >
         <Routes>
           <Route exact path="/login" name="Login Page" element={<Login />} />
-          <Route path="*" name="Home" element={<DefaultLayout />} />
+          <Route
+            path="*"
+            name="Home"
+            element={
+              import.meta.env.VITE_APP_VERSION === 'pro' ? <DefaultLayout /> : <UnitedLayout />
+            }
+          />
         </Routes>
       </Suspense>
     </HashRouter>

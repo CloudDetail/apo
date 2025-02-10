@@ -27,6 +27,8 @@ func (repo *daoRepo) initFeature() error {
 			{FeatureName: "应用基础设施大盘"},
 			{FeatureName: "应用指标大盘"},
 			{FeatureName: "中间件大盘"},
+			{FeatureName: "MySQL大盘"},
+			{FeatureName: "服务健康状态"},
 			{FeatureName: "告警管理"}, {FeatureName: "告警规则"}, {FeatureName: "告警通知"},
 			{FeatureName: "接入中心"}, {FeatureName: "告警接入"},
 			{FeatureName: "配置中心"},

@@ -12,7 +12,12 @@ type GetServiceEndpointTopologyRequest struct {
 	EntryEndpoint string `form:"entryEndpoint"`                                // entry Endpoint
 }
 
-type GetServiceEndpointRelationRequest = GetServiceEndpointTopologyRequest
+type GetServiceEndpointRelationRequest struct {
+	GetServiceEndpointTopologyRequest
+
+	RemoveClientCall  bool `form:"removeClientCall"`  // 是否移除对外调用关系
+	WithTopologyLevel bool `form:"withTopologyLevel"` // 是否携带拓扑层级
+}
 
 type GetDescendantMetricsRequest struct {
 	StartTime     int64  `form:"startTime" binding:"min=0"`                    // query start time
@@ -22,6 +27,47 @@ type GetDescendantMetricsRequest struct {
 	Step          int64  `form:"step" binding:"min=1000000"`                   // query step size (us)
 	EntryService  string `form:"entryService"`                                 // Ingress service name
 	EntryEndpoint string `form:"entryEndpoint"`                                // entry Endpoint
+}
+
+type GetDescendantAnormalEventRequest struct {
+	StartTime     int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
+	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+	Service       string `form:"service" binding:"required"`                   // 查询服务名
+	Endpoint      string `form:"endpoint" binding:"required"`                  // 查询Endpoint
+	EntryService  string `form:"entryService"`                                 // 入口服务名
+	EntryEndpoint string `form:"entryEndpoint"`                                // 入口Endpoint
+
+	*PageParam // 分页参数
+}
+
+type GetDescendantAlertContributaionRequest struct {
+	GetDescendantMetricsRequest
+
+	// 贡献度排序方式
+	SortBy string `form:"sortBy"`
+}
+
+type GetDescendantAnormalTrendRequest struct {
+	StartTime int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
+	EndTime   int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+	Service   string `form:"service" binding:"required"`                   // 查询服务名
+	Endpoint  string `form:"endpoint" binding:"required"`                  // 查询Endpoint
+	Step      int64  `form:"step" binding:"min=1000000"`                   // 查询步长(us)
+
+	AnormalTypes string `form:"anormalTypes" json:"anormalTypes"` //要查询的异常类型
+}
+
+type GetDescendantAnormalDeltaEventRequest struct {
+	StartTime int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
+	EndTime   int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+	Service   string `form:"service" binding:"required"`                   // 查询服务名
+	Endpoint  string `form:"endpoint" binding:"required"`                  // 查询Endpoint
+	Step      int64  `form:"step" binding:"min=1000000"`                   // 查询步长(us)
+
+	DeltaStartTime int64 `form:"deltaStartTime" binding:"min=0"` // 播放开始时间
+	DeltaEndTime   int64 `form:"deltaEndTime" binding:"min=0"`   // 播放结束时间
+
+	AnormalTypes string `form:"anormalTypes" json:"anormalTypes"` //要查询的异常类型
 }
 
 type GetPolarisInferRequest struct {
@@ -35,9 +81,18 @@ type GetPolarisInferRequest struct {
 	Timezone  string `form:"timezone" json:"timezone"` // timezone of result
 }
 
-type GetDescendantRelevanceRequest = GetDescendantMetricsRequest
+type GetDescendantRelevanceRequest struct {
+	GetDescendantMetricsRequest
 
-type GetErrorInstanceRequest = GetDescendantMetricsRequest
+	SortBy    string `form:"sortBy"` // latency, errorRate
+	WithAlert string `form:"withAlert"`
+}
+
+type GetErrorInstanceRequest struct {
+	GetDescendantMetricsRequest
+
+	IgnoreEmptyPropationsInstance bool `form:"ignoreEmptyPropationsInstance"`
+}
 
 type GetErrorInstanceLogsRequest struct {
 	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
@@ -143,8 +198,9 @@ type GetRygLightRequest struct {
 }
 
 type GetAlertEventsRequest struct {
-	StartTime int64 `form:"startTime" binding:"required"`                 // query start time
-	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	StartTime int64  `form:"startTime" binding:"required"`                 // query start time
+	EndTime   int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	SortBy    string `form:"sortBy"`                                       // 排序参数
 
 	AlertFilter // filter parameters
 	*PageParam  // Paging Parameters
@@ -160,6 +216,8 @@ type AlertFilter struct {
 	ID       string `form:"id"`
 	Severity string `form:"severity"`
 	Status   string `form:"status"`
+
+	WithMutation bool `form:"withMutation"`
 }
 
 type PageParam struct {
@@ -193,6 +251,17 @@ type GetMonitorStatusRequest struct {
 type GetServiceNamespaceListRequest struct {
 	StartTime int64 `form:"startTime" binding:"min=0"`
 	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"`
+}
+
+type GetAnomalySpanRequest struct {
+	StartTime  int64  `json:"startTime" binding:"required"`
+	EndTime    int64  `json:"endTime" binding:"required"`
+	Service    string `json:"service" binding:"required"`
+	ContentKey string `json:"contentKey" binding:"required"`
+	Reason     string `json:"reason"`
+	IsSlow     string `json:"isSlow"`
+	IsError    string `json:"isError"`
+	*PageParam `json:",inline"`
 }
 
 type GetServiceMoreUrlListRequest struct {

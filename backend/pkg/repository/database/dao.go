@@ -16,7 +16,7 @@ import (
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/logger"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
-	"github.com/CloudDetail/apo/backend/pkg/repository/database/input/alert"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -38,6 +38,7 @@ type Repo interface {
 	UpdateDingTalkReceiver(dingTalkConfig *amconfig.DingTalkConfig, oldName string) error
 	DeleteDingTalkReceiver(configFile, alertName string) error
 
+	ListQuickMutationMetric() ([]QuickMutationMetric, error)
 	ListQuickAlertRuleMetric() ([]AlertMetricsData, error)
 
 	Login(username, password string) (*User, error)
@@ -128,7 +129,12 @@ type Repo interface {
 	// Transaction Starts a transaction and automatically commit and rollback.
 	Transaction(ctx context.Context, funcs ...func(txCtx context.Context) error) error
 
-	alert.AlertInput
+	CreateCustomQuery(serviceType *QueryServiceType) error
+	UpdateCustomQuery(customName string, customType string) error
+	GetCustomQuery() ([]QueryServiceType, error)
+	DeleteCustomQuery(customName string) error
+
+	integration.ObservabilityInputManage
 }
 
 type daoRepo struct {
@@ -136,7 +142,7 @@ type daoRepo struct {
 	sqlDB          *sql.DB
 	transactionCtx struct{}
 
-	alert.AlertInput
+	integration.ObservabilityInputManage
 }
 
 // Connect to connect to the database
@@ -177,9 +183,16 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err != nil {
 		return nil, err
 	}
+
 	daoRepo := &daoRepo{
 		db:    database,
 		sqlDB: sqlDb,
+	}
+
+	// 检查并初始化预设快速突变检测指标表
+	err = daoRepo.InitPredefinedQuickMutationMetric(databaseCfg.InitScript.QuickMutationMetric)
+	if err != nil {
+		return nil, err
 	}
 
 	var alertScript string
@@ -231,7 +244,7 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		return nil, err
 	}
 
-	if daoRepo.AlertInput, err = alert.NewAlertInputRepo(daoRepo.db, globalCfg); err != nil {
+	if daoRepo.ObservabilityInputManage, err = integration.NewObservabilityInputManage(daoRepo.db, globalCfg); err != nil {
 		return nil, err
 	}
 
@@ -240,6 +253,11 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 
 func migrateTable(db *gorm.DB) error {
 	err := db.AutoMigrate(&AuthPermission{})
+	if err != nil {
+		return err
+	}
+
+	err = db.AutoMigrate(&QueryServiceType{})
 	if err != nil {
 		return err
 	}

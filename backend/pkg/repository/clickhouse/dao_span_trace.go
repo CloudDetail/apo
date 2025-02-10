@@ -10,12 +10,22 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/model"
+
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 const (
 	TEMPLATE_COUNT_SPAN_TRACE = "SELECT count(1) as total FROM span_trace %s"
 	TEMPLATE_QUERY_SPAN_TRACE = "SELECT %s FROM span_trace %s %s"
+
+	TEMPLATE_COUNT_MUTATED_SPAN_TRACE = `WITH mutated_span AS (
+		%s
+	)
+	SELECT count(1) as total FROM mutated_span
+	`
+
+	TEMPLATE_QUERY_MUTATED_SPAN_TRACE = "SELECT %s, %s , (duration_us > threshold_value) as is_mutated FROM span_trace %s %s"
 
 	SQL_GET_LABEL_FILTER_KEYS = `SELECT DISTINCT
     key, 'string' as data_type , 'labels' as parent_field
@@ -477,4 +487,79 @@ func ValidCheckAndAdjust(f *request.SpanTraceFilter) bool {
 		}
 	}
 	return true
+}
+
+func (ch *chRepo) GetAnomalyTrace(req *request.GetAnomalySpanRequest) ([]QueryTraceResult, int64, error) {
+	// 构造where
+	queryBuilder := NewQueryBuilder().
+		Between("start_time", req.StartTime*1000, req.EndTime*1000).
+		Between("end_time", req.StartTime*1000, req.EndTime*1000).
+		EqualsNotEmpty("labels['service_name']", req.Service).
+		EqualsNotEmpty("labels['content_key']", req.ContentKey).
+		GreaterThan("mutated_value", 0)
+
+	if req.IsError == "true" {
+		queryBuilder = queryBuilder.Equals("flags['is_error']", true)
+	} else if req.IsError == "false" {
+		queryBuilder = queryBuilder.Equals("flags['is_error']", false)
+	}
+	if req.IsSlow == "true" {
+		queryBuilder = queryBuilder.Equals("is_slow", true)
+	} else if req.IsSlow == "false" {
+		queryBuilder = queryBuilder.Equals("is_slow", false)
+	}
+	querySql := queryBuilder.String()
+
+	// 构造select
+	fieldSql := `trace_id, divide(threshold_value, 1000) as threshold_value, threshold_multiple, labels['mutated_type'] as reason,
+		apm_span_id as span_id, intDiv(toUnixTimestamp64Nano(timestamp), 1000) as ts,
+		intDiv(duration, 1000) as duration_us, metrics, flags['is_error'] as is_error, flags['is_slow'] as is_slow, labels['apm_type'] as apm_type`
+
+	// 构造order by limit offset
+	metrics := model.GetPolarisMetrics(req.Reason)
+	extraFields := ""
+	orderSql := ""
+	for i := range metrics {
+		if i > 0 {
+			orderSql += " + "
+			extraFields += " + "
+		}
+		orderSql += fmt.Sprintf("metrics['%s']", metrics[i])
+		extraFields += fmt.Sprintf("metrics['%s']", metrics[i])
+	}
+	mutatedValueField := "(" + extraFields + ") as mutated_value"
+
+	if len(orderSql) == 0 {
+		orderSql = "duration"
+	}
+
+	byLimitSql := NewByLimitBuilder().
+		OrderBy("is_mutated", false). // 优先展示突变的数据
+		OrderBy(orderSql, false).
+		Offset((req.CurrentPage - 1) * req.PageSize).
+		Limit(req.PageSize).String()
+
+	sql := fmt.Sprintf(TEMPLATE_QUERY_MUTATED_SPAN_TRACE, fieldSql, mutatedValueField, querySql, byLimitSql)
+
+	countSql := fmt.Sprintf(TEMPLATE_QUERY_MUTATED_SPAN_TRACE, fieldSql, mutatedValueField, querySql, "")
+
+	var countResults []QueryCount
+	result := []QueryTraceResult{}
+	err := ch.conn.Select(context.Background(), &countResults, fmt.Sprintf(TEMPLATE_COUNT_MUTATED_SPAN_TRACE, countSql), queryBuilder.values...)
+	if err != nil {
+		log.Println("get total count error", err)
+		return nil, 0, err
+	}
+
+	count := int64(countResults[0].Total)
+	if count == 0 {
+		return result, 0, nil
+	}
+	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
+	if err != nil {
+		log.Println("query error", err)
+		return result, 0, err
+	}
+
+	return result, count, nil
 }

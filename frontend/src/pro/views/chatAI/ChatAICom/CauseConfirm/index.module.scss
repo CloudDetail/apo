@@ -1,0 +1,57 @@
+.causeConfirmCard {
+  opacity: 0; /* 初始透明度 */
+  transform: translate(20px, 0px);
+  margin-top: 2px;
+  margin: 0 80px;
+  height: 0;
+  visibility: hidden;
+}
+
+.causeConfirmCard.fadeOut {
+  animation: fadeOut 0.5s ease forwards; /* 渐出动画 */
+  // height: 0;
+}
+.causeConfirmCard.fadeIn {
+  height: 100%;
+  visibility: visible;
+  animation: fadeInUp 0.5s ease forwards; /* 渐入动画 */
+}
+
+/* 渐入关键帧 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate(20px, 0px);
+  }
+  to {
+    opacity: 1;
+    position: relative;
+    transform: translate(0, 0);
+  }
+}
+
+/* 渐出关键帧 */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  to {
+    opacity: 0;
+    display: none;
+
+    transform: translate(20px, 0px);
+  }
+}
+
+.steps {
+  // background: red !important;  #1668dc
+  font-size: 12px;
+
+  :global(.ant-steps-item::before) {
+    background: none !important;
+  }
+  :global(.ant-steps-item::after) {
+    display: none !important;
+  }
+}

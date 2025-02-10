@@ -290,6 +290,21 @@ func sortByMutation(endpoints []*prom.EndpointMetrics) {
 
 }
 
+// fillEndpointsWithEmptyEndpoint 将每个端点作为独立的ServiceDetail返回,保留指标为空的端点记录
+func fillEndpointsWithEmptyEndpoint(endpoints []*prom.EndpointMetrics) []ServiceDetail {
+	var services []ServiceDetail
+	for _, url := range endpoints {
+		newService := ServiceDetail{
+			ServiceName:   url.SvcName,
+			ServiceSize:   1,
+			EndpointCount: 1,
+			Endpoints:     []*prom.EndpointMetrics{url},
+		}
+		services = append(services, newService)
+	}
+	return services
+}
+
 func fillServices(endpoints []*prom.EndpointMetrics) []ServiceDetail {
 	var services []ServiceDetail
 	for _, url := range endpoints {

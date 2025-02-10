@@ -18,7 +18,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/input"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/integration"
 )
 
 type Repo interface {
@@ -29,14 +29,20 @@ type Repo interface {
 	ListChildNodes(req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error)
 	// Query the list of all descendant service nodes
 	ListDescendantNodes(req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error)
+	// 查询服务类戏的子孙节点的调用关系(不携带边信息)
+	ListDescendantRelationsWithoutEdge(req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error)
 	// Query the calling relationship of all descendant nodes
 	ListDescendantRelations(req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error)
 	// Query the entry node list
 	ListEntryEndpoints(req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error)
-
+	// 根据Endpoint查询入口节点
+	SearchEntryEndpointsByAlertService(endpoints []AlertService, startTime, endTime int64) ([]EntryRelationship, error)
 	// ========== error_propagation ==========
 	// Query instance-related error propagation chain
 	ListErrorPropagation(req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error)
+
+	// 查询指定入口下发生的所有错误
+	ListErrorByEntryService(startTime, endTime int64, entryService, entryEndpoint string, endpoints []model.EndpointKey) ([]ErrorPropation, error)
 
 	// ========== span_trace ==========
 	GetAvailableFilterKey(startTime, endTime time.Time, needUpdate bool) ([]request.SpanTraceFilter, error)
@@ -52,6 +58,7 @@ type Repo interface {
 
 	CountK8sEvents(startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error)
 
+	GetAnomalyTrace(req *request.GetAnomalySpanRequest) ([]QueryTraceResult, int64, error)
 	// ========== application_logs ==========
 	// Query the log content of the fault site. The sourceFrom can be blank. The log in the first source that can be found will be returned.
 	QueryApplicationLogs(req *request.GetFaultLogContentRequest) (logContents *Logs, availableSource []string, err error)
@@ -86,7 +93,12 @@ type Repo interface {
 	// Query alarm events sampled by labels, sampleCount the number of samples for each label.
 	GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error)
 	// Query alarm events by pageParam
-	GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam) ([]PagedAlertEvent, int, error)
+	GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error)
+	GetAlertEventsByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, endpoints []model.EndpointKey, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error)
+	GetAlertEventsWithKeyByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, endpoints []model.EndpointKey) ([]AlertEventWithKey, error)
+	// 查询指定EventId的告警事件
+	GetAlertEventById(eventId string, startTime, endTime time.Time) (*model.AlertEvent, error)
+
 	// ========== k8s events ============
 	// SeverityNumber > 9 (warning)
 	GetK8sAlertEventsSample(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) ([]K8sEvents, error)
@@ -101,7 +113,15 @@ type Repo interface {
 	// ========== flame graph ===========
 	GetFlameGraphData(startTime, endTime int64, nodeName string, pid, tid int64, sampleType, spanId, traceId string) (*[]FlameGraphData, error)
 
-	input.Input
+	// detect mutation exec list
+	// GetDetectExecList 获取异常检测执行记录
+	GetDetectExecList(req *request.GetDefectDetectExecListRequest) ([]model.DetectMutation, int64, error)
+	// AddDetectMutation 新增异常检测执行记录
+	AddDetectMutation(mutation model.DetectMutation) error
+	// GetDistinctDetectExecList 获取异常检测规则
+	GetDistinctDetectExecList(req *request.GetDefectDetectRuleListRequest) ([]model.DetectMutation, int64, error)
+
+	integration.Input
 }
 
 type chRepo struct {
@@ -110,7 +130,7 @@ type chRepo struct {
 	AvailableFilters
 	db *sql.DB
 
-	input.Input
+	integration.Input
 }
 
 type AvailableFilters struct {
@@ -169,7 +189,7 @@ func New(logger *zap.Logger, address []string, database string, username string,
 		repo.FilterUpdateTime = now
 	}
 
-	repo.Input, err = input.NewInputRepo(repo.conn, repo.database)
+	repo.Input, err = integration.NewInputRepo(repo.conn, repo.database)
 	if err != nil {
 		return nil, err
 	}

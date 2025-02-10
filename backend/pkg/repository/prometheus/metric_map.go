@@ -38,6 +38,31 @@ type MetricGroupInterface interface {
 	MergeMetricResults(metricGroup MGroupName, metricName MName, metricResults []MetricResult)
 }
 
+func (m *MetricGroupMap[K, V]) CheckKeyExist(k K) (V, bool) {
+	if len(m.MetricGroupList) <= 0 {
+		return *new(V), false
+	}
+	value, find := m.MetricGroupMap[k]
+	return value, find
+}
+
+func (m *MetricGroupMap[K, V]) AppendEmptyGroup(key K) bool {
+	if m == nil {
+		return false
+	}
+	mg, find := m.MetricGroupMap[key]
+	if find {
+		return false
+	}
+	mg, ok := mg.InitEmptyGroup(key).(V)
+	if !ok {
+		return false
+	}
+	m.MetricGroupList = append(m.MetricGroupList, mg)
+	m.MetricGroupMap[key] = mg
+	return true
+}
+
 func (m *MetricGroupMap[K, V]) MergeMetricResults(metricGroup MGroupName, metricName MName, metricResults []MetricResult) {
 	for _, metric := range metricResults {
 		if len(metric.Values) <= 0 {

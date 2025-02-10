@@ -8,10 +8,21 @@ import path from 'node:path'
 import autoprefixer from 'autoprefixer'
 import tailwindcss from 'tailwindcss'
 export default defineConfig(() => {
+  const isPro = process.env.VITE_APP_VERSION === 'pro'
   return {
     base: './',
     build: {
       outDir: 'build',
+      // sourcemap: 'inline', // 启用 source map
+      // rollupOptions: {
+      //   // 设置默认入口文件，即使在 pro 环境中不包含 src/oss 文件夹
+      //   input: {
+      //     main: path.resolve(__dirname, 'index.html'),
+      //     ...(isPro ? { oss: path.resolve(__dirname, 'src/oss') } : {}),
+      //   },
+      //   // 在 pro 环境下启用 treeshake 以排除未使用的代码
+      //   treeshake: isPro,
+      // },
     },
     css: {
       postcss: {

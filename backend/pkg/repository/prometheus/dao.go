@@ -28,6 +28,10 @@ type Repo interface {
 	// ========== span_trace_duration_count Start ==========
 	// Query the service list
 	GetServiceList(startTime int64, endTime int64, namespace []string) ([]string, error)
+	// 根据过滤规则查询服务列表
+	GetServiceListByFilter(startTime time.Time, endTime time.Time, filterKVs ...string) ([]string, error)
+	// 基于DatabaseURL,IP,Port查询上游服务列表
+	GetServiceListByDatabase(startTime, endTime time.Time, dbURL, dbIP, dbPort string) ([]string, error)
 	// Query the service instance list. The URL can be empty.
 	GetServiceWithNamespace(startTime, endTime int64, namespace []string) (map[string][]string, error)
 	// GetServiceNamespace  Get service's namespaces.
@@ -38,6 +42,8 @@ type Repo interface {
 	GetDescendantDatabase(startTime int64, endTime int64, serviceName string, endpoint string) ([]model.MiddlewareInstance, error)
 	// Query the list of active instances
 	GetActiveInstanceList(startTime int64, endTime int64, serviceName string) (*model.ServiceInstances, error)
+	// 查询在时间点过去一小时活跃过的实例
+	GetActiveRequestInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
 	// Query the service Endpoint list. The service permission is empty.
 	GetServiceEndPointList(startTime int64, endTime int64, serviceName string) ([]string, error)
 	GetMultiServicesInstanceList(startTime int64, endTime int64, services []string) (map[string]*model.ServiceInstances, error)
@@ -52,6 +58,9 @@ type Repo interface {
 	QueryRangeLatencyData(startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error)
 	QueryErrorRateData(searchTime time.Time, query string) ([]MetricResult, error)
 	QueryRangeErrorData(startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error)
+
+	// ========= Mutation Check =========
+	ExecutedMutationCheck(c *MutationPQLCheck, startTime, endTime time.Time, step time.Duration) ([]MetricResult, error)
 
 	// ========== originx_logparser_level_count_total Start ==========
 	// Query the number of errors in the instance log

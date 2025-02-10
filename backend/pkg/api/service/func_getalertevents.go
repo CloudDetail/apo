@@ -10,6 +10,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -65,8 +66,10 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 		}
 		if resp == nil {
 			resp = &response.GetAlertEventsResponse{
-				TotalCount: 0,
-				EventList:  []clickhouse.PagedAlertEvent{},
+				Pagination: &model.Pagination{
+					Total: 0,
+				},
+				EventList: []clickhouse.PagedAlertEvent{},
 			}
 		}
 		c.Payload(resp)

@@ -5,11 +5,14 @@ package router
 
 import (
 	"github.com/CloudDetail/apo/backend/internal/api/mock"
+	"github.com/CloudDetail/apo/backend/pkg/api/alertanalyze"
 	alertinput "github.com/CloudDetail/apo/backend/pkg/api/alertinput"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
 	"github.com/CloudDetail/apo/backend/pkg/api/data"
+	"github.com/CloudDetail/apo/backend/pkg/api/custom"
 	"github.com/CloudDetail/apo/backend/pkg/api/health"
+	"github.com/CloudDetail/apo/backend/pkg/api/integration"
 	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
 	networkapi "github.com/CloudDetail/apo/backend/pkg/api/network"
@@ -138,6 +141,18 @@ func setApiRouter(r *resource) {
 		alertApi.POST("/alertmanager/receiver/add", alertHandler.AddAlertManagerConfigReceiver())
 		alertApi.POST("/alertmanager/receiver", alertHandler.UpdateAlertManagerConfigReceiver())
 		alertApi.DELETE("/alertmanager/receiver", alertHandler.DeleteAlertManagerConfigReceiver())
+
+		alertanalyzeHandler := alertanalyze.New(r.logger, r.ch, r.pkg_db, r.prom, r.pol, r.k8sApi)
+		alertApi.GET("/event/impact", alertanalyzeHandler.GetAlertImpact())
+		alertApi.GET("/descendant/anormal/contribution", alertanalyzeHandler.GetDescendantContribution())
+		alertApi.GET("/descendant/anormal/list", alertanalyzeHandler.GetDescendantAnormal())
+		alertApi.GET("/descendant/anormal/trend", alertanalyzeHandler.GetAnormalTrendByEntry())
+		alertApi.POST("/descendant/anormal/delta", alertanalyzeHandler.GetDescendantAnormalDelta())
+		alertApi.POST("/anomaly-span/list", alertanalyzeHandler.GetAnomalySpan())
+		alertApi.GET("/detect/mutation/metrics", alertanalyzeHandler.GetPredefinedDetectExpr())
+		alertApi.POST("/detect/mutation/add", alertanalyzeHandler.AddDefectsDetect())
+		alertApi.GET("/detect/mutation/exec-list", alertanalyzeHandler.GetDefectDetectExecList())
+		alertApi.GET("/detect/mutation/rule-list", alertanalyzeHandler.GetDefectDetectRuleList())
 	}
 
 	configApi := r.mux.Group("/api/config").Use(middlewares.AuthMiddleware())
@@ -237,6 +252,14 @@ func setApiRouter(r *resource) {
 		handler := health.New()
 		healthApi.GET("", handler.HealthCheck())
 	}
+	customApi := r.mux.Group("/api/custom")
+	{
+		handler := custom.New(r.logger, r.pkg_db)
+		customApi.POST("/create", handler.CreateCustomQuery())
+		customApi.POST("/update", handler.UpdateCustomQuery())
+		customApi.GET("/get", handler.GetCustomQuery())
+		customApi.DELETE("/delete", handler.DeleteCustomQuery())
+	}
 
 	alertInputApi := r.mux.Group("/api/alertinput")
 	{
@@ -270,6 +293,18 @@ func setApiRouter(r *resource) {
 		alertInputApi.GET("/source/enrich/default/get", handler.GetDefaultAlertEnrichRule())
 		alertInputApi.POST("/source/enrich/default/set", handler.SetDefaultAlertEnrichRule())
 	}
+
+	integrationAPI := r.mux.Group("/api/integration")
+	{
+		handler := integration.New(r.pkg_db)
+		integrationAPI.GET("/cluster/list", handler.ListCluster())
+		integrationAPI.POST("/cluster/create", handler.CreateCluster())
+		integrationAPI.POST("/cluster/update", handler.UpdateCluster())
+		integrationAPI.POST("/cluster/delete", handler.DeleteCluster())
+		integrationAPI.GET("/cluster/install/config", handler.GetIntegrationInstallConfigFile())
+		integrationAPI.GET("/cluster/install/cmd", handler.GetIntegrationInstallDoc())
+	}
+
 }
 
 func SetMetaServerRouter(srv *Server, meta source.MetaSource) {

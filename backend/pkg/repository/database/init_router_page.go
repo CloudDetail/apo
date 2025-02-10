@@ -17,6 +17,7 @@ func (repo *daoRepo) initRouterPage() error {
 		"/application-dashboard": "grafana/d/b0102ebf-9e5e-4f21-80aa-9c2565cd3dcb/originx-polaris-metrics-service-level",
 		"/middleware-dashboard":  "grafana/dashboards/f/edwu5b9rkv94wb/",
 		"/trace/full":            "/jaeger/search",
+		"/mysql-dashboard":       "grafana/d/0D6dTg3Zk/mysql-e68c87-e6a087",
 	}
 	return repo.db.Transaction(func(tx *gorm.DB) error {
 		var routerIDs, pageIDs []int

@@ -14,6 +14,7 @@ func (repo *daoRepo) initInsertPages() error {
 		{Url: "grafana/dashboards/f/edwu5b9rkv94wb/", Type: "grafana"},
 		{Url: "grafana/d/k8s_views_global/e99b86-e7bea4-e680bb-e8a788", Type: "grafana"},
 		{Url: "/jaeger/search", Type: "jaeger"},
+		{Url: "grafana/d/0D6dTg3Zk/mysql-e68c87-e6a087", Type: "grafana"},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {

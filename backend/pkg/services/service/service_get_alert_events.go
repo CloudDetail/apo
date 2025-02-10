@@ -60,17 +60,34 @@ func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest)
 }
 
 func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.GetAlertEventsResponse, error) {
-	// Query the instance to which the Service belongs.
-	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.Service)
-	if err != nil {
-		return nil, err
+	if req.PageParam == nil {
+		req.PageParam = &request.PageParam{
+			CurrentPage: 1,
+			PageSize:    999,
+		}
+	}
+
+	// 查询Service所属实例
+	var instances []*model.ServiceInstance
+	if len(req.Service) > 0 {
+		// Query the instance to which the Service belongs.
+		instanceList, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.Service)
+		if err != nil {
+			return nil, err
+		}
+		instances = instanceList.GetInstances()
 	}
 
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 
+	if len(req.SortBy) == 0 {
+		req.SortBy = clickhouse.OrderAlertByReceivedTime
+	}
+
 	var dbInstances []model.MiddlewareInstance
 	if len(req.AlertFilter.Group) == 0 || req.AlertFilter.Group == "middleware" {
+		var err error
 		dbInstances, err = s.promRepo.GetDescendantDatabase(req.StartTime, req.EndTime, req.Service, req.Endpoint)
 		if err != nil {
 			return nil, err
@@ -82,10 +99,11 @@ func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.
 		startTime, endTime,
 		req.AlertFilter,
 		&model.RelatedInstances{
-			SIs: instances.GetInstances(),
+			SIs: instances,
 			MIs: dbInstances,
 		},
 		req.PageParam,
+		req.SortBy,
 	)
 	if err != nil {
 		return nil, err
@@ -93,8 +111,12 @@ func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.
 
 	// HACK returns data directly as a list
 	return &response.GetAlertEventsResponse{
-		TotalCount: totalCount,
-		EventList:  events,
+		Pagination: &model.Pagination{
+			Total:       int64(totalCount),
+			CurrentPage: req.CurrentPage,
+			PageSize:    req.PageSize,
+		},
+		EventList: events,
 	}, nil
 }
 

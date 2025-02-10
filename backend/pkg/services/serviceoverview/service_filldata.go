@@ -116,6 +116,36 @@ func (s *service) EndpointsREDMetric(startTime, endTime time.Time, filters []str
 		MetricGroupMap:  map[prom.EndpointKey]*prom.EndpointMetrics{},
 	}
 
+	// 填充时间段内的平均RED指标z
+	s.fillMetric(res, prom.AVG, startTime, endTime, filters)
+	// 填充时间段内的RED指标日同比
+	s.fillMetric(res, prom.DOD, startTime, endTime, filters)
+	// 填充时间段内的RED指标周同比
+	s.fillMetric(res, prom.WOW, startTime, endTime, filters)
+
+	return res
+}
+
+// QueryREDMetricByEndpoints 查询Endpoint级别的RED指标结果(包括平均值,日同比变化率,周同比变化率)
+func (s *service) QueryREDMetricByEndpoints(startTime, endTime time.Time, endpoints []prom.EndpointKey) *EndpointsMap {
+	var res = &EndpointsMap{
+		MetricGroupList: []*prom.EndpointMetrics{},
+		MetricGroupMap:  map[prom.EndpointKey]*prom.EndpointMetrics{},
+	}
+
+	// var filters []string
+	var services []string
+	var contentKeys []string
+	for _, endpoint := range endpoints {
+		services = append(services, endpoint.SvcName)
+		contentKeys = append(contentKeys, endpoint.ContentKey)
+	}
+
+	filters := []string{
+		prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
+		prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(contentKeys...),
+	}
+
 	// Average RED metric over the fill time period
 	s.promRepo.FillMetric(res, prom.AVG, startTime, endTime, filters, prom.EndpointGranularity)
 	// RED metric day-to-day-on-da during the fill period
@@ -153,15 +183,89 @@ func (f EndpointsFilter) ExtractFilterStr() []string {
 	return filters
 }
 
-func (s *service) EndpointsRealtimeREDMetric(filter EndpointsFilter, endpointsMap *EndpointsMap, startTime time.Time, endTime time.Time) {
-	filters := filter.ExtractFilterStr()
-	s.promRepo.FillMetric(endpointsMap, prom.REALTIME, startTime, endTime, filters, prom.EndpointGranularity)
+func extractEndpointFiltersByEndpoints(endpoints []prom.EndpointKey) []string {
+	// var filters []string
+	var services []string
+	var contentKeys []string
+	for _, endpoint := range endpoints {
+		services = append(services, endpoint.SvcName)
+		contentKeys = append(contentKeys, endpoint.ContentKey)
+	}
+
+	filters := []string{
+		prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
+		prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(contentKeys...),
+	}
+
+	return filters
+}
+
+func (s *service) EndpointsRealtimeREDMetric(filters []string, endpointsMap *EndpointsMap, startTime time.Time, endTime time.Time) {
+	s.fillMetric(endpointsMap, prom.REALTIME, startTime, endTime, filters)
+}
+
+func (s *service) fillMetric(res *EndpointsMap, metricGroup prom.MGroupName, startTime, endTime time.Time, filters []string) {
+	// 装饰器,默认不修改PQL语句,用于AVG或REALTIME两个metricGroup
+	var decorator = func(apf prom.AggPQLWithFilters) prom.AggPQLWithFilters {
+		return apf
+	}
+
+	switch metricGroup {
+	case prom.REALTIME:
+		// 实时值使用当前时间往前3分钟作为时间间隔
+		// 时间单位为microsecond
+		startTime = endTime.Add(-3 * time.Minute)
+	case prom.DOD:
+		decorator = prom.DayOnDay
+	case prom.WOW:
+		decorator = prom.WeekOnWeek
+	}
+
+	startTS := startTime.UnixMicro()
+	endTS := endTime.UnixMicro()
+
+	latency, err := s.promRepo.QueryAggMetricsWithFilter(
+		decorator(prom.PQLAvgLatencyWithFilters),
+		startTS, endTS,
+		prom.EndpointGranularity,
+		filters...,
+	)
+	if err != nil {
+		// TODO 输出日志或记录错误到Endpoint中
+	}
+	res.MergeMetricResults(metricGroup, prom.LATENCY, latency)
+
+	errorRate, err := s.promRepo.QueryAggMetricsWithFilter(
+		decorator(prom.PQLAvgErrorRateWithFilters),
+		startTS, endTS,
+		prom.EndpointGranularity,
+		filters...,
+	)
+	if err != nil {
+		// TODO 输出日志或记录错误到Endpoint中
+	}
+	res.MergeMetricResults(metricGroup, prom.ERROR_RATE, errorRate)
+
+	if metricGroup == prom.REALTIME {
+		// 目前不计算TPS的实时值
+		return
+	}
+	tps, err := s.promRepo.QueryAggMetricsWithFilter(
+		decorator(prom.PQLAvgTPSWithFilters),
+		startTS, endTS,
+		prom.EndpointGranularity,
+		filters...,
+	)
+	if err != nil {
+		// TODO 输出日志或记录错误到Endpoint中
+	}
+
+	res.MergeMetricResults(metricGroup, prom.THROUGHPUT, tps)
 }
 
 // EndpointsDelaySource fill delay source
 // Based on the input Endpoints, records that do not exist in the Endpoints are discarded.
 func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTime time.Time, filters []string) error {
-
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 

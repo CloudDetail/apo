@@ -47,12 +47,8 @@ var enText = map[string]string{
 	GetLogParseRuleError:    "Failed to get log parse rule",
 	UpdateLogParseRuleError: "Failed to update log parse rule",
 
-	GetTracePageListError:    "Failed to get trace pagelist",
-	GetTraceFiltersError:     "Failed to get trace filters",
-	GetTraceFilterValueError: "Failed to get trace filter value",
-	GetOnOffCPUError:         "Failed to get on off cpu value",
-	GetSingleTraceError:      "Failed to get single trace value",
-	GetFlameGraphError:       "Failed to get flame graph",
+	GetTracePageListError: "Failed to get trace pagelist",
+	GetTraceFiltersError:  "Failed to get trace filters",
 
 	GetOverviewServiceInstanceListError: "Failed to get overview service instance list",
 	GetServiceMoreUrlListError:          "Failed to get service more url list",
@@ -194,4 +190,7 @@ var enText = map[string]string{
 	DeleteTeamError:       "Failed to delete team",
 	AssignToTeamError:     "Failed to assign to team",
 	UnSupportedSubType:    "Subject type is unsupported",
+
+	GetIntegrationInstallDocFailed:        "Get integration install doc failed",
+	GetIntegrationInstallConfigFileFailed: "Get integration install config file failed",
 }

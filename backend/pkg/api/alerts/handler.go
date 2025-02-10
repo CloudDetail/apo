@@ -12,10 +12,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 	"github.com/CloudDetail/apo/backend/pkg/services/alerts"
-	alertinput "github.com/CloudDetail/apo/backend/pkg/services/input/alert"
+
+	alertinput "github.com/CloudDetail/apo/backend/pkg/services/integration/alert"
+	so "github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
 type Handler interface {
+	// ========================告警配置========================
+
 	// InputAlertManager get AlertManager alarm events
 	// @Tags API.alerts
 	// @Router /api/alerts/inputs/alertmanager [post]
@@ -92,9 +96,10 @@ type Handler interface {
 }
 
 type handler struct {
-	logger       *zap.Logger
-	alertService alerts.Service
-	inputService alertinput.Service
+	logger                 *zap.Logger
+	alertService           alerts.Service
+	inputService           alertinput.Service
+	serviceoverviewService so.Service
 }
 
 func New(
@@ -104,8 +109,9 @@ func New(
 	k8sRepo kubernetes.Repo,
 	promRepo prometheus.Repo) Handler {
 	return &handler{
-		logger:       logger,
-		alertService: alerts.New(chRepo, k8sRepo, dbRepo),
-		inputService: alertinput.New(promRepo, dbRepo, chRepo),
+		logger:                 logger,
+		alertService:           alerts.New(chRepo, promRepo, k8sRepo, dbRepo),
+		inputService:           alertinput.New(promRepo, dbRepo, chRepo),
+		serviceoverviewService: so.New(chRepo, dbRepo, promRepo),
 	}
 }

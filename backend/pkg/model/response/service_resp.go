@@ -15,6 +15,21 @@ type GetServiceEndpointRelationResponse struct {
 	Parents       []*model.TopologyNode    `json:"parents"`        // upstream node list
 	Current       *model.TopologyNode      `json:"current"`        // current service
 	ChildRelation []*model.ToplogyRelation `json:"childRelations"` // downstream node call relationship list
+
+	TopologyLevels      []TopologyNodeLevel          `json:"topologyLevels,omitempty"`
+	ExternalClientCalls []TopologyExternalClientCall `json:"topologyExternalClientCall,omitempty"`
+}
+
+type TopologyNodeLevel struct {
+	Service  string `ch:"service" json:"service"`
+	Endpoint string `ch:"endpoint" json:"endpoint"`
+	Depth    int    `ch:"depth" json:"depth"`
+}
+
+type TopologyExternalClientCall struct {
+	model.TopologyNode
+
+	Childs []model.TopologyNode `json:"childs"`
 }
 
 type GetServiceEndpointTopologyResponse struct {
@@ -239,9 +254,8 @@ func (v *K8sEventCountValues) AddCount(dao clickhouse.K8sEventsCount) {
 }
 
 type GetAlertEventsResponse struct {
-	TotalCount int `json:"totalCount"`
-
-	EventList []clickhouse.PagedAlertEvent `json:"events"`
+	EventList  []clickhouse.PagedAlertEvent `json:"events"`
+	Pagination *model.Pagination            `json:"pagination"`
 }
 
 type GetAlertEventsSampleResponse struct {
@@ -254,6 +268,28 @@ type GetServiceEntryEndpointsResponse struct {
 	Data   []*EntryInstanceData `json:"data"`
 }
 
+type GetAlertImpactResponse struct {
+	Data []*EndpointData `json:"data"`
+
+	AlertEvents []ImpactAlertEvent `json:"alertEvents"`
+	// 告警事件分页
+	Pagination *model.Pagination `json:"pagination"`
+}
+
+type ImpactAlertEvent struct {
+	*model.AlertEvent
+
+	IsAnalyzed      bool                      `json:"isAnalyzed"`
+	ImpactEndpoints []clickhouse.AlertService `json:"impactEndpoints"`
+	ImpactEntries   []model.EndpointKey       `json:"impactEntrys"`
+}
+
+type GetDescendantAlertContributationResponse struct {
+	ContributationMap map[string][]model.EndpointKey `json:"contributationMap"`
+	// 延时曲线相似度前三的节点
+	LatencyContributationList []model.EndpointKey `json:"latencyContributationList"`
+}
+
 type EntryInstanceData struct {
 	ServiceName    string          `json:"serviceName"`
 	Namespaces     []string        `json:"namespaces"` // The namespace of the application. It may be empty
@@ -264,6 +300,15 @@ type EntryInstanceData struct {
 	Timestamp *int64          `json:"timestamp"`
 	model.AlertStatus
 	AlertReason model.AlertReason `json:"alertReason"`
+}
+
+type EndpointData struct {
+	ServiceName string   `json:"serviceName"`
+	Namespaces  []string `json:"namespaces,omitempty"` // 应用所属命名空间,可能为空
+
+	ServiceDetail
+
+	RelatedAlertRate float64 `json:"relatedAlertRate"`
 }
 
 func (entryInstanceData *EntryInstanceData) AddNamespaces(namespaces []string) {
@@ -279,6 +324,18 @@ func (entryInstanceData *EntryInstanceData) AddNamespaces(namespaces []string) {
 			}
 		}
 	}
+}
+
+type GetAnomalySpanResponse struct {
+	List       []clickhouse.QueryTraceResult `json:"list"`
+	Pagination *model.Pagination             `json:"pagination"`
+}
+
+type SpanInfo struct {
+	TraceId   string `json:"traceId"`
+	SpanId    string `json:"spanId"`
+	ApmType   string `json:"apmType"`
+	Timestamp int64  `json:"timestamp"`
 }
 
 type GetMonitorStatusResponse struct {

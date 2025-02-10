@@ -28,6 +28,8 @@ func (repo *daoRepo) initRouterData() error {
 		{RouterTo: "/system/data-group", HideTimeSelector: true},
 		{RouterTo: "/system/config", HideTimeSelector: true},
 		{RouterTo: "/system/team", HideTimeSelector: true},
+		{RouterTo: "/mysql-dashboard", HideTimeSelector: false},
+		{RouterTo: "/healthy-service", HideTimeSelector: false},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {

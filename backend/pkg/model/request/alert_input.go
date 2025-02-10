@@ -6,8 +6,9 @@ package request
 import (
 	"sort"
 
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
-	"github.com/prometheus/common/model"
+	pmodel "github.com/prometheus/common/model"
 )
 
 type InputAlertManagerRequest struct {
@@ -26,7 +27,7 @@ type Alerts []Alert
 func (as Alerts) Firing() []Alert {
 	res := []Alert{}
 	for _, a := range as {
-		if a.Status == string(model.AlertFiring) {
+		if a.Status == string(pmodel.AlertFiring) {
 			res = append(res, a)
 		}
 	}
@@ -37,7 +38,7 @@ func (as Alerts) Firing() []Alert {
 func (as Alerts) Resolved() []Alert {
 	res := []Alert{}
 	for _, a := range as {
-		if a.Status == string(model.AlertResolved) {
+		if a.Status == string(pmodel.AlertResolved) {
 			res = append(res, a)
 		}
 	}
@@ -54,7 +55,7 @@ func (kv KV) SortedPairs() Pairs {
 		sortStart = 0
 	)
 	for k := range kv {
-		if k == string(model.AlertNameLabel) {
+		if k == string(pmodel.AlertNameLabel) {
 			keys = append([]string{k}, keys...)
 			sortStart = 1
 		} else {
@@ -223,4 +224,18 @@ type CheckAlertRuleRequest struct {
 	Alert         string `form:"alert" binding:"required"`
 }
 
+type DetectMutationRequest struct {
+	DetectName    string                `form:"name" json:"name" binding:"required"`          // 告警名
+	MutationCheck model.DetectExprPart  `form:"mutationCheckPQL" json:"mutationCheckPQL"`     // 需要执行故障检测的语句
+	UpperLimit    *model.DetectExprPart `form:"mutationUpperLimit" json:"mutationUpperLimit"` // 故障检测上限,使用数学表达式和内置变量(avg.1h,pct.99)
+	LowerLimit    *model.DetectExprPart `form:"mutationLowerLimit" json:"mutationLowerLimit"` // 故障检测下限
+
+	StartTime int64 `form:"startTime" json:"startTime" binding:"required"`               // 查询开始时间
+	EndTime   int64 `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+	Step      int64 `form:"step" json:"step" `                                           // 查询步长(us)
+
+	For string `form:"for" json:"for"` // 突变告警等待时间
+
+	SynchronizeToAlertRules bool `form:"synchronizeToAlertRules" json:"synchronizeToAlertRules"`
+}
 type ForwardToDingTalkRequest InputAlertManagerRequest

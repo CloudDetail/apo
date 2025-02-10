@@ -1095,6 +1095,527 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/anomaly-span/list": {
+            "post": {
+                "description": "获取服务和根因类型的故障报告",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "获取服务和根因类型的故障报告",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetAnomalySpanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetAnomalySpanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/descendant/anormal/contribution": {
+            "get": {
+                "description": "获取下游故障贡献度",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "获取下游故障贡献度",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "查询开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询服务名",
+                        "name": "service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询Endpoint",
+                        "name": "endpoint",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询步长(us)",
+                        "name": "step",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "入口服务名",
+                        "name": "entryService",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "入口Endpoint",
+                        "name": "entryEndpoint",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序字段,支持latency和errorRate,多个使用,链接",
+                        "name": "sortBy",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetDescendantAlertContributationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/descendant/anormal/delta": {
+            "post": {
+                "description": "获取下游告警事件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "获取下游告警事件",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "查询开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询步长(us)",
+                        "name": "step",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询服务名",
+                        "name": "service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询Endpoint",
+                        "name": "endpoint",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "异常事件类型过滤",
+                        "name": "anormalTypes",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetDescendantAnormalEventResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/descendant/anormal/list": {
+            "get": {
+                "description": "获取下游告警事件",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "获取下游告警事件",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "查询开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询服务名",
+                        "name": "service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "查询Endpoint",
+                        "name": "endpoint",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "入口服务名",
+                        "name": "entryService",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "入口Endpoint",
+                        "name": "entryEndpoint",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetDescendantAnormalEventResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/descendant/anormal/trend": {
+            "get": {
+                "description": "获取下游异常变化趋势",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "获取下游异常变化趋势",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetDescendantAnormalTrendRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetDescendantDeltaAnormalEventResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/detect/mutation/add": {
+            "post": {
+                "description": "执行异常检测",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "执行异常检测",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DetectMutationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/detect/mutation/exec-list": {
+            "get": {
+                "description": "获取异常检测执行记录",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "获取异常检测执行记录",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "当前页",
+                        "name": "currentPage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页大小",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetDefectDetectExecListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/detect/mutation/metrics": {
+            "get": {
+                "description": "获取预定义检测表达式",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "获取预定义检测表达式",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetPredefinedDetectExprResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/detect/mutation/rule-list": {
+            "get": {
+                "description": "获取异常检测规则",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "获取异常检测规则",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "当前页",
+                        "name": "currentPage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页大小",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetDefectDetectRuleListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/event/impact": {
+            "get": {
+                "description": "获取告警数据的影响面",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "获取告警数据的影响面",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "查询告警事件ID",
+                        "name": "eventId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询开始时间",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询结束时间",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "查询步长(us)",
+                        "name": "step",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.GetServiceEntryEndpointsResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/inputs/alertmanager": {
             "post": {
                 "description": "get AlertManager alarm events",
@@ -2238,6 +2759,190 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/database.DataGroup"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/custom/create": {
+            "post": {
+                "description": "创建一个用户自定义查询数据类型",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "创建一个用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/custom/delete": {
+            "delete": {
+                "description": "删除用户自定义查询数据类型",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "删除用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/custom/get": {
+            "get": {
+                "description": "获取用户自定义查询数据类型",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "获取用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetCustomResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/custom/update": {
+            "post": {
+                "description": "更新用户自定义查询数据类型",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "更新用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -4344,6 +5049,12 @@ const docTemplate = `{
                         "description": "Bearer accessToken",
                         "name": "Authorization",
                         "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序字段,支持latency和errorRate",
+                        "name": "sortBy",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -9303,6 +10014,139 @@ const docTemplate = `{
                 }
             }
         },
+        "model.AnormalType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ],
+            "x-enum-comments": {
+                "AnormalTypeAlertApp": "应用接口告警     =\u003e group=app",
+                "AnormalTypeAlertAppInstance": "应用实例告警     =\u003e group=appInstance",
+                "AnormalTypeAlertContainer": "容器告警         =\u003e group=container",
+                "AnormalTypeAlertInfra": "基础设施告警     =\u003e group=infra",
+                "AnormalTypeAlertNet": "网络告警         =\u003e group=net",
+                "AnormalTypeError": "错误事件告警 =\u003e 来自JavaException等",
+                "AnormalTypeUnknown": "未定义的告警类型"
+            },
+            "x-enum-varnames": [
+                "AnormalTypeUnknown",
+                "AnormalTypeAlertApp",
+                "AnormalTypeAlertContainer",
+                "AnormalTypeAlertInfra",
+                "AnormalTypeAlertNet",
+                "AnormalTypeError",
+                "AnormalTypeAlertAppInstance"
+            ]
+        },
+        "model.DetectExprPart": {
+            "type": "object",
+            "properties": {
+                "compareGroup": {
+                    "description": "用于记录可以相互比较的检测表达式",
+                    "type": "string"
+                },
+                "customMetric": {
+                    "description": "常量表达式",
+                    "type": "string"
+                },
+                "group": {
+                    "description": "用于记录指标所属的告警事件组",
+                    "type": "string"
+                },
+                "metric": {
+                    "type": "string"
+                },
+                "modifier": {
+                    "$ref": "#/definitions/model.Modifier"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.DetectMutation": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "description": "查询结束时间",
+                    "type": "integer"
+                },
+                "for": {
+                    "description": "突变告警等待时间",
+                    "type": "string"
+                },
+                "group": {
+                    "description": "告警组名",
+                    "type": "string"
+                },
+                "mutationCheckPQL": {
+                    "description": "需要执行故障检测的语句",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "告警名",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "查询开始时间",
+                    "type": "integer"
+                },
+                "step": {
+                    "description": "查询步长(us)",
+                    "type": "integer"
+                },
+                "synchronizeToAlertRules": {
+                    "description": "是否同步到告警规则",
+                    "type": "boolean"
+                },
+                "timestamp": {
+                    "description": "执行时间",
+                    "type": "integer"
+                }
+            }
+        },
+        "model.EndpointKey": {
+            "type": "object",
+            "properties": {
+                "endpoint": {
+                    "type": "string"
+                },
+                "serviceName": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Modifier": {
+            "type": "object",
+            "properties": {
+                "dayOnDay": {
+                    "description": "使用昨日同时段数据",
+                    "type": "boolean"
+                },
+                "quantile": {
+                    "description": "百分位数",
+                    "type": "string"
+                },
+                "rangeVector": {
+                    "description": "1m/1h/1d",
+                    "type": "string"
+                },
+                "scale": {
+                    "description": "倍率",
+                    "type": "string"
+                },
+                "weekOnWeek": {
+                    "description": "使用上周同时段数据",
+                    "type": "boolean"
+                }
+            }
+        },
         "model.ModifyTableTTLMap": {
             "type": "object",
             "properties": {
@@ -9331,6 +10175,35 @@ const docTemplate = `{
                 "total": {
                     "description": "total number of records",
                     "type": "integer"
+                }
+            }
+        },
+        "model.PredefinedMetricExpr": {
+            "type": "object",
+            "properties": {
+                "compareGroup": {
+                    "description": "用于记录可以相互比较的检测表达式",
+                    "type": "string"
+                },
+                "customMetric": {
+                    "description": "常量表达式",
+                    "type": "string"
+                },
+                "describe": {
+                    "type": "string"
+                },
+                "group": {
+                    "description": "用于记录指标所属的告警事件组",
+                    "type": "string"
+                },
+                "metric": {
+                    "type": "string"
+                },
+                "modifier": {
+                    "$ref": "#/definitions/model.Modifier"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -9731,6 +10604,21 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CreateCustomRequest": {
+            "type": "object",
+            "properties": {
+                "customName": {
+                    "description": "UserName   string   ` + "`" + `json:\"userName\"` + "`" + `\nGroupName  string   ` + "`" + `json:\"groupName\"` + "`" + `",
+                    "type": "string"
+                },
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.DataType": {
             "type": "string",
             "enum": [
@@ -9783,6 +10671,15 @@ const docTemplate = `{
                 }
             }
         },
+        "request.DeleteCustomRequest": {
+            "type": "object",
+            "properties": {
+                "customName": {
+                    "description": "UserName   string ` + "`" + `form:\"userName\"` + "`" + `\nGroupName  string ` + "`" + `form:\"groupName\"` + "`" + `",
+                    "type": "string"
+                }
+            }
+        },
         "request.DeleteLogParseRequest": {
             "type": "object",
             "properties": {
@@ -9808,6 +10705,63 @@ const docTemplate = `{
                 },
                 "tableName": {
                     "type": "string"
+                }
+            }
+        },
+        "request.DetectMutationRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "name",
+                "startTime"
+            ],
+            "properties": {
+                "endTime": {
+                    "description": "查询结束时间",
+                    "type": "integer"
+                },
+                "for": {
+                    "description": "突变告警等待时间",
+                    "type": "string"
+                },
+                "mutationCheckPQL": {
+                    "description": "需要执行故障检测的语句",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.DetectExprPart"
+                        }
+                    ]
+                },
+                "mutationLowerLimit": {
+                    "description": "故障检测下限",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.DetectExprPart"
+                        }
+                    ]
+                },
+                "mutationUpperLimit": {
+                    "description": "故障检测上限,使用数学表达式和内置变量(avg.1h,pct.99)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.DetectExprPart"
+                        }
+                    ]
+                },
+                "name": {
+                    "description": "告警名",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "查询开始时间",
+                    "type": "integer"
+                },
+                "step": {
+                    "description": "查询步长(us)",
+                    "type": "integer"
+                },
+                "synchronizeToAlertRules": {
+                    "type": "boolean"
                 }
             }
         },
@@ -9927,6 +10881,83 @@ const docTemplate = `{
                 },
                 "pageSize": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.GetAnomalySpanRequest": {
+            "type": "object",
+            "required": [
+                "contentKey",
+                "endTime",
+                "service",
+                "startTime"
+            ],
+            "properties": {
+                "contentKey": {
+                    "type": "string"
+                },
+                "currentPage": {
+                    "type": "integer"
+                },
+                "endTime": {
+                    "type": "integer"
+                },
+                "isError": {
+                    "type": "string"
+                },
+                "isSlow": {
+                    "type": "string"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.GetCustomRequest": {
+            "type": "object"
+        },
+        "request.GetDescendantAnormalTrendRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "endpoint",
+                "service"
+            ],
+            "properties": {
+                "anormalTypes": {
+                    "description": "要查询的异常类型",
+                    "type": "string"
+                },
+                "endTime": {
+                    "description": "查询结束时间",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "description": "查询Endpoint",
+                    "type": "string"
+                },
+                "service": {
+                    "description": "查询服务名",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "查询开始时间",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "step": {
+                    "description": "查询步长(us)",
+                    "type": "integer",
+                    "minimum": 1000000
                 }
             }
         },
@@ -10495,6 +11526,21 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateCustomRequest": {
+            "type": "object",
+            "properties": {
+                "customName": {
+                    "description": "UserName   string   ` + "`" + `json:\"userName\"` + "`" + `\nGroupName  string   ` + "`" + `json:\"groupName\"` + "`" + `",
+                    "type": "string"
+                },
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.UpdateLogParseRequest": {
             "type": "object",
             "properties": {
@@ -10608,6 +11654,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.CustonType": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "response.DBInfo": {
             "type": "object",
             "properties": {
@@ -10635,6 +11695,56 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "description": "primary key ID",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.DescendantAnormalCounts": {
+            "type": "object",
+            "properties": {
+                "anormalCounts": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "serviceName": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.DescendantAnormalEventRecord": {
+            "type": "object",
+            "properties": {
+                "alertKey": {
+                    "type": "string"
+                },
+                "anormalMsg": {
+                    "type": "string"
+                },
+                "anormalObject": {
+                    "type": "string"
+                },
+                "anormalReason": {
+                    "type": "string"
+                },
+                "anormalStatus": {
+                    "description": "startFiring / updatedFiring / resolved",
+                    "type": "string"
+                },
+                "anormalType": {
+                    "$ref": "#/definitions/model.AnormalType"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "timestamp": {
                     "type": "integer"
                 }
             }
@@ -10823,8 +11933,8 @@ const docTemplate = `{
                         "$ref": "#/definitions/clickhouse.PagedAlertEvent"
                     }
                 },
-                "totalCount": {
-                    "type": "integer"
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
                 }
             }
         },
@@ -10923,6 +12033,143 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.Datasource"
+                    }
+                }
+            }
+        },
+        "response.GetAnomalySpanResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/clickhouse.QueryTraceResult"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetCustomResponse": {
+            "type": "object",
+            "properties": {
+                "customs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.CustonType"
+                    }
+                }
+            }
+        },
+        "response.GetDefectDetectExecListResponse": {
+            "type": "object",
+            "properties": {
+                "mutatedRule": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.DetectMutation"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetDefectDetectRuleListResponse": {
+            "type": "object",
+            "properties": {
+                "alertRule": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.DetectMutation"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetDescendantAlertContributationResponse": {
+            "type": "object",
+            "properties": {
+                "contributationMap": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/model.EndpointKey"
+                        }
+                    }
+                },
+                "latencyContributationList": {
+                    "description": "延时曲线相似度前三的节点",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.EndpointKey"
+                    }
+                }
+            }
+        },
+        "response.GetDescendantAnormalEventResponse": {
+            "type": "object",
+            "properties": {
+                "alertEvents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/clickhouse.PagedAlertEvent"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetDescendantDeltaAnormalEventResponse": {
+            "type": "object",
+            "properties": {
+                "alertTriggeredCounts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DescendantAnormalCounts"
+                    }
+                },
+                "anormalCount": {
+                    "description": "AnormalEvents []model.AnormalEvent ` + "`" + `json:\"anormalEvents\"` + "`" + `\nAnormalEvents map[int64][]model.AnormalEvent ` + "`" + `json:\"anormalEvents\"` + "`" + `",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.TempChartObject"
+                        }
+                    ]
+                },
+                "deltaAnormalEvents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DescendantAnormalEventRecord"
+                    }
+                },
+                "finalAnormalCounts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DescendantAnormalCounts"
+                    }
+                },
+                "finalAnormalEvents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DescendantAnormalEventRecord"
+                    }
+                },
+                "originAnormalCounts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DescendantAnormalCounts"
+                    }
+                },
+                "originAnormalEvents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DescendantAnormalEventRecord"
                     }
                 }
             }
@@ -11233,6 +12480,17 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetPredefinedDetectExprResponse": {
+            "type": "object",
+            "properties": {
+                "metrics": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.PredefinedMetricExpr"
+                    }
+                }
+            }
+        },
         "response.GetProcessFlameGraphResponse": {
             "type": "object",
             "properties": {
@@ -11302,6 +12560,18 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.TopologyNode"
+                    }
+                },
+                "topologyExternalClientCall": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.TopologyExternalClientCall"
+                    }
+                },
+                "topologyLevels": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.TopologyNodeLevel"
                     }
                 }
             }
@@ -12414,6 +13684,46 @@ const docTemplate = `{
                 "value": {
                     "description": "Value metric average",
                     "type": "number"
+                }
+            }
+        },
+        "response.TopologyExternalClientCall": {
+            "type": "object",
+            "properties": {
+                "childs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.TopologyNode"
+                    }
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "isTraced": {
+                    "type": "boolean"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "system": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.TopologyNodeLevel": {
+            "type": "object",
+            "properties": {
+                "depth": {
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "service": {
+                    "type": "string"
                 }
             }
         }

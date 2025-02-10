@@ -5,6 +5,8 @@
 
 import React from 'react'
 import ossRoutes from './oss/routes'
+import proRoutes from './pro/routes'
+
 import TranslationCom from './oss/components/TranslationCom'
 const UserPage = React.lazy(() => import('src/core/views/UserPage/index.jsx'))
 const UserManage = React.lazy(() => import('src/core/views/UserManage/index.jsx'))
@@ -61,5 +63,11 @@ const baseRoutes = [
     hideSystemTimeRangePicker: true,
   },
 ]
-const routes = [...baseRoutes, ...ossRoutes]
+let routes = [...baseRoutes]
+if (import.meta.env.VITE_APP_VERSION === 'pro') {
+  routes = [...baseRoutes, ...proRoutes]
+} else {
+  routes = [...baseRoutes, ...ossRoutes, ...proRoutes]
+}
+
 export default routes

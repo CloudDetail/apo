@@ -20,8 +20,25 @@ import { FiDatabase } from 'react-icons/fi'
 import { BsBezier2 } from 'react-icons/bs'
 
 const namespace = 'core/routes'
-const commercialNav = []
-const _nav = [
+const commercialNav = [
+  {
+    key: 'alertAnalyze',
+    icon: <IoIosTrendingUp />,
+    label: (
+      <>
+        告警分析
+        <CBadge color="info" className="ml-2">
+          免费公测
+        </CBadge>
+      </>
+    ),
+    to: '/alert-analyze',
+  },
+]
+
+const VITE_SHOW_MIDWARE_HEALTH = import.meta.env.VITE_SHOW_MYSQL_HEALTH === 'special'
+
+let _nav = [
   {
     key: 'service',
     icon: <IoMdCloudOutline />,
@@ -87,6 +104,13 @@ const _nav = [
     to: '/middleware-dashboard',
   },
   {
+    key: 'mysql',
+    icon: <CIcon icon={cilSpeedometer} />,
+    label: 'MySQL 大盘',
+    abbreviation: 'MySQL',
+    to: '/mysql-dashboard',
+  },
+  {
     key: 'alerts',
     icon: <FaRegBell />,
     label: '告警管理',
@@ -102,6 +126,13 @@ const _nav = [
     label: <TranslationCom text="configurationsName" space={namespace} />,
     abbreviation: <TranslationCom text="configurationsAbbreviationName" space={namespace} />,
     to: '/config',
+  },
+  {
+    key: 'healthy',
+    label: '服务健康状态',
+    abbreviation: '服务健康',
+    to: '/healthy-service',
+    icon: <TbWaveSawTool />,
   },
   {
     key: 'manage',

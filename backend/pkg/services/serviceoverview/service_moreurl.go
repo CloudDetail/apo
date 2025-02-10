@@ -9,20 +9,20 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule SortType) (res []response.ServiceDetail, err error) {
+func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, sortRule SortType) (res []response.ServiceDetail, err error) {
 	var duration string
 	var stepNS = endTime.Sub(startTime).Nanoseconds()
 	duration = strconv.FormatInt(stepNS/int64(time.Minute), 10) + "m"
 
-	filter := EndpointsFilter{
-		ServiceName: serviceNames,
+	filters := []string{
+		prom.ServicePQLFilter, serviceName,
 	}
 
-	filters := filter.ExtractFilterStr()
 	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filters)
 	endpoints := endpointsMap.MetricGroupList
 

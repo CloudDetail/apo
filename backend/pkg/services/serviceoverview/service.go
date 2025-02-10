@@ -10,7 +10,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
-	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 var _ Service = (*service)(nil)
@@ -20,19 +20,20 @@ type Service interface {
 	GetThreshold(level string, serviceName string, endPoint string) (res response.GetThresholdResponse, err error)
 	SetThreshold(level string, serviceName string, endPoint string, latency float64, errorRate float64, tps float64, log float64) (res response.SetThresholdResponse, err error)
 	GetServicesAlert(startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error)
-	GetServicesEndPointData(startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule SortType) (res []response.ServiceEndPointsRes, err error)
+	GetServicesEndpointDataByFilter(startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule SortType) (res []response.ServiceEndPointsRes, err error)
 
+	GetServicesEndpointDataByEndpoints(startTime, endTime time.Time, step time.Duration, endpoints []prom.EndpointKey, sortRule SortType) (res []response.ServiceEndPointsRes, err error)
 	GetServicesRYGLightStatus(startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error)
 	GetMonitorStatus(startTime time.Time, endTime time.Time) (response.GetMonitorStatusResponse, error)
 }
 
 type service struct {
 	dbRepo   database.Repo
-	promRepo prometheus.Repo
+	promRepo prom.Repo
 	chRepo   clickhouse.Repo
 }
 
-func New(chRepo clickhouse.Repo, dbRepo database.Repo, promRepo prometheus.Repo) Service {
+func New(chRepo clickhouse.Repo, dbRepo database.Repo, promRepo prom.Repo) Service {
 	return &service{
 		dbRepo:   dbRepo,
 		promRepo: promRepo,

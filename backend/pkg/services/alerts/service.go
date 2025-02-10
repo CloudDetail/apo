@@ -9,11 +9,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 var _ Service = (*service)(nil)
 
 type Service interface {
+	// ========================告警配置========================
+
 	// InputAlertManager receive AlertManager alarm events
 	// Deprecated: use alertinput.ProcessAlertEvents instead
 	InputAlertManager(req *request.InputAlertManagerRequest) error
@@ -43,15 +46,17 @@ type Service interface {
 }
 
 type service struct {
-	chRepo clickhouse.Repo
-	k8sApi kubernetes.Repo
-	dbRepo database.Repo
+	chRepo   clickhouse.Repo
+	promRepo prometheus.Repo
+	k8sApi   kubernetes.Repo
+	dbRepo   database.Repo
 }
 
-func New(chRepo clickhouse.Repo, k8sApi kubernetes.Repo, dbRepo database.Repo) Service {
+func New(chRepo clickhouse.Repo, promRepo prometheus.Repo, k8sApi kubernetes.Repo, dbRepo database.Repo) Service {
 	return &service{
-		chRepo: chRepo,
-		k8sApi: k8sApi,
-		dbRepo: dbRepo,
+		chRepo:   chRepo,
+		promRepo: promRepo,
+		k8sApi:   k8sApi,
+		dbRepo:   dbRepo,
 	}
 }

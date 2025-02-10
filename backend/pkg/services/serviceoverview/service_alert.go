@@ -4,6 +4,7 @@
 package serviceoverview
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 func contains(arr []string, str string) bool {
@@ -319,6 +321,52 @@ func GetAlertStatusCH(chRepo clickhouse.Repo,
 					AlertMessage: event.Body,
 				})
 			}
+		}
+	}
+
+	return
+}
+
+// 填充来自Prometheus的告警信息,并填充alertReason
+func GetAlertStatusProm(promRepo prom.Repo,
+	alertReason *model.AlertReason, alertEventsCountMap *model.AlertEventLevelCountMap,
+	alertTypes []string, serviceName string, instances []*model.ServiceInstance, // filter
+	startTime, endTime time.Time,
+) (alertStatus model.AlertStatusPROM) {
+	alertStatus = model.AlertStatusPROM{
+		LogMetricsStatus: model.STATUS_NORMAL,
+	}
+
+	if len(alertTypes) == 0 || contains(alertTypes, "logsStatus") {
+		// 查询日志的日同比变化
+		avgLogErrorCountDoD, err := promRepo.QueryAggMetricsWithFilter(
+			prom.DayOnDay(prom.PQLAvgLogErrorCountWithFilters),
+			startTime.UnixMicro(), endTime.UnixMicro(),
+			prom.ServicePQLFilter, serviceName,
+		)
+		if err != nil || len(avgLogErrorCountDoD) == 0 || len(avgLogErrorCountDoD[0].Values) == 0 {
+			// 未能查询到日志数据
+			if alertReason != nil {
+				alertReason.Add(model.LogMetricsAlert, model.AlertDetail{
+					Timestamp:    endTime.UnixMicro(),
+					AlertObject:  serviceName,
+					AlertReason:  "日志错误数日同比未采集到数据",
+					AlertMessage: "",
+				})
+			}
+			return
+		}
+		// 指定了服务查询,只会有一个结果
+		avgLogErrorCountDoDRadio := (avgLogErrorCountDoD[0].Values[0].Value - 1) * 100
+		if avgLogErrorCountDoDRadio > 5 {
+			alertStatus.LogMetricsStatus = model.STATUS_CRITICAL
+			alertReason.Add(model.LogMetricsAlert, model.AlertDetail{
+				Timestamp:   endTime.UnixMicro(),
+				AlertObject: serviceName,
+				AlertReason: "日志错误数日同比超过日同比阈值",
+				// HACK 日志错误数日同比变化阈值应来自于threshold,当前直接使用默认值5%
+				AlertMessage: fmt.Sprintf("日志错误数日同比日同比增长: %.2f%% 高于设定阈值 %.2f%%;", avgLogErrorCountDoDRadio, float32(5)),
+			})
 		}
 	}
 

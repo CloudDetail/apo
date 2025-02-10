@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -42,9 +44,59 @@ const (
 			GROUP BY trace_id
 		) AS child_node on child_node.trace_id = found_trace_ids.trace_id
 	`
+
+	SQL_GET_ERROR_PROPAGATION = `SELECT timestamp,entry_service,entry_url,entry_span_id,trace_id
+		, nodes.service,nodes.instance,nodes.url,nodes.is_traced,nodes.is_error
+		, nodes.error_types,nodes.error_msgs,nodes.depth,nodes.path
+		FROM %s.error_propagation
+		%s %s
+	`
 )
 
-// Query instance-related error propagation chain
+func (ch *chRepo) ListErrorByEntryService(startTime, endTime int64, entryService, entryEndpoint string, endpoints []model.EndpointKey) ([]ErrorPropation, error) {
+	startTime = startTime / 1000000
+	endTime = endTime / 1000000
+
+	whereEntry := MergeWheres(
+		AndSep,
+		Equals("entry_service", entryService),
+		Equals("entry_url", entryEndpoint),
+	)
+	// 如果APM发生了断链
+	// 可以通过endpoints直接去除对应服务的Exception
+	if len(endpoints) > 0 {
+		whereEndpoints := ValueInGroups{
+			Keys: []string{"entry_service", "entry_url"},
+		}
+		for _, endpoint := range endpoints {
+			whereEndpoints.ValueGroups = append(whereEndpoints.ValueGroups, clickhouse.GroupSet{
+				Value: []any{endpoint.ServiceName, endpoint.Endpoint},
+			})
+		}
+		whereEntry = MergeWheres(
+			OrSep,
+			whereEntry,
+			InGroup(whereEndpoints),
+		)
+	}
+
+	queryBuilder := NewQueryBuilder().
+		Between("timestamp", startTime, endTime).
+		Statement("LENGTH(nodes.error_types) > 0"). // 返回的数据必须有ErrorTypes
+		And(whereEntry)
+
+	bySql := NewByLimitBuilder().
+		OrderBy("timestamp", false).
+		Limit(2000).String()
+
+	var results []ErrorPropation
+	sql := fmt.Sprintf(SQL_GET_ERROR_PROPAGATION, ch.database, queryBuilder.String(), bySql)
+	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+		return nil, err
+	}
+	return results, nil
+}
+
 func (ch *chRepo) ListErrorPropagation(req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
@@ -81,4 +133,21 @@ type ErrorInstancePropagation struct {
 	ChildServices   []string  `ch:"child_services"`
 	ChildInstances  []string  `ch:"child_instances"`
 	ChildTraced     []bool    `ch:"child_traced"`
+}
+
+type ErrorPropation struct {
+	Timestamp       time.Time  `ch:"timestamp"`
+	EntryService    string     `ch:"entry_service"`
+	EntryUrl        string     `ch:"entry_url"`
+	EntrySpanId     string     `ch:"entry_span_id"`
+	TraceId         string     `ch:"trace_id"`
+	NodesService    []string   `ch:"nodes.service"`
+	NodesInstance   []string   `ch:"nodes.instance"`
+	NodesUrl        []string   `ch:"nodes.url"`
+	NodesIsTraced   []bool     `ch:"nodes.is_traced"`
+	NodesIsError    []bool     `ch:"nodes.is_error"`
+	NodesErrorTypes [][]string `ch:"nodes.error_types"`
+	NodesErrorMsgs  [][]string `ch:"nodes.error_msgs"`
+	NodesDepth      []int      `ch:"nodes.depth"`
+	NodesPath       []string   `ch:"nodes.path"`
 }

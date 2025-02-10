@@ -1018,6 +1018,26 @@ definitions:
         description: total number of records
         type: integer
     type: object
+  model.PredefinedMetricExpr:
+    properties:
+      compareGroup:
+        description: 用于记录可以相互比较的检测表达式
+        type: string
+      customMetric:
+        description: 常量表达式
+        type: string
+      describe:
+        type: string
+      group:
+        description: 用于记录指标所属的告警事件组
+        type: string
+      metric:
+        type: string
+      modifier:
+        $ref: '#/definitions/model.Modifier'
+      name:
+        type: string
+    type: object
   model.ServiceInstance:
     properties:
       containerId:
@@ -1322,6 +1342,14 @@ definitions:
     - alert
     - group
     type: object
+  request.DeleteCustomRequest:
+    properties:
+      customName:
+        description: |-
+          UserName   string `form:"userName"`
+          GroupName  string `form:"groupName"`
+        type: string
+    type: object
   request.DeleteLogParseRequest:
     properties:
       dataBase:
@@ -1339,6 +1367,42 @@ definitions:
         type: string
       tableName:
         type: string
+    type: object
+  request.DetectMutationRequest:
+    properties:
+      endTime:
+        description: 查询结束时间
+        type: integer
+      for:
+        description: 突变告警等待时间
+        type: string
+      mutationCheckPQL:
+        allOf:
+        - $ref: '#/definitions/model.DetectExprPart'
+        description: 需要执行故障检测的语句
+      mutationLowerLimit:
+        allOf:
+        - $ref: '#/definitions/model.DetectExprPart'
+        description: 故障检测下限
+      mutationUpperLimit:
+        allOf:
+        - $ref: '#/definitions/model.DetectExprPart'
+        description: 故障检测上限,使用数学表达式和内置变量(avg.1h,pct.99)
+      name:
+        description: 告警名
+        type: string
+      startTime:
+        description: 查询开始时间
+        type: integer
+      step:
+        description: 查询步长(us)
+        type: integer
+      synchronizeToAlertRules:
+        type: boolean
+    required:
+    - endTime
+    - name
+    - startTime
     type: object
   request.Field:
     properties:
@@ -1886,6 +1950,15 @@ definitions:
         description: primary key ID
         type: integer
     type: object
+  response.CustonType:
+    properties:
+      name:
+        type: string
+      type:
+        items:
+          type: string
+        type: array
+    type: object
   response.DBInfo:
     properties:
       dataBase:
@@ -1904,6 +1977,39 @@ definitions:
     properties:
       id:
         description: primary key ID
+        type: integer
+    type: object
+  response.DescendantAnormalCounts:
+    properties:
+      anormalCounts:
+        additionalProperties:
+          type: integer
+        type: object
+      endpoint:
+        type: string
+      serviceName:
+        type: string
+    type: object
+  response.DescendantAnormalEventRecord:
+    properties:
+      alertKey:
+        type: string
+      anormalMsg:
+        type: string
+      anormalObject:
+        type: string
+      anormalReason:
+        type: string
+      anormalStatus:
+        description: startFiring / updatedFiring / resolved
+        type: string
+      anormalType:
+        $ref: '#/definitions/model.AnormalType'
+      endpoint:
+        type: string
+      serviceName:
+        type: string
+      timestamp:
         type: integer
     type: object
   response.DetailResponse:
@@ -2033,8 +2139,8 @@ definitions:
         items:
           $ref: '#/definitions/clickhouse.PagedAlertEvent'
         type: array
-      totalCount:
-        type: integer
+      pagination:
+        $ref: '#/definitions/model.Pagination'
     type: object
   response.GetAlertEventsSampleResponse:
     properties:
@@ -2311,6 +2417,13 @@ definitions:
       inferMetricsPng:
         type: string
     type: object
+  response.GetPredefinedDetectExprResponse:
+    properties:
+      metrics:
+        items:
+          $ref: '#/definitions/model.PredefinedMetricExpr'
+        type: array
+    type: object
   response.GetProcessFlameGraphResponse:
     properties:
       endTime:
@@ -2356,6 +2469,14 @@ definitions:
         description: upstream node list
         items:
           $ref: '#/definitions/model.TopologyNode'
+        type: array
+      topologyExternalClientCall:
+        items:
+          $ref: '#/definitions/response.TopologyExternalClientCall'
+        type: array
+      topologyLevels:
+        items:
+          $ref: '#/definitions/response.TopologyNodeLevel'
         type: array
     type: object
   response.GetServiceEndpointTopologyResponse:
@@ -3087,6 +3208,32 @@ definitions:
         description: Value metric average
         type: number
     type: object
+  response.TopologyExternalClientCall:
+    properties:
+      childs:
+        items:
+          $ref: '#/definitions/model.TopologyNode'
+        type: array
+      endpoint:
+        type: string
+      group:
+        type: string
+      isTraced:
+        type: boolean
+      service:
+        type: string
+      system:
+        type: string
+    type: object
+  response.TopologyNodeLevel:
+    properties:
+      depth:
+        type: integer
+      endpoint:
+        type: string
+      service:
+        type: string
+    type: object
 info:
   contact: {}
   license:
@@ -3794,6 +3941,353 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: list alarm notification objects
+      tags:
+      - API.alerts
+  /api/alerts/anomaly-span/list:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取服务和根因类型的故障报告
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetAnomalySpanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAnomalySpanResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取服务和根因类型的故障报告
+      tags:
+      - API.alerts
+  /api/alerts/descendant/anormal/contribution:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取下游故障贡献度
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      - description: 查询步长(us)
+        in: query
+        name: step
+        required: true
+        type: integer
+      - description: 入口服务名
+        in: query
+        name: entryService
+        type: string
+      - description: 入口Endpoint
+        in: query
+        name: entryEndpoint
+        type: string
+      - description: 排序字段,支持latency和errorRate,多个使用,链接
+        in: query
+        name: sortBy
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetDescendantAlertContributationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取下游故障贡献度
+      tags:
+      - API.alerts
+  /api/alerts/descendant/anormal/delta:
+    post:
+      consumes:
+      - application/json
+      description: 获取下游告警事件
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询步长(us)
+        in: query
+        name: step
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      - description: 异常事件类型过滤
+        in: query
+        name: anormalTypes
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetDescendantAnormalEventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取下游告警事件
+      tags:
+      - API.alerts
+  /api/alerts/descendant/anormal/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取下游告警事件
+      parameters:
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询服务名
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: 查询Endpoint
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      - description: 入口服务名
+        in: query
+        name: entryService
+        type: string
+      - description: 入口Endpoint
+        in: query
+        name: entryEndpoint
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetDescendantAnormalEventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取下游告警事件
+      tags:
+      - API.alerts
+  /api/alerts/descendant/anormal/trend:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取下游异常变化趋势
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetDescendantAnormalTrendRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetDescendantDeltaAnormalEventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取下游异常变化趋势
+      tags:
+      - API.alerts
+  /api/alerts/detect/mutation/add:
+    post:
+      consumes:
+      - application/json
+      description: 执行异常检测
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DetectMutationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 执行异常检测
+      tags:
+      - API.alerts
+  /api/alerts/detect/mutation/exec-list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取异常检测执行记录
+      parameters:
+      - description: 当前页
+        in: query
+        name: currentPage
+        type: integer
+      - description: 页大小
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetDefectDetectExecListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取异常检测执行记录
+      tags:
+      - API.alerts
+  /api/alerts/detect/mutation/metrics:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取预定义检测表达式
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetPredefinedDetectExprResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取预定义检测表达式
+      tags:
+      - API.alerts
+  /api/alerts/detect/mutation/rule-list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取异常检测规则
+      parameters:
+      - description: 当前页
+        in: query
+        name: currentPage
+        type: integer
+      - description: 页大小
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetDefectDetectRuleListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取异常检测规则
+      tags:
+      - API.alerts
+  /api/alerts/event/impact:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取告警数据的影响面
+      parameters:
+      - description: 查询告警事件ID
+        in: query
+        name: eventId
+        type: string
+      - description: 查询开始时间
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: 查询结束时间
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: 查询步长(us)
+        in: query
+        name: step
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.GetServiceEntryEndpointsResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取告警数据的影响面
       tags:
       - API.alerts
   /api/alerts/inputs/alertmanager:
@@ -5936,6 +6430,10 @@ paths:
       - description: Bearer accessToken
         in: header
         name: Authorization
+        type: string
+      - description: 排序字段,支持latency和errorRate
+        in: query
+        name: sortBy
         type: string
       produces:
       - application/json

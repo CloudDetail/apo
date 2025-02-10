@@ -1,0 +1,21 @@
+.table_step_description {
+  grid-template-rows: 1fr auto;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
+  a {
+    color: #40b1fe;
+  }
+}
+.conclusion_div {
+  margin-top: 10px;
+}
+.operate_tooltip_img {
+  z-index: 99;
+  width: 650px;
+  box-shadow: 0px 0px 5px 2px #c6c4c4;
+}
+.operate_tooltip_icon {
+  margin-right: 10px;
+}

@@ -4,6 +4,7 @@ WORKDIR /app/
 
 COPY package.json ./
 
+RUN yarn config set registry https://registry.npmmirror.com
 RUN yarn install
 
 COPY . .
@@ -11,6 +12,7 @@ COPY . .
 ENV NODE_OPTIONS --openssl-legacy-provider
 ARG VITE_PUBLIC_POSTHOG_HOST
 ARG VITE_PUBLIC_POSTHOG_KEY
+ARG VITE_SHOW_MYSQL_HEALTH
 
 RUN yarn build
 

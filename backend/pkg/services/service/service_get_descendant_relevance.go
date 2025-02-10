@@ -14,12 +14,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
+	"go.uber.org/multierr"
 )
 
 // GetDescendantRelevance implements Service.
 func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
 	// Query all descendant nodes
-	nodes, err := s.chRepo.ListDescendantNodes(req)
+	nodes, err := s.chRepo.ListDescendantNodes(&req.GetDescendantMetricsRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +54,7 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 	sortResp, err := s.polRepo.SortDescendantByRelevance(
 		req.StartTime, req.EndTime, prom.VecFromDuration(time.Duration(req.Step)*time.Microsecond),
 		req.Service, req.Endpoint,
-		descendants, "",
+		descendants, req.SortBy,
 	)
 	var sortResult []polarisanalyzer.Relevance
 	var sortType string
@@ -68,14 +69,43 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 	}
 
 	var resp []response.GetDescendantRelevanceResponse
+	if req.WithAlert == "true" {
+		resp = s.fillDescendantWithAlertStatus(
+			services, endpoints,
+			req, sortResult, sortType, resp, isTracedMap)
+	} else {
+		for i := 0; i < len(sortResult); i++ {
+			descendant := sortResult[i]
+			resp = append(resp, response.GetDescendantRelevanceResponse{
+				ServiceName:  descendant.Service,
+				EndPoint:     descendant.Endpoint,
+				Distance:     descendant.Relevance,
+				Group:        descendant.Group,
+				IsTraced:     isTracedMap[descendant.ServiceNode],
+				DistanceType: sortType,
+			})
+		}
+	}
+
+	return resp, nil
+}
+
+func (s *service) fillDescendantWithAlertStatus(services []string, endpoints []string, req *request.GetDescendantRelevanceRequest, sortResult []polarisanalyzer.Relevance, sortType string, resp []response.GetDescendantRelevanceResponse, isTracedMap map[polarisanalyzer.ServiceNode]bool) []response.GetDescendantRelevanceResponse {
+	var alermCheckErr error
+
+	// 查询RED指标和阈值
 	descendantStatus, err := s.queryDescendantStatus(services, endpoints, req.StartTime, req.EndTime)
 	if err != nil {
 		// Failed to query RED metric when adding log to TODO
+		alermCheckErr = multierr.Append(alermCheckErr, err)
+
 	}
 	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
 	if err != nil {
 		// Failed to query the threshold when adding logs to TODO
+		alermCheckErr = multierr.Append(alermCheckErr, err)
 	}
+
 	for _, descendant := range sortResult {
 		var descendantResp = response.GetDescendantRelevanceResponse{
 			ServiceName:      descendant.Service,
@@ -97,7 +127,7 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 		// Get all instances under each endpoint
 		instances, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
 		if err != nil {
-			// TODO deal error
+			alermCheckErr = multierr.Append(alermCheckErr, err)
 			continue
 		}
 
@@ -113,6 +143,13 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 			startTime, endTime,
 		)
 
+		// 填充日志告警状态
+		descendantResp.AlertStatusPROM = serviceoverview.GetAlertStatusProm(
+			s.promRepo, &descendantResp.AlertReason, nil,
+			[]string{}, descendant.Service, instanceList,
+			startTime, endTime,
+		)
+
 		// Query and populate the process start time
 		startTSmap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, instanceList)
 		latestStartTime := getLatestStartTime(startTSmap) * 1e6
@@ -121,8 +158,7 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 		}
 		resp = append(resp, descendantResp)
 	}
-
-	return resp, nil
+	return resp
 }
 
 func (s *service) queryDescendantStatus(services []string, endpoints []string, startTime, endTime int64) (*DescendantStatusMap, error) {
