@@ -90,7 +90,7 @@ func (s *service) GetDatasourceAndDatabase() map[string]any {
 		if err == nil {
 			traceAPI.ReplaceSecret()
 			traceAPI.Obj.Timeout = latestTraceAPI.Timeout
-			resp["traceAPI"] = traceAPI
+			resp["traceAPI"] = traceAPI.Obj
 		}
 	}
 	return resp
