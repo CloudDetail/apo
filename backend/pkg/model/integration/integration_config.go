@@ -3,7 +3,9 @@
 
 package integration
 
-import "time"
+import (
+	"time"
+)
 
 type ClusterIntegration struct {
 	ClusterID   string `json:"clusterId"`
@@ -15,10 +17,21 @@ type ClusterIntegration struct {
 	Log    LogIntegration    `json:"log"`
 }
 
-func (ci *ClusterIntegration) RemoveSecret() {
+func (ci *ClusterIntegration) RemoveSecret() *ClusterIntegrationVO {
 	ci.Trace.RemoveSecret()
 	ci.Metric.RemoveSecret()
 	ci.Log.RemoveSecret()
+
+	return &ClusterIntegrationVO{
+		Cluster: Cluster{
+			ID:          ci.ClusterID,
+			Name:        ci.ClusterName,
+			ClusterType: ci.ClusterType,
+		},
+		Trace:  ci.Trace,
+		Metric: ci.Metric,
+		Log:    ci.Log,
+	}
 }
 
 const (
@@ -44,13 +57,21 @@ type TraceIntegration struct {
 	SelfCollectConfig JSONField[SelfCollectConfig] `json:"selfCollectConfig" gorm:"type:json;column:self_collect_config"`
 
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	IsDeleted bool      `gorm:"column:is_deleted;default:false"`
 }
 
+// TraceAPI contains config for different APM providers
+// remember to update RemoveSecret when updating the struct
 type TraceAPI struct {
-	Jaeger     *JaegerAPI     `json:"jaeger,omitempty"`
-	Skywalking *SkywalkingAPI `json:"skywalking,omitempty"`
-	ARMS       *ARMSAPI       `json:"arms,omitempty"`
-	NBS3       *NBS3API       `json:"nbs3,omitempty"`
+	Skywalking *SkywalkingConfig `mapstructure:"skywalking"`
+	Jaeger     *JaegerConfig     `mapstructure:"jaeger"`
+	Nbs3       *Nbs3Config       `mapstructure:"nbs3"`
+	Arms       *ArmsConfig       `mapstructure:"arms"`
+	Huawei     *HuaweiConfig     `mapstructure:"huawei"`
+	Elastic    *ElasticConfig    `mapstructure:"elastic"`
+	Pinpoint   *PinpointConfig   `mapstructure:"pinpoint"`
+
+	Timeout time.Duration `json:"timeout"`
 }
 
 func (i *TraceIntegration) RemoveSecret() {
@@ -59,37 +80,63 @@ func (i *TraceIntegration) RemoveSecret() {
 		i.TraceAPI.Obj.Skywalking.Password = ""
 	}
 
-	if i.TraceAPI.Obj.ARMS != nil {
-		i.TraceAPI.Obj.ARMS.AccessKey = ""
-		i.TraceAPI.Obj.ARMS.AccessSecret = ""
+	if i.TraceAPI.Obj.Arms != nil {
+		i.TraceAPI.Obj.Arms.AccessKey = ""
+		i.TraceAPI.Obj.Arms.AccessSecret = ""
 	}
 
-	if i.TraceAPI.Obj.NBS3 != nil {
-		i.TraceAPI.Obj.NBS3.User = ""
-		i.TraceAPI.Obj.NBS3.Password = ""
+	if i.TraceAPI.Obj.Nbs3 != nil {
+		i.TraceAPI.Obj.Nbs3.User = ""
+		i.TraceAPI.Obj.Nbs3.Password = ""
+	}
+
+	if i.TraceAPI.Obj.Huawei != nil {
+		i.TraceAPI.Obj.Huawei.AccessKey = ""
+		i.TraceAPI.Obj.Huawei.AccessSecret = ""
+	}
+
+	if i.TraceAPI.Obj.Elastic != nil {
+		i.TraceAPI.Obj.Elastic.Address = ""
+		i.TraceAPI.Obj.Elastic.User = ""
+		i.TraceAPI.Obj.Elastic.Password = ""
 	}
 }
 
-type JaegerAPI struct {
-	Address string `json:"address"`
+type SkywalkingConfig struct {
+	Address  string `mapstructure:"address"`
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"password"`
 }
 
-type SkywalkingAPI struct {
-	Address  string `json:"address"`
-	User     string `json:"user"`
-	Password string `json:"password"`
+type JaegerConfig struct {
+	Address string `mapstructure:"address"`
 }
 
-type ARMSAPI struct {
-	Address      string `json:"address"`
-	AccessKey    string `json:"accessKey"`
-	AccessSecret string `json:"accessSecret"`
+type Nbs3Config struct {
+	Address  string `mapstructure:"address"`
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"password"`
 }
 
-type NBS3API struct {
-	Address  string `json:"address"`
-	User     string `json:"user"`
-	Password string `json:"password"`
+type ArmsConfig struct {
+	Address      string `mapstructure:"address"`
+	AccessKey    string `mapstructure:"access_key"`
+	AccessSecret string `mapstructure:"access_secret"`
+}
+
+type HuaweiConfig struct {
+	AccessKey    string `mapstructure:"access_key"`
+	AccessSecret string `mapstructure:"access_secret"`
+}
+
+type ElasticConfig struct {
+	Address  string `mapstructure:"address"`
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"password"`
+}
+
+type PinpointConfig struct {
+	Address string `mapstructure:"address"`
 }
 
 type SelfCollectConfig struct {
@@ -106,14 +153,14 @@ type APOCollector struct {
 type MetricIntegration struct {
 	ClusterID string `json:"clusterId" gorm:"primaryKey;column:cluster_id"`
 
-	Mode string `json:"mode" gorm:"type:varchar(100);column:mode"`
-
+	Mode   string `json:"mode" gorm:"type:varchar(100);column:mode"`
 	Name   string `json:"name"`
 	DSType string `json:"dsType"`
 
 	MetricAPI *JSONField[MetricAPI] `json:"metricAPI" gorm:"type:json;column:metric_api"`
 
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	IsDeleted bool      `gorm:"column:is_deleted;default:false"`
 }
 
 type MetricAPI struct {
@@ -146,6 +193,7 @@ type LogIntegration struct {
 	LogAPI *JSONField[LogAPI] `json:"logAPI,omitempty" gorm:"type:json;column:log_api"`
 
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	IsDeleted bool      `gorm:"column:is_deleted;default:false"`
 }
 
 func (i *LogIntegration) RemoveSecret() {
@@ -166,4 +214,9 @@ type ClickhouseConfig struct {
 	Database    string `json:"database"`
 	Replication bool   `json:"replication"`
 	Cluster     string `json:"cluster"`
+}
+
+type AdapterAPIConfig struct {
+	APIs    map[string]any `json:"apis"`
+	Timeout int64          `json:"timeout"`
 }

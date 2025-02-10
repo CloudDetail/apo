@@ -10,6 +10,11 @@ import (
 )
 
 type Handler interface {
+	// GetStoreIntegration
+	// @Tags API.integration
+	// @Router /api/integration/configuration [get]
+	GetStoreIntegration() core.HandlerFunc
+
 	// ListCluster ListCluster
 	// @Tags API.integration
 	// @Router /api/integration/cluster/list [get]
@@ -20,6 +25,11 @@ type Handler interface {
 	// @Router /api/integration/cluster/create [post]
 	CreateCluster() core.HandlerFunc
 
+	// GetCluster GetCluster
+	// @Tags API.integration
+	// @Router /api/integration/cluster/get [get]
+	GetCluster() core.HandlerFunc
+
 	// UpdateCluster UpdateCluster
 	// @Tags API.integration
 	// @Router /api/integration/cluster/update [post]
@@ -27,7 +37,7 @@ type Handler interface {
 
 	// DeleteCluster DeleteCluster
 	// @Tags API.integration
-	// @Router /api/integration/cluster/delete [post]
+	// @Router /api/integration/cluster/delete [get]
 	DeleteCluster() core.HandlerFunc
 
 	// GetIntegrationInstallDoc
@@ -39,6 +49,11 @@ type Handler interface {
 	// @Tags API.integration
 	// @Router /api/integration/cluster/install/config [get]
 	GetIntegrationInstallConfigFile() core.HandlerFunc
+
+	// TriggerAdapterUpdate
+	// @Tags API.integration
+	// @Router /api/integration/adapter/update [get]
+	TriggerAdapterUpdate() core.HandlerFunc
 }
 
 var _ Handler = &handler{}

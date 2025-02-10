@@ -4,8 +4,12 @@
 package integration
 
 import (
+	"encoding/json"
+	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"go.uber.org/multierr"
+	"gorm.io/gorm"
 )
 
 func (repo *subRepos) updateTraceIntegration(t *integration.TraceIntegration) error {
@@ -110,21 +114,21 @@ func (repo *subRepos) GetIntegrationConfig(clusterID string) (*integration.Clust
 	}
 
 	var traceIntegration integration.TraceIntegration
-	err = repo.db.Find(&traceIntegration, "cluster_id = ?", clusterID).Error
+	err = repo.db.Find(&traceIntegration, "cluster_id = ?", clusterID, "is_deleted = ?", false).Error
 	if err != nil {
 		return res, err
 	}
 	res.Trace = traceIntegration
 
 	var metricIntegration integration.MetricIntegration
-	err = repo.db.Find(&metricIntegration, "cluster_id = ?", clusterID).Error
+	err = repo.db.Find(&metricIntegration, "cluster_id = ?", clusterID, "is_deleted = ?", false).Error
 	if err != nil {
 		return res, err
 	}
 	res.Metric = metricIntegration
 
 	var logIntegration integration.LogIntegration
-	err = repo.db.Find(&logIntegration, "cluster_id = ?", clusterID).Error
+	err = repo.db.Find(&logIntegration, "cluster_id = ?", clusterID, "is_deleted = ?", false).Error
 	if err != nil {
 		return res, err
 	}
@@ -134,20 +138,83 @@ func (repo *subRepos) GetIntegrationConfig(clusterID string) (*integration.Clust
 }
 
 func (repo *subRepos) DeleteIntegrationConfig(clusterID string) error {
-	err := repo.db.Delete(&integration.TraceIntegration{}, "cluster_id = ?", clusterID).Error
-	if err != nil {
-		return err
-	}
+	err := repo.db.Model(&integration.TraceIntegration{}).
+		Where("cluster_id = ?", clusterID).
+		Update("is_deleted", true).Error
 
-	err = repo.db.Delete(&integration.MetricIntegration{}, "cluster_id = ?", clusterID).Error
-	if err != nil {
-		return err
-	}
+	err2 := repo.db.Model(&integration.MetricIntegration{}).
+		Where("cluster_id = ?", clusterID).
+		Update("is_deleted", true).Error
 
-	return repo.db.Delete(&integration.LogIntegration{}, "cluster_id = ?", clusterID).Error
+	err = multierr.Append(err, err2)
+
+	err3 := repo.db.Model(&integration.LogIntegration{}).
+		Where("cluster_id = ?", clusterID).
+		Update("is_deleted", true).Error
+
+	err = multierr.Append(err, err3)
+
+	return err
 }
 
-// func (repo *subRepos) GetLatestTraceAPIs() *integration.TraceAPI {
-// 	var traceIntegrations []integration.TraceIntegration
+type traceAPI struct {
+	ApmType  string `gorm:"apm_type"`
+	TraceAPI string `gorm:"trace_api"`
+}
 
-// }
+func (repo *subRepos) GetLatestTraceAPIs(lastUpdateTS int64) (*integration.AdapterAPIConfig, error) {
+	var latestUpdateTraceAPI integration.TraceIntegration
+	err := repo.db.First(&latestUpdateTraceAPI, "updated_at > ?", lastUpdateTS).
+		Order("updated_at DESC").Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	var latestTraceAPIs []traceAPI
+	sql := `WITH latestAPI AS (
+  SELECT apm_type,trace_api,
+    ROW_NUMBER() OVER (PARTITION BY apm_type ORDER BY updated_at DESC) AS rn
+  FROM trace_integrations WHERE is_deleted = false)
+SELECT apm_type, trace_api
+FROM latestAPI
+WHERE rn = 1`
+
+	err = repo.db.Raw(sql).Scan(&latestTraceAPIs).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	latestAPI := make(map[string]any)
+	var apmList []string
+	var maxTimeout int64 = 0
+	for _, api := range latestTraceAPIs {
+		var apiSpec map[string]interface{}
+		// 反序列化 JSON 数据到 map
+		err := json.Unmarshal([]byte(api.TraceAPI), &apiSpec)
+		if err != nil {
+			continue
+		}
+
+		cfg, ok := apiSpec[api.ApmType]
+		if !ok {
+			continue
+		}
+
+		latestAPI[api.ApmType] = cfg
+		apmList = append(apmList, api.ApmType)
+		timeout, ok := apiSpec["timeout"]
+		if ok && timeout.(int64) > maxTimeout {
+			maxTimeout = timeout.(int64)
+		}
+	}
+
+	latestAPI["apm_list"] = apmList
+	return &integration.AdapterAPIConfig{
+		APIs:    latestAPI,
+		Timeout: maxTimeout,
+	}, nil
+}

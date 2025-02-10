@@ -219,8 +219,11 @@ const (
 	AssignToTeamError     = "B1107"
 	UnSupportedSubType    = "B1108"
 
-	GetIntegrationInstallDocFailed        = "B1325"
-	GetIntegrationInstallConfigFileFailed = "B1326"
+	// integration api
+	GetIntegrationInstallDocFailed        = "B1400"
+	GetIntegrationInstallConfigFileFailed = "B1401"
+
+	GetClusterIntegrationFailed = "B1402"
 )
 
 func Text(code string) string {
