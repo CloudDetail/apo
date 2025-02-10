@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"reflect"
 )
 
 type JSONField[T any] struct {
@@ -42,4 +43,68 @@ func (j *JSONField[T]) MarshalJSON() ([]byte, error) {
 
 func (j *JSONField[T]) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &j.Obj)
+}
+
+func (j *JSONField[T]) ReplaceSecret() {
+	replaceSecret(&j.Obj)
+}
+
+func (j *JSONField[T]) AcceptExistedSecret(oldV T) {
+	va := reflect.ValueOf(j.Obj).Elem()
+	vb := reflect.ValueOf(oldV).Elem()
+
+	if va.Type() != vb.Type() {
+		fmt.Println("Error: a and b must be of the same type")
+		return
+	}
+	replaceSecrets(va, vb)
+}
+
+const secretFieldValue = "<secret>"
+
+func replaceSecrets(va, vb reflect.Value) {
+	for i := 0; i < va.NumField(); i++ {
+		fieldA := va.Field(i)
+		fieldB := vb.Field(i)
+
+		if fieldA.Kind() == reflect.Ptr {
+			if !fieldA.IsNil() && !fieldB.IsNil() {
+				replaceSecrets(fieldA.Elem(), fieldB.Elem())
+			}
+		} else if fieldA.Kind() == reflect.Struct {
+			replaceSecrets(fieldA, fieldB)
+		} else if fieldA.Kind() == reflect.String {
+			if fieldA.String() == secretFieldValue {
+				if fieldB.Kind() == reflect.String {
+					fieldA.SetString(fieldB.String())
+				}
+			}
+		}
+	}
+}
+
+// replaceSecret 遍历结构体字段，将带有 "secret" 标签的字段值替换为 "<secret>"
+func replaceSecret(v interface{}) {
+	val := reflect.ValueOf(v).Elem() // 获取结构体的值
+	typ := reflect.TypeOf(v).Elem()  // 获取结构体的类型
+
+	// 遍历结构体的每个字段
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)     // 获取字段值
+		fieldType := typ.Field(i) // 获取字段类型信息
+
+		// 判断字段是否标记了 "secret" 标签
+		if fieldType.Tag.Get("secret") == "true" {
+			switch field.Kind() {
+			case reflect.String:
+				field.SetString(secretFieldValue)
+			case reflect.Struct:
+				replaceSecret(field.Addr().Interface()) // 传递指针类型
+			case reflect.Ptr:
+				if !field.IsNil() {
+					replaceSecret(field.Interface()) // 递归处理指针指向的内容
+				}
+			}
+		}
+	}
 }

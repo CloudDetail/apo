@@ -9,6 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/mitchellh/mapstructure"
 )
 
 type Service interface {
@@ -41,15 +42,16 @@ func New(database database.Repo) Service {
 
 // HACK use static config in configFile now
 func (s *service) GetDatasourceAndDatabase() map[string]any {
-	chCfg := config.Get().ClickHouse
+	resp := make(map[string]any)
 
-	db := integration.LogIntegration{
+	chCfg := config.Get().ClickHouse
+	resp["database"] = integration.LogIntegration{
 		Name:   "APO-DEFAULT-CH",
 		DBType: "clickhouse",
 		Mode:   "sql",
 		LogAPI: &integration.JSONField[integration.LogAPI]{
 			Obj: integration.LogAPI{
-				CHConfig: &integration.ClickhouseConfig{
+				Clickhouse: &integration.ClickhouseConfig{
 					Address:     chCfg.Address,
 					Database:    chCfg.Database,
 					Replication: chCfg.Replica,
@@ -60,13 +62,13 @@ func (s *service) GetDatasourceAndDatabase() map[string]any {
 	}
 
 	vmCfg := config.Get().Promethues
-	ds := integration.MetricIntegration{
+	resp["datasource"] = integration.MetricIntegration{
 		Name:   "APO-DEFAULT-VM",
 		DSType: "victoriametric",
 		Mode:   "pql",
 		MetricAPI: &integration.JSONField[integration.MetricAPI]{
 			Obj: integration.MetricAPI{
-				VMConfig: &integration.VictoriaMetricConfig{
+				VictoriaMetric: &integration.VictoriaMetricConfig{
 					ServerURL: vmCfg.Address,
 				},
 			},
@@ -75,8 +77,15 @@ func (s *service) GetDatasourceAndDatabase() map[string]any {
 		IsDeleted: false,
 	}
 
-	return map[string]any{
-		"datasource": ds,
-		"database":   db,
+	latestTraceAPI, err := s.dbRepo.GetLatestTraceAPIs(-1)
+	if err == nil {
+		var traceAPI integration.JSONField[integration.TraceAPI]
+		err := mapstructure.Decode(latestTraceAPI.APIs, &traceAPI.Obj)
+		if err == nil {
+			traceAPI.ReplaceSecret()
+			traceAPI.Obj.Timeout = latestTraceAPI.Timeout
+			resp["traceAPI"] = traceAPI
+		}
 	}
+	return resp
 }

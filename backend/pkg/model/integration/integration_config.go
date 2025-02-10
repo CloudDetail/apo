@@ -18,9 +18,9 @@ type ClusterIntegration struct {
 }
 
 func (ci *ClusterIntegration) RemoveSecret() *ClusterIntegrationVO {
-	ci.Trace.RemoveSecret()
-	ci.Metric.RemoveSecret()
-	ci.Log.RemoveSecret()
+	ci.Trace.TraceAPI.ReplaceSecret()
+	ci.Metric.MetricAPI.ReplaceSecret()
+	ci.Log.LogAPI.ReplaceSecret()
 
 	return &ClusterIntegrationVO{
 		Cluster: Cluster{
@@ -71,41 +71,14 @@ type TraceAPI struct {
 	Elastic    *ElasticConfig    `mapstructure:"elastic"`
 	Pinpoint   *PinpointConfig   `mapstructure:"pinpoint"`
 
-	Timeout time.Duration `json:"timeout"`
-}
-
-func (i *TraceIntegration) RemoveSecret() {
-	if i.TraceAPI.Obj.Skywalking != nil {
-		i.TraceAPI.Obj.Skywalking.User = ""
-		i.TraceAPI.Obj.Skywalking.Password = ""
-	}
-
-	if i.TraceAPI.Obj.Arms != nil {
-		i.TraceAPI.Obj.Arms.AccessKey = ""
-		i.TraceAPI.Obj.Arms.AccessSecret = ""
-	}
-
-	if i.TraceAPI.Obj.Nbs3 != nil {
-		i.TraceAPI.Obj.Nbs3.User = ""
-		i.TraceAPI.Obj.Nbs3.Password = ""
-	}
-
-	if i.TraceAPI.Obj.Huawei != nil {
-		i.TraceAPI.Obj.Huawei.AccessKey = ""
-		i.TraceAPI.Obj.Huawei.AccessSecret = ""
-	}
-
-	if i.TraceAPI.Obj.Elastic != nil {
-		i.TraceAPI.Obj.Elastic.Address = ""
-		i.TraceAPI.Obj.Elastic.User = ""
-		i.TraceAPI.Obj.Elastic.Password = ""
-	}
+	// Second
+	Timeout int64 `json:"timeout"`
 }
 
 type SkywalkingConfig struct {
 	Address  string `mapstructure:"address"`
-	User     string `mapstructure:"user"`
-	Password string `mapstructure:"password"`
+	User     string `mapstructure:"user" secret:"true"`
+	Password string `mapstructure:"password" secret:"true"`
 }
 
 type JaegerConfig struct {
@@ -114,25 +87,25 @@ type JaegerConfig struct {
 
 type Nbs3Config struct {
 	Address  string `mapstructure:"address"`
-	User     string `mapstructure:"user"`
-	Password string `mapstructure:"password"`
+	User     string `mapstructure:"user" secret:"true"`
+	Password string `mapstructure:"password" secret:"true"`
 }
 
 type ArmsConfig struct {
 	Address      string `mapstructure:"address"`
-	AccessKey    string `mapstructure:"access_key"`
-	AccessSecret string `mapstructure:"access_secret"`
+	AccessKey    string `mapstructure:"access_key" secret:"true"`
+	AccessSecret string `mapstructure:"access_secret" secret:"true"`
 }
 
 type HuaweiConfig struct {
-	AccessKey    string `mapstructure:"access_key"`
-	AccessSecret string `mapstructure:"access_secret"`
+	AccessKey    string `mapstructure:"access_key" secret:"true"`
+	AccessSecret string `mapstructure:"access_secret" secret:"true"`
 }
 
 type ElasticConfig struct {
 	Address  string `mapstructure:"address"`
-	User     string `mapstructure:"user"`
-	Password string `mapstructure:"password"`
+	User     string `mapstructure:"user" secret:"true"`
+	Password string `mapstructure:"password" secret:"true"`
 }
 
 type PinpointConfig struct {
@@ -164,20 +137,13 @@ type MetricIntegration struct {
 }
 
 type MetricAPI struct {
-	VMConfig *VictoriaMetricConfig `json:"vmConfig,omitempty"`
-}
-
-func (i *MetricIntegration) RemoveSecret() {
-	if i.MetricAPI.Obj.VMConfig != nil {
-		i.MetricAPI.Obj.VMConfig.Username = ""
-		i.MetricAPI.Obj.VMConfig.Password = ""
-	}
+	VictoriaMetric *VictoriaMetricConfig `json:"victoriametric,omitempty"`
 }
 
 type PrometheusConfig struct {
 	ServerURL string `json:"serverURL"`
-	Username  string `json:"username"`
-	Password  string `json:"password"`
+	Username  string `json:"username" secret:"true"`
+	Password  string `json:"password" secret:"true"`
 }
 
 type VictoriaMetricConfig PrometheusConfig
@@ -196,21 +162,14 @@ type LogIntegration struct {
 	IsDeleted bool      `gorm:"column:is_deleted;default:false"`
 }
 
-func (i *LogIntegration) RemoveSecret() {
-	if i.LogAPI.Obj.CHConfig != nil {
-		i.LogAPI.Obj.CHConfig.UserName = ""
-		i.LogAPI.Obj.CHConfig.Password = ""
-	}
-}
-
 type LogAPI struct {
-	CHConfig *ClickhouseConfig `json:"chConfig"`
+	Clickhouse *ClickhouseConfig `json:"clickhouse"`
 }
 
 type ClickhouseConfig struct {
 	Address     string `json:"address"`
-	UserName    string `json:"userName"`
-	Password    string `json:"password"` // Encrypt in B64
+	UserName    string `json:"userName" secret:"true"`
+	Password    string `json:"password" secret:"true"` // Encrypt in B64
 	Database    string `json:"database"`
 	Replication bool   `json:"replication"`
 	Cluster     string `json:"cluster"`
