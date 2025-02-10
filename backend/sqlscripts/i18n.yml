@@ -326,7 +326,7 @@ teamManage:
   key: "team"
   i18n:
     - language: "en"
-      translation: "Group"
+      translation: "Team"
       field_name: "label"
       entity_type: "menu"
     - language: "zh"
