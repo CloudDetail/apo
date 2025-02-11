@@ -6,21 +6,22 @@ package data
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
-	"time"
 )
 
 func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, services interface{}, fillCategory string) (err error) {
 	var (
-		namespaceMap    = map[string]bool{}
-		serviceMap      = map[string]struct{}{}
+		namespaceMap    = map[string]bool{}		// mapped all namespaces user can view
+		serviceMap      = map[string]struct{}{} // mapped all services user can view
 		namespaceSrvMap = map[string][]string{}
 		endTime         = time.Now()
 		startTime       = endTime.Add(-24 * time.Hour)
 		serviceList     []string
-		namespaceDs     []string
+		namespaceDs     []string		
 		serviceDs       []string
 		filteredNs      []string
 		filteredSrv     []string
@@ -42,15 +43,18 @@ func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, s
 			ID: groupID,
 		}
 		groups, _, err = s.dbRepo.GetDataGroup(filter)
+		if err != nil {
+			return err
+		}
 	} else {
-		groups, err = s.getUserDataGroup(userID, "")
-	}
-	if err != nil {
-		return err
+		groups, err = s.getUserDataGroup(userID, fillCategory)
+		if err != nil {
+			return err
+		}
 	}
 
 	if len(groups) == 0 {
-		defaultGroup, err := s.getDefaultDataGroup("")
+		defaultGroup, err := s.getDefaultDataGroup(fillCategory)
 		if err != nil {
 			return err
 		}
@@ -59,14 +63,14 @@ func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, s
 	}
 
 	for _, group := range groups {
-		for _, gs := range group.DatasourceList {
-			if len(fillCategory) > 0 && gs.Category != fillCategory {
+		for _, datasource := range group.DatasourceList {
+			if len(fillCategory) > 0 && datasource.Category != fillCategory {
 				continue
 			}
-			ds := gs.Datasource
-			if gs.Type == model.DATASOURCE_TYP_NAMESPACE {
+			ds := datasource.Datasource
+			if datasource.Type == model.DATASOURCE_TYP_NAMESPACE {
 				namespaceMap[ds] = true
-			} else if gs.Type == model.DATASOURCE_TYP_SERVICE {
+			} else if datasource.Type == model.DATASOURCE_TYP_SERVICE {
 				namespaceList, err := s.promRepo.GetServiceNamespace(startTime.UnixMicro(), endTime.UnixMicro(), ds)
 				if err != nil {
 					return err
@@ -101,6 +105,7 @@ func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, s
 		return err
 	}
 
+	// has rights to view this namespace's services
 	if len(namespaceDs) > 0 {
 		serviceList, err = s.promRepo.GetServiceList(startTime.UnixMicro(), endTime.UnixMicro(), namespaceDs)
 		if err != nil {
@@ -188,8 +193,14 @@ func toStringSlice(input interface{}) ([]string, error) {
 	}
 	switch v := input.(type) {
 	case *string:
+		if len(*input.(*string)) == 0 {
+			return nil, nil
+		}
 		return []string{*v}, nil
 	case *[]string:
+		if len(*input.(*[]string)) == 0 {
+			return nil, nil
+		}
 		return *v, nil
 	default:
 		return nil, fmt.Errorf("unsupported type: %T, please use *string or *[]string", input)
