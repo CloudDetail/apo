@@ -205,7 +205,10 @@ func (repo *subRepos) GetLatestTraceAPIs(lastUpdateTS int64) (*integration.Adapt
 		Order("updated_at DESC").Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
+		return &integration.AdapterAPIConfig{
+			APIs:    map[string]any{},
+			Timeout: 0,
+		}, nil
 	} else if err != nil {
 		return nil, err
 	}
