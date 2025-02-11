@@ -50,8 +50,8 @@ func (j *JSONField[T]) ReplaceSecret() {
 }
 
 func (j *JSONField[T]) AcceptExistedSecret(oldV T) {
-	va := reflect.ValueOf(j.Obj).Elem()
-	vb := reflect.ValueOf(oldV).Elem()
+	va := reflect.ValueOf(&j.Obj).Elem()
+	vb := reflect.ValueOf(&oldV).Elem()
 
 	if va.Type() != vb.Type() {
 		fmt.Println("Error: a and b must be of the same type")
