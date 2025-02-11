@@ -177,5 +177,5 @@ type ClickhouseConfig struct {
 
 type AdapterAPIConfig struct {
 	APIs    map[string]any `json:"apis"`
-	Timeout int            `json:"timeout"`
+	Timeout int64          `json:"timeout"`
 }
