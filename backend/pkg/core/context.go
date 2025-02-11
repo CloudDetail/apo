@@ -90,6 +90,8 @@ type Context interface {
 	Request() *http.Request
 
 	ClientIP() string
+
+	GetWriter() http.ResponseWriter
 }
 
 type context struct {
@@ -216,4 +218,8 @@ func (c *context) Request() *http.Request {
 
 func (c *context) ClientIP() string {
 	return c.ctx.ClientIP()
+}
+
+func (c *context) GetWriter() http.ResponseWriter {
+	return c.ctx.Writer
 }

@@ -93,6 +93,8 @@ type Repo interface {
 
 	GetNamespaceList(startTime int64, endTime int64) ([]string, error)
 	GetNamespaceWithService(startTime, endTime int64) (map[string][]string, error)
+
+	GetNodesCount(startTime int64, endTime int64) (int, error)
 }
 
 type promRepo struct {

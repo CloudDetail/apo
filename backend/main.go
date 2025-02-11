@@ -43,6 +43,20 @@ func main() {
 		_ = accessLogger.Sync()
 	}()
 
+	conf := config.Get()
+	if conf.License.Enable {
+		err := conf.ParseLicense()
+		if err != nil {
+			panic(err)
+		}
+
+		expirationTime := time.UnixMilli(conf.License.BasicLicense.IssuedAt).Add(time.Duration(conf.License.BasicLicense.Duration) * time.Millisecond)
+
+		if time.Since(time.UnixMilli(conf.License.BasicLicense.IssuedAt)) > time.Duration(conf.License.BasicLicense.Duration) {
+			panic(fmt.Sprintf("license expired, expired at: %s", expirationTime.Format(time.RFC1123)))
+		}
+	}
+
 	// Initialize the HTTP service
 	s, err := router.NewHTTPServer(accessLogger)
 	if err != nil {

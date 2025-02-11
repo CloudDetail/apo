@@ -9,11 +9,12 @@ import (
 	alertinput "github.com/CloudDetail/apo/backend/pkg/api/alertinput"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
-	"github.com/CloudDetail/apo/backend/pkg/api/data"
 	"github.com/CloudDetail/apo/backend/pkg/api/custom"
+	"github.com/CloudDetail/apo/backend/pkg/api/data"
 	"github.com/CloudDetail/apo/backend/pkg/api/health"
 	"github.com/CloudDetail/apo/backend/pkg/api/integration"
 	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
+	"github.com/CloudDetail/apo/backend/pkg/api/license"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
 	networkapi "github.com/CloudDetail/apo/backend/pkg/api/network"
 	"github.com/CloudDetail/apo/backend/pkg/api/permission"
@@ -305,6 +306,11 @@ func setApiRouter(r *resource) {
 		integrationAPI.GET("/cluster/install/cmd", handler.GetIntegrationInstallDoc())
 	}
 
+	licenseApi := r.mux.Group("/api/license")
+	{
+		licenseHandler := license.New(r.logger, r.cache, r.prom)
+		licenseApi.POST("/upload", licenseHandler.UploadLicense())
+	}
 }
 
 func SetMetaServerRouter(srv *Server, meta source.MetaSource) {

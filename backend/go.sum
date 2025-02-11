@@ -1,3 +1,5 @@
+192.168.1.22/apo/license-manager v1.2.0 h1:8OlJyZ+j2jOX/9+6dH8A4OtBjLRrNtTelrL8gO6H2h4=
+192.168.1.22/apo/license-manager v1.2.0/go.mod h1:Z050lxcUsKZbj+wei0iDfUGxddDHHs2CzGMwMu7Do5c=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=

@@ -2938,6 +2938,61 @@
                 }
             }
         },
+        "/api/license/create": {
+            "post": {
+                "description": "creates a license file for download",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "API.license"
+                ],
+                "summary": "creates a license file",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "duration",
+                        "name": "duration",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "app's version",
+                        "name": "appVersion",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "type",
+                        "name": "type",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "License file",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/log/chart": {
             "post": {
                 "description": "get the log trend chart",
@@ -9201,6 +9256,9 @@
                 },
                 "spanId": {
                     "type": "string"
+                },
+                "thresholdMultiple": {
+                    "type": "number"
                 },
                 "thresholdValue": {
                     "type": "number"

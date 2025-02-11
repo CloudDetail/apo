@@ -1,10 +1,9 @@
 module github.com/CloudDetail/apo/backend
 
-go 1.21.0
-
-toolchain go1.21.5
+go 1.22.5
 
 require (
+	192.168.1.22/apo/license-manager v1.2.0
 	github.com/ClickHouse/clickhouse-go/v2 v2.26.0
 	github.com/CloudDetail/metadata v0.0.0-20240903055919-f0487c96aa95
 	github.com/dave/dst v0.27.3
@@ -44,7 +43,11 @@ require (
 	k8s.io/apimachinery v0.29.3
 	k8s.io/client-go v0.29.3
 	sigs.k8s.io/controller-runtime v0.17.6
+//192.168.1.22/apo/license-manager v1.2.0
 )
+
+//// TODO remove
+//replace 192.168.1.22/apo/license-manager => "D:/Program Files/gopath/pkg/mod/192.168.1.22/apo/license-manager@v1.2.0"
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect

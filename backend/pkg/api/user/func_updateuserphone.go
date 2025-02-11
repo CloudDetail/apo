@@ -68,4 +68,4 @@ func (h *handler) UpdateUserPhone() core.HandlerFunc {
 	}
 }
 
-var phoneRegexp = regexp.MustCompile("^1[3-9]\\d{9}$")
+var phoneRegexp = regexp.MustCompile(`^1[3-9]\\d{9}$`)
