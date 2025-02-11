@@ -209,23 +209,6 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 		}
 
 		whereInstance = append(whereInstance, serviceCondition...)
-		whereInstance = append(whereInstance, MergeWheres(
-			AndSep,
-			whereGroup,
-			MergeWheres(
-				OrSep,
-				MergeWheres(
-					AndSep,
-					Equals("tags['svc_name']", filter.Service),
-					EqualsIfNotEmpty("tags['content_key']", filter.Endpoint),
-				), // Compatible with older versions
-				MergeWheres(
-					AndSep,
-					Equals("tags['serviceName']", filter.Service),
-					EqualsIfNotEmpty("tags['endpoint']", filter.Endpoint),
-				),
-			),
-		))
 	}
 
 	if len(filter.Group) == 0 || filter.Group == "container" || filter.Group == "network" {
