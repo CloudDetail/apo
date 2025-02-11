@@ -32,7 +32,7 @@ func TestRepo(t *testing.T) {
 }
 
 func testGetActiveInstanceList(t *testing.T, repo Repo) {
-	instances, err := repo.GetActiveInstanceList(1722914086000000, 1722935686000000, "ts-travel-plan-service")
+	instances, err := repo.GetActiveInstanceList(1722914086000000, 1722935686000000, "ts-travel-plan-service", nil)
 	if err != nil {
 		t.Errorf("Error to get active instance list: %v", err)
 	}

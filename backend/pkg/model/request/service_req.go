@@ -151,8 +151,9 @@ type GetAlertEventsRequest struct {
 }
 
 type AlertFilter struct {
-	Service  string `form:"service"`
-	Endpoint string `form:"endpoint"`
+	Service  string   `form:"service"`
+	Endpoint string   `form:"endpoint"`
+	Services []string `form:"services"`
 
 	Source   string `form:"source"`
 	Group    string `form:"group"`

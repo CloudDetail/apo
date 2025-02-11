@@ -14,7 +14,7 @@ import (
 
 func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest) (resp *response.GetAlertEventsSampleResponse, err error) {
 	// Query the instance to which the Service belongs.
-	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.Service)
+	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.Service, nil)
 	if err != nil || instances == nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest)
 
 func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.GetAlertEventsResponse, error) {
 	// Query the instance to which the Service belongs.
-	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.Service)
+	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.Service, req.Services)
 	if err != nil {
 		return nil, err
 	}

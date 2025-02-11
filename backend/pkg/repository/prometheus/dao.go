@@ -32,12 +32,12 @@ type Repo interface {
 	GetServiceWithNamespace(startTime, endTime int64, namespace []string) (map[string][]string, error)
 	// GetServiceNamespace  Get service's namespaces.
 	GetServiceNamespace(startTime, endTime int64, service string) ([]string, error)
-	// 查询服务实例列表, URL允许为空
+	// GetInstanceList query service instance list. URL can be empty.
 	GetInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
 	// Query the db instance for specified service
 	GetDescendantDatabase(startTime int64, endTime int64, serviceName string, endpoint string) ([]model.MiddlewareInstance, error)
 	// Query the list of active instances
-	GetActiveInstanceList(startTime int64, endTime int64, serviceName string) (*model.ServiceInstances, error)
+	GetActiveInstanceList(startTime int64, endTime int64, serviceName string, serviceNames []string) (*model.ServiceInstances, error)
 	// Query the service Endpoint list. The service permission is empty.
 	GetServiceEndPointList(startTime int64, endTime int64, serviceName string) ([]string, error)
 	GetMultiServicesInstanceList(startTime int64, endTime int64, services []string) (map[string]*model.ServiceInstances, error)
