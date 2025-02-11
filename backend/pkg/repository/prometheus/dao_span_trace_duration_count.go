@@ -170,13 +170,9 @@ func (repo *promRepo) GetServiceEndPointList(startTime int64, endTime int64, ser
 }
 
 // Query the list of active instances
-func (repo *promRepo) GetActiveInstanceList(startTime int64, endTime int64, serviceName string, serviceNames []string) (*model.ServiceInstances, error) {
-	var queryCondition string
-	if len(serviceNames) > 0 {
-		queryCondition = fmt.Sprintf("%s'%s'", ServiceRegexPQLFilter, RegexMultipleValue(serviceNames...))
-	} else {
-		queryCondition = fmt.Sprintf("%s'%s'", ServicePQLFilter, serviceName)
-	}
+func (repo *promRepo) GetActiveInstanceList(startTime int64, endTime int64, serviceNames []string) (*model.ServiceInstances, error) {
+	queryCondition := fmt.Sprintf("%s'%s'", ServiceRegexPQLFilter, RegexMultipleValue(serviceNames...))
+
 	query := fmt.Sprintf(TEMPLATE_GET_ACTIVE_SERVICE_INSTANCE, queryCondition, VecFromS2E(startTime, endTime))
 	res, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
 	if err != nil {

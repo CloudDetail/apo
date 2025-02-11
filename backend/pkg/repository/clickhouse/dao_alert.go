@@ -145,7 +145,7 @@ func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, end
 
 func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam) ([]PagedAlertEvent, int, error) {
 	var whereInstance *whereSQL = ALWAYS_TRUE
-	if len(filter.Service) > 0 || len(filter.Services) > 0 ||
+	if len(filter.Services) > 0 ||
 		len(filter.Endpoint) > 0 ||
 		(instances != nil && (len(instances.SIs) > 0 || len(instances.MIs) > 0)) {
 		whereInstance = extractFilter(filter, instances)
@@ -192,20 +192,16 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 				arr = append(arr, s)
 			}
 			serviceCondition = append(serviceCondition, 
-				MergeWheres(OrSep, In("tags['svc_name']", arr), In("tags['serviceName']", arr)),
-			)
-		} else {
-			serviceCondition = append(serviceCondition, 
 				MergeWheres(
 					OrSep,
 					MergeWheres(
 						AndSep,
-						Equals("tags['svc_name']", filter.Service),
+						In("tags['svc_name']", arr),
 						EqualsIfNotEmpty("tags['content_key']", filter.Endpoint),
 					), // Compatible with older versions
 					MergeWheres(
 						AndSep,
-						Equals("tags['serviceName']", filter.Service),
+						In("tags['serviceName']", arr),
 						EqualsIfNotEmpty("tags['endpoint']", filter.Endpoint),
 					),
 				),

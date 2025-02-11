@@ -12,7 +12,7 @@ import (
 
 func (s *service) GetServiceInstanceList(req *request.GetServiceInstanceListRequest) ([]string, error) {
 	// Get the list of active service instances
-	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.ServiceName, nil)
+	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime,[]string{req.ServiceName})
 	if err != nil {
 		return nil, err
 	}
