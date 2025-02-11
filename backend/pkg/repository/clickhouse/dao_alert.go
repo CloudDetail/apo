@@ -145,7 +145,7 @@ func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, end
 
 func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam) ([]PagedAlertEvent, int, error) {
 	var whereInstance *whereSQL = ALWAYS_TRUE
-	if len(filter.Service) > 0 ||
+	if len(filter.Services) > 0 ||
 		len(filter.Endpoint) > 0 ||
 		(instances != nil && (len(instances.SIs) > 0 || len(instances.MIs) > 0)) {
 		whereInstance = extractFilter(filter, instances)
@@ -183,24 +183,32 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 	var whereInstance []*whereSQL
 	whereGroup := EqualsIfNotEmpty("group", filter.Group)
 
+
 	if len(filter.Group) == 0 || filter.Group == "app" {
-		whereInstance = append(whereInstance, MergeWheres(
-			AndSep,
-			whereGroup,
-			MergeWheres(
-				OrSep,
+		serviceCondition  := []*whereSQL{}
+		if len(filter.Services) > 0 {
+			arr := make(clickhouse.ArraySet, 0, len(filter.Services))
+			for _, s := range filter.Services {
+				arr = append(arr, s)
+			}
+			serviceCondition = append(serviceCondition, 
 				MergeWheres(
-					AndSep,
-					Equals("tags['svc_name']", filter.Service),
-					EqualsIfNotEmpty("tags['content_key']", filter.Endpoint),
-				), // Compatible with older versions
-				MergeWheres(
-					AndSep,
-					Equals("tags['serviceName']", filter.Service),
-					EqualsIfNotEmpty("tags['endpoint']", filter.Endpoint),
+					OrSep,
+					MergeWheres(
+						AndSep,
+						In("tags['svc_name']", arr),
+						EqualsIfNotEmpty("tags['content_key']", filter.Endpoint),
+					), // Compatible with older versions
+					MergeWheres(
+						AndSep,
+						In("tags['serviceName']", arr),
+						EqualsIfNotEmpty("tags['endpoint']", filter.Endpoint),
+					),
 				),
-			),
-		))
+			)
+		}
+
+		whereInstance = append(whereInstance, serviceCondition...)
 	}
 
 	if len(filter.Group) == 0 || filter.Group == "container" || filter.Group == "network" {
