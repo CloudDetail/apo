@@ -5,7 +5,7 @@ package integration
 
 import "github.com/CloudDetail/apo/backend/pkg/model/integration"
 
-func (s *service) GetClusterIntegration(clusterID string) (*integration.ClusterIntegrationVO, error) {
+func (s *service) GetClusterIntegration(clusterID string) (*integration.ClusterIntegration, error) {
 	config, err := s.dbRepo.GetIntegrationConfig(clusterID)
 	if err != nil {
 		return nil, err

@@ -8,7 +8,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
 
-func (s *service) UpdateClusterIntegration(cluster *integration.ClusterIntegrationVO) error {
+func (s *service) UpdateClusterIntegration(cluster *integration.ClusterIntegration) error {
 	// TODO 当前强制指定VM和CK配置
 	vmCfg := config.Get().Promethues
 	cluster.Metric.MetricAPI = &integration.JSONField[integration.MetricAPI]{
@@ -38,11 +38,5 @@ func (s *service) UpdateClusterIntegration(cluster *integration.ClusterIntegrati
 		return err
 	}
 
-	return s.dbRepo.SaveIntegrationConfig(integration.ClusterIntegration{
-		ClusterID:   cluster.ID,
-		ClusterType: cluster.ClusterType,
-		Trace:       cluster.Trace,
-		Metric:      cluster.Metric,
-		Log:         cluster.Log,
-	})
+	return s.dbRepo.SaveIntegrationConfig(*cluster)
 }

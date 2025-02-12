@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *service) CreateCluster(cluster *integration.ClusterIntegrationVO) error {
+func (s *service) CreateCluster(cluster *integration.ClusterIntegration) error {
 	isExist, err := s.dbRepo.CheckClusterNameExisted(cluster.Name)
 	if err != nil {
 		return err
@@ -29,18 +29,10 @@ func (s *service) CreateCluster(cluster *integration.ClusterIntegrationVO) error
 	// HACK 当前强制指定VM和CK配置
 	forceSetupMetricLogAPI(cluster)
 
-	return s.dbRepo.SaveIntegrationConfig(integration.ClusterIntegration{
-		ClusterID:    cluster.ID,
-		ClusterName:  cluster.Name,
-		ClusterType:  cluster.ClusterType,
-		Trace:        cluster.Trace,
-		Metric:       cluster.Metric,
-		Log:          cluster.Log,
-		APOCollector: cluster.APOCollector,
-	})
+	return s.dbRepo.SaveIntegrationConfig(*cluster)
 }
 
-func forceSetupMetricLogAPI(cluster *integration.ClusterIntegrationVO) {
+func forceSetupMetricLogAPI(cluster *integration.ClusterIntegration) {
 	vmCfg := config.Get().Promethues
 	cluster.Metric.DSType = "self-collector"
 	cluster.Metric.Name = "APO-DEFAULT-VM"
