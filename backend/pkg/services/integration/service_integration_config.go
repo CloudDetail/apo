@@ -22,14 +22,26 @@ var (
 
 func init() {
 	var err error
-	k8sTmpl, err = template.ParseGlob(k8sTmplFilePattern)
+
+	k8sTmpl, err = template.New("k8sTmpl").Funcs(template.FuncMap{
+		"default": defaultValue,
+	}).ParseGlob(k8sTmplFilePattern)
 	if err != nil {
 		log.Printf("[integration] module failed, cannot load k8s integration template files: %v", err)
 	}
-	dockerComposeTmpl, err = template.ParseGlob(dockerComposeTmplFilePattern)
+	dockerComposeTmpl, err = template.New("dockerComposeTmpl").Funcs(template.FuncMap{
+		"default": defaultValue,
+	}).ParseGlob(dockerComposeTmplFilePattern)
 	if err != nil {
 		log.Printf("[integration] module failed, cannot load dockerCompose integration template files: %v", err)
 	}
+}
+
+func defaultValue(v, def string) string {
+	if v == "" {
+		return def
+	}
+	return v
 }
 
 func (s *service) GetIntegrationInstallConfigFile(req *integration.GetCInstallRequest) (*integration.GetCInstallConfigResponse, error) {
