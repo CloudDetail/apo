@@ -29,7 +29,7 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 
 	if len(req.RoleList) == 0 {
 		filter := model.RoleFilter{
-			Name: model.ROLE_VIEWER,
+			Name: model.ROLE_ADMIN,
 		}
 		roles, err := s.dbRepo.GetRoles(filter)
 		if err != nil {
