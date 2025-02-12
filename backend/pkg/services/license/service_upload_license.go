@@ -4,10 +4,12 @@
 package license
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
+	"192.168.1.22/apo/license-manager/pkg/license"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -39,17 +41,23 @@ func (s *service) UploadLicense(req *request.UploadLicenseRequest) error {
 		return err
 	}
 
-	err = os.WriteFile(req.PrivKeyPath, []byte(req.DecryptPrivKey), 0644)
+	output := &license.OutputFile{}
+	err = json.Unmarshal([]byte(req.Output), output)
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(req.PubKeyPath, []byte(req.SignPubKey), 0644)
+	err = os.WriteFile(req.PrivKeyPath, []byte(output.PrivateKey), 0644)
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(req.LicensePath, []byte(req.License), 0644)
+	err = os.WriteFile(req.PubKeyPath, []byte(output.PublicKey), 0644)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(req.LicensePath, []byte(output.License), 0644)
 	if err != nil {
 		return err
 	}
@@ -59,7 +67,6 @@ func (s *service) UploadLicense(req *request.UploadLicenseRequest) error {
 
 func checkAndCreateDir(path string) error {
 	dir := filepath.Dir(path)
-
 	_, err := os.Stat(dir)
 	if err != nil {
 		if os.IsNotExist(err) {

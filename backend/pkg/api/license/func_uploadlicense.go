@@ -13,10 +13,13 @@ import (
 // UploadLicense uploads your license, sign public key, decrypt key.
 // @Summary uploads your license, sign public key, decrypt key.
 // @Description uploads your license, sign public key, decrypt key.
-// @Tag API.license
+// @Tags API.license
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.UploadLicenseRequest true "request"
+// @Param output formData string true "output json"
+// @Param licensePath formData string false "path to save license"
+// @Param pubKeyPath formData string false "path to save public key"
+// @Param privKeyPath formData string false "path to save private key"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
@@ -24,7 +27,7 @@ import (
 func (h *handler) UploadLicense() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.UploadLicenseRequest)
-		if err := c.ShouldBindJSON(req); err != nil {
+		if err := c.ShouldBindPostForm(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,

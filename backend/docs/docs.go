@@ -3358,16 +3358,35 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "API.license"
+                ],
                 "summary": "uploads your license, sign public key, decrypt key.",
                 "parameters": [
                     {
-                        "description": "request",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UploadLicenseRequest"
-                        }
+                        "type": "string",
+                        "description": "output json",
+                        "name": "output",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "path to save license",
+                        "name": "licensePath",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "path to save public key",
+                        "name": "pubKeyPath",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "path to save private key",
+                        "name": "privKeyPath",
+                        "in": "formData"
                     },
                     {
                         "type": "string",
@@ -11905,29 +11924,6 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
-                }
-            }
-        },
-        "request.UploadLicenseRequest": {
-            "type": "object",
-            "properties": {
-                "decryptPrivKey": {
-                    "type": "string"
-                },
-                "license": {
-                    "type": "string"
-                },
-                "licensePath": {
-                    "type": "string"
-                },
-                "privKeyPath": {
-                    "type": "string"
-                },
-                "pubKeyPath": {
-                    "type": "string"
-                },
-                "signPubKey": {
-                    "type": "string"
                 }
             }
         },

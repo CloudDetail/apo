@@ -2124,21 +2124,6 @@ definitions:
     - teamId
     - teamName
     type: object
-  request.UploadLicenseRequest:
-    properties:
-      decryptPrivKey:
-        type: string
-      license:
-        type: string
-      licensePath:
-        type: string
-      privKeyPath:
-        type: string
-      pubKeyPath:
-        type: string
-      signPubKey:
-        type: string
-    type: object
   response.AddOtherTableResponse:
     properties:
       error:
@@ -5731,12 +5716,23 @@ paths:
       - application/x-www-form-urlencoded
       description: uploads your license, sign public key, decrypt key.
       parameters:
-      - description: request
-        in: body
-        name: Request
+      - description: output json
+        in: formData
+        name: output
         required: true
-        schema:
-          $ref: '#/definitions/request.UploadLicenseRequest'
+        type: string
+      - description: path to save license
+        in: formData
+        name: licensePath
+        type: string
+      - description: path to save public key
+        in: formData
+        name: pubKeyPath
+        type: string
+      - description: path to save private key
+        in: formData
+        name: privKeyPath
+        type: string
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -5753,6 +5749,8 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: uploads your license, sign public key, decrypt key.
+      tags:
+      - API.license
   /api/log/chart:
     post:
       consumes:
