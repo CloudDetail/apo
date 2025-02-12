@@ -25,6 +25,7 @@ import (
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
 // @Param service query string false "Query service name"
+// @Param services query []string false "query service list" collectionFormat(multi)
 // @Param source query string false "Query the alarm source"
 // @Param group query string false "Query alarm type"
 // @Param name query string false "Query alarm name"
@@ -48,8 +49,11 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 			return
 		}
 
+		if len(req.Service) > 0 {
+			req.Services = append(req.Services, req.Service)
+		}
 		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Services, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.HandleError(err, code.AuthError)
 			return
