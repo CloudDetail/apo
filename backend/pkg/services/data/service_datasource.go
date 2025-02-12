@@ -5,17 +5,15 @@ package data
 
 import (
 	"errors"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
-	"strings"
-	"time"
-)
-
-import (
-	"sort"
 )
 
 func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err error) {
@@ -134,6 +132,14 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 
 			if ds.Type == model.DATASOURCE_TYP_NAMESPACE {
 				namespaceMap[ds.Datasource] = nested
+				for _, srv := range nested {
+					endpoints, err := s.promRepo.GetServiceEndPointList(startTime.UnixMicro(), endTime.UnixMicro(), srv)
+					if err != nil {
+						return response.GetGroupDatasourceResponse{}, err
+					}
+
+					serviceMap[srv] = endpoints
+				}
 			} else if ds.Type == model.DATASOURCE_TYP_SERVICE {
 				for _, namespace := range nested {
 					namespaceMap[namespace] = append(namespaceMap[namespace], ds.Datasource)
