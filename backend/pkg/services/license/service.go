@@ -27,6 +27,6 @@ func New(l *zap.Logger, cacheRepo cache.Repo, promRepo prometheus.Repo) Service 
 		promRepo: promRepo,
 	}
 
-	go s.checkNodeLoop()
+	go s.checkLoop()
 	return s
 }

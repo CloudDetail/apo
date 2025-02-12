@@ -194,7 +194,8 @@ var enText = map[string]string{
 	GetIntegrationInstallDocFailed:        "Get integration install doc failed",
 	GetIntegrationInstallConfigFileFailed: "Get integration install config file failed",
 
-	CreateLicenseError:            "Failed to create license",
+
+	UploadLicenseError:            "Failed to upload license",
 	GetLicenseError:               "Failed to get local license",
 	LicenseFeatureValidationError: "The feature you requested is not in the license",
 }

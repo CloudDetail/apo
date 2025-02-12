@@ -72,7 +72,7 @@ definitions:
     properties:
       clusters:
         items:
-          $ref: '#/definitions/alert.Cluster'
+          $ref: '#/definitions/integration.Cluster'
         type: array
       sourceId:
         type: string
@@ -89,13 +89,6 @@ definitions:
         type: array
       isUsing:
         type: boolean
-    type: object
-  alert.Cluster:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
     type: object
   alert.CreateSchemaRequest:
     properties:
@@ -167,13 +160,6 @@ definitions:
       alertSources:
         items:
           $ref: '#/definitions/alert.AlertSource'
-        type: array
-    type: object
-  alert.ListClusterResponse:
-    properties:
-      clusters:
-        items:
-          $ref: '#/definitions/alert.Cluster'
         type: array
     type: object
   alert.ListSchemaResponse:
@@ -964,6 +950,34 @@ definitions:
     type: object
   httpconfig.URL:
     type: object
+  integration.Cluster:
+    properties:
+      clusterType:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  integration.GetCInstallDocResponse:
+    properties:
+      installMd:
+        items:
+          type: integer
+        type: array
+    type: object
+  integration.GetCInstallRequest:
+    properties:
+      clusterId:
+        type: string
+    type: object
+  integration.ListClusterResponse:
+    properties:
+      clusters:
+        items:
+          $ref: '#/definitions/integration.Cluster'
+        type: array
+    type: object
   model.AlertDetail:
     properties:
       alertMessage:
@@ -981,6 +995,35 @@ definitions:
         $ref: '#/definitions/model.AlertDetail'
       type: array
     type: object
+  model.AnormalType:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    type: integer
+    x-enum-comments:
+      AnormalTypeAlertApp: 应用接口告警     => group=app
+      AnormalTypeAlertAppInstance: 应用实例告警     => group=appInstance
+      AnormalTypeAlertContainer: 容器告警         => group=container
+      AnormalTypeAlertDatabase: 数据库告警       => group=database
+      AnormalTypeAlertInfra: 基础设施告警     => group=infra
+      AnormalTypeAlertNet: 网络告警         => group=net
+      AnormalTypeError: 错误事件告警 => 来自JavaException等
+      AnormalTypeUnknown: 未定义的告警类型
+    x-enum-varnames:
+    - AnormalTypeUnknown
+    - AnormalTypeAlertApp
+    - AnormalTypeAlertContainer
+    - AnormalTypeAlertInfra
+    - AnormalTypeAlertNet
+    - AnormalTypeAlertDatabase
+    - AnormalTypeError
+    - AnormalTypeAlertAppInstance
   model.Datasource:
     properties:
       category:
@@ -998,6 +1041,79 @@ definitions:
       type:
         description: namespace or service
         type: string
+    type: object
+  model.DetectExprPart:
+    properties:
+      compareGroup:
+        description: 用于记录可以相互比较的检测表达式
+        type: string
+      customMetric:
+        description: 常量表达式
+        type: string
+      group:
+        description: 用于记录指标所属的告警事件组
+        type: string
+      metric:
+        type: string
+      modifier:
+        $ref: '#/definitions/model.Modifier'
+      name:
+        type: string
+    type: object
+  model.DetectMutation:
+    properties:
+      endTime:
+        description: 查询结束时间
+        type: integer
+      for:
+        description: 突变告警等待时间
+        type: string
+      group:
+        description: 告警组名
+        type: string
+      mutationCheckPQL:
+        description: 需要执行故障检测的语句
+        type: string
+      name:
+        description: 告警名
+        type: string
+      startTime:
+        description: 查询开始时间
+        type: integer
+      step:
+        description: 查询步长(us)
+        type: integer
+      synchronizeToAlertRules:
+        description: 是否同步到告警规则
+        type: boolean
+      timestamp:
+        description: 执行时间
+        type: integer
+    type: object
+  model.EndpointKey:
+    properties:
+      endpoint:
+        type: string
+      serviceName:
+        type: string
+    type: object
+  model.Modifier:
+    properties:
+      dayOnDay:
+        description: 使用昨日同时段数据
+        type: boolean
+      quantile:
+        description: 百分位数
+        type: string
+      rangeVector:
+        description: 1m/1h/1d
+        type: string
+      scale:
+        description: 倍率
+        type: string
+      weekOnWeek:
+        description: 使用上周同时段数据
+        type: boolean
     type: object
   model.ModifyTableTTLMap:
     properties:
@@ -1249,6 +1365,18 @@ definitions:
       numLayers:
         type: integer
     type: object
+  request.CreateCustomRequest:
+    properties:
+      customName:
+        description: |-
+          UserName   string   `json:"userName"`
+          GroupName  string   `json:"groupName"`
+        type: string
+      type:
+        items:
+          type: string
+        type: array
+    type: object
   request.CreateDataGroupRequest:
     properties:
       datasourceList:
@@ -1471,6 +1599,34 @@ definitions:
           type: string
         type: array
     type: object
+  request.GetAnomalySpanRequest:
+    properties:
+      contentKey:
+        type: string
+      currentPage:
+        type: integer
+      endTime:
+        type: integer
+      isError:
+        type: string
+      isSlow:
+        type: string
+      pageSize:
+        type: integer
+      reason:
+        type: string
+      service:
+        type: string
+      startTime:
+        type: integer
+    required:
+    - contentKey
+    - endTime
+    - service
+    - startTime
+    type: object
+  request.GetCustomRequest:
+    type: object
   request.GetDataGroupRequest:
     properties:
       currentPage:
@@ -1483,6 +1639,33 @@ definitions:
         type: string
       pageSize:
         type: integer
+    type: object
+  request.GetDescendantAnormalTrendRequest:
+    properties:
+      anormalTypes:
+        description: 要查询的异常类型
+        type: string
+      endTime:
+        description: 查询结束时间
+        type: integer
+      endpoint:
+        description: 查询Endpoint
+        type: string
+      service:
+        description: 查询服务名
+        type: string
+      startTime:
+        description: 查询开始时间
+        minimum: 0
+        type: integer
+      step:
+        description: 查询步长(us)
+        minimum: 1000000
+        type: integer
+    required:
+    - endTime
+    - endpoint
+    - service
     type: object
   request.GetFaultLogContentRequest:
     properties:
@@ -1862,6 +2045,18 @@ definitions:
     - oldAlert
     - oldGroup
     type: object
+  request.UpdateCustomRequest:
+    properties:
+      customName:
+        description: |-
+          UserName   string   `json:"userName"`
+          GroupName  string   `json:"groupName"`
+        type: string
+      type:
+        items:
+          type: string
+        type: array
+    type: object
   request.UpdateDataGroupRequest:
     properties:
       datasourceList:
@@ -1928,6 +2123,21 @@ definitions:
     required:
     - teamId
     - teamName
+    type: object
+  request.UploadLicenseRequest:
+    properties:
+      decryptPrivKey:
+        type: string
+      license:
+        type: string
+      licensePath:
+        type: string
+      privKeyPath:
+        type: string
+      pubKeyPath:
+        type: string
+      signPubKey:
+        type: string
     type: object
   response.AddOtherTableResponse:
     properties:
@@ -2182,6 +2392,22 @@ definitions:
       pagination:
         $ref: '#/definitions/model.Pagination'
     type: object
+  response.GetAnomalySpanResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/clickhouse.QueryTraceResult'
+        type: array
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetCustomResponse:
+    properties:
+      customs:
+        items:
+          $ref: '#/definitions/response.CustonType'
+        type: array
+    type: object
   response.GetDataGroupResponse:
     properties:
       currentPage:
@@ -2207,6 +2433,80 @@ definitions:
       serviceList:
         items:
           $ref: '#/definitions/model.Datasource'
+        type: array
+    type: object
+  response.GetDefectDetectExecListResponse:
+    properties:
+      mutatedRule:
+        items:
+          $ref: '#/definitions/model.DetectMutation'
+        type: array
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetDefectDetectRuleListResponse:
+    properties:
+      alertRule:
+        items:
+          $ref: '#/definitions/model.DetectMutation'
+        type: array
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetDescendantAlertContributationResponse:
+    properties:
+      contributationMap:
+        additionalProperties:
+          items:
+            $ref: '#/definitions/model.EndpointKey'
+          type: array
+        type: object
+      latencyContributationList:
+        description: 延时曲线相似度前三的节点
+        items:
+          $ref: '#/definitions/model.EndpointKey'
+        type: array
+    type: object
+  response.GetDescendantAnormalEventResponse:
+    properties:
+      alertEvents:
+        items:
+          $ref: '#/definitions/clickhouse.PagedAlertEvent'
+        type: array
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetDescendantDeltaAnormalEventResponse:
+    properties:
+      alertTriggeredCounts:
+        items:
+          $ref: '#/definitions/response.DescendantAnormalCounts'
+        type: array
+      anormalCount:
+        allOf:
+        - $ref: '#/definitions/response.TempChartObject'
+        description: |-
+          AnormalEvents []model.AnormalEvent `json:"anormalEvents"`
+          AnormalEvents map[int64][]model.AnormalEvent `json:"anormalEvents"`
+      deltaAnormalEvents:
+        items:
+          $ref: '#/definitions/response.DescendantAnormalEventRecord'
+        type: array
+      finalAnormalCounts:
+        items:
+          $ref: '#/definitions/response.DescendantAnormalCounts'
+        type: array
+      finalAnormalEvents:
+        items:
+          $ref: '#/definitions/response.DescendantAnormalEventRecord'
+        type: array
+      originAnormalCounts:
+        items:
+          $ref: '#/definitions/response.DescendantAnormalCounts'
+        type: array
+      originAnormalEvents:
+        items:
+          $ref: '#/definitions/response.DescendantAnormalEventRecord'
         type: array
     type: object
   response.GetDescendantMetricsResponse:
@@ -3255,7 +3555,7 @@ paths:
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/alert.Cluster'
+          $ref: '#/definitions/integration.Cluster'
       produces:
       - application/json
       responses:
@@ -3281,7 +3581,7 @@ paths:
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/alert.Cluster'
+          $ref: '#/definitions/integration.Cluster'
       produces:
       - application/json
       responses:
@@ -3307,7 +3607,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/alert.ListClusterResponse'
+            $ref: '#/definitions/integration.ListClusterResponse'
         "400":
           description: Bad Request
           schema:
@@ -3326,7 +3626,7 @@ paths:
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/alert.Cluster'
+          $ref: '#/definitions/integration.Cluster'
       produces:
       - application/json
       responses:
@@ -4703,6 +5003,126 @@ paths:
       summary: configuration TTL
       tags:
       - Api.config
+  /api/custom/create:
+    post:
+      consumes:
+      - application/json
+      description: 创建一个用户自定义查询数据类型
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateCustomRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 创建一个用户自定义查询数据类型
+      tags:
+      - API.custom
+  /api/custom/delete:
+    delete:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 删除用户自定义查询数据类型
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteCustomRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 删除用户自定义查询数据类型
+      tags:
+      - API.custom
+  /api/custom/get:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: 获取用户自定义查询数据类型
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetCustomRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetCustomResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 获取用户自定义查询数据类型
+      tags:
+      - API.custom
+  /api/custom/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新用户自定义查询数据类型
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateCustomRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: 更新用户自定义查询数据类型
+      tags:
+      - API.custom
   /api/data/datasource:
     get:
       consumes:
@@ -5065,6 +5485,147 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: for k8s to check backend health status
+  /api/integration/cluster/create:
+    post:
+      consumes:
+      - application/json
+      description: Create Cluster
+      parameters:
+      - description: Cluster Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/integration.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Create Cluster
+      tags:
+      - API.alertinput
+  /api/integration/cluster/delete:
+    post:
+      consumes:
+      - application/json
+      description: DeleteCluster
+      parameters:
+      - description: Cluster Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/integration.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: DeleteCluster
+      tags:
+      - API.alertinput
+  /api/integration/cluster/install/cmd:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/integration.GetCInstallRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/integration.GetCInstallDocResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.integration
+  /api/integration/cluster/install/config:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/integration.GetCInstallRequest'
+      produces:
+      - text/plain
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.integration
+  /api/integration/cluster/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: ListCluster
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/integration.ListClusterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: ListCluster
+      tags:
+      - API.alertinput
+  /api/integration/cluster/update:
+    post:
+      consumes:
+      - application/json
+      description: UpdateCluster
+      parameters:
+      - description: Cluster Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/integration.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: UpdateCluster
+      tags:
+      - API.integration
   /api/k8s/namespace/info:
     get:
       consumes:
@@ -5164,42 +5725,34 @@ paths:
       summary: get all pod information
       tags:
       - API.k8s
-  /api/license/create:
+  /api/license/upload:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: creates a license file for download
+      description: uploads your license, sign public key, decrypt key.
       parameters:
-      - description: duration
-        in: formData
-        name: duration
-        type: integer
-      - description: app's version
-        in: formData
-        name: appVersion
-        type: string
-      - description: type
-        in: formData
-        name: type
-        type: string
+      - description: request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UploadLicenseRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
         type: string
       produces:
-      - application/octet-stream
+      - application/json
       responses:
         "200":
-          description: License file
+          description: ok
           schema:
-            type: file
+            type: string
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: creates a license file
-      tags:
-      - API.license
+      summary: uploads your license, sign public key, decrypt key.
   /api/log/chart:
     post:
       consumes:

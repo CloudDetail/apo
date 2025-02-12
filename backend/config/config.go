@@ -9,6 +9,7 @@ import (
 	"192.168.1.22/apo/license-manager/pkg/encrypt"
 	"192.168.1.22/apo/license-manager/pkg/license"
 	"github.com/CloudDetail/metadata/configs"
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
 
@@ -86,10 +87,10 @@ type Config struct {
 		AnonymousUser `mapstructure:"anonymous_user"`
 	} `mapstructure:"user"`
 	License struct {
-		LicensePath string `mapstructure:"path"`
-		PrivatePath string `mapstructure:"private_key"` // your private key to decrypt the license
-		PublicPath  string `mapstructure:"public_key"`  // our's public key to verify license signature
-		Token       []byte
+		LicensePath  string `mapstructure:"path"`
+		PrivatePath  string `mapstructure:"private_key"` // your private key to decrypt the license
+		PublicPath   string `mapstructure:"public_key"`  // our's public key to verify license signature
+		Token        []byte
 		BasicLicense *license.BasicLicense
 	} `mapstructure:"license"`
 }
@@ -112,21 +113,32 @@ type MetadataSettings struct {
 }
 
 func Get() *Config {
-	if config == nil {
-		viper.SetConfigType("yaml")
-		configFile, found := os.LookupEnv("APO_CONFIG")
-		if !found {
-			configFile = "./config/apo.yml"
-		}
-		viper.SetConfigFile(configFile)
-		if err := viper.ReadInConfig(); err != nil {
-			panic(err)
-		}
-		if err := viper.Unmarshal(&config); err != nil {
-			panic(err)
-		}
+	if config != nil {
+		return config
 	}
+
+	getConfig()
+	viper.WatchConfig()
+	viper.OnConfigChange(func(in fsnotify.Event) {
+		getConfig()
+	})
+
 	return config
+}
+
+func getConfig() {
+	viper.SetConfigType("yaml")
+	configFile, found := os.LookupEnv("APO_CONFIG")
+	if !found {
+		configFile = "./config/apo.yml"
+	}
+	viper.SetConfigFile(configFile)
+	if err := viper.ReadInConfig(); err != nil {
+		panic(err)
+	}
+	if err := viper.Unmarshal(&config); err != nil {
+		panic(err)
+	}
 }
 
 func GetCHCluster() string {
@@ -148,5 +160,5 @@ func (c *Config) ParseLicense() error {
 	if err != nil {
 		return err
 	}
-	return license.ParseWithLicense(c.License.Token, c.License.BasicLicense, decryptor, singer)	
+	return license.ParseWithLicense(c.License.Token, c.License.BasicLicense, decryptor, singer)
 }

@@ -39,7 +39,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/alert.Cluster"
+                            "$ref": "#/definitions/integration.Cluster"
                         }
                     }
                 ],
@@ -79,7 +79,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/alert.Cluster"
+                            "$ref": "#/definitions/integration.Cluster"
                         }
                     }
                 ],
@@ -116,7 +116,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/alert.ListClusterResponse"
+                            "$ref": "#/definitions/integration.ListClusterResponse"
                         }
                     },
                     "400": {
@@ -148,7 +148,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/alert.Cluster"
+                            "$ref": "#/definitions/integration.Cluster"
                         }
                     }
                 ],
@@ -2245,6 +2245,190 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/custom/create": {
+            "post": {
+                "description": "创建一个用户自定义查询数据类型",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "创建一个用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/custom/delete": {
+            "delete": {
+                "description": "删除用户自定义查询数据类型",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "删除用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/custom/get": {
+            "get": {
+                "description": "获取用户自定义查询数据类型",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "获取用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetCustomResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/custom/update": {
+            "post": {
+                "description": "更新用户自定义查询数据类型",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "更新用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/data/datasource": {
             "get": {
                 "description": "Gets all datasource.",
@@ -2770,190 +2954,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/custom/create": {
-            "post": {
-                "description": "创建一个用户自定义查询数据类型",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.custom"
-                ],
-                "summary": "创建一个用户自定义查询数据类型",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateCustomRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/custom/delete": {
-            "delete": {
-                "description": "删除用户自定义查询数据类型",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.custom"
-                ],
-                "summary": "删除用户自定义查询数据类型",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.DeleteCustomRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/custom/get": {
-            "get": {
-                "description": "获取用户自定义查询数据类型",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.custom"
-                ],
-                "summary": "获取用户自定义查询数据类型",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.GetCustomRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.GetCustomResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/custom/update": {
-            "post": {
-                "description": "更新用户自定义查询数据类型",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.custom"
-                ],
-                "summary": "更新用户自定义查询数据类型",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateCustomRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
         "/api/health": {
             "get": {
                 "description": "for k8s to check backend health status",
@@ -2964,6 +2964,225 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "summary": "for k8s to check backend health status",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/cluster/create": {
+            "post": {
+                "description": "Create Cluster",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "Create Cluster",
+                "parameters": [
+                    {
+                        "description": "Cluster Info",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.Cluster"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/cluster/delete": {
+            "post": {
+                "description": "DeleteCluster",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "DeleteCluster",
+                "parameters": [
+                    {
+                        "description": "Cluster Info",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.Cluster"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/cluster/install/cmd": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.GetCInstallRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/integration.GetCInstallDocResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/cluster/install/config": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.GetCInstallRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/cluster/list": {
+            "get": {
+                "description": "ListCluster",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "ListCluster",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/integration.ListClusterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/cluster/update": {
+            "post": {
+                "description": "UpdateCluster",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "summary": "UpdateCluster",
+                "parameters": [
+                    {
+                        "description": "Cluster Info",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.Cluster"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "ok",
@@ -3130,37 +3349,25 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/license/create": {
+        "/api/license/upload": {
             "post": {
-                "description": "creates a license file for download",
+                "description": "uploads your license, sign public key, decrypt key.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
                 "produces": [
-                    "application/octet-stream"
+                    "application/json"
                 ],
-                "tags": [
-                    "API.license"
-                ],
-                "summary": "creates a license file",
+                "summary": "uploads your license, sign public key, decrypt key.",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "duration",
-                        "name": "duration",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "app's version",
-                        "name": "appVersion",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "type",
-                        "name": "type",
-                        "in": "formData"
+                        "description": "request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UploadLicenseRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -3171,9 +3378,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "License file",
+                        "description": "ok",
                         "schema": {
-                            "type": "file"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -8721,7 +8928,7 @@ const docTemplate = `{
                 "clusters": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/alert.Cluster"
+                        "$ref": "#/definitions/integration.Cluster"
                     }
                 },
                 "sourceId": {
@@ -8746,17 +8953,6 @@ const docTemplate = `{
                 },
                 "isUsing": {
                     "type": "boolean"
-                }
-            }
-        },
-        "alert.Cluster": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
                 }
             }
         },
@@ -8868,17 +9064,6 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/alert.AlertSource"
-                    }
-                }
-            }
-        },
-        "alert.ListClusterResponse": {
-            "type": "object",
-            "properties": {
-                "clusters": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/alert.Cluster"
                     }
                 }
             }
@@ -10022,6 +10207,50 @@ const docTemplate = `{
         "httpconfig.URL": {
             "type": "object"
         },
+        "integration.Cluster": {
+            "type": "object",
+            "properties": {
+                "clusterType": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.GetCInstallDocResponse": {
+            "type": "object",
+            "properties": {
+                "installMd": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "integration.GetCInstallRequest": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.ListClusterResponse": {
+            "type": "object",
+            "properties": {
+                "clusters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/integration.Cluster"
+                    }
+                }
+            }
+        },
         "model.AlertDetail": {
             "type": "object",
             "properties": {
@@ -10048,6 +10277,39 @@ const docTemplate = `{
                 }
             }
         },
+        "model.AnormalType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "x-enum-comments": {
+                "AnormalTypeAlertApp": "应用接口告警     =\u003e group=app",
+                "AnormalTypeAlertAppInstance": "应用实例告警     =\u003e group=appInstance",
+                "AnormalTypeAlertContainer": "容器告警         =\u003e group=container",
+                "AnormalTypeAlertDatabase": "数据库告警       =\u003e group=database",
+                "AnormalTypeAlertInfra": "基础设施告警     =\u003e group=infra",
+                "AnormalTypeAlertNet": "网络告警         =\u003e group=net",
+                "AnormalTypeError": "错误事件告警 =\u003e 来自JavaException等",
+                "AnormalTypeUnknown": "未定义的告警类型"
+            },
+            "x-enum-varnames": [
+                "AnormalTypeUnknown",
+                "AnormalTypeAlertApp",
+                "AnormalTypeAlertContainer",
+                "AnormalTypeAlertInfra",
+                "AnormalTypeAlertNet",
+                "AnormalTypeAlertDatabase",
+                "AnormalTypeError",
+                "AnormalTypeAlertAppInstance"
+            ]
+        },
         "model.Datasource": {
             "type": "object",
             "properties": {
@@ -10071,36 +10333,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "model.AnormalType": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6
-            ],
-            "x-enum-comments": {
-                "AnormalTypeAlertApp": "应用接口告警     =\u003e group=app",
-                "AnormalTypeAlertAppInstance": "应用实例告警     =\u003e group=appInstance",
-                "AnormalTypeAlertContainer": "容器告警         =\u003e group=container",
-                "AnormalTypeAlertInfra": "基础设施告警     =\u003e group=infra",
-                "AnormalTypeAlertNet": "网络告警         =\u003e group=net",
-                "AnormalTypeError": "错误事件告警 =\u003e 来自JavaException等",
-                "AnormalTypeUnknown": "未定义的告警类型"
-            },
-            "x-enum-varnames": [
-                "AnormalTypeUnknown",
-                "AnormalTypeAlertApp",
-                "AnormalTypeAlertContainer",
-                "AnormalTypeAlertInfra",
-                "AnormalTypeAlertNet",
-                "AnormalTypeError",
-                "AnormalTypeAlertAppInstance"
-            ]
         },
         "model.DetectExprPart": {
             "type": "object",
@@ -10574,6 +10806,21 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CreateCustomRequest": {
+            "type": "object",
+            "properties": {
+                "customName": {
+                    "description": "UserName   string   ` + "`" + `json:\"userName\"` + "`" + `\nGroupName  string   ` + "`" + `json:\"groupName\"` + "`" + `",
+                    "type": "string"
+                },
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.CreateDataGroupRequest": {
             "type": "object",
             "required": [
@@ -10659,21 +10906,6 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string"
-                }
-            }
-        },
-        "request.CreateCustomRequest": {
-            "type": "object",
-            "properties": {
-                "customName": {
-                    "description": "UserName   string   ` + "`" + `json:\"userName\"` + "`" + `\nGroupName  string   ` + "`" + `json:\"groupName\"` + "`" + `",
-                    "type": "string"
-                },
-                "type": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -10922,26 +11154,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.GetDataGroupRequest": {
-            "type": "object",
-            "properties": {
-                "currentPage": {
-                    "type": "integer"
-                },
-                "datasourceList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Datasource"
-                    }
-                },
-                "groupName": {
-                    "type": "string"
-                },
-                "pageSize": {
-                    "type": "integer"
-                }
-            }
-        },
         "request.GetAnomalySpanRequest": {
             "type": "object",
             "required": [
@@ -10982,6 +11194,26 @@ const docTemplate = `{
         },
         "request.GetCustomRequest": {
             "type": "object"
+        },
+        "request.GetDataGroupRequest": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "datasourceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Datasource"
+                    }
+                },
+                "groupName": {
+                    "type": "string"
+                },
+                "pageSize": {
+                    "type": "integer"
+                }
+            }
         },
         "request.GetDescendantAnormalTrendRequest": {
             "type": "object",
@@ -11560,6 +11792,21 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateCustomRequest": {
+            "type": "object",
+            "properties": {
+                "customName": {
+                    "description": "UserName   string   ` + "`" + `json:\"userName\"` + "`" + `\nGroupName  string   ` + "`" + `json:\"groupName\"` + "`" + `",
+                    "type": "string"
+                },
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.UpdateDataGroupRequest": {
             "type": "object",
             "required": [
@@ -11581,21 +11828,6 @@ const docTemplate = `{
                 },
                 "groupName": {
                     "type": "string"
-                }
-            }
-        },
-        "request.UpdateCustomRequest": {
-            "type": "object",
-            "properties": {
-                "customName": {
-                    "description": "UserName   string   ` + "`" + `json:\"userName\"` + "`" + `\nGroupName  string   ` + "`" + `json:\"groupName\"` + "`" + `",
-                    "type": "string"
-                },
-                "type": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -11673,6 +11905,29 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
+                }
+            }
+        },
+        "request.UploadLicenseRequest": {
+            "type": "object",
+            "properties": {
+                "decryptPrivKey": {
+                    "type": "string"
+                },
+                "license": {
+                    "type": "string"
+                },
+                "licensePath": {
+                    "type": "string"
+                },
+                "privKeyPath": {
+                    "type": "string"
+                },
+                "pubKeyPath": {
+                    "type": "string"
+                },
+                "signPubKey": {
+                    "type": "string"
                 }
             }
         },
@@ -12055,6 +12310,31 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetAnomalySpanResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/clickhouse.QueryTraceResult"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetCustomResponse": {
+            "type": "object",
+            "properties": {
+                "customs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.CustonType"
+                    }
+                }
+            }
+        },
         "response.GetDataGroupResponse": {
             "type": "object",
             "properties": {
@@ -12091,31 +12371,6 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.Datasource"
-                    }
-                }
-            }
-        },
-        "response.GetAnomalySpanResponse": {
-            "type": "object",
-            "properties": {
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/clickhouse.QueryTraceResult"
-                    }
-                },
-                "pagination": {
-                    "$ref": "#/definitions/model.Pagination"
-                }
-            }
-        },
-        "response.GetCustomResponse": {
-            "type": "object",
-            "properties": {
-                "customs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.CustonType"
                     }
                 }
             }

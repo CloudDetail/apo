@@ -201,7 +201,7 @@ var zhCnText = map[string]string{
 	GetIntegrationInstallDocFailed:        "获取集群集成安装文档失败",
 	GetIntegrationInstallConfigFileFailed: "获取集群集成安装配置文件失败",
 
-	CreateLicenseError:            "创建许可证失败",
+	UploadLicenseError:            "上传许可证失败",
 	GetLicenseError:               "获取本地许可证失败",
 	LicenseFeatureValidationError: "license无权访问该功能",
 }

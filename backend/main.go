@@ -44,17 +44,18 @@ func main() {
 	}()
 
 	conf := config.Get()
-	if conf.License.Enable {
-		err := conf.ParseLicense()
-		if err != nil {
-			panic(err)
-		}
 
-		expirationTime := time.UnixMilli(conf.License.BasicLicense.IssuedAt).Add(time.Duration(conf.License.BasicLicense.Duration) * time.Millisecond)
+	err := conf.ParseLicense()
+	if err != nil {
+		accessLogger.Warn("could not get your license", zap.Error(err))
+	}
 
-		if time.Since(time.UnixMilli(conf.License.BasicLicense.IssuedAt)) > time.Duration(conf.License.BasicLicense.Duration) {
-			panic(fmt.Sprintf("license expired, expired at: %s", expirationTime.Format(time.RFC1123)))
-		}
+	if err := conf.License.BasicLicense.CheckExpireDate(); err != nil {
+		accessLogger.Warn("your license has been expired, please contact us to renew", zap.Error(err))
+	}
+
+	if err := conf.License.BasicLicense.CheckTrailDate(); err != nil {
+		accessLogger.Warn("your license trail period has been expired, pleas contact us to renew", zap.Error(err))
 	}
 
 	// Initialize the HTTP service

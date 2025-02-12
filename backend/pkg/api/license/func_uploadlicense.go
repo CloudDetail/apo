@@ -16,15 +16,15 @@ import (
 // @Tag API.license
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.uploadLicenseRequest true "Request information"
+// @Param Request body request.UploadLicenseRequest true "request"
 // @Param Authorization header string false "Bearer accessToken"
-// @Success 200 {object} response.uploadLicenseResponse
+// @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/license/upload [post]
 func (h *handler) UploadLicense() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.UploadLicenseRequest)
-		if err := c.ShouldBindPostForm(req); err != nil {
+		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -33,7 +33,11 @@ func (h *handler) UploadLicense() core.HandlerFunc {
 			return
 		}
 
-		resp := 
-		c.Payload(resp)
+		err := h.service.UploadLicense(req)
+		if err != nil {
+			c.HandleError(err, code.UploadLicenseError)
+			return
+		}
+		c.Payload("ok")
 	}
 }

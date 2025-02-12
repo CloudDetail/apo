@@ -3,7 +3,7 @@ module github.com/CloudDetail/apo/backend
 go 1.22.5
 
 require (
-	192.168.1.22/apo/license-manager v1.2.0
+	192.168.1.22/apo/license-manager v1.3.1
 	github.com/ClickHouse/clickhouse-go/v2 v2.26.0
 	github.com/CloudDetail/metadata v0.0.0-20240903055919-f0487c96aa95
 	github.com/dave/dst v0.27.3

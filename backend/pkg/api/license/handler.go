@@ -13,7 +13,7 @@ import (
 
 type Handler interface {
 	// UploadLicense uploads your license, sign public key, decrypt key.
-	// @Tag API.license
+	// @Tags API.license
 	// @Router /api/license/upload [post]
 	UploadLicense() core.HandlerFunc
 }

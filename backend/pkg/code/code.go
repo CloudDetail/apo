@@ -228,7 +228,7 @@ const (
 	GetIntegrationInstallDocFailed = "B1325"
 	GetIntegrationInstallConfigFileFailed = "B1326"
 
-	CreateLicenseError = "B1401"
+	UploadLicenseError = "B1401"
 	GetLicenseError    = "B1402"
 	LicenseFeatureValidationError = "B1403"
 )

@@ -4,7 +4,9 @@
 package license
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -22,12 +24,27 @@ func (s *service) UploadLicense(req *request.UploadLicenseRequest) error {
 		req.PubKeyPath = PUBLIC_KEY_PATH
 	}
 
-	err := os.WriteFile(req.PrivKeyPath, []byte(req.DecryptPrivKey), 0644)
+	err := checkAndCreateDir(req.PrivKeyPath)
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(req.PubKeyPath, []byte(req.PubKeyPath), 0644)
+	err = checkAndCreateDir(req.PubKeyPath)
+	if err != nil {
+		return err
+	}
+
+	err = checkAndCreateDir(req.LicensePath)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(req.PrivKeyPath, []byte(req.DecryptPrivKey), 0644)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(req.PubKeyPath, []byte(req.SignPubKey), 0644)
 	if err != nil {
 		return err
 	}
@@ -37,5 +54,22 @@ func (s *service) UploadLicense(req *request.UploadLicenseRequest) error {
 		return err
 	}
 
+	return nil
+}
+
+func checkAndCreateDir(path string) error {
+	dir := filepath.Dir(path)
+
+	_, err := os.Stat(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = os.MkdirAll(dir, 0755)
+			if err != nil {
+				return fmt.Errorf("failed to create directory: %w", err)
+			}
+		} else {
+			return fmt.Errorf("failed to stat directory: %w", err)
+		}
+	}
 	return nil
 }

@@ -27,6 +27,10 @@ func (s *service) CheckLicenseNodes() {
 		}
 	}
 
+	if conf.License.BasicLicense.MaxNodes == -1 {
+		return 
+	}
+
 	endTime := time.Now()
 	startTime := endTime.Add(- time.Minute * 10)
 	c, err := s.promRepo.GetNodesCount(startTime.UnixMicro(), endTime.UnixMicro())
@@ -41,9 +45,8 @@ func (s *service) CheckLicenseNodes() {
 	}
 }
 
-func (s *service) CheckLicenseTrailDate() {
+func (s *service) CheckLicenseDate() {
 	conf := config.Get()
-
 	if conf.License.BasicLicense == nil {
 		err := conf.ParseLicense()
 		if err != nil {
@@ -51,16 +54,22 @@ func (s *service) CheckLicenseTrailDate() {
 		}
 	}
 
-	err := conf.License.BasicLicense.CheckExpiryDate()
+	err := conf.License.BasicLicense.CheckExpireDate()
 	if err != nil {
 		s.logger.Warn("your license has been expired, please contact us to renew", zap.Error(err))
 	}
+
+	err = conf.License.BasicLicense.CheckTrailDate()
+	if err != nil {
+		s.logger.Warn("your license trail period has been expired, pleas contact us to renew", zap.Error(err))
+	}
 }
 
-func (s *service) checkNodeLoop() {
+func (s *service) checkLoop() {
 	ticker := time.NewTicker(time.Minute*10)
 
 	for range ticker.C {
 		s.CheckLicenseNodes()
+		s.CheckLicenseDate()
 	}
 }
