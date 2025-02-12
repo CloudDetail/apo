@@ -3,6 +3,8 @@
 
 package request
 
+import "github.com/CloudDetail/apo/backend/pkg/model"
+
 type GetServiceEndpointTopologyRequest struct {
 	StartTime     int64  `form:"startTime" binding:"min=0"`                    // query start time
 	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
@@ -207,8 +209,10 @@ type GetAlertEventsRequest struct {
 }
 
 type AlertFilter struct {
-	Service  string `form:"service"`
-	Endpoint string `form:"endpoint"`
+	Service      string   `form:"service"`
+	Endpoint     string   `form:"endpoint"`
+	Services     []string `form:"services"`
+	EndpointKeys []model.EndpointKey
 
 	Source   string `form:"source"`
 	Group    string `form:"group"`

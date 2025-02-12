@@ -45,8 +45,11 @@ func (h *handler) GetAlertEventsSample() core.HandlerFunc {
 			)
 			return
 		}
+		if len(req.Service) > 0 {
+			req.Services = append(req.Services, req.Service)
+		}
 		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Services, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.HandleError(err, code.AuthError)
 			return

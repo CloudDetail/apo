@@ -121,7 +121,7 @@ func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime
 		//  2. group = 'container' AND ((namespace,pod) in (...))
 		//  3. group = 'network' AND ((src_namespace,pod) in (...) OR (src_node,pid) in (...))
 		//  4. group = 'infra' AND ((instance_name) in (...))
-		whereInstance := extractFilter(filter, nil, instances)
+		whereInstance := extractFilter(filter, instances)
 		builder.And(whereInstance)
 	}
 
@@ -141,7 +141,7 @@ func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, end
 	//  2. group = 'container' AND ((namespace,pod) in (...))
 	//  3. group = 'network' AND ((src_namespace,pod) in (...) OR (src_node,pid) in (...))
 	//  4. group = 'infra' AND ((instance_name) in (...))
-	whereInstance := extractFilter(filter, nil, instances)
+	whereInstance := extractFilter(filter, instances)
 
 	builder := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
@@ -178,10 +178,10 @@ var (
 // instances为空时,不返回任何告警
 func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error) {
 	var whereInstance *whereSQL = ALWAYS_TRUE
-	if len(filter.Service) > 0 ||
+	if len(filter.Services) > 0 ||
 		len(filter.Endpoint) > 0 ||
 		(instances != nil && (len(instances.SIs) > 0 || len(instances.MIs) > 0)) {
-		whereInstance = extractFilter(filter, nil, instances)
+		whereInstance = extractFilter(filter, instances)
 	}
 
 	return ch.getAlertEventsByWhere(startTime, endTime, filter, whereInstance, sortBy, pageParam)
@@ -189,13 +189,13 @@ func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter 
 
 // GetAlertEvents 取出时间范围内的输入实例的所有告警事件
 // instances为空时,不返回任何告警
-func (ch *chRepo) GetAlertEventsByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, endpoints []model.EndpointKey, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error) {
-	whereInstance := extractFilter(filter, endpoints, instances)
+func (ch *chRepo) GetAlertEventsByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error) {
+	whereInstance := extractFilter(filter, instances)
 	return ch.getAlertEventsByWhere(startTime, endTime, filter, whereInstance, sortBy, pageParam)
 }
 
-func (ch *chRepo) GetAlertEventsWithKeyByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, endpoints []model.EndpointKey) ([]AlertEventWithKey, error) {
-	whereInstance := extractFilter(filter, endpoints, instances)
+func (ch *chRepo) GetAlertEventsWithKeyByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventWithKey, error) {
+	whereInstance := extractFilter(filter, instances)
 	return ch.getGroupAlertEvents(startTime, endTime, filter, whereInstance)
 }
 
@@ -265,7 +265,7 @@ func (ch *chRepo) GetAlertEventById(eventId string, startTime, endTime time.Time
 	return &event[0], err
 }
 
-func extractFilter(filter request.AlertFilter, endpoints []model.EndpointKey, instances *model.RelatedInstances) *whereSQL {
+func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances) *whereSQL {
 	var whereInstance []*whereSQL
 	whereGroup := EqualsIfNotEmpty("group", filter.Group)
 	if filter.WithMutation {
@@ -273,48 +273,30 @@ func extractFilter(filter request.AlertFilter, endpoints []model.EndpointKey, in
 	}
 
 	if len(filter.Group) == 0 || filter.Group == "app" {
-		if len(endpoints) == 0 {
-			whereInstance = append(whereInstance, MergeWheres(
-				AndSep,
-				whereGroup,
-				MergeWheres(OrSep,
+		if len(filter.EndpointKeys) == 0 && len(filter.Services) > 0 {
+			serviceCondition := []*whereSQL{}
+			arr := make(clickhouse.ArraySet, 0, len(filter.Services))
+			for _, s := range filter.Services {
+				arr = append(arr, s)
+			}
+			serviceCondition = append(serviceCondition,
+				MergeWheres(
+					OrSep,
 					MergeWheres(
 						AndSep,
-						Equals("tags['svc_name']", filter.Service),
+						In("tags['svc_name']", arr),
 						EqualsIfNotEmpty("tags['content_key']", filter.Endpoint),
-					),
+					), // Compatible with older versions
 					MergeWheres(
 						AndSep,
-						Equals("tags['serviceName']", filter.Service),
+						In("tags['serviceName']", arr),
 						EqualsIfNotEmpty("tags['endpoint']", filter.Endpoint),
 					),
 				),
-			))
-		} else {
-			whereEndpoints := ValueInGroups{
-				Keys: []string{"tags['svc_name']", "tags['content_key']"},
-			}
-
-			whereEndpointsNew := ValueInGroups{
-				Keys: []string{"tags['serviceName']", "tags['endpoint']"},
-			}
-			for _, endpoint := range endpoints {
-				whereEndpoints.ValueGroups = append(whereEndpoints.ValueGroups, clickhouse.GroupSet{
-					Value: []any{endpoint.ServiceName, endpoint.Endpoint},
-				})
-				whereEndpointsNew.ValueGroups = append(whereEndpointsNew.ValueGroups, clickhouse.GroupSet{
-					Value: []any{endpoint.ServiceName, endpoint.Endpoint},
-				})
-			}
-			whereInstance = append(whereInstance, MergeWheres(
-				AndSep,
-				whereGroup,
-				MergeWheres(
-					OrSep,
-					InGroup(whereEndpoints),
-					InGroup(whereEndpointsNew),
-				),
-			))
+			)
+			whereInstance = append(whereInstance, serviceCondition...)
+		} else if len(filter.EndpointKeys) > 0 {
+			whereInstance = append(whereInstance, extractEndpointKeys(filter.EndpointKeys, whereGroup)...)
 		}
 	}
 
@@ -445,6 +427,35 @@ func extractFilter(filter request.AlertFilter, endpoints []model.EndpointKey, in
 	}
 
 	return MergeWheres(OrSep, whereInstance...)
+}
+
+func extractEndpointKeys(endpoints []model.EndpointKey, whereGroup *whereSQL) []*whereSQL {
+	var whereInstance []*whereSQL
+	whereEndpoints := ValueInGroups{
+		Keys: []string{"tags['svc_name']", "tags['content_key']"},
+	}
+
+	whereEndpointsNew := ValueInGroups{
+		Keys: []string{"tags['serviceName']", "tags['endpoint']"},
+	}
+	for _, endpoint := range endpoints {
+		whereEndpoints.ValueGroups = append(whereEndpoints.ValueGroups, clickhouse.GroupSet{
+			Value: []any{endpoint.ServiceName, endpoint.Endpoint},
+		})
+		whereEndpointsNew.ValueGroups = append(whereEndpointsNew.ValueGroups, clickhouse.GroupSet{
+			Value: []any{endpoint.ServiceName, endpoint.Endpoint},
+		})
+	}
+	whereInstance = append(whereInstance, MergeWheres(
+		AndSep,
+		whereGroup,
+		MergeWheres(
+			OrSep,
+			InGroup(whereEndpoints),
+			InGroup(whereEndpointsNew),
+		),
+	))
+	return whereInstance
 }
 
 type AlertEventSample struct {
