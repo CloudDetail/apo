@@ -9,6 +9,7 @@ type EndpointKey struct {
 }
 
 type InstanceKey struct {
+	ServiceName string `json:"service_name"`
 	PID         string `json:"pid"`
 	ContainerId string `json:"container_id"`
 	Pod         string `json:"pod"`
@@ -19,6 +20,7 @@ type InstanceKey struct {
 
 func (i InstanceKey) ConvertFromLabels(labels Labels) ConvertFromLabels {
 	return InstanceKey{
+		ServiceName: labels.SvcName,
 		PID:         labels.PID,
 		ContainerId: labels.ContainerID,
 		Pod:         labels.POD,
@@ -33,9 +35,9 @@ func (i InstanceKey) GenInstanceName() string {
 	if len(i.Pod) > 0 {
 		name = i.Pod
 	} else if len(i.ContainerId) > 0 {
-		name += i.NodeName + "@" + i.ContainerId
+		name += i.ServiceName + "@" + i.NodeName + "@" + i.ContainerId
 	} else if len(i.PID) > 0 {
-		name += i.NodeName + "@" + i.PID
+		name += i.ServiceName + "@" +i.NodeName + "@" + i.PID
 	}
 
 	return name
