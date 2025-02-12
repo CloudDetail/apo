@@ -47,21 +47,27 @@ func (s *service) UploadLicense(req *request.UploadLicenseRequest) error {
 		return err
 	}
 
-	err = os.WriteFile(req.PrivKeyPath, []byte(output.PrivateKey), 0644)
-	if err != nil {
-		return err
+	if len(output.PrivateKey) > 0 {
+		err = os.WriteFile(req.PrivKeyPath, []byte(output.PrivateKey), 0644)
+		if err != nil {
+			return err
+		}
 	}
 
-	err = os.WriteFile(req.PubKeyPath, []byte(output.PublicKey), 0644)
-	if err != nil {
-		return err
+	if len(output.PublicKey) > 0 {
+		err = os.WriteFile(req.PubKeyPath, []byte(output.PublicKey), 0644)
+		if err != nil {
+			return err
+		}
+
 	}
 
-	err = os.WriteFile(req.LicensePath, []byte(output.License), 0644)
-	if err != nil {
-		return err
+	if len(output.License) > 0 {
+		err = os.WriteFile(req.LicensePath, []byte(output.License), 0644)
+		if err != nil {
+			return err
+		}
 	}
-
 	return nil
 }
 
