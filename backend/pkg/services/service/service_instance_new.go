@@ -39,6 +39,7 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 	}
 	for _, instance := range instanceList.InstanceMap {
 		key := prometheus.InstanceKey{
+			ServiceName: instance.ServiceName,
 			PID:         strconv.FormatInt(instance.Pid, 10),
 			ContainerId: instance.ContainerId,
 			Pod:         instance.PodName,
