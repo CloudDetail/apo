@@ -3,6 +3,10 @@ LABEL authors="apo"
 WORKDIR /build
 
 ENV GOPROXY https://goproxy.cn
+NV GOPRIVATE $PMODULE_HOST
+ENV GONOPROXY $PMODULE_HOST
+ENV GOINSECURE $PMODULE_HOST
+
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
