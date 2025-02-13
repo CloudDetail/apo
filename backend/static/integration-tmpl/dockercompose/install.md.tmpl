@@ -1,0 +1,15 @@
+# 安装命令
+
+传统服务器中使用Docker Compose安装和管理oneAgent服务.
+
+1. 将下载的安装文件(apo-one-agent-compose-$version.tgz)保存到服务器上.
+2. 运行下面的命令进行安装
+
+```bash
+export APO_VERSION=latest
+
+tar -zxf apo-one-agent-compose-$version.tgz
+cd apo-one-agent-compose
+bash deploy.sh init {{ .trace.apoCollector.collectorGatewayAddr }}
+```
+

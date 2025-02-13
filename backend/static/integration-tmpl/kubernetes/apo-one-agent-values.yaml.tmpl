@@ -1,0 +1,317 @@
+global:
+  edition: ee
+  image:
+    # kindlingx official mirror repository: registry.cn-hangzhou.aliyuncs.com/kindlingx
+    repository: "registry.cn-hangzhou.aliyuncs.com/kindlingx"
+    eeRepository: "registry.cn-hangzhou.aliyuncs.com/kindlingx"
+    pullPolicy: "Always"
+  # APO Collection Modes
+  # - trace              Full data collection, automatically injects trace collection probes
+  # - trace-collector    Use collector to receive trace data from external probes
+  # - trace-sidecar      Do not accept external trace data, directly retrieve data from external APIs, this mode requires configuring external API data sources
+  # - metrics            Full metrics data collection
+  # - log                Full log collection, including fault scenario logs
+  # - log-sample         Fault scenario log collection, without collecting full logs
+  agentCollectorMode:
+{{- if .metric.mode }}
+    - {{ .trace.mode }}
+{{- end }}
+{{- if .metric.mode }}
+    - {{ .metric.mode }}
+{{- end }}
+{{- if .log.mode }}
+    - {{ .log.mode }}
+{{- end }}
+  apoServerIP: {{ .trace.apoCollector.collectorGatewayAddr }}
+  apoProxyUrl: apo-nginx-proxy-svc
+  apoBackendPort: 31363
+  apoProxyPort: 29090
+  apoCollectorPort: 30044
+  apoOtelCollectorGatewayGRPCPort: 30317
+  apoOtelCollectorGatewayK8SPort: 30319
+  apoVectorLogPort: 30310
+
+  # -- Pod's node selector. Ref: [https://kubernetes.io/docs/user-guide/node-selection/](https://kubernetes.io/docs/user-guide/node-selection/)
+  nodeSelector: {}
+  # nodeSelector:
+  #   kubernetes.io/hostname: demo-node
+
+  # -- Pod affinity
+  affinity: {}
+  # affinity:
+  #   nodeAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       nodeSelectorTerms:
+  #       - matchExpressions:
+  #         - key: topology.kubernetes.io/zone
+  #           operator: In
+  #           values:
+  #           - antarctica-east1
+
+  # -- Node tolerations for server scheduling to nodes with taints. Ref: [https://kubernetes.io/docs/concepts/configuration/assign-pod-node/](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/)
+  tolerations: []
+  # tolerations:
+  # - key: "key"
+  #   operator: "Equal|Exists"
+  #   value: "value"
+  #   effect: "NoSchedule|PreferNoSchedule"
+
+nameOverride: ""
+podAnnotations: {}
+dnsPolicy: "ClusterFirstWithHostNet"
+podSecurityContext: {}
+
+apoOneAgent:
+  enabled: true
+  image:
+    repository: "{{ "{{ .Values.global.image.repository }}/ebpf-agent" }}"
+    pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "v1.7.3"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  config:
+    apoCollectorUrl: "{{ "{{ .Values.global.apoProxyUrl }}" }}"
+    apoCollectorPort: "{{ "{{ .Values.global.apoProxyPort }}" }}"
+    javaAgentType: "opentelemetry"
+
+apoNodeAgent:
+  image:
+    repository: "{{ "{{ .Values.global.image.repository }}/node-agent" }}"
+    pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "v1.7.0"
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  apoOtelCollectorUrl: "apo-otel-collector-svc:8080"
+
+apoIlogtail:
+  image:
+    repository: "{{ "{{ .Values.global.image.repository }}/ilogtail" }}"
+    pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "v1.5.2"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  apoOtelCollectorGrpcUrl: "apo-otel-collector-svc:4317"
+  apoVectorLogUrl: "{{ "{{ .Values.global.apoServerIP }}:{{ .Values.global.apoVectorLogPort }}" }}"
+
+grafanaAlloy:
+  image:
+    repository: "{{ "{{ .Values.global.image.repository }}/grafana-alloy" }}"
+    pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "v1.4.2-1"
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2048Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  config:
+    apoOtelCollectorGrpcUrl: "apo-otel-collector-svc:4317"
+    apoOtelCollectorHttpUrl: "apo-otel-collector-svc:4318"
+
+grafanaBeyla:
+  enabled: false
+  image:
+    repository: "{{ "{{ .Values.global.image.repository }}/apo-beyla" }}"
+    pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
+    tag: "v1.8.4-1"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  config:
+    k8sNamespace: "{{ "^/(/?/!{{ .Release.Namespace }}$).*" }}"
+
+odiglet:
+  image:
+    repository: "{{ "{{ .Values.global.image.repository }}/apo-odiglet" }}"
+    pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
+    tag: "v1.0.0"
+  resources:
+    limits:
+      cpu: 200m
+      memory: 200Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+  apoOtelCollectorGrpcUrl: "{{ "apo-otel-collector-svc.{{ .Release.Namespace }}:4317" }}"
+  apoOtelCollectorHttpUrl: "{{ "apo-otel-collector-svc.{{ .Release.Namespace }}:4318" }}"
+  apoOtelCollectorSkywalkingUrl: "{{ "apo-otel-collector-svc.{{ .Release.Namespace }}:11800" }}"
+
+apoOtelCollectorAgent:
+  image:
+    repository: "{{ "{{ .Values.global.image.repository }}/apo-otel-collector" }}"
+    pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
+    tag: "v1.0.0"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  config:
+    apoCollectorUrl: "{{ "{{ .Values.global.apoProxyUrl }}" }}"
+    apoCollectorPort: "{{ "{{ .Values.global.apoProxyPort }}" }}"
+    apoOtelCollectorUrl: "apo-otel-collector-svc"
+    apoOtelCollectorGRPCPort: "4317"
+
+originxGcAgent:
+  image:
+    repository: "{{ "{{ .Values.global.image.eeRepository }}/originx-gc-agent" }}"
+    pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
+    tag: "v1.4.1"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+  config:
+    apoCollectorUrl: "{{ "{{ .Values.global.apoProxyUrl }}" }}"
+    apoCollectorPort: "{{ "{{ .Values.global.apoProxyPort }}" }}"
+
+odigos:
+  enabled: true
+  instrumentor:
+    image:
+      repository: "{{ "{{ .Values.global.image.repository }}/apo-odigos-instrumentor" }}"
+      imagePullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
+      tag: "v1.0.0"
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1024Mi
+      requests:
+        cpu: 10m
+        memory: 64Mi
+    # targetNamespace
+    # name: Target namespace
+    # value:
+    #   enabled: Inject all existing services but do not inject newly added applications
+    #   enabledFuture: Inject both current and future services
+    #   disabled: Do not inject services in the specified namespace; used to exclude specific namespaces when instrument-all-namespace is enabled
+    # targetNamespace:
+    # - name: default
+    #   value: disabled
+    # instrument-all-namespace Whether to inject all namespaces
+    # Equivalent to setting enabledFuture for all namespaces
+    # However, if disabled is already set for a namespace or workload, it will not be injected
+    targetNamespace:
+    {{- range .trace.selfCollectConfig.instrumentNS }}
+    - name: {{ . }}
+      value: enabledFuture
+    {{- end}}
+    {{- range .trace.selfCollectConfig.instrumentDisabledNS }}
+    - name: {{ . }}
+      value: disabled
+    {{- end}}
+    instrumentAllNamespace: {{ .trace.selfCollectConfig.instrumentAll }}
+    # force-instrument-all-namespace Whether to force inject all namespaces
+    # Similar to instrument-all-namespace, sets enabledFuture for all namespaces
+    # Ignores all disabled settings
+    forceInstrumentAllNamespace: false
+  config:
+    apoOtelCollectorGrpcUrl: "{{ "apo-otel-collector-svc.{{ .Release.Namespace }}:4317" }}"
+    apoOtelCollectorHttpUrl: "{{ "apo-otel-collector-svc.{{ .Release.Namespace }}:4318" }}"
+    apoOtelCollectorSkywalkingUrl: "{{ "apo-otel-collector-svc.{{ .Release.Namespace }}:11800" }}"
+    javaAgentType: "opentelemetry"
+
+apo-nginx-proxy:
+  enabled: true
+  image:
+    repository: "{{ "{{ .Values.global.image.repository }}/nginx" }}"
+    pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "stable-alpine3.20"
+  # resources:
+  #   limits:
+  #     cpu: 1000m
+  #     memory: 1024Mi
+  #   requests:
+  #     cpu: 10m
+  #     memory: 64Mi
+  config:
+    apoCollectorUrl: "{{ "{{ .Values.global.apoServerIP }}" }}"
+    apoCollectorPort: "{{ "{{ .Values.global.apoCollectorPort }}" }}"
+
+apo-otel-collector:
+  enabled: true
+  image:
+    repository: "{{ "{{ .Values.global.image.repository }}/apo-otel-collector" }}"
+    pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "v1.0.0"
+  config:
+    apoBackendUrl: "{{ "{{ .Values.global.apoServerIP }}" }}"
+    apoBackendPort: "{{ "{{ .Values.global.apoBackendPort }}" }}"
+    apoOtelCollectorGatewayURL: "{{ "{{ .Values.global.apoServerIP }}" }}"
+    apoOtelCollectorGatewayGRPCPort: "{{ "{{ .Values.global.apoOtelCollectorGatewayGRPCPort }}" }}"
+    apoOtelCollectorGatewayK8SPort: "{{ "{{ .Values.global.apoOtelCollectorGatewayK8SPort }}" }}"
+  service:
+    ports:
+    - name: query
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+    - name: metric
+      protocol: TCP
+      port: 9500
+      targetPort: 9500
+    - name: otlpgrpc
+      protocol: TCP
+      port: 4317
+      targetPort: 4317
+    - name: otlphttp
+      protocol: TCP
+      port: 4318
+      targetPort: 4318
+    - name: sk-receiver
+      protocol: TCP
+      port: 11800
+      targetPort: 11800
+    type: ClusterIP
+  resources:
+    limits:
+      cpu: 3000m
+      memory: 3072Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  rbac:
+    create: true
+
+serviceAccount:
+  name: null
+  additionalLabels: {}
+  # -- Annotations to add to the created service account.
+  annotations: {}
+  # -- The name of the existing service account to use when
+  # serviceAccount.create is false.a
+
+nodeSelector: {}
+affinity: {}
+tolerations: []

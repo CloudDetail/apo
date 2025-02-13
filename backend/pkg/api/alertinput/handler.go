@@ -8,7 +8,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
-	alertinput "github.com/CloudDetail/apo/backend/pkg/services/input/alert"
+	alertinput "github.com/CloudDetail/apo/backend/pkg/services/integration/alert"
 	"go.uber.org/zap"
 )
 
