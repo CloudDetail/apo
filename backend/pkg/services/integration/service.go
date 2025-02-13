@@ -11,9 +11,9 @@ import (
 type Service interface {
 	GetStaticIntegration() map[string]any
 
-	CreateCluster(cluster *integration.ClusterIntegrationVO) error
-	GetClusterIntegration(clusterID string) (*integration.ClusterIntegrationVO, error)
-	UpdateClusterIntegration(cluster *integration.ClusterIntegrationVO) error
+	CreateCluster(cluster *integration.ClusterIntegration) error
+	GetClusterIntegration(clusterID string) (*integration.ClusterIntegration, error)
+	UpdateClusterIntegration(cluster *integration.ClusterIntegration) error
 
 	ListCluster() ([]integration.Cluster, error)
 	DeleteCluster(cluster *integration.Cluster) error

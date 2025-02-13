@@ -19,7 +19,7 @@ type Cluster struct {
 	APOCollector APOCollector `json:"apoCollector,omitempty" gorm:"type:json;column:apo_collector"`
 }
 
-type ClusterIntegrationVO struct {
+type ClusterIntegration struct {
 	Cluster
 
 	Trace  TraceIntegration  `json:"trace"`

@@ -99,9 +99,9 @@ func (repo *subRepos) updateLogIntegration(l *integration.LogIntegration) error 
 }
 
 func (repo *subRepos) SaveIntegrationConfig(iConfig integration.ClusterIntegration) error {
-	iConfig.Trace.ClusterID = iConfig.ClusterID
-	iConfig.Metric.ClusterID = iConfig.ClusterID
-	iConfig.Log.ClusterID = iConfig.ClusterID
+	iConfig.Trace.ClusterID = iConfig.ID
+	iConfig.Metric.ClusterID = iConfig.ID
+	iConfig.Log.ClusterID = iConfig.ID
 
 	var storeErr error
 
@@ -124,9 +124,7 @@ func (repo *subRepos) GetIntegrationConfig(clusterID string) (*integration.Clust
 	}
 
 	var res = &integration.ClusterIntegration{
-		ClusterID:   clusterID,
-		ClusterType: cluster.ClusterType,
-		ClusterName: cluster.Name,
+		Cluster: cluster,
 	}
 
 	var traceIntegration integration.TraceIntegration

@@ -23,7 +23,7 @@ import (
 // @Router /api/integration/cluster/create [post]
 func (h *handler) CreateCluster() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(integration.ClusterIntegrationVO)
+		req := new(integration.ClusterIntegration)
 		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

@@ -7,33 +7,12 @@ import (
 	"time"
 )
 
-type ClusterIntegration struct {
-	ClusterID   string `json:"clusterId"`
-	ClusterName string `json:"clusterName"`
-	ClusterType string `json:"clusterType"` // k8s,vm
-
-	Trace  TraceIntegration  `json:"trace"`
-	Metric MetricIntegration `json:"metric"`
-	Log    LogIntegration    `json:"log"`
-
-	APOCollector APOCollector `json:"apoCollector" gorm:"type:json;column:apo_collector"`
-}
-
-func (ci *ClusterIntegration) RemoveSecret() *ClusterIntegrationVO {
+func (ci *ClusterIntegration) RemoveSecret() *ClusterIntegration {
 	ci.Trace.TraceAPI.ReplaceSecret()
 	ci.Metric.MetricAPI.ReplaceSecret()
 	ci.Log.LogAPI.ReplaceSecret()
 
-	return &ClusterIntegrationVO{
-		Cluster: Cluster{
-			ID:          ci.ClusterID,
-			Name:        ci.ClusterName,
-			ClusterType: ci.ClusterType,
-		},
-		Trace:  ci.Trace,
-		Metric: ci.Metric,
-		Log:    ci.Log,
-	}
+	return ci
 }
 
 const (
