@@ -10,10 +10,10 @@ import (
 )
 
 type Handler interface {
-	// GetStoreIntegration
+	// GetStaticIntegration
 	// @Tags API.integration
 	// @Router /api/integration/configuration [get]
-	GetStoreIntegration() core.HandlerFunc
+	GetStaticIntegration() core.HandlerFunc
 
 	// ListCluster ListCluster
 	// @Tags API.integration
