@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"go.uber.org/multierr"
 	"gorm.io/gorm"
@@ -14,6 +15,15 @@ import (
 
 func (repo *subRepos) updateTraceIntegration(t *integration.TraceIntegration) error {
 	var updateError error
+
+	if t.Mode == "sidecar" {
+		oldAPI := integration.TraceIntegration{}
+		err := repo.db.First(&oldAPI, "apm_type = ? and mode = 'sidecar'", t.ApmType).
+			Order("updated_at DESC").Error
+		if err == nil {
+			t.TraceAPI.AcceptExistedSecret(oldAPI.TraceAPI.Obj)
+		}
+	}
 
 	updateError = repo.db.Save(t).Error
 
@@ -38,6 +48,20 @@ func (repo *subRepos) UpdateAllMetricIntegration(m *integration.MetricIntegratio
 
 func (repo *subRepos) updateMetricIntegration(m *integration.MetricIntegration) error {
 	var updateError error
+
+	oldAPI := integration.MetricIntegration{}
+	err := repo.db.First(&oldAPI, "ds_type = ? ", m.DSType).
+		Order("updated_at DESC").Error
+	if err == nil {
+		m.MetricAPI.AcceptExistedSecret(oldAPI.MetricAPI.Obj)
+	}
+	m.Mode = "pql"
+	// } else if errors.Is(err, gorm.ErrRecordNotFound) {
+	// 	vmCfg := config.Get().Promethues
+	// 	m.MetricAPI.Obj.VMConfig.Username = vmCfg
+	// 	m.MetricAPI.Obj.VMConfig.Password = vmCfg.Password
+	// }
+
 	updateError = repo.db.Save(m).Error
 
 	if !IndependentMetricDatasource {
@@ -60,6 +84,19 @@ func (repo *subRepos) UpdateAllLogIntegration(l *integration.LogIntegration) err
 
 func (repo *subRepos) updateLogIntegration(l *integration.LogIntegration) error {
 	var updateError error
+
+	oldAPI := integration.LogIntegration{}
+	err := repo.db.First(&oldAPI, "db_type = ? ", l.DBType).
+		Order("updated_at DESC").Error
+	if err == nil {
+		l.LogAPI.AcceptExistedSecret(oldAPI.LogAPI.Obj)
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
+		chCfg := config.Get().ClickHouse
+		l.LogAPI.Obj.Clickhouse.UserName = chCfg.Username
+		l.LogAPI.Obj.Clickhouse.Password = chCfg.Password
+	}
+	l.Mode = "sql"
+
 	updateError = repo.db.Save(l).Error
 
 	if !IndependentLogDatabase {
