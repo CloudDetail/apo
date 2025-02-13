@@ -54,12 +54,6 @@ func (repo *subRepos) updateMetricIntegration(m *integration.MetricIntegration) 
 	// if err == nil {
 	// 	m.MetricAPI.AcceptExistedSecret(oldAPI.MetricAPI.Obj)
 	// }
-	// m.Mode = "pql"
-	// } else if errors.Is(err, gorm.ErrRecordNotFound) {
-	// 	vmCfg := config.Get().Promethues
-	// 	m.MetricAPI.Obj.VMConfig.Username = vmCfg
-	// 	m.MetricAPI.Obj.VMConfig.Password = vmCfg.Password
-	// }
 
 	updateError = repo.db.Save(m).Error
 
@@ -89,12 +83,7 @@ func (repo *subRepos) updateLogIntegration(l *integration.LogIntegration) error 
 	// 	Order("updated_at DESC").Error
 	// if err == nil {
 	// 	l.LogAPI.AcceptExistedSecret(oldAPI.LogAPI.Obj)
-	// } else if errors.Is(err, gorm.ErrRecordNotFound) {
-	// 	chCfg := config.Get().ClickHouse
-	// 	l.LogAPI.Obj.Clickhouse.UserName = chCfg.Username
-	// 	l.LogAPI.Obj.Clickhouse.Password = chCfg.Password
 	// }
-	// l.Mode = "sql"
 
 	updateError = repo.db.Save(l).Error
 

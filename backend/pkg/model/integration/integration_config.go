@@ -15,6 +15,8 @@ type ClusterIntegration struct {
 	Trace  TraceIntegration  `json:"trace"`
 	Metric MetricIntegration `json:"metric"`
 	Log    LogIntegration    `json:"log"`
+
+	APOCollector APOCollector `json:"apoCollector" gorm:"type:json;column:apo_collector"`
 }
 
 func (ci *ClusterIntegration) RemoveSecret() *ClusterIntegrationVO {
@@ -53,7 +55,6 @@ type TraceIntegration struct {
 	ApmType string `json:"apmType" gorm:"type:varchar(100);column:apm_type"`
 
 	TraceAPI          JSONField[TraceAPI]          `json:"traceAPI,omitempty" gorm:"type:json;column:trace_api"`
-	APOCollector      JSONField[APOCollector]      `json:"apoCollector" gorm:"type:json;column:apo_collector"`
 	SelfCollectConfig JSONField[SelfCollectConfig] `json:"selfCollectConfig" gorm:"type:json;column:self_collect_config"`
 
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`
@@ -119,9 +120,12 @@ type SelfCollectConfig struct {
 }
 
 type APOCollector struct {
-	CollectorAddr        string `json:"collectorAddr,omitempty"`
-	CollectorGatewayAddr string `json:"collectorGatewayAddr"`
+	CollectorGatewayAddr string                `json:"collectorGatewayAddr"`
+	CollectorAddr        string                `json:"collectorAddr,omitempty"`
+	Ports                CollectorGatewayPorts `json:"ports"`
 }
+
+type CollectorGatewayPorts map[string]string
 
 type MetricIntegration struct {
 	ClusterID string `json:"clusterId,omitempty" gorm:"primaryKey;column:cluster_id"`

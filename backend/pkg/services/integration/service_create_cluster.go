@@ -27,7 +27,23 @@ func (s *service) CreateCluster(cluster *integration.ClusterIntegrationVO) error
 	}
 
 	// HACK 当前强制指定VM和CK配置
+	forceSetupMetricLogAPI(cluster)
+
+	return s.dbRepo.SaveIntegrationConfig(integration.ClusterIntegration{
+		ClusterID:   cluster.ID,
+		ClusterName: cluster.Name,
+		ClusterType: cluster.ClusterType,
+		Trace:       cluster.Trace,
+		Metric:      cluster.Metric,
+		Log:         cluster.Log,
+	})
+}
+
+func forceSetupMetricLogAPI(cluster *integration.ClusterIntegrationVO) {
 	vmCfg := config.Get().Promethues
+	cluster.Metric.DSType = "self-collector"
+	cluster.Metric.Name = "APO-DEFAULT-VM"
+	cluster.Metric.Mode = "pql"
 	cluster.Metric.MetricAPI = &integration.JSONField[integration.MetricAPI]{
 		Obj: integration.MetricAPI{
 			VictoriaMetric: &integration.VictoriaMetricConfig{
@@ -37,6 +53,9 @@ func (s *service) CreateCluster(cluster *integration.ClusterIntegrationVO) error
 	}
 
 	chCfg := config.Get().ClickHouse
+	cluster.Log.DBType = "self-collector"
+	cluster.Log.Name = "APO-DEFAULT-CK"
+	cluster.Log.Mode = "sql"
 	cluster.Log.LogAPI = &integration.JSONField[integration.LogAPI]{
 		Obj: integration.LogAPI{
 			Clickhouse: &integration.ClickhouseConfig{
@@ -49,13 +68,4 @@ func (s *service) CreateCluster(cluster *integration.ClusterIntegrationVO) error
 			},
 		},
 	}
-
-	return s.dbRepo.SaveIntegrationConfig(integration.ClusterIntegration{
-		ClusterID:   cluster.ID,
-		ClusterName: cluster.Name,
-		ClusterType: cluster.ClusterType,
-		Trace:       cluster.Trace,
-		Metric:      cluster.Metric,
-		Log:         cluster.Log,
-	})
 }
