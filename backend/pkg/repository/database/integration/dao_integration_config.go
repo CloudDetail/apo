@@ -99,15 +99,6 @@ func (repo *subRepos) updateLogIntegration(l *integration.LogIntegration) error 
 }
 
 func (repo *subRepos) SaveIntegrationConfig(iConfig integration.ClusterIntegration) error {
-	// update clusterType of cluster
-	err := repo.db.Model(&integration.Cluster{}).
-		Where("id = ?", iConfig.ClusterID).
-		Update("cluster_type", iConfig.ClusterType).Error
-
-	if err != nil {
-		return err
-	}
-
 	iConfig.Trace.ClusterID = iConfig.ClusterID
 	iConfig.Metric.ClusterID = iConfig.ClusterID
 	iConfig.Log.ClusterID = iConfig.ClusterID
@@ -116,7 +107,7 @@ func (repo *subRepos) SaveIntegrationConfig(iConfig integration.ClusterIntegrati
 
 	storeErr = repo.updateTraceIntegration(&iConfig.Trace)
 
-	err = repo.updateMetricIntegration(&iConfig.Metric)
+	err := repo.updateMetricIntegration(&iConfig.Metric)
 	storeErr = multierr.Append(storeErr, err)
 
 	err = repo.updateLogIntegration(&iConfig.Log)

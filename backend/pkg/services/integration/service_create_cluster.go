@@ -30,12 +30,13 @@ func (s *service) CreateCluster(cluster *integration.ClusterIntegrationVO) error
 	forceSetupMetricLogAPI(cluster)
 
 	return s.dbRepo.SaveIntegrationConfig(integration.ClusterIntegration{
-		ClusterID:   cluster.ID,
-		ClusterName: cluster.Name,
-		ClusterType: cluster.ClusterType,
-		Trace:       cluster.Trace,
-		Metric:      cluster.Metric,
-		Log:         cluster.Log,
+		ClusterID:    cluster.ID,
+		ClusterName:  cluster.Name,
+		ClusterType:  cluster.ClusterType,
+		Trace:        cluster.Trace,
+		Metric:       cluster.Metric,
+		Log:          cluster.Log,
+		APOCollector: cluster.APOCollector,
 	})
 }
 
