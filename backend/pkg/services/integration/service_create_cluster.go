@@ -6,6 +6,7 @@ package integration
 import (
 	"errors"
 
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/google/uuid"
 )
@@ -24,6 +25,31 @@ func (s *service) CreateCluster(cluster *integration.ClusterIntegrationVO) error
 	if err != nil {
 		return err
 	}
+
+	// HACK 当前强制指定VM和CK配置
+	vmCfg := config.Get().Promethues
+	cluster.Metric.MetricAPI = &integration.JSONField[integration.MetricAPI]{
+		Obj: integration.MetricAPI{
+			VictoriaMetric: &integration.VictoriaMetricConfig{
+				ServerURL: vmCfg.Address,
+			},
+		},
+	}
+
+	chCfg := config.Get().ClickHouse
+	cluster.Log.LogAPI = &integration.JSONField[integration.LogAPI]{
+		Obj: integration.LogAPI{
+			Clickhouse: &integration.ClickhouseConfig{
+				Address:     chCfg.Address,
+				Database:    chCfg.Database,
+				Replication: chCfg.Replica,
+				Cluster:     chCfg.Cluster,
+				UserName:    chCfg.Username,
+				Password:    chCfg.Password,
+			},
+		},
+	}
+
 	return s.dbRepo.SaveIntegrationConfig(integration.ClusterIntegration{
 		ClusterID:   cluster.ID,
 		ClusterName: cluster.Name,
