@@ -18,7 +18,7 @@ import (
 // @Accept application/json
 // @Produce json
 // @Param Request body integration.Cluster true "Cluster Info"
-// @Success 200 {object} string "ok"
+// @Success 200 {object} integration.Cluster "created cluster info"
 // @Failure 400 {object} code.Failure
 // @Router /api/integration/cluster/create [post]
 func (h *handler) CreateCluster() core.HandlerFunc {
@@ -33,7 +33,7 @@ func (h *handler) CreateCluster() core.HandlerFunc {
 			return
 		}
 
-		err := h.integrationService.CreateCluster(req)
+		cluster, err := h.integrationService.CreateCluster(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -42,6 +42,6 @@ func (h *handler) CreateCluster() core.HandlerFunc {
 			)
 			return
 		}
-		c.Payload("ok")
+		c.Payload(cluster)
 	}
 }

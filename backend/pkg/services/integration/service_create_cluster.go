@@ -11,25 +11,30 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *service) CreateCluster(cluster *integration.ClusterIntegration) error {
+func (s *service) CreateCluster(cluster *integration.ClusterIntegration) (*integration.Cluster, error) {
 	isExist, err := s.dbRepo.CheckClusterNameExisted(cluster.Name)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if isExist {
-		return errors.New("cluster name already exists")
+		return nil, errors.New("cluster name already exists")
 	}
 
 	cluster.ID = uuid.NewString()
 	err = s.dbRepo.CreateCluster(&cluster.Cluster)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// HACK 当前强制指定VM和CK配置
 	forceSetupMetricLogAPI(cluster)
 
-	return s.dbRepo.SaveIntegrationConfig(*cluster)
+	err = s.dbRepo.SaveIntegrationConfig(*cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	return &cluster.Cluster, nil
 }
 
 func forceSetupMetricLogAPI(cluster *integration.ClusterIntegration) {
