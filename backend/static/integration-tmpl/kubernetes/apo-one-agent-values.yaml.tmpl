@@ -25,12 +25,12 @@ global:
   apoProxyUrl: apo-nginx-proxy-svc
   apoProxyPort: 29090
 
-  apoServerIP: {{ .trace.apoCollector.collectorGatewayAddr }}
-  apoBackendPort: {{ default .trace.apoCollector.ports.backend 31363 }}
-  apoCollectorPort: {{ default .trace.apoCollector.ports.collector 30044 }}
-  apoOtelCollectorGatewayGRPCPort: {{ default .trace.apoCollector.ports.gatewayGrpc 30317 }}
-  apoOtelCollectorGatewayK8SPort: {{ default .trace.apoCollector.ports.gatewayK8s 30319 }}
-  apoVectorLogPort: {{ default .trace.apoCollector.ports.vector 30310 }}
+  apoServerIP: {{ .apoCollector.collectorGatewayAddr }}
+  apoBackendPort: {{ default .apoCollector.ports.apoBackend 31363 }}
+  apoCollectorPort: {{ default .apoCollector.ports.apoCollector 30044 }}
+  apoOtelCollectorGatewayGRPCPort: {{ default .apoCollector.ports.apoOtelCollectorGatewayGrpc 30317 }}
+  apoOtelCollectorGatewayK8SPort: {{ default .apoCollector.ports.apoOtelCollectorGatewayK8s 30319 }}
+  apoVectorLogPort: {{ default .apoCollector.ports.apoVector 30310 }}
 
   # -- Pod's node selector. Ref: [https://kubernetes.io/docs/user-guide/node-selection/](https://kubernetes.io/docs/user-guide/node-selection/)
   nodeSelector: {}

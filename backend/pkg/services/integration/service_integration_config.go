@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"text/template"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
@@ -37,11 +38,31 @@ func init() {
 	}
 }
 
-func defaultValue(v, def string) string {
-	if v == "" {
-		return def
+func defaultValue(v any, def any) string {
+	var defaultValue string
+	switch def := def.(type) {
+	case string:
+		defaultValue = def
+	case int:
+		defaultValue = strconv.Itoa(def)
+	case int64:
+		defaultValue = strconv.FormatInt(def, 10)
 	}
-	return v
+
+	if v == nil {
+		return defaultValue
+	}
+
+	switch v := v.(type) {
+	case string:
+		return v
+	case int:
+		return strconv.Itoa(v)
+	case int64:
+		return strconv.FormatInt(v, 10)
+	default:
+		return defaultValue
+	}
 }
 
 func (s *service) GetIntegrationInstallConfigFile(req *integration.GetCInstallRequest) (*integration.GetCInstallConfigResponse, error) {
