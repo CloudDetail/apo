@@ -6,6 +6,7 @@ package user
 import (
 	"context"
 	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -52,16 +53,18 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 		}
 	}
 
-	filter := model.TeamFilter {
-		IDs: req.TeamList,
-	}
-	exist, err := s.dbRepo.TeamExist(filter)
-	if err != nil {
-		return err
-	}
-
-	if !exist {
-		return model.NewErrWithMessage(errors.New("team does not exist"), code.TeamNotExistError)
+	// Check if the team exists
+	if len(req.TeamList) > 0 {
+		filter := model.TeamFilter{
+			IDs: req.TeamList,
+		}
+		exist, err := s.dbRepo.TeamExist(filter)
+		if err != nil {
+			return err
+		}
+		if !exist {
+			return model.NewErrWithMessage(errors.New("team does not exist"), code.TeamNotExistError)
+		}
 	}
 
 	var assignTeamFunc = func(ctx context.Context) error {

@@ -58,9 +58,9 @@ APO 利用 eBPF 技术为原始数据生成并保存了“索引”数据，“�
 - **北极星因果指标：**[北极星因果指标](https://one.kindlingx.com)是一个应用执行业务过程中，各资源类型延时分布的指标化，基于延时分布能够利用算法判断延时的飙升是应用自身的问题还是依赖的问题。应用自身的问题也能给出故障原因的方向，是代码循环、锁还是资源不足等原因。
 - **告警信息的关联**：传统告警信息与可观测性数据的联动很少，APO中将基础设施状态、网络质量状态、K8s 事件状态转换成示警信息，帮助用户在同一个界面中更快地判断故障原因。
 ## 快速开始
-查看[安装文档](https://originx.kindlingx.com/docs/APO%20%E5%90%91%E5%AF%BC%E5%BC%8F%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E4%B8%AD%E5%BF%83/%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B)快速开始使用APO。
+查看[安装文档](https://kindlingx.com/docs/APO%20%E5%90%91%E5%AF%BC%E5%BC%8F%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E4%B8%AD%E5%BF%83/%E5%AE%89%E8%A3%85%E6%89%8B%E5%86%8C/%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2/%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B)快速开始使用APO。
 ## 文档
-请查看[官方文档](https://originx.kindlingx.com/docs/APO%20%E5%90%91%E5%AF%BC%E5%BC%8F%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E4%B8%AD%E5%BF%83/%E4%BA%A7%E5%93%81%E4%BB%8B%E7%BB%8D).
+请查看[官方文档](https://kindlingx.com/docs/APO%20%E5%90%91%E5%AF%BC%E5%BC%8F%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E4%B8%AD%E5%BF%83/%E4%BA%A7%E5%93%81%E4%BB%8B%E7%BB%8D).
 ## 架构
 下图为 APO 组件的数据流图：
 
