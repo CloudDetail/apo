@@ -40,6 +40,7 @@ func (h *handler) GetIntegrationInstallConfigFile() core.HandlerFunc {
 			)
 			return
 		}
+		c.SetHeader("Access-Control-Expose-Headers", "Content-Disposition,Content-Type")
 		c.SetHeader("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", configFile.FileName))
 		c.SetHeader("Content-Type", "text/plain")
 		c.Payload(configFile.Content)
