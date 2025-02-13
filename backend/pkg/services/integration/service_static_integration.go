@@ -56,7 +56,7 @@ func (s *service) GetStaticIntegration() map[string]any {
 		err := mapstructure.Decode(latestTraceAPI.APIs, &traceAPI.Obj)
 		if err == nil {
 			traceAPI.ReplaceSecret()
-			traceAPI.Obj.Timeout = latestTraceAPI.Timeout
+			traceAPI.Obj.Timeout = int64(latestTraceAPI.Timeout)
 			resp["traceAPI"] = traceAPI.Obj
 		}
 	}
