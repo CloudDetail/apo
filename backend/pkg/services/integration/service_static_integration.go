@@ -51,8 +51,7 @@ func (s *service) GetStaticIntegration() map[string]any {
 	ds.MetricAPI.ReplaceSecret()
 	resp["datasource"] = ds
 
-	latestTraceAPI, err := s.dbRepo.GetLatestTraceAPIs(-1)
-	if err == nil {
+	if latestTraceAPI, err := s.dbRepo.GetLatestTraceAPIs(-1); err == nil {
 		var traceAPI integration.JSONField[integration.TraceAPI]
 		err := mapstructure.Decode(latestTraceAPI.APIs, &traceAPI.Obj)
 		if err == nil {
@@ -61,5 +60,6 @@ func (s *service) GetStaticIntegration() map[string]any {
 			resp["traceAPI"] = traceAPI.Obj
 		}
 	}
+
 	return resp
 }
