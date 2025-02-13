@@ -61,7 +61,7 @@ type TraceIntegration struct {
 }
 
 // TraceAPI contains config for different APM providers
-// remember to update RemoveSecret when updating the struct
+// using secret:"true" to hide the secret
 type TraceAPI struct {
 	Skywalking *SkywalkingConfig `mapstructure:"skywalking"`
 	Jaeger     *JaegerConfig     `mapstructure:"jaeger"`
