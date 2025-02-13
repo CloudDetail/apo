@@ -28,6 +28,7 @@ const DataGroupAuthorizeModal = ({
   refresh,
 }: PermissionModalProps) => {
   const { t } = useTranslation('core/permission')
+  const { t: ct } = useTranslation('common')
   const [loading, setLoading] = useState(false)
   const [form] = Form.useForm()
   const [permissionSourceTeam, setPermissionSourceTeam] = useState([])
@@ -108,8 +109,8 @@ const DataGroupAuthorizeModal = ({
         onCancel={closeModal}
         destroyOnClose
         centered
-        okText={t('save')}
-        cancelText={t('cancel')}
+        okText={ct('save')}
+        cancelText={ct('cancel')}
         maskClosable={false}
         onOk={saveAuthorize}
         width={1000}
