@@ -112,14 +112,14 @@ func replaceSecrets(v interface{}) {
 	}
 }
 
-func (c CollectorGatewayPorts) Value() (driver.Value, error) {
+func (c APOCollector) Value() (driver.Value, error) {
 	return json.Marshal(c)
 }
 
 // 实现 Scanner 接口，将 JSON 字符串扫描回 MapStringString
-func (c *CollectorGatewayPorts) Scan(value interface{}) error {
+func (c *APOCollector) Scan(value interface{}) error {
 	if value == nil {
-		*c = CollectorGatewayPorts{}
+		*c = APOCollector{}
 		return nil
 	}
 	return json.Unmarshal(value.([]byte), c)
