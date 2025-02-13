@@ -45,7 +45,7 @@ func (s *service) GetDatasourceAndDatabase() map[string]any {
 	resp := make(map[string]any)
 
 	chCfg := config.Get().ClickHouse
-	resp["database"] = integration.LogIntegration{
+	log := integration.LogIntegration{
 		Name:   "APO-DEFAULT-CH",
 		DBType: "clickhouse",
 		Mode:   "sql",
@@ -56,13 +56,17 @@ func (s *service) GetDatasourceAndDatabase() map[string]any {
 					Database:    chCfg.Database,
 					Replication: chCfg.Replica,
 					Cluster:     chCfg.Cluster,
+					UserName:    chCfg.Username,
+					Password:    chCfg.Password,
 				},
 			},
 		},
 	}
+	log.LogAPI.ReplaceSecret()
+	resp["database"] = log
 
 	vmCfg := config.Get().Promethues
-	resp["datasource"] = integration.MetricIntegration{
+	ds := integration.MetricIntegration{
 		Name:   "APO-DEFAULT-VM",
 		DSType: "victoriametric",
 		Mode:   "pql",
@@ -76,6 +80,8 @@ func (s *service) GetDatasourceAndDatabase() map[string]any {
 		UpdatedAt: time.Time{},
 		IsDeleted: false,
 	}
+	ds.MetricAPI.ReplaceSecret()
+	resp["datasource"] = ds
 
 	latestTraceAPI, err := s.dbRepo.GetLatestTraceAPIs(-1)
 	if err == nil {

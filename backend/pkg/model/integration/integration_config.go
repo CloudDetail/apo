@@ -47,7 +47,7 @@ const (
 )
 
 type TraceIntegration struct {
-	ClusterID string `json:"clusterId" gorm:"primaryKey;column:cluster_id"`
+	ClusterID string `json:"clusterId,omitempty" gorm:"primaryKey;column:cluster_id"`
 
 	Mode    string `json:"mode" gorm:"type:varchar(100);column:mode"`
 	ApmType string `json:"apmType" gorm:"type:varchar(100);column:apm_type"`
@@ -63,53 +63,53 @@ type TraceIntegration struct {
 // TraceAPI contains config for different APM providers
 // using secret:"true" to hide the secret
 type TraceAPI struct {
-	Skywalking *SkywalkingConfig `mapstructure:"skywalking"`
-	Jaeger     *JaegerConfig     `mapstructure:"jaeger"`
-	Nbs3       *Nbs3Config       `mapstructure:"nbs3"`
-	Arms       *ArmsConfig       `mapstructure:"arms"`
-	Huawei     *HuaweiConfig     `mapstructure:"huawei"`
-	Elastic    *ElasticConfig    `mapstructure:"elastic"`
-	Pinpoint   *PinpointConfig   `mapstructure:"pinpoint"`
+	Skywalking *SkywalkingConfig `json:"skywalking,omitempty" mapstructure:"skywalking"`
+	Jaeger     *JaegerConfig     `json:"jaeger,omitempty" mapstructure:"jaeger"`
+	Nbs3       *Nbs3Config       `json:"nbs3,omitempty" mapstructure:"nbs3"`
+	Arms       *ArmsConfig       `json:"arms,omitempty" mapstructure:"arms"`
+	Huawei     *HuaweiConfig     `json:"huawei,omitempty" mapstructure:"huawei"`
+	Elastic    *ElasticConfig    `json:"elastic,omitempty" mapstructure:"elastic"`
+	Pinpoint   *PinpointConfig   `json:"pinpoint,omitempty" mapstructure:"pinpoint"`
 
 	// Second
 	Timeout int64 `json:"timeout"`
 }
 
 type SkywalkingConfig struct {
-	Address  string `mapstructure:"address"`
-	User     string `mapstructure:"user" secret:"true"`
-	Password string `mapstructure:"password" secret:"true"`
+	Address  string `json:"address" mapstructure:"address"`
+	User     string `json:"user" mapstructure:"user" secret:"true"`
+	Password string `json:"password" mapstructure:"password" secret:"true"`
 }
 
 type JaegerConfig struct {
-	Address string `mapstructure:"address"`
+	Address string `json:"address" mapstructure:"address"`
 }
 
 type Nbs3Config struct {
-	Address  string `mapstructure:"address"`
-	User     string `mapstructure:"user" secret:"true"`
-	Password string `mapstructure:"password" secret:"true"`
+	Address  string `json:"address" mapstructure:"address"`
+	User     string `json:"user" mapstructure:"user" secret:"true"`
+	Password string `json:"password" mapstructure:"password" secret:"true"`
 }
 
 type ArmsConfig struct {
-	Address      string `mapstructure:"address"`
-	AccessKey    string `mapstructure:"access_key" secret:"true"`
-	AccessSecret string `mapstructure:"access_secret" secret:"true"`
+	Address      string `json:"address" mapstructure:"address"`
+	AccessKey    string `json:"accessKey" mapstructure:"access_key" secret:"true"`
+	AccessSecret string `json:"accessSecret" mapstructure:"access_secret" secret:"true"`
 }
 
 type HuaweiConfig struct {
-	AccessKey    string `mapstructure:"access_key" secret:"true"`
-	AccessSecret string `mapstructure:"access_secret" secret:"true"`
+	AccessKey    string `json:"accessKey" mapstructure:"access_key" secret:"true"`
+	AccessSecret string `json:"accessSecret" mapstructure:"access_secret" secret:"true"`
 }
 
 type ElasticConfig struct {
-	Address  string `mapstructure:"address"`
-	User     string `mapstructure:"user" secret:"true"`
-	Password string `mapstructure:"password" secret:"true"`
+	Address  string `json:"address" mapstructure:"address"`
+	User     string `json:"user" mapstructure:"user" secret:"true"`
+	Password string `json:"password" mapstructure:"password" secret:"true"`
 }
 
 type PinpointConfig struct {
-	Address string `mapstructure:"address"`
+	Address string `json:"address" mapstructure:"address"`
 }
 
 type SelfCollectConfig struct {
@@ -124,7 +124,7 @@ type APOCollector struct {
 }
 
 type MetricIntegration struct {
-	ClusterID string `json:"clusterId" gorm:"primaryKey;column:cluster_id"`
+	ClusterID string `json:"clusterId,omitempty" gorm:"primaryKey;column:cluster_id"`
 
 	Mode   string `json:"mode" gorm:"type:varchar(100);column:mode"`
 	Name   string `json:"name"`
@@ -132,8 +132,8 @@ type MetricIntegration struct {
 
 	MetricAPI *JSONField[MetricAPI] `json:"metricAPI" gorm:"type:json;column:metric_api"`
 
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
-	IsDeleted bool      `gorm:"column:is_deleted;default:false"`
+	UpdatedAt time.Time `json:"-" gorm:"autoUpdateTime"`
+	IsDeleted bool      `json:"-" gorm:"column:is_deleted;default:false"`
 }
 
 type MetricAPI struct {
@@ -149,7 +149,7 @@ type PrometheusConfig struct {
 type VictoriaMetricConfig PrometheusConfig
 
 type LogIntegration struct {
-	ClusterID string `json:"clusterId" gorm:"primaryKey;column:cluster_id"`
+	ClusterID string `json:"clusterId,omitempty" gorm:"primaryKey;column:cluster_id"`
 
 	Mode string `json:"mode" gorm:"type:varchar(100);column:mode"`
 
@@ -158,8 +158,8 @@ type LogIntegration struct {
 
 	LogAPI *JSONField[LogAPI] `json:"logAPI,omitempty" gorm:"type:json;column:log_api"`
 
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
-	IsDeleted bool      `gorm:"column:is_deleted;default:false"`
+	UpdatedAt time.Time `json:"-" gorm:"autoUpdateTime"`
+	IsDeleted bool      `json:"-" gorm:"column:is_deleted;default:false"`
 }
 
 type LogAPI struct {
