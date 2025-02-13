@@ -229,7 +229,7 @@ WHERE rn = 1`
 
 	latestAPI := make(map[string]any)
 	var apmList []string
-	var maxTimeout int = 0
+	var maxTimeout int64 = 0
 	for _, api := range latestTraceAPIs {
 		var apiSpec map[string]interface{}
 		// 反序列化 JSON 数据到 map
@@ -246,8 +246,12 @@ WHERE rn = 1`
 		latestAPI[api.ApmType] = cfg
 		apmList = append(apmList, api.ApmType)
 		timeout, ok := apiSpec["timeout"]
-		if ok && timeout.(int) > maxTimeout {
-			maxTimeout = timeout.(int)
+		if !ok {
+			continue
+		}
+		timeoutI := getTimeout(timeout)
+		if timeoutI > maxTimeout {
+			maxTimeout = timeoutI
 		}
 	}
 
@@ -256,4 +260,17 @@ WHERE rn = 1`
 		APIs:    latestAPI,
 		Timeout: maxTimeout,
 	}, nil
+}
+
+func getTimeout(v any) int64 {
+	switch v := v.(type) {
+	case int:
+		return int64(v)
+	case int64:
+		return int64(v)
+	case float64:
+		return int64(v)
+	default:
+		return 0
+	}
 }
