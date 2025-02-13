@@ -275,12 +275,17 @@ func setApiRouter(r *resource) {
 	integrationAPI := r.mux.Group("/api/integration")
 	{
 		handler := integration.New(r.pkg_db)
+		integrationAPI.GET("/api/intergration/configuration",handler.GetStoreIntegration())
+
 		integrationAPI.GET("/cluster/list", handler.ListCluster())
+		integrationAPI.GET("/cluster/get", handler.GetCluster())
 		integrationAPI.POST("/cluster/create", handler.CreateCluster())
 		integrationAPI.POST("/cluster/update", handler.UpdateCluster())
-		integrationAPI.POST("/cluster/delete", handler.DeleteCluster())
+		integrationAPI.GET("/cluster/delete", handler.DeleteCluster())
+
 		integrationAPI.GET("/cluster/install/config", handler.GetIntegrationInstallConfigFile())
 		integrationAPI.GET("/cluster/install/cmd", handler.GetIntegrationInstallDoc())
+		integrationAPI.POST("/adapter/update", handler.TriggerAdapterUpdate())
 	}
 
 }

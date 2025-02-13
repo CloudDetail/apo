@@ -30,6 +30,8 @@ type ObservabilityInputManage interface {
 	GetIntegrationConfig(clusterID string) (*integration.ClusterIntegration, error)
 	DeleteIntegrationConfig(clusterID string) error
 
+	GetLatestTraceAPIs(lastUpdateTS int64) (*integration.AdapterAPIConfig, error)
+
 	alert.AlertInput
 }
 

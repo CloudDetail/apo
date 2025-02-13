@@ -1,6 +1,3 @@
-// Copyright 2024 CloudDetail
-// SPDX-License-Identifier: Apache-2.0
-
 package integration
 
 import (
@@ -11,17 +8,17 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
 
-// DeleteCluster DeleteCluster
-// @Summary DeleteCluster
-// @Description DeleteCluster
-// @Tags API.alertinput
-// @Accept application/json
+// GetCluster GetCluster
+// @Summary
+// @Description
+// @Tags API.integration
+// @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body integration.Cluster true "Cluster Info"
-// @Success 200 {object} string "ok"
+// @Param Request body integration.Cluster true "请求信息"
+// @Success 200 {object} response.getClusterResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/integration/cluster/delete [get]
-func (h *handler) DeleteCluster() core.HandlerFunc {
+// @Router /api/integration/cluster/get [get]
+func (h *handler) GetCluster() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(integration.Cluster)
 		if err := c.ShouldBindQuery(req); err != nil {
@@ -33,16 +30,15 @@ func (h *handler) DeleteCluster() core.HandlerFunc {
 			return
 		}
 
-		err := h.integrationService.DeleteCluster(req)
+		clusterIntegration, err := h.integrationService.GetClusterIntegration(req.ID)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.DeleteClusterFailed,
-				code.Text(code.DeleteClusterFailed)).WithError(err),
+				code.GetClusterIntegrationFailed,
+				code.Text(code.GetClusterIntegrationFailed)).WithError(err),
 			)
 			return
-
 		}
-		c.Payload("ok")
+		c.Payload(clusterIntegration)
 	}
 }
