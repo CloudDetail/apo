@@ -56,10 +56,7 @@
   },
   "nameSpaceLabel": "命名空间",
   "applicationLabel": "应用名",
-  "nested": "服务名所属的命名空间",
-  "nsViewAlert1": "整体监控：选中命名空间节点，自动监控该命名空间下的所有服务，服务变化时自动更新。",
-  "nsViewAlert2": "精细监控：可单独选择服务节点，仅监控该服务。",
-  "appAlert": "仅监控所选服务，独立于命名空间。",
+
   "confirm": "确定",
   "cancel": "取消",
   "delete": "删除",
