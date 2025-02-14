@@ -45,7 +45,7 @@ export default function FaultReportModal({
               style={{ marginLeft: '5px' }}
             >
               偏离基线
-              {((duration - baseline) / baseline).toFixed(2)}%
+              {(((duration - baseline) / baseline) * 100).toFixed(2)}%
             </Tag>
           </div>
         )
