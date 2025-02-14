@@ -4,9 +4,10 @@
 package service
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"net/http"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -55,7 +56,10 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err = h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, &response.GetServiceEntryEndpointsResponse{
+				Status: model.STATUS_NORMAL,
+				Data:   []*response.EntryInstanceData{},
+			})
 			return
 		}
 

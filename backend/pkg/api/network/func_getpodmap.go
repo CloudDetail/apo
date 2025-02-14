@@ -10,6 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // GetPodMap query pod network call topology and call metrics
@@ -39,7 +40,7 @@ func (h *handler) GetPodMap() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, 0, &req.Namespace, nil, "")
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, new(response.PodMapResponse))
 			return
 		}
 		resp, err := h.networkService.GetPodMap(req)

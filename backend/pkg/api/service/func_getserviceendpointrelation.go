@@ -4,14 +4,16 @@
 package service
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // GetServiceEndpointRelation get the call relationship between the upstream and downstream services.
@@ -45,7 +47,11 @@ func (h *handler) GetServiceEndpointRelation() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, &response.GetServiceEndpointRelationResponse{
+				Parents:       []*model.TopologyNode{},
+				Current:       &model.TopologyNode{},
+				ChildRelation: []*model.ToplogyRelation{},
+			})
 			return
 		}
 		resp, err := h.serviceInfoService.GetServiceEndpointRelation(req)
