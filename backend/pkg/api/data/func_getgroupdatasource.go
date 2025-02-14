@@ -4,11 +4,12 @@
 package data
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 )
 
 // GetGroupDatasource Get group's datasource.
@@ -38,7 +39,7 @@ func (h *handler) GetGroupDatasource() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		resp, err := h.dataService.GetGroupDatasource(req, userID)
 		if err != nil {
-			c.HandleError(err, code.GetGroupDatasourceError)
+			c.HandleError(err, code.GetGroupDatasourceError, nil)
 			return
 		}
 		c.Payload(resp)

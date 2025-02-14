@@ -4,9 +4,10 @@
 package service
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -51,7 +52,10 @@ func (h *handler) GetAlertEventsSample() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Services, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, &response.GetAlertEventsSampleResponse{
+				EventMap: map[string]map[string][]clickhouse.AlertEventSample{},
+				Status:   model.STATUS_NORMAL,
+			})
 			return
 		}
 		resp, err := h.serviceInfoService.GetAlertEventsSample(req)

@@ -4,8 +4,9 @@
 package data
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -37,7 +38,7 @@ func (h *handler) GetGroupSubs() core.HandlerFunc {
 
 		resp, err := h.dataService.GetGroupSubs(req)
 		if err != nil {
-			c.HandleError(err, code.GetGroupSubsError)
+			c.HandleError(err, code.GetGroupSubsError, nil)
 			return
 		}
 		c.Payload(resp)

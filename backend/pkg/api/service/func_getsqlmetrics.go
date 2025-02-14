@@ -4,13 +4,15 @@
 package service
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // Get SQL metrics GetSQLMetrics
@@ -44,7 +46,14 @@ func (h *handler) GetSQLMetrics() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, &response.GetSQLMetricsResponse{
+				Pagination: model.Pagination{
+					Total:       0,
+					CurrentPage: 0,
+					PageSize:    0,
+				},
+				SQLOperationDetails: []response.SQLOperationDetail{},
+			})
 			return
 		}
 		resp, err := h.serviceInfoService.GetSQLMetrics(req)
