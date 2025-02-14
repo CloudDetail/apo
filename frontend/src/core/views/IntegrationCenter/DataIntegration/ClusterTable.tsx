@@ -14,7 +14,7 @@ const ClusterTable = () => {
   const navigate = useNavigate()
   const [data, setData] = useState([])
   const [modalOpen, setModalOpen] = useState(false)
-  const [clusterId, setClusterId] = useState(null)
+  const [clusterInfo, setClusterInfo] = useState(null)
   const deleteClusterIntegration = (id: string) => {
     deleteClusterIntegrationApi(id).then((res) => {
       showToast({
@@ -51,7 +51,7 @@ const ClusterTable = () => {
               onClick={() => {
                 // setInfoModalVisible(true)
                 // setGroupInfo(record)
-                toSettingPage(record.id)
+                toSettingPage(record.id, record.clusterType)
               }}
               icon={<MdOutlineEdit className="text-blue-400 hover:text-blue-400" />}
             >
@@ -75,7 +75,7 @@ const ClusterTable = () => {
               icon={<GoCommandPalette />}
               onClick={() => {
                 setModalOpen(true)
-                setClusterId(record.id)
+                setClusterInfo(record)
               }}
             >
               {t('installCmdTitle')}
@@ -90,10 +90,14 @@ const ClusterTable = () => {
       setData(res.clusters || [])
     })
   }
-  const toSettingPage = (clusterId?: string) => {
+  const toSettingPage = (clusterId?: string, clusterType?: 'k8s' | 'vm') => {
     let url = '/integration/data/settings'
-    if (clusterId) {
-      url += '?clusterId=' + encodeURIComponent(clusterId)
+    if (clusterId && clusterType) {
+      url +=
+        '?clusterId=' +
+        encodeURIComponent(clusterId) +
+        '&clusterType=' +
+        encodeURIComponent(clusterType)
     }
     navigate(url)
   }
@@ -115,10 +119,10 @@ const ClusterTable = () => {
         footer={null}
         onCancel={() => {
           setModalOpen(false)
-          setClusterId(null)
+          setClusterInfo(null)
         }}
       >
-        <InstallCmd clusterId={clusterId} />
+        <InstallCmd clusterId={clusterInfo?.id} clusterType={clusterInfo?.clusterType} />
       </Modal>
     </div>
   )

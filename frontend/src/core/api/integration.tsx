@@ -17,9 +17,9 @@ export function getClusterInstallCmdApi(clusterId: string) {
 export function getClusterInstallConfigApi(clusterId: string) {
   return get('/api/integration/cluster/install/config', { clusterId }, { responseType: 'blob' })
 }
-export function getClusterInstallPackageApi(clusterId: string) {
+export function getClusterInstallPackageApi(clusterId: string, type: 'k8s' | 'vm') {
   return get(
-    '/cluster/integration/cluster/install/package',
+    '/cluster/integration/cluster/install/package/' + type,
     { clusterId },
     { responseType: 'blob' },
   )

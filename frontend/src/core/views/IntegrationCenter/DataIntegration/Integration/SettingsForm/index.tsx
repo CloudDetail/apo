@@ -33,6 +33,7 @@ const SettingsForm = () => {
       })
       const newParams = new URLSearchParams(searchParams)
       newParams.set('clusterId', params.id || res?.id)
+      newParams.set('clusterType', res?.clusterType)
       newParams.set('activeKey', 'install')
       setSearchParams(newParams, { replace: true })
     })

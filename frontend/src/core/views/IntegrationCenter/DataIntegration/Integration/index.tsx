@@ -22,7 +22,12 @@ export default function IntegrationSettings() {
     {
       key: 'install',
       label: t('installCmdTitle'),
-      children: <InstallCmd clusterId={searchParams.get('activeKey')} />,
+      children: (
+        <InstallCmd
+          clusterId={searchParams.get('clusterId')}
+          clusterType={searchParams.get('clusterType')}
+        />
+      ),
     },
   ]
   const changeTab = (key: string) => {

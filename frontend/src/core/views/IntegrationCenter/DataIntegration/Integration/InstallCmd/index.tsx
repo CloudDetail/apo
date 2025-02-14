@@ -27,9 +27,9 @@ const decodeBase64 = (base64Str: string) => {
   }
 }
 
-const InstallCmd = ({ clusterId }) => {
+const InstallCmd = ({ clusterId, clusterType }) => {
   const [markdownContent, setMarkdownContent] = useState('')
-  const downloadFile = (response) => {
+  const downloadFile = (response, suffix = 'yaml') => {
     // 获取文件名
     const contentDisposition = response.headers['content-disposition']
     let filename = 'downloaded-file.yaml' // 默认文件名
@@ -39,8 +39,9 @@ const InstallCmd = ({ clusterId }) => {
       if (match && match[1]) {
         filename = match[1]
       }
+    } else if (clusterType) {
+      filename = clusterType + '.' + suffix
     }
-
     // 创建 blob 链接
     const blob = new Blob([response.data], { type: response.headers['content-type'] })
     const url = window.URL.createObjectURL(blob)
@@ -67,9 +68,9 @@ const InstallCmd = ({ clusterId }) => {
   }
   const getPackage = async () => {
     try {
-      const response = await getClusterInstallPackageApi(clusterId)
+      const response = await getClusterInstallPackageApi(clusterId, clusterType)
 
-      downloadFile(response)
+      downloadFile(response, 'gz')
     } catch (error) {
       console.error('下载失败:', error)
     }
