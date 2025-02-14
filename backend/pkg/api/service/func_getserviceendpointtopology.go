@@ -4,13 +4,15 @@
 package service
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // GetServiceEndpointTopology get the upstream and downstream topology of a service
@@ -44,7 +46,11 @@ func (h *handler) GetServiceEndpointTopology() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, &response.GetServiceEndpointTopologyResponse{
+				Parents:  []*model.TopologyNode{},
+				Current:  &model.TopologyNode{},
+				Children: []*model.TopologyNode{},
+			})
 			return
 		}
 		resp, err := h.serviceInfoService.GetServiceEndpointTopology(req)
