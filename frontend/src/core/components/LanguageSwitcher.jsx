@@ -14,8 +14,7 @@ const LanguageSwitcher = () => {
   const { t } = useTranslation('core/systemConfiguration')
   const [selectedKeys, setSelectedKeys] = useState('')
   const dispatch = useDispatch()
-  const currentLanguage = useSelector((state) => state.settingReducer.language)
-
+  const currentLang = i18next.language
   const changeLanguage = (value) => {
     i18next
       .changeLanguage(value)
@@ -36,12 +35,8 @@ const LanguageSwitcher = () => {
   ]
 
   useEffect(() => {
-    if (!currentLanguage) {
-      changeLanguage('zh')
-    } else {
-      setSelectedKeys(currentLanguage)
-    }
-  }, [currentLanguage])
+    setSelectedKeys(currentLang)
+  }, [currentLang])
 
   return (
     <Select
