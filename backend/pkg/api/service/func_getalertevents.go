@@ -57,8 +57,12 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Services, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.HandleError(err, code.AuthError, &response.GetAlertEventsResponse{
-				TotalCount: 0,
-				EventList:  []clickhouse.PagedAlertEvent{},
+				Pagination: &model.Pagination{
+					Total:       0,
+					CurrentPage: 0,
+					PageSize:    0,
+				},
+				EventList: []clickhouse.PagedAlertEvent{},
 			})
 			return
 		}
