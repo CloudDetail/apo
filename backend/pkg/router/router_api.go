@@ -9,8 +9,8 @@ import (
 	alertinput "github.com/CloudDetail/apo/backend/pkg/api/alertinput"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
-	"github.com/CloudDetail/apo/backend/pkg/api/data"
 	"github.com/CloudDetail/apo/backend/pkg/api/custom"
+	"github.com/CloudDetail/apo/backend/pkg/api/data"
 	"github.com/CloudDetail/apo/backend/pkg/api/health"
 	"github.com/CloudDetail/apo/backend/pkg/api/integration"
 	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
@@ -143,6 +143,7 @@ func setApiRouter(r *resource) {
 		alertApi.DELETE("/alertmanager/receiver", alertHandler.DeleteAlertManagerConfigReceiver())
 
 		alertanalyzeHandler := alertanalyze.New(r.logger, r.ch, r.pkg_db, r.prom, r.pol, r.k8sApi)
+		alertApi.GET("/alert/events", alertanalyzeHandler.GetAlertEvents())
 		alertApi.GET("/event/impact", alertanalyzeHandler.GetAlertImpact())
 		alertApi.GET("/descendant/anormal/contribution", alertanalyzeHandler.GetDescendantContribution())
 		alertApi.GET("/descendant/anormal/list", alertanalyzeHandler.GetDescendantAnormal())
