@@ -1,0 +1,62 @@
+name: Build ARM64 Docker Images
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+
+env:
+  REGISTRY_HOST: registry.cn-hangzhou.aliyuncs.com
+  FRONTEND_CONTAINER: apo-front
+  BACKEND_CONTAINER: apo-backend
+  NAMESPACE: apo
+
+jobs:
+  build-arm-images:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@4574d27a4764455b42196d70a065bc6853246a25
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca
+
+    - name: Log in to container registry
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+      with:
+        registry: ${{ env.REGISTRY_HOST }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+
+    - name: Generate image metadata
+      id: build-image
+      env:
+        BRANCH_NAME: ${{ github.ref_name }}
+        COMMIT_HASH: ${{ github.sha }}
+      run: |
+        DATE=$(date +"%Y%m%d%H%M%S%Z")
+        BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's#[^a-zA-Z0-9._-]#-#g')
+        IMAGE_TAG_NAME="${BRANCH_NAME}-${COMMIT_HASH::7}-${DATE}"
+        echo "IMAGE_TAG_NAME=$IMAGE_TAG_NAME" >> "$GITHUB_OUTPUT"
+        echo "FRONTEND_IMAGE_FULL_TAG=${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.FRONTEND_CONTAINER }}:${IMAGE_TAG_NAME}-arm64" >> $GITHUB_ENV
+        echo "BACKEND_IMAGE_FULL_TAG=${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.BACKEND_CONTAINER }}:${IMAGE_TAG_NAME}-arm64" >> $GITHUB_ENV
+
+    - name: Build and push Frontend ARM64 image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        platforms: linux/arm64
+        push: true
+        tags: ${{ env.FRONTEND_IMAGE_FULL_TAG }}
+
+    - name: Build and push Backend ARM64 image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        platforms: linux/arm64
+        push: true
+        tags: ${{ env.BACKEND_IMAGE_FULL_TAG }}
