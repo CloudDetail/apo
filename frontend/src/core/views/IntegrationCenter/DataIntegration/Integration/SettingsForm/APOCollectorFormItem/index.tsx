@@ -19,12 +19,16 @@ const APOCollectorFormItem = () => {
         >
           <Input />
         </Form.Item>
-        <Form.Item label={t('collectorAddr')} name={['apoCollector', 'collectorAddr']}>
-          <Input />
-        </Form.Item>
 
         {showMore ? (
           <Card type="inner" title={t('advanced')} size="small">
+            <Form.Item
+              label={t('collectorAddr')}
+              name={['apoCollector', 'collectorAddr']}
+              initialValue={'apo-nginx-proxy-svc'}
+            >
+              <Input />
+            </Form.Item>
             {portsDefault.map((item) => (
               <Form.Item
                 name={['apoCollector', 'ports', item.key]}

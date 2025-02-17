@@ -1,4 +1,14 @@
-import { Button, Card, ConfigProvider, Divider, Form, Input, Segmented, Typography } from 'antd'
+import {
+  Button,
+  Card,
+  ConfigProvider,
+  Divider,
+  Form,
+  Input,
+  Segmented,
+  Space,
+  Typography,
+} from 'antd'
 import { t } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import TraceFormItem from './TraceFormItem'
@@ -16,10 +26,20 @@ import { showToast } from 'src/core/utils/toast'
 import APOCollectorFormItem from './APOCollectorFormItem'
 import { useSearchParams } from 'react-router-dom'
 import { portsDefault } from '../../../constant'
-const clusterTypeOptions = ['k8s', 'vm']
+
 const SettingsForm = () => {
   const { t } = useTranslation('core/dataIntegration')
   const { t: ct } = useTranslation('common')
+  const clusterTypeOptions = [
+    {
+      label: 'Kubernetes',
+      value: 'k8s',
+    },
+    {
+      label: t('vm'),
+      value: 'vm',
+    },
+  ]
   const [form] = Form.useForm()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -105,7 +125,7 @@ const SettingsForm = () => {
           form={form}
           layout="vertical"
           validateMessages={{
-            required: '${label}不可为空',
+            required: '${label}' + t('required'),
           }}
           initialValues={{
             clusterType: 'k8s',
@@ -118,6 +138,9 @@ const SettingsForm = () => {
               dbType: 'self-collector',
               mode: 'sql',
               name: 'APO-DEFAULT-CH',
+            },
+            apoCollector: {
+              collectorAddr: 'apo-nginx-proxy-svc',
             },
           }}
         >
@@ -134,10 +157,30 @@ const SettingsForm = () => {
           <Card type="inner" title={t('traceIntegration')} size="small">
             <TraceFormItem />
           </Card>
-          <Card type="inner" title={t('metricsIntegration')} size="small" className="mt-2">
+          <Card
+            type="inner"
+            title={
+              <Space>
+                {t('metricsIntegration')}
+                <span className="text-xs text-gray-400">{t('metricsHint')}</span>
+              </Space>
+            }
+            size="small"
+            className="mt-2"
+          >
             <MetricsFormItem />
           </Card>
-          <Card type="inner" title={t('logsIntegration')} size="small" className="mt-2">
+          <Card
+            type="inner"
+            title={
+              <Space>
+                {t('logsIntegration')}
+                <span className="text-xs text-gray-400">{t('logHint')}</span>
+              </Space>
+            }
+            size="small"
+            className="mt-2"
+          >
             <LogsFormItem />
           </Card>
           <Form.Item name="traceAPI"></Form.Item>

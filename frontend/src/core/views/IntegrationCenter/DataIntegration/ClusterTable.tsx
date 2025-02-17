@@ -42,7 +42,7 @@ const ClusterTable = () => {
     {
       dataIndex: 'operation',
       title: ct('operation'),
-      width: '30%',
+      width: '40%',
       render: (_, record) => {
         return (
           <Flex align="center">
@@ -113,7 +113,7 @@ const ClusterTable = () => {
         </Button>
       </div>
 
-      <Table columns={columns} dataSource={data} />
+      <Table columns={columns} dataSource={data} scroll={{ y: 'calc(100vh - 265px)' }} />
       <Modal
         open={modalOpen}
         footer={null}

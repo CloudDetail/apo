@@ -11,9 +11,10 @@
   "tingyun": "Tingyun",
   "hauwei": "Huawei AOM",
   "other": "Other",
-  "timeout": "Adapter Timeout",
+  "timeout": "Trace API Query Timeout Duration",
+  "timeoutHint": "A timeout duration that is too short may result in the inability to collect proper link data.",
   "second": "s",
-  "address": "Address",
+  "address": "Tracing API Endpoint",
   "user": "User",
   "password": "Password",
   "accessKey": "ARMS Access Key",
@@ -25,7 +26,7 @@
   "no": "No",
   "instrumentNS": "Namespaces to be Injected",
   "instrumentDisabledNS": "Namespaces to exclude from injection ",
-  "namespacePlaceholder": "<span> Enter namespaces separated by spaces<icon /></span>",
+  "namespacePlaceholder": "<span> Enter namespaces separated by comma , ",
   "metricsIntegration": "Metrics Integration",
   "dsType": "Integration type",
   "typeNotSupport": "This feature is not available yet. Please stay tuned for updates!",
@@ -66,5 +67,16 @@
   "config": "Configuration",
   "installCmdTitle": "Installation and Setup Commands",
   "saveSettingsSuccess": "Save Cluster Integration Successfully",
-  "confirmDelete": "Are you sure to delete the cluster integration {{name}}"
+  "confirmDelete": "Are you sure to delete the cluster integration {{name}}",
+  "required": " is required",
+  "sidecarGlobal": "The same link tracking system shares the same configuration. Any modifications to this configuration take effect globally.",
+  "vm": "Traditional Server.",
+  "balckList": "The specified items will be excluded from all namespaces.",
+  "metricsHint": "Currently, only APO Self-Collect is supported. APO collects metrics with relatively low resource usage and data volume. Support for integrating other data sources is coming soon, so stay tuned",
+  "logHint": "Currently, only APO Self-Collect is supported. APO collects logs with relatively low resource usage and data volume. Support for integrating other data sources is coming soon, so stay tuned",
+  "logCollectMode": "Log collection method",
+  "logCollect": {
+    "full": "Full Log Collection",
+    "sample": "Sampled Log Collection"
+  }
 }

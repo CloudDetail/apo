@@ -6,6 +6,16 @@ const LogsFormItem = () => {
   const { t } = useTranslation('core/dataIntegration')
   const form = Form.useFormInstance()
   const clickhouseCluster = Form.useWatch(['log', 'logAPI', 'chConfig', 'replication'], form)
+  const logCollectModeOptions = [
+    {
+      label: t('logCollect.full'),
+      value: 'full',
+    },
+    {
+      label: t('logCollect.sample'),
+      value: 'sample',
+    },
+  ]
   return (
     <>
       <Form.Item
@@ -16,14 +26,17 @@ const LogsFormItem = () => {
       >
         <DbTypeRadio />
       </Form.Item>
-      <Form.Item
-        name={['log', 'name']}
-        label={t('logsName')}
-        className="mb-0"
-        valuePropName="value"
-        hidden
-      >
+      <Form.Item name={['log', 'name']} label={t('logsName')} className="mb-0" hidden>
         <Input readOnly disabled />
+      </Form.Item>
+      <Form.Item
+        name={['log', 'selfCollectConfig', 'mode']}
+        label={t('logCollectMode')}
+        className="mb-0"
+        rules={[{ required: true }]}
+        initialValue={'full'}
+      >
+        <Segmented options={logCollectModeOptions} />
       </Form.Item>
       {/* <Form.Item
         name={['log', 'mode']}

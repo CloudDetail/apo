@@ -20,7 +20,22 @@ import ApmTypeRadio from './ApmTypeRadio'
 import { t } from 'i18next'
 import { MdOutlineSpaceBar } from 'react-icons/md'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
-
+const addressEg =
+  'Eg. Jaeger: apo-jaeger-collector-svc:16686/jaeger，SkyWalking: skywalking-ui-svc:12800'
+const apmTypeOptions = [
+  {
+    label: t('core/dataIntegration:datasourceApo'),
+    value: 'self-collector',
+  },
+  {
+    label: 'sidecar',
+    value: 'sidecar',
+  },
+  {
+    label: 'collector',
+    value: 'collector',
+  },
+]
 const traceApiMap = {
   skywalking: {
     key: 'skywalking',
@@ -29,6 +44,7 @@ const traceApiMap = {
         name: 'address',
         label: t('core/dataIntegration:address'),
         rules: [{ required: true }],
+        placeholder: addressEg,
       },
       {
         name: 'user',
@@ -49,6 +65,7 @@ const traceApiMap = {
         name: 'address',
         label: t('core/dataIntegration:address'),
         rules: [{ required: true }],
+        placeholder: addressEg,
       },
     ],
   },
@@ -59,6 +76,7 @@ const traceApiMap = {
         name: 'address',
         label: t('core/dataIntegration:address'),
         rules: [{ required: true }],
+        placeholder: addressEg,
       },
       {
         name: 'user',
@@ -79,6 +97,7 @@ const traceApiMap = {
         name: 'address',
         label: t('core/dataIntegration:address'),
         rules: [{ required: true }],
+        placeholder: addressEg,
       },
       {
         name: 'accessKey',
@@ -116,6 +135,7 @@ const traceApiMap = {
         name: 'address',
         label: t('core/dataIntegration:address'),
         rules: [{ required: true }],
+        placeholder: addressEg,
       },
       {
         name: 'user',
@@ -136,6 +156,7 @@ const traceApiMap = {
         name: 'address',
         label: t('core/dataIntegration:address'),
         rules: [{ required: true }],
+        placeholder: addressEg,
       },
     ],
   },
@@ -148,6 +169,7 @@ const TraceFormItem = () => {
   const apmTypeValue = Form.useWatch(['trace', 'apmType'], form)
   const modeValue = Form.useWatch(['trace', 'mode'], form)
   const traceAPI = Form.useWatch('traceAPI', form)
+  const instrumentAll = Form.useWatch(['trace', 'selfCollectConfig', 'instrumentAll'], form)
   useEffect(() => {
     if (apmTypeValue === 'opentelemetry') {
       form.setFieldValue(['trace', 'mode'], 'self-collector')
@@ -176,10 +198,10 @@ const TraceFormItem = () => {
         <Segmented
           options={
             apmTypeValue === 'other'
-              ? ['collector']
+              ? [apmTypeOptions[2]]
               : apmTypeValue === 'opentelemetry'
-                ? ['self-collector']
-                : ['sidecar', 'collector']
+                ? [apmTypeOptions[0]]
+                : apmTypeOptions.slice(1, 3)
           }
           defaultValue=""
         />
@@ -194,9 +216,18 @@ const TraceFormItem = () => {
         <>
           <Divider></Divider>
           <Typography.Title level={5}>Sidecar APM Config</Typography.Title>
-          <Alert type="info" showIcon message="Sidecar APM 配置为全局配置" className="mb-1"></Alert>
+          <Alert type="info" showIcon message={t('sidecarGlobal')} className="mb-1"></Alert>
           <div className="px-3">
-            <Form.Item label={t('timeout')} name={['trace', 'traceApi', 'timeout']}>
+            <Form.Item
+              label={
+                <Space>
+                  {t('timeout')}
+                  <span className=" text-gray-400 text-xs">{t('timeoutHint')}</span>
+                </Space>
+              }
+              name={['trace', 'traceApi', 'timeout']}
+              initialValue={15}
+            >
               <InputNumber addonAfter={t('second')} />
             </Form.Item>
             {traceApiMap[apmTypeValue]?.formItems.map((item) => (
@@ -206,7 +237,11 @@ const TraceFormItem = () => {
                   name={['trace', 'traceApi', traceApiMap[apmTypeValue].key, item.name]}
                   rules={item.rules}
                 >
-                  {item.secret ? <Input.Password visibilityToggle={false} /> : <Input />}
+                  {item.secret ? (
+                    <Input.Password visibilityToggle={false} />
+                  ) : (
+                    <Input placeholder={item.placeholder} />
+                  )}
                 </Form.Item>
               </>
             ))}
@@ -225,50 +260,59 @@ const TraceFormItem = () => {
             >
               <Switch checkedChildren={t('yes')} unCheckedChildren={t('no')} />
             </Form.Item>
-            <Form.Item
-              label={t('instrumentNS')}
-              name={['trace', 'selfCollectConfig', 'instrumentNS']}
-            >
-              <Select
-                mode="tags"
-                style={{ width: '100%' }}
-                placeholder={
-                  <Trans
-                    t={t}
-                    i18nKey="namespacePlaceholder"
-                    components={{
-                      icon: <MdOutlineSpaceBar />,
-                      span: <span className="flex items-center" />,
-                    }}
-                  />
+            {!instrumentAll ? (
+              <Form.Item
+                label={t('instrumentNS')}
+                name={['trace', 'selfCollectConfig', 'instrumentNS']}
+              >
+                <Select
+                  tokenSeparators={[',']}
+                  mode="tags"
+                  style={{ width: '100%' }}
+                  placeholder={
+                    <Trans
+                      t={t}
+                      i18nKey="namespacePlaceholder"
+                      components={{
+                        // icon: <SiComma />,
+                        span: <span className="flex items-center" />,
+                      }}
+                    />
+                  }
+                  options={[]}
+                  open={false}
+                  suffixIcon={null}
+                />
+              </Form.Item>
+            ) : (
+              <Form.Item
+                label={
+                  <Space>
+                    {t('instrumentDisabledNS')}
+                    <span className="text-gray-400 text-xs">{t('balckList')}</span>
+                  </Space>
                 }
-                options={[]}
-                open={false}
-                suffixIcon={null}
-              />
-            </Form.Item>
-            <Form.Item
-              label={t('instrumentDisabledNS')}
-              name={['trace', 'selfCollectConfig', 'instrumentDisabledNS']}
-            >
-              <Select
-                mode="tags"
-                style={{ width: '100%' }}
-                placeholder={
-                  <Trans
-                    t={t}
-                    i18nKey="namespacePlaceholder"
-                    components={{
-                      icon: <MdOutlineSpaceBar />,
-                      span: <span className="flex items-center" />,
-                    }}
-                  />
-                }
-                options={[]}
-                open={false}
-                suffixIcon={null}
-              />
-            </Form.Item>
+                name={['trace', 'selfCollectConfig', 'instrumentDisabledNS']}
+              >
+                <Select
+                  mode="tags"
+                  style={{ width: '100%' }}
+                  placeholder={
+                    <Trans
+                      t={t}
+                      i18nKey="namespacePlaceholder"
+                      components={{
+                        icon: <MdOutlineSpaceBar />,
+                        span: <span className="flex items-center" />,
+                      }}
+                    />
+                  }
+                  options={[]}
+                  open={false}
+                  suffixIcon={null}
+                />
+              </Form.Item>
+            )}
           </div>
         </>
       )}

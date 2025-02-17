@@ -43,7 +43,7 @@ export default function IntegrationSettings() {
   }, [searchParams])
   return (
     <div style={{ height: 'calc(100vh - 100px)' }} className="flex">
-      <div className="w-1/2">
+      <div className="w-full">
         <ConfigProvider
           theme={{
             components: {
@@ -74,9 +74,9 @@ export default function IntegrationSettings() {
           </Card>
         </ConfigProvider>
       </div>
-      <div className="w-1/2 pl-2">
+      {/* <div className="w-1/2 pl-2">
         <IntegrationDoc />
-      </div>
+      </div> */}
     </div>
   )
 }
