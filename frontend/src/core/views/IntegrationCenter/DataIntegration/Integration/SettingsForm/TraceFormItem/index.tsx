@@ -191,6 +191,7 @@ const TraceFormItem = () => {
         className="mb-0"
         valuePropName="value"
         rules={[{ required: true }]}
+        initialValue={'opentelemetry'}
       >
         <ApmTypeRadio />
       </Form.Item>
