@@ -9,7 +9,6 @@ variables:
   DEPLOYMENT_NAME: apo-front-ee
   CONTAINER_NAME: apo-front-ee
   DIR_NAME: frontend
-  VITE_SHOW_MYSQL_HEALTH: ""
   DOCKER_BUILD_ARGS: ""
 
 build: # This job runs in the build stage, which runs first.
@@ -20,13 +19,11 @@ build: # This job runs in the build stage, which runs first.
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
   - TAG_NAME="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-$DATE"
   - echo "TAG_NAME=$TAG_NAME" > build.env
-  - echo "VITE_SHOW_MYSQL_HEALTH=$VITE_SHOW_MYSQL_HEALTH"
   - echo "DOCKER_BUILD_ARGS=$DOCKER_BUILD_ARGS"
   - |
     docker build $DOCKER_BUILD_ARGS \
       --build-arg VITE_PUBLIC_POSTHOG_HOST=$VITE_PUBLIC_POSTHOG_HOST \
       --build-arg VITE_PUBLIC_POSTHOG_KEY=$VITE_PUBLIC_POSTHOG_KEY \
-      --build-arg VITE_SHOW_MYSQL_HEALTH=$VITE_SHOW_MYSQL_HEALTH \
       -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
   artifacts:
     reports:
@@ -41,12 +38,10 @@ manual_build:
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
   - TAG_NAME="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-$DATE"
   - echo "TAG_NAME=$TAG_NAME" > build.env
-  - echo "VITE_SHOW_MYSQL_HEALTH=$VITE_SHOW_MYSQL_HEALTH"
   - |
     docker build $DOCKER_BUILD_ARGS \
       --build-arg VITE_PUBLIC_POSTHOG_HOST=$VITE_PUBLIC_POSTHOG_HOST \
       --build-arg VITE_PUBLIC_POSTHOG_KEY=$VITE_PUBLIC_POSTHOG_KEY \
-      --build-arg VITE_SHOW_MYSQL_HEALTH=$VITE_SHOW_MYSQL_HEALTH \
       -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
   artifacts:
     reports:
@@ -58,16 +53,6 @@ push_local:
   - echo "TAG_NAME=$TAG_NAME"
   - echo $HARBOR_REGISTRY_PASSWORD | docker login -u $HARBOR_REGISTRY_USER --password-stdin 192.168.1.22:81
   - docker push $HARBOR_IMAGE_REPO:$TAG_NAME
-
-push_dockerhub:
-  stage: push-image
-  rules:
-  - if: '$CI_COMMIT_TAG'
-  script:
-  - echo "TAG_NAME=$TAG_NAME"
-  - docker tag $HARBOR_IMAGE_REPO:$TAG_NAME $DOCKERHUB_IMAGE_REPO:$TAG_NAME
-  - echo $DOCKERHUB_REGISTRY_PASSWORD | docker login -u $DOCKERHUB_REGISTRY_USER --password-stdin $DOCKERHUB_IMAGE_REPO
-  - docker push $DOCKERHUB_IMAGE_REPO:$TAG_NAME
 
 deploy-dev:
   stage: deploy
@@ -81,3 +66,11 @@ deploy-dev:
   - kubectl -n apo set image deployment/$DEPLOYMENT_NAME $CONTAINER_NAME=$HARBOR_IMAGE_REPO:$TAG_NAME
   environment:
     name: dev
+
+trigger_arm_manual:
+  stage: triggers
+  trigger:
+    include: .gitlab-arm-ci.yml
+  rules:
+  - if: '$CI_COMMIT_BRANCH'
+    when: manual
