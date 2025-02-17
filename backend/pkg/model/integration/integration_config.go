@@ -33,8 +33,8 @@ type TraceIntegration struct {
 	Mode    string `json:"mode" gorm:"type:varchar(100);column:mode"`
 	ApmType string `json:"apmType" gorm:"type:varchar(100);column:apm_type"`
 
-	TraceAPI          JSONField[TraceAPI]          `json:"traceAPI,omitempty" gorm:"type:json;column:trace_api"`
-	SelfCollectConfig JSONField[SelfCollectConfig] `json:"selfCollectConfig" gorm:"type:json;column:self_collect_config"`
+	TraceAPI          JSONField[TraceAPI]               `json:"traceAPI,omitempty" gorm:"type:json;column:trace_api"`
+	SelfCollectConfig JSONField[TraceSelfCollectConfig] `json:"selfCollectConfig" gorm:"type:json;column:self_collect_config"`
 
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`
 	IsDeleted bool      `gorm:"column:is_deleted;default:false"`
@@ -92,7 +92,7 @@ type PinpointConfig struct {
 	Address string `json:"address" mapstructure:"address"`
 }
 
-type SelfCollectConfig struct {
+type TraceSelfCollectConfig struct {
 	InstrumentAll        bool     `json:"instrumentAll"`
 	InstrumentNS         []string `json:"instrumentNS,omitempty"`
 	InstrumentDisabledNS []string `json:"instrumentDisabledNS,omitempty"`
@@ -139,7 +139,8 @@ type LogIntegration struct {
 	Name   string `json:"name" gorm:"type:json;column:name"`
 	DBType string `json:"dbType" gorm:"type:json;column:db_type"`
 
-	LogAPI *JSONField[LogAPI] `json:"logAPI,omitempty" gorm:"type:json;column:log_api"`
+	LogAPI               *JSONField[LogAPI]               `json:"logAPI,omitempty" gorm:"type:json;column:log_api"`
+	LogSelfCollectConfig *JSONField[LogSelfCollectConfig] `json:"selfCollectConfig" gorm:"type:json;column:self_collect_config"`
 
 	UpdatedAt time.Time `json:"-" gorm:"autoUpdateTime"`
 	IsDeleted bool      `json:"-" gorm:"column:is_deleted;default:false"`
@@ -147,6 +148,10 @@ type LogIntegration struct {
 
 type LogAPI struct {
 	Clickhouse *ClickhouseConfig `json:"clickhouse"`
+}
+
+type LogSelfCollectConfig struct {
+	Mode string `json:"mode"` // full,abnormal
 }
 
 type ClickhouseConfig struct {

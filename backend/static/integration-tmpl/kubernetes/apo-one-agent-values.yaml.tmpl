@@ -13,17 +13,11 @@ global:
   # - log                Full log collection, including fault scenario logs
   # - log-sample         Fault scenario log collection, without collecting full logs
   agentCollectorMode:
-{{- if .metric.mode }}
-    - {{ .trace.mode }}
+{{- range .modes }}
+    - {{ . }}
 {{- end }}
-{{- if .metric.mode }}
-    - {{ .metric.mode }}
-{{- end }}
-{{- if .log.mode }}
-    - {{ .log.mode }}
-{{- end }}
-  apoProxyUrl: apo-nginx-proxy-svc
-  apoProxyPort: 29090
+  apoProxyUrl: {{ default .apoCollector.collectorAddr "apo-nginx-proxy-svc" }}
+  apoProxyPort: {{ default .apoCollector.ports.apoProxy 29090 }}
 
   apoServerIP: {{ .apoCollector.collectorGatewayAddr }}
   apoBackendPort: {{ default .apoCollector.ports.apoBackend 31363 }}

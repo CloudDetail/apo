@@ -2,7 +2,6 @@ package integration
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -75,14 +74,9 @@ func (s *service) GetIntegrationInstallConfigFile(req *integration.GetCInstallRe
 }
 
 func getIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
-	jsonStr, err := json.Marshal(clusterConfig)
+	jsonObj, err := clusterConfig.ConvertToHelmValues()
 	if err != nil {
 		return nil, fmt.Errorf("marshal config failed: %w", err)
-	}
-	jsonObj := map[string]any{}
-	err = json.Unmarshal(jsonStr, &jsonObj)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshal config failed: %w", err)
 	}
 
 	var buf bytes.Buffer
