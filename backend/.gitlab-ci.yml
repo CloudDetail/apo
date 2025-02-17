@@ -2,7 +2,6 @@ stages: # List of stages for jobs, and their order of execution
 - build
 - push-image
 - deploy
-- triggers
 
 variables:
   HARBOR_IMAGE_REPO: 192.168.1.22:81/kindling/apo-backend-ee
@@ -58,11 +57,3 @@ deploy-dev:
   - kubectl -n apo set image deployment/$DEPLOYMENT_NAME $CONTAINER_NAME=$HARBOR_IMAGE_REPO:$TAG_NAME
   environment:
     name: dev
-
-trigger_arm_manual:
-  stage: triggers
-  trigger:
-    include: backend/.gitlab-arm-ci.yml
-  rules:
-  - if: '$CI_COMMIT_BRANCH'
-    when: manual
