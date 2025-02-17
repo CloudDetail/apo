@@ -13,12 +13,22 @@ func (s *service) GetIntegrationInstallDoc(req *integration.GetCInstallRequest) 
 		return nil, err
 	}
 
+	clusterConfig, err := s.dbRepo.GetIntegrationConfig(req.ClusterID)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonObj, err := clusterConfig.ConvertToHelmValues()
+	if err != nil {
+		return nil, fmt.Errorf("marshal config failed: %w", err)
+	}
+
 	var buf bytes.Buffer
 	switch cluster.ClusterType {
 	case integration.ClusterTypeK8s:
-		err = k8sTmpl.ExecuteTemplate(&buf, "install.md.tmpl", req.ClusterID)
+		err = k8sTmpl.ExecuteTemplate(&buf, "install.md.tmpl", jsonObj)
 	case integration.ClusterTypeVM:
-		err = dockerComposeTmpl.ExecuteTemplate(&buf, "install.md.tmpl", req.ClusterID)
+		err = dockerComposeTmpl.ExecuteTemplate(&buf, "install.md.tmpl", jsonObj)
 	default:
 		return nil, fmt.Errorf("unexpected clusterType: %s", cluster.ClusterType)
 	}

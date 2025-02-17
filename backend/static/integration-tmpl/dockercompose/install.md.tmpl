@@ -10,6 +10,6 @@ export APO_VERSION=latest
 
 tar -zxf apo-one-agent-compose-$version.tgz
 cd apo-one-agent-compose
-bash deploy.sh init {{ .trace.apoCollector.collectorGatewayAddr }}
+bash deploy.sh init {{ .apoCollector.collectorGatewayAddr }}
 ```
 
