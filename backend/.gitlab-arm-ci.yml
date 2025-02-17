@@ -12,6 +12,8 @@ variables:
 
 build: # This job runs in the build stage, which runs first.
   stage: build
+  tags: 
+  - raspberrypi
   rules:
   - if: '$CI_COMMIT_BRANCH'
   script:
@@ -25,6 +27,8 @@ build: # This job runs in the build stage, which runs first.
 
 push_local:
   stage: push-image
+  tags: 
+  - raspberrypi
   script:
   - echo "TAG_NAME=$TAG_NAME"
   - echo $HARBOR_REGISTRY_PASSWORD | docker login -u $HARBOR_REGISTRY_USER --password-stdin 192.168.1.22:81

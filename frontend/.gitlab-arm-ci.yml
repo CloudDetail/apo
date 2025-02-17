@@ -15,6 +15,8 @@ build: # This job runs in the build stage, which runs first.
   stage: build
   rules:
   - if: '$CI_COMMIT_BRANCH'
+  tags: 
+  - raspberrypi
   script:
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
   - TAG_NAME="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-$DATE-arm"
@@ -31,6 +33,8 @@ build: # This job runs in the build stage, which runs first.
 
 push_local:
   stage: push-image
+  tags: 
+  - raspberrypi
   script:
   - echo "TAG_NAME=$TAG_NAME"
   - echo $HARBOR_REGISTRY_PASSWORD | docker login -u $HARBOR_REGISTRY_USER --password-stdin 192.168.1.22:81
