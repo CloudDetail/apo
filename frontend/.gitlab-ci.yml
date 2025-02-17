@@ -2,6 +2,7 @@ stages: # List of stages for jobs, and their order of execution
 - build
 - push-image
 - deploy
+- triggers
 
 variables:
   HARBOR_IMAGE_REPO: 192.168.1.22:81/kindling/apo-front-ee
