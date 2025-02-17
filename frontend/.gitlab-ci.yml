@@ -71,7 +71,7 @@ deploy-dev:
 trigger_arm_manual:
   stage: triggers
   trigger:
-    include: .gitlab-arm-ci.yml
+    include: frontend/.gitlab-arm-ci.yml
   rules:
   - if: '$CI_COMMIT_BRANCH'
     when: manual
