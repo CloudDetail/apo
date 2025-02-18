@@ -46,5 +46,11 @@ func (s *service) TriggerAdapterUpdate(req *integration.TriggerAdapterUpdateRequ
 		log.Println("trigger adapter update error: ", err)
 		return
 	}
-	resp.Body.Close()
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		log.Println("trigger adapter update error: ", resp.StatusCode)
+		return
+	} else {
+		log.Println("trigger adapter update success")
+	}
 }
