@@ -52,12 +52,16 @@ func (s *service) GetStaticIntegration() map[string]any {
 	resp["datasource"] = ds
 
 	if latestTraceAPI, err := s.dbRepo.GetLatestTraceAPIs(-1); err == nil {
-		var traceAPI integration.JSONField[integration.TraceAPI]
-		err := mapstructure.Decode(latestTraceAPI.APIs, &traceAPI.Obj)
-		if err == nil {
-			traceAPI.ReplaceSecret()
-			traceAPI.Obj.Timeout = int64(latestTraceAPI.Timeout)
-			resp["traceAPI"] = traceAPI.Obj
+		if latestTraceAPI == nil {
+			resp["traceAPI"] = integration.TraceAPI{}
+		} else {
+			var traceAPI integration.JSONField[integration.TraceAPI]
+			err := mapstructure.Decode(latestTraceAPI.APIs, &traceAPI.Obj)
+			if err == nil {
+				traceAPI.ReplaceSecret()
+				traceAPI.Obj.Timeout = int64(latestTraceAPI.Timeout)
+				resp["traceAPI"] = traceAPI.Obj
+			}
 		}
 	}
 
