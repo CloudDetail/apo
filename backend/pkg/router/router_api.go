@@ -285,9 +285,8 @@ func setApiRouter(r *resource) {
 
 		integrationAPI.GET("/cluster/install/config", handler.GetIntegrationInstallConfigFile())
 		integrationAPI.GET("/cluster/install/cmd", handler.GetIntegrationInstallDoc())
-		integrationAPI.POST("/adapter/update", handler.TriggerAdapterUpdate())
+		integrationAPI.GET("/adapter/update", handler.TriggerAdapterUpdate())
 	}
-
 }
 
 func SetMetaServerRouter(srv *Server, meta source.MetaSource) {

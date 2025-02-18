@@ -5,7 +5,6 @@ package integration
 
 import (
 	"strings"
-	"time"
 )
 
 func (ci *ClusterIntegration) RemoveSecret() *ClusterIntegration {
@@ -37,8 +36,8 @@ type TraceIntegration struct {
 	TraceAPI          JSONField[TraceAPI]               `json:"traceAPI,omitempty" gorm:"type:json;column:trace_api"`
 	SelfCollectConfig JSONField[TraceSelfCollectConfig] `json:"selfCollectConfig" gorm:"type:json;column:self_collect_config"`
 
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
-	IsDeleted bool      `gorm:"column:is_deleted;default:false"`
+	UpdatedAt int64 `json:"-" gorm:"autoUpdateTime:second"`
+	IsDeleted bool  `gorm:"column:is_deleted;default:false"`
 }
 
 // TraceAPI contains config for different APM providers
@@ -121,8 +120,8 @@ type MetricIntegration struct {
 
 	MetricAPI *JSONField[MetricAPI] `json:"metricAPI" gorm:"type:json;column:metric_api"`
 
-	UpdatedAt time.Time `json:"-" gorm:"autoUpdateTime"`
-	IsDeleted bool      `json:"-" gorm:"column:is_deleted;default:false"`
+	UpdatedAt int64 `json:"-" gorm:"autoUpdateTime:second"`
+	IsDeleted bool  `json:"-" gorm:"column:is_deleted;default:false"`
 }
 
 type MetricAPI struct {
@@ -148,8 +147,8 @@ type LogIntegration struct {
 	LogAPI               *JSONField[LogAPI]               `json:"logAPI,omitempty" gorm:"type:json;column:log_api"`
 	LogSelfCollectConfig *JSONField[LogSelfCollectConfig] `json:"selfCollectConfig" gorm:"type:json;column:self_collect_config"`
 
-	UpdatedAt time.Time `json:"-" gorm:"autoUpdateTime"`
-	IsDeleted bool      `json:"-" gorm:"column:is_deleted;default:false"`
+	UpdatedAt int64 `json:"-" gorm:"autoUpdateTime:second"`
+	IsDeleted bool  `json:"-" gorm:"column:is_deleted;default:false"`
 }
 
 type LogAPI struct {
@@ -172,4 +171,6 @@ type ClickhouseConfig struct {
 type AdapterAPIConfig struct {
 	APIs    map[string]any `json:"apis"`
 	Timeout int64          `json:"timeout"`
+
+	LastUpdateTS int64 `json:"lastUpdateTS"`
 }

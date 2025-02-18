@@ -1,8 +1,6 @@
 package integration
 
 import (
-	"time"
-
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/mitchellh/mapstructure"
@@ -45,7 +43,7 @@ func (s *service) GetStaticIntegration() map[string]any {
 				},
 			},
 		},
-		UpdatedAt: time.Time{},
+		UpdatedAt: 0,
 		IsDeleted: false,
 	}
 	ds.MetricAPI.ReplaceSecret()

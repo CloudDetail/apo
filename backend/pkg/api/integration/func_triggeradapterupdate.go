@@ -20,7 +20,7 @@ import (
 func (h *handler) TriggerAdapterUpdate() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(integration.TriggerAdapterUpdateRequest)
-		if err := c.ShouldBindJSON(req); err != nil {
+		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,

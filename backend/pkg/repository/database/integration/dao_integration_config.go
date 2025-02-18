@@ -6,7 +6,6 @@ package integration
 import (
 	"encoding/json"
 	"errors"
-	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"go.uber.org/multierr"
@@ -176,7 +175,7 @@ type traceAPI struct {
 	ApmType  string `gorm:"apm_type"`
 	TraceAPI string `gorm:"trace_api"`
 
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	UpdatedAt int64 `gorm:"autoUpdateTime"`
 }
 
 func (repo *subRepos) GetLatestTraceAPIs(lastUpdateTS int64) (*integration.AdapterAPIConfig, error) {
@@ -205,7 +204,7 @@ func (repo *subRepos) GetLatestTraceAPIs(lastUpdateTS int64) (*integration.Adapt
 
 	latestAPI := make(map[string]any)
 	var apmList []string
-	var latestTimeout time.Time
+	var latestUpdateTS int64 = -1
 	var timeoutI64 int64 = 0
 	for _, api := range latestTraceAPIs {
 		var apiSpec map[string]interface{}
@@ -222,19 +221,21 @@ func (repo *subRepos) GetLatestTraceAPIs(lastUpdateTS int64) (*integration.Adapt
 		latestAPI[api.ApmType] = cfg
 		apmList = append(apmList, api.ApmType)
 
-		if latestTimeout.Before(api.UpdatedAt) {
+		if latestUpdateTS < api.UpdatedAt {
 			timeout, ok := apiSpec["timeout"]
 			if !ok {
 				continue
 			}
 			timeoutI64 = getTimeout(timeout)
+			latestUpdateTS = api.UpdatedAt
 		}
 	}
 
-	latestAPI["apm_list"] = apmList
+	latestAPI["apmList"] = apmList
 	return &integration.AdapterAPIConfig{
-		APIs:    latestAPI,
-		Timeout: timeoutI64,
+		APIs:         latestAPI,
+		Timeout:      timeoutI64,
+		LastUpdateTS: latestUpdateTS,
 	}, nil
 }
 

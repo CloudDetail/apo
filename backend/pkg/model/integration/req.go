@@ -5,5 +5,5 @@ type GetCInstallRequest struct {
 }
 
 type TriggerAdapterUpdateRequest struct {
-	LastUpdateTS int64 `json:"lastUpdateTS"`
+	LastUpdateTS int64 `form:"lastUpdateTS" json:"lastUpdateTS"`
 }
