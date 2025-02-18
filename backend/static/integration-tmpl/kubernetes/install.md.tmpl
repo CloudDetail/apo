@@ -12,7 +12,7 @@
 
 ```bash
 curl -Lo apo-one-agent-values.yaml \
-    http://{{ .apoCollector.collectorGatewayAddr }}:{{ default .apoCollector.ports.apoBackend 31363 }}/api/integration/cluster/install/config?clusterId={{ .cluster.id}}
+    http://{{ .apoCollector.collectorGatewayAddr }}:{{ default .apoCollector.ports.apoBackend 31363 }}/api/integration/cluster/install/config?clusterId={{ .id}}
 ```
 
 ### 2.使用helm命令安装

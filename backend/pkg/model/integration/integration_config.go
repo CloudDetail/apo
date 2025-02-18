@@ -4,6 +4,7 @@
 package integration
 
 import (
+	"strings"
 	"time"
 )
 
@@ -102,6 +103,11 @@ type APOCollector struct {
 	CollectorGatewayAddr string                `json:"collectorGatewayAddr"`
 	CollectorAddr        string                `json:"collectorAddr,omitempty"`
 	Ports                CollectorGatewayPorts `json:"ports"`
+}
+
+func (c *APOCollector) RemoveHttpPrefix() {
+	c.CollectorAddr = strings.TrimPrefix(c.CollectorAddr, "http://")
+	c.CollectorGatewayAddr = strings.TrimPrefix(c.CollectorGatewayAddr, "http://")
 }
 
 type CollectorGatewayPorts map[string]string

@@ -33,6 +33,7 @@ func (s *service) UpdateClusterIntegration(cluster *integration.ClusterIntegrati
 		},
 	}
 
+	cluster.APOCollector.RemoveHttpPrefix()
 	err := s.dbRepo.UpdateCluster(&cluster.Cluster)
 	if err != nil {
 		return err

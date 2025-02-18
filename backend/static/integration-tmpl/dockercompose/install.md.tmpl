@@ -7,7 +7,7 @@
 
 ```bash
 curl -Lo installCfg.sh \
-    http://{{ .apoCollector.collectorGatewayAddr }}:{{ default .apoCollector.ports.apoBackend 31363 }}/api/integration/cluster/install/config?clusterId={{ .cluster.id}}
+    http://{{ .apoCollector.collectorGatewayAddr }}:{{ default .apoCollector.ports.apoBackend 31363 }}/api/integration/cluster/install/config?clusterId={{ .id}}
 ```
 
 ## 2.下载部署包并执行安装命令

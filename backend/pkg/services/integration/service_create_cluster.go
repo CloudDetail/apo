@@ -21,6 +21,7 @@ func (s *service) CreateCluster(cluster *integration.ClusterIntegration) (*integ
 	}
 
 	cluster.ID = uuid.NewString()
+	cluster.APOCollector.RemoveHttpPrefix()
 	err = s.dbRepo.CreateCluster(&cluster.Cluster)
 	if err != nil {
 		return nil, err
