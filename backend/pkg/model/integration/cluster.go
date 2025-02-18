@@ -35,7 +35,7 @@ type ClusterIntegration struct {
 const (
 	sideCarTraceMode = "sidecar"
 	collectTraceMode = "collect"
-	selfCollectMode  = "self-collect"
+	selfCollectMode  = "self-collector"
 )
 
 func (ci *ClusterIntegration) ConvertToHelmValues() (map[string]any, error) {
@@ -59,16 +59,17 @@ func (ci *ClusterIntegration) ConvertToHelmValues() (map[string]any, error) {
 		modes = append(modes, "trace")
 	}
 
-	switch ci.Metric.Mode {
-	case selfCollectMode:
+	if ci.Metric.DSType == selfCollectMode {
 		modes = append(modes, "metrics")
 	}
 
-	logMode := "log"
-	if ci.Log.LogSelfCollectConfig != nil && ci.Log.LogSelfCollectConfig.Obj.Mode == "sample" {
-		logMode = "log-sample"
+	if ci.Log.DBType == selfCollectMode {
+		logMode := "log"
+		if ci.Log.LogSelfCollectConfig != nil && ci.Log.LogSelfCollectConfig.Obj.Mode == "sample" {
+			logMode = "log-sample"
+		}
+		modes = append(modes, logMode)
 	}
-	modes = append(modes, logMode)
 
 	jsonObj["modes"] = modes
 	return jsonObj, nil
