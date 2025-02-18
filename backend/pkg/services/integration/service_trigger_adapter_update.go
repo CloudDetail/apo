@@ -6,13 +6,24 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
 
+func init() {
+	if value, find := os.LookupEnv("ADAPTER_SERVICE_ADDRESS"); find {
+		if !strings.HasPrefix(value, "http://") {
+			value = "http://" + value
+		}
+		adapterServiceAddress = value
+	}
+}
+
 const adapterUpdateAPI = "/trace/api/update"
 
-var adapterServiceURL = "apo-apm-adapter-svc:8079"
+var adapterServiceAddress = "http://apo-apm-adapter-svc:8079"
 
 func (s *service) TriggerAdapterUpdate(req *integration.TriggerAdapterUpdateRequest) {
 	traceAPI, err := s.dbRepo.GetLatestTraceAPIs(req.LastUpdateTS)
@@ -24,14 +35,13 @@ func (s *service) TriggerAdapterUpdate(req *integration.TriggerAdapterUpdateRequ
 		return
 	}
 
-	apiData, _ := json.Marshal(traceAPI)
-	if apiData == nil {
+	apiData, err := json.Marshal(traceAPI)
+	if err != nil {
 		return
 	}
 
-	resp, err := http.Post(fmt.Sprintf("http://%s%s", adapterServiceURL, adapterUpdateAPI),
+	resp, err := http.Post(fmt.Sprintf("%s%s", adapterServiceAddress, adapterUpdateAPI),
 		"application/json", bytes.NewBuffer(apiData))
-
 	if err != nil {
 		log.Println("trigger adapter update error: ", err)
 		return

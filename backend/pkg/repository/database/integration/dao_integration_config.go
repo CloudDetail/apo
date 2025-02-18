@@ -6,6 +6,7 @@ package integration
 import (
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"go.uber.org/multierr"
@@ -174,6 +175,8 @@ func (repo *subRepos) DeleteIntegrationConfig(clusterID string) error {
 type traceAPI struct {
 	ApmType  string `gorm:"apm_type"`
 	TraceAPI string `gorm:"trace_api"`
+
+	UpdatedAt time.Time `gorm:"autoUpdateTime"`
 }
 
 func (repo *subRepos) GetLatestTraceAPIs(lastUpdateTS int64) (*integration.AdapterAPIConfig, error) {
@@ -182,22 +185,17 @@ func (repo *subRepos) GetLatestTraceAPIs(lastUpdateTS int64) (*integration.Adapt
 		Order("updated_at DESC").Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &integration.AdapterAPIConfig{
-			APIs:    map[string]any{},
-			Timeout: 0,
-		}, nil
+		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
 
 	var latestTraceAPIs []traceAPI
 	sql := `WITH latestAPI AS (
-  SELECT apm_type,trace_api,
+  SELECT apm_type,trace_api,updated_at,
     ROW_NUMBER() OVER (PARTITION BY apm_type ORDER BY updated_at DESC) AS rn
   FROM trace_integrations WHERE is_deleted = false)
-SELECT apm_type, trace_api
-FROM latestAPI
-WHERE rn = 1`
+  SELECT apm_type, trace_api, updated_at FROM latestAPI WHERE rn = 1`
 
 	err = repo.db.Raw(sql).Scan(&latestTraceAPIs).Error
 
@@ -207,10 +205,10 @@ WHERE rn = 1`
 
 	latestAPI := make(map[string]any)
 	var apmList []string
-	var maxTimeout int64 = 0
+	var latestTimeout time.Time
+	var timeoutI64 int64 = 0
 	for _, api := range latestTraceAPIs {
 		var apiSpec map[string]interface{}
-		// 反序列化 JSON 数据到 map
 		err := json.Unmarshal([]byte(api.TraceAPI), &apiSpec)
 		if err != nil {
 			continue
@@ -223,20 +221,20 @@ WHERE rn = 1`
 
 		latestAPI[api.ApmType] = cfg
 		apmList = append(apmList, api.ApmType)
-		timeout, ok := apiSpec["timeout"]
-		if !ok {
-			continue
-		}
-		timeoutI := getTimeout(timeout)
-		if timeoutI > maxTimeout {
-			maxTimeout = timeoutI
+
+		if latestTimeout.Before(api.UpdatedAt) {
+			timeout, ok := apiSpec["timeout"]
+			if !ok {
+				continue
+			}
+			timeoutI64 = getTimeout(timeout)
 		}
 	}
 
 	latestAPI["apm_list"] = apmList
 	return &integration.AdapterAPIConfig{
 		APIs:    latestAPI,
-		Timeout: maxTimeout,
+		Timeout: timeoutI64,
 	}, nil
 }
 

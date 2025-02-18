@@ -6,6 +6,7 @@ package polarisanalyzer
 import (
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -26,6 +27,9 @@ type Repo interface {
 
 func New() (Repo, error) {
 	if value, find := os.LookupEnv("POLARIS_ANALYZER_ADDRESS"); find {
+		if !strings.HasPrefix(value, "http://") {
+			value = "http://" + value
+		}
 		polarisAnalyzerAddress = value
 	}
 
