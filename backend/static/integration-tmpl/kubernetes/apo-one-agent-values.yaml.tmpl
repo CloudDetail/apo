@@ -13,7 +13,7 @@ global:
   # - log                Full log collection, including fault scenario logs
   # - log-sample         Fault scenario log collection, without collecting full logs
   agentCollectorMode:
-{{- range .modes }}
+{{- range ._modes }}
     - {{ . }}
 {{- end }}
   apoProxyUrl: {{ default .apoCollector.collectorAddr "apo-nginx-proxy-svc" }}

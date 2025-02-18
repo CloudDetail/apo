@@ -2,14 +2,20 @@
 
 传统服务器中使用Docker Compose安装和管理oneAgent服务.
 
-1. 将下载的安装文件(apo-one-agent-compose-$version.tgz)保存到服务器上.
-2. 运行下面的命令进行安装
+
+## 1.下载配置文件
 
 ```bash
-export APO_VERSION=latest
-
-tar -zxf apo-one-agent-compose-$version.tgz
-cd apo-one-agent-compose
-bash deploy.sh init {{ .apoCollector.collectorGatewayAddr }}
+curl -Lo installCfg.sh \
+    http://{{ .apoCollector.collectorGatewayAddr }}:{{ default .apoCollector.ports.apoBackend 31363 }}/api/integration/cluster/install/config?clusterId={{ .cluster.id}}
 ```
 
+## 2.下载部署包并执行安装命令
+
+使用下面的命令下载部署包并进行安装
+
+```bash
+curl -Lo apo-one-agent-compose-{{ ._deploy_version }}.tgz \
+    https://apo-ce.oss-cn-hangzhou.aliyuncs.com/apo-one-agent-compose-{{ ._deploy_version }}.tgz
+bash ./installCfg.sh
+```

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+# global
+export DEPLOY_VERSION={{ ._deploy_version }}
+export APO_ONE_AGENT_VERSION={{ ._app_version }}
+export JAVA_AGENT_TYPE={{ default ._java_agent_type OPENTELEMETRY }}
+export TRACE_MODE={{ default ._modes.trace trace }}
+
+# network
+export APO_COLLECTOR_PORT={{ default .apoCollector.ports.apoCollector 30044 }}
+export APO_OTEL_COLLECTOR_GRPCPORT={{ default .apoCollector.ports.apoOtelCollectorGatewayGrpc 30317 }}
+export APO_VECTOR_PORT={{ default .apoCollector.ports.apoVector 30310 }}
+
+echo "Unzip docker compose tarball: apo-one-agent-compose-{{ ._deploy_version }}.tgz"
+tar -zxvf apo-one-agent-compose-{{ ._deploy_version }}.tgz
+
+cd apo-one-agent-compose && bash deploy.sh init {{ .apoCollector.collectorGatewayAddr }}

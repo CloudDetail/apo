@@ -86,8 +86,8 @@ func getIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*i
 		err = k8sTmpl.ExecuteTemplate(&buf, "apo-one-agent-values.yaml.tmpl", jsonObj)
 		fileName = "apo-one-agent-values.yaml"
 	case integration.ClusterTypeVM:
-		_, err = buf.WriteString("vm cluster not have config now")
-		fileName = "empty-config.yaml"
+		err = dockerComposeTmpl.ExecuteTemplate(&buf, "installCfg.sh.tmpl", jsonObj)
+		fileName = "installCfg.sh"
 	default:
 		return nil, fmt.Errorf("unexpected clusterType: %s", clusterConfig.ClusterType)
 	}

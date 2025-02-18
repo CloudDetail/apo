@@ -48,19 +48,25 @@ func (ci *ClusterIntegration) ConvertToHelmValues() (map[string]any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unmarshal config failed: %w", err)
 	}
-	var modes []string
 
+	var modes = make(map[string]string)
 	switch ci.Trace.Mode {
 	case sideCarTraceMode:
-		modes = append(modes, "trace-sidecar")
+		modes["trace"] = "trace-sidecar"
 	case collectTraceMode:
-		modes = append(modes, "trace-collector")
+		modes["trace"] = "trace-collector"
 	case selfCollectMode:
-		modes = append(modes, "trace")
+		modes["trace"] = "trace"
+		switch ci.Trace.ApmType {
+		case "skywalking":
+			modes["_java_agent_type"] = "SKYWALKING"
+		default:
+			modes["_java_agent_type"] = "OPENTELEMETRY"
+		}
 	}
 
 	if ci.Metric.DSType == selfCollectMode {
-		modes = append(modes, "metrics")
+		modes["metric"] = "metrics"
 	}
 
 	if ci.Log.DBType == selfCollectMode {
@@ -68,9 +74,18 @@ func (ci *ClusterIntegration) ConvertToHelmValues() (map[string]any, error) {
 		if ci.Log.LogSelfCollectConfig != nil && ci.Log.LogSelfCollectConfig.Obj.Mode == "sample" {
 			logMode = "log-sample"
 		}
-		modes = append(modes, logMode)
+		modes["log"] = logMode
 	}
 
-	jsonObj["modes"] = modes
+	jsonObj["_modes"] = modes
+
+	if ci.ClusterType == ClusterTypeK8s {
+		jsonObj["_deploy_version"] = "v1.2.000"
+		jsonObj["_app_version"] = "v1.2.0"
+	} else {
+		jsonObj["_deploy_version"] = "v1.3.000"
+		jsonObj["_app_version"] = "v1.3.0"
+	}
+
 	return jsonObj, nil
 }
