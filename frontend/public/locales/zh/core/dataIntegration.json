@@ -12,7 +12,7 @@
   "hauwei": "华为AOM",
   "other": "其他",
   "timeout": "链路数据API查询超时时间",
-  "timeoutHint": "超时时间过短可能导致无法正常链路数据",
+  "timeoutHint": "超时时间过短可能导致无法正常查询链路数据",
   "second": "秒",
   "address": "链路追踪API地址 ",
   "user": "用户",
@@ -77,6 +77,36 @@
   "logCollectMode": "日志采集方式",
   "logCollect": {
     "full": "采集全量日志",
-    "sample": "故障日志采样"
+    "sample": "仅采集故障日志"
+  },
+  "selfConfig": "APO自采配置",
+  "sampleHint": "仅采集慢请求和错误请求相关时间点的日志，大大降低日志数量",
+  "collectorDoc": {
+    "selfConfig": "Collector 接入模式对接已有指标数据",
+    "installationMethod": "在安装 APO OneAgent 时采用 trace-collector 模式安装，随后将现有探针的数据发送地址修改为APO-otel-collector地址",
+    "connectionMethod": "对接方式",
+    "agentInstallation": "APO 需要在每台主机上安装一个 Agent 用于获取主机上的进程信息",
+    "probeAddressModification": "将探针数据发送地址修改为本机的 APO OneAgent 地址",
+    "advantages": "优点：支持 Java、Go、Python 等各类编程语言，能够使用 APO 的全量功能",
+    "disadvantages": "缺点：需要调整 Tracing 探针数据的发送地址",
+    "specificSteps": "具体步骤",
+    "otlpSupport": "对于支持 OTLP 格式输出的 Traces 数据：",
+    "grpcUsage": "如果您使用 gRPC 协议发送数据，请使用 http://<本机IP>:4317",
+    "httpUsage": "如果您使用 HTTP 协议发送数据，请使用 http://<本机IP>:4318",
+    "skyWalking": "对于 SkyWalking：",
+    "skyWalkingGrpc": "如果您使用 gRPC 协议发送数据，请使用 http://<本机IP>:11800",
+    "skyWalkingHttp": "如果您使用 HTTP 协议发送数据，请使用 http://<本机IP>:12800"
+  },
+  "installCmd": {
+    "loadError": "加载失败，请稍后重试!",
+    "onlineInstallation": "联网环境在线安装",
+    "downloadHelmConfig": "1. 下载 Helm 安装配置文件，保存到服务器上。",
+    "helmConfigFile": "Helm 安装配置文件",
+    "runInstallationCommand": "2. 运行下面的命令执行安装。",
+    "offlineInstallation": "离线安装",
+    "downloadHelmPackage": "1. 下载 Helm 安装文件，保存到服务器上。",
+    "helmPackageFile": "Helm 安装文件",
+    "importOfflineImage": "2. 导入离线镜像到目标服务器上。",
+    "executeOfflineCommand": "3. 运行下面的命令执行安装。"
   }
 }

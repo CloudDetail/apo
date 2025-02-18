@@ -5,34 +5,30 @@ import {
   getClusterInstallPackageApi,
 } from 'src/core/api/integration'
 import ReactMarkdown from 'react-markdown'
-import { Button } from 'antd'
+import { Button, Card, Typography } from 'antd'
 import { IoCloudDownloadOutline } from 'react-icons/io5'
+import { useTranslation } from 'react-i18next'
 
 const decodeBase64 = (base64Str: string) => {
   try {
-    // 处理 URL 安全 Base64
     const fixedBase64 = base64Str.replace(/-/g, '+').replace(/_/g, '/')
-
-    // Base64 -> 字符串
     const binaryStr = atob(fixedBase64)
-
-    // 处理 UTF-8
     const bytes = new Uint8Array(binaryStr.length)
     for (let i = 0; i < binaryStr.length; i++) {
       bytes[i] = binaryStr.charCodeAt(i)
     }
     return new TextDecoder('utf-8').decode(bytes)
   } catch (error) {
-    console.error('Base64 解码失败:', error)
+    console.error('Base64 error:', error)
   }
 }
 
 const InstallCmd = ({ clusterId, clusterType }) => {
+  const { t } = useTranslation('core/dataIntegration')
   const [markdownContent, setMarkdownContent] = useState('')
   const downloadFile = (response, suffix = 'yaml') => {
-    // 获取文件名
     const contentDisposition = response.headers['content-disposition']
-    let filename = 'downloaded-file.yaml' // 默认文件名
+    let filename = 'downloaded-file.yaml'
 
     if (contentDisposition) {
       const match = contentDisposition.match(/filename="?([^"]+)"?/)
@@ -42,18 +38,15 @@ const InstallCmd = ({ clusterId, clusterType }) => {
     } else if (clusterType) {
       filename = clusterType + '.' + suffix
     }
-    // 创建 blob 链接
     const blob = new Blob([response.data], { type: response.headers['content-type'] })
     const url = window.URL.createObjectURL(blob)
 
-    // 创建 <a> 标签，触发下载
     const a = document.createElement('a')
     a.href = url
-    a.download = filename // 设置下载的文件名
+    a.download = filename
     document.body.appendChild(a)
     a.click()
 
-    // 释放资源
     window.URL.revokeObjectURL(url)
     document.body.removeChild(a)
   }
@@ -63,7 +56,7 @@ const InstallCmd = ({ clusterId, clusterType }) => {
 
       downloadFile(response)
     } catch (error) {
-      console.error('下载文件失败', error)
+      console.error('error', error)
     }
   }
   const getPackage = async () => {
@@ -83,24 +76,39 @@ const InstallCmd = ({ clusterId, clusterType }) => {
         setMarkdownContent(decodedMD)
       })
       .catch((error) => {
-        console.error('API 请求失败:', error)
-        setMarkdownContent('加载失败，请稍后重试！')
+        setMarkdownContent(t('installCmd.loadError'))
       })
   }, [clusterId])
 
   return (
-    <div className="p-6 max-w-2xl mx-auto markdown-body">
-      <h2 className="text-xl font-bold mb-4">安装命令</h2>
-      <ReactMarkdown>{markdownContent}</ReactMarkdown>
-
-      <div className="flex w-full justify-around my-4">
-        <Button type="primary" icon={<IoCloudDownloadOutline />} onClick={getConfig}>
-          集群安装配置
+    <div className="p-3 mx-auto markdown-body">
+      <Card title={t('installCmd.onlineInstallation')} className="mb-3">
+        <div className="p-1">{t('installCmd.downloadHelmConfig')}</div>
+        <Button
+          type="primary"
+          icon={<IoCloudDownloadOutline />}
+          onClick={getConfig}
+          className="ml-4"
+        >
+          {t('installCmd.helmConfigFile')}
         </Button>
-        <Button type="primary" icon={<IoCloudDownloadOutline />} onClick={getPackage}>
-          集群安装文件
+        <div className="p-1">{t('installCmd.runInstallationCommand')}</div>
+        <ReactMarkdown>{markdownContent}</ReactMarkdown>
+      </Card>
+      <Card title={t('installCmd.offlineInstallation')}>
+        <div className="p-1">{t('installCmd.downloadHelmPackage')}</div>
+        <Button
+          type="primary"
+          icon={<IoCloudDownloadOutline />}
+          onClick={getPackage}
+          className="ml-4"
+        >
+          {t('installCmd.helmPackageFile')}
         </Button>
-      </div>
+        <div className="p-1">{t('installCmd.importOfflineImage')}</div>
+        <div className="p-1">{t('installCmd.executeOfflineCommand')}</div>
+        <ReactMarkdown>{markdownContent}</ReactMarkdown>
+      </Card>
     </div>
   )
 }

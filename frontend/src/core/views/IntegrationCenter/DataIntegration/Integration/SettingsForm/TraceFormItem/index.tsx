@@ -253,7 +253,7 @@ const TraceFormItem = () => {
       {modeValue === 'self-collector' && (
         <>
           <Divider></Divider>
-          <Typography.Title level={5}>APO自采配置</Typography.Title>
+          <Typography.Title level={5}>{t('selfConfig')}</Typography.Title>
           <div className="px-3">
             <Form.Item
               label={t('instrumentAll')}
@@ -315,6 +315,41 @@ const TraceFormItem = () => {
               </Form.Item>
             )}
           </div>
+        </>
+      )}
+      {modeValue === 'collector' && (
+        <>
+          <Divider />
+          <Typography.Title level={5}>{t('collectorDoc.selfConfig')}</Typography.Title>
+          <Typography>{t('collectorDoc.installationMethod')}</Typography>
+          <Typography>
+            <div className="font-bold mt-1">{t('collectorDoc.connectionMethod')}</div>
+            <ul>
+              <li>{t('collectorDoc.agentInstallation')}</li>
+              <li>{t('collectorDoc.probeAddressModification')}</li>
+              <li>{t('collectorDoc.advantages')}</li>
+              <li>{t('collectorDoc.disadvantages')}</li>
+            </ul>
+          </Typography>
+          <Typography>
+            <div className="font-bold mt-1">{t('collectorDoc.specificSteps')}</div>
+            <ul>
+              <li>
+                {t('collectorDoc.otlpSupport')}
+                <ul>
+                  <li>{t('collectorDoc.grpcUsage')}</li>
+                  <li>{t('collectorDoc.httpUsage')}</li>
+                </ul>
+              </li>
+              <li>
+                {t('collectorDoc.skyWalking')}
+                <ul>
+                  <li>{t('collectorDoc.skyWalkingGrpc')}</li>
+                  <li>{t('collectorDoc.skyWalkingHttp')}</li>
+                </ul>
+              </li>
+            </ul>
+          </Typography>
         </>
       )}
     </div>

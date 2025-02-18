@@ -12,7 +12,7 @@
   "hauwei": "Huawei AOM",
   "other": "Other",
   "timeout": "Trace API Query Timeout Duration",
-  "timeoutHint": "A timeout duration that is too short may result in the inability to collect proper link data.",
+  "timeoutHint": "A timeout setting that is too short may result in the inability to properly query link data.",
   "second": "s",
   "address": "Tracing API Endpoint",
   "user": "User",
@@ -51,7 +51,7 @@
   "saveSettings": "Save Cluster Integration",
   "advanced": "Advanced Settings",
   "ports": "Ports",
-  "apoCollectorSetting": "APO Collector Setting",
+  "apoCollectorSetting": "APO Server",
   "apoCollector": {
     "port1": "Used to receive link trace sampling data",
     "port2": "Used to receive and process log data",
@@ -77,6 +77,36 @@
   "logCollectMode": "Log collection method",
   "logCollect": {
     "full": "Full Log Collection",
-    "sample": "Sampled Log Collection"
+    "sample": "Collect Only Error Logs"
+  },
+  "selfConfig": "APO Self-Collect Config",
+  "sampleHint": "Only collect logs for slow requests and error requests at relevant time points, significantly reducing the volume of logs.",
+  "collectorDoc": {
+    "selfConfig": "Collector Integration Mode for Existing Metric Data",
+    "installationMethod": "Install APO OneAgent in trace-collector mode and then send the existing probe data to",
+    "connectionMethod": "Connection Method",
+    "agentInstallation": "APO requires an Agent installed on each host to obtain process information.",
+    "probeAddressModification": "Modify the probe data sending address to the local APO OneAgent address.",
+    "advantages": "Advantages: Supports Java, Go, Python, and other programming languages. Can utilize all APO features.",
+    "disadvantages": "Disadvantages: Requires adjustment of the tracing probe data sending address.",
+    "specificSteps": "Specific Steps",
+    "otlpSupport": "For Traces data that supports OTLP format:",
+    "grpcUsage": "If you use the gRPC protocol to send data, please use http://<local_IP>:4317",
+    "httpUsage": "If you use the HTTP protocol to send data, please use http://<local_IP>:4318",
+    "skyWalking": "For SkyWalking:",
+    "skyWalkingGrpc": "If you use the gRPC protocol to send data, please use http://<local_IP>:11800",
+    "skyWalkingHttp": "If you use the HTTP protocol to send data, please use http://<local_IP>:12800"
+  },
+  "installCmd": {
+    "loadError": "Loading failed, please try again later!",
+    "onlineInstallation": "Online Installation in Networked Environment",
+    "downloadHelmConfig": "1. Download the Helm installation configuration file and save it to the server.",
+    "helmConfigFile": "Helm Installation Configuration File",
+    "runInstallationCommand": "2. Run the following command to execute the installation.",
+    "offlineInstallation": "Offline Installation",
+    "downloadHelmPackage": "1. Download the Helm installation package and save it to the server.",
+    "helmPackageFile": "Helm Installation Package",
+    "importOfflineImage": "2. Import the offline image to the target server.",
+    "executeOfflineCommand": "3. Run the following command to execute the installation."
   }
 }

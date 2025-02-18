@@ -1,11 +1,13 @@
 import { Form, Input, Segmented, Switch } from 'antd'
 import { useTranslation } from 'react-i18next'
 import DbTypeRadio from './DbTypeRadio'
+import { AiOutlineInfoCircle } from 'react-icons/ai'
 
 const LogsFormItem = () => {
   const { t } = useTranslation('core/dataIntegration')
   const form = Form.useFormInstance()
-  const clickhouseCluster = Form.useWatch(['log', 'logAPI', 'chConfig', 'replication'], form)
+  // const clickhouseCluster = Form.useWatch(['log', 'logAPI', 'chConfig', 'replication'], form)
+  const logCollectModeValue = Form.useWatch(['log', 'selfCollectConfig', 'mode'], form)
   const logCollectModeOptions = [
     {
       label: t('logCollect.full'),
@@ -38,6 +40,12 @@ const LogsFormItem = () => {
       >
         <Segmented options={logCollectModeOptions} />
       </Form.Item>
+      {logCollectModeValue === 'sample' && (
+        <span className="text-xs text-gray-400 flex mt-1">
+          <AiOutlineInfoCircle size={16} className="mr-1 " color="#1668dc" />
+          {t('sampleHint')}
+        </span>
+      )}
       {/* <Form.Item
         name={['log', 'mode']}
         label={t('integrationMode')}

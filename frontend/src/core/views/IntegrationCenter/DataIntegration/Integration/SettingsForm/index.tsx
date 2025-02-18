@@ -59,16 +59,24 @@ const SettingsForm = () => {
     })
   }
   const saveInfo = () => {
-    form.validateFields().then((values) => {
-      const params = { ...values }
-      if (!values.apoCollector.ports || values.apoCollector.ports === undefined) {
-        params.apoCollector.ports = portsDefault?.reduce((map, item) => {
-          map[item.key] = item.value
-          return map
-        }, {})
-      }
-      saveIntegration(params)
-    })
+    form
+      .validateFields()
+      .then((values) => {
+        const params = { ...values }
+        if (!values.apoCollector.ports || values.apoCollector.ports === undefined) {
+          params.apoCollector.ports = portsDefault?.reduce((map, item) => {
+            map[item.key] = item.value
+            return map
+          }, {})
+        }
+        saveIntegration(params)
+      })
+      .catch((errorInfo) => {
+        // 手动滚动到第一个错误字段
+        if (errorInfo.errorFields.length > 0) {
+          form.scrollToField(errorInfo.errorFields[0].name[0])
+        }
+      })
   }
 
   const getIntegrationInfo = async () => {

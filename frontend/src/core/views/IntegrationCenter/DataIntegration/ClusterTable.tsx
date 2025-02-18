@@ -121,6 +121,7 @@ const ClusterTable = () => {
           setModalOpen(false)
           setClusterInfo(null)
         }}
+        title={t('installCmdTitle')}
       >
         <InstallCmd clusterId={clusterInfo?.id} clusterType={clusterInfo?.clusterType} />
       </Modal>
