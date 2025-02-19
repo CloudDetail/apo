@@ -127,6 +127,8 @@ const ClusterTable = () => {
           setClusterInfo(null)
         }}
         title={t('installCmdTitle')}
+        width={800}
+         styles={{ body: { height: '70vh', overflowY: 'hidden', overflowX: 'hidden' } }}
       >
         <InstallCmd clusterId={clusterInfo?.id} clusterType={clusterInfo?.clusterType} />
       </Modal>

@@ -86,33 +86,40 @@ const InstallCmd = ({ clusterId, clusterType }) => {
   }, [clusterId])
 
   return (
-    <div className="p-3 mx-auto markdown-body">
-      <Card title={t('installCmd.onlineInstallation')} className="mb-3">
-        <div className="p-1">{t('installCmd.downloadHelmConfig')}</div>
-        <Button
-          type="primary"
-          icon={<IoCloudDownloadOutline />}
-          onClick={getConfig}
-          className="ml-4"
-        >
-          {t('installCmd.helmConfigFile')}
-        </Button>
-        <div className="p-1">{t('installCmd.runInstallationCommand')}</div>
-        <ReactMarkdown>{markdownContent}</ReactMarkdown>
+    <div className="p-3 mx-auto markdown-body h-full overflow-hidden flex flex-col">
+      <Card
+        title={t('installCmd.onlineInstallation')}
+        className="mb-3 flex-1 h-0 overflow-hidden"
+        styles={{body:{height:'calc(100% - 56px)'}}}
+        classNames={{ body: 'py-2 h-full overflow-y-auto' }}>
+          <div className="p-1">{t('installCmd.downloadHelmConfig')}</div>
+          <Button
+            type="primary"
+            icon={<IoCloudDownloadOutline />}
+            onClick={getConfig}
+            className="ml-4"
+          >
+            {t('installCmd.helmConfigFile')}
+          </Button>
+          <div className="p-1">{t('installCmd.runInstallationCommand')}</div>
+          <ReactMarkdown className='px-4'>{markdownContent}</ReactMarkdown>
       </Card>
-      <Card title={t('installCmd.offlineInstallation')}>
-        <div className="p-1">{t('installCmd.downloadHelmPackage')}</div>
-        <Button
-          type="primary"
-          icon={<IoCloudDownloadOutline />}
-          onClick={getPackage}
-          className="ml-4"
-        >
-          {t('installCmd.helmPackageFile')}
-        </Button>
-        <div className="p-1">{t('installCmd.importOfflineImage')}</div>
-        <div className="p-1">{t('installCmd.executeOfflineCommand')}</div>
-        <ReactMarkdown>{markdownContent}</ReactMarkdown>
+      <Card title={t('installCmd.offlineInstallation')} 
+        className="mb-3 flex-1 h-0 overflow-hidden"
+        styles={{body:{height:'calc(100% - 56px)'}}}
+        classNames={{ body: 'py-2 h-full overflow-y-auto' }}>
+          <div className="p-1">{t('installCmd.downloadHelmPackage')}</div>
+          <Button
+            type="primary"
+            icon={<IoCloudDownloadOutline />}
+            onClick={getPackage}
+            className="ml-4"
+          >
+            {t('installCmd.helmPackageFile')}
+          </Button>
+          <div className="p-1">{t('installCmd.importOfflineImage')}</div>
+          <div className="p-1">{t('installCmd.executeOfflineCommand')}</div>
+          <ReactMarkdown className='px-4'>{markdownContent}</ReactMarkdown>
       </Card>
     </div>
   )

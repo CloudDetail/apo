@@ -32,7 +32,10 @@ export default function IntegrationSettings() {
           clusterId={searchParams.get('clusterId')}
           clusterType={searchParams.get('clusterType')}
         />
-      ),
+      ),      
+      style: {
+        height: 'calc(100vh - 220px)',
+      },
     },
   ]
   const changeTab = (key: string) => {
