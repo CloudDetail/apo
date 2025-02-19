@@ -18,8 +18,8 @@ import (
 // @Tags API.integration
 // @Accept application/x-www-form-urlencoded
 // @Produce text/plain
-// @Param Request body integration.GetIntegrationInstallRequest true "请求信息"
-// @Success 200 {object} response.getIntegrationInstallConfigFileResponse
+// @Param Request body integration.GetCInstallRequest true "请求信息"
+// @Success 200 {object} integration.GetCInstallConfigResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/integration/cluster/install/config [get]
 func (h *handler) GetIntegrationInstallConfigFile() core.HandlerFunc {

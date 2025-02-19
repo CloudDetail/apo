@@ -17,7 +17,7 @@ import (
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json
-// @Param Request body alert.Cluster true "Cluster Info"
+// @Param Request body input.Cluster true "Cluster Info"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/cluster/update [post]

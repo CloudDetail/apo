@@ -16,8 +16,8 @@ import (
 // @Description
 // @Tags API.integration
 // @Accept application/x-www-form-urlencoded
-// @Produce string
-// @Success 200 string "ok"
+// @Produce json
+// @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/integration/adapter/update [get]
 func (h *handler) TriggerAdapterUpdate() core.HandlerFunc {

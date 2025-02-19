@@ -18,7 +18,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Request body integration.Cluster true "请求信息"
-// @Success 200 {object} response.getClusterResponse
+// @Success 200 {object} integration.ClusterIntegration
 // @Failure 400 {object} code.Failure
 // @Router /api/integration/cluster/get [get]
 func (h *handler) GetCluster() core.HandlerFunc {

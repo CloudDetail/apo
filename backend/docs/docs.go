@@ -39,7 +39,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/alert.Cluster"
+                            "$ref": "#/definitions/integration.Cluster"
                         }
                     }
                 ],
@@ -79,7 +79,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/alert.Cluster"
+                            "$ref": "#/definitions/integration.Cluster"
                         }
                     }
                 ],
@@ -116,7 +116,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/alert.ListClusterResponse"
+                            "$ref": "#/definitions/integration.ListClusterResponse"
                         }
                     },
                     "400": {
@@ -148,7 +148,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/alert.Cluster"
+                            "$ref": "#/definitions/integration.Cluster"
                         }
                     }
                 ],
@@ -2275,6 +2275,317 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/integration/adapter/update": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/cluster/create": {
+            "post": {
+                "description": "Create Cluster",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "Create Cluster",
+                "parameters": [
+                    {
+                        "description": "Cluster Info",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.Cluster"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "created cluster info",
+                        "schema": {
+                            "$ref": "#/definitions/integration.Cluster"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/cluster/delete": {
+            "get": {
+                "description": "DeleteCluster",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "DeleteCluster",
+                "parameters": [
+                    {
+                        "description": "Cluster Info",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.Cluster"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/cluster/get": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.Cluster"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/integration.ClusterIntegration"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/cluster/install/cmd": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.GetCInstallRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/integration.GetCInstallRequest"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/cluster/install/config": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.GetCInstallRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/integration.GetCInstallConfigResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/cluster/list": {
+            "get": {
+                "description": "ListCluster",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "ListCluster",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/integration.ListClusterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/cluster/update": {
+            "post": {
+                "description": "UpdateCluster",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "summary": "UpdateCluster",
+                "parameters": [
+                    {
+                        "description": "Cluster Info",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.Cluster"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/configuration": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/k8s/namespace/info": {
             "get": {
                 "description": "get namespace information",
@@ -4030,6 +4341,16 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Query service name",
                         "name": "service",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "query service list",
+                        "name": "services",
                         "in": "query"
                     },
                     {
@@ -7955,7 +8276,7 @@ const docTemplate = `{
                 "clusters": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/alert.Cluster"
+                        "$ref": "#/definitions/integration.Cluster"
                     }
                 },
                 "sourceId": {
@@ -7980,17 +8301,6 @@ const docTemplate = `{
                 },
                 "isUsing": {
                     "type": "boolean"
-                }
-            }
-        },
-        "alert.Cluster": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
                 }
             }
         },
@@ -8102,17 +8412,6 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/alert.AlertSource"
-                    }
-                }
-            }
-        },
-        "alert.ListClusterResponse": {
-            "type": "object",
-            "properties": {
-                "clusters": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/alert.Cluster"
                     }
                 }
             }
@@ -8683,6 +8982,9 @@ const docTemplate = `{
                 "spanId": {
                     "type": "string"
                 },
+                "thresholdMultiple": {
+                    "type": "number"
+                },
                 "thresholdValue": {
                     "type": "number"
                 },
@@ -9252,6 +9554,404 @@ const docTemplate = `{
         },
         "httpconfig.URL": {
             "type": "object"
+        },
+        "integration.APOCollector": {
+            "type": "object",
+            "properties": {
+                "collectorAddr": {
+                    "type": "string"
+                },
+                "collectorGatewayAddr": {
+                    "type": "string"
+                },
+                "ports": {
+                    "$ref": "#/definitions/integration.CollectorGatewayPorts"
+                }
+            }
+        },
+        "integration.ArmsConfig": {
+            "type": "object",
+            "properties": {
+                "accessKey": {
+                    "type": "string"
+                },
+                "accessSecret": {
+                    "type": "string"
+                },
+                "address": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.ClickhouseConfig": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "cluster": {
+                    "type": "string"
+                },
+                "database": {
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Encrypt in B64",
+                    "type": "string"
+                },
+                "replication": {
+                    "type": "boolean"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.Cluster": {
+            "type": "object",
+            "properties": {
+                "apoCollector": {
+                    "$ref": "#/definitions/integration.APOCollector"
+                },
+                "clusterType": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.ClusterIntegration": {
+            "type": "object",
+            "properties": {
+                "apoCollector": {
+                    "$ref": "#/definitions/integration.APOCollector"
+                },
+                "clusterType": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "log": {
+                    "$ref": "#/definitions/integration.LogIntegration"
+                },
+                "metric": {
+                    "$ref": "#/definitions/integration.MetricIntegration"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "trace": {
+                    "$ref": "#/definitions/integration.TraceIntegration"
+                }
+            }
+        },
+        "integration.CollectorGatewayPorts": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "integration.ElasticConfig": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.GetCInstallConfigResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "fileName": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.GetCInstallRequest": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.HuaweiConfig": {
+            "type": "object",
+            "properties": {
+                "accessKey": {
+                    "type": "string"
+                },
+                "accessSecret": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.JSONField-integration_LogAPI": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.LogAPI"
+                }
+            }
+        },
+        "integration.JSONField-integration_LogSelfCollectConfig": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.LogSelfCollectConfig"
+                }
+            }
+        },
+        "integration.JSONField-integration_MetricAPI": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.MetricAPI"
+                }
+            }
+        },
+        "integration.JSONField-integration_TraceAPI": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.TraceAPI"
+                }
+            }
+        },
+        "integration.JSONField-integration_TraceSelfCollectConfig": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.TraceSelfCollectConfig"
+                }
+            }
+        },
+        "integration.JaegerConfig": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.ListClusterResponse": {
+            "type": "object",
+            "properties": {
+                "clusters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/integration.Cluster"
+                    }
+                }
+            }
+        },
+        "integration.LogAPI": {
+            "type": "object",
+            "properties": {
+                "clickhouse": {
+                    "$ref": "#/definitions/integration.ClickhouseConfig"
+                }
+            }
+        },
+        "integration.LogIntegration": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "dbType": {
+                    "type": "string"
+                },
+                "logAPI": {
+                    "$ref": "#/definitions/integration.JSONField-integration_LogAPI"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "selfCollectConfig": {
+                    "$ref": "#/definitions/integration.JSONField-integration_LogSelfCollectConfig"
+                }
+            }
+        },
+        "integration.LogSelfCollectConfig": {
+            "type": "object",
+            "properties": {
+                "mode": {
+                    "description": "full,abnormal",
+                    "type": "string"
+                }
+            }
+        },
+        "integration.MetricAPI": {
+            "type": "object",
+            "properties": {
+                "victoriametric": {
+                    "$ref": "#/definitions/integration.VictoriaMetricConfig"
+                }
+            }
+        },
+        "integration.MetricIntegration": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "dsType": {
+                    "type": "string"
+                },
+                "metricAPI": {
+                    "$ref": "#/definitions/integration.JSONField-integration_MetricAPI"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.Nbs3Config": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.PinpointConfig": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.SkywalkingConfig": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.TraceAPI": {
+            "type": "object",
+            "properties": {
+                "arms": {
+                    "$ref": "#/definitions/integration.ArmsConfig"
+                },
+                "elastic": {
+                    "$ref": "#/definitions/integration.ElasticConfig"
+                },
+                "huawei": {
+                    "$ref": "#/definitions/integration.HuaweiConfig"
+                },
+                "jaeger": {
+                    "$ref": "#/definitions/integration.JaegerConfig"
+                },
+                "nbs3": {
+                    "$ref": "#/definitions/integration.Nbs3Config"
+                },
+                "pinpoint": {
+                    "$ref": "#/definitions/integration.PinpointConfig"
+                },
+                "skywalking": {
+                    "$ref": "#/definitions/integration.SkywalkingConfig"
+                },
+                "timeout": {
+                    "description": "Second",
+                    "type": "integer"
+                }
+            }
+        },
+        "integration.TraceIntegration": {
+            "type": "object",
+            "properties": {
+                "apmType": {
+                    "type": "string"
+                },
+                "clusterId": {
+                    "type": "string"
+                },
+                "isDeleted": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "selfCollectConfig": {
+                    "$ref": "#/definitions/integration.JSONField-integration_TraceSelfCollectConfig"
+                },
+                "traceAPI": {
+                    "$ref": "#/definitions/integration.JSONField-integration_TraceAPI"
+                }
+            }
+        },
+        "integration.TraceSelfCollectConfig": {
+            "type": "object",
+            "properties": {
+                "instrumentAll": {
+                    "type": "boolean"
+                },
+                "instrumentDisabledNS": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "instrumentNS": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "integration.VictoriaMetricConfig": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "serverURL": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
         },
         "model.AlertDetail": {
             "type": "object",

@@ -72,7 +72,7 @@ definitions:
     properties:
       clusters:
         items:
-          $ref: '#/definitions/alert.Cluster'
+          $ref: '#/definitions/integration.Cluster'
         type: array
       sourceId:
         type: string
@@ -89,13 +89,6 @@ definitions:
         type: array
       isUsing:
         type: boolean
-    type: object
-  alert.Cluster:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
     type: object
   alert.CreateSchemaRequest:
     properties:
@@ -167,13 +160,6 @@ definitions:
       alertSources:
         items:
           $ref: '#/definitions/alert.AlertSource'
-        type: array
-    type: object
-  alert.ListClusterResponse:
-    properties:
-      clusters:
-        items:
-          $ref: '#/definitions/alert.Cluster'
         type: array
     type: object
   alert.ListSchemaResponse:
@@ -556,6 +542,8 @@ definitions:
         type: string
       spanId:
         type: string
+      thresholdMultiple:
+        type: number
       thresholdValue:
         type: number
       tid:
@@ -961,6 +949,263 @@ definitions:
         type: string
     type: object
   httpconfig.URL:
+    type: object
+  integration.APOCollector:
+    properties:
+      collectorAddr:
+        type: string
+      collectorGatewayAddr:
+        type: string
+      ports:
+        $ref: '#/definitions/integration.CollectorGatewayPorts'
+    type: object
+  integration.ArmsConfig:
+    properties:
+      accessKey:
+        type: string
+      accessSecret:
+        type: string
+      address:
+        type: string
+    type: object
+  integration.ClickhouseConfig:
+    properties:
+      address:
+        type: string
+      cluster:
+        type: string
+      database:
+        type: string
+      password:
+        description: Encrypt in B64
+        type: string
+      replication:
+        type: boolean
+      userName:
+        type: string
+    type: object
+  integration.Cluster:
+    properties:
+      apoCollector:
+        $ref: '#/definitions/integration.APOCollector'
+      clusterType:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  integration.ClusterIntegration:
+    properties:
+      apoCollector:
+        $ref: '#/definitions/integration.APOCollector'
+      clusterType:
+        type: string
+      id:
+        type: string
+      log:
+        $ref: '#/definitions/integration.LogIntegration'
+      metric:
+        $ref: '#/definitions/integration.MetricIntegration'
+      name:
+        type: string
+      trace:
+        $ref: '#/definitions/integration.TraceIntegration'
+    type: object
+  integration.CollectorGatewayPorts:
+    additionalProperties:
+      type: string
+    type: object
+  integration.ElasticConfig:
+    properties:
+      address:
+        type: string
+      password:
+        type: string
+      user:
+        type: string
+    type: object
+  integration.GetCInstallConfigResponse:
+    properties:
+      content:
+        items:
+          type: integer
+        type: array
+      fileName:
+        type: string
+    type: object
+  integration.GetCInstallRequest:
+    properties:
+      clusterId:
+        type: string
+    type: object
+  integration.HuaweiConfig:
+    properties:
+      accessKey:
+        type: string
+      accessSecret:
+        type: string
+    type: object
+  integration.JSONField-integration_LogAPI:
+    properties:
+      obj:
+        $ref: '#/definitions/integration.LogAPI'
+    type: object
+  integration.JSONField-integration_LogSelfCollectConfig:
+    properties:
+      obj:
+        $ref: '#/definitions/integration.LogSelfCollectConfig'
+    type: object
+  integration.JSONField-integration_MetricAPI:
+    properties:
+      obj:
+        $ref: '#/definitions/integration.MetricAPI'
+    type: object
+  integration.JSONField-integration_TraceAPI:
+    properties:
+      obj:
+        $ref: '#/definitions/integration.TraceAPI'
+    type: object
+  integration.JSONField-integration_TraceSelfCollectConfig:
+    properties:
+      obj:
+        $ref: '#/definitions/integration.TraceSelfCollectConfig'
+    type: object
+  integration.JaegerConfig:
+    properties:
+      address:
+        type: string
+    type: object
+  integration.ListClusterResponse:
+    properties:
+      clusters:
+        items:
+          $ref: '#/definitions/integration.Cluster'
+        type: array
+    type: object
+  integration.LogAPI:
+    properties:
+      clickhouse:
+        $ref: '#/definitions/integration.ClickhouseConfig'
+    type: object
+  integration.LogIntegration:
+    properties:
+      clusterId:
+        type: string
+      dbType:
+        type: string
+      logAPI:
+        $ref: '#/definitions/integration.JSONField-integration_LogAPI'
+      mode:
+        type: string
+      name:
+        type: string
+      selfCollectConfig:
+        $ref: '#/definitions/integration.JSONField-integration_LogSelfCollectConfig'
+    type: object
+  integration.LogSelfCollectConfig:
+    properties:
+      mode:
+        description: full,abnormal
+        type: string
+    type: object
+  integration.MetricAPI:
+    properties:
+      victoriametric:
+        $ref: '#/definitions/integration.VictoriaMetricConfig'
+    type: object
+  integration.MetricIntegration:
+    properties:
+      clusterId:
+        type: string
+      dsType:
+        type: string
+      metricAPI:
+        $ref: '#/definitions/integration.JSONField-integration_MetricAPI'
+      mode:
+        type: string
+      name:
+        type: string
+    type: object
+  integration.Nbs3Config:
+    properties:
+      address:
+        type: string
+      password:
+        type: string
+      user:
+        type: string
+    type: object
+  integration.PinpointConfig:
+    properties:
+      address:
+        type: string
+    type: object
+  integration.SkywalkingConfig:
+    properties:
+      address:
+        type: string
+      password:
+        type: string
+      user:
+        type: string
+    type: object
+  integration.TraceAPI:
+    properties:
+      arms:
+        $ref: '#/definitions/integration.ArmsConfig'
+      elastic:
+        $ref: '#/definitions/integration.ElasticConfig'
+      huawei:
+        $ref: '#/definitions/integration.HuaweiConfig'
+      jaeger:
+        $ref: '#/definitions/integration.JaegerConfig'
+      nbs3:
+        $ref: '#/definitions/integration.Nbs3Config'
+      pinpoint:
+        $ref: '#/definitions/integration.PinpointConfig'
+      skywalking:
+        $ref: '#/definitions/integration.SkywalkingConfig'
+      timeout:
+        description: Second
+        type: integer
+    type: object
+  integration.TraceIntegration:
+    properties:
+      apmType:
+        type: string
+      clusterId:
+        type: string
+      isDeleted:
+        type: boolean
+      mode:
+        type: string
+      selfCollectConfig:
+        $ref: '#/definitions/integration.JSONField-integration_TraceSelfCollectConfig'
+      traceAPI:
+        $ref: '#/definitions/integration.JSONField-integration_TraceAPI'
+    type: object
+  integration.TraceSelfCollectConfig:
+    properties:
+      instrumentAll:
+        type: boolean
+      instrumentDisabledNS:
+        items:
+          type: string
+        type: array
+      instrumentNS:
+        items:
+          type: string
+        type: array
+    type: object
+  integration.VictoriaMetricConfig:
+    properties:
+      password:
+        type: string
+      serverURL:
+        type: string
+      username:
+        type: string
     type: object
   model.AlertDetail:
     properties:
@@ -3106,7 +3351,7 @@ paths:
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/alert.Cluster'
+          $ref: '#/definitions/integration.Cluster'
       produces:
       - application/json
       responses:
@@ -3132,7 +3377,7 @@ paths:
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/alert.Cluster'
+          $ref: '#/definitions/integration.Cluster'
       produces:
       - application/json
       responses:
@@ -3158,7 +3403,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/alert.ListClusterResponse'
+            $ref: '#/definitions/integration.ListClusterResponse'
         "400":
           description: Bad Request
           schema:
@@ -3177,7 +3422,7 @@ paths:
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/alert.Cluster'
+          $ref: '#/definitions/integration.Cluster'
       produces:
       - application/json
       responses:
@@ -4569,6 +4814,205 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: for k8s to check backend health status
+  /api/integration/adapter/update:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.integration
+  /api/integration/cluster/create:
+    post:
+      consumes:
+      - application/json
+      description: Create Cluster
+      parameters:
+      - description: Cluster Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/integration.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: created cluster info
+          schema:
+            $ref: '#/definitions/integration.Cluster'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Create Cluster
+      tags:
+      - API.alertinput
+  /api/integration/cluster/delete:
+    get:
+      consumes:
+      - application/json
+      description: DeleteCluster
+      parameters:
+      - description: Cluster Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/integration.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: DeleteCluster
+      tags:
+      - API.alertinput
+  /api/integration/cluster/get:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/integration.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/integration.ClusterIntegration'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.integration
+  /api/integration/cluster/install/cmd:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/integration.GetCInstallRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/integration.GetCInstallRequest'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.integration
+  /api/integration/cluster/install/config:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/integration.GetCInstallRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/integration.GetCInstallConfigResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.integration
+  /api/integration/cluster/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: ListCluster
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/integration.ListClusterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: ListCluster
+      tags:
+      - API.alertinput
+  /api/integration/cluster/update:
+    post:
+      consumes:
+      - application/json
+      description: UpdateCluster
+      parameters:
+      - description: Cluster Info
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/integration.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: UpdateCluster
+      tags:
+      - API.integration
+  /api/integration/configuration:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.integration
   /api/k8s/namespace/info:
     get:
       consumes:
@@ -5726,6 +6170,13 @@ paths:
         in: query
         name: service
         type: string
+      - collectionFormat: multi
+        description: query service list
+        in: query
+        items:
+          type: string
+        name: services
+        type: array
       - description: Query the alarm source
         in: query
         name: source
