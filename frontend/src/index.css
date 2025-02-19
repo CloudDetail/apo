@@ -7,9 +7,45 @@
 @tailwind components;
 @tailwind utilities;
 
-.accordion-item .show{
+.accordion-item .show {
     visibility: visible !important;
 }
-.collapse.show{
+
+.collapse.show {
     visibility: visible
+}
+
+.ant-segmented-item {
+    border: 1px solid transparent !important;
+}
+
+.ant-segmented-item.ant-segmented-item-selected {
+    border: 1px solid #4D82FF !important;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    /* 滚动条宽度 */
+    height: 10px;
+    /* 滚动条高度（针对横向滚动条） */
+}
+
+/* 设置滚动条轨道的样式 */
+::-webkit-scrollbar-track {
+    background: transparent;
+    /* 轨道背景透明 */
+}
+
+/* 设置滚动条滑块的样式 */
+::-webkit-scrollbar-thumb {
+    background: #424242;
+    /* 滑块背景色 */
+    border-radius: 5px;
+    /* 滑块圆角 */
+}
+
+/* 设置滚动条滑块在悬停时的样式 */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+    /* 悬停时滑块背景色 */
 }

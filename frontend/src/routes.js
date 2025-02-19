@@ -15,6 +15,12 @@ const AlertsIntegrationPage = React.lazy(
 const SystemConfiguration = React.lazy(() => import('src/core/views/SystemConfiguration/index.jsx'))
 const DataGroupPage = React.lazy(() => import('src/core/views/DataGroup/index'))
 const TeamPage = React.lazy(() => import('src/core/views/Team/index'))
+const DataIntegrationPage = React.lazy(
+  () => import('src/core/views/IntegrationCenter/DataIntegration'),
+)
+const IntegrationSettings = React.lazy(
+  () => import('src/core/views/IntegrationCenter/DataIntegration/Integration'),
+)
 const namespace = 'core/routes'
 
 const baseRoutes = [
@@ -41,6 +47,16 @@ const baseRoutes = [
     path: '/integration/alerts',
     name: <TranslationCom text="alertsIntegration" space={namespace} />,
     element: AlertsIntegrationPage,
+  },
+  {
+    path: '/integration/data',
+    name: <TranslationCom text="dataIntegration" space={namespace} />,
+    element: DataIntegrationPage,
+  },
+  {
+    path: '/integration/data/settings',
+    name: <TranslationCom text="dataIntegrationSettings" space={namespace} />,
+    element: IntegrationSettings,
   },
   {
     path: '/system/config',

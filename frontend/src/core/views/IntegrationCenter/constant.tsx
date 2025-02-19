@@ -21,6 +21,7 @@ import elastic from 'src/core/assets/dataCollector/elastic.svg'
 import apo from 'src/core/assets/images/logo.svg'
 import cloudEvent from 'src/core/assets/dataCollector/cloudEvent.svg'
 import setting from 'src/core/assets/dataCollector/setting.svg'
+import pinpoint from 'src/core/assets/dataCollector/pinpoint.png'
 import {
   DatasourceItemData,
   DatasourceKey,
@@ -44,9 +45,8 @@ export const datasourceSrc: Record<DatasourceKey, string> = {
   aliyun: aliyun,
   tingyun: tingyun,
   huawei: huawei,
-  other: other,
   prometheus: prometheus,
-  victoriametrics: victoriametrics,
+  victoriametric: victoriametrics,
   zabbix: zabbix,
   tcop: tcop,
   tianyiyun: tianyiyun,
@@ -56,6 +56,8 @@ export const datasourceSrc: Record<DatasourceKey, string> = {
   elastic: elastic,
   apo: apo,
   json: setting,
+  pinpoint: pinpoint,
+  other: other,
 }
 export const traceItems: DatasourceItemData<TraceKey>[] = [
   {
@@ -63,34 +65,52 @@ export const traceItems: DatasourceItemData<TraceKey>[] = [
     key: 'opentelemetry',
     name: 'Opentelemetry',
     description: '>= 1.11.x ',
+    apmType: 'jaeger',
   },
   {
     src: skywalking,
     key: 'skywalking',
-    name: 'SkyWalking ',
+    name: 'SkyWalking',
     description: '>= 8.x',
+    apmType: 'skywalking',
   },
   {
     src: aliyun,
     key: 'aliyun',
-    name: '阿里云 ARMS',
+    name: t('core/dataIntegration:aliyunArms'),
+    apmType: 'arms',
   },
   {
     key: 'tingyun',
     src: tingyun,
-    name: '听云',
+    name: t('core/dataIntegration:tingyun'),
+    apmType: 'nbs3',
   },
   {
     key: 'huawei',
     src: huawei,
-    name: '华为AOM',
+    name: t('core/dataIntegration:hauwei'),
+    apmType: 'huawei',
     // description: '>= 1.x',
+  },
+  {
+    key: 'elastic',
+    src: elastic,
+    name: 'ELK',
+    apmType: 'elastic',
+  },
+  {
+    key: 'pinpoint',
+    src: pinpoint,
+    name: 'PinPoint',
+    apmType: 'pinpoint',
   },
   {
     key: 'other',
     src: other,
-    name: '',
+    name: t('core/dataIntegration:other'),
     description: '其他支持采用 OTLP 格式输出数据的探针',
+    apmType: 'other',
   },
 ]
 export const metricsItems: DatasourceItemData<MetricsKey>[] = [
@@ -100,7 +120,7 @@ export const metricsItems: DatasourceItemData<MetricsKey>[] = [
     name: 'Prometheus',
   },
   {
-    key: 'victoriametrics',
+    key: 'victoriametric',
     src: victoriametrics,
     name: 'VictoriaMetrics',
   },
@@ -171,7 +191,7 @@ export const alertItems: DatasourceItemData<AlertKey>[] = [
   },
 ]
 
-export const datasourceMap: Record<IntegrationType, DatasourceListData> = {
+export const datasourceMap: Partial<Record<IntegrationType, DatasourceListData>> = {
   trace: {
     type: 'trace',
     title: '链路追踪接入',
@@ -189,10 +209,43 @@ export const datasourceMap: Record<IntegrationType, DatasourceListData> = {
     description: '建议选择APO自采，其他接入方式可能导致数据缺失',
     items: logsItems,
   },
-  alert: {
-    type: 'alert',
-    title: '告警事件接入',
-    // description: '建议选择APO自采，其他接入方式可能导致数据缺失',
-    items: alertItems,
-  },
+  // alert: {
+  //   type: 'alert',
+  //   title: '告警事件接入',
+  //   // description: '建议选择APO自采，其他接入方式可能导致数据缺失',
+  //   items: alertItems,
+  // },
 }
+
+export const portsDefault = [
+  {
+    key: 'apoCollector',
+    title: 'apo-collector',
+    value: '30044',
+    descriptions: t('core/dataIntegration:apoCollector.port1'),
+  },
+  {
+    key: 'apoVector',
+    title: 'apo-vector',
+    value: '30310',
+    descriptions: t('core/dataIntegration:apoCollector.port2'),
+  },
+  {
+    key: 'apoOtelCollectorGatewayGrpc',
+    title: 'apo-otel-collector-gateway',
+    value: '30317',
+    descriptions: t('core/dataIntegration:apoCollector.port3'),
+  },
+  {
+    key: 'apoOtelCollectorGatewayK8s',
+    title: 'apo-otel-collector-gateway',
+    value: '30319',
+    descriptions: t('core/dataIntegration:apoCollector.port4'),
+  },
+  {
+    key: 'apoBackend',
+    title: 'apo-backend',
+    value: '31363',
+    descriptions: t('core/dataIntegration:apoCollector.port5'),
+  },
+]
