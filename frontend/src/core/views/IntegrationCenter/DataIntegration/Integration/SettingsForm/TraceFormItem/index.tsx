@@ -170,6 +170,7 @@ const TraceFormItem = () => {
   const modeValue = Form.useWatch(['trace', 'mode'], form)
   const traceAPI = Form.useWatch('traceAPI', form)
   const instrumentAll = Form.useWatch(['trace', 'selfCollectConfig', 'instrumentAll'], form)
+  const clusterType = Form.useWatch('clusterType', form)
   useEffect(() => {
     if (apmTypeValue === 'opentelemetry') {
       form.setFieldValue(['trace', 'mode'], 'self-collector')
@@ -250,7 +251,7 @@ const TraceFormItem = () => {
         </>
       )}
 
-      {modeValue === 'self-collector' && (
+      {modeValue === 'self-collector' && clusterType!=='vm' && (
         <>
           <Divider></Divider>
           <Typography.Title level={5}>{t('selfConfig')}</Typography.Title>

@@ -70,7 +70,7 @@
   "confirmDelete": "Are you sure to delete the cluster integration {{name}}",
   "required": " is required",
   "sidecarGlobal": "The same link tracking system shares the same configuration. Any modifications to this configuration take effect globally.",
-  "vm": "Traditional Server.",
+  "vm": "Traditional Server",
   "balckList": "The specified items will be excluded from all namespaces.",
   "metricsHint": "Currently, only APO Self-Collect is supported. APO collects metrics with relatively low resource usage and data volume. Support for integrating other data sources is coming soon, so stay tuned",
   "logHint": "Currently, only APO Self-Collect is supported. APO collects logs with relatively low resource usage and data volume. Support for integrating other data sources is coming soon, so stay tuned",
