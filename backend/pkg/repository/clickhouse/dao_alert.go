@@ -183,15 +183,14 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 	var whereInstance []*whereSQL
 	whereGroup := EqualsIfNotEmpty("group", filter.Group)
 
-
 	if len(filter.Group) == 0 || filter.Group == "app" {
-		serviceCondition  := []*whereSQL{}
+		serviceCondition := []*whereSQL{}
 		if len(filter.Services) > 0 {
 			arr := make(clickhouse.ArraySet, 0, len(filter.Services))
 			for _, s := range filter.Services {
 				arr = append(arr, s)
 			}
-			serviceCondition = append(serviceCondition, 
+			serviceCondition = append(serviceCondition,
 				MergeWheres(
 					OrSep,
 					MergeWheres(

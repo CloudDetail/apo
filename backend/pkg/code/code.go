@@ -218,6 +218,12 @@ const (
 	DeleteTeamError       = "B1106"
 	AssignToTeamError     = "B1107"
 	UnSupportedSubType    = "B1108"
+
+	// integration api
+	GetIntegrationInstallDocFailed        = "B1400"
+	GetIntegrationInstallConfigFileFailed = "B1401"
+
+	GetClusterIntegrationFailed = "B1402"
 )
 
 func Text(code string) string {

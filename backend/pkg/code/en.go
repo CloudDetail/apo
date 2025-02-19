@@ -194,4 +194,8 @@ var enText = map[string]string{
 	DeleteTeamError:       "Failed to delete team",
 	AssignToTeamError:     "Failed to assign to team",
 	UnSupportedSubType:    "Subject type is unsupported",
+
+	GetIntegrationInstallDocFailed:        "Get integration install doc failed",
+	GetIntegrationInstallConfigFileFailed: "Get integration install config file failed",
+	GetClusterIntegrationFailed:           "Get cluster integration failed",
 }

@@ -226,6 +226,22 @@ integration:
       field_name: "label"
       entity_type: "menu"
 
+dataIntegration:
+  key: "dataIntegration"
+  i18n:
+    - language: "en"
+      translation: "Data Integrations"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "数据接入"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "Data"
+      field_name: "abbreviation"
+      entity_type: "menu"
+
 alertsIntegration:
   key: "alertsIntegration"
   i18n:
@@ -526,6 +542,18 @@ teamManage:
       translation: "接入中心"
       field_name: "featureName"
       entity_type: "feature"
+
+数据接入:
+  key: "数据接入"
+  i18n:
+    - language: "en"
+      translation: "Data Integrations"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "数据接入"
+      field_name: "label"
+      entity_type: "menu"
 
 告警接入:
   key: "告警接入"

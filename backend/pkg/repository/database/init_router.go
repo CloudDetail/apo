@@ -19,6 +19,7 @@ func (repo *daoRepo) initRouterData() error {
 		{RouterTo: "/middleware-dashboard", HideTimeSelector: false},
 		{RouterTo: "/alerts/rule", HideTimeSelector: true},
 		{RouterTo: "/alerts/notify", HideTimeSelector: true},
+		{RouterTo: "/integration/data", HideTimeSelector: true},
 		{RouterTo: "/integration/alerts", HideTimeSelector: true},
 		{RouterTo: "/config", HideTimeSelector: true},
 		{RouterTo: "/system/user-manage", HideTimeSelector: true},

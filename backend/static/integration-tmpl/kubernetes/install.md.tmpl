@@ -1,0 +1,27 @@
+# 安装命令
+
+## 通过helm安装
+
+在探针所在集群依次执行:
+1. 下载安装配置
+2. 使用helm命令安装
+
+### 1.下载安装配置
+
+使用下面的命令下载配置文件,或点击下面的集群安装配置按钮下载配置文件.
+
+```bash
+curl -Lo apo-one-agent-values.yaml \
+    http://{{ .apoCollector.collectorGatewayAddr }}:{{ default .apoCollector.ports.apoBackend 31363 }}/api/integration/cluster/install/config?clusterId={{ .id}}
+```
+
+### 2.使用helm命令安装
+
+```bash
+helm repo add apo https://apo-charts.oss-cn-hangzhou.aliyuncs.com
+helm repo update apo
+helm install apo-one-agent apo/apo-one-agent -n apo \
+    --create-namespace \
+    --version {{ ._app_version }} \
+    -f apo-one-agent-values.yaml
+```
