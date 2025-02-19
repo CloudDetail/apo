@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Button, Card, Divider, Form, Input, Space, Typography } from 'antd'
 import { t } from 'i18next'
 import { useState } from 'react'

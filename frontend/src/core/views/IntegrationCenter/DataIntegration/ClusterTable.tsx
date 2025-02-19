@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Button, Flex, Modal, Popconfirm, Table } from 'antd'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'

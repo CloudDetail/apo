@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Form, Input, Segmented, Switch } from 'antd'
 import { useTranslation } from 'react-i18next'
 import DbTypeRadio from './DbTypeRadio'

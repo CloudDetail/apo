@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Card, ConfigProvider, Tabs, TabsProps } from 'antd'
 import IntegrationDoc from './Document'
 import SettingsForm from './SettingsForm'

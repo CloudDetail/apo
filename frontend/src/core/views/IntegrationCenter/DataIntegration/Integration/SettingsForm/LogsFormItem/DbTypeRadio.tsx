@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Divider, Flex, Image, message, Radio } from 'antd'
 import DatasourceItem from 'src/core/views/IntegrationCenter/components/DatasourceItem'
 import { logsItems, metricsItems, traceItems } from 'src/core/views/IntegrationCenter/constant'
