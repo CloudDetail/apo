@@ -65,7 +65,7 @@ export default function IntegrationSettings() {
             title={t('dataIntegrationSettings')}
             className="h-full overflow-hidden"
             classNames={{ body: 'p-0 overflow-auto flex flex-col' }}
-            styles={{ body: { height: 'calc(100% - 60px)' } }}
+            styles={{ body: { height: 'calc(100% - 60px)' },header:{minHeight:'45px'} }}
           >
             {searchParams.get('clusterId') ? (
               <div className="px-3 overflow-hidden">

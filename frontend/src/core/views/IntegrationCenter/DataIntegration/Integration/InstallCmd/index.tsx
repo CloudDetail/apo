@@ -86,11 +86,13 @@ const InstallCmd = ({ clusterId, clusterType }) => {
   }, [clusterId])
 
   return (
-    <div className="p-3 mx-auto markdown-body h-full overflow-hidden flex flex-col">
+    <div className="px-3 mx-auto markdown-body h-full overflow-hidden flex flex-col">
       <Card
+      type='inner'
+      size='small'
         title={t('installCmd.onlineInstallation')}
-        className="mb-3 flex-1 h-0 overflow-hidden"
-        styles={{body:{height:'calc(100% - 56px)'}}}
+        className="mb-2 flex-1 h-0 overflow-hidden"
+        styles={{body:{height:'calc(100% - 38px)'}}}
         classNames={{ body: 'py-2 h-full overflow-y-auto' }}>
           <div className="p-1">{t('installCmd.downloadHelmConfig')}</div>
           <Button
@@ -105,8 +107,11 @@ const InstallCmd = ({ clusterId, clusterType }) => {
           <ReactMarkdown className='px-4'>{markdownContent}</ReactMarkdown>
       </Card>
       <Card title={t('installCmd.offlineInstallation')} 
-        className="mb-3 flex-1 h-0 overflow-hidden"
-        styles={{body:{height:'calc(100% - 56px)'}}}
+      type='inner'
+
+      size='small'
+        className="mb-2 flex-1 h-0 overflow-hidden"
+        styles={{body:{height:'calc(100% - 38px)'}}}
         classNames={{ body: 'py-2 h-full overflow-y-auto' }}>
           <div className="p-1">{t('installCmd.downloadHelmPackage')}</div>
           <Button
