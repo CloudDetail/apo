@@ -5,10 +5,11 @@ package core
 
 import (
 	"errors"
-	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
 	"sync"
+
+	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	go_context "context"
 
@@ -68,7 +69,7 @@ type Context interface {
 	getPayload() interface{}
 
 	// AbortWithError error return
-	HandleError(err error, expectCode string)
+	HandleError(err error, expectCode string, emptyResp any)
 	// AbortWithError 错误返回
 	AbortWithError(err BusinessError)
 	abortError() BusinessError
@@ -162,21 +163,25 @@ func (c *context) SetHeader(key, value string) {
 	c.ctx.Header(key, value)
 }
 
-func (c *context) HandleError(err error, expectCode string) {
+func (c *context) HandleError(err error, expectCode string, emptyResp any) {
 	var vErr model.ErrWithMessage
+	var errCode string = expectCode
 	if errors.As(err, &vErr) {
-		c.AbortWithError(Error(
-			http.StatusBadRequest,
-			vErr.Code,
-			code.Text(vErr.Code),
-		).WithError(err))
-	} else {
-		c.AbortWithError(Error(
-			http.StatusBadRequest,
-			expectCode,
-			code.Text(expectCode),
-		).WithError(err))
+		errCode = vErr.Code
 	}
+
+	if errCode == code.GroupNoDataError {
+		if emptyResp != nil {
+			c.Payload(emptyResp)
+			return
+		}
+	}
+
+	c.AbortWithError(Error(
+		http.StatusBadRequest,
+		errCode,
+		code.Text(errCode),
+	).WithError(err))
 }
 
 func (c *context) AbortWithError(err BusinessError) {
