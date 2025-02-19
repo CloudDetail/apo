@@ -47,6 +47,9 @@ instance.interceptors.response.use(
     if (!expectedType.includes('text/html') && responseType.includes('text/html')) {
       return Promise.reject(new Error('Unexpected HTML response for a JSON request'))
     }
+    if (config.responseType === 'blob') {
+      return response
+    }
     return data
   },
   async (error) => {
@@ -126,9 +129,16 @@ export const refreshAccessToken = async () => {
 
 // 封装GET请求
 const get = (url, params = {}, config = {}) => {
-  return instance.get(url, { params, ...config }).catch((error) => {
-    throw error
-  })
+  return instance
+    .get(url, { params, ...config })
+    .then((response) => {
+      console.log(response)
+      // if (config?.responseType === 'blob') return response
+      return response
+    })
+    .catch((error) => {
+      throw error
+    })
 }
 
 // 封装POST请求

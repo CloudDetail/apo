@@ -4,12 +4,16 @@
 package trace
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
+	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // GetTracePageList to query the trace paging list
@@ -37,7 +41,14 @@ func (h *handler) GetTracePageList() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, req.GroupID, &req.Namespace, &req.Service, "")
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, response.GetTracePageListResponse{
+				List: []clickhouse.QueryTraceResult{},
+				Pagination: &model.Pagination{
+					Total:       0,
+					CurrentPage: 0,
+					PageSize:    0,
+				},
+			})
 			return
 		}
 		if req.PageNum == 0 {

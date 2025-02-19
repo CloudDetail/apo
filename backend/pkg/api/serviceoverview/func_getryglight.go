@@ -4,14 +4,16 @@
 package serviceoverview
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
@@ -45,7 +47,9 @@ func (h *handler) GetRYGLight() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, 0, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, response.ServiceRYGLightRes{
+				ServiceList: []*response.ServiceRYGResult{},
+			})
 			return
 		}
 		startTime := time.UnixMicro(req.StartTime)
