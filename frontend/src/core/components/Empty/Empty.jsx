@@ -7,7 +7,7 @@ import { CImage } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
 import emptyImg from 'src/core/assets/images/empty.svg'
 import { useTranslation } from 'react-i18next'
-function Empty({ context, width = 100 }) {
+function Empty({ context = '', width = 100 }) {
   const [stateContext, setStateContext] = useState('No data')
   const { i18n } = useTranslation()
   useEffect(() => {
