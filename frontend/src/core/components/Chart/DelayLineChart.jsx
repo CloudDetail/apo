@@ -18,7 +18,7 @@ export const adjustAlpha = (color, alpha) => {
 }
 
 const DelayLineChart = ({ data, timeRange, type }) => {
-  const { t } = useTranslation('core/delayLineChart')
+  const { t } = useTranslation('common')
   const chartRef = useRef(null)
   const dispatch = useDispatch()
   const setStoreTimeRange = (value) => {
