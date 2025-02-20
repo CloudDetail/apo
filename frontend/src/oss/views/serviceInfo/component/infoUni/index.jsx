@@ -46,6 +46,7 @@ export default function InfoUni() {
   const refs = useRef({})
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
   const handleToggle = (key) => {
+    console.log(key, openedPanels)
     if (!openedPanels[key]) {
       const buttonHtml = refs.current[key].querySelector('button')
       if (buttonHtml) {
@@ -59,7 +60,9 @@ export default function InfoUni() {
       [key]: true,
     }))
   }
-
+  useEffect(() => {
+    console.log(openedPanels)
+  }, [openedPanels])
   const handlePanelStatus = (key, status) => {
     if (status !== 'normal') {
       handleToggle(key)
@@ -175,7 +178,7 @@ export default function InfoUni() {
   useEffect(() => {
     setAccordionList([])
     setAccordionList(mockAccordionList)
-  }, [serviceName, i18n.language])
+  }, [serviceName])
 
   return (
     <>

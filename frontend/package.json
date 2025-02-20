@@ -9,13 +9,13 @@
     "start": "vite --host --mode development"
   },
   "dependencies": {
-    "@coreui/chartjs": "^4.0.0",
-    "@coreui/coreui": "^5.0.2",
+    "@coreui/chartjs": "4.0.0",
+    "@coreui/coreui": "5.2.0",
     "@coreui/icons": "^3.0.1",
     "@coreui/icons-react": "^2.2.1",
-    "@coreui/react": "^5.1.0",
+    "@coreui/react": "5.5.0",
     "@coreui/react-chartjs": "^3.0.0",
-    "@coreui/utils": "^2.0.2",
+    "@coreui/utils": "2.0.2",
     "@fluentui/react-context-selector": "^9.1.69",
     "@monaco-editor/react": "^4.6.0",
     "@popperjs/core": "^2.11.8",
