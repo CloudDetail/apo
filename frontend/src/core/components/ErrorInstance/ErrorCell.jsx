@@ -40,7 +40,7 @@ function ErrorCell(props) {
     const { data } = props
     return (
       (data ?? selectTraceError) && (
-        <div className="w-full flex-shrink">
+        <div className="w-full flex-shrink" onClick={() => onSelect(data)}>
           <div className=" overflow-x-hidden whitespace-pre-wrap w-full flex flex-row">
             <div className="text-gray-400 flex-shrink-0">Time：</div>
             <div className="flex-1 w-0 whitespace-nowrap text-wrap break-all">
@@ -83,17 +83,6 @@ function ErrorCell(props) {
     setSelectTraceError(selectTraceError)
     update(selectTraceError)
   }
-  const formatOptionLabel = (props) => {
-    const { data } = props
-    return (
-      <div
-        className="overflow-x-hidden w-full text-sm p-1 cursor-pointer hover:bg-[#2a303d] border-b border-gray-700"
-        onClick={() => onSelect(data)}
-      >
-        <CustomSingleValue data={data} />
-      </div>
-    )
-  }
   return options && options.length > 0 ? (
     <div className="w-full h-full">
       <Select
@@ -101,7 +90,9 @@ function ErrorCell(props) {
         value={selectTraceError}
         optionRender={CustomSingleValue}
         className="w-full"
+        optionFilterProp={'value'}
         dropdownStyle={{ minWidth: 200 }}
+        showSearch
       ></Select>
 
       <div className="p-2">
