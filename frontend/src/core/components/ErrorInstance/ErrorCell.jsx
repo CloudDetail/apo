@@ -99,9 +99,8 @@ function ErrorCell(props) {
       <Select
         options={options}
         value={selectTraceError}
-        dropdownRender={CustomSingleValue}
+        optionRender={CustomSingleValue}
         className="w-full"
-        popupMatchSelectWidth={false}
         dropdownStyle={{ minWidth: 200 }}
       ></Select>
 
