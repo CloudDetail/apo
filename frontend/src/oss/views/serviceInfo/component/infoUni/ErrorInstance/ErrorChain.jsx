@@ -47,6 +47,7 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
   const { startTime, endTime } = useSelector((state) => state.timeRange)
   function draw() {
     const container = d3.select(`#${escapeId(chartId)}`)
+    if (!container || container.node()?.getBoundingClientRect().width === 0) return
     // 清除之前的内容
     container.selectAll('*').remove()
     const svg = container.append('svg').attr('width', '100%').attr('height', '100%')
@@ -291,34 +292,29 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
     // @ts-ignore
     svg.call(zoom)
   }
+  const containerRef = useRef(null)
+
   useEffect(() => {
-    if (data?.current) {
-      draw()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!containerRef.current) return
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        if (entry.contentRect.width > 0) {
+          draw() 
+        }
+      }
+    })
+
+    observer.observe(containerRef.current)
+    draw()
+
+    return () => observer.disconnect()
   }, [data])
 
-  // useEffect(() => {
-  //   // console.log(d3.select('#arrow'))
-  //   d3.selectAll('circle').interrupt()
-  //   d3.selectAll('.bg-circle')
-  //     .style('fill', 'none')
-  //     .style('stroke', 'none')
-  //     .style('stroke-width', '0')
-  //   d3.select('g#node-' + instance + '.node')
-  //     .select('circle')
-  //     .transition()
-  //     .ease(d3.easeExpOut) // 缓动函数，可以根据需要调整
-  //     .duration(1000) // 动画持续时间
-  //     .attr('class', 'bg-circle')
-  //     .style('fill', 'rgba(255, 208, 0, 0.3)')
-  //     .style('stroke', 'rgba(255, 208, 0, 0.2)')
-  //     .style('stroke-width', '15px')
-  // }, [instance])
   return (
     <div style={{ width: '100%', height: '100%' }}>
       {data?.current ? (
         <div
+          ref={containerRef}
           id={escapeId(chartId)}
           className="topology-container"
           style={{ width: '100%', height: '100%' }}
