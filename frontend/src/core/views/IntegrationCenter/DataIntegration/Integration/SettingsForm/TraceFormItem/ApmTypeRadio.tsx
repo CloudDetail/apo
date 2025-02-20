@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Divider, Flex, Image, Radio } from 'antd'
+import { Badge, Divider, Flex, Image, Radio } from 'antd'
 import DatasourceItem from 'src/core/views/IntegrationCenter/components/DatasourceItem'
 import { traceItems } from 'src/core/views/IntegrationCenter/constant'
 import apo from 'src/core/assets/images/logo.svg'
@@ -16,12 +16,13 @@ interface ApmTypeRadioProps {
   id: string
 }
 const allowApmType = ['jaeger', 'opentelemetry', 'skywalking']
+// const eeApmType = ['arms']
 const ApmTypeRadio = ({ id, value, onChange }: ApmTypeRadioProps) => {
   const { t } = useTranslation('core/dataIntegration')
   const messageApi = useMessageContext()
   function clickRadio(key: string | undefined) {
     if (!allowApmType.includes(key)) {
-      messageApi.warning(t('typeNotSupport'))
+      messageApi.warning(t('eeToast'))
     } else {
       onChange(key)
     }
@@ -47,18 +48,32 @@ const ApmTypeRadio = ({ id, value, onChange }: ApmTypeRadioProps) => {
         <div className="flex flex-wrap ">
           {traceItems.map((item) => (
             <div className="relative mx-1 mb-2" onClick={() => clickRadio(item.apmType)}>
-              <DatasourceItem
-                size="small"
-                src={item.src}
-                name={item.name}
-                description=""
-                key={item.key}
-              />
-              <Radio
-                checked={value === item.apmType}
-                disabled={!allowApmType.includes(item.apmType)}
-                className="absolute right-0 top-0"
-              ></Radio>
+              {!allowApmType.includes(item.apmType) ? (
+                <Badge.Ribbon text={t('ee')} style={{ top: 0, height: '20px', fontSize: 10 }}>
+                  <DatasourceItem
+                    size="small"
+                    src={item.src}
+                    name={item.name}
+                    description=""
+                    key={item.key}
+                  />
+                </Badge.Ribbon>
+              ) : (
+                <>
+                  <DatasourceItem
+                    size="small"
+                    src={item.src}
+                    name={item.name}
+                    description=""
+                    key={item.key}
+                  />{' '}
+                  <Radio
+                    checked={value === item.apmType}
+                    disabled={!allowApmType.includes(item.apmType)}
+                    className="absolute right-0 top-0"
+                  ></Radio>
+                </>
+              )}
             </div>
           ))}
         </div>

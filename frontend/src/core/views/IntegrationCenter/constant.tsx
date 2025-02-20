@@ -105,13 +105,13 @@ export const traceItems: DatasourceItemData<TraceKey>[] = [
     name: 'PinPoint',
     apmType: 'pinpoint',
   },
-  {
-    key: 'other',
-    src: other,
-    name: t('core/dataIntegration:other'),
-    description: '其他支持采用 OTLP 格式输出数据的探针',
-    apmType: 'other',
-  },
+  // {
+  //   key: 'other',
+  //   src: other,
+  //   name: t('core/dataIntegration:other'),
+  //   description: '其他支持采用 OTLP 格式输出数据的探针',
+  //   apmType: 'other',
+  // },
 ]
 export const metricsItems: DatasourceItemData<MetricsKey>[] = [
   {

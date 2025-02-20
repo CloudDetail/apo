@@ -18,7 +18,12 @@ const APOCollectorFormItem = () => {
       <Typography.Title level={5}>{t('apoCollectorSetting')}</Typography.Title>
       <div className="px-3">
         <Form.Item
-          label={t('collectorGatewayAddr')}
+          label={
+            <Space>
+              {t('collectorGatewayAddr')}
+              <span className=" text-gray-400 text-xs">{t('collectorGatewayAddrHint')}</span>
+            </Space>
+          }
           name={['apoCollector', 'collectorGatewayAddr']}
           rules={[{ required: true }]}
         >

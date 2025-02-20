@@ -32,7 +32,7 @@ import APOCollectorFormItem from './APOCollectorFormItem'
 import { useSearchParams } from 'react-router-dom'
 import { portsDefault } from '../../../constant'
 
-const SettingsForm = () => {
+const SettingsForm = ({ formInitValues }) => {
   const { t } = useTranslation('core/dataIntegration')
   const { t: ct } = useTranslation('common')
   const clusterTypeOptions = [
@@ -84,52 +84,9 @@ const SettingsForm = () => {
       })
   }
 
-  const getIntegrationInfo = async () => {
-    const res = await getIntegrationConfigApi()
-    const { database, datasource, traceAPI } = res
-    return {
-      // metric: {
-      //   ...datasource,
-      //   metricAPI: {
-      //     vmConfig: datasource.metricAPI.victoriametric,
-      //   },
-      // },
-      // log: {
-      //   ...database,
-      //   logAPI: {
-      //     chConfig: database.logAPI.clickhouse,
-      //   },
-      // },
-      traceAPI,
-    }
-  }
-
-  const getClusterIntegrationInfo = async (clusterId: string) => {
-    const res = await getClusterIntegrationInfoApi(clusterId)
-    return { ...res }
-  }
-
   useEffect(() => {
-    const fetchData = async () => {
-      const clusterId = searchParams.get('clusterId')
-
-      if (clusterId) {
-        const [integrationData, clusterData] = await Promise.all([
-          getIntegrationInfo(),
-          getClusterIntegrationInfo(clusterId),
-        ])
-
-        const mergedData = { ...integrationData, ...clusterData }
-
-        form.setFieldsValue(mergedData)
-      } else {
-        const integrationData = await getIntegrationInfo()
-        form.setFieldsValue(integrationData)
-      }
-    }
-
-    fetchData()
-  }, [searchParams])
+    form.setFieldsValue(formInitValues)
+  }, [formInitValues])
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="p-3 overflow-auto flex-1 h-full">
