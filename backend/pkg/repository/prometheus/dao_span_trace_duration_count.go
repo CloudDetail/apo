@@ -74,7 +74,7 @@ func (repo *promRepo) GetServiceWithNamespace(startTime, endTime int64, namespac
 	for _, sample := range vector {
 		service := string(sample.Metric["svc_name"])
 		namespace := string(sample.Metric["namespace"])
-		if len(namespace) == 0 || len(service) == 0 {
+		if len(service) == 0 {
 			continue
 		}
 		if _, exists := result[service]; !exists {
@@ -134,7 +134,7 @@ func (repo *promRepo) GetNamespaceWithService(startTime, endTime int64) (map[str
 	for _, sample := range vector {
 		service := string(sample.Metric["svc_name"])
 		namespace := string(sample.Metric["namespace"])
-		if len(namespace) == 0 || len(service) == 0 {
+		if len(namespace) == 0 {
 			continue
 		}
 		if _, exists := result[namespace]; !exists {
