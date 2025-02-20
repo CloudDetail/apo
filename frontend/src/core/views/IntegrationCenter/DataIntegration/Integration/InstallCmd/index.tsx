@@ -13,7 +13,7 @@ import ReactMarkdown from 'react-markdown'
 import { Button, Card, Typography } from 'antd'
 import { IoCloudDownloadOutline } from 'react-icons/io5'
 import { useTranslation } from 'react-i18next'
-
+import 'github-markdown-css/github-markdown.css'
 const decodeBase64 = (base64Str: string) => {
   try {
     const fixedBase64 = base64Str.replace(/-/g, '+').replace(/_/g, '/')
@@ -104,7 +104,7 @@ const InstallCmd = ({ clusterId, clusterType }) => {
             {t('installCmd.helmConfigFile')}
           </Button>
           <div className="p-1">{t('installCmd.runInstallationCommand')}</div>
-          <ReactMarkdown className='px-4'>{markdownContent}</ReactMarkdown>
+          <ReactMarkdown className='mx-3 px-4 border-1 rounded border-gray-700' >{markdownContent}</ReactMarkdown>
       </Card>
       <Card title={t('installCmd.offlineInstallation')} 
       type='inner'
@@ -124,7 +124,7 @@ const InstallCmd = ({ clusterId, clusterType }) => {
           </Button>
           <div className="p-1">{t('installCmd.importOfflineImage')}</div>
           <div className="p-1">{t('installCmd.executeOfflineCommand')}</div>
-          <ReactMarkdown className='px-4'>{markdownContent}</ReactMarkdown>
+          <ReactMarkdown className='mx-3 px-4 border-1 rounded border-gray-700' >{markdownContent}</ReactMarkdown>
       </Card>
     </div>
   )
