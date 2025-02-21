@@ -273,8 +273,8 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 	}
 
 	if len(filter.Group) == 0 || filter.Group == "app" {
-		if len(filter.EndpointKeys) == 0 && len(filter.Services) > 0 {
-			serviceCondition := []*whereSQL{}
+		serviceCondition := []*whereSQL{}
+		if len(filter.Services) > 0 {
 			arr := make(clickhouse.ArraySet, 0, len(filter.Services))
 			for _, s := range filter.Services {
 				arr = append(arr, s)

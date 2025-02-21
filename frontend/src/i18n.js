@@ -8,7 +8,14 @@ import { initReactI18next } from 'react-i18next'
 import Backend from 'i18next-http-backend'
 import LanguageDetector from 'i18next-browser-languagedetector'
 
-const coreNsList = ['mask', 'alertsIntegration', 'dataGroup', 'team', 'permission']
+const coreNsList = [
+  'mask',
+  'alertsIntegration',
+  'dataGroup',
+  'team',
+  'permission',
+  'dataIntegration',
+]
 const getNsList = () => {
   return coreNsList.map((ns) => `core/${ns}`)
 }

@@ -9,10 +9,18 @@ import { AlertKey } from 'src/core/types/alertIntegration'
 export type IntegrationType = 'trace' | 'metrics' | 'logs' | 'alert'
 
 export type ApoKey = 'apo'
-export type TraceKey = 'opentelemetry' | 'skywalking' | 'aliyun' | 'tingyun' | 'huawei' | 'other'
+export type TraceKey =
+  | 'opentelemetry'
+  | 'skywalking'
+  | 'aliyun'
+  | 'tingyun'
+  | 'huawei'
+  | 'elastic'
+  | 'pinpoint'
+  | 'other'
 export type MetricsKey =
   | 'prometheus'
-  | 'victoriametrics'
+  | 'victoriametric'
   | 'zabbix'
   | 'aliyun'
   | 'huawei'
@@ -27,6 +35,7 @@ export interface DatasourceItemData<T = DatasourceKey> {
   name: string | ReactNode
   description?: string
   disableChecked?: boolean
+  apmType?: string
 }
 export interface DatasourceListData {
   type: IntegrationType

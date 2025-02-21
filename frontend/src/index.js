@@ -48,8 +48,15 @@ const AppWrapper = () => {
             theme={{
               algorithm: theme.darkAlgorithm,
               components: {
+                // Segmented: {
+                //   itemSelectedBg: '#4096ff',
+                // },
                 Segmented: {
-                  itemSelectedBg: '#4096ff',
+                  itemActiveBg: '#1c2b4a',
+                  itemSelectedBg: '#1c2b4a',
+                  trackBg: '#1e2635',
+                  itemSelectedColor: '#4d82ff',
+                  itemColor: 'rgba(255,255,255, 0.4)',
                 },
                 Layout: {
                   bodyBg: '#1d222b',

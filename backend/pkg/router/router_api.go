@@ -12,6 +12,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/custom"
 	"github.com/CloudDetail/apo/backend/pkg/api/data"
 	"github.com/CloudDetail/apo/backend/pkg/api/health"
+	"github.com/CloudDetail/apo/backend/pkg/api/integration"
 	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
 	networkapi "github.com/CloudDetail/apo/backend/pkg/api/network"
@@ -292,6 +293,22 @@ func setApiRouter(r *resource) {
 		alertInputApi.GET("/source/enrich/default/clear", handler.ClearDefaultAlertEnrichRule())
 		alertInputApi.GET("/source/enrich/default/get", handler.GetDefaultAlertEnrichRule())
 		alertInputApi.POST("/source/enrich/default/set", handler.SetDefaultAlertEnrichRule())
+	}
+
+	integrationAPI := r.mux.Group("/api/integration")
+	{
+		handler := integration.New(r.pkg_db)
+		integrationAPI.GET("/configuration", handler.GetStaticIntegration())
+
+		integrationAPI.GET("/cluster/list", handler.ListCluster())
+		integrationAPI.GET("/cluster/get", handler.GetCluster())
+		integrationAPI.POST("/cluster/create", handler.CreateCluster())
+		integrationAPI.POST("/cluster/update", handler.UpdateCluster())
+		integrationAPI.GET("/cluster/delete", handler.DeleteCluster())
+
+		integrationAPI.GET("/cluster/install/config", handler.GetIntegrationInstallConfigFile())
+		integrationAPI.GET("/cluster/install/cmd", handler.GetIntegrationInstallDoc())
+		integrationAPI.GET("/adapter/update", handler.TriggerAdapterUpdate())
 	}
 }
 

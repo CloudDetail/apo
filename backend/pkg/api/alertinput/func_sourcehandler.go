@@ -9,7 +9,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	input "github.com/CloudDetail/apo/backend/pkg/model/input/alert"
+	input "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
 // SourceHandler Receive data based on alarm source configuration

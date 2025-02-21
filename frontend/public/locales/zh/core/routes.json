@@ -19,5 +19,6 @@
   "systemConfigName": "系统配置",
   "alertsIntegration": "告警接入",
   "dataGroup": "数据组管理",
-  "team": "团队管理"
+  "team": "团队管理",
+  "dataIntegration": "数据接入"
 }

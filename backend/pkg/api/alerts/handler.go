@@ -12,8 +12,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 	"github.com/CloudDetail/apo/backend/pkg/services/alerts"
-	alertinput "github.com/CloudDetail/apo/backend/pkg/services/input/alert"
 	so "github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
+
+	alertinput "github.com/CloudDetail/apo/backend/pkg/services/integration/alert"
 )
 
 type Handler interface {

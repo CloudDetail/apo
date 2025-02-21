@@ -19,5 +19,7 @@
   "systemConfigName": "System Configurations",
   "alertsIntegration": "Alerts Integration",
   "dataGroup": "Data Group Management",
-  "team": "Team Management"
+  "team": "Team Management",
+  "dataIntegration": "Data Integration",
+  "dataIntegrationSettings": "Cluster Integration"
 }
