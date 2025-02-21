@@ -80,7 +80,7 @@ apoNodeAgent:
     repository: "{{ "{{ .Values.global.image.repository }}/node-agent" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "v1.7.0"
+    tag: "v1.8.0"
   resources:
     limits:
       cpu: 200m
@@ -143,7 +143,7 @@ odiglet:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/apo-odiglet" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-    tag: "v1.0.0"
+    tag: "v1.0.2"
   resources:
     limits:
       cpu: 200m
@@ -159,7 +159,7 @@ apoOtelCollectorAgent:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/apo-otel-collector" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-    tag: "v1.0.0"
+    tag: "v1.0.1"
   resources:
     limits:
       cpu: 1000m
@@ -259,7 +259,7 @@ apo-otel-collector:
     repository: "{{ "{{ .Values.global.image.repository }}/apo-otel-collector" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "v1.0.0"
+    tag: "v1.0.1"
   config:
     apoBackendUrl: "{{ "{{ .Values.global.apoServerIP }}" }}"
     apoBackendPort: "{{ "{{ .Values.global.apoBackendPort }}" }}"
