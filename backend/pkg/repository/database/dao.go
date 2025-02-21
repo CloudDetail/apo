@@ -16,7 +16,7 @@ import (
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/logger"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
-	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database/input/alert"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -133,8 +133,7 @@ type Repo interface {
 	UpdateCustomQuery(customName string, customType string) error
 	GetCustomQuery() ([]QueryServiceType, error)
 	DeleteCustomQuery(customName string) error
-
-	integration.ObservabilityInputManage
+	alert.AlertInput
 }
 
 type daoRepo struct {
@@ -142,7 +141,7 @@ type daoRepo struct {
 	sqlDB          *sql.DB
 	transactionCtx struct{}
 
-	integration.ObservabilityInputManage
+	alert.AlertInput
 }
 
 // Connect to connect to the database
@@ -244,7 +243,7 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		return nil, err
 	}
 
-	if daoRepo.ObservabilityInputManage, err = integration.NewObservabilityInputManage(daoRepo.db, globalCfg); err != nil {
+	if daoRepo.AlertInput, err = alert.NewAlertInputRepo(daoRepo.db, globalCfg); err != nil {
 		return nil, err
 	}
 

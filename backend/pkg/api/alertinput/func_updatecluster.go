@@ -8,7 +8,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
+	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
 // UpdateCluster UpdateCluster
@@ -23,7 +23,7 @@ import (
 // @Router /api/alertinput/cluster/update [post]
 func (h *handler) UpdateCluster() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(input.Cluster)
+		req := new(alert.Cluster)
 		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

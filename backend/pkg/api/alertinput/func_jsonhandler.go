@@ -10,7 +10,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	input "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	input "github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
 // JsonHandler Receive data from a specific data source based on a JSON structure

@@ -8,7 +8,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
+	"github.com/CloudDetail/apo/backend/pkg/model/input/alert"
 )
 
 // ListCluster ListCluster
@@ -17,7 +17,7 @@ import (
 // @Tags API.alertinput
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Success 200 {object} input.ListClusterResponse
+// @Success 200 {object} alert.ListClusterResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/cluster/list [get]
 func (h *handler) ListCluster() core.HandlerFunc {
@@ -31,7 +31,7 @@ func (h *handler) ListCluster() core.HandlerFunc {
 			)
 			return
 		}
-		c.Payload(input.ListClusterResponse{
+		c.Payload(alert.ListClusterResponse{
 			Clusters: clusters,
 		})
 	}
