@@ -16,10 +16,12 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
+var subTime = -time.Hour * 24 * 2
+
 func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err error) {
 	var (
 		endTime        = time.Now()
-		startTime      = endTime.Add(-24 * time.Hour)
+		startTime      = endTime.Add(subTime)
 		endTimeMicro   = endTime.UnixMicro()
 		startTimeMicro = startTime.UnixMicro()
 	)
@@ -42,7 +44,7 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 	serviceList := make([]model.Datasource, 0, len(servicesMap))
 	for service, namespaces := range servicesMap {
 		sort.Slice(namespaces, func(i, j int) bool {
-			return namespaces[i] < namespaces[j]
+			return strings.Compare(namespaces[i], namespaces[j]) < 0
 		})
 		ds := model.Datasource{
 			Datasource: service,
@@ -66,8 +68,11 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 	}
 
 	for namespace, services := range namespaceMap {
+		if len(namespace) == 0 {
+			continue
+		}
 		sort.Slice(services, func(i, j int) bool {
-			return services[i] < services[j]
+			return strings.Compare(services[i], services[j]) < 0
 		})
 		ds := model.Datasource{
 			Datasource: namespace,
@@ -83,7 +88,7 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 	})
 
 	sort.Slice(namespaceList, func(i, j int) bool {
-		return namespaceList[i].Datasource < namespaceList[j].Datasource
+		return strings.Compare(namespaceList[i].Datasource, namespaceList[j].Datasource) < 0
 	})
 
 	resp.NamespaceList = namespaceList
@@ -97,9 +102,10 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 		err          error
 		namespaceMap = map[string][]string{}
 		serviceMap   = map[string][]string{}
+		filterMap    = map[string]struct{}{}
 		resp         = response.GetGroupDatasourceResponse{}
 		endTime      = time.Now()
-		startTime    = endTime.Add(-time.Hour * 24)
+		startTime    = endTime.Add(subTime)
 	)
 	if req.GroupID != 0 {
 		groups, err = s.getDataGroup(req.GroupID, req.Category)
@@ -122,36 +128,47 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 
 	for _, group := range groups {
 		for _, ds := range group.DatasourceList {
-			nested := make([]string, 0)
-			if ds.Category == model.DATASOURCE_CATEGORY_APM {
-				nested, err = s.getNested(ds.Datasource, ds.Type)
-				if err != nil {
-					return resp, err
-				}
-			}
-
 			if ds.Type == model.DATASOURCE_TYP_NAMESPACE {
-				namespaceMap[ds.Datasource] = nested
-				for _, srv := range nested {
-					endpoints, err := s.promRepo.GetServiceEndPointList(startTime.UnixMicro(), endTime.UnixMicro(), srv)
-					if err != nil {
-						return response.GetGroupDatasourceResponse{}, err
-					}
-
-					serviceMap[srv] = endpoints
+				if len(ds.Datasource) == 0 {
+					continue
 				}
+				namespaceMap[ds.Datasource] = []string{}
 			} else if ds.Type == model.DATASOURCE_TYP_SERVICE {
-				for _, namespace := range nested {
-					namespaceMap[namespace] = append(namespaceMap[namespace], ds.Datasource)
-				}
-
-				endpoints, err := s.promRepo.GetServiceEndPointList(startTime.UnixMicro(), endTime.UnixMicro(), ds.Datasource)
-				if err != nil {
-					return response.GetGroupDatasourceResponse{}, err
-				}
-				serviceMap[ds.Datasource] = endpoints
+				serviceMap[ds.Datasource] = []string{}	
 			}
 		}
+	}
+
+	for namespace := range namespaceMap {
+		nested, err := s.getNested(namespace, model.DATASOURCE_TYP_NAMESPACE)
+		if err != nil {
+			return resp, err
+		}
+		namespaceMap[namespace] = nested
+
+		for _, srv := range nested {
+			filterMap[namespace+srv] = struct{}{}
+		}
+	}
+
+	for service := range serviceMap {
+		nested, err := s.getNested(service, model.DATASOURCE_TYP_SERVICE)
+		if err != nil {
+			return resp, err
+		}
+		for _, namespace := range nested {
+			if _, ok := filterMap[namespace+service]; ok || len(namespace) == 0 {
+				continue
+			}
+			namespaceMap[namespace] = append(namespaceMap[namespace], service)
+			filterMap[namespace+service] = struct{}{}
+		}
+		endpoints, err := s.promRepo.GetServiceEndPointList(startTime.UnixMicro(), endTime.UnixMicro(), service)
+		if err != nil {
+			return resp, err
+		}
+
+		serviceMap[service] = endpoints
 	}
 
 	resp.NamespaceMap = namespaceMap
