@@ -59,9 +59,9 @@ func (ci *ClusterIntegration) ConvertToHelmValues() (map[string]any, error) {
 		modes["trace"] = "trace"
 		switch ci.Trace.ApmType {
 		case "skywalking":
-			modes["_java_agent_type"] = "SKYWALKING"
+			jsonObj["_java_agent_type"] = "SKYWALKING"
 		default:
-			modes["_java_agent_type"] = "OPENTELEMETRY"
+			jsonObj["_java_agent_type"] = "OPENTELEMETRY"
 		}
 	}
 
