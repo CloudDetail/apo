@@ -19,6 +19,7 @@ type Service interface {
 	DeleteCluster(cluster *integration.Cluster) error
 
 	GetIntegrationInstallConfigFile(req *integration.GetCInstallRequest) (*integration.GetCInstallConfigResponse, error)
+	// Deprecated
 	GetIntegrationInstallDoc(req *integration.GetCInstallRequest) ([]byte, error)
 
 	TriggerAdapterUpdate(req *integration.TriggerAdapterUpdateRequest)

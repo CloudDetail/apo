@@ -5,8 +5,10 @@ package integration
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"text/template"
 
@@ -38,6 +40,14 @@ func init() {
 	if err != nil {
 		log.Printf("[integration] module failed, cannot load dockerCompose integration template files: %v", err)
 	}
+
+	if value, find := os.LookupEnv("APO_CHART_VERSION"); find {
+		apoChartVersion = value
+	}
+	if value, find := os.LookupEnv("APO_DEPLOY_VERSION"); find {
+		apoComposeDeployVersion = value
+	}
+
 }
 
 func defaultValue(v any, def any) string {
@@ -77,7 +87,7 @@ func (s *service) GetIntegrationInstallConfigFile(req *integration.GetCInstallRe
 }
 
 func getIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
-	jsonObj, err := clusterConfig.ConvertToHelmValues()
+	jsonObj, err := convert2DeployValues(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("marshal config failed: %w", err)
 	}
@@ -99,4 +109,58 @@ func getIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*i
 		FileName: fileName,
 		Content:  buf.Bytes(),
 	}, err
+}
+
+const (
+	sideCarTraceMode = "sidecar"
+	collectTraceMode = "collect"
+	selfCollectMode  = "self-collector"
+)
+
+var (
+	apoChartVersion         = "1.4"
+	apoComposeDeployVersion = "v1.3.000"
+)
+
+func convert2DeployValues(ci *integration.ClusterIntegration) (map[string]any, error) {
+	jsonStr, err := json.Marshal(ci)
+	if err != nil {
+		return nil, fmt.Errorf("marshal config failed: %w", err)
+	}
+	jsonObj := map[string]any{}
+	err = json.Unmarshal(jsonStr, &jsonObj)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal config failed: %w", err)
+	}
+
+	var modes = make(map[string]string)
+	switch ci.Trace.Mode {
+	case sideCarTraceMode:
+		modes["trace"] = "trace-sidecar"
+	case collectTraceMode:
+		modes["trace"] = "trace-collector"
+	case selfCollectMode:
+		modes["trace"] = "trace"
+		switch ci.Trace.ApmType {
+		case "skywalking":
+			jsonObj["_java_agent_type"] = "SKYWALKING"
+		default:
+			jsonObj["_java_agent_type"] = "OPENTELEMETRY"
+		}
+	}
+
+	if ci.Metric.DSType == selfCollectMode {
+		modes["metric"] = "metrics"
+	}
+
+	if ci.Log.DBType == selfCollectMode {
+		logMode := "log"
+		if ci.Log.LogSelfCollectConfig != nil && ci.Log.LogSelfCollectConfig.Obj.Mode == "sample" {
+			logMode = "log-sample"
+		}
+		modes["log"] = logMode
+	}
+	jsonObj["_modes"] = modes
+
+	return jsonObj, nil
 }

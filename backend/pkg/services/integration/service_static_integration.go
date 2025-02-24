@@ -66,5 +66,8 @@ func (s *service) GetStaticIntegration() map[string]any {
 		}
 	}
 
+	resp["chartVersion"] = apoChartVersion
+	resp["deployVersion"] = apoComposeDeployVersion
+
 	return resp
 }
