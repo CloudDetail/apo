@@ -5,12 +5,15 @@ package integration
 
 import "github.com/CloudDetail/apo/backend/pkg/model/integration"
 
-func (s *service) GetClusterIntegration(clusterID string) (*integration.ClusterIntegration, error) {
+func (s *service) GetClusterIntegration(clusterID string) (*integration.ClusterIntegrationVO, error) {
 	config, err := s.dbRepo.GetIntegrationConfig(clusterID)
 	if err != nil {
 		return nil, err
 	}
 
-	configVO := config.RemoveSecret()
-	return configVO, nil
+	return &integration.ClusterIntegrationVO{
+		ClusterIntegration: config.RemoveSecret(),
+		ChartVersion:       apoChartVersion,
+		DeployVersion:      apoComposeDeployVersion,
+	}, nil
 }

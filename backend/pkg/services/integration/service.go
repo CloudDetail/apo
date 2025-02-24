@@ -12,7 +12,7 @@ type Service interface {
 	GetStaticIntegration() map[string]any
 
 	CreateCluster(cluster *integration.ClusterIntegration) (*integration.Cluster, error)
-	GetClusterIntegration(clusterID string) (*integration.ClusterIntegration, error)
+	GetClusterIntegration(clusterID string) (*integration.ClusterIntegrationVO, error)
 	UpdateClusterIntegration(cluster *integration.ClusterIntegration) error
 
 	ListCluster() ([]integration.Cluster, error)

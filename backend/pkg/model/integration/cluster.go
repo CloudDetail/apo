@@ -29,3 +29,9 @@ type ClusterIntegration struct {
 	Log    LogIntegration    `json:"log"`
 }
 
+type ClusterIntegrationVO struct {
+	*ClusterIntegration
+
+	ChartVersion  string `json:"chartVersion"`
+	DeployVersion string `json:"deployVersion"`
+}
