@@ -4,7 +4,9 @@
 package database
 
 import (
-	"gorm.io/gorm/clause"
+	"errors"
+
+	"gorm.io/gorm"
 )
 
 // InsertPage saves embedded interface.
@@ -19,8 +21,8 @@ type InsertPage struct {
 // RouterInsertPage maps router to inserted page.
 type RouterInsertPage struct {
 	ID       int `gorm:"column:id"`
-	RouterID int `gorm:"column:router_id;uniqueIndex"`
-	PageID   int `gorm:"column:page_id;"`
+	RouterID int `gorm:"column:router_id"`
+	PageID   int `gorm:"column:page_id"`
 }
 
 func (RouterInsertPage) TableName() string {
@@ -41,15 +43,24 @@ func (repo *daoRepo) GetRouterInsertedPage(routers []*Router, language string) e
 		err := repo.db.Table("router_insert_page").
 			Select("insert_page.*").
 			Joins("JOIN insert_page ON router_insert_page.page_id = insert_page.page_id").
-			Where("router_insert_page.router_id = ?", routers[i].RouterID).
-			Order(clause.Expr{
-				SQL:  "CASE WHEN insert_page.language = ? THEN 0 ELSE 1 END ASC",
-				Vars: []interface{}{language}},
-			).
-			Find(&page).Error
-		if err != nil {
-			return err
+			Where("router_insert_page.router_id = ? AND insert_page.language = ?", routers[i].RouterID, language).
+			First(&page).Error
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			err = repo.db.Table("router_insert_page").
+				Select("insert_page.*").
+				Joins("JOIN insert_page ON router_insert_page.page_id = insert_page.page_id").
+				// TODO use default language
+				Where("router_insert_page.router_id = ?", routers[i].RouterID).
+				First(&page).Error
 		}
+
+		if err != nil {
+            if errors.Is(err, gorm.ErrRecordNotFound) {
+                continue
+            }
+            return err
+        }
 		if page.PageID != 0 {
 			routers[i].Page = &page
 		}

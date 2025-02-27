@@ -243,6 +243,18 @@ func migrateTable(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
+	err = db.AutoMigrate(&RouterInsertPage{})
+	if err != nil {
+		return err
+	}
+	migrator := db.Migrator()
+	if migrator.HasIndex(&RouterInsertPage{}, "idx_router_insert_page_router_id") {
+		err := migrator.DropIndex(&RouterInsertPage{}, "idx_router_insert_page_router_id")
+		if err != nil {
+			return err
+		}
+	}
+
 	return db.AutoMigrate(
 		&amconfig.DingTalkConfig{},
 		&Feature{},
@@ -250,7 +262,6 @@ func migrateTable(db *gorm.DB) error {
 		&I18nTranslation{},
 		&InsertPage{},
 		&LogTableInfo{},
-		&RouterInsertPage{},
 		&MenuItem{},
 		&OtherLogTable{},
 		&AlertMetricsData{},
