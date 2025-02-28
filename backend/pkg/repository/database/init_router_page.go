@@ -11,12 +11,33 @@ import (
 
 // initRouterPage init router-insertPage mapping records.
 func (repo *daoRepo) initRouterPage() error {
-	routerPageMap := map[string][]string{
-		"/system-dashboard":      {"grafana/d/k8s_views_global/e99b86-e7bea4-e680bb-e8a788", "grafana/d/d065c262fbbe43/cluster-overview"},
-		"/basic-dashboard":       {"grafana/d/adst2iva9181se/e59fba-e7a180-e8aebe-e696bd-e68385-e586b5", "grafana/d/bba60ba1600c34/infrastructure-metrics"},
-		"/application-dashboard": {"grafana/d/b0102ebf-9e5e-4f21-80aa-9c2565cd3dcb/originx-polaris-metrics-service-level", "grafana/d/3ab420aae391a1/originx-polaris-metrics"},
-		"/middleware-dashboard":  {"grafana/dashboards/f/edwu5b9rkv94wb/"},
-		"/trace/full":            {"/jaeger/search"},
+	type page struct {
+		url      string
+		language string
+	}
+
+	// For build-in dashboards, make sure each language has at least one page even if the language doesn't match
+	routerPageMap := map[string][]page{
+		"/system-dashboard": {
+			{url: "grafana/d/k8s_views_global/e99b86-e7bea4-e680bb-e8a788", language: "zh"},
+			{url: "grafana/d/d065c262fbbe43/cluster-overview", language: "en"},
+		},
+		"/basic-dashboard": {
+			{url: "grafana/d/adst2iva9181se/e59fba-e7a180-e8aebe-e696bd-e68385-e586b5", language: "zh"},
+			{url: "grafana/d/bba60ba1600c34/infrastructure-metrics", language: "en"},
+		},
+		"/application-dashboard": {
+			{url: "grafana/d/b0102ebf-9e5e-4f21-80aa-9c2565cd3dcb/originx-polaris-metrics-service-level", language: "zh"},
+			{url: "grafana/d/3ab420aae391a1/originx-polaris-metrics", language: "en"},
+		},
+		"/middleware-dashboard": {
+			{url: "grafana/dashboards/f/edwu5b9rkv94wb/", language: "zh"},
+			{url: "grafana/dashboards/f/edwu5b9rkv94wb/", language: "en"},
+		},
+		"/trace/full": {
+			{url: "/jaeger/search", language: "zh"},
+			{url: "/jaeger/search", language: "en"},
+		},
 	}
 	return repo.db.Transaction(func(tx *gorm.DB) error {
 		var routerIDs, pageIDs []int
@@ -24,11 +45,11 @@ func (repo *daoRepo) initRouterPage() error {
 			return err
 		}
 
-		// delete mapping whose router or page has been already deleted
 		if err := tx.Model(&InsertPage{}).Select("page_id").Find(&pageIDs).Error; err != nil {
 			return err
 		}
 
+		// delete mapping whose router or page has been already deleted
 		err := tx.Model(&RouterInsertPage{}).Where("router_id NOT IN ? OR page_id NOT IN ?", routerIDs, pageIDs).Delete(nil).Error
 		if err != nil {
 			return err
@@ -45,7 +66,7 @@ func (repo *daoRepo) initRouterPage() error {
 
 			for _, page := range pages {
 				var pageID int
-				err = tx.Model(&InsertPage{}).Select("page_id").Where("url = ?", page).First(&pageID).Error
+				err = tx.Model(&InsertPage{}).Select("page_id").Where("url = ?", page.url).First(&pageID).Error
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					// page doesn't exist, skip
 					continue
@@ -56,8 +77,19 @@ func (repo *daoRepo) initRouterPage() error {
 				routerPage := RouterInsertPage{
 					PageID:   pageID,
 					RouterID: routerID,
+					Language: page.language,
 				}
 
+				var count int64
+				err := tx.Model(&RouterInsertPage{}).Where("router_id = ? AND page_id = ? AND language = ?", routerID, pageID, page.language).Count(&count).Error
+				if err != nil {
+					return err
+				}
+
+				if count > 0 {
+					continue
+				}
+				
 				err = tx.Create(&routerPage).Error
 				if err != nil {
 					return err

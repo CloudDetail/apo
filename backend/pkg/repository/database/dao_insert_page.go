@@ -15,14 +15,14 @@ type InsertPage struct {
 	Url      string `gorm:"column:url;type:varchar(150)" json:"url"`
 	Type     string `gorm:"column:type;type:varchar(20)" json:"type"` // For now it's grafana or jaeger.
 	Custom   bool   `gorm:"column:custom" json:"-"`
-	Language string `gorm:"column:language;type:varchar(20);" json:"language"` // zh, en
 }
 
 // RouterInsertPage maps router to inserted page.
 type RouterInsertPage struct {
-	ID       int `gorm:"column:id"`
-	RouterID int `gorm:"column:router_id"`
-	PageID   int `gorm:"column:page_id"`
+	ID       int    `gorm:"column:id"`
+	RouterID int    `gorm:"column:router_id"`
+	PageID   int    `gorm:"column:page_id"`
+	Language string `gorm:"column:language;type:varchar(20);default:NULL" json:"language"`
 }
 
 func (RouterInsertPage) TableName() string {
@@ -43,24 +43,15 @@ func (repo *daoRepo) GetRouterInsertedPage(routers []*Router, language string) e
 		err := repo.db.Table("router_insert_page").
 			Select("insert_page.*").
 			Joins("JOIN insert_page ON router_insert_page.page_id = insert_page.page_id").
-			Where("router_insert_page.router_id = ? AND insert_page.language = ?", routers[i].RouterID, language).
+			Where("router_insert_page.router_id = ? AND router_insert_page.language = ? OR (router_insert_page.language IS NULL AND insert_page.custom = true)", routers[i].RouterID, language).
 			First(&page).Error
 
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			err = repo.db.Table("router_insert_page").
-				Select("insert_page.*").
-				Joins("JOIN insert_page ON router_insert_page.page_id = insert_page.page_id").
-				// TODO use default language
-				Where("router_insert_page.router_id = ?", routers[i].RouterID).
-				First(&page).Error
-		}
-
 		if err != nil {
-            if errors.Is(err, gorm.ErrRecordNotFound) {
-                continue
-            }
-            return err
-        }
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				continue
+			}
+			return err
+		}
 		if page.PageID != 0 {
 			routers[i].Page = &page
 		}
