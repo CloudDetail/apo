@@ -35,8 +35,8 @@ func (repo *daoRepo) initRouterPage() error {
 			{url: "grafana/dashboards/f/edwu5b9rkv94wb/", language: "en"},
 		},
 		"/trace/full": {
-			{url: "/jaeger/search", language: "zh"},
-			{url: "/jaeger/search", language: "en"},
+			{url: "jaeger/search", language: "zh"},
+			{url: "jaeger/search", language: "en"},
 		},
 	}
 	return repo.db.Transaction(func(tx *gorm.DB) error {
