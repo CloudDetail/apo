@@ -10,35 +10,41 @@ import (
 func (repo *daoRepo) initInsertPages() error {
 	pages := []InsertPage{
 		{Url: "grafana/d/b0102ebf-9e5e-4f21-80aa-9c2565cd3dcb/originx-polaris-metrics-service-level", Type: "grafana"},
-		{Url: "grafana/d/adst2iva9181se/e59fba-e7a180-e8aebe-e696bd-e68385-e586b5"},
+		{Url: "grafana/d/adst2iva9181se/e59fba-e7a180-e8aebe-e696bd-e68385-e586b5", Type: "grafana"},
 		{Url: "grafana/dashboards/f/edwu5b9rkv94wb/", Type: "grafana"},
 		{Url: "grafana/d/k8s_views_global/e99b86-e7bea4-e680bb-e8a788", Type: "grafana"},
-		{Url: "/jaeger/search", Type: "jaeger"},
+		{Url: "jaeger/search", Type: "jaeger"},
+		{Url: "grafana/d/d065c262fbbe43/cluster-overview", Type: "grafana"},
+		{Url: "grafana/d/bba60ba1600c34/infrastructure-metrics", Type: "grafana"},
+		{Url: "grafana/d/3ab420aae391a1/originx-polaris-metrics", Type: "grafana"},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
 		var existingPage, toAdd []InsertPage
 		var toDelete []int
+		var toUpdate []InsertPage
 
 		if err := tx.Where("custom = ?", false).Find(&existingPage).Error; err != nil {
 			return err
 		}
 
-		existingMap := make(map[string]InsertPage)
+		existingMap := make(map[string]int)
 		for _, page := range existingPage {
-			existingMap[page.Url] = page
+			existingMap[page.Url] = page.PageID
 		}
 
 		for _, page := range pages {
-			if _, exists := existingMap[page.Url]; !exists {
+			if pageID, exists := existingMap[page.Url]; !exists {
 				toAdd = append(toAdd, page)
 			} else {
+				page.PageID = pageID
+				toUpdate = append(toUpdate, page)
 				delete(existingMap, page.Url)
 			}
 		}
 
 		for _, page := range existingMap {
-			toDelete = append(toDelete, page.PageID)
+			toDelete = append(toDelete, page)
 		}
 
 		if len(toAdd) > 0 {
@@ -51,6 +57,14 @@ func (repo *daoRepo) initInsertPages() error {
 			err := tx.Model(&InsertPage{}).Where("page_id in ?", toDelete).Delete(nil).Error
 			if err != nil {
 				return err
+			}
+		}
+
+		if len(toUpdate) > 0 {
+			for _, page := range toUpdate {
+				if err := tx.Model(&InsertPage{}).Where("page_id = ?", page.PageID).Updates(page).Error; err != nil {
+					return err
+				}
 			}
 		}
 
