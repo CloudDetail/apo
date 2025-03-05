@@ -7,10 +7,12 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { selectProcessedTimeRange, timeRangeList } from 'src/core/store/reducers/timeRangeReducer'
 
-function IframeDashboard(props) {
+//receiving 'dashboardKey' as a prop ..
+function IframeDashboard({ dashboardKey }) {
   const [src, setSrc] = useState()
   const storeTimeRange = useSelector((state) => state.timeRange)
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
+  const menuItems = useSelector((state) => state.userReducer.menuItems);
   const iframeRef = useRef(null)
   // console.log(
   //   location,
@@ -37,6 +39,7 @@ function IframeDashboard(props) {
       iframe.addEventListener('load', handleLoad)
     }
   }, [])
+
   useEffect(() => {
     const iframe = iframeRef.current
 
@@ -122,18 +125,38 @@ function IframeDashboard(props) {
       iframe.removeEventListener('load', handleLoad)
     }
   }, [])
+
   useEffect(() => {
-    let src = props.src
-    if (storeTimeRange.rangeType) {
-      const storeTimeRangeItem = timeRangeList.find(
-        (item) => item.rangeType === storeTimeRange.rangeType,
-      )
-      src += `&from=${storeTimeRangeItem.from}&to=${storeTimeRangeItem.to}`
-    } else {
-      src += `&from=${Math.round(startTime / 1000)}&to=${Math.round(endTime / 1000)}`
+    // Find the item in menuItems where key === dashboardKey
+    const dashItem = menuItems.find((item) => item.key === dashboardKey);
+    if (!dashItem?.router?.page?.url) {
+      return;
     }
-    setSrc(src)
-  }, [props.src, startTime, endTime, storeTimeRange])
+    let baseUrl = dashItem.router.page.url;
+  
+    // Append time range parameters
+    // If baseUrl already contains '?', it means there are initial query parameters, 
+    // so use '&' to concatenate additional parameters.
+    let connector = baseUrl.includes('?') ? '&' : '?';
+  
+    if (storeTimeRange.rangeType) {
+      // If rangeType exists, find it in timeRangeList
+      const storeTimeRangeItem = timeRangeList.find(
+        (x) => x.rangeType === storeTimeRange.rangeType
+      );
+      if (storeTimeRangeItem) {
+        baseUrl += `${connector}from=${storeTimeRangeItem.from}&to=${storeTimeRangeItem.to}`;
+      }
+    } else {
+      // Otherwise, use processedTimeRange
+      baseUrl += `${connector}from=${Math.round(startTime / 1000)}&to=${Math.round(endTime / 1000)}`;
+    }
+  
+    setSrc(baseUrl);
+  }, [dashboardKey, menuItems, storeTimeRange, startTime, endTime]);
+  
+ 
+
   return (
     <iframe
       id="iframe"
