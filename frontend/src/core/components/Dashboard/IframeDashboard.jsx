@@ -7,10 +7,13 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { selectProcessedTimeRange, timeRangeList } from 'src/core/store/reducers/timeRangeReducer'
 
-function IframeDashboard(props) {
+//In this case, the dashboardkey is passed instead, and the key value is passed to match the corresponding dashboard
+function IframeDashboard({ dashboardKey }) {
   const [src, setSrc] = useState()
   const storeTimeRange = useSelector((state) => state.timeRange)
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
+  const menuItems = useSelector((state) => state.userReducer.menuItems);
+  console.log('MEMUIYEMS',menuItems)
   const iframeRef = useRef(null)
   // console.log(
   //   location,
@@ -37,6 +40,7 @@ function IframeDashboard(props) {
       iframe.addEventListener('load', handleLoad)
     }
   }, [])
+
   useEffect(() => {
     const iframe = iframeRef.current
 
@@ -122,18 +126,34 @@ function IframeDashboard(props) {
       iframe.removeEventListener('load', handleLoad)
     }
   }, [])
+
   useEffect(() => {
-    let src = props.src
-    if (storeTimeRange.rangeType) {
-      const storeTimeRangeItem = timeRangeList.find(
-        (item) => item.rangeType === storeTimeRange.rangeType,
-      )
-      src += `&from=${storeTimeRangeItem.from}&to=${storeTimeRangeItem.to}`
-    } else {
-      src += `&from=${Math.round(startTime / 1000)}&to=${Math.round(endTime / 1000)}`
+    if (!dashboardKey) return; // 如果没传key,不处理
+    // 在menuItems里找 key===dashboardKey
+    const dashItem = menuItems.find((item) => item.key === dashboardKey);
+    if (!dashItem?.router?.page?.url) {
+      return;
     }
-    setSrc(src)
-  }, [props.src, startTime, endTime, storeTimeRange])
+    let baseUrl = dashItem.router.page.url;
+      // 2) 拼接时间范围
+    // 先判断是否有 “?”，如果后端只返回 "grafana/d/..."，咱们就默认加 "?"
+    // 这里简单写: baseUrl += '?from=xxx&to=xxx'
+    let connector = baseUrl.includes('?') ? '&' : '?';
+    if (storeTimeRange.rangeType) {
+      // 如果有rangeType, 在 timeRangeList找
+      const storeTimeRangeItem = timeRangeList.find(
+        (x) => x.rangeType === storeTimeRange.rangeType
+      );
+      if (storeTimeRangeItem) {
+        baseUrl += `${connector}from=${storeTimeRangeItem.from}&to=${storeTimeRangeItem.to}`;
+      }
+    } else {
+      // 否则用 processedTimeRange
+      baseUrl += `${connector}from=${Math.round(startTime / 1000)}&to=${Math.round(endTime / 1000)}`;
+    }
+    setSrc(baseUrl);
+  }, [dashboardKey, menuItems, storeTimeRange, startTime, endTime]);
+    
   return (
     <iframe
       id="iframe"
