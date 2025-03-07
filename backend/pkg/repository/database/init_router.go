@@ -29,6 +29,8 @@ func (repo *daoRepo) initRouterData() error {
 		{RouterTo: "/system/data-group", HideTimeSelector: true},
 		{RouterTo: "/system/config", HideTimeSelector: true},
 		{RouterTo: "/system/team", HideTimeSelector: true},
+		{RouterTo: "/alerts/events", HideTimeSelector: false},
+		{RouterTo: "/workflows", HideTimeSelector: true},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
