@@ -24,6 +24,8 @@ const FullTrace = React.lazy(() => import('src/oss/views/trace/FullTrace.jsx'))
 const AlertsRule = React.lazy(() => import('src/oss/views/alerts/AlertsRule'))
 const AlertsNotify = React.lazy(() => import('src/oss/views/alerts/AlertsNotify'))
 const ConfigPage = React.lazy(() => import('src/oss/views/config/index'))
+const AlertEventsPage = React.lazy(() => import('src/oss/views/alertEvents/index'))
+const WorkflowsPage = React.lazy(() => import('src/oss/views/workflows/index'))
 
 const namespace = 'core/routes'
 
@@ -107,6 +109,17 @@ const ossRoutes = [
     name: <TranslationCom text="configurationsName" space={namespace} />,
     element: ConfigPage,
     hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/alerts/events',
+    name: <TranslationCom text="alertEvents" space={namespace} />,
+    element: AlertEventsPage,
+    hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/workflows',
+    name: <TranslationCom text="workflows" space={namespace} />,
+    element: WorkflowsPage,
   },
 ]
 export default ossRoutes

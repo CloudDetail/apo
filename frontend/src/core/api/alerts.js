@@ -57,3 +57,7 @@ export const updateAlertNotifyApi = (params) => {
 export const deleteAlertNotifyApi = (params) => {
   return del(`/api/alerts/alertmanager/receiver`, params)
 }
+
+export const getAlertEventsApi = (params) => {
+  return post('/api/alerts/event/list', params)
+}

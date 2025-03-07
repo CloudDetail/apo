@@ -8,7 +8,7 @@ import CIcon from '@coreui/icons-react'
 import { cilSpeedometer } from '@coreui/icons'
 import { CBadge } from '@coreui/react'
 import { PiPath } from 'react-icons/pi'
-import { LuFileText } from 'react-icons/lu'
+import { LuFileText, LuWorkflow } from 'react-icons/lu'
 import { AiOutlineDashboard } from 'react-icons/ai'
 import { FaRegBell } from 'react-icons/fa'
 import { MdOutlineSettings } from 'react-icons/md'
@@ -148,5 +148,6 @@ const navIcon = {
   healthy: <TbWaveSawTool />,
   // dataGroup: <FiDatabase />,
   integration: <BsBezier2 />,
+  workflows: <LuWorkflow />,
 }
 export { _nav, commercialNav, navIcon }
