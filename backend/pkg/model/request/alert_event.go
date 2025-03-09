@@ -12,5 +12,10 @@ type AlertEventSearchRequest struct {
 	SortBy     string            `json:"sortBy" form:"sortBy"`
 	Pagination *model.Pagination `json:"pagination"`
 
-	WorkflowParams map[string]string `json:"workflowParams"`
+	Filter AlertEventSearchFilter `json:"filter" form:"filter"`
+}
+
+type AlertEventSearchFilter struct {
+	Node      string `json:"node" form:"node"`
+	Namespace string `json:"namespace" form:"namespace"`
 }
