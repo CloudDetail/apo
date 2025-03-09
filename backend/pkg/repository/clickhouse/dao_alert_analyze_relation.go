@@ -1,6 +1,6 @@
-// File: dao_alert_analyzer_realtion.go
-// Package: clickhouse
-// Description: 包含了一些告警分析中使用到的结构和方法
+// Copyright 2025 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package clickhouse
 
 import (
