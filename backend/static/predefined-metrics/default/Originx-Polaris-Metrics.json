@@ -1,0 +1,448 @@
+{
+  "queries": [
+    {
+      "title": "RED指标 - 请求次数",
+      "targets": [
+        {
+          "expr": "sum by (content_key, svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务请求次数(按服务名和内容键统计,指定时间段内增加量)"
+    },
+    {
+      "title": "RED指标 - 请求成功率",
+      "targets": [
+        {
+          "expr": "sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_count{is_error=\"false\", svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))/sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval])) OR on() vector(0)",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务请求成功率(按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "RED指标 - 平均响应时间",
+      "targets": [
+        {
+          "expr": "sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_sum{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))/sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))/1000000",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ms",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务平均响应时间(毫秒,按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "RED指标 - 响应时间分位数 - P90: 服务名=, 请求端点=",
+      "describe": "服务响应时间P90分位数(按服务名和内容键统计,指定时间段内)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.9, sum(rate(kindling_span_trace_duration_nanoseconds_bucket{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval])) by (svc_name, content_key, vmrange))",
+          "legendFormat": "P90: 服务名={{svc_name}}, 请求端点={{content_key}}",
+          "refId": "P90",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ]
+    },
+    {
+      "title": "RED指标 - 响应时间分位数 - P95: 服务名=, 请求端点=",
+      "describe": "服务响应时间P95分位数(按服务名和内容键统计,指定时间段内)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(kindling_span_trace_duration_nanoseconds_bucket{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval])) by (svc_name, content_key, vmrange))",
+          "legendFormat": "P95: 服务名={{svc_name}}, 请求端点={{content_key}}",
+          "refId": "P95",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ]
+    },
+    {
+      "title": "RED指标 - 响应时间分位数 - P99: 服务名=, 请求端点=",
+      "describe": "服务响应时间P99分位数(按服务名和内容键统计,指定时间段内)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(kindling_span_trace_duration_nanoseconds_bucket{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval])) by (svc_name, content_key, vmrange))",
+          "legendFormat": "P99: 服务名={{svc_name}}, 请求端点={{content_key}}",
+          "refId": "P99",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ]
+    },
+    {
+      "title": "北极星指标 - 每次请求中在CPU上执行的平均耗时",
+      "targets": [
+        {
+          "expr": "sum by (content_key, svc_name) (increase(kindling_profiling_cpu_duration_nanoseconds_sum{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_cpu_duration_nanoseconds_count{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务每次请求CPU执行平均耗时(纳秒,按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "北极星指标 - 每次请求中的网络平均耗时",
+      "targets": [
+        {
+          "expr": "sum by (content_key, svc_name) (increase(kindling_profiling_net_duration_nanoseconds_sum{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_net_duration_nanoseconds_count{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务每次请求网络平均耗时(纳秒,按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "北极星指标 - 每次请求中在CPU上执行的耗时90%分位数",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.9, sum(rate(kindling_profiling_cpu_duration_nanoseconds_bucket{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval])) by (svc_name, content_key, vmrange))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务每次请求CPU执行耗时P90分位数(按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "北极星指标 - 每次请求中的网络耗时90%分位数",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.9, sum(rate(kindling_profiling_net_duration_nanoseconds_bucket{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval])) by (svc_name, content_key, vmrange))",
+          "legendFormat": "__auto",
+          "refId": "B",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务每次请求网络耗时P90分位数(按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "北极星指标 - 每次请求中的epoll网络平均耗时",
+      "targets": [
+        {
+          "expr": "sum by (content_key, svc_name) (increase(kindling_profiling_epoll_duration_nanoseconds_sum{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_epoll_duration_nanoseconds_count{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务每次请求epoll网络平均耗时(纳秒,按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "北极星指标 - 每次请求中的锁等待或GC平均耗时",
+      "targets": [
+        {
+          "expr": "sum by (content_key, svc_name) (increase(kindling_profiling_futex_duration_nanoseconds_sum{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_futex_duration_nanoseconds_count{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务每次请求锁等待或GC平均耗时(纳秒,按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "北极星指标 - 每次请求中的epoll网络耗时90%分位数",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.9, sum(rate(kindling_profiling_epoll_duration_nanoseconds_bucket{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval])) by (svc_name, content_key, vmrange))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务每次请求epoll网络耗时P90分位数(按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "北极星指标 - 每次请求中的锁等待或GC耗时90%分位数",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.9, sum(rate(kindling_profiling_futex_duration_nanoseconds_bucket{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval])) by (svc_name, content_key, vmrange))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务每次请求锁等待或GC耗时P90分位数(按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "北极星指标 - 每次请求中的等待其他资源平均耗时",
+      "targets": [
+        {
+          "expr": "sum by (content_key, svc_name) (increase(kindling_profiling_other_duration_nanoseconds_sum{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_other_duration_nanoseconds_count{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务每次请求等待其他资源平均耗时(纳秒,按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "北极星指标 - 每次请求中的等待调度到CPU平均耗时",
+      "targets": [
+        {
+          "expr": "sum by (content_key, svc_name) (increase(kindling_profiling_runq_duration_nanoseconds_sum{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_runq_duration_nanoseconds_count{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务每次请求等待调度到CPU平均耗时(纳秒,按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "北极星指标 - 每次请求中的文件读写平均耗时",
+      "targets": [
+        {
+          "expr": "sum by (content_key, svc_name) (increase(kindling_profiling_file_duration_nanoseconds_sum{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_file_duration_nanoseconds_count{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval]))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务每次请求文件读写平均耗时(纳秒,按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "北极星指标 - 每次请求中的等待调度到CPU耗时90%分位数",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.9, sum(rate(kindling_profiling_runq_duration_nanoseconds_bucket{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval])) by (svc_name, content_key, vmrange))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务每次请求等待调度到CPU耗时P90分位数(按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "北极星指标 - 每次请求中的文件读写耗时90%分位数",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.9, sum(rate(kindling_profiling_file_duration_nanoseconds_bucket{svc_name=~\"$service_name\", content_key=~\"$content_key\"}[$__interval])) by (svc_name, content_key, vmrange))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "content_key",
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "content_key",
+        "service_name"
+      ],
+      "describe": "服务每次请求文件读写耗时P90分位数(按服务名和内容键统计,指定时间段内)"
+    }
+  ],
+  "variables": [
+    {
+      "name": "datasource",
+      "type": "datasource",
+      "label": "数据源",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "APO-VictoriaMetric",
+        "value": "APO-VictoriaMetric"
+      },
+      "regex": "",
+      "query": {
+        "query": "prometheus",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "service_name",
+      "type": "query",
+      "label": "服务名",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "qryType": 1,
+        "query": "label_values(kindling_span_trace_duration_nanoseconds_count,svc_name)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "content_key",
+      "type": "query",
+      "label": "请求端点",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "qryType": 1,
+        "query": "label_values(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"$service_name\"},content_key)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    }
+  ],
+  "title": "Originx 北极星指标 (服务层级)"
+}

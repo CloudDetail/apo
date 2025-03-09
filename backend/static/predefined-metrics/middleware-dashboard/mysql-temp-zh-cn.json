@@ -1,0 +1,1408 @@
+{
+  "queries": [
+    {
+      "title": "运行时间",
+      "targets": [
+        {
+          "expr": "mysql_global_status_uptime{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "每秒查询数",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_queries{job=~\"$job\", instance=~\"$instance\"}[$__interval])",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "InnoDB 缓冲池",
+      "targets": [
+        {
+          "expr": "mysql_global_variables_innodb_buffer_pool_size{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "连接 - MySQL 连接数 - Connections",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(max_over_time(mysql_global_status_threads_connected{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Connections",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "连接 - MySQL 连接数 - Max Used Connections",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(mysql_global_status_max_used_connections{job=~\"$job\", instance=~\"$instance\"})",
+          "legendFormat": "Max Used Connections",
+          "refId": "C",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "连接 - MySQL 连接数 - Max Connections",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(mysql_global_variables_max_connections{job=~\"$job\", instance=~\"$instance\"})",
+          "legendFormat": "Max Connections",
+          "refId": "B",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "连接 - MySQL 客户端线程活跃数 - Peak Threads Connected",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(max_over_time(mysql_global_status_threads_connected{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Peak Threads Connected",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "连接 - MySQL 客户端线程活跃数 - Peak Threads Running",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(max_over_time(mysql_global_status_threads_running{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Peak Threads Running",
+          "refId": "B",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "连接 - MySQL 客户端线程活跃数 - Avg Threads Running",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(avg_over_time(mysql_global_status_threads_running{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Avg Threads Running",
+          "refId": "C",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "表锁定统计 - MySQL 请求数",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_questions{job=~\"$job\", instance=~\"$instance\"}[$__interval])",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "表锁定统计 - MySQL 线程缓存 - Thread Cache Size",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(mysql_global_variables_thread_cache_size{job=~\"$job\", instance=~\"$instance\"})",
+          "legendFormat": "Thread Cache Size",
+          "refId": "B",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "表锁定统计 - MySQL 线程缓存 - Threads Cached",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(mysql_global_status_threads_cached{job=~\"$job\", instance=~\"$instance\"})",
+          "legendFormat": "Threads Cached",
+          "refId": "C",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "表锁定统计 - MySQL 线程缓存 - Threads Created",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_threads_created{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Threads Created",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "临时对象统计 - MySQL 临时对象数 - Created Tmp Tables",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_created_tmp_tables{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Created Tmp Tables",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "临时对象统计 - MySQL 临时对象数 - Created Tmp Disk Tables",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_created_tmp_disk_tables{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Created Tmp Disk Tables",
+          "refId": "B",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "临时对象统计 - MySQL 临时对象数 - Created Tmp Files",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_created_tmp_files{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Created Tmp Files",
+          "refId": "C",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "临时对象统计 - MySQL 查询类型 - Select Full Join",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_select_full_join{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Select Full Join",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "临时对象统计 - MySQL 查询类型 - Select Full Range Join",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_select_full_range_join{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Select Full Range Join",
+          "refId": "B",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "临时对象统计 - MySQL 查询类型 - Select Range",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_select_range{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Select Range",
+          "refId": "C",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "临时对象统计 - MySQL 查询类型 - Select Range Check",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_select_range_check{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Select Range Check",
+          "refId": "D",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "临时对象统计 - MySQL 查询类型 - Select Scan",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_select_scan{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Select Scan",
+          "refId": "E",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "排序 - MySQL 排序数 - Sort Rows",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_sort_rows{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Sort Rows",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "排序 - MySQL 排序数 - Sort Range",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_sort_range{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Sort Range",
+          "refId": "B",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "排序 - MySQL 排序数 - Sort Merge Passes",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_sort_merge_passes{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Sort Merge Passes",
+          "refId": "C",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "排序 - MySQL 排序数 - Sort Scan",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_sort_scan{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Sort Scan",
+          "refId": "D",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "排序 - MySQL 慢查询",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_slow_queries{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Slow Queries",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "中断 - MySQL 中断连接数 - Aborted Connects (attempts)",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_aborted_connects{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Aborted Connects (attempts)",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "中断 - MySQL 中断连接数 - Aborted Clients (timeout)",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_aborted_clients{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Aborted Clients (timeout)",
+          "refId": "B",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "中断 - MySQL 表锁定 - Table Locks Immediate",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_table_locks_immediate{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Table Locks Immediate",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "中断 - MySQL 表锁定 - Table Locks Waited",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_table_locks_waited{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Table Locks Waited",
+          "refId": "B",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "网络状态 - MySQL 网络流量 - Inbound",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_bytes_received{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Inbound",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "网络状态 - MySQL 网络流量 - Outbound",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(mysql_global_status_bytes_sent{job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
+          "legendFormat": "Outbound",
+          "refId": "B",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "内存使用 - MySQL 内存使用总览 - InnoDB Buffer Pool Data",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(mysql_global_status_innodb_page_size{job=~\"$job\", instance=~\"$instance\"} * on (instance) mysql_global_status_buffer_pool_pages{job=~\"$job\", instance=~\"$instance\", state=\"data\"})",
+          "legendFormat": "InnoDB Buffer Pool Data",
+          "refId": "A",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "内存使用 - MySQL 内存使用总览 - InnoDB Log Buffer Size",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(mysql_global_variables_innodb_log_buffer_size{job=~\"$job\", instance=~\"$instance\"})",
+          "legendFormat": "InnoDB Log Buffer Size",
+          "refId": "D",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "内存使用 - MySQL 内存使用总览 - InnoDB Additional Memory Pool Size",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(mysql_global_variables_innodb_additional_mem_pool_size{job=~\"$job\", instance=~\"$instance\"})",
+          "legendFormat": "InnoDB Additional Memory Pool Size",
+          "refId": "H",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "内存使用 - MySQL 内存使用总览 - InnoDB Dictionary Size",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(mysql_global_status_innodb_mem_dictionary{job=~\"$job\", instance=~\"$instance\"})",
+          "legendFormat": "InnoDB Dictionary Size",
+          "refId": "F",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "内存使用 - MySQL 内存使用总览 - Key Buffer Size",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(mysql_global_variables_key_buffer_size{job=~\"$job\", instance=~\"$instance\"})",
+          "legendFormat": "Key Buffer Size",
+          "refId": "B",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "内存使用 - MySQL 内存使用总览 - Query Cache Size",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(mysql_global_variables_query_cache_size{job=~\"$job\", instance=~\"$instance\"})",
+          "legendFormat": "Query Cache Size",
+          "refId": "C",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "内存使用 - MySQL 内存使用总览 - Adaptive Hash Index Size",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(mysql_global_status_innodb_mem_adaptive_hash{job=~\"$job\", instance=~\"$instance\"})",
+          "legendFormat": "Adaptive Hash Index Size",
+          "refId": "E",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "内存使用 - MySQL 内存使用总览 - TokuDB Cache Size",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(mysql_global_variables_tokudb_cache_size{job=~\"$job\", instance=~\"$instance\"})",
+          "legendFormat": "TokuDB Cache Size",
+          "refId": "I",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "命令，处理，进程 - 命令数统计",
+      "targets": [
+        {
+          "expr": "topk(5, rate(mysql_global_status_commands_total{job=~\"$job\", instance=~\"$instance\"}[$__interval])>0)",
+          "legendFormat": "Com_{{ command }}",
+          "refId": "B",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "命令，处理，进程 - MySQL 处理统计",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_handlers_total{instance=~\"$host\", handler!~\"commit|rollback|savepoint.*|prepare\"}[$__interval]) or irate(mysql_global_status_handlers_total{instance=~\"$host\", handler!~\"commit|rollback|savepoint.*|prepare\"}[5m])",
+          "legendFormat": "{{ handler }}",
+          "refId": "J",
+          "variables": [
+            "__interval",
+            "host"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "host"
+      ]
+    },
+    {
+      "title": "命令，处理，进程 - MySQL 事务处理",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_handlers_total{instance=~\"$host\", handler=~\"commit|rollback|savepoint.*|prepare\"}[$__interval]) or irate(mysql_global_status_handlers_total{instance=~\"$host\", handler=~\"commit|rollback|savepoint.*|prepare\"}[5m])",
+          "legendFormat": "{{ handler }}",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "host"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "host"
+      ]
+    },
+    {
+      "title": "命令，处理，进程 - 进程状态",
+      "targets": [
+        {
+          "expr": "mysql_info_schema_threads{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "{{ state }}",
+          "refId": "A",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "命令，处理，进程 - 每小时进程状态",
+      "targets": [
+        {
+          "expr": "topk(5, avg_over_time(mysql_info_schema_threads{job=~\"$job\", instance=~\"$instance\"}[1h]))",
+          "legendFormat": "{{ state }}",
+          "refId": "A",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "查询缓存 - MySQL 查询缓存大小 - Free Memory",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "mysql_global_status_qcache_free_memory{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "Free Memory",
+          "refId": "F",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "查询缓存 - MySQL 查询缓存大小 - Query Cache Size",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "mysql_global_variables_query_cache_size{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "Query Cache Size",
+          "refId": "E",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "查询缓存 - MySQL 查询缓存活跃情况 - Hits",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_qcache_hits{job=~\"$job\", instance=~\"$instance\"}[$__interval]) or irate(mysql_global_status_qcache_hits{job=~\"$job\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "Hits",
+          "refId": "B",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "查询缓存 - MySQL 查询缓存活跃情况 - Inserts",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_qcache_inserts{job=~\"$job\", instance=~\"$instance\"}[$__interval]) or irate(mysql_global_status_qcache_inserts{job=~\"$job\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "Inserts",
+          "refId": "C",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "查询缓存 - MySQL 查询缓存活跃情况 - Not Cached",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_qcache_not_cached{job=~\"$job\", instance=~\"$instance\"}[$__interval]) or irate(mysql_global_status_qcache_not_cached{job=~\"$job\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "Not Cached",
+          "refId": "D",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "查询缓存 - MySQL 查询缓存活跃情况 - Prunes",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_qcache_lowmem_prunes{job=~\"$job\", instance=~\"$instance\"}[$__interval]) or irate(mysql_global_status_qcache_lowmem_prunes{job=~\"$job\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "Prunes",
+          "refId": "F",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "查询缓存 - MySQL 查询缓存活跃情况 - Queries in Cache",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "mysql_global_status_qcache_queries_in_cache{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "Queries in Cache",
+          "refId": "E",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "文件数量 - MySQL 当前文件打开数",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_opened_files{job=~\"$job\", instance=~\"$instance\"}[$__interval]) or irate(mysql_global_status_opened_files{job=~\"$job\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "Openings",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "文件数量 - MySQL 文件打开统计 - Open Files",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "mysql_global_status_open_files{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "Open Files",
+          "refId": "A",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "文件数量 - MySQL 文件打开统计 - Open Files Limit",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "mysql_global_variables_open_files_limit{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "Open Files Limit",
+          "refId": "D",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "文件数量 - MySQL 文件打开统计 - InnoDB Open Files",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "mysql_global_status_innodb_num_open_files{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "InnoDB Open Files",
+          "refId": "B",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "打开的表 - MySQL 表状态 - Openings",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_opened_tables{job=~\"$job\", instance=~\"$instance\"}[$__interval]) or irate(mysql_global_status_opened_tables{job=~\"$job\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "Openings",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "打开的表 - MySQL 表状态 - Hits",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_table_open_cache_hits{job=~\"$job\", instance=~\"$instance\"}[$__interval]) or irate(mysql_global_status_table_open_cache_hits{job=~\"$job\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "Hits",
+          "refId": "B",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "打开的表 - MySQL 表状态 - Misses",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_table_open_cache_misses{job=~\"$job\", instance=~\"$instance\"}[$__interval]) or irate(mysql_global_status_table_open_cache_misses{job=~\"$job\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "Misses",
+          "refId": "C",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "打开的表 - MySQL 表状态 - Misses due to Overflows",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_table_open_cache_overflows{job=~\"$job\", instance=~\"$instance\"}[$__interval]) or irate(mysql_global_status_table_open_cache_overflows{job=~\"$job\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "Misses due to Overflows",
+          "refId": "D",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "打开的表 - MySQL 表状态 - Table Open Cache Hit Ratio",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "(rate(mysql_global_status_table_open_cache_hits{job=~\"$job\", instance=~\"$instance\"}[$__interval]) or irate(mysql_global_status_table_open_cache_hits{job=~\"$job\", instance=~\"$instance\"}[5m]))/((rate(mysql_global_status_table_open_cache_hits{job=~\"$job\", instance=~\"$instance\"}[$__interval]) or irate(mysql_global_status_table_open_cache_hits{job=~\"$job\", instance=~\"$instance\"}[5m]))+(rate(mysql_global_status_table_open_cache_misses{job=~\"$job\", instance=~\"$instance\"}[$__interval]) or irate(mysql_global_status_table_open_cache_misses{job=~\"$job\", instance=~\"$instance\"}[5m])))",
+          "legendFormat": "Table Open Cache Hit Ratio",
+          "refId": "E",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "打开的表 - MySQL 打开的表 - Open Tables",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "mysql_global_status_open_tables{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "Open Tables",
+          "refId": "B",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "打开的表 - MySQL 打开的表 - Table Open Cache",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "mysql_global_variables_table_open_cache{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "Table Open Cache",
+          "refId": "C",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "MySQL 表定义 - MySQL 表定义缓存 - Open Table Definitions",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "mysql_global_status_open_table_definitions{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "Open Table Definitions",
+          "refId": "B",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "MySQL 表定义 - MySQL 表定义缓存 - Table Definitions Cache Size",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "mysql_global_variables_table_definition_cache{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "Table Definitions Cache Size",
+          "refId": "C",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    },
+    {
+      "title": "MySQL 表定义 - MySQL 表定义缓存 - Opened Table Definitions",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_opened_table_definitions{job=~\"$job\", instance=~\"$instance\"}[$__interval]) or irate(mysql_global_status_opened_table_definitions{job=~\"$job\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "Opened Table Definitions",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance",
+        "job"
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "datasource",
+      "type": "datasource",
+      "label": "",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "APO-VictoriaMetric",
+        "value": "APO-VictoriaMetric"
+      },
+      "regex": "",
+      "query": {
+        "query": "prometheus",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "job",
+      "type": "query",
+      "label": "",
+      "options": null,
+      "current": {
+        "selected": true,
+        "text": [
+          "All"
+        ],
+        "value": [
+          "$__all"
+        ]
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(mysql_up, job)",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "instance",
+      "type": "query",
+      "label": "",
+      "options": null,
+      "current": {
+        "selected": true,
+        "text": [
+          "All"
+        ],
+        "value": [
+          "$__all"
+        ]
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(mysql_up, instance)",
+        "qryType": 1
+      }
+    }
+  ],
+  "title": "MySQL 指标"
+}

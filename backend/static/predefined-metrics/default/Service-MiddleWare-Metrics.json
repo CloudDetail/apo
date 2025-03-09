@@ -1,0 +1,150 @@
+{
+  "queries": [
+    {
+      "title": "平均响应时间",
+      "targets": [
+        {
+          "expr": "sum by (svc_name, db_system, db_name, name, db_url) (increase(kindling_db_duration_nanoseconds_sum{svc_name=~\"$service\"}[$__rate_interval])) / sum by (svc_name, db_system, db_name, name, db_url) (increase(kindling_db_duration_nanoseconds_count{svc_name=~\"$service\"}[$__rate_interval])) ",
+          "legendFormat": "{{db_url}}/{{db_name}}: {{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "service"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "service"
+      ],
+      "describe": "服务调用中间件平均响应时间(纳秒,按服务名、数据库系统、名称和URL统计)"
+    },
+    {
+      "title": "请求错误率(%)",
+      "targets": [
+        {
+          "expr": "sum by (svc_name, db_system, db_name, name, db_url) (increase(kindling_db_duration_nanoseconds_count{svc_name=~\"$service\",is_error=\"true\"}[$__rate_interval]))  / sum by (svc_name, db_system, db_name, name, db_url) (increase(kindling_db_duration_nanoseconds_count{svc_name=~\"$service\"}[$__rate_interval])) or (sum by (svc_name, db_system, db_name, name, db_url) (increase(kindling_db_duration_nanoseconds_count{svc_name=~\"$service\"}[$__rate_interval]))*0)",
+          "legendFormat": "{{db_url}}/{{db_name}}: {{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "service"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "service"
+      ],
+      "describe": "服务调用中间件请求错误率(百分比,按服务名、数据库系统、名称和URL统计)"
+    },
+    {
+      "title": "每秒钟请求数(TPS)",
+      "targets": [
+        {
+          "expr": "sum by (svc_name, db_system, db_name, name, db_url) (irate(kindling_db_duration_nanoseconds_count{svc_name=~\"$service\"}[$__rate_interval]))  ",
+          "legendFormat": "{{db_url}}/{{db_name}}: {{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "service"
+          ]
+        }
+      ],
+      "unit": "reqps",
+      "params": [
+        "service"
+      ],
+      "describe": "服务调用中间件每秒请求数(TPS,按服务名、数据库系统、名称和URL统计)"
+    }
+  ],
+  "variables": [
+    {
+      "name": "datasource",
+      "type": "datasource",
+      "label": "数据源",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "APO-VictoriaMetric",
+        "value": "APO-VictoriaMetric"
+      },
+      "regex": "",
+      "query": {
+        "query": "prometheus",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "resolution",
+      "type": "custom",
+      "label": "精度",
+      "options": [
+        {
+          "selected": false,
+          "text": "1s",
+          "value": "1s"
+        },
+        {
+          "selected": false,
+          "text": "15s",
+          "value": "15s"
+        },
+        {
+          "selected": true,
+          "text": "30s",
+          "value": "30s"
+        },
+        {
+          "selected": false,
+          "text": "1m",
+          "value": "1m"
+        },
+        {
+          "selected": false,
+          "text": "3m",
+          "value": "3m"
+        },
+        {
+          "selected": false,
+          "text": "5m",
+          "value": "5m"
+        },
+        {
+          "selected": false,
+          "text": "10m",
+          "value": "10m"
+        },
+        {
+          "selected": false,
+          "text": "30m",
+          "value": "30m"
+        }
+      ],
+      "current": {
+        "selected": false,
+        "text": "30s",
+        "value": "30s"
+      },
+      "regex": "",
+      "query": {
+        "query": "1s, 15s, 30s, 1m, 3m, 5m , 10m, 30m",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "service",
+      "type": "query",
+      "label": "服务名",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "qryType": 1,
+        "query": "label_values(kindling_db_duration_nanoseconds_sum,svc_name)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    }
+  ],
+  "title": "服务调用中间件"
+}

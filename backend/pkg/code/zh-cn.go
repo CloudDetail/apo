@@ -200,4 +200,6 @@ var zhCnText = map[string]string{
 	GetIntegrationInstallDocFailed:        "获取集群集成安装文档失败",
 	GetIntegrationInstallConfigFileFailed: "获取集群集成安装配置文件失败",
 	GetClusterIntegrationFailed:           "获取集群集成失败",
+
+	GetAlertEventListError: "获取告警事件列表失败",
 }
