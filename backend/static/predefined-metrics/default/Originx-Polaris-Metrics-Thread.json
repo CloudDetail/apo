@@ -5,17 +5,20 @@
             "describe": "查询节点上被监控的服务列表",
             "targets": [
                 {
-                    "expr": "sum without (tid,type) (originx_thread_polaris_nanoseconds_sum{node_name=~\"$node_name\"})",
+                    "expr": "sum without (tid,type) (originx_thread_polaris_nanoseconds_sum{node_name=~\"$node_name\",pid=~\"$pid\"})",
                     "legendFormat": "{{namespace}}:{{pod}}",
                     "refId": "A",
                     "variables": [
-                        "node_name"
+                        "node_name",
+                        "pid"
                     ]
                 }
             ],
             "unit": "ns",
             "params": [
-                "node_name"
+                "node_name",
+                "pid",
+                "pod"
             ]
         },
         {
@@ -191,6 +194,16 @@
         }
     ],
     "variables": [
+        {
+            "name": "pid",
+            "type": "custom",
+            "label": "PID",
+            "current": {
+                "text": ".*",
+                "value": ".*"
+            },
+            "regex": ""
+        },
         {
             "name": "node_name",
             "type": "query",
