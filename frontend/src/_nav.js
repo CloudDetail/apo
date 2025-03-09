@@ -18,6 +18,7 @@ import { GrSystem } from 'react-icons/gr'
 import TranslationCom from './oss/components/TranslationCom'
 import { FiDatabase } from 'react-icons/fi'
 import { BsBezier2 } from 'react-icons/bs'
+import { t } from 'i18next'
 
 const namespace = 'core/routes'
 const commercialNav = [
@@ -25,10 +26,9 @@ const commercialNav = [
     key: 'alertAnalyze',
     icon: <IoIosTrendingUp />,
     label: (
-      <>
-        告警分析
+      <>{t('pro/routes.alertAnalyze')}
         <CBadge color="info" className="ml-2">
-          免费公测
+          {t('pro/routes.free')}
         </CBadge>
       </>
     ),
