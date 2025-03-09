@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { formatUnit } from 'src/core/utils/time'
 interface TimeProps {
   p90: number
@@ -6,6 +7,7 @@ interface TimeProps {
   width?: number
 }
 function TimeProgress({ p90, error }: TimeProps) {
+  const { t } = useTranslation('pro/causeReport')
   const [p90WidthPercent, setP90WidthPercent] = useState<number>(0)
   const [errorWidthPercent, setErrorWidthPercent] = useState<number>(0)
   useEffect(() => {
@@ -18,9 +20,9 @@ function TimeProgress({ p90, error }: TimeProps) {
     }
   }, [p90, error])
   return (
-    <div className={` duration_warp`}>
+    <div className={`duration_warp`}>
       <div className="duration_item">
-        <span>历史基线</span>
+        <span>{t('historicalBaseline')}</span>
         {p90 > 0 ? (
           <React.Fragment>
             <div className="health_line" style={{ width: `${p90WidthPercent}%` }}></div>
@@ -29,7 +31,7 @@ function TimeProgress({ p90, error }: TimeProps) {
         ) : null}
       </div>
       <div className="duration_item">
-        <span>本次耗时</span>
+        <span>{t('currentDuration')}</span>
         {error > 0 ? (
           <React.Fragment>
             <div className="abnormal_line" style={{ width: `${errorWidthPercent}%` }}></div>

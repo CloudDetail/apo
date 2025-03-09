@@ -1,22 +1,25 @@
 import { Collapse, Empty } from 'antd'
 import BasicTable from 'src/core/components/Table/basicTable'
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
+const i18nKey = 'stackChart'
 export default function StackChart(props: any) {
+  const { t } = useTranslation('pro/causeReport')
+
   const { stackList } = props
   const staticColumns = [
     {
-      title: '序号',
+      title: t(`${i18nKey}.serialNumber`),
       accessor: 'index',
       customWidth: 60,
     },
     {
-      title: '堆栈',
+      title: t(`${i18nKey}.stack`),
       accessor: 'value',
       justifyContent: 'start',
     },
   ]
-
   const getItems = () => {
     return stackList?.map((stack: any, index: number) => {
       const tableData = stack.stack
@@ -29,19 +32,25 @@ export default function StackChart(props: any) {
         key: index,
         label: (
           <div className="row">
-            <div className="col flex-shrink-0">锁开始时间：{stack.waitTime}</div>
+            <div className="col flex-shrink-0">
+              {t(`${i18nKey}.lockStartTime`)}：{stack.waitTime}
+            </div>
             <div className="col" style={{ width: 150 }}>
-              耗时：{stack.waitThread}
+              {t(`${i18nKey}.elapsedTime`)}：{stack.waitThread}
             </div>
           </div>
         ),
         children: (
           <div className="row">
-            <div className="col">锁结束时间：{stack.wakeTime}</div>
-            <div className="col">锁地址：{stack.lockObjectAddress}</div>
-            <div className="align-items-start flex flex-basis-1 ">
+            <div className="col">
+              {t(`${i18nKey}.lockEndTime`)}：{stack.wakeTime}
+            </div>
+            <div className="col">
+              {t(`${i18nKey}.lockAddress`)}：{stack.lockObjectAddress}
+            </div>
+            <div className="align-items-start flex flex-basis-1">
               <div className="flex-shrink-0" style={{ marginTop: 15 }}>
-                当前堆栈：
+                {t(`${i18nKey}.currentStack`)}：
               </div>
               {tableData.length > 0 ? (
                 <BasicTable columns={staticColumns} data={tableData} />

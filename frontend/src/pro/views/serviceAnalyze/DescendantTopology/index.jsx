@@ -9,8 +9,10 @@ import PlayDelta from './PlayDelta'
 import LoadingSpinner from 'src/core/components/Spinner'
 import DateTimeRangePicker from 'src/core/components/DateTime/DateTimeRangePicker'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 const DescendantTopology = () => {
+  const { t } = useTranslation('pro/serviceAnalyze')
   const { selectedEndpointInfo, setSelectedEndpointInfo, setSelectedNodeInfo, loading } =
     useAlertAnalyzeContext()
   const [searchParams] = useSearchParams()
@@ -43,7 +45,7 @@ const DescendantTopology = () => {
           <Splitter.Panel className="h-full overflow-auto flex flex-col">
             <div className="flex-grow-0 flex-shrink-0 overflow-hidden">
               <div className="bg-[#2a3042] rounded p-2 m-2">
-                <div className=" text-base font-bold flex items-center pl-1">告警和异常总数</div>
+                <div className=" text-base font-bold flex items-center pl-1">{t('alertTotal')}</div>
                 <Divider className="m-2" />
                 <div className=" flex flex-row overflow-hidden ">
                   <div className="flex-grow flex-shrink w-[400px]">

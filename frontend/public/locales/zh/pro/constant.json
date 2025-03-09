@@ -1,0 +1,9 @@
+{
+  "unknown": "未知",
+  "app": "应用接口异常",
+  "container": "容器异常",
+  "infra": "基础设施异常",
+  "network": "网络异常",
+  "error": "JAVA Exception",
+  "appInstance": "应用实例异常"
+}

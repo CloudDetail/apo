@@ -6,12 +6,15 @@ import ErrorNodeInfo from './components/ErrorNodeInfo'
 import ChainStep from './components/chainStep'
 import _ from 'lodash'
 import CauseStep2 from './components/causeStep2'
+import { useTranslation } from 'react-i18next'
 interface CauseProps {
   data: any
   occurrenceAt?: number
 }
 
 function CauseStep({ data, occurrenceAt }: CauseProps) {
+  const { t } = useTranslation('pro/causeReport')
+
   if (data.type === 'trace_entry') {
     return <CauseStep1 data={data} />
   } else if (data.type === 'profiling_duration') {
@@ -31,7 +34,7 @@ function CauseStep({ data, occurrenceAt }: CauseProps) {
   } else if (data.type === 'callChain') {
     return <ChainStep data={data} />
   } else {
-    return <div>暂未匹配类型</div>
+    return <div>{t('noMatchingType')}</div>
   }
 }
 

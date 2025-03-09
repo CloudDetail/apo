@@ -6,7 +6,10 @@ import { useChatAIContext } from 'src/pro/contexts/ChatAIContext'
 import styles from './index.module.scss'
 import { MdDeleteOutline } from 'react-icons/md'
 import { useUpdateEffect } from 'react-use'
+import { useTranslation } from 'react-i18next'
+const i18nKey = 'causeConfirm'
 const ComAccordionTransfer = () => {
+  const { t } = useTranslation('pro/chatAI')
   const form = Form.useFormInstance()
   const dataViewType = useChatAIContext((ctx) => ctx.dataViewType)
   const dataViewTypeList = useChatAIContext((ctx) => ctx.dataViewTypeList)
@@ -94,7 +97,7 @@ const ComAccordionTransfer = () => {
   return (
     <Transfer
       dataSource={dataViewTypeList}
-      titles={['可选的数据类型', '最终展示数据类型']}
+      titles={[t(`${i18nKey}.availableDataTypes`), t(`${i18nKey}.finalDisplayedDataTypes`)]}
       targetKeys={targetKeys}
       selectedKeys={selectedKeys}
       onChange={handleChange}

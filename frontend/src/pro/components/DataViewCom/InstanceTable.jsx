@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import StatusInfo from 'src/core/components/StatusInfo'
 import BasicTable from 'src/core/components/Table/basicTable'
@@ -7,15 +8,17 @@ import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer
 import { convertTime } from 'src/core/utils/time'
 
 function InstanceTable({ data }) {
+  const { t } = useTranslation('pro/dataViewCom')
+
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const column = [
     {
-      title: '实例名',
+      title: t('instanceName'),
       accessor: 'name',
       customWidth: 150,
     },
     {
-      title: '平均响应时间',
+      title: t('averageResponseTime'),
       accessor: 'latency',
       minWidth: 170,
       Cell: (props) => {
@@ -24,19 +27,17 @@ function InstanceTable({ data }) {
       },
     },
     {
-      title: '错误率',
+      title: t('errorRate'),
       accessor: 'errorRate',
       minWidth: 170,
-
       Cell: (props) => {
         const { value } = props
         return <TempCell type="errorRate" timeRange={{ startTime, endTime }} data={value} />
       },
     },
     {
-      title: '吞吐量',
+      title: t('throughput'),
       accessor: 'tps',
-
       minWidth: 170,
       Cell: (props) => {
         const { value } = props
@@ -44,9 +45,8 @@ function InstanceTable({ data }) {
       },
     },
     {
-      title: '日志错误数量',
+      title: t('logErrorCount'),
       accessor: 'logs',
-
       minWidth: 170,
       Cell: (props) => {
         const { value } = props
@@ -54,20 +54,16 @@ function InstanceTable({ data }) {
       },
     },
     {
-      title: '基础设施状态',
+      title: t('infrastructureStatus'),
       accessor: 'infrastructureStatus',
       Cell: (props) => {
         const { value, row, column } = props
         const alertReason = row.original?.alertReason?.[column.id]
-        return (
-          <>
-            <StatusInfo status={value} alertReason={alertReason} title={column.title} />
-          </>
-        )
+        return <StatusInfo status={value} alertReason={alertReason} title={column.title} />
       },
     },
     {
-      title: '网络质量状态',
+      title: t('networkQualityStatus'),
       accessor: 'netStatus',
       Cell: (props) => {
         const { value, row, column } = props
@@ -80,7 +76,7 @@ function InstanceTable({ data }) {
       },
     },
     {
-      title: 'K8s事件状态',
+      title: t('k8sEventStatus'),
       accessor: 'k8sStatus',
       Cell: (props) => {
         const { value, row, column } = props
@@ -92,20 +88,19 @@ function InstanceTable({ data }) {
         )
       },
     },
-
     {
-      title: '主机节点信息',
+      title: t('hostNodeInfo'),
       accessor: 'nodeName',
       minWidth: 150,
       Cell: (props) => {
         return (
           <div>
             <div className="flex ">
-              <span className="text-gray-400 flex-shrink-0 flex-grow-0">主机名：</span>
+              <span className="text-gray-400 flex-shrink-0 flex-grow-0">{t('hostName')}</span>
               {props.value}
             </div>
             <div className="flex">
-              <span className="text-gray-400 flex-shrink-0 flex-grow-0">主机IP：</span>
+              <span className="text-gray-400 flex-shrink-0 flex-grow-0">{t('hostIP')}</span>
               {props.row.original.nodeIP}
             </div>
           </div>
@@ -113,7 +108,7 @@ function InstanceTable({ data }) {
       },
     },
     {
-      title: '末次部署或重启时间',
+      title: t('lastDeploymentOrRestartTime'),
       accessor: `timestamp`,
       Cell: (props) => {
         const { value } = props
@@ -122,13 +117,14 @@ function InstanceTable({ data }) {
             {value !== null ? (
               convertTime(value, 'yyyy-mm-dd hh:mm:ss')
             ) : (
-              <span className="text-slate-400">N/A</span>
+              <span className="text-slate-400">{t('na')}</span>
             )}
           </>
         )
       },
     },
   ]
+
   const tableProps = useMemo(() => {
     return {
       columns: column,

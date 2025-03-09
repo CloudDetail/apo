@@ -1,4 +1,5 @@
 import { Button, ConfigProvider, Input } from 'antd'
+import { t } from 'i18next'
 import React from 'react'
 import { useRef, useState } from 'react'
 import { FaRegStopCircle } from 'react-icons/fa'
@@ -53,7 +54,7 @@ const ChartInput = ({ addChart, loading, closeStream }: ChartInputProps) => {
             variant="filled"
             autoSize={{ minRows: 1, maxRows: 5 }}
             style={{ background: '#2f2f2f ' }}
-            placeholder="对话大模型"
+            placeholder={t('pro/chatAI:chatWithAI')}
             value={question}
             onChange={(e) => changeQueationValue(e)}
             onPressEnter={(e) => askQuestion(e)}

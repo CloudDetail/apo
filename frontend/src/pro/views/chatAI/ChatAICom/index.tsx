@@ -16,7 +16,9 @@ import React from 'react'
 import { anormalTypes } from 'src/pro/constants'
 import { FaLocationCrosshairs } from 'react-icons/fa6'
 import { Explanations } from './Explanations'
+import { useTranslation } from 'react-i18next'
 const ChatAICom = () => {
+  const { t } = useTranslation('pro/chatAI')
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   //上下文
   const service = useChatAIContext((ctx) => ctx.service)
@@ -233,7 +235,7 @@ const ChatAICom = () => {
         }
         processChunk()
       } catch (error) {
-        console.error('流读取失败:', error)
+        console.error('Error:', error)
         setIsDone(true)
       }
     }
@@ -274,7 +276,6 @@ const ChatAICom = () => {
         // 读取流数据
         const { value, done } = await reader.read()
         if (done) {
-          console.log('提问结束')
           setIsDone(true)
           break
         } // 流结束时退出循环
@@ -315,7 +316,7 @@ const ChatAICom = () => {
           }
         })
       } catch (error) {
-        console.log('读取或处理消息时发生错误:', error)
+        console.log('Error:', error)
         setIsDone(true)
         break // 根据业务需求决定是否退出循环
       }
@@ -396,16 +397,16 @@ const ChatAICom = () => {
           }}
         >
           <div className="w-2/3 p-3  text-lg font-bold flex items-center">
-            大模型对话 <HintCom />
+            {t('aiDialogue')} <HintCom />
           </div>
           <Divider type="vertical" className="h-full" />
           <div className=" p-3  text-lg font-bold flex-grow ml-1">
             <div className="w-full  flex justify-between">
-              <div>数据与规则说明</div>
+              <div>{t('dataAndRules')}</div>
             </div>
           </div>
         </div>
-        <Tooltip title="确认根因节点、查看数据">
+        <Tooltip title={t('confirmRootCause')}>
           <Button
             className="absolute right-5 bottom-20 z-20"
             onClick={() => {
@@ -427,15 +428,15 @@ const ChatAICom = () => {
             <GlassCard
               content={
                 <p>
-                  尚未配置大语言模型 API 访问权限，请参阅
+                  {t('notConfigured')}
                   <a
                     className="underline text-sky-500"
                     target="_blank"
                     href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/APO接入大语言模型分析告警事件"
                   >
-                    接入大语言模型手册
+                    {t('configurationGuide')}
                   </a>
-                  进行配置
+                  {t('configureNow')}
                 </p>
               }
             />

@@ -9,6 +9,7 @@ import CopyButton from 'src/core/components/CopyButton'
 import GrafanaChart from './GrafanaChart'
 import { Card } from 'antd'
 import FlamegraphCanvas from './Flamegraph'
+import { useTranslation } from 'react-i18next'
 
 // const testPQL = 'sum by (device) (rate(node_disk_io_time_seconds_total{instance=\"10.10.103.219:9100\"}[5m]))*100';
 interface Props {
@@ -20,7 +21,9 @@ interface ChartOption {
   action: any
   option: any
 }
+const i18nKey = 'causeStep'
 function ChartStep({ data, occurrenceAt }: Props) {
+  const { t } = useTranslation('pro/causeReport')
   const theme = ThemeStyle['dark']
   const [chartData, setChartData] = useState<any>()
   const [chartOptionList, setChartOptionList] = useState<ChartOption[]>()
@@ -70,7 +73,7 @@ function ChartStep({ data, occurrenceAt }: Props) {
                     position: 'end',
                     fontsize: 12,
                     overflow: 'breakAll',
-                    formatter: '请求发生时间',
+                    formatter: t(`${i18nKey}.requestTime`),
                     color: theme.colors.text.primary,
                     distance: 18,
                   },
@@ -161,7 +164,7 @@ function ChartStep({ data, occurrenceAt }: Props) {
       {ChartComponent()}
       {data?.conclusion?.length > 0 && (
         <div>
-          <span>分析结论：</span>
+          <span>{t(`${i18nKey}.analysisConclusion`)}：</span>
           {/* <a className='conclusion_tag' href={`/d/c902c778-2a67-463c-8f08-ae495df7fd28/2?var-pql=${testPQL}&viewPanel=1`}>{data.conclusion}</a> */}
           <span className="conclusion_tag">{data.conclusion}</span>
         </div>

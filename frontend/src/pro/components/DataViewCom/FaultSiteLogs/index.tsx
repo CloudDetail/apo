@@ -3,9 +3,11 @@ import LogsTabs from './LogsTabs'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { TimestampToISO } from 'src/core/utils/time'
+import { useTranslation } from 'react-i18next'
 
 const FaultSiteLogsWrapper = ({ pagination, list, selectedNodeInfo }: any) => {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
+  const {t} = useTranslation('pro/dataViewCom')
   return (
     <div>
       <div className="max-h-[460px] overflow-hidden flex">
@@ -22,7 +24,7 @@ const FaultSiteLogsWrapper = ({ pagination, list, selectedNodeInfo }: any) => {
             target="_blank"
             href={`/#/logs/fault-site?service=${selectedNodeInfo.service}&endpoint=${selectedNodeInfo.endpoint}&logs-from=${TimestampToISO(startTime)}&logs-to=${TimestampToISO(endTime)}`}
           >
-            查看更多相关日志
+            {t('moreLog')}
           </Button>
         </div>
       )}

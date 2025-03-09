@@ -1,0 +1,15 @@
+{
+  "serviceName": "Service Name",
+  "serviceStatus": "Service Status",
+  "serviceHealthScore": "Service Health Score",
+  "checkItem": "Check Item",
+  "healthStatus": "Health Status",
+  "statusDetails": "Status Details",
+  "search": "Search",
+  "serviceEndpoint": "Service Endpoint",
+  "namespace": "Namespace",
+  "severeAbnormal": "Severe Abnormal",
+  "moderateAbnormal": "Moderate Abnormal",
+  "mildAbnormal": "Mild Abnormal",
+  "healthy": "Healthy"
+}

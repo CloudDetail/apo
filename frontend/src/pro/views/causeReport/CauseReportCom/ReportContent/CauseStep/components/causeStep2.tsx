@@ -3,6 +3,7 @@ import BasicTable from 'src/core/components/Table/basicTable'
 import { formatUnit } from 'src/core/utils/time'
 import { Button, Card } from 'antd'
 import { useCauseReportContext } from 'src/pro/contexts/CauseReportContext'
+import { useTranslation } from 'react-i18next'
 
 // const testPQL = 'sum by (device) (rate(node_disk_io_time_seconds_total{instance=\"10.10.103.219:9100\"}[5m]))*100';
 const metric = 'kindling_profiling_duration_nanoseconds_total'
@@ -18,7 +19,11 @@ interface EventProps {
 interface Props {
   data: any
 }
+const i18nKey = 'causeStep'
+
 function CauseStep2({ data }: Props) {
+  const { t } = useTranslation('pro/causeReport')
+
   const [eventList, setEventList] = useState<EventProps[]>([])
   const { traceId, spanId } = useCauseReportContext()
   useEffect(() => {
@@ -39,69 +44,52 @@ function CauseStep2({ data }: Props) {
     {
       title: '',
       accessor: 'name',
-      Cell: ({ value }: any) => {
-        return value
-        // const href = TO_DASHBOARD[value];
-        // return (
-        //     <>
-        //         {
-        //             href ?
-        //                 <Tooltip content="点击跳转至相关Dashboard">
-        //                     <a href={href}>{value}</a>
-
-        //                 </Tooltip>
-        //                 : value
-
-        //         }
-        //     </>
-        // );
-      },
+      Cell: ({ value }: any) => value,
     },
     {
-      title: '历史基线',
+      title: t(`${i18nKey}.historicalBaseline`),
       accessor: 'baseline',
       Cell: ({ value }: any) => formatUnit(value, 'ns'),
     },
     {
-      title: '本次耗时',
+      title: t(`${i18nKey}.currentDuration`),
       accessor: 'current',
       Cell: (cell: any) => {
         const { value } = cell
         const { original } = cell.cell.row
-        // console.log('props', cell, original);
         return (
           <span style={{ color: original.warn ? '#f3485c' : '' }}>{formatUnit(value, 'ns')}</span>
         )
       },
     },
     {
-      title: '操作',
+      title: t(`${i18nKey}.action`),
       accessor: 'action',
       Cell: (cell: any) => {
-        const { value } = cell
         const { original } = cell.cell.row
         return original.warn ? (
-          <Button type="text">当前根因</Button>
+          <Button type="text">{t(`${i18nKey}.currentRootCause`)}</Button>
         ) : (
           <Button
             type="link"
             target="_blank"
             href={`/#/cause/report/${encodeURIComponent(traceId)}/${encodeURIComponent(spanId)}?mutatedType=${encodeURIComponent(original.name)}`}
           >
-            确认为根因
+            {t(`${i18nKey}.confirmRootCause`)}
           </Button>
         )
       },
     },
   ]
+
   return (
-    <Card title="接口执行耗时分析">
+    <Card title={t(`${i18nKey}.interfaceExecutionTimeAnalysis`)}>
       <div className="table_step_description">
         {/* <Table data={eventList} width={800} height={300} /> */}
         <BasicTable columns={columns} data={eventList} />
         {data?.conclusion?.length > 0 && (
           <div>
-            <span>分析结论：</span>
+            <span>{t(`${i18nKey}.analysisConclusion`)}：</span>
             {/* <a className='conclusion_tag' href={`/d/c902c778-2a67-463c-8f08-ae495df7fd28/2?var-pql=${testPQL}&viewPanel=1`}>{data.conclusion}</a> */}
             <span className="conclusion_tag">{data.conclusion}</span>
           </div>

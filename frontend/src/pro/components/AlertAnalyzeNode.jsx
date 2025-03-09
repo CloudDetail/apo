@@ -90,7 +90,7 @@ const AlertAnalyzeNode = React.memo((props) => {
         className="invisible"
       />
       <div
-        className="nodeContent w-[200px] min-h-[60px] "
+        className="nodeContent w-[240px] min-h-[60px] "
         style={{ backgroundColor: 'rgba(19, 25, 32, 0.6)' }}
       >
         <div className="absolute top-0 left-0">

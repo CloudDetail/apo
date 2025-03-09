@@ -9,6 +9,7 @@ import ReactECharts from 'echarts-for-react'
 import dayjs from 'dayjs' // 用来格式化时间
 import _ from 'lodash'
 import { useUpdate, useUpdateEffect } from 'react-use'
+import { t } from 'i18next'
 const TimeLineChart = ({ rightWidth }) => {
   const {
     timeLineChartData,
@@ -111,7 +112,7 @@ const TimeLineChart = ({ rightWidth }) => {
             // areaStyle: {
             //   color: adjustAlpha(MetricsLineChartColor[type], 0.3), // 设置区域填充颜色
             // },
-            name: '异常数量',
+            name: t('pro/serviceAnalyze:abnormalCount'),
             type: 'line',
             smooth: true,
             // markLine: {

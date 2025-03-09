@@ -1,8 +1,10 @@
 import { Card, Empty } from 'antd'
 import { useCauseReportContext } from 'src/pro/contexts/CauseReportContext'
 import CauseStep from './CauseStep'
+import { useTranslation } from 'react-i18next'
 
 const ReportContent = () => {
+  const { t } = useTranslation('pro/causeReport')
   const { reportData, category, loading, isTimeOut } = useCauseReportContext()
   return (
     <>
@@ -13,8 +15,7 @@ const ReportContent = () => {
           ))}
         </>
       ) : (
-        loading ||
-        (isTimeOut ? <Empty description="报告请求超时，请刷新重试。"></Empty> : <Empty />)
+        loading || (isTimeOut ? <Empty description={t('reportTimeout')}></Empty> : <Empty />)
       )}
     </>
   )

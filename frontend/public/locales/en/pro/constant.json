@@ -1,0 +1,9 @@
+{
+  "unknown": "Unknown",
+  "app": "Application Interface Abnormal",
+  "container": "Container Abnormal",
+  "infra": "Infrastructure Abnormal",
+  "network": "Network Abnormal",
+  "error": "JAVA Exception",
+  "appInstance": "Application Instance Abnormal"
+}

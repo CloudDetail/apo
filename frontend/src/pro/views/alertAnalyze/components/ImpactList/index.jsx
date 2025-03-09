@@ -12,8 +12,12 @@ import EventListModal from './EventListModal'
 import { showToast } from 'src/core/utils/toast'
 import ServiceEndpointTag from 'src/pro/components/ServiceEndpointTag'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+
+const i18nKey = 'impactList'
 
 const ImpactList = () => {
+  const { t } = useTranslation('pro/alertAnalyze')
   const { eventImpactList, setSelectedEndpointInfo } = useAlertAnalyzeContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [pagination, setPagination] = useState({
@@ -25,56 +29,47 @@ const ImpactList = () => {
   const navigate = useNavigate()
   const column = [
     {
-      title: '入口应用名称',
+      title: t(`${i18nKey}.entryApplicationName`),
       accessor: 'serviceName',
       customWidth: 150,
     },
     {
-      title: '入口服务端点',
+      title: t(`${i18nKey}.entryServiceEndpoint`),
       accessor: 'endpoint',
       canExpand: false,
     },
-
     {
-      title: '平均响应时间',
+      title: t(`${i18nKey}.averageResponseTime`),
       minWidth: 140,
       accessor: `latency`,
-
       Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
         const { value } = props
-
         return <TempCell type="latency" data={value} timeRange={{ startTime, endTime }} />
       },
     },
     {
-      title: '错误率',
+      title: t(`${i18nKey}.errorRate`),
       accessor: `errorRate`,
-
       minWidth: 140,
       Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
         const { value } = props
         return <TempCell type="errorRate" data={value} timeRange={{ startTime, endTime }} />
       },
     },
     {
-      title: '吞吐量',
+      title: t(`${i18nKey}.throughput`),
       accessor: `tps`,
       minWidth: 140,
-
       Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
         const { value } = props
         return <TempCell type="tps" data={value} timeRange={{ startTime, endTime }} />
       },
     },
     {
-      title: '故障贡献度',
+      title: t(`${i18nKey}.faultContribution`),
       accessor: 'info',
       hide: true,
       isNested: true,
-      // customWidth: '55%',
       api: async (props) => {
         const { serviceName, endpoint } = props
         const step = getStep(startTime, endTime)
@@ -95,49 +90,38 @@ const ImpactList = () => {
       children: [
         {
           title: (
-            <Tooltip title="展示故障贡献度前三的下游">
+            <Tooltip title={t(`${i18nKey}.faultContributionHint`)}>
               <div className="flex flex-row justify-center items-center">
-                故障贡献度
+                {t(`${i18nKey}.faultContribution`)}
                 <AiOutlineInfoCircle size={16} className="ml-1" />
               </div>
             </Tooltip>
           ),
           accessor: `contribution`,
           Cell: (props) => {
-            // eslint-disable-next-line react/prop-types
             const { trs } = props
             return <ServiceEndpointTag service={trs.serviceName} endpoint={trs.endpoint} />
-            // return <TempCell type="logs" data={value} timeRange={requestTimeRange} />
           },
         },
       ],
     },
     {
-      title: '告警影响百分比',
+      title: t(`${i18nKey}.alertImpactPercentage`),
       accessor: `relatedAlertRate`,
       minWidth: 140,
-
       Cell: ({ value }) => {
         if (typeof value !== 'number' || isNaN(value) || !isFinite(value)) {
           return '0%'
         }
-
-        // 处理 0 或空值的情况
-        if (value === 0) {
-          return '0%'
-        }
-
-        // 如果是有效数值则格式化保留两位小数
-        return parseFloat(value.toFixed(2)) + '%'
+        return value === 0 ? '0%' : parseFloat(value.toFixed(2)) + '%'
       },
     },
     {
-      title: '操作',
+      title: t(`${i18nKey}.action`),
       accessor: 'action',
       minWidth: 140,
       Cell: (props) => {
         const row = props.row.original
-
         return (
           <div className="flex flex-col">
             <Button
@@ -146,7 +130,7 @@ const ImpactList = () => {
               variant="outlined"
               color="primary"
             >
-              告警深入分析
+              {t(`${i18nKey}.deepAlertAnalysis`)}
             </Button>
             <Button
               className="my-1"
@@ -154,7 +138,7 @@ const ImpactList = () => {
               color="primary"
               onClick={() => openEventModal(row.serviceName, row.endpoint)}
             >
-              告警列表
+              {t(`${i18nKey}.alertList`)}
             </Button>
             <Button
               variant="outlined"
@@ -163,13 +147,9 @@ const ImpactList = () => {
                 navigate(
                   `/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}`,
                 )
-                // showToast({
-                //   title: '功能开发中，敬请期待',
-                //   color: 'info',
-                // })
               }}
             >
-              大模型根因分析
+              {t(`${i18nKey}.rootCauseAnalysis`)}
             </Button>
           </div>
         )
@@ -214,7 +194,7 @@ const ImpactList = () => {
   return (
     <>
       <div className="flex flex-col h-full">
-        <div className="text-base px-4 pt-2 font-bold">受告警影响的业务入口</div>
+        <div className="text-base px-4 pt-2 font-bold">{t(`${i18nKey}.affectedBusinessEntry`)}</div>
         <BasicTable {...tableProps} />
         <Pagination
           defaultCurrent={1}

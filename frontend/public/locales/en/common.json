@@ -65,5 +65,7 @@
   "saveSuccess": "Saved Successfully",
   "deleteSuccess": "Deleted Successfully",
   "addSuccess": "Added Successfully",
-  "operation": "Operation"
+  "operation": "Operation",
+  "service": "Application",
+  "endpoint": "Endpoint"
 }

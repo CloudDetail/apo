@@ -7,7 +7,10 @@ import React from 'react'
 import { useChatAIContext } from 'src/pro/contexts/ChatAIContext'
 import GlassCard from 'src/pro/components/GlassCard'
 import styles from './index.module.scss'
+import { useTranslation } from 'react-i18next'
+const i18nKey = 'causeConfirm'
 const CauseConfirm = () => {
+  const { t } = useTranslation('pro/chatAI')
   const causeConfirmvisibility = useChatAIContext((ctx) => ctx.causeConfirmvisibility)
   const setCauseConfirmvisibilit = useChatAIContext((ctx) => ctx.setCauseConfirmvisibilit)
   const suspectedNodeList = useChatAIContext((ctx) => ctx.suspectedNodeList)
@@ -16,11 +19,11 @@ const CauseConfirm = () => {
   const [stepItems, setStepItems] = useState()
   const steps = [
     {
-      title: '选择疑似根因节点',
+      title: t(`${i18nKey}.selectSuspectedNode`),
       content: <CauseConfirmStep nextStep={() => setCurrent(1)} />,
     },
     {
-      title: '根据疑似根因节点数据确认故障根因',
+      title: t(`${i18nKey}.confirmFaultRootCause`),
       content: <DataViewConfirmStep />,
     },
   ]
@@ -44,7 +47,7 @@ const CauseConfirm = () => {
   return (
     <>
       <Card
-        title="确认告警故障根因"
+        title={t(`${i18nKey}.confirmRootCause`)}
         extra={
           <Button
             onClick={() => setCauseConfirmvisibilit(false)}
@@ -52,14 +55,16 @@ const CauseConfirm = () => {
             style={{ zIndex: 100 }}
             type="link"
           >
-            收起
+            {t(`${i18nKey}.collapse`)}
             <FaChevronRight size={25} />
           </Button>
         }
         className={`${styles.causeConfirmCard} ${causeConfirmvisibility ? styles.fadeIn : styles.fadeOut}`}
         classNames={{ body: 'py-0' }}
       >
-        {suspectedNodeList?.length === 0 && <GlassCard content={<p>未分析出可选择的疑似节点</p>} />}
+        {suspectedNodeList?.length === 0 && (
+          <GlassCard content={<p>{t(`${i18nKey}.noSuspectedNodes`)}</p>} />
+        )}
 
         <Steps
           current={current}

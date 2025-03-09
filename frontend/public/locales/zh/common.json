@@ -66,5 +66,7 @@
   "save": "保存",
   "deleteSuccess": "删除成功",
   "addSuccess": "新增成功",
-  "operation": "操作"
+  "operation": "操作",
+  "service": "应用名",
+  "endpoint": "端点"
 }
