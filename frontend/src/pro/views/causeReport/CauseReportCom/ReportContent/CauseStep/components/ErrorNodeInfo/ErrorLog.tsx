@@ -1,9 +1,11 @@
 import { Collapse, Empty } from 'antd'
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import HighlightCode from 'src/core/components/HighlightCode/HighlightCode'
 import LoadingSpinner from 'src/core/components/Spinner'
-
+const i18nKey = 'errorNode'
 const ErrorLog = ({ logMap, logCount, loading, node }) => {
+  const { t } = useTranslation('pro/causeReport')
   const [items, setItems] = useState([])
   const [activeKey, setActiveKey] = useState([])
   useEffect(() => {
@@ -26,7 +28,7 @@ const ErrorLog = ({ logMap, logCount, loading, node }) => {
   }, [logMap])
   return logMap && logCount > 0 ? (
     <React.Fragment>
-      <label style={{ marginBottom: '5px' }}>相关日志</label>
+      <label style={{ marginBottom: '5px' }}>{t(`${i18nKey}.relatedLogs`)}</label>
       <Collapse items={items} activeKey={activeKey}></Collapse>
     </React.Fragment>
   ) : loading ? (
@@ -34,7 +36,7 @@ const ErrorLog = ({ logMap, logCount, loading, node }) => {
   ) : node.isProfiled || node.hasOwnProperty('logs') ? (
     <Empty />
   ) : (
-    <Empty description="未采集日志" />
+    <Empty description={t(`${i18nKey}.logsNotCollected`)} />
   )
 }
 export default ErrorLog

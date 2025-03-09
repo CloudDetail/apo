@@ -1,0 +1,8 @@
+{
+  "alertAnalyze": "Alert Analysis",
+  "businessAlertAnalyze": "Business Alert Analysis",
+  "causeReport": "Failure Report",
+  "mysqlDashboard": "MySQL Dashboard",
+  "serviceHealth": "Service Health Status",
+  "aiRootCauseAnalysis": "AI Root Cause Analysis"
+}

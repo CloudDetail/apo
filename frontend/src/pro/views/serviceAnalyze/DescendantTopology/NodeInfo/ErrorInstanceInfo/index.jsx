@@ -13,8 +13,10 @@ import { useDebounce } from 'react-use'
 import Timeline from '../../../../../../core/components/TimeLine'
 import { Button, Skeleton, Flex } from 'antd'
 import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
-
+import { useTranslation } from 'react-i18next'
+const i18nKey = 'node'
 export default function ErrorInstanceInfo(props) {
+  const { t } = useTranslation('pro/serviceAnalyze')
   //showLogs 为true 服务于service info的tab，展示日志后两列，且支持点击节点跳转
   //showLogs false 服务于告警分析二级页面，不展示日志后两列，且不支持点击节点跳转
   const { selectedNodeInfo, selectedEndpointInfo } = useAlertAnalyzeContext()
@@ -28,12 +30,12 @@ export default function ErrorInstanceInfo(props) {
 
   const column = [
     {
-      title: '实例名',
+      title: t(`${i18nKey}.instanceName`),
       accessor: 'name',
       customWidth: 150,
     },
     {
-      title: '当前节点异常',
+      title: t(`${i18nKey}.currentNodeException`),
       accessor: 'propations',
       Cell: (props) => {
         const { value, updateSelectedValue, column } = props
@@ -46,7 +48,7 @@ export default function ErrorInstanceInfo(props) {
       },
     },
     {
-      title: '错误故障传播链',
+      title: t(`${i18nKey}.errorPropagationChain`),
       accessor: 'chain',
       dependsOn: 'propations', // 该列依赖于第一列的值
       Cell: (props) => {
@@ -64,7 +66,7 @@ export default function ErrorInstanceInfo(props) {
       },
     },
     {
-      title: '日志错误数量',
+      title: t(`${i18nKey}.logErrorCount`),
       accessor: 'logs',
       Cell: (props) => {
         const { value } = props
@@ -76,7 +78,7 @@ export default function ErrorInstanceInfo(props) {
       },
     },
     {
-      title: '日志信息',
+      title: t(`${i18nKey}.logInfo`),
       accessor: 'detail',
       customWidth: 320,
       Cell: (props) => {
@@ -97,7 +99,7 @@ export default function ErrorInstanceInfo(props) {
       },
     },
     {
-      title: '操作',
+      title: t(`${i18nKey}.action`),
       accessor: 'action',
       dependsOn: 'propations',
       Cell: (props) => {
@@ -114,7 +116,7 @@ export default function ErrorInstanceInfo(props) {
             target="_blank"
             style={dependsValue ? {} : { color: 'gray' }}
           >
-            {dependsValue ? '查看报告' : '暂无可查看报告'}
+            {dependsValue ? t(`${i18nKey}.viewReport`) : t(`${i18nKey}.noReport`)}
           </Button>
         )
       },
@@ -198,7 +200,7 @@ export default function ErrorInstanceInfo(props) {
               fontSize: '12px',
             }}
           >
-            请选择疑似节点查看错误链路和错误报告
+            {t(`${i18nKey}.selectNode`)}
           </p>
         </Flex>
       )}

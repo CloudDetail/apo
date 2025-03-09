@@ -15,9 +15,19 @@ const coreNsList = [
   'team',
   'permission',
   'dataIntegration',
+  'dateTime',
 ]
-const getNsList = () => {
-  return coreNsList.map((ns) => `core/${ns}`)
+const proNsList = [
+  'dataViewCom',
+  'alertAnalyze',
+  'causeReport',
+  'chatAI',
+  'serviceAnalyze',
+  'constant',
+  'routes',
+]
+const getNsList = (folder, nsList) => {
+  return nsList.map((ns) => `${folder}/${ns}`)
 }
 i18n
   .use(Backend) // 支持后端动态加载
@@ -29,7 +39,14 @@ i18n
     backend: {
       loadPath: '/locales/{{lng}}/{{ns}}.json', // 翻译文件路径
     },
-    ns: ['common', 'oss', 'core', 'pro', ...getNsList()], // 命名空间
+    ns: [
+      'common',
+      'oss',
+      'core',
+      'pro',
+      ...getNsList('core', coreNsList),
+      ...getNsList('pro', proNsList),
+    ], // 命名空间
     defaultNS: 'common', // 默认命名空间
     interpolation: {
       escapeValue: false, // 防止 XSS，React 已经默认转义

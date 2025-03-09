@@ -131,7 +131,7 @@ export function getFunctionName(names: string[], index: number, level: number[])
   const name = names[l]
 
   if (!name) {
-    console.warn('数据错误，找不到函数名，数据层级数据：', level)
+    console.warn('Error', level)
     return ''
   }
   return name

@@ -9,6 +9,7 @@ import { VariableSizeList as List } from 'react-window'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { anormalTypes, anormalTypesOptions } from 'src/pro/constants'
+import { useTranslation } from 'react-i18next'
 
 interface AnormalListComProps {
   finalAnormalEvents: any[]
@@ -20,6 +21,7 @@ const AnormalListCom = ({
   deltaAnormalEvents = [],
   selectedNodeInfo = null,
 }: AnormalListComProps) => {
+  const { t } = useTranslation('pro/dataViewCom')
   const viewportHeight = window.innerHeight
   const [newAnormalList, setNewAnormalList] = useState([])
   const [updateAnormalList, setUpdateAnormalList] = useState([])
@@ -55,7 +57,7 @@ const AnormalListCom = ({
       key: 'startFiring',
       label: (
         <Tag key={'startFiring'} color={'error'}>
-          {'新增'} {getList('startFiring').length}
+          {t('add')} {getList('startFiring').length}
         </Tag>
       ),
     },
@@ -63,7 +65,7 @@ const AnormalListCom = ({
       key: 'updatedFiring',
       label: (
         <Tag key={'updatedFiring'} color={'warning'}>
-          {'重复'} {getList('updatedFiring').length}
+          {t('duplicate')} {getList('updatedFiring').length}
         </Tag>
       ),
     },
@@ -71,7 +73,7 @@ const AnormalListCom = ({
       key: 'resolved',
       label: (
         <Tag key={'resolved'} color={'success'}>
-          {'已解决'} {getList('resolved').length}
+          {t('resolved')} {getList('resolved').length}
         </Tag>
       ),
     },
@@ -79,7 +81,7 @@ const AnormalListCom = ({
       key: 'all',
       label: (
         <Tag key={'all'} color={'processing'}>
-          {'当前遗留'} {getList('all').length}
+          {t('currentBacklog')} {getList('all').length}
         </Tag>
       ),
     },
@@ -120,19 +122,19 @@ const AnormalListCom = ({
         <div className="text-xs flex-grow">
           <div>{data[index].anormalReason}</div>
           <div>
-            <span className="text-gray-400">应用名称：</span>
+            <span className="text-gray-400">{t('appName')}：</span>
             {data[index].serviceName}
           </div>
           <div className="text-ellipsis text-wrap">
-            <span className="text-gray-400">服务端点：</span>
+            <span className="text-gray-400">{t('serviceEndpoint')}：</span>
             {data[index].endpoint}
           </div>
           <div className="text-ellipsis text-wrap">
-            <span className="text-gray-400">时间：</span>
+            <span className="text-gray-400">{t('time')}：</span>
             {convertTime(data[index].timestamp, 'yyyy-mm-dd hh:mm:ss.SSS')}
           </div>
           <div className="text-ellipsis text-wrap">
-            <span className="text-gray-400">详情：</span>
+            <span className="text-gray-400">{t('details')}：</span>
             {data[index].anormalMsg}
           </div>
         </div>
@@ -151,13 +153,6 @@ const AnormalListCom = ({
         </div>
       </div>
     )
-  }
-
-  const removeType = (str) => {
-    if (str.includes('类型')) {
-      return str.replace('类型', '')
-    }
-    return str
   }
 
   useEffect(() => {
@@ -184,7 +179,7 @@ const AnormalListCom = ({
       .map((item) => {
         return {
           value: item.key,
-          label: removeType(item.label),
+          label: item.label,
           type: item.value,
         }
       })
@@ -261,7 +256,7 @@ const AnormalListCom = ({
               minWidth: '240px',
               maxWidth: '700px',
             }}
-            placeholder="请选择错误类型"
+            placeholder={t('selectErrorType')}
           />
         </div>
         <div>
@@ -310,7 +305,7 @@ const AnormalListCom = ({
               {Row}
             </List>
           ) : (
-            <Empty context="暂无数据" />
+            <Empty />
           )}
         </div>
       </div>

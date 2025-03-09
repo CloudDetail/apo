@@ -6,6 +6,7 @@ import BasicTable from 'src/core/components/Table/basicTable'
 import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
 import { convertUTCToBeijing } from 'src/core/utils/time'
 import ServiceEndpointTag from 'src/pro/components/ServiceEndpointTag'
+import { useTranslation } from 'react-i18next'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -14,12 +15,15 @@ function isJSONString(str) {
     return false
   }
 }
+const i18nKey = 'alertEvent'
 const AlertEventTable = ({ scrolllHeight }) => {
+  const { t } = useTranslation('pro/alertAnalyze')
+
   const { alertEvents, loading, isAnalyze, pagination, updatePagination } = useAlertAnalyzeContext()
   const { groupLabel } = useSelector((state) => state.groupLabelReducer)
   const columns = [
     {
-      title: '告警类型',
+      title: t(`${i18nKey}.alertType`),
       accessor: 'group',
       customWidth: 150,
       Cell: ({ value }) => {
@@ -27,12 +31,12 @@ const AlertEventTable = ({ scrolllHeight }) => {
       },
     },
     {
-      title: '告警事件名',
+      title: t(`${i18nKey}.alertName`),
       accessor: 'name',
       customWidth: 150,
     },
     {
-      title: '最近告警时间',
+      title: t(`${i18nKey}.lastAlertTime`),
       accessor: 'receivedTime',
       customWidth: 180,
       Cell: ({ value }) => {
@@ -40,12 +44,12 @@ const AlertEventTable = ({ scrolllHeight }) => {
       },
     },
     {
-      title: '告警来源',
+      title: t(`${i18nKey}.alertSource`),
       accessor: 'source',
       customWidth: 150,
     },
     {
-      title: '告警详情',
+      title: t(`${i18nKey}.alertDetail`),
       accessor: 'detail',
       justifyContent: 'left',
       Cell: ({ value }) =>
@@ -63,7 +67,7 @@ const AlertEventTable = ({ scrolllHeight }) => {
         ),
     },
     {
-      title: '告警相关应用',
+      title: t(`${i18nKey}.relatedApps`),
       accessor: 'impactEndpoints',
       justifyContent: 'left',
       Cell: ({ value }) => {
@@ -78,16 +82,16 @@ const AlertEventTable = ({ scrolllHeight }) => {
                 ))}
               </div>
             ) : (
-              <span className="text-gray-400">未分析出告警相关应用</span>
+              <span className="text-gray-400">{t(`${i18nKey}.noRelatedApps`)}</span>
             )}
           </>
         ) : (
-          <span className="text-gray-400">点击一键分析查看</span>
+          <span className="text-gray-400">{t(`${i18nKey}.clickToAnalyze`)}</span>
         )
       },
     },
     {
-      title: '受影响业务入口',
+      title: t(`${i18nKey}.affectedEntries`),
       accessor: 'impactEntrys',
       justifyContent: 'left',
       Cell: ({ value }) => {
@@ -100,15 +104,16 @@ const AlertEventTable = ({ scrolllHeight }) => {
                 </div>
               ))
             ) : (
-              <span className="text-gray-400">未分析出受影响业务入口</span>
+              <span className="text-gray-400">{t(`${i18nKey}.noAffectedEntries`)}</span>
             )}
           </>
         ) : (
-          <span className="text-gray-400">点击一键分析查看</span>
+          <span className="text-gray-400">{t(`${i18nKey}.clickToAnalyze`)}</span>
         )
       },
     },
   ]
+
   const changePagination = (page, pageSize) => {
     updatePagination({
       pageSize: pageSize,
@@ -127,7 +132,7 @@ const AlertEventTable = ({ scrolllHeight }) => {
   return (
     <>
       <div className="flex flex-col h-full">
-        <div className="text-base px-4 pt-2 font-bold">告警事件</div>
+        {/* <div className="text-base px-4 pt-2 font-bold">{t(`${i18nKey}.alertEvents`)}</div> */}
         <BasicTable {...tableProps} />
         <Pagination
           defaultCurrent={1}

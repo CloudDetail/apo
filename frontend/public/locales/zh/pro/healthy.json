@@ -1,0 +1,15 @@
+{
+  "serviceName": "服务名称",
+  "serviceStatus": "服务状态",
+  "serviceHealthScore": "服务健康总分",
+  "checkItem": "检查项",
+  "healthStatus": "健康状态",
+  "statusDetails": "状态详情",
+  "search": "检索",
+  "serviceEndpoint": "服务端点",
+  "namespace": "命名空间",
+  "severeAbnormal": "严重异常",
+  "moderateAbnormal": "中度异常",
+  "mildAbnormal": "轻微异常",
+  "healthy": "健康"
+}

@@ -1,0 +1,80 @@
+{
+  "reportTimeout": "报告请求超时，请刷新重试。",
+  "noMatchingType": "暂未匹配类型",
+  "causeStep": {
+    "faultNodeAnalysis": "故障节点分析",
+    "serviceName": "服务名",
+    "hostName": "主机名",
+    "occurrenceTime": "发生时间",
+    "requestURL": "请求URL",
+    "relatedLogs": "相关日志",
+    "analysisConclusion": "分析结论",
+    "interfaceExecutionTimeAnalysis": "接口执行耗时分析",
+    "historicalBaseline": "历史基线",
+    "currentDuration": "本次耗时",
+    "action": "操作",
+    "currentRootCause": "当前根因",
+    "confirmRootCause": "确认为根因",
+    "requestTime": "请求发生时间"
+  },
+  "stackChart": {
+    "serialNumber": "序号",
+    "stack": "堆栈",
+    "lockStartTime": "锁开始时间",
+    "elapsedTime": "耗时",
+    "lockEndTime": "锁结束时间",
+    "lockAddress": "锁地址",
+    "currentStack": "当前堆栈"
+  },
+  "tableStep": {
+    "label": "标签",
+    "historicalBaseline": "历史基线",
+    "faultInvocation": "故障调用",
+    "analysisConclusion": "分析结论",
+    "externalCallDetails": "对外调用具体信息"
+  },
+  "errorNode": {
+    "relatedLogs": "相关日志",
+    "logsNotCollected": "未采集日志",
+    "currentInvocation": "本次调用",
+    "log": "日志",
+    "exceptions": "异常"
+  },
+  "flamegraph": {
+    "proportion": "占比",
+    "sampleCount": "样本数量"
+  },
+  "faultOverview": "故障概览",
+  "traceID": "TraceID",
+  "currentNode": "当前节点",
+  "affectedBusinessEntry": "受影响的业务入口",
+  "faultConclusion": "故障结论",
+  "serviceName": "服务名",
+  "instanceName": "实例名",
+  "requestTime": "请求时间",
+  "requestEndpoint": "请求端点",
+  "normal": "正常",
+  "historicalBaseline": "历史基线",
+  "currentDuration": "本次耗时",
+  "topology": {
+    "faultPoint": "故障现象点",
+    "faultPropagationChain": "故障传播链",
+    "fullLinkInvocation": "全链路调用",
+    "dataNotSampledOrMissing": "未采样或数据缺失",
+    "fullLinkFlamegraph": "全链路调用火焰图",
+    "noAnomaly": "无异常",
+    "anomaly": "异常",
+    "timeMutationDecrease": "(-) 耗时突变减少",
+    "timeMutationIncrease": "(+) 耗时突变增加",
+    "selfTime": "自身耗时",
+    "historicalBaseline": "历史基线",
+    "currentDuration": "本次耗时",
+    "mutationRatio": "突变值占比",
+    "mutationRank": "突变值占比排名",
+    "profiled": "是",
+    "notProfiled": "否"
+  },
+  "dataMissing": "服务入口数据缺失",
+  "faultAnalysisProcess": "故障分析过程",
+  "nodeName": " 节点名"
+}

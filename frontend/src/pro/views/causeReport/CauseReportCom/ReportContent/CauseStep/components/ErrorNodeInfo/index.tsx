@@ -6,12 +6,16 @@ import { Card, Tabs, TabsProps } from 'antd'
 import { formatUnit } from 'src/core/utils/time'
 import ErrorLog from './ErrorLog'
 import ExceptionTab from './ExceptionTab'
+import { useTranslation } from 'react-i18next'
 // import { Card, Empty } from 'antd'
 // import LoadingSpinner from 'src/core/components/Spinner'
 // import { FaCircle } from 'react-icons/fa'
 // import { formatUnit } from 'src/core/utils/time'
+const i18nKey = 'errorNode'
 
 function ErrorNodeInfo(props: any) {
+  const { t } = useTranslation('pro/causeReport')
+
   const theme = ThemeStyle['dark']
   const { traceId, node, component } = props
   const [nodeColor, setNodeColor] = useState<string>('')
@@ -24,12 +28,12 @@ function ErrorNodeInfo(props: any) {
   const items: TabsProps['items'] = [
     {
       key: 'log',
-      label: 'Log',
+      label: t(`${i18nKey}.log`),
       children: <ErrorLog logMap={logMap} logCount={logCount} loading={loading} node={node} />,
     },
     {
       key: 'exceptions',
-      label: 'Exceptions',
+      label: t(`${i18nKey}.exceptions`),
       children: <ExceptionTab loading={loading} node={node} />,
     },
   ]
@@ -135,7 +139,9 @@ function ErrorNodeInfo(props: any) {
           <>
             <div>URL: {node?.url}</div>
             <div>isProfiled: {node?.isProfiled.toString()}</div>
-            <div>本次调用: {formatUnit(node?.totalTime, 'ns')}</div>
+            <div>
+              {t(`${i18nKey}.currentInvocation`)}: {formatUnit(node?.totalTime, 'ns')}
+            </div>
           </>
         )}
 

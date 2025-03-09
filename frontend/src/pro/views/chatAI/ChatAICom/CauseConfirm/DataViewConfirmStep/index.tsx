@@ -13,8 +13,10 @@ import React from 'react'
 import { showToast } from 'src/core/utils/toast'
 import ErrorDataTypeExample from './ErrorDataTypeExample'
 import styles from './index.module.scss'
-
+import { useTranslation } from 'react-i18next'
+const i18nKey = 'causeConfirm'
 const DataViewConfirmStep = () => {
+  const { t } = useTranslation('pro/chatAI')
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const analysisNode = useChatAIContext((ctx) => ctx.analysisNode)
   const causeConfirmvisibility = useChatAIContext((ctx) => ctx.causeConfirmvisibility)
@@ -22,14 +24,14 @@ const DataViewConfirmStep = () => {
   const defaultItems = [
     {
       key: 'slow',
-      label: '慢故障推荐数据',
+      label: t(`${i18nKey}.slowFault`),
       children: <SlowDataTypeExample />,
       closable: false,
       type: ['slow'],
     },
     {
       key: 'error',
-      label: '错故障推荐数据',
+      label: t(`${i18nKey}.errorFault`),
       children: <ErrorDataTypeExample />,
       closable: false,
       type: ['log'],
@@ -42,7 +44,7 @@ const DataViewConfirmStep = () => {
       const result = [...prev]
       result.push({
         key: 'custom_' + prev.length,
-        label: '自定义' + prev.length,
+        label: t(`${i18nKey}.custom`) + prev.length,
         children: <CustomDataViewTab />,
         closable: true,
         newAdd: true,
@@ -68,9 +70,9 @@ const DataViewConfirmStep = () => {
         deleteCustomDataView(targetItem.label)
           .then((res) => {
             showToast({
-              title: ' 删除名为' + targetItem.label + '的自定义数据类型成功',
-            })
-            getCustomItems()
+              title: t(`${i18nKey}.deleteSuccess`, { name: targetItem.label }),
+            }),
+              getCustomItems()
           })
           .finally(() => {
             checkActiveKey(targetKey)
@@ -125,14 +127,14 @@ const DataViewConfirmStep = () => {
         addIcon={
           <Flex className={styles.textEllipsis}>
             <MdAdd size={20} />
-            用户自定义数据确认故障
+            {t(`${i18nKey}.customData`)}
           </Flex>
         }
       />
       <div className="text-right">
         {(activeKey === 'slow' || activeKey === 'error') && (
           <Button type="primary" onClick={onClick} className="">
-            确认根因并查看数据
+            {t(`${i18nKey}.confirmView`)}
           </Button>
         )}
       </div>

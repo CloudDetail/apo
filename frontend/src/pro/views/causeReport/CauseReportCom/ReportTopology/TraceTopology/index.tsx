@@ -1,17 +1,20 @@
 import { Button, Modal } from 'antd'
 import { useState } from 'react'
 import TraceTopologyBody from './TraceTopologyBody'
+import { useTranslation } from 'react-i18next'
 
 const TraceTopologyModal = ({ modalVisible, closeModal }) => {
+  const { t } = useTranslation('pro/causeReport')
+  const { t: ct } = useTranslation('common')
   return (
     <>
       <Modal
-        title="全链路调用火焰图"
+        title={t('topology.fullLinkFlamegraph')}
         open={modalVisible}
         onCancel={closeModal}
         destroyOnClose
         centered
-        cancelText="关闭"
+        cancelText={ct('close')}
         width={1000}
         className="trace_topology_modal"
         footer={(_, { CancelBtn }) => (

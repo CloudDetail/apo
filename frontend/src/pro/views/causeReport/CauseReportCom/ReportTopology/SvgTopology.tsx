@@ -8,6 +8,7 @@ import nodeGrey from 'src/core/assets/images/node/hexagon-grey.svg'
 import unknowIcon from 'src/core/assets/images/unknown.png'
 import { formatUnit } from 'src/core/utils/time'
 import { ThemeColor, ThemeStyle } from 'src/constants'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   data: any
@@ -15,6 +16,8 @@ interface Props {
   chartId?: string
 }
 function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
+  const { t } = useTranslation('pro/causeReport')
+
   //   const { theme } = useSelector((state) => state.settingReducer)
   const chartRef = useRef<any>()
   const theme = ThemeStyle['dark']
@@ -140,7 +143,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
       const splitText = splitTextToFitWidth(node.id, 300)
       nodeG
         .append('text')
-        .text('节点名:')
+        .text(t('nodeName') + ':')
         .attr('x', 30) // X位置，根据需要调整
         .attr('y', 100) // Y位置，简单地用索引*行高来计算
         .style('font-size', '14')
@@ -194,9 +197,9 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
 
         nodeG
           .append('text')
-          .text('历史基线')
+          .text(t('topology.historicalBaseline'))
           .attr('style', `font-size: 11px; fill: ${theme.colors.text.primary}`)
-          .attr('x', 70)
+          .attr('x', 30)
           .attr('y', timeY + timeTextYOffest)
         const selfP90Width = selfTimeMaxWidth * (node.selfP90 / maxTime)
         const p90OtherWidth = otherTimeMaxWidth * ((node.p90 - node.selfP90) / maxTime)
@@ -244,9 +247,9 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
 
         nodeG
           .append('text')
-          .text('本次耗时')
+          .text(t('topology.currentDuration'))
           .attr('style', `font-size: 11px;font-weight: 500; fill: ${theme.colors.text.primary}`)
-          .attr('x', 70)
+          .attr('x', 30)
           .attr('y', timeY + 34 + timeTextYOffest)
         nodeG
           .append('rect')
@@ -484,7 +487,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <div ref={chartRef} id={chartId} style={{ height: '100%' }}></div>
       <div id={chartId + 'unknowIconTooltip'} className="custom_tooltip">
-        未采样或数据缺失
+        {t('topology.dataNotSampledOrMissing')}
       </div>
     </div>
   )

@@ -5,14 +5,16 @@ import { useSelector } from 'react-redux'
 import AlertRules from './component/AlertRule'
 import { getStep } from 'src/core/utils/step'
 import { Modal, Splitter } from 'antd'
+import { useTranslation } from 'react-i18next'
 
 const AnomalyDetectionRecord = ({ modalVisibility, closeListModal }) => {
+  const { t } = useTranslation('pro/alertAnalyze')
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [refresh, setRefresh] = useState(false)
   const step = getStep(startTime, endTime)
   return (
     <Modal
-      title="异常检测告警记录"
+      title={t('anomalyAlertRecord')}
       open={modalVisibility}
       onCancel={closeListModal}
       maskClosable={false}

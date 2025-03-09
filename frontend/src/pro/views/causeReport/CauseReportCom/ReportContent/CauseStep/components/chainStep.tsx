@@ -1,8 +1,12 @@
 import { Card } from 'antd'
 import React, { useEffect, useState } from 'react'
 import SingleLinkTopology from '../../../ReportTopology/SvgTopology'
+import { useTranslation } from 'react-i18next'
 
+const i18nKey = 'causeStep'
 export default function ChainStep(props: any) {
+  const { t } = useTranslation('pro/causeReport')
+
   const { data, component } = props
   const [topologyData, setTopologyData] = useState<any>(null)
   useEffect(() => {
@@ -32,7 +36,7 @@ export default function ChainStep(props: any) {
       )}
       {data?.conclusion?.length > 0 && (
         <div>
-          <span>分析结论：</span>
+          <span>{t(`${i18nKey}.analysisConclusion`)}：</span>
           {/* <a className='conclusion_tag' href={`/d/c902c778-2a67-463c-8f08-ae495df7fd28/2?var-pql=${testPQL}&viewPanel=1`}>{data.conclusion}</a> */}
           <span className="conclusion_tag">{data.conclusion}</span>
         </div>

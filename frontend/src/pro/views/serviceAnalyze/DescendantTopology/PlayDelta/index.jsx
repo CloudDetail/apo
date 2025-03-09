@@ -14,6 +14,7 @@ import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer
 import { getStep } from 'src/core/utils/step'
 import { convertTime } from 'src/core/utils/time'
 import DateTimeRangeSimple from './DateTimeRangeSimple'
+import { t } from 'i18next'
 
 const PlayDelta = () => {
   const {
@@ -59,7 +60,7 @@ const PlayDelta = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <span className="text-xs flex items-center">
-        当前播放时间：
+        {t('pro/serviceAnalyze:currentPlayTime')}
         <DateTimeRangeSimple type="delta" showTimerange={false} />
         {/* {convertTime(deltaStartTime, 'yyyy-mm-dd hh:mm:ss')} 至{' '}
         {convertTime(deltaEndTime, 'yyyy-mm-dd hh:mm:ss')} */}

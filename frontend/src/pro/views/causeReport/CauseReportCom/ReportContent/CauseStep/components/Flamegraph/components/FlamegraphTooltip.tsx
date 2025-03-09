@@ -1,12 +1,16 @@
 import { TooltipItemData } from '.././type'
 import styles from '.././index.module.scss'
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface FlamegraphTooltipProps {
   position: { x: number; y: number } | null
   tooltipItem?: TooltipItemData | null
 }
+const i18nKey = 'flamegraph'
 const FlamegraphTooltip = (props: FlamegraphTooltipProps) => {
+  const { t } = useTranslation('pro/causeReport')
+
   const { position, tooltipItem } = props
   const tooltipRef = useRef(null)
   useEffect(() => {
@@ -36,8 +40,13 @@ const FlamegraphTooltip = (props: FlamegraphTooltipProps) => {
     <>
       <div ref={tooltipRef} className={`${styles.tooltip}`}>
         <div className={styles.title}>{tooltipItem?.funcName}</div>
-        <div>占比：{tooltipItem?.percentage}%</div>
-        <div>样本数量：{new Intl.NumberFormat().format(tooltipItem?.totalSamples || 0)}</div>
+        <div>
+          {t(`${i18nKey}.proportion`)}：{tooltipItem?.percentage}%
+        </div>
+        <div>
+          {t(`${i18nKey}.sampleCount`)}：
+          {new Intl.NumberFormat().format(tooltipItem?.totalSamples || 0)}
+        </div>
       </div>
     </>
   )

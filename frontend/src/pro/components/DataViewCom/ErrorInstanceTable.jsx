@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import DelayLineChart from 'src/core/components/Chart/DelayLineChart'
 import ErrorCell from 'src/core/components/ErrorInstance/ErrorCell'
@@ -8,15 +9,17 @@ import Timeline from 'src/core/components/TimeLine'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 
 function ErrorInstanceTable({ data }) {
+  const { t } = useTranslation('pro/dataViewCom')
+
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const column = [
     {
-      title: '实例名',
+      title: t('instanceName'),
       accessor: 'name',
       customWidth: 150,
     },
     {
-      title: '当前节点异常',
+      title: t('currentNodeError'),
       accessor: 'propations',
       Cell: (props) => {
         const { value, updateSelectedValue, column } = props
@@ -29,7 +32,7 @@ function ErrorInstanceTable({ data }) {
       },
     },
     {
-      title: '错误故障传播链',
+      title: t('errorPropagationChain'),
       accessor: 'chain',
       dependsOn: 'propations', // 该列依赖于第一列的值
       Cell: (props) => {
@@ -46,7 +49,7 @@ function ErrorInstanceTable({ data }) {
     },
 
     {
-      title: '日志错误数量',
+      title: t('logErrorCount'),
       accessor: 'logs',
       Cell: (props) => {
         const { value } = props
@@ -58,7 +61,7 @@ function ErrorInstanceTable({ data }) {
       },
     },
     {
-      title: '日志信息',
+      title: t('logInfo'),
       accessor: 'detail',
       customWidth: 320,
       Cell: (props) => {

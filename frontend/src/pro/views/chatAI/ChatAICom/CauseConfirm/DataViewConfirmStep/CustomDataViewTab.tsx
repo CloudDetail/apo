@@ -5,8 +5,11 @@ import { useChatAIContext } from 'src/pro/contexts/ChatAIContext'
 import ComAccordionTransfer from './ComAccordionTransfer'
 import { creatCustomDataView, updateCustomDataView } from 'src/pro/api/custom'
 import { showToast } from 'src/core/utils/toast'
+import { useTranslation } from 'react-i18next'
+const i18nKey = 'causeConfirm'
 
 const CustomDataViewTab = ({ defaultValue }: any) => {
+  const { t } = useTranslation('pro/chatAI')
   const analysisNode = useChatAIContext((ctx) => ctx.analysisNode)
   const [form] = Form.useForm()
   const addNew = (params) => {
@@ -52,29 +55,29 @@ const CustomDataViewTab = ({ defaultValue }: any) => {
       <Form form={form} labelCol={{ span: 3 }}>
         <Form.Item
           name="customName"
-          label="数据类型名"
+          label={t(`${i18nKey}.dataTypeName`)}
           required
           rules={[
             {
               validator: async (_, value) => {
                 if (!value) {
-                  return Promise.reject('数据类型名不可为空')
+                  return Promise.reject(t(`${i18nKey}.dataTypeNameRequired`))
                 }
               },
             },
           ]}
         >
-          <Input></Input>
+          <Input />
         </Form.Item>
         <Form.Item
           name="type"
-          label="展示数据"
+          label={t(`${i18nKey}.displayData`)}
           required
           rules={[
             {
               validator: async (_, value) => {
                 if (!value || value?.length === 0) {
-                  return Promise.reject('展示数据不可为空')
+                  return Promise.reject(t(`${i18nKey}.displayDataRequired`))
                 }
               },
             },
@@ -85,7 +88,7 @@ const CustomDataViewTab = ({ defaultValue }: any) => {
       </Form>
       <div className="text-right">
         <Button type="primary" onClick={saveForm}>
-          确认根因并查看数据
+          {t(`${i18nKey}.confirmRootCauseAndViewData`)}
         </Button>
       </div>
     </>

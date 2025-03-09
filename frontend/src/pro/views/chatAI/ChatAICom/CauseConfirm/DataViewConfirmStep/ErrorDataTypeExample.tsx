@@ -1,9 +1,10 @@
-import LogsPng from 'src/pro/assets/dataViewTypeExample/logs.png'
+import LogsPng from 'src/pro/assets/dataViewTypeExample/zh/logs.png'
 import { Image } from 'antd'
+import { t } from 'i18next'
 const ErrorDataTypeExample = () => {
   return (
     <div className="text-center">
-      <div>错故障推荐数据将展示节点的日志列表，以下是示例数据：</div>
+      <div>{t(`pro/chatAI:causeConfirm.faultRecommendationDescription`)}</div>
       <Image src={LogsPng} width={400} />
     </div>
   )

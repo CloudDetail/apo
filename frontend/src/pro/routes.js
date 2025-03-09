@@ -1,3 +1,4 @@
+import { t } from 'i18next'
 import React from 'react'
 
 // 商业版
@@ -13,32 +14,35 @@ let proRoutes = [
   {
     path: '/alert-analyze',
     exact: true,
-    name: '告警分析',
+    name: t('pro/routes:alertAnalyze'),
     element: AlertAnalyzePage,
-    // children: [{ path: 'info', name: '业务告警分析', element: ServiceAnalyzePage }],
   },
-  { path: '/alert-analyze/info', name: '业务告警分析', element: ServiceAnalyzePage },
+  {
+    path: '/alert-analyze/info',
+    name: t('pro/routes:businessAlertAnalyze'),
+    element: ServiceAnalyzePage,
+  },
   {
     path: '/cause/report/:traceId/:spanId',
-    name: '故障报告',
+    name: t('pro/routes:causeReport'),
     element: CauseReportPage,
     hideSystemTimeRangePicker: true,
   },
   {
     path: '/cause/error-report/:traceId',
-    name: '故障报告',
+    name: t('pro/routes:causeReport'),
     element: CauseReportPage,
     hideSystemTimeRangePicker: true,
   },
-  { path: '/mysql-dashboard', name: 'MySQL大盘', element: MysqlDashboard },
+  { path: '/mysql-dashboard', name: t('pro/routes:mysqlDashboard'), element: MysqlDashboard },
   {
     path: '/healthy-service',
-    name: '服务健康状态',
+    name: t('pro/routes:serviceHealth'),
     element: ServiceHealthy,
   },
   {
     path: '/alert-analyze/chatAI/:service/:endpoint',
-    name: '大模型根因分析',
+    name: t('pro/routes:aiRootCauseAnalysis'),
     element: ChatAIPage,
   },
 ]

@@ -1,4 +1,5 @@
 import { Alert, Button, Card, ConfigProvider, Image, Tabs, TabsProps, Tag } from 'antd'
+import { useTranslation } from 'react-i18next'
 import { SlowErrorType } from 'src/constants'
 import Empty from 'src/core/components/Empty/Empty'
 interface ImageData {
@@ -17,6 +18,8 @@ interface SlowTypeProps {
   content: string
 }
 const UrlListCom = ({ urls, type }: UrlData) => {
+  const { t } = useTranslation('pro/dataViewCom')
+
   return (
     <>
       <Alert message={SlowErrorType[type]} type="info" showIcon className="text-xs" />
@@ -25,18 +28,20 @@ const UrlListCom = ({ urls, type }: UrlData) => {
           {urls?.map((reportUrl, index) => (
             <div>
               <Button type="link" target="_blank" href={reportUrl}>
-                {type}_延时报告_{index + 1}
+                {t('report', { type, index: index + 1 })}
               </Button>
             </div>
           ))}
         </div>
       ) : (
-        <Empty context={`该节点无${type}类型的延时报告`} />
+        <Empty context={t('noReport', { type })} />
       )}
     </>
   )
 }
 const SlowType = ({ image, reportUrlList, content, reportType, otherUrlList }: SlowTypeProps) => {
+  const { t } = useTranslation('pro/dataViewCom')
+
   const getTabsItems = () => {
     return Object.entries(SlowErrorType).map(([key, value]) => {
       let urls = []
@@ -51,7 +56,7 @@ const SlowType = ({ image, reportUrlList, content, reportType, otherUrlList }: S
             {key}
             {reportType === key && (
               <Tag color="success" className="ml-1">
-                北极星推荐
+                {t('recommend')}
               </Tag>
             )}
           </>
@@ -75,7 +80,7 @@ const SlowType = ({ image, reportUrlList, content, reportType, otherUrlList }: S
             width={'100%'}
           />
         ) : (
-          <Empty context="未查询到北极星指标" />
+          <Empty context={t('noData')} />
         )}
       </div>
       <div className="flex-1 px-4">

@@ -8,7 +8,9 @@ import Empty from 'src/core/components/Empty/Empty'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { Button, Pagination } from 'antd'
 import { useUpdateEffect } from 'react-use'
+import { useTranslation } from 'react-i18next'
 function LogsTabs(props) {
+  const { t } = useTranslation('pro/dataViewCom')
   const { logsPageList, changePagination, showFaultSite = true } = props
 
   const [activeItemKey, setActiveItemKey] = useState(0)
@@ -90,7 +92,7 @@ function LogsTabs(props) {
                       ref={(el) => (refs.current[index] = el)}
                       onClick={() => changeActiveItemKey(index)}
                     >
-                      {convertTime(logs.startTime, 'yyyy-mm-dd hh:mm:ss.SSS')} 故障现场日志
+                      {convertTime(logs.startTime, 'yyyy-mm-dd hh:mm:ss.SSS')} {t('faultLog')}
                     </CTab>
                   )
                 })}
@@ -118,7 +120,7 @@ function LogsTabs(props) {
               <LoadingSpinner loading={logContentLoading} />
               {showFaultSite && (
                 <div className="flex-grow-0 flex-shrink-0">
-                  <div className="text-base font-bold">故障现场</div>
+                  <div className="text-base font-bold">{t('faultSite')}</div>
 
                   <CCard className="mx-4 my-2 p-2 font-bold">
                     <CRow className="my-1 ">
@@ -129,13 +131,13 @@ function LogsTabs(props) {
                     </CRow>
                     <CRow className="my-1">
                       <CCol sm="2" className="text-gray-400 font-bold">
-                        服务端点
+                        {t('serviceEndpoint')}
                       </CCol>
                       <CCol sm="auto">{logsPageList[activeItemKey]?.endpoint}</CCol>
                     </CRow>
                     <CRow className="my-1">
                       <CCol sm="2" className="text-gray-400 font-bold">
-                        故障发生时间
+                        {t('faultTime')}
                       </CCol>
                       <CCol sm="auto">
                         {convertTime(
@@ -147,7 +149,7 @@ function LogsTabs(props) {
                   </CCard>
                 </div>
               )}
-              <div className="text-base font-bold mb-2">具体日志信息</div>
+              <div className="text-base font-bold mb-2">{t('logDetails')}</div>
               <div className="flex flex-row items-center">
                 <span className="text-nowrap">Source：</span>
                 <CustomSelect
