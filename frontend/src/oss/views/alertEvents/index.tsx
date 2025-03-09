@@ -51,9 +51,7 @@ const AlertEventsPage = () => {
       getAlertEvents()
     }
   }, [pagination.pageIndex, startTime, endTime])
-
-  function encodeWorkflowParams(workflowParams) {
-    const paramsArray = []
+  function openWorkflowModal(workflowParams) {
     let result = '/dify/app/' + workflowId + '/run/?'
     const params = Object.entries(workflowParams)
       .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
@@ -63,6 +61,11 @@ const AlertEventsPage = () => {
     // buildParams('workflowParams', workflowParams)
     // console.log(result + params)
     // return paramsArray.join('&')
+  }
+  function openResultModal(workflowRunId) {
+    let result = '/dify/app/' + workflowId + '/logs/' + workflowRunId
+    setWorkflowUrl(result)
+    setModalOpen(true)
   }
   const closeModal = () => {
     setWorkflowUrl(null)
@@ -116,8 +119,20 @@ const AlertEventsPage = () => {
     {
       title: t('isValid'),
       accessor: 'isValid',
-      Cell: ({ value }) => {
-        return t(value)
+      Cell: (props) => {
+        const { value, row } = props
+        return value === 'unknown' ? (
+          <span className="text-gray-400">{t(value)}</span>
+        ) : (
+          <Button
+            type="link"
+            onClick={() => {
+              openResultModal(row.original.workflowRunId)
+            }}
+          >
+            {t(value)}
+          </Button>
+        )
       },
     },
     {
@@ -129,7 +144,7 @@ const AlertEventsPage = () => {
           <Button
             type="link"
             onClick={() => {
-              encodeWorkflowParams(workflowParams)
+              openResultModal(workflowParams)
             }}
           >
             {t('viewWorkflow')}
