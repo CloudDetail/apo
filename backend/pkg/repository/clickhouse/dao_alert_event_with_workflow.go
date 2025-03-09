@@ -55,28 +55,78 @@ LEFT JOIN filtered_workflows AS wr
 ON ae.alert_id = wr.ref AND rounded_time = toStartOfFiveMinutes(wr.created_at)
 %s`
 
+const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_VALID_FIRST = `WITH paged_alerts AS (
+	SELECT *
+	FROM alert_event
+	%s
+	ORDER BY received_time DESC
+	LIMIT 1 BY alert_id
+),
+filtered_workflows AS (
+    SELECT *,
+	CASE
+      WHEN output = 'false' THEN 0
+      WHEN output = 'true' THEN 1
+      ELSE 2
+    END as importance
+    FROM workflow_records
+    %s
+)
+SELECT
+	ae.id,
+	ae.group,
+    ae.name,
+    ae.alert_id,
+	ae.create_time,
+	ae.update_time,
+	ae.end_time,
+    ae.received_time,
+    ae.detail,
+    ae.status,
+    ae.tags,
+	ae.source,
+    toStartOfFiveMinutes(ae.received_time) + INTERVAL 5 MINUTE AS rounded_time,
+    wr.workflow_run_id,
+    wr.workflow_id,
+    wr.workflow_name,
+	wr.importance,
+    CASE
+      WHEN output = 'false' THEN 'true'
+      WHEN output = 'true' THEN 'false'
+      ELSE 'unknown'
+    END as is_valid
+FROM paged_alerts AS ae
+LEFT JOIN filtered_workflows AS wr
+ON ae.alert_id = wr.ref AND rounded_time = toStartOfFiveMinutes(wr.created_at)
+%s`
+
 func sortbyParam(sortBy string) ([]string, []bool) {
 	if len(sortBy) == 0 {
 		return []string{"received_time"}, []bool{true}
 	}
+
 	sortBys := strings.Split(sortBy, ",")
-	if len(sortBys) == 0 {
-		return []string{"received_time"}, []bool{true}
-	}
 
 	var fields []string
 	var ascs []bool
 	for _, option := range sortBys {
 		parts := strings.Split(option, " ")
-		if len(parts) == 1 {
-			fields = append(fields, parts[0])
-			ascs = append(ascs, true)
-		} else if len(parts) == 2 {
-			fields = append(fields, parts[0])
-			ascs = append(ascs, parts[1] == "asc")
-		} else {
-			// TODO 无效的过滤
-			continue
+		var order string = "asc"
+		if len(parts) == 2 {
+			order = parts[1]
+		}
+
+		if parts[0] == "receivedTime" {
+			fields = append(fields, "received_time")
+			ascs = append(ascs, order == "asc")
+		} else if parts[0] == "isValid" {
+			fields = append(fields, "importance")
+			ascs = append(ascs, order == "asc")
+
+			if len(sortBys) == 1 {
+				fields = append(fields, "received_time")
+				ascs = append(ascs, order == "asc")
+			}
 		}
 	}
 
@@ -94,9 +144,25 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchR
 		return nil, 0, err
 	}
 
+	sql, values := getSqlAndValueForSortedAlertEvent(req)
+
+	result := make([]alert.AEventWithWRecord, 0)
+	err = ch.conn.Select(context.Background(), &result, sql, values...)
+	return result, int64(count), err
+}
+
+func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest) (string, []any) {
+	alertFilter := NewQueryBuilder().
+		Between("received_time", req.StartTime/1e6, req.EndTime/1e6)
+
 	alertOrder := NewByLimitBuilder()
 	fields, ascs := sortbyParam(req.SortBy)
+
+	var hasInValid bool
 	for idx, field := range fields {
+		if field == "importance" {
+			hasInValid = true
+		}
 		alertOrder.OrderBy(field, ascs[idx])
 	}
 	if req.Pagination != nil {
@@ -108,21 +174,24 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchR
 	recordFilter := NewQueryBuilder().
 		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
 
-	finalOrder := NewByLimitBuilder()
-	for idx, field := range fields {
-		finalOrder.OrderBy(field, ascs[idx])
+	var sql string
+	if hasInValid {
+		sql = fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_VALID_FIRST,
+			alertFilter.String(),
+			recordFilter.String(),
+			alertOrder.String(),
+		)
+	} else {
+		sql = fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD,
+			alertFilter.String(), alertOrder.String(),
+			recordFilter.String(),
+			alertOrder.String(),
+		)
 	}
 
-	sql := fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD,
-		alertFilter.String(), alertOrder.String(),
-		recordFilter.String(),
-		finalOrder.String(),
-	)
-
-	result := make([]alert.AEventWithWRecord, 0)
 	values := make([]any, 0)
 	values = append(values, alertFilter.values...)
 	values = append(values, recordFilter.values...)
-	err = ch.conn.Select(context.Background(), &result, sql, values...)
-	return result, int64(count), err
+
+	return sql, values
 }

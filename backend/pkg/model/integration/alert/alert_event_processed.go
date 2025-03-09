@@ -15,6 +15,7 @@ type AEventWithWRecord struct {
 
 	IsValid     string    `json:"isValid" ch:"is_valid"`
 	RoundedTime time.Time `json:"-" ch:"rounded_time"`
+	Importance  uint8     `json:"-" ch:"importance"`
 
 	WorkflowParams WorkflowParams `json:"workflowParams"`
 }
@@ -30,10 +31,10 @@ type WorkflowParams struct {
 }
 
 type AlertAnalyzeWorkflowParams struct {
-	Node      string `json:"node"`
-	Namespace string `json:"namespace"`
-	Pod       string `json:"pod"`
-	Service   string `json:"service"`
-	Endpoint  string `json:"endpoint"`
-	Pid       string `json:"pid"`
+	Node      string `json:"node,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
+	Pod       string `json:"pod,omitempty"`
+	Service   string `json:"service,omitempty"`
+	Endpoint  string `json:"endpoint,omitempty"`
+	Pid       string `json:"pid,omitempty"`
 }
