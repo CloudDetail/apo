@@ -15,6 +15,9 @@ import (
 func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error) {
 	var resp response.GetUserConfigResponse
 	featureIDs, err := s.getUserFeatureIDs(req.UserID)
+	if err != nil {
+		return resp, err
+	}
 
 	res, err := s.dbRepo.GetFeatureMappingByFeature(featureIDs, model.MAPPED_TYP_MENU)
 	itemIDs := make([]int, len(res))
@@ -41,7 +44,7 @@ func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.Get
 		}
 	}
 
-	err = s.dbRepo.GetRouterInsertedPage(routers)
+	err = s.dbRepo.GetRouterInsertedPage(routers, req.Language)
 	if err != nil {
 		return resp, err
 	}

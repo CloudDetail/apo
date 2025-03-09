@@ -70,7 +70,7 @@ type Repo interface {
 	GetAddAndDeletePermissions(subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error)
 	RoleGranted(userID int64, roleID int) (bool, error)
 	GetItemRouter(items *[]MenuItem) error
-	GetRouterInsertedPage(routers []*Router) error
+	GetRouterInsertedPage(routers []*Router, language string) error
 	GetFeatureTans(features *[]Feature, language string) error
 	GetMenuItemTans(menuItems *[]MenuItem, language string) error
 
@@ -256,6 +256,18 @@ func migrateTable(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
+	err = db.AutoMigrate(&RouterInsertPage{})
+	if err != nil {
+		return err
+	}
+	migrator := db.Migrator()
+	if migrator.HasIndex(&RouterInsertPage{}, "idx_router_insert_page_router_id") {
+		err := migrator.DropIndex(&RouterInsertPage{}, "idx_router_insert_page_router_id")
+		if err != nil {
+			return err
+		}
+	}
+
 
 	err = db.AutoMigrate(&QueryServiceType{})
 	if err != nil {

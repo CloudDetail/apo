@@ -23,6 +23,6 @@ helm repo add apo https://apo-charts.oss-cn-hangzhou.aliyuncs.com
 helm repo update apo
 helm install apo-one-agent apo/apo-one-agent -n apo \
     --create-namespace \
-    --version {{ ._app_version }} \
+    --version {{ ._chart_version }} \
     -f apo-one-agent-values.yaml
 ```

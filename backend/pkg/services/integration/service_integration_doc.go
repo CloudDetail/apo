@@ -10,6 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
 
+// Deprecated
 func (s *service) GetIntegrationInstallDoc(req *integration.GetCInstallRequest) ([]byte, error) {
 	cluster, err := s.dbRepo.GetCluster(req.ClusterID)
 	if err != nil {
@@ -21,7 +22,7 @@ func (s *service) GetIntegrationInstallDoc(req *integration.GetCInstallRequest) 
 		return nil, err
 	}
 
-	jsonObj, err := clusterConfig.ConvertToHelmValues()
+	jsonObj, err := convert2DeployValues(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("marshal config failed: %w", err)
 	}

@@ -4,7 +4,6 @@ set -e
 
 # global
 export DEPLOY_VERSION={{ ._deploy_version }}
-export APO_ONE_AGENT_VERSION={{ ._app_version }}
 export JAVA_AGENT_TYPE={{ default ._java_agent_type "OPENTELEMETRY" }}
 export TRACE_MODE={{ default ._modes.trace "trace" }}
 

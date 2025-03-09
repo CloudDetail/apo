@@ -20,5 +20,7 @@
   "alertsIntegration": "告警接入",
   "dataGroup": "数据组管理",
   "team": "团队管理",
-  "dataIntegration": "数据接入"
+  "dataIntegration": "数据接入",
+  "alertEvents": "告警事件",
+  "workflows": "工作流"
 }
