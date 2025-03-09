@@ -1,0 +1,355 @@
+{
+  "queries": [
+    {
+      "title": "RabbitMQ Server",
+      "targets": [
+        {
+          "expr": "rabbitmq_up{instance=~\"$instance.*\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Node up Stats",
+      "targets": [
+        {
+          "expr": "rabbitmq_running{instance=~\"$instance.*\"}",
+          "legendFormat": "{{node}}",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Exchanges",
+      "targets": [
+        {
+          "expr": "rabbitmq_exchangesTotal{instance=~\"$instance.*\"}",
+          "legendFormat": "{{instance}}:exchanges",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Channels",
+      "targets": [
+        {
+          "expr": "rabbitmq_channelsTotal{instance=~\"$instance.*\"}",
+          "legendFormat": "{{instance}}:channels",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Consumers",
+      "targets": [
+        {
+          "expr": "rabbitmq_consumersTotal{instance=~\"$instance.*\"}",
+          "legendFormat": "{{instance}}:consumers",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Connections",
+      "targets": [
+        {
+          "expr": "rabbitmq_connectionsTotal{instance=~\"$instance.*\"}",
+          "legendFormat": "{{instance}}:connections",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Queues",
+      "targets": [
+        {
+          "expr": "rabbitmq_queuesTotal{instance=~\"$instance.*\"}",
+          "legendFormat": "{{instance}}:queues",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Messages/host - ready",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum by (vhost)(rabbitmq_queue_messages_ready{instance=~\"$instance.*\"})",
+          "legendFormat": "{{vhost}}:ready",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Messages/host - published",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum by (vhost)(rabbitmq_queue_messages_published_total{instance=~\"$instance.*\"})",
+          "legendFormat": "{{vhost}}:published",
+          "refId": "B",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Messages/host - delivered",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum by (vhost)(rabbitmq_queue_messages_delivered_total{instance=~\"$instance.*\"})",
+          "legendFormat": "{{vhost}}:delivered",
+          "refId": "C",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Messages/host - unack",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum by (vhost)(rabbitmq_queue_messages_unacknowledged{instance=~\"$instance.*\"})",
+          "legendFormat": "{{vhost}}:unack",
+          "refId": "D",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Messages / Queue",
+      "targets": [
+        {
+          "expr": "rabbitmq_queue_messages{instance=~\"$instance.*\"}",
+          "legendFormat": "{{queue}}:{{durable}}",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Memory - used",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rabbitmq_node_mem_used{instance=~\"$instance.*\"}",
+          "legendFormat": "{{node}}:used",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "decbytes",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Memory - limit",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rabbitmq_node_mem_limit{instance=~\"$instance.*\"}",
+          "legendFormat": "{{node}}:limit",
+          "refId": "B",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "decbytes",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "FIle descriptors - used",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rabbitmq_fd_used{instance=~\"$instance.*\"}",
+          "legendFormat": "{{node}}:used",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "FIle descriptors - total",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rabbitmq_fd_total{instance=~\"$instance.*\"}",
+          "legendFormat": "{{node}}:total",
+          "refId": "B",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Sockets - used",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rabbitmq_sockets_used{instance=~\"$instance.*\"}",
+          "legendFormat": "{{node}}:used",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    },
+    {
+      "title": "Sockets - total",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rabbitmq_sockets_total{instance=~\"$instance.*\"}",
+          "legendFormat": "{{node}}:total",
+          "refId": "B",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "instance"
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "datasource",
+      "type": "datasource",
+      "label": "",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "APO-VictoriaMetric",
+        "value": "APO-VictoriaMetric"
+      },
+      "regex": "",
+      "query": {
+        "query": "prometheus",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "instance",
+      "type": "query",
+      "label": "",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "All",
+        "value": "$__all"
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(rabbitmq_up, instance)",
+        "qryType": 1
+      }
+    }
+  ],
+  "title": "RabbitMQ 指标(kbudde/rabbitmq_exporter)"
+}

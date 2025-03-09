@@ -1,0 +1,1831 @@
+{
+  "queries": [
+    {
+      "title": "容器CPU - 容器CPU使用率 - Containerd",
+      "describe": "容器CPU使用率(使用Containerd容器运行时,按容器和Pod统计)",
+      "targets": [
+        {
+          "expr": "sum by (container,pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval])) ",
+          "legendFormat": "{{pod}}: {{ container }}",
+          "refId": "Containerd",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "core",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器CPU - 容器CPU使用率 - Docker",
+      "describe": "容器CPU使用率(使用Docker容器运行时,按Pod统计)",
+      "targets": [
+        {
+          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\", id=~\".*docker.*\" }[$__rate_interval])) ",
+          "legendFormat": "{{pod}}",
+          "refId": "Docker",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "core",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器CPU - 容器CPU节流时间 - Containerd",
+      "describe": "容器CPU节流时长(使用Containerd容器运行时,按容器和Pod统计)",
+      "targets": [
+        {
+          "expr": "sum by (container,pod) (rate(container_cpu_cfs_throttled_seconds_total{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval])) ",
+          "legendFormat": "{{pod}}:{{ container }}",
+          "refId": "Containerd",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器CPU - 容器CPU节流时间 - Docker",
+      "describe": "容器CPU节流时长(使用Docker容器运行时,按Pod统计)",
+      "targets": [
+        {
+          "expr": "sum by (pod) (rate(container_cpu_cfs_throttled_seconds_total{namespace=~\"$namespace\", pod=~\"$pod\",  job_name=~\"$cadvisor_job_name\", id=~\".*docker.*\"}[$__rate_interval])) ",
+          "legendFormat": "{{pod}}",
+          "refId": "Docker",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器内存 - 容器内存使用率 - Containerd",
+      "describe": "容器内存使用字节数(使用Containerd容器运行时,按容器和Pod统计)",
+      "targets": [
+        {
+          "expr": "sum(container_memory_working_set_bytes{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}) by (container,pod)",
+          "legendFormat": "{{pod}}: {{ container }}",
+          "refId": "Containerd",
+          "variables": [
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器内存 - 容器内存使用率 - Docker",
+      "describe": "容器内存使用字节数(使用Docker容器运行时,按Pod统计)",
+      "targets": [
+        {
+          "expr": "sum(container_memory_working_set_bytes{namespace=~\"$namespace\", pod=~\"$pod\",job_name=~\"$cadvisor_job_name\", id=~\".*docker.*\"}) by (pod)",
+          "legendFormat": "{{pod}}",
+          "refId": "Docker",
+          "variables": [
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器磁盘 - 读写字节数 /s - Read",
+      "describe": "容器磁盘读取字节数每秒(使用Docker,按Pod统计)",
+      "targets": [
+        {
+          "expr": "sum by (pod,container)(rate(container_fs_reads_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "Read {{pod}}:{{container}}",
+          "refId": "Containerd Read",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器磁盘 - 读写字节数 /s - Write",
+      "describe": "容器磁盘写入字节数每秒(使用Docker,按Pod统计)",
+      "targets": [
+        {
+          "expr": "sum by (pod,container)(rate(container_fs_writes_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "Write {{pod}}:{{container}}",
+          "refId": "Containerd Write",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器磁盘 - 读写字节数 /s - Read",
+      "describe": "容器磁盘读取字节数每秒(使用Docker,按Pod统计)",
+      "targets": [
+        {
+          "expr": "sum by (pod)(rate(container_fs_reads_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\", id=~\".*docker.*\"}[$__rate_interval]))",
+          "legendFormat": "Read {{pod}}",
+          "refId": "Docker Read",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器磁盘 - 读写字节数 /s - Write",
+      "describe": "容器磁盘写入字节数每秒(使用Docker,按Pod统计)",
+      "targets": [
+        {
+          "expr": "sum by (pod)(rate(container_fs_writes_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\",job_name=~\"$cadvisor_job_name\", id=~\".*docker.*\"}[$__rate_interval]))",
+          "legendFormat": "Write {{pod}}",
+          "refId": "Docker Write",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器磁盘 - 读写花费时间 /s - Read",
+      "describe": "容器磁盘读取耗时每秒(使用Containerd,按Pod和容器统计)",
+      "targets": [
+        {
+          "expr": "sum by (pod,container)(rate(container_fs_read_seconds_total{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "Read {{pod}}:{{container}}",
+          "refId": "Containerd Read",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器磁盘 - 读写花费时间 /s - Write",
+      "describe": "容器磁盘写入耗时每秒(使用Containerd,按Pod和容器统计)",
+      "targets": [
+        {
+          "expr": "sum by (pod,container)(rate(container_fs_write_seconds_total{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "Write {{pod}}:{{container}}",
+          "refId": "Containerd Write",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器磁盘 - 读写次数 /s - Read",
+      "describe": "容器磁盘读取次数每秒(使用Docker,按Pod统计)",
+      "targets": [
+        {
+          "expr": "sum by (pod,container)(rate(container_fs_reads_total{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "Read {{pod}}:{{container}}",
+          "refId": "Containerd Read",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "ops",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器磁盘 - 读写次数 /s - Write",
+      "describe": "容器磁盘写入次数每秒(使用Docker,按Pod统计)",
+      "targets": [
+        {
+          "expr": "sum by (pod,container)(rate(container_fs_writes_total{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "Write {{pod}}:{{container}}",
+          "refId": "Containerd Write",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "ops",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器磁盘 - 读写次数 /s - Read",
+      "describe": "容器磁盘读取次数每秒(使用Docker,按Pod统计)",
+      "targets": [
+        {
+          "expr": "sum by (pod)(rate(container_fs_reads_total{namespace=~\"$namespace\", pod=~\"$pod\",job_name=~\"$cadvisor_job_name\",id=~\".*docker.*\"}[$__rate_interval]))",
+          "legendFormat": "Read {{pod}}",
+          "refId": "Docker Read",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "ops",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器磁盘 - 读写次数 /s - Write",
+      "describe": "容器磁盘写入次数每秒(使用Docker,按Pod统计)",
+      "targets": [
+        {
+          "expr": "sum by (pod)(rate(container_fs_writes_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\",id=~\".*docker.*\"}[$__rate_interval]))",
+          "legendFormat": "Write {{pod}}",
+          "refId": "Docker Write",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "ops",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器网络 - 与下游服务RTT",
+      "targets": [
+        {
+          "expr": "kindling_network_rtt{src_namespace=~\"$namespace\", src_pod=~\"$pod\"}",
+          "legendFormat": "{{src_pod}} -> {{dst_pod}} ({{dst_ip}})",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "namespace",
+        "pod"
+      ],
+      "describe": "容器与下游服务的网络往返时间(RTT,按命名空间和Pod统计)"
+    },
+    {
+      "title": "容器网络 - 网络带宽使用 - 接收",
+      "describe": "容器网络接收带宽(按命名空间和Pod统计)",
+      "targets": [
+        {
+          "expr": "sum(rate(container_network_receive_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "接收",
+          "refId": "Containerd Receive",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器网络 - 网络带宽使用 - 发送",
+      "describe": "容器网络发送带宽(按命名空间和Pod统计)",
+      "targets": [
+        {
+          "expr": "sum(rate(container_network_transmit_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "发送",
+          "refId": "Containerd Send",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器网络 - 包传输速率 - 接收",
+      "describe": "容器网络接收包速率(按命名空间和Pod统计)",
+      "targets": [
+        {
+          "expr": "sum(rate(container_network_receive_packets_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "接收",
+          "refId": "Containerd Receive",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器网络 - 包传输速率 - 发送",
+      "describe": "容器网络发送包速率(按命名空间和Pod统计)",
+      "targets": [
+        {
+          "expr": "sum(rate(container_network_transmit_packets_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "发送",
+          "refId": "Containerd Send",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器网络 - 丢包数 - Received",
+      "describe": "容器网络接收丢包数(按命名空间和Pod统计)",
+      "targets": [
+        {
+          "expr": "sum(rate(container_network_receive_packets_dropped_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "Received",
+          "refId": "Containerd Receive",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器网络 - 丢包数 - Transmitted",
+      "describe": "容器网络发送丢包数(按命名空间和Pod统计)",
+      "targets": [
+        {
+          "expr": "sum(rate(container_network_transmit_packets_dropped_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "Transmitted",
+          "refId": "Containerd Send",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器网络 - 网络错误包数 - 接收",
+      "describe": "容器网络接收错误包数(按命名空间和Pod统计)",
+      "targets": [
+        {
+          "expr": "sum(rate(container_network_receive_errors_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "接收",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器网络 - 网络错误包数 - 发送",
+      "describe": "容器网络发送错误包数(按命名空间和Pod统计)",
+      "targets": [
+        {
+          "expr": "sum(rate(container_network_transmit_errors_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "发送",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "应用网络 - 与下游服务RTT",
+      "targets": [
+        {
+          "expr": "kindling_network_rtt{node_name=~\"$related_nodes\", pid=~\"$related_pid\"}",
+          "legendFormat": "{{src_pod}} ({{src_ip}}) -> {{dst_pod}} ({{dst_ip}}) ",
+          "refId": "A",
+          "variables": [
+            "related_nodes",
+            "related_pid"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "pod",
+        "service_name"
+      ],
+      "describe": "应用与下游服务的网络往返时间(RTT,按节点和PID统计)"
+    },
+    {
+      "title": "JVM实例情况  - 基础信息",
+      "targets": [
+        {
+          "expr": "jvm_cpu_count{instance=~\"$jvm_instance\"}",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - 平均CPU使用率(核数)",
+      "targets": [
+        {
+          "expr": "irate(jvm_cpu_time_seconds_total{instance=~\"$jvm_instance\"}[$__rate_interval])",
+          "legendFormat": "{{service_name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "core",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - Class数量 - Loaded Class",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "jvm_class_count{instance=~\"$jvm_instance\"}",
+          "legendFormat": "Loaded Class",
+          "refId": "A",
+          "variables": [
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - Class数量 - UnLoaded Class",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "jvm_class_unloaded_total{instance=~\"$jvm_instance\"}",
+          "legendFormat": "UnLoaded Class",
+          "refId": "B",
+          "variables": [
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - Class数量 - Class Count",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "jvm_class_count{instance=~\"$jvm_instance\"}",
+          "legendFormat": "Class Count",
+          "refId": "C",
+          "variables": [
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - 堆上内存使用 - Used",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{instance=~\"$jvm_instance\",jvm_memory_type=\"heap\"}",
+          "legendFormat": "Used: {{jvm_memory_pool_name}}",
+          "refId": "A",
+          "variables": [
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - 堆上内存使用 - Limit",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "jvm_memory_limit{instance=~\"$jvm_instance\",jvm_memory_type=\"heap\"}",
+          "legendFormat": "Limit: {{jvm_memory_pool_name}}",
+          "refId": "B",
+          "variables": [
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - 非堆内存使用 - Used",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{instance=~\"$jvm_instance\",jvm_memory_type=\"non_heap\"}",
+          "legendFormat": "Used: {{jvm_memory_pool_name}}",
+          "refId": "A",
+          "variables": [
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - 非堆内存使用 - Limit",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "jvm.memory.limit{instance=~\"$jvm_instance\",jvm_memory_type=\"non_heap\"}",
+          "legendFormat": "Limit: {{jvm_memory_pool_name}}",
+          "refId": "B",
+          "variables": [
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - 已分配堆上内存",
+      "targets": [
+        {
+          "expr": "jvm_memory_committed_bytes{instance=~\"$jvm_instance\",jvm_memory_type=\"heap\"}",
+          "legendFormat": "{{jvm_memory_pool_name}}",
+          "refId": "A",
+          "variables": [
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - 已分配非堆内存",
+      "targets": [
+        {
+          "expr": "jvm_memory_committed_bytes{instance=~\"$jvm_instance\",jvm_memory_type=\"non_heap\"}",
+          "legendFormat": "{{jvm_memory_pool_name}}",
+          "refId": "A",
+          "variables": [
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - GC操作次数",
+      "targets": [
+        {
+          "expr": "increase(jvm_gc_duration_seconds_count{instance=~\"$jvm_instance\"}[$__interval])",
+          "legendFormat": "{{jvm_gc_name}}:{{jvm_gc_action}}",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - GC总花费时间",
+      "targets": [
+        {
+          "expr": "increase(jvm_gc_duration_seconds_sum{instance=~\"$jvm_instance\"}[$__interval])",
+          "legendFormat": "{{jvm_gc_name}}:{{jvm_gc_action}}",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - 守护线程各状态线程数统计 - total",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(jvm_thread_count{instance=~\"$jvm_instance\",jvm_thread_daemon=\"true\"})",
+          "legendFormat": "total",
+          "refId": "total",
+          "variables": [
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - 守护线程各状态线程数统计 - thread_status",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "jvm_thread_count{instance=~\"$jvm_instance\",jvm_thread_daemon=\"true\",jvm_thread_state!=\"\"}",
+          "legendFormat": "{{jvm_thread_state}}",
+          "refId": "thread_status",
+          "variables": [
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - 非守护线程各状态线程数统计 - total",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(jvm_thread_count{instance=~\"$jvm_instance\",jvm_thread_daemon=\"false\"})",
+          "legendFormat": "total",
+          "refId": "total",
+          "variables": [
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "JVM实例情况  - 非守护线程各状态线程数统计 - thread_status",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "jvm_thread_count{instance=~\"$jvm_instance\",jvm_thread_daemon=\"false\",jvm_thread_state!=\"\"}",
+          "legendFormat": "{{jvm_thread_state}}",
+          "refId": "thread_status",
+          "variables": [
+            "jvm_instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "pod",
+        "service_name",
+        "service_type"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - CPU使用率 - System",
+      "describe": "容器所在宿主机系统进程CPU使用率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\", mode=\"system\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}) by (cpu)))",
+          "legendFormat": "System - 在内核中运行的系统进程",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - CPU使用率 - User",
+      "describe": "容器所在宿主机用户进程CPU使用率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\", mode=\"user\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}) by (cpu)))",
+          "legendFormat": "User - 在用户空间运行的用户程序",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - CPU使用率 - Nice",
+      "describe": "容器所在宿主机Niced进程CPU使用率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\", mode=\"nice\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}) by (cpu)))",
+          "legendFormat": "Nice - 在用户空间下执行的Niced进程",
+          "refId": "C",
+          "variables": [
+            "__rate_interval",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - CPU使用率 - Iowait",
+      "describe": "容器所在宿主机IO等待CPU使用率(按实例统计)",
+      "targets": [
+        {
+          "expr": "sum by(instance) (irate(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\", mode=\"iowait\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}) by (cpu)))",
+          "legendFormat": "Iowait - IO等待时间",
+          "refId": "E",
+          "variables": [
+            "__rate_interval",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - CPU使用率 - Irq",
+      "describe": "容器所在宿主机中断服务CPU使用率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\", mode=\"irq\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}) by (cpu)))",
+          "legendFormat": "Irq - Servicing interrupts",
+          "refId": "F",
+          "variables": [
+            "__rate_interval",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - CPU使用率 - Softirq",
+      "describe": "容器所在宿主机软中断服务CPU使用率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\", mode=\"softirq\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}) by (cpu)))",
+          "legendFormat": "Softirq - 处理软中断",
+          "refId": "G",
+          "variables": [
+            "__rate_interval",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - CPU使用率 - Steal",
+      "describe": "容器所在宿主机虚拟化环境中其他操作系统占用CPU使用率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\", mode=\"steal\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}) by (cpu)))",
+          "legendFormat": "Steal - 在虚拟化环境中运行时，在其他操作系统上花费的时间",
+          "refId": "H",
+          "variables": [
+            "__rate_interval",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - CPU使用率 - Idle",
+      "describe": "容器所在宿主机CPU空闲率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\", mode=\"idle\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}) by (cpu)))",
+          "legendFormat": "Idle - 空闲时间",
+          "refId": "J",
+          "variables": [
+            "__rate_interval",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 内存使用情况 - App",
+      "describe": "容器所在宿主机用户空间应用内存使用字节数",
+      "targets": [
+        {
+          "expr": "node_memory_MemTotal_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"} - node_memory_MemFree_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"} - node_memory_Buffers_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"} - node_memory_Cached_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"} - node_memory_Slab_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"} - node_memory_PageTables_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"} - node_memory_SwapCached_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}",
+          "legendFormat": "App - 用户空间应用使用量",
+          "refId": "A",
+          "variables": [
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 内存使用情况 - PageTables",
+      "describe": "容器所在宿主机页面表内存使用字节数",
+      "targets": [
+        {
+          "expr": "node_memory_PageTables_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}",
+          "legendFormat": "PageTables - 用于在虚拟和物理内存地址之间映射的内存",
+          "refId": "B",
+          "variables": [
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 内存使用情况 - SwapCache",
+      "describe": "容器所在宿主机交换缓存内存使用字节数",
+      "targets": [
+        {
+          "expr": "node_memory_SwapCached_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}",
+          "legendFormat": "SwapCache - 跟踪已从交换中提取但尚未修改的页面的内存",
+          "refId": "C",
+          "variables": [
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 内存使用情况 - Slab",
+      "describe": "容器所在宿主机内核缓存内存使用字节数",
+      "targets": [
+        {
+          "expr": "node_memory_Slab_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}",
+          "legendFormat": "Slab - 内核用于缓存数据结构以供自己使用的内存 (缓存，如inode，dentry等)",
+          "refId": "D",
+          "variables": [
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 内存使用情况 - Cache",
+      "describe": "容器所在宿主机文件缓存内存使用字节数",
+      "targets": [
+        {
+          "expr": "node_memory_Cached_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}",
+          "legendFormat": "Cache - 打开的文件缓存",
+          "refId": "E",
+          "variables": [
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 内存使用情况 - Buffers",
+      "describe": "容器所在宿主机块设备缓存内存使用字节数",
+      "targets": [
+        {
+          "expr": "node_memory_Buffers_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}",
+          "legendFormat": "Buffers - 块设备 (如硬盘) 缓存",
+          "refId": "F",
+          "variables": [
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 内存使用情况 - Unused",
+      "describe": "容器所在宿主机未使用内存字节数",
+      "targets": [
+        {
+          "expr": "node_memory_MemFree_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}",
+          "legendFormat": "Unused - 未分配内存",
+          "refId": "G",
+          "variables": [
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 内存使用情况 - Swap",
+      "describe": "容器所在宿主机已使用Swap空间字节数",
+      "targets": [
+        {
+          "expr": "(node_memory_SwapTotal_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"} - node_memory_SwapFree_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"})",
+          "legendFormat": "Swap - 已使用的Swap空间",
+          "refId": "H",
+          "variables": [
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 内存使用情况 - Hardware Corrupted",
+      "describe": "容器所在宿主机损坏的RAM字节数",
+      "targets": [
+        {
+          "expr": "node_memory_HardwareCorrupted_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}",
+          "legendFormat": "Hardware Corrupted - 内核标识为损坏/不工作的RAM量",
+          "refId": "I",
+          "variables": [
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 网络传输速率(无虚拟和回环网卡) - Receive",
+      "describe": "容器所在宿主机网络接收速率(比特/秒,无虚拟和回环网卡)",
+      "targets": [
+        {
+          "expr": "irate(node_network_receive_bytes_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}[$__rate_interval])*8",
+          "legendFormat": "{{device}} - Receive",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 网络传输速率(无虚拟和回环网卡) - Transmit",
+      "describe": "容器所在宿主机网络发送速率(比特/秒,无虚拟和回环网卡)",
+      "targets": [
+        {
+          "expr": "irate(node_network_transmit_bytes_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}[$__rate_interval])*8",
+          "legendFormat": "{{device}} - Transmit",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 文件描述符打开数 - 最大限制",
+      "describe": "容器所在宿主机文件描述符最大限制数",
+      "targets": [
+        {
+          "expr": "node_filefd_maximum{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}",
+          "legendFormat": "最大限制",
+          "refId": "A",
+          "variables": [
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 文件描述符打开数 - 当前值",
+      "describe": "容器所在宿主机当前打开的文件描述符数",
+      "targets": [
+        {
+          "expr": "node_filefd_allocated{instance_name=~\"$related_nodes\",job_name=~\"$job_name\"}",
+          "legendFormat": "当前值",
+          "refId": "B",
+          "variables": [
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 磁盘操作数 - 读取",
+      "describe": "容器所在宿主机磁盘读取操作数每秒",
+      "targets": [
+        {
+          "expr": "irate(node_disk_reads_completed_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\",device=~\"$diskdevices\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - 读取",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "diskdevices",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "iops",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 磁盘操作数 - 写入",
+      "describe": "容器所在宿主机磁盘写入操作数每秒",
+      "targets": [
+        {
+          "expr": "irate(node_disk_writes_completed_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\",device=~\"$diskdevices\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - 写入",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "diskdevices",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "iops",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 磁盘读写速率 - 读取",
+      "describe": "容器所在宿主机磁盘读取速率(字节/秒)",
+      "targets": [
+        {
+          "expr": "irate(node_disk_read_bytes_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\",device=~\"$diskdevices\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - 读取",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "diskdevices",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "Bps",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 磁盘读写速率 - 写入",
+      "describe": "容器所在宿主机磁盘写入速率(字节/秒)",
+      "targets": [
+        {
+          "expr": "irate(node_disk_written_bytes_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\",device=~\"$diskdevices\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - 写入",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "diskdevices",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "Bps",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 文件系统空闲空间 - 空闲大小",
+      "describe": "容器所在宿主机文件系统空闲空间字节数(不含rootfs)",
+      "targets": [
+        {
+          "expr": "node_filesystem_free_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\",device!~'rootfs'}",
+          "legendFormat": "{{mountpoint}} - 空闲大小",
+          "refId": "B",
+          "variables": [
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 文件系统空闲空间 - 总大小",
+      "describe": "容器所在宿主机文件系统总空间字节数(不含rootfs)",
+      "targets": [
+        {
+          "expr": "node_filesystem_size_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\",device!~'rootfs'}",
+          "legendFormat": "{{mountpoint}} - 总大小",
+          "refId": "C",
+          "variables": [
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ]
+    },
+    {
+      "title": "容器所在宿主机状态总览 - 磁盘使用量",
+      "targets": [
+        {
+          "expr": "node_filesystem_size_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\",device!~'rootfs'} - node_filesystem_avail_bytes{instance_name=~\"$related_nodes\",job_name=~\"$job_name\",device!~'rootfs'}",
+          "legendFormat": "{{mountpoint}}",
+          "refId": "A",
+          "variables": [
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ],
+      "describe": "容器所在宿主机磁盘使用字节数(不含rootfs)"
+    },
+    {
+      "title": "容器所在宿主机状态总览 - I/O 利用率",
+      "targets": [
+        {
+          "expr": "irate(node_disk_io_time_seconds_total{instance_name=~\"$related_nodes\",job_name=~\"$job_name\",device=~\"$diskdevices\"} [$__rate_interval])",
+          "legendFormat": "{{device}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "diskdevices",
+            "job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job_name",
+        "pod",
+        "service_name"
+      ],
+      "describe": "容器所在宿主机磁盘IO利用率"
+    },
+    {
+      "title": "宿主机状态总览 - 容器状态总览 - 容器的CPU使用量",
+      "describe": "宿主机上的容器CPU使用量(核数)",
+      "targets": [
+        {
+          "expr": "sum by (container,pod,node_name) (rate(container_cpu_usage_seconds_total{image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\", node_name=~\"$related_nodes\"}[$__rate_interval])) ",
+          "legendFormat": "CPU Usage",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "core",
+      "params": [
+        "cadvisor_job_name",
+        "related_nodes"
+      ]
+    },
+    {
+      "title": "宿主机状态总览 - 容器状态总览 - 容器的内存使用量",
+      "describe": "宿主机上的容器内存使用量(字节)",
+      "targets": [
+        {
+          "expr": "sum by (container,pod,node_name) (container_memory_working_set_bytes{image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\",node_name=~\"$related_nodes\"})",
+          "legendFormat": "MEM Usage",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cadvisor_job_name",
+        "related_nodes"
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "datasource",
+      "type": "datasource",
+      "label": "数据源",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "APO-VictoriaMetric",
+        "value": "APO-VictoriaMetric"
+      },
+      "regex": "",
+      "query": {
+        "query": "prometheus",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "service_type",
+      "type": "custom",
+      "label": "查询方式",
+      "options": [
+        {
+          "selected": true,
+          "text": "按K8s查询",
+          "value": ".*"
+        },
+        {
+          "selected": false,
+          "text": "按虚机查询",
+          "value": ""
+        }
+      ],
+      "current": {
+        "selected": false,
+        "text": "按K8s查询",
+        "value": ".*"
+      },
+      "regex": "",
+      "query": {
+        "query": "按K8s查询 : .*, 按虚机查询 :  ,",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "namespace",
+      "type": "query",
+      "label": "命名空间",
+      "options": null,
+      "current": {},
+      "regex": "/namespace=\"(?<text>[^\"]+)|namespace=\"(?<value>[^\"]+)/g",
+      "query": {
+        "qryType": 3,
+        "query": "query_result(group by (namespace) (container_memory_rss{job_name=~\"$cadvisor_job_name\",namespace=~\"$service_type\"}))",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "pod",
+      "type": "query",
+      "label": "",
+      "options": null,
+      "current": {},
+      "regex": "/pod=\"(?<text>[^\"]+)|pod=\"(?<value>[^\"]+)/g",
+      "query": {
+        "qryType": 3,
+        "query": "query_result(group by (pod) (container_memory_rss{namespace=~\"$namespace\",job_name=~\"$cadvisor_job_name\"}))",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "service_name",
+      "type": "query",
+      "label": "应用名",
+      "options": null,
+      "current": {},
+      "regex": "/svc_name=\"(?<text>[^\"]+)|svc_name=\"(?<value>[^\"]+)/g",
+      "query": {
+        "qryType": 3,
+        "query": "query_result(group by (svc_name) (kindling_span_trace_duration_nanoseconds_count{vm=~\"$service_type\"}) or group by (svc_name) (kindling_span_trace_duration_nanoseconds_count{pod=~\"$pod\",namespace=~\"$namespace\"}))",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "related_nodes",
+      "type": "query",
+      "label": "相关节点",
+      "options": null,
+      "current": {},
+      "regex": "/node_name=\"(?<text>[^\"]+)|node_name=\"(?<value>[^\"]+)/g",
+      "query": {
+        "qryType": 3,
+        "query": "query_result( group by (node_name) (container_memory_rss{job_name=\"integrations/kubernetes/cadvisor\",pod=~\"$pod\",pod!=\"\"}) or group by (node_name) ( kindling_span_trace_duration_nanoseconds_count{svc_name=~\"$service_name\",svc_name!=\"\"}))",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "resolution",
+      "type": "custom",
+      "label": "精度",
+      "options": [
+        {
+          "selected": false,
+          "text": "1s",
+          "value": "1s"
+        },
+        {
+          "selected": false,
+          "text": "15s",
+          "value": "15s"
+        },
+        {
+          "selected": false,
+          "text": "30s",
+          "value": "30s"
+        },
+        {
+          "selected": true,
+          "text": "1m",
+          "value": "1m"
+        },
+        {
+          "selected": false,
+          "text": "3m",
+          "value": "3m"
+        },
+        {
+          "selected": false,
+          "text": "5m",
+          "value": "5m"
+        },
+        {
+          "selected": false,
+          "text": "10m",
+          "value": "10m"
+        },
+        {
+          "selected": false,
+          "text": "30m",
+          "value": "30m"
+        }
+      ],
+      "current": {
+        "selected": false,
+        "text": "1m",
+        "value": "1m"
+      },
+      "regex": "",
+      "query": {
+        "query": "1s, 15s, 30s, 1m, 3m, 5m , 10m, 30m",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "diskdevices",
+      "type": "custom",
+      "label": "",
+      "options": [
+        {
+          "selected": true,
+          "text": "[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+",
+          "value": "[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+"
+        }
+      ],
+      "current": {
+        "selected": false,
+        "text": "[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+",
+        "value": "[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+"
+      },
+      "regex": "",
+      "query": {
+        "query": "[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "related_pid",
+      "type": "query",
+      "label": "",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "qryType": 1,
+        "query": "label_values(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"$service_name\"},pid)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "jvm_instance",
+      "type": "query",
+      "label": "JVM实例",
+      "options": null,
+      "current": {},
+      "regex": "/instance=\"(?<text>[^\"]+)|instance=\"(?<value>[^\"]+)/g",
+      "query": {
+        "qryType": 3,
+        "query": "query_result(jvm_cpu_count{host_name=~\"$pod\"} or jvm_cpu_count{service_name=~\"$service_name\",vm=~\"$service_type\"})",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "job_name",
+      "type": "query",
+      "label": "主机指标 Job",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "qryType": 1,
+        "query": "label_values(node_cpu_seconds_total,job_name)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "cadvisor_job_name",
+      "type": "query",
+      "label": "容器指标 Job",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "qryType": 1,
+        "query": "label_values(container_cpu_usage_seconds_total,job_name)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    }
+  ],
+  "title": "基础设施情况"
+}

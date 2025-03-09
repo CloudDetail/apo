@@ -198,4 +198,6 @@ var enText = map[string]string{
 	GetIntegrationInstallDocFailed:        "Get integration install doc failed",
 	GetIntegrationInstallConfigFileFailed: "Get integration install config file failed",
 	GetClusterIntegrationFailed:           "Get cluster integration failed",
+
+	GetAlertEventListError: "Failed to get alert event list",
 }

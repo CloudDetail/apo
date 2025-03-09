@@ -1,0 +1,785 @@
+{
+  "queries": [
+    {
+      "title": "Ready messages",
+      "targets": [
+        {
+          "expr": "sum(rabbitmq_queue_messages_ready * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "Incoming messages / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_received_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "Publishers",
+      "targets": [
+        {
+          "expr": "sum(rabbitmq_global_publishers * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "Connections",
+      "targets": [
+        {
+          "expr": "sum(rabbitmq_connections * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "Queues",
+      "targets": [
+        {
+          "expr": "sum(rabbitmq_queues * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "Unacknowledged messages",
+      "targets": [
+        {
+          "expr": "sum(rabbitmq_queue_messages_unacked * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "Outgoing messages / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_redelivered_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) +\nsum(rate(rabbitmq_global_messages_delivered_consume_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) +\nsum(rate(rabbitmq_global_messages_delivered_consume_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) +\nsum(rate(rabbitmq_global_messages_delivered_get_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) +\nsum(rate(rabbitmq_global_messages_delivered_get_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "Consumers",
+      "targets": [
+        {
+          "expr": "sum(rabbitmq_consumers * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "Channels",
+      "targets": [
+        {
+          "expr": "sum(rabbitmq_channels * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "Nodes",
+      "targets": [
+        {
+          "expr": "sum(rabbitmq_build_info * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "NODES -",
+      "targets": [
+        {
+          "expr": "rabbitmq_build_info * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "NODES - Memory available before publishers blocked",
+      "targets": [
+        {
+          "expr": "(rabbitmq_resident_memory_limit_bytes * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) -\n(rabbitmq_process_resident_memory_bytes * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"})",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "NODES - Disk space available before publishers blocked",
+      "targets": [
+        {
+          "expr": "rabbitmq_disk_space_available_bytes * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "NODES - File descriptors available",
+      "targets": [
+        {
+          "expr": "(rabbitmq_process_max_fds * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) -\n(rabbitmq_process_open_fds * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"})",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "NODES - TCP sockets available",
+      "targets": [
+        {
+          "expr": "(rabbitmq_process_max_tcp_sockets * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) -\n(rabbitmq_process_open_tcp_sockets * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"})",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "QUEUED MESSAGES - Messages ready to be delivered to consumers",
+      "targets": [
+        {
+          "expr": "sum(rabbitmq_queue_messages_ready * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "QUEUED MESSAGES - Messages pending consumer acknowledgement",
+      "targets": [
+        {
+          "expr": "sum(rabbitmq_queue_messages_unacked * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "INCOMING MESSAGES - Messages published / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_received_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "INCOMING MESSAGES - Messages confirmed to publishers / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_confirmed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "INCOMING MESSAGES - Messages routed to queues / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_routed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "INCOMING MESSAGES - Messages unconfirmed to publishers / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_received_confirm_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"} - \nrate(rabbitmq_global_messages_confirmed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}\n) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "INCOMING MESSAGES - Unroutable messages dropped / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_unroutable_dropped_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "INCOMING MESSAGES - Unroutable messages returned to publishers / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_unroutable_returned_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "OUTGOING MESSAGES - Messages delivered / s",
+      "targets": [
+        {
+          "expr": "sum(\n  (rate(rabbitmq_global_messages_delivered_consume_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) +\n  (rate(rabbitmq_global_messages_delivered_consume_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"})\n) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "OUTGOING MESSAGES - Messages redelivered / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_redelivered_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "OUTGOING MESSAGES - Messages delivered with manual ack / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_delivered_consume_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "OUTGOING MESSAGES - Messages delivered auto ack / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_delivered_consume_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "OUTGOING MESSAGES - Messages acknowledged / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_acknowledged_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "OUTGOING MESSAGES - Polling operations with auto ack / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_delivered_get_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "OUTGOING MESSAGES - Polling operations that yield no result / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_get_empty_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "OUTGOING MESSAGES - Polling operations with manual ack / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_delivered_get_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "QUEUES - Total queues",
+      "targets": [
+        {
+          "expr": "rabbitmq_queues * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "QUEUES - Queues declared / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_queues_declared_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "QUEUES - Queues created / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_queues_created_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "QUEUES - Queues deleted / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_queues_deleted_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "CHANNELS - Total channels",
+      "targets": [
+        {
+          "expr": "rabbitmq_channels * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "CHANNELS - Channels opened / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_channels_opened_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "CHANNELS - Channels closed / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_channels_closed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "CONNECTIONS - Total connections",
+      "targets": [
+        {
+          "expr": "rabbitmq_connections * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "CONNECTIONS - Connections opened / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_connections_opened_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    },
+    {
+      "title": "CONNECTIONS - Connections closed / s",
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_connections_closed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=~\"$namespace\"}) by(rabbitmq_node)",
+          "legendFormat": "{{rabbitmq_node}}",
+          "refId": "A",
+          "variables": [
+            "namespace",
+            "rabbitmq_cluster"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "namespace"
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "DS_PROMETHEUS",
+      "type": "datasource",
+      "label": "datasource",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "default",
+        "value": "default"
+      },
+      "regex": "",
+      "query": {
+        "query": "prometheus",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "namespace",
+      "type": "query",
+      "label": "Namespace",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "query": "label_values(rabbitmq_identity_info, namespace)",
+        "refId": "Prometheus-namespace-Variable-Query"
+      }
+    },
+    {
+      "name": "rabbitmq_cluster",
+      "type": "query",
+      "label": "RabbitMQ Cluster",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "query": "label_values(rabbitmq_identity_info{namespace=~\"$namespace\"}, rabbitmq_cluster)",
+        "refId": "Prometheus-rabbitmq_cluster-Variable-Query"
+      }
+    }
+  ],
+  "title": "RabbitMQ 官方指标"
+}

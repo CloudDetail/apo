@@ -1,0 +1,703 @@
+{
+  "queries": [
+    {
+      "title": "总览 - 集群总CPU使用率 - Real Linux",
+      "describe": "实时集群CPU使用率",
+      "targets": [
+        {
+          "expr": "avg(sum by (instance_name, cpu) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\", cluster=~\"$cluster\", job_name=~\"$job_name\"}[$__rate_interval])))",
+          "legendFormat": "Real Linux",
+          "refId": "Real Linux",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "总览 - 集群总内存使用率 - Real Linux",
+      "describe": "实时集群内存使用率",
+      "targets": [
+        {
+          "expr": "sum(node_memory_MemTotal_bytes{cluster=~\"$cluster\", job_name=~\"$job_name\"} - node_memory_MemAvailable_bytes{cluster=~\"$cluster\", job_name=~\"$job_name\"}) / sum(max_over_time(node_memory_MemTotal_bytes{cluster=~\"$cluster\", job_name=~\"$job_name\"}[5m]))",
+          "legendFormat": "Real Linux",
+          "refId": "Real Linux",
+          "variables": [
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "总览 - 命名空间数量",
+      "targets": [
+        {
+          "expr": "count(group by (namespace) (container_memory_rss{job_name=~\"$cadvisor_job_name\"}))",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cadvisor_job_name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cadvisor_job_name"
+      ],
+      "describe": "K8s集群中命名空间的数量"
+    },
+    {
+      "title": "总览 - 节点数",
+      "targets": [
+        {
+          "expr": "count(group by (instance_name) (container_memory_rss{job_name=~\"$cadvisor_job_name\"}))",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cadvisor_job_name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cadvisor_job_name"
+      ],
+      "describe": "K8s集群中节点的数量"
+    },
+    {
+      "title": "总览 - CPU使用量 - Real Linux",
+      "describe": "实时集群CPU使用核数",
+      "targets": [
+        {
+          "expr": "sum(rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\", cluster=~\"$cluster\", job_name=~\"$job_name\"}[$__rate_interval]))",
+          "legendFormat": "Real Linux",
+          "refId": "Real Linux",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "core",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "总览 - CPU使用量 - Total",
+      "describe": "集群总可用CPU核数",
+      "targets": [
+        {
+          "expr": "max_over_time(sum ((group by (instance_name,cpu) (node_cpu_seconds_total{job_name=~\"$job_name\"})))[5m])",
+          "legendFormat": "Total",
+          "refId": "Total",
+          "variables": [
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "core",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "总览 - 内存使用量 - Real Linux",
+      "describe": "实时集群内存使用字节数",
+      "targets": [
+        {
+          "expr": "sum(node_memory_MemTotal_bytes{cluster=~\"$cluster\", job_name=~\"$job_name\"} - node_memory_MemAvailable_bytes{cluster=~\"$cluster\", job_name=~\"$job_name\"})",
+          "legendFormat": "Real Linux",
+          "refId": "Real Linux",
+          "variables": [
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "总览 - 内存使用量 - Total",
+      "describe": "集群总可用内存字节数",
+      "targets": [
+        {
+          "expr": "sum(max_over_time(node_memory_MemTotal_bytes{cluster=~\"$cluster\", job_name=~\"$job_name\"}[5m]))",
+          "legendFormat": "Total",
+          "refId": "Total",
+          "variables": [
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "总览 - 运行的Pod数",
+      "targets": [
+        {
+          "expr": "sum(group by (pod) (container_memory_rss{job_name=~\"$cadvisor_job_name\"}))",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cadvisor_job_name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cadvisor_job_name"
+      ],
+      "describe": "K8s集群中运行中的Pod数量"
+    },
+    {
+      "title": "总览 - 集群整体网络带宽(按设备统计) - 接收",
+      "describe": "集群网络接收带宽(按设备统计,排除虚拟设备)",
+      "targets": [
+        {
+          "expr": "sum(rate(node_network_receive_bytes_total{device!~\"(veth|azv|lxc|cali).*\", cluster=~\"$cluster\", job_name=~\"$job_name\"}[$__rate_interval])) by (device)",
+          "legendFormat": "接收 : {{ device }}",
+          "refId": "Linux Received",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "总览 - 集群整体网络带宽(按设备统计) - 发送",
+      "describe": "集群网络发送带宽(按设备统计,排除虚拟设备)",
+      "targets": [
+        {
+          "expr": "sum(rate(node_network_transmit_bytes_total{device!~\"(veth|azv|lxc|cali).*\", cluster=~\"$cluster\", job_name=~\"$job_name\"}[$__rate_interval])) by (device)",
+          "legendFormat": "发送 : {{ device }}",
+          "refId": "Linux Transmitted",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "总览 - 网络饱和 - 丢包数 - Linux Packets dropped (receive)",
+      "describe": "Linux集群网络接收丢包数",
+      "targets": [
+        {
+          "expr": "sum(rate(node_network_receive_drop_total{cluster=~\"$cluster\", job_name=~\"$job_name\"}[$__rate_interval]))",
+          "legendFormat": "Linux Packets dropped (receive)",
+          "refId": "Linux Packets dropped (receive)",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "总览 - 网络饱和 - 丢包数 - Linux Packets dropped (transmit)",
+      "describe": "Linux集群网络发送丢包数",
+      "targets": [
+        {
+          "expr": "sum(rate(node_network_transmit_drop_total{cluster=~\"$cluster\", job_name=~\"$job_name\"}[$__rate_interval]))",
+          "legendFormat": "Linux Packets dropped (transmit)",
+          "refId": "Linux Packets dropped (transmit)",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "节点资源使用 - 节点CPU使用率 - Linux",
+      "describe": "Linux节点CPU使用率",
+      "targets": [
+        {
+          "expr": "avg(sum by (instance_name, cpu) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\", cluster=~\"$cluster\", job_name=~\"$job_name\"}[$__rate_interval]))) by (instance_name)",
+          "legendFormat": "{{ node }}",
+          "refId": "Linux",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "节点资源使用 - 节点内存使用量 - Linux",
+      "describe": "Linux节点内存使用字节数",
+      "targets": [
+        {
+          "expr": "sum(node_memory_MemTotal_bytes{cluster=~\"$cluster\", job_name=~\"$job_name\"} - node_memory_MemAvailable_bytes{cluster=~\"$cluster\", job_name=~\"$job_name\"}) by (instance_name)",
+          "legendFormat": "{{ instance_name }}",
+          "refId": "Linux",
+          "variables": [
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "节点资源使用 - 节点的网络使用量 - 接收",
+      "describe": "节点网络接收带宽",
+      "targets": [
+        {
+          "expr": "sum(rate(node_network_receive_bytes_total{cluster=~\"$cluster\", job_name=~\"$job_name\"}[$__rate_interval])) by (instance_name)",
+          "legendFormat": "接收: {{ instance_name }}",
+          "refId": "Linux Received bytes",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "节点资源使用 - 节点的网络使用量 - 发送",
+      "describe": "节点网络发送带宽",
+      "targets": [
+        {
+          "expr": "sum(rate(node_network_transmit_bytes_total{cluster=~\"$cluster\", job_name=~\"$job_name\"}[$__rate_interval])) by (instance_name)",
+          "legendFormat": "发送: {{ instance_name }}",
+          "refId": "Linux Transmitted bytes",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "节点资源使用 - 节点的网络使用量(不含回环/虚拟设备) - Received bytes in",
+      "describe": "节点网络接收带宽(排除虚拟和回环设备)",
+      "targets": [
+        {
+          "expr": "sum(rate(node_network_receive_bytes_total{device!~\"(veth|azv|lxc|lo|cali).*\", cluster=~\"$cluster\", job_name=~\"$job_name\"}[$__rate_interval])) by (instance_name)",
+          "legendFormat": "Received bytes in {{ instance_name }}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "节点资源使用 - 节点的网络使用量(不含回环/虚拟设备) - Transmitted bytes in",
+      "describe": "节点网络发送带宽(排除虚拟和回环设备)",
+      "targets": [
+        {
+          "expr": "sum(rate(node_network_transmit_bytes_total{device!~\"(veth|azv|lxc|lo|cali).*\", cluster=~\"$cluster\", job_name=~\"$job_name\"}[$__rate_interval])) by (instance_name)",
+          "legendFormat": "Transmitted bytes in {{ instance_name }}",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "节点资源使用 - 节点的网络使用量(仅回环) - Received bytes in",
+      "describe": "节点回环网络接收带宽, 仅回环设备",
+      "targets": [
+        {
+          "expr": "sum(rate(node_network_receive_bytes_total{device=\"lo\", cluster=~\"$cluster\", job_name=~\"$job_name\"}[$__rate_interval])) by (instance_name)",
+          "legendFormat": "Received bytes in {{ instance_name }}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "节点资源使用 - 节点的网络使用量(仅回环) - Transmitted bytes in",
+      "describe": "节点回环网络发送带宽, 仅回环设备",
+      "targets": [
+        {
+          "expr": "sum(rate(node_network_transmit_bytes_total{device=\"lo\", cluster=~\"$cluster\", job_name=~\"$job_name\"}[$__rate_interval])) by (instance_name)",
+          "legendFormat": "Transmitted bytes in {{ instance_name }}",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cluster"
+      ]
+    },
+    {
+      "title": "节点资源使用 - 节点CPU限流时长",
+      "targets": [
+        {
+          "expr": "sum(rate(node_cpu_core_throttles_total{cluster=~\"$cluster\", job_name=~\"$job_name\"}[$__rate_interval])) by (instance_name)",
+          "legendFormat": "{{ instance_name }}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "job_name"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "cluster"
+      ],
+      "describe": "节点CPU限流时长"
+    },
+    {
+      "title": "命名空间资源使用 - 命名空间的CPU使用量 - Containerd",
+      "describe": "命名空间CPU使用核数(使用Containerd容器运行时,按命名空间统计)",
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_usage_seconds_total{image!=\"\", cluster=~\"$cluster\",job_name=~\"$cadvisor_job_name\"}[$__rate_interval])) by (namespace) OR (group by (namespace) (container_memory_rss{cluster=~\"$cluster\",job_name=~\"$cadvisor_job_name\"}) * 0 ) ",
+          "legendFormat": "{{ namespace }}",
+          "refId": "Containerd",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "cluster"
+          ]
+        }
+      ],
+      "unit": "core",
+      "params": [
+        "cadvisor_job_name",
+        "cluster"
+      ]
+    },
+    {
+      "title": "命名空间资源使用 - 命名空间的CPU使用量 - Docker",
+      "describe": "命名空间CPU使用核数(使用Docker容器运行时,按命名空间统计)",
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_usage_seconds_total{ cluster=~\"$cluster\",job_name=~\"$cadvisor_job_name\",id=~\".*docker.*\"}[$__rate_interval])) by (namespace) OR (group by (namespace) (container_memory_rss{cluster=~\"$cluster\",job_name=~\"$cadvisor_job_name\",id=~\".*docker.*\"}) * 0 ) ",
+          "legendFormat": "{{ namespace }}",
+          "refId": "Docker",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "cluster"
+          ]
+        }
+      ],
+      "unit": "core",
+      "params": [
+        "cadvisor_job_name",
+        "cluster"
+      ]
+    },
+    {
+      "title": "命名空间资源使用 - 命名空间的CPU限流时长 - Containerd",
+      "describe": "命名空间CPU限流时长(使用Containerd容器运行时,按命名空间统计)",
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_cfs_throttled_seconds_total{image!=\"\", cluster=~\"$cluster\",job_name=~\"$cadvisor_job_name\"}[$__rate_interval])) by (namespace) > 0",
+          "legendFormat": "{{ namespace }}",
+          "refId": "Containerd",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "cluster"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "cadvisor_job_name",
+        "cluster"
+      ]
+    },
+    {
+      "title": "命名空间资源使用 - 命名空间的CPU限流时长 - Docker",
+      "describe": "命名空间CPU限流时长(使用Docker容器运行时,按命名空间统计)",
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_cfs_throttled_seconds_total{cluster=~\"$cluster\",job_name=~\"$cadvisor_job_name\",id=~\".*docker.*\"}[$__rate_interval])) by (namespace) > 0",
+          "legendFormat": "{{ namespace }}",
+          "refId": "Docker",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "cluster"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "cadvisor_job_name",
+        "cluster"
+      ]
+    },
+    {
+      "title": "命名空间资源使用 - 命名空间的网络使用量 - 接收",
+      "describe": "命名空间网络接收带宽(按命名空间统计)",
+      "targets": [
+        {
+          "expr": "sum(rate(container_network_receive_bytes_total{cluster=~\"$cluster\",namespace!=\"\",job_name=~\"$cadvisor_job_name\"}[$__rate_interval])) by (namespace)\nOR (group by (namespace) (container_memory_rss{cluster=~\"$cluster\",job_name=~\"$cadvisor_job_name\"}) * 0 ) ",
+          "legendFormat": "接收 : {{ namespace }}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "cluster"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cadvisor_job_name",
+        "cluster"
+      ]
+    },
+    {
+      "title": "命名空间资源使用 - 命名空间的网络使用量 - 发送",
+      "describe": "命名空间网络发送带宽(按命名空间统计)",
+      "targets": [
+        {
+          "expr": "- (sum(rate(container_network_transmit_bytes_total{cluster=~\"$cluster\",namespace!=\"\",job_name=~\"$cadvisor_job_name\"}[$__rate_interval])) by (namespace)\nOR (group by (namespace) (container_memory_rss{cluster=~\"$cluster\",job_name=~\"$cadvisor_job_name\"}) * 0 ) )",
+          "legendFormat": "发送 : {{ namespace }}",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "cluster"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cadvisor_job_name",
+        "cluster"
+      ]
+    },
+    {
+      "title": "命名空间资源使用 - 命名空间的内存使用量 - Containerd",
+      "describe": "命名空间内存使用字节数(使用Containerd容器运行时,按命名空间统计)",
+      "targets": [
+        {
+          "expr": "sum(container_memory_working_set_bytes{image!=\"\", cluster=~\"$cluster\",job_name=~\"$cadvisor_job_name\"}) by (namespace)\n OR (group by (namespace) (container_memory_rss{cluster=~\"$cluster\",job_name=~\"$cadvisor_job_name\"}) * 0 ) ",
+          "legendFormat": "{{ namespace }}",
+          "refId": "Containerd",
+          "variables": [
+            "cadvisor_job_name",
+            "cluster"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cadvisor_job_name",
+        "cluster"
+      ]
+    },
+    {
+      "title": "命名空间资源使用 - 命名空间的内存使用量 - Docker",
+      "describe": "命名空间内存使用字节数(使用Docker容器运行时,按命名空间统计)",
+      "targets": [
+        {
+          "expr": "sum(container_memory_working_set_bytes{cluster=~\"$cluster\",job_name=~\"$cadvisor_job_name\",id=~\".*docker.*\"}) by (namespace)\n OR (group by (namespace) (container_memory_rss{cluster=~\"$cluster\",job_name=~\"$cadvisor_job_name\",id=~\".*docker.*\"}) * 0 ) ",
+          "legendFormat": "{{ namespace }}",
+          "refId": "Docker",
+          "variables": [
+            "cadvisor_job_name",
+            "cluster"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "cadvisor_job_name",
+        "cluster"
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "datasource",
+      "type": "datasource",
+      "label": "数据源",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "APO-VictoriaMetric",
+        "value": "APO-VictoriaMetric"
+      },
+      "regex": "",
+      "query": {
+        "query": "prometheus",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "cluster",
+      "type": "query",
+      "label": "集群",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "qryType": 1,
+        "query": "label_values(kube_node_info,cluster)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "resolution",
+      "type": "custom",
+      "label": "精度",
+      "options": [
+        {
+          "selected": true,
+          "text": "1s",
+          "value": "1s"
+        },
+        {
+          "selected": false,
+          "text": "15s",
+          "value": "15s"
+        },
+        {
+          "selected": false,
+          "text": "30s",
+          "value": "30s"
+        },
+        {
+          "selected": false,
+          "text": "1m",
+          "value": "1m"
+        },
+        {
+          "selected": false,
+          "text": "3m",
+          "value": "3m"
+        },
+        {
+          "selected": false,
+          "text": "5m",
+          "value": "5m"
+        }
+      ],
+      "current": {
+        "selected": false,
+        "text": "1m",
+        "value": "1m"
+      },
+      "regex": "",
+      "query": {
+        "query": "1s, 15s, 30s, 1m, 3m, 5m",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "job_name",
+      "type": "query",
+      "label": "主机指标 Job",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "qryType": 1,
+        "query": "label_values(node_cpu_seconds_total{cluster=~\"$cluster\"},job_name)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "cadvisor_job_name",
+      "type": "query",
+      "label": "容器指标 Job",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "qryType": 1,
+        "query": "label_values(container_cpu_usage_seconds_total,job_name)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    }
+  ],
+  "title": "集群总览"
+}

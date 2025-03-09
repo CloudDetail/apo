@@ -91,6 +91,9 @@ type Repo interface {
 	GetApi() v1.API
 	GetRange() string
 
+	LabelValues(expr string, label string, startTime, endTime int64) (prommodel.LabelValues, error)
+	QueryResult(expr string, regex string, startTime, endTime int64) ([]string, error)
+
 	GetNamespaceList(startTime int64, endTime int64) ([]string, error)
 	GetNamespaceWithService(startTime, endTime int64) (map[string][]string, error)
 }

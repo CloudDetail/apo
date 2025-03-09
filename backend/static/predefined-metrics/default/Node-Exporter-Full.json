@@ -1,0 +1,5119 @@
+{
+  "queries": [
+    {
+      "title": "Quick CPU / Mem / Disk - Pressure - CPU",
+      "describe": "宿主机CPU压力指标(等待时间每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_pressure_cpu_waiting_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "CPU",
+          "refId": "CPU some",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Quick CPU / Mem / Disk - Pressure - Mem",
+      "describe": "宿主机内存压力指标(等待时间每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_pressure_memory_waiting_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Mem",
+          "refId": "Memory some",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Quick CPU / Mem / Disk - Pressure - I/O",
+      "describe": "宿主机IO压力指标(等待时间每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_pressure_io_waiting_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "I/O",
+          "refId": "I/O some",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Quick CPU / Mem / Disk - CPU Busy",
+      "targets": [
+        {
+          "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{mode=\"idle\", instance_name=~\"$node\"}[$__rate_interval])))",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percent",
+      "params": [
+        "node"
+      ],
+      "describe": "宿主机CPU繁忙率(百分比)"
+    },
+    {
+      "title": "Quick CPU / Mem / Disk - Sys Load",
+      "targets": [
+        {
+          "expr": "scalar(node_load1{instance_name=~\"$node\",job_name=~\"$job\"}) * 100 / count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu))",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percent",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机1分钟系统负载百分比"
+    },
+    {
+      "title": "Quick CPU / Mem / Disk - RAM Used - B",
+      "describe": "宿主机RAM使用率(百分比)",
+      "targets": [
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes{instance_name=~\"$node\", job_name=~\"$job\"} / node_memory_MemTotal_bytes{instance_name=~\"$node\", job_name=~\"$job\"})) * 100",
+          "legendFormat": "",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percent",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Quick CPU / Mem / Disk - SWAP Used",
+      "targets": [
+        {
+          "expr": "((node_memory_SwapTotal_bytes{instance_name=~\"$node\",job_name=~\"$job\"} - node_memory_SwapFree_bytes{instance_name=~\"$node\",job_name=~\"$job\"}) / (node_memory_SwapTotal_bytes{instance_name=~\"$node\",job_name=~\"$job\"})) * 100",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percent",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机SWAP使用率(百分比)"
+    },
+    {
+      "title": "Quick CPU / Mem / Disk - Root FS Used",
+      "targets": [
+        {
+          "expr": "100 - ((node_filesystem_avail_bytes{instance_name=~\"$node\",job_name=~\"$job\",mountpoint=\"/\",fstype!=\"rootfs\"} * 100) / node_filesystem_size_bytes{instance_name=~\"$node\",job_name=~\"$job\",mountpoint=\"/\",fstype!=\"rootfs\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percent",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机根文件系统使用率(百分比)"
+    },
+    {
+      "title": "Quick CPU / Mem / Disk - CPU Cores",
+      "targets": [
+        {
+          "expr": "count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机CPU核心数"
+    },
+    {
+      "title": "Quick CPU / Mem / Disk - Uptime",
+      "targets": [
+        {
+          "expr": "node_time_seconds{instance_name=~\"$node\",job_name=~\"$job\"} - node_boot_time_seconds{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机运行时间(秒)"
+    },
+    {
+      "title": "Quick CPU / Mem / Disk - RootFS Total",
+      "targets": [
+        {
+          "expr": "node_filesystem_size_bytes{instance_name=~\"$node\",job_name=~\"$job\",mountpoint=\"/\",fstype!=\"rootfs\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机根文件系统总大小(字节)"
+    },
+    {
+      "title": "Quick CPU / Mem / Disk - RAM Total",
+      "targets": [
+        {
+          "expr": "node_memory_MemTotal_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机RAM总大小(字节)"
+    },
+    {
+      "title": "Quick CPU / Mem / Disk - SWAP Total",
+      "targets": [
+        {
+          "expr": "node_memory_SwapTotal_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机SWAP总大小(字节)"
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - CPU Basic - Busy System",
+      "describe": "宿主机系统进程CPU繁忙率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=\"system\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu)))",
+          "legendFormat": "Busy System",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - CPU Basic - CPU Usage",
+      "describe": "宿主机CPU使用量(核数)",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode!~\"idle|iowait|steal\"}[$__rate_interval]))",
+          "legendFormat": "CPU Usage",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "core",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - CPU Basic - Busy User",
+      "describe": "宿主机用户进程CPU繁忙率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=\"user\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu)))",
+          "legendFormat": "Busy User",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - CPU Basic - Busy Iowait",
+      "describe": "宿主机IO等待CPU繁忙率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=\"iowait\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu)))",
+          "legendFormat": "Busy Iowait",
+          "refId": "C",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - CPU Basic - Busy IRQs",
+      "describe": "宿主机中断服务CPU繁忙率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=~\".*irq\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu)))",
+          "legendFormat": "Busy IRQs",
+          "refId": "D",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - CPU Basic - Busy Other",
+      "describe": "宿主机其他状态CPU繁忙率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\",  mode!='idle',mode!='user',mode!='system',mode!='iowait',mode!='irq',mode!='softirq'}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu)))",
+          "legendFormat": "Busy Other",
+          "refId": "E",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - CPU Basic - Idle",
+      "describe": "宿主机CPU空闲率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=\"idle\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu)))",
+          "legendFormat": "Idle",
+          "refId": "F",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - Memory Basic - RAM Total",
+      "describe": "宿主机RAM总大小(字节)",
+      "targets": [
+        {
+          "expr": "node_memory_MemTotal_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "RAM Total",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - Memory Basic - RAM Used",
+      "describe": "宿主机RAM使用字节数(不含缓存)",
+      "targets": [
+        {
+          "expr": "node_memory_MemTotal_bytes{instance_name=~\"$node\",job_name=~\"$job\"} - node_memory_MemFree_bytes{instance_name=~\"$node\",job_name=~\"$job\"} - (node_memory_Cached_bytes{instance_name=~\"$node\",job_name=~\"$job\"} + node_memory_Buffers_bytes{instance_name=~\"$node\",job_name=~\"$job\"} + node_memory_SReclaimable_bytes{instance_name=~\"$node\",job_name=~\"$job\"})",
+          "legendFormat": "RAM Used",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - Memory Basic - RAM Cache + Buffer",
+      "describe": "宿主机RAM缓存和缓冲区字节数",
+      "targets": [
+        {
+          "expr": "node_memory_Cached_bytes{instance_name=~\"$node\",job_name=~\"$job\"} + node_memory_Buffers_bytes{instance_name=~\"$node\",job_name=~\"$job\"} + node_memory_SReclaimable_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "RAM Cache + Buffer",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - Memory Basic - RAM Free",
+      "describe": "宿主机RAM可用字节数",
+      "targets": [
+        {
+          "expr": "node_memory_MemFree_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "RAM Free",
+          "refId": "D",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - Memory Basic - SWAP Used",
+      "describe": "宿主机SWAP使用字节数",
+      "targets": [
+        {
+          "expr": "(node_memory_SwapTotal_bytes{instance_name=~\"$node\",job_name=~\"$job\"} - node_memory_SwapFree_bytes{instance_name=~\"$node\",job_name=~\"$job\"})",
+          "legendFormat": "SWAP Used",
+          "refId": "E",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - Network Traffic Basic - recv",
+      "describe": "宿主机网络接收速率(比特/秒)",
+      "targets": [
+        {
+          "expr": "irate(node_network_receive_bytes_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])*8",
+          "legendFormat": "recv {{device}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - Network Traffic Basic - trans",
+      "describe": "宿主机网络发送速率(比特/秒)",
+      "targets": [
+        {
+          "expr": "irate(node_network_transmit_bytes_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])*8",
+          "legendFormat": "trans {{device}} ",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Basic CPU / Mem / Net / Disk - Disk Space Used Basic",
+      "targets": [
+        {
+          "expr": "100 - ((node_filesystem_avail_bytes{instance_name=~\"$node\",job_name=~\"$job\",device!~'rootfs'} * 100) / node_filesystem_size_bytes{instance_name=~\"$node\",job_name=~\"$job\",device!~'rootfs'})",
+          "legendFormat": "{{mountpoint}}",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percent",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机磁盘使用率(百分比,不含rootfs)"
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - CPU - System",
+      "describe": "宿主机系统进程CPU使用率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=\"system\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu)))",
+          "legendFormat": "System - Processes executing in kernel mode",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - CPU - User",
+      "describe": "宿主机用户进程CPU使用率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=\"user\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu)))",
+          "legendFormat": "User - Normal processes executing in user mode",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - CPU - Nice",
+      "describe": "宿主机Niced进程CPU使用率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=\"nice\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu)))",
+          "legendFormat": "Nice - Niced processes executing in user mode",
+          "refId": "C",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - CPU - Iowait",
+      "describe": "宿主机IO等待CPU使用率(按实例统计)",
+      "targets": [
+        {
+          "expr": "sum by(instance) (irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=\"iowait\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu)))",
+          "legendFormat": "Iowait - Waiting for I/O to complete",
+          "refId": "E",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - CPU - Irq",
+      "describe": "宿主机中断服务CPU使用率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=\"irq\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu)))",
+          "legendFormat": "Irq - Servicing interrupts",
+          "refId": "F",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - CPU - Softirq",
+      "describe": "宿主机软中断服务CPU使用率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=\"softirq\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu)))",
+          "legendFormat": "Softirq - Servicing softirqs",
+          "refId": "G",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - CPU - Steal",
+      "describe": "宿主机虚拟化环境中其他操作系统占用CPU使用率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=\"steal\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu)))",
+          "legendFormat": "Steal - Time spent in other operating systems when running in a virtualized environment",
+          "refId": "H",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - CPU - Idle",
+      "describe": "宿主机CPU空闲率",
+      "targets": [
+        {
+          "expr": "sum(irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=\"idle\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}) by (cpu)))",
+          "legendFormat": "Idle - Waiting for something to happen",
+          "refId": "J",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - Memory Stack - Apps",
+      "describe": "宿主机用户空间应用内存使用字节数",
+      "targets": [
+        {
+          "expr": "node_memory_MemTotal_bytes{instance_name=~\"$node\",job_name=~\"$job\"} - node_memory_MemFree_bytes{instance_name=~\"$node\",job_name=~\"$job\"} - node_memory_Buffers_bytes{instance_name=~\"$node\",job_name=~\"$job\"} - node_memory_Cached_bytes{instance_name=~\"$node\",job_name=~\"$job\"} - node_memory_Slab_bytes{instance_name=~\"$node\",job_name=~\"$job\"} - node_memory_PageTables_bytes{instance_name=~\"$node\",job_name=~\"$job\"} - node_memory_SwapCached_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Apps - Memory used by user-space applications",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - Memory Stack - PageTables",
+      "describe": "宿主机页面表内存使用字节数",
+      "targets": [
+        {
+          "expr": "node_memory_PageTables_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "PageTables - Memory used to map between virtual and physical memory addresses",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - Memory Stack - SwapCache",
+      "describe": "宿主机交换缓存内存使用字节数",
+      "targets": [
+        {
+          "expr": "node_memory_SwapCached_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "SwapCache - Memory that keeps track of pages that have been fetched from swap but not yet been modified",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - Memory Stack - Slab",
+      "describe": "宿主机内核缓存内存使用字节数",
+      "targets": [
+        {
+          "expr": "node_memory_Slab_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Slab - Memory used by the kernel to cache data structures for its own use (caches like inode, dentry, etc)",
+          "refId": "D",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - Memory Stack - Cache",
+      "describe": "宿主机文件缓存内存使用字节数",
+      "targets": [
+        {
+          "expr": "node_memory_Cached_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Cache - Parked file data (file content) cache",
+          "refId": "E",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - Memory Stack - Buffers",
+      "describe": "宿主机块设备缓存内存使用字节数",
+      "targets": [
+        {
+          "expr": "node_memory_Buffers_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Buffers - Block device (e.g. harddisk) cache",
+          "refId": "F",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - Memory Stack - Unused",
+      "describe": "宿主机未使用内存字节数",
+      "targets": [
+        {
+          "expr": "node_memory_MemFree_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Unused - Free memory unassigned",
+          "refId": "G",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - Memory Stack - Swap",
+      "describe": "宿主机已使用Swap空间字节数",
+      "targets": [
+        {
+          "expr": "(node_memory_SwapTotal_bytes{instance_name=~\"$node\",job_name=~\"$job\"} - node_memory_SwapFree_bytes{instance_name=~\"$node\",job_name=~\"$job\"})",
+          "legendFormat": "Swap - Swap space used",
+          "refId": "H",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - Memory Stack - Hardware Corrupted",
+      "describe": "宿主机损坏的RAM字节数",
+      "targets": [
+        {
+          "expr": "node_memory_HardwareCorrupted_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Hardware Corrupted - Amount of RAM that the kernel identified as corrupted / not working",
+          "refId": "I",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - Network Traffic - Receive",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(node_network_receive_bytes_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])*8",
+          "legendFormat": "{{device}} - Receive",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - Network Traffic - Transmit",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(node_network_transmit_bytes_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])*8",
+          "legendFormat": "{{device}} - Transmit",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - Disk Space Used",
+      "targets": [
+        {
+          "expr": "node_filesystem_size_bytes{instance_name=~\"$node\",job_name=~\"$job\",device!~'rootfs'} - node_filesystem_avail_bytes{instance_name=~\"$node\",job_name=~\"$job\",device!~'rootfs'}",
+          "legendFormat": "{{mountpoint}}",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - Disk IOps - Reads completed",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(node_disk_reads_completed_total{instance_name=~\"$node\",job_name=~\"$job\",device=~\"$diskdevices\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Reads completed",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "diskdevices",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "iops",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - Disk IOps - Writes completed",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(node_disk_writes_completed_total{instance_name=~\"$node\",job_name=~\"$job\",device=~\"$diskdevices\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Writes completed",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "diskdevices",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "iops",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - I/O Usage Read / Write - Successfully read bytes",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(node_disk_read_bytes_total{instance_name=~\"$node\",job_name=~\"$job\",device=~\"$diskdevices\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Successfully read bytes",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "diskdevices",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "Bps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - I/O Usage Read / Write - Successfully written bytes",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(node_disk_written_bytes_total{instance_name=~\"$node\",job_name=~\"$job\",device=~\"$diskdevices\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Successfully written bytes",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "diskdevices",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "Bps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - I/O Utilization",
+      "targets": [
+        {
+          "expr": "irate(node_disk_io_time_seconds_total{instance_name=~\"$node\",job_name=~\"$job\",device=~\"$diskdevices\"} [$__rate_interval])",
+          "legendFormat": "{{device}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "diskdevices",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - CPU spent seconds in guests (VMs) - Guest",
+      "describe": " Time spent running a virtual CPU for a guest operating system",
+      "targets": [
+        {
+          "expr": "sum by(instance) (irate(node_cpu_guest_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=\"user\"}[1m])) / on(instance) group_left sum by (instance)((irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[1m])))",
+          "legendFormat": "Guest - Time spent running a virtual CPU for a guest operating system",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "CPU / Memory / Net / Disk - CPU spent seconds in guests (VMs) - GuestNice",
+      "describe": " Time spent running a niced guest (virtual CPU for guest operating system)",
+      "targets": [
+        {
+          "expr": "sum by(instance) (irate(node_cpu_guest_seconds_total{instance_name=~\"$node\",job_name=~\"$job\", mode=\"nice\"}[1m])) / on(instance) group_left sum by (instance)((irate(node_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[1m])))",
+          "legendFormat": "GuestNice - Time spent running a niced guest  (virtual CPU for guest operating system)",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Active / Inactive - Inactive",
+      "describe": " Memory which has been less recently used. It is more eligible to be reclaimed for other purposes",
+      "targets": [
+        {
+          "expr": "node_memory_Inactive_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Inactive - Memory which has been less recently used.  It is more eligible to be reclaimed for other purposes",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Active / Inactive - Active",
+      "describe": " Memory that has been used more recently and usually not reclaimed unless absolutely necessary",
+      "targets": [
+        {
+          "expr": "node_memory_Active_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Active - Memory that has been used more recently and usually not reclaimed unless absolutely necessary",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Committed - Committed_AS",
+      "describe": " Amount of memory presently allocated on the system",
+      "targets": [
+        {
+          "expr": "node_memory_Committed_AS_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Committed_AS - Amount of memory presently allocated on the system",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Committed - CommitLimit",
+      "describe": " Amount of memory currently available to be allocated on the system",
+      "targets": [
+        {
+          "expr": "node_memory_CommitLimit_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "CommitLimit - Amount of  memory currently available to be allocated on the system",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Active / Inactive Detail - Inactive_file",
+      "describe": " File-backed memory on inactive LRU list",
+      "targets": [
+        {
+          "expr": "node_memory_Inactive_file_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Inactive_file - File-backed memory on inactive LRU list",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Active / Inactive Detail - Inactive_anon",
+      "describe": " Anonymous and swap cache on inactive LRU list, including tmpfs (shmem)",
+      "targets": [
+        {
+          "expr": "node_memory_Inactive_anon_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Inactive_anon - Anonymous and swap cache on inactive LRU list, including tmpfs (shmem)",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Active / Inactive Detail - Active_file",
+      "describe": " File-backed memory on active LRU list",
+      "targets": [
+        {
+          "expr": "node_memory_Active_file_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Active_file - File-backed memory on active LRU list",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Active / Inactive Detail - Active_anon",
+      "describe": " Anonymous and swap cache on active least-recently-used (LRU) list, including tmpfs",
+      "targets": [
+        {
+          "expr": "node_memory_Active_anon_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Active_anon - Anonymous and swap cache on active least-recently-used (LRU) list, including tmpfs",
+          "refId": "D",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Writeback and Dirty - Writeback",
+      "describe": " Memory which is actively being written back to disk",
+      "targets": [
+        {
+          "expr": "node_memory_Writeback_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Writeback - Memory which is actively being written back to disk",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Writeback and Dirty - WritebackTmp",
+      "describe": " Memory used by FUSE for temporary writeback buffers",
+      "targets": [
+        {
+          "expr": "node_memory_WritebackTmp_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "WritebackTmp - Memory used by FUSE for temporary writeback buffers",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Writeback and Dirty - Dirty",
+      "describe": " Memory which is waiting to get written back to the disk",
+      "targets": [
+        {
+          "expr": "node_memory_Dirty_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Dirty - Memory which is waiting to get written back to the disk",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Shared and Mapped - Mapped",
+      "describe": " Used memory in mapped pages files which have been mapped, such as libraries",
+      "targets": [
+        {
+          "expr": "node_memory_Mapped_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Mapped - Used memory in mapped pages files which have been mapped, such as libraries",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Shared and Mapped - Shmem",
+      "describe": " Used shared memory (shared between several processes, thus including RAM disks)",
+      "targets": [
+        {
+          "expr": "node_memory_Shmem_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Shmem - Used shared memory (shared between several processes, thus including RAM disks)",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Shared and Mapped - ShmemHugePages",
+      "describe": " Memory used by shared memory (shmem) and tmpfs allocated with huge pages",
+      "targets": [
+        {
+          "expr": "node_memory_ShmemHugePages_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "ShmemHugePages - Memory used by shared memory (shmem) and tmpfs allocated  with huge pages",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Shared and Mapped - ShmemPmdMapped",
+      "describe": " Amount of shared (shmem/tmpfs) memory backed by huge pages",
+      "targets": [
+        {
+          "expr": "node_memory_ShmemPmdMapped_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "ShmemPmdMapped - Amount of shared (shmem/tmpfs) memory backed by huge pages",
+          "refId": "D",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Slab - SUnreclaim",
+      "describe": " Part of Slab, that cannot be reclaimed on memory pressure",
+      "targets": [
+        {
+          "expr": "node_memory_SUnreclaim_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "SUnreclaim - Part of Slab, that cannot be reclaimed on memory pressure",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Slab - SReclaimable",
+      "describe": " Part of Slab, that might be reclaimed, such as caches",
+      "targets": [
+        {
+          "expr": "node_memory_SReclaimable_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "SReclaimable - Part of Slab, that might be reclaimed, such as caches",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Vmalloc - VmallocChunk",
+      "describe": " Largest contiguous block of vmalloc area which is free",
+      "targets": [
+        {
+          "expr": "node_memory_VmallocChunk_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "VmallocChunk - Largest contiguous block of vmalloc area which is free",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Vmalloc - VmallocTotal",
+      "describe": " Total size of vmalloc memory area",
+      "targets": [
+        {
+          "expr": "node_memory_VmallocTotal_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "VmallocTotal - Total size of vmalloc memory area",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Vmalloc - VmallocUsed",
+      "describe": " Amount of vmalloc area which is used",
+      "targets": [
+        {
+          "expr": "node_memory_VmallocUsed_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "VmallocUsed - Amount of vmalloc area which is used",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Bounce",
+      "targets": [
+        {
+          "expr": "node_memory_Bounce_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Bounce - Memory used for block device bounce buffers",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Anonymous - AnonHugePages",
+      "describe": " Memory in anonymous huge pages",
+      "targets": [
+        {
+          "expr": "node_memory_AnonHugePages_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "AnonHugePages - Memory in anonymous huge pages",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Anonymous - AnonPages",
+      "describe": " Memory in user pages not backed by files",
+      "targets": [
+        {
+          "expr": "node_memory_AnonPages_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "AnonPages - Memory in user pages not backed by files",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Kernel / CPU - KernelStack",
+      "describe": " Kernel memory stack. This is not reclaimable",
+      "targets": [
+        {
+          "expr": "node_memory_KernelStack_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "KernelStack - Kernel memory stack. This is not reclaimable",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Kernel / CPU - PerCPU",
+      "describe": " Per CPU memory allocated dynamically by loadable modules",
+      "targets": [
+        {
+          "expr": "node_memory_Percpu_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "PerCPU - Per CPU memory allocated dynamically by loadable modules",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory HugePages Counter - HugePages_Free",
+      "describe": " Huge pages in the pool that are not yet allocated",
+      "targets": [
+        {
+          "expr": "node_memory_HugePages_Free{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "HugePages_Free - Huge pages in the pool that are not yet allocated",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory HugePages Counter - HugePages_Rsvd",
+      "describe": " Huge pages for which a commitment to allocate from the pool has been made, but no allocation has yet been made",
+      "targets": [
+        {
+          "expr": "node_memory_HugePages_Rsvd{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "HugePages_Rsvd - Huge pages for which a commitment to allocate from the pool has been made, but no allocation has yet been made",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory HugePages Counter - HugePages_Surp",
+      "describe": " Huge pages in the pool above the value in /proc/sys/vm/nr_hugepages",
+      "targets": [
+        {
+          "expr": "node_memory_HugePages_Surp{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "HugePages_Surp - Huge pages in the pool above the value in /proc/sys/vm/nr_hugepages",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory HugePages Size - HugePages",
+      "describe": " Total size of the pool of huge pages",
+      "targets": [
+        {
+          "expr": "node_memory_HugePages_Total{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "HugePages - Total size of the pool of huge pages",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory HugePages Size - Hugepagesize",
+      "describe": " Huge Page size",
+      "targets": [
+        {
+          "expr": "node_memory_Hugepagesize_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Hugepagesize - Huge Page size",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory DirectMap - DirectMap1G",
+      "describe": " Amount of pages mapped as this size",
+      "targets": [
+        {
+          "expr": "node_memory_DirectMap1G_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "DirectMap1G - Amount of pages mapped as this size",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory DirectMap - DirectMap2M",
+      "describe": " Amount of pages mapped as this size",
+      "targets": [
+        {
+          "expr": "node_memory_DirectMap2M_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "DirectMap2M - Amount of pages mapped as this size",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory DirectMap - DirectMap4K",
+      "describe": " Amount of pages mapped as this size",
+      "targets": [
+        {
+          "expr": "node_memory_DirectMap4k_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "DirectMap4K - Amount of pages mapped as this size",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Unevictable and MLocked - Unevictable",
+      "describe": " Amount of unevictable memory that can't be swapped out for a variety of reasons",
+      "targets": [
+        {
+          "expr": "node_memory_Unevictable_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Unevictable - Amount of unevictable memory that can't be swapped out for a variety of reasons",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory Unevictable and MLocked - MLocked",
+      "describe": " Size of pages locked to memory using the mlock() system call",
+      "targets": [
+        {
+          "expr": "node_memory_Mlocked_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "MLocked - Size of pages locked to memory using the mlock() system call",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Meminfo - Memory NFS",
+      "targets": [
+        {
+          "expr": "node_memory_NFS_Unstable_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "NFS Unstable - Memory in NFS pages sent to the server, but not yet committed to the storage",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Vmstat - Memory Pages In / Out - Pagesin",
+      "describe": " Page in operations",
+      "targets": [
+        {
+          "expr": "irate(node_vmstat_pgpgin{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Pagesin - Page in operations",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Vmstat - Memory Pages In / Out - Pagesout",
+      "describe": " Page out operations",
+      "targets": [
+        {
+          "expr": "irate(node_vmstat_pgpgout{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Pagesout - Page out operations",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Vmstat - Memory Pages Swap In / Out - Pswpin",
+      "describe": " Pages swapped in",
+      "targets": [
+        {
+          "expr": "irate(node_vmstat_pswpin{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Pswpin - Pages swapped in",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Vmstat - Memory Pages Swap In / Out - Pswpout",
+      "describe": " Pages swapped out",
+      "targets": [
+        {
+          "expr": "irate(node_vmstat_pswpout{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Pswpout - Pages swapped out",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Vmstat - Memory Page Faults - Pgfault",
+      "describe": " Page major and minor fault operations",
+      "targets": [
+        {
+          "expr": "irate(node_vmstat_pgfault{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Pgfault - Page major and minor fault operations",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Vmstat - Memory Page Faults - Pgmajfault",
+      "describe": " Major page fault operations",
+      "targets": [
+        {
+          "expr": "irate(node_vmstat_pgmajfault{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Pgmajfault - Major page fault operations",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Vmstat - Memory Page Faults - Pgminfault",
+      "describe": " Minor page fault operations",
+      "targets": [
+        {
+          "expr": "irate(node_vmstat_pgfault{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])  - irate(node_vmstat_pgmajfault{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Pgminfault - Minor page fault operations",
+          "refId": "C",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Memory Vmstat - OOM Killer",
+      "targets": [
+        {
+          "expr": "irate(node_vmstat_oom_kill{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "oom killer invocations ",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Timesync - Time Synchronized Drift - Estimated error in seconds",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "node_timex_estimated_error_seconds{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Estimated error in seconds",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Timesync - Time Synchronized Drift - Time offset in between local system and reference clock",
+      "describe": "宿主机与参考时钟的时间偏移(秒)",
+      "targets": [
+        {
+          "expr": "node_timex_offset_seconds{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Time offset in between local system and reference clock",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Timesync - Time Synchronized Drift - Maximum error in seconds",
+      "describe": "宿主机时间同步最大误差(秒)",
+      "targets": [
+        {
+          "expr": "node_timex_maxerror_seconds{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Maximum error in seconds",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Timesync - Time PLL Adjust",
+      "targets": [
+        {
+          "expr": "node_timex_loop_time_constant{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Phase-locked loop time adjust",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机时间锁相环调整值"
+    },
+    {
+      "title": "System Timesync - Time Synchronized Status - Is clock synchronized to a reliable server (1 = yes, 0 = no)",
+      "describe": "宿主机时钟是否与可靠服务器同步(1=是,0=否)",
+      "targets": [
+        {
+          "expr": "node_timex_sync_status{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Is clock synchronized to a reliable server (1 = yes, 0 = no)",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Timesync - Time Synchronized Status - Local clock frequency adjustment",
+      "describe": "宿主机本地时钟频率调整比例",
+      "targets": [
+        {
+          "expr": "node_timex_frequency_adjustment_ratio{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Local clock frequency adjustment",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Timesync - Time Misc - Seconds between clock ticks",
+      "describe": "宿主机时钟滴答间隔(秒)",
+      "targets": [
+        {
+          "expr": "node_timex_tick_seconds{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Seconds between clock ticks",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Timesync - Time Misc - International Atomic Time (TAI) offset",
+      "describe": "宿主机国际原子时间(TAI)偏移(秒)",
+      "targets": [
+        {
+          "expr": "node_timex_tai_offset_seconds{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "International Atomic Time (TAI) offset",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Processes - Processes Status - Processes blocked waiting for I/O to complete",
+      "describe": "宿主机因IO阻塞的进程数",
+      "targets": [
+        {
+          "expr": "node_procs_blocked{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Processes blocked waiting for I/O to complete",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Processes - Processes Status - Processes in runnable state",
+      "describe": "宿主机处于可运行状态的进程数",
+      "targets": [
+        {
+          "expr": "node_procs_running{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Processes in runnable state",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Processes - Processes State",
+      "targets": [
+        {
+          "expr": "node_processes_state{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "{{ state }}",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机进程状态统计"
+    },
+    {
+      "title": "System Processes - Processes  Forks",
+      "targets": [
+        {
+          "expr": "irate(node_forks_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Processes forks second",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Processes - Processes Memory - Processes virtual memory size in bytes",
+      "describe": "宿主机进程虚拟内存大小变化率(字节/秒)",
+      "targets": [
+        {
+          "expr": "irate(process_virtual_memory_bytes{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Processes virtual memory size in bytes",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "decbytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Processes - Processes Memory - Maximum amount of virtual memory available in bytes",
+      "describe": "宿主机进程可用虚拟内存最大值(字节)",
+      "targets": [
+        {
+          "expr": "process_resident_memory_max_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Maximum amount of virtual memory available in bytes",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "decbytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Processes - Processes Memory - Processes virtual memory size in bytes",
+      "describe": "宿主机进程虚拟内存大小变化率(字节/秒)",
+      "targets": [
+        {
+          "expr": "irate(process_virtual_memory_bytes{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Processes virtual memory size in bytes",
+          "refId": "C",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "decbytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Processes - Processes Memory - Maximum amount of virtual memory available in bytes",
+      "describe": "宿主机进程可用虚拟内存最大值(字节)",
+      "targets": [
+        {
+          "expr": "irate(process_virtual_memory_max_bytes{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Maximum amount of virtual memory available in bytes",
+          "refId": "D",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "decbytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Processes - PIDs Number and Limit - Number of PIDs",
+      "describe": "宿主机当前PID数量",
+      "targets": [
+        {
+          "expr": "node_processes_pids{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Number of PIDs",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Processes - PIDs Number and Limit - PIDs limit",
+      "describe": "宿主机PID数量限制",
+      "targets": [
+        {
+          "expr": "node_processes_max_processes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "PIDs limit",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Processes - Process schedule stats Running / Waiting - CPU",
+      "describe": "宿主机进程运行或等待CPU的时间(秒/秒)",
+      "targets": [
+        {
+          "expr": "irate(node_schedstat_running_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "CPU {{ cpu }} - seconds spent running a process",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Processes - Process schedule stats Running / Waiting - CPU",
+      "describe": "宿主机进程运行或等待CPU的时间(秒/秒)",
+      "targets": [
+        {
+          "expr": "irate(node_schedstat_waiting_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "CPU {{ cpu }} - seconds spent by processing waiting for this CPU",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Processes - Threads Number and Limit - Allocated threads",
+      "describe": "宿主机已分配线程数",
+      "targets": [
+        {
+          "expr": "node_processes_threads{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Allocated threads",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Processes - Threads Number and Limit - Threads limit",
+      "describe": "宿主机线程数限制",
+      "targets": [
+        {
+          "expr": "node_processes_max_threads{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Threads limit",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - Context Switches / Interrupts - Context switches",
+      "describe": "宿主机上下文切换速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_context_switches_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Context switches",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - Context Switches / Interrupts - Interrupts",
+      "describe": "宿主机中断速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_intr_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Interrupts",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - System Load - Load 1m",
+      "describe": "宿主机1分钟系统负载",
+      "targets": [
+        {
+          "expr": "node_load1{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Load 1m",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - System Load - Load 5m",
+      "describe": "宿主机5分钟系统负载",
+      "targets": [
+        {
+          "expr": "node_load5{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Load 5m",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - System Load - Load 15m",
+      "describe": "宿主机15分钟系统负载",
+      "targets": [
+        {
+          "expr": "node_load15{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Load 15m",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - CPU Frequency Scaling - CPU",
+      "describe": "宿主机CPU当前频率(Hz)",
+      "targets": [
+        {
+          "expr": "node_cpu_scaling_frequency_hertz{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "CPU {{ cpu }}",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "hertz",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - CPU Frequency Scaling - Max",
+      "describe": "宿主机CPU最大频率平均值(Hz)",
+      "targets": [
+        {
+          "expr": "avg(node_cpu_scaling_frequency_max_hertz{instance_name=~\"$node\",job_name=~\"$job\"})",
+          "legendFormat": "Max",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "hertz",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - CPU Frequency Scaling - Min",
+      "describe": "宿主机CPU最小频率平均值(Hz)",
+      "targets": [
+        {
+          "expr": "avg(node_cpu_scaling_frequency_min_hertz{instance_name=~\"$node\",job_name=~\"$job\"})",
+          "legendFormat": "Min",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "hertz",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - Pressure Stall Information - CPU some",
+      "describe": "宿主机CPU部分压力等待时间(秒/秒)",
+      "targets": [
+        {
+          "expr": "rate(node_pressure_cpu_waiting_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "CPU some",
+          "refId": "CPU some",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - Pressure Stall Information - Memory some",
+      "describe": "宿主机内存部分压力等待时间(秒/秒)",
+      "targets": [
+        {
+          "expr": "rate(node_pressure_memory_waiting_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Memory some",
+          "refId": "Memory some",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - Pressure Stall Information - Memory full",
+      "describe": "宿主机内存完全压力停滞时间(秒/秒)",
+      "targets": [
+        {
+          "expr": "rate(node_pressure_memory_stalled_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Memory full",
+          "refId": "Memory full",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - Pressure Stall Information - I/O some",
+      "describe": "宿主机IO部分压力等待时间(秒/秒)",
+      "targets": [
+        {
+          "expr": "rate(node_pressure_io_waiting_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "I/O some",
+          "refId": "I/O some",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - Pressure Stall Information - I/O full",
+      "describe": "宿主机IO完全压力停滞时间(秒/秒)",
+      "targets": [
+        {
+          "expr": "rate(node_pressure_io_stalled_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "I/O full",
+          "refId": "I/O full",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - Interrupts Detail",
+      "targets": [
+        {
+          "expr": "irate(node_interrupts_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{ type }} - {{ info }}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机详细中断速率(每秒)"
+    },
+    {
+      "title": "System Misc - Schedule timeslices executed by each cpu",
+      "targets": [
+        {
+          "expr": "irate(node_schedstat_timeslices_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "CPU {{ cpu }}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机各CPU执行的时间片速率(每秒)"
+    },
+    {
+      "title": "System Misc - Entropy",
+      "targets": [
+        {
+          "expr": "node_entropy_available_bits{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Entropy available to random number generators",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机可用熵值(位)"
+    },
+    {
+      "title": "System Misc - CPU time spent in user and system contexts",
+      "targets": [
+        {
+          "expr": "irate(process_cpu_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Time spent",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机用户和系统上下文CPU时间消耗速率(秒/秒)"
+    },
+    {
+      "title": "System Misc - File Descriptors - Maximum open file descriptors",
+      "describe": "宿主机最大打开文件描述符数",
+      "targets": [
+        {
+          "expr": "process_max_fds{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Maximum open file descriptors",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "System Misc - File Descriptors - Open file descriptors",
+      "describe": "宿主机当前打开文件描述符数",
+      "targets": [
+        {
+          "expr": "process_open_fds{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Open file descriptors",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Hardware Misc - Hardware temperature monitor - temp",
+      "describe": "宿主机硬件温度(摄氏度)",
+      "targets": [
+        {
+          "expr": "node_hwmon_temp_celsius{instance_name=~\"$node\",job_name=~\"$job\"} * on(chip) group_left(chip_name) node_hwmon_chip_names{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "{{ chip_name }} {{ sensor }} temp",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "celsius",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Hardware Misc - Hardware temperature monitor - Critical",
+      "describe": "宿主机硬件临界温度(摄氏度)",
+      "targets": [
+        {
+          "expr": "node_hwmon_temp_crit_celsius{instance_name=~\"$node\",job_name=~\"$job\"} * on(chip) group_left(chip_name) node_hwmon_chip_names{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "{{ chip_name }} {{ sensor }} Critical",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "celsius",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Hardware Misc - Throttle cooling device - Current in",
+      "describe": "宿主机冷却设备当前状态",
+      "targets": [
+        {
+          "expr": "node_cooling_device_cur_state{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Current {{ name }} in {{ type }}",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Hardware Misc - Throttle cooling device - Max in",
+      "describe": "宿主机冷却设备最大状态",
+      "targets": [
+        {
+          "expr": "node_cooling_device_max_state{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Max {{ name }} in {{ type }}",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Hardware Misc - Power supply",
+      "targets": [
+        {
+          "expr": "node_power_supply_online{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "{{ power_supply }} online",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机电源在线状态"
+    },
+    {
+      "title": "Systemd - Systemd Sockets",
+      "targets": [
+        {
+          "expr": "irate(node_systemd_socket_accepted_connections_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{ name }} Connections",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机Systemd套接字接受连接速率(每秒)"
+    },
+    {
+      "title": "Systemd - Systemd Units State - Activating",
+      "describe": "宿主机Systemd单元激活中状态数量",
+      "targets": [
+        {
+          "expr": "node_systemd_units{instance_name=~\"$node\",job_name=~\"$job\",state=\"activating\"}",
+          "legendFormat": "Activating",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Systemd - Systemd Units State - Active",
+      "describe": "宿主机Systemd单元活跃状态数量",
+      "targets": [
+        {
+          "expr": "node_systemd_units{instance_name=~\"$node\",job_name=~\"$job\",state=\"active\"}",
+          "legendFormat": "Active",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Systemd - Systemd Units State - Deactivating",
+      "describe": "宿主机Systemd单元停用中状态数量",
+      "targets": [
+        {
+          "expr": "node_systemd_units{instance_name=~\"$node\",job_name=~\"$job\",state=\"deactivating\"}",
+          "legendFormat": "Deactivating",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Systemd - Systemd Units State - Failed",
+      "describe": "宿主机Systemd单元失败状态数量",
+      "targets": [
+        {
+          "expr": "node_systemd_units{instance_name=~\"$node\",job_name=~\"$job\",state=\"failed\"}",
+          "legendFormat": "Failed",
+          "refId": "D",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Systemd - Systemd Units State - Inactive",
+      "describe": "宿主机Systemd单元非活跃状态数量",
+      "targets": [
+        {
+          "expr": "node_systemd_units{instance_name=~\"$node\",job_name=~\"$job\",state=\"inactive\"}",
+          "legendFormat": "Inactive",
+          "refId": "E",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Disk - Disk IOps Completed - Reads completed",
+      "describe": "宿主机磁盘读取操作完成速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_disk_reads_completed_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Reads completed",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "iops",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Disk - Disk IOps Completed - Writes completed",
+      "describe": "宿主机磁盘写入操作完成速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_disk_writes_completed_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Writes completed",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "iops",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Disk - Disk R/W Data - Read bytes",
+      "describe": "宿主机磁盘读取数据速率(字节/秒)",
+      "targets": [
+        {
+          "expr": "irate(node_disk_read_bytes_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Read bytes",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "Bps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Disk - Disk R/W Data - Written bytes",
+      "describe": "宿主机磁盘写入数据速率(字节/秒)",
+      "targets": [
+        {
+          "expr": "irate(node_disk_written_bytes_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Written bytes",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "Bps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Disk - Disk Average Wait Time - Read wait time avg",
+      "describe": "宿主机磁盘平均读取等待时间(秒)",
+      "targets": [
+        {
+          "expr": "irate(node_disk_read_time_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval]) / irate(node_disk_reads_completed_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Read wait time avg",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Disk - Disk Average Wait Time - Write wait time avg",
+      "describe": "宿主机磁盘平均写入等待时间(秒)",
+      "targets": [
+        {
+          "expr": "irate(node_disk_write_time_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval]) / irate(node_disk_writes_completed_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Write wait time avg",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Disk - Average Queue Size",
+      "targets": [
+        {
+          "expr": "irate(node_disk_io_time_weighted_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机磁盘平均队列长度(加权秒/秒)"
+    },
+    {
+      "title": "Storage Disk - Disk R/W Merged - Read merged",
+      "describe": "宿主机磁盘读取合并速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_disk_reads_merged_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Read merged",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "iops",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Disk - Disk R/W Merged - Write merged",
+      "describe": "宿主机磁盘写入合并速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_disk_writes_merged_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Write merged",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "iops",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Disk - Time Spent Doing I/Os - IO",
+      "describe": "宿主机磁盘IO耗时速率(秒/秒)",
+      "targets": [
+        {
+          "expr": "irate(node_disk_io_time_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - IO",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Disk - Time Spent Doing I/Os - discard",
+      "describe": "宿主机磁盘丢弃操作耗时速率(秒/秒)",
+      "targets": [
+        {
+          "expr": "irate(node_disk_discard_time_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - discard",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Disk - Instantaneous Queue Size",
+      "targets": [
+        {
+          "expr": "node_disk_io_now{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "{{device}} - IO now",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机磁盘瞬时队列大小"
+    },
+    {
+      "title": "Storage Disk - Disk IOps Discards completed / merged - Discards completed",
+      "describe": "宿主机磁盘丢弃操作完成速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_disk_discards_completed_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Discards completed",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "iops",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Disk - Disk IOps Discards completed / merged - Discards merged",
+      "describe": "宿主机磁盘丢弃合并速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_disk_discards_merged_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Discards merged",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "iops",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Filesystem - Filesystem space available - Available",
+      "describe": "宿主机文件系统可用空间(字节,不含rootfs)",
+      "targets": [
+        {
+          "expr": "node_filesystem_avail_bytes{instance_name=~\"$node\",job_name=~\"$job\",device!~'rootfs'}",
+          "legendFormat": "{{mountpoint}} - Available",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Filesystem - File Nodes Free",
+      "targets": [
+        {
+          "expr": "node_filesystem_files_free{instance_name=~\"$node\",job_name=~\"$job\",device!~'rootfs'}",
+          "legendFormat": "{{mountpoint}} - Free file nodes",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机文件系统可用文件节点数(不含rootfs)"
+    },
+    {
+      "title": "Storage Filesystem - File Descriptor - Max open files",
+      "describe": "宿主机最大打开文件描述符数",
+      "targets": [
+        {
+          "expr": "node_filefd_maximum{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Max open files",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Filesystem - File Descriptor - Open files",
+      "describe": "宿主机当前打开文件描述符数",
+      "targets": [
+        {
+          "expr": "node_filefd_allocated{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Open files",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Filesystem - File Nodes Size",
+      "targets": [
+        {
+          "expr": "node_filesystem_files{instance_name=~\"$node\",job_name=~\"$job\",device!~'rootfs'}",
+          "legendFormat": "{{mountpoint}} - File nodes total",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机文件系统总文件节点数(不含rootfs)"
+    },
+    {
+      "title": "Storage Filesystem - Filesystem in ReadOnly / Error - ReadOnly",
+      "describe": "宿主机文件系统只读状态(不含rootfs)",
+      "targets": [
+        {
+          "expr": "node_filesystem_readonly{instance_name=~\"$node\",job_name=~\"$job\",device!~'rootfs'}",
+          "legendFormat": "{{mountpoint}} - ReadOnly",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Storage Filesystem - Filesystem in ReadOnly / Error - Device error",
+      "describe": "宿主机文件系统设备错误状态(不含tmpfs和rootfs)",
+      "targets": [
+        {
+          "expr": "node_filesystem_device_error{instance_name=~\"$node\",job_name=~\"$job\",device!~'rootfs',fstype!~'tmpfs'}",
+          "legendFormat": "{{mountpoint}} - Device error",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - Network Traffic by Packets - Receive",
+      "describe": "宿主机网络接收包速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_network_receive_packets_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Receive",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - Network Traffic by Packets - Transmit",
+      "describe": "宿主机网络发送包速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_network_transmit_packets_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Transmit",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - Network Traffic Errors - Receive errors",
+      "describe": "宿主机网络接收错误包速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_network_receive_errs_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Receive errors",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - Network Traffic Errors - Transmit errors",
+      "describe": "宿主机网络发送错误包速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_network_transmit_errs_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Transmit errors",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - Network Traffic Drop - Receive drop",
+      "describe": "宿主机网络接收丢包速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_network_receive_drop_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Receive drop",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - Network Traffic Drop - Transmit drop",
+      "describe": "宿主机网络发送丢包速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_network_transmit_drop_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Transmit drop",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - Network Traffic Compressed - Receive compressed",
+      "describe": "宿主机网络接收压缩包速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_network_receive_compressed_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Receive compressed",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - Network Traffic Compressed - Transmit compressed",
+      "describe": "宿主机网络发送压缩包速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_network_transmit_compressed_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Transmit compressed",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - Network Traffic Multicast",
+      "targets": [
+        {
+          "expr": "irate(node_network_receive_multicast_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Receive multicast",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机网络接收多播包速率(每秒)"
+    },
+    {
+      "title": "Network Traffic - Network Traffic Fifo - Receive fifo",
+      "describe": "宿主机网络接收FIFO溢出速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_network_receive_fifo_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Receive fifo",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - Network Traffic Fifo - Transmit fifo",
+      "describe": "宿主机网络发送FIFO溢出速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_network_transmit_fifo_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Transmit fifo",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - Network Traffic Frame",
+      "targets": [
+        {
+          "expr": "irate(node_network_receive_frame_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Receive frame",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "pps",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机网络接收帧错误速率(每秒)"
+    },
+    {
+      "title": "Network Traffic - Network Traffic Carrier",
+      "targets": [
+        {
+          "expr": "irate(node_network_transmit_carrier_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Statistic transmit_carrier",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机网络发送载波错误速率(每秒)"
+    },
+    {
+      "title": "Network Traffic - Network Traffic Colls",
+      "targets": [
+        {
+          "expr": "irate(node_network_transmit_colls_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "{{device}} - Transmit colls",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机网络发送碰撞速率(每秒)"
+    },
+    {
+      "title": "Network Traffic - NF Conntrack - NF conntrack entries",
+      "describe": "宿主机网络连接跟踪条目数",
+      "targets": [
+        {
+          "expr": "node_nf_conntrack_entries{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "NF conntrack entries",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - NF Conntrack - NF conntrack limit",
+      "describe": "宿主机网络连接跟踪条目限制",
+      "targets": [
+        {
+          "expr": "node_nf_conntrack_entries_limit{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "NF conntrack limit",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - ARP Entries",
+      "targets": [
+        {
+          "expr": "node_arp_entries{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "{{ device }} - ARP entries",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机ARP表项数"
+    },
+    {
+      "title": "Network Traffic - MTU",
+      "targets": [
+        {
+          "expr": "node_network_mtu_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "{{ device }} - Bytes",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机网络MTU大小(字节)"
+    },
+    {
+      "title": "Network Traffic - Speed",
+      "targets": [
+        {
+          "expr": "node_network_speed_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "{{ device }} - Speed",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机网络速度(字节/秒)"
+    },
+    {
+      "title": "Network Traffic - Queue Length",
+      "targets": [
+        {
+          "expr": "node_network_transmit_queue_length{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "{{ device }} -   Interface transmit queue length",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机网络发送队列长度"
+    },
+    {
+      "title": "Network Traffic - Softnet Packets - CPU",
+      "describe": "宿主机软网络处理包速率(每秒,包括处理和丢弃)",
+      "targets": [
+        {
+          "expr": "irate(node_softnet_processed_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "CPU {{cpu}} - Processed",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - Softnet Packets - CPU",
+      "describe": "宿主机软网络处理包速率(每秒,包括处理和丢弃)",
+      "targets": [
+        {
+          "expr": "irate(node_softnet_dropped_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "CPU {{cpu}} - Dropped",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - Softnet Out of Quota",
+      "targets": [
+        {
+          "expr": "irate(node_softnet_times_squeezed_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "CPU {{cpu}} - Squeezed",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机软网络超出配额次数速率(每秒)"
+    },
+    {
+      "title": "Network Traffic - Network Operational Status - Operational state UP",
+      "describe": "宿主机网络接口运行状态(UP=1)",
+      "targets": [
+        {
+          "expr": "node_network_up{operstate=\"up\",instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "{{interface}} - Operational state UP",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Traffic - Network Operational Status - Physical link state",
+      "describe": "宿主机网络物理链接状态",
+      "targets": [
+        {
+          "expr": "node_network_carrier{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "{{device}} - Physical link state",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Sockstat - Sockstat TCP - TCP_alloc",
+      "describe": "宿主机TCP已分配套接字数",
+      "targets": [
+        {
+          "expr": "node_sockstat_TCP_alloc{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "TCP_alloc - Allocated sockets",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Sockstat - Sockstat TCP - TCP_inuse",
+      "describe": "宿主机TCP正在使用套接字数",
+      "targets": [
+        {
+          "expr": "node_sockstat_TCP_inuse{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "TCP_inuse - Tcp sockets currently in use",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Sockstat - Sockstat TCP - TCP_orphan",
+      "describe": "宿主机TCP孤儿套接字数",
+      "targets": [
+        {
+          "expr": "node_sockstat_TCP_orphan{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "TCP_orphan - Orphan sockets",
+          "refId": "D",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Sockstat - Sockstat TCP - TCP_tw",
+      "describe": "宿主机TCP等待关闭套接字数",
+      "targets": [
+        {
+          "expr": "node_sockstat_TCP_tw{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "TCP_tw - Sockets waiting close",
+          "refId": "E",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Sockstat - Sockstat UDP - UDPLITE_inuse",
+      "describe": "宿主机UDPLite正在使用套接字数",
+      "targets": [
+        {
+          "expr": "node_sockstat_UDPLITE_inuse{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "UDPLITE_inuse - Udplite sockets currently in use",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Sockstat - Sockstat UDP - UDP_inuse",
+      "describe": "宿主机UDP正在使用套接字数",
+      "targets": [
+        {
+          "expr": "node_sockstat_UDP_inuse{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "UDP_inuse - Udp sockets currently in use",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Sockstat - Sockstat UDP - UDP_mem",
+      "describe": "宿主机UDP使用的内存(页面数)",
+      "targets": [
+        {
+          "expr": "node_sockstat_UDP_mem{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "UDP_mem - Used memory for udp",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Sockstat - Sockstat FRAG / RAW - FRAG_inuse",
+      "describe": "宿主机IP分片正在使用套接字数",
+      "targets": [
+        {
+          "expr": "node_sockstat_FRAG_inuse{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "FRAG_inuse - Frag sockets currently in use",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Sockstat - Sockstat FRAG / RAW - RAW_inuse",
+      "describe": "宿主机RAW正在使用套接字数",
+      "targets": [
+        {
+          "expr": "node_sockstat_RAW_inuse{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "RAW_inuse - Raw sockets currently in use",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Sockstat - Sockstat Memory Size - mem_bytes",
+      "describe": "宿主机TCP/UDP套接字使用的内存字节数",
+      "targets": [
+        {
+          "expr": "node_sockstat_TCP_mem_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "mem_bytes - TCP sockets in that state",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Sockstat - Sockstat Memory Size - mem_bytes",
+      "describe": "宿主机TCP/UDP套接字使用的内存字节数",
+      "targets": [
+        {
+          "expr": "node_sockstat_UDP_mem_bytes{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "mem_bytes - UDP sockets in that state",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Sockstat - Sockstat Memory Size - FRAG_memory",
+      "describe": " Used memory for frag",
+      "targets": [
+        {
+          "expr": "node_sockstat_FRAG_memory{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "FRAG_memory - Used memory for frag",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Sockstat - Sockstat Used",
+      "targets": [
+        {
+          "expr": "node_sockstat_sockets_used{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "Sockets_used - Sockets currently in use",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机已使用的套接字总数"
+    },
+    {
+      "title": "Network Netstat - Netstat IP In / Out Octets - InOctets",
+      "describe": "宿主机IP接收字节速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_IpExt_InOctets{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "InOctets - Received octets",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - Netstat IP In / Out Octets - OutOctets",
+      "describe": "宿主机IP发送字节速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_IpExt_OutOctets{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "OutOctets - Sent octets",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - Netstat IP Forwarding",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Ip_Forwarding{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "Forwarding - IP forwarding",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机IP转发速率(每秒)"
+    },
+    {
+      "title": "Network Netstat - ICMP In / Out - InMsgs",
+      "describe": "宿主机ICMP接收消息速率(每秒,包含错误)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Icmp_InMsgs{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "InMsgs -  Messages which the entity received. Note that this counter includes all those counted by icmpInErrors",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - ICMP In / Out - OutMsgs",
+      "describe": "宿主机ICMP发送消息速率(每秒,包含错误)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Icmp_OutMsgs{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "OutMsgs - Messages which this entity attempted to send. Note that this counter includes all those counted by icmpOutErrors",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - ICMP Errors",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Icmp_InErrors{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "InErrors - Messages which the entity received but determined as having ICMP-specific errors (bad ICMP checksums, bad length, etc.)",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "宿主机ICMP接收错误消息速率(每秒)"
+    },
+    {
+      "title": "Network Netstat - UDP In / Out - InDatagrams",
+      "describe": "宿主机UDP接收数据报速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Udp_InDatagrams{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "InDatagrams - Datagrams received",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - UDP In / Out - OutDatagrams",
+      "describe": "宿主机UDP发送数据报速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Udp_OutDatagrams{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "OutDatagrams - Datagrams sent",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - UDP Errors - InErrors",
+      "describe": "宿主机UDP接收错误数据报速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Udp_InErrors{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "InErrors - UDP Datagrams that could not be delivered to an application",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - UDP Errors - NoPorts",
+      "describe": "宿主机UDP无端口接收数据报速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Udp_NoPorts{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "NoPorts - UDP Datagrams received on a port with no listener",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - UDP Errors - InErrors Lite",
+      "describe": "宿主机UDPLite接收错误数据报速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_UdpLite_InErrors{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "InErrors Lite - UDPLite Datagrams that could not be delivered to an application",
+          "refId": "C",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - UDP Errors - RcvbufErrors",
+      "describe": "宿主机UDP接收缓冲区错误速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Udp_RcvbufErrors{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "RcvbufErrors - UDP buffer errors received",
+          "refId": "D",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - UDP Errors - SndbufErrors",
+      "describe": "宿主机UDP发送缓冲区错误速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Udp_SndbufErrors{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "SndbufErrors - UDP buffer errors send",
+          "refId": "E",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP In / Out - InSegs",
+      "describe": "宿主机TCP接收段速率(每秒,包含错误)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Tcp_InSegs{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "InSegs - Segments received, including those received in error. This count includes segments received on currently established connections",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP In / Out - OutSegs",
+      "describe": "宿主机TCP发送段速率(每秒,不含仅重传段)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Tcp_OutSegs{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "OutSegs - Segments sent, including those on current connections but excluding those containing only retransmitted octets",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Errors - ListenOverflows",
+      "describe": "宿主机TCP监听队列溢出次数速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_TcpExt_ListenOverflows{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "ListenOverflows - Times the listen queue of a socket overflowed",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Errors - ListenDrops",
+      "describe": "宿主机TCP忽略的监听SYN包速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_TcpExt_ListenDrops{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "ListenDrops - SYNs to LISTEN sockets ignored",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Errors - TCPSynRetrans",
+      "describe": "宿主机TCP SYN-SYN/ACK重传速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_TcpExt_TCPSynRetrans{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "TCPSynRetrans - SYN-SYN/ACK retransmits to break down retransmissions in SYN, fast/timeout retransmits",
+          "refId": "C",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Errors - RetransSegs",
+      "describe": "宿主机TCP重传段速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Tcp_RetransSegs{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "RetransSegs - Segments retransmitted - that is, the number of TCP segments transmitted containing one or more previously transmitted octets",
+          "refId": "D",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Errors - InErrs",
+      "describe": "宿主机TCP接收错误段速率(每秒,如校验和错误)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Tcp_InErrs{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "InErrs - Segments received in error (e.g., bad TCP checksums)",
+          "refId": "E",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Errors - OutRsts",
+      "describe": "宿主机TCP发送RST段速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Tcp_OutRsts{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "OutRsts - Segments sent with RST flag",
+          "refId": "F",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Errors - TCPRcvQDrop",
+      "describe": "宿主机TCP接收队列丢包速率(因缓冲区限制,每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_TcpExt_TCPRcvQDrop{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "TCPRcvQDrop - Packets meant to be queued in rcv queue but dropped because socket rcvbuf limit hit",
+          "refId": "G",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Errors - TCPOFOQueue",
+      "describe": "宿主机TCP乱序包排队速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_TcpExt_TCPOFOQueue{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "TCPOFOQueue - TCP layer receives an out of order packet and has enough memory to queue it",
+          "refId": "H",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Connections - CurrEstab",
+      "describe": "宿主机当前TCP已建立或CLOSE-WAIT连接数",
+      "targets": [
+        {
+          "expr": "node_netstat_Tcp_CurrEstab{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "CurrEstab - TCP connections for which the current state is either ESTABLISHED or CLOSE- WAIT",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Connections - MaxConn",
+      "describe": "宿主机TCP连接总数限制(动态为-1)",
+      "targets": [
+        {
+          "expr": "node_netstat_Tcp_MaxConn{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "MaxConn - Limit on the total number of TCP connections the entity can support (Dynamic is \"-1\")",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP SynCookie - SyncookiesFailed",
+      "describe": "宿主机无效SYN Cookie接收速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_TcpExt_SyncookiesFailed{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "SyncookiesFailed - Invalid SYN cookies received",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP SynCookie - SyncookiesRecv",
+      "describe": "宿主机SYN Cookie接收速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_TcpExt_SyncookiesRecv{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "SyncookiesRecv - SYN cookies received",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP SynCookie - SyncookiesSent",
+      "describe": "宿主机SYN Cookie发送速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_TcpExt_SyncookiesSent{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "SyncookiesSent - SYN cookies sent",
+          "refId": "C",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Direct Transition - ActiveOpens",
+      "describe": "宿主机TCP主动打开连接速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Tcp_ActiveOpens{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "ActiveOpens - TCP connections that have made a direct transition to the SYN-SENT state from the CLOSED state",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Direct Transition - PassiveOpens",
+      "describe": "宿主机TCP被动打开连接速率(每秒)",
+      "targets": [
+        {
+          "expr": "irate(node_netstat_Tcp_PassiveOpens{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])",
+          "legendFormat": "PassiveOpens - TCP connections that have made a direct transition to the SYN-RCVD state from the LISTEN state",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Stat - established",
+      "describe": "宿主机TCP处于ESTABLISHED状态的连接数",
+      "targets": [
+        {
+          "expr": "node_tcp_connection_states{state=\"established\",instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "established - TCP sockets in established state",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Stat - fin_wait2",
+      "describe": "宿主机TCP处于FIN_WAIT2状态的连接数",
+      "targets": [
+        {
+          "expr": "node_tcp_connection_states{state=\"fin_wait2\",instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "fin_wait2 - TCP sockets in fin_wait2 state",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Stat - listen",
+      "describe": "宿主机TCP处于LISTEN状态的连接数",
+      "targets": [
+        {
+          "expr": "node_tcp_connection_states{state=\"listen\",instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "listen - TCP sockets in listen state",
+          "refId": "C",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Network Netstat - TCP Stat - time_wait",
+      "describe": "宿主机TCP处于TIME_WAIT状态的连接数",
+      "targets": [
+        {
+          "expr": "node_tcp_connection_states{state=\"time_wait\",instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "time_wait - TCP sockets in time_wait state",
+          "refId": "D",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Node Exporter - Node Exporter Scrape Time",
+      "targets": [
+        {
+          "expr": "node_scrape_collector_duration_seconds{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "{{collector}} - Scrape duration",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "s",
+      "params": [
+        "job",
+        "node"
+      ],
+      "describe": "Node Exporter采集耗时(秒)"
+    },
+    {
+      "title": "Node Exporter - Node Exporter Scrape - Scrape success",
+      "describe": "Node Exporter采集成功状态(1=成功)",
+      "targets": [
+        {
+          "expr": "node_scrape_collector_success{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "{{collector}} - Scrape success",
+          "refId": "A",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
+      "title": "Node Exporter - Node Exporter Scrape - Scrape textfile error (1 = true)",
+      "describe": "Node Exporter文本文件采集错误状态(1=错误)",
+      "targets": [
+        {
+          "expr": "node_textfile_scrape_error{instance_name=~\"$node\",job_name=~\"$job\"}",
+          "legendFormat": "{{collector}} - Scrape textfile error (1 = true)",
+          "refId": "B",
+          "variables": [
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "job",
+        "node"
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "datasource",
+      "type": "datasource",
+      "label": "Datasource",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "default",
+        "value": "default"
+      },
+      "regex": "",
+      "query": {
+        "query": "prometheus",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "job",
+      "type": "query",
+      "label": "Job",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "qryType": 1,
+        "query": "label_values(node_uname_info,job_name)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "node",
+      "type": "query",
+      "label": "Host",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "qryType": 1,
+        "query": "label_values(node_uname_info{job_name=~\"$job\"},instance_name)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "diskdevices",
+      "type": "custom",
+      "label": "",
+      "options": [
+        {
+          "selected": true,
+          "text": "[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+",
+          "value": "[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+"
+        }
+      ],
+      "current": {
+        "selected": false,
+        "text": "[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+",
+        "value": "[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+"
+      },
+      "regex": "",
+      "query": {
+        "query": "[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+",
+        "qryType": 1
+      }
+    }
+  ],
+  "title": "宿主机监控指标"
+}

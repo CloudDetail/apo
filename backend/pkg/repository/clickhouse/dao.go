@@ -17,6 +17,7 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/integration"
 )
@@ -120,6 +121,8 @@ type Repo interface {
 	AddDetectMutation(mutation model.DetectMutation) error
 	// GetDistinctDetectExecList 获取异常检测规则
 	GetDistinctDetectExecList(req *request.GetDefectDetectRuleListRequest) ([]model.DetectMutation, int64, error)
+	AddWorkflowRecords(ctx context.Context, records []model.WorkflowRecord) error
+	GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest) ([]alert.AEventWithWRecord, int64, error)
 
 	integration.Input
 }

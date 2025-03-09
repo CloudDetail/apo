@@ -6,6 +6,7 @@ package alert
 import (
 	"bytes"
 	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"time"
@@ -25,14 +26,15 @@ type AlertEvent struct {
 	// HACK the existing clickhouse query uses `tags` as the filter field
 	// so enrichTags in ch is named as 'tags' to filter new alertInput
 	Tags       map[string]any    `json:"tags" ch:"raw_tags" mapstructure:"tags"`
-	EnrichTags map[string]string `json:"enrich_tags" ch:"tags" mapstructure:"enrich_tags"`
+	EnrichTags map[string]string `json:"enrichTags" ch:"tags" mapstructure:"enrich_tags"`
 
-	CreateTime   time.Time `ch:"createTime" json:"createTime" mapstructure:"createTime"`
-	UpdateTime   time.Time `ch:"updateTime" json:"updateTime" mapstructure:"updateTime"`
-	EndTime      time.Time `ch:"endTime" json:"endTime" mapstructure:"endTime"`
-	ReceivedTime time.Time `ch:"receivedTime" json:"receivedTime" mapstructure:"receivedTime"`
+	CreateTime   time.Time `json:"createTime" ch:"create_time" mapstructure:"createTime"`
+	UpdateTime   time.Time `json:"updateTime" ch:"update_time" mapstructure:"updateTime"`
+	EndTime      time.Time `json:"endTime" ch:"end_time" mapstructure:"endTime"`
+	ReceivedTime time.Time `json:"receivedTime" ch:"received_time"  mapstructure:"receivedTime"`
 
-	SourceID string `ch:"sourceId" json:"sourceId" mapstructure:"sourceId"`
+	SourceID string `json:"sourceId" ch:"source_id" mapstructure:"sourceId"`
+	Source   string `json:"source" ch:"source"`
 }
 
 // calculate AlertID based on alertName and raw_tag
@@ -70,4 +72,16 @@ func FastAlertIDByStringMap(alertName string, tags map[string]string) string {
 
 	hash := md5.Sum(buf.Bytes())
 	return fmt.Sprintf("%x", hash)
+}
+
+func (e *AlertEvent) TagsInStr() string {
+	param := e.EnrichTags
+	param["status"] = e.Status
+	// param["describe"] =
+	bytes, err := json.Marshal(e.Tags)
+	if err != nil {
+		return "{}"
+	}
+
+	return string(bytes)
 }

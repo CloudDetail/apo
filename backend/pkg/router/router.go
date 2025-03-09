@@ -4,10 +4,15 @@
 package router
 
 import (
+	"context"
 	"errors"
+	"net"
+	"net/http"
+	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
 	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
+	"github.com/CloudDetail/apo/backend/pkg/services/integration/workflow"
 
 	"go.uber.org/zap"
 
@@ -34,6 +39,7 @@ type resource struct {
 	k8sApi             kubernetes.Repo
 	deepflowClickhouse clickhouse.Repo
 	jaegerRepo         jaeger.JaegerRepo
+	alertWorkflow      *workflow.AlertWorkflow
 }
 
 type Server struct {
@@ -122,10 +128,28 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	jaegerRepo, err := jaeger.New()
 	r.jaegerRepo = jaegerRepo
 
+	difyConfig := config.Get().Dify
+	difyClient := workflow.NewDifyClient(DefaultDifyFastHttpClient, difyConfig.URL)
+	r.alertWorkflow = workflow.New(r.ch, difyClient, difyConfig.APIKeys.AlertCheck, difyConfig.User, r.logger)
+	r.alertWorkflow.EventAnalyzeFlowId = difyConfig.FlowIDs.AlertEventAnalyze
+	r.alertWorkflow.Run(context.Background())
+
 	// Set API routing
 	setApiRouter(r)
 
 	s := new(Server)
 	s.Mux = mux
 	return s, nil
+}
+
+var DefaultDifyFastHttpClient = &http.Client{
+	Transport: &http.Transport{
+		MaxIdleConns:        10,
+		MaxIdleConnsPerHost: 10,
+		DialContext: (&net.Dialer{
+			Timeout:   1 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+	},
+	Timeout: 3 * time.Minute,
 }
