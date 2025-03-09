@@ -298,7 +298,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
         }
         nodeG
           .append('text')
-          .text('服务端耗时')
+          .text(t('consumption'))
           .attr('style', `font-size: 11px;font-weight: 500; fill: ${theme.colors.text.primary}`)
           .attr('x', 20)
           .attr('y', timeY)
@@ -382,7 +382,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
             .attr('y', midY + 14)
             .attr('style', `font-size: 11px; font-weight: 500;fill: ${theme.colors.text.primary}`)
             .attr('text-anchor', 'middle') // 文本居中对齐
-            .text(`客户端请求耗时`) // 设置文本内容
+            .text(t('client')) // 设置文本内容
         } else {
           // 添加省略号文本
           d3.select(`#${chartId}-line_warp`)
@@ -432,7 +432,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
 
       const unknowText = nodeG
         .append('text')
-        .text('未知服务实例')
+        .text(t('unknown'))
         .attr('x', 70) // X位置，根据需要调整
         .attr('y', 50) // Y位置，简单地用索引*行高来计算
         .style('font-size', '14')

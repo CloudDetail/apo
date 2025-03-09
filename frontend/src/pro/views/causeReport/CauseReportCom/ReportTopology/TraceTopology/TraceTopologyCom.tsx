@@ -372,13 +372,13 @@ function TraceTopologyCom({ data, category }: any) {
       .attr('transform', `translate(${WIDTH / 2 - (values.length * colorRectWidth) / 2}, 10)`)
     colorGWarp
       .append('text')
-      .text('(-)耗时突变减少')
+      .text('(-)' + t(`${i18nKey}.decrease`))
       .attr('x', (values.length * colorRectWidth) / 2 - 280)
       .attr('y', 10)
       .attr('style', `font-size: 14px;fill: ${ThemeColor.green}`)
     colorGWarp
       .append('text')
-      .text('(+)耗时突变增加')
+      .text('(+)' + t(`${i18nKey}.increase`))
       .attr('x', (values.length * colorRectWidth) / 2 + 170)
       .attr('y', 10)
       .attr('style', `font-size: 14px;fill: ${ThemeColor.red}`)

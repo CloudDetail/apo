@@ -72,9 +72,14 @@
     "mutationRatio": "Mutation Ratio",
     "mutationRank": "Mutation Rank",
     "profiled": "Profiled",
-    "notProfiled": "Not Profiled"
+    "notProfiled": "Not Profiled",
+    "decrease": "Sudden decrease in time consumption",
+    "increase": "Sudden increase in time consumption"
   },
   "dataMissing": "Service entry data is missing",
   "faultAnalysisProcess": "Fault Analysis Process",
-  "nodeName": "Name"
+  "nodeName": "Name",
+  "consumption": "Server-side time consumption",
+  "client": "Client-side request time consumption",
+  "unknown": "unknown service instance"
 }

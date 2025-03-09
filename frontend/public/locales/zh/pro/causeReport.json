@@ -72,9 +72,14 @@
     "mutationRatio": "突变值占比",
     "mutationRank": "突变值占比排名",
     "profiled": "是",
-    "notProfiled": "否"
+    "notProfiled": "否",
+    "decrease": "耗时突变减少",
+    "increase": "耗时突变增加"
   },
   "dataMissing": "服务入口数据缺失",
   "faultAnalysisProcess": "故障分析过程",
-  "nodeName": " 节点名"
+  "nodeName": "节点名",
+  "consumption": "服务端耗时",
+  "client": "客户端请求耗时",
+  "unknown": "未知服务实例"
 }
