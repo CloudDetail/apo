@@ -29,6 +29,7 @@ func (s *service) AlertEventList(req *request.AlertEventSearchRequest) (*respons
 		EventList:                   events,
 		Pagination:                  req.Pagination,
 		AlertEventAnalyzeWorkflowID: s.alertWorkflow.EventAnalyzeFlowId,
+		AlertCheckID:                s.alertWorkflow.CheckId,
 	}, nil
 }
 
