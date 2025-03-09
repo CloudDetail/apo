@@ -217,7 +217,7 @@ func (s *service) executeTargets(groupId int, target *Target, req *QueryMetricsR
 
 	var expr string = target.Expr
 	for k, v := range varMap {
-		expr = strings.ReplaceAll(expr, "$"+k, prometheus.EscapeRegexp(v))
+		expr = strings.ReplaceAll(expr, "$"+k, v)
 	}
 
 	return s.promRepo.GetApi().QueryRange(context.Background(), expr, v1.Range{
@@ -268,13 +268,17 @@ func (s *service) queryVar(
 
 		var labels []string
 		for _, v := range labelValues {
-			labels = append(labels, string(v))
+			labels = append(labels, prometheus.EscapeRegexp(string(v)))
 		}
 		return strings.Join(labels, "|"), true, nil
 	case 3: // query_result
 		expr, _ := strings.CutPrefix(varSpec.Query.Query, "query_result(")
 		expr, _ = strings.CutSuffix(expr, ")")
 		labels, err := s.promRepo.QueryResult(expr, varSpec.Regex, startTime, endTime)
+
+		for i := 0; i < len(labels); i++ {
+			labels[i] = prometheus.EscapeRegexp(labels[i])
+		}
 		if err != nil {
 			panic("")
 		}
