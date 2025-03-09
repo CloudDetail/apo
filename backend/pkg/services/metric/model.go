@@ -92,12 +92,6 @@ func (o *Options) UnmarshalJSON(data []byte) error {
 			}
 		}
 	}
-
-	*o = Options{
-		Selected: false,
-		Text:     []string{},
-		Value:    []string{},
-	}
 	return nil
 }
 

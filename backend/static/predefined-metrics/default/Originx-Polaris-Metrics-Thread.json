@@ -199,6 +199,7 @@
             "type": "custom",
             "label": "PID",
             "current": {
+                "selected": true,
                 "text": ".*",
                 "value": ".*"
             },
