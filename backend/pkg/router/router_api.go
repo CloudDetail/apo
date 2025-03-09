@@ -13,6 +13,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/integration"
 	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
+	"github.com/CloudDetail/apo/backend/pkg/api/metric"
 	networkapi "github.com/CloudDetail/apo/backend/pkg/api/network"
 	"github.com/CloudDetail/apo/backend/pkg/api/permission"
 	"github.com/CloudDetail/apo/backend/pkg/api/role"
@@ -119,7 +120,8 @@ func setApiRouter(r *resource) {
 
 	alertApi := r.mux.Group("/api/alerts")
 	{
-		alertHandler := alerts.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom)
+		alertHandler := alerts.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom, r.alertWorkflow)
+		alertApi.POST("/event/list", alertHandler.AlertEventList())
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.POST("/outputs/dingtalk/:uuid", alertHandler.ForwardToDingTalk())
 		alertApi.Use(middlewares.AuthMiddleware())
@@ -241,7 +243,7 @@ func setApiRouter(r *resource) {
 
 	alertInputApi := r.mux.Group("/api/alertinput")
 	{
-		handler := alertinput.New(r.logger, r.ch, r.prom, r.pkg_db)
+		handler := alertinput.New(r.logger, r.ch, r.prom, r.pkg_db, r.alertWorkflow)
 		alertInputApi.POST("/event/source", handler.SourceHandler())
 		alertInputApi.POST("/event/json", handler.JsonHandler())
 		alertInputApi.POST("/source/create", handler.CreateAlertSource())
@@ -286,6 +288,13 @@ func setApiRouter(r *resource) {
 		integrationAPI.GET("/cluster/install/config", handler.GetIntegrationInstallConfigFile())
 		integrationAPI.GET("/cluster/install/cmd", handler.GetIntegrationInstallDoc())
 		integrationAPI.GET("/adapter/update", handler.TriggerAdapterUpdate())
+	}
+
+	metricAPI := r.mux.Group("/api/metric")
+	{
+		handler := metric.New(r.logger, r.prom)
+		metricAPI.GET("/list", handler.ListMetrics())
+		metricAPI.POST("/query", handler.QueryMetrics())
 	}
 }
 

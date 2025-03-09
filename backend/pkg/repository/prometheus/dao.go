@@ -28,6 +28,10 @@ type Repo interface {
 	// ========== span_trace_duration_count Start ==========
 	// Query the service list
 	GetServiceList(startTime int64, endTime int64, namespace []string) ([]string, error)
+	// 根据过滤规则查询服务列表
+	GetServiceListByFilter(startTime time.Time, endTime time.Time, filterKVs ...string) ([]string, error)
+	// 基于DatabaseURL,IP,Port查询上游服务列表
+	GetServiceListByDatabase(startTime, endTime time.Time, dbURL, dbIP, dbPort string) ([]string, error)
 	// Query the service instance list. The URL can be empty.
 	GetServiceWithNamespace(startTime, endTime int64, namespace []string) (map[string][]string, error)
 	// GetServiceNamespace  Get service's namespaces.
@@ -81,6 +85,9 @@ type Repo interface {
 	QueryProcessStartTime(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) (map[model.ServiceInstance]int64, error)
 	GetApi() v1.API
 	GetRange() string
+
+	LabelValues(expr string, label string, startTime, endTime int64) (prommodel.LabelValues, error)
+	QueryResult(expr string, regex string, startTime, endTime int64) ([]string, error)
 
 	GetNamespaceList(startTime int64, endTime int64) ([]string, error)
 	GetNamespaceWithService(startTime, endTime int64) (map[string][]string, error)

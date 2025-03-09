@@ -6,7 +6,9 @@ package prometheus
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -16,10 +18,12 @@ import (
 )
 
 const (
+	TEMPLATE_GET_SERVICES_BY_FILTER      = `group by (svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])> 0)`
 	TEMPLATE_GET_SERVICES                = `sum by(svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_SERVICES_WITH_NAMESPACE = `sum by(svc_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_ENDPOINTS               = `sum by(content_key) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_SERVICE_INSTANCE        = `sum by(svc_name, pod, pid, container_id, node_name, namespace, node_ip) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
+	TEMPLATE_GET_ACTIVE_INSTANCE         = `sum by(svc_name, pod, pid, container_id, node_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])) > 0`
 	TEMPLATE_GET_ACTIVE_SERVICE_INSTANCE = `sum by(svc_name, pod, pid, container_id, node_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_ERROR_RATE_INSTANCE         = "100*(" +
 		"(sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s, is_error='true'}[%s])) or 0)" + // or 0 Supplements missing data scenarios
@@ -27,6 +31,15 @@ const (
 		") or (sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])) * 0)" // or * 0补充中间缺失数据的场景
 	TEMPLATE_GET_NAMESPACES            = `sum(kindling_span_trace_duration_nanoseconds_count{namespace=~".+"}[%s]) by (namespace)`
 	TEMPLATE_GET_NAMESPACES_BY_SERVICE = `sum(kindling_span_trace_duration_nanoseconds_count{%s}[%s]) by (namespace)`
+
+	TEMPLATE_GET_SERVICE_BY_DB = `group by (svc_name)
+(
+	last_over_time(kindling_db_duration_nanoseconds_count{%s}[%s])
+	or
+	(apo_network_middleware_connect{%s} * on (node_name,pid,container_id)
+		group_left (svc_name) (group by(node_name,pid,container_id,svc_name)
+		(last_over_time(kindling_span_trace_duration_nanoseconds_count[%s]))))
+)`
 )
 
 // GetServiceList to query the service name list
@@ -144,6 +157,79 @@ func (repo *promRepo) GetNamespaceWithService(startTime, endTime int64) (map[str
 	return result, nil
 }
 
+var svcDomainRegex = regexp.MustCompile(`(.*)\.svc\..*$`)
+
+func cutServiceSuffixFromURL(url string) string {
+	// <svc>.<ns>.svc.<cluster_domain> / <svc>.<ns>.svc.cluster.local
+	parts := svcDomainRegex.FindStringSubmatch(url)
+	if len(parts) > 1 {
+		url = parts[1]
+	}
+	// <svc>.<ns>
+	lastDot := strings.LastIndexByte(url, '.')
+	if lastDot != -1 {
+		return url[:lastDot]
+	}
+	// <svc>
+	return url
+}
+
+// GetServiceListByDBInfo 基于数据库信息获取关联的服务列表
+func (repo *promRepo) GetServiceListByDatabase(
+	startTime, endTime time.Time,
+	dbURL, dbIP, dbPort string,
+) ([]string, error) {
+	// 清理URL后面的Namespace信息,会导致无法查询namespace
+	dbURL = cutServiceSuffixFromURL(dbURL)
+	vector := VecFromS2E(startTime.UnixMicro(), endTime.UnixMicro())
+	pql := fmt.Sprintf(TEMPLATE_GET_SERVICE_BY_DB,
+		fmt.Sprintf(`db_url=~"%s.*",db_url!=""`, EscapeRegexp(dbURL)),
+		vector,
+		fmt.Sprintf(`db_ip="%s",db_port="%s",db_ip!="",db_port!=""`, dbIP, dbPort),
+		vector,
+	)
+	ress, err := repo.QueryData(endTime, pql)
+	if err != nil {
+		return nil, err
+	}
+	var services []string
+	for _, res := range ress {
+		services = append(services, res.Metric.SvcName)
+	}
+	return services, nil
+}
+
+func (repo *promRepo) GetServiceListByFilter(startTime time.Time, endTime time.Time, filterKVs ...string) ([]string, error) {
+	if len(filterKVs)%2 != 0 {
+		return nil, fmt.Errorf("size of filterKVs is not even: %d", len(filterKVs))
+	}
+	var filters []string
+	for i := 0; i+1 < len(filterKVs); i += 2 {
+		filters = append(filters, fmt.Sprintf("%s\"%s\"", filterKVs[i], filterKVs[i+1]))
+	}
+
+	// 如果时间低于1h就用1h
+	var vectorStr = "1h"
+	if endTime.Sub(startTime) > time.Hour {
+		vectorStr = VecFromS2E(startTime.UnixMicro(), endTime.UnixMicro())
+	}
+
+	pql := fmt.Sprintf(
+		TEMPLATE_GET_SERVICES_BY_FILTER,
+		strings.Join(filters, ","),
+		vectorStr,
+	)
+	ress, err := repo.QueryData(endTime, pql)
+	if err != nil {
+		return nil, err
+	}
+	var services []string
+	for _, res := range ress {
+		services = append(services, res.Metric.SvcName)
+	}
+	return services, nil
+}
+
 // GetServiceEndPointList to query the service Endpoint list. The service name can be empty.
 func (repo *promRepo) GetServiceEndPointList(startTime int64, endTime int64, serviceName string) ([]string, error) {
 	queryCondition := ""
@@ -172,6 +258,44 @@ func (repo *promRepo) GetActiveInstanceList(startTime int64, endTime int64, serv
 	queryCondition := fmt.Sprintf("%s'%s'", ServiceRegexPQLFilter, RegexMultipleValue(serviceNames...))
 
 	query := fmt.Sprintf(TEMPLATE_GET_ACTIVE_SERVICE_INSTANCE, queryCondition, VecFromS2E(startTime, endTime))
+	res, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
+	if err != nil {
+		return nil, err
+	}
+	result := model.NewServiceInstances()
+	vector, ok := res.(prometheus_model.Vector)
+	if !ok {
+		return result, nil
+	}
+	instances := make([]*model.ServiceInstance, 0)
+	for _, sample := range vector {
+		if float64(sample.Value) > 0 {
+			pidStr := sample.Metric["pid"]
+			pid, _ := strconv.ParseInt(string(pidStr), 10, 64)
+
+			instances = append(instances, &model.ServiceInstance{
+				ServiceName: string(sample.Metric["svc_name"]),
+				ContainerId: string(sample.Metric["container_id"]),
+				PodName:     string(sample.Metric["pod"]),
+				Namespace:   string(sample.Metric["namespace"]),
+				NodeName:    string(sample.Metric["node_name"]),
+				Pid:         pid,
+			})
+		}
+	}
+	result.AddInstances(instances)
+	return result, nil
+}
+
+// 查询活跃实例列表
+func (repo *promRepo) GetActiveRequestInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error) {
+	queryCondition := fmt.Sprintf("svc_name='%s'", serviceName)
+
+	var vectorStr string = "1h"
+	if endTime-startTime > 3600*1e6 {
+		vectorStr = VecFromS2E(startTime, endTime)
+	}
+	query := fmt.Sprintf(TEMPLATE_GET_ACTIVE_INSTANCE, queryCondition, vectorStr)
 	res, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
 	if err != nil {
 		return nil, err

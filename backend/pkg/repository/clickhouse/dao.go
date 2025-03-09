@@ -17,6 +17,7 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/integration"
 )
@@ -100,6 +101,9 @@ type Repo interface {
 
 	// ========== flame graph ===========
 	GetFlameGraphData(startTime, endTime int64, nodeName string, pid, tid int64, sampleType, spanId, traceId string) (*[]FlameGraphData, error)
+
+	AddWorkflowRecords(ctx context.Context, records []model.WorkflowRecord) error
+	GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest) ([]alert.AEventWithWRecord, int64, error)
 
 	integration.Input
 }

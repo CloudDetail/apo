@@ -1,0 +1,737 @@
+{
+  "queries": [
+    {
+      "title": "总览 - REDIS资源总览表【：：】 - __auto",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "redis_up{account=~\"$account\",group=~\"$group\"}",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "account",
+            "group"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "vendor"
+      ]
+    },
+    {
+      "title": "总览 - REDIS资源总览表【：：】 - __auto",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(redis_connected_clients{account=~\"$account\",group=~\"$group\"})by(instance)",
+          "legendFormat": "__auto",
+          "refId": "D",
+          "variables": [
+            "account",
+            "group"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "vendor"
+      ]
+    },
+    {
+      "title": "总览 - REDIS资源总览表【：：】 - __auto",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(irate(redis_commands_total{account=~\"$account\",group=~\"$group\"} [2m]))by(instance)",
+          "legendFormat": "__auto",
+          "refId": "E",
+          "variables": [
+            "account",
+            "group"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "vendor"
+      ]
+    },
+    {
+      "title": "总览 - REDIS资源总览表【：：】 - __auto",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "redis_uptime_in_seconds{account=~\"$account\",group=~\"$group\"} - 0",
+          "legendFormat": "__auto",
+          "refId": "F",
+          "variables": [
+            "account",
+            "group"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "vendor"
+      ]
+    },
+    {
+      "title": "总览 - REDIS资源总览表【：：】 - __auto",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "avg(irate(redis_keyspace_hits_total{account=~\"$account\",group=~\"$group\"}[2m]) / (irate(redis_keyspace_misses_total{account=~\"$account\",group=~\"$group\"}[1m]) + irate(redis_keyspace_hits_total{account=~\"$account\",group=~\"$group\"}[2m]))) by (instance)",
+          "legendFormat": "__auto",
+          "refId": "G",
+          "variables": [
+            "account",
+            "group"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "vendor"
+      ]
+    },
+    {
+      "title": "总览 - REDIS资源总览表【：：】 - __auto",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum (redis_db_keys{account=~\"$account\",group=~\"$group\"}) by (instance)",
+          "legendFormat": "__auto",
+          "refId": "H",
+          "variables": [
+            "account",
+            "group"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "vendor"
+      ]
+    },
+    {
+      "title": "总览 - REDIS资源总览表【：：】 - __auto",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(irate(redis_net_input_bytes_total{account=~\"$account\",group=~\"$group\"}[2m])) by (instance)",
+          "legendFormat": "__auto",
+          "refId": "I",
+          "variables": [
+            "account",
+            "group"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "vendor"
+      ]
+    },
+    {
+      "title": "总览 - REDIS资源总览表【：：】 - __auto",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(irate(redis_net_output_bytes_total{account=~\"$account\",group=~\"$group\"}[2m])) by (instance)",
+          "legendFormat": "__auto",
+          "refId": "J",
+          "variables": [
+            "account",
+            "group"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - - Uptime",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "redis_uptime_in_seconds{instance=~\"$instance\"}",
+          "legendFormat": "Uptime",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "locale",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - - 客户端连接",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(redis_connected_clients{instance=~\"$instance\"})",
+          "legendFormat": "客户端连接",
+          "refId": "B",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "locale",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - - 每秒操作数",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(irate(redis_commands_total{instance=~\"$instance\"} [2m]))",
+          "legendFormat": "每秒操作数",
+          "refId": "C",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "locale",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 内存使用量 - used",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes{instance=~\"$instance\"}",
+          "legendFormat": "used",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 内存使用量 - max",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "redis_memory_max_bytes{instance=~\"$instance\"}",
+          "legendFormat": "max",
+          "refId": "B",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 每秒网络流量 - 流入",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(irate(redis_net_input_bytes_total{instance=~\"$instance\"}[2m]))",
+          "legendFormat": "流入",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 每秒网络流量 - 流出",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(irate(redis_net_output_bytes_total{instance=~\"$instance\"}[2m]))",
+          "legendFormat": "流出",
+          "refId": "B",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 每秒命中和未命中数量 - 命中数",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(redis_keyspace_hits_total{instance=~\"$instance\"}[2m])",
+          "legendFormat": "命中数",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 每秒命中和未命中数量 - 未命中数",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(redis_keyspace_misses_total{instance=~\"$instance\"}[2m])",
+          "legendFormat": "未命中数",
+          "refId": "B",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 每秒操作数",
+      "targets": [
+        {
+          "expr": "sum(irate(redis_commands_total{instance=~\"$instance\"} [2m])) by (cmd) >1",
+          "legendFormat": "{{ cmd }}",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 命中率",
+      "targets": [
+        {
+          "expr": "avg(irate(redis_keyspace_hits_total{instance=~\"$instance\"}[2m]) / (irate(redis_keyspace_misses_total{instance=~\"$instance\"}[1m]) + irate(redis_keyspace_hits_total{instance=~\"$instance\"}[2m]))) by (instance)",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 连接与拒绝的客户端 - connected",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(redis_connected_clients{instance=~\"$instance\"})",
+          "legendFormat": "connected",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 连接与拒绝的客户端 - blocked",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(redis_blocked_clients{instance=~\"$instance\"})",
+          "legendFormat": "blocked",
+          "refId": "B",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 命令执行平均耗时",
+      "targets": [
+        {
+          "expr": "sum(irate(redis_commands_duration_seconds_total{instance =~ \"$instance\"}[2m])) by (cmd)\n  /\nsum(irate(redis_commands_total{instance =~ \"$instance\"}[2m])) by (cmd)\n",
+          "legendFormat": "{{ cmd }}",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 每秒命令花费的总时长",
+      "targets": [
+        {
+          "expr": "sum(irate(redis_commands_duration_seconds_total{instance=~\"$instance\"}[2m])) by (cmd) != 0",
+          "legendFormat": "{{ cmd }}",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 实例从属连接",
+      "targets": [
+        {
+          "expr": "sum(redis_connected_slaves{instance=~\"$instance\"}) by (instance)",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 过期与未过期的Keys - not expiring",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum (redis_db_keys{instance=~\"$instance\"}) by (instance) - sum (redis_db_keys_expiring{instance=~\"$instance\"}) by (instance)",
+          "legendFormat": "not expiring",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 过期与未过期的Keys - expiring",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum (redis_db_keys_expiring{instance=~\"$instance\"}) by (instance)",
+          "legendFormat": "expiring",
+          "refId": "B",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 过期与驱逐的Keys - expired",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(irate(redis_expired_keys_total{instance=~\"$instance\"}[2m])) by (instance)",
+          "legendFormat": "expired",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 过期与驱逐的Keys - evicted",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum(rate(redis_evicted_keys_total{instance=~\"$instance\"}[5m])) by (instance)",
+          "legendFormat": "evicted",
+          "refId": "B",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 每秒键值对删除次数",
+      "targets": [
+        {
+          "expr": "irate(redis_evicted_keys_total{instance=~\"$instance\"}[2m])",
+          "legendFormat": "__auto",
+          "refId": "B",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    },
+    {
+      "title": "明细【名称：】【实例ID：】 - 各DB KEY分布",
+      "targets": [
+        {
+          "expr": "sum (redis_db_keys{instance=~\"$instance\"}) by (db, instance)",
+          "legendFormat": "{{ db }}",
+          "refId": "A",
+          "variables": [
+            "instance"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "account",
+        "group",
+        "name",
+        "vendor"
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "datasource",
+      "type": "datasource",
+      "label": "数据源",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "APO-VictoriaMetric",
+        "value": "APO-VictoriaMetric"
+      },
+      "regex": "",
+      "query": {
+        "query": "prometheus",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "vendor",
+      "type": "query",
+      "label": "云厂商",
+      "options": null,
+      "current": {
+        "isNone": true,
+        "selected": false,
+        "text": "None",
+        "value": ""
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(redis_up, vendor)",
+        "refId": "StandardVariableQuery"
+      }
+    },
+    {
+      "name": "account",
+      "type": "query",
+      "label": "账号",
+      "options": null,
+      "current": {
+        "isNone": true,
+        "selected": false,
+        "text": "None",
+        "value": ""
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(redis_up{vendor=~\"$vendor\"}, account)",
+        "refId": "StandardVariableQuery"
+      }
+    },
+    {
+      "name": "group",
+      "type": "query",
+      "label": "属组",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "All",
+        "value": "$__all"
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(redis_up{vendor=~\"$vendor\",account=~\"$account\"}, group)",
+        "refId": "StandardVariableQuery"
+      }
+    },
+    {
+      "name": "name",
+      "type": "query",
+      "label": "名称",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "All",
+        "value": "$__all"
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(redis_up{vendor=~\"$vendor\",account=~\"$account\",group=~\"$group\"}, name)",
+        "refId": "StandardVariableQuery"
+      }
+    },
+    {
+      "name": "instance",
+      "type": "query",
+      "label": "",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "192.168.1.43:6379",
+        "value": "192.168.1.43:6379"
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(redis_up{vendor=~\"$vendor\",account=~\"$account\",group=~\"$group\",name=~\"$name\"}, instance)",
+        "refId": "StandardVariableQuery"
+      }
+    },
+    {
+      "name": "iid",
+      "type": "query",
+      "label": "",
+      "options": null,
+      "current": {
+        "isNone": true,
+        "selected": false,
+        "text": "None",
+        "value": ""
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(redis_up{vendor=~\"$vendor\",account=~\"$account\",group=~\"$group\",name=~\"$name\"}, iid)",
+        "refId": "StandardVariableQuery"
+      }
+    }
+  ],
+  "title": "Redis 指标"
+}

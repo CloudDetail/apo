@@ -83,6 +83,17 @@ type Config struct {
 	User struct {
 		AnonymousUser `mapstructure:"anonymous_user"`
 	} `mapstructure:"user"`
+
+	Dify struct {
+		User    string `mapstructure:"user"`
+		URL     string `mapstructure:"url"`
+		APIKeys struct {
+			AlertCheck string `mapstructure:"alert_check"`
+		} `mapstructure:"api_keys"`
+		FlowIDs struct {
+			AlertEventAnalyze string `mapstructure:"alert_event_analyze"`
+		} `mapstructure:"flow_ids"`
+	} `mapstructure:"dify"`
 }
 
 type AnonymousUser struct {

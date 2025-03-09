@@ -6,6 +6,7 @@ package alerts
 import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	so "github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 	"go.uber.org/zap"
 
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -14,9 +15,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/services/alerts"
 
 	alertinput "github.com/CloudDetail/apo/backend/pkg/services/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/services/integration/workflow"
 )
 
 type Handler interface {
+	// ========================告警检索========================
+
+	// AlertEventList
+	// @Tags API.alerts
+	// @Router /api/alerts/events/list [post]
+	AlertEventList() core.HandlerFunc
+
+	// ========================告警配置========================
+
 	// InputAlertManager get AlertManager alarm events
 	// @Tags API.alerts
 	// @Router /api/alerts/inputs/alertmanager [post]
@@ -93,9 +104,10 @@ type Handler interface {
 }
 
 type handler struct {
-	logger       *zap.Logger
-	alertService alerts.Service
-	inputService alertinput.Service
+	logger                 *zap.Logger
+	alertService           alerts.Service
+	inputService           alertinput.Service
+	serviceoverviewService so.Service
 }
 
 func New(
@@ -103,10 +115,13 @@ func New(
 	chRepo clickhouse.Repo,
 	dbRepo database.Repo,
 	k8sRepo kubernetes.Repo,
-	promRepo prometheus.Repo) Handler {
+	promRepo prometheus.Repo,
+	alertworkFlow *workflow.AlertWorkflow,
+) Handler {
 	return &handler{
-		logger:       logger,
-		alertService: alerts.New(chRepo, k8sRepo, dbRepo),
-		inputService: alertinput.New(promRepo, dbRepo, chRepo),
+		logger:                 logger,
+		alertService:           alerts.New(chRepo, promRepo, k8sRepo, dbRepo, alertworkFlow),
+		inputService:           alertinput.New(promRepo, dbRepo, chRepo, alertworkFlow),
+		serviceoverviewService: so.New(chRepo, dbRepo, promRepo),
 	}
 }
