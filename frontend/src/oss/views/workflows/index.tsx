@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import WorkflowsIframe from './workflowsIframe'
 
 const WorkflowsPage = () => {
