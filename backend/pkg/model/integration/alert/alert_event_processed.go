@@ -23,8 +23,8 @@ type WorkflowParams struct {
 	StartTime int64 `json:"startTime" form:"startTime"`
 	EndTime   int64 `json:"endTime" form:"endTime"`
 
-	Service  string `json:"service"`
-	Endpoint string `json:"endpoint"`
+	NodeName string `json:"nodeName" form:"nodeName"`
+	NodeIp   string `json:"nodeIp" form:"nodeIp"`
 
 	Params string `json:"params"`
 }
@@ -33,4 +33,7 @@ type AlertAnalyzeWorkflowParams struct {
 	Node      string `json:"node"`
 	Namespace string `json:"namespace"`
 	Pod       string `json:"pod"`
+	Service   string `json:"service"`
+	Endpoint  string `json:"endpoint"`
+	Pid       string `json:"pid"`
 }

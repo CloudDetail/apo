@@ -5,7 +5,6 @@ package alerts
 
 import (
 	"encoding/json"
-	"strings"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
@@ -41,6 +40,7 @@ func (s *service) fillWorkflowParmas(record *alert.AEventWithWRecord) {
 	record.WorkflowParams = alert.WorkflowParams{
 		StartTime: startTime.UnixMicro(),
 		EndTime:   endTime.UnixMicro(),
+		NodeName:  record.AlertEvent.GetInfraNodeTag(),
 	}
 
 	alertServices, _ := tryGetAlertService(s.promRepo, &record.AlertEvent, startTime, endTime)
@@ -55,16 +55,19 @@ func (s *service) fillWorkflowParmas(record *alert.AEventWithWRecord) {
 		}
 	}
 
-	if len(services) > 0 {
-		record.WorkflowParams.Service = strings.Join(services, "|")
-		record.WorkflowParams.Endpoint = strings.Join(endpoints, "|")
-	}
-
-	jsonStr, err := json.Marshal(alert.AlertAnalyzeWorkflowParams{
+	parmas := alert.AlertAnalyzeWorkflowParams{
 		Node:      record.AlertEvent.GetInfraNodeTag(),
 		Namespace: record.AlertEvent.GetK8sNamespaceTag(),
 		Pod:       record.AlertEvent.GetK8sPodTag(),
-	})
+		Pid:       record.AlertEvent.GetPidTag(),
+	}
+
+	if len(services) == 1 {
+		parmas.Service = services[0]
+		parmas.Endpoint = endpoints[0]
+	}
+
+	jsonStr, err := json.Marshal(parmas)
 	if err != nil {
 		record.WorkflowParams.Params = "{}"
 	} else {

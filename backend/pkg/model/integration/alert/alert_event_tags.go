@@ -69,6 +69,10 @@ func (a *AlertEvent) GetNetSrcPidTag() string {
 	return a.EnrichTags["pid"]
 }
 
+func (a *AlertEvent) GetPidTag() string {
+	return a.EnrichTags["pid"]
+}
+
 func (a *AlertEvent) GetNetSrcPodTag() string {
 	//Compatible with older versions
 	if pod, find := a.EnrichTags["src_pod"]; find && len(pod) > 0 {
