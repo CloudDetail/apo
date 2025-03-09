@@ -16,6 +16,6 @@ type AlertEventSearchRequest struct {
 }
 
 type AlertEventSearchFilter struct {
-	Node      string `json:"node" form:"node"`
-	Namespace string `json:"namespace" form:"namespace"`
+	Nodes      []string `json:"nodes" form:"nodes"`
+	Namespaces []string `json:"namespaces" form:"namespaces"`
 }

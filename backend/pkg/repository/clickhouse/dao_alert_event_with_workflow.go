@@ -138,9 +138,14 @@ func sortbyParam(sortBy string) ([]string, []bool) {
 
 func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest) ([]alert.AEventWithWRecord, int64, error) {
 	alertFilter := NewQueryBuilder().
-		Between("received_time", req.StartTime/1e6, req.EndTime/1e6).
-		EqualsNotEmpty("tags['namespace']", req.Filter.Namespace).
-		EqualsNotEmpty("tags['node']", req.Filter.Node)
+		Between("received_time", req.StartTime/1e6, req.EndTime/1e6)
+
+	if len(req.Filter.Namespaces) > 0 {
+		alertFilter.InStrings("tags['namespace']", req.Filter.Namespaces)
+	}
+	if len(req.Filter.Nodes) > 0 {
+		alertFilter.InStrings("tags['node']", req.Filter.Nodes)
+	}
 
 	var count uint64
 	countSql := fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_COUNT, alertFilter.String())
@@ -158,9 +163,14 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchR
 
 func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest) (string, []any) {
 	alertFilter := NewQueryBuilder().
-		Between("received_time", req.StartTime/1e6, req.EndTime/1e6).
-		EqualsNotEmpty("tags['namespace']", req.Filter.Namespace).
-		EqualsNotEmpty("tags['node']", req.Filter.Node)
+		Between("received_time", req.StartTime/1e6, req.EndTime/1e6)
+
+	if len(req.Filter.Namespaces) > 0 {
+		alertFilter.InStrings("tags['namespace']", req.Filter.Namespaces)
+	}
+	if len(req.Filter.Nodes) > 0 {
+		alertFilter.InStrings("tags['node']", req.Filter.Nodes)
+	}
 
 	alertOrder := NewByLimitBuilder()
 	fields, ascs := sortbyParam(req.SortBy)
