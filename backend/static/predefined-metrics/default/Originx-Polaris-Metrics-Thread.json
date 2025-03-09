@@ -1,6 +1,24 @@
 {
     "queries": [
         {
+            "title": "北极星指标（进程） - 节点上被监控的服务列表",
+            "describe": "查询节点上被监控的服务列表",
+            "targets": [
+                {
+                    "expr": "sum without (node_name,namespace,pod,pid) (originx_thread_polaris_nanoseconds_sum{node_name=~\"$node_name\"})",
+                    "legendFormat": "{{namespace}}:{{pod}}",
+                    "refId": "A",
+                    "variables": [
+                        "node_name"
+                    ]
+                }
+            ],
+            "unit": "ns",
+            "params": [
+                "node_name"
+            ]
+        },
+        {
             "title": "北极星指标（进程） - 各类型耗时折线图 - 所有类型列表",
             "describe": "",
             "targets": [
@@ -173,6 +191,19 @@
         }
     ],
     "variables": [
+        {
+            "name": "node_name",
+            "type": "query",
+            "label": "Host",
+            "options": null,
+            "current": {},
+            "regex": "",
+            "query": {
+                "qryType": 1,
+                "query": "label_values(node_uname_info{job_name=~\"$job\"},instance_name)",
+                "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            }
+        },
         {
             "name": "pod",
             "type": "query",
