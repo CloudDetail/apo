@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next'
 function MiddlewareDashboard() {
   const { t } = useTranslation('oss/middleware')
 
+  
   return (
     <div className="text-xs" style={{ height: 'calc(100vh - 160px)' }}>
       <CToast autohide={false} visible={true} className="align-items-center w-full mb-2">
@@ -29,7 +30,7 @@ function MiddlewareDashboard() {
           </CToastBody>
         </div>
       </CToast>
-      <IframeDashboard src={'grafana/dashboards/f/edwu5b9rkv94wb/'} />
+      <IframeDashboard dashboardKey="middleware" />
     </div>
   )
 }
