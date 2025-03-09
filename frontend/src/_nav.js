@@ -26,9 +26,9 @@ const commercialNav = [
     key: 'alertAnalyze',
     icon: <IoIosTrendingUp />,
     label: (
-      <>{t('pro/routes.alertAnalyze')}
+      <>{t('pro/routes:alertAnalyze')}
         <CBadge color="info" className="ml-2">
-          {t('pro/routes.free')}
+          {t('pro/routes:free')}
         </CBadge>
       </>
     ),
