@@ -1,0 +1,19 @@
+{
+  "alertType": "告警类型",
+  "alertName": "告警事件名",
+  "lastAlertTime": "最近告警时间",
+  "alertSource": "告警来源",
+  "alertDetail": "告警详情",
+  "relatedApps": "告警相关应用",
+  "noRelatedApps": "未分析出告警相关应用",
+  "clickToAnalyze": "点击一键分析查看",
+  "affectedEntries": "受影响业务入口",
+  "noAffectedEntries": "未分析出受影响业务入口",
+  "alertEvents": "告警事件",
+  "isValid": "是否有效告警",
+  "cause": "根因分析",
+  "false": "无效",
+  "true": "有效",
+  "unknown": "未知",
+  "viewWorkflow": "查看根因分析"
+}
