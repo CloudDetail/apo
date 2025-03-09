@@ -35,6 +35,7 @@ type AlertWorkflow struct {
 	user          string
 
 	EventAnalyzeFlowId string
+	CheckId string
 
 	logger *zap.Logger
 }

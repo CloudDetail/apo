@@ -91,6 +91,7 @@ type Config struct {
 			AlertCheck string `mapstructure:"alert_check"`
 		} `mapstructure:"api_keys"`
 		FlowIDs struct {
+			AlertCheck        string `mapstructure:"alert_check"`
 			AlertEventAnalyze string `mapstructure:"alert_event_analyze"`
 		} `mapstructure:"flow_ids"`
 	} `mapstructure:"dify"`

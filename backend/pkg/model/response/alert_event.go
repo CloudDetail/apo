@@ -13,4 +13,5 @@ type AlertEventSearchResponse struct {
 	Pagination *model.Pagination         `json:"pagination"`
 
 	AlertEventAnalyzeWorkflowID string `json:"alertEventAnalyzeWorkflowId"`
+	AlertCheckID                string `json:"alertCheckId"`
 }
