@@ -193,7 +193,7 @@ function FaultSiteLogs(props) {
                 <a
                   className="underline text-sky-500"
                   target="_blank"
-                  href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置采集日志"
+                  href="https://docs.autopilotobservability.com/Logs%20Monitoring/Fault%20Log%20Collection"
                 >
                   <span>{t('faultSiteLogs.documentText')}</span>
                 </a>
