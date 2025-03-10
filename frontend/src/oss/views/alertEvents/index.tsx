@@ -13,6 +13,7 @@ import { getAlertEventsApi } from 'src/core/api/alerts'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { convertUTCToBeijing } from 'src/core/utils/time'
 import WorkflowsIframe from '../workflows/workflowsIframe'
+import Tag from 'src/core/components/Tag/Tag'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -120,10 +121,18 @@ const AlertEventsPage = () => {
           value
         ),
     },
+        {
+      title: t('status'),
+      accessor: 'status',
+      customWidth: 120,
+      Cell: ({value}) => {
+        return <Tag type={value === 'firing' ? 'error' : 'success'}>{t(value)}</Tag>
+      },
+    },
     {
       title: t('isValid'),
       accessor: 'isValid',
-      customWidth: 200,
+      customWidth: 160,
       Cell: (props) => {
         const { value, row } = props
         return value === 'unknown' ? (
@@ -143,7 +152,7 @@ const AlertEventsPage = () => {
     {
       title: t('cause'),
       accessor: 'cause',
-      customWidth: 200,
+      customWidth: 160,
       Cell: (props) => {
         const { workflowParams } = props.row.original
         return (

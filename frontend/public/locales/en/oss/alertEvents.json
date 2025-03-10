@@ -10,11 +10,13 @@
   "affectedEntries": "Affected Business Entries",
   "noAffectedEntries": "No affected entries detected",
   "alertEvents": "Alert Events",
-  "isValid": "Alert validity",
+  "isValid": "Alert Validity",
   "cause": "Root Cause Analysis",
   "false": "Invalid",
   "true": "Valid",
   "unknown": "Unknown",
   "viewWorkflow": "View",
-  "workflowsModal": "Workflows"
+  "workflowsModal": "Workflows",
+  "firing": "Firing",
+  "resolved": "Resolved"
 }
