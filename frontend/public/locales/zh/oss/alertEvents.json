@@ -16,5 +16,7 @@
   "true": "有效",
   "unknown": "未知",
   "viewWorkflow": "查看根因分析",
-  "workflowsModal": "工作流"
+  "workflowsModal": "工作流",
+  "firing": "告警中",
+  "resolved": "已解决"
 }

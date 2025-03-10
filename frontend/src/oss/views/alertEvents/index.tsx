@@ -13,6 +13,7 @@ import { getAlertEventsApi } from 'src/core/api/alerts'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { convertUTCToBeijing } from 'src/core/utils/time'
 import WorkflowsIframe from '../workflows/workflowsIframe'
+import Tag from 'src/core/components/Tag/Tag'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -34,6 +35,7 @@ const AlertEventsPage = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [workflowUrl, setWorkflowUrl] = useState(null)
   const [workflowId, setWorkflowId] = useState(null)
+  const [alertCheckId, setAlertCheckId] = useState(null)
   const getAlertEvents = () => [
     getAlertEventsApi({
       startTime,
@@ -49,6 +51,7 @@ const AlertEventsPage = () => {
         total: res?.pagination.total || 0,
       })
       setWorkflowId(res.alertEventAnalyzeWorkflowId)
+      setAlertCheckId(res.alertCheckId)
     }),
   ]
   useEffect(() => {
@@ -67,7 +70,7 @@ const AlertEventsPage = () => {
     // return paramsArray.join('&')
   }
   function openResultModal(workflowRunId) {
-    let result = '/dify/app/' + workflowId + '/logs/' + workflowRunId
+    let result = '/dify/app/' + alertCheckId + '/logs/' + workflowRunId
     setWorkflowUrl(result)
     setModalOpen(true)
   }
@@ -120,9 +123,18 @@ const AlertEventsPage = () => {
           value
         ),
     },
+        {
+      title: t('status'),
+      accessor: 'status',
+      customWidth: 120,
+      Cell: ({value}) => {
+        return <Tag type={value === 'firing' ? 'error' : 'success'}>{t(value)}</Tag>
+      },
+    },
     {
       title: t('isValid'),
       accessor: 'isValid',
+      customWidth: 160,
       Cell: (props) => {
         const { value, row } = props
         return value === 'unknown' ? (
@@ -142,6 +154,7 @@ const AlertEventsPage = () => {
     {
       title: t('cause'),
       accessor: 'cause',
+      customWidth: 160,
       Cell: (props) => {
         const { workflowParams } = props.row.original
         return (
