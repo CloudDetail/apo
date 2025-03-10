@@ -191,19 +191,18 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest) (st
 	recordFilter := NewQueryBuilder().
 		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
 
-	var finalOrder = NewByLimitBuilder()
-	for idx, field := range fields {
-		finalOrder.OrderBy(field, ascs[idx])
-	}
-
 	var sql string
 	if hasInValid {
 		sql = fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_VALID_FIRST,
 			alertFilter.String(),
 			recordFilter.String(),
-			finalOrder.String(),
+			alertOrder.String(),
 		)
 	} else {
+		var finalOrder = NewByLimitBuilder()
+		for idx, field := range fields {
+			finalOrder.OrderBy(field, ascs[idx])
+		}
 		sql = fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD,
 			alertFilter.String(), alertOrder.String(),
 			recordFilter.String(),
