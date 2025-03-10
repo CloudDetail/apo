@@ -114,12 +114,12 @@ const ossRoutes = [
     path: '/alerts/events',
     name: <TranslationCom text="alertEvents" space={namespace} />,
     element: AlertEventsPage,
-    hideSystemTimeRangePicker: true,
   },
   {
     path: '/workflows',
     name: <TranslationCom text="workflows" space={namespace} />,
     element: WorkflowsPage,
+    hideSystemTimeRangePicker: true,
   },
 ]
 export default ossRoutes
