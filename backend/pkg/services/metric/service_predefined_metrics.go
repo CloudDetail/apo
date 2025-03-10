@@ -190,6 +190,9 @@ func (s *service) executeTargets(groupId int, target *Target, req *QueryMetricsR
 	var retry = 10
 	for {
 		if retry <= 0 {
+			for i := 0; i < len(varSpecs); i++ {
+				varMap[varSpecs[i].Name] = ""
+			}
 			break
 		}
 
