@@ -227,32 +227,35 @@ const TimeLineChart = ({ rightWidth }) => {
   const updateMarkLine = () => {
     if (chartRef.current) {
       const chartInstance = chartRef.current.getEchartsInstance()
-      const x = chartInstance.convertToPixel({ xAxisIndex: 0 }, marklineTimestamp / 1000)
-      const yAxis = chartInstance.getModel().getComponent('yAxis').axis.scale.getExtent() // 获取Y轴数据范围
-      const y = chartInstance.convertToPixel({ yAxisIndex: 0 }, yAxis[0]) // 获取Y轴最小值的像素位置（即Y轴的0值）
-      const yTop = chartInstance.convertToPixel({ yAxisIndex: 0 }, yAxis[1]) // 获取Y轴最大值的像素位置（图表顶部）
+      console.log(chartInstance)
+      if (chartInstance) {
+        const x = chartInstance.convertToPixel({ xAxisIndex: 0 }, marklineTimestamp / 1000)
+        setCurrentMarkLineX(x)
+      }
+      // const yAxis = chartInstance.getModel().getComponent('yAxis').axis.scale.getExtent()
+      // const y = chartInstance.convertToPixel({ yAxisIndex: 0 }, yAxis[0]) // 获取Y轴最小值的像素位置（即Y轴的0值）
+      // const yTop = chartInstance.convertToPixel({ yAxisIndex: 0 }, yAxis[1]) // 获取Y轴最大值的像素位置（图表顶部）
 
-      //细线
-      chartInstance.setOption({
-        // graphic: [
-        //   {
-        //     type: 'line',
-        //     id: 'markLine', // 给标记线设定唯一ID，避免重复添加
-        //     shape: {
-        //       x1: x, // 动态更新X轴位置
-        //       x2: x,
-        //       y1: y,
-        //       y2: yTop,
-        //     },
-        //     style: {
-        //       stroke: 'blue',
-        //       lineWidth: 2,
-        //     },
-        //     transition: currentMarkLineX <= x ? ['position', 'shape'] : [''], // 定义过渡的属性
-        //   },
-        // ],
-      })
-      setCurrentMarkLineX(x)
+      // //细线
+      // chartInstance.setOption({
+      //   // graphic: [
+      //   //   {
+      //   //     type: 'line',
+      //   //     id: 'markLine', // 给标记线设定唯一ID，避免重复添加
+      //   //     shape: {
+      //   //       x1: x, // 动态更新X轴位置
+      //   //       x2: x,
+      //   //       y1: y,
+      //   //       y2: yTop,
+      //   //     },
+      //   //     style: {
+      //   //       stroke: 'blue',
+      //   //       lineWidth: 2,
+      //   //     },
+      //   //     transition: currentMarkLineX <= x ? ['position', 'shape'] : [''], // 定义过渡的属性
+      //   //   },
+      //   // ],
+      // })
     }
   }
   const updateBrush = () => {
