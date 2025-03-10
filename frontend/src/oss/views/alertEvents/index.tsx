@@ -123,6 +123,7 @@ const AlertEventsPage = () => {
     {
       title: t('isValid'),
       accessor: 'isValid',
+      customWidth: 200,
       Cell: (props) => {
         const { value, row } = props
         return value === 'unknown' ? (
@@ -142,6 +143,7 @@ const AlertEventsPage = () => {
     {
       title: t('cause'),
       accessor: 'cause',
+      customWidth: 200,
       Cell: (props) => {
         const { workflowParams } = props.row.original
         return (
