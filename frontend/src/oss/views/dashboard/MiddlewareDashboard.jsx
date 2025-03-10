@@ -10,7 +10,7 @@ import IframeDashboard from 'src/core/components/Dashboard/IframeDashboard'
 import { useTranslation } from 'react-i18next'
 
 function MiddlewareDashboard() {
-  const { t } = useTranslation('oss/middleware')
+  const { t, i18n } = useTranslation('oss/middleware')
 
   
   return (
@@ -23,7 +23,12 @@ function MiddlewareDashboard() {
             <a
               className="underline text-sky-500"
               target="_blank"
-              href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/监控中间件/"
+              href=
+              {
+                i18n.language === 'zh'
+                ? "https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/监控中间件/"
+                : "https://docs.autopilotobservability.com/category/metrics-monitoring"
+              }
             >
               {t('dashboard.documentation')}
             </a>

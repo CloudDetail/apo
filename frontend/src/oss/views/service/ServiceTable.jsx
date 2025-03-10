@@ -25,7 +25,7 @@ import { TableFilter } from './component/TableFilter'
 import { useTranslation } from 'react-i18next'
 import React from 'react'
 const ServiceTable = React.memo(({ groupId }) => {
-  const { t } = useTranslation('oss/service')
+  const { t, i18n } = useTranslation('oss/service')
   const navigate = useNavigate()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -365,7 +365,12 @@ const ServiceTable = React.memo(({ groupId }) => {
               <a
                 className="underline text-sky-500"
                 target="_blank"
-                href="https://kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/安装%20APO-OneAgent/"
+                href=
+                {
+                  i18n.language === 'zh'
+                  ? "https://kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/安装%20APO-OneAgent/"
+                  : "https://docs.autopilotobservability.com/Installation/APO%20OneAgent"
+                }
               >
                 {t('index.tableProps.unmonitoredLinkText')}
               </a>
@@ -375,7 +380,12 @@ const ServiceTable = React.memo(({ groupId }) => {
               <a
                 className="underline text-sky-500"
                 target="_blank"
-                href="https://kindlingx.com/docs/APO%20向导式可观测性中心/常见问题/运维与故障排除/APO%20服务概览无数据排查文档"
+                href=
+                {
+                  i18n.language === 'zh'
+                  ? "https://kindlingx.com/docs/APO%20向导式可观测性中心/常见问题/运维与故障排除/APO%20服务概览无数据排查文档"
+                  : "https://docs.autopilotobservability.com/Troubleshooting/Service%20Overview%20No%20Data"
+                }
               >
                 {t('index.tableProps.monitoredLinkText')}
               </a>

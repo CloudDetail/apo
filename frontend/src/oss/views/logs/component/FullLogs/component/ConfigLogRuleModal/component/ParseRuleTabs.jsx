@@ -11,7 +11,7 @@ import LogStructRuleFormList from './LogStructRuleFormList'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
 const ParseRuleTabs = () => {
-  const { t } = useTranslation('oss/fullLogs')
+  const { t, i18n } = useTranslation('oss/fullLogs')
   const form = Form.useFormInstance()
   const [activeKey, setActiveKey] = useState('unStructured')
   const items = [
@@ -25,7 +25,12 @@ const ParseRuleTabs = () => {
             <span className="text-xs text-gray-400">
               {t('configLogRuleModal.parseRuleTabs.unStructuredDescription')}
               <a
-                href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/日志解析规则配置/"
+                href=
+                {
+                  i18n.language === 'zh'
+                  ? "https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/日志解析规则配置/"
+                  : "https://docs.autopilotobservability.com/Logs%20Monitoring/Configure%20Log%20Parsing%20Rules"
+                }
                 className="underline"
                 target="_blank"
               >
