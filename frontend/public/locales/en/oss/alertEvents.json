@@ -15,5 +15,6 @@
   "false": "Invalid",
   "true": "Valid",
   "unknown": "Unknown",
-  "viewWorkflow": "View"
+  "viewWorkflow": "View",
+  "workflowsModal": "Workflows"
 }
