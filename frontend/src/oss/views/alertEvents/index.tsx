@@ -35,6 +35,7 @@ const AlertEventsPage = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [workflowUrl, setWorkflowUrl] = useState(null)
   const [workflowId, setWorkflowId] = useState(null)
+  const [alertCheckId, setAlertCheckId] = useState(null)
   const getAlertEvents = () => [
     getAlertEventsApi({
       startTime,
@@ -50,6 +51,7 @@ const AlertEventsPage = () => {
         total: res?.pagination.total || 0,
       })
       setWorkflowId(res.alertEventAnalyzeWorkflowId)
+      setAlertCheckId(res.alertCheckId)
     }),
   ]
   useEffect(() => {
@@ -68,7 +70,7 @@ const AlertEventsPage = () => {
     // return paramsArray.join('&')
   }
   function openResultModal(workflowRunId) {
-    let result = '/dify/app/' + workflowId + '/logs/' + workflowRunId
+    let result = '/dify/app/' + alertCheckId + '/logs/' + workflowRunId
     setWorkflowUrl(result)
     setModalOpen(true)
   }
