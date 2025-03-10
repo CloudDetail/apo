@@ -54,7 +54,7 @@ func init() {
 		return nil
 	})
 	if err != nil {
-		panic(err)
+		log.Println("failed to init predefined metrics", err)
 	}
 }
 
@@ -184,7 +184,6 @@ func (s *service) executeTargets(groupId int, target *Target, req *QueryMetricsR
 
 	var retry = 10
 	for {
-		// TODO 检测变量循环依赖
 		if retry <= 0 {
 			break
 		}
@@ -239,7 +238,6 @@ func (s *service) queryVar(
 	}
 
 	if varSpec.Type != "query" {
-		// TODO unknown type
 		return "", true, []string{}
 	}
 
@@ -256,13 +254,13 @@ func (s *service) queryVar(
 	case 1: // label_values
 		matches := labelValuesQry.FindStringSubmatch(varSpec.Query.Query)
 		if len(matches) != 3 {
-			// TODO
-			panic("")
+			log.Println("unexpected var query spec:", varSpec.Query.Query)
+			return "", true, nil
 		}
 
 		labelValues, err := s.promRepo.LabelValues(matches[1], matches[2], startTime, endTime)
 		if err != nil {
-			// TODO
+			log.Println("query result err:", err)
 			return "", true, nil
 		}
 
@@ -275,15 +273,16 @@ func (s *service) queryVar(
 		expr, _ := strings.CutPrefix(varSpec.Query.Query, "query_result(")
 		expr, _ = strings.CutSuffix(expr, ")")
 		labels, err := s.promRepo.QueryResult(expr, varSpec.Regex, startTime, endTime)
-
+		if err != nil {
+			log.Println("query result err:", err)
+			return "", true, nil
+		}
 		for i := 0; i < len(labels); i++ {
 			labels[i] = prometheus.EscapeRegexp(labels[i])
 		}
-		if err != nil {
-			panic("")
-		}
+
 		return strings.Join(labels, "|"), true, nil
 	default:
-		panic("unsupport query type")
+		return "", false, nil
 	}
 }
