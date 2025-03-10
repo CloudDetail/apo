@@ -198,7 +198,7 @@ alertsRule:
   key: "alertsRule"
   i18n:
     - language: "en"
-      translation: "Alerts Rules"
+      translation: "Rules"
       field_name: "label"
       entity_type: "menu"
     - language: "zh"
@@ -226,7 +226,7 @@ alertEvents:
   key: "alertEvents"
   i18n:
   - language: "en"
-    translation: "Alerts Events"
+    translation: "Events"
     field_name: "label"
     entity_type: "menu"
   - language: "zh"
@@ -546,7 +546,7 @@ teamManage:
   key: "告警规则"
   i18n:
   - language: "en"
-    translation: "Alerts Rules"
+    translation: "Rules"
     entity_type: "feature"
     field_name: "featureName"
 
@@ -571,7 +571,7 @@ teamManage:
   key: "告警事件"
   i18n:
   - language: "en"
-    translation: "Alerts Events"
+    translation: "Events"
     field_name: "featureName"
     entity_type: "feature"
   - language: "zh"
