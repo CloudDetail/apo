@@ -15,6 +15,7 @@ func (repo *daoRepo) initMenuItems() error {
 	}{
 		{MenuItem: MenuItem{Key: "service", Order: 1}, RouterKey: "/service"},
 		{MenuItem: MenuItem{Key: "workflows", Order: 3}, RouterKey: "/workflows"},
+		{MenuItem: MenuItem{Key: "alerts", Order: 4}},
 		{MenuItem: MenuItem{Key: "logs", Order: 5}},
 		{MenuItem: MenuItem{Key: "faultSite", Order: 7}, RouterKey: "/logs/fault-site"},
 		{MenuItem: MenuItem{Key: "full", Order: 9}, RouterKey: "/logs/full"},
@@ -25,7 +26,6 @@ func (repo *daoRepo) initMenuItems() error {
 		{MenuItem: MenuItem{Key: "basic", Order: 19}, RouterKey: "/basic-dashboard"},
 		{MenuItem: MenuItem{Key: "application", Order: 21}, RouterKey: "/application-dashboard"},
 		{MenuItem: MenuItem{Key: "middleware", Order: 23}, RouterKey: "/middleware-dashboard"},
-		{MenuItem: MenuItem{Key: "alerts", Order: 25}},
 		{MenuItem: MenuItem{Key: "alertsRule", Order: 27}, RouterKey: "/alerts/rule"},
 		{MenuItem: MenuItem{Key: "alertsNotify", Order: 29}, RouterKey: "/alerts/notify"},
 		{MenuItem: MenuItem{Key: "alertEvents", Order: 31}, RouterKey: "/alerts/events"},
