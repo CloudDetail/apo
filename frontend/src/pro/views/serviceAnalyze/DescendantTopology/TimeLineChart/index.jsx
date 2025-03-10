@@ -235,12 +235,12 @@ const TimeLineChart = ({ rightWidth }) => {
 
       console.log('ECharts 实例', chartInstance)
 
-      if (typeof chartInstance.convertToPixel === 'function') {
-        const x = chartInstance.convertToPixel({ xAxisIndex: 0 }, marklineTimestamp / 1000)
-        setCurrentMarkLineX(x)
-      } else {
-        console.warn('convertToPixel 方法不存在')
-      }
+      // if (typeof chartInstance.convertToPixel === 'function') {
+      //   const x = chartInstance.convertToPixel({ xAxisIndex: 0 }, marklineTimestamp / 1000)
+      //   setCurrentMarkLineX(x)
+      // } else {
+      //   console.warn('convertToPixel 方法不存在')
+      // }
       // const yAxis = chartInstance.getModel().getComponent('yAxis').axis.scale.getExtent()
       // const y = chartInstance.convertToPixel({ yAxisIndex: 0 }, yAxis[0]) // 获取Y轴最小值的像素位置（即Y轴的0值）
       // const yTop = chartInstance.convertToPixel({ yAxisIndex: 0 }, yAxis[1]) // 获取Y轴最大值的像素位置（图表顶部）
