@@ -175,7 +175,7 @@ const TimeLineChart = ({ rightWidth }) => {
   }, [])
   useEffect(() => {
     handleResize()
-    updateMarkLine()
+    // updateMarkLine()
   }, [rightWidth])
   const onChartReady = (chart) => {
     // 确保下一帧再更新
@@ -228,9 +228,18 @@ const TimeLineChart = ({ rightWidth }) => {
     if (chartRef.current) {
       const chartInstance = chartRef.current.getEchartsInstance()
       console.log(chartInstance)
-      if (chartInstance) {
+      if (!chartInstance || chartInstance._disposed) {
+        console.warn('ECharts 实例未初始化或已被销毁')
+        return
+      }
+
+      console.log('ECharts 实例', chartInstance)
+
+      if (typeof chartInstance.convertToPixel === 'function') {
         const x = chartInstance.convertToPixel({ xAxisIndex: 0 }, marklineTimestamp / 1000)
         setCurrentMarkLineX(x)
+      } else {
+        console.warn('convertToPixel 方法不存在')
       }
       // const yAxis = chartInstance.getModel().getComponent('yAxis').axis.scale.getExtent()
       // const y = chartInstance.convertToPixel({ yAxisIndex: 0 }, yAxis[0]) // 获取Y轴最小值的像素位置（即Y轴的0值）
