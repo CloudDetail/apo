@@ -68,9 +68,9 @@ const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_VALID_FIRST = `WITH paged_alerts A
 filtered_workflows AS (
     SELECT *,
 	CASE
-      WHEN output = 'false' THEN 0
+      WHEN output = 'false' THEN 2
       WHEN output = 'true' THEN 1
-      ELSE 2
+      ELSE 0
     END as importance
     FROM workflow_records
     %s
@@ -105,7 +105,7 @@ ON ae.alert_id = wr.ref AND rounded_time = toStartOfFiveMinutes(wr.created_at)
 
 func sortbyParam(sortBy string) ([]string, []bool) {
 	if len(sortBy) == 0 {
-		return []string{"received_time"}, []bool{true}
+		return []string{"importance", "received_time"}, []bool{false, true}
 	}
 
 	sortBys := strings.Split(sortBy, ",")
@@ -114,7 +114,7 @@ func sortbyParam(sortBy string) ([]string, []bool) {
 	var ascs []bool
 	for _, option := range sortBys {
 		parts := strings.Split(option, " ")
-		var order string = "asc"
+		var order string = "desc"
 		if len(parts) == 2 {
 			order = parts[1]
 		}
