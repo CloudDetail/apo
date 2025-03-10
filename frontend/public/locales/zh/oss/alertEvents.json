@@ -18,5 +18,6 @@
   "viewWorkflow": "查看根因分析",
   "workflowsModal": "工作流",
   "firing": "告警中",
-  "resolved": "已解决"
+  "resolved": "已解决",
+  "status": "告警状态"
 }
