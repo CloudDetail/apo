@@ -379,6 +379,25 @@
       "describe": "服务每次请求等待调度到CPU耗时P90分位数(按服务名和内容键统计,指定时间段内)"
     },
     {
+      "title": "北极星指标 - 列出指定服务的所有实例",
+      "targets": [
+        {
+          "expr": "last_over_time(group without (content_key,is_error,top_span) (kindling_span_trace_duration_nanoseconds_count{svc_name=~\"$service_name\"}[$__interval]))",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "__interval",
+            "service_name"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "service_name"
+      ],
+      "describe": "列出该服务下的所有实例"
+    },
+    {
       "title": "北极星指标 - 每次请求中的文件读写耗时90%分位数",
       "targets": [
         {

@@ -117,17 +117,22 @@ func (s *service) executeQuery(
 			log.Println(err)
 			continue
 		}
+
 		legendFormat := legendFormatReg.FindAllStringSubmatch(target.LegendFormat, -1)
 
 		matrix := value.(model.Matrix)
 		for i := 0; i < matrix.Len(); i++ {
 			legend := target.LegendFormat
 
-			for _, labels := range legendFormat {
-				if len(labels) > 1 {
-					label, find := matrix[i].Metric[model.LabelName(strings.Trim(labels[1], " "))]
-					if find {
-						legend = strings.ReplaceAll(legend, fmt.Sprintf("{{%s}}", labels[1]), string(label))
+			if target.LegendFormat == "__auto" || target.LegendFormat == "" {
+				legend = matrix[i].Metric.String()
+			} else {
+				for _, labels := range legendFormat {
+					if len(labels) > 1 {
+						label, find := matrix[i].Metric[model.LabelName(strings.Trim(labels[1], " "))]
+						if find {
+							legend = strings.ReplaceAll(legend, fmt.Sprintf("{{%s}}", labels[1]), string(label))
+						}
 					}
 				}
 			}
@@ -185,6 +190,9 @@ func (s *service) executeTargets(groupId int, target *Target, req *QueryMetricsR
 	var retry = 10
 	for {
 		if retry <= 0 {
+			for i := 0; i < len(varSpecs); i++ {
+				varMap[varSpecs[i].Name] = ""
+			}
 			break
 		}
 
