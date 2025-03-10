@@ -1,6 +1,6 @@
 # APO - The Intelligent Observability Platform
 Visit [autopilotobservability.com](https://autopilotobservability.com) for more details.
-## 🚀 Introduction
+## 🚀 Introduction 
 **APO (AutoPilot Observability)** redefines modern observability by seamlessly combining AI and deep system insights. Powered by state-of-the-art Large Language Models (LLMs), APO empowers teams to decode complex system behaviors, rapidly pinpoint root causes, and automate diagnostic workflows. APO’s AI agentic workflows with designed data plane put you in control, enabling custom automated diagnostics that fit your unique needs.
 
 APO display the following Highlights:
@@ -20,9 +20,8 @@ Low-code orchestration that transforms your expertise into the dynamic core powe
 + Customize automated diagnostic workflows.
 + Experience advanced cross-domain data correlation.
 
-
 ### **LLM-native data plane**
-+ **API-centric service map:** APO provides granular visibility into API endpoints within applications, creating clear service dependency maps for specific business flows. Our intelligent similarity algorithms prevent topology sprawl by condensing similar nodes while preserving detailed information in tabular views. Navigate effortlessly between node details with intuitive click-through navigation.
++ **API-centric service map**: APO provides granular visibility into API endpoints within applications, creating clear service dependency maps for specific business flows. Our intelligent similarity algorithms prevent topology sprawl by condensing similar nodes while preserving detailed information in tabular views. Navigate effortlessly between node details with intuitive click-through navigation.
 + **Anomaly events with cross-domain data correlation**: Anomaly events with cross-domain data correlation: Given that observability data is diverse in structure and massive in scale, directly feeding it into large models is impractical. APO’s innovative approach transforms varied data into anomaly events, correlating them with the service map while capturing essential contextual details. This enriched data stream enables precise anomaly detection and cross-domain correlation, empowering the system to uncover subtle issues and deliver deeper, actionable insights.
 
 ### Zero-Touch Tracing Agent Instrumentation
@@ -32,18 +31,6 @@ With OneAgent technology, APO supports the automatic instrumentation of multi-la
 Experience complete visibility with APO's unified platform, bringing together traces, metrics, logs, and events in one cohesive view.
 
 ![data-plane](./docs/img/data-plane.png)
-
-### Polaris Causal Metrics with eBPF
-While trace data provides valuable insights, understanding the true source of delays requires deeper analysis. Polaris Causal Metrics delivers precise insights into performance fluctuations.
-
-Leveraging cutting-edge eBPF technology, Polaris Causal Metrics identifies issues across multiple dimensions:
-
-+ Code-level inefficiencies (nested loops)
-+ Resource contention (GC pauses, connection pool exhaustion)
-+ Storage system degradation
-+ Dependency chain bottlenecks
-+ CPU resource constraints
-+ Memory allocation issues
 
 ### Rapid Fault Chain Analysis
 APO's intelligent correlation of delay patterns, error rates, and log anomalies quickly surfaces relevant time windows for detailed investigation through logs and traces.

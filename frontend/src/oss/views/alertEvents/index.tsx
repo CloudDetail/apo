@@ -57,14 +57,13 @@ const AlertEventsPage = () => {
     }
   }, [pagination.pageIndex, startTime, endTime])
   function openWorkflowModal(workflowParams) {
-    let result = '/dify/app/' + workflowId + '/run/?'
+    let result = '/dify/app/' + workflowId + '/run?'
     const params = Object.entries(workflowParams)
       .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
       .join('&')
     setWorkflowUrl(result + params)
     setModalOpen(true)
     // buildParams('workflowParams', workflowParams)
-    // console.log(result + params)
     // return paramsArray.join('&')
   }
   function openResultModal(workflowRunId) {
@@ -149,7 +148,7 @@ const AlertEventsPage = () => {
           <Button
             type="link"
             onClick={() => {
-              openResultModal(workflowParams)
+              openWorkflowModal(workflowParams)
             }}
           >
             {t('viewWorkflow')}
