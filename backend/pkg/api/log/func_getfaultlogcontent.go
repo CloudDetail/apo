@@ -28,7 +28,7 @@ func (h *handler) GetFaultLogContent() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -46,7 +46,7 @@ func (h *handler) GetFaultLogContent() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetFaultLogContentError,
-				code.Text(code.GetFaultLogContentError)).WithError(err),
+				c.ErrMessage(code.GetFaultLogContentError)).WithError(err),
 			)
 			return
 		}

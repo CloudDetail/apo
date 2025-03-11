@@ -29,7 +29,7 @@ func (h *handler) SetSingleTableTTL() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -37,7 +37,7 @@ func (h *handler) SetSingleTableTTL() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.SetSingleTableTTLError,
-				code.Text(code.SetSingleTableTTLError)).WithError(err),
+				c.ErrMessage(code.SetSingleTableTTLError)).WithError(err),
 			)
 			return
 		}

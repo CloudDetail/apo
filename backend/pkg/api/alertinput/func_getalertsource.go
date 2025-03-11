@@ -28,7 +28,7 @@ func (h *handler) GetAlertSource() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -39,7 +39,7 @@ func (h *handler) GetAlertSource() core.HandlerFunc {
 				http.StatusBadRequest,
 				code.CreateAlertSourceFailed,
 				// TODO ErrorCode
-				code.Text(code.GetAlertSourceFailed)).WithError(err),
+				c.ErrMessage(code.GetAlertSourceFailed)).WithError(err),
 			)
 			return
 		}

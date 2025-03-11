@@ -4,6 +4,7 @@
 package alerts
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -33,7 +34,7 @@ type Service interface {
 
 	// AlertRule Options
 	GetGroupList() response.GetGroupListResponse
-	GetMetricPQL(req *request.GetMetricPQLRequest) (*response.GetMetricPQLResponse, error)
+	GetMetricPQL(ctx core.Context) (*response.GetMetricPQLResponse, error)
 
 	// AlertRule CRUD
 	GetAlertRules(req *request.GetAlertRuleRequest) response.GetAlertRulesResponse

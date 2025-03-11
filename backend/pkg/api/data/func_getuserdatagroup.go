@@ -31,7 +31,7 @@ func (h *handler) GetUserDataGroup() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -45,7 +45,7 @@ func (h *handler) GetUserDataGroup() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetDataGroupError,
-				code.Text(code.GetDataGroupError)).WithError(err),
+				c.ErrMessage(code.GetDataGroupError)).WithError(err),
 			)
 			return
 		}

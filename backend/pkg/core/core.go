@@ -65,7 +65,7 @@ func New(logger *zap.Logger) (*Mux, error) {
 				context.AbortWithError(Error(
 					http.StatusInternalServerError,
 					code.ServerError,
-					code.Text(code.ServerError),
+					context.ErrMessage(code.ServerError),
 				))
 			}
 
@@ -84,7 +84,7 @@ func New(logger *zap.Logger) (*Mux, error) {
 					// There is no Error
 					httpCode = http.StatusInternalServerError
 					businessCode = code.ServerError
-					businessCodeMsg = code.Text(code.ServerError)
+					businessCodeMsg = context.ErrMessage(code.ServerError)
 				}
 				ctx.JSON(httpCode, &code.Failure{
 					Code:    businessCode,
@@ -95,7 +95,7 @@ func New(logger *zap.Logger) (*Mux, error) {
 				if !ok {
 					httpCode = http.StatusInternalServerError
 					businessCode = code.ServerError
-					businessCodeMsg = code.Text(code.ServerError)
+					businessCodeMsg = context.ErrMessage(code.ServerError)
 					ctx.JSON(httpCode, &code.Failure{
 						Code:    businessCode,
 						Message: businessCodeMsg,

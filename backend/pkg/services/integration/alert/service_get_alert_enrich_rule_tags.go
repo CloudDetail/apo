@@ -4,10 +4,10 @@
 package alert
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) GetAlertEnrichRuleTags(req *request.ListTargetTagsRequest) ([]alert.TargetTag, error) {
-	return s.dbRepo.ListAlertTargetTags(req.Language)
+func (s *service) GetAlertEnrichRuleTags(ctx core.Context) ([]alert.TargetTag, error) {
+	return s.dbRepo.ListAlertTargetTags(ctx.LANG())
 }

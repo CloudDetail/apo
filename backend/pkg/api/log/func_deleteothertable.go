@@ -29,7 +29,7 @@ func (h *handler) DeleteOtherTable() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -38,7 +38,7 @@ func (h *handler) DeleteOtherTable() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.DeleteOtherLogTableError,
-				code.Text(code.DeleteOtherLogTableError)+err.Error()).WithError(err),
+				c.ErrMessage(code.DeleteOtherLogTableError)+err.Error()).WithError(err),
 			)
 			return
 		}

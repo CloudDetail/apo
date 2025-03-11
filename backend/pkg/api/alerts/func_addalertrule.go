@@ -33,7 +33,7 @@ func (h *handler) AddAlertRule() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -45,14 +45,14 @@ func (h *handler) AddAlertRule() core.HandlerFunc {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					vErr.Code,
-					code.Text(vErr.Code),
+					c.ErrMessage(vErr.Code),
 				).WithError(err),
 				)
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.AddAlertRuleError,
-					code.Text(code.UpdateAlertRuleError),
+					c.ErrMessage(code.UpdateAlertRuleError),
 				).WithError(err),
 				)
 			}

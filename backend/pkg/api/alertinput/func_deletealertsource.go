@@ -28,7 +28,7 @@ func (h *handler) DeleteAlertSource() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -38,7 +38,7 @@ func (h *handler) DeleteAlertSource() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.DeleteAlertSourceFailed,
-				code.Text(code.DeleteAlertSourceFailed)).WithError(err),
+				c.ErrMessage(code.DeleteAlertSourceFailed)).WithError(err),
 			)
 			return
 

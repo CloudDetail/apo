@@ -28,7 +28,7 @@ func (h *handler) DeleteSchema() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -38,7 +38,7 @@ func (h *handler) DeleteSchema() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.DeleteSchemaFailed,
-				code.Text(code.DeleteSchemaFailed)).WithError(err),
+				c.ErrMessage(code.DeleteSchemaFailed)).WithError(err),
 			)
 			return
 		}

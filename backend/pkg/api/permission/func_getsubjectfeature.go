@@ -4,8 +4,9 @@
 package permission
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -30,7 +31,7 @@ func (h *handler) GetSubjectFeature() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -40,7 +41,7 @@ func (h *handler) GetSubjectFeature() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetFeatureError,
-				code.Text(code.GetFeatureError)).WithError(err))
+				c.ErrMessage(code.GetFeatureError)).WithError(err))
 		}
 		c.Payload(resp)
 	}
