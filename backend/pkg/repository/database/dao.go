@@ -38,7 +38,7 @@ type Repo interface {
 	UpdateDingTalkReceiver(dingTalkConfig *amconfig.DingTalkConfig, oldName string) error
 	DeleteDingTalkReceiver(configFile, alertName string) error
 
-	ListQuickAlertRuleMetric() ([]AlertMetricsData, error)
+	ListQuickAlertRuleMetric(lang string) ([]AlertMetricsData, error)
 
 	Login(username, password string) (*User, error)
 	CreateUser(ctx context.Context, user *User) error
@@ -182,13 +182,7 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		sqlDB: sqlDb,
 	}
 
-	var alertScript string
-	if len(databaseCfg.InitScript.QuickAlertRuleMetric) > 0 {
-		alertScript = databaseCfg.InitScript.QuickAlertRuleMetric
-	} else {
-		alertScript = "./sqlscripts/default_quick_alert_rule_metric.sql"
-	}
-	if err = daoRepo.initSql(AlertMetricsData{}, alertScript); err != nil {
+	if err = driver.InitSQL(daoRepo.db, &AlertMetricsData{}); err != nil {
 		return nil, err
 	}
 	if err = daoRepo.initApi(); err != nil {

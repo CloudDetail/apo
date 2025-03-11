@@ -33,7 +33,7 @@ type Service interface {
 
 	// AlertRule Options
 	GetGroupList() response.GetGroupListResponse
-	GetMetricPQL() (*response.GetMetricPQLResponse, error)
+	GetMetricPQL(req *request.GetMetricPQLRequest) (*response.GetMetricPQLResponse, error)
 
 	// AlertRule CRUD
 	GetAlertRules(req *request.GetAlertRuleRequest) response.GetAlertRulesResponse

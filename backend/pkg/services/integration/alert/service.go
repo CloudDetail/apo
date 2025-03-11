@@ -10,6 +10,7 @@ import (
 
 	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -30,7 +31,7 @@ type Service interface {
 
 	ProcessAlertEvents(source alert.SourceFrom, data []byte) error
 
-	GetAlertEnrichRuleTags() ([]alert.TargetTag, error)
+	GetAlertEnrichRuleTags(req *request.ListTargetTagsRequest) ([]alert.TargetTag, error)
 
 	CreateSchema(req *alert.CreateSchemaRequest) error
 	DeleteSchema(schema string) error

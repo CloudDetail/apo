@@ -9,6 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 // GetTargetTags GetTargetTags
@@ -22,7 +23,9 @@ import (
 // @Router /api/alertsinput/enrich/tags/list [get]
 func (h *handler) ListTargetTags() core.HandlerFunc {
 	return func(c core.Context) {
-		targetTags, err := h.inputService.GetAlertEnrichRuleTags()
+		req := new(request.ListTargetTagsRequest)
+		_ = c.ShouldBindQuery(req)
+		targetTags, err := h.inputService.GetAlertEnrichRuleTags(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
