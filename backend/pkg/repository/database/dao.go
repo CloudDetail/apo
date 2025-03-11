@@ -38,8 +38,8 @@ type Repo interface {
 	UpdateDingTalkReceiver(dingTalkConfig *amconfig.DingTalkConfig, oldName string) error
 	DeleteDingTalkReceiver(configFile, alertName string) error
 
+	ListQuickAlertRuleMetric(lang string) ([]AlertMetricsData, error)
 	ListQuickMutationMetric() ([]QuickMutationMetric, error)
-	ListQuickAlertRuleMetric() ([]AlertMetricsData, error)
 
 	Login(username, password string) (*User, error)
 	CreateUser(ctx context.Context, user *User) error
@@ -190,18 +190,11 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	}
 
 	// 检查并初始化预设快速突变检测指标表
-	err = daoRepo.InitPredefinedQuickMutationMetric(databaseCfg.InitScript.QuickMutationMetric)
+	err = daoRepo.InitPredefinedQuickMutationMetric("")
 	if err != nil {
 		return nil, err
 	}
-
-	var alertScript string
-	if len(databaseCfg.InitScript.QuickAlertRuleMetric) > 0 {
-		alertScript = databaseCfg.InitScript.QuickAlertRuleMetric
-	} else {
-		alertScript = "./sqlscripts/default_quick_alert_rule_metric.sql"
-	}
-	if err = daoRepo.initSql(AlertMetricsData{}, alertScript); err != nil {
+	if err = driver.InitSQL(daoRepo.db, &AlertMetricsData{}); err != nil {
 		return nil, err
 	}
 	if err = daoRepo.initApi(); err != nil {
@@ -267,7 +260,6 @@ func migrateTable(db *gorm.DB) error {
 			return err
 		}
 	}
-
 
 	err = db.AutoMigrate(&QueryServiceType{})
 	if err != nil {

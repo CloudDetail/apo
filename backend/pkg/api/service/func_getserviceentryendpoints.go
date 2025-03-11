@@ -42,7 +42,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -159,7 +159,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetServiceEntryEndpointsError,
-				code.Text(code.GetServiceEntryEndpointsError)).WithError(err),
+				c.ErrMessage(code.GetServiceEntryEndpointsError)).WithError(err),
 			)
 			return
 		}

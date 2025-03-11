@@ -30,7 +30,7 @@ func (h *handler) GetSingleTraceInfo() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -40,7 +40,7 @@ func (h *handler) GetSingleTraceInfo() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetSingleTraceError,
-				code.Text(code.GetSingleTraceError)).WithError(err))
+				c.ErrMessage(code.GetSingleTraceError)).WithError(err))
 			return
 		}
 		c.Payload(resp)

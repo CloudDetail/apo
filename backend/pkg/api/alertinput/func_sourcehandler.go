@@ -29,7 +29,7 @@ func (h *handler) SourceHandler() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -39,7 +39,7 @@ func (h *handler) SourceHandler() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.AcceptAlertEventFailed,
-				code.Text(code.AcceptAlertEventFailed)).WithError(err),
+				c.ErrMessage(code.AcceptAlertEventFailed)).WithError(err),
 			)
 			return
 		}
@@ -48,7 +48,7 @@ func (h *handler) SourceHandler() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ProcessAlertEventFailed,
-				code.Text(code.ProcessAlertEventFailed)).WithError(err),
+				c.ErrMessage(code.ProcessAlertEventFailed)).WithError(err),
 			)
 			return
 		}

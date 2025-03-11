@@ -39,7 +39,7 @@ func (h *handler) GetLogMetrics() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -55,7 +55,7 @@ func (h *handler) GetLogMetrics() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetLogMetricsError,
-				code.Text(code.GetLogMetricsError)).WithError(err),
+				c.ErrMessage(code.GetLogMetricsError)).WithError(err),
 			)
 			return
 		}

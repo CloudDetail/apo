@@ -40,7 +40,7 @@ func (h *handler) GetTraceLogs() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -56,7 +56,7 @@ func (h *handler) GetTraceLogs() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetTraceLogsError,
-				code.Text(code.GetTraceLogsError)).WithError(err),
+				c.ErrMessage(code.GetTraceLogsError)).WithError(err),
 			)
 			return
 		}

@@ -1,0 +1,12 @@
+UPDATE target_tags SET tag_name_en = 'Custom Tag', describe_en = 'Custom TAG Name' WHERE id = 0 AND tag_name_en IS NULL;
+UPDATE target_tags SET tag_name_en = 'Service Name', describe_en = 'Service Name, e.g. service in APM system' WHERE id = 1 AND tag_name_en IS NULL;
+UPDATE target_tags SET tag_name_en = 'Service Endpoint', describe_en = 'Service Interface, e.g. HTTP service URL' WHERE id = 2 AND tag_name_en IS NULL;
+UPDATE target_tags SET tag_name_en = 'Namespace', describe_en = 'K8s Namespace' WHERE id = 3 AND tag_name_en IS NULL;
+UPDATE target_tags SET tag_name_en = 'POD Name', describe_en = 'K8s Pod Name' WHERE id = 4 AND tag_name_en IS NULL;
+UPDATE target_tags SET tag_name_en = 'Hostname', describe_en = 'K8s NodeName /VM Hostname' WHERE id = 5 AND tag_name_en IS NULL;
+UPDATE target_tags SET tag_name_en = 'Process PID', describe_en = 'Process PID on Server' WHERE id = 6 AND tag_name_en IS NULL;
+UPDATE target_tags SET tag_name_en = 'Alert Type', describe_en = 'Alert Target Type, e.g. app, infra' WHERE id = 7 AND tag_name_en IS NULL;
+UPDATE target_tags SET tag_name_en = 'Database Service URL', describe_en = 'Database Service Address, e.g. host:3306' WHERE id = 8 AND tag_name_en IS NULL;
+UPDATE target_tags SET tag_name_en = 'Database Service HOST', describe_en = 'Database Service Host' WHERE id = 9 AND tag_name_en IS NULL;
+UPDATE target_tags SET tag_name_en = 'Database Service IP', describe_en = 'Database Service IP' WHERE id = 10 AND tag_name_en IS NULL;
+UPDATE target_tags SET tag_name_en = 'Database Service Port', describe_en = 'Database Service Port' WHERE id = 11 AND tag_name_en IS NULL;

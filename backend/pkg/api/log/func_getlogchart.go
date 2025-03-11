@@ -29,7 +29,7 @@ func (h *handler) GetLogChart() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -47,7 +47,7 @@ func (h *handler) GetLogChart() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetLogChartError,
-				code.Text(code.GetLogChartError)).WithError(err),
+				c.ErrMessage(code.GetLogChartError)).WithError(err),
 			)
 			return
 		}

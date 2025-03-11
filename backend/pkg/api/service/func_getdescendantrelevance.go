@@ -40,7 +40,7 @@ func (h *handler) GetDescendantRelevance() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -60,7 +60,7 @@ func (h *handler) GetDescendantRelevance() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetDescendantRelevanceError,
-				code.Text(code.GetDescendantRelevanceError)).WithError(err),
+				c.ErrMessage(code.GetDescendantRelevanceError)).WithError(err),
 			)
 			return
 		}

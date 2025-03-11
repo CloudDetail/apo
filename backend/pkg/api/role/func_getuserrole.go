@@ -4,8 +4,9 @@
 package role
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -28,7 +29,7 @@ func (h *handler) GetUserRole() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -38,7 +39,7 @@ func (h *handler) GetUserRole() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.UserGetRolesERROR,
-				code.Text(code.UserGetRolesERROR)).WithError(err))
+				c.ErrMessage(code.UserGetRolesERROR)).WithError(err))
 			return
 		}
 		c.Payload(resp)

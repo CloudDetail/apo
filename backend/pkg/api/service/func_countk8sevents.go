@@ -35,7 +35,7 @@ func (h *handler) CountK8sEvents() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -55,7 +55,7 @@ func (h *handler) CountK8sEvents() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetK8sEventError,
-				code.Text(code.GetK8sEventError)).WithError(err),
+				c.ErrMessage(code.GetK8sEventError)).WithError(err),
 			)
 			return
 		}

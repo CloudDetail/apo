@@ -35,7 +35,7 @@ func (h *handler) GetServiceInstanceOptions() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -51,7 +51,7 @@ func (h *handler) GetServiceInstanceOptions() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetServiceInstanceOptionsError,
-				code.Text(code.GetServiceInstanceListError)).WithError(err),
+				c.ErrMessage(code.GetServiceInstanceListError)).WithError(err),
 			)
 			return
 		}

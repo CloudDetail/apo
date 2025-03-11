@@ -39,7 +39,7 @@ func (h *handler) GetSQLMetrics() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -61,7 +61,7 @@ func (h *handler) GetSQLMetrics() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetSQLMetricError,
-				code.Text(code.GetSQLMetricError)).WithError(err),
+				c.ErrMessage(code.GetSQLMetricError)).WithError(err),
 			)
 			return
 		}

@@ -28,7 +28,7 @@ func (h *handler) GetAlertSourceEnrichRule() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -38,7 +38,7 @@ func (h *handler) GetAlertSourceEnrichRule() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetAlertEnrichRuleFailed,
-				code.Text(code.GetAlertEnrichRuleFailed)).WithError(err),
+				c.ErrMessage(code.GetAlertEnrichRuleFailed)).WithError(err),
 			)
 			return
 		}

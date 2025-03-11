@@ -23,13 +23,21 @@ func (m *middleware) AuthMiddleware() core.HandlerFunc {
 
 		if len(token) == 0 {
 			if !config.Get().User.AnonymousUser.Enable {
-				c.AbortWithError(core.Error(http.StatusBadRequest, code.UnAuth, code.Text(code.UnAuth)))
+				c.AbortWithError(core.Error(
+					http.StatusBadRequest,
+					code.UnAuth,
+					c.ErrMessage(code.UnAuth),
+				))
 				return
 			}
 
 			anonymousUser, err := m.userService.GetUserInfo(0)
 			if err != nil {
-				c.AbortWithError(core.Error(http.StatusBadRequest, code.AuthError, code.Text(code.AuthError)))
+				c.AbortWithError(core.Error(
+					http.StatusBadRequest,
+					code.AuthError,
+					c.ErrMessage(code.AuthError),
+				))
 				return
 			}
 
@@ -39,13 +47,21 @@ func (m *middleware) AuthMiddleware() core.HandlerFunc {
 		}
 
 		if ok, _ := m.userService.IsInBlacklist(token); ok {
-			c.AbortWithError(core.Error(http.StatusBadRequest, code.InValidToken, code.Text(code.InValidToken)))
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.InValidToken,
+				c.ErrMessage(code.InValidToken),
+			))
 			return
 		}
 
 		claims, err := util.ParseAccessToken(token)
 		if err != nil {
-			c.AbortWithError(core.Error(http.StatusBadRequest, code.InValidToken, code.Text(code.InValidToken)))
+			c.AbortWithError(core.Error(
+				http.StatusBadRequest,
+				code.InValidToken,
+				c.ErrMessage(code.InValidToken),
+			))
 			return
 		}
 

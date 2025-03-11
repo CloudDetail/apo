@@ -4,9 +4,10 @@
 package data
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"net/http"
 )
 
 // GetDatasource Gets all datasource.
@@ -26,7 +27,7 @@ func (h *handler) GetDatasource() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetDatasourceError,
-				code.Text(code.GetDatasourceError)).WithError(err))
+				c.ErrMessage(code.GetDatasourceError)).WithError(err))
 			return
 		}
 		c.Payload(resp)

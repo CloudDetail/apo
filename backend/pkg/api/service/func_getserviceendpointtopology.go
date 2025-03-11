@@ -38,7 +38,7 @@ func (h *handler) GetServiceEndpointTopology() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -58,7 +58,7 @@ func (h *handler) GetServiceEndpointTopology() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetServiceUrlTopologyError,
-				code.Text(code.GetServiceUrlTopologyError)).WithError(err),
+				c.ErrMessage(code.GetServiceUrlTopologyError)).WithError(err),
 			)
 			return
 		}

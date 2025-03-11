@@ -34,7 +34,7 @@ func (h *handler) GetFaultLogPageList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -62,7 +62,7 @@ func (h *handler) GetFaultLogPageList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetFaultLogPageListError,
-				code.Text(code.GetFaultLogPageListError)).WithError(err),
+				c.ErrMessage(code.GetFaultLogPageListError)).WithError(err),
 			)
 			return
 		}

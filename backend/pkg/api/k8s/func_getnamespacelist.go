@@ -27,7 +27,7 @@ func (h *handler) GetNamespaceList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.K8sGetResourceError,
-				code.Text(code.K8sGetResourceError)).WithError(err))
+				c.ErrMessage(code.K8sGetResourceError)).WithError(err))
 			return
 		}
 		c.Payload(resp)

@@ -4,8 +4,9 @@
 package data
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -29,7 +30,7 @@ func (h *handler) GetDataGroup() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -46,7 +47,7 @@ func (h *handler) GetDataGroup() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetDataGroupError,
-				code.Text(code.GetDataGroupError)).WithError(err))
+				c.ErrMessage(code.GetDataGroupError)).WithError(err))
 			return
 		}
 		c.Payload(resp)

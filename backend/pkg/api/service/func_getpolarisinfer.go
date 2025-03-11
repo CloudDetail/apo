@@ -36,7 +36,7 @@ func (h *handler) GetPolarisInfer() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -52,7 +52,7 @@ func (h *handler) GetPolarisInfer() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetPolarisInferError,
-				code.Text(code.GetPolarisInferError)).WithError(err),
+				c.ErrMessage(code.GetPolarisInferError)).WithError(err),
 			)
 			return
 		}

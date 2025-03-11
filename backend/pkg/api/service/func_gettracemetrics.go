@@ -39,7 +39,7 @@ func (h *handler) GetTraceMetrics() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -55,7 +55,7 @@ func (h *handler) GetTraceMetrics() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetTraceMetricsError,
-				code.Text(code.GetTraceMetricsError)).WithError(err),
+				c.ErrMessage(code.GetTraceMetricsError)).WithError(err),
 			)
 			return
 		}

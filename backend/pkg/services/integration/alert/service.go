@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -30,7 +31,7 @@ type Service interface {
 
 	ProcessAlertEvents(source alert.SourceFrom, data []byte) error
 
-	GetAlertEnrichRuleTags() ([]alert.TargetTag, error)
+	GetAlertEnrichRuleTags(ctx core.Context) ([]alert.TargetTag, error)
 
 	CreateSchema(req *alert.CreateSchemaRequest) error
 	DeleteSchema(schema string) error

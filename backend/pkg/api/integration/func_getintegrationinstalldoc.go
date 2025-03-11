@@ -28,7 +28,7 @@ func (h *handler) GetIntegrationInstallDoc() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -38,7 +38,7 @@ func (h *handler) GetIntegrationInstallDoc() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetIntegrationInstallDocFailed,
-				code.Text(code.GetIntegrationInstallDocFailed)+err.Error()).WithError(err),
+				c.ErrMessage(code.GetIntegrationInstallDocFailed)+err.Error()).WithError(err),
 			)
 			return
 		}

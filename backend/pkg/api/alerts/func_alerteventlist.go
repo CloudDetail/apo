@@ -29,7 +29,7 @@ func (h *handler) AlertEventList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -39,7 +39,7 @@ func (h *handler) AlertEventList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetAlertEventListError,
-				code.Text(code.GetAlertEventListError)).WithError(err),
+				c.ErrMessage(code.GetAlertEventListError)).WithError(err),
 			)
 			return
 		}

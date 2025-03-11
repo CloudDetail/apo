@@ -69,7 +69,7 @@ func NewTagEnricher(
 		}
 	}
 
-	targetTags, err := dbRepo.ListAlertTargetTags()
+	targetTags, err := dbRepo.ListAlertTargetTags("")
 	if err != nil {
 		return nil, err
 	}

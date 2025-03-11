@@ -4,9 +4,10 @@
 package serviceoverview
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -36,7 +37,7 @@ func (h *handler) GetServiceMoreUrlList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -56,7 +57,7 @@ func (h *handler) GetServiceMoreUrlList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetServiceMoreUrlListError,
-				code.Text(code.GetServiceMoreUrlListError)).WithError(err),
+				c.ErrMessage(code.GetServiceMoreUrlListError)).WithError(err),
 			)
 			return
 		}

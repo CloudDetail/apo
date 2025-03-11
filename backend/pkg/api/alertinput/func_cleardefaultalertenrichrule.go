@@ -28,7 +28,7 @@ func (h *handler) ClearDefaultAlertEnrichRule() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -38,7 +38,7 @@ func (h *handler) ClearDefaultAlertEnrichRule() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ClearDefaultAlertEnrichRuleFailed,
-				code.Text(code.ClearDefaultAlertEnrichRuleFailed)).WithError(err),
+				c.ErrMessage(code.ClearDefaultAlertEnrichRuleFailed)).WithError(err),
 			)
 		}
 		c.Payload("ok")

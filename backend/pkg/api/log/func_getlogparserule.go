@@ -30,7 +30,7 @@ func (h *handler) GetLogParseRule() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -39,7 +39,7 @@ func (h *handler) GetLogParseRule() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetLogParseRuleError,
-				code.Text(code.GetLogParseRuleError)+err.Error()).WithError(err),
+				c.ErrMessage(code.GetLogParseRuleError)+err.Error()).WithError(err),
 			)
 			return
 		}

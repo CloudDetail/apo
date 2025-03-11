@@ -30,7 +30,7 @@ func (h *handler) GetAlertRuleFile() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -40,7 +40,7 @@ func (h *handler) GetAlertRuleFile() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetAlertRuleError,
-				code.Text(code.GetAlertRuleError)).WithError(err),
+				c.ErrMessage(code.GetAlertRuleError)).WithError(err),
 			)
 			return
 		}

@@ -33,7 +33,7 @@ func (h *handler) GetPodMap() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -48,7 +48,7 @@ func (h *handler) GetPodMap() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ServerError,
-				code.Text(code.ServerError)).WithError(err),
+				c.ErrMessage(code.ServerError)).WithError(err),
 			)
 			return
 		}
