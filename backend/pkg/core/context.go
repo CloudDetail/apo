@@ -248,11 +248,7 @@ func (c *context) LANGFromParam(param string) string {
 		return code.LANG_ZH
 	}
 
-	lang := c.GetHeader("APO-Language")
-	if strings.HasPrefix(strings.ToLower(lang), code.LANG_EN) {
-		return code.LANG_EN
-	}
-	return code.LANG_ZH
+	return c.LANG()
 }
 
 func (c *context) ErrMessage(errCode string) string {
