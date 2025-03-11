@@ -28,7 +28,7 @@ func (h *handler) UpdateSchemaData() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -38,7 +38,7 @@ func (h *handler) UpdateSchemaData() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.UpdateSchemaDataFailed,
-				code.Text(code.UpdateSchemaDataFailed)).WithError(err),
+				c.ErrMessage(code.UpdateSchemaDataFailed)).WithError(err),
 			)
 			return
 		}

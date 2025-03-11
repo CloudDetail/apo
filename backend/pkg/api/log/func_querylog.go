@@ -29,7 +29,7 @@ func (h *handler) QueryLog() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -53,7 +53,7 @@ func (h *handler) QueryLog() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.QueryLogError,
-				code.Text(code.QueryLogError)).WithError(err),
+				c.ErrMessage(code.QueryLogError)).WithError(err),
 			)
 			return
 		}

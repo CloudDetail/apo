@@ -29,7 +29,7 @@ func (h *handler) UpdateAlertSourceEnrichRule() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -42,7 +42,7 @@ func (h *handler) UpdateAlertSourceEnrichRule() core.HandlerFunc {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.AlertSourceNotExisted,
-					code.Text(code.AlertSourceNotExisted)).WithError(err),
+					c.ErrMessage(code.AlertSourceNotExisted)).WithError(err),
 				)
 				return
 			}
@@ -50,7 +50,7 @@ func (h *handler) UpdateAlertSourceEnrichRule() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.UpdateAlertEnrichRuleFailed,
-				code.Text(code.UpdateAlertEnrichRuleFailed)).WithError(err),
+				c.ErrMessage(code.UpdateAlertEnrichRuleFailed)).WithError(err),
 			)
 			return
 		}

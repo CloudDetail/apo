@@ -5,9 +5,10 @@ package user
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -37,7 +38,7 @@ func (h *handler) CreateUser() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -45,7 +46,7 @@ func (h *handler) CreateUser() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.UserConfirmPasswordError,
-				code.Text(code.UserConfirmPasswordError)),
+				c.ErrMessage(code.UserConfirmPasswordError)),
 			)
 			return
 		}
@@ -54,7 +55,8 @@ func (h *handler) CreateUser() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.UserPhoneFormatError,
-				code.Text(code.UserPhoneFormatError)))
+				c.ErrMessage(code.UserPhoneFormatError),
+			))
 			return
 		}
 
@@ -65,13 +67,13 @@ func (h *handler) CreateUser() core.HandlerFunc {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					vErr.Code,
-					code.Text(vErr.Code),
+					c.ErrMessage(vErr.Code),
 				).WithError(err))
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.UserCreateError,
-					code.Text(code.UserCreateError),
+					c.ErrMessage(code.UserCreateError),
 				).WithError(err))
 			}
 			return

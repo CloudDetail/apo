@@ -32,7 +32,7 @@ func (h *handler) GetServiceRoute() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -49,7 +49,7 @@ func (h *handler) GetServiceRoute() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetServiceRouteError,
-				code.Text(code.GetServiceRouteError)+err.Error()).WithError(err),
+				c.ErrMessage(code.GetServiceRouteError)+err.Error()).WithError(err),
 			)
 			return
 		}

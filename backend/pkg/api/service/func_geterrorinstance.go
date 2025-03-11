@@ -39,7 +39,7 @@ func (h *handler) GetErrorInstance() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -58,7 +58,7 @@ func (h *handler) GetErrorInstance() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetErrorInstanceError,
-				code.Text(code.GetErrorInstanceError)).WithError(err),
+				c.ErrMessage(code.GetErrorInstanceError)).WithError(err),
 			)
 			return
 		}

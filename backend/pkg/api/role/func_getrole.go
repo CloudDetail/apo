@@ -4,9 +4,10 @@
 package role
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"net/http"
 )
 
 // GetRole Gets all roles.
@@ -27,7 +28,8 @@ func (h *handler) GetRole() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.UserGetRolesERROR,
-				code.Text(code.UserGetRolesERROR)))
+				c.ErrMessage(code.UserGetRolesERROR),
+			))
 		}
 		c.Payload(resp)
 	}

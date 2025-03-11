@@ -31,7 +31,7 @@ func (h *handler) UpdateAlertManagerConfigReceiver() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -43,13 +43,13 @@ func (h *handler) UpdateAlertManagerConfigReceiver() core.HandlerFunc {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					vErr.Code,
-					code.Text(vErr.Code),
+					c.ErrMessage(vErr.Code),
 				).WithError(err))
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.UpdateAMConfigReceiverError,
-					code.Text(code.UpdateAMConfigReceiverError),
+					c.ErrMessage(code.UpdateAMConfigReceiverError),
 				).WithError(err))
 			}
 			return

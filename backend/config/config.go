@@ -59,9 +59,6 @@ type Config struct {
 
 		MetadataSettings MetadataSettings `mapstructure:"metadata_settings"`
 	} `mapstructure:"kubernetes"`
-	Language struct {
-		Local string `mapstructure:"local"`
-	} `mapstructure:"language"`
 	MetaServer struct {
 		Enable           bool                     `mapstructure:"enable"`
 		MetaSourceConfig configs.MetaSourceConfig `mapstructure:"meta_source_config"`

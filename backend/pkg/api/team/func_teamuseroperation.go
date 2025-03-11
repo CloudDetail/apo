@@ -5,9 +5,10 @@ package team
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -32,7 +33,7 @@ func (h *handler) TeamUserOperation() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -44,13 +45,13 @@ func (h *handler) TeamUserOperation() core.HandlerFunc {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					vErr.Code,
-					code.Text(vErr.Code)).WithError(err),
+					c.ErrMessage(vErr.Code)).WithError(err),
 				)
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.AssignToTeamError,
-					code.Text(code.AssignToTeamError)).WithError(err),
+					c.ErrMessage(code.AssignToTeamError)).WithError(err),
 				)
 			}
 			return

@@ -39,7 +39,7 @@ func (h *handler) GetServiceEndpointRelation() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -59,7 +59,7 @@ func (h *handler) GetServiceEndpointRelation() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetServiceUrlRelationError,
-				code.Text(code.GetServiceUrlRelationError)).WithError(err),
+				c.ErrMessage(code.GetServiceUrlRelationError)).WithError(err),
 			)
 			return
 		}

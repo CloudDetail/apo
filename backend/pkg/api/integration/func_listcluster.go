@@ -27,7 +27,7 @@ func (h *handler) ListCluster() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ListClusterFailed,
-				code.Text(code.ListClusterFailed)).WithError(err),
+				c.ErrMessage(code.ListClusterFailed)).WithError(err),
 			)
 			return
 		}

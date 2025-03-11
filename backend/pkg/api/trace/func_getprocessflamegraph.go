@@ -34,7 +34,7 @@ func (h *handler) GetProcessFlameGraph() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -44,7 +44,7 @@ func (h *handler) GetProcessFlameGraph() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetFlameGraphError,
-				code.Text(code.GetFlameGraphError)).WithError(err),
+				c.ErrMessage(code.GetFlameGraphError)).WithError(err),
 			)
 			return
 		}

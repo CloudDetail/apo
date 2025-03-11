@@ -36,7 +36,7 @@ func (h *handler) SetThreshold() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -52,7 +52,7 @@ func (h *handler) SetThreshold() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.SetThresholdError,
-				code.Text(code.SetThresholdError)).WithError(err),
+				c.ErrMessage(code.SetThresholdError)).WithError(err),
 			)
 			return
 		}

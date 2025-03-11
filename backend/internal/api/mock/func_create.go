@@ -28,7 +28,7 @@ func (h *handler) Create() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -38,7 +38,7 @@ func (h *handler) Create() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.MockCreateError,
-				code.Text(code.MockCreateError)).WithError(err),
+				c.ErrMessage(code.MockCreateError)).WithError(err),
 			)
 			return
 		}

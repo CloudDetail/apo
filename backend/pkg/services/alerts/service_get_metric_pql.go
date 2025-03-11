@@ -4,12 +4,12 @@
 package alerts
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetMetricPQL(req *request.GetMetricPQLRequest) (*response.GetMetricPQLResponse, error) {
-	alertMetrics, err := s.dbRepo.ListQuickAlertRuleMetric(req.Language)
+func (s *service) GetMetricPQL(ctx core.Context) (*response.GetMetricPQLResponse, error) {
+	alertMetrics, err := s.dbRepo.ListQuickAlertRuleMetric(ctx.LANG())
 	if err != nil {
 		return nil, err
 	}

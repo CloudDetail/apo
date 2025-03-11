@@ -30,7 +30,7 @@ func (h *handler) GetNamespaceList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -40,7 +40,7 @@ func (h *handler) GetNamespaceList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetNamespaceListError,
-				code.Text(code.GetNamespaceListError)).WithError(err),
+				c.ErrMessage(code.GetNamespaceListError)).WithError(err),
 			)
 			return
 		}
