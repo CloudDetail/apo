@@ -31,8 +31,8 @@ func (repo *daoRepo) initRouterPage() error {
 			{url: "grafana/d/3ab420aae391a1/originx-polaris-metrics", language: "en"},
 		},
 		"/middleware-dashboard": {
-			{url: "grafana/dashboards/f/edwu5b9rkv94wb-zh/", language: "zh"},
-			{url: "grafana/dashboards/f/edwu5b9rkv94wb-en/", language: "en"},
+			{url: "grafana/d/ae3aqpssill34f/e69c8d-e58aa1-e8b083-e794a8-e4b8ad-e997b4-e4bbb6", language: "zh"},
+			{url: "grafana/d/05afd511b2fe54/service-middleware-metrics", language: "en"},
 		},
 		"/trace/full": {
 			{url: "jaeger/search", language: "zh"},
