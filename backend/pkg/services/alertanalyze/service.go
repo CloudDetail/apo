@@ -1,6 +1,7 @@
 package alertanalyze
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -36,7 +37,7 @@ type Service interface {
 	SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDeltaEventRequest) (*response.GetDescendantDeltaAnormalEventResponse, error)
 
 	// 获取预定义的检测表达式
-	DetectDefectsOptions() (*response.GetPredefinedDetectExprResponse, error)
+	DetectDefectsOptions(ctx core.Context) (*response.GetPredefinedDetectExprResponse, error)
 
 	// 缺陷检测
 	DetectDefects(req *request.DetectMutationRequest) error

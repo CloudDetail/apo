@@ -18,7 +18,7 @@ import (
 // @Router /api/alerts/detect/mutation/metrics [get]
 func (h *handler) GetPredefinedDetectExpr() core.HandlerFunc {
 	return func(c core.Context) {
-		resp, err := h.alertanalyzeService.DetectDefectsOptions()
+		resp, err := h.alertanalyzeService.DetectDefectsOptions(c)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

@@ -39,7 +39,7 @@ type Repo interface {
 	DeleteDingTalkReceiver(configFile, alertName string) error
 
 	ListQuickAlertRuleMetric(lang string) ([]AlertMetricsData, error)
-	ListQuickMutationMetric() ([]QuickMutationMetric, error)
+	ListQuickMutationMetric(lang string) ([]QuickMutationMetric, error)
 
 	Login(username, password string) (*User, error)
 	CreateUser(ctx context.Context, user *User) error

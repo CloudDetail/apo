@@ -1,5 +1,7 @@
 package database
 
+import "strings"
+
 type QuickMutationMetric struct {
 	Id int `json:"-" gorm:"primaryKey;autoIncrement"`
 
@@ -28,8 +30,42 @@ func (QuickMutationMetric) TableName() string {
 }
 
 // ListQuickMutationMetric 列出所有的快速指标
-func (repo *daoRepo) ListQuickMutationMetric() ([]QuickMutationMetric, error) {
+func (repo *daoRepo) ListQuickMutationMetric(lang string) ([]QuickMutationMetric, error) {
 	var quickMutationMetrics []QuickMutationMetric
-	err := repo.db.Find(&quickMutationMetrics).Error
+	err := repo.db.Model(&QuickMutationMetric{}).
+		Select(getQuickMutationName(lang), getQuickMutationDescribe(lang), getQuickMutationGroup(lang),
+			"custom_metric", "metric_template", "range_vector", "scale", "quantile", "day_on_day", "week_on_week", "compare_group",
+		).
+		Scan(&quickMutationMetrics).Error
 	return quickMutationMetrics, err
+}
+
+func getQuickMutationName(lang string) string {
+	if strings.HasPrefix(lang, "en") { // en_US,en
+		return "name_en AS 'name'"
+	}
+	// if strings.HasPrefix(lang, "zh") { // zh_CN,zh
+	// 	return "name"
+	// }
+	return "name"
+}
+
+func getQuickMutationDescribe(lang string) string {
+	if strings.HasPrefix(lang, "en") { // en_US,en
+		return "describe_en AS 'describe'"
+	}
+	// if strings.HasPrefix(lang, "zh") { // zh_CN,zh
+	// 	return "name"
+	// }
+	return "'describe'"
+}
+
+func getQuickMutationGroup(lang string) string {
+	if strings.HasPrefix(lang, "en") { // en_US,en
+		return "group_en AS 'group'"
+	}
+	// if strings.HasPrefix(lang, "zh") { // zh_CN,zh
+	// 	return "name"
+	// }
+	return "'group'"
 }
