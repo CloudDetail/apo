@@ -44,7 +44,7 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -58,7 +58,7 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetAlertEventsError,
-				code.Text(code.GetAlertEventsError)).WithError(err),
+				c.ErrMessage(code.GetAlertEventsError)).WithError(err),
 			)
 			return
 		}

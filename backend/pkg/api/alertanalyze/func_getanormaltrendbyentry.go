@@ -28,7 +28,7 @@ func (h *handler) GetAnormalTrendByEntry() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -40,14 +40,14 @@ func (h *handler) GetAnormalTrendByEntry() core.HandlerFunc {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.MutationPQLCheckFailed,
-					code.Text(code.MutationPQLCheckFailed),
+					c.ErrMessage(code.MutationPQLCheckFailed),
 				).WithError(err))
 				return
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.AlertAnalyzeDescendantAnormalEventDeltaError,
-					code.Text(code.AlertAnalyzeDescendantAnormalEventDeltaError),
+					c.ErrMessage(code.AlertAnalyzeDescendantAnormalEventDeltaError),
 				).WithError(err))
 				return
 			}

@@ -306,7 +306,7 @@ if err != nil {
     c.AbortWithError(core.Error(
         http.StatusBadRequest,
         code.UserCreateError,
-        code.Text(code.UserCreateError)).WithError(err),
+        c.ErrMessage(code.UserCreateError)).WithError(err),
     )
     return
 }

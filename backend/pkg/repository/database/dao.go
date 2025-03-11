@@ -190,8 +190,7 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	}
 
 	// 检查并初始化预设快速突变检测指标表
-	err = daoRepo.InitPredefinedQuickMutationMetric("")
-	if err != nil {
+	if err = driver.InitSQL(daoRepo.db, &QuickMutationMetric{}); err != nil {
 		return nil, err
 	}
 	if err = driver.InitSQL(daoRepo.db, &AlertMetricsData{}); err != nil {

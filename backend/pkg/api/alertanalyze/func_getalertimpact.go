@@ -35,7 +35,7 @@ func (h *handler) GetAlertImpact() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -50,14 +50,14 @@ func (h *handler) GetAlertImpact() core.HandlerFunc {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.AlertEventImpactMissingTag,
-					code.Text(code.AlertEventImpactMissingTag)+vErr.CheckedTagGroups()).WithError(err),
+					c.ErrMessage(code.AlertEventImpactMissingTag)+vErr.CheckedTagGroups()).WithError(err),
 				)
 				return
 			} else if errors.As(err, &vErr2) {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.AlertEventImpactNoMatchedService,
-					code.Text(code.AlertEventImpactNoMatchedService)+vErr2.CheckedTagGroup()).WithError(err),
+					c.ErrMessage(code.AlertEventImpactNoMatchedService)+vErr2.CheckedTagGroup()).WithError(err),
 				)
 				return
 			} else {
@@ -65,7 +65,7 @@ func (h *handler) GetAlertImpact() core.HandlerFunc {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.AlertEventImpactError,
-					code.Text(code.AlertEventImpactError)).WithError(err),
+					c.ErrMessage(code.AlertEventImpactError)).WithError(err),
 				)
 				return
 			}
@@ -78,7 +78,7 @@ func (h *handler) GetAlertImpact() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.AlertEventImpactError,
-				code.Text(code.AlertEventImpactError)).WithError(err),
+				c.ErrMessage(code.AlertEventImpactError)).WithError(err),
 			)
 			return
 		}

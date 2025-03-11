@@ -23,7 +23,7 @@ func (h *handler) GetPredefinedDetectExpr() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetQuickMutationMetricError,
-				code.Text(code.GetQuickMutationMetricError)).WithError(err),
+				c.ErrMessage(code.GetQuickMutationMetricError)).WithError(err),
 			)
 			return
 		}

@@ -1,8 +1,9 @@
 package alertanalyze
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -26,7 +27,7 @@ func (h *handler) GetDefectDetectExecList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -40,7 +41,7 @@ func (h *handler) GetDefectDetectExecList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetDetectMutationExecListError,
-				code.Text(code.GetDetectMutationExecListError)).WithError(err))
+				c.ErrMessage(code.GetDetectMutationExecListError)).WithError(err))
 			return
 		}
 		c.Payload(resp)
