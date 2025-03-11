@@ -38,7 +38,6 @@ UPDATE quick_alert_rule_metric SET name_en = 'Container Memory Usage (Usage)' WH
 UPDATE quick_alert_rule_metric SET name_en = 'Container Memory Usage (Working Set)' WHERE name = '容器 memory 使用率(Working Set)' AND name_en IS NULL;
 UPDATE quick_alert_rule_metric SET name_en = 'Container Memory Used (mapped_file)' WHERE name = '容器 memory 使用量(mapped_file)' AND name_en IS NULL;
 UPDATE quick_alert_rule_metric SET name_en = 'Container Memory Used (RSS)' WHERE name = '容器 memory 使用量(RSS)' AND name_en IS NULL;
-UPDATE quick_alert_rule_metric SET name_en = 'Container Memory Used (RSS)' WHERE name = '容器 memory 使用量(RSS)' AND name_en IS NULL;
 UPDATE quick_alert_rule_metric SET name_en = 'Container Memory Used (Swap)' WHERE name = '容器 memory 使用量(Swap)' AND name_en IS NULL;
 UPDATE quick_alert_rule_metric SET name_en = 'Container Memory Used (Usage)' WHERE name = '容器 memory 使用量(Usage)' AND name_en IS NULL;
 UPDATE quick_alert_rule_metric SET name_en = 'Container Memory Used (Working Set)' WHERE name = '容器 memory 使用量(Working Set)' AND name_en IS NULL;

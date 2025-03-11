@@ -39,7 +39,6 @@ INSERT INTO quick_alert_rule_metric (name_en,name,pql,unit,"group") VALUES
 	('Container Memory Usage (Working Set)','容器 memory 使用率(Working Set)','100 * container_memory_working_set_bytes/container_spec_memory_limit_bytes and container_spec_memory_limit_bytes != 0','%','container'),
 	('Container Memory Used (mapped_file)','容器 memory 使用量(mapped_file)','container_memory_mapped_file{image!="", image!~".*pause.*"}','byte','container'),
 	('Container Memory Used (RSS)','容器 memory 使用量(RSS)','container_memory_rss{image!="", image!~".*pause.*"}','byte','container'),
-	('Container Memory Used (RSS)','容器 memory 使用量(RSS)','','byte','container'),
 	('Container Memory Used (Swap)','容器 memory 使用量(Swap)','container_memory_swap{image!="", image!~".*pause.*"}','byte','container'),
 	('Container Memory Used (Usage)','容器 memory 使用量(Usage)','container_memory_usage_bytes{image!="", image!~".*pause.*"}','byte','container'),
 	('Container Memory Used (Working Set)','容器 memory 使用量(Working Set)','container_memory_working_set_bytes{image!="", image!~".*pause.*"}','byte','container'),
