@@ -8,6 +8,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 // GetMetricPQL get metrics and PQL in alarm rules
@@ -22,7 +23,9 @@ import (
 // @Router /api/alerts/rule/metrics [get]
 func (h *handler) GetMetricPQL() core.HandlerFunc {
 	return func(c core.Context) {
-		resp, err := h.alertService.GetMetricPQL()
+		req := new(request.GetMetricPQLRequest)
+		_ = c.ShouldBindQuery(&req)
+		resp, err := h.alertService.GetMetricPQL(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
