@@ -15,6 +15,7 @@ import DateTimeCombine from './DateTime/DateTimeCombine'
 import { Menu } from 'antd'
 import { commercialNav } from 'src/_nav'
 import UserToolBox from './UserToolBox'
+import { t } from 'i18next'
 
 const AppHeader = ({ type = 'default' }) => {
   const location = useLocation()
@@ -77,7 +78,7 @@ const AppHeader = ({ type = 'default' }) => {
           <div className="flex items-center">
             <div className="h-[50px] flex overflow-hidden items-center mr-5">
               <CImage src={logo} className="w-[42px] sidebar-brand-narrow flex-shrink-0 mx-3" />
-              <span className="flex-shrink-0 text-lg">向导式可观测平台</span>
+              <span className="flex-shrink-0 text-lg">{t('common:apoTitle')}</span>
             </div>
             {commercialNav.map((item) => (
               <div
