@@ -79,7 +79,7 @@ var GroupsENLabel = map[string]string{
 	MutationNetLabelKey:        MutationNetLabelValEN,
 	MutationContainerLabelKey:  MutationContainerLabelValEN,
 	MutationMiddlewareLabelKey: MutationMiddlewareLabelValEN,
-	MutationCustomLabelKey:     MutationCustomLabelVal,
+	MutationCustomLabelKey:     MutationCustomLabelValEN,
 }
 
 var reversedGroupsLabel = map[string]string{

@@ -174,6 +174,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
     },
     brush: {
       toolbox: ['lineX'],
+      xAxisIndex: 'all',
       brushStyle: {
         borderWidth: 1,
         color: 'rgba(120,140,180,0.3)',
@@ -240,6 +241,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
   }, [data])
   const onChartReady = (chart) => {
     setTimeout(() => {
+      console.log('test', chart)
       chart.dispatchAction({
         type: 'takeGlobalCursor',
         key: 'brush',
