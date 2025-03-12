@@ -1,5 +1,54 @@
 basePath: /
 definitions:
+  alert.AEventWithWRecord:
+    properties:
+      alertId:
+        type: string
+      createTime:
+        type: string
+      detail:
+        type: string
+      endTime:
+        type: string
+      enrichTags:
+        additionalProperties:
+          type: string
+        type: object
+      group:
+        type: string
+      id:
+        type: string
+      isValid:
+        type: string
+      name:
+        type: string
+      receivedTime:
+        type: string
+      severity:
+        type: string
+      source:
+        type: string
+      sourceId:
+        type: string
+      status:
+        type: string
+      tags:
+        additionalProperties: {}
+        description: |-
+          HACK the existing clickhouse query uses `tags` as the filter field
+          so enrichTags in ch is named as 'tags' to filter new alertInput
+        type: object
+      updateTime:
+        type: string
+      workflowId:
+        type: string
+      workflowName:
+        type: string
+      workflowParams:
+        $ref: '#/definitions/alert.WorkflowParams'
+      workflowRunId:
+        type: string
+    type: object
   alert.AlerEnrichRuleConfigRequest:
     properties:
       enrichRuleConfigs:
@@ -229,6 +278,19 @@ definitions:
             type: string
           type: array
         type: object
+    type: object
+  alert.WorkflowParams:
+    properties:
+      endTime:
+        type: integer
+      nodeIp:
+        type: string
+      nodeName:
+        type: string
+      params:
+        type: string
+      startTime:
+        type: integer
     type: object
   amconfig.DingTalkConfig:
     properties:
@@ -1207,6 +1269,85 @@ definitions:
       username:
         type: string
     type: object
+  metric.Labels:
+    additionalProperties:
+      type: string
+    type: object
+  metric.QueryInfo:
+    properties:
+      describe:
+        description: 描述
+        type: string
+      id:
+        type: integer
+      params:
+        description: Targets []Target `json:"targets"` // 目标列表
+        items:
+          type: string
+        type: array
+      title:
+        description: 查询标题
+        type: string
+      unit:
+        description: 单位
+        type: string
+    type: object
+  metric.QueryMetricsRequest:
+    properties:
+      endTime:
+        type: integer
+      metricIDs:
+        items:
+          type: integer
+        type: array
+      metricName:
+        type: string
+      metricNames:
+        items:
+          type: string
+        type: array
+      params:
+        additionalProperties:
+          type: string
+        type: object
+      startTime:
+        type: integer
+      step:
+        type: integer
+    type: object
+  metric.QueryMetricsResult:
+    properties:
+      msg:
+        type: string
+      result:
+        $ref: '#/definitions/metric.QueryResult'
+      results:
+        items:
+          $ref: '#/definitions/metric.QueryResult'
+        type: array
+    type: object
+  metric.QueryResult:
+    properties:
+      timeseries:
+        items:
+          $ref: '#/definitions/metric.Timeseries'
+        type: array
+      title:
+        type: string
+      unit:
+        type: string
+    type: object
+  metric.Timeseries:
+    properties:
+      chart:
+        $ref: '#/definitions/response.TempChartObject'
+      labels:
+        $ref: '#/definitions/metric.Labels'
+      legend:
+        type: string
+      legendFormat:
+        type: string
+    type: object
   model.AlertDetail:
     properties:
       alertMessage:
@@ -1420,6 +1561,30 @@ definitions:
         type: string
       status:
         type: string
+    type: object
+  request.AlertEventSearchFilter:
+    properties:
+      namespaces:
+        items:
+          type: string
+        type: array
+      nodes:
+        items:
+          type: string
+        type: array
+    type: object
+  request.AlertEventSearchRequest:
+    properties:
+      endTime:
+        type: integer
+      filter:
+        $ref: '#/definitions/request.AlertEventSearchFilter'
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+      sortBy:
+        type: string
+      startTime:
+        type: integer
     type: object
   request.AlertRule:
     properties:
@@ -2112,6 +2277,19 @@ definitions:
     properties:
       error:
         type: string
+    type: object
+  response.AlertEventSearchResponse:
+    properties:
+      alertCheckId:
+        type: string
+      alertEventAnalyzeWorkflowId:
+        type: string
+      events:
+        items:
+          $ref: '#/definitions/alert.AEventWithWRecord'
+        type: array
+      pagination:
+        $ref: '#/definitions/model.Pagination'
     type: object
   response.CheckAlertRuleResponse:
     properties:
@@ -4041,6 +4219,30 @@ paths:
       summary: list alarm notification objects
       tags:
       - API.alerts
+  /api/alerts/events/list:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.AlertEventSearchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AlertEventSearchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
   /api/alerts/inputs/alertmanager:
     post:
       consumes:
@@ -5594,6 +5796,49 @@ paths:
       summary: get log table information
       tags:
       - API.log
+  /api/metric/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/metric.QueryInfo'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.metric
+  /api/metric/query:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/metric.QueryMetricsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/metric.QueryMetricsResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.metric
   /api/mock:
     get:
       consumes:

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/prometheus/common/model"
 )
 
 type PreDefinedMetrics struct {
@@ -110,10 +109,12 @@ type QueryResult struct {
 	Timeseries []Timeseries `json:"timeseries"`
 }
 
+type Labels = map[string]string
+
 type Timeseries struct {
-	Legend       string       `json:"legend"`
-	LegendFormat string       `json:"legendFormat"`
-	Labels       model.Metric `json:"labels"`
+	Legend       string `json:"legend"`
+	LegendFormat string `json:"legendFormat"`
+	Labels       Labels `json:"labels"`
 
 	// Values []model.SamplePair `json:"values"`
 

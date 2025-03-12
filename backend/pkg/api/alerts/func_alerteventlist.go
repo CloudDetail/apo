@@ -17,9 +17,8 @@ import (
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// TODO 下面的请求参数类型和返回类型需根据实际需求进行变更
-// @Param Request body request.alertEventListRequest true "请求信息"
-// @Success 200 {object} response.alertEventListResponse
+// @Param Request body request.AlertEventSearchRequest true "请求信息"
+// @Success 200 {object} response.AlertEventSearchResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/events/list [post]
 func (h *handler) AlertEventList() core.HandlerFunc {
