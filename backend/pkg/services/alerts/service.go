@@ -33,7 +33,7 @@ type Service interface {
 	UpdateAlertRuleFile(req *request.UpdateAlertRuleConfigRequest) error
 
 	// AlertRule Options
-	GetGroupList() response.GetGroupListResponse
+	GetGroupList(ctx core.Context) response.GetGroupListResponse
 	GetMetricPQL(ctx core.Context) (*response.GetMetricPQLResponse, error)
 
 	// AlertRule CRUD

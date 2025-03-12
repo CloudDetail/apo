@@ -4,14 +4,21 @@
 package alerts
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 )
 
-func (s *service) GetGroupList() response.GetGroupListResponse {
-	resp := response.GetGroupListResponse{
-		GroupsLabel: kubernetes.GroupsLabel,
-	}
+func (s *service) GetGroupList(ctx core.Context) response.GetGroupListResponse {
 
-	return resp
+	if ctx.LANG() == code.LANG_ZH {
+		return response.GetGroupListResponse{
+			GroupsLabel: kubernetes.GroupsCNLabel,
+		}
+	} else {
+		return response.GetGroupListResponse{
+			GroupsLabel: kubernetes.GroupsENLabel,
+		}
+	}
 }
