@@ -3,7 +3,7 @@
   "dataAndRules": "Data and Rules Explanation",
   "confirmRootCause": "Confirm Root Cause Node, View Data",
   "notConfigured": "The large language model API access permission has not been configured yet. Please refer to",
-  "configurationGuide": "Large Language Model Access Manual",
+  "configurationGuide": " Large Language Model Access Manual ",
   "configureNow": "to configure it.",
   "hint": {
     "aiRootCauseAnalysis": "AI Root Cause Analysis performs the following tasks:",

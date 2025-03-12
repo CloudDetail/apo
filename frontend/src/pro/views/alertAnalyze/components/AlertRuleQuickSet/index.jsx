@@ -202,10 +202,14 @@ const AlertRuleQuickSet = ({ modalVisibility, closeModal }) => {
             </Form.Item>
           </div>
           <Card title={t(`${i18nKey}.detectionStatement`)} className="detection-card">
-            <Flex vertical>
-              <p className="form-label">
-                <span className="required">*</span> {t(`${i18nKey}.alertMetric`)}
-              </p>
+            <Form.Item
+              layout="vertical"
+              label={
+                <p className="form-label">
+                  <span className="required">*</span> {t(`${i18nKey}.alertMetric`)}
+                </p>
+              }
+            >
               <Select
                 maxCount={1}
                 placeholder={t(`${i18nKey}.selectMetric`)}
@@ -213,24 +217,32 @@ const AlertRuleQuickSet = ({ modalVisibility, closeModal }) => {
                 style={{ width: '100%', marginBottom: '20px' }}
                 onSelect={handleChange}
               />
-              <Form.Item
-                name="mutationCheckPQL"
-                layout="vertical"
-                rules={[
-                  {
-                    required: true,
-                    message: t(`${i18nKey}.selectQuickMetric`),
-                  },
-                ]}
-              >
-                <TextArea />
-              </Form.Item>
-            </Flex>
-            <Flex vertical>
-              <p className="form-label">
-                {t(`${i18nKey}.upperThreshold`)}
-                <span className="threshold-hint"> {t(`${i18nKey}.upperThresholdHint`)}</span>
-              </p>
+            </Form.Item>
+            <Form.Item
+              name="mutationCheckPQL"
+              layout="vertical"
+              className="pt-4 pb-5"
+              rules={[
+                {
+                  required: true,
+                  message: t(`${i18nKey}.selectQuickMetric`),
+                },
+              ]}
+            >
+              <TextArea />
+            </Form.Item>
+            <Form.Item
+              layout="vertical"
+              label={
+                <p className="form-label">
+                  {t(`${i18nKey}.upperThreshold`)}
+                  <span className="text-xs text-gray-400">
+                    {' '}
+                    {t(`${i18nKey}.upperThresholdHint`)}
+                  </span>
+                </p>
+              }
+            >
               <Select
                 maxCount={1}
                 placeholder={t(`${i18nKey}.selectMetric`)}
@@ -238,15 +250,22 @@ const AlertRuleQuickSet = ({ modalVisibility, closeModal }) => {
                 style={{ width: '100%', marginBottom: '20px' }}
                 onSelect={handleChangeUpper}
               />
-              <Form.Item name="mutationUpperLimit" layout="vertical">
-                <TextArea />
-              </Form.Item>
-            </Flex>
-            <Flex vertical>
-              <p className="form-label">
-                {t(`${i18nKey}.lowerThreshold`)}
-                <span className="threshold-hint"> {t(`${i18nKey}.lowerThresholdHint`)}</span>
-              </p>
+            </Form.Item>
+            <Form.Item name="mutationUpperLimit" layout="vertical" className="pt-4 pb-5">
+              <TextArea />
+            </Form.Item>
+            <Form.Item
+              layout="vertical"
+              label={
+                <p className="form-label">
+                  {t(`${i18nKey}.lowerThreshold`)}
+                  <span className="text-xs text-gray-400">
+                    {' '}
+                    {t(`${i18nKey}.lowerThresholdHint`)}
+                  </span>
+                </p>
+              }
+            >
               <Select
                 maxCount={1}
                 placeholder={t(`${i18nKey}.selectMetric`)}
@@ -254,10 +273,10 @@ const AlertRuleQuickSet = ({ modalVisibility, closeModal }) => {
                 style={{ width: '100%', marginBottom: '20px' }}
                 onSelect={handleChangeLower}
               />
-              <Form.Item name="mutationLowerLimit" layout="vertical">
-                <TextArea />
-              </Form.Item>
-            </Flex>
+            </Form.Item>
+            <Form.Item name="mutationLowerLimit" layout="vertical" className="pt-4 pb-5">
+              <TextArea />
+            </Form.Item>
           </Card>
           <Form.Item
             name="synchronizeToAlertRules"
