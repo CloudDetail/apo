@@ -42,30 +42,30 @@ func (repo *daoRepo) ListQuickMutationMetric(lang string) ([]QuickMutationMetric
 
 func getQuickMutationName(lang string) string {
 	if strings.HasPrefix(lang, "en") { // en_US,en
-		return "name_en AS 'name'"
+		return "name_en AS `name`"
 	}
 	// if strings.HasPrefix(lang, "zh") { // zh_CN,zh
 	// 	return "name"
 	// }
-	return "name"
+	return "`name`"
 }
 
 func getQuickMutationDescribe(lang string) string {
 	if strings.HasPrefix(lang, "en") { // en_US,en
-		return "describe_en AS 'describe'"
+		return "describe_en AS `describe`"
 	}
 	// if strings.HasPrefix(lang, "zh") { // zh_CN,zh
 	// 	return "name"
 	// }
-	return "'describe'"
+	return "`describe`"
 }
 
 func getQuickMutationGroup(lang string) string {
 	if strings.HasPrefix(lang, "en") { // en_US,en
-		return "group_en AS 'group'"
+		return "group_en AS `group`"
 	}
 	// if strings.HasPrefix(lang, "zh") { // zh_CN,zh
 	// 	return "name"
 	// }
-	return "'group'"
+	return "`group`"
 }
