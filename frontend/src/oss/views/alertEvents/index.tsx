@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Card, Modal, Pagination } from 'antd'
+import { Button, Card, Modal, Pagination, Tooltip } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactJson from 'react-json-view'
@@ -36,6 +36,14 @@ const AlertEventsPage = () => {
   const [workflowUrl, setWorkflowUrl] = useState(null)
   const [workflowId, setWorkflowId] = useState(null)
   const [alertCheckId, setAlertCheckId] = useState(null)
+
+  const workflowMissToast = (type: 'alertCheckId' | 'workflowId') => {
+    return (
+      <Tooltip title={type === 'alertCheckId' ? t('missToast1') : t('missToast2')}>
+        <span className="text-gray-400 text-xs">{t('workflowMiss')}</span>
+      </Tooltip>
+    )
+  }
   const getAlertEvents = () => [
     getAlertEventsApi({
       startTime,
@@ -123,11 +131,11 @@ const AlertEventsPage = () => {
           value
         ),
     },
-        {
+    {
       title: t('status'),
       accessor: 'status',
       customWidth: 120,
-      Cell: ({value}) => {
+      Cell: ({ value }) => {
         return <Tag type={value === 'firing' ? 'error' : 'success'}>{t(value)}</Tag>
       },
     },
@@ -137,7 +145,9 @@ const AlertEventsPage = () => {
       customWidth: 160,
       Cell: (props) => {
         const { value, row } = props
-        return value === 'unknown' ? (
+        return !alertCheckId ? (
+          workflowMissToast('alertCheckId')
+        ) : value === 'unknown' ? (
           <span className="text-gray-400">{t(value)}</span>
         ) : (
           <Button
@@ -152,12 +162,14 @@ const AlertEventsPage = () => {
       },
     },
     {
-      title: t('cause'),
+      title: <>{t('cause')}</>,
       accessor: 'cause',
       customWidth: 160,
       Cell: (props) => {
         const { workflowParams } = props.row.original
-        return (
+        return !workflowId ? (
+          workflowMissToast('workflowId')
+        ) : (
           <Button
             type="link"
             onClick={() => {
