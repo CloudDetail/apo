@@ -29,6 +29,7 @@ import FaultSiteLogsWrapper from '../components/DataViewCom/FaultSiteLogs'
 import InstanceTable from '../components/DataViewCom/InstanceTable'
 import ErrorInstanceTable from '../components/DataViewCom/ErrorInstanceTable'
 import PolarisPng from 'src/pro/assets/9-1.png'
+import PolarisPngEn from 'src/pro/assets/en/9-1.png'
 import MetricsDashboardCom from '../components/DataViewCom/MetricsDashboard'
 import { showToast } from 'src/core/utils/toast'
 import GlossaryTable from 'src/core/components/PolarisMetrics/GlossaryTable'
@@ -43,7 +44,7 @@ const imageMap = {
     error: errorInstanceImgEN,
     log: logsImgEN,
     dashboard: dashboardImgEN,
-    slow: PolarisPng,
+    slow: PolarisPngEn,
   },
   zh: {
     service: serviceImgZH,
@@ -214,6 +215,8 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setCauseConfirmvisibilit(false)
     setCauseNode(selectedSuspectedNode)
     try {
+      const language = i18next.language
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
       const response = await streamFetch('/ai/api/nodeinfo', {
         method: 'POST',
         headers: {
@@ -231,6 +234,8 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           anormalTypes: anormalTypes.join(','),
           withTopology: true,
           type: type,
+          language: language,
+          timezone: timeZone,
         }),
       })
 

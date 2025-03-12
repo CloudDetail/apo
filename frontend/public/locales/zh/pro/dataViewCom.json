@@ -33,6 +33,7 @@
   "namespace": "命名空间",
   "applicationDetails": "应用详情",
   "delaySource": "延时主要来源",
+  "delaySourceType": "(自身/依赖/未知)",
   "delaySourceTooltipSelf": "自身：服务自身延时占比50%以上",
   "delaySourceTooltipDependency": "依赖：请求下游服务延时占比50%以上",
   "delaySourceTooltipUnknown": "未知：未找到相关指标",

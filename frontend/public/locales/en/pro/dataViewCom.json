@@ -33,6 +33,7 @@
   "namespace": "Namespace",
   "applicationDetails": "Application Details",
   "delaySource": "Delay Source",
+  "delaySourceType": "",
   "delaySourceTooltipSelf": "Self: Service itself accounts for more than 50% of the delay",
   "delaySourceTooltipDependency": "Dependency: Requests to downstream services account for more than 50% of the delay",
   "delaySourceTooltipUnknown": "Unknown: No relevant metrics found",

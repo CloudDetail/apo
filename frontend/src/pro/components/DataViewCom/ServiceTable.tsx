@@ -60,7 +60,7 @@ export default function ServiceTable({ data }) {
               <div className="flex flex-row justify-center items-center">
                 <div>
                   <div className="text-center flex flex-row ">{t('delaySource')}</div>
-                  <div className="block text-[10px]">(自身/依赖/未知)</div>
+                  <div className="block text-[10px]">{t('delaySourceType')}</div>
                 </div>
                 <AiOutlineInfoCircle size={16} className="ml-1" />
               </div>
