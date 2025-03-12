@@ -8,6 +8,7 @@ import axios from 'axios'
 import { showToast } from './toast'
 import qs from 'qs'
 import TranslationCom from 'src/oss/components/TranslationCom'
+import i18next from 'i18next'
 
 const namespace = 'core/login'
 
@@ -27,6 +28,7 @@ instance.interceptors.request.use(
     if (token && config.url != '/api/user/refresh') {
       config.headers.Authorization = `Bearer ${token}`
     }
+     config.headers['APO-Language'] = i18next.language
     return config
   },
   (error) => {

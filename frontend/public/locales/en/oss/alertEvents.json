@@ -19,5 +19,8 @@
   "workflowsModal": "Workflows",
   "firing": "Firing",
   "resolved": "Resolved",
-  "status": "Status"
+  "status": "Status",
+  "workflowMiss": "Workflow not configured.",
+  "missToast1": "The alert validity check workflow has not been set up, hence the alarm validity check is suspended.",
+  "missToast2": "The alert root cause analysis workflow has not been configured, therefore the alarm root cause analysis is currently non-navigable."
 }
