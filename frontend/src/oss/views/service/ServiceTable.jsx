@@ -24,7 +24,7 @@ import { useDebounce } from 'react-use'
 import { TableFilter } from 'src/core/components/Filter/TableFilter'
 import { useTranslation } from 'react-i18next'
 import React from 'react'
-import { useChartsContext } from 'src/core/contexts/ChartsContext'
+import { ChartsProvider, useChartsContext } from 'src/core/contexts/ChartsContext'
 import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
 const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) => {
   const { t, i18n } = useTranslation('oss/service')
@@ -44,8 +44,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
-  const setChartsData = useChartsContext((ctx) => ctx.setChartsData)
-  const setChartsLoading = useChartsContext((ctx) => ctx.setChartsLoading)
+  const getChartsData = useChartsContext((ctx) => ctx.getChartsData)
 
   const column = [
     {
@@ -344,7 +343,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
       })
   }
   useEffect(() => {
-    getServiceCharts()
+    if (data) getServiceCharts()
   }, [pageIndex, pageSize, data])
   const getServiceCharts = async () => {
     const paginatedData = data.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)
@@ -356,20 +355,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
         endpointList.push(endpoint.endpoint)
       })
     })
-    setChartsData(null)
-    setChartsLoading(true)
-    try {
-      const res = await getServiceChartsApi({
-        startTime: startTime,
-        endTime: endTime,
-        step: getStep(startTime, endTime),
-        serviceList,
-        endpointList,
-      })
-      setChartsData(res)
-    } finally {
-      setChartsLoading(false)
-    }
+    getChartsData(serviceList, endpointList)
   }
   const handleTableChange = (props) => {
     if (props.pageSize && props.pageIndex) {
@@ -447,12 +433,14 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
         <div className="mb-4 h-full p-2 text-xs justify-between">
           <BasicTable {...tableProps} />
         </div>
-        <EndpointTableModal
-          visible={modalVisible}
-          serviceName={modalServiceName}
-          timeRange={requestTimeRange}
-          closeModal={() => setModalVisible(false)}
-        />
+        <ChartsProvider>
+          <EndpointTableModal
+            visible={modalVisible}
+            serviceName={modalServiceName}
+            timeRange={requestTimeRange}
+            closeModal={() => setModalVisible(false)}
+          />
+        </ChartsProvider>
       </Card>
     </div>
   )
