@@ -5,7 +5,6 @@ package serviceoverview
 
 import (
 	"math"
-	"strconv"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -14,10 +13,6 @@ import (
 )
 
 func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule SortType) (res []response.ServiceDetail, err error) {
-	var duration string
-	var stepNS = endTime.Sub(startTime).Nanoseconds()
-	duration = strconv.FormatInt(stepNS/int64(time.Minute), 10) + "m"
-
 	filter := EndpointsFilter{
 		ServiceName: serviceNames,
 	}
@@ -87,8 +82,6 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	// Save all URLs to the corresponding service
 	services := fillOneService(endpoints)
 
-	// query all url data of the service and populate
-	s.EndpointRangeREDChart(&services, startTime, endTime, duration, step)
 	//(searchTime.Add(-30*time.Minute), searchTime, errorDataQuery, time.Minute)
 
 	if len(services) == 0 {

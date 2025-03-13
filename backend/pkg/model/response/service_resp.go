@@ -120,7 +120,7 @@ type ServiceDetail struct {
 type RedCharts struct {
 	Latency   map[int64]float64 `json:"latency"`
 	ErrorRate map[int64]float64 `json:"errorRate"`
-	RPS       map[int64]float64 `json:"rps"`
+	RPS       map[int64]float64 `json:"tps"`
 }
 
 type GetServiceREDChartsResponse map[string]map[string]RedCharts
