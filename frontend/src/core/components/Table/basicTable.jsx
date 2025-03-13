@@ -23,7 +23,7 @@ const BasicTable = React.memo((props) => {
     noHeader,
     showBorder,
     clickRow,
-    emptyContent = '暂无数据',
+    emptyContent = null,
     showLoading = true,
   } = props
   const tableRef = useRef(null)
@@ -95,7 +95,10 @@ const BasicTable = React.memo((props) => {
   return (
     <div className={showBorder ? 'basic-table border-table' : 'basic-table'}>
       <table {...getTableProps()} ref={tableRef}>
-        <thead>
+        <thead
+          className="m-0 overflow-y-scroll bg-[#1d1d1d]"
+          style={{ borderRadius: '8px 8px 0 0' }}
+        >
           {!noHeader &&
             headerGroups.map((headerGroup, idx) => (
               <tr {...headerGroup.getHeaderGroupProps()} key={`header_tr_${idx}`}>
@@ -116,7 +119,8 @@ const BasicTable = React.memo((props) => {
                       className={
                         (column.isSorted ? (column.isSortedDesc ? 'sort-desc' : 'sort-asc') : '') +
                         (column.canSort ? 'cursor-pointer no-underline' : '') +
-                        '  hover:bg-[#303030] bg-[#1d1d1d] hover:no-underline'
+                        (!column.isNested && 'hover:bg-[#303030]') +
+                        '    hover:no-underline'
                       }
                       key={`header_th_${idx}`}
                       onClick={() => {
@@ -150,6 +154,7 @@ const BasicTable = React.memo((props) => {
 
                                 minWidth: item.minWidth,
                               }}
+                              className="hover:bg-[#303030]"
                               key={index}
                             >
                               {item.title}

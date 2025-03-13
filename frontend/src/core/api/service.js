@@ -126,3 +126,7 @@ export const getServiceEndpointNameApi = (params) => {
 export const getNamespacesApi = (params) => {
   return get(`/api/service/namespace/list`, params)
 }
+
+export const getServiceChartsApi = (params) => {
+  return post('/api/service/redcharts', params)
+}

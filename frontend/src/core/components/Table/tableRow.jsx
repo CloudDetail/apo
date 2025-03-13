@@ -79,7 +79,7 @@ function TableRow({ row, clickRow }) {
     <tr
       {...row.getRowProps()}
       onClick={() => clickRow?.(row.original)}
-      className={clickRow ? 'cursor-pointer' : ''}
+      className={(clickRow ? 'cursor-pointer' : '') + ' bg-[#141414]'}
     >
       {cellPropsArray.map((props, idx) => {
         return props.isNested ? (
