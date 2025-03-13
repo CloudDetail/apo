@@ -56,7 +56,7 @@ export const TableFilter = (props) => {
   const onChangeNamespace = (event) => {
     setSearchNamespace(event)
     setNamespaceOptions(
-      event.serviceMap.map((service) => ({
+      event.map((service) => ({
         label: service,
         value: service,
       })),
