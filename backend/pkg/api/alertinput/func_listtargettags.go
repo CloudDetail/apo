@@ -22,12 +22,12 @@ import (
 // @Router /api/alertsinput/enrich/tags/list [get]
 func (h *handler) ListTargetTags() core.HandlerFunc {
 	return func(c core.Context) {
-		targetTags, err := h.inputService.GetAlertEnrichRuleTags()
+		targetTags, err := h.inputService.GetAlertEnrichRuleTags(c)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetAlertsInputTargetTagsError,
-				code.Text(code.GetAlertsInputTargetTagsError)).WithError(err),
+				c.ErrMessage(code.GetAlertsInputTargetTagsError)).WithError(err),
 			)
 			return
 		}

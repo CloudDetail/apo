@@ -6,6 +6,7 @@ package core
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -91,6 +92,11 @@ type Context interface {
 	Request() *http.Request
 
 	ClientIP() string
+
+	LANG() string
+	LANGFromParam(param string) string
+
+	ErrMessage(errCode string) string
 }
 
 type context struct {
@@ -180,7 +186,7 @@ func (c *context) HandleError(err error, expectCode string, emptyResp any) {
 	c.AbortWithError(Error(
 		http.StatusBadRequest,
 		errCode,
-		code.Text(errCode),
+		c.ErrMessage(errCode),
 	).WithError(err))
 }
 
@@ -221,4 +227,30 @@ func (c *context) Request() *http.Request {
 
 func (c *context) ClientIP() string {
 	return c.ctx.ClientIP()
+}
+
+func (c *context) LANG() string {
+	if c == nil {
+		return code.LANG_ZH
+	}
+	lang := c.GetHeader("APO-Language")
+	if strings.HasPrefix(strings.ToLower(lang), code.LANG_EN) {
+		return code.LANG_EN
+	}
+	return code.LANG_ZH
+}
+
+func (c *context) LANGFromParam(param string) string {
+	if len(param) > 0 {
+		if strings.HasPrefix(strings.ToLower(param), code.LANG_EN) {
+			return code.LANG_EN
+		}
+		return code.LANG_ZH
+	}
+
+	return c.LANG()
+}
+
+func (c *context) ErrMessage(errCode string) string {
+	return code.Text(c.LANG(), errCode)
 }

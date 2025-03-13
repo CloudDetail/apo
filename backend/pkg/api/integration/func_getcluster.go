@@ -28,7 +28,7 @@ func (h *handler) GetCluster() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -38,7 +38,7 @@ func (h *handler) GetCluster() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetClusterIntegrationFailed,
-				code.Text(code.GetClusterIntegrationFailed)).WithError(err),
+				c.ErrMessage(code.GetClusterIntegrationFailed)).WithError(err),
 			)
 			return
 		}

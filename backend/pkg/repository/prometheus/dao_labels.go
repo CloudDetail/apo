@@ -29,13 +29,16 @@ func (repo *promRepo) LabelValues(expr string, label string, startTime, endTime 
 }
 
 func (repo *promRepo) QueryResult(expr string, regex string, startTime, endTime int64) ([]string, error) {
-
-	value, _, err := repo.api.QueryRange(context.Background(), expr, v1.Range{})
+	value, _, err := repo.api.QueryRange(context.Background(), expr, v1.Range{
+		Start: time.UnixMicro(startTime),
+		End:   time.UnixMicro(endTime),
+		Step:  time.Duration(endTime-startTime) * time.Microsecond,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	vector, ok := value.(model.Vector)
+	vector, ok := value.(model.Matrix)
 	if !ok {
 		return nil, fmt.Errorf("unexpected type %T, expected model.Vector", value)
 	}

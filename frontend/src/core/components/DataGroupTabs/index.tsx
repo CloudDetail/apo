@@ -18,7 +18,7 @@ export default function DataGroupTabs({ children }) {
       label: dataGroup.groupName,
       key: dataGroup.groupId,
       closable: false,
-      children: children(dataGroup.groupId),
+      children: children(dataGroup.groupId, 'calc(100vh - 200px)'),
     }))
   }
   return (

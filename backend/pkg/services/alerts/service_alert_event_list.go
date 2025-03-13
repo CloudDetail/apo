@@ -61,6 +61,7 @@ func (s *service) fillWorkflowParmas(record *alert.AEventWithWRecord) {
 		Namespace: record.AlertEvent.GetK8sNamespaceTag(),
 		Pod:       record.AlertEvent.GetK8sPodTag(),
 		Pid:       record.AlertEvent.GetPidTag(),
+		AlertName: record.AlertEvent.Name,
 	}
 
 	if len(services) == 1 {

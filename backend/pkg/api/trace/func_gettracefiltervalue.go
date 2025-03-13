@@ -31,7 +31,7 @@ func (h *handler) GetTraceFilterValue() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -44,7 +44,7 @@ func (h *handler) GetTraceFilterValue() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetTraceFilterValueError,
-				code.Text(code.GetTraceFilterValueError)).WithError(err),
+				c.ErrMessage(code.GetTraceFilterValueError)).WithError(err),
 			)
 			return
 		}

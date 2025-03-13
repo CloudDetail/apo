@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Card, Modal, Pagination } from 'antd'
+import { Button, Card, Modal, Pagination, Tooltip } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactJson from 'react-json-view'
@@ -13,6 +13,7 @@ import { getAlertEventsApi } from 'src/core/api/alerts'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { convertUTCToBeijing } from 'src/core/utils/time'
 import WorkflowsIframe from '../workflows/workflowsIframe'
+import Tag from 'src/core/components/Tag/Tag'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -34,6 +35,15 @@ const AlertEventsPage = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [workflowUrl, setWorkflowUrl] = useState(null)
   const [workflowId, setWorkflowId] = useState(null)
+  const [alertCheckId, setAlertCheckId] = useState(null)
+
+  const workflowMissToast = (type: 'alertCheckId' | 'workflowId') => {
+    return (
+      <Tooltip title={type === 'alertCheckId' ? t('missToast1') : t('missToast2')}>
+        <span className="text-gray-400 text-xs">{t('workflowMiss')}</span>
+      </Tooltip>
+    )
+  }
   const getAlertEvents = () => [
     getAlertEventsApi({
       startTime,
@@ -49,6 +59,7 @@ const AlertEventsPage = () => {
         total: res?.pagination.total || 0,
       })
       setWorkflowId(res.alertEventAnalyzeWorkflowId)
+      setAlertCheckId(res.alertCheckId)
     }),
   ]
   useEffect(() => {
@@ -67,7 +78,7 @@ const AlertEventsPage = () => {
     // return paramsArray.join('&')
   }
   function openResultModal(workflowRunId) {
-    let result = '/dify/app/' + workflowId + '/logs/' + workflowRunId
+    let result = '/dify/app/' + alertCheckId + '/logs/' + workflowRunId
     setWorkflowUrl(result)
     setModalOpen(true)
   }
@@ -121,11 +132,22 @@ const AlertEventsPage = () => {
         ),
     },
     {
+      title: t('status'),
+      accessor: 'status',
+      customWidth: 120,
+      Cell: ({ value }) => {
+        return <Tag type={value === 'firing' ? 'error' : 'success'}>{t(value)}</Tag>
+      },
+    },
+    {
       title: t('isValid'),
       accessor: 'isValid',
+      customWidth: 160,
       Cell: (props) => {
         const { value, row } = props
-        return value === 'unknown' ? (
+        return !alertCheckId ? (
+          workflowMissToast('alertCheckId')
+        ) : value === 'unknown' ? (
           <span className="text-gray-400">{t(value)}</span>
         ) : (
           <Button
@@ -140,11 +162,14 @@ const AlertEventsPage = () => {
       },
     },
     {
-      title: t('cause'),
+      title: <>{t('cause')}</>,
       accessor: 'cause',
+      customWidth: 160,
       Cell: (props) => {
         const { workflowParams } = props.row.original
-        return (
+        return !workflowId ? (
+          workflowMissToast('workflowId')
+        ) : (
           <Button
             type="link"
             onClick={() => {

@@ -10,10 +10,17 @@
   "affectedEntries": "Affected Business Entries",
   "noAffectedEntries": "No affected entries detected",
   "alertEvents": "Alert Events",
-  "isValid": "Alert validity",
+  "isValid": "Alert Validity",
   "cause": "Root Cause Analysis",
   "false": "Invalid",
   "true": "Valid",
   "unknown": "Unknown",
-  "viewWorkflow": "View"
+  "viewWorkflow": "View",
+  "workflowsModal": "Workflows",
+  "firing": "Firing",
+  "resolved": "Resolved",
+  "status": "Status",
+  "workflowMiss": "Workflow not configured.",
+  "missToast1": "The alert validity check workflow has not been set up, hence the alarm validity check is suspended.",
+  "missToast2": "The alert root cause analysis workflow has not been configured, therefore the alarm root cause analysis is currently non-navigable."
 }

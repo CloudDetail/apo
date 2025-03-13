@@ -4,11 +4,6 @@
 package config
 
 const (
-	// Simplified Chinese
-	LANG_ZH_CN = "zh-cn"
-	// English
-	LANG_EN = "en"
-
 	// Prometheus
 	PROM_STORAGE_PROM = "prom"
 	// VictoriaMetrics

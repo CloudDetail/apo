@@ -5,9 +5,10 @@ package permission
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -33,7 +34,7 @@ func (h *handler) PermissionOperation() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -45,13 +46,13 @@ func (h *handler) PermissionOperation() core.HandlerFunc {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					vErr.Code,
-					code.Text(vErr.Code),
+					c.ErrMessage(vErr.Code),
 				).WithError(err))
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.UserGrantPermissionError,
-					code.Text(code.UserGrantPermissionError),
+					c.ErrMessage(code.UserGrantPermissionError),
 				).WithError(err))
 			}
 			return

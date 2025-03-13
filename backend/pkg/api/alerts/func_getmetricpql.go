@@ -22,12 +22,12 @@ import (
 // @Router /api/alerts/rule/metrics [get]
 func (h *handler) GetMetricPQL() core.HandlerFunc {
 	return func(c core.Context) {
-		resp, err := h.alertService.GetMetricPQL()
+		resp, err := h.alertService.GetMetricPQL(c)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetMetricPQLError,
-				code.Text(code.GetMetricPQLError)).WithError(err),
+				c.ErrMessage(code.GetMetricPQLError)).WithError(err),
 			)
 			return
 		}

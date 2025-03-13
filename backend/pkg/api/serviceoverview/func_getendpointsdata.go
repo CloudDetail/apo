@@ -43,7 +43,7 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -72,7 +72,7 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetTop3UrlListError,
-				code.Text(code.GetTop3UrlListError)).WithError(err),
+				c.ErrMessage(code.GetTop3UrlListError)).WithError(err),
 			)
 			return
 		}

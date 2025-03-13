@@ -1087,6 +1087,44 @@
                 }
             }
         },
+        "/api/alerts/events/list": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AlertEventSearchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AlertEventSearchResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/inputs/alertmanager": {
             "post": {
                 "description": "get AlertManager alarm events",
@@ -3455,6 +3493,74 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.LogTableInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/metric/list": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.metric"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/metric.QueryInfo"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/metric/query": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.metric"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/metric.QueryMetricsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/metric.QueryMetricsResult"
                         }
                     },
                     "400": {
@@ -8160,6 +8266,76 @@
         }
     },
     "definitions": {
+        "alert.AEventWithWRecord": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                },
+                "createTime": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "enrichTags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isValid": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "receivedTime": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "sourceId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tags": {
+                    "description": "HACK the existing clickhouse query uses `tags` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "updateTime": {
+                    "type": "string"
+                },
+                "workflowId": {
+                    "type": "string"
+                },
+                "workflowName": {
+                    "type": "string"
+                },
+                "workflowParams": {
+                    "$ref": "#/definitions/alert.WorkflowParams"
+                },
+                "workflowRunId": {
+                    "type": "string"
+                }
+            }
+        },
         "alert.AlerEnrichRuleConfigRequest": {
             "type": "object",
             "properties": {
@@ -8510,6 +8686,26 @@
                             "type": "string"
                         }
                     }
+                }
+            }
+        },
+        "alert.WorkflowParams": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "nodeIp": {
+                    "type": "string"
+                },
+                "nodeName": {
+                    "type": "string"
+                },
+                "params": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
                 }
             }
         },
@@ -9945,6 +10141,125 @@
                 }
             }
         },
+        "metric.Labels": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "metric.QueryInfo": {
+            "type": "object",
+            "properties": {
+                "describe": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "params": {
+                    "description": "Targets []Target `json:\"targets\"` // 目标列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "description": "查询标题",
+                    "type": "string"
+                },
+                "unit": {
+                    "description": "单位",
+                    "type": "string"
+                }
+            }
+        },
+        "metric.QueryMetricsRequest": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "metricIDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "metricName": {
+                    "type": "string"
+                },
+                "metricNames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "params": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "startTime": {
+                    "type": "integer"
+                },
+                "step": {
+                    "type": "integer"
+                }
+            }
+        },
+        "metric.QueryMetricsResult": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/definitions/metric.QueryResult"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/metric.QueryResult"
+                    }
+                }
+            }
+        },
+        "metric.QueryResult": {
+            "type": "object",
+            "properties": {
+                "timeseries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/metric.Timeseries"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "metric.Timeseries": {
+            "type": "object",
+            "properties": {
+                "chart": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "labels": {
+                    "$ref": "#/definitions/metric.Labels"
+                },
+                "legend": {
+                    "type": "string"
+                },
+                "legendFormat": {
+                    "type": "string"
+                }
+            }
+        },
         "model.AlertDetail": {
             "type": "object",
             "properties": {
@@ -10255,6 +10570,43 @@
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "request.AlertEventSearchFilter": {
+            "type": "object",
+            "properties": {
+                "namespaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "nodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "request.AlertEventSearchRequest": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "filter": {
+                    "$ref": "#/definitions/request.AlertEventSearchFilter"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                },
+                "sortBy": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
                 }
             }
         },
@@ -11269,6 +11621,26 @@
             "properties": {
                 "error": {
                     "type": "string"
+                }
+            }
+        },
+        "response.AlertEventSearchResponse": {
+            "type": "object",
+            "properties": {
+                "alertCheckId": {
+                    "type": "string"
+                },
+                "alertEventAnalyzeWorkflowId": {
+                    "type": "string"
+                },
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.AEventWithWRecord"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
                 }
             }
         },

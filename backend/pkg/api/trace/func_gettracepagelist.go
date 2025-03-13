@@ -33,7 +33,7 @@ func (h *handler) GetTracePageList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -63,7 +63,7 @@ func (h *handler) GetTracePageList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetTracePageListError,
-				code.Text(code.GetTracePageListError)).WithError(err),
+				c.ErrMessage(code.GetTracePageListError)).WithError(err),
 			)
 			return
 		}

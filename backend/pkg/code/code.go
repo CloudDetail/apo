@@ -3,7 +3,12 @@
 
 package code
 
-import "github.com/CloudDetail/apo/backend/config"
+const (
+	// Simplified Chinese
+	LANG_ZH = "zh"
+	// English
+	LANG_EN = "en"
+)
 
 const (
 	ServerError           = "A0001"
@@ -228,10 +233,8 @@ const (
 	GetAlertEventListError = "B1501"
 )
 
-func Text(code string) string {
-	lang := config.Get().Language.Local
-
-	if lang == config.LANG_EN {
+func Text(lang string, code string) string {
+	if lang == LANG_EN {
 		return enText[code]
 	}
 	return zhCnText[code]
