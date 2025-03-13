@@ -428,6 +428,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
         setServiceName={setServiceName}
         setEndpoint={setEndpoint}
         setNamespace={setNamespace}
+        className="mb-2"
       />
       <Card className="flex-1 overflow-hidden" styles={{ body: { height: height, padding: 0 } }}>
         <div className="mb-4 h-full p-2 text-xs justify-between">
