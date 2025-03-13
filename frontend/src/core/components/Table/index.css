@@ -22,6 +22,7 @@
     margin-top: 5px;
     color: white
   }
+
   .spinner-warp {
     position: absolute;
     top: 0;
@@ -36,25 +37,28 @@
       left: 49%;
     }
   }
+
   .tbody-wrapper {
     /* overflow: auto; */
     height: 100%;
     width: 100%;
     position: relative;
   }
+
   thead {
     margin-right: 8px;
-    border-bottom:1px solid #4d515a;
+    /* border-bottom: 1px solid #4d515a; */
     flex-grow: 0;
     flex-shrink: 0;
   }
+
   tbody {
     /* height: 100%; */
     width: 100%;
-    /* overflow-y: scroll; */
+    overflow-x: auto;
+    overflow-y: scroll;
     position: relative;
     flex: 1;
-    overflow: auto;
   }
 
   .basic-table-pagination {
@@ -63,6 +67,7 @@
     gap: 10px;
     align-items: center;
     justify-content: flex-end;
+
     button {
       cursor: pointer;
       border-radius: 50%;
@@ -81,9 +86,11 @@
     text-decoration: underline;
     color: rgb(110, 159, 255);
   }
+
   tr:hover {
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: rgb(29, 29, 29);
   }
+
   tr {
     height: max-content;
     word-wrap: break-word;
@@ -95,7 +102,8 @@
 
     box-sizing: border-box;
     border-bottom: 1px solid var(--cui-border-color);
-      color:white;
+    color: white;
+
     th {
       font-weight: 500;
       min-width: 24px;
@@ -105,7 +113,7 @@
       display: flex;
 
       justify-content: center;
-      color:rgb(161 161 170)
+      color: rgb(161 161 170)
     }
 
     td {
@@ -121,9 +129,11 @@
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
+
       &:last-child {
         border-right: none;
       }
+
       box-sizing: border-box;
     }
   }
@@ -131,58 +141,72 @@
 
 .border-table {
   td {
-    padding: 0px; /* 调整单元格内边距 */
-    border-right: 1px solid rgba(204, 204, 220, 0.12); /* 给单元格右侧添加边框 */
+    padding: 0px;
+    /* 调整单元格内边距 */
+    border-right: 1px solid rgba(204, 204, 220, 0.12);
+    /* 给单元格右侧添加边框 */
     box-sizing: border-box;
   }
 
   th:last-child,
   td:last-child {
-    border-right: none; /* 最后一列不需要右边框 */
+    border-right: none;
+    /* 最后一列不需要右边框 */
   }
-  .nested-td > tr:last-of-type{
+
+  .nested-td>tr:last-of-type {
     border-bottom: 0;
   }
+
   tr {
     td {
       /* padding: 0px; */
     }
+
     th {
       /* padding: 0px; */
     }
   }
-  
+
   .nested-td {
     display: block;
+
     td {
       border: 0;
     }
   }
+
   .nested-td tr:last-child {
     border-bottom: none;
   }
 }
 
 
-  .pagination{
+.pagination {
 
-justify-content: flex-end;
-    .basic-table-pagination button {
-      background-color: rgba(204, 204, 220, 0.04);
-    }
-    button:hover {
-      background-color: rgba(204, 204, 220, 0.04);
-      color: rgba(204, 204, 220, 0.6);
-    }
-    .basic-table-pagination .active {
-      background-color: rgba(204, 204, 220, 0.12);;
-    }
-    button[disabled] {
-      background-color: rgba(204, 204, 220, 0.04);
-      color: rgba(204, 204, 220, 0.6);
-    }
-    button[disabled]:hover {
-      background-color: rgba(204, 204, 220, 0.04);
-      color: rgba(204, 204, 220, 0.6);
-    }
+  justify-content: flex-end;
+
+  .basic-table-pagination button {
+    background-color: rgba(204, 204, 220, 0.04);
   }
+
+  button:hover {
+    background-color: rgba(204, 204, 220, 0.04);
+    color: rgba(204, 204, 220, 0.6);
+  }
+
+  .basic-table-pagination .active {
+    background-color: rgba(204, 204, 220, 0.12);
+    ;
+  }
+
+  button[disabled] {
+    background-color: rgba(204, 204, 220, 0.04);
+    color: rgba(204, 204, 220, 0.6);
+  }
+
+  button[disabled]:hover {
+    background-color: rgba(204, 204, 220, 0.04);
+    color: rgba(204, 204, 220, 0.6);
+  }
+}
