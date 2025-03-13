@@ -178,6 +178,13 @@ var (
 	}
 )
 
+func NotLike(key string, value string) *whereSQL {
+	return &whereSQL{
+		Wheres: fmt.Sprintf("%s NOT LIKE ?", key),
+		Values: []any{value},
+	}
+}
+
 func In(key string, values clickhouse.ArraySet) *whereSQL {
 	if len(key) <= 0 {
 		return ALWAYS_TRUE

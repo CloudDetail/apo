@@ -7,12 +7,12 @@ import (
 	"regexp"
 )
 
-func (a *AlertEvent) GetStringTagWithRaw(key string) string {
+func (a *Alert) GetStringTagWithRaw(key string) string {
 	if value, find := a.EnrichTags[key]; find && len(value) > 0 {
 		return value
 	}
 
-	if vPtr, find := a.Tags["container"]; find {
+	if vPtr, find := a.Tags[key]; find {
 		if value, ok := vPtr.(string); ok {
 			return value
 		}
@@ -20,7 +20,7 @@ func (a *AlertEvent) GetStringTagWithRaw(key string) string {
 	return ""
 }
 
-func (a *AlertEvent) GetTargetObj() string {
+func (a *Alert) GetTargetObj() string {
 	if a.EnrichTags == nil {
 		return ""
 	}
@@ -42,14 +42,14 @@ func (a *AlertEvent) GetTargetObj() string {
 	return ""
 }
 
-func (a *AlertEvent) GetServiceNameTag() string {
+func (a *Alert) GetServiceNameTag() string {
 	if serviceName, find := a.EnrichTags["svc_name"]; find && len(serviceName) > 0 {
 		return serviceName
 	}
 	return a.EnrichTags["serviceName"]
 }
 
-func (a *AlertEvent) GetEndpointTag() string {
+func (a *Alert) GetEndpointTag() string {
 	if contentKey, find := a.EnrichTags["content_key"]; find && len(contentKey) > 0 {
 		return contentKey
 	}
@@ -57,23 +57,23 @@ func (a *AlertEvent) GetEndpointTag() string {
 }
 
 // GetLevelTag 获取级别,当前只有network告警存在
-func (a *AlertEvent) GetLevelTag() string {
+func (a *Alert) GetLevelTag() string {
 	return a.EnrichTags["level"]
 }
 
-func (a *AlertEvent) GetNetSrcNodeTag() string {
+func (a *Alert) GetNetSrcNodeTag() string {
 	return a.EnrichTags["node_name"]
 }
 
-func (a *AlertEvent) GetNetSrcPidTag() string {
+func (a *Alert) GetNetSrcPidTag() string {
 	return a.EnrichTags["pid"]
 }
 
-func (a *AlertEvent) GetPidTag() string {
+func (a *Alert) GetPidTag() string {
 	return a.EnrichTags["pid"]
 }
 
-func (a *AlertEvent) GetNetSrcPodTag() string {
+func (a *Alert) GetNetSrcPodTag() string {
 	//Compatible with older versions
 	if pod, find := a.EnrichTags["src_pod"]; find && len(pod) > 0 {
 		return pod
@@ -81,7 +81,7 @@ func (a *AlertEvent) GetNetSrcPodTag() string {
 	return a.EnrichTags["pod"]
 }
 
-func (a *AlertEvent) GetK8sNamespaceTag() string {
+func (a *Alert) GetK8sNamespaceTag() string {
 	//Compatible with older versions
 	if namespace, find := a.EnrichTags["src_namespace"]; find && len(namespace) > 0 {
 		return namespace
@@ -89,14 +89,14 @@ func (a *AlertEvent) GetK8sNamespaceTag() string {
 	return a.EnrichTags["namespace"]
 }
 
-func (a *AlertEvent) GetK8sPodTag() string {
+func (a *Alert) GetK8sPodTag() string {
 	if pod, find := a.EnrichTags["pod_name"]; find && len(pod) > 0 {
 		return pod
 	}
 	return a.EnrichTags["pod"]
 }
 
-func (a *AlertEvent) GetContainerTag() string {
+func (a *Alert) GetContainerTag() string {
 	if container, find := a.EnrichTags["container_name"]; find && len(container) > 0 {
 		return container
 	}
@@ -104,7 +104,7 @@ func (a *AlertEvent) GetContainerTag() string {
 	return a.GetStringTagWithRaw("container")
 }
 
-func (a *AlertEvent) GetInfraNodeTag() string {
+func (a *Alert) GetInfraNodeTag() string {
 	//Compatible with older versions
 	if node, find := a.EnrichTags["instance_name"]; find && len(node) > 0 {
 		return node
@@ -112,12 +112,12 @@ func (a *AlertEvent) GetInfraNodeTag() string {
 	return a.EnrichTags["node"]
 }
 
-func (a *AlertEvent) GetNetSrcIPTag() string {
+func (a *Alert) GetNetSrcIPTag() string {
 	//Compatible with older versions
 	return a.GetStringTagWithRaw("src_ip")
 }
 
-func (a *AlertEvent) GetNetDstIPTag() string {
+func (a *Alert) GetNetDstIPTag() string {
 	//Compatible with older versions
 	return a.GetStringTagWithRaw("dst_ip")
 }
@@ -126,7 +126,7 @@ var dbURLRegex = regexp.MustCompile(`tcp\((.+)\)`)
 var dbIPRegex = regexp.MustCompile(`tcp\((\d+\.\d+\.\d+\.\d+):.*\)`)
 var dbPortRegex = regexp.MustCompile(`tcp\(.*:(\d+)\)`)
 
-func (a *AlertEvent) GetDatabaseURL() string {
+func (a *Alert) GetDatabaseURL() string {
 	if dbURL, find := a.EnrichTags["dbHost"]; find && len(dbURL) > 0 {
 		return dbURL
 	}
@@ -138,7 +138,7 @@ func (a *AlertEvent) GetDatabaseURL() string {
 	return ""
 }
 
-func (a *AlertEvent) GetDatabaseIP() string {
+func (a *Alert) GetDatabaseIP() string {
 	if dbIP := a.EnrichTags["dbIP"]; len(dbIP) > 0 {
 		return dbIP
 	}
@@ -150,7 +150,7 @@ func (a *AlertEvent) GetDatabaseIP() string {
 	return ""
 }
 
-func (a *AlertEvent) GetDatabasePort() string {
+func (a *Alert) GetDatabasePort() string {
 	if dbPort := a.EnrichTags["dbPort"]; len(dbPort) > 0 {
 		return dbPort
 	}

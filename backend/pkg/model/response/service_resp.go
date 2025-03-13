@@ -5,6 +5,7 @@ package response
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -268,16 +269,17 @@ type GetServiceEntryEndpointsResponse struct {
 	Data   []*EntryInstanceData `json:"data"`
 }
 
-type GetAlertImpactResponse struct {
-	Data []*EndpointData `json:"data"`
+type GetAlertEventsSvcResp struct {
+	Events     []ImpactAlertEvent `json:"alertEvents"`
+	Pagination *model.Pagination  `json:"pagination"`
+}
 
-	AlertEvents []ImpactAlertEvent `json:"alertEvents"`
-	// 告警事件分页
-	Pagination *model.Pagination `json:"pagination"`
+type GetAlertImpactResponse struct {
+	Data []AlertRelatedEntry `json:"data"`
 }
 
 type ImpactAlertEvent struct {
-	*model.AlertEvent
+	*alert.AlertEvent
 
 	IsAnalyzed      bool                      `json:"isAnalyzed"`
 	ImpactEndpoints []clickhouse.AlertService `json:"impactEndpoints"`
@@ -302,7 +304,7 @@ type EntryInstanceData struct {
 	AlertReason model.AlertReason `json:"alertReason"`
 }
 
-type EndpointData struct {
+type AlertRelatedEntry struct {
 	ServiceName string   `json:"serviceName"`
 	Namespaces  []string `json:"namespaces,omitempty"` // 应用所属命名空间,可能为空
 

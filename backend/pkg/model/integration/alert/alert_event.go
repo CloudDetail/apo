@@ -15,26 +15,19 @@ import (
 )
 
 type AlertEvent struct {
-	ID    uuid.UUID `json:"id" ch:"id"`
-	Group string    `json:"group" ch:"group" mapstructure:"group"`
+	Alert
 
-	AlertID  string `json:"alertId" ch:"alert_id" mapstructure:"alertId"`
-	Name     string `json:"name" ch:"name" mapstructure:"name"`
-	Severity string `json:"severity" ch:"severity" mapstructure:"severity"`
-	Status   string `json:"status" ch:"status" mapstructure:"status"`
-	Detail   string `json:"detail" ch:"detail" mapstructure:"detail"`
-	// HACK the existing clickhouse query uses `tags` as the filter field
-	// so enrichTags in ch is named as 'tags' to filter new alertInput
-	Tags       map[string]any    `json:"tags" ch:"raw_tags" mapstructure:"tags"`
-	EnrichTags map[string]string `json:"enrichTags" ch:"tags" mapstructure:"enrich_tags"`
+	ID uuid.UUID `json:"id" ch:"id"`
+
+	Detail string `json:"detail" ch:"detail" mapstructure:"detail"`
 
 	CreateTime   time.Time `json:"createTime" ch:"create_time" mapstructure:"createTime"`
 	UpdateTime   time.Time `json:"updateTime" ch:"update_time" mapstructure:"updateTime"`
 	EndTime      time.Time `json:"endTime" ch:"end_time" mapstructure:"endTime"`
 	ReceivedTime time.Time `json:"receivedTime" ch:"received_time"  mapstructure:"receivedTime"`
 
-	SourceID string `json:"sourceId" ch:"source_id" mapstructure:"sourceId"`
-	Source   string `json:"source" ch:"source"`
+	Severity string `json:"severity" ch:"severity" mapstructure:"severity"`
+	Status   string `json:"status" ch:"status" mapstructure:"status"`
 }
 
 // calculate AlertID based on alertName and raw_tag
