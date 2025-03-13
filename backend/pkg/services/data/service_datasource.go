@@ -148,6 +148,7 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 
 		for _, srv := range nested {
 			filterMap[namespace+srv] = struct{}{}
+			serviceMap[srv] = []string{}
 		}
 	}
 
