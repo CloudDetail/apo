@@ -81,6 +81,9 @@ type Repo interface {
 	ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTableTTLMap) error
 	GetTables(tables []model.Table) ([]model.TablesQuery, error)
 
+	// ========== alert =================
+	GetAlertsWithEventCount(startTime, endTime time.Time, filter *alert.AlertEventFilter, maxSize int) ([]alert.AlertWithEventCount, uint64, error)
+
 	// ========== alert events ==========
 	// Query the alarm events sampled by group and level, and sampleCount the number of samples for each group and level.
 	GetAlertEventCountGroupByInstance(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]model.AlertEventCount, error)
