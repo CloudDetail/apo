@@ -6,10 +6,11 @@ package user
 import (
 	"context"
 	"errors"
+	"unicode"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"unicode"
 )
 
 func (s *service) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
@@ -55,7 +56,24 @@ func (s *service) UpdateUserPassword(req *request.UpdateUserPasswordRequest) err
 	if err := checkPasswordComplexity(req.NewPassword); err != nil {
 		return err
 	}
-	return s.dbRepo.UpdateUserPassword(req.UserID, req.OldPassword, req.NewPassword)
+
+	user, err := s.dbRepo.GetUserInfo(req.UserID)
+	if err != nil {
+		return err
+	}
+
+	var updatePasswordFunc = func(ctx context.Context) error {
+		return s.dbRepo.UpdateUserPassword(req.UserID, req.OldPassword, req.NewPassword)
+	}
+
+	var updateDifyPasswordFunc = func(ctx context.Context) error {
+		resp, err := s.difyRepo.UpdatePassword(user.Username, req.OldPassword, req.NewPassword)
+		if err != nil || resp.Result != "success" {
+			return errors.New("failed to update password in dify")
+		}
+		return nil
+	}
+	return s.dbRepo.Transaction(context.Background(), updatePasswordFunc, updateDifyPasswordFunc)
 }
 
 func checkPasswordComplexity(password string) error {

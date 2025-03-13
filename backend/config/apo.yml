@@ -72,3 +72,12 @@ user:
     username: anonymous
     enable: true
     role: admin
+
+dify:
+  url: http://localhost:5001
+  user: apo-backend
+  api_keys:
+    alert_check:
+  flow_ids: 
+    alert_check:
+    alert_event_analyze:

@@ -75,9 +75,17 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 		return s.dbRepo.CreateUser(ctx, user)
 	}
 
+	var createDifyUserFunc = func(ctx context.Context) error {
+		resp, err := s.difyRepo.AddUser(user.Username, user.Password, "admin")
+		if err != nil || resp.Result != "success" {
+			return errors.New("failed to create user in dify")
+		}
+		return nil
+	}
+
 	var grantRoleFunc = func(ctx context.Context) error {
 		return s.dbRepo.GrantRoleWithUser(ctx, user.UserID, req.RoleList)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), createUserFunc, grantRoleFunc, assignTeamFunc)
+	return s.dbRepo.Transaction(context.Background(), createUserFunc, createDifyUserFunc, grantRoleFunc, assignTeamFunc)
 }

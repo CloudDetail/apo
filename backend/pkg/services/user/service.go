@@ -8,6 +8,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 )
 
 var _ Service = (*service)(nil)
@@ -35,11 +36,13 @@ type Service interface {
 type service struct {
 	dbRepo    database.Repo
 	cacheRepo cache.Repo
+	difyRepo  dify.DifyRepo
 }
 
-func New(dbRepo database.Repo, cacheRepo cache.Repo) Service {
+func New(dbRepo database.Repo, cacheRepo cache.Repo, difyRepo dify.DifyRepo) Service {
 	return &service{
 		dbRepo:    dbRepo,
 		cacheRepo: cacheRepo,
+		difyRepo:  difyRepo,
 	}
 }

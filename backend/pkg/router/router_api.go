@@ -28,7 +28,7 @@ import (
 )
 
 func setApiRouter(r *resource) {
-	middlewares := middleware.New(r.cache, r.pkg_db)
+	middlewares := middleware.New(r.cache, r.pkg_db, r.dify)
 	api := r.mux.Group("/api")
 	{
 		mockHandler := mock.New(r.logger, r.internal_db)
@@ -154,7 +154,7 @@ func setApiRouter(r *resource) {
 
 	userApi := r.mux.Group("/api/user")
 	{
-		userHandler := user.New(r.logger, r.pkg_db, r.cache)
+		userHandler := user.New(r.logger, r.pkg_db, r.cache, r.dify)
 		userApi.POST("/login", userHandler.Login())
 		userApi.POST("/logout", userHandler.Logout())
 		userApi.GET("/refresh", userHandler.RefreshToken())
