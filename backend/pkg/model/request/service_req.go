@@ -205,9 +205,9 @@ type GetServiceMoreUrlListRequest struct {
 }
 
 type GetServiceREDChartsRequest struct {
-	StartTime    int64    `form:"startTime"`
-	EndTime      int64    `form:"endTime"`
-	Step         int64    `form:"step"`
-	ServiceList  []string `form:"serviceList"`
-	EndpointList []string `form:"endpointList"`
+	StartTime    int64    `json:"startTime"`
+	EndTime      int64    `json:"endTime"`
+	Step         int64    `json:"step"`
+	ServiceList  []string `json:"serviceList"`
+	EndpointList []string `json:"endpointList"`
 }

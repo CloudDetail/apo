@@ -6042,7 +6042,7 @@
             }
         },
         "/api/service/redcharts": {
-            "get": {
+            "post": {
                 "description": "Get services' red charts.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -6056,47 +6056,13 @@
                 "summary": "Get services' red charts.",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "step",
-                        "name": "step",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "multi",
-                        "description": "service list",
-                        "name": "serviceList",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "multi",
-                        "description": "endpoint list",
-                        "name": "endpointList",
-                        "in": "query",
-                        "required": true
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetServiceREDChartsRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -11020,6 +10986,32 @@
                 "traceId": {
                     "description": "TraceId",
                     "type": "string"
+                }
+            }
+        },
+        "request.GetServiceREDChartsRequest": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "endpointList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "serviceList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "startTime": {
+                    "type": "integer"
+                },
+                "step": {
+                    "type": "integer"
                 }
             }
         },

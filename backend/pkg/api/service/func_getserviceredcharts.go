@@ -7,8 +7,11 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // GetServiceREDCharts Get services' red charts.
@@ -17,19 +20,15 @@ import (
 // @Tags API.service
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "start time"
-// @Param endTime query int64 true "end time"
-// @Param step query int64 true "step"
-// @Param serviceList query []string true "service list" collectionFormat(multi)
-// @Param endpointList query []string true "endpoint list" collectionFormat(multi)
+// @Param request body request.GetServiceREDChartsRequest true "request"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetServiceREDChartsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/redcharts [get]
+// @Router /api/service/redcharts [post]
 func (h *handler) GetServiceREDCharts() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceREDChartsRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -38,6 +37,11 @@ func (h *handler) GetServiceREDCharts() core.HandlerFunc {
 			return
 		}
 
+		userID := middleware.GetContextUserID(c)
+		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.ServiceList, model.DATASOURCE_CATEGORY_APM)
+		if err != nil {
+			c.HandleError(err, code.AuthError, response.GetServiceREDChartsResponse{})
+		}
 		resp, err := h.serviceInfoService.GetServiceREDCharts(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
@@ -46,7 +50,7 @@ func (h *handler) GetServiceREDCharts() core.HandlerFunc {
 				c.ErrMessage(code.GetServiceREDChartsError)).WithError(err))
 			return
 		}
-		
+
 		c.Payload(resp)
 	}
 }

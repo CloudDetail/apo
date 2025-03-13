@@ -1821,6 +1821,23 @@ definitions:
     required:
     - endTime
     type: object
+  request.GetServiceREDChartsRequest:
+    properties:
+      endTime:
+        type: integer
+      endpointList:
+        items:
+          type: string
+        type: array
+      serviceList:
+        items:
+          type: string
+        type: array
+      startTime:
+        type: integer
+      step:
+        type: integer
+    type: object
   request.GetServiceRouteRequest:
     properties:
       serviceName:
@@ -7441,42 +7458,17 @@ paths:
       tags:
       - API.service
   /api/service/redcharts:
-    get:
+    post:
       consumes:
       - application/x-www-form-urlencoded
       description: Get services' red charts.
       parameters:
-      - description: start time
-        in: query
-        name: startTime
+      - description: request
+        in: body
+        name: request
         required: true
-        type: integer
-      - description: end time
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: step
-        in: query
-        name: step
-        required: true
-        type: integer
-      - collectionFormat: multi
-        description: service list
-        in: query
-        items:
-          type: string
-        name: serviceList
-        required: true
-        type: array
-      - collectionFormat: multi
-        description: endpoint list
-        in: query
-        items:
-          type: string
-        name: endpointList
-        required: true
-        type: array
+        schema:
+          $ref: '#/definitions/request.GetServiceREDChartsRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization

@@ -136,7 +136,7 @@ type Handler interface {
 
 	// GetServiceREDCharts Get services' red charts.
 	// @Tags API.service
-	// @Router /api/service/redcharts [get]
+	// @Router /api/service/redcharts [post]
 	GetServiceREDCharts() core.HandlerFunc
 }
 
