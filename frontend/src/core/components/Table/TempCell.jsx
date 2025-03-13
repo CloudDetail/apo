@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react'
 import AreaChart from '../Chart/LineAreaChart'
 import { BsArrowDown, BsArrowUp } from 'react-icons/bs'
 import { useTranslation } from 'react-i18next'
+import LoadingSpinner from '../Spinner'
 
 const ArrowComponent = ({ value }) => {
   if (value === null || value === 0) {
@@ -18,11 +19,9 @@ const ArrowComponent = ({ value }) => {
 
 const TempCell = (props) => {
   const { t } = useTranslation('oss/service')
-  const { data, compare, type, timeRange } = props
+  const { data, compare, type, timeRange, chartsLoading = false } = props
   const [displayValue, setDisplayValue] = useState('')
-  // const ArrowIcon = (props) =>{
-  //   return props.type === 'up' ?
-  // }
+
   const displayRatio = (value) => {
     if (value === null) {
       return '--'
@@ -90,8 +89,12 @@ const TempCell = (props) => {
           <span className={displayValue === 'N/A' && 'text-slate-400'}>{displayValue}</span>
         </div>
 
-        <div className="felx h-[30px] items-center flex-1">
-          <AreaChart type={type} data={data.chartData} timeRange={timeRange} />
+        <div className="felx h-[30px] w-[60px] items-center flex-1 relative">
+          {chartsLoading ? (
+            <LoadingSpinner loading={chartsLoading} size="sm"></LoadingSpinner>
+          ) : (
+            <AreaChart type={type} data={data.chartData} timeRange={timeRange} />
+          )}
         </div>
 
         <div className="h-full text-[10px] text-neutral-400 w-full">
