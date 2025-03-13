@@ -25,10 +25,10 @@ const ChartTempCell = ({ type, value, service, endpoint, timeRange }: ChartTempC
   const chartsData = useChartsContext((ctx) => ctx.chartsData)
   const chartsLoading = useChartsContext((ctx) => ctx.chartsLoading)
   useEffect(() => {
-    if (chartsData?.[service]?.[endpoint]?.latency) {
+    if (chartsData?.[service]?.[endpoint]?.[type]) {
       setData({
         ...data,
-        chartData: chartsData?.[service]?.[endpoint]?.latency,
+        chartData: chartsData?.[service]?.[endpoint]?.[type],
       })
     }
   }, [service, endpoint, chartsData])
