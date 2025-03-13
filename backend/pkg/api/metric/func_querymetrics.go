@@ -17,9 +17,7 @@ import (
 // @Tags API.metric
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// TODO 下面的请求参数类型和返回类型需根据实际需求进行变更
-// @Param Request body request.queryMetricsRequest true "请求信息"
-// @Success 200 {object} response.queryMetricsResponse
+// @Success 200 {object} string
 // @Failure 400 {object} code.Failure
 // @Router /api/metric/query [post]
 func (h *handler) QueryMetrics() core.HandlerFunc {

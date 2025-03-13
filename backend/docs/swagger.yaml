@@ -1,5 +1,54 @@
 basePath: /
 definitions:
+  alert.AEventWithWRecord:
+    properties:
+      alertId:
+        type: string
+      createTime:
+        type: string
+      detail:
+        type: string
+      endTime:
+        type: string
+      enrichTags:
+        additionalProperties:
+          type: string
+        type: object
+      group:
+        type: string
+      id:
+        type: string
+      isValid:
+        type: string
+      name:
+        type: string
+      receivedTime:
+        type: string
+      severity:
+        type: string
+      source:
+        type: string
+      sourceId:
+        type: string
+      status:
+        type: string
+      tags:
+        additionalProperties: {}
+        description: |-
+          HACK the existing clickhouse query uses `tags` as the filter field
+          so enrichTags in ch is named as 'tags' to filter new alertInput
+        type: object
+      updateTime:
+        type: string
+      workflowId:
+        type: string
+      workflowName:
+        type: string
+      workflowParams:
+        $ref: '#/definitions/alert.WorkflowParams'
+      workflowRunId:
+        type: string
+    type: object
   alert.AlerEnrichRuleConfigRequest:
     properties:
       enrichRuleConfigs:
@@ -229,6 +278,19 @@ definitions:
             type: string
           type: array
         type: object
+    type: object
+  alert.WorkflowParams:
+    properties:
+      endTime:
+        type: integer
+      nodeIp:
+        type: string
+      nodeName:
+        type: string
+      params:
+        type: string
+      startTime:
+        type: integer
     type: object
   amconfig.DingTalkConfig:
     properties:
@@ -1421,6 +1483,30 @@ definitions:
       status:
         type: string
     type: object
+  request.AlertEventSearchFilter:
+    properties:
+      namespaces:
+        items:
+          type: string
+        type: array
+      nodes:
+        items:
+          type: string
+        type: array
+    type: object
+  request.AlertEventSearchRequest:
+    properties:
+      endTime:
+        type: integer
+      filter:
+        $ref: '#/definitions/request.AlertEventSearchFilter'
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+      sortBy:
+        type: string
+      startTime:
+        type: integer
+    type: object
   request.AlertRule:
     properties:
       alert:
@@ -2113,6 +2199,19 @@ definitions:
       error:
         type: string
     type: object
+  response.AlertEventSearchResponse:
+    properties:
+      alertCheckId:
+        type: string
+      alertEventAnalyzeWorkflowId:
+        type: string
+      events:
+        items:
+          $ref: '#/definitions/alert.AEventWithWRecord'
+        type: array
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+    type: object
   response.CheckAlertRuleResponse:
     properties:
       available:
@@ -2635,6 +2734,12 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  response.GetServiceREDChartsResponse:
+    additionalProperties:
+      additionalProperties:
+        $ref: '#/definitions/response.RedCharts'
+      type: object
     type: object
   response.GetServiceRouteResponse:
     properties:
@@ -3171,6 +3276,21 @@ definitions:
       weekOverDay:
         description: Week-over-Week Growth Rate
         type: number
+    type: object
+  response.RedCharts:
+    properties:
+      errorRate:
+        additionalProperties:
+          type: number
+        type: object
+      latency:
+        additionalProperties:
+          type: number
+        type: object
+      rps:
+        additionalProperties:
+          type: number
+        type: object
     type: object
   response.RefreshTokenResponse:
     properties:
@@ -4039,6 +4159,30 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: list alarm notification objects
+      tags:
+      - API.alerts
+  /api/alerts/events/list:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.AlertEventSearchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AlertEventSearchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.alerts
   /api/alerts/inputs/alertmanager:
@@ -5594,6 +5738,40 @@ paths:
       summary: get log table information
       tags:
       - API.log
+  /api/metric/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.metric
+  /api/metric/query:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.metric
   /api/mock:
     get:
       consumes:
@@ -7260,6 +7438,61 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Get Polaris metric Analysis
+      tags:
+      - API.service
+  /api/service/redcharts:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get services' red charts.
+      parameters:
+      - description: start time
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: end time
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: step
+        in: query
+        name: step
+        required: true
+        type: integer
+      - collectionFormat: multi
+        description: service list
+        in: query
+        items:
+          type: string
+        name: serviceList
+        required: true
+        type: array
+      - collectionFormat: multi
+        description: endpoint list
+        in: query
+        items:
+          type: string
+        name: endpointList
+        required: true
+        type: array
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetServiceREDChartsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get services' red charts.
       tags:
       - API.service
   /api/service/relation:

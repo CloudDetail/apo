@@ -203,3 +203,11 @@ type GetServiceMoreUrlListRequest struct {
 	ServiceName string `form:"serviceName" binding:"required"`               // application name
 	SortRule    int    `form:"sortRule" binding:"required"`                  // sort logic
 }
+
+type GetServiceREDChartsRequest struct {
+	StartTime    int64    `form:"startTime"`
+	EndTime      int64    `form:"endTime"`
+	Step         int64    `form:"step"`
+	ServiceList  []string `form:"serviceList"`
+	EndpointList []string `form:"endpointList"`
+}

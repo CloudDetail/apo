@@ -1095,6 +1095,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/events/list": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AlertEventSearchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AlertEventSearchResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/inputs/alertmanager": {
             "post": {
                 "description": "get AlertManager alarm events",
@@ -3463,6 +3501,60 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.LogTableInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/metric/list": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.metric"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/metric/query": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.metric"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -5957,6 +6049,86 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/service/redcharts": {
+            "get": {
+                "description": "Get services' red charts.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.service"
+                ],
+                "summary": "Get services' red charts.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "start time",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "end time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "step",
+                        "name": "step",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "service list",
+                        "name": "serviceList",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "endpoint list",
+                        "name": "endpointList",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetServiceREDChartsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/service/relation": {
             "get": {
                 "description": "the call relationship between the upstream and downstream service",
@@ -8168,6 +8340,76 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "alert.AEventWithWRecord": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                },
+                "createTime": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "enrichTags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isValid": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "receivedTime": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "sourceId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tags": {
+                    "description": "HACK the existing clickhouse query uses ` + "`" + `tags` + "`" + ` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "updateTime": {
+                    "type": "string"
+                },
+                "workflowId": {
+                    "type": "string"
+                },
+                "workflowName": {
+                    "type": "string"
+                },
+                "workflowParams": {
+                    "$ref": "#/definitions/alert.WorkflowParams"
+                },
+                "workflowRunId": {
+                    "type": "string"
+                }
+            }
+        },
         "alert.AlerEnrichRuleConfigRequest": {
             "type": "object",
             "properties": {
@@ -8518,6 +8760,26 @@ const docTemplate = `{
                             "type": "string"
                         }
                     }
+                }
+            }
+        },
+        "alert.WorkflowParams": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "nodeIp": {
+                    "type": "string"
+                },
+                "nodeName": {
+                    "type": "string"
+                },
+                "params": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
                 }
             }
         },
@@ -10266,6 +10528,43 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AlertEventSearchFilter": {
+            "type": "object",
+            "properties": {
+                "namespaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "nodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "request.AlertEventSearchRequest": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "filter": {
+                    "$ref": "#/definitions/request.AlertEventSearchFilter"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                },
+                "sortBy": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.AlertRule": {
             "type": "object",
             "required": [
@@ -11280,6 +11579,26 @@ const docTemplate = `{
                 }
             }
         },
+        "response.AlertEventSearchResponse": {
+            "type": "object",
+            "properties": {
+                "alertCheckId": {
+                    "type": "string"
+                },
+                "alertEventAnalyzeWorkflowId": {
+                    "type": "string"
+                },
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.AEventWithWRecord"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
         "response.CheckAlertRuleResponse": {
             "type": "object",
             "properties": {
@@ -12055,6 +12374,15 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "response.GetServiceREDChartsResponse": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                    "$ref": "#/definitions/response.RedCharts"
                 }
             }
         },
@@ -12859,6 +13187,29 @@ const docTemplate = `{
                 "weekOverDay": {
                     "description": "Week-over-Week Growth Rate",
                     "type": "number"
+                }
+            }
+        },
+        "response.RedCharts": {
+            "type": "object",
+            "properties": {
+                "errorRate": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number"
+                    }
+                },
+                "latency": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number"
+                    }
+                },
+                "rps": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number"
+                    }
                 }
             }
         },

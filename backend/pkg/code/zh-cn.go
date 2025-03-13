@@ -34,6 +34,7 @@ var zhCnText = map[string]string{
 	GetServiceEndPointListError:    "获取服务Endpoint列表失败",
 	GetServiceRYGLightError:        "获取服务的红绿灯失败",
 	GetNamespaceListError:          "获取命名空间列表失败",
+	GetServiceREDChartsError: "获取服务RED图标失败",
 
 	GetFaultLogPageListError: "获取故障现场日志分页列表失败",
 	GetFaultLogContentError:  "获取故障现场日志内容失败",
