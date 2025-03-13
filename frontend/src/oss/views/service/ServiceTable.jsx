@@ -21,7 +21,7 @@ import LoadingSpinner from 'src/core/components/Spinner'
 import { Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
-import { TableFilter } from './component/TableFilter'
+import { TableFilter } from 'src/core/components/Filter/TableFilter'
 import { useTranslation } from 'react-i18next'
 import React from 'react'
 const ServiceTable = React.memo(({ groupId }) => {
