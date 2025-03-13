@@ -16,7 +16,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-var subTime = -time.Hour * 24 * 2
+var subTime = -time.Hour * 24 * 15
 
 func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err error) {
 	var (
