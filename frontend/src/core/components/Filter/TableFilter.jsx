@@ -15,25 +15,26 @@ import { Select } from 'antd'
 import { getStep } from 'src/core/utils/step'
 import { useTranslation } from 'react-i18next'
 import { getDatasourceByGroupApi } from 'src/core/api/dataGroup'
+import FilterSelector from './FilterSelector'
 
 export const TableFilter = (props) => {
   const { t } = useTranslation('oss/service')
-  const { setServiceName, setEndpoint, setNamespace, groupId } = props
+  const { setServiceName, setEndpoint, setNamespace, groupId, className='' } = props
   const [serviceNameOptions, setServiceNameOptions] = useState([])
   const [endpointNameOptions, setEndpointNameOptions] = useState([])
   const [namespaceOptions, setNamespaceOptions] = useState([])
-  const [serachServiceName, setSerachServiceName] = useState(null)
-  const [serachEndpointName, setSerachEndpointName] = useState(null)
-  const [serachNamespace, setSerachNamespace] = useState(null)
+  const [searchServiceName, setSearchServiceName] = useState(null)
+  const [searchEndpointName, setSearchEndpointName] = useState(null)
+  const [searchNamespace, setSearchNamespace] = useState(null)
   const [datasource, setDatasource] = useState()
 
-  //根据选定的服务名称获取并设置端点名称选项。
+  // get the service name options
   const getEndpointNameOptions = () => {
     const endpoints = []
     const endpointsSet = new Set([])
     const filterOptions =
-      serachServiceName?.length > 0
-        ? serviceNameOptions.filter((service) => serachServiceName.includes(service.label))
+      searchServiceName?.length > 0
+        ? serviceNameOptions.filter((service) => searchServiceName.includes(service.label))
         : serviceNameOptions
 
     filterOptions.map((option) => {
@@ -49,11 +50,11 @@ export const TableFilter = (props) => {
         }),
       })
     })
-    setSerachEndpointName(serachEndpointName?.filter((endpoint) => endpointsSet.has(endpoint)))
+    setSearchEndpointName(searchEndpointName?.filter((endpoint) => endpointsSet.has(endpoint)))
     setEndpointNameOptions(endpoints)
   }
   const onChangeNamespace = (event) => {
-    setSerachNamespace(event)
+    setSearchNamespace(event)
     setNamespaceOptions(
       event.serviceMap.map((service) => ({
         label: service,
@@ -61,15 +62,15 @@ export const TableFilter = (props) => {
       })),
     )
   }
-  //处理服务名称选择更改。
+  // process the event of changing the service name
   const onChangeServiceName = (event) => {
-    setSerachServiceName(event)
+    setSearchServiceName(event)
   }
 
   useEffect(() => {
-    if (serachNamespace && serachNamespace?.length > 0) {
+    if (searchNamespace && searchNamespace?.length > 0) {
       const services = []
-      serachNamespace.map((namespace) => {
+      searchNamespace.map((namespace) => {
         datasource?.namespaceMap[namespace]?.map((service) => {
           services.push({
             label: service,
@@ -87,7 +88,8 @@ export const TableFilter = (props) => {
         })),
       )
     }
-  }, [serachNamespace])
+  }, [searchNamespace])
+  // Todo: need to be outside
   const getDatasourceByGroup = () => {
     getDatasourceByGroupApi({
       groupId: groupId,
@@ -115,67 +117,44 @@ export const TableFilter = (props) => {
 
   useEffect(() => {
     getEndpointNameOptions()
-  }, [serviceNameOptions, serachServiceName])
+  }, [serviceNameOptions, searchServiceName])
   useEffect(() => {
-    setNamespace(serachNamespace)
-  }, [serachNamespace])
+    setNamespace(searchNamespace)
+  }, [searchNamespace])
   useEffect(() => {
-    setServiceName(serachServiceName)
-  }, [serachServiceName])
+    setServiceName(searchServiceName)
+  }, [searchServiceName])
   useEffect(() => {
-    setEndpoint(serachEndpointName)
-  }, [serachEndpointName])
+    setEndpoint(searchEndpointName)
+  }, [searchEndpointName])
 
   return (
     <>
-      <div className="mb-2 flex flex-row w-full">
-        <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
-          <span className="text-nowrap">{t('tableFilter.namespacesLabel')}：</span>
-          <Select
-            mode="multiple"
-            allowClear
-            id="namespace"
-            className="w-full"
-            placeholder={t('tableFilter.namespacePlaceholder')}
-            value={serachNamespace}
-            onChange={onChangeNamespace}
-            options={namespaceOptions}
-            maxTagCount={2}
-            maxTagPlaceholder={(omittedValues) => `+${omittedValues.length}...`}
-          />
-        </div>
-        <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
-          <span className="text-nowrap">{t('tableFilter.applicationsLabel')}：</span>
-          <Select
-            mode="multiple"
-            allowClear
-            className="w-full"
-            id="serviceName"
-            placeholder={t('tableFilter.applicationsPlaceholder')}
-            value={serachServiceName}
-            onChange={onChangeServiceName}
-            options={serviceNameOptions}
-            popupMatchSelectWidth={false}
-            maxTagCount={2}
-            maxTagPlaceholder={(omittedValues) => `+${omittedValues.length}...`}
-          />
-        </div>
-        <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
-          <span className="text-nowrap">{t('tableFilter.endpointsLabel')}：</span>
-          <Select
-            mode="multiple"
-            id="endpointName"
-            placeholder={t('tableFilter.endpointsPlaceholder')}
-            className="w-full"
-            value={serachEndpointName}
-            popupMatchSelectWidth={false}
-            onChange={(e) => setSerachEndpointName(e)}
-            options={endpointNameOptions}
-            maxTagCount={2}
-            maxTagPlaceholder={(omittedValues) => `+${omittedValues.length}...`}
-            allowClear
-          />
-        </div>
+      <div className={`mb-2 flex flex-row w-full ${className}`}>
+        <FilterSelector
+          label={t('tableFilter.namespacesLabel')}
+          placeholder={t('tableFilter.namespacePlaceholder')}
+          value={searchNamespace}
+          onChange={onChangeNamespace}
+          options={namespaceOptions}
+          id="namespace"
+        />
+        <FilterSelector
+          label={t('tableFilter.applicationsLabel')}
+          placeholder={t('tableFilter.applicationsPlaceholder')}
+          value={searchServiceName}
+          onChange={onChangeServiceName}
+          options={serviceNameOptions}
+          id="serviceName"
+        />
+        <FilterSelector
+          label={t('tableFilter.endpointsLabel')}
+          placeholder={t('tableFilter.endpointsPlaceholder')}
+          value={searchEndpointName}
+          onChange={(e) => setSearchEndpointName(e)}
+          options={endpointNameOptions}
+          id="endpointName"
+        />
         <div>{/* <ThresholdCofigModal /> */}</div>
       </div>
     </>
