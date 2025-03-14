@@ -39,6 +39,9 @@ const ImpactList = () => {
   const isFirstRender = useRef(true)
   const [sortBy, setSortBy] = useState()
 
+  const latestController = useRef(new AbortController())
+  const [pageData, setPageData] = useState([])
+
   useDebounce(
     () => {
       if (isFirstRender.current) {
@@ -232,11 +235,10 @@ const ImpactList = () => {
     })
     setModalVisible(true)
   }
-  useEffect(() => {
-    if (eventImpactList) getServiceCharts()
-  }, [pagination.pageIndex, pagination.pageSize, eventImpactList])
+
   const getServiceCharts = async () => {
-    const paginatedData = eventImpactList.slice(
+    const data = sortData()
+    const paginatedData = data.slice(
       (pagination.pageIndex - 1) * pagination.pageSize,
       pagination.pageIndex * pagination.pageSize,
     )
@@ -262,7 +264,7 @@ const ImpactList = () => {
         return row.relatedAlertRate
     }
   }
-  const tableProps = useMemo(() => {
+  const sortData = () => {
     const data = [...eventImpactList]
     if (sortBy?.length > 0 && sortBy[0].desc !== undefined) {
       const columnId = sortBy[0].id
@@ -277,20 +279,35 @@ const ImpactList = () => {
         }
       })
     }
+    return data
+  }
 
+  useEffect(() => {
+    if (pageData?.length > 0) {
+      latestController.current.abort()
+      latestController.current = new AbortController()
+      console.log(latestController.current)
+      getServiceCharts()
+    }
+  }, [pageData])
+  useEffect(() => {
+    const data = sortData()
     const paginatedData = data.slice(
       (pagination.pageIndex - 1) * pagination.pageSize,
       pagination.pageIndex * pagination.pageSize,
     )
+    setPageData(paginatedData)
+  }, [eventImpactList, pagination.pageSize, pagination.pageIndex, sortBy])
+  const tableProps = useMemo(() => {
     return {
       columns: column,
-      data: paginatedData,
+      data: pageData,
       showBorder: false,
       loading: false,
       sortBy: sortBy,
       setSortBy: setSortBy,
     }
-  }, [eventImpactList, pagination.pageSize, pagination.pageIndex, sortBy])
+  }, [pageData])
 
   return (
     <>
