@@ -24,7 +24,7 @@ import (
 // @Router /api/alertinput/source/enrich/update [post]
 func (h *handler) UpdateAlertSourceEnrichRule() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(alert.AlerEnrichRuleConfigRequest)
+		req := new(alert.AlertEnrichRuleConfigRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

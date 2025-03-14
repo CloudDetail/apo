@@ -18,7 +18,7 @@ func extractAlertEventFilter(filter *alert.AlertEventFilter) *whereSQL {
 		EqualsIfNotEmpty("source", filter.Source),
 		// EqualsIfNotEmpty("group", filter.Group),
 		EqualsIfNotEmpty("name", filter.Name),
-		EqualsIfNotEmpty("id", filter.ID),
+		EqualsIfNotEmpty("id", filter.EventID),
 		EqualsIfNotEmpty("severity", filter.Severity),
 		EqualsIfNotEmpty("status", filter.Status),
 	)
