@@ -784,7 +784,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/alert.AlerEnrichRuleConfigRequest"
+                            "$ref": "#/definitions/alert.AlertEnrichRuleConfigRequest"
                         }
                     }
                 ],
@@ -3527,7 +3527,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/metric.QueryInfo"
+                            }
                         }
                     },
                     "400": {
@@ -3554,7 +3557,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/metric.QueryMetricsResult"
                         }
                     },
                     "400": {
@@ -8321,12 +8324,6 @@ const docTemplate = `{
                 "endTime": {
                     "type": "string"
                 },
-                "enrichTags": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
                 "group": {
                     "type": "string"
                 },
@@ -8338,6 +8335,14 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "rawTags": {
+                    "description": "HACK the existing clickhouse query uses ` + "`" + `tags` + "`" + ` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/alert.RawTags"
+                        }
+                    ]
                 },
                 "receivedTime": {
                     "type": "string"
@@ -8355,9 +8360,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tags": {
-                    "description": "HACK the existing clickhouse query uses ` + "`" + `tags` + "`" + ` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
                     "type": "object",
-                    "additionalProperties": {}
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "updateTime": {
                     "type": "string"
@@ -8376,7 +8382,22 @@ const docTemplate = `{
                 }
             }
         },
-        "alert.AlerEnrichRuleConfigRequest": {
+        "alert.AlertEnrichCondition": {
+            "type": "object",
+            "properties": {
+                "expr": {
+                    "type": "string"
+                },
+                "fromField": {
+                    "type": "string"
+                },
+                "operation": {
+                    "description": "support match,not match,gt,lt,ge,le,eq",
+                    "type": "string"
+                }
+            }
+        },
+        "alert.AlertEnrichRuleConfigRequest": {
             "type": "object",
             "properties": {
                 "enrichRuleConfigs": {
@@ -8389,21 +8410,6 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "sourceId": {
-                    "type": "string"
-                }
-            }
-        },
-        "alert.AlertEnrichCondition": {
-            "type": "object",
-            "properties": {
-                "expr": {
-                    "type": "string"
-                },
-                "fromField": {
-                    "type": "string"
-                },
-                "operation": {
-                    "description": "support match,not match,gt,lt,ge,le,eq",
                     "type": "string"
                 }
             }
@@ -8648,6 +8654,10 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "alert.RawTags": {
+            "type": "object",
+            "additionalProperties": {}
         },
         "alert.SetDefaultAlertEnrichRuleRequest": {
             "type": "object",
@@ -9052,19 +9062,19 @@ const docTemplate = `{
         "clickhouse.PagedAlertEvent": {
             "type": "object",
             "properties": {
+                "alertId": {
+                    "type": "string"
+                },
                 "createTime": {
-                    "description": "fault trigger time",
                     "type": "string"
                 },
                 "detail": {
                     "type": "string"
                 },
                 "endTime": {
-                    "description": "Recovery time (only present at recovery)",
                     "type": "string"
                 },
                 "group": {
-                    "description": "Fault group information",
                     "type": "string"
                 },
                 "id": {
@@ -9073,24 +9083,28 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "raw_tags": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                "rawTags": {
+                    "description": "HACK the existing clickhouse query uses ` + "`" + `tags` + "`" + ` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/alert.RawTags"
+                        }
+                    ]
                 },
                 "receivedTime": {
-                    "description": "Failure event reception time (used to record data connection, no business meaning)",
                     "type": "string"
                 },
                 "severity": {
-                    "$ref": "#/definitions/model.SeverityLevel"
+                    "type": "string"
                 },
                 "source": {
                     "type": "string"
                 },
+                "sourceId": {
+                    "type": "string"
+                },
                 "status": {
-                    "$ref": "#/definitions/model.Status"
+                    "type": "string"
                 },
                 "tags": {
                     "type": "object",
@@ -9099,7 +9113,6 @@ const docTemplate = `{
                     }
                 },
                 "updateTime": {
-                    "description": "Last time the fault occurred",
                     "type": "string"
                 }
             }
@@ -10177,6 +10190,86 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "metric.Labels": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "metric.QueryInfo": {
+            "type": "object",
+            "properties": {
+                "describe": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "params": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "metric.QueryMetricsResult": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/definitions/metric.QueryResult"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/metric.QueryResult"
+                    }
+                }
+            }
+        },
+        "metric.QueryResult": {
+            "type": "object",
+            "properties": {
+                "timeseries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/metric.Timeseries"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "metric.Timeseries": {
+            "type": "object",
+            "properties": {
+                "chart": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "labels": {
+                    "$ref": "#/definitions/metric.Labels"
+                },
+                "legend": {
+                    "type": "string"
+                },
+                "legendFormat": {
                     "type": "string"
                 }
             }

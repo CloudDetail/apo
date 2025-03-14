@@ -13,7 +13,7 @@ import (
 // @Tags API.metric
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Success 200 {object} string
+// @Success 200 {object} []QueryInfo
 // @Failure 400 {object} code.Failure
 // @Router /api/metric/list [get]
 func (h *handler) ListMetrics() core.HandlerFunc {

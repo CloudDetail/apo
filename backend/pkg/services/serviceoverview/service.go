@@ -24,6 +24,8 @@ type Service interface {
 
 	GetServicesRYGLightStatus(startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error)
 	GetMonitorStatus(startTime time.Time, endTime time.Time) (response.GetMonitorStatusResponse, error)
+
+	GetAlertRelatedEntryData(startTime, endTime time.Time, namespaces []string, entry []response.AlertRelatedEntry) (res []response.AlertRelatedEntry, err error)
 }
 
 type service struct {

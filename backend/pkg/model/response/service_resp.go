@@ -125,7 +125,6 @@ type RedCharts struct {
 
 type GetServiceREDChartsResponse map[string]map[string]RedCharts
 
-
 type ServiceRes struct {
 	ServiceName          string          `json:"serviceName"`
 	EndpointCount        int             `json:"endpointCount"`
@@ -273,6 +272,15 @@ type EntryInstanceData struct {
 	Timestamp *int64          `json:"timestamp"`
 	model.AlertStatus
 	AlertReason model.AlertReason `json:"alertReason"`
+}
+
+type AlertRelatedEntry struct {
+	ServiceName string   `json:"serviceName"`
+	Namespaces  []string `json:"namespaces,omitempty"`
+
+	ServiceDetail
+
+	RelatedAlertRate float64 `json:"relatedAlertRate"`
 }
 
 func (entryInstanceData *EntryInstanceData) AddNamespaces(namespaces []string) {

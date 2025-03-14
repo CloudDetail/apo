@@ -8,14 +8,14 @@ import (
 	"reflect"
 	"time"
 
-	ainput "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
 )
 
 type JsonDecoder struct{}
 
-func (d JsonDecoder) Decode(sourceFrom ainput.SourceFrom, data []byte) ([]ainput.AlertEvent, error) {
+func (d JsonDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]alert.AlertEvent, error) {
 	var event map[string]any
 	err := json.Unmarshal(data, &event)
 	if err != nil {
@@ -28,18 +28,18 @@ func (d JsonDecoder) Decode(sourceFrom ainput.SourceFrom, data []byte) ([]ainput
 	}
 
 	if len(alertEvent.AlertID) == 0 {
-		alertEvent.AlertID = ainput.FastAlertID(alertEvent.Name, alertEvent.Tags)
+		alertEvent.AlertID = alert.FastAlertID(alertEvent.Name, alertEvent.Tags)
 	}
 	alertEvent.ID = uuid.New()
 	alertEvent.SourceID = sourceFrom.SourceID
-	alertEvent.Severity = ainput.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
-	alertEvent.Status = ainput.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)
+	alertEvent.Severity = alert.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
+	alertEvent.Status = alert.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)
 	alertEvent.ReceivedTime = time.Now()
-	return []ainput.AlertEvent{*alertEvent}, nil
+	return []alert.AlertEvent{*alertEvent}, nil
 }
 
-func (d JsonDecoder) convertAlertEvent(rawMap map[string]any) (*ainput.AlertEvent, error) {
-	var alertEvent ainput.AlertEvent
+func (d JsonDecoder) convertAlertEvent(rawMap map[string]any) (*alert.AlertEvent, error) {
+	var alertEvent alert.AlertEvent
 
 	err := DecodeEvent(rawMap, &alertEvent)
 	if err != nil {
@@ -49,7 +49,7 @@ func (d JsonDecoder) convertAlertEvent(rawMap map[string]any) (*ainput.AlertEven
 		alertEvent.Tags = make(map[string]any)
 	}
 	if len(alertEvent.AlertID) == 0 {
-		alertEvent.AlertID = ainput.FastAlertID(alertEvent.Name, alertEvent.Tags)
+		alertEvent.AlertID = alert.FastAlertID(alertEvent.Name, alertEvent.Tags)
 	}
 	if alertEvent.Tags == nil {
 		alertEvent.Tags = map[string]any{}

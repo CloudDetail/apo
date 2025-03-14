@@ -11,6 +11,7 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -72,7 +73,7 @@ const (
 	// SQL _GET_PAGED_ALERT_EVENT paging out all alarm events that meet the conditions
 	SQL_GET_PAGED_ALERT_EVENT = `WITH paginatedEvent AS (
 		SELECT
-			source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status,
+			source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status,alert_id,
 			COUNT(*) OVER () AS total_count,
 			ROW_NUMBER() OVER (%s) AS rn
 		FROM alert_event
@@ -346,7 +347,7 @@ type AlertEventSample struct {
 }
 
 type PagedAlertEvent struct {
-	model.AlertEvent
+	alert.AlertEvent
 
 	// Record line number
 	Rn         uint64 `ch:"rn" json:"-"`

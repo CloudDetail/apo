@@ -10,10 +10,6 @@ definitions:
         type: string
       endTime:
         type: string
-      enrichTags:
-        additionalProperties:
-          type: string
-        type: object
       group:
         type: string
       id:
@@ -22,6 +18,12 @@ definitions:
         type: string
       name:
         type: string
+      rawTags:
+        allOf:
+        - $ref: '#/definitions/alert.RawTags'
+        description: |-
+          HACK the existing clickhouse query uses `tags` as the filter field
+          so enrichTags in ch is named as 'tags' to filter new alertInput
       receivedTime:
         type: string
       severity:
@@ -33,10 +35,8 @@ definitions:
       status:
         type: string
       tags:
-        additionalProperties: {}
-        description: |-
-          HACK the existing clickhouse query uses `tags` as the filter field
-          so enrichTags in ch is named as 'tags' to filter new alertInput
+        additionalProperties:
+          type: string
         type: object
       updateTime:
         type: string
@@ -49,17 +49,6 @@ definitions:
       workflowRunId:
         type: string
     type: object
-  alert.AlerEnrichRuleConfigRequest:
-    properties:
-      enrichRuleConfigs:
-        items:
-          $ref: '#/definitions/alert.AlertEnrichRuleVO'
-        type: array
-      setAsDefault:
-        type: boolean
-      sourceId:
-        type: string
-    type: object
   alert.AlertEnrichCondition:
     properties:
       expr:
@@ -68,6 +57,17 @@ definitions:
         type: string
       operation:
         description: support match,not match,gt,lt,ge,le,eq
+        type: string
+    type: object
+  alert.AlertEnrichRuleConfigRequest:
+    properties:
+      enrichRuleConfigs:
+        items:
+          $ref: '#/definitions/alert.AlertEnrichRuleVO'
+        type: array
+      setAsDefault:
+        type: boolean
+      sourceId:
         type: string
     type: object
   alert.AlertEnrichRuleVO:
@@ -226,6 +226,9 @@ definitions:
             type: string
           type: array
         type: object
+    type: object
+  alert.RawTags:
+    additionalProperties: {}
     type: object
   alert.SetDefaultAlertEnrichRuleRequest:
     properties:
@@ -496,41 +499,41 @@ definitions:
     type: object
   clickhouse.PagedAlertEvent:
     properties:
+      alertId:
+        type: string
       createTime:
-        description: fault trigger time
         type: string
       detail:
         type: string
       endTime:
-        description: Recovery time (only present at recovery)
         type: string
       group:
-        description: Fault group information
         type: string
       id:
         type: string
       name:
         type: string
-      raw_tags:
-        additionalProperties:
-          type: string
-        type: object
+      rawTags:
+        allOf:
+        - $ref: '#/definitions/alert.RawTags'
+        description: |-
+          HACK the existing clickhouse query uses `tags` as the filter field
+          so enrichTags in ch is named as 'tags' to filter new alertInput
       receivedTime:
-        description: Failure event reception time (used to record data connection,
-          no business meaning)
         type: string
       severity:
-        $ref: '#/definitions/model.SeverityLevel'
+        type: string
       source:
         type: string
+      sourceId:
+        type: string
       status:
-        $ref: '#/definitions/model.Status'
+        type: string
       tags:
         additionalProperties:
           type: string
         type: object
       updateTime:
-        description: Last time the fault occurred
         type: string
     type: object
   clickhouse.ProfilingEvent:
@@ -1267,6 +1270,58 @@ definitions:
       serverURL:
         type: string
       username:
+        type: string
+    type: object
+  metric.Labels:
+    additionalProperties:
+      type: string
+    type: object
+  metric.QueryInfo:
+    properties:
+      describe:
+        type: string
+      id:
+        type: integer
+      params:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      unit:
+        type: string
+    type: object
+  metric.QueryMetricsResult:
+    properties:
+      msg:
+        type: string
+      result:
+        $ref: '#/definitions/metric.QueryResult'
+      results:
+        items:
+          $ref: '#/definitions/metric.QueryResult'
+        type: array
+    type: object
+  metric.QueryResult:
+    properties:
+      timeseries:
+        items:
+          $ref: '#/definitions/metric.Timeseries'
+        type: array
+      title:
+        type: string
+      unit:
+        type: string
+    type: object
+  metric.Timeseries:
+    properties:
+      chart:
+        $ref: '#/definitions/response.TempChartObject'
+      labels:
+        $ref: '#/definitions/metric.Labels'
+      legend:
+        type: string
+      legendFormat:
         type: string
     type: object
   model.AlertDetail:
@@ -3973,7 +4028,7 @@ paths:
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/alert.AlerEnrichRuleConfigRequest'
+          $ref: '#/definitions/alert.AlertEnrichRuleConfigRequest'
       produces:
       - application/json
       responses:
@@ -5765,7 +5820,9 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            items:
+              $ref: '#/definitions/metric.QueryInfo'
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -5782,7 +5839,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/metric.QueryMetricsResult'
         "400":
           description: Bad Request
           schema:

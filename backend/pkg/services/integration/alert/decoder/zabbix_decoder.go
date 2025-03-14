@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	ainput "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/google/uuid"
 )
 
@@ -18,7 +18,7 @@ type ZabbixDecoder struct {
 
 const zabbixTimeLayout = "2006.01.02 15:04:05"
 
-func (d ZabbixDecoder) Decode(sourceFrom ainput.SourceFrom, data []byte) ([]ainput.AlertEvent, error) {
+func (d ZabbixDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]alert.AlertEvent, error) {
 	var event map[string]any
 	err := json.Unmarshal(data, &event)
 	if err != nil {
@@ -46,8 +46,8 @@ func (d ZabbixDecoder) Decode(sourceFrom ainput.SourceFrom, data []byte) ([]ainp
 	alertEvent, err := d.jsDecoder.convertAlertEvent(event)
 	alertEvent.ID = uuid.New()
 	alertEvent.SourceID = sourceFrom.SourceID
-	alertEvent.Severity = ainput.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
-	alertEvent.Status = ainput.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)
+	alertEvent.Severity = alert.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
+	alertEvent.Status = alert.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)
 	alertEvent.ReceivedTime = time.Now()
 
 	alertEvent.Tags["alert_id"] = alertEvent.AlertID
@@ -56,7 +56,7 @@ func (d ZabbixDecoder) Decode(sourceFrom ainput.SourceFrom, data []byte) ([]ainp
 	alertEvent.Tags["status"] = alertEvent.Status
 	alertEvent.Tags["group"] = alertEvent.Group
 
-	return []ainput.AlertEvent{*alertEvent}, err
+	return []alert.AlertEvent{*alertEvent}, err
 }
 
 // M d h m s
