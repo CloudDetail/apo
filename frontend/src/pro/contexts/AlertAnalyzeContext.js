@@ -396,16 +396,12 @@ export const AlertAnalyzeProvider = ({ children }) => {
     }, 100)
   }
 
-  // useUpdateEffect(() => {
-  //   if (startTime && endTime) {
-  //     setLoading(true)
-  //     if (isAnalyze) {
-  //       getAlertEventImpact(true)
-  //     } else {
-  //       fetchData({ startTime, endTime })
-  //     }
-  //   }
-  // }, [pagination.pageIndex, pagination.pageSize])
+  useUpdateEffect(() => {
+    if (startTime && endTime) {
+      setLoading(true)
+      fetchData({ startTime, endTime })
+    }
+  }, [pagination.pageIndex, pagination.pageSize])
   useEffect(() => {
     if (isAnalyze) getAlertEventImpact()
   }, [isAnalyze])
