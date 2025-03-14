@@ -3527,10 +3527,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/metric.QueryInfo"
-                            }
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -3553,22 +3550,11 @@ const docTemplate = `{
                 "tags": [
                     "API.metric"
                 ],
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/metric.QueryMetricsRequest"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/metric.QueryMetricsResult"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -6052,6 +6038,52 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.GetPolarisInferResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/service/redcharts": {
+            "post": {
+                "description": "Get services' red charts.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.service"
+                ],
+                "summary": "Get services' red charts.",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetServiceREDChartsRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetServiceREDChartsResponse"
                         }
                     },
                     "400": {
@@ -10149,125 +10181,6 @@ const docTemplate = `{
                 }
             }
         },
-        "metric.Labels": {
-            "type": "object",
-            "additionalProperties": {
-                "type": "string"
-            }
-        },
-        "metric.QueryInfo": {
-            "type": "object",
-            "properties": {
-                "describe": {
-                    "description": "描述",
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "params": {
-                    "description": "Targets []Target ` + "`" + `json:\"targets\"` + "`" + ` // 目标列表",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "title": {
-                    "description": "查询标题",
-                    "type": "string"
-                },
-                "unit": {
-                    "description": "单位",
-                    "type": "string"
-                }
-            }
-        },
-        "metric.QueryMetricsRequest": {
-            "type": "object",
-            "properties": {
-                "endTime": {
-                    "type": "integer"
-                },
-                "metricIDs": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "metricName": {
-                    "type": "string"
-                },
-                "metricNames": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "params": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "startTime": {
-                    "type": "integer"
-                },
-                "step": {
-                    "type": "integer"
-                }
-            }
-        },
-        "metric.QueryMetricsResult": {
-            "type": "object",
-            "properties": {
-                "msg": {
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/definitions/metric.QueryResult"
-                },
-                "results": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/metric.QueryResult"
-                    }
-                }
-            }
-        },
-        "metric.QueryResult": {
-            "type": "object",
-            "properties": {
-                "timeseries": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/metric.Timeseries"
-                    }
-                },
-                "title": {
-                    "type": "string"
-                },
-                "unit": {
-                    "type": "string"
-                }
-            }
-        },
-        "metric.Timeseries": {
-            "type": "object",
-            "properties": {
-                "chart": {
-                    "$ref": "#/definitions/response.TempChartObject"
-                },
-                "labels": {
-                    "$ref": "#/definitions/metric.Labels"
-                },
-                "legend": {
-                    "type": "string"
-                },
-                "legendFormat": {
-                    "type": "string"
-                }
-            }
-        },
         "model.AlertDetail": {
             "type": "object",
             "properties": {
@@ -11081,6 +10994,32 @@ const docTemplate = `{
                 "traceId": {
                     "description": "TraceId",
                     "type": "string"
+                }
+            }
+        },
+        "request.GetServiceREDChartsRequest": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "endpointList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "serviceList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "startTime": {
+                    "type": "integer"
+                },
+                "step": {
+                    "type": "integer"
                 }
             }
         },
@@ -12430,6 +12369,15 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetServiceREDChartsResponse": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                    "$ref": "#/definitions/response.RedCharts"
+                }
+            }
+        },
         "response.GetServiceRouteResponse": {
             "type": "object",
             "properties": {
@@ -13231,6 +13179,29 @@ const docTemplate = `{
                 "weekOverDay": {
                     "description": "Week-over-Week Growth Rate",
                     "type": "number"
+                }
+            }
+        },
+        "response.RedCharts": {
+            "type": "object",
+            "properties": {
+                "errorRate": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number"
+                    }
+                },
+                "latency": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number"
+                    }
+                },
+                "tps": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number"
+                    }
                 }
             }
         },

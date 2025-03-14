@@ -133,6 +133,11 @@ type Handler interface {
 	// @Tags API.service
 	// @Router /api/service/namespace/list [get]
 	GetNamespaceList() core.HandlerFunc
+
+	// GetServiceREDCharts Get services' red charts.
+	// @Tags API.service
+	// @Router /api/service/redcharts [post]
+	GetServiceREDCharts() core.HandlerFunc
 }
 
 type handler struct {

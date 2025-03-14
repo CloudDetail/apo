@@ -261,6 +261,8 @@ func DataToChart(data []prometheus.Points) map[int64]float64 {
 		value := item.Value
 		if !math.IsInf(value, 1) {
 			chart[timestamp] = value
+		} else {
+			chart[timestamp] = prometheus.RES_MAX_VALUE
 		}
 	}
 	return chart

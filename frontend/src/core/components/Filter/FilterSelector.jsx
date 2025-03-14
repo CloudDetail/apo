@@ -4,6 +4,7 @@
  */
 
 import { Select } from 'antd'
+import React from 'react'
 
 const FilterSelector = ({ label, placeholder, value, onChange, options, id }) => (
   <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
@@ -24,4 +25,4 @@ const FilterSelector = ({ label, placeholder, value, onChange, options, id }) =>
   </div>
 )
 
-export  default FilterSelector
+export  default React.memo(FilterSelector)
