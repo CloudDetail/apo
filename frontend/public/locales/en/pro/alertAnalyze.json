@@ -73,14 +73,14 @@
     "close": "Close"
   },
   "impactList": {
-    "entryApplicationName": "Entry Application Name",
+    "entryApplicationName": "Entry Application",
     "entryServiceEndpoint": "Entry Service Endpoint",
-    "averageResponseTime": "Average Response Time",
+    "averageResponseTime": "Avg. Response Time",
     "errorRate": "Error Rate",
     "throughput": "Throughput",
     "faultContribution": "Fault Contribution",
     "faultContributionHint": "Displays the top three downstreams by fault contribution",
-    "alertImpactPercentage": "Alert Impact Percentage",
+    "alertImpactPercentage": "Impact Percentage",
     "deepAlertAnalysis": "Deep Alert Analysis",
     "alertList": "Alert List",
     "rootCauseAnalysis": "AI Root Cause Analysis",

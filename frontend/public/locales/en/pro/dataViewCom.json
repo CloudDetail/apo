@@ -18,7 +18,7 @@
   "errorPropagationChain": "Error Propagation Chain",
   "logErrorCount": "Log Error Count",
   "logInfo": "Log Information",
-  "averageResponseTime": "Average Response Time",
+  "averageResponseTime": "Avg. Response Time",
   "errorRate": "Error Rate",
   "throughput": "Throughput",
   "infrastructureStatus": "Infrastructure Status",
