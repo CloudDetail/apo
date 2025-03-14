@@ -5,12 +5,16 @@ package clickhouse
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 	"unicode"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/google/uuid"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
@@ -83,25 +87,19 @@ const (
 	FROM grouped_alarm
 	WHERE rn <= 1`
 
-	// SQL _GET_PAGED_ALERT_EVENT paging out all alarm events that meet the conditions
-	SQL_GET_PAGED_ALERT_EVENT = `WITH paginatedEvent AS (
-		SELECT
-			source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status,alert_id,
-			COUNT(*) OVER () AS total_count,
-			ROW_NUMBER() OVER (%s) AS rn
-		FROM alert_event
-		%s
-	)
-	SELECT *
-	FROM paginatedEvent
-	%s ORDER BY rn`
-
 	SQL_GET_ALERT_EVENT = `SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status
 	FROM alert_event %s %s`
 
 	SQL_GET_ALERT_EVENT_WITH_LABEL_KEY = `SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status
         ,if(alert_id != '', alert_id, arrayStringConcat(arrayMap(x -> x.2, arraySort(arrayZip(mapKeys(tags), mapValues(tags)))), ', ')) AS alert_key
     FROM alert_event
+	%s %s`
+
+	GET_ALERT_EVENTS_COUNT = `SELECT count(1) as count FROM alert_event %s`
+
+	SQL_GET_PAGED_ALERT_EVENT = `SELECT
+		source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status,alert_id
+	FROM alert_event
 	%s %s`
 )
 
@@ -165,19 +163,7 @@ func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, end
 	return events, err
 }
 
-var (
-	GroupOrders = NewByLimitBuilder().
-			OrderBy("group", true).
-			OrderBy("name", true).
-			OrderBy("received_time", false).String()
-
-	ReceivedTimeOrders = NewByLimitBuilder().
-				OrderBy("received_time", false).String()
-)
-
-// GetAlertEvents 取出时间范围内的输入实例的所有告警事件
-// instances为空时,不返回任何告警
-func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error) {
+func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error) {
 	var whereInstance *whereSQL = ALWAYS_TRUE
 	if len(filter.Services) > 0 ||
 		len(filter.Endpoint) > 0 ||
@@ -190,7 +176,7 @@ func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter 
 
 // GetAlertEvents 取出时间范围内的输入实例的所有告警事件
 // instances为空时,不返回任何告警
-func (ch *chRepo) GetAlertEventsByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error) {
+func (ch *chRepo) GetAlertEventsByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error) {
 	whereInstance := extractFilter(filter, instances)
 	return ch.getAlertEventsByWhere(startTime, endTime, filter, whereInstance, sortBy, pageParam)
 }
@@ -224,7 +210,7 @@ func (ch *chRepo) getGroupAlertEvents(startTime time.Time, endTime time.Time, fi
 	return events, err
 }
 
-func (ch *chRepo) getAlertEventsByWhere(startTime time.Time, endTime time.Time, filter request.AlertFilter, whereInstance *whereSQL, sortBy string, pageParam *request.PageParam) ([]PagedAlertEvent, int, error) {
+func (ch *chRepo) getAlertEventsByWhere(startTime time.Time, endTime time.Time, filter request.AlertFilter, whereInstance *whereSQL, sortBy string, pageParam *request.PageParam) ([]alert.AlertEvent, uint64, error) {
 	builder := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
 		EqualsNotEmpty("source", filter.Source).
@@ -235,17 +221,74 @@ func (ch *chRepo) getAlertEventsByWhere(startTime time.Time, endTime time.Time, 
 		EqualsNotEmpty("status", filter.Status).
 		And(whereInstance)
 
-	orderBuilder := extractOrderParam(sortBy)
-	orders := orderBuilder.String()
-
-	sql := fmt.Sprintf(SQL_GET_PAGED_ALERT_EVENT, orders, builder.String(), RnLimit(pageParam))
-	var events []PagedAlertEvent
-	err := ch.conn.Select(context.Background(), &events, sql, builder.values...)
-	var total_count = 0
-	if len(events) > 0 {
-		total_count = int(events[0].TotalCount)
+	var count uint64
+	countSql := fmt.Sprintf(GET_ALERT_EVENTS_COUNT, builder.String())
+	err := ch.conn.QueryRow(context.Background(), countSql, builder.values...).Scan(&count)
+	if err != nil {
+		return nil, 0, err
 	}
-	return events, total_count, err
+
+	orderBuilder := extractOrderParam(sortBy).
+		OrderBy("group", true).
+		OrderBy("name", true).
+		OrderBy("received_time", false).
+		Offset((pageParam.CurrentPage - 1) * pageParam.PageSize).
+		Limit(pageParam.PageSize)
+
+	sql := fmt.Sprintf(SQL_GET_PAGED_ALERT_EVENT, builder.String(), orderBuilder.String())
+	var events []alert.AlertEvent
+	err = ch.conn.Select(context.Background(), &events, sql, builder.values...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return events, count, err
+}
+
+func (ch *chRepo) InsertBatchAlertEvents(ctx context.Context, events []*model.AlertEvent) error {
+	batch, err := ch.conn.PrepareBatch(ctx, `
+		INSERT INTO alert_event (source, id, alert_id, create_time, update_time, end_time, received_time, severity, group,
+		                         name, detail, tags, status)
+		VALUES
+	`)
+	if err != nil {
+		return err
+	}
+	for _, event := range events {
+		alertId := alert.FastAlertIDByStringMap(event.Name, event.Tags)
+		if err := batch.Append(event.Source, event.ID, alertId, event.CreateTime, event.UpdateTime, event.EndTime,
+			event.ReceivedTime, int8(event.Severity), event.Group, event.Name, event.Detail, event.Tags, int8(event.Status)); err != nil {
+			log.Println("Failed to send data:", err)
+			continue
+		}
+	}
+
+	if err := batch.Send(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// ReadAlertEvent implement the Read method of the AlertEventDAO interface
+func (ch *chRepo) ReadAlertEvent(ctx context.Context, id uuid.UUID) (*model.AlertEvent, error) {
+	var event model.AlertEvent
+	query := `
+		SELECT source, id, create_time, update_time, end_time, received_time, severity
+		       ,group, name, detail, tags, status
+		FROM alert_event
+		WHERE id = ?
+	`
+	err := ch.conn.QueryRow(ctx, query, id).Scan(
+		&event.Source, &event.ID, &event.CreateTime, &event.UpdateTime, &event.EndTime,
+		&event.ReceivedTime, &event.Severity, &event.Group, &event.Name, &event.Detail, &event.Tags, &event.Status,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("event with ID %s not found", id)
+		}
+		return nil, fmt.Errorf("failed to read event: %w", err)
+	}
+	return &event, nil
 }
 
 func (ch *chRepo) GetAlertEventById(eventId string, startTime, endTime time.Time) (*model.AlertEvent, error) {
@@ -469,27 +512,10 @@ type AlertEventSample struct {
 	AlertKey string `ch:"alert_key" json:"alertKey"`
 }
 
-type PagedAlertEvent struct {
-	alert.AlertEvent
-
-	// Record line number
-	Rn         uint64 `ch:"rn" json:"-"`
-	TotalCount uint64 `ch:"total_count" json:"-"`
-}
-
 type AlertEventWithKey struct {
 	model.AlertEvent
 
 	AlertKey string `ch:"alert_key" json:"alertKey"`
-}
-
-func RnLimit(p *request.PageParam) string {
-	if p == nil {
-		return ""
-	}
-	startIdx := 1 + (p.CurrentPage-1)*p.PageSize
-	endIdx := p.CurrentPage * p.PageSize
-	return fmt.Sprintf(" WHERE rn BETWEEN %d AND %d ", startIdx, endIdx)
 }
 
 const (

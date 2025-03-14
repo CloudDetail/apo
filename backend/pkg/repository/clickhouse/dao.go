@@ -97,8 +97,8 @@ type Repo interface {
 	// Query alarm events sampled by labels, sampleCount the number of samples for each label.
 	GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error)
 	// Query alarm events by pageParam
-	GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error)
-	GetAlertEventsByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error)
+	GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error)
+	GetAlertEventsByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error)
 	GetAlertEventsWithKeyByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventWithKey, error)
 	// 查询指定EventId的告警事件
 	GetAlertEventById(eventId string, startTime, endTime time.Time) (*model.AlertEvent, error)

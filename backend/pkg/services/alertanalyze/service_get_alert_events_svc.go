@@ -38,7 +38,7 @@ func (s *service) GetAlertEventsSvc(req *request.GetAlertEventsSvcReq) (*respons
 	for i := 0; i < len(events); i++ {
 		endpoints, associated := endpointsMap.SearchAndAddEndpointsForAlert(s.promRepo, &events[i].Alert, startTime, endTime)
 		impactEvents[i] = response.ImpactAlertEvent{
-			AlertEvent:      &events[i].AlertEvent,
+			AlertEvent:      &events[i],
 			IsAnalyzed:      associated,
 			ImpactEndpoints: endpoints,
 			ImpactEntries:   []model.EndpointKey{},
