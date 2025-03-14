@@ -69,13 +69,44 @@ func (d *difyRepo) RemoveUser(username string) (*DifyResponse, error) {
 }
 
 // UpdatePassword implements DifyRepo.
-func (d *difyRepo) UpdatePassword(username string, oldPassword string, newPasswoard string) (*DifyResponse, error) {
+func (d *difyRepo) UpdatePassword(username string, oldPassword string, newPassword string) (*DifyResponse, error) {
 	difyConf := config.Get().Dify
 	url := difyConf.URL + DIFY_PASSWORD_UPDATE
 
 	req := &DifyUser{
 		Password:    oldPassword,
-		NewPassword: newPasswoard,
+		NewPassword: newPassword,
+		Username:    username,
+	}
+
+	jsonData, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := d.cli.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	var res DifyResponse
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (d *difyRepo) ResetPassword(username string, newPassword string) (*DifyResponse, error) {
+	difyConf := config.Get().Dify
+	url := difyConf.URL + DIFY_RESET_PASSWORD
+
+	req := &DifyUser{
+		NewPassword: newPassword,
 		Username:    username,
 	}
 

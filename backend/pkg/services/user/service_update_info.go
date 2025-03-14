@@ -130,7 +130,24 @@ func (s *service) RestPassword(req *request.ResetPasswordRequest) error {
 	if err := checkPasswordComplexity(req.NewPassword); err != nil {
 		return err
 	}
-	return s.dbRepo.RestPassword(req.UserID, req.NewPassword)
+
+	user, err := s.dbRepo.GetUserInfo(req.UserID)
+	if err != nil {
+		return err
+	}
+
+	var resetPasswordFunc = func(ctx context.Context) error {
+		return s.dbRepo.RestPassword(req.UserID, req.NewPassword)
+	}
+
+	var resetDifyPasswordFunc = func(ctx context.Context) error {
+		resp, err := s.difyRepo.ResetPassword(user.Username, req.NewPassword)
+		if err != nil || resp.Result != "success" {
+			return errors.New("failed to reset password in dify")
+		}
+		return nil
+	}
+	return s.dbRepo.Transaction(context.Background(), resetPasswordFunc, resetDifyPasswordFunc)
 }
 
 func (s *service) UpdateSelfInfo(req *request.UpdateSelfInfoRequest) error {

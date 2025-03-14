@@ -70,17 +70,17 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 	var assignTeamFunc = func(ctx context.Context) error {
 		return s.dbRepo.AssignUserToTeam(ctx, user.UserID, req.TeamList)
 	}
-
-	var createUserFunc = func(ctx context.Context) error {
-		return s.dbRepo.CreateUser(ctx, user)
-	}
-
-	var createDifyUserFunc = func(ctx context.Context) error {
+  
+  var createDifyUserFunc = func(ctx context.Context) error {
 		resp, err := s.difyRepo.AddUser(user.Username, user.Password, "admin")
 		if err != nil || resp.Result != "success" {
 			return errors.New("failed to create user in dify")
 		}
 		return nil
+	}
+
+	var createUserFunc = func(ctx context.Context) error {
+		return s.dbRepo.CreateUser(ctx, user)
 	}
 
 	var grantRoleFunc = func(ctx context.Context) error {
