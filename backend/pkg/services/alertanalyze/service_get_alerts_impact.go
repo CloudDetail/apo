@@ -153,7 +153,7 @@ func (e *entryFilter) IsFiltered(svc, endpoint string) bool {
 	}
 
 	if len(e.Endpoints) > 0 {
-		if _, find := e.Services[endpoint]; !find {
+		if _, find := e.Endpoints[endpoint]; !find {
 			return true
 		}
 	}
