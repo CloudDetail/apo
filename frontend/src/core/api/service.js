@@ -90,7 +90,7 @@ export const getServicesAlertApi = (params) => {
  * @returns {Promise<Object>} - 返回结果
  */
 export const getServiceAlertEventsApi = (params) => {
-  return post(`/api/service/alert/events`, params)
+  return post(`/api/alerts/alert/events`, params)
 }
 /**
  * 告警分析页面->获取服务上下游调用关系
