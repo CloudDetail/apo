@@ -186,6 +186,7 @@ var enText = map[string]string{
 	APINotExist:                       "Api does not exist",
 	AuthError:                         "Failed to authorize permission",
 	GetGroupSubsError:                 "Failed to get data group's assigned subjects",
+	UserNameError:                     "UserName format invaild",
 
 	CreateTeamError:       "Failed to create team",
 	TeamAlreadyExistError: "Team already exists",
