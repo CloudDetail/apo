@@ -16,6 +16,8 @@ import style from './Login.module.css'
 import userReducer, { initialState } from 'src/core/store/reducers/userReducer'
 import { useUserContext } from 'src/core/contexts/UserContext'
 import { useTranslation } from 'react-i18next'
+import { workflowLoginApi } from 'src/core/api/workflows'
+import i18next from 'i18next'
 
 export default function Login() {
   const { user, dispatchUser } = useUserContext()
@@ -24,7 +26,7 @@ export default function Login() {
   const [remeberMe, setRemeberMe] = useState(true)
   const [loading, setLoading] = useState(false)
   const { t } = useTranslation('core/login')
-
+  const language = i18next.language
   const login = () => {
     if (loading) return
     form
@@ -33,6 +35,7 @@ export default function Login() {
         try {
           setLoading(true)
           const { accessToken, refreshToken } = await loginApi(values)
+          await loginDify(values)
           if (accessToken && refreshToken) {
             window.localStorage.setItem('token', accessToken)
             window.localStorage.setItem('refreshToken', refreshToken)
@@ -54,6 +57,18 @@ export default function Login() {
       })
   }
 
+  const loginDify = async (values) => {
+    const res = await workflowLoginApi({
+      email: values.username + '@apo.com',
+      password: values.password,
+      language: language,
+      remember_me: true,
+    })
+    if (res.result === 'success') {
+      window.localStorage.setItem('difyToken', res.data.access_token)
+      window.localStorage.setItem('difyRefreshToken', res.data.refresh_token)
+    }
+  }
   useEffect(() => {
     form.setFieldValue('username', localStorage.getItem('username'))
     const savedRememberMe = localStorage.getItem('remeberMe')
