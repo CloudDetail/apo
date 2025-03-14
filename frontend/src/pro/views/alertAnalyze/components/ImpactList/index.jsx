@@ -324,7 +324,7 @@ const ImpactList = () => {
           total={eventImpactList?.length || 0}
           current={pagination.pageIndex}
           pageSize={pagination.pageSize}
-          className="flex-shrink-0 flex-grow-0 p-2"
+          className="flex-shrink-0 flex-grow-0 pb-3"
           align="end"
           onChange={changePagination}
         />
