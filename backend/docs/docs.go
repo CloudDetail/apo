@@ -10204,25 +10204,21 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "describe": {
-                    "description": "描述",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "params": {
-                    "description": "Targets []Target ` + "`" + `json:\"targets\"` + "`" + ` // 目标列表",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "title": {
-                    "description": "查询标题",
                     "type": "string"
                 },
                 "unit": {
-                    "description": "单位",
                     "type": "string"
                 }
             }

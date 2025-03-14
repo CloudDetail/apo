@@ -125,7 +125,6 @@ type RedCharts struct {
 
 type GetServiceREDChartsResponse map[string]map[string]RedCharts
 
-
 type ServiceRes struct {
 	ServiceName          string          `json:"serviceName"`
 	EndpointCount        int             `json:"endpointCount"`
@@ -277,7 +276,7 @@ type EntryInstanceData struct {
 
 type AlertRelatedEntry struct {
 	ServiceName string   `json:"serviceName"`
-	Namespaces  []string `json:"namespaces,omitempty"` // 应用所属命名空间,可能为空
+	Namespaces  []string `json:"namespaces,omitempty"`
 
 	ServiceDetail
 

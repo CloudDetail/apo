@@ -21,11 +21,10 @@ type QueryInfo struct {
 	ID      int `json:"id"`
 	GroupID int `json:"-"`
 
-	Title    string `json:"title"`    // 查询标题
-	Describe string `json:"describe"` // 描述
-	// Targets []Target `json:"targets"` // 目标列表
-	Params []string `json:"params"` // 参数列表
-	Unit   string   `json:"unit"`   // 单位
+	Title    string   `json:"title"`
+	Describe string   `json:"describe"`
+	Params   []string `json:"params"`
+	Unit     string   `json:"unit"`
 }
 
 func (q *QueryDict) ListMetrics() []QueryInfo {
