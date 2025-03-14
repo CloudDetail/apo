@@ -1269,6 +1269,85 @@ definitions:
       username:
         type: string
     type: object
+  metric.Labels:
+    additionalProperties:
+      type: string
+    type: object
+  metric.QueryInfo:
+    properties:
+      describe:
+        description: 描述
+        type: string
+      id:
+        type: integer
+      params:
+        description: Targets []Target `json:"targets"` // 目标列表
+        items:
+          type: string
+        type: array
+      title:
+        description: 查询标题
+        type: string
+      unit:
+        description: 单位
+        type: string
+    type: object
+  metric.QueryMetricsRequest:
+    properties:
+      endTime:
+        type: integer
+      metricIDs:
+        items:
+          type: integer
+        type: array
+      metricName:
+        type: string
+      metricNames:
+        items:
+          type: string
+        type: array
+      params:
+        additionalProperties:
+          type: string
+        type: object
+      startTime:
+        type: integer
+      step:
+        type: integer
+    type: object
+  metric.QueryMetricsResult:
+    properties:
+      msg:
+        type: string
+      result:
+        $ref: '#/definitions/metric.QueryResult'
+      results:
+        items:
+          $ref: '#/definitions/metric.QueryResult'
+        type: array
+    type: object
+  metric.QueryResult:
+    properties:
+      timeseries:
+        items:
+          $ref: '#/definitions/metric.Timeseries'
+        type: array
+      title:
+        type: string
+      unit:
+        type: string
+    type: object
+  metric.Timeseries:
+    properties:
+      chart:
+        $ref: '#/definitions/response.TempChartObject'
+      labels:
+        $ref: '#/definitions/metric.Labels'
+      legend:
+        type: string
+      legendFormat:
+        type: string
+    type: object
   model.AlertDetail:
     properties:
       alertMessage:
@@ -5765,7 +5844,9 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            items:
+              $ref: '#/definitions/metric.QueryInfo'
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -5776,13 +5857,20 @@ paths:
     post:
       consumes:
       - application/x-www-form-urlencoded
+      parameters:
+      - description: request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/metric.QueryMetricsRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/metric.QueryMetricsResult'
         "400":
           description: Bad Request
           schema:
