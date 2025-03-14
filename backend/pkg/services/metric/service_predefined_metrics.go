@@ -153,7 +153,7 @@ func (s *service) executeQuery(
 			res = append(res, Timeseries{
 				Legend:       legend,
 				LegendFormat: target.LegendFormat,
-				Labels:       matrix[i].Metric,
+				Labels:       toStringMap(matrix[i].Metric),
 				// Values: matrix[i].Values,
 				Chart: chart,
 			})
@@ -293,4 +293,12 @@ func (s *service) queryVar(
 	default:
 		return "", false, nil
 	}
+}
+
+func toStringMap(metric model.Metric) map[string]string {
+	var res = make(map[string]string, len(metric))
+	for k, v := range metric {
+		res[string(k)] = string(v)
+	}
+	return res
 }

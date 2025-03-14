@@ -130,7 +130,7 @@ const AreaChart = ({ type, data, timeRange }) => {
       <Line data={chartData} options={options} />
     </Popover>
   ) : (
-    <div className="w-full h-full flex items-center">
+    <div className="w-full h-full flex items-center justify-center">
       <AiOutlineLineChart size={30} color="#98a2b3" />
     </div>
   )

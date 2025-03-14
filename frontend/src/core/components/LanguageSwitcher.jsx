@@ -26,6 +26,7 @@ const LanguageSwitcher = () => {
           title: t('languageSuccess'),
           color: 'success',
         })
+        window.location.reload()
       })
   }
 

@@ -10,7 +10,8 @@ import _ from 'lodash'
 import TableBody from './tableBody'
 import LoadingSpinner from '../Spinner'
 import BasicPagination from './basicPagination'
-
+import { Tooltip } from 'antd'
+import { VscTriangleUp, VscTriangleDown } from 'react-icons/vsc'
 const BasicTable = React.memo((props) => {
   const {
     data,
@@ -22,7 +23,7 @@ const BasicTable = React.memo((props) => {
     noHeader,
     showBorder,
     clickRow,
-    emptyContent = '暂无数据',
+    emptyContent = null,
     showLoading = true,
   } = props
   const tableRef = useRef(null)
@@ -51,6 +52,7 @@ const BasicTable = React.memo((props) => {
     previousPage,
     setPageSize,
     state: { pageIndex, pageSize },
+    setSortBy,
   } = useTable(
     {
       defaultColumn: {
@@ -93,13 +95,17 @@ const BasicTable = React.memo((props) => {
   return (
     <div className={showBorder ? 'basic-table border-table' : 'basic-table'}>
       <table {...getTableProps()} ref={tableRef}>
-        <thead>
+        <thead
+          className="m-0 overflow-y-scroll bg-[#1d1d1d]"
+          style={{ borderRadius: '8px 8px 0 0' }}
+        >
           {!noHeader &&
             headerGroups.map((headerGroup, idx) => (
               <tr {...headerGroup.getHeaderGroupProps()} key={`header_tr_${idx}`}>
                 {headerGroup.headers.map((column, idx) => {
                   return (
                     <th
+                      {...column.getHeaderProps(column.getSortByToggleProps())}
                       {...column.getHeaderProps({
                         style: {
                           width: column.customWidth,
@@ -107,16 +113,29 @@ const BasicTable = React.memo((props) => {
                           justifyContent: column.justifyContent ? column.justifyContent : 'center',
                           padding: column.isNested ? 0 : 8,
                           minWidth: column.minWidth,
+                          textDecoration: 'none',
                         },
                       })}
                       className={
                         (column.isSorted ? (column.isSortedDesc ? 'sort-desc' : 'sort-asc') : '') +
-                        (column.canSort ? '  cursor-pointer' : '')
+                        (column.canSort ? 'cursor-pointer no-underline' : '') +
+                        (!column.isNested && 'hover:bg-[#303030]') +
+                        '    hover:no-underline'
                       }
                       key={`header_th_${idx}`}
                       onClick={() => {
-                        if (column.canSort) {
-                          column.toggleSortBy()
+                        if (!column.disableSortBy) {
+                          setSortBy([])
+
+                          if (!column.isSorted) {
+                            if (column.isSortedDesc === undefined) {
+                              column.toggleSortBy(false, false)
+                            }
+                          } else {
+                            if (!column.isSortedDesc) {
+                              column.toggleSortBy(true, false)
+                            }
+                          }
                         }
                       }}
                     >
@@ -135,13 +154,40 @@ const BasicTable = React.memo((props) => {
 
                                 minWidth: item.minWidth,
                               }}
+                              className="hover:bg-[#303030]"
                               key={index}
                             >
                               {item.title}
                             </th>
                           )
                         })}
-                      {!column.isNested && column.render('title')}
+                      <div className="flex justify-between items-center">
+                        {!column.isNested && column.render('title')}
+                        {!column.disableSortBy && (
+                          <Tooltip
+                            title={
+                              column.isSorted
+                                ? column.isSortedDesc
+                                  ? '取消排序'
+                                  : '点击降序'
+                                : '点击升序'
+                            }
+                          >
+                            <div
+                              className="flex flex-col cursor-pointer ml-3"
+                              {...column.getSortByToggleProps()}
+                            >
+                              <VscTriangleUp
+                                color={column.isSorted && !column.isSortedDesc ? '#5286e8' : 'grey'}
+                              />
+                              <VscTriangleDown
+                                style={{ marginTop: -6 }}
+                                color={column.isSorted && column.isSortedDesc ? '#5286e8' : 'grey'}
+                              />
+                            </div>
+                          </Tooltip>
+                        )}
+                      </div>
                     </th>
                   )
                 })}

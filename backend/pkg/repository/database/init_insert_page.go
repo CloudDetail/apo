@@ -11,7 +11,8 @@ func (repo *daoRepo) initInsertPages() error {
 	pages := []InsertPage{
 		{Url: "grafana/d/b0102ebf-9e5e-4f21-80aa-9c2565cd3dcb/originx-polaris-metrics-service-level", Type: "grafana"},
 		{Url: "grafana/d/adst2iva9181se/e59fba-e7a180-e8aebe-e696bd-e68385-e586b5", Type: "grafana"},
-		{Url: "grafana/dashboards/f/edwu5b9rkv94wb/", Type: "grafana"},
+		{Url: "grafana/dashboards/f/edwu5b9rkv94wb-zh/", Type: "grafana"},
+		{Url: "grafana/dashboards/f/edwu5b9rkv94wb-en/", Type: "grafana"},
 		{Url: "grafana/d/k8s_views_global/e99b86-e7bea4-e680bb-e8a788", Type: "grafana"},
 		{Url: "jaeger/search", Type: "jaeger"},
 		{Url: "grafana/d/d065c262fbbe43/cluster-overview", Type: "grafana"},

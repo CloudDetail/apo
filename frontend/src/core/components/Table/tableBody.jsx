@@ -20,7 +20,7 @@ function TableBody(props) {
     }
   }
   return (
-    <tbody>
+    <tbody className="bg-[#141414]">
       {(page &&
         page.length > 0 &&
         page.map((row, idx) => {

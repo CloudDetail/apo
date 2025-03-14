@@ -19,7 +19,7 @@ import (
 // @Router /api/alerts/rule/groups [get]
 func (h *handler) GetGroupList() core.HandlerFunc {
 	return func(c core.Context) {
-		resp := h.alertService.GetGroupList()
+		resp := h.alertService.GetGroupList(c)
 		c.Payload(resp)
 	}
 }

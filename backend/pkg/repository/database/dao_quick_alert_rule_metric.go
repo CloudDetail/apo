@@ -34,10 +34,10 @@ func (repo *daoRepo) ListQuickAlertRuleMetric(lang string) ([]AlertMetricsData, 
 
 func getQuickAlertRuleNameField(lang string) string {
 	if strings.HasPrefix(lang, "en") { // en_US,en
-		return "name_en AS name"
+		return "name_en AS `name`"
 	}
 	// if strings.HasPrefix(lang, "zh") { // zh_CN,zh
 	// 	return "name"
 	// }
-	return "name"
+	return "`name`"
 }

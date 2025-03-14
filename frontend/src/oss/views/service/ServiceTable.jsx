@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import TempCell from 'src/core/components/Table/TempCell'
 import StatusInfo from 'src/core/components/StatusInfo'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
-import { getServicesAlertApi, getServicesEndpointsApi } from 'core/api/service'
+import { getServiceChartsApi, getServicesAlertApi, getServicesEndpointsApi } from 'core/api/service'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { getStep } from 'src/core/utils/step'
@@ -18,13 +18,15 @@ import { DelaySourceTimeUnit } from 'src/constants'
 import { convertTime } from 'src/core/utils/time'
 import EndpointTableModal from './component/EndpointTableModal'
 import LoadingSpinner from 'src/core/components/Spinner'
-import { Tooltip } from 'antd'
+import { Card, Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
-import { TableFilter } from './component/TableFilter'
+import { TableFilter } from 'src/core/components/Filter/TableFilter'
 import { useTranslation } from 'react-i18next'
 import React from 'react'
-const ServiceTable = React.memo(({ groupId }) => {
+import { ChartsProvider, useChartsContext } from 'src/core/contexts/ChartsContext'
+import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
+const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) => {
   const { t, i18n } = useTranslation('oss/service')
   const navigate = useNavigate()
   const [data, setData] = useState([])
@@ -42,6 +44,7 @@ const ServiceTable = React.memo(({ groupId }) => {
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
+  const getChartsData = useChartsContext((ctx) => ctx.getChartsData)
 
   const column = [
     {
@@ -49,18 +52,6 @@ const ServiceTable = React.memo(({ groupId }) => {
       accessor: 'serviceName',
       customWidth: 150,
     },
-    // {
-    //   title: t('index.serviceTableColumns.namespaces'),
-    //   accessor: 'namespaces',
-    //   customWidth: 120,
-    //   Cell: (props) => {
-    //     return (props.value ?? []).length > 0 ? (
-    //       props.value.join()
-    //     ) : (
-    //       <span className="text-slate-400">N/A</span>
-    //     )
-    //   },
-    // },
     {
       title: t('index.serviceTableColumns.serviceDetails.title'),
       accessor: 'serviceDetails',
@@ -143,22 +134,17 @@ const ServiceTable = React.memo(({ groupId }) => {
           accessor: (idx) => `latency`,
 
           Cell: (props) => {
-            // eslint-disable-next-line react/prop-types
-            const { value } = props
-
+            const { value, cell, trs } = props
+            const { serviceName } = cell.row.original
+            const { endpoint } = trs
             return (
-              <TempCell type="latency" data={value} timeRange={requestTimeRange} />
-              // <div display="flex" sx={{ alignItems: 'center' }} color="white">
-              //   <div sx={{ flex: 1, mr: 1 }} color="white">
-              //     {/* eslint-disable-next-line react/prop-types */}
-              //     {value.value}
-              //   </div>
-
-              //   <div display="flex" sx={{ alignItems: 'center', height: 30 }}>
-              //     {' '}
-              //     <AreaChart color="rgba(76, 192, 192, 1)" />
-              //   </div>
-              // </div>
+              <ChartTempCell
+                type="latency"
+                value={value}
+                service={serviceName}
+                endpoint={endpoint}
+                timeRange={requestTimeRange}
+              />
             )
           },
         },
@@ -168,9 +154,18 @@ const ServiceTable = React.memo(({ groupId }) => {
 
           minWidth: 140,
           Cell: (props) => {
-            // eslint-disable-next-line react/prop-types
-            const { value } = props
-            return <TempCell type="errorRate" data={value} timeRange={requestTimeRange} />
+            const { value, cell, trs } = props
+            const { serviceName } = cell.row.original
+            const { endpoint } = trs
+            return (
+              <ChartTempCell
+                type="errorRate"
+                value={value}
+                service={serviceName}
+                endpoint={endpoint}
+                timeRange={requestTimeRange}
+              />
+            )
           },
         },
         {
@@ -179,9 +174,18 @@ const ServiceTable = React.memo(({ groupId }) => {
           minWidth: 140,
 
           Cell: (props) => {
-            // eslint-disable-next-line react/prop-types
-            const { value } = props
-            return <TempCell type="tps" data={value} timeRange={requestTimeRange} />
+            const { value, cell, trs } = props
+            const { serviceName } = cell.row.original
+            const { endpoint } = trs
+            return (
+              <ChartTempCell
+                type="tps"
+                value={value}
+                service={serviceName}
+                endpoint={endpoint}
+                timeRange={requestTimeRange}
+              />
+            )
           },
         },
       ],
@@ -338,13 +342,27 @@ const ServiceTable = React.memo(({ groupId }) => {
         // setLoading(false)
       })
   }
+  useEffect(() => {
+    if (data) getServiceCharts()
+  }, [pageIndex, pageSize, data])
+  const getServiceCharts = async () => {
+    const paginatedData = data.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)
+    const serviceList = []
+    const endpointList = []
+    paginatedData.forEach((item) => {
+      serviceList.push(item.serviceName)
+      item.serviceDetails.forEach((endpoint) => {
+        endpointList.push(endpoint.endpoint)
+      })
+    })
+    getChartsData(serviceList, endpointList)
+  }
   const handleTableChange = (props) => {
     if (props.pageSize && props.pageIndex) {
       setPageSize(props.pageSize), setPageIndex(props.pageIndex)
     }
   }
   const tableProps = useMemo(() => {
-    console.log('tableProps重绘制', data, pageIndex, pageSize)
     const paginatedData = data.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)
     return {
       columns: column,
@@ -365,11 +383,10 @@ const ServiceTable = React.memo(({ groupId }) => {
               <a
                 className="underline text-sky-500"
                 target="_blank"
-                href=
-                {
+                href={
                   i18n.language === 'zh'
-                  ? "https://kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/安装%20APO-OneAgent/"
-                  : "https://docs.autopilotobservability.com/Installation/APO%20OneAgent"
+                    ? 'https://kindlingx.com/docs/APO%20向导式可观测性中心/安装手册/安装%20APO-OneAgent/'
+                    : 'https://docs.autopilotobservability.com/Installation/APO%20OneAgent'
                 }
               >
                 {t('index.tableProps.unmonitoredLinkText')}
@@ -380,11 +397,10 @@ const ServiceTable = React.memo(({ groupId }) => {
               <a
                 className="underline text-sky-500"
                 target="_blank"
-                href=
-                {
+                href={
                   i18n.language === 'zh'
-                  ? "https://kindlingx.com/docs/APO%20向导式可观测性中心/常见问题/运维与故障排除/APO%20服务概览无数据排查文档"
-                  : "https://docs.autopilotobservability.com/Troubleshooting/Service%20Overview%20No%20Data"
+                    ? 'https://kindlingx.com/docs/APO%20向导式可观测性中心/常见问题/运维与故障排除/APO%20服务概览无数据排查文档'
+                    : 'https://docs.autopilotobservability.com/Troubleshooting/Service%20Overview%20No%20Data'
                 }
               >
                 {t('index.tableProps.monitoredLinkText')}
@@ -412,18 +428,21 @@ const ServiceTable = React.memo(({ groupId }) => {
         setServiceName={setServiceName}
         setEndpoint={setEndpoint}
         setNamespace={setNamespace}
+        className="mb-2"
       />
-      <CCard className="flex-1 overflow-hidden">
+      <Card className="flex-1 overflow-hidden" styles={{ body: { height: height, padding: 0 } }}>
         <div className="mb-4 h-full p-2 text-xs justify-between">
           <BasicTable {...tableProps} />
         </div>
-        <EndpointTableModal
-          visible={modalVisible}
-          serviceName={modalServiceName}
-          timeRange={requestTimeRange}
-          closeModal={() => setModalVisible(false)}
-        />
-      </CCard>
+        <ChartsProvider>
+          <EndpointTableModal
+            visible={modalVisible}
+            serviceName={modalServiceName}
+            timeRange={requestTimeRange}
+            closeModal={() => setModalVisible(false)}
+          />
+        </ChartsProvider>
+      </Card>
     </div>
   )
 })

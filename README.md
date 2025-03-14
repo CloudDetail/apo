@@ -20,9 +20,28 @@ Low-code orchestration that transforms your expertise into the dynamic core powe
 + Customize automated diagnostic workflows.
 + Experience advanced cross-domain data correlation.
 
+#### Out-of-the-Box Troubleshooting Workflows
+
+APO comes with a variety of built-in intelligent workflows. You can customize your own workflows with your expertise to enable automated troubleshooting and intelligent operations.  
+
+![Workflows List](./docs/img/workflows-list.png)
+
+#### Built-in Data Query and Anomaly Detection Tools
+
+Given the abundance of multi-model data in the observability domain, APO provides a suite of data query and anomaly detection tools that everyone can simply drag and drop to use.  
+
+![APO Select Tools](./docs/img/apo-select-tools.png)
+
+#### Result Verifiability
+
+To prevent unverifiable results caused by large model hallucinations, we offer visual data charts during workflow execution. You can view execution results and data charts at every step. Additionally, cross-validation with eBPF Polaris metrics and multi-source metrics further enhances result reliability.
+![charts](./docs/img/charts-verifiability.png)
+
 ### **LLM-native data plane**
 + **API-centric service map**: APO provides granular visibility into API endpoints within applications, creating clear service dependency maps for specific business flows. Our intelligent similarity algorithms prevent topology sprawl by condensing similar nodes while preserving detailed information in tabular views. Navigate effortlessly between node details with intuitive click-through navigation.
 + **Anomaly events with cross-domain data correlation**: Anomaly events with cross-domain data correlation: Given that observability data is diverse in structure and massive in scale, directly feeding it into large models is impractical. APO’s innovative approach transforms varied data into anomaly events, correlating them with the service map while capturing essential contextual details. This enriched data stream enables precise anomaly detection and cross-domain correlation, empowering the system to uncover subtle issues and deliver deeper, actionable insights.
+
+![service-map](./docs/img/service-map.png)
 
 ### Zero-Touch Tracing Agent Instrumentation
 With OneAgent technology, APO supports the automatic instrumentation of multi-language OpenTelemetry agents across traditional and containerized environments, eliminating manual configuration overhead.

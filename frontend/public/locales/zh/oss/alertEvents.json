@@ -19,5 +19,8 @@
   "workflowsModal": "工作流",
   "firing": "告警中",
   "resolved": "已解决",
-  "status": "告警状态"
+  "status": "告警状态",
+  "workflowMiss": "工作流未配置",
+  "missToast1": "未设置告警有效性检查工作流, 告警有效性检查暂停",
+  "missToast2": "未设置告警根因分析工作流, 告警根因分析当前无法跳转"
 }
