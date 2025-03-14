@@ -18,7 +18,7 @@ import (
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json
-// @Param Request body alert.AlerEnrichRuleConfigRequest true "Update Config"
+// @Param Request body alert.AlertEnrichRuleConfigRequest true "Update Config"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/source/enrich/update [post]
