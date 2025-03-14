@@ -19,7 +19,7 @@ import FilterSelector from './FilterSelector'
 
 export const TableFilter = (props) => {
   const { t } = useTranslation('oss/service')
-  const { setServiceName, setEndpoint, setNamespace, groupId, className='' } = props
+  const { setServiceName, setEndpoint, setNamespace, groupId, className = '' } = props
   const [serviceNameOptions, setServiceNameOptions] = useState([])
   const [endpointNameOptions, setEndpointNameOptions] = useState([])
   const [namespaceOptions, setNamespaceOptions] = useState([])
@@ -130,7 +130,7 @@ export const TableFilter = (props) => {
 
   return (
     <>
-      <div className={`mb-2 flex flex-row w-full ${className}`}>
+      <div className={`flex flex-row w-full ${className}`}>
         <FilterSelector
           label={t('tableFilter.namespacesLabel')}
           placeholder={t('tableFilter.namespacePlaceholder')}
