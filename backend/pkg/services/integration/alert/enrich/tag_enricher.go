@@ -87,7 +87,7 @@ func NewTagEnricher(
 }
 
 func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
-	iter := e.JQParser.Run(alertEvent.Tags)
+	iter := e.JQParser.Run(map[string]any(alertEvent.Tags))
 	v, ok := iter.Next()
 	if !ok || v == nil {
 		return
