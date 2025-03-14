@@ -65,3 +65,14 @@
     -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch;
 }
+
+/* 隐藏原生滚动条 */
+.custom-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
