@@ -35,6 +35,7 @@ var enText = map[string]string{
 	GetServiceRYGLightError:        "Failed to get service RYG light",
 	GetSQLMetricError:              "Failed to get sql metric",
 	GetNamespaceListError:          "Failed to get namespace list",
+	GetServiceREDChartsError:       "Failed to get services's RED charts",
 
 	GetFaultLogContentError: "Failed to get fault log content",
 	GetMonitorStatusError:   "Failed to get monitor status",

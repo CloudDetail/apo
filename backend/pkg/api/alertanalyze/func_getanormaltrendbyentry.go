@@ -6,8 +6,8 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/model"
 
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -35,7 +35,7 @@ func (h *handler) GetAnormalTrendByEntry() core.HandlerFunc {
 
 		resp, err := h.alertanalyzeService.GetAnormalTrendByEntry(req)
 		if err != nil {
-			var vErr model.ErrMutationCheckFailed
+			var vErr alert.ErrMutationCheckFailed
 			if errors.As(err, &vErr) {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,

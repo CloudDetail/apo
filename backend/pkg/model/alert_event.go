@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// Deprecated: use alert.AlertEvent instead
 // AlertEvent indicates an event in the alert_event table
 type AlertEvent struct {
 	Source string    `ch:"source" json:"source,omitempty"`

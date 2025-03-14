@@ -78,6 +78,7 @@ func setApiRouter(r *resource) {
 		serviceApi.GET("/alert/sample/events", serviceHandler.GetAlertEventsSample())
 
 		serviceApi.GET("/sql/metrics", serviceHandler.GetSQLMetrics())
+		serviceApi.POST("/redcharts", serviceHandler.GetServiceREDCharts())
 	}
 
 	logApi := r.mux.Group("/api/log").Use(middlewares.AuthMiddleware())
@@ -145,8 +146,8 @@ func setApiRouter(r *resource) {
 		alertApi.DELETE("/alertmanager/receiver", alertHandler.DeleteAlertManagerConfigReceiver())
 
 		alertanalyzeHandler := alertanalyze.New(r.logger, r.ch, r.pkg_db, r.prom, r.pol, r.k8sApi)
-		alertApi.GET("/alert/events", alertanalyzeHandler.GetAlertEvents())
-		alertApi.GET("/event/impact", alertanalyzeHandler.GetAlertImpact())
+		alertApi.POST("/alert/events", alertanalyzeHandler.GetAlertEvents())
+		alertApi.POST("/event/impact", alertanalyzeHandler.GetAlertImpact())
 		alertApi.GET("/descendant/anormal/contribution", alertanalyzeHandler.GetDescendantContribution())
 		alertApi.GET("/descendant/anormal/list", alertanalyzeHandler.GetDescendantAnormal())
 		alertApi.GET("/descendant/anormal/trend", alertanalyzeHandler.GetAnormalTrendByEntry())

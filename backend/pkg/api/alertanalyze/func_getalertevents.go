@@ -10,7 +10,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -39,8 +38,8 @@ import (
 // @Router /api/alerts/alert/events [get]
 func (h *handler) GetAlertEvents() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.GetAlertEventsRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		req := new(request.GetAlertEventsSvcReq)
+		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -49,11 +48,7 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 			return
 		}
 
-		if len(req.Service) > 0 {
-			req.Services = append(req.Services, req.Service)
-		}
-
-		resp, err := h.serviceInfoService.GetAlertEvents(req)
+		resp, err := h.alertanalyzeService.GetAlertEventsSvc(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
@@ -63,11 +58,11 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 			return
 		}
 		if resp == nil {
-			resp = &response.GetAlertEventsResponse{
+			resp = &response.GetAlertEventsSvcResp{
 				Pagination: &model.Pagination{
 					Total: 0,
 				},
-				EventList: []clickhouse.PagedAlertEvent{},
+				Events: []response.ImpactAlertEvent{},
 			}
 		}
 		c.Payload(resp)

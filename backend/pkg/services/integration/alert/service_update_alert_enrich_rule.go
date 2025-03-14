@@ -12,7 +12,7 @@ import (
 	"go.uber.org/multierr"
 )
 
-func (s *service) UpdateAlertEnrichRule(req *alert.AlerEnrichRuleConfigRequest) error {
+func (s *service) UpdateAlertEnrichRule(req *alert.AlertEnrichRuleConfigRequest) error {
 	oldEnricherPtr, find := s.dispatcher.EnricherMap.Load(req.SourceId)
 	if !find {
 		return alert.ErrAlertSourceNotExist{}
