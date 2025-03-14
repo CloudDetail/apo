@@ -85,7 +85,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 					ContainsEndpointName: entryNode.Endpoint,
 					Namespace:            "",
 				}
-				endpointResps, err = h.serviceoverviewService.GetServicesEndPointData(startTime, endTime, step, filter, sortRule)
+				endpointResps, err = h.serviceoverviewService.GetServicesEndpointDataWithChart(startTime, endTime, step, filter, sortRule)
 				if err == nil {
 					for _, endpointResp := range endpointResps {
 						if serviceResp, found := result[endpointResp.ServiceName]; found {
