@@ -203,12 +203,11 @@ const ImpactList = () => {
               {t(`${i18nKey}.alertList`)}
             </Button>
             <Button
+              className='my-1'
               variant="outlined"
               color="primary"
               onClick={() => {
-                navigate(
-                  `/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}`,
-                )
+                window.open(`#/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}`)
               }}
             >
               {t(`${i18nKey}.rootCauseAnalysis`)}
@@ -220,9 +219,7 @@ const ImpactList = () => {
   ]
   const openTopologyModal = (service, endpoint) => {
     // setSelectedEndpointInfo({ service, endpoint })
-    navigate(
-      `/alert-analyze/info?service=${encodeURIComponent(service)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=业务告警分析(${encodeURIComponent(service)} -> endpoint=${encodeURIComponent(endpoint)})`,
-    )
+    window.open(`#/alert-analyze/info?service=${encodeURIComponent(service)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=业务告警分析(${encodeURIComponent(service)} -> endpoint=${encodeURIComponent(endpoint)})`)
   }
   const closeModal = () => {
     setModalEndpointInfo(null)
