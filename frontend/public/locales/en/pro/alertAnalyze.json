@@ -34,7 +34,7 @@
     "syncAlertRules": "Synchronize to alert rules",
     "selectMetric": "Select a metric",
     "noMetrics": "No metrics available",
-    "timeSeconds": "s",
+    "timeSeconds": "seconds",
     "timeMinutes": "minutes",
     "timeHours": "Hours",
     "timeDays": "Days",

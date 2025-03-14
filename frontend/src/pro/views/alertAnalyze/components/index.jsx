@@ -9,6 +9,7 @@ import { AiOutlineFundView } from 'react-icons/ai'
 import AlertRuleQuickSet from './AlertRuleQuickSet'
 import AnomalyDetectionRecord from './AnomalyDetectionRecord'
 import { useTranslation } from 'react-i18next'
+import { ChartsProvider } from 'src/core/contexts/ChartsContext'
 
 function AlertAnalyzeCom() {
   const { t } = useTranslation('pro/alertAnalyze')
@@ -84,7 +85,9 @@ function AlertAnalyzeCom() {
         </Splitter.Panel>
         <Splitter.Panel collapsible>
           {isAnalyze ? (
-            <ImpactList />
+            <ChartsProvider>
+              <ImpactList />
+            </ChartsProvider>
           ) : (
             <div className="text-center flex flex-col items-center justify-center w-full h-full">
               <AiOutlineFundView size={120} color="#1677ff" />

@@ -146,7 +146,8 @@ export const AlertAnalyzeProvider = ({ children }) => {
         endTime: endTime,
         currentPage: pagination.pageIndex,
         pageSize: pagination.pageSize,
-        status: 'firing',
+        // status: 'firing',
+        step: getStep(startTime, endTime),
         // service: 'ts-gateway-service',
       }
 
@@ -154,7 +155,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
         getServiceAlertEventsApi(params),
         // getLogRuleApi({ tableName: 'test_logs', dataBase: 'default' }),
       ])
-      setAlertEvents(res.events || [])
+      setAlertEvents(res.alertEvents || [])
       setPagination({
         pageIndex: pagination.pageIndex,
         pageSize: pagination.pageSize,
@@ -174,7 +175,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
     }
   }
   // 获取告警的影响面分析
-  const getAlertEventImpact = (onlyUpdateEvents = false) => {
+  const getAlertEventImpact = (queryParams = {}) => {
     setLoading(true)
     const step = getStep(stepStartTime, stepEndTime)
     getAlertEventImpactApi({
@@ -183,14 +184,13 @@ export const AlertAnalyzeProvider = ({ children }) => {
       step,
       currentPage: pagination.pageIndex,
       pageSize: pagination.pageSize,
+      ...queryParams,
     })
       .then((res) => {
-        if (!onlyUpdateEvents) setEventImpactList(res.data || [])
-        setAlertEvents(res.alertEvents || [])
+        setEventImpactList(res.data || [])
       })
       .catch((error) => {
-        if (!onlyUpdateEvents) setEventImpactList([])
-        setAlertEvents([])
+        setEventImpactList([])
       })
       .finally(() => {
         setLoading(false)
@@ -396,16 +396,16 @@ export const AlertAnalyzeProvider = ({ children }) => {
     }, 100)
   }
 
-  useUpdateEffect(() => {
-    if (startTime && endTime) {
-      setLoading(true)
-      if (isAnalyze) {
-        getAlertEventImpact(true)
-      } else {
-        fetchData({ startTime, endTime })
-      }
-    }
-  }, [pagination.pageIndex, pagination.pageSize])
+  // useUpdateEffect(() => {
+  //   if (startTime && endTime) {
+  //     setLoading(true)
+  //     if (isAnalyze) {
+  //       getAlertEventImpact(true)
+  //     } else {
+  //       fetchData({ startTime, endTime })
+  //     }
+  //   }
+  // }, [pagination.pageIndex, pagination.pageSize])
   useEffect(() => {
     if (isAnalyze) getAlertEventImpact()
   }, [isAnalyze])
@@ -491,6 +491,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
       setIsPlaying,
       prepareTopologyNode,
       setIsAnalyze,
+      getAlertEventImpact,
     }),
     [
       pagination,

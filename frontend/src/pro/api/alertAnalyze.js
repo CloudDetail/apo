@@ -2,7 +2,7 @@ import { get, post } from 'src/core/utils/request'
 
 // 告警分析-》影响面分析,基于用户点击的告警,查询受此告警影响的业务入口
 export const getAlertEventImpactApi = (params) => {
-  return get(`/api/alerts/event/impact`, params, {
+  return post(`/api/alerts/event/impact`, params, {
     timeout: 0, // 单独设置超时时间为 0，表示不限制
   })
 }

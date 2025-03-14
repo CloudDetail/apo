@@ -13,7 +13,7 @@ export default defineConfig(() => {
     base: './',
     build: {
       outDir: 'build',
-      sourcemap: true, // 启用 source map
+      // sourcemap: true, // 启用 source map
       // rollupOptons: {
       //   // 设置默认入口文件，即使在 pro 环境中不包含 src/oss 文件夹
       //   input: {
