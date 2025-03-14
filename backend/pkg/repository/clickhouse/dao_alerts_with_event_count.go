@@ -11,8 +11,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
-const GET_ALERT_EVENTS_COUNT = `SELECT count(1) as count FROM alert_event %s`
-
 const GET_ALERTS_WITH_EVENT_COUNT = `WITH event_count AS (
   SELECT alert_id,count(1) as count
   FROM alert_event

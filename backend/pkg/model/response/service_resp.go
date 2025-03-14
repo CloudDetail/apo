@@ -5,6 +5,7 @@ package response
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -247,9 +248,9 @@ func (v *K8sEventCountValues) AddCount(dao clickhouse.K8sEventsCount) {
 }
 
 type GetAlertEventsResponse struct {
-	TotalCount int `json:"totalCount"`
+	TotalCount uint64 `json:"totalCount"`
 
-	EventList []clickhouse.PagedAlertEvent `json:"events"`
+	EventList []alert.AlertEvent `json:"events"`
 }
 
 type GetAlertEventsSampleResponse struct {
