@@ -70,9 +70,9 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 	var assignTeamFunc = func(ctx context.Context) error {
 		return s.dbRepo.AssignUserToTeam(ctx, user.UserID, req.TeamList)
 	}
-  
-  var createDifyUserFunc = func(ctx context.Context) error {
-		resp, err := s.difyRepo.AddUser(user.Username, user.Password, "admin")
+
+	var createDifyUserFunc = func(ctx context.Context) error {
+		resp, err := s.difyRepo.AddUser(req.Username, req.Password, "admin")
 		if err != nil || resp.Result != "success" {
 			return errors.New("failed to create user in dify")
 		}
