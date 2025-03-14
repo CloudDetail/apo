@@ -15,7 +15,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
-func vaildUserName(username string) error {
+func checkUserName(username string) error {
 	_, err := mail.ParseAddress(username + "@apo.com")
 	if err != nil {
 		return model.NewErrWithMessage(errors.New("username format invaild"), code.UserNameError)
@@ -24,7 +24,7 @@ func vaildUserName(username string) error {
 }
 
 func (s *service) CreateUser(req *request.CreateUserRequest) error {
-	if err := vaildUserName(req.Username); err != nil {
+	if err := checkUserName(req.Username); err != nil {
 		return err
 	}
 
