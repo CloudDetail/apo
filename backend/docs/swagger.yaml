@@ -1269,85 +1269,6 @@ definitions:
       username:
         type: string
     type: object
-  metric.Labels:
-    additionalProperties:
-      type: string
-    type: object
-  metric.QueryInfo:
-    properties:
-      describe:
-        description: 描述
-        type: string
-      id:
-        type: integer
-      params:
-        description: Targets []Target `json:"targets"` // 目标列表
-        items:
-          type: string
-        type: array
-      title:
-        description: 查询标题
-        type: string
-      unit:
-        description: 单位
-        type: string
-    type: object
-  metric.QueryMetricsRequest:
-    properties:
-      endTime:
-        type: integer
-      metricIDs:
-        items:
-          type: integer
-        type: array
-      metricName:
-        type: string
-      metricNames:
-        items:
-          type: string
-        type: array
-      params:
-        additionalProperties:
-          type: string
-        type: object
-      startTime:
-        type: integer
-      step:
-        type: integer
-    type: object
-  metric.QueryMetricsResult:
-    properties:
-      msg:
-        type: string
-      result:
-        $ref: '#/definitions/metric.QueryResult'
-      results:
-        items:
-          $ref: '#/definitions/metric.QueryResult'
-        type: array
-    type: object
-  metric.QueryResult:
-    properties:
-      timeseries:
-        items:
-          $ref: '#/definitions/metric.Timeseries'
-        type: array
-      title:
-        type: string
-      unit:
-        type: string
-    type: object
-  metric.Timeseries:
-    properties:
-      chart:
-        $ref: '#/definitions/response.TempChartObject'
-      labels:
-        $ref: '#/definitions/metric.Labels'
-      legend:
-        type: string
-      legendFormat:
-        type: string
-    type: object
   model.AlertDetail:
     properties:
       alertMessage:
@@ -1899,6 +1820,23 @@ definitions:
         type: string
     required:
     - endTime
+    type: object
+  request.GetServiceREDChartsRequest:
+    properties:
+      endTime:
+        type: integer
+      endpointList:
+        items:
+          type: string
+        type: array
+      serviceList:
+        items:
+          type: string
+        type: array
+      startTime:
+        type: integer
+      step:
+        type: integer
     type: object
   request.GetServiceRouteRequest:
     properties:
@@ -2814,6 +2752,12 @@ definitions:
           type: string
         type: array
     type: object
+  response.GetServiceREDChartsResponse:
+    additionalProperties:
+      additionalProperties:
+        $ref: '#/definitions/response.RedCharts'
+      type: object
+    type: object
   response.GetServiceRouteResponse:
     properties:
       routeRule:
@@ -3349,6 +3293,21 @@ definitions:
       weekOverDay:
         description: Week-over-Week Growth Rate
         type: number
+    type: object
+  response.RedCharts:
+    properties:
+      errorRate:
+        additionalProperties:
+          type: number
+        type: object
+      latency:
+        additionalProperties:
+          type: number
+        type: object
+      tps:
+        additionalProperties:
+          type: number
+        type: object
     type: object
   response.RefreshTokenResponse:
     properties:
@@ -5806,9 +5765,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/metric.QueryInfo'
-            type: array
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -5819,20 +5776,13 @@ paths:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/metric.QueryMetricsRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/metric.QueryMetricsResult'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -7505,6 +7455,36 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Get Polaris metric Analysis
+      tags:
+      - API.service
+  /api/service/redcharts:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get services' red charts.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetServiceREDChartsRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetServiceREDChartsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get services' red charts.
       tags:
       - API.service
   /api/service/relation:

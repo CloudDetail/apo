@@ -17,8 +17,7 @@ import (
 // @Tags API.metric
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body metric.QueryMetricsRequest true "请求信息"
-// @Success 200 {object} metric.QueryMetricsResult
+// @Success 200 {object} string
 // @Failure 400 {object} code.Failure
 // @Router /api/metric/query [post]
 func (h *handler) QueryMetrics() core.HandlerFunc {
