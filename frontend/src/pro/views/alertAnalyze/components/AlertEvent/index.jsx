@@ -71,7 +71,7 @@ const AlertEventTable = ({ scrolllHeight }) => {
       accessor: 'impactEndpoints',
       justifyContent: 'left',
       Cell: ({ value }) => {
-        return isAnalyze ? (
+        return (
           <>
             {value?.length > 0 ? (
               <div className="flex flex-wrap">
@@ -85,8 +85,6 @@ const AlertEventTable = ({ scrolllHeight }) => {
               <span className="text-gray-400">{t(`${i18nKey}.noRelatedApps`)}</span>
             )}
           </>
-        ) : (
-          <span className="text-gray-400">{t(`${i18nKey}.clickToAnalyze`)}</span>
         )
       },
     },
@@ -95,7 +93,7 @@ const AlertEventTable = ({ scrolllHeight }) => {
       accessor: 'impactEntrys',
       justifyContent: 'left',
       Cell: ({ value }) => {
-        return isAnalyze ? (
+        return (
           <>
             {value?.length > 0 ? (
               value?.map((item) => (
@@ -107,8 +105,6 @@ const AlertEventTable = ({ scrolllHeight }) => {
               <span className="text-gray-400">{t(`${i18nKey}.noAffectedEntries`)}</span>
             )}
           </>
-        ) : (
-          <span className="text-gray-400">{t(`${i18nKey}.clickToAnalyze`)}</span>
         )
       },
     },

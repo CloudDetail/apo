@@ -1,5 +1,5 @@
 import { Button, Card, Pagination, Tag, Tooltip, Tree } from 'antd'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
 import TempCell from 'src/core/components/Table/TempCell'
 import BasicTable from 'src/core/components/Table/basicTable'
@@ -13,12 +13,16 @@ import { showToast } from 'src/core/utils/toast'
 import ServiceEndpointTag from 'src/pro/components/ServiceEndpointTag'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useChartsContext } from 'src/core/contexts/ChartsContext'
+import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
+import { TableFilter } from 'src/core/components/Filter/TableFilter'
+import { useDebounce } from 'react-use'
 
 const i18nKey = 'impactList'
 
 const ImpactList = () => {
   const { t } = useTranslation('pro/alertAnalyze')
-  const { eventImpactList, setSelectedEndpointInfo } = useAlertAnalyzeContext()
+  const { eventImpactList, getAlertEventImpact } = useAlertAnalyzeContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [pagination, setPagination] = useState({
     pageIndex: 1,
@@ -27,6 +31,29 @@ const ImpactList = () => {
   const [modalEndpointInfo, setModalEndpointInfo] = useState(null)
   const [modalVisible, setModalVisible] = useState(false)
   const navigate = useNavigate()
+  const getChartsData = useChartsContext((ctx) => ctx.getChartsData)
+  const [serviceName, setServiceName] = useState(null)
+  const [endpoint, setEndpoint] = useState(null)
+  const [namespace, setNamespace] = useState(null)
+
+  const isFirstRender = useRef(true)
+
+  useDebounce(
+    () => {
+      if (isFirstRender.current) {
+        isFirstRender.current = false
+        return
+      }
+      getAlertEventImpact({
+        services: serviceName,
+        namespaces: namespace,
+        endpoints: endpoint,
+      })
+    },
+    300, // 延迟 300ms
+    [serviceName, endpoint, namespace], // 依赖项
+  )
+
   const column = [
     {
       title: t(`${i18nKey}.entryApplicationName`),
@@ -42,27 +69,66 @@ const ImpactList = () => {
       title: t(`${i18nKey}.averageResponseTime`),
       minWidth: 140,
       accessor: `latency`,
+      disableSortBy: false,
+      sortType: (rowA, rowB, columnId) => {
+        return rowA.values.latency.value - rowB.values.latency.value
+      },
       Cell: (props) => {
-        const { value } = props
-        return <TempCell type="latency" data={value} timeRange={{ startTime, endTime }} />
+        const { value, row } = props
+        const { serviceName, endpoint } = row.original
+        return (
+          <ChartTempCell
+            type="latency"
+            value={value}
+            service={serviceName}
+            endpoint={endpoint}
+            timeRange={{ startTime, endTime }}
+          />
+        )
       },
     },
     {
       title: t(`${i18nKey}.errorRate`),
       accessor: `errorRate`,
       minWidth: 140,
+      disableSortBy: false,
+      sortType: (rowA, rowB, columnId) => {
+        return rowA.values.errorRate.value - rowB.values.errorRate.value
+      },
       Cell: (props) => {
-        const { value } = props
-        return <TempCell type="errorRate" data={value} timeRange={{ startTime, endTime }} />
+        const { value, row } = props
+        const { serviceName, endpoint } = row.original
+        return (
+          <ChartTempCell
+            type="errorRate"
+            value={value}
+            service={serviceName}
+            endpoint={endpoint}
+            timeRange={{ startTime, endTime }}
+          />
+        )
       },
     },
     {
       title: t(`${i18nKey}.throughput`),
       accessor: `tps`,
       minWidth: 140,
+      disableSortBy: false,
+      sortType: (rowA, rowB, columnId) => {
+        return rowA.values.tps.value - rowB.values.tps.value
+      },
       Cell: (props) => {
-        const { value } = props
-        return <TempCell type="tps" data={value} timeRange={{ startTime, endTime }} />
+        const { value, row } = props
+        const { serviceName, endpoint } = row.original
+        return (
+          <ChartTempCell
+            type="tps"
+            value={value}
+            service={serviceName}
+            endpoint={endpoint}
+            timeRange={{ startTime, endTime }}
+          />
+        )
       },
     },
     {
@@ -109,6 +175,10 @@ const ImpactList = () => {
       title: t(`${i18nKey}.alertImpactPercentage`),
       accessor: `relatedAlertRate`,
       minWidth: 140,
+      disableSortBy: false,
+      sortType: (rowA, rowB, columnId) => {
+        return rowA.values.relatedAlertRate - rowB.values.relatedAlertRate
+      },
       Cell: ({ value }) => {
         if (typeof value !== 'number' || isNaN(value) || !isFinite(value)) {
           return '0%'
@@ -173,6 +243,18 @@ const ImpactList = () => {
     })
     setModalVisible(true)
   }
+  useEffect(() => {
+    if (eventImpactList) getServiceCharts()
+  }, [pagination.pageIndex, pagination.pageSize, eventImpactList])
+  const getServiceCharts = async () => {
+    const paginatedData = eventImpactList.slice(
+      (pagination.pageIndex - 1) * pagination.pageSize,
+      pagination.pageIndex * pagination.pageSize,
+    )
+    const endpointList = paginatedData.map((item) => item.endpoint)
+    const serviceList = paginatedData.map((item) => item.serviceName)
+    await getChartsData(serviceList, endpointList)
+  }
   const changePagination = (page, pageSize) => {
     setPagination({
       pageSize: pageSize,
@@ -194,7 +276,15 @@ const ImpactList = () => {
   return (
     <>
       <div className="flex flex-col h-full">
-        <div className="text-base px-4 pt-2 font-bold">{t(`${i18nKey}.affectedBusinessEntry`)}</div>
+        <div className="text-base px-4 pt-2 font-bold flex justify-center items-center">
+          <span className="shrink-0">{t(`${i18nKey}.affectedBusinessEntry`)}</span>
+          <TableFilter
+            className="px-4 mb-0"
+            setServiceName={setServiceName}
+            setEndpoint={setEndpoint}
+            setNamespace={setNamespace}
+          />
+        </div>
         <BasicTable {...tableProps} />
         <Pagination
           defaultCurrent={1}
