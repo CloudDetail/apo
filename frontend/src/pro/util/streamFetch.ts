@@ -1,3 +1,4 @@
+import i18next from 'i18next'
 import { refreshAccessToken } from 'src/core/utils/request'
 import { showToast } from 'src/core/utils/toast'
 
@@ -7,6 +8,7 @@ const streamFetch = async (url: string, options: any = {}) => {
     ...options.headers,
     'Content-Type': 'application/json',
     Authorization: token ? `Bearer ${token}` : undefined,
+    'APO-Language':i18next.language
   }
 
   try {
