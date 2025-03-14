@@ -25,6 +25,8 @@ const BasicTable = React.memo((props) => {
     clickRow,
     emptyContent = null,
     showLoading = true,
+    sortBy = [],
+    setSortBy = null,
   } = props
   const tableRef = useRef(null)
   const getSortByColumns = (columns) => {
@@ -52,19 +54,19 @@ const BasicTable = React.memo((props) => {
     previousPage,
     setPageSize,
     state: { pageIndex, pageSize },
-    setSortBy,
   } = useTable(
     {
       defaultColumn: {
         disableSortBy: true,
       },
       initialState: {
-        sortBy: getSortByColumns(columns),
+        sortBy: sortBy,
         pageIndex: pagination?.pageIndex ? pagination.pageIndex - 1 : 0,
         pageSize: pagination?.pageSize ? pagination.pageSize : 100000,
       },
       columns,
       data,
+      manualSortBy: true,
       manualPagination: pagination?.pageCount !== undefined,
       ...(pagination?.pageCount !== undefined ? { pageCount: pagination.pageCount } : {}),
     },
@@ -103,9 +105,14 @@ const BasicTable = React.memo((props) => {
             headerGroups.map((headerGroup, idx) => (
               <tr {...headerGroup.getHeaderGroupProps()} key={`header_tr_${idx}`}>
                 {headerGroup.headers.map((column, idx) => {
+                  const sortedColumn = sortBy.length > 0 ? sortBy[0] : null
+                  const isSorted = sortedColumn?.id === column.id
+                  const isSortedDesc = isSorted ? sortedColumn?.desc : undefined
+
                   return (
                     <th
                       {...column.getHeaderProps(column.getSortByToggleProps())}
+                      {...column.getSortByToggleProps()}
                       {...column.getHeaderProps({
                         style: {
                           width: column.customWidth,
@@ -117,23 +124,27 @@ const BasicTable = React.memo((props) => {
                         },
                       })}
                       className={
-                        (column.isSorted ? (column.isSortedDesc ? 'sort-desc' : 'sort-asc') : '') +
+                        (isSorted ? (isSortedDesc ? 'sort-desc' : 'sort-asc') : '') +
                         (column.canSort ? 'cursor-pointer no-underline' : '') +
                         (!column.isNested && 'hover:bg-[#303030]') +
                         '    hover:no-underline'
                       }
                       key={`header_th_${idx}`}
                       onClick={() => {
+                        console.log(column, isSorted, isSortedDesc)
                         if (!column.disableSortBy) {
-                          setSortBy([])
-
-                          if (!column.isSorted) {
-                            if (column.isSortedDesc === undefined) {
-                              column.toggleSortBy(false, false)
+                          if (!isSorted) {
+                            if (isSortedDesc === undefined) {
+                              // column.toggleSortBy(false, false)
+                              setSortBy([{ id: column.id, desc: false }])
                             }
                           } else {
-                            if (!column.isSortedDesc) {
-                              column.toggleSortBy(true, false)
+                            if (!isSortedDesc) {
+                              // column.toggleSortBy(true, false)
+                              setSortBy([{ id: column.id, desc: true }])
+                            } else {
+                              // column.toggleSortBy()
+                              setSortBy([])
                             }
                           }
                         }
@@ -165,24 +176,18 @@ const BasicTable = React.memo((props) => {
                         {!column.isNested && column.render('title')}
                         {!column.disableSortBy && (
                           <Tooltip
-                            title={
-                              column.isSorted
-                                ? column.isSortedDesc
-                                  ? '取消排序'
-                                  : '点击降序'
-                                : '点击升序'
-                            }
+                            title={isSorted ? (isSortedDesc ? '取消排序' : '点击降序') : '点击升序'}
                           >
                             <div
                               className="flex flex-col cursor-pointer ml-3"
-                              {...column.getSortByToggleProps()}
+                              //
                             >
                               <VscTriangleUp
-                                color={column.isSorted && !column.isSortedDesc ? '#5286e8' : 'grey'}
+                                color={isSorted && !isSortedDesc ? '#5286e8' : 'grey'}
                               />
                               <VscTriangleDown
                                 style={{ marginTop: -6 }}
-                                color={column.isSorted && column.isSortedDesc ? '#5286e8' : 'grey'}
+                                color={isSorted && isSortedDesc ? '#5286e8' : 'grey'}
                               />
                             </div>
                           </Tooltip>

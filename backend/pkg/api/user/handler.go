@@ -7,6 +7,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/services/user"
 	"go.uber.org/zap"
 )
@@ -81,9 +82,9 @@ type handler struct {
 	userService user.Service
 }
 
-func New(logger *zap.Logger, dbRepo database.Repo, cacheRepo cache.Repo) Handler {
+func New(logger *zap.Logger, dbRepo database.Repo, cacheRepo cache.Repo, difyRepo dify.DifyRepo) Handler {
 	return &handler{
 		logger:      logger,
-		userService: user.New(dbRepo, cacheRepo),
+		userService: user.New(dbRepo, cacheRepo, difyRepo),
 	}
 }

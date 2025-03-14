@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
+	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/workflow"
 
@@ -40,6 +41,7 @@ type resource struct {
 	deepflowClickhouse clickhouse.Repo
 	jaegerRepo         jaeger.JaegerRepo
 	alertWorkflow      *workflow.AlertWorkflow
+	dify               dify.DifyRepo
 }
 
 type Server struct {
@@ -127,6 +129,9 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 
 	jaegerRepo, err := jaeger.New()
 	r.jaegerRepo = jaegerRepo
+
+	difyRepo, err := dify.New()
+	r.dify = difyRepo
 
 	difyConfig := config.Get().Dify
 	difyClient := workflow.NewDifyClient(DefaultDifyFastHttpClient, difyConfig.URL)
