@@ -37,6 +37,7 @@ const ImpactList = () => {
   const [namespace, setNamespace] = useState(null)
 
   const isFirstRender = useRef(true)
+  const [sortBy, setSortBy] = useState()
 
   useDebounce(
     () => {
@@ -70,9 +71,6 @@ const ImpactList = () => {
       minWidth: 140,
       accessor: `latency`,
       disableSortBy: false,
-      sortType: (rowA, rowB, columnId) => {
-        return rowA.values.latency.value - rowB.values.latency.value
-      },
       Cell: (props) => {
         const { value, row } = props
         const { serviceName, endpoint } = row.original
@@ -92,9 +90,6 @@ const ImpactList = () => {
       accessor: `errorRate`,
       minWidth: 140,
       disableSortBy: false,
-      sortType: (rowA, rowB, columnId) => {
-        return rowA.values.errorRate.value - rowB.values.errorRate.value
-      },
       Cell: (props) => {
         const { value, row } = props
         const { serviceName, endpoint } = row.original
@@ -114,9 +109,6 @@ const ImpactList = () => {
       accessor: `tps`,
       minWidth: 140,
       disableSortBy: false,
-      sortType: (rowA, rowB, columnId) => {
-        return rowA.values.tps.value - rowB.values.tps.value
-      },
       Cell: (props) => {
         const { value, row } = props
         const { serviceName, endpoint } = row.original
@@ -176,9 +168,6 @@ const ImpactList = () => {
       accessor: `relatedAlertRate`,
       minWidth: 140,
       disableSortBy: false,
-      sortType: (rowA, rowB, columnId) => {
-        return rowA.values.relatedAlertRate - rowB.values.relatedAlertRate
-      },
       Cell: ({ value }) => {
         if (typeof value !== 'number' || isNaN(value) || !isFinite(value)) {
           return '0%'
@@ -261,8 +250,35 @@ const ImpactList = () => {
       pageIndex: page,
     })
   }
+  const getSortValueByColumnId = (id, row) => {
+    switch (id) {
+      case 'latency':
+        return row.latency.value
+      case 'errorRate':
+        return row.errorRate.value
+      case 'tps':
+        return row.tps.value
+      case 'relatedAlertRate':
+        return row.relatedAlertRate
+    }
+  }
   const tableProps = useMemo(() => {
-    const paginatedData = eventImpactList.slice(
+    const data = [...eventImpactList]
+    if (sortBy?.length > 0 && sortBy[0].desc !== undefined) {
+      const columnId = sortBy[0].id
+      data.sort((a, b) => {
+        const rateA = getSortValueByColumnId(columnId, a)
+        const rateB = getSortValueByColumnId(columnId, b)
+
+        if (sortBy[0].desc) {
+          return rateB - rateA
+        } else {
+          return rateA - rateB
+        }
+      })
+    }
+
+    const paginatedData = data.slice(
       (pagination.pageIndex - 1) * pagination.pageSize,
       pagination.pageIndex * pagination.pageSize,
     )
@@ -271,12 +287,15 @@ const ImpactList = () => {
       data: paginatedData,
       showBorder: false,
       loading: false,
+      sortBy: sortBy,
+      setSortBy: setSortBy,
     }
-  }, [eventImpactList, pagination.pageSize, pagination.pageIndex])
+  }, [eventImpactList, pagination.pageSize, pagination.pageIndex, sortBy])
+
   return (
     <>
       <div className="flex flex-col h-full">
-        <div className="text-base px-4 pt-2 font-bold flex justify-center items-center">
+        <div className="text-base px-2 pt-2 font-bold flex justify-center items-center">
           <span className="shrink-0">{t(`${i18nKey}.affectedBusinessEntry`)}</span>
           <TableFilter
             className="px-4 mb-0"

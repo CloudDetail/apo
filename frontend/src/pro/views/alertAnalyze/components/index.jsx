@@ -37,8 +37,10 @@ function AlertAnalyzeCom() {
       style={{ position: 'relative' }}
       classNames={{
         body: 'p-0 ',
+        title: 'text-base',
       }}
       title={t(`alertEvent.alertEvents`)}
+      size="small"
       extra={
         <>
           {' '}
@@ -51,6 +53,7 @@ function AlertAnalyzeCom() {
               color: '#5286E8',
               borderColor: '#5286E8',
             }}
+            size="small"
           >
             {t('anomalyRecord')}
           </Button>
@@ -62,6 +65,7 @@ function AlertAnalyzeCom() {
               color: '#5286E8',
               borderColor: '#5286E8',
             }}
+            size="small"
           >
             {t('anomalyConfig')}
           </Button>
