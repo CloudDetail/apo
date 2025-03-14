@@ -1,4 +1,4 @@
-// Copyright 2024 CloudDetail
+// Copyright 2025 CloudDetail
 // SPDX-License-Identifier: Apache-2.0
 
 package dify
