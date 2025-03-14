@@ -35,7 +35,6 @@ export default function Login() {
         try {
           setLoading(true)
           const { accessToken, refreshToken } = await loginApi(values)
-          await loginDify(values)
           if (accessToken && refreshToken) {
             window.localStorage.setItem('token', accessToken)
             window.localStorage.setItem('refreshToken', refreshToken)
@@ -50,6 +49,7 @@ export default function Login() {
           console.error(error)
         } finally {
           setLoading(false)
+          await loginDify(values)
         }
       })
       .catch((errorInfo) => {
