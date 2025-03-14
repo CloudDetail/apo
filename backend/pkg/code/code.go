@@ -50,6 +50,7 @@ const (
 	GetServiceEntryEndpointsError       = "B0323"
 	GetServiceRYGLightError             = "B0324"
 	GetNamespaceListError               = "B0325"
+	GetServiceREDChartsError            = "B0326"
 
 	GetFaultLogPageListError = "B0401"
 	GetFaultLogContentError  = "B0402"

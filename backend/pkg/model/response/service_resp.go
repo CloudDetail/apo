@@ -133,6 +133,14 @@ type ServiceDetail struct {
 	Tps         TempChartObject `json:"tps"` // FIXME name is tps, actual requests per minute
 }
 
+type RedCharts struct {
+	Latency   map[int64]float64 `json:"latency"`
+	ErrorRate map[int64]float64 `json:"errorRate"`
+	RPS       map[int64]float64 `json:"tps"`
+}
+
+type GetServiceREDChartsResponse map[string]map[string]RedCharts
+
 type ServiceRes struct {
 	ServiceName          string          `json:"serviceName"`
 	EndpointCount        int             `json:"endpointCount"`
@@ -306,7 +314,7 @@ type EntryInstanceData struct {
 
 type AlertRelatedEntry struct {
 	ServiceName string   `json:"serviceName"`
-	Namespaces  []string `json:"namespaces,omitempty"` // 应用所属命名空间,可能为空
+	Namespaces  []string `json:"namespaces,omitempty"`
 
 	ServiceDetail
 

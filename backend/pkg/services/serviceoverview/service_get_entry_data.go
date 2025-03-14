@@ -11,9 +11,7 @@ import (
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-// GetServicesEndpointDataByEndpoints 根据输入的Endpoint填充端点总览信息
-// 不按Service分组,并保留指标为空的Endpoint
-// 当前只在告警分析时使用
+// Fetch the endpoint overview information based on the input endpoints.
 func (s *service) GetAlertRelatedEntryData(
 	startTime, endTime time.Time, namespaces []string,
 	entry []response.AlertRelatedEntry,
@@ -22,10 +20,7 @@ func (s *service) GetAlertRelatedEntryData(
 
 	var filteredEntryIdx []int
 	for i := 0; i < len(filters); i++ {
-		// step1 查询满足Filter的Endpoint,并返回对应的RED指标
-		// RED指标包含了选定时间段内的平均值,日同比变化率和周同比变化率
 		endpointsMap := s.EndpointsREDMetric(startTime, endTime, filters[i])
-		// step2.. 填充Namespace信息
 		_ = s.EndpointsNamespaceInfo(endpointsMap, startTime, endTime, filters[i])
 
 		for k, metrics := range endpointsMap.MetricGroupMap {
@@ -92,7 +87,7 @@ func (s *service) GetAlertRelatedEntryData(
 	return entry, err
 }
 
-// 将需要查询数据的入口分割成多次请求,避免请求过长
+// Split the entry for querying data into multiple requests to avoid overly long requests
 func splitEntries(entries []response.AlertRelatedEntry) ([][]string, map[prom.EndpointKey]int) {
 	var querySize int = 0
 

@@ -21,7 +21,7 @@ import LoadingSpinner from 'src/core/components/Spinner'
 import { Card, Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
-import { TableFilter } from 'src/core/components/Filter/TableFilter'
+import TableFilter  from 'src/core/components/Filter/TableFilter'
 import { useTranslation } from 'react-i18next'
 import React from 'react'
 import { ChartsProvider, useChartsContext } from 'src/core/contexts/ChartsContext'
@@ -428,6 +428,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
         setServiceName={setServiceName}
         setEndpoint={setEndpoint}
         setNamespace={setNamespace}
+        className="mb-2"
       />
       <Card className="flex-1 overflow-hidden" styles={{ body: { height: height, padding: 0 } }}>
         <div className="mb-4 h-full p-2 text-xs justify-between">

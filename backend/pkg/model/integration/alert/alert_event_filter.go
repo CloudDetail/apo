@@ -3,16 +3,18 @@
 
 package alert
 
-import "github.com/CloudDetail/apo/backend/pkg/model"
+import (
+	"github.com/CloudDetail/apo/backend/pkg/model"
+)
 
 type AlertEventFilter struct {
-	Source       string `form:"source"`
-	Group        string `form:"group"`
-	Name         string `form:"name"`
-	ID           string `form:"id"`
-	Severity     string `form:"severity"`
-	Status       string `form:"status"`
-	WithMutation bool   `form:"withMutation"`
+	Source       string
+	Group        string
+	Name         string
+	EventID      string
+	Severity     string
+	Status       string
+	WithMutation bool
 
 	*AlertTagsFilter
 }
