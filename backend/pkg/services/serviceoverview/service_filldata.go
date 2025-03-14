@@ -153,8 +153,7 @@ func (f EndpointsFilter) ExtractFilterStr() []string {
 	return filters
 }
 
-func (s *service) EndpointsRealtimeREDMetric(filter EndpointsFilter, endpointsMap *EndpointsMap, startTime time.Time, endTime time.Time) {
-	filters := filter.ExtractFilterStr()
+func (s *service) EndpointsRealtimeREDMetric(filters []string, endpointsMap *EndpointsMap, startTime time.Time, endTime time.Time) {
 	s.promRepo.FillMetric(endpointsMap, prom.REALTIME, startTime, endTime, filters, prom.EndpointGranularity)
 }
 
