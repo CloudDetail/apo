@@ -15,7 +15,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useChartsContext } from 'src/core/contexts/ChartsContext'
 import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
-import { TableFilter } from 'src/core/components/Filter/TableFilter'
+import TableFilter from 'src/core/components/Filter/TableFilter'
 import { useDebounce } from 'react-use'
 
 const i18nKey = 'impactList'
