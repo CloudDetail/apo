@@ -26,7 +26,7 @@ type Service interface {
 	DeleteAlertSource(source alert.SourceFrom) (*alert.AlertSource, error)
 	ListAlertSource() ([]alert.AlertSource, error)
 
-	UpdateAlertEnrichRule(*alert.AlerEnrichRuleConfigRequest) error
+	UpdateAlertEnrichRule(*alert.AlertEnrichRuleConfigRequest) error
 	GetAlertEnrichRule(sourceID string) ([]alert.AlertEnrichRuleVO, error)
 
 	ProcessAlertEvents(source alert.SourceFrom, data []byte) error

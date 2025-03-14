@@ -7,8 +7,7 @@ import (
 	"encoding/json"
 	"time"
 
-	ainput "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
-	inputa "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/google/uuid"
 	"go.uber.org/multierr"
@@ -16,7 +15,7 @@ import (
 
 type PrometheusDecoder struct{}
 
-func (d PrometheusDecoder) Decode(sourceFrom inputa.SourceFrom, data []byte) ([]inputa.AlertEvent, error) {
+func (d PrometheusDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]alert.AlertEvent, error) {
 	var promAlertList map[string]any
 	err := json.Unmarshal(data, &promAlertList)
 	if err != nil {
@@ -25,7 +24,7 @@ func (d PrometheusDecoder) Decode(sourceFrom inputa.SourceFrom, data []byte) ([]
 
 	var decodeErrs error
 	events := promAlertList["alerts"].([]any)
-	var alertEvents []inputa.AlertEvent
+	var alertEvents []alert.AlertEvent
 
 	receivedTime := time.Now()
 	for _, event := range events {
@@ -36,12 +35,12 @@ func (d PrometheusDecoder) Decode(sourceFrom inputa.SourceFrom, data []byte) ([]
 			continue
 		}
 		if len(alertEvent.AlertID) == 0 {
-			alertEvent.AlertID = ainput.FastAlertID(alertEvent.Name, alertEvent.Tags)
+			alertEvent.AlertID = alert.FastAlertID(alertEvent.Name, alertEvent.Tags)
 		}
 		alertEvent.ID = uuid.New()
 		alertEvent.SourceID = sourceFrom.SourceID
-		alertEvent.Severity = inputa.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
-		alertEvent.Status = inputa.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)
+		alertEvent.Severity = alert.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
+		alertEvent.Status = alert.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)
 		alertEvent.ReceivedTime = receivedTime
 		alertEvents = append(alertEvents, *alertEvent)
 	}
@@ -49,7 +48,7 @@ func (d PrometheusDecoder) Decode(sourceFrom inputa.SourceFrom, data []byte) ([]
 	return alertEvents, decodeErrs
 }
 
-func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any) (*inputa.AlertEvent, error) {
+func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any) (*alert.AlertEvent, error) {
 	var promAlert request.Alert
 	err := DecodeEvent(rawMap, &promAlert)
 	if err != nil {
@@ -72,12 +71,14 @@ func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any) (*inputa.Ale
 	for k, v := range promAlert.Labels {
 		tags[k] = v
 	}
-	var alertEvent = inputa.AlertEvent{
-		Name:       promAlert.Labels["alertname"],
-		Group:      promAlert.Labels["group"],
+	var alertEvent = alert.AlertEvent{
+		Alert: alert.Alert{
+			Name:       promAlert.Labels["alertname"],
+			Group:      promAlert.Labels["group"],
+			EnrichTags: map[string]string{},
+			Tags:       tags,
+		},
 		Detail:     string(annotationsJson),
-		Tags:       tags,
-		EnrichTags: map[string]string{},
 		CreateTime: startsAt,
 		UpdateTime: startsAt,
 		EndTime:    endsAt,

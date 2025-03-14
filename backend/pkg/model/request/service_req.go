@@ -150,17 +150,25 @@ type GetAlertEventsRequest struct {
 	*PageParam  // Paging Parameters
 }
 
+// AlertFilter provide params to filter alertEvents
 type AlertFilter struct {
-	Service  string   `form:"service"`
-	Endpoint string   `form:"endpoint"`
-	Services []string `form:"services"`
-
+	// basic filter
 	Source   string `form:"source"`
 	Group    string `form:"group"`
 	Name     string `form:"name"`
 	ID       string `form:"id"`
 	Severity string `form:"severity"`
 	Status   string `form:"status"`
+
+	// === Used to query ServiceInstances ===
+
+	// -> endpoints: (svc: $service) if endpoint is null
+	Service string `form:"service"`
+	// -> endpoints: svc: ($service, endpoint: $endpoint)
+	Endpoint string `form:"endpoint"`
+	// -> serviceInstances: query instance by Services
+	// -> dbInstances: query instance by Services
+	Services []string `form:"services"`
 }
 
 type PageParam struct {
@@ -202,4 +210,12 @@ type GetServiceMoreUrlListRequest struct {
 	Step        int64  `form:"step" binding:"required"`                      // step size
 	ServiceName string `form:"serviceName" binding:"required"`               // application name
 	SortRule    int    `form:"sortRule" binding:"required"`                  // sort logic
+}
+
+type GetServiceREDChartsRequest struct {
+	StartTime    int64    `json:"startTime"`
+	EndTime      int64    `json:"endTime"`
+	Step         int64    `json:"step"`
+	ServiceList  []string `json:"serviceList"`
+	EndpointList []string `json:"endpointList"`
 }

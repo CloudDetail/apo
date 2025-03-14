@@ -67,8 +67,9 @@ type Service interface {
 
 	// GetAlertEventsSample get sampled alarm events
 	GetAlertEventsSample(req *request.GetAlertEventsSampleRequest) (*response.GetAlertEventsSampleResponse, error)
-
 	GetServiceNamespaceList(req *request.GetServiceNamespaceListRequest) (response.GetServiceNamespaceListResponse, error)
+
+	GetServiceREDCharts(req *request.GetServiceREDChartsRequest) (response.GetServiceREDChartsResponse, error)
 }
 
 type service struct {

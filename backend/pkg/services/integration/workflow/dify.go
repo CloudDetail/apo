@@ -45,7 +45,7 @@ func (c *DifyClient) alertCheck(req *DifyRequest, authorization string, user str
 func (c *DifyClient) WorkflowsRun(req *DifyRequest, authorization string, user string) (DifyResponse, error) {
 	req.User = user
 	jsonBytes, _ := json.Marshal(req)
-	fullReq, _ := http.NewRequest("POST", c.URL, bytes.NewReader(jsonBytes))
+	fullReq, _ := http.NewRequest("POST", c.URL+"/v1/workflows/run", bytes.NewReader(jsonBytes))
 
 	fullReq.Header.Set("Content-Type", "application/json")
 	fullReq.Header.Set("Authorization", authorization)
