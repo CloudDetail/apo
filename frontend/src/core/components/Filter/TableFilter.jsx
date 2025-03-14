@@ -16,8 +16,9 @@ import { getStep } from 'src/core/utils/step'
 import { useTranslation } from 'react-i18next'
 import { getDatasourceByGroupApi } from 'src/core/api/dataGroup'
 import FilterSelector from './FilterSelector'
+import React from 'react'
 
-export const TableFilter = (props) => {
+const TableFilter = (props) => {
   const { t } = useTranslation('oss/service')
   const { setServiceName, setEndpoint, setNamespace, groupId, className = '' } = props
   const [serviceNameOptions, setServiceNameOptions] = useState([])
@@ -46,25 +47,13 @@ export const TableFilter = (props) => {
           return {
             label: <span>{item}</span>,
             value: item,
+            key: `${option.label}-${item}`
           }
         }),
       })
     })
     setSearchEndpointName(searchEndpointName?.filter((endpoint) => endpointsSet.has(endpoint)))
     setEndpointNameOptions(endpoints)
-  }
-  const onChangeNamespace = (event) => {
-    setSearchNamespace(event)
-    setNamespaceOptions(
-      event.map((service) => ({
-        label: service,
-        value: service,
-      })),
-    )
-  }
-  // process the event of changing the service name
-  const onChangeServiceName = (event) => {
-    setSearchServiceName(event)
   }
 
   useEffect(() => {
@@ -75,6 +64,7 @@ export const TableFilter = (props) => {
           services.push({
             label: service,
             value: service,
+            key: `${namespace}-${service}`
           })
         })
       })
@@ -85,6 +75,7 @@ export const TableFilter = (props) => {
           label: service,
           value: service,
           endpoints: endpoints,
+          key: service
         })),
       )
     }
@@ -99,11 +90,13 @@ export const TableFilter = (props) => {
       const namespaceOptions = Object.entries(res.namespaceMap).map(([namespace, service]) => ({
         label: namespace,
         value: namespace,
+        key: namespace
       }))
       const serviceOptions = Object.entries(res.serviceMap || []).map(([service, endpoints]) => ({
         label: service,
         value: service,
         endpoints: endpoints,
+        key: service
       }))
       setDatasource(res)
       setNamespaceOptions(namespaceOptions)
@@ -135,7 +128,7 @@ export const TableFilter = (props) => {
           label={t('tableFilter.namespacesLabel')}
           placeholder={t('tableFilter.namespacePlaceholder')}
           value={searchNamespace}
-          onChange={onChangeNamespace}
+          onChange={(e) => setSearchNamespace(e)}
           options={namespaceOptions}
           id="namespace"
         />
@@ -143,7 +136,7 @@ export const TableFilter = (props) => {
           label={t('tableFilter.applicationsLabel')}
           placeholder={t('tableFilter.applicationsPlaceholder')}
           value={searchServiceName}
-          onChange={onChangeServiceName}
+          onChange={(e) => setSearchServiceName(e)}
           options={serviceNameOptions}
           id="serviceName"
         />
@@ -160,3 +153,5 @@ export const TableFilter = (props) => {
     </>
   )
 }
+
+export default React.memo(TableFilter)
