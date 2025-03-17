@@ -35,7 +35,7 @@ type AlertWorkflow struct {
 	user          string
 
 	EventAnalyzeFlowId string
-	CheckId string
+	CheckId            string
 
 	logger *zap.Logger
 }
@@ -179,6 +179,7 @@ func (c *AlertWorkflow) Submit() error {
 			select {
 			case <-ctx.Done():
 				close(events)
+				return
 			case events <- submitEventList[i]:
 			}
 		}
