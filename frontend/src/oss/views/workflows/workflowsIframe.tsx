@@ -5,55 +5,57 @@
 
 import i18next from 'i18next'
 import { useEffect, useRef } from 'react'
+import { workflowLoginApi } from 'src/core/api/workflows'
 
 const WorkflowsIframe = ({ src }) => {
   const language = i18next.language
   const workflowRef = useRef(null)
-
+  const intervalRef = useRef<any>(null)
   useEffect(() => {
-    let interval: any = null 
-
-    const sendMessageToB = () => {
+    const sendMessageToB = (data) => {
       if (workflowRef.current) {
-        workflowRef.current.contentWindow.postMessage(
-          {
-            action: 'auto-login',
-            data: {
-              account: {
-                email: 'admin@admin.com',
-                password: 'APO2024@admin',
-                // email: 'test@163.com',
-                // password: 'test123456',
-                language: language,
-                remember_me: true,
-              },
-              src: src.slice(5),
-            },
-          },
-          '*',
-        )
+        workflowRef.current.contentWindow.postMessage(data, '*')
       }
     }
 
     const handleMessage = (event: MessageEvent) => {
-      if (event.data === 'got' && interval) {
-        clearInterval(interval)
-        interval = null
+      if (event.data === 'got' && intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
       }
     }
 
-    interval = setInterval(sendMessageToB, 1000)
-
-    window.addEventListener('message', handleMessage)
+    if (localStorage.getItem('difyToken') && localStorage.getItem('difyRefreshToken')) {
+      const data = {
+        action: 'auto-login',
+        data: {
+          token: localStorage.getItem('difyToken'),
+          refreshToken: localStorage.getItem('difyRefreshToken'),
+        },
+        src: src.slice(5),
+      }
+      intervalRef.current = setInterval(() => sendMessageToB(data), 1000)
+      window.addEventListener('message', handleMessage)
+    } else {
+      console.error('token not found')
+    }
 
     return () => {
-      if (interval) {
-        clearInterval(interval)
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
       }
       window.removeEventListener('message', handleMessage)
     }
   }, [])
 
-  return <iframe ref={workflowRef} src={src} width="100%" height="100%" frameBorder={0}></iframe>
+  return (
+    <iframe
+      ref={workflowRef}
+      src={src}
+      width="100%"
+      height="100%"
+      frameBorder={0}
+    ></iframe>
+  )
 }
 export default WorkflowsIframe
