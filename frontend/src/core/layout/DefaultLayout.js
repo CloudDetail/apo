@@ -25,6 +25,7 @@ const DefaultLayout = () => {
         collapsedWidth={70}
         onCollapse={(value) => setCollapsed(value)}
         style={{
+          position: 'fixed',
           overflowX: 'hidden',
           overflowY: 'auto',
           transition: 'all 0.3s',
@@ -45,7 +46,12 @@ const DefaultLayout = () => {
         </div>
         <AppSidebar collapsed={collapsed}/>
       </Sider>
-      <Layout>
+      <Layout
+        style={{
+          transform: collapsed ? 'translateX(70px)' : 'translateX(250px)',
+          transition: 'transform 0.3s'
+        }}
+      >
         <AppHeader />
         <div className="body flex-grow-1">
           <AppContent />
