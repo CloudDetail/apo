@@ -12,6 +12,67 @@ import (
 
 const DefaultDepLatency int64 = -1
 
+func (repo *promRepo) FillRangeMetric(res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, step time.Duration, filters []string, granularity Granularity) error {
+	var decorator = func(apf AggPQLWithFilters) AggPQLWithFilters {
+		return apf
+	}
+
+	switch metricGroup {
+	case REALTIME:
+		startTime = endTime.Add(-3 * time.Minute)
+	case DOD:
+		decorator = DayOnDay
+	case WOW:
+		decorator = WeekOnWeek
+	}
+
+	startTS := startTime.UnixMicro()
+	endTS := endTime.UnixMicro()
+	stepMicro := step.Microseconds()
+
+	var errs []error
+	latency, err := repo.QueryRangeAggMetricsWithFilter(
+		decorator(PQLAvgLatencyWithFilters),
+		startTS, endTS, stepMicro,
+		granularity,
+		filters...,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeRangeMetricResults(metricGroup, LATENCY, latency)
+	}
+
+	errorRate, err := repo.QueryRangeAggMetricsWithFilter(
+		decorator(PQLAvgErrorRateWithFilters),
+		startTS, endTS, stepMicro,
+		granularity,
+		filters...,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeRangeMetricResults(metricGroup, ERROR_RATE, errorRate)
+	}
+
+	if metricGroup == REALTIME {
+		return errors.Join(err)
+	}
+	tps, err := repo.QueryRangeAggMetricsWithFilter(
+		decorator(PQLAvgTPSWithFilters),
+		startTS, endTS, stepMicro,
+		granularity,
+		filters...,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeRangeMetricResults(metricGroup, THROUGHPUT, tps)
+	}
+
+	return errors.Join(errs...)
+}
+
 // FillMetric query and populate RED metric
 func (repo *promRepo) FillMetric(res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filters []string, granularity Granularity) error {
 	var decorator = func(apf AggPQLWithFilters) AggPQLWithFilters {

@@ -9,41 +9,25 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-func (s *service) GetServicesEndPointData(startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule SortType) (res []response.ServiceEndPointsRes, err error) {
-	// var duration string
-	// var stepNS = endTime.Sub(startTime).Nanoseconds()
-	// duration = strconv.FormatInt(stepNS/int64(time.Minute), 10) + "m"
-	filters := filter.ExtractFilterStr()
-	// step1 Query that meets the Endpoint of the Filter and return the corresponding RED metric
-	// RED metric contains the average, day-to-year rate of change and week-to-week rate of change over the selected time period
-	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filters)
+func (s *service) GetServicesEndPointData(
+	startTime, endTime time.Time, step time.Duration,
+	filter EndpointsFilter,
+	sortRule SortType,
+) ([]response.ServiceEndPointsRes, error) {
+	filterStrs := filter.ExtractFilterStr()
+	endpointsMap, err := prometheus.FetchEndpointsData(
+		s.promRepo, filterStrs, startTime, endTime,
+		prometheus.WithREDMetric(),
+		prometheus.WithDelaySource(),
+		prometheus.WithNamespace(),
+	)
 
-	// step2 fill delay dependency
-	err = s.EndpointsDelaySource(endpointsMap, startTime, endTime, filters)
-	if err != nil {
-		// TODO output error log, DelaySource query failed
-	}
+	s.sortWithRule(sortRule, endpointsMap)
 
-	// step2.. Fill Namespace information
-	err = s.EndpointsNamespaceInfo(endpointsMap, startTime, endTime, filters)
-	if err != nil {
-		// TODO output error log, Namespace query failed
-	}
-
-	// step3 Sort the URL according to the sorting rule and fill in the data that has not been queried in the previous period.
-	if sortRule == MUTATIONSORT {
-		// Fill the real-time RED metric for sorting (the case between 3 minutes before the current time)
-		s.EndpointsRealtimeREDMetric(filters, endpointsMap, startTime, endTime)
-	}
-	// Sort the endpoints according to the sorting rule and fill some unqueried data
-	err = s.sortWithRule(sortRule, endpointsMap)
-
-	// step4 Group Endpoints by service and maintain service ordering
-	services := fillServices(endpointsMap.MetricGroupList)
-
-	// step5 Fill null values and adjust the return structure
+	services := groupEndpointsByService(endpointsMap.MetricGroupList, 3)
 	var servicesResMsg []response.ServiceEndPointsRes
 	for _, service := range services {
 		if service.ServiceName == "" {
@@ -127,7 +111,10 @@ func (s *service) sortWithRule(sortRule SortType, endpointsMap *EndpointsMap) er
 	return nil
 }
 
-func (*service) extractDetail(service ServiceDetail, startTime time.Time, endTime time.Time, step time.Duration) []response.ServiceDetail {
+func (*service) extractDetail(
+	service *ServiceDetail,
+	startTime, endTime time.Time, step time.Duration,
+) []response.ServiceDetail {
 	var newServiceDetails []response.ServiceDetail
 	for _, endpoint := range service.Endpoints {
 		newErrorRadio := response.Ratio{

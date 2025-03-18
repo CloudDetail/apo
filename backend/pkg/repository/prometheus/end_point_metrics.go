@@ -1,4 +1,4 @@
-// Copyright 2024 CloudDetail
+// Copyright 2025 CloudDetail
 // SPDX-License-Identifier: Apache-2.0
 
 package prometheus
@@ -6,12 +6,16 @@ package prometheus
 type EndpointMetrics struct {
 	EndpointKey
 
-	DelaySource   *float64 // main source of delay
+	/*
+		DelaySource shows the main reason for time-cost
+			[0,0.5): delay mainly from their self;
+			[0.5,1]: delay mainly from their downstream
+			'nil': no network metric found, unable to analyze major delay causes
+	*/
+	DelaySource   *float64
 	AlertCount    int
 	NamespaceList []string // Namespace containing the endpoint
 
-	// TODO DelaySource values of nil and 0 are two scenarios.
-	// nil indicates that no data has been queried (this metric may not be available) and the display is unknown; 0 indicates that there is no network percentage and the display itself
 	IsLatencyExceeded   bool
 	IsErrorRateExceeded bool
 	IsTPSExceeded       bool
@@ -38,4 +42,21 @@ func (e *EndpointMetrics) AppendGroupIfNotExist(_ MGroupName, metricName MName) 
 
 func (e *EndpointMetrics) SetValue(metricGroup MGroupName, metricName MName, value float64) {
 	e.REDMetrics.SetValue(metricGroup, metricName, value)
+}
+
+func (e *EndpointMetrics) SetValues(_ MGroupName, metricName MName, points []Points) {
+	var data = make([]Points, len(points))
+	for idx, point := range points {
+		data[idx].TimeStamp = point.TimeStamp
+		data[idx].Value = AdjustREDValue(AVG, metricName, point.Value)
+	}
+
+	switch metricName {
+	case LATENCY:
+		e.LatencyData = data
+	case ERROR_RATE:
+		e.ErrorRateData = data
+	case THROUGHPUT:
+		e.TPMData = data
+	}
 }

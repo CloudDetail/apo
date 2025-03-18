@@ -20,20 +20,21 @@ type FetchEMOption func(
 
 func FetchEndpointsData(
 	promRepo Repo,
-	filter EndpointsFilter,
+	filters []string,
 	startTime, endTime time.Time,
-	opts ...FetchEMOption) *EndpointsMap {
+	opts ...FetchEMOption) (*EndpointsMap, error) {
 	result := &EndpointsMap{
 		MetricGroupList: []*EndpointMetrics{},
 		MetricGroupMap:  map[EndpointKey]*EndpointMetrics{},
 	}
 
-	filterStrs := filter.ExtractFilterStr()
+	var errs []error
 	for _, fetchFunc := range opts {
-		fetchFunc(promRepo, result, startTime, endTime, filterStrs)
+		err := fetchFunc(promRepo, result, startTime, endTime, filters)
+		errs = append(errs, err)
 	}
 
-	return result
+	return result, errors.Join(errs...)
 }
 
 func WithREDMetric() FetchEMOption {
@@ -109,12 +110,21 @@ func WithNamespace() FetchEMOption {
 			if endpoint, ok := em.MetricGroupMap[key]; ok {
 				if len(metric.Metric.Namespace) > 0 {
 					// Because the query granularity is namespace and svc_name, the contentKey does not need to be deduplication.
-					endpoint.NamespaceList = append(endpoint.NamespaceList, metric.Metric.Namespace)
+					endpoint.NamespaceList = appendIfNotExist(endpoint.NamespaceList, metric.Metric.Namespace)
 				}
 			}
 		}
 		return nil
 	}
+}
+
+func appendIfNotExist(slice []string, str string) []string {
+	for _, item := range slice {
+		if item == str {
+			return slice
+		}
+	}
+	return append(slice, str)
 }
 
 func WithRealTimeREDMetric() FetchEMOption {
@@ -124,42 +134,7 @@ func WithRealTimeREDMetric() FetchEMOption {
 }
 
 func WithREDChart(step time.Duration) FetchEMOption {
-
-}
-
-type EndpointsFilter struct {
-	ContainsSvcName      string   // SvcName, containing matches
-	ContainsEndpointName string   // EndpointName, containing matches
-	Namespace            string   // Namespace, exact match
-	ServiceName          string   // Specify the service name, exact match
-	MultiService         []string // multiple service names, exact match
-	MultiNamespace       []string // multiple namespace, exact match
-	MultiEndpoint        []string // multiple service endpoints, exact match
-}
-
-// EndpointsFilter extraction filter conditions
-// Returns a string array with an even length, with the odd bits being key and the even bits being value
-func (f EndpointsFilter) ExtractFilterStr() []string {
-	var filters []string
-	if len(f.ServiceName) > 0 {
-		filters = append(filters, ServicePQLFilter, f.ServiceName)
-	} else if len(f.ContainsSvcName) > 0 {
-		filters = append(filters, ServiceRegexPQLFilter, RegexContainsValue(f.ContainsSvcName))
+	return func(promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
+		return promRepo.FillRangeMetric(em, AVG, startTime, endTime, step, filters, EndpointGranularity)
 	}
-	if len(f.ContainsEndpointName) > 0 {
-		filters = append(filters, ContentKeyRegexPQLFilter, RegexContainsValue(f.ContainsEndpointName))
-	}
-	if len(f.Namespace) > 0 {
-		filters = append(filters, NamespacePQLFilter, f.Namespace)
-	}
-	if len(f.MultiNamespace) > 0 {
-		filters = append(filters, NamespaceRegexPQLFilter, RegexMultipleValue(f.MultiNamespace...))
-	}
-	if len(f.MultiService) > 0 {
-		filters = append(filters, ServiceRegexPQLFilter, RegexMultipleValue(f.MultiService...))
-	}
-	if len(f.MultiEndpoint) > 0 {
-		filters = append(filters, ContentKeyRegexPQLFilter, RegexMultipleValue(f.MultiEndpoint...))
-	}
-	return filters
 }

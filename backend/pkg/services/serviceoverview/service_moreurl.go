@@ -80,7 +80,7 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	}
 
 	// Save all URLs to the corresponding service
-	services := fillOneService(endpoints)
+	services := groupEndpointsByService(endpoints, -1)
 
 	//(searchTime.Add(-30*time.Minute), searchTime, errorDataQuery, time.Minute)
 
