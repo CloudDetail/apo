@@ -14,7 +14,7 @@ const namespace = 'core/login'
 
 // 创建axios实例
 const instance = axios.create({
-  baseURL: 'http://localhost:8083', // 替换为你的API基础URL
+  baseURL: '', // 替换为你的API基础URL
   timeout: 120000,
   headers: { 'Content-Type': 'application/json' },
   paramsSerializer: (params) => qs.stringify(params, { arrayFormat: 'repeat' }),
