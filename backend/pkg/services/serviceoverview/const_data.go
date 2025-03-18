@@ -15,4 +15,9 @@ const (
 	DODThreshold SortType = iota + 1
 	// Sort by mutation
 	MUTATIONSORT
+
+	SortByLatency
+	SortByErrorRate
+	SortByThroughput
+	SortByLogErrorCount
 )

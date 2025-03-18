@@ -12,20 +12,35 @@ import (
 )
 
 // TODO move to prometheus package and avoid to repeated self
-func (s *service) GetServicesEndpointDataWithChart(startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule SortType) (res []response.ServiceEndPointsRes, err error) {
+func (s *service) GetServicesEndpointDataWithChart(
+	startTime time.Time, endTime time.Time, step time.Duration,
+	filter EndpointsFilter, sortRule SortType,
+) (res []response.ServiceEndPointsRes, err error) {
 	filtersStr := filter.ExtractFilterStr()
-	endpointsMap, err := prometheus.FetchEndpointsData(
-		s.promRepo, filtersStr, startTime, endTime,
+
+	var opts = []prometheus.FetchEMOption{
 		prometheus.WithREDMetric(),
 		prometheus.WithDelaySource(),
 		prometheus.WithNamespace(),
 		prometheus.WithREDChart(step),
+	}
+
+	if sortRule == SortByLogErrorCount {
+		opts = append(opts, prometheus.WithLogErrorCount())
+	} else if sortRule == MUTATIONSORT {
+		opts = append(opts, prometheus.WithRealTimeREDMetric())
+	}
+
+	endpointsMap, err := prometheus.FetchEndpointsData(
+		s.promRepo, filtersStr, startTime, endTime,
+		opts...,
 	)
 
 	if err != nil {
 		// TODO
-
 	}
+
+	s.sortWithRule(sortRule, endpointsMap)
 
 	// step4 Group Endpoints by service and maintain service ordering
 	services := groupEndpointsByService(endpointsMap.MetricGroupList, 3)

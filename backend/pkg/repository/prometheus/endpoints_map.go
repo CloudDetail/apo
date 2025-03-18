@@ -138,3 +138,16 @@ func WithREDChart(step time.Duration) FetchEMOption {
 		return promRepo.FillRangeMetric(em, AVG, startTime, endTime, step, filters, EndpointGranularity)
 	}
 }
+
+func WithLogErrorCount() FetchEMOption {
+	return func(promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
+		result, err := promRepo.QueryAggMetricsWithFilter(PQLAvgLogErrorCountWithFilters,
+			startTime.UnixMicro(), endTime.UnixMicro(), EndpointGranularity, filters...,
+		)
+		if err != nil {
+			return err
+		}
+		em.MergeMetricResults(AVG, LOG_ERROR_COUNT, result)
+		return nil
+	}
+}

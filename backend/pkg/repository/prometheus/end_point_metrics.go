@@ -28,11 +28,14 @@ type EndpointMetrics struct {
 	LatencyData   []Points // Data of delay time period
 	ErrorRateData []Points // Data for the error rate time period
 	TPMData       []Points // Data for TPM time period
+
+	AvgLogErrorCount float64
 }
 
 func (e *EndpointMetrics) InitEmptyGroup(key ConvertFromLabels) MetricGroup {
 	return &EndpointMetrics{
-		EndpointKey: key.(EndpointKey),
+		EndpointKey:      key.(EndpointKey),
+		AvgLogErrorCount: -1,
 	}
 }
 
@@ -41,7 +44,11 @@ func (e *EndpointMetrics) AppendGroupIfNotExist(_ MGroupName, metricName MName) 
 }
 
 func (e *EndpointMetrics) SetValue(metricGroup MGroupName, metricName MName, value float64) {
-	e.REDMetrics.SetValue(metricGroup, metricName, value)
+	if metricName == LOG_ERROR_COUNT {
+		e.AvgLogErrorCount = value
+	} else {
+		e.REDMetrics.SetValue(metricGroup, metricName, value)
+	}
 }
 
 func (e *EndpointMetrics) SetValues(_ MGroupName, metricName MName, points []Points) {

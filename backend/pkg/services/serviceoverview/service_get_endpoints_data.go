@@ -5,6 +5,7 @@ package serviceoverview
 
 import (
 	"math"
+	"slices"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -18,11 +19,22 @@ func (s *service) GetServicesEndPointData(
 	sortRule SortType,
 ) ([]response.ServiceEndPointsRes, error) {
 	filterStrs := filter.ExtractFilterStr()
-	endpointsMap, err := prometheus.FetchEndpointsData(
-		s.promRepo, filterStrs, startTime, endTime,
+
+	var opts = []prometheus.FetchEMOption{
 		prometheus.WithREDMetric(),
 		prometheus.WithDelaySource(),
 		prometheus.WithNamespace(),
+	}
+
+	if sortRule == SortByLogErrorCount {
+		opts = append(opts, prometheus.WithLogErrorCount())
+	} else if sortRule == MUTATIONSORT {
+		opts = append(opts, prometheus.WithRealTimeREDMetric())
+	}
+
+	endpointsMap, err := prometheus.FetchEndpointsData(
+		s.promRepo, filterStrs, startTime, endTime,
+		opts...,
 	)
 
 	s.sortWithRule(sortRule, endpointsMap)
@@ -66,6 +78,8 @@ func (s *service) GetServicesEndPointData(
 
 func (s *service) sortWithRule(sortRule SortType, endpointsMap *EndpointsMap) error {
 	switch sortRule {
+	case SortByLatency, SortByErrorRate, SortByThroughput, SortByLogErrorCount:
+		slices.SortStableFunc(endpointsMap.MetricGroupList, sortWithMetrics(sortRule))
 	case DODThreshold: //Sort by Day-to-Year Threshold
 		threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
 		if err != nil {
@@ -97,11 +111,6 @@ func (s *service) sortWithRule(sortRule SortType, endpointsMap *EndpointsMap) er
 				endpoint.IsLatencyExceeded = true
 				endpoint.AlertCount += LatencyCount
 			}
-			//// Filter TPS does not compare throughput
-			//if Urls[i].TPSDayOverDay != nil && *Urls[i].TPSDayOverDay > tpsThreshold {
-			//	Urls[i].IsTPSExceeded = true
-			//	Urls[i].Count += TPSCount
-			//}
 		}
 		sortByDODThreshold(endpointsMap.MetricGroupList)
 	case MUTATIONSORT: //Sort by real-time mutation rate
@@ -109,6 +118,46 @@ func (s *service) sortWithRule(sortRule SortType, endpointsMap *EndpointsMap) er
 	}
 
 	return nil
+}
+
+func sortWithMetrics(sortType SortType) func(i, j *prometheus.EndpointMetrics) int {
+	return func(i, j *prometheus.EndpointMetrics) int {
+		var itemI, itemJ *float64
+		switch sortType {
+		case SortByLatency:
+			itemI = i.REDMetrics.Avg.Latency
+			itemJ = j.REDMetrics.Avg.Latency
+		case SortByErrorRate:
+			itemI = i.REDMetrics.Avg.ErrorRate
+			itemJ = j.REDMetrics.Avg.ErrorRate
+		case SortByThroughput:
+			itemI = i.REDMetrics.Avg.TPM
+			itemJ = j.REDMetrics.Avg.TPM
+		case SortByLogErrorCount:
+			itemI = &i.AvgLogErrorCount
+			itemJ = &j.AvgLogErrorCount
+		}
+
+		if itemI == nil && itemJ == nil {
+			return 0
+		}
+
+		switch {
+		case itemI == nil:
+			return -1
+		case itemJ == nil:
+			return 1
+		}
+
+		switch {
+		case *itemI > *itemJ:
+			return 1
+		case *itemI < *itemJ:
+			return -1
+		default:
+			return 0
+		}
+	}
 }
 
 func (*service) extractDetail(
