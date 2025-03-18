@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import debounce from 'src/core/utils/debounce'
 import {
   getServiceInstancOptionsListApi,
   getServiceListApi,
@@ -98,17 +97,11 @@ const LogsTraceFilter = React.memo(({ type }) => {
       namespace: props,
     })
   }
-  const debouncedOnChangeTraceId = useCallback(
-    debounce((value) => {
-      updateUrlParamsState({
-        traceId: value,
-      })
-    }, 1000),
-    []
-  )
   const onChangeTraceId = (event) => {
     setInputTraceId(event.target.value)
-    debouncedOnChangeTraceId(event.target.value)
+    updateUrlParamsState({
+      traceId: event.target.value,
+    })
   }
   const onChangeSWTraceId = (event) => {
     setInputSWTraceId(event.target.value)
@@ -362,7 +355,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     <>
       <div className="flex flex-row my-2 justify-between">
         <div className="flex flex-row  flex-wrap">
-          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px] w-[250px]">
+          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
             <span className="text-nowrap">{t('logsTraceFilter.nameSpaceLabel')}：</span>
             <CustomSelect
               options={namespaceList}
@@ -371,7 +364,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
               isClearable
             />
           </div>
-          <div className="flex flex-row items-center mr-5 mt-2 w-[250px]">
+          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
             <span className="text-nowrap">{t('logsTraceFilter.applicationLabel')}：</span>
             <div className="flex-1 w-0">
               <CustomSelect
@@ -382,7 +375,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
               />
             </div>
           </div>
-          <div className="flex flex-row items-center mr-5 mt-2 w-[250px]">
+          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
             <span className="text-nowrap">{t('logsTraceFilter.instanceLabel')}：</span>
             <div className="flex-1">
               <CustomSelect
@@ -394,7 +387,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
             </div>
           </div>
           {type === 'logs' && (
-            <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px] w-[250px]">
+            <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
               <span className="text-nowrap ">{t('oss/trace:trace.traceId')}：</span>
               <Input
                 placeholder={t('logsTraceFilter.search')}
