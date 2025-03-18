@@ -127,7 +127,7 @@ export const refreshAccessToken = async () => {
     const { accessToken } = response
     localStorage.setItem('token', accessToken)
     refreshDifyAccessToken().catch((error) => {
-      console.error('刷新 Dify Token 失败:', error)
+      console.error(' Dify Token Error:', error)
     })
     return accessToken
   } catch (error) {
