@@ -31,8 +31,8 @@ type GetPolarisInferRequest struct {
 	Service   string `form:"service" binding:"required"`                   // query service name
 	Endpoint  string `form:"endpoint" binding:"required"`                  // query Endpoint
 
-	Lanaguage string `form:"language" json:"language"` // language of result
-	Timezone  string `form:"timezone" json:"timezone"` // timezone of result
+	Language string `form:"language" json:"language"` // language of result
+	Timezone string `form:"timezone" json:"timezone"` // timezone of result
 }
 
 type GetDescendantRelevanceRequest = GetDescendantMetricsRequest
