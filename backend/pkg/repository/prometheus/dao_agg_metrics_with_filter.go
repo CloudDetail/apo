@@ -4,8 +4,8 @@
 package prometheus
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 )
@@ -13,7 +13,7 @@ import (
 const DefaultDepLatency int64 = -1
 
 // FillMetric query and populate RED metric
-func (repo *promRepo) FillMetric(res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filters []string, granularity Granularity) {
+func (repo *promRepo) FillMetric(res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filters []string, granularity Granularity) error {
 	var decorator = func(apf AggPQLWithFilters) AggPQLWithFilters {
 		return apf
 	}
@@ -30,6 +30,7 @@ func (repo *promRepo) FillMetric(res MetricGroupInterface, metricGroup MGroupNam
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
+	var errs []error
 	latency, err := repo.QueryAggMetricsWithFilter(
 		decorator(PQLAvgLatencyWithFilters),
 		startTS, endTS,
@@ -37,9 +38,10 @@ func (repo *promRepo) FillMetric(res MetricGroupInterface, metricGroup MGroupNam
 		filters...,
 	)
 	if err != nil {
-		log.Println("query latency error: ", err)
+		errs = append(errs, err)
+	} else {
+		res.MergeMetricResults(metricGroup, LATENCY, latency)
 	}
-	res.MergeMetricResults(metricGroup, LATENCY, latency)
 
 	errorRate, err := repo.QueryAggMetricsWithFilter(
 		decorator(PQLAvgErrorRateWithFilters),
@@ -48,12 +50,13 @@ func (repo *promRepo) FillMetric(res MetricGroupInterface, metricGroup MGroupNam
 		filters...,
 	)
 	if err != nil {
-		log.Println("query error rate error: ", err)
+		errs = append(errs, err)
+	} else {
+		res.MergeMetricResults(metricGroup, ERROR_RATE, errorRate)
 	}
-	res.MergeMetricResults(metricGroup, ERROR_RATE, errorRate)
 
 	if metricGroup == REALTIME {
-		return
+		return errors.Join(err)
 	}
 	tps, err := repo.QueryAggMetricsWithFilter(
 		decorator(PQLAvgTPSWithFilters),
@@ -62,9 +65,12 @@ func (repo *promRepo) FillMetric(res MetricGroupInterface, metricGroup MGroupNam
 		filters...,
 	)
 	if err != nil {
-		log.Println("query tps error: ", err)
+		errs = append(errs, err)
+	} else {
+		res.MergeMetricResults(metricGroup, THROUGHPUT, tps)
 	}
-	res.MergeMetricResults(metricGroup, THROUGHPUT, tps)
+
+	return errors.Join(errs...)
 }
 
 func (repo *promRepo) QueryAggMetricsWithFilter(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error) {
