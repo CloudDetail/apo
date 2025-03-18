@@ -14,7 +14,7 @@ const namespace = 'core/login'
 
 // 创建axios实例
 const instance = axios.create({
-  baseURL: '', // 替换为你的API基础URL
+  baseURL: 'http://localhost:8083', // 替换为你的API基础URL
   timeout: 120000,
   headers: { 'Content-Type': 'application/json' },
   paramsSerializer: (params) => qs.stringify(params, { arrayFormat: 'repeat' }),
@@ -25,10 +25,13 @@ instance.interceptors.request.use(
   (config) => {
     // 在发送请求之前做些什么，比如添加token
     const token = localStorage.getItem('token')
-    if (token && config.url != '/api/user/refresh') {
+    if (config.url === '/dify/console/api/logout') {
+      const difyToken = localStorage.getItem('difyToken')
+      config.headers.Authorization = `Bearer ${difyToken}`
+    } else if (token && config.url != '/api/user/refresh') {
       config.headers.Authorization = `Bearer ${token}`
     }
-     config.headers['APO-Language'] = i18next.language
+    config.headers['APO-Language'] = i18next.language
     return config
   },
   (error) => {
@@ -123,12 +126,41 @@ export const refreshAccessToken = async () => {
     })
     const { accessToken } = response
     localStorage.setItem('token', accessToken)
+    refreshDifyAccessToken().catch((error) => {
+      console.error('刷新 Dify Token 失败:', error)
+    })
     return accessToken
   } catch (error) {
     return null
   }
 }
+export const refreshDifyAccessToken = async () => {
+  try {
+    const refresh_token = globalThis.localStorage.getItem('difyRefreshToken')
 
+    const res = await fetch(`/dify/console/api/refresh-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;utf-8',
+      },
+      body: JSON.stringify({ refresh_token }),
+    })
+    if (!res.ok) {
+      if (res.status === 401) {
+        return Promise.reject('Unauthorized: Dify refresh token invalid')
+      }
+      return Promise.reject(`Request failed with status: ${res.status}`)
+    }
+
+    const { data } = await res.json()
+    localStorage.setItem('difyToken', data.access_token)
+    localStorage.setItem('difyRefreshToken', data.refresh_token)
+  } catch (error) {
+    console.error(error)
+    return Promise.reject(error)
+  } finally {
+  }
+}
 // 封装GET请求
 const get = (url, params = {}, config = {}) => {
   return instance
