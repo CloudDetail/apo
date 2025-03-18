@@ -85,7 +85,7 @@ func (s *service) GetServicesEndPointData(
 func (s *service) sortWithRule(sortRule request.SortType, endpointsMap *EndpointsMap) error {
 	switch sortRule {
 	case request.SortByLatency, request.SortByErrorRate, request.SortByThroughput, request.SortByLogErrorCount:
-		slices.SortStableFunc(endpointsMap.MetricGroupList, prometheus.SortWithMetrics(sortRule))
+		slices.SortStableFunc(endpointsMap.MetricGroupList, prometheus.ReverseSortWithMetrics(sortRule))
 	case request.DODThreshold: //Sort by Day-to-Year Threshold
 		threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
 		if err != nil {

@@ -154,7 +154,7 @@ func WithLogErrorCount() FetchEMOption {
 	}
 }
 
-func SortWithMetrics(sortType request.SortType) func(i, j *EndpointMetrics) int {
+func ReverseSortWithMetrics(sortType request.SortType) func(i, j *EndpointMetrics) int {
 	return func(i, j *EndpointMetrics) int {
 		var itemI, itemJ *float64
 		switch sortType {
@@ -178,16 +178,16 @@ func SortWithMetrics(sortType request.SortType) func(i, j *EndpointMetrics) int 
 
 		switch {
 		case itemI == nil:
-			return -1
-		case itemJ == nil:
 			return 1
+		case itemJ == nil:
+			return -1
 		}
 
 		switch {
 		case *itemI > *itemJ:
-			return 1
-		case *itemI < *itemJ:
 			return -1
+		case *itemI < *itemJ:
+			return 1
 		default:
 			return 0
 		}
