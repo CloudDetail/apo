@@ -42,7 +42,6 @@ func (s *service) GetServicesEndpointDataWithChart(
 		s.logger.Error("failed to fetch endpoints data form", zap.Error(err))
 		return
 	}
-	s.sortWithRule(sortRule, endpointsMap)
 
 	s.sortWithRule(sortRule, endpointsMap)
 
