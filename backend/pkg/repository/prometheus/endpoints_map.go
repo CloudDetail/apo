@@ -6,6 +6,8 @@ package prometheus
 import (
 	"errors"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 // EndpointsMap is used to store the query results of multiple metrics of the same granularity, using MergeMetricResults merge.
@@ -149,5 +151,45 @@ func WithLogErrorCount() FetchEMOption {
 		}
 		em.MergeMetricResults(AVG, LOG_ERROR_COUNT, result)
 		return nil
+	}
+}
+
+func SortWithMetrics(sortType request.SortType) func(i, j *EndpointMetrics) int {
+	return func(i, j *EndpointMetrics) int {
+		var itemI, itemJ *float64
+		switch sortType {
+		case request.SortByLatency:
+			itemI = i.REDMetrics.Avg.Latency
+			itemJ = j.REDMetrics.Avg.Latency
+		case request.SortByErrorRate:
+			itemI = i.REDMetrics.Avg.ErrorRate
+			itemJ = j.REDMetrics.Avg.ErrorRate
+		case request.SortByThroughput:
+			itemI = i.REDMetrics.Avg.TPM
+			itemJ = j.REDMetrics.Avg.TPM
+		case request.SortByLogErrorCount:
+			itemI = &i.AvgLogErrorCount
+			itemJ = &j.AvgLogErrorCount
+		}
+
+		if itemI == nil && itemJ == nil {
+			return 0
+		}
+
+		switch {
+		case itemI == nil:
+			return -1
+		case itemJ == nil:
+			return 1
+		}
+
+		switch {
+		case *itemI > *itemJ:
+			return 1
+		case *itemI < *itemJ:
+			return -1
+		default:
+			return 0
+		}
 	}
 }

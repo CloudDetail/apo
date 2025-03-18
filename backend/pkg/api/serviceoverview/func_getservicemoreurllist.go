@@ -12,7 +12,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
 // GetServiceMoreUrlList get more url list of services
@@ -50,7 +49,7 @@ func (h *handler) GetServiceMoreUrlList() core.HandlerFunc {
 		step := time.Duration(req.Step * 1000)
 		//step := time.Minute
 		serviceName := req.ServiceName
-		sortRule := serviceoverview.SortType(req.SortRule)
+		sortRule := request.SortType(req.SortRule)
 		var res []response.ServiceDetail
 		data, err := h.serviceoverview.GetServiceMoreUrl(startTime, endTime, step, serviceName, sortRule)
 		if err != nil {

@@ -7,14 +7,16 @@ import (
 	"math"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"go.uber.org/zap"
 )
 
 // TODO move to prometheus package and avoid to repeated self
 func (s *service) GetServicesEndpointDataWithChart(
 	startTime time.Time, endTime time.Time, step time.Duration,
-	filter EndpointsFilter, sortRule SortType,
+	filter EndpointsFilter, sortRule request.SortType,
 ) (res []response.ServiceEndPointsRes, err error) {
 	filtersStr := filter.ExtractFilterStr()
 
@@ -25,9 +27,9 @@ func (s *service) GetServicesEndpointDataWithChart(
 		prometheus.WithREDChart(step),
 	}
 
-	if sortRule == SortByLogErrorCount {
+	if sortRule == request.SortByLogErrorCount {
 		opts = append(opts, prometheus.WithLogErrorCount())
-	} else if sortRule == MUTATIONSORT {
+	} else if sortRule == request.MUTATIONSORT {
 		opts = append(opts, prometheus.WithRealTimeREDMetric())
 	}
 
@@ -37,8 +39,10 @@ func (s *service) GetServicesEndpointDataWithChart(
 	)
 
 	if err != nil {
-		// TODO
+		s.logger.Error("failed to fetch endpoints data form", zap.Error(err))
+		return
 	}
+	s.sortWithRule(sortRule, endpointsMap)
 
 	s.sortWithRule(sortRule, endpointsMap)
 

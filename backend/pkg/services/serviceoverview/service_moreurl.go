@@ -9,10 +9,11 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule SortType) (res []response.ServiceDetail, err error) {
+func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule request.SortType) (res []response.ServiceDetail, err error) {
 	filter := EndpointsFilter{
 		ServiceName: serviceNames,
 	}
@@ -75,7 +76,7 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	}
 	// Sort all URLs
 	switch sortRule {
-	case DODThreshold: //Sort by Day-to-Year Threshold
+	case request.DODThreshold: //Sort by Day-to-Year Threshold
 		sortByDODThreshold(endpoints)
 	}
 

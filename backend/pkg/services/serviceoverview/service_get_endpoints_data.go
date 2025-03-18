@@ -8,15 +8,17 @@ import (
 	"slices"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"go.uber.org/zap"
 )
 
 func (s *service) GetServicesEndPointData(
 	startTime, endTime time.Time, step time.Duration,
 	filter EndpointsFilter,
-	sortRule SortType,
+	sortRule request.SortType,
 ) ([]response.ServiceEndPointsRes, error) {
 	filterStrs := filter.ExtractFilterStr()
 
@@ -26,9 +28,9 @@ func (s *service) GetServicesEndPointData(
 		prometheus.WithNamespace(),
 	}
 
-	if sortRule == SortByLogErrorCount {
+	if sortRule == request.SortByLogErrorCount {
 		opts = append(opts, prometheus.WithLogErrorCount())
-	} else if sortRule == MUTATIONSORT {
+	} else if sortRule == request.MUTATIONSORT {
 		opts = append(opts, prometheus.WithRealTimeREDMetric())
 	}
 
@@ -36,6 +38,10 @@ func (s *service) GetServicesEndPointData(
 		s.promRepo, filterStrs, startTime, endTime,
 		opts...,
 	)
+
+	if err != nil {
+		s.logger.Error("failed to fetch endpoints data form", zap.Error(err))
+	}
 
 	s.sortWithRule(sortRule, endpointsMap)
 
@@ -76,11 +82,11 @@ func (s *service) GetServicesEndPointData(
 	return servicesResMsg, err
 }
 
-func (s *service) sortWithRule(sortRule SortType, endpointsMap *EndpointsMap) error {
+func (s *service) sortWithRule(sortRule request.SortType, endpointsMap *EndpointsMap) error {
 	switch sortRule {
-	case SortByLatency, SortByErrorRate, SortByThroughput, SortByLogErrorCount:
-		slices.SortStableFunc(endpointsMap.MetricGroupList, sortWithMetrics(sortRule))
-	case DODThreshold: //Sort by Day-to-Year Threshold
+	case request.SortByLatency, request.SortByErrorRate, request.SortByThroughput, request.SortByLogErrorCount:
+		slices.SortStableFunc(endpointsMap.MetricGroupList, prometheus.SortWithMetrics(sortRule))
+	case request.DODThreshold: //Sort by Day-to-Year Threshold
 		threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
 		if err != nil {
 			return err
@@ -113,51 +119,11 @@ func (s *service) sortWithRule(sortRule SortType, endpointsMap *EndpointsMap) er
 			}
 		}
 		sortByDODThreshold(endpointsMap.MetricGroupList)
-	case MUTATIONSORT: //Sort by real-time mutation rate
+	case request.MUTATIONSORT: //Sort by real-time mutation rate
 		sortByMutation(endpointsMap.MetricGroupList)
 	}
 
 	return nil
-}
-
-func sortWithMetrics(sortType SortType) func(i, j *prometheus.EndpointMetrics) int {
-	return func(i, j *prometheus.EndpointMetrics) int {
-		var itemI, itemJ *float64
-		switch sortType {
-		case SortByLatency:
-			itemI = i.REDMetrics.Avg.Latency
-			itemJ = j.REDMetrics.Avg.Latency
-		case SortByErrorRate:
-			itemI = i.REDMetrics.Avg.ErrorRate
-			itemJ = j.REDMetrics.Avg.ErrorRate
-		case SortByThroughput:
-			itemI = i.REDMetrics.Avg.TPM
-			itemJ = j.REDMetrics.Avg.TPM
-		case SortByLogErrorCount:
-			itemI = &i.AvgLogErrorCount
-			itemJ = &j.AvgLogErrorCount
-		}
-
-		if itemI == nil && itemJ == nil {
-			return 0
-		}
-
-		switch {
-		case itemI == nil:
-			return -1
-		case itemJ == nil:
-			return 1
-		}
-
-		switch {
-		case *itemI > *itemJ:
-			return 1
-		case *itemI < *itemJ:
-			return -1
-		default:
-			return 0
-		}
-	}
 }
 
 func (*service) extractDetail(

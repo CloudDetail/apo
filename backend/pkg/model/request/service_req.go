@@ -117,6 +117,7 @@ type GetServiceEndPointListRequest struct {
 	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 	ServiceName string `form:"service"`                                      // query service name
 }
+
 type GetEndPointsDataRequest struct {
 	// Filter Criteria
 	ServiceName  []string `form:"serviceName,omitempty"`  // application name, exact match
@@ -125,11 +126,25 @@ type GetEndPointsDataRequest struct {
 	GroupID      int64    `form:"groupId,omitempty"`      // Data group id
 
 	// Query condition
-	StartTime int64 `form:"startTime" binding:"required"`                 // query start time
-	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	Step      int64 `form:"step" binding:"required"`                      // step size
-	SortRule  int   `form:"sortRule" binding:"required"`                  // sort logic
+	StartTime int64    `form:"startTime" binding:"required"`                 // query start time
+	EndTime   int64    `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step      int64    `form:"step" binding:"required"`                      // step size
+	SortRule  SortType `form:"sortRule" binding:"required"`                  // sort logic
 }
+
+type SortType int
+
+const (
+	// Sort by Day-over-Day Growth Rate Threshold
+	DODThreshold SortType = iota + 1
+	// Sort by mutation
+	MUTATIONSORT
+
+	SortByLatency
+	SortByErrorRate
+	SortByThroughput
+	SortByLogErrorCount
+)
 
 type GetRygLightRequest struct {
 	// Filter Criteria
