@@ -26,6 +26,16 @@ APO comes with a variety of built-in intelligent workflows. You can customize yo
 
 ![Workflows List](./docs/img/workflows-list.png)
 
+APO has integrated expert knowledge into its workflows, with "Alert Events" featuring two deeply integrated workflows: **Alert Validity Analysis** and **Root Cause Analysis**. These workflows automatically analyze alert causes and reduce the workload of alert handling.
+
+![Alert-Events](./docs/img/alert-events.png)
+
+- **Alert Validity Analysis Workflow**: This workflow helps you identify which alerts require immediate attention among numerous notifications. With its assistance, you can quickly focus on critical alerts. Additionally, you can design more sensitive alert rules to gather more context information when incidents occur, which will aid in subsequent troubleshooting.
+
+- **Root Cause Analysis Workflow**: When an alert is received, this workflow automatically retrieves alert context, such as related hosts, services, or pods, searches their metrics and anomalies, and conducts comprehensive root cause analysis using Polaris metrics to help you resolve incidents faster.
+
+All built-in workflows can be modified according to your specific needs and scenarios.
+
 #### Built-in Data Query and Anomaly Detection Tools
 
 Given the abundance of multi-model data in the observability domain, APO provides a suite of data query and anomaly detection tools that everyone can simply drag and drop to use.  

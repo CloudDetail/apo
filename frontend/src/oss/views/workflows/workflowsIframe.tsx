@@ -5,86 +5,38 @@
 
 import { Button, Result } from 'antd'
 import i18next, { t } from 'i18next'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { workflowAnonymousLoginApi } from 'src/core/api/workflows'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useUserContext } from 'src/core/contexts/UserContext'
 
 const WorkflowsIframe = ({ src }) => {
-  const language = i18next.language
   const workflowRef = useRef(null)
-  const intervalRef = useRef<any>(null)
   const { user } = useUserContext()
+  const language = i18next.language
 
-  const [difyToken, setDifyToken] = useState(localStorage.getItem('difyToken'))
-  const [loading, setLoading] = useState(!difyToken)
+  const [difyToken, setDifyToken] = useState(() => localStorage.getItem('difyToken'))
+  const [refreshToken, setRefreshToken] = useState(() => localStorage.getItem('difyRefreshToken'))
+  const [loading, setLoading] = useState(!difyToken || !refreshToken)
   const [error, setError] = useState(false)
 
-  useEffect(() => {
-    if (user.username === 'anonymous') {
-      loginDify(user)
-    }
-  }, [difyToken, user.username])
-
-  useEffect(() => {
-    if (error) return
-
-
-  const sendMessageToB = (data) => {
-    if (workflowRef.current) {
-      workflowRef.current.contentWindow.postMessage(data, '*')
-    }
-  }
-
-  const handleMessage = (event: MessageEvent) => {
-    if (event.data === 'got' && intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-  }
-
-  let data;
-  if (!difyToken) {
-    data = { action: 'clear-token' }
-  } else {
-    data = {
-      action: 'auto-login',
-      data: {
-        token: difyToken,
-        refreshToken: localStorage.getItem('difyRefreshToken'),
-      },
-      src: src.slice(5),
-    }
-  }
-
-  // 发送数据，直到 B 页面返回 'got'
-  intervalRef.current = setInterval(() => sendMessageToB(data), 1000)
-    window.addEventListener('message', handleMessage)
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
-      window.removeEventListener('message', handleMessage)
-    }
-  }, [difyToken, error])
-
-  const loginDify = async (user) => {
-    setLoading(true) 
+  const loginDify = useCallback(async () => {
+    setLoading(true)
     setError(false)
-    const language = i18next.language
 
     try {
       const res = await workflowAnonymousLoginApi({
-        email: user.username + '@apo.com',
-        language: language,
+        email: `${user.username}@apo.com`,
+        language,
         remember_me: true,
       })
 
       if (res.result === 'success') {
-        localStorage.setItem('difyToken', res.data.access_token)
-        localStorage.setItem('difyRefreshToken', res.data.refresh_token)
-        setDifyToken(res.data.access_token)
+        const { access_token, refresh_token } = res.data
+        localStorage.setItem('difyToken', access_token)
+        localStorage.setItem('difyRefreshToken', refresh_token)
+        setDifyToken(access_token)
+        setRefreshToken(refresh_token)
       } else {
         setError(true)
       }
@@ -94,28 +46,53 @@ const WorkflowsIframe = ({ src }) => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user.username, language])
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.origin !== window.location.origin) {
+        console.warn('CORS error: received message from unknown origin', event.origin)
+        return
+      }
+
+      if (event.data?.type === 'refresh_token') {
+        const { access_token, refresh_token } = event.data.data
+        localStorage.setItem('difyToken', access_token)
+        localStorage.setItem('difyRefreshToken', refresh_token)
+        setDifyToken(access_token)
+        setRefreshToken(refresh_token)
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => {
+      window.removeEventListener('message', handleMessage)
+    }
+  }, [])
+
+  useEffect(() => {
+    if ((!difyToken || !refreshToken) && user.username === 'anonymous') {
+      loginDify()
+    }
+  }, [difyToken, refreshToken, user.username, loginDify])
 
   if (loading) {
     return <LoadingSpinner loading={loading} />
   }
 
   if (error) {
-    return  <Result
-    status="warning"
-    title={t('oss/workflow:workflowError')}
-  />
+    return <Result status="warning" title={t('oss/workflow:workflowError')} />
   }
 
-  return difyToken ? (
+  return (
     <iframe
       ref={workflowRef}
-      src={src}
+      src={`${src}${src.includes('?') ? '&' : '?'}access_token=${difyToken}&refresh_token=${refreshToken}`}
       width="100%"
       height="100%"
       frameBorder={0}
     />
-  ) : null
+  )
 }
 
 export default WorkflowsIframe

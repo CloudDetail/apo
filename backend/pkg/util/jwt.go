@@ -5,16 +5,18 @@ package util
 
 import (
 	"errors"
+	"strings"
+	"time"
+
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/golang-jwt/jwt"
-	"strings"
-	"time"
 )
 
 var secret = []byte("APO@2024")
-var accessExpireTime = 15 * time.Minute
-var refreshExpireTime = 48 * time.Hour
+var accessExpireTime = time.Duration(config.Get().Server.AccessTokenExpireMinutes) * time.Minute
+var refreshExpireTime = time.Duration(config.Get().Server.RefreshTokenExpireHours) * time.Hour
 
 var (
 	TokenInvalid = errors.New("invalid token")
