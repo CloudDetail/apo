@@ -66,7 +66,7 @@
     -webkit-overflow-scrolling: touch;
 }
 
-/* 隐藏原生滚动条 */
+/* hide scrollbar */
 .custom-scrollbar {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE 10+ */
