@@ -110,7 +110,7 @@ const WorkflowsIframe = ({ src }) => {
   return difyToken ? (
     <iframe
       ref={workflowRef}
-      src={'http://localhost:8083' + src}
+      src={src}
       width="100%"
       height="100%"
       frameBorder={0}
