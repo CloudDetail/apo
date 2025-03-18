@@ -56,6 +56,8 @@ const UserToolBox = () => {
       await logoutApi(params)
       localStorage.removeItem('token')
       localStorage.removeItem('refreshToken')
+      localStorage.removeItem('difyToken')
+      localStorage.removeItem('difyRefreshToken')
       // @ts-ignore
       dispatch({
         type: 'removeUser',
