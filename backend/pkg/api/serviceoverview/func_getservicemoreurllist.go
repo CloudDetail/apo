@@ -49,9 +49,8 @@ func (h *handler) GetServiceMoreUrlList() core.HandlerFunc {
 		step := time.Duration(req.Step * 1000)
 		//step := time.Minute
 		serviceName := req.ServiceName
-		sortRule := request.SortType(req.SortRule)
 		var res []response.ServiceDetail
-		data, err := h.serviceoverview.GetServiceMoreUrl(startTime, endTime, step, serviceName, sortRule)
+		data, err := h.serviceoverview.GetServiceMoreUrl(startTime, endTime, step, serviceName, req.SortRule)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
