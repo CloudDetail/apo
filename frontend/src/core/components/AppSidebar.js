@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { Children, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 // sidebar nav config
 import { navIcon } from 'src/_nav'

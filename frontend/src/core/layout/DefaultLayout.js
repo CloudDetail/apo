@@ -44,7 +44,7 @@ const DefaultLayout = () => {
           />
           <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span>
         </div>
-        <AppSidebar collapsed={collapsed}/>
+        <AppSidebar />
       </Sider>
       <Layout
         style={{
