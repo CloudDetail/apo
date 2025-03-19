@@ -12,7 +12,9 @@ import LoadingSpinner from '../Spinner'
 import BasicPagination from './basicPagination'
 import { Tooltip } from 'antd'
 import { VscTriangleUp, VscTriangleDown } from 'react-icons/vsc'
+import { useTranslation } from 'react-i18next'
 const BasicTable = React.memo((props) => {
+  const { t } = useTranslation('core/table')
   const {
     data,
     columns,
@@ -176,7 +178,7 @@ const BasicTable = React.memo((props) => {
                         {!column.isNested && column.render('title')}
                         {!column.disableSortBy && (
                           <Tooltip
-                            title={isSorted ? (isSortedDesc ? '取消排序' : '点击降序') : '点击升序'}
+                            title={isSorted ? (isSortedDesc ? t('unsort') : t('desc')) : t('asc')}
                           >
                             <div
                               className="flex flex-col cursor-pointer ml-3"
