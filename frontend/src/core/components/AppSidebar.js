@@ -20,7 +20,7 @@ const AppSidebarMenuIcon = (menuItem) => {
     </div>
   )
 }
-const AppSidebar = ({ collapsed }) => {
+const AppSidebar = () => {
   const { menuItems, user } = useUserContext()
   const location = useLocation()
   const navigate = useNavigate()
@@ -61,22 +61,13 @@ const AppSidebar = ({ collapsed }) => {
     return result
   }
   const onOpenChange = (openKeys) => {
-    if (!collapsed) {
-      setOpenKeys(openKeys)
-      setMemoOpenKeys(openKeys)
-    }
+    setOpenKeys(openKeys)
   }
   useEffect(() => {
     const result = getItemKey(menuList)
     setSelectedKeys(result)
   }, [location.pathname, menuList])
-  useEffect(() => {
-    if (!collapsed) {
-      setOpenKeys(memoOpenKeys)
-    } else {
-      setOpenKeys([])
-    }
-  }, [collapsed])
+
   return (
     <ConfigProvider
       theme={{
@@ -91,13 +82,12 @@ const AppSidebar = ({ collapsed }) => {
       <Menu
         mode="inline"
         theme="dark"
-        inlineCollapsed={collapsed}
         items={menuList}
         onClick={onClick}
         selectedKeys={selectedKeys}
         openKeys={openKeys}
         onOpenChange={onOpenChange}
-        className="sidebarMenu pb-20"
+        className="sidebarMenu pb-20 custom-scrollbar"
       ></Menu>
     </ConfigProvider>
   )

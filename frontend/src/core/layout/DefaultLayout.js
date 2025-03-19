@@ -16,39 +16,42 @@ import { useTranslation } from 'react-i18next'
 const DefaultLayout = () => {
   const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(true)
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider collapsed collapsedWidth={70}></Sider>
       <Sider
-        trigger={null}
         collapsible
         collapsed={collapsed}
-        onMouseEnter={() => setCollapsed(false)}
-        onMouseLeave={() => setCollapsed(true)}
         collapsedWidth={70}
+        onCollapse={(value) => setCollapsed(value)}
         style={{
-          overflow: 'hidden',
-          transition: 'all 0.3s',
           position: 'fixed',
+          overflowX: 'hidden',
+          overflowY: 'auto',
+          transition: 'all 0.3s',
           zIndex: 999,
           height: '100vh',
+          borderRight: '1px solid #424242'
         }}
+        className='custom-scrollbar'
         width={250}
-        className={collapsed ? 'siderCollapsed border-end' : 'border-end'}
       >
-        <div className="flex h-full flex-col">
-          <div className="h-[60px] flex w-full overflow-hidden items-center">
-            <CImage
-              src={logo}
-              className="w-[42px] sidebar-brand-narrow flex-shrink-0 m-3"
-              alt="CoreuiVue"
-            />
-            <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span>
-          </div>
-          <AppSidebar collapsed={collapsed} />
+        <div className="h-[60px] flex w-full overflow-hidden items-center">
+          <CImage
+            src={logo}
+            className="w-[42px] sidebar-brand-narrow flex-shrink-0 m-3"
+            alt="CoreuiVue"
+          />
+          <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span>
         </div>
+        <AppSidebar />
       </Sider>
-      <Layout>
+      <Layout
+        style={{
+          transform: collapsed ? 'translateX(70px)' : 'translateX(250px)',
+          transition: 'transform 0.3s'
+        }}
+      >
         <AppHeader />
         <div className="body flex-grow-1">
           <AppContent />
