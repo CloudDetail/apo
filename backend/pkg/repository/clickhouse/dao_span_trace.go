@@ -190,6 +190,65 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 	return result, count, nil
 }
 
+type FaultLogQuery struct {
+	StartTime      int64
+	EndTime        int64
+	Service        string
+	Instance       string
+	NodeName       string
+	ContainerId    string
+	Pid            uint32
+	EndPoint       string
+	TraceId        string
+	PageNum        int
+	PageSize       int
+	Type           int      // 0 - slow & error, 1 - error
+	MultiServices  []string // Match multiple service
+	MultiNamespace []string // Match multiple namespace
+}
+
+type QueryCount struct {
+	Total uint64 `ch:"total"`
+}
+
+type FaultLogResult struct {
+	ServiceName string `ch:"service_name" json:"serviceName"`
+	InstanceId  string `ch:"instance_id" json:"instanceId"`
+	TraceId     string `ch:"trace_id" json:"traceId"`
+	StartTime   uint64 `ch:"start_time_us" json:"startTime"`
+	EndTime     uint64 `ch:"end_time_us" json:"endTime"`
+	EndPoint    string `ch:"endpoint" json:"endpoint"`
+	PodName     string `ch:"pod_name" json:"podName"`
+	ContainerId string `ch:"container_id" json:"containerId"`
+	NodeName    string `ch:"node_name" json:"nodeName"`
+	Pid         uint32 `ch:"pid" json:"pid"`
+}
+
+type QueryTraceResult struct {
+	Timestamp         int64   `ch:"ts" json:"timestamp"`
+	Duration          uint64  `ch:"duration_us" json:"duration"`
+	ServiceName       string  `ch:"service_name" json:"serviceName"`
+	Pid               uint32  `ch:"pid" json:"pid"`
+	Tid               uint32  `ch:"tid" json:"tid"`
+	TraceId           string  `ch:"trace_id" json:"traceId"`
+	EndPoint          string  `ch:"endpoint" json:"endpoint"`
+	InstanceId        string  `ch:"instance_id" json:"instanceId"`
+	SpanId            string  `ch:"span_id" json:"spanId"`
+	ApmType           string  `ch:"apm_type" json:"apmType"`
+	Reason            string  `ch:"reason" json:"reason"`
+	IsError           bool    `ch:"is_error" json:"isError"`
+	IsSlow            bool    `ch:"is_slow" json:"isSlow"`
+	ThresholdValue    float64 `ch:"threshold_value" json:"thresholdValue"`
+	ThresholdMultiple float64 `ch:"threshold_multiple" json:"thresholdMultiple"`
+
+	Labels  map[string]string `ch:"labels" json:"labels"`
+	Flags   map[string]bool   `ch:"flags"  json:"flags"`
+	Metrics map[string]uint64 `ch:"metrics" json:"metrics"`
+
+	MutatedValue uint64 `ch:"mutated_value" json:"mutatedValue"`
+	IsMutated    uint8  `ch:"is_mutated" json:"isMutated"` // whether the delay changes abruptly
+}
+
 func (af *availableFilters) extractSpanFilter(f *request.ComplexSpanTraceFilter) *whereSQL {
 	if !af.ValidCheckAndAdjust(f) {
 		return ALWAYS_FALSE
@@ -282,65 +341,6 @@ func (af *availableFilters) extractSpanFilter(f *request.ComplexSpanTraceFilter)
 	}
 
 	return ALWAYS_FALSE
-}
-
-type FaultLogQuery struct {
-	StartTime      int64
-	EndTime        int64
-	Service        string
-	Instance       string
-	NodeName       string
-	ContainerId    string
-	Pid            uint32
-	EndPoint       string
-	TraceId        string
-	PageNum        int
-	PageSize       int
-	Type           int      // 0 - slow & error, 1 - error
-	MultiServices  []string // Match multiple service
-	MultiNamespace []string // Match multiple namespace
-}
-
-type QueryCount struct {
-	Total uint64 `ch:"total"`
-}
-
-type FaultLogResult struct {
-	ServiceName string `ch:"service_name" json:"serviceName"`
-	InstanceId  string `ch:"instance_id" json:"instanceId"`
-	TraceId     string `ch:"trace_id" json:"traceId"`
-	StartTime   uint64 `ch:"start_time_us" json:"startTime"`
-	EndTime     uint64 `ch:"end_time_us" json:"endTime"`
-	EndPoint    string `ch:"endpoint" json:"endpoint"`
-	PodName     string `ch:"pod_name" json:"podName"`
-	ContainerId string `ch:"container_id" json:"containerId"`
-	NodeName    string `ch:"node_name" json:"nodeName"`
-	Pid         uint32 `ch:"pid" json:"pid"`
-}
-
-type QueryTraceResult struct {
-	Timestamp         int64   `ch:"ts" json:"timestamp"`
-	Duration          uint64  `ch:"duration_us" json:"duration"`
-	ServiceName       string  `ch:"service_name" json:"serviceName"`
-	Pid               uint32  `ch:"pid" json:"pid"`
-	Tid               uint32  `ch:"tid" json:"tid"`
-	TraceId           string  `ch:"trace_id" json:"traceId"`
-	EndPoint          string  `ch:"endpoint" json:"endpoint"`
-	InstanceId        string  `ch:"instance_id" json:"instanceId"`
-	SpanId            string  `ch:"span_id" json:"spanId"`
-	ApmType           string  `ch:"apm_type" json:"apmType"`
-	Reason            string  `ch:"reason" json:"reason"`
-	IsError           bool    `ch:"is_error" json:"isError"`
-	IsSlow            bool    `ch:"is_slow" json:"isSlow"`
-	ThresholdValue    float64 `ch:"threshold_value" json:"thresholdValue"`
-	ThresholdMultiple float64 `ch:"threshold_multiple" json:"thresholdMultiple"`
-
-	Labels  map[string]string `ch:"labels" json:"labels"`
-	Flags   map[string]bool   `ch:"flags"  json:"flags"`
-	Metrics map[string]uint64 `ch:"metrics" json:"metrics"`
-
-	MutatedValue uint64 `ch:"mutated_value" json:"mutatedValue"`
-	IsMutated    uint8  `ch:"is_mutated" json:"isMutated"` // whether the delay changes abruptly
 }
 
 type SpanTraceOptions struct {
