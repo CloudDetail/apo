@@ -259,7 +259,7 @@ func (af *availableFilters) extractSpanFilter(f *request.ComplexSpanTraceFilter)
 		for _, subFilter := range f.SpanTraceFilters {
 			whereSQLs = append(whereSQLs, af.extractSpanFilter(subFilter))
 		}
-		return MergeWheres(GetSep(f.MergeSep), whereSQLs...)
+		return mergeWheres(getMergeSep(f.MergeSep), whereSQLs...)
 	}
 
 	if f.SpanTraceFilter == nil {
@@ -315,29 +315,29 @@ func (af *availableFilters) extractSpanFilter(f *request.ComplexSpanTraceFilter)
 
 	switch f.Operation {
 	case request.OpEqual:
-		return Equals(key, param[0])
+		return equals(key, param[0])
 	case request.OpNotEqual:
-		return NotEquals(key, param[0])
+		return notEquals(key, param[0])
 	case request.OpIn:
-		return In(key, param)
+		return in(key, param)
 	case request.OpNotIn:
-		return NotIn(key, param)
+		return notIn(key, param)
 	case request.OpLike:
-		return Like(key, param[0])
+		return like(key, param[0])
 	case request.OpNotLike:
-		return NotLike(key, param[0])
+		return notLike(key, param[0])
 	case request.OpExists:
-		return Exists(key)
+		return exists(key)
 	case request.OpNotExists:
-		return NotExists(key)
+		return notExists(key)
 	case request.OpContains:
-		return Contains(key, param[0])
+		return contains(key, param[0])
 	case request.OpNotContains:
-		return NotContains(key, param[0])
+		return notContains(key, param[0])
 	case request.OpGreaterThan:
-		return GreaterThan(key, param[0])
+		return greaterThan(key, param[0])
 	case request.OpLessThan:
-		return LessThan(key, param[0])
+		return lessThan(key, param[0])
 	}
 
 	return ALWAYS_FALSE
