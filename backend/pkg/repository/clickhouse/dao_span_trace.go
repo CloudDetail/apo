@@ -255,7 +255,7 @@ func (af *availableFilters) extractSpanFilter(f *request.ComplexSpanTraceFilter)
 	}
 
 	if len(f.SpanTraceFilters) > 0 {
-		whereSQLs := make([]*whereSQL, len(f.SpanTraceFilters))
+		whereSQLs := make([]*whereSQL, 0, len(f.SpanTraceFilters))
 		for _, subFilter := range f.SpanTraceFilters {
 			whereSQLs = append(whereSQLs, af.extractSpanFilter(subFilter))
 		}
@@ -266,51 +266,11 @@ func (af *availableFilters) extractSpanFilter(f *request.ComplexSpanTraceFilter)
 		return ALWAYS_TRUE
 	}
 
-	var param []any
-	switch f.DataType {
-	case request.U32Column, request.U64Column:
-		for _, v := range f.Value {
-			i, err := strconv.ParseUint(v, 10, 64)
-			if err != nil {
-				return ALWAYS_FALSE
-			}
-			param = append(param, i)
-		}
-	case request.I64Column:
-		for _, v := range f.Value {
-			i, err := strconv.ParseInt(v, 10, 64)
-			if err != nil {
-				return ALWAYS_FALSE
-			}
-			param = append(param, i)
-		}
-	case request.StringColumn:
-		for _, v := range f.Value {
-			param = append(param, v)
-		}
-	case request.BoolColumn:
-		for _, v := range f.Value {
-			b, err := strconv.ParseBool(v)
-			if err != nil {
-				return ALWAYS_FALSE
-			}
-			param = append(param, b)
-		}
-	}
+	key := formatFieldName(f.SpanTraceFilter)
+	param, success := extractFilterParams(f.SpanTraceFilter)
 
-	key := f.Key
-	if f.ParentField == request.PF_Flags {
-		key = fmt.Sprintf("flags['%s']", key)
-	} else if f.ParentField == request.PF_Labels {
-		key = fmt.Sprintf("labels['%s']", key)
-	} else if len(f.ParentField) > 0 {
+	if !success {
 		return ALWAYS_FALSE
-	}
-
-	if len(param) == 0 {
-		if f.Operation != request.OpExists && f.Operation != request.OpNotExists {
-			return ALWAYS_FALSE
-		}
 	}
 
 	switch f.Operation {
@@ -341,6 +301,57 @@ func (af *availableFilters) extractSpanFilter(f *request.ComplexSpanTraceFilter)
 	}
 
 	return ALWAYS_FALSE
+}
+
+func formatFieldName(f *request.SpanTraceFilter) string {
+	if f.ParentField == request.PF_Flags {
+		return fmt.Sprintf("flags['%s']", f.Key)
+	} else if f.ParentField == request.PF_Labels {
+		return fmt.Sprintf("labels['%s']", f.Key)
+	}
+	return f.Key
+}
+
+func extractFilterParams(f *request.SpanTraceFilter) ([]any, bool) {
+	var param []any
+
+	if len(f.Value) == 0 &&
+		f.Operation != request.OpExists &&
+		f.Operation != request.OpNotExists {
+		return nil, false
+	}
+
+	switch f.DataType {
+	case request.U32Column, request.U64Column:
+		for _, v := range f.Value {
+			if i, err := strconv.ParseUint(v, 10, 64); err == nil {
+				param = append(param, i)
+			} else {
+				return nil, false
+			}
+		}
+	case request.I64Column:
+		for _, v := range f.Value {
+			if i, err := strconv.ParseInt(v, 10, 64); err == nil {
+				param = append(param, i)
+			} else {
+				return nil, false
+			}
+		}
+	case request.StringColumn:
+		for _, v := range f.Value {
+			param = append(param, v)
+		}
+	case request.BoolColumn:
+		for _, v := range f.Value {
+			if b, err := strconv.ParseBool(v); err == nil {
+				param = append(param, b)
+			} else {
+				return nil, false
+			}
+		}
+	}
+	return param, true
 }
 
 type SpanTraceOptions struct {
@@ -497,12 +508,7 @@ func (af *availableFilters) ValidCheckAndAdjust(f *request.ComplexSpanTraceFilte
 		return true
 	}
 
-	var field string
-	if len(f.ParentField) > 0 {
-		field = fmt.Sprintf("%s['%s']", f.ParentField, f.Key)
-	} else {
-		field = f.Key
-	}
+	field := formatFieldName(f.SpanTraceFilter)
 	if !af.CheckField(field) {
 		return false
 	}
