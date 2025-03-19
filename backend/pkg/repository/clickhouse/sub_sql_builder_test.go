@@ -1,3 +1,5 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
 package clickhouse
 
 import (
@@ -42,29 +44,19 @@ func TestWhereSQL(t *testing.T) {
 	assert.Equal(t, want, subSQL.Wheres)
 
 	valueWant := []any{
-		"value1",
-		"value2",
-		"value3",
+		"value1", "value2", "value3",
 		clickhouse.ArraySet{"value4_1", "value4_2"},
 		"value5",
 		clickhouse.GroupSet{
-			Value: []any{
-				[]clickhouse.GroupSet{
-					{
-						Value: []any{"v6_1_1", "v6_1_2"},
-					},
-					{
-						Value: []any{"v6_2_1", "v6_2_2"},
-					},
-				},
-			},
+			Value: []any{[]clickhouse.GroupSet{
+				{Value: []any{"v6_1_1", "v6_1_2"}},
+				{Value: []any{"v6_2_1", "v6_2_2"}},
+			}},
 		},
-		"value7",
-		"value8",
+		"value7", "value8",
 		clickhouse.ArraySet{"v9_1", "v9_2"},
 		"value10",
 	}
 
 	assert.Equal(t, valueWant, subSQL.Values)
-
 }
