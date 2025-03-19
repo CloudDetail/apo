@@ -114,15 +114,10 @@ type Repo interface {
 type chRepo struct {
 	conn     driver.Conn
 	database string
-	AvailableFilters
+	availableFilters
 	db *sql.DB
 
 	integration.Input
-}
-
-type AvailableFilters struct {
-	Filters          []request.SpanTraceFilter
-	FilterUpdateTime time.Time
 }
 
 func New(logger *zap.Logger, address []string, database string, username string, password string) (Repo, error) {
@@ -172,8 +167,7 @@ func New(logger *zap.Logger, address []string, database string, username string,
 	now := time.Now()
 	filters, err := repo.UpdateFilterKey(now.Add(-48*time.Hour), now)
 	if err == nil {
-		repo.Filters = filters
-		repo.FilterUpdateTime = now
+		repo.SetAvailableFilters(filters, now)
 	}
 
 	repo.Input, err = integration.NewInputRepo(repo.conn, repo.database)
