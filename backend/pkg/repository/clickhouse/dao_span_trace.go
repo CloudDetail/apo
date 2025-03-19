@@ -411,8 +411,13 @@ func (ch *chRepo) GetFieldValues(searchText string, filter *request.SpanTraceFil
 		field = filter.Key
 	}
 
+	if !ch.CheckField(field) {
+		return nil, fmt.Errorf("field '%s' is invalid", field)
+	}
+
 	builder := NewQueryBuilder().
 		Between("timestamp", startTime.Unix(), endTime.Unix())
+
 	if filter.DataType == request.StringColumn && len(searchText) > 0 {
 		builder.Like(field, searchText+"%")
 	}
@@ -421,7 +426,6 @@ func (ch *chRepo) GetFieldValues(searchText string, filter *request.SpanTraceFil
 		Limit(100).
 		OrderBy("label_value", false)
 
-	// TODO check whether the key is legal
 	sql := fmt.Sprintf(SQL_GET_FILTER_VALUES, field, builder.String(), byLimits.String())
 
 	rows, err := ch.GetConn().Query(context.Background(), sql, builder.values...)
