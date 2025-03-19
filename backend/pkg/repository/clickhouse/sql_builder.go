@@ -136,13 +136,13 @@ func (builder *QueryBuilder) NotExists(key string) *QueryBuilder {
 }
 
 func (builder *QueryBuilder) Contains(key string, value any) *QueryBuilder {
-	builder.where = append(builder.where, fmt.Sprintf("%s contains ?", key))
+	builder.where = append(builder.where, fmt.Sprintf("POSITION(%s, ?) > 0", key))
 	builder.values = append(builder.values, value)
 	return builder
 }
 
 func (builder *QueryBuilder) NotContains(key string, value any) *QueryBuilder {
-	builder.where = append(builder.where, fmt.Sprintf("%s not contains ?", key))
+	builder.where = append(builder.where, fmt.Sprintf("POSITION(%s, ?) = 0", key))
 	builder.values = append(builder.values, value)
 	return builder
 }
@@ -178,13 +178,6 @@ var (
 	}
 )
 
-func NotLike(key string, value string) *whereSQL {
-	return &whereSQL{
-		Wheres: fmt.Sprintf("%s NOT LIKE ?", key),
-		Values: []any{value},
-	}
-}
-
 func In(key string, values clickhouse.ArraySet) *whereSQL {
 	if len(key) <= 0 {
 		return ALWAYS_TRUE
@@ -195,6 +188,22 @@ func In(key string, values clickhouse.ArraySet) *whereSQL {
 	if len(values) > 0 {
 		return &whereSQL{
 			Wheres: fmt.Sprintf("%s IN ?", key),
+			Values: []any{values},
+		}
+	}
+	return ALWAYS_FALSE
+}
+
+func NotIn(key string, values clickhouse.ArraySet) *whereSQL {
+	if len(key) <= 0 {
+		return ALWAYS_TRUE
+	}
+	if len(values) <= 0 {
+		return ALWAYS_FALSE
+	}
+	if len(values) > 0 {
+		return &whereSQL{
+			Wheres: fmt.Sprintf("%s NOT IN ?", key),
 			Values: []any{values},
 		}
 	}
@@ -230,12 +239,80 @@ func EqualsIfNotEmpty(key string, value string) *whereSQL {
 	return ALWAYS_TRUE
 }
 
-func Equals(key string, value string) *whereSQL {
+func Equals(key string, value any) *whereSQL {
+	return valueCmp(key, value, "=")
+}
+
+func NotEquals(key string, value any) *whereSQL {
+	return valueCmp(key, value, "!=")
+}
+
+func Like(key string, value any) *whereSQL {
+	return valueCmp(key, value, "LIKE")
+}
+
+func NotLike(key string, value any) *whereSQL {
+	return valueCmp(key, value, "NOT LIKE")
+}
+
+func Contains(key string, value any) *whereSQL {
 	if len(key) <= 0 {
 		return ALWAYS_TRUE
 	}
 	return &whereSQL{
-		Wheres: fmt.Sprintf("%s = ?", key),
+		Wheres: fmt.Sprintf("POSITION(%s, ?) > 0", key),
+		Values: []any{value},
+	}
+}
+
+func NotContains(key string, value any) *whereSQL {
+	if len(key) <= 0 {
+		return ALWAYS_TRUE
+	}
+	return &whereSQL{
+		Wheres: fmt.Sprintf("POSITION(%s, ?) = 0", key),
+		Values: []any{value},
+	}
+}
+
+func LessThan(key string, value any) *whereSQL {
+	if len(key) <= 0 {
+		return ALWAYS_TRUE
+	}
+	return &whereSQL{
+		Wheres: fmt.Sprintf("%s < ?", key),
+		Values: []any{value},
+	}
+}
+
+func GreaterThan(key string, value any) *whereSQL {
+	if len(key) <= 0 {
+		return ALWAYS_TRUE
+	}
+	return &whereSQL{
+		Wheres: fmt.Sprintf("%s > ?", key),
+		Values: []any{value},
+	}
+}
+
+func Exists(key string) *whereSQL {
+	return &whereSQL{
+		Wheres: fmt.Sprintf("%s EXISTS", key),
+	}
+}
+
+func NotExists(key string) *whereSQL {
+	return &whereSQL{
+		Wheres: fmt.Sprintf("%s NOT EXISTS", key),
+	}
+}
+
+func valueCmp(key string, value any, cmp string) *whereSQL {
+	if len(key) <= 0 {
+		return ALWAYS_TRUE
+	}
+	return &whereSQL{
+		Wheres: fmt.Sprintf("%s %s ?", key, cmp),
 		Values: []any{value},
 	}
 }
@@ -246,6 +323,13 @@ const (
 	AndSep MergeSep = " AND "
 	OrSep  MergeSep = " OR "
 )
+
+func GetSep(sep string) MergeSep {
+	if strings.Contains(strings.ToLower(sep), "or") {
+		return OrSep
+	}
+	return AndSep
+}
 
 // MergeWheres merge multiple conditions
 func MergeWheres(sep MergeSep, whereSQLs ...*whereSQL) *whereSQL {
