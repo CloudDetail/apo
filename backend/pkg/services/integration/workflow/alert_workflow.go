@@ -6,6 +6,7 @@ package workflow
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -55,8 +56,8 @@ func New(chRepo clickhouse.Repo, client *DifyClient, apiKey string, user string,
 }
 
 func (c *AlertWorkflow) Run(ctx context.Context) error {
-	if len(c.difyAPIKey) == 0 {
-		return nil
+	if !c.HasValidAPIKey() {
+		return errors.New("can not find a valid workflow APIKey")
 	}
 
 	if c.MaxConcurrency <= 0 {
@@ -78,7 +79,7 @@ func (c *AlertWorkflow) Run(ctx context.Context) error {
 }
 
 func (c *AlertWorkflow) AddAlertEvent(event *alert.AlertEvent) {
-	if len(c.difyAPIKey) == 0 {
+	if !c.HasValidAPIKey() {
 		return
 	}
 
@@ -95,10 +96,19 @@ func (c *AlertWorkflow) AddAlertEvent(event *alert.AlertEvent) {
 	c.PrepareToRun[event.AlertID] = *event
 }
 
+func (c *AlertWorkflow) HasValidAPIKey() bool {
+	if c == nil {
+		return false
+	}
+	// TODO check Destination
+	return len(c.difyAPIKey) > 0
+}
+
 func (c *AlertWorkflow) AddAlertEvents(events []alert.AlertEvent) {
-	if len(c.difyAPIKey) == 0 {
+	if !c.HasValidAPIKey() {
 		return
 	}
+
 	c.AddMutex.Lock()
 	defer c.AddMutex.Unlock()
 
