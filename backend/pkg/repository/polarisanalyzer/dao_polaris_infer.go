@@ -29,7 +29,7 @@ func (p *polRepo) QueryPolarisInfer(req *request.GetPolarisInferRequest) (*Polar
 	params.Add("service", req.Service)
 	params.Add("endpoint", req.Endpoint)
 
-	params.Add("language", req.Lanaguage)
+	params.Add("language", req.Language)
 	params.Add("timezone", req.Timezone)
 
 	fullUrl := fmt.Sprintf("%s%s?%s", polarisAnalyzerAddress, PolarisInferAPI, params.Encode())
