@@ -45,15 +45,6 @@ const DefaultLayout = () => {
           <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span>
         </div>
         <AppSidebar />
-        <div className="h-[60px] flex w-full overflow-hidden items-center">
-          <CImage
-            src={logo}
-            className="w-[42px] sidebar-brand-narrow flex-shrink-0 m-3"
-            alt="CoreuiVue"
-          />
-          <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span>
-        </div>
-        <AppSidebar />
       </Sider>
       <Layout
         style={{
