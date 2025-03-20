@@ -96,6 +96,21 @@ const BasicTable = React.memo((props) => {
     }),
     [page, data, pageIndex, pageSize, loading, rowKey, clickRow, emptyContent],
   )
+  const SortRender = (disableSortBy, isSorted, isSortedDesc) => {
+    return (
+      !disableSortBy && (
+        <Tooltip title={isSorted ? (isSortedDesc ? t('unsort') : t('desc')) : t('asc')}>
+          <div className="flex flex-col cursor-pointer ml-3">
+            <VscTriangleUp color={isSorted && !isSortedDesc ? '#5286e8' : 'grey'} />
+            <VscTriangleDown
+              style={{ marginTop: -6 }}
+              color={isSorted && isSortedDesc ? '#5286e8' : 'grey'}
+            />
+          </div>
+        </Tooltip>
+      )
+    )
+  }
   return (
     <div className={showBorder ? 'basic-table border-table' : 'basic-table'}>
       <table {...getTableProps()} ref={tableRef}>
@@ -133,7 +148,6 @@ const BasicTable = React.memo((props) => {
                       }
                       key={`header_th_${idx}`}
                       onClick={() => {
-                        console.log(column, isSorted, isSortedDesc)
                         if (!column.disableSortBy) {
                           if (!isSorted) {
                             if (isSortedDesc === undefined) {
@@ -155,6 +169,14 @@ const BasicTable = React.memo((props) => {
                       {column.hide &&
                         column.isNested &&
                         column.children.map((item, index) => {
+                          const sortedColumn = sortBy.length > 0 ? sortBy[0] : null
+                          const valueKey =
+                            typeof item.accessor === 'function' ? item.accessor(0) : item.accessor
+                          const isSorted = sortedColumn?.id === valueKey
+                          const isSortedDesc = isSorted ? sortedColumn?.desc : undefined
+
+                          const hasAsc = item.sortType?.includes('asc')
+                          const hasDesc = item.sortType?.includes('desc')
                           return (
                             <th
                               style={{
@@ -167,33 +189,67 @@ const BasicTable = React.memo((props) => {
 
                                 minWidth: item.minWidth,
                               }}
-                              className="hover:bg-[#303030]"
+                              className={
+                                'hover:bg-[#303030] ' +
+                                (item.sortType?.length > 0 && 'cursor-pointer  no-underline')
+                              }
                               key={index}
+                              onClick={() => {
+                                if (!item.sortType?.length) return
+                                if (!isSorted) {
+                                  if (isSortedDesc === undefined) {
+                                    // column.toggleSortBy(false, false)
+                                    setSortBy([{ id: valueKey, desc: hasDesc }])
+                                  }
+                                } else {
+                                  if (!isSortedDesc) {
+                                    // column.toggleSortBy(true, false)
+                                    setSortBy([{ id: valueKey, desc: true }])
+                                  } else {
+                                    // column.toggleSortBy()
+                                    setSortBy([])
+                                  }
+                                }
+                              }}
                             >
                               {item.title}
+                              {item.sortType?.length > 0 && (
+                                <Tooltip
+                                  title={t(
+                                    !isSorted
+                                      ? hasAsc
+                                        ? 'asc'
+                                        : 'desc'
+                                      : isSortedDesc
+                                        ? hasAsc
+                                          ? 'asc'
+                                          : 'unsort'
+                                        : hasDesc
+                                          ? 'desc'
+                                          : 'unsort',
+                                  )}
+                                >
+                                  <div className="flex flex-col cursor-pointer ml-3 items-center">
+                                    {item.sortType.includes('asc') && (
+                                      <VscTriangleUp
+                                        color={isSorted && !isSortedDesc ? '#5286e8' : 'grey'}
+                                      />
+                                    )}
+                                    {item.sortType.includes('desc') && (
+                                      <VscTriangleDown
+                                        style={{ marginTop: item.sortType?.length === 2 ? -6 : 0 }}
+                                        color={isSorted && isSortedDesc ? '#5286e8' : 'grey'}
+                                      />
+                                    )}
+                                  </div>
+                                </Tooltip>
+                              )}
                             </th>
                           )
                         })}
                       <div className="flex justify-between items-center">
                         {!column.isNested && column.render('title')}
-                        {!column.disableSortBy && (
-                          <Tooltip
-                            title={isSorted ? (isSortedDesc ? t('unsort') : t('desc')) : t('asc')}
-                          >
-                            <div
-                              className="flex flex-col cursor-pointer ml-3"
-                              //
-                            >
-                              <VscTriangleUp
-                                color={isSorted && !isSortedDesc ? '#5286e8' : 'grey'}
-                              />
-                              <VscTriangleDown
-                                style={{ marginTop: -6 }}
-                                color={isSorted && isSortedDesc ? '#5286e8' : 'grey'}
-                              />
-                            </div>
-                          </Tooltip>
-                        )}
+                        {SortRender(column.disableSortBy, isSorted, isSortedDesc)}
                       </div>
                     </th>
                   )
