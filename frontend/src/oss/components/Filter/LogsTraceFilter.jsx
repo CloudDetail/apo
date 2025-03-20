@@ -305,10 +305,13 @@ const LogsTraceFilter = React.memo(({ type }) => {
   }, [startTime, endTime, urlParam])
   // Initialize faultTypeList
   useEffect(() => {
-    setFaultTypeList(['slow', 'error'])
-    updateUrlParamsState({
-      faultTypeList: ['slow', 'error'],
-    })
+    const urlFaultType = searchParams.get('faultTypeList')
+    if (!urlFaultType) {
+      setFaultTypeList(['slow', 'error'])
+      updateUrlParamsState({
+        faultTypeList: ['slow', 'error'],
+      });
+    }
   }, [])
   const changeUrlParams = (props) => {
     // console.log(props, urlParam)
