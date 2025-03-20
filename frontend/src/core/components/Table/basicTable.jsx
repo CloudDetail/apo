@@ -96,21 +96,51 @@ const BasicTable = React.memo((props) => {
     }),
     [page, data, pageIndex, pageSize, loading, rowKey, clickRow, emptyContent],
   )
-  const SortRender = (disableSortBy, isSorted, isSortedDesc) => {
+  const SortRender = (isSorted, isSortedDesc, sortType = ['asc', 'desc']) => {
+    const hasAsc = sortType.includes('asc')
+    const hasDesc = sortType.includes('desc')
     return (
-      !disableSortBy && (
-        <Tooltip title={isSorted ? (isSortedDesc ? t('unsort') : t('desc')) : t('asc')}>
-          <div className="flex flex-col cursor-pointer ml-3">
-            <VscTriangleUp color={isSorted && !isSortedDesc ? '#5286e8' : 'grey'} />
-            <VscTriangleDown
-              style={{ marginTop: -6 }}
-              color={isSorted && isSortedDesc ? '#5286e8' : 'grey'}
-            />
-          </div>
-        </Tooltip>
-      )
+      <Tooltip
+        title={t(
+          !isSorted
+            ? hasAsc
+              ? 'asc'
+              : 'desc'
+            : isSortedDesc
+              ? 'unsort'
+              : hasDesc
+                ? 'desc'
+                : 'unsort',
+        )}
+      >
+        <div className="ml-3">
+          <SortIcon isSorted={isSorted} isSortedDesc={isSortedDesc} sortType={sortType || []} />
+        </div>
+      </Tooltip>
     )
   }
+  const getNextSortState = (isSorted, isSortedDesc, sortTypes) => {
+    if (!isSorted) {
+      return { desc: sortTypes.includes('desc') }
+    }
+    if (!isSortedDesc) {
+      return { desc: true }
+    }
+    return null
+  }
+  const SortIcon = ({ isSorted, isSortedDesc, sortType }) => (
+    <div className="flex flex-col cursor-pointer items-center">
+      {sortType.includes('asc') && (
+        <VscTriangleUp color={isSorted && !isSortedDesc ? '#5286e8' : 'grey'} />
+      )}
+      {sortType.includes('desc') && (
+        <VscTriangleDown
+          style={{ marginTop: sortType.length === 2 ? -6 : 0 }}
+          color={isSorted && isSortedDesc ? '#5286e8' : 'grey'}
+        />
+      )}
+    </div>
+  )
   return (
     <div className={showBorder ? 'basic-table border-table' : 'basic-table'}>
       <table {...getTableProps()} ref={tableRef}>
@@ -175,8 +205,6 @@ const BasicTable = React.memo((props) => {
                           const isSorted = sortedColumn?.id === valueKey
                           const isSortedDesc = isSorted ? sortedColumn?.desc : undefined
 
-                          const hasAsc = item.sortType?.includes('asc')
-                          const hasDesc = item.sortType?.includes('desc')
                           return (
                             <th
                               style={{
@@ -196,60 +224,27 @@ const BasicTable = React.memo((props) => {
                               key={index}
                               onClick={() => {
                                 if (!item.sortType?.length) return
-                                if (!isSorted) {
-                                  if (isSortedDesc === undefined) {
-                                    // column.toggleSortBy(false, false)
-                                    setSortBy([{ id: valueKey, desc: hasDesc }])
-                                  }
+                                const nextState = getNextSortState(
+                                  isSorted,
+                                  isSortedDesc,
+                                  item.sortType,
+                                )
+                                if (nextState) {
+                                  setSortBy([{ id: valueKey, ...nextState }])
                                 } else {
-                                  if (!isSortedDesc) {
-                                    // column.toggleSortBy(true, false)
-                                    setSortBy([{ id: valueKey, desc: true }])
-                                  } else {
-                                    // column.toggleSortBy()
-                                    setSortBy([])
-                                  }
+                                  setSortBy([])
                                 }
                               }}
                             >
                               {item.title}
-                              {item.sortType?.length > 0 && (
-                                <Tooltip
-                                  title={t(
-                                    !isSorted
-                                      ? hasAsc
-                                        ? 'asc'
-                                        : 'desc'
-                                      : isSortedDesc
-                                        ? hasAsc
-                                          ? 'asc'
-                                          : 'unsort'
-                                        : hasDesc
-                                          ? 'desc'
-                                          : 'unsort',
-                                  )}
-                                >
-                                  <div className="flex flex-col cursor-pointer ml-3 items-center">
-                                    {item.sortType.includes('asc') && (
-                                      <VscTriangleUp
-                                        color={isSorted && !isSortedDesc ? '#5286e8' : 'grey'}
-                                      />
-                                    )}
-                                    {item.sortType.includes('desc') && (
-                                      <VscTriangleDown
-                                        style={{ marginTop: item.sortType?.length === 2 ? -6 : 0 }}
-                                        color={isSorted && isSortedDesc ? '#5286e8' : 'grey'}
-                                      />
-                                    )}
-                                  </div>
-                                </Tooltip>
-                              )}
+                              {item.sortType?.length > 0 &&
+                                SortRender(isSorted, isSortedDesc, item.sortType)}
                             </th>
                           )
                         })}
                       <div className="flex justify-between items-center">
                         {!column.isNested && column.render('title')}
-                        {SortRender(column.disableSortBy, isSorted, isSortedDesc)}
+                        {!column.disableSortBy && SortRender(isSorted, isSortedDesc)}
                       </div>
                     </th>
                   )
