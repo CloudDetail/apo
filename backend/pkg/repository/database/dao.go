@@ -185,9 +185,6 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err = driver.InitSQL(daoRepo.db, &AlertMetricsData{}); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initApi(); err != nil {
-		return nil, err
-	}
 	if err = daoRepo.initRole(); err != nil {
 		return nil, err
 	}
@@ -207,9 +204,6 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		return nil, err
 	}
 	if err = daoRepo.initFeatureMenuItems(); err != nil {
-		return nil, err
-	}
-	if err = daoRepo.initFeatureAPI(); err != nil {
 		return nil, err
 	}
 	if err = daoRepo.initPermissions(); err != nil {
