@@ -138,7 +138,11 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	r.alertWorkflow = workflow.New(r.ch, difyClient, difyConfig.APIKeys.AlertCheck, difyConfig.User, r.logger)
 	r.alertWorkflow.EventAnalyzeFlowId = difyConfig.FlowIDs.AlertEventAnalyze
 	r.alertWorkflow.CheckId = difyConfig.FlowIDs.AlertCheck
-	r.alertWorkflow.Run(context.Background())
+	r.alertWorkflow.MaxConcurrency = difyConfig.MaxConcurrency
+	err = r.alertWorkflow.Run(context.Background())
+	if err != nil {
+		r.logger.Error("alertCheck workflow is not running", zap.Error(err))
+	}
 
 	// Set API routing
 	setApiRouter(r)

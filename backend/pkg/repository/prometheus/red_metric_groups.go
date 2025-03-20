@@ -60,6 +60,15 @@ func AdjustREDValue(metricGroup MGroupName, metricName MName, value float64) flo
 	return value
 }
 
+func (m *REDMetrics) SetValues(metricGroup MGroupName, metricName MName, values []Points) {
+	// Not support yet
+	// Do nothing
+}
+
+func (m *REDMetric) IsEmpty() bool {
+	return m.Latency == nil && m.TPM == nil && (m.ErrorRate == nil || (*m.ErrorRate) == 0)
+}
+
 func (m *REDMetrics) SetValue(metricGroup MGroupName, metricName MName, value float64) {
 	adjustedValue := AdjustREDValue(metricGroup, metricName, value)
 

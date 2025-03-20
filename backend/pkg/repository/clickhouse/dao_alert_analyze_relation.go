@@ -107,7 +107,7 @@ func (ch *chRepo) SearchEntryEndpointsByAlertService(alertServices []AlertServic
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", startTime, endTime).
 		Equals("miss_top", false).
-		And(MergeWheres(OrSep, InGroup(endpoints), InGroup(services)))
+		And(mergeWheres(OrSep, inGroup(endpoints), inGroup(services)))
 
 	parentTopologys := []EntryRelationship{}
 	sql := fmt.Sprintf(SQL_GET_ENTRY_RELATIONSHIP,

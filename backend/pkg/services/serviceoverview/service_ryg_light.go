@@ -282,6 +282,10 @@ func (s *RYGLightStatus) InitEmptyGroup(key prom.ConvertFromLabels) prom.MetricG
 	return &RYGLightStatus{}
 }
 
+func (s *RYGLightStatus) SetValues(roupName prom.MGroupName, metricName prom.MName, points []prom.Points) {
+	// Do Nothing
+}
+
 func (s *RYGLightStatus) SetValue(groupName prom.MGroupName, metricName prom.MName, value float64) {
 	if groupName == prom.AVG {
 		switch metricName {

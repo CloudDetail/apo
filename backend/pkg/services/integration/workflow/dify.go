@@ -30,14 +30,14 @@ func NewDifyClient(client *http.Client, url string) *DifyClient {
 	}
 }
 
-func (c *DifyClient) alertCheck(req *DifyRequest, authorization string, user string) (*AlertCheckRespose, error) {
+func (c *DifyClient) alertCheck(req *DifyRequest, authorization string, user string) (*AlertCheckResponse, error) {
 	req.ResponseMode = "blocking"
 	resp, err := c.WorkflowsRun(req, authorization, user)
 	if err != nil {
 		return nil, err
 	}
 	if resp, ok := resp.(*CompletionResponse); ok {
-		return &AlertCheckRespose{resp}, err
+		return &AlertCheckResponse{resp}, err
 	}
 	return nil, fmt.Errorf("alertCheck must be run in blocking mode")
 }

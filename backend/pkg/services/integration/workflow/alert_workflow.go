@@ -6,6 +6,7 @@ package workflow
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -37,7 +38,8 @@ type AlertWorkflow struct {
 	EventAnalyzeFlowId string
 	CheckId            string
 
-	logger *zap.Logger
+	MaxConcurrency int
+	logger         *zap.Logger
 }
 
 func New(chRepo clickhouse.Repo, client *DifyClient, apiKey string, user string, logger *zap.Logger) *AlertWorkflow {
@@ -54,12 +56,19 @@ func New(chRepo clickhouse.Repo, client *DifyClient, apiKey string, user string,
 }
 
 func (c *AlertWorkflow) Run(ctx context.Context) error {
+	if !c.HasValidAPIKey() {
+		return errors.New("can not find a valid workflow APIKey")
+	}
+
+	if c.MaxConcurrency <= 0 {
+		c.MaxConcurrency = 2
+	}
+
 	ctab := cron.New()
 	_, err := ctab.AddFunc("*/5 * * * *", func() {
 		err := c.Submit()
 		if err != nil {
-			// TODO deal with err
-			panic(err)
+			c.logger.Error("failed to store workflow record", zap.Error(err))
 		}
 	})
 	if err != nil {
@@ -70,6 +79,10 @@ func (c *AlertWorkflow) Run(ctx context.Context) error {
 }
 
 func (c *AlertWorkflow) AddAlertEvent(event *alert.AlertEvent) {
+	if !c.HasValidAPIKey() {
+		return
+	}
+
 	if event.Status == alert.StatusResolved {
 		return
 	}
@@ -83,7 +96,19 @@ func (c *AlertWorkflow) AddAlertEvent(event *alert.AlertEvent) {
 	c.PrepareToRun[event.AlertID] = *event
 }
 
+func (c *AlertWorkflow) HasValidAPIKey() bool {
+	if c == nil {
+		return false
+	}
+	// TODO check Destination
+	return len(c.difyAPIKey) > 0
+}
+
 func (c *AlertWorkflow) AddAlertEvents(events []alert.AlertEvent) {
+	if !c.HasValidAPIKey() {
+		return
+	}
+
 	c.AddMutex.Lock()
 	defer c.AddMutex.Unlock()
 
@@ -99,18 +124,13 @@ func (c *AlertWorkflow) AddAlertEvents(events []alert.AlertEvent) {
 	}
 }
 
-type eventCheckResult struct {
-	event  *alert.AlertEvent
-	record model.WorkflowRecord
-}
-
 func (c *AlertWorkflow) worker(
 	events <-chan alert.AlertEvent,
 	results chan<- model.WorkflowRecord,
 	startTime int64, endTime int64,
 	wg *sync.WaitGroup) {
 	defer wg.Done()
-	for event := range events { // 从通道获取任务
+	for event := range events {
 		inputs, _ := json.Marshal(map[string]interface{}{
 			"alert":     event.Name,
 			"params":    event.TagsInStr(),
@@ -121,9 +141,7 @@ func (c *AlertWorkflow) worker(
 		resp, err := c.alertCheck(&DifyRequest{Inputs: inputs}, c.authorization, c.user)
 
 		if err != nil {
-			// TODO deal with error
 			c.logger.Error("failed to to alert check", zap.Error(err))
-			// panic(err)
 			continue
 		}
 
@@ -141,6 +159,7 @@ func (c *AlertWorkflow) worker(
 	}
 }
 
+// Submit cached alert events to Dify to execute the workflow
 func (c *AlertWorkflow) Submit() error {
 	c.AddMutex.Lock()
 	submitEvents := c.PrepareToRun
@@ -163,11 +182,10 @@ func (c *AlertWorkflow) Submit() error {
 	var wg sync.WaitGroup
 	var results = make(chan model.WorkflowRecord)
 
-	// 每次提交最多跑4min, 其他数据暂不计算
 	endTime := time.Now()
 	startTime := endTime.Add(-15 * time.Minute).UnixMicro()
 	var events = make(chan alert.AlertEvent)
-	for i := 0; i < 10; i++ {
+	for i := 0; i < c.MaxConcurrency; i++ {
 		wg.Add(1)
 		go c.worker(events, results, startTime, endTime.UnixMicro(), &wg)
 	}
@@ -205,20 +223,20 @@ func (c *AlertWorkflow) Submit() error {
 	return c.chRepo.AddWorkflowRecords(context.Background(), records)
 }
 
-type AlertCheckRespose struct {
+type AlertCheckResponse struct {
 	resp *CompletionResponse
 }
 
-func (r *AlertCheckRespose) WorkflowRunID() string {
+func (r *AlertCheckResponse) WorkflowRunID() string {
 	return r.resp.WorkflowRunID
 }
 
 // UnixMicro Timestamp
-func (r *AlertCheckRespose) CreatedAt() int64 {
+func (r *AlertCheckResponse) CreatedAt() int64 {
 	return r.resp.Data.CreatedAt * 1e6
 }
 
-func (r *AlertCheckRespose) IsValidOrDefault(defaultV string) string {
+func (r *AlertCheckResponse) IsValidOrDefault(defaultV string) string {
 	var res map[string]string
 	err := json.Unmarshal(r.resp.Data.Outputs, &res)
 	if err != nil {

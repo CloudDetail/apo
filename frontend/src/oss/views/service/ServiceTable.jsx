@@ -18,10 +18,10 @@ import { DelaySourceTimeUnit } from 'src/constants'
 import { convertTime } from 'src/core/utils/time'
 import EndpointTableModal from './component/EndpointTableModal'
 import LoadingSpinner from 'src/core/components/Spinner'
-import { Card, Tooltip } from 'antd'
+import { Card, Select, Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
-import TableFilter  from 'src/core/components/Filter/TableFilter'
+import TableFilter from 'src/core/components/Filter/TableFilter'
 import { useTranslation } from 'react-i18next'
 import React from 'react'
 import { ChartsProvider, useChartsContext } from 'src/core/contexts/ChartsContext'
@@ -45,7 +45,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
   const [pageSize, setPageSize] = useState(10)
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const getChartsData = useChartsContext((ctx) => ctx.getChartsData)
-
+  const [sortBy, setSortBy] = useState()
   const column = [
     {
       title: t('index.serviceTableColumns.serviceName'),
@@ -132,6 +132,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
           title: t('index.serviceTableColumns.serviceDetails.latency'),
           minWidth: 140,
           accessor: (idx) => `latency`,
+          sortType: ['desc'],
 
           Cell: (props) => {
             const { value, cell, trs } = props
@@ -151,7 +152,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
         {
           title: t('index.serviceTableColumns.serviceDetails.errorRate'),
           accessor: (idx) => `errorRate`,
-
+          sortType: ['desc'],
           minWidth: 140,
           Cell: (props) => {
             const { value, cell, trs } = props
@@ -172,7 +173,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
           title: t('index.serviceTableColumns.serviceDetails.tps'),
           accessor: (idx) => `tps`,
           minWidth: 140,
-
+          sortType: ['desc'],
           Cell: (props) => {
             const { value, cell, trs } = props
             const { serviceName } = cell.row.original
@@ -210,6 +211,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
         {
           title: t('index.serviceTableColumns.serviceInfo.logs'),
           accessor: `logs`,
+          sortType: ['desc'],
           minWidth: 160,
           Cell: (props) => {
             // eslint-disable-next-line react/prop-types
@@ -287,6 +289,8 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
         startTime: startTime,
         endTime: endTime,
       })
+      const sortRule = getSortRule(sortBy?.length > 0 ? sortBy[0].id : null)
+
       getServicesEndpointsApi({
         startTime: startTime,
         endTime: endTime,
@@ -294,7 +298,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
         serviceName: serviceName ?? undefined,
         endpointName: endpoint ?? undefined,
         namespace: namespace ?? undefined,
-        sortRule: 1,
+        sortRule: sortRule,
         groupId: groupId,
       })
         .then((res) => {
@@ -319,7 +323,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
       getTableData()
     },
     300, // 延迟时间 300ms
-    [startTime, endTime, serviceName, endpoint, namespace, groupId],
+    [startTime, endTime, serviceName, endpoint, namespace, groupId, sortBy],
   )
   const getServicesAlert = (serviceNames, returnData) => {
     return getServicesAlertApi({
@@ -362,8 +366,23 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
       setPageSize(props.pageSize), setPageIndex(props.pageIndex)
     }
   }
+  const getSortRule = (sortById) => {
+    switch (sortById) {
+      case 'latency':
+        return 3
+      case 'errorRate':
+        return 4
+      case 'tps':
+        return 5
+      case 'logs':
+        return 6
+      default:
+        return 1
+    }
+  }
   const tableProps = useMemo(() => {
     const paginatedData = data.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)
+
     return {
       columns: column,
       data: paginatedData,
@@ -410,6 +429,8 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
         </div>
       ),
       showLoading: false,
+      sortBy: sortBy,
+      setSortBy: setSortBy,
     }
   }, [data, pageIndex, pageSize])
   return (

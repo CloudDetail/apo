@@ -122,6 +122,6 @@ func New(
 		logger:                 logger,
 		alertService:           alerts.New(chRepo, promRepo, k8sRepo, dbRepo, alertworkFlow),
 		inputService:           alertinput.New(promRepo, dbRepo, chRepo, alertworkFlow),
-		serviceoverviewService: so.New(chRepo, dbRepo, promRepo),
+		serviceoverviewService: so.New(logger, chRepo, dbRepo, promRepo),
 	}
 }

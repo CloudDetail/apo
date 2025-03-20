@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   getServiceInstancOptionsListApi,
@@ -21,7 +21,7 @@ import TraceErrorType from 'src/oss/views/trace/component/TraceErrorType'
 import { useTranslation } from 'react-i18next'
 
 const LogsTraceFilter = React.memo(({ type }) => {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'oss/trace'])
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [serviceList, setServiceList] = useState([])
@@ -355,7 +355,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     <>
       <div className="flex flex-row my-2 justify-between">
         <div className="flex flex-row  flex-wrap">
-          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px] w-[250px]">
+          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
             <span className="text-nowrap">{t('logsTraceFilter.nameSpaceLabel')}：</span>
             <CustomSelect
               options={namespaceList}
@@ -364,7 +364,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
               isClearable
             />
           </div>
-          <div className="flex flex-row items-center mr-5 mt-2 w-[250px]">
+          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
             <span className="text-nowrap">{t('logsTraceFilter.applicationLabel')}：</span>
             <div className="flex-1 w-0">
               <CustomSelect
@@ -375,7 +375,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
               />
             </div>
           </div>
-          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px] w-[250px]">
+          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
             <span className="text-nowrap">{t('logsTraceFilter.instanceLabel')}：</span>
             <div className="flex-1">
               <CustomSelect
@@ -386,6 +386,16 @@ const LogsTraceFilter = React.memo(({ type }) => {
               />
             </div>
           </div>
+          {type === 'logs' && (
+            <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
+              <span className="text-nowrap ">{t('oss/trace:trace.traceId')}：</span>
+              <Input
+                placeholder={t('logsTraceFilter.search')}
+                value={inputTraceId}
+                onChange={onChangeTraceId}
+              />
+            </div>
+          )}
         </div>
         <div className="flex-grow-0 flex-shrink-0 flex">
           <DateTimeRangePickerCom type={type} />

@@ -17,7 +17,7 @@ import LogsTraceFilter from 'src/oss/components/Filter/LogsTraceFilter'
 import { DefaultTraceFilters } from 'src/constants'
 import TraceErrorType from './component/TraceErrorType'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
-import { Card, Tooltip } from 'antd'
+import { Card, Tooltip, Button } from 'antd'
 import { useTranslation } from 'react-i18next'
 
 function FaultSiteTrace() {
@@ -243,6 +243,27 @@ function FaultSiteTrace() {
           <a className=" cursor-pointer text-blue-500" onClick={() => openJeagerModal(value)}>
             {value}
           </a>
+        )
+      },
+    },
+    {
+      title: t('trace.operation'),
+      accessor: 'action',
+      // minWidth: 140,
+      Cell: (props) => {
+        const { row } = props;
+        const traceId = row.original.traceId;
+        return (
+          <div className="flex flex-col">
+            <Button
+              onClick={() => window.open(`#/logs/fault-site?traceId=${traceId}`)}
+              className="my-1"
+              variant="outlined"
+              color="primary"
+            >
+              {t('trace.viewLogs')}
+            </Button>
+          </div>
         )
       },
     },
