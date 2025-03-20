@@ -291,13 +291,23 @@ function FaultSiteTrace() {
         })
       }
     } else {
-      faultTypeList?.forEach((type) => {
+      if (faultTypeList && faultTypeList.length === 1) {  // faultTypeList = ['slow'] OR ['error']
         filters.push({
-          ...DefaultTraceFilters[type],
+          ...DefaultTraceFilters[faultTypeList[0]],
           operation: 'IN',
           value: ['true'],
         })
-      })
+      } else if (faultTypeList) {  // faultTypeList = ['slow', 'error']
+        let subFilters = faultTypeList?.map((type) => ({
+          ...DefaultTraceFilters[type],
+          operation: 'IN',
+          value: ['true'],
+        }));
+        filters.push({
+          mergeSep: 'OR',
+          subFilters: subFilters
+        })
+      }
     }
     // if (isSlow) {
     //   filters.push({
