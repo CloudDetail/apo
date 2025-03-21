@@ -206,6 +206,10 @@ func (s *DescendantStatus) AppendGroupIfNotExist(_ prom.MGroupName, metricName p
 	return metricName == prom.LATENCY
 }
 
+func (s *DescendantStatus) SetValues(metricGroup prom.MGroupName, metricName prom.MName, points []prom.Points) {
+	// Do nothing
+}
+
 func (s *DescendantStatus) SetValue(metricGroup prom.MGroupName, metricName prom.MName, value float64) {
 	switch metricGroup {
 	case prom.AVG:

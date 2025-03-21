@@ -234,7 +234,7 @@ func (ch *chRepo) ReadAlertEvent(ctx context.Context, id uuid.UUID) (*model.Aler
 
 func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances) *whereSQL {
 	var whereInstance []*whereSQL
-	whereGroup := EqualsIfNotEmpty("group", filter.Group)
+	whereGroup := equalsIfNotEmpty("group", filter.Group)
 
 	if len(filter.Group) == 0 || filter.Group == "app" {
 		serviceCondition := []*whereSQL{}
@@ -244,17 +244,17 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 				arr = append(arr, s)
 			}
 			serviceCondition = append(serviceCondition,
-				MergeWheres(
+				mergeWheres(
 					OrSep,
-					MergeWheres(
+					mergeWheres(
 						AndSep,
-						In("tags['svc_name']", arr),
-						EqualsIfNotEmpty("tags['content_key']", filter.Endpoint),
+						in("tags['svc_name']", arr),
+						equalsIfNotEmpty("tags['content_key']", filter.Endpoint),
 					), // Compatible with older versions
-					MergeWheres(
+					mergeWheres(
 						AndSep,
-						In("tags['serviceName']", arr),
-						EqualsIfNotEmpty("tags['endpoint']", filter.Endpoint),
+						in("tags['serviceName']", arr),
+						equalsIfNotEmpty("tags['endpoint']", filter.Endpoint),
 					),
 				),
 			)
@@ -280,10 +280,10 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 				}
 			}
 
-			whereInstance = append(whereInstance, MergeWheres(
+			whereInstance = append(whereInstance, mergeWheres(
 				AndSep,
 				whereGroup,
-				InGroup(k8sPods),
+				inGroup(k8sPods),
 			))
 		}
 	}
@@ -319,12 +319,12 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 				}
 			}
 
-			k8sOrVm := MergeWheres(OrSep,
-				InGroup(k8sPods), // Compatible with older versions
-				InGroup(vmPods),  // Compatible with older versions
-				InGroup(vmPodsNew),
+			k8sOrVm := mergeWheres(OrSep,
+				inGroup(k8sPods), // Compatible with older versions
+				inGroup(vmPods),  // Compatible with older versions
+				inGroup(vmPodsNew),
 			)
-			whereInstance = append(whereInstance, MergeWheres(
+			whereInstance = append(whereInstance, mergeWheres(
 				AndSep,
 				whereGroup,
 				k8sOrVm,
@@ -333,7 +333,7 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 	}
 
 	if len(filter.Group) == 0 || filter.Group == "infra" {
-		infraGroup := Equals("group", "infra")
+		infraGroup := equals("group", "infra")
 		var tmpSet = map[string]struct{}{}
 		var nodes clickhouse.ArraySet
 
@@ -349,12 +349,12 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 				}
 			}
 
-			whereInstance = append(whereInstance, MergeWheres(
+			whereInstance = append(whereInstance, mergeWheres(
 				AndSep,
 				infraGroup,
-				MergeWheres(OrSep,
-					In("tags['instance_name']", nodes),
-					In("tags['node']", nodes),
+				mergeWheres(OrSep,
+					in("tags['instance_name']", nodes),
+					in("tags['node']", nodes),
 				),
 			))
 		}
@@ -377,15 +377,15 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 					})
 				}
 			}
-			whereInstance = append(whereInstance, MergeWheres(
+			whereInstance = append(whereInstance, mergeWheres(
 				OrSep,
-				In("tags['dbURL']", dbUrls),
-				InGroup(ipPorts),
+				in("tags['dbURL']", dbUrls),
+				inGroup(ipPorts),
 			))
 		}
 	}
 
-	return MergeWheres(OrSep, whereInstance...)
+	return mergeWheres(OrSep, whereInstance...)
 }
 
 type AlertEventSample struct {

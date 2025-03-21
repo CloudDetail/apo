@@ -139,6 +139,10 @@ func (s *SQLMetricsWithChart) SetValue(metricGroup prom.MGroupName, metricName p
 	s.REDMetrics.SetValue(metricGroup, metricName, value)
 }
 
+func (s *SQLMetricsWithChart) SetValues(metricGroup prom.MGroupName, metricName prom.MName, points []prom.Points) {
+	s.REDMetrics.SetValues(metricGroup, metricName, points)
+}
+
 // EndpointsREDMetric query Endpoint-level RED metric results (including average value, DoD/WoW Growth Rate)
 func (s *service) SQLREDMetric(startTime, endTime time.Time, service string) *SQLMetricMap {
 	var res = &SQLMetricMap{
