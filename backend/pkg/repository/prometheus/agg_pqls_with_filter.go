@@ -141,6 +141,22 @@ func PQLAvgLogErrorCountWithFilters(vector string, granularity string, filters [
 	return "((" + errorLevelCount + ") + (" + exceptionCount + ")) or (" + errorLevelCount + ") or (" + exceptionCount + ")"
 }
 
+func PQLAvgLogErrorCountCombineEndpointsInfoWithFilters(vector string, granularity string, filters []string) string {
+	errorLevelCount := `sum by (pod,node,pid) (increase(originx_logparser_level_count_total{level=~"error|critical"}[` + vector + `]))`
+	exceptionCount := `sum by (pod,node,pid) (increase(originx_logparser_exception_count_total{}[` + vector + `]))`
+
+	// ( errorLevelCount + exceptionCount ) or errorLevelCount or exceptionCount
+	logErrorCount := "(((" + errorLevelCount + ") + (" + exceptionCount + ")) or (" + errorLevelCount + ") or (" + exceptionCount + "))"
+
+	filtersStr := strings.Join(filters, ",")
+
+	k8sSVCGroup := `group by(svc_name,content_key,pod) (last_over_time(kindling_span_trace_duration_nanoseconds_count{pod!="",` + filtersStr + `})[` + vector + `])`
+	vmSVCGroup := `group by(svc_name,content_key,node,pid) (last_over_time(kindling_span_trace_duration_nanoseconds_count{pid!="",` + filtersStr + `})[` + vector + `])`
+
+	return `sum by (` + granularity + `) ((` + logErrorCount + ` * on (pod) group_left (svc_name,content_key) ` + k8sSVCGroup + `) or ` +
+		`(` + logErrorCount + ` * on (node,pid) group_left (svc_name,content_key) ` + vmSVCGroup + `))`
+}
+
 // PQLNormalLogCountWithFilters check for normal logs
 func PQLNormalLogCountWithFilters(vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")
