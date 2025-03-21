@@ -131,6 +131,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     })
   }
   const onChangeTypeList = (value) => {
+    console.log("onChange: ", value)
     setFaultTypeList(value)
     updateUrlParamsState({
       faultTypeList: value,
@@ -140,6 +141,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     getServiceListApi({ startTime, endTime, namespace: selectNamespace || undefined })
       .then((res) => {
         setServiceList(res ?? [])
+        console.log("serviceList: ", serviceList)
 
         let storeService = selectServiceName
         let storeInstance = selectInstance
@@ -163,6 +165,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
             endpoint: inputEndpoint,
             minDuration,
             maxDuration,
+            faultTypeList
           })
         } else if (selectServiceName === storeService) {
           getInstanceListData()
@@ -263,6 +266,8 @@ const LogsTraceFilter = React.memo(({ type }) => {
     setMaxDuration(maxDuration)
     setSelectNamespace(namespace)
     setFaultTypeList(faultTypeListValue)
+    console.log("urlService:::", urlService)
+    console.log("faultTypeListValue::: ", faultTypeListValue)
     setUrlParam({
       ...urlParam,
       service: urlService,
@@ -304,15 +309,15 @@ const LogsTraceFilter = React.memo(({ type }) => {
     }
   }, [startTime, endTime, urlParam])
   // Initialize faultTypeList
-  useEffect(() => {
-    const urlFaultType = searchParams.get('faultTypeList')
-    if (!urlFaultType) {
-      setFaultTypeList(['slow', 'error'])
-      updateUrlParamsState({
-        faultTypeList: ['slow', 'error'],
-      });
-    }
-  }, [])
+  // useEffect(() => {
+  //   const urlFaultType = searchParams.get('faultTypeList')
+  //   if (!urlFaultType) {
+  //     setFaultTypeList(['slow', 'error'])
+  //     updateUrlParamsState({
+  //       faultTypeList: ['slow', 'error'],
+  //     });
+  //   }
+  // }, [])
   const changeUrlParams = (props) => {
     // console.log(props, urlParam)
     // const { service: storeService, instance: storeInstance } = props
