@@ -253,10 +253,11 @@ function FaultSiteTrace() {
       Cell: (props) => {
         const { row } = props;
         const traceId = row.original.traceId;
+        const serviceName = row.original.serviceName;
         return (
           <div className="flex flex-col">
             <Button
-              onClick={() => window.open(`#/logs/fault-site?traceId=${traceId}`)}
+              onClick={() => window.open(`#/logs/fault-site?traceId=${traceId}&service=${serviceName}`)}
               className="my-1"
               variant="outlined"
               color="primary"
