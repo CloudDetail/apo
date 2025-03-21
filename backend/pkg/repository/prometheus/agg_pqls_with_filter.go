@@ -141,6 +141,15 @@ func PQLAvgLogErrorCountWithFilters(vector string, granularity string, filters [
 	return "((" + errorLevelCount + ") + (" + exceptionCount + ")) or (" + errorLevelCount + ") or (" + exceptionCount + ")"
 }
 
+/*
+Using `* on` to join logparser_level_count/logparser_exception_count and span_trace_duration_count
+
+It is mainly composed of the following exprs:
+
+	( logparser_level_count + span_trace_duration_count ) left_join on(pod) span_trace_duration_count
+	or
+	( logparser_level_count + span_trace_duration_count ) left_join on(node,pid) span_trace_duration_count
+*/
 func PQLAvgLogErrorCountCombineEndpointsInfoWithFilters(vector string, granularity string, filters []string) string {
 	errorLevelCount := `sum by (pod,node,pid) (increase(originx_logparser_level_count_total{level=~"error|critical"}[` + vector + `]))`
 	exceptionCount := `sum by (pod,node,pid) (increase(originx_logparser_exception_count_total{}[` + vector + `]))`
