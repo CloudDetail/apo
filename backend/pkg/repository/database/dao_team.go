@@ -19,7 +19,7 @@ type Team struct {
 	Description string `gorm:"column:description;type:varchar(50)" json:"description"`
 
 	UserList    []User    `gorm:"many2many:user_team;foreignKey:TeamID;joinForeignKey:TeamID;References:UserID;joinReferences:UserID" json:"userList,omitempty"`
-	FeatureList []Feature `gorm:"many2many:auth_permission;foreignKey:TeamID;joinForeignKey:SubjectID;References:FeatureID;joinReferences:PermissionID" json:"featureList,omitempty"`
+	FeatureList []Feature `gorm:"-" json:"featureList,omitempty"`
 }
 
 type UserTeam struct {
@@ -79,40 +79,73 @@ func (repo *daoRepo) UpdateTeam(ctx context.Context, team Team) error {
 }
 
 func (repo *daoRepo) GetTeamList(req *request.GetTeamRequest) ([]Team, int64, error) {
-	var teams []Team
-	var count int64
-	query := repo.db.Model(&Team{}).Preload("FeatureList")
+    var teams []Team
+    var count int64
+
+    query := repo.db.Model(&Team{}).Preload("UserList", func(db *gorm.DB) *gorm.DB {
+        return db.Select("user_id, username")
+    })
+
+    if len(req.TeamName) > 0 {
+        query = query.Where("team_name LIKE ?", "%"+req.TeamName+"%")
+    }
+
+    if len(req.FeatureList) > 0 {
+        subQuery := repo.db.Model(&AuthPermission{}).
+            Select("subject_id").
+            Joins("JOIN feature f ON f.feature_id = auth_permission.permission_id").
+            Where("f.feature_id IN ? AND auth_permission.subject_type = ?", req.FeatureList, model.PERMISSION_SUB_TYP_TEAM)
+        query = query.Where("team_id IN (?)", subQuery)
+    }
+
+    err := query.Count(&count).Error
+    if err != nil {
+        return nil, 0, err
+    }
+    if req.PageParam != nil {
+        query = query.Limit(req.PageSize).Offset((req.CurrentPage - 1) * req.PageSize)
+    }
+
+    err = query.Find(&teams).Error
+    if err != nil {
+        return nil, 0, err
+    }
+
+    teamIDs := make([]int64, len(teams))
+    for i, team := range teams {
+        teamIDs[i] = team.TeamID
+    }
+
+    type TempFeature struct {
+		TeamID      int64  `gorm:"column:team_id"`
+		FeatureID   int    `gorm:"column:feature_id"`
+		FeatureName string `gorm:"column:feature_name"`
+	}
 	
-	query.Preload("UserList", func(db *gorm.DB) *gorm.DB {
-		return db.Select("user_id, username")
-	})
-	if len(req.TeamName) > 0 {
-		query = query.Where("team_name LIKE ?", "%"+req.TeamName+"%")
-	}
+	var tempFeatures []TempFeature
+    err = repo.db.Model(&AuthPermission{}).
+        Select("auth_permission.subject_id as team_id, f.feature_id, f.feature_name").
+        Joins("JOIN feature f ON f.feature_id = auth_permission.permission_id").
+        Where("auth_permission.subject_type = ? AND auth_permission.subject_id IN ?", model.PERMISSION_SUB_TYP_TEAM, teamIDs).
+        Scan(&tempFeatures).Error
 
-	if len(req.FeatureList) > 0 {
-		subQuery := repo.db.Model(&AuthPermission{}).
-			Select("subject_id").
-			Joins("JOIN feature f ON f.feature_id = auth_permission.permission_id").
-			Where("f.feature_id IN ? AND auth_permission.subject_type = ?", req.FeatureList, model.PERMISSION_SUB_TYP_TEAM)
-		query = query.Where("team_id IN (?)", subQuery)
-	}
-
-	err := query.Count(&count).Error
 	if err != nil {
 		return nil, 0, err
 	}
 
-	if req.PageParam != nil {
-		query = query.Limit(req.PageSize).Offset((req.CurrentPage - 1) * req.PageSize)
+	featureMap := make(map[int64][]Feature)
+	for _, tf := range tempFeatures {
+		featureMap[tf.TeamID] = append(featureMap[tf.TeamID], Feature{
+			FeatureID:   tf.FeatureID,
+			FeatureName: tf.FeatureName,
+		})
+	}
+	
+	for i := range teams {
+		teams[i].FeatureList = featureMap[teams[i].TeamID]
 	}
 
-	err = query.Find(&teams).Error
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return teams, count, nil
+    return teams, count, nil
 }
 
 func (repo *daoRepo) DeleteTeam(ctx context.Context, teamID int64) error {
