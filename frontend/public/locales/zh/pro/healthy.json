@@ -11,5 +11,6 @@
   "severeAbnormal": "严重异常",
   "moderateAbnormal": "中度异常",
   "mildAbnormal": "轻微异常",
-  "healthy": "健康"
+  "healthy": "健康",
+  "scoreDetail": "得分详情"
 }

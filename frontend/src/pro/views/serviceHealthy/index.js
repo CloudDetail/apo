@@ -50,25 +50,33 @@ export default function ServiceHealthyPage() {
     {
       title: t('serviceHealthScore'),
       accessor: 'percentScore',
-      customWidth: 120,
+      customWidth: 160,
     },
     {
-      title: t('checkItem'),
-      accessor: 'key',
-      customWidth: 120,
-    },
-    {
-      title: t('healthStatus'),
-      accessor: `score`,
-      customWidth: 120,
-      Cell: ({ value }) => {
-        return <BorderTag {...scoreMapList[value]} />
-      },
-    },
-    {
-      title: t('statusDetails'),
-      accessor: `detail`,
-      justifyContent: 'left',
+      title: '得分详情',
+      accessor: 'scoreDetail',
+      hide: true,
+      isNested: true,
+      children: [
+        {
+          title: t('checkItem'),
+          accessor: 'key',
+          customWidth: 120,
+        },
+        {
+          title: t('healthStatus'),
+          accessor: `score`,
+          customWidth: 200,
+          Cell: ({ value }) => {
+            return <BorderTag {...scoreMapList[value]} />
+          },
+        },
+        {
+          title: t('statusDetails'),
+          accessor: `detail`,
+          justifyContent: 'left',
+        },
+      ],
     },
   ]
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)

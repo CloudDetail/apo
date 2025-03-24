@@ -11,5 +11,6 @@
   "severeAbnormal": "Severe Abnormal",
   "moderateAbnormal": "Moderate Abnormal",
   "mildAbnormal": "Mild Abnormal",
-  "healthy": "Healthy"
+  "healthy": "No Abnormality Detected",
+  "scoreDetail": "Score Detail"
 }
