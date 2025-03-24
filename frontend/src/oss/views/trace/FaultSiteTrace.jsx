@@ -7,7 +7,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react'
 import { traceTableMock } from './mock'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { getTimestampRange, timeRangeList } from 'src/core/store/reducers/timeRangeReducer'
-import { convertTime, ISOToTimestamp } from 'src/core/utils/time'
+import { convertTime, ISOToTimestamp, TimestampToISO } from 'src/core/utils/time'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { getTracePageListApi } from 'core/api/trace.js'
 import EndpointTableModal from './component/JaegerIframeModal'
@@ -253,10 +253,17 @@ function FaultSiteTrace() {
       Cell: (props) => {
         const { row } = props;
         const traceId = row.original.traceId;
+        const serviceName = row.original.serviceName;
+        const instanceId = row.original.instanceId;
+
+        const formattedStartTime = TimestampToISO(startTime);
+        const formattedEndTime = TimestampToISO(endTime);
+
+        const targetUrl = `#/logs/fault-site?logs-from=${encodeURIComponent(formattedStartTime)}&logs-to=${encodeURIComponent(formattedEndTime)}&service=${encodeURIComponent(serviceName)}&instance=${encodeURIComponent(instanceId)}&traceId=${encodeURIComponent(traceId)}`
         return (
           <div className="flex flex-col">
             <Button
-              onClick={() => window.open(`#/logs/fault-site?traceId=${traceId}`)}
+              onClick={() => window.open(targetUrl)}
               className="my-1"
               variant="outlined"
               color="primary"
