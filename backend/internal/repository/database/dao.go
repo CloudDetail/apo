@@ -40,6 +40,8 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		dbConfig = driver.NewMySqlDialector()
 	case config.DB_SQLLITE:
 		dbConfig = driver.NewSqlliteDialector()
+	case config.DB_POSTGRES:
+		dbConfig = driver.NewPostgresDialector()
 	default:
 		return nil, errors.New("database connection not supported")
 	}

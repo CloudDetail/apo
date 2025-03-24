@@ -67,5 +67,6 @@
   "addSuccess": "Added Successfully",
   "operation": "Operation",
   "service": "Application",
-  "endpoint": "Endpoint"
+  "endpoint": "Endpoint",
+  "error": "An unexpected error occurred on this page."
 }

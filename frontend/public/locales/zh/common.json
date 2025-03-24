@@ -68,5 +68,6 @@
   "addSuccess": "新增成功",
   "operation": "操作",
   "service": "应用名",
-  "endpoint": "端点"
+  "endpoint": "端点",
+  "error": "页面遇到未知错误"
 }
