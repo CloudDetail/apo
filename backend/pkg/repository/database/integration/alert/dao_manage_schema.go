@@ -222,7 +222,7 @@ func (repo *subRepo) InsertSchemaData(schema string, columns []string, fullRows 
 	for _, row := range fullRows {
 		var escapeRows []string
 		for _, v := range row {
-			escapeRows = append(escapeRows, `"`+EscapeString(v)+`"`)
+			escapeRows = append(escapeRows, `'`+EscapeString(v)+`'`)
 		}
 
 		valueRows = append(valueRows, fmt.Sprintf("(%s)", strings.Join(escapeRows, ",")))

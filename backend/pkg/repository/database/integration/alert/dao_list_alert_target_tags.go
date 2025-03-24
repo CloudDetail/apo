@@ -20,20 +20,20 @@ func (repo *subRepo) ListAlertTargetTags(lang string) ([]alert.TargetTag, error)
 
 func getTargetTag(lang string) string {
 	if strings.HasPrefix(lang, "en") { // en_US,en
-		return "tag_name_en AS `tag_name`"
+		return `tag_name_en AS "tag_name"`
 	}
 	// if strings.HasPrefix(lang, "zh") { // zh_CN,zh
 	// 	return "name"
 	// }
-	return "`tag_name`"
+	return `"tag_name"`
 }
 
 func getTargetTagDescribe(lang string) string {
 	if strings.HasPrefix(lang, "en") { // en_US,en
-		return "describe_en AS `describe`"
+		return `describe_en AS "describe"`
 	}
 	// if strings.HasPrefix(lang, "zh") { // zh_CN,zh
 	// 	return "name"
 	// }
-	return "`describe`"
+	return `"describe"`
 }
