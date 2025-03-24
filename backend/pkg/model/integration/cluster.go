@@ -15,9 +15,9 @@ const (
 )
 
 type Cluster struct {
-	ID           string       `form:"id" json:"id" gorm:"primaryKey;type:varchar(100);column:id"`
-	Name         string       `form:"name" json:"name" gorm:"unique;type:varchar(100);column:name"`
-	ClusterType  string       `form:"clusterType" json:"clusterType" gorm:"type:varchar(100);column:cluster_type"`
+	ID           string       `form:"id" json:"id" gorm:"primaryKey;type:varchar(255);column:id"`
+	Name         string       `form:"name" json:"name" gorm:"unique;type:varchar(255);column:name"`
+	ClusterType  string       `form:"clusterType" json:"clusterType" gorm:"type:varchar(255);column:cluster_type"`
 	APOCollector APOCollector `json:"apoCollector,omitempty" gorm:"type:json;column:apo_collector"`
 }
 
