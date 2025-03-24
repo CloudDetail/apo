@@ -6,6 +6,7 @@ package serviceoverview
 import (
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"go.uber.org/zap"
@@ -27,7 +28,7 @@ type Service interface {
 	// TODO move to prometheus package and avoid to repeated again
 	GetServicesEndpointDataWithChart(startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule request.SortType) (res []response.ServiceEndPointsRes, err error)
 
-	GetServicesRYGLightStatus(startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error)
+	GetServicesRYGLightStatus(ctx core.Context, startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error)
 	GetMonitorStatus(startTime time.Time, endTime time.Time) (response.GetMonitorStatusResponse, error)
 
 	GetAlertRelatedEntryData(startTime, endTime time.Time, namespaces []string, entry []response.AlertRelatedEntry) (res []response.AlertRelatedEntry, err error)

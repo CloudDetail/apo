@@ -60,7 +60,7 @@ func (h *handler) GetRYGLight() core.HandlerFunc {
 			Namespace:            req.Namespace,
 		}
 
-		resp, err := h.serviceoverview.GetServicesRYGLightStatus(startTime, endTime, filter)
+		resp, err := h.serviceoverview.GetServicesRYGLightStatus(c, startTime, endTime, filter)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
