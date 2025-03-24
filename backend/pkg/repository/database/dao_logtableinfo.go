@@ -36,11 +36,11 @@ func (repo *daoRepo) OperateLogTableInfo(model *LogTableInfo, op Operator) error
 	case INSERT:
 		err = repo.db.Create(model).Error
 	case QUERY:
-		err = repo.db.Where("`database` = ? AND `tablename` = ?", model.DataBase, model.Table).First(model).Error
+		err = repo.db.Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).First(model).Error
 	case UPDATE:
-		err = repo.db.Model(&LogTableInfo{}).Where("`database` = ? AND `tablename` = ?", model.DataBase, model.Table).Update("fields", model.Fields).Error
+		err = repo.db.Model(&LogTableInfo{}).Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).Update("fields", model.Fields).Error
 	case DELETE:
-		return repo.db.Where("`database` = ? AND `tablename` = ?", model.DataBase, model.Table).Delete(&LogTableInfo{}).Error
+		return repo.db.Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).Delete(&LogTableInfo{}).Error
 	}
 	return err
 }
@@ -52,7 +52,7 @@ func (repo *daoRepo) GetAllLogTable() ([]LogTableInfo, error) {
 }
 
 func (repo *daoRepo) UpdateLogParseRule(model *LogTableInfo) error {
-	return repo.db.Model(&LogTableInfo{}).Where("`database` = ? AND `tablename` = ?", model.DataBase, model.Table).Updates(map[string]interface{}{
+	return repo.db.Model(&LogTableInfo{}).Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).Updates(map[string]interface{}{
 		"parseinfo":  model.ParseInfo,
 		"parserule":  model.ParseRule,
 		"routerule":  model.RouteRule,

@@ -8,13 +8,13 @@ type AlertEnrichRule struct {
 
 	SourceID  string `json:"sourceId" gorm:"type:varchar(100);column:source_id"`
 	RType     string `json:"rType" gorm:"type:varchar(100);column:r_type"`
-	RuleOrder int    `json:"-" gorm:"type:int(10);column:rule_order"`
+	RuleOrder int    `json:"-" gorm:"type:int;column:rule_order"`
 
 	FromField string `json:"fromField" gorm:"type:varchar(100);column:from_field"`
 	FromRegex string `json:"fromRegex" gorm:"type:varchar(100);column:from_regex"`
 
 	// ---------------- tagMapping -----------------
-	TargetTagId int    `json:"targetTagId" gorm:"type:int(10);column:target_tag_id"`
+	TargetTagId int    `json:"targetTagId" gorm:"type:int;column:target_tag_id"`
 	CustomTag   string `json:"customTag" gorm:"type:varchar(100);column:custom_tag"`
 
 	// ---------------- schemaMapping --------------
@@ -36,7 +36,7 @@ type AlertEnrichSchemaTarget struct {
 	EnrichRuleID string `json:"-" gorm:"type:varchar(100);column:enrich_rule_id;index"`
 
 	SchemaField string `json:"schemaField" gorm:"type:varchar(100);column:schema_field"`
-	TargetTagID int    `json:"targetTagId" gorm:"type:int(10);column:target_tag_id"`
+	TargetTagID int    `json:"targetTagId" gorm:"type:int;column:target_tag_id"`
 	CustomTag   string `json:"customTag" gorm:"type:varchar(100);column:custom_tag"`
 }
 
