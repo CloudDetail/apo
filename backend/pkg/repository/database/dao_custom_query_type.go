@@ -8,10 +8,10 @@ import (
 
 type QueryServiceType struct {
 	ID uint `gorm:"primaryKey;autoIncrement"`
-	//UserName   string `gorm:"type:varchar(100);column:username"`
-	CustomName string `gorm:"type:varchar(100);column:customname"`
-	//GroupName string `gorm:"type:varchar(100);column:groupname"`
-	QueryType string `gorm:"type:varchar(100);column:querytype"`
+	//UserName   string `gorm:"type:varchar(255);column:username"`
+	CustomName string `gorm:"type:varchar(255);column:customname"`
+	//GroupName string `gorm:"type:varchar(255);column:groupname"`
+	QueryType string `gorm:"type:varchar(255);column:querytype"`
 }
 
 func (QueryServiceType) TableName() string {

@@ -50,7 +50,7 @@ func (repo *daoRepo) CreateTeam(ctx context.Context, team Team) error {
 
 func (repo *daoRepo) TeamExist(filter model.TeamFilter) (bool, error) {
 	var count int64
-	
+
 	query := repo.db.Model(&Team{})
 	if filter.ID != 0 {
 		query.Where("team_id = ?", filter.ID)
