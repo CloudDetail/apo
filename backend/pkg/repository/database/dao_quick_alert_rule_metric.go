@@ -11,11 +11,11 @@ import (
 type AlertMetricsData struct {
 	Id int `json:"-" gorm:"primaryKey;autoIncrement"`
 
-	Name   string `json:"name" gorm:"not null;type:varchar(100);column:name"`
-	NameEN string `json:"-" gorm:"type:varchar(100);column:name_en"`
+	Name   string `json:"name" gorm:"not null;type:varchar(255);column:name"`
+	NameEN string `json:"-" gorm:"type:varchar(255);column:name_en"`
 	PQL    string `json:"pql" gorm:"not null;type:varchar(5000);column:pql"`
-	Unit   string `json:"unit" gorm:"not null;type:varchar(100);column:unit"`
-	Group  string `json:"group" gorm:"not null;type:varchar(100);column:group"`
+	Unit   string `json:"unit" gorm:"not null;type:varchar(255);column:unit"`
+	Group  string `json:"group" gorm:"not null;type:varchar(255);column:group"`
 }
 
 func (a *AlertMetricsData) TableName() string {
