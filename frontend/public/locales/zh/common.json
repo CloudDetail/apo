@@ -66,5 +66,6 @@
   "save": "保存",
   "deleteSuccess": "删除成功",
   "addSuccess": "新增成功",
-  "operation": "操作"
+  "operation": "操作",
+  "error": "页面遇到未知错误"
 }
