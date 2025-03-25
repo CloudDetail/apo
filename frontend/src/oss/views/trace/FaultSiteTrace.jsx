@@ -291,59 +291,64 @@ function FaultSiteTrace() {
         value: [(maxDuration * 1000).toString()],
       })
     }
-    if (faultTypeList?.includes('normal')) {
-      if (faultTypeList.length === 2) {
-        let type = faultTypeList.includes('slow') ? 'error' : 'slow'
+
+    // process faultType filters
+    if (faultTypeList && faultTypeList.length !== 0) {
+      const addFilter = (type, operation, value) => {
         filters.push({
           ...DefaultTraceFilters[type],
-          operation: 'IN',
-          value: ['false'],
-        })
-      } else if (faultTypeList.length === 1) {
-        filters.push({
-          ...DefaultTraceFilters['error'],
-          operation: 'IN',
-          value: ['false'],
-        })
-        filters.push({
-          ...DefaultTraceFilters['slow'],
-          operation: 'IN',
-          value: ['false'],
-        })
-      }
-    } else {
-      if (faultTypeList && faultTypeList.length === 1) {  // faultTypeList = ['slow'] OR ['error']
-        filters.push({
-          ...DefaultTraceFilters[faultTypeList[0]],
-          operation: 'IN',
-          value: ['true'],
-        })
-      } else if (faultTypeList) {  // faultTypeList = ['slow', 'error']
-        let subFilters = faultTypeList?.map((type) => ({
+          operation,
+          value: [value],
+        });
+      };
+      const addSubFilters = (mergeSep, values, types = ['slow', 'error']) => {
+        const subFilters = types.map((type, index) => ({
           ...DefaultTraceFilters[type],
           operation: 'IN',
-          value: ['true'],
+          value: [values[index]],
         }));
-        filters.push({
-          mergeSep: 'OR',
-          subFilters: subFilters
-        })
+        filters.push({ mergeSep, subFilters });
+      };
+      const singleFaultActions = {
+        slowAndError: () => ['error', 'slow'].forEach((type) => addFilter(type, 'IN', 'true')),
+        normal: () => ['error', 'slow'].forEach((type) => addFilter(type, 'IN', 'false')),
+        slow: () => addSubFilters('AND', ['true', 'false'], ['slow', 'error']),
+        error: () => addSubFilters('AND', ['false', 'true'], ['slow', 'error']),
+      };
+      const doubleFaultActions = {
+        slow_slowAndError: () => addFilter('slow', 'IN', 'true'),
+        error_slowAndError: () => addFilter('error', 'IN', 'true'),
+        error_normal: () => addFilter('slow', 'IN', 'false'),
+        slow_normal: () => addFilter('error', 'IN', 'false'),
+        normal_slowAndError: () => {
+          addSubFilters('OR', ['false', 'true'], ['slow', 'error']);
+          addSubFilters('OR', ['true', 'false'], ['slow', 'error']);
+        },
+        error_slow: () => {
+          addSubFilters('OR', ['false', 'false'], ['slow', 'error']);
+          addSubFilters('OR', ['true', 'true'], ['slow', 'error']);
+        },
+      };
+      const tripleFaultActions = {
+        no_slowAndError: () => addSubFilters('OR', ['false', 'false'], ['slow', 'error']),
+        no_normal: () => addSubFilters('OR', ['true', 'true'], ['slow', 'error']),
+        no_slow: () => addSubFilters('OR', ['false', 'true'], ['slow', 'error']),
+        no_error: () => addSubFilters('OR', ['true', 'false'], ['slow', 'error']),
+      };
+      if (faultTypeList?.length === 1) {
+        const type = faultTypeList[0];
+        singleFaultActions[type]?.();
+      } else if (faultTypeList?.length === 2) {
+        const key = faultTypeList.sort().join('_');
+        doubleFaultActions[key]?.();
+      } else if (faultTypeList?.length === 3) {
+        const missingType = ['slowAndError', 'normal', 'slow', 'error'].find(
+          (type) => !faultTypeList.includes(type)
+        );
+        tripleFaultActions[`no_${missingType}`]?.();
       }
     }
-    // if (isSlow) {
-    //   filters.push({
-    //     ...DefaultTraceFilters.isSlow,
-    //     operation: 'IN',
-    //     value: [isSlow.toString()],
-    //   })
-    // }
-    // if (isError) {
-    //   filters.push({
-    //     ...DefaultTraceFilters.isError,
-    //     operation: 'IN',
-    //     value: [isError.toString()],
-    //   })
-    // }
+
     return filters
   }
   const getTraceData = () => {

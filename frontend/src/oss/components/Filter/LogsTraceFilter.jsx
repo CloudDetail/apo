@@ -62,6 +62,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     { label: <TraceErrorType type="slow" />, value: 'slow' },
     { label: <TraceErrorType type="error" />, value: 'error' },
     { label: <TraceErrorType type="normal" />, value: 'normal' },
+    { label: <TraceErrorType type="slowAndError" />, value: 'slowAndError' },
   ]
   //trace more filter
   const [visible, setVisible] = useState(true)
