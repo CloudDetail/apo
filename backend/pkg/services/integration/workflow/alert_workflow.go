@@ -5,248 +5,95 @@ package workflow
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"sync"
-	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
-	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 )
 
-const MAX_CACHE_SIZE = 100
-
-// 记录5min内产生的不同告警的AlertId
-// 5min结束时,查询截止时间点,每个AlertId最新的Event 跑flow
-// 此外还有一个立刻触发的API,主动清空现有的Map,运行workflow并等待结果
 type AlertWorkflow struct {
-	// AlertId -> AlertEvent
-	PrepareToRun map[string]alert.AlertEvent
-	AddMutex     sync.Mutex
-
 	chRepo clickhouse.Repo
-	*DifyClient
+	client *DifyClient
+	logger *zap.Logger
 
-	difyAPIKey    string
-	authorization string // f'Bearer {difyAPIKey}'
-	user          string
+	AnalyzeFlowId string
+	AlertCheck    *AlertCheckCfg
 
-	EventAnalyzeFlowId string
-	CheckId            string
-
-	MaxConcurrency int
-	logger         *zap.Logger
+	check alertCheck
 }
 
-func New(chRepo clickhouse.Repo, client *DifyClient, apiKey string, user string, logger *zap.Logger) *AlertWorkflow {
+type Option func(f *AlertWorkflow)
+
+func New(chRepo clickhouse.Repo, client *DifyClient, logger *zap.Logger, opts ...Option) *AlertWorkflow {
 	return &AlertWorkflow{
 		chRepo: chRepo,
-
-		PrepareToRun:  make(map[string]alert.AlertEvent),
-		DifyClient:    client,
-		difyAPIKey:    apiKey,
-		authorization: fmt.Sprintf("Bearer %s", apiKey),
-		user:          user,
-		logger:        logger,
+		client: client,
+		logger: logger,
 	}
 }
 
-func (c *AlertWorkflow) Run(ctx context.Context) error {
-	if !c.HasValidAPIKey() {
-		return errors.New("can not find a valid workflow APIKey")
-	}
-
-	if c.MaxConcurrency <= 0 {
-		c.MaxConcurrency = 2
-	}
-
-	ctab := cron.New()
-	_, err := ctab.AddFunc("*/5 * * * *", func() {
-		err := c.Submit()
-		if err != nil {
-			c.logger.Error("failed to store workflow record", zap.Error(err))
+func WithAlertCheckFlow(cfg *AlertCheckCfg) Option {
+	return func(f *AlertWorkflow) {
+		f.AlertCheck = cfg
+		if !cfg.HasValidAPIKey() {
+			f.logger.Info("can not find a valid workflow APIKey")
+			return
 		}
-	})
-	if err != nil {
-		return err
+
+		cfg.CacheMinutes = maxFactorOf60LessThanN(cfg.CacheMinutes)
+		cfg.FlowName = "AlertCheck"
+
+		check := newAlertCheck(cfg, f.logger)
+		records, err := check.Run(context.Background(), f.client)
+		if err != nil {
+			f.logger.Error("failed to init alertWorkflow", zap.Error(err))
+			return
+		}
+		f.logger.Info("start to process alert check",
+			zap.Int("cacheMinutes", cfg.CacheMinutes),
+			zap.Int("MaxConcurrency", cfg.MaxConcurrency),
+		)
+		go f.SaveRecords(context.Background(), records)
+		f.check = check
 	}
-	ctab.Start()
-	return nil
 }
 
-func (c *AlertWorkflow) AddAlertEvent(event *alert.AlertEvent) {
-	if !c.HasValidAPIKey() {
-		return
+func WithAlertAnalyzeFlow(analyzeFlowId string) Option {
+	return func(f *AlertWorkflow) {
+		f.AnalyzeFlowId = analyzeFlowId
 	}
-
-	if event.Status == alert.StatusResolved {
-		return
-	}
-
-	c.AddMutex.Lock()
-	defer c.AddMutex.Unlock()
-
-	if len(c.PrepareToRun) > MAX_CACHE_SIZE {
-		return
-	}
-	c.PrepareToRun[event.AlertID] = *event
 }
 
-func (c *AlertWorkflow) HasValidAPIKey() bool {
-	if c == nil {
-		return false
+func (c *AlertWorkflow) SaveRecords(ctx context.Context, records <-chan model.WorkflowRecord) {
+	for record := range records {
+		err := c.chRepo.AddWorkflowRecords(ctx, []model.WorkflowRecord{record})
+		if err != nil {
+			c.logger.Error("store workflow records failed", zap.Error(err))
+		}
 	}
-	// TODO check Destination
-	return len(c.difyAPIKey) > 0
 }
 
 func (c *AlertWorkflow) AddAlertEvents(events []alert.AlertEvent) {
-	if !c.HasValidAPIKey() {
-		return
+	if c.check == nil {
+		return // AlertCheck flow is not start correctly
+	}
+	c.check.AddEvents(events)
+}
+
+func maxFactorOf60LessThanN(n int) int {
+	if n <= 0 {
+		return 5
 	}
 
-	c.AddMutex.Lock()
-	defer c.AddMutex.Unlock()
-
-	if len(c.PrepareToRun) > MAX_CACHE_SIZE {
-		return
-	}
-
-	for _, event := range events {
-		if event.Status == alert.StatusResolved {
-			continue
+	factors := []int{5, 10, 15, 20, 30}
+	maxFactor := 0
+	for _, f := range factors {
+		if f <= n {
+			maxFactor = f
+		} else {
+			break
 		}
-		c.PrepareToRun[event.AlertID] = event
 	}
-}
-
-func (c *AlertWorkflow) worker(
-	events <-chan alert.AlertEvent,
-	results chan<- model.WorkflowRecord,
-	startTime int64, endTime int64,
-	wg *sync.WaitGroup) {
-	defer wg.Done()
-	for event := range events {
-		inputs, _ := json.Marshal(map[string]interface{}{
-			"alert":     event.Name,
-			"params":    event.TagsInStr(),
-			"startTime": startTime,
-			"endTime":   endTime,
-		})
-
-		resp, err := c.alertCheck(&DifyRequest{Inputs: inputs}, c.authorization, c.user)
-
-		if err != nil {
-			c.logger.Error("failed to to alert check", zap.Error(err))
-			continue
-		}
-
-		record := model.WorkflowRecord{
-			WorkflowRunID: resp.WorkflowRunID(),
-			// WorkflowID:    "",
-			WorkflowName: "告警事件分析",
-			Ref:          event.AlertID,
-			Input:        "",
-			Output:       resp.IsValidOrDefault("false"), // 'false' means valid alert
-			CreatedAt:    resp.CreatedAt(),
-		}
-
-		results <- record
-	}
-}
-
-// Submit cached alert events to Dify to execute the workflow
-func (c *AlertWorkflow) Submit() error {
-	c.AddMutex.Lock()
-	submitEvents := c.PrepareToRun
-	c.PrepareToRun = make(map[string]alert.AlertEvent)
-	c.AddMutex.Unlock()
-
-	submitEventList := make([]alert.AlertEvent, 0, len(submitEvents))
-	for _, event := range submitEvents {
-		submitEventList = append(submitEventList, event)
-	}
-
-	c.logger.Info("start to submit alert need to analyze", zap.Int("size", len(submitEventList)))
-
-	if len(submitEventList) == 0 {
-		return nil
-	}
-
-	var records = make([]model.WorkflowRecord, 0, len(submitEvents))
-
-	var wg sync.WaitGroup
-	var results = make(chan model.WorkflowRecord)
-
-	endTime := time.Now()
-	startTime := endTime.Add(-15 * time.Minute).UnixMicro()
-	var events = make(chan alert.AlertEvent)
-	for i := 0; i < c.MaxConcurrency; i++ {
-		wg.Add(1)
-		go c.worker(events, results, startTime, endTime.UnixMicro(), &wg)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Minute)
-	defer cancel()
-	go func() {
-		for i := 0; i < len(submitEventList); i++ {
-			select {
-			case <-ctx.Done():
-				close(events)
-				return
-			case events <- submitEventList[i]:
-			}
-		}
-		close(events)
-	}()
-
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
-
-	for result := range results {
-		records = append(records, result)
-	}
-
-	if len(records) == 0 {
-		return nil
-	}
-
-	executeTime := time.Now().Unix() - endTime.Unix()
-	c.logger.Info("alert check finished", zap.Int("record size", len(records)), zap.Int("cost(s)", int(executeTime)))
-
-	return c.chRepo.AddWorkflowRecords(context.Background(), records)
-}
-
-type AlertCheckResponse struct {
-	resp *CompletionResponse
-}
-
-func (r *AlertCheckResponse) WorkflowRunID() string {
-	return r.resp.WorkflowRunID
-}
-
-// UnixMicro Timestamp
-func (r *AlertCheckResponse) CreatedAt() int64 {
-	return r.resp.Data.CreatedAt * 1e6
-}
-
-func (r *AlertCheckResponse) IsValidOrDefault(defaultV string) string {
-	var res map[string]string
-	err := json.Unmarshal(r.resp.Data.Outputs, &res)
-	if err != nil {
-		return defaultV
-	}
-
-	text, find := res["text"]
-	if !find {
-		return defaultV
-	}
-
-	return text
+	return maxFactor
 }
