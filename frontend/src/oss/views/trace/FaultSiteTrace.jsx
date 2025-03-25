@@ -250,7 +250,7 @@ function FaultSiteTrace() {
       // minWidth: 140,
       Cell: (props) => {
         const { row } = props
-        const traceId = row.original.traceId
+        const {traceId} = row.original
         const serviceName = row.original.serviceName
         const instanceId = row.original.instanceId
 
