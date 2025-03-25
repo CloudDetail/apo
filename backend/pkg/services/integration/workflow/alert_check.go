@@ -44,7 +44,7 @@ func newAlertCheck(cfg *AlertCheckCfg, logger *zap.Logger) alertCheck {
 			logger:        logger,
 			eventInput:    newInputChan(),
 		}
-	case "latest":
+	case "last":
 		return &sampleWithLatestRecord{
 			logger:        logger,
 			AlertCheckCfg: cfg,
