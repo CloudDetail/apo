@@ -143,7 +143,7 @@ func WithREDChart(step time.Duration) FetchEMOption {
 
 func WithLogErrorCount() FetchEMOption {
 	return func(promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
-		result, err := promRepo.QueryAggMetricsWithFilter(PQLAvgLogErrorCountWithFilters,
+		result, err := promRepo.QueryAggMetricsWithFilter(PQLAvgLogErrorCountCombineEndpointsInfoWithFilters,
 			startTime.UnixMicro(), endTime.UnixMicro(), EndpointGranularity, filters...,
 		)
 		if err != nil {

@@ -51,7 +51,7 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 	}
 
 	avgLogErrorCountDoD, err := s.promRepo.QueryAggMetricsWithFilter(
-		prom.DayOnDay(prom.PQLAvgLogErrorCountWithFilters),
+		prom.DayOnDay(prom.PQLAvgLogErrorCountCombineEndpointsInfoWithFilters),
 		startMicroTS, endMicroTs,
 		prom.SVCGranularity, filters...)
 	if err == nil {

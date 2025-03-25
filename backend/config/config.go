@@ -42,6 +42,15 @@ type Config struct {
 		Sqllite struct {
 			Database string `mapstructure:"database"`
 		} `mapstructure:"sqllite"`
+		Postgres struct {
+			Host     string `mapstructure:"host"`
+			Port     int    `mapstructure:"port"`
+			Database string `mapstructure:"database"`
+			UserName string `mapstructure:"username"`
+			Password string `mapstructure:"password"`
+			SSLMode  string `mapstructure:"sslmode"`
+			Timezone string `mapstructure:"timezone"`
+		}
 	} `mapstructure:"database"`
 	ClickHouse struct {
 		Address  string `mapstructure:"address"`
