@@ -6,9 +6,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react'
 import { traceTableMock } from './mock'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { getTimestampRange, timeRangeList } from 'src/core/store/reducers/timeRangeReducer'
-import { convertTime, ISOToTimestamp, TimestampToISO } from 'src/core/utils/time'
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { convertTime, TimestampToISO } from 'src/core/utils/time'
 import { getTracePageListApi } from 'core/api/trace.js'
 import EndpointTableModal from './component/JaegerIframeModal'
 import { useSelector } from 'react-redux'
@@ -251,13 +249,13 @@ function FaultSiteTrace() {
       accessor: 'action',
       // minWidth: 140,
       Cell: (props) => {
-        const { row } = props;
-        const traceId = row.original.traceId;
-        const serviceName = row.original.serviceName;
-        const instanceId = row.original.instanceId;
+        const { row } = props
+        const traceId = row.original.traceId
+        const serviceName = row.original.serviceName
+        const instanceId = row.original.instanceId
 
-        const formattedStartTime = TimestampToISO(startTime);
-        const formattedEndTime = TimestampToISO(endTime);
+        const formattedStartTime = TimestampToISO(startTime)
+        const formattedEndTime = TimestampToISO(endTime)
 
         const targetUrl = `#/logs/fault-site?logs-from=${encodeURIComponent(formattedStartTime)}&logs-to=${encodeURIComponent(formattedEndTime)}&service=${encodeURIComponent(serviceName)}&instance=${encodeURIComponent(instanceId)}&traceId=${encodeURIComponent(traceId)}`
         return (
@@ -378,10 +376,9 @@ function FaultSiteTrace() {
         setLoading(false)
       })
   }
-  const handleTableChange = (props) => {
-    if (props.pageSize && props.pageIndex) {
-      setPageSize(props.pageSize)
-      setPageIndex(props.pageIndex)
+  const handleTableChange = (pageIndex, pageSize) => {
+    if (pageSize && pageIndex) {
+      setPageSize(pageSize), setPageIndex(pageIndex)
     }
   }
   // useEffect(() => {
@@ -399,7 +396,7 @@ function FaultSiteTrace() {
       pagination: {
         pageSize: pageSize,
         pageIndex: pageIndex,
-        pageCount: Math.ceil(total / pageSize),
+        total: total,
       },
     }
   }, [tracePageList, column])

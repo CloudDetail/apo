@@ -9,8 +9,7 @@ import './index.css'
 import _ from 'lodash'
 import TableBody from './tableBody'
 import LoadingSpinner from '../Spinner'
-import BasicPagination from './basicPagination'
-import { Tooltip } from 'antd'
+import { Pagination, Tooltip } from 'antd'
 import { VscTriangleUp, VscTriangleDown } from 'react-icons/vsc'
 import { useTranslation } from 'react-i18next'
 const BasicTable = React.memo((props) => {
@@ -29,6 +28,7 @@ const BasicTable = React.memo((props) => {
     showLoading = true,
     sortBy = [],
     setSortBy = null,
+    showSizeChanger = false,
   } = props
   const tableRef = useRef(null)
   const getSortByColumns = (columns) => {
@@ -69,20 +69,18 @@ const BasicTable = React.memo((props) => {
       columns,
       data,
       manualSortBy: true,
-      manualPagination: pagination?.pageCount !== undefined,
-      ...(pagination?.pageCount !== undefined ? { pageCount: pagination.pageCount } : {}),
+      manualPagination: typeof onChange === 'function',
+      ...(typeof onChange === 'function'
+        ? {
+            pageCount: pagination?.total
+              ? Math.ceil(pagination.total / pagination.pageSize)
+              : undefined,
+          }
+        : {}),
     },
     useSortBy,
     usePagination,
   )
-  useEffect(() => {
-    setPaginationLoading(true)
-    if (onChange) {
-      onChange({ pageSize: pageSize, pageIndex: pageIndex + 1 })
-    }
-    setPaginationLoading(false)
-  }, [pageSize, pageIndex, onChange])
-
   const tableBodyProps = useMemo(
     () => ({
       page: page,
@@ -94,7 +92,7 @@ const BasicTable = React.memo((props) => {
       clickRow,
       emptyContent,
     }),
-    [page, data, pageIndex, pageSize, loading, rowKey, clickRow, emptyContent],
+    [pagination, page, data, pageIndex, pageSize, loading, rowKey, clickRow, emptyContent],
   )
   const SortRender = (isSorted, isSortedDesc, sortType = ['asc', 'desc']) => {
     const hasAsc = sortType.includes('asc')
@@ -141,6 +139,11 @@ const BasicTable = React.memo((props) => {
       )}
     </div>
   )
+  useEffect(() => {
+    if (typeof onChange === 'function') {
+      gotoPage(pagination.pageIndex - 1)
+    }
+  }, [pagination])
   return (
     <div className={showBorder ? 'basic-table border-table' : 'basic-table'}>
       <table {...getTableProps()} ref={tableRef}>
@@ -255,16 +258,22 @@ const BasicTable = React.memo((props) => {
         {showLoading && <LoadingSpinner loading={loading || paginationLoading} />}
         <TableBody {...getTableBodyProps()} tableBodyProps={tableBodyProps}></TableBody>
       </table>
-      {pagination?.pageSize && (
-        <BasicPagination
+      {typeof pagination?.total === 'number' && pagination.total > 0 && (
+        <Pagination
+          defaultCurrent={1}
+          total={pagination?.total}
+          current={pageIndex + 1}
           pageSize={pageSize}
-          pageIndex={pageIndex}
-          page={page}
-          pageCount={pageCount}
-          previousPage={previousPage}
-          gotoPage={gotoPage}
-          nextPage={nextPage}
-          setPageSize={setPageSize}
+          align="end"
+          showSizeChanger={showSizeChanger}
+          onShowSizeChange={(current, pageSize) => setPageSize(pageSize)}
+          onChange={(page, pageSize) => {
+            gotoPage(page - 1)
+            setPageSize(pageSize)
+            onChange?.(page, pageSize)
+          }}
+          className="mt-1"
+          showTotal={(total) => <span className="text-xs text-gray-400">Total {total} items</span>}
         />
       )}
     </div>

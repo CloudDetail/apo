@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Card, Input, Popconfirm, Select, Space } from 'antd'
+import { Button, Card, Input, Popconfirm, Space } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { deleteAlertNotifyApi, getAlertmanagerListApi } from 'core/api/alerts'
@@ -11,7 +11,6 @@ import LoadingSpinner from 'src/core/components/Spinner'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { showToast } from 'src/core/utils/toast'
 import { MdAdd, MdOutlineEdit } from 'react-icons/md'
-import { useSelector } from 'react-redux'
 import ModifyAlertNotifyModal from './modal/ModifyAlertNotifyModal'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
@@ -164,9 +163,9 @@ export default function AlertsNotify() {
         setLoading(false)
       })
   }
-  const handleTableChange = (props) => {
-    if (props.pageSize && props.pageIndex) {
-      setPageSize(props.pageSize), setPageIndex(props.pageIndex)
+  const handleTableChange = (pageIndex, pageSize) => {
+    if (pageSize && pageIndex) {
+      setPageSize(pageSize), setPageIndex(pageIndex)
     }
   }
   const refreshTable = () => {
@@ -181,7 +180,7 @@ export default function AlertsNotify() {
       pagination: {
         pageSize: pageSize,
         pageIndex: pageIndex,
-        pageCount: Math.ceil(total / pageSize),
+        total: total,
       },
       loading: false,
     }

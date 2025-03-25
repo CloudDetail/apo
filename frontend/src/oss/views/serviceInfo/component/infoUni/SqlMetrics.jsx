@@ -4,7 +4,7 @@
  */
 
 import { CAccordionBody } from '@coreui/react'
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useMemo, useState } from 'react'
 import BasicTable from 'src/core/components/Table/basicTable'
 import TempCell from 'src/core/components/Table/TempCell'
 import { usePropsContext } from 'src/core/contexts/PropsContext'
@@ -24,7 +24,7 @@ export default function SqlMetrics() {
   const [loading, setLoading] = useState(false)
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [pageIndex, setPageIndex] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(5)
   const [total, setTotal] = useState(0)
   const column = [
     {
@@ -130,10 +130,9 @@ export default function SqlMetrics() {
     getData()
   }, [pageIndex, pageSize])
 
-  const handleTableChange = (props) => {
-    if (props.pageSize && props.pageIndex) {
-      setPageSize(props.pageSize)
-      setPageIndex(props.pageIndex)
+  const handleTableChange = (pageIndex, pageSize) => {
+    if (pageSize && pageIndex) {
+      setPageSize(pageSize), setPageIndex(pageIndex)
     }
   }
   const tableProps = useMemo(() => {
@@ -146,7 +145,7 @@ export default function SqlMetrics() {
       pagination: {
         pageSize: pageSize,
         pageIndex: pageIndex,
-        pageCount: Math.ceil(total / pageSize),
+        total: total,
       },
     }
   }, [serviceName, data, column])

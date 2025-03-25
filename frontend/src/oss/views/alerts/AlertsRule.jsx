@@ -3,11 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CCard, CToast, CToastBody } from '@coreui/react'
 import { Button, Card, Input, Popconfirm, Select, Space } from 'antd'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { RiDeleteBin5Line } from 'react-icons/ri'
-import { IoMdInformationCircleOutline } from 'react-icons/io'
 import { deleteRuleApi, getAlertRulesApi, getAlertRulesStatusApi } from 'core/api/alerts'
 import LoadingSpinner from 'src/core/components/Spinner'
 import BasicTable from 'src/core/components/Table/basicTable'
@@ -29,7 +27,7 @@ export default function AlertsRule() {
   const [modalInfo, setModalInfo] = useState(null)
   const [alertStateMap, setAlertStateMap] = useState(null)
   const { groupLabelSelectOptions } = useSelector((state) => state.groupLabelReducer)
-  const [searchGroup, setSearchGroup] = useState([])
+  const [searchGroup, setSearchGroup] = useState(null)
   const [searchAlert, setSearchAlert] = useState(null)
   const changeSearchGroup = (value) => {
     setSearchGroup(value)
@@ -160,16 +158,61 @@ export default function AlertsRule() {
     setModalInfo(ruleInfo)
     setModalVisible(true)
   }
-  useEffect(() => {
-    fetchData()
+  const loadRulesData = useCallback(async () => {
+    try {
+      setLoading(true)
+      const res = await getAlertRulesApi({
+        currentPage: pageIndex,
+        pageSize,
+        alert: searchAlert,
+        group: searchGroup?.label,
+      })
+      setData(res.alertRules)
+      setTotal(res.pagination.total)
+    } catch (err) {
+      console.error('error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [pageIndex, pageSize, searchAlert, searchGroup])
+
+  const loadAlertStates = useCallback(async () => {
+    try {
+      const res = await getAlertRulesStatusApi({ type: 'alert', exclude_alerts: true })
+      const map = {}
+
+      res.data.groups.forEach((group) => {
+        group.rules.forEach((rule) => {
+          map[`${group.name}-${rule.name}`] = rule.state
+        })
+      })
+
+      setAlertStateMap(map)
+    } catch (err) {
+      console.error('error:', err)
+    }
   }, [])
+
+  const init = useCallback(async () => {
+    setLoading(true)
+    await Promise.all([loadRulesData(), loadAlertStates()])
+    setLoading(false)
+  }, [loadRulesData, loadAlertStates])
+
+  useEffect(() => {
+    if (alertStateMap) {
+      loadRulesData()
+    } else {
+      init()
+    }
+  }, [pageIndex, pageSize, searchAlert, searchGroup])
   async function fetchData() {
     try {
       setLoading(true)
       const [res1, res2] = await Promise.all([
         getAlertRulesApi({
-          currentPage: 1,
-          pageSize: 10000,
+          currentPage: pageIndex,
+          pageSize: pageSize,
         }),
         getAlertRulesStatusApi({
           type: 'alert',
@@ -190,12 +233,12 @@ export default function AlertsRule() {
       setLoading(false)
     } catch (error) {
       setLoading(false)
-      console.error('请求出错:', error)
+      console.error('error:', error)
     }
   }
-  const handleTableChange = (props) => {
-    if (props.pageSize && props.pageIndex) {
-      setPageSize(props.pageSize), setPageIndex(props.pageIndex)
+  const handleTableChange = (pageIndex, pageSize) => {
+    if (pageSize && pageIndex) {
+      setPageSize(pageSize), setPageIndex(pageIndex)
     }
   }
   const refreshTable = () => {
@@ -203,25 +246,14 @@ export default function AlertsRule() {
     setPageIndex(1)
   }
   const tableProps = useMemo(() => {
-    let paginatedData = data
-
-    let groupNameList = (searchGroup ?? []).map((item) => item.label)
-    paginatedData = paginatedData.filter((item) => {
-      const matchSearchGroup = groupNameList.length > 0 ? groupNameList.includes(item.group) : true
-      const matchAlertName = searchAlert ? item.alert.includes(searchAlert) : true
-      return matchAlertName && matchSearchGroup
-    })
-    let total = paginatedData.length
-    // 分页处理
-    paginatedData = paginatedData.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)
     return {
       columns: column,
-      data: paginatedData,
+      data: data,
       onChange: handleTableChange,
       pagination: {
         pageSize: pageSize,
         pageIndex: pageIndex,
-        pageCount: Math.ceil(total / pageSize),
+        total: total,
       },
       loading: false,
     }
@@ -248,7 +280,7 @@ export default function AlertsRule() {
               options={groupLabelSelectOptions}
               labelInValue
               placeholder={t('rule.groupName')}
-              mode="multiple"
+              // mode="multiple"
               allowClear
               className=" min-w-[200px]"
               value={searchGroup}
