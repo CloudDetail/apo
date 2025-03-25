@@ -22,6 +22,9 @@ func (s *service) AlertEventList(req *request.AlertEventSearchRequest) (*respons
 
 	for i := 0; i < len(events); i++ {
 		s.fillWorkflowParams(&events[i])
+		if events[i].Status == alert.StatusResolved && events[i].IsValid == "unknown" {
+			events[i].IsValid = "skipped"
+		}
 	}
 
 	req.Pagination.Total = count
