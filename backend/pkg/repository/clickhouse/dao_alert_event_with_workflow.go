@@ -102,13 +102,13 @@ SELECT
     END as is_valid
 FROM paged_alerts AS ae
 LEFT JOIN filtered_workflows AS wr
-ON ae.alert_id = wr.ref AND ae.rounded_time = wr.rounded_time_e
+ON ae.alert_id = wr.ref AND rounded_time = wr.rounded_time_e
 %s`
 
 func getWorkflowRecordRoundedTime(cacheMinutes int) string {
 	return fmt.Sprintf(`CASE
 	  WHEN rounded_time > 0 THEN rounded_time
-	  ELSE toStartOfInterval(wr.created_at, INTERVAL %d MINUTE)
+	  ELSE toStartOfInterval(created_at, INTERVAL %d MINUTE)
 	END`, cacheMinutes)
 }
 

@@ -26,11 +26,16 @@ type AlertWorkflow struct {
 type Option func(f *AlertWorkflow)
 
 func New(chRepo clickhouse.Repo, client *DifyClient, logger *zap.Logger, opts ...Option) *AlertWorkflow {
-	return &AlertWorkflow{
+	workflow := &AlertWorkflow{
 		chRepo: chRepo,
 		client: client,
 		logger: logger,
 	}
+
+	for _, opt := range opts {
+		opt(workflow)
+	}
+	return workflow
 }
 
 func WithAlertCheckFlow(cfg *AlertCheckCfg) Option {
@@ -52,7 +57,7 @@ func WithAlertCheckFlow(cfg *AlertCheckCfg) Option {
 		}
 		f.logger.Info("start to process alert check",
 			zap.Int("cacheMinutes", cfg.CacheMinutes),
-			zap.Int("MaxConcurrency", cfg.MaxConcurrency),
+			zap.Int("maxConcurrency", cfg.MaxConcurrency),
 		)
 		go f.SaveRecords(context.Background(), records)
 		f.check = check
