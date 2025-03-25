@@ -250,9 +250,7 @@ function FaultSiteTrace() {
       // minWidth: 140,
       Cell: (props) => {
         const { row } = props
-        const {traceId} = row.original
-        const serviceName = row.original.serviceName
-        const instanceId = row.original.instanceId
+        const { traceId, serviceName, instanceId } = row.original
 
         const formattedStartTime = TimestampToISO(startTime)
         const formattedEndTime = TimestampToISO(endTime)
