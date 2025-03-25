@@ -54,7 +54,7 @@ const (
 	SQL_GET_SAMPLE_ALERT_EVENT = `WITH grouped_alarm AS (
 		SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status,
         	if(alert_id != '', alert_id, arrayStringConcat(arrayMap(x -> x.2, arraySort(arrayZip(mapKeys(tags), mapValues(tags)))), ', ')) AS alert_key,
-			ROW_NUMBER() OVER (PARTITION BY name, alert_key ORDER BY received_time) AS rn,
+			ROW_NUMBER() OVER (PARTITION BY name, alert_key ORDER BY received_time desc) AS rn,
 			COUNT(*) OVER (PARTITION BY name, alert_key) AS alarm_count
     	FROM alert_event
 		%s
