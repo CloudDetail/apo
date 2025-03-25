@@ -6,6 +6,7 @@
 import React, { Component } from 'react'
 import ErrorPage from 'src/core/assets/errorPage.svg'
 import { Image } from 'antd'
+import { t } from 'i18next'
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props)
@@ -27,8 +28,8 @@ class ErrorBoundary extends Component {
       // 自定义错误页面
       return (
         <div className="w-screen h-screen flex  items-center justify-center flex-col">
-          <Image src={ErrorPage} width={'30%'} />
-          <div>页面遇到未知错误</div>
+          <Image src={ErrorPage} width={'30%'} preview={false} />
+          <div>{t('common:error')}</div>
         </div>
       )
     }

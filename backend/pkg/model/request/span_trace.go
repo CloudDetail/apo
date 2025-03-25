@@ -74,6 +74,13 @@ const (
 	PF_Flags  ParentField = "flags"
 )
 
+type ComplexSpanTraceFilter struct {
+	*SpanTraceFilter `json:",inline,omitempty"`
+
+	MergeSep         string                    `json:"mergeSep"`
+	SpanTraceFilters []*ComplexSpanTraceFilter `json:"subFilters"`
+}
+
 type SpanTraceFilter struct {
 	Key         string      `ch:"key" json:"key"`
 	ParentField ParentField `ch:"parent_field" json:"parentField"`

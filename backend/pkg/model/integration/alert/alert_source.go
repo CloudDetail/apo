@@ -16,16 +16,16 @@ type AlertSource struct {
 }
 
 type AlertSource2Cluster struct {
-	SourceID  string `gorm:"type:varchar(100);column:source_id"`
-	ClusterID string `gorm:"type:varchar(100);column:cluster_id"`
+	SourceID  string `gorm:"type:varchar(255);column:source_id"`
+	ClusterID string `gorm:"type:varchar(255);column:cluster_id"`
 }
 
 type SourceFrom struct {
-	SourceID string `form:"sourceId" json:"sourceId" gorm:"primaryKey;type:varchar(100);column:source_id"`
+	SourceID string `form:"sourceId" json:"sourceId" gorm:"primaryKey;type:varchar(255);column:source_id"`
 	SourceInfo
 }
 
 type SourceInfo struct {
-	SourceName string `form:"sourceName" json:"sourceName" gorm:"unique;type:varchar(100);column:source_name"`
-	SourceType string `form:"sourceType" json:"sourceType" gorm:"type:varchar(100);column:source_type"`
+	SourceName string `form:"sourceName" json:"sourceName" gorm:"unique;type:varchar(255);column:source_name"`
+	SourceType string `form:"sourceType" json:"sourceType" gorm:"type:varchar(255);column:source_type"`
 }

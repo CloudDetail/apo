@@ -59,6 +59,12 @@
     overflow-y: scroll;
     position: relative;
     flex: 1;
+
+    .cursor-pointer:hover {
+      cursor: pointer;
+      text-decoration: underline;
+      color: rgb(110, 159, 255);
+    }
   }
 
   .basic-table-pagination {
@@ -81,11 +87,7 @@
     }
   }
 
-  .cursor-pointer:hover {
-    cursor: pointer;
-    text-decoration: underline;
-    color: rgb(110, 159, 255);
-  }
+
 
   tr:hover {
     background-color: rgb(29, 29, 29);

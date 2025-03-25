@@ -125,6 +125,8 @@ func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, s
 	// Fill with datasource which user is authorized to view.
 	if len(namespacesSlice) == 0 && len(servicesSlice) == 0 {
 		if namespaces != nil && len(namespaceDs) > 0 {
+			// Compatible with non-clustered scenarios
+			namespaceDs = append(namespaceDs, "")
 			setInterface(namespaces, namespaceDs)
 		} else if services != nil && len(serviceDs) > 0 {
 			setInterface(services, serviceDs)

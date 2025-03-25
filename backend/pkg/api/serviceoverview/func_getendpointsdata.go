@@ -53,7 +53,6 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 		startTime = time.UnixMicro(req.StartTime)
 		endTime = time.UnixMicro(req.EndTime)
 		step := time.Duration(req.Step * 1000)
-		sortRule := serviceoverview.SortType(req.SortRule)
 
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, req.GroupID, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
@@ -67,7 +66,7 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 			MultiEndpoint:  req.EndpointName,
 			MultiNamespace: req.Namespace,
 		}
-		data, err = h.serviceoverview.GetServicesEndPointData(startTime, endTime, step, filter, sortRule)
+		data, err = h.serviceoverview.GetServicesEndPointData(startTime, endTime, step, filter, req.SortRule)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

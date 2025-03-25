@@ -51,7 +51,7 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 	}
 
 	avgLogErrorCountDoD, err := s.promRepo.QueryAggMetricsWithFilter(
-		prom.DayOnDay(prom.PQLAvgLogErrorCountWithFilters),
+		prom.DayOnDay(prom.PQLAvgLogErrorCountCombineEndpointsInfoWithFilters),
 		startMicroTS, endMicroTs,
 		prom.SVCGranularity, filters...)
 	if err == nil {
@@ -280,6 +280,10 @@ func (s *RYGLightStatus) AppendGroupIfNotExist(metricGroup prom.MGroupName, metr
 
 func (s *RYGLightStatus) InitEmptyGroup(key prom.ConvertFromLabels) prom.MetricGroup {
 	return &RYGLightStatus{}
+}
+
+func (s *RYGLightStatus) SetValues(roupName prom.MGroupName, metricName prom.MName, points []prom.Points) {
+	// Do Nothing
 }
 
 func (s *RYGLightStatus) SetValue(groupName prom.MGroupName, metricName prom.MName, value float64) {

@@ -65,5 +65,6 @@
   "saveSuccess": "Saved Successfully",
   "deleteSuccess": "Deleted Successfully",
   "addSuccess": "Added Successfully",
-  "operation": "Operation"
+  "operation": "Operation",
+  "error": "An unexpected error occurred on this page."
 }

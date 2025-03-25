@@ -18,7 +18,7 @@ type GetTracePageListRequest struct {
 	PageNum     int      `json:"pageNum"`     // page
 	PageSize    int      `json:"pageSize"`
 
-	Filters []*SpanTraceFilter `json:"filters"` // filter
+	Filters []*ComplexSpanTraceFilter `json:"filters"` // filter
 }
 
 type GetOnOffCPURequest struct {
