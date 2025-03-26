@@ -106,7 +106,7 @@ type Repo interface {
 	GetFlameGraphData(startTime, endTime int64, nodeName string, pid, tid int64, sampleType, spanId, traceId string) (*[]FlameGraphData, error)
 
 	AddWorkflowRecords(ctx context.Context, records []model.WorkflowRecord) error
-	GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest) ([]alert.AEventWithWRecord, int64, error)
+	GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error)
 
 	integration.Input
 }

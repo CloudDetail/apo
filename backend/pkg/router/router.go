@@ -4,8 +4,8 @@
 package router
 
 import (
-	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"time"
@@ -135,14 +135,18 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 
 	difyConfig := config.Get().Dify
 	difyClient := workflow.NewDifyClient(DefaultDifyFastHttpClient, difyConfig.URL)
-	r.alertWorkflow = workflow.New(r.ch, difyClient, difyConfig.APIKeys.AlertCheck, difyConfig.User, r.logger)
-	r.alertWorkflow.EventAnalyzeFlowId = difyConfig.FlowIDs.AlertEventAnalyze
-	r.alertWorkflow.CheckId = difyConfig.FlowIDs.AlertCheck
-	r.alertWorkflow.MaxConcurrency = difyConfig.MaxConcurrency
-	err = r.alertWorkflow.Run(context.Background())
-	if err != nil {
-		r.logger.Error("alertCheck workflow is not running", zap.Error(err))
-	}
+	r.alertWorkflow = workflow.New(r.ch, difyClient, r.logger,
+		workflow.WithAlertAnalyzeFlow(difyConfig.FlowIDs.AlertEventAnalyze),
+		workflow.WithAlertCheckFlow(&workflow.AlertCheckCfg{
+			FlowId:         difyConfig.FlowIDs.AlertCheck,
+			APIKey:         difyConfig.APIKeys.AlertCheck,
+			Authorization:  fmt.Sprintf("Bearer %s", difyConfig.APIKeys.AlertCheck),
+			User:           "apo-backend",
+			MaxConcurrency: difyConfig.MaxConcurrency,
+			CacheMinutes:   difyConfig.CacheMinutes,
+			Sampling:       difyConfig.Sampling,
+		}),
+	)
 
 	// Set API routing
 	setApiRouter(r)
