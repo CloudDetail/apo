@@ -27,7 +27,8 @@ const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD = `WITH paged_alerts AS (
 	%s
 ),
 filtered_workflows AS (
-    SELECT *
+    SELECT *,
+	%s as rounded_time_e
     FROM workflow_records
     %s
 )
@@ -44,7 +45,7 @@ SELECT
     ae.status,
     ae.tags,
 	ae.source,
-    toStartOfFiveMinutes(ae.received_time) + INTERVAL 5 MINUTE AS rounded_time,
+    %s AS rounded_time,
     wr.workflow_run_id,
     wr.workflow_id,
     wr.workflow_name,
@@ -55,7 +56,7 @@ SELECT
     END as is_valid
 FROM paged_alerts AS ae
 LEFT JOIN filtered_workflows AS wr
-ON ae.alert_id = wr.ref AND rounded_time = toStartOfFiveMinutes(wr.created_at)
+ON ae.alert_id = wr.ref AND rounded_time = wr.rounded_time_e
 %s`
 
 const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_VALID_FIRST = `WITH paged_alerts AS (
@@ -71,7 +72,8 @@ filtered_workflows AS (
       WHEN output = 'false' THEN 2
       WHEN output = 'true' THEN 1
       ELSE 0
-    END as importance
+    END as importance,
+	%s as rounded_time_e
     FROM workflow_records
     %s
 )
@@ -88,7 +90,7 @@ SELECT
     ae.status,
     ae.tags,
 	ae.source,
-    toStartOfFiveMinutes(ae.received_time) + INTERVAL 5 MINUTE AS rounded_time,
+    %s AS rounded_time,
     wr.workflow_run_id,
     wr.workflow_id,
     wr.workflow_name,
@@ -100,8 +102,19 @@ SELECT
     END as is_valid
 FROM paged_alerts AS ae
 LEFT JOIN filtered_workflows AS wr
-ON ae.alert_id = wr.ref AND rounded_time = toStartOfFiveMinutes(wr.created_at)
+ON ae.alert_id = wr.ref AND rounded_time = wr.rounded_time_e
 %s`
+
+func getWorkflowRecordRoundedTime(cacheMinutes int) string {
+	return fmt.Sprintf(`CASE
+	  WHEN rounded_time > 0 THEN rounded_time
+	  ELSE toStartOfInterval(created_at, INTERVAL %d MINUTE)
+	END`, cacheMinutes)
+}
+
+func getEventRoundedTime(cacheMinutes int) string {
+	return fmt.Sprintf(`toStartOfInterval(ae.received_time, INTERVAL %d MINUTE) + INTERVAL %d MINUTE`, cacheMinutes, cacheMinutes)
+}
 
 func sortbyParam(sortBy string) ([]string, []bool) {
 	if len(sortBy) == 0 {
@@ -136,7 +149,7 @@ func sortbyParam(sortBy string) ([]string, []bool) {
 	return fields, ascs
 }
 
-func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest) ([]alert.AEventWithWRecord, int64, error) {
+func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error) {
 	alertFilter := NewQueryBuilder().
 		Between("received_time", req.StartTime/1e6, req.EndTime/1e6)
 
@@ -154,14 +167,14 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchR
 		return nil, 0, err
 	}
 
-	sql, values := getSqlAndValueForSortedAlertEvent(req)
+	sql, values := getSqlAndValueForSortedAlertEvent(req, cacheMinutes)
 
 	result := make([]alert.AEventWithWRecord, 0)
 	err = ch.conn.Select(context.Background(), &result, sql, values...)
 	return result, int64(count), err
 }
 
-func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest) (string, []any) {
+func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cacheMinutes int) (string, []any) {
 	alertFilter := NewQueryBuilder().
 		Between("received_time", req.StartTime/1e6, req.EndTime/1e6)
 
@@ -195,7 +208,9 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest) (st
 	if hasInValid {
 		sql = fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_VALID_FIRST,
 			alertFilter.String(),
+			getWorkflowRecordRoundedTime(cacheMinutes),
 			recordFilter.String(),
+			getEventRoundedTime(cacheMinutes),
 			alertOrder.String(),
 		)
 	} else {
@@ -204,8 +219,11 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest) (st
 			finalOrder.OrderBy(field, ascs[idx])
 		}
 		sql = fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD,
-			alertFilter.String(), alertOrder.String(),
+			alertFilter.String(),
+			alertOrder.String(),
+			getWorkflowRecordRoundedTime(cacheMinutes),
 			recordFilter.String(),
+			getEventRoundedTime(cacheMinutes),
 			finalOrder.String(),
 		)
 	}

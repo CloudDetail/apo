@@ -113,3 +113,31 @@ func (r *CompletionResponse) _DifyResponse() {}
 type ChunkCompletionResponse struct{}
 
 func (r *ChunkCompletionResponse) _DifyResponse() {}
+
+type AlertCheckResponse struct {
+	resp *CompletionResponse
+}
+
+func (r *AlertCheckResponse) WorkflowRunID() string {
+	return r.resp.WorkflowRunID
+}
+
+// UnixMicro Timestamp
+func (r *AlertCheckResponse) CreatedAt() int64 {
+	return r.resp.Data.CreatedAt * 1e6
+}
+
+func (r *AlertCheckResponse) IsValidOrDefault(defaultV string) string {
+	var res map[string]string
+	err := json.Unmarshal(r.resp.Data.Outputs, &res)
+	if err != nil {
+		return defaultV
+	}
+
+	text, find := res["text"]
+	if !find {
+		return defaultV
+	}
+
+	return text
+}

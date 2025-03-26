@@ -97,7 +97,9 @@ type Config struct {
 			AlertCheck        string `mapstructure:"alert_check"`
 			AlertEventAnalyze string `mapstructure:"alert_event_analyze"`
 		} `mapstructure:"flow_ids"`
-		MaxConcurrency int `mapstructure:"max_concurrency"`
+		MaxConcurrency int    `mapstructure:"max_concurrency"`
+		CacheMinutes   int    `mapstructure:"cache_minutes"`
+		Sampling       string `mapstructure:"sampling"`
 	} `mapstructure:"dify"`
 }
 

@@ -13,5 +13,6 @@ type WorkflowRecord struct {
 	Input  string `json:"input" ch:"input"`
 	Output string `json:"output" ch:"output"`
 
-	CreatedAt int64 `json:"createdAt" ch:"created_at"`
+	CreatedAt   int64 `json:"createdAt" ch:"created_at"`
+	RoundedTime int64 `json:"-" ch:"rounded_time"`
 }
