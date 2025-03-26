@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CAccordionBody } from '@coreui/react'
-import React, { useMemo, useState, useEffect, useRef } from 'react'
+import React, { useMemo, useState, useRef } from 'react'
 import BasicTable from 'src/core/components/Table/basicTable'
 import DelayLineChart from 'src/core/components/Chart/DelayLineChart'
 import { usePropsContext } from 'src/core/contexts/PropsContext'
@@ -17,9 +16,12 @@ import Timeline from '../TimeLine'
 import { useDebounce } from 'react-use'
 import ErrorCell from 'src/core/components/ErrorInstance/ErrorCell'
 import { useTranslation } from 'react-i18next'
+import { useServiceInfoContext } from 'src/oss/contexts/ServiceInfoContext'
 
-export default function ErrorInstanceInfo(props) {
-  const { handlePanelStatus } = props
+export default function ErrorInstanceInfo() {
+  const setPanelsStatus = useServiceInfoContext((ctx) => ctx.setPanelsStatus)
+  const openTab = useServiceInfoContext((ctx) => ctx.openTab)
+
   const [status, setStatus] = useState()
   const [data, setData] = useState()
   const [loading, setLoading] = useState(false)
@@ -164,13 +166,14 @@ export default function ErrorInstanceInfo(props) {
       })
         .then((res) => {
           setStatus(res.status)
-          handlePanelStatus(res.status)
+          if (res?.status === 'critical') openTab('error')
+          setPanelsStatus('error', res.status)
           setData(res?.instances)
           setLoading(false)
         })
         .catch((error) => {
           setData([])
-          handlePanelStatus('unknown')
+          setPanelsStatus('error', 'unknown')
           setLoading(false)
         })
     }
@@ -188,17 +191,23 @@ export default function ErrorInstanceInfo(props) {
       data: data,
       showBorder: false,
       loading: false,
+      pagination: {
+        pageSize: 5,
+        pageIndex: 1,
+        total: data?.length || 0,
+      },
+      scrollY: 300,
     }
   }, [column, data, serviceName])
   return (
     <>
-      <CAccordionBody className="text-xs">
+      <div className="text-xs">
         {data && (
           <div ref={tableRef}>
             <BasicTable {...tableProps} />
           </div>
         )}
-      </CAccordionBody>
+      </div>
     </>
   )
 }

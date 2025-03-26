@@ -17,6 +17,7 @@ import { selectProcessedTimeRange } from 'src/core/store/reducers/timeRangeReduc
 import TopologyModal from './component/dependent/TopologyModal'
 import { useDebounce } from 'react-use'
 import { useTranslation } from 'react-i18next'
+import { ServiceInfoProvider } from 'src/oss/contexts/ServiceInfoContext'
 function escapeId(id) {
   return id.replace(/[^a-zA-Z0-9-_]/g, '_')
 }
@@ -131,27 +132,29 @@ const ServiceInfo = () => {
   return (
     <div className="h-full relative">
       <LoadingSpinner loading={loading} />
-      <PropsProvider value={{ serviceName, endpoint }}>
-        <>
-          <div className="flex flex-row">
-            <CCard className="mb-4 mr-1 h-[350px] p-2 w-2/5">
-              <CCardHeader className="py-0 flex flex-row justify-between">
-                <div>
-                  {serviceName}
-                  {t('index.directDependencies')}
-                  <div className="text-xs">
-                    {t('index.serviceEndpoint')}: {endpoint}
+      <ServiceInfoProvider>
+        <PropsProvider value={{ serviceName, endpoint }}>
+          <>
+            <div className="flex flex-row">
+              <CCard className="mb-4 mr-1 h-[350px] p-2 w-2/5">
+                <CCardHeader className="py-0 flex flex-row justify-between">
+                  <div>
+                    {serviceName}
+                    {t('index.directDependencies')}
+                    <div className="text-xs">
+                      {t('index.serviceEndpoint')}: {endpoint}
+                    </div>
                   </div>
-                </div>
-                <TopologyModal startTime={startTime} endTime={endTime} />
-              </CCardHeader>
-              <Topology canZoom={false} data={topologyData} />
-            </CCard>
-            <DependentTabs />
-          </div>
-          <InfoUni />
-        </>
-      </PropsProvider>
+                  <TopologyModal startTime={startTime} endTime={endTime} />
+                </CCardHeader>
+                <Topology canZoom={false} data={topologyData} />
+              </CCard>
+              <DependentTabs />
+            </div>
+            <InfoUni />
+          </>
+        </PropsProvider>
+      </ServiceInfoProvider>
     </div>
   )
 }

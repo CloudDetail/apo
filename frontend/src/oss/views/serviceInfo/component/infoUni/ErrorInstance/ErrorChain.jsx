@@ -271,22 +271,24 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
         ),
     )
     //@ts-ignore
-    const xCenterOffset = (graphWidth - g.graph().width * zoomScale) / 2
+    const xCenterOffset = (graphWidth - g.graph().width * zoomScale) / 2 || 0
     //@ts-ignore
-    const yCenterOffset = (graphHeight - g.graph().height * zoomScale) / 2
-    inner.attr(
-      'transform',
-      'translate(' + xCenterOffset + ',' + yCenterOffset / 2 + ') scale(' + zoomScale + ')',
-    )
-
+    const yCenterOffset = (graphHeight - g.graph().height * zoomScale) / 2 || 0
+    if (xCenterOffset && yCenterOffset) {
+      inner.attr(
+        'transform',
+        'translate(' + xCenterOffset + ',' + yCenterOffset / 2 + ') scale(' + zoomScale + ')',
+      )
+    }
     // 缩放
     const zoom = d3.zoom().on('zoom', function () {
       let currentZoomTransform = d3.zoomTransform(this)
+
       inner.attr(
         'transform',
-        `translate(${currentZoomTransform.x + xCenterOffset},${
-          currentZoomTransform.y + yCenterOffset / 2
-        }) scale(${zoomScale + currentZoomTransform.k - 1})`,
+        `translate(${(currentZoomTransform?.x || 0) + xCenterOffset},${
+          (currentZoomTransform?.y || 0) + yCenterOffset / 2
+        }) scale(${zoomScale + (currentZoomTransform?.k || 0) - 1})`,
       )
     })
     // @ts-ignore
@@ -299,7 +301,7 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
     const observer = new ResizeObserver((entries) => {
       for (let entry of entries) {
         if (entry.contentRect.width > 0) {
-          draw() 
+          draw()
         }
       }
     })

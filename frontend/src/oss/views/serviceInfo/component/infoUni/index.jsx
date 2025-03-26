@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useRef, useState, useMemo } from 'react'
-import { CAccordion, CAccordionHeader, CAccordionItem, CImage } from '@coreui/react'
+import React from 'react'
+import { CImage } from '@coreui/react'
 import StatusInfo from 'src/core/components/StatusInfo'
 import InstanceInfo from './InstanceInfo'
 import ErrorInstanceInfo from './ErrorInstance/ErrorInstanceInfo'
@@ -20,197 +20,156 @@ import { PiPath } from 'react-icons/pi'
 import ThumbsUp from 'src/core/assets/icons/thumbsUp.svg'
 import { usePropsContext } from 'src/core/contexts/PropsContext'
 import PolarisMetricsInfo from './PolarisMetricsInfo/PolarisMetricsInfo'
-import { selectProcessedTimeRange } from 'src/core/store/reducers/timeRangeReducer'
-import { useSelector } from 'react-redux'
 import AlertInfoTabs from './AlertInfo/AlertInfoTabs'
 import SqlMetrics from './SqlMetrics'
 import EntryImpact from './EntryImpact'
 import { useTranslation } from 'react-i18next'
-
+import { Collapse, Space, Tooltip } from 'antd'
+import styles from './index.module.scss'
+import { useServiceInfoContext } from 'src/oss/contexts/ServiceInfoContext'
+import { FiDatabase } from 'react-icons/fi'
+import { IoMdInformationCircleOutline } from 'react-icons/io'
+import { SlArrowDown } from 'react-icons/sl'
 export default function InfoUni() {
-  const { t, i18n } = useTranslation('oss/serviceInfo')
-  const [openedPanels, setOpenedPanels] = useState({
-    polarisMetrics: true,
-  })
-  const [statusPanels, setStatusPanels] = useState({
-    instance: 'unknown',
-    k8s: 'unknown',
-    error: 'unknown',
-    alert: 'unknown',
-    impact: 'unknown',
-  })
-  const [dashboardVariable, setDashboardVariable] = useState(null)
+  const { t } = useTranslation('oss/serviceInfo')
+  const statusPanels = useServiceInfoContext((ctx) => ctx.statusPanels)
+
   const { serviceName } = usePropsContext()
-  const storeTimeRange = useSelector((state) => state.timeRange)
 
-  const refs = useRef({})
-  const { startTime, endTime } = useSelector(selectProcessedTimeRange)
-  const handleToggle = (key) => {
-    console.log(key, openedPanels)
-    if (!openedPanels[key]) {
-      const buttonHtml = refs.current[key].querySelector('button')
-      if (buttonHtml) {
-        if (buttonHtml.getAttribute('aria-expanded') === 'true') {
-          buttonHtml.click()
-        }
-      }
-    }
-    setOpenedPanels((prev) => ({
-      ...prev,
-      [key]: true,
-    }))
-  }
-  useEffect(() => {
-    console.log(openedPanels)
-  }, [openedPanels])
-  const handlePanelStatus = (key, status) => {
-    if (status !== 'normal') {
-      handleToggle(key)
-    }
-    setStatusPanels((prev) => ({
-      ...prev,
-      [key]: status,
-    }))
-  }
+  const activeTabKey = useServiceInfoContext((ctx) => ctx.activeTabKey)
+  const setActiveTabKey = useServiceInfoContext((ctx) => ctx.setActiveTabKey)
 
-  const mockAccordionList = [
+  const panelStyle = {
+    marginBottom: 12,
+    border: 'none',
+  }
+  function panelLabel(key, icon, extra) {
+    return (
+      <Space className="h-[32px]">
+        {statusPanels[key] && (
+          <div className="w-[32px] h-[32px]">
+            <StatusInfo status={statusPanels[key]} />
+          </div>
+        )}
+        {icon && <div className="w-[32px] h-[32px] flex items-center justify-center">{icon}</div>}
+        {t(`contentIndex.${key}`, { serviceName })}
+        {extra}
+      </Space>
+    )
+  }
+  const getItems = (panelStyle) => [
     {
       key: 'impact',
-      loadBeforeOpen: true,
-      name: t('contentIndex.impactAnalysis', { serviceName }),
-      component: EntryImpact,
-
-      componentProps: {
-        handlePanelStatus: (status) => handlePanelStatus('impact', status),
-      },
+      forceRender: true,
+      label: panelLabel(
+        'impact',
+        null,
+        <Tooltip title={t('entryImpact.toastMessage')}>
+          <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
+        </Tooltip>,
+      ),
+      children: <EntryImpact />,
+      style: panelStyle,
     },
     {
       key: 'alert',
-      loadBeforeOpen: true,
-      name: t('contentIndex.alertEvents', { serviceName }),
-      component: AlertInfoTabs,
-      componentProps: {
-        handlePanelStatus: (status) => handlePanelStatus('alert', status),
-      },
+      forceRender: true,
+      label: panelLabel('alert'),
+      children: <AlertInfoTabs />,
+      style: panelStyle,
     },
 
     {
       key: 'instance',
-      loadBeforeOpen: true,
-      name: t('contentIndex.serviceEndpointInstance', { serviceName }),
-      component: InstanceInfo,
-      componentProps: {
-        handleToggle,
-        handlePanelStatus: (status) => handlePanelStatus('instance', status),
-        prepareVariable: (props) => setDashboardVariable(props),
-      },
+      forceRender: true,
+      label: panelLabel('instance'),
+      children: <InstanceInfo />,
+      style: panelStyle,
     },
     {
       key: 'k8s',
-      loadBeforeOpen: true,
-      name: t('contentIndex.k8sEvents', { serviceName }),
-      component: K8sInfo,
-      componentProps: {
-        handleToggle,
-        handlePanelStatus: (status) => handlePanelStatus('k8s', status),
-      },
+      forceRender: true,
+      label: panelLabel('k8s'),
+      children: <K8sInfo />,
+      style: panelStyle,
     },
     {
       key: 'error',
-      loadBeforeOpen: true,
-      name: t('contentIndex.errorInstances', { serviceName }),
-      component: ErrorInstanceInfo,
-      componentProps: {
-        handleToggle,
-        handlePanelStatus: (status) => handlePanelStatus('error', status),
-      },
+      forceRender: true,
+      label: panelLabel('error'),
+      children: <ErrorInstanceInfo />,
+      style: panelStyle,
     },
     {
       key: 'sql',
-      loadBeforeOpen: true,
-      name: t('contentIndex.databaseCalls', { serviceName }),
-      component: SqlMetrics,
+      forceRender: true,
+      label: panelLabel('sql', <FiDatabase />),
+      style: panelStyle,
+      children: <SqlMetrics />,
     },
     {
       key: 'metrics',
       showHeader: true,
-      icon: <LuLayoutDashboard />,
-      name: t('contentIndex.customMetricsDashboard'),
-      component: MetricsDashboard,
-      componentProps: {
-        variable: dashboardVariable,
-        startTime,
-        endTime,
-        storeTimeRange,
-      },
+      label: panelLabel('metrics', <LuLayoutDashboard />),
+      style: panelStyle,
+      children: <MetricsDashboard />,
     },
     {
       key: 'polarisMetrics',
-      showHeader: true,
-      defaultActibe: true,
-      icon: <TbNorthStar />,
-      name: (
-        <div className="inline-flex items-center">
-          {t('contentIndex.polarisMetricsRecommendation')}
-          <CImage src={ThumbsUp} width={32} className="ml-2" />
-        </div>
+      forceRender: true,
+      label: panelLabel(
+        'polarisMetrics',
+        <TbNorthStar />,
+        <CImage src={ThumbsUp} width={32} className="ml-2" />,
       ),
-      component: PolarisMetricsInfo,
+      children: <PolarisMetricsInfo />,
+      style: panelStyle,
     },
     {
       key: 'logs',
-      showHeader: true,
-      icon: <CIcon icon={cilDescription} />,
-      name: t('contentIndex.logs'),
-      component: LogsInfo,
+      showHeader: false,
+      label: panelLabel(
+        'logs',
+        <CIcon icon={cilDescription} />,
+        <Tooltip title={t('logsInfo.toastMessage')}>
+          <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
+        </Tooltip>,
+      ),
+      children: <LogsInfo />,
+      style: panelStyle,
     },
     {
       key: 'trace',
-      showHeader: true,
-      icon: <PiPath />,
-      name: t('contentIndex.trace'),
-      component: TraceInfo,
+      showHeader: false,
+      label: panelLabel(
+        'trace',
+        <PiPath />,
+        <Tooltip title={t('traceInfo.toastMessage')}>
+          <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
+        </Tooltip>,
+      ),
+      children: <TraceInfo />,
+      style: panelStyle,
     },
   ]
-
-  const [accordionList, setAccordionList] = useState(mockAccordionList)
-
-  useEffect(() => {
-    setAccordionList([])
-    setAccordionList(mockAccordionList)
-  }, [serviceName])
-
   return (
     <>
-      {accordionList.map((item, index) => {
-        const MemoizedComponent = useMemo(() => item.component, [item.component])
-        const componentProps = { ...item.componentProps, variable: dashboardVariable }
-
-        return (
-          <CAccordion
-            key={item.key}
-            activeItemKey={openedPanels[item.key] ? item.key : ''}
-            className="mb-2.5"
-          >
-            <CAccordionItem itemKey={item.key}>
-              <CAccordionHeader
-                ref={(el) => (refs.current[item.key] = el)}
-                style={{ backgroundColor: item.status === 'error' ? '' : '' }}
-                onClick={() => handleToggle(item.key)}
-              >
-                {statusPanels[item.key] && (
-                  <div className="w-[32px] h-[32px]">
-                    <StatusInfo status={statusPanels[item.key]} />
-                  </div>
-                )}
-                {item.icon && item.icon}
-                <span className="ml-2">{item.name}</span>
-              </CAccordionHeader>
-              <MemoizedComponent {...componentProps} />
-            </CAccordionItem>
-          </CAccordion>
-        )
-      })}
+      <Collapse
+        className={styles.collapse}
+        bordered={false}
+        defaultActiveKey={['polarisMetrics']}
+        expandIconPosition={'end'}
+        items={getItems(panelStyle)}
+        activeKey={activeTabKey}
+        onChange={setActiveTabKey}
+        expandIcon={({ isActive }) => {
+          return isActive ? (
+            <SlArrowDown className={'rotate-180'} size={18} />
+          ) : (
+            <SlArrowDown className={'rotate-0'} size={18} />
+          )
+        }}
+      />
     </>
   )
 }

@@ -57,8 +57,14 @@ export default function AlertInfoTable({ data }) {
       columns: columns,
       data: data,
       loading: false,
+      pagination: {
+        pageSize: 5,
+        pageIndex: 1,
+        total: data?.length || 0,
+      },
+      scrollY: 300,
     }
   }, [columns, data])
 
-  return <>{data && <BasicTable {...tableProps} />}</>
+  return <div>{data && <BasicTable {...tableProps} />}</div>
 }
