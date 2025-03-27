@@ -18,7 +18,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/CloudDetail/apo/backend/config"
-	internal_database "github.com/CloudDetail/apo/backend/internal/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	pkg_database "github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -28,14 +27,13 @@ import (
 )
 
 type resource struct {
-	mux         *core.Mux
-	logger      *zap.Logger
-	ch          clickhouse.Repo
-	prom        prometheus.Repo
-	pol         polarisanalyzer.Repo
-	internal_db internal_database.Repo
-	pkg_db      pkg_database.Repo
-	cache       cache.Repo
+	mux    *core.Mux
+	logger *zap.Logger
+	ch     clickhouse.Repo
+	prom   prometheus.Repo
+	pol    polarisanalyzer.Repo
+	pkg_db pkg_database.Repo
+	cache  cache.Repo
 
 	k8sApi             kubernetes.Repo
 	deepflowClickhouse clickhouse.Repo
@@ -60,13 +58,6 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	r := new(resource)
 	r.logger = logger
 	r.mux = mux
-
-	// Initialize Database
-	dbRepo, err := internal_database.New(logger)
-	if err != nil {
-		logger.Fatal("new database err", zap.Error(err))
-	}
-	r.internal_db = dbRepo
 
 	// initialize sqlite
 	pkgRepo, err := pkg_database.New(logger)

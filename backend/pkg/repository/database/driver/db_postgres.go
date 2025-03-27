@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewPostgresDialector() gorm.Dialector {
+func NewPostgresDialector() (gorm.Dialector, error) {
 	// Build DSN information
 	postgresCfg := config.Get().Database.Postgres
 
@@ -22,17 +22,41 @@ func NewPostgresDialector() gorm.Dialector {
 		postgresCfg.Timezone = "Asia/Shanghai"
 	}
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
+	sysDSN, dbDSN := postgresDSNs(
 		postgresCfg.Host,
 		postgresCfg.UserName,
 		postgresCfg.Password,
 		postgresCfg.Database,
 		postgresCfg.Port,
 		postgresCfg.SSLMode,
-		postgresCfg.Timezone,
-	)
+		postgresCfg.Timezone)
+
+	err := ensureDBExist("pgx", sysDSN, dbDSN, postgresCfg.Database)
 	return postgres.New(postgres.Config{
-		DSN:                  dsn,
+		DSN:                  dbDSN,
 		PreferSimpleProtocol: true,
-	})
+	}), err
+}
+
+func postgresDSNs(host, username, password, database string, port int, sslmode, timezone string) (sysDSN string, dbDSN string) {
+	sysDSN = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
+		host,
+		username,
+		password,
+		"postgres",
+		port,
+		sslmode,
+		timezone,
+	)
+
+	dbDSN = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
+		host,
+		username,
+		password,
+		database,
+		port,
+		sslmode,
+		timezone,
+	)
+	return sysDSN, dbDSN
 }

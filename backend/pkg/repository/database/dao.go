@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -146,22 +147,23 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	databaseCfg := globalCfg.Database
 	switch databaseCfg.Connection {
 	case config.DB_MYSQL:
-		dbConfig = driver.NewMySqlDialector()
+		dbConfig, err = driver.NewMySqlDialector()
 	case config.DB_SQLLITE:
 		dbConfig = driver.NewSqlliteDialector()
 	case config.DB_POSTGRES:
-		dbConfig = driver.NewPostgresDialector()
+		dbConfig, err = driver.NewPostgresDialector()
 	default:
 		return nil, errors.New("database connection not supported")
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to database, err: %v", err)
 	}
 
 	// Connect to the database and set the log mode of GORM
 	database, err := gorm.Open(dbConfig, &gorm.Config{
 		Logger: logger.NewGormLogger(zapLogger),
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	// Get the underlying sqlDB
 	sqlDb, err := database.DB()
