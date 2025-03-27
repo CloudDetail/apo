@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -202,7 +203,7 @@ func (repo *daoRepo) CheckGroupPermission(userID, groupID int64, typ string) (bo
 		Where("subject_id = ? AND data_group_id = ? AND subject_type = ?", userID, groupID, model.DATA_GROUP_SUB_TYP_USER)
 
 	if typ == "edit" {
-		query = query.Where("type = ?", typ)
+		query = query.Where(`"type" = ?`, typ)
 	}
 
 	err = query.Count(&count).Error
@@ -223,7 +224,7 @@ func (repo *daoRepo) CheckGroupPermission(userID, groupID int64, typ string) (bo
 		Where("subject_id IN ? AND data_group_id = ? AND subject_type = ?", teamIDs, groupID, model.DATA_GROUP_SUB_TYP_TEAM)
 
 	if typ == "edit" {
-		query = query.Where("type = ?", typ)
+		query = query.Where(`"type" = ?`, typ)
 	}
 
 	err = query.Count(&count).Error

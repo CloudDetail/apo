@@ -85,7 +85,7 @@ func (repo *daoRepo) initRouterPage() error {
 				}
 
 				var count int64
-				err := tx.Model(&RouterInsertPage{}).Where("router_id = ? AND page_id = ? AND language = ?", routerID, pageID, page.language).Count(&count).Error
+				err := tx.Model(&RouterInsertPage{}).Where(`router_id = ? AND page_id = ? AND "language" = ?`, routerID, pageID, page.language).Count(&count).Error
 				if err != nil {
 					return err
 				}

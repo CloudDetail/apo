@@ -1,5 +1,4 @@
 INSERT INTO target_tags (id,tag_name,tag_name_en,"describe",describe_en,field) VALUES
-	 (0,'自定义tag',		'Custom Tag',				'自定义TAG名',								'Custom TAG Name',								'custom'),
 	 (1,'服务名',			'Service Name',				'服务名称,如APM系统中的service',			'Service Name, e.g. service in APM system',		'serviceName'),
 	 (2,'服务端点',			'Service Endpoint',			'提供服务的接口,如HTTP服务的URL',			'Service Interface, e.g. HTTP service URL',		'endpoint'),
 	 (3,'命名空间',			'Namespace',				'K8s Namespace',							'K8s Namespace',								'namespace'),
@@ -10,7 +9,8 @@ INSERT INTO target_tags (id,tag_name,tag_name_en,"describe",describe_en,field) V
 	 (8,'数据库服务URL',	'Database Service URL',		'数据库用于提供服务的地址,如 host:3306',	'Database Service Address, e.g. host:3306',		'dbURL'),
 	 (9,'数据库服务HOST',	'Database Service HOST',	'数据库用于提供服务的地址',					'Database Service Host',						'dbHost'),
 	 (10,'数据库服务IP',	'Database Service IP',		'数据库用于提供服务的ip',					'Database Service IP',							'dbIP'),
-	 (11,'数据库服务Port',	'Database Service Port',	'数据库用于提供服务的port',					'Database Service Port',						'dbPort');
+	 (11,'数据库服务Port',	'Database Service Port',	'数据库用于提供服务的port',					'Database Service Port',						'dbPort'),
+	 (100,'自定义tag',		'Custom Tag',				'自定义TAG名',								'Custom TAG Name',								'custom');
 
 INSERT INTO alert_enrich_rules (enrich_rule_id,source_id,r_type,rule_order,from_field,from_regex,target_tag_id,custom_tag,"schema",schema_source) VALUES
 	 ('88b38d0a-0d7d-4266-a4dd-76a920464da3','825079a8-4d05-3507-b347-1272a078f9ff','tagMapping',0,'.svc_name','',1,'','',''),

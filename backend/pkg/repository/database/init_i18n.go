@@ -5,6 +5,7 @@ package database
 
 import (
 	"fmt"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -48,7 +49,7 @@ func (repo *daoRepo) initI18nTranslation() error {
 					return err
 				}
 			} else if typ == model.TRANSLATION_TYP_MENU {
-				if err := tx.Model(&MenuItem{}).Select("item_id").Where("key = ?", targetName).Find(&targetID).Error; err != nil {
+				if err := tx.Model(&MenuItem{}).Select("item_id").Where(`"key" = ?`, targetName).Find(&targetID).Error; err != nil {
 					return err
 				}
 			}
