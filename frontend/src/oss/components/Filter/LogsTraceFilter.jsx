@@ -41,8 +41,9 @@ const LogsTraceFilter = React.memo(({ type }) => {
   // filter
   const [minDuration, setMinDuration] = useState(null)
   const [maxDuration, setMaxDuration] = useState(null)
-  const [faultTypeList, setFaultTypeList] = useState([])
+  const [faultTypeList, setFaultTypeList] = useState(['slow', 'error'])
   const [traceType, setTraceType] = useState('TraceID')
+  const [isInitialized, setIsInitialized] = useState(false)
   const [urlParam, setUrlParam] = useState({
     service: '',
     instance: '',
@@ -61,6 +62,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     { label: <TraceErrorType type="slow" />, value: 'slow' },
     { label: <TraceErrorType type="error" />, value: 'error' },
     { label: <TraceErrorType type="normal" />, value: 'normal' },
+    { label: <TraceErrorType type="slowAndError" />, value: 'slowAndError' },
   ]
   //trace more filter
   const [visible, setVisible] = useState(true)
@@ -163,6 +165,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
             endpoint: inputEndpoint,
             minDuration,
             maxDuration,
+            faultTypeList
           })
         } else if (selectServiceName === storeService) {
           getInstanceListData()
@@ -201,6 +204,9 @@ const LogsTraceFilter = React.memo(({ type }) => {
             endpoint: inputEndpoint,
             instanceOption: res,
             namespace: selectNamespace,
+            minDuration,
+            maxDuration,
+            faultTypeList
           })
         })
         .catch((error) => {
@@ -222,7 +228,21 @@ const LogsTraceFilter = React.memo(({ type }) => {
       })
       .finally(() => {})
   }
+  // Initialize
   useEffect(() => {
+    clearUrlParamsState()
+
+    const urlFaultType = searchParams.get('faultTypeList')
+    if (!urlFaultType) {
+      updateUrlParamsState({
+        faultTypeList: ['slow', 'error'],
+      });
+    }
+
+    setIsInitialized(true)
+  }, [])
+  useEffect(() => {
+    if (!isInitialized) return
     const urlService = searchParams.get('service') ?? ''
     const urlInstance = searchParams.get('instance') ?? ''
     const urlTraceId = searchParams.get('traceId') ?? ''
@@ -263,6 +283,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     setMaxDuration(maxDuration)
     setSelectNamespace(namespace)
     setFaultTypeList(faultTypeListValue)
+
     setUrlParam({
       ...urlParam,
       service: urlService,
@@ -274,7 +295,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
       maxDuration,
       faultTypeList: faultTypeListValue,
     })
-  }, [searchParams])
+  }, [searchParams, isInitialized])
   useEffect(() => {
     if (selectServiceName) {
       getInstanceListData()
@@ -283,9 +304,6 @@ const LogsTraceFilter = React.memo(({ type }) => {
       // onChangeInstance('')
     }
   }, [selectServiceName])
-  useEffect(() => {
-    clearUrlParamsState()
-  }, [])
   useEffect(() => {
     let changeTime = false
     if (startTime !== urlParam.startTime) {
@@ -340,7 +358,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
       needChangeUrl = true
     }
 
-    if ('faultTypeList' in props && props.faultTypeList.join(',') !== urlParam.faultTypeList) {
+    if ('faultTypeList' in props && props.faultTypeList !== null && props.faultTypeList.join(',') !== urlParam.faultTypeList) {
       params.set('faultTypeList', props.faultTypeList.join(','))
       needChangeUrl = true
     }

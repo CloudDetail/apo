@@ -30,6 +30,11 @@ function IframeDashboard({ dashboardKey, srcProp }) {
     }
   }
 
+  // Update src when srcProp changes 
+  useEffect(() => { 
+    setSrc(srcProp) 
+  }, [srcProp])
+
   useEffect(() => {
     const iframe = iframeRef.current
 
