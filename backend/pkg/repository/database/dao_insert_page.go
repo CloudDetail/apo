@@ -43,7 +43,7 @@ func (repo *daoRepo) GetRouterInsertedPage(routers []*Router, language string) e
 		err := repo.db.Table("router_insert_page").
 			Select("insert_page.*").
 			Joins("JOIN insert_page ON router_insert_page.page_id = insert_page.page_id").
-			Where(`router_insert_page.router_id = ? AND "router_insert_page.language" = ? OR ("router_insert_page.language" IS NULL AND insert_page.custom = true)`, routers[i].RouterID, language).
+			Where(`router_insert_page.router_id = ? AND router_insert_page."language" = ? OR (router_insert_page."language" IS NULL AND insert_page.custom = true)`, routers[i].RouterID, language).
 			First(&page).Error
 
 		if err != nil {
