@@ -177,12 +177,12 @@ func (s *sampleWithFirstRecord) AddEvents(events []alert.AlertEvent) {
 		if _, find := s.checkedAlert[events[i].AlertID]; find {
 			continue
 		}
-		s.checkedAlert[events[i].AlertID] = struct{}{}
 		if remainSize > MAX_CACHE_SIZE {
 			s.dropCount++
 			s.logger.Info("too many alerts waiting for check, skip", zap.String("alertId", events[i].AlertID))
 			continue
 		}
+		s.checkedAlert[events[i].AlertID] = struct{}{}
 		remainSize++
 		s.eventInput.Ch <- events[i]
 	}
