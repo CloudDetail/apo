@@ -16,10 +16,13 @@ import {
   Popconfirm,
   Spin,
   Pagination,
+  Dropdown,
+  Space,
 } from 'antd'
+import { DownOutlined } from '@ant-design/icons'
 import { getUserListApi, removeUserApi } from 'core/api/user'
 import { showToast } from 'core/utils/toast'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { MdOutlineModeEdit } from 'react-icons/md'
 import EditModal from './componnets/EditModal'
@@ -31,6 +34,7 @@ import style from './index.module.css'
 import { useTranslation } from 'react-i18next'
 import { LuShieldCheck } from 'react-icons/lu'
 import DataGroupAuthorizeModal from 'src/core/components/PermissionAuthorize/DataGroupAuthorizeModal'
+import { getAllRolesApi, revokeUserRoleApi } from 'src/core/api/role'
 
 export default function UserManage() {
   const { t } = useTranslation('core/userManage')
@@ -46,11 +50,20 @@ export default function UserManage() {
   const [total, setTotal] = useState(0)
   const [selectedUser, setSelectedUser] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [roleList, setRoleList] = useState([])
   const { user, dispatch } = useUserContext()
 
   const [authorizeModalVisibility, setAuthorizeModalVisibility] = useState(false)
 
-  //移除用户
+  const roleItems = useMemo(() => {
+    return roleList?.map((role) => (
+      {
+        label: role.roleName,
+        key: role.roleId
+      }
+    ))
+  }, [roleList])
+
   async function removeUser(prop) {
     const params = {
       userId: prop,
@@ -71,7 +84,6 @@ export default function UserManage() {
     }
   }
 
-  //获取用户列表
   async function getUserList(signal = undefined, type = 'normal', search = false) {
     if (loading) return
     setLoading(true)
@@ -84,7 +96,11 @@ export default function UserManage() {
 
     try {
       const { users, currentPage, pageSize, total } = await getUserListApi(params, signal)
-      setUserList(users)
+      let userList = users.map((user) => ({
+        ...user,
+        role: user.roleList[0].roleName
+      }))
+      setUserList(userList)
       setCurrentPage(currentPage)
       setPageSize(pageSize)
       setTotal(total)
@@ -95,6 +111,41 @@ export default function UserManage() {
       setLoading(false)
     }
   }
+
+  async function revokeUserRole(userId, roleId) {
+    try {
+      const params = new URLSearchParams()
+      params.append('userId', userId);
+      params.append('roleList', roleId);
+      await revokeUserRoleApi(params)
+      showToast({
+        title: t('index.revokeSuccess'),
+        color: 'success',
+      })
+
+      if (userList.length <= 1) {
+        await getUserList(undefined, 'special')
+      } else {
+        await getUserList()
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  // fetch role list
+  useEffect(() => {
+    async function fetchRoles() {
+      try {
+        const roles = await getAllRolesApi();
+        setRoleList(roles)
+      } catch (error) {
+        console.error("Failed to fetch roles: ", error);
+      }
+    }
+
+    fetchRoles();
+  }, []);
 
   //改变分页器
   function paginationChange(page, pageSize) {
@@ -110,13 +161,31 @@ export default function UserManage() {
       key: 'username',
       align: 'center',
     },
-    // {
-    //     title: '角色',
-    //     dataIndex: 'role',
-    //     key: 'role',
-    //     align: 'center',
-    //     width: "16%"
-    // },
+    {
+      title: t('index.role'),
+      dataIndex: 'role',
+      key: 'role',
+      align: 'center',
+      render: (role, user) => {
+        return (
+          <>
+            <Dropdown
+              menu={{
+                items: roleItems,
+                onClick: ({key}) => revokeUserRole(user.userId, key)
+              }}
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <Space>
+                  { role }
+                  <DownOutlined />
+                </Space>
+              </a>
+            </Dropdown>
+          </>
+        )
+      },
+    },
     {
       title: t('index.corporation'),
       dataIndex: 'corporation',
@@ -183,10 +252,10 @@ export default function UserManage() {
     },
   ]
 
-  //初始化列表数据
+  // Initialize userList data
   useEffect(() => {
     const controller = new AbortController()
-    const { signal } = controller // 获取信号对象
+    const { signal } = controller // get signal object
     getUserList(signal)
     return () => {
       controller.abort
@@ -195,7 +264,7 @@ export default function UserManage() {
 
   useEffect(() => {
     const controller = new AbortController()
-    const { signal } = controller // 获取信号对象
+    const { signal } = controller // get signal object
     getUserList(signal, null, true)
     return () => {
       controller.abort
