@@ -15,6 +15,7 @@
   "false": "Invalid",
   "true": "Valid",
   "unknown": "Unknown",
+  "skipped": "Already resolved, skip analysis.",
   "viewWorkflow": "View",
   "workflowsModal": "Workflows",
   "firing": "Firing",
