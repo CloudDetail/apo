@@ -11,7 +11,7 @@ import IframeDashboard from 'src/core/components/Dashboard/IframeDashboard'
 import { selectProcessedTimeRange, timeRangeList } from 'src/core/store/reducers/timeRangeReducer'
 
 function MetricsDashboard({ variable }) {
-  const [src, setSrc] = useState()
+  const [src, setSrc] = useState("")
   const { i18n } = useTranslation()
 
   useEffect(() => {
