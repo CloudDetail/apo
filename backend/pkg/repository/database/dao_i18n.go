@@ -20,7 +20,7 @@ func (I18nTranslation) TableName() string {
 
 func (repo *daoRepo) GetTranslation(targetIDs []int, targetType string, language string) ([]I18nTranslation, error) {
 	var translations []I18nTranslation
-	err := repo.db.Where("entity_id in ? AND entity_type = ? AND language = ?", targetIDs, targetType, language).Find(&translations).Error
+	err := repo.db.Where(`entity_id in ? AND entity_type = ? AND "language" = ?`, targetIDs, targetType, language).Find(&translations).Error
 	return translations, err
 }
 
