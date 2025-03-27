@@ -88,11 +88,11 @@ func (repo *daoRepo) initMenuItems() error {
 		// update parent_id
 		for childKey, parentKey := range relations {
 			var parent MenuItem
-			if err := tx.Where("key = ?", parentKey).First(&parent).Error; err != nil {
+			if err := tx.Where(`"key" = ?`, parentKey).First(&parent).Error; err != nil {
 				return err
 			}
 
-			if err := tx.Model(&MenuItem{}).Where("key = ?", childKey).Update("parent_id", parent.ItemID).Error; err != nil {
+			if err := tx.Model(&MenuItem{}).Where(`"key" = ?`, childKey).Update("parent_id", parent.ItemID).Error; err != nil {
 				return err
 			}
 		}
