@@ -13,29 +13,36 @@ import (
 	_ "gorm.io/driver/postgres"
 )
 
-func ensureDBExist(driverName string, sysDSN string, dbDSN string, database string) error {
-	db, err := sql.Open(driverName, dbDSN)
-	if err == nil {
-		defer db.Close()
-		if err = db.Ping(); err == nil {
-			return nil
-		}
+func ensureDBExist(driverName, sysDSN, dbDSN, database string) error {
+	if err := checkDBConnection(driverName, dbDSN); err == nil {
+		return nil
 	}
 
-	database, err = sanitizeDatabaseName(database)
+	sanitizedDB, err := sanitizeDatabaseName(database)
 	if err != nil {
 		return err
 	}
+	return createDatabase(driverName, sysDSN, sanitizedDB)
+}
 
-	sysDB, err := sql.Open(driverName, sysDSN)
+func checkDBConnection(driver, dsn string) error {
+	db, err := sql.Open(driver, dsn)
 	if err != nil {
-		return fmt.Errorf("database not exist, and connect to system failed, err:%v", err)
+		return err
+	}
+	defer db.Close()
+	return db.Ping()
+}
+
+func createDatabase(driver, sysDSN, database string) error {
+	sysDB, err := sql.Open(driver, sysDSN)
+	if err != nil {
+		return fmt.Errorf("failed to connect to system DB: %v", err)
 	}
 	defer sysDB.Close()
 
-	_, err = sysDB.Exec(fmt.Sprintf(`CREATE DATABASE "%s"`, database))
-	if err != nil {
-		return fmt.Errorf("create database failed, err:%v", err)
+	if _, err = sysDB.Exec(fmt.Sprintf(`CREATE DATABASE "%s"`, database)); err != nil {
+		return fmt.Errorf("failed to create database: %v", err)
 	}
 	return nil
 }
