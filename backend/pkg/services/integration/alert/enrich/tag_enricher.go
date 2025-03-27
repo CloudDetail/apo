@@ -76,14 +76,23 @@ func NewTagEnricher(
 	if enrichRule.RType == "tagMapping" {
 		if enrichRule.TargetTagId == 0 {
 			tagEnricher.targetTag = enrichRule.CustomTag
-		} else if len(targetTags) > enrichRule.TargetTagId {
-			tagEnricher.targetTag = targetTags[enrichRule.TargetTagId].Field
+		} else {
+			tagEnricher.targetTag = getTargetTag(targetTags, enrichRule.TargetTagId)
 		}
 	} else if enrichRule.RType == "schemaMapping" {
 		tagEnricher.TargetTags = targetTags
 	}
 
 	return tagEnricher, nil
+}
+
+func getTargetTag(tags []alert.TargetTag, id int) string {
+	for _, tag := range tags {
+		if tag.ID == uint(id) {
+			return tag.Field
+		}
+	}
+	return "undefined"
 }
 
 func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
@@ -119,7 +128,8 @@ func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
 			if schemaTarget.TargetTagID == 0 {
 				alertEvent.EnrichTags[schemaTarget.CustomTag] = targets[idx]
 			} else if len(e.TargetTags) > schemaTarget.TargetTagID {
-				alertEvent.EnrichTags[e.TargetTags[schemaTarget.TargetTagID].Field] = targets[idx]
+				field := getTargetTag(e.TargetTags, schemaTarget.TargetTagID)
+				alertEvent.EnrichTags[field] = targets[idx]
 			}
 		}
 	}
