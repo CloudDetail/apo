@@ -164,11 +164,6 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	database, err := gorm.Open(dbConfig, &gorm.Config{
 		Logger: logger.NewGormLogger(zapLogger),
 	})
-	if err != nil {
-		// maybe database not exist, try to create
-
-		return nil, err
-	}
 
 	// Get the underlying sqlDB
 	sqlDb, err := database.DB()

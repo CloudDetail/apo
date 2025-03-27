@@ -27,12 +27,13 @@ func ensureDBExist(driverName string, sysDSN string, dbDSN string, database stri
 		return err
 	}
 
-	db, err = sql.Open(driverName, sysDSN)
+	sysDB, err := sql.Open(driverName, sysDSN)
 	if err != nil {
 		return fmt.Errorf("database not exist, and connect to system failed, err:%v", err)
 	}
+	defer sysDB.Close()
 
-	_, err = db.Exec(fmt.Sprintf(`CREATE DATABASE "%s"`, database))
+	_, err = sysDB.Exec(fmt.Sprintf(`CREATE DATABASE "%s"`, database))
 	if err != nil {
 		return fmt.Errorf("create database failed, err:%v", err)
 	}
