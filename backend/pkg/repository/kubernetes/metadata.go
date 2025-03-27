@@ -426,8 +426,8 @@ func matchAlertRuleFilter(filter *request.AlertRuleFilter, rule *request.AlertRu
 		}
 	}
 
-	if len(filter.Group) > 0 {
-		if !strings.Contains(rule.Group, filter.Group) {
+	if len(filter.Groups) > 0 {
+		if ContainsLike(filter.Groups, rule.Group) {
 			return false
 		}
 	}
@@ -467,6 +467,15 @@ func matchAlertRuleFilter(filter *request.AlertRuleFilter, rule *request.AlertRu
 func ContainsIn(slices []string, expected string) bool {
 	for _, item := range slices {
 		if item == expected {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainsLike(slices []string, expected string) bool {
+	for _, item := range slices {
+		if strings.Contains(item, expected) {
 			return true
 		}
 	}

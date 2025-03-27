@@ -25,6 +25,9 @@ import (
 func (h *handler) GetAlertRules() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAlertRuleRequest)
+		if len(req.AlertRuleFilter.Group) > 0 {
+			req.AlertRuleFilter.Groups = append(req.AlertRuleFilter.Groups, req.AlertRuleFilter.Group)
+		}
 		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
