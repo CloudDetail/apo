@@ -49,6 +49,7 @@ SELECT
     wr.workflow_run_id,
     wr.workflow_id,
     wr.workflow_name,
+	wr.output,
     CASE
       WHEN output = 'false' THEN 'true'
       WHEN output = 'true' THEN 'false'
@@ -95,6 +96,7 @@ SELECT
     wr.workflow_id,
     wr.workflow_name,
 	wr.importance,
+	wr.output,
     CASE
       WHEN output = 'false' THEN 'true'
       WHEN output = 'true' THEN 'false'
