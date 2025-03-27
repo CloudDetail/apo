@@ -427,7 +427,7 @@ func matchAlertRuleFilter(filter *request.AlertRuleFilter, rule *request.AlertRu
 	}
 
 	if len(filter.Groups) > 0 {
-		if ContainsLike(filter.Groups, rule.Group) {
+		if !ContainsLike(filter.Groups, rule.Group) {
 			return false
 		}
 	}
