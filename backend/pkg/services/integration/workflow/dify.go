@@ -127,7 +127,11 @@ func (r *AlertCheckResponse) CreatedAt() int64 {
 	return r.resp.Data.CreatedAt * 1e6
 }
 
-func (r *AlertCheckResponse) IsValidOrDefault(defaultV string) string {
+func (r *AlertCheckResponse) getOutput(defaultV string) string {
+	if r.resp.Data.Status != "succeeded" {
+		return "failed: " + string(r.resp.Data.Outputs)
+	}
+
 	var res map[string]string
 	err := json.Unmarshal(r.resp.Data.Outputs, &res)
 	if err != nil {

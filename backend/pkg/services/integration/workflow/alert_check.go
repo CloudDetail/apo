@@ -318,21 +318,34 @@ func (w *worker) run(c *DifyClient, eventInput <-chan alert.AlertEvent, results 
 		if err != nil {
 			w.dropCount++
 			w.logger.Error("failed to to alert check", zap.Error(err))
-			continue
 		}
 
 		tw := time.Duration(w.CacheMinutes) * time.Minute
 		roundedTime := event.ReceivedTime.Truncate(tw).Add(tw)
 
-		record := model.WorkflowRecord{
-			WorkflowRunID: resp.WorkflowRunID(),
-			WorkflowID:    w.FlowId,
-			WorkflowName:  w.FlowName,
-			Ref:           event.AlertID,
-			Input:         "",                             // TODO record input param
-			Output:        resp.IsValidOrDefault("false"), // 'false' means valid alert
-			CreatedAt:     resp.CreatedAt(),
-			RoundedTime:   roundedTime.UnixMicro(),
+		var record model.WorkflowRecord
+		if resp == nil {
+			record = model.WorkflowRecord{
+				WorkflowRunID: "",
+				WorkflowID:    w.FlowId,
+				WorkflowName:  w.FlowName,
+				Ref:           event.AlertID,
+				Input:         "",
+				Output:        "failed: workflow execution failed due to API call failure",
+				CreatedAt:     roundedTime.UnixMicro(),
+				RoundedTime:   roundedTime.UnixMicro(),
+			}
+		} else {
+			record = model.WorkflowRecord{
+				WorkflowRunID: resp.WorkflowRunID(),
+				WorkflowID:    w.FlowId,
+				WorkflowName:  w.FlowName,
+				Ref:           event.AlertID,
+				Input:         "",                                                 // TODO record input param
+				Output:        resp.getOutput("failed: not find expected output"), // 'false' means valid alert
+				CreatedAt:     resp.CreatedAt(),
+				RoundedTime:   roundedTime.UnixMicro(),
+			}
 		}
 
 		results <- record
