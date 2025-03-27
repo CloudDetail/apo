@@ -5,12 +5,12 @@ package database
 
 type OtherLogTable struct {
 	ID        uint   `gorm:"primaryKey;autoIncrement"`
-	DataBase  string `gorm:"type:varchar(100);column:database"`
-	Table     string `gorm:"type:varchar(100);column:tablename"`
-	Cluster   string `gorm:"type:varchar(100)"`
-	TimeField string `gorm:"type:varchar(100);column:timefield"`
-	LogField  string `gorm:"type:varchar(100);column:logfield"`
-	Instance  string `gorm:"type:varchar(100)"`
+	DataBase  string `gorm:"type:varchar(255);column:database"`
+	Table     string `gorm:"type:varchar(255);column:tablename"`
+	Cluster   string `gorm:"type:varchar(255)"`
+	TimeField string `gorm:"type:varchar(255);column:timefield"`
+	LogField  string `gorm:"type:varchar(255);column:logfield"`
+	Instance  string `gorm:"type:varchar(255)"`
 }
 
 func (OtherLogTable) TableName() string {

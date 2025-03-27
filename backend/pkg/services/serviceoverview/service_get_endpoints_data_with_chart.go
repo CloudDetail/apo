@@ -5,47 +5,48 @@ package serviceoverview
 
 import (
 	"math"
-	"strconv"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"go.uber.org/zap"
 )
 
 // TODO move to prometheus package and avoid to repeated self
-func (s *service) GetServicesEndpointDataWithChart(startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule SortType) (res []response.ServiceEndPointsRes, err error) {
-	var duration string
-	var stepNS = endTime.Sub(startTime).Nanoseconds()
-	duration = strconv.FormatInt(stepNS/int64(time.Minute), 10) + "m"
-	filters := filter.ExtractFilterStr()
-	// step1 Query that meets the Endpoint of the Filter and return the corresponding RED metric
-	// RED metric contains the average, day-to-year rate of change and week-to-week rate of change over the selected time period
-	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filters)
+func (s *service) GetServicesEndpointDataWithChart(
+	startTime time.Time, endTime time.Time, step time.Duration,
+	filter EndpointsFilter, sortRule request.SortType,
+) (res []response.ServiceEndPointsRes, err error) {
+	filtersStr := filter.ExtractFilterStr()
 
-	// step2 fill delay dependency
-	err = s.EndpointsDelaySource(endpointsMap, startTime, endTime, filters)
+	var opts = []prometheus.FetchEMOption{
+		prometheus.WithREDMetric(),
+		prometheus.WithDelaySource(),
+		prometheus.WithNamespace(),
+		prometheus.WithREDChart(step),
+	}
+
+	if sortRule == request.SortByLogErrorCount {
+		opts = append(opts, prometheus.WithLogErrorCount())
+	} else if sortRule == request.MUTATIONSORT {
+		opts = append(opts, prometheus.WithRealTimeREDMetric())
+	}
+
+	endpointsMap, err := prometheus.FetchEndpointsData(
+		s.promRepo, filtersStr, startTime, endTime,
+		opts...,
+	)
+
 	if err != nil {
-		// TODO output error log, DelaySource query failed
+		s.logger.Error("failed to fetch endpoints data form", zap.Error(err))
+		return
 	}
 
-	// step2.. Fill Namespace information
-	err = s.EndpointsNamespaceInfo(endpointsMap, startTime, endTime, filters)
-	if err != nil {
-		// TODO output error log, Namespace query failed
-	}
-
-	// step3 Sort the URL according to the sorting rule and fill in the data that has not been queried in the previous period.
-	if sortRule == MUTATIONSORT {
-		// Fill the real-time RED metric for sorting (the case between 3 minutes before the current time)
-		s.EndpointsRealtimeREDMetric(filters, endpointsMap, startTime, endTime)
-	}
-	// Sort the endpoints according to the sorting rule and fill some unqueried data
-	err = s.sortWithRule(sortRule, endpointsMap)
+	s.sortWithRule(sortRule, endpointsMap)
 
 	// step4 Group Endpoints by service and maintain service ordering
-	services := fillServices(endpointsMap.MetricGroupList)
-
-	// step5 fills the RED chart data of the first three urls of each service group
-	s.EndpointRangeREDChart(&services, startTime, endTime, duration, step)
+	services := groupEndpointsByService(endpointsMap.MetricGroupList, 3)
 
 	// step5 Fill null values and adjust the return structure
 	var servicesResMsg []response.ServiceEndPointsRes
@@ -84,7 +85,10 @@ func (s *service) GetServicesEndpointDataWithChart(startTime time.Time, endTime 
 	return servicesResMsg, err
 }
 
-func (*service) extractDetailWithChart(service ServiceDetail, startTime time.Time, endTime time.Time, step time.Duration) []response.ServiceDetail {
+func (*service) extractDetailWithChart(
+	service *ServiceDetail,
+	startTime time.Time, endTime time.Time, step time.Duration,
+) []response.ServiceDetail {
 	var newServiceDetails []response.ServiceDetail
 	for _, endpoint := range service.Endpoints {
 		newErrorRadio := response.Ratio{

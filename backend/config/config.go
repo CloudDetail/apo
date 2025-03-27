@@ -14,7 +14,9 @@ var config *Config
 
 type Config struct {
 	Server struct {
-		Port int `mapstructure:"port"`
+		Port                     int `mapstructure:"port"`
+		AccessTokenExpireMinutes int `mapstructure:"access_token_expire_minutes"`
+		RefreshTokenExpireHours  int `mapstructure:"refresh_token_expire_hours"`
 	} `mapstructure:"server"`
 	Logger struct {
 		Level         string `mapstructure:"level"`
@@ -40,6 +42,15 @@ type Config struct {
 		Sqllite struct {
 			Database string `mapstructure:"database"`
 		} `mapstructure:"sqllite"`
+		Postgres struct {
+			Host     string `mapstructure:"host"`
+			Port     int    `mapstructure:"port"`
+			Database string `mapstructure:"database"`
+			UserName string `mapstructure:"username"`
+			Password string `mapstructure:"password"`
+			SSLMode  string `mapstructure:"sslmode"`
+			Timezone string `mapstructure:"timezone"`
+		}
 	} `mapstructure:"database"`
 	ClickHouse struct {
 		Address  string `mapstructure:"address"`
@@ -86,6 +97,9 @@ type Config struct {
 			AlertCheck        string `mapstructure:"alert_check"`
 			AlertEventAnalyze string `mapstructure:"alert_event_analyze"`
 		} `mapstructure:"flow_ids"`
+		MaxConcurrency int    `mapstructure:"max_concurrency"`
+		CacheMinutes   int    `mapstructure:"cache_minutes"`
+		Sampling       string `mapstructure:"sampling"`
 	} `mapstructure:"dify"`
 }
 

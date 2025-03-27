@@ -5,15 +5,15 @@ package database
 
 type LogTableInfo struct {
 	ID           uint   `gorm:"primaryKey;autoIncrement"`
-	DataBase     string `gorm:"type:varchar(100);column:database"`
-	Table        string `gorm:"type:varchar(100);column:tablename"`
-	Cluster      string `gorm:"type:varchar(100)"`
+	DataBase     string `gorm:"type:varchar(255);column:database"`
+	Table        string `gorm:"type:varchar(255);column:tablename"`
+	Cluster      string `gorm:"type:varchar(255)"`
 	Fields       string `gorm:"type:varchar(5000)"` // log field type
-	ParseName    string `gorm:"type:varchar(100);column:parsename"`
+	ParseName    string `gorm:"type:varchar(255);column:parsename"`
 	RouteRule    string `gorm:"type:varchar(1000);column:routerule"` // routing rule
 	ParseRule    string `gorm:"type:varchar(5000);column:parserule"` // parsing rules
-	ParseInfo    string `gorm:"type:varchar(100);column:parseinfo"`
-	Service      string `gorm:"type:varchar(100)"`
+	ParseInfo    string `gorm:"type:varchar(255);column:parseinfo"`
+	Service      string `gorm:"type:varchar(255)"`
 	IsStructured bool   `gorm:"type:bool;column:structured"`
 }
 
@@ -36,11 +36,11 @@ func (repo *daoRepo) OperateLogTableInfo(model *LogTableInfo, op Operator) error
 	case INSERT:
 		err = repo.db.Create(model).Error
 	case QUERY:
-		err = repo.db.Where("`database` = ? AND `tablename` = ?", model.DataBase, model.Table).First(model).Error
+		err = repo.db.Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).First(model).Error
 	case UPDATE:
-		err = repo.db.Model(&LogTableInfo{}).Where("`database` = ? AND `tablename` = ?", model.DataBase, model.Table).Update("fields", model.Fields).Error
+		err = repo.db.Model(&LogTableInfo{}).Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).Update("fields", model.Fields).Error
 	case DELETE:
-		return repo.db.Where("`database` = ? AND `tablename` = ?", model.DataBase, model.Table).Delete(&LogTableInfo{}).Error
+		return repo.db.Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).Delete(&LogTableInfo{}).Error
 	}
 	return err
 }
@@ -52,7 +52,7 @@ func (repo *daoRepo) GetAllLogTable() ([]LogTableInfo, error) {
 }
 
 func (repo *daoRepo) UpdateLogParseRule(model *LogTableInfo) error {
-	return repo.db.Model(&LogTableInfo{}).Where("`database` = ? AND `tablename` = ?", model.DataBase, model.Table).Updates(map[string]interface{}{
+	return repo.db.Model(&LogTableInfo{}).Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).Updates(map[string]interface{}{
 		"parseinfo":  model.ParseInfo,
 		"parserule":  model.ParseRule,
 		"routerule":  model.RouteRule,

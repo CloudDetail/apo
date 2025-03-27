@@ -15,25 +15,28 @@ import (
 )
 
 func (s *service) AlertEventList(req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error) {
-	events, count, err := s.chRepo.GetAlertEventWithWorkflowRecord(req)
+	events, count, err := s.chRepo.GetAlertEventWithWorkflowRecord(req, s.alertWorkflow.AlertCheck.CacheMinutes)
 	if err != nil {
 		return nil, err
 	}
 
 	for i := 0; i < len(events); i++ {
-		s.fillWorkflowParmas(&events[i])
+		s.fillWorkflowParams(&events[i])
+		if events[i].Status == alert.StatusResolved && events[i].IsValid == "unknown" {
+			events[i].IsValid = "skipped"
+		}
 	}
 
 	req.Pagination.Total = count
 	return &response.AlertEventSearchResponse{
 		EventList:                   events,
 		Pagination:                  req.Pagination,
-		AlertEventAnalyzeWorkflowID: s.alertWorkflow.EventAnalyzeFlowId,
-		AlertCheckID:                s.alertWorkflow.CheckId,
+		AlertEventAnalyzeWorkflowID: s.alertWorkflow.AnalyzeFlowId,
+		AlertCheckID:                s.alertWorkflow.AlertCheck.FlowId,
 	}, nil
 }
 
-func (s *service) fillWorkflowParmas(record *alert.AEventWithWRecord) {
+func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 
 	startTime := record.ReceivedTime.Add(-15 * time.Minute)
 	endTime := record.ReceivedTime

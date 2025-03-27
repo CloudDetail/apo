@@ -15,29 +15,29 @@ func extractAlertEventFilter(filter *alert.AlertEventFilter) *whereSQL {
 
 	var basicFilters []*whereSQL
 	basicFilters = append(basicFilters,
-		EqualsIfNotEmpty("source", filter.Source),
+		equalsIfNotEmpty("source", filter.Source),
 		// EqualsIfNotEmpty("group", filter.Group),
-		EqualsIfNotEmpty("name", filter.Name),
-		EqualsIfNotEmpty("id", filter.EventID),
-		EqualsIfNotEmpty("severity", filter.Severity),
-		EqualsIfNotEmpty("status", filter.Status),
+		equalsIfNotEmpty("name", filter.Name),
+		equalsIfNotEmpty("id", filter.EventID),
+		equalsIfNotEmpty("severity", filter.Severity),
+		equalsIfNotEmpty("status", filter.Status),
 	)
 
 	if len(filter.Group) > 0 && filter.WithMutation {
 		basicFilters = append(basicFilters,
-			In("group", clickhouse.ArraySet{
+			in("group", clickhouse.ArraySet{
 				filter.Group,
 				"mutation-" + filter.Group,
 			}))
 	} else if len(filter.Group) > 0 {
-		basicFilters = append(basicFilters, Equals("group", filter.Group))
+		basicFilters = append(basicFilters, equals("group", filter.Group))
 	}
 
 	if !filter.WithMutation {
-		basicFilters = append(basicFilters, NotLike("group", "mutation%"))
+		basicFilters = append(basicFilters, notLike("group", "mutation%"))
 	}
 
-	basicSQL := MergeWheres(AndSep, basicFilters...)
+	basicSQL := mergeWheres(AndSep, basicFilters...)
 
 	if filter.AlertTagsFilter == nil {
 		return basicSQL

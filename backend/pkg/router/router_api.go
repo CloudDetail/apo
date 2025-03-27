@@ -4,7 +4,6 @@
 package router
 
 import (
-	"github.com/CloudDetail/apo/backend/internal/api/mock"
 	alertinput "github.com/CloudDetail/apo/backend/pkg/api/alertinput"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
@@ -29,14 +28,6 @@ import (
 
 func setApiRouter(r *resource) {
 	middlewares := middleware.New(r.cache, r.pkg_db, r.dify)
-	api := r.mux.Group("/api")
-	{
-		mockHandler := mock.New(r.logger, r.internal_db)
-		api.POST("/mock", mockHandler.Create())
-		api.GET("/mock", mockHandler.List())
-		api.GET("/mock/:id", mockHandler.Detail())
-		api.DELETE("/mock/:id", mockHandler.Delete())
-	}
 
 	serviceApi := r.mux.Group("/api/service").Use(middlewares.AuthMiddleware())
 	{

@@ -11,6 +11,7 @@ import (
 
 // Sort according to DoD/WoW Growth Rate threshold
 func sortByDODThreshold(endpoints []*prom.EndpointMetrics) {
+	// sort.
 	sort.SliceStable(endpoints, func(i, j int) bool {
 		// Sort by count first
 		if endpoints[i].AlertCount != endpoints[j].AlertCount {
@@ -214,20 +215,6 @@ func sortByMutation(endpoints []*prom.EndpointMetrics) {
 				endpoints[i].Avg1MinLatencyMutationRate = *endpoints[i].REDMetrics.Realtime.Latency / *endpoints[i].REDMetrics.Avg.Latency
 			}
 		}
-		//if urls[i].REDMetrics.Realtime.ErrorRate != nil {
-		//	a := *urls[i].REDMetrics.Realtime.ErrorRate
-		//	fmt.Printf("1minError:%v,iminLatency:%v\n", a, urls[i].Avg1minLatency)
-		//} else {
-		//	a := 10
-		//	fmt.Printf("1minError:%v,iminLatency:%v\n", a, urls[i].Avg1minLatency)
-		//}
-		//if urls[i].REDMetrics.Avg.ErrorRate != nil {
-		//	a := *urls[i].REDMetrics.Avg.ErrorRate
-		//	fmt.Printf("Error:%v\n", a)
-		//} else {
-		//	a := 10
-		//	fmt.Printf("Error:%v\n", a)
-		//}
 	}
 	sort.SliceStable(endpoints, func(i, j int) bool {
 		// Case 1: If there is an error rate mutation rate greater than 1 (error rate increases)
@@ -287,67 +274,32 @@ func sortByMutation(endpoints []*prom.EndpointMetrics) {
 		}
 		return false
 	})
-
 }
 
-func fillServices(endpoints []*prom.EndpointMetrics) []ServiceDetail {
-	var services []ServiceDetail
-	for _, url := range endpoints {
-		// No return if there is no data
-		if (url.REDMetrics.Avg.Latency == nil && url.REDMetrics.Avg.ErrorRate == nil) || (url.REDMetrics.Avg.Latency == nil && url.REDMetrics.Avg.ErrorRate != nil && *url.REDMetrics.Avg.ErrorRate == 0 && url.REDMetrics.Avg.TPM == nil) {
+func groupEndpointsByService(endpoints []*prom.EndpointMetrics, sampleCount int) []*ServiceDetail {
+	var services []*ServiceDetail
+	var tmpSvcMap = make(map[string]*ServiceDetail)
+
+	for _, endpoint := range endpoints {
+		if endpoint.REDMetrics.Avg.IsEmpty() {
 			continue
 		}
-		serviceName := url.SvcName
-		found := false
-		for j, _ := range services {
-			if services[j].ServiceName == serviceName {
-				found = true
-				services[j].EndpointCount++
-				if services[j].ServiceSize < 3 {
-					services[j].Endpoints = append(services[j].Endpoints, url)
-					services[j].ServiceSize++
-					break
-				}
+		if svcDetail, find := tmpSvcMap[endpoint.SvcName]; find {
+			svcDetail.EndpointCount++
+			if sampleCount > 0 && len(svcDetail.Endpoints) > sampleCount {
+				continue
 			}
-		}
-		if !found {
-			newService := ServiceDetail{
-				ServiceName:   serviceName,
+			svcDetail.Endpoints = append(svcDetail.Endpoints, endpoint)
+		} else {
+			svcDetail := ServiceDetail{
+				ServiceName:   endpoint.SvcName,
 				ServiceSize:   1,
 				EndpointCount: 1,
-				Endpoints:     []*prom.EndpointMetrics{url},
+				Endpoints:     []*prom.EndpointMetrics{endpoint},
 			}
-			services = append(services, newService)
+			tmpSvcMap[endpoint.SvcName] = &svcDetail
+			services = append(services, &svcDetail)
 		}
 	}
-
 	return services
-}
-
-func fillOneService(endpoints []*prom.EndpointMetrics) []ServiceDetail {
-	var service []ServiceDetail
-	for _, url := range endpoints {
-		serviceName := url.SvcName
-		found := false
-		for j, _ := range service {
-			if service[j].ServiceName == serviceName {
-				found = true
-				service[j].EndpointCount++
-				service[j].Endpoints = append(service[j].Endpoints, url)
-				service[j].ServiceSize++
-				break
-			}
-		}
-		if !found {
-			newService := ServiceDetail{
-				ServiceName:   serviceName,
-				ServiceSize:   1,
-				EndpointCount: 1,
-				Endpoints:     []*prom.EndpointMetrics{url},
-			}
-			service = append(service, newService)
-		}
-	}
-
-	return service
 }
