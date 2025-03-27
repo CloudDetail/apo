@@ -170,6 +170,10 @@ func (s *sampleWithFirstRecord) AddEvents(events []alert.AlertEvent) {
 
 	remainSize := len(s.eventInput.Ch)
 	for i := 0; i < len(events); i++ {
+		if events[i].Status == alert.StatusResolved {
+			continue
+		}
+
 		if _, find := s.checkedAlert[events[i].AlertID]; find {
 			continue
 		}
