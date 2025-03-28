@@ -4,6 +4,8 @@
 package database
 
 // MenuItem is a menu item on the left or top menu bar.
+//
+// ! Handle the `Key` field carefully, it is a reserved word in MySQL, and must be delimited with the identifier '"'
 type MenuItem struct {
 	ItemID       int    `gorm:"column:item_id;primary_key" json:"itemId"`
 	Key          string `gorm:"column:key;type:varchar(20);uniqueIndex" json:"key"`

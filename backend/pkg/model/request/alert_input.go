@@ -152,7 +152,9 @@ type GetAlertManagerConfigReceverRequest struct {
 }
 
 type AlertRuleFilter struct {
+	// Deprecated: use Groups instead
 	Group    string   `form:"group" json:"group"`
+	Groups   []string `form:"groups" json:"groups"`
 	Alert    string   `form:"alert" json:"alert"`
 	Severity []string `form:"severity" json:"severity"` // alarm level info warning...
 	Keyword  string   `form:"keyword" json:"keyword"`

@@ -294,49 +294,92 @@ function FaultSiteTrace() {
         value: [(maxDuration * 1000).toString()],
       })
     }
-    if (faultTypeList?.includes('normal')) {
-      if (faultTypeList.length === 2) {
-        let type = faultTypeList.includes('slow') ? 'error' : 'slow'
-        filters.push({
-          ...DefaultTraceFilters[type],
-          operation: 'IN',
-          value: ['false'],
-        })
-      } else if (faultTypeList.length === 1) {
-        filters.push({
-          ...DefaultTraceFilters['error'],
-          operation: 'IN',
-          value: ['false'],
-        })
-        filters.push({
-          ...DefaultTraceFilters['slow'],
-          operation: 'IN',
-          value: ['false'],
-        })
+
+  if (faultTypeList?.length >= 1 && faultTypeList?.length <= 3) {
+    // Helper function to create basic filter
+    const createBasicFilter = (type, operator, value) => ({
+      ...DefaultTraceFilters[type],
+      operation: operator,
+      value: [value]
+    });
+
+    // Helper function to create combined filters
+    const createCombinedFilters = (logicalOperator, values, types = ['slow', 'error']) => {
+      const subFilters = types.map((type, index) =>
+        createBasicFilter(type, 'IN', values[index])
+      );
+      return { mergeSep: logicalOperator, subFilters };
+    };
+
+    // Filter creation operations
+    const filterOperations = {
+      // Handle single fault type selection
+      single: {
+        slowAndError: () => ['error', 'slow'].forEach(type =>
+          filters.push(createBasicFilter(type, 'IN', 'true'))
+        ),
+        normal: () => ['error', 'slow'].forEach(type =>
+          filters.push(createBasicFilter(type, 'IN', 'false'))
+        ),
+        slow: () => filters.push(createCombinedFilters('AND', ['true', 'false'])),
+        error: () => filters.push(createCombinedFilters('AND', ['false', 'true']))
+      },
+
+      // Handle two fault type combinations
+      double: {
+        slowSlowAndError: () => filters.push(createBasicFilter('slow', 'IN', 'true')),
+        errorSlowAndError: () => filters.push(createBasicFilter('error', 'IN', 'true')),
+        errorNormal: () => filters.push(createBasicFilter('slow', 'IN', 'false')),
+        slowNormal: () => filters.push(createBasicFilter('error', 'IN', 'false')),
+        normalSlowAndError: () => {
+        filters.push(createCombinedFilters('OR', ['false', 'true']));
+        filters.push(createCombinedFilters('OR', ['true', 'false']));
+        },
+        errorSlow: () => {
+        filters.push(createCombinedFilters('OR', ['false', 'false']));
+        filters.push(createCombinedFilters('OR', ['true', 'true']));
+        }
+      },
+
+      // Handle three fault type combinations (exclusion cases)
+      triple: {
+        noSlowAndError: () => filters.push(createCombinedFilters('OR', ['false', 'false'])),
+        noNormal: () => filters.push(createCombinedFilters('OR', ['true', 'true'])),
+        noSlow: () => filters.push(createCombinedFilters('OR', ['false', 'true'])),
+        noError: () => filters.push(createCombinedFilters('OR', ['true', 'false']))
       }
-    } else {
-      faultTypeList?.forEach((type) => {
-        filters.push({
-          ...DefaultTraceFilters[type],
-          operation: 'IN',
-          value: ['true'],
-        })
-      })
+    };
+
+    // Determine operation based on selection count
+    switch (faultTypeList.length) {
+      case 1:
+        filterOperations.single[faultTypeList[0]]?.();
+        break;
+
+      case 2: {
+        const combinationKey = faultTypeList
+          .sort() // Alphabetical sorting ensures consistent key for same combination
+          .map((word, index) =>
+            index === 0 ? word : word[0].toUpperCase() + word.slice(1) // Convert to camelCase
+          )
+          .join('');
+        filterOperations.double[combinationKey]?.();
+        break;
+      }
+
+      case 3: {
+        const excludedType = ['slowAndError', 'normal', 'slow', 'error']
+          .find(type => !faultTypeList.includes(type));
+        const exclusionKey = `no${excludedType[0].toUpperCase()}${excludedType.slice(1)}`;
+        filterOperations.triple[exclusionKey]?.();
+        break;
+      }
+
+      default:
+      console.warn('Unsupported fault type combination');
     }
-    // if (isSlow) {
-    //   filters.push({
-    //     ...DefaultTraceFilters.isSlow,
-    //     operation: 'IN',
-    //     value: [isSlow.toString()],
-    //   })
-    // }
-    // if (isError) {
-    //   filters.push({
-    //     ...DefaultTraceFilters.isError,
-    //     operation: 'IN',
-    //     value: [isError.toString()],
-    //   })
-    // }
+  }
+
     return filters
   }
   const getTraceData = () => {

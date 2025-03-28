@@ -19,7 +19,7 @@ func (repo *daoRepo) initPermissions() error {
 		model.ROLE_MANAGER: {
 			"服务概览", "工作流", "日志检索", "故障现场日志", "全量日志", "链路追踪",
 			"故障现场链路", "全量链路", "全局资源大盘", "应用基础设施大盘",
-			"应用指标大盘", "中间件大盘", "告警规则", "告警通知", "数据接入", "告警接入",  "告警事件",
+			"应用指标大盘", "中间件大盘", "告警规则", "告警通知", "数据接入", "告警接入", "告警事件",
 			"配置中心",
 		},
 		model.ROLE_VIEWER: {
@@ -42,7 +42,7 @@ func (repo *daoRepo) initPermissions() error {
 
 		// revoke feature permission whose feature has already been deleted
 		err := tx.Model(&AuthPermission{}).
-			Where("permission_id NOT IN ? AND type = ?", featureIDs, model.PERMISSION_TYP_FEATURE).
+			Where(`permission_id NOT IN ? AND "type" = ?`, featureIDs, model.PERMISSION_TYP_FEATURE).
 			Delete(nil).Error
 		if err != nil {
 			return err
@@ -56,7 +56,7 @@ func (repo *daoRepo) initPermissions() error {
 
 			var count int64
 			err = tx.Model(&AuthPermission{}).
-				Where("subject_id = ? AND subject_type = ? AND type = ?", role.RoleID, model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE).
+				Where(`subject_id = ? AND subject_type = ? AND "type" = ?`, role.RoleID, model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE).
 				Count(&count).
 				Error
 			if err != nil {
