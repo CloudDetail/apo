@@ -162,16 +162,21 @@ const AlertEventsPage = () => {
         const { value, row } = props
         return !alertCheckId ? (
           workflowMissToast('alertCheckId')
-        ) : ['unknown', 'skipped'].includes(value) ? (
-          <span className="text-gray-400">{t(value)}</span>
+        ) : ['unknown', 'skipped'].includes(value) ||
+          (value === 'failed' && !row.original.workflowRunId) ? (
+          <span className="text-gray-400 text-xs text-wrap [word-break:auto-phrase] text-center">
+            {t(value)}
+          </span>
         ) : (
           <Button
             type="link"
+            className="text-xs text-wrap [word-break:auto-phrase] "
+            size="small"
             onClick={() => {
               openResultModal(row.original.workflowRunId)
             }}
           >
-            {t(value)}
+            {t(value === 'failed' ? 'failedTo' : value)}
           </Button>
         )
       },
@@ -187,6 +192,8 @@ const AlertEventsPage = () => {
         ) : (
           <Button
             type="link"
+            className="text-xs"
+            size="small"
             onClick={() => {
               openWorkflowModal(workflowParams)
             }}
