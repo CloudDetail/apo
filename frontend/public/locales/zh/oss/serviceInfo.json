@@ -156,7 +156,9 @@
   "timeLine": {
     "errorLogs": "错误日志",
     "logsInfo": "故障现场日志",
-    "traceLogs": "链路日志"
+    "traceLogs": "链路日志",
+    "viewAll": "查看当前时间段所有{{type}}",
+    "viewAllTooltip": "查看 {{startTime}} 至 {{endTime}}期间所有{{type}}"
   },
   "traceInfo": {
     "instanceName": "实例名",

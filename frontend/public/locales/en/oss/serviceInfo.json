@@ -155,8 +155,10 @@
   },
   "timeLine": {
     "errorLogs": "Error Logs",
-    "logsInfo": "Log",
-    "traceLogs": "Trace"
+    "logsInfo": "Logs",
+    "traceLogs": "Trace",
+    "viewAll": "{{type}} in the current time range",
+    "viewAllTooltip": "View all {{type}} from {{startTime}} to {{endTime}}"
   },
   "traceInfo": {
     "instanceName": "Instance",

@@ -11,7 +11,6 @@ import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { getStep } from 'src/core/utils/step'
 import { getServiceErrorInstancesApi } from 'core/api/serviceInfo'
-import { ErrorChain } from './ErrorChain'
 import Timeline from '../TimeLine'
 import { useDebounce } from 'react-use'
 import ErrorCell from 'src/core/components/ErrorInstance/ErrorCell'
@@ -96,32 +95,14 @@ export default function ErrorInstanceInfo() {
         title: t('errorInstance.errorInstanceInfo.currentNodeException'),
         accessor: 'propations',
         Cell: (props) => {
-          const { value, updateSelectedValue, column } = props
-          const update = (item) => {
-            updateSelectedValue(column.id, item)
-          }
-
-          return <ErrorCell data={value} update={update} />
-        },
-      },
-      {
-        title: t('errorInstance.errorInstanceInfo.errorPropagationChain'),
-        accessor: 'chain',
-        dependsOn: 'propations',
-        Cell: (props) => {
-          const { value, dependsValue, originalRow } = props
-          return (
-            <ErrorChain
-              data={dependsValue?.customAbbreviation}
-              instance={originalRow.name}
-              chartId={originalRow.name}
-            />
-          )
+          const { value, row } = props
+          return <ErrorCell data={value} instance={row.values.name} />
         },
       },
       {
         title: t('errorInstance.errorInstanceInfo.logErrorCount'),
         accessor: 'logs',
+        customWidth: 320,
         Cell: (props) => {
           const { value } = props
           return (
@@ -196,7 +177,7 @@ export default function ErrorInstanceInfo() {
         pageIndex: 1,
         total: data?.length || 0,
       },
-      scrollY: 300,
+      scrollY: 500,
     }
   }, [column, data, serviceName])
   return (
