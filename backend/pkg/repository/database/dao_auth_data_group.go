@@ -22,8 +22,8 @@ type AuthDataGroup struct {
 	GroupID     int64  `gorm:"column:data_group_id;index:group_id_idx" json:"-"`
 	Type        string `gorm:"column:type;default:view" json:"type"` // view, edit
 
-	user *User `json:"user,omitempty"`
-	team *Team `json:"team,omitempty"`
+	User *User `gorm:"-" json:"user,omitempty"`
+	Team *Team `gorm:"-" json:"team,omitempty"`
 }
 
 func (adg AuthDataGroup) MarshalJSON() ([]byte, error) {
@@ -31,8 +31,8 @@ func (adg AuthDataGroup) MarshalJSON() ([]byte, error) {
 		"type": adg.Type,
 	}
 
-	if adg.user != nil {
-		userData, err := json.Marshal(adg.user)
+	if adg.User != nil {
+		userData, err := json.Marshal(adg.User)
 		if err != nil {
 			return nil, err
 		}
@@ -46,8 +46,8 @@ func (adg AuthDataGroup) MarshalJSON() ([]byte, error) {
 		}
 	}
 
-	if adg.team != nil {
-		teamData, err := json.Marshal(adg.team)
+	if adg.Team != nil {
+		teamData, err := json.Marshal(adg.Team)
 		if err != nil {
 			return nil, err
 		}
@@ -171,25 +171,69 @@ func (repo *daoRepo) GetGroupAuthDataGroupByGroup(groupID int64, subjectType str
 
 func (repo *daoRepo) GetDataGroupUsers(groupID int64) ([]AuthDataGroup, error) {
 	var ags []AuthDataGroup
-
-	err := repo.db.Preload("User", func(db *gorm.DB) *gorm.DB {
-		return db.Select("user_id, username")
-	}).
+	err := repo.db.
 		Select("subject_id, type").
 		Where("data_group_id = ? AND subject_type = ?", groupID, model.DATA_GROUP_SUB_TYP_USER).
 		Find(&ags).Error
-	return ags, err
+	if err != nil {
+		return nil, err
+	}
+
+	// 如果没有数据，直接返回
+	if len(ags) == 0 {
+		return ags, nil
+	}
+
+	for i := 0; i < len(ags); i++ {
+		ag := ags[i]
+		// 第二步：查询对应的单个 User
+		var user User
+		err = repo.db.Find(&user, "user_id = ?", ag.SubjectID).
+			First(&user).Error
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return nil, err
+		}
+
+		// 将 User 数据赋值给 AuthDataGroup
+		if err == nil { // 如果找到 User
+			ag.User = &user
+		}
+	}
+
+	return ags, nil
 }
 
 func (repo *daoRepo) GetDataGroupTeams(groupID int64) ([]AuthDataGroup, error) {
 	var ags []AuthDataGroup
 
-	err := repo.db.Preload("Team", func(db *gorm.DB) *gorm.DB {
-		return db.Select("team_id, team_name")
-	}).
+	err := repo.db.
 		Select("subject_id, type").
 		Where("data_group_id = ? AND subject_type = ?", groupID, model.DATA_GROUP_SUB_TYP_TEAM).
 		Find(&ags).Error
+	if err != nil {
+		return nil, err
+	}
+	// 如果没有数据，直接返回
+	if len(ags) == 0 {
+		return ags, nil
+	}
+
+	for i := 0; i < len(ags); i++ {
+		ag := ags[i]
+		// 第二步：查询对应的单个 User
+		var team Team
+		err = repo.db.Find(&team, "team_id = ?", ag.SubjectID).
+			First(&team).Error
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return nil, err
+		}
+
+		// 将 User 数据赋值给 AuthDataGroup
+		if err == nil { // 如果找到 User
+			ag.Team = &team
+		}
+	}
+
 	return ags, err
 }
 
