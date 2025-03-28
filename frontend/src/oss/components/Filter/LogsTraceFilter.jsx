@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   getServiceInstancOptionsListApi,
@@ -21,7 +21,7 @@ import TraceErrorType from 'src/oss/views/trace/component/TraceErrorType'
 import { useTranslation } from 'react-i18next'
 
 const LogsTraceFilter = React.memo(({ type }) => {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'oss/trace'])
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [serviceList, setServiceList] = useState([])
@@ -41,8 +41,9 @@ const LogsTraceFilter = React.memo(({ type }) => {
   // filter
   const [minDuration, setMinDuration] = useState(null)
   const [maxDuration, setMaxDuration] = useState(null)
-  const [faultTypeList, setFaultTypeList] = useState([])
+  const [faultTypeList, setFaultTypeList] = useState(['slow', 'error'])
   const [traceType, setTraceType] = useState('TraceID')
+  const [isInitialized, setIsInitialized] = useState(false)
   const [urlParam, setUrlParam] = useState({
     service: '',
     instance: '',
@@ -61,6 +62,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     { label: <TraceErrorType type="slow" />, value: 'slow' },
     { label: <TraceErrorType type="error" />, value: 'error' },
     { label: <TraceErrorType type="normal" />, value: 'normal' },
+    { label: <TraceErrorType type="slowAndError" />, value: 'slowAndError' },
   ]
   //trace more filter
   const [visible, setVisible] = useState(true)
@@ -163,6 +165,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
             endpoint: inputEndpoint,
             minDuration,
             maxDuration,
+            faultTypeList
           })
         } else if (selectServiceName === storeService) {
           getInstanceListData()
@@ -201,6 +204,9 @@ const LogsTraceFilter = React.memo(({ type }) => {
             endpoint: inputEndpoint,
             instanceOption: res,
             namespace: selectNamespace,
+            minDuration,
+            maxDuration,
+            faultTypeList
           })
         })
         .catch((error) => {
@@ -222,7 +228,21 @@ const LogsTraceFilter = React.memo(({ type }) => {
       })
       .finally(() => {})
   }
+  // Initialize
   useEffect(() => {
+    clearUrlParamsState()
+
+    const urlFaultType = searchParams.get('faultTypeList')
+    if (!urlFaultType) {
+      updateUrlParamsState({
+        faultTypeList: ['slow', 'error'],
+      });
+    }
+
+    setIsInitialized(true)
+  }, [])
+  useEffect(() => {
+    if (!isInitialized) return
     const urlService = searchParams.get('service') ?? ''
     const urlInstance = searchParams.get('instance') ?? ''
     const urlTraceId = searchParams.get('traceId') ?? ''
@@ -263,6 +283,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     setMaxDuration(maxDuration)
     setSelectNamespace(namespace)
     setFaultTypeList(faultTypeListValue)
+
     setUrlParam({
       ...urlParam,
       service: urlService,
@@ -274,7 +295,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
       maxDuration,
       faultTypeList: faultTypeListValue,
     })
-  }, [searchParams])
+  }, [searchParams, isInitialized])
   useEffect(() => {
     if (selectServiceName) {
       getInstanceListData()
@@ -283,9 +304,6 @@ const LogsTraceFilter = React.memo(({ type }) => {
       // onChangeInstance('')
     }
   }, [selectServiceName])
-  useEffect(() => {
-    clearUrlParamsState()
-  }, [])
   useEffect(() => {
     let changeTime = false
     if (startTime !== urlParam.startTime) {
@@ -340,7 +358,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
       needChangeUrl = true
     }
 
-    if ('faultTypeList' in props && props.faultTypeList.join(',') !== urlParam.faultTypeList) {
+    if ('faultTypeList' in props && props.faultTypeList !== null && props.faultTypeList.join(',') !== urlParam.faultTypeList) {
       params.set('faultTypeList', props.faultTypeList.join(','))
       needChangeUrl = true
     }
@@ -355,7 +373,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
     <>
       <div className="flex flex-row my-2 justify-between">
         <div className="flex flex-row  flex-wrap">
-          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px] w-[250px]">
+          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
             <span className="text-nowrap">{t('logsTraceFilter.nameSpaceLabel')}：</span>
             <CustomSelect
               options={namespaceList}
@@ -364,7 +382,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
               isClearable
             />
           </div>
-          <div className="flex flex-row items-center mr-5 mt-2 w-[250px]">
+          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
             <span className="text-nowrap">{t('logsTraceFilter.applicationLabel')}：</span>
             <div className="flex-1 w-0">
               <CustomSelect
@@ -375,7 +393,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
               />
             </div>
           </div>
-          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px] w-[250px]">
+          <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
             <span className="text-nowrap">{t('logsTraceFilter.instanceLabel')}：</span>
             <div className="flex-1">
               <CustomSelect
@@ -386,6 +404,16 @@ const LogsTraceFilter = React.memo(({ type }) => {
               />
             </div>
           </div>
+          {type === 'logs' && (
+            <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
+              <span className="text-nowrap ">{t('oss/trace:trace.traceId')}：</span>
+              <Input
+                placeholder={t('logsTraceFilter.search')}
+                value={inputTraceId}
+                onChange={onChangeTraceId}
+              />
+            </div>
+          )}
         </div>
         <div className="flex-grow-0 flex-shrink-0 flex">
           <DateTimeRangePickerCom type={type} />

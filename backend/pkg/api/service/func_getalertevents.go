@@ -11,8 +11,8 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
@@ -58,7 +58,7 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 		if err != nil {
 			c.HandleError(err, code.AuthError, &response.GetAlertEventsResponse{
 				TotalCount: 0,
-				EventList:  []clickhouse.PagedAlertEvent{},
+				EventList:  []alert.AlertEvent{},
 			})
 			return
 		}
@@ -74,7 +74,7 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 		if resp == nil {
 			resp = &response.GetAlertEventsResponse{
 				TotalCount: 0,
-				EventList:  []clickhouse.PagedAlertEvent{},
+				EventList:  []alert.AlertEvent{},
 			}
 		}
 		c.Payload(resp)

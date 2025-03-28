@@ -784,7 +784,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/alert.AlerEnrichRuleConfigRequest"
+                            "$ref": "#/definitions/alert.AlertEnrichRuleConfigRequest"
                         }
                     }
                 ],
@@ -3553,17 +3553,6 @@ const docTemplate = `{
                 "tags": [
                     "API.metric"
                 ],
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/metric.QueryMetricsRequest"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -6063,6 +6052,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/service/redcharts": {
+            "post": {
+                "description": "Get services' red charts.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.service"
+                ],
+                "summary": "Get services' red charts.",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetServiceREDChartsRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetServiceREDChartsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/service/relation": {
             "get": {
                 "description": "the call relationship between the upstream and downstream service",
@@ -8289,12 +8324,6 @@ const docTemplate = `{
                 "endTime": {
                     "type": "string"
                 },
-                "enrichTags": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
                 "group": {
                     "type": "string"
                 },
@@ -8306,6 +8335,14 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "rawTags": {
+                    "description": "HACK the existing clickhouse query uses ` + "`" + `tags` + "`" + ` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/alert.RawTags"
+                        }
+                    ]
                 },
                 "receivedTime": {
                     "type": "string"
@@ -8323,9 +8360,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tags": {
-                    "description": "HACK the existing clickhouse query uses ` + "`" + `tags` + "`" + ` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
                     "type": "object",
-                    "additionalProperties": {}
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "updateTime": {
                     "type": "string"
@@ -8344,7 +8382,22 @@ const docTemplate = `{
                 }
             }
         },
-        "alert.AlerEnrichRuleConfigRequest": {
+        "alert.AlertEnrichCondition": {
+            "type": "object",
+            "properties": {
+                "expr": {
+                    "type": "string"
+                },
+                "fromField": {
+                    "type": "string"
+                },
+                "operation": {
+                    "description": "support match,not match,gt,lt,ge,le,eq",
+                    "type": "string"
+                }
+            }
+        },
+        "alert.AlertEnrichRuleConfigRequest": {
             "type": "object",
             "properties": {
                 "enrichRuleConfigs": {
@@ -8357,21 +8410,6 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "sourceId": {
-                    "type": "string"
-                }
-            }
-        },
-        "alert.AlertEnrichCondition": {
-            "type": "object",
-            "properties": {
-                "expr": {
-                    "type": "string"
-                },
-                "fromField": {
-                    "type": "string"
-                },
-                "operation": {
-                    "description": "support match,not match,gt,lt,ge,le,eq",
                     "type": "string"
                 }
             }
@@ -8616,6 +8654,10 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "alert.RawTags": {
+            "type": "object",
+            "additionalProperties": {}
         },
         "alert.SetDefaultAlertEnrichRuleRequest": {
             "type": "object",
@@ -9020,19 +9062,19 @@ const docTemplate = `{
         "clickhouse.PagedAlertEvent": {
             "type": "object",
             "properties": {
+                "alertId": {
+                    "type": "string"
+                },
                 "createTime": {
-                    "description": "fault trigger time",
                     "type": "string"
                 },
                 "detail": {
                     "type": "string"
                 },
                 "endTime": {
-                    "description": "Recovery time (only present at recovery)",
                     "type": "string"
                 },
                 "group": {
-                    "description": "Fault group information",
                     "type": "string"
                 },
                 "id": {
@@ -9041,24 +9083,28 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "raw_tags": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                "rawTags": {
+                    "description": "HACK the existing clickhouse query uses ` + "`" + `tags` + "`" + ` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/alert.RawTags"
+                        }
+                    ]
                 },
                 "receivedTime": {
-                    "description": "Failure event reception time (used to record data connection, no business meaning)",
                     "type": "string"
                 },
                 "severity": {
-                    "$ref": "#/definitions/model.SeverityLevel"
+                    "type": "string"
                 },
                 "source": {
                     "type": "string"
                 },
+                "sourceId": {
+                    "type": "string"
+                },
                 "status": {
-                    "$ref": "#/definitions/model.Status"
+                    "type": "string"
                 },
                 "tags": {
                     "type": "object",
@@ -9067,7 +9113,6 @@ const docTemplate = `{
                     }
                 },
                 "updateTime": {
-                    "description": "Last time the fault occurred",
                     "type": "string"
                 }
             }
@@ -10159,61 +10204,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "describe": {
-                    "description": "描述",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "params": {
-                    "description": "Targets []Target ` + "`" + `json:\"targets\"` + "`" + ` // 目标列表",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "title": {
-                    "description": "查询标题",
                     "type": "string"
                 },
                 "unit": {
-                    "description": "单位",
                     "type": "string"
-                }
-            }
-        },
-        "metric.QueryMetricsRequest": {
-            "type": "object",
-            "properties": {
-                "endTime": {
-                    "type": "integer"
-                },
-                "metricIDs": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "metricName": {
-                    "type": "string"
-                },
-                "metricNames": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "params": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "startTime": {
-                    "type": "integer"
-                },
-                "step": {
-                    "type": "integer"
                 }
             }
         },
@@ -11081,6 +11087,32 @@ const docTemplate = `{
                 "traceId": {
                     "description": "TraceId",
                     "type": "string"
+                }
+            }
+        },
+        "request.GetServiceREDChartsRequest": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "endpointList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "serviceList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "startTime": {
+                    "type": "integer"
+                },
+                "step": {
+                    "type": "integer"
                 }
             }
         },
@@ -12430,6 +12462,15 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetServiceREDChartsResponse": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                    "$ref": "#/definitions/response.RedCharts"
+                }
+            }
+        },
         "response.GetServiceRouteResponse": {
             "type": "object",
             "properties": {
@@ -13231,6 +13272,29 @@ const docTemplate = `{
                 "weekOverDay": {
                     "description": "Week-over-Week Growth Rate",
                     "type": "number"
+                }
+            }
+        },
+        "response.RedCharts": {
+            "type": "object",
+            "properties": {
+                "errorRate": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number"
+                    }
+                },
+                "latency": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number"
+                    }
+                },
+                "tps": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number"
+                    }
                 }
             }
         },

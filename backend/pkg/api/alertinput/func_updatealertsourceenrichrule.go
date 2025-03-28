@@ -18,13 +18,13 @@ import (
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json
-// @Param Request body alert.AlerEnrichRuleConfigRequest true "Update Config"
+// @Param Request body alert.AlertEnrichRuleConfigRequest true "Update Config"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/source/enrich/update [post]
 func (h *handler) UpdateAlertSourceEnrichRule() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(alert.AlerEnrichRuleConfigRequest)
+		req := new(alert.AlertEnrichRuleConfigRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

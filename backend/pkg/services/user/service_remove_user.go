@@ -6,6 +6,7 @@ package user
 import (
 	"context"
 	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
@@ -31,6 +32,11 @@ func (s *service) RemoveUser(userID int64) error {
 		roleIDs = append(roleIDs, role.RoleID)
 	}
 
+	user, err := s.dbRepo.GetUserInfo(userID)
+	if err != nil {
+		return err
+	}
+
 	var deleteAuthDataGroupFunc = func(ctx context.Context) error {
 		return s.dbRepo.DeleteAuthDataGroup(ctx, userID, model.DATA_GROUP_SUB_TYP_USER)
 	}
@@ -43,9 +49,17 @@ func (s *service) RemoveUser(userID int64) error {
 		return s.dbRepo.RemoveUser(ctx, userID)
 	}
 
+	var removeDifyUserFunc = func(ctx context.Context) error {
+		resp, err := s.difyRepo.RemoveUser(user.Username)
+		if err != nil || resp.Result != "success" {
+			return errors.New("failed to remove user in dify")
+		}
+		return nil
+	}
+
 	var revokeFeaturePermFunc = func(ctx context.Context) error {
 		return s.dbRepo.RevokePermission(ctx, userID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE, nil)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), revokeFeaturePermFunc, removeUserFunc, removeFromTeam, deleteAuthDataGroupFunc)
+	return s.dbRepo.Transaction(context.Background(), revokeFeaturePermFunc, removeUserFunc, removeDifyUserFunc, removeFromTeam, deleteAuthDataGroupFunc)
 }

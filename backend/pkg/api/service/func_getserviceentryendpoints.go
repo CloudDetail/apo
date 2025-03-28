@@ -76,7 +76,6 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 		if err == nil {
 			startTime := time.UnixMicro(req.StartTime)
 			endTime := time.UnixMicro(req.EndTime)
-			sortRule := serviceoverview.DODThreshold
 			step := time.Duration(req.Step * 1000)
 
 			for _, entryNode := range entryNodes {
@@ -85,7 +84,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 					ContainsEndpointName: entryNode.Endpoint,
 					Namespace:            "",
 				}
-				endpointResps, err = h.serviceoverviewService.GetServicesEndPointData(startTime, endTime, step, filter, sortRule)
+				endpointResps, err = h.serviceoverviewService.GetServicesEndpointDataWithChart(startTime, endTime, step, filter, request.DODThreshold)
 				if err == nil {
 					for _, endpointResp := range endpointResps {
 						if serviceResp, found := result[endpointResp.ServiceName]; found {

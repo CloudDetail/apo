@@ -81,13 +81,16 @@ type Repo interface {
 	ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTableTTLMap) error
 	GetTables(tables []model.Table) ([]model.TablesQuery, error)
 
+	// ========== alert =================
+	GetAlertsWithEventCount(startTime, endTime time.Time, filter *alert.AlertEventFilter, maxSize int) ([]alert.AlertWithEventCount, uint64, error)
+
 	// ========== alert events ==========
 	// Query the alarm events sampled by group and level, and sampleCount the number of samples for each group and level.
 	GetAlertEventCountGroupByInstance(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]model.AlertEventCount, error)
 	// Query alarm events sampled by labels, sampleCount the number of samples for each label.
 	GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error)
 	// Query alarm events by pageParam
-	GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam) ([]PagedAlertEvent, int, error)
+	GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam) ([]alert.AlertEvent, uint64, error)
 	// ========== k8s events ============
 	// SeverityNumber > 9 (warning)
 	GetK8sAlertEventsSample(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) ([]K8sEvents, error)
@@ -103,7 +106,7 @@ type Repo interface {
 	GetFlameGraphData(startTime, endTime int64, nodeName string, pid, tid int64, sampleType, spanId, traceId string) (*[]FlameGraphData, error)
 
 	AddWorkflowRecords(ctx context.Context, records []model.WorkflowRecord) error
-	GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest) ([]alert.AEventWithWRecord, int64, error)
+	GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error)
 
 	integration.Input
 }
@@ -111,15 +114,10 @@ type Repo interface {
 type chRepo struct {
 	conn     driver.Conn
 	database string
-	AvailableFilters
+	availableFilters
 	db *sql.DB
 
 	integration.Input
-}
-
-type AvailableFilters struct {
-	Filters          []request.SpanTraceFilter
-	FilterUpdateTime time.Time
 }
 
 func New(logger *zap.Logger, address []string, database string, username string, password string) (Repo, error) {
@@ -169,8 +167,7 @@ func New(logger *zap.Logger, address []string, database string, username string,
 	now := time.Now()
 	filters, err := repo.UpdateFilterKey(now.Add(-48*time.Hour), now)
 	if err == nil {
-		repo.Filters = filters
-		repo.FilterUpdateTime = now
+		repo.SetAvailableFilters(filters, now)
 	}
 
 	repo.Input, err = integration.NewInputRepo(repo.conn, repo.database)

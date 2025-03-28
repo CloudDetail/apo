@@ -30,14 +30,14 @@ func NewDifyClient(client *http.Client, url string) *DifyClient {
 	}
 }
 
-func (c *DifyClient) alertCheck(req *DifyRequest, authorization string, user string) (*AlertCheckRespose, error) {
+func (c *DifyClient) alertCheck(req *DifyRequest, authorization string, user string) (*AlertCheckResponse, error) {
 	req.ResponseMode = "blocking"
 	resp, err := c.WorkflowsRun(req, authorization, user)
 	if err != nil {
 		return nil, err
 	}
 	if resp, ok := resp.(*CompletionResponse); ok {
-		return &AlertCheckRespose{resp}, err
+		return &AlertCheckResponse{resp}, err
 	}
 	return nil, fmt.Errorf("alertCheck must be run in blocking mode")
 }
@@ -45,7 +45,7 @@ func (c *DifyClient) alertCheck(req *DifyRequest, authorization string, user str
 func (c *DifyClient) WorkflowsRun(req *DifyRequest, authorization string, user string) (DifyResponse, error) {
 	req.User = user
 	jsonBytes, _ := json.Marshal(req)
-	fullReq, _ := http.NewRequest("POST", c.URL, bytes.NewReader(jsonBytes))
+	fullReq, _ := http.NewRequest("POST", c.URL+"/v1/workflows/run", bytes.NewReader(jsonBytes))
 
 	fullReq.Header.Set("Content-Type", "application/json")
 	fullReq.Header.Set("Authorization", authorization)
@@ -113,3 +113,35 @@ func (r *CompletionResponse) _DifyResponse() {}
 type ChunkCompletionResponse struct{}
 
 func (r *ChunkCompletionResponse) _DifyResponse() {}
+
+type AlertCheckResponse struct {
+	resp *CompletionResponse
+}
+
+func (r *AlertCheckResponse) WorkflowRunID() string {
+	return r.resp.WorkflowRunID
+}
+
+// UnixMicro Timestamp
+func (r *AlertCheckResponse) CreatedAt() int64 {
+	return r.resp.Data.CreatedAt * 1e6
+}
+
+func (r *AlertCheckResponse) getOutput(defaultV string) string {
+	if r.resp.Data.Status != "succeeded" {
+		return "failed: " + string(r.resp.Data.Outputs)
+	}
+
+	var res map[string]string
+	err := json.Unmarshal(r.resp.Data.Outputs, &res)
+	if err != nil {
+		return defaultV
+	}
+
+	text, find := res["text"]
+	if !find {
+		return defaultV
+	}
+
+	return text
+}

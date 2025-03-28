@@ -8,8 +8,8 @@ import { useSelector } from 'react-redux'
 import { selectProcessedTimeRange, timeRangeList } from 'src/core/store/reducers/timeRangeReducer'
 
 //receiving 'dashboardKey' as a prop ..
-function IframeDashboard({ dashboardKey }) {
-  const [src, setSrc] = useState()
+function IframeDashboard({ dashboardKey, srcProp }) {
+  const [src, setSrc] = useState(srcProp)
   const storeTimeRange = useSelector((state) => state.timeRange)
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
   const menuItems = useSelector((state) => state.userReducer.menuItems);
@@ -29,6 +29,11 @@ function IframeDashboard({ dashboardKey }) {
       }
     }
   }
+
+  // Update src when srcProp changes 
+  useEffect(() => { 
+    setSrc(srcProp) 
+  }, [srcProp])
 
   useEffect(() => {
     const iframe = iframeRef.current
@@ -133,12 +138,12 @@ function IframeDashboard({ dashboardKey }) {
       return;
     }
     let baseUrl = dashItem.router.page.url;
-  
+
     // Append time range parameters
-    // If baseUrl already contains '?', it means there are initial query parameters, 
+    // If baseUrl already contains '?', it means there are initial query parameters,
     // so use '&' to concatenate additional parameters.
     let connector = baseUrl.includes('?') ? '&' : '?';
-  
+
     if (storeTimeRange.rangeType) {
       // If rangeType exists, find it in timeRangeList
       const storeTimeRangeItem = timeRangeList.find(
@@ -151,11 +156,11 @@ function IframeDashboard({ dashboardKey }) {
       // Otherwise, use processedTimeRange
       baseUrl += `${connector}from=${Math.round(startTime / 1000)}&to=${Math.round(endTime / 1000)}`;
     }
-  
+
     setSrc(baseUrl);
   }, [dashboardKey, menuItems, storeTimeRange, startTime, endTime]);
-  
- 
+
+
 
   return (
     <iframe

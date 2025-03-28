@@ -4,20 +4,20 @@
 package router
 
 import (
-	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
+	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/workflow"
 
 	"go.uber.org/zap"
 
 	"github.com/CloudDetail/apo/backend/config"
-	internal_database "github.com/CloudDetail/apo/backend/internal/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	pkg_database "github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -27,19 +27,19 @@ import (
 )
 
 type resource struct {
-	mux         *core.Mux
-	logger      *zap.Logger
-	ch          clickhouse.Repo
-	prom        prometheus.Repo
-	pol         polarisanalyzer.Repo
-	internal_db internal_database.Repo
-	pkg_db      pkg_database.Repo
-	cache       cache.Repo
+	mux    *core.Mux
+	logger *zap.Logger
+	ch     clickhouse.Repo
+	prom   prometheus.Repo
+	pol    polarisanalyzer.Repo
+	pkg_db pkg_database.Repo
+	cache  cache.Repo
 
 	k8sApi             kubernetes.Repo
 	deepflowClickhouse clickhouse.Repo
 	jaegerRepo         jaeger.JaegerRepo
 	alertWorkflow      *workflow.AlertWorkflow
+	dify               dify.DifyRepo
 }
 
 type Server struct {
@@ -58,13 +58,6 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	r := new(resource)
 	r.logger = logger
 	r.mux = mux
-
-	// Initialize Database
-	dbRepo, err := internal_database.New(logger)
-	if err != nil {
-		logger.Fatal("new database err", zap.Error(err))
-	}
-	r.internal_db = dbRepo
 
 	// initialize sqlite
 	pkgRepo, err := pkg_database.New(logger)
@@ -128,12 +121,23 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	jaegerRepo, err := jaeger.New()
 	r.jaegerRepo = jaegerRepo
 
+	difyRepo, err := dify.New()
+	r.dify = difyRepo
+
 	difyConfig := config.Get().Dify
 	difyClient := workflow.NewDifyClient(DefaultDifyFastHttpClient, difyConfig.URL)
-	r.alertWorkflow = workflow.New(r.ch, difyClient, difyConfig.APIKeys.AlertCheck, difyConfig.User, r.logger)
-	r.alertWorkflow.EventAnalyzeFlowId = difyConfig.FlowIDs.AlertEventAnalyze
-	r.alertWorkflow.CheckId = difyConfig.FlowIDs.AlertCheck
-	r.alertWorkflow.Run(context.Background())
+	r.alertWorkflow = workflow.New(r.ch, difyClient, r.logger,
+		workflow.WithAlertAnalyzeFlow(difyConfig.FlowIDs.AlertEventAnalyze),
+		workflow.WithAlertCheckFlow(&workflow.AlertCheckCfg{
+			FlowId:         difyConfig.FlowIDs.AlertCheck,
+			APIKey:         difyConfig.APIKeys.AlertCheck,
+			Authorization:  fmt.Sprintf("Bearer %s", difyConfig.APIKeys.AlertCheck),
+			User:           "apo-backend",
+			MaxConcurrency: difyConfig.MaxConcurrency,
+			CacheMinutes:   difyConfig.CacheMinutes,
+			Sampling:       difyConfig.Sampling,
+		}),
+	)
 
 	// Set API routing
 	setApiRouter(r)

@@ -6,6 +6,7 @@ package user
 import (
 	"context"
 	"errors"
+	"net/mail"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -14,7 +15,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
+func checkUserName(username string) error {
+	_, err := mail.ParseAddress(username + "@apo.com")
+	if err != nil {
+		return model.NewErrWithMessage(errors.New("username format invaild"), code.UserNameError)
+	}
+	return nil
+}
+
 func (s *service) CreateUser(req *request.CreateUserRequest) error {
+	if err := checkUserName(req.Username); err != nil {
+		return err
+	}
+
 	if err := checkPasswordComplexity(req.Password); err != nil {
 		return err
 	}
@@ -71,6 +84,14 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 		return s.dbRepo.AssignUserToTeam(ctx, user.UserID, req.TeamList)
 	}
 
+	var createDifyUserFunc = func(ctx context.Context) error {
+		resp, err := s.difyRepo.AddUser(req.Username, req.Password, "admin")
+		if err != nil || resp.Result != "success" {
+			return errors.New("failed to create user in dify")
+		}
+		return nil
+	}
+
 	var createUserFunc = func(ctx context.Context) error {
 		return s.dbRepo.CreateUser(ctx, user)
 	}
@@ -79,5 +100,5 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 		return s.dbRepo.GrantRoleWithUser(ctx, user.UserID, req.RoleList)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), createUserFunc, grantRoleFunc, assignTeamFunc)
+	return s.dbRepo.Transaction(context.Background(), createUserFunc, createDifyUserFunc, grantRoleFunc, assignTeamFunc)
 }

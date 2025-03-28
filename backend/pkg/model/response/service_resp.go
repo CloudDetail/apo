@@ -5,6 +5,7 @@ package response
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -116,6 +117,14 @@ type ServiceDetail struct {
 	ErrorRate   TempChartObject `json:"errorRate"`
 	Tps         TempChartObject `json:"tps"` // FIXME name is tps, actual requests per minute
 }
+
+type RedCharts struct {
+	Latency   map[int64]float64 `json:"latency"`
+	ErrorRate map[int64]float64 `json:"errorRate"`
+	RPS       map[int64]float64 `json:"tps"`
+}
+
+type GetServiceREDChartsResponse map[string]map[string]RedCharts
 
 type ServiceRes struct {
 	ServiceName          string          `json:"serviceName"`
@@ -239,9 +248,9 @@ func (v *K8sEventCountValues) AddCount(dao clickhouse.K8sEventsCount) {
 }
 
 type GetAlertEventsResponse struct {
-	TotalCount int `json:"totalCount"`
+	TotalCount uint64 `json:"totalCount"`
 
-	EventList []clickhouse.PagedAlertEvent `json:"events"`
+	EventList []alert.AlertEvent `json:"events"`
 }
 
 type GetAlertEventsSampleResponse struct {
@@ -264,6 +273,15 @@ type EntryInstanceData struct {
 	Timestamp *int64          `json:"timestamp"`
 	model.AlertStatus
 	AlertReason model.AlertReason `json:"alertReason"`
+}
+
+type AlertRelatedEntry struct {
+	ServiceName string   `json:"serviceName"`
+	Namespaces  []string `json:"namespaces,omitempty"`
+
+	ServiceDetail
+
+	RelatedAlertRate float64 `json:"relatedAlertRate"`
 }
 
 func (entryInstanceData *EntryInstanceData) AddNamespaces(namespaces []string) {

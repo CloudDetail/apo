@@ -13,4 +13,6 @@ const (
 	DB_MYSQL = "mysql"
 	// sqllite
 	DB_SQLLITE = "sqllite"
+	// postgres
+	DB_POSTGRES = "postgres"
 )

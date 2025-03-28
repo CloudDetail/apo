@@ -10,10 +10,6 @@ definitions:
         type: string
       endTime:
         type: string
-      enrichTags:
-        additionalProperties:
-          type: string
-        type: object
       group:
         type: string
       id:
@@ -22,6 +18,12 @@ definitions:
         type: string
       name:
         type: string
+      rawTags:
+        allOf:
+        - $ref: '#/definitions/alert.RawTags'
+        description: |-
+          HACK the existing clickhouse query uses `tags` as the filter field
+          so enrichTags in ch is named as 'tags' to filter new alertInput
       receivedTime:
         type: string
       severity:
@@ -33,10 +35,8 @@ definitions:
       status:
         type: string
       tags:
-        additionalProperties: {}
-        description: |-
-          HACK the existing clickhouse query uses `tags` as the filter field
-          so enrichTags in ch is named as 'tags' to filter new alertInput
+        additionalProperties:
+          type: string
         type: object
       updateTime:
         type: string
@@ -49,17 +49,6 @@ definitions:
       workflowRunId:
         type: string
     type: object
-  alert.AlerEnrichRuleConfigRequest:
-    properties:
-      enrichRuleConfigs:
-        items:
-          $ref: '#/definitions/alert.AlertEnrichRuleVO'
-        type: array
-      setAsDefault:
-        type: boolean
-      sourceId:
-        type: string
-    type: object
   alert.AlertEnrichCondition:
     properties:
       expr:
@@ -68,6 +57,17 @@ definitions:
         type: string
       operation:
         description: support match,not match,gt,lt,ge,le,eq
+        type: string
+    type: object
+  alert.AlertEnrichRuleConfigRequest:
+    properties:
+      enrichRuleConfigs:
+        items:
+          $ref: '#/definitions/alert.AlertEnrichRuleVO'
+        type: array
+      setAsDefault:
+        type: boolean
+      sourceId:
         type: string
     type: object
   alert.AlertEnrichRuleVO:
@@ -226,6 +226,9 @@ definitions:
             type: string
           type: array
         type: object
+    type: object
+  alert.RawTags:
+    additionalProperties: {}
     type: object
   alert.SetDefaultAlertEnrichRuleRequest:
     properties:
@@ -496,41 +499,41 @@ definitions:
     type: object
   clickhouse.PagedAlertEvent:
     properties:
+      alertId:
+        type: string
       createTime:
-        description: fault trigger time
         type: string
       detail:
         type: string
       endTime:
-        description: Recovery time (only present at recovery)
         type: string
       group:
-        description: Fault group information
         type: string
       id:
         type: string
       name:
         type: string
-      raw_tags:
-        additionalProperties:
-          type: string
-        type: object
+      rawTags:
+        allOf:
+        - $ref: '#/definitions/alert.RawTags'
+        description: |-
+          HACK the existing clickhouse query uses `tags` as the filter field
+          so enrichTags in ch is named as 'tags' to filter new alertInput
       receivedTime:
-        description: Failure event reception time (used to record data connection,
-          no business meaning)
         type: string
       severity:
-        $ref: '#/definitions/model.SeverityLevel'
+        type: string
       source:
         type: string
+      sourceId:
+        type: string
       status:
-        $ref: '#/definitions/model.Status'
+        type: string
       tags:
         additionalProperties:
           type: string
         type: object
       updateTime:
-        description: Last time the fault occurred
         type: string
     type: object
   clickhouse.ProfilingEvent:
@@ -1276,44 +1279,17 @@ definitions:
   metric.QueryInfo:
     properties:
       describe:
-        description: 描述
         type: string
       id:
         type: integer
       params:
-        description: Targets []Target `json:"targets"` // 目标列表
         items:
           type: string
         type: array
       title:
-        description: 查询标题
         type: string
       unit:
-        description: 单位
         type: string
-    type: object
-  metric.QueryMetricsRequest:
-    properties:
-      endTime:
-        type: integer
-      metricIDs:
-        items:
-          type: integer
-        type: array
-      metricName:
-        type: string
-      metricNames:
-        items:
-          type: string
-        type: array
-      params:
-        additionalProperties:
-          type: string
-        type: object
-      startTime:
-        type: integer
-      step:
-        type: integer
     type: object
   metric.QueryMetricsResult:
     properties:
@@ -1899,6 +1875,23 @@ definitions:
         type: string
     required:
     - endTime
+    type: object
+  request.GetServiceREDChartsRequest:
+    properties:
+      endTime:
+        type: integer
+      endpointList:
+        items:
+          type: string
+        type: array
+      serviceList:
+        items:
+          type: string
+        type: array
+      startTime:
+        type: integer
+      step:
+        type: integer
     type: object
   request.GetServiceRouteRequest:
     properties:
@@ -2814,6 +2807,12 @@ definitions:
           type: string
         type: array
     type: object
+  response.GetServiceREDChartsResponse:
+    additionalProperties:
+      additionalProperties:
+        $ref: '#/definitions/response.RedCharts'
+      type: object
+    type: object
   response.GetServiceRouteResponse:
     properties:
       routeRule:
@@ -3349,6 +3348,21 @@ definitions:
       weekOverDay:
         description: Week-over-Week Growth Rate
         type: number
+    type: object
+  response.RedCharts:
+    properties:
+      errorRate:
+        additionalProperties:
+          type: number
+        type: object
+      latency:
+        additionalProperties:
+          type: number
+        type: object
+      tps:
+        additionalProperties:
+          type: number
+        type: object
     type: object
   response.RefreshTokenResponse:
     properties:
@@ -4014,7 +4028,7 @@ paths:
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/alert.AlerEnrichRuleConfigRequest'
+          $ref: '#/definitions/alert.AlertEnrichRuleConfigRequest'
       produces:
       - application/json
       responses:
@@ -5819,13 +5833,6 @@ paths:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/metric.QueryMetricsRequest'
       produces:
       - application/json
       responses:
@@ -7505,6 +7512,36 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Get Polaris metric Analysis
+      tags:
+      - API.service
+  /api/service/redcharts:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get services' red charts.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetServiceREDChartsRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetServiceREDChartsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get services' red charts.
       tags:
       - API.service
   /api/service/relation:

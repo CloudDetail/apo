@@ -50,6 +50,7 @@ const (
 	GetServiceEntryEndpointsError       = "B0323"
 	GetServiceRYGLightError             = "B0324"
 	GetNamespaceListError               = "B0325"
+	GetServiceREDChartsError            = "B0326"
 
 	GetFaultLogPageListError = "B0401"
 	GetFaultLogContentError  = "B0402"
@@ -214,6 +215,7 @@ const (
 	APINotExist                       = "B0944"
 	AuthError                         = "B0945"
 	GetGroupSubsError                 = "B0946"
+	UserNameError                     = "B0947"
 
 	CreateTeamError       = "B1101"
 	TeamAlreadyExistError = "B1102"

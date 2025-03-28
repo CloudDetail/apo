@@ -4,7 +4,7 @@
  */
 
 import { Button, Card, Modal, Pagination, Tooltip } from 'antd'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactJson from 'react-json-view'
 import { useSelector } from 'react-redux'
@@ -36,7 +36,7 @@ const AlertEventsPage = () => {
   const [workflowUrl, setWorkflowUrl] = useState(null)
   const [workflowId, setWorkflowId] = useState(null)
   const [alertCheckId, setAlertCheckId] = useState(null)
-
+  const timerRef = useRef(null)
   const workflowMissToast = (type: 'alertCheckId' | 'workflowId') => {
     return (
       <Tooltip title={type === 'alertCheckId' ? t('missToast1') : t('missToast2')}>
@@ -60,13 +60,28 @@ const AlertEventsPage = () => {
       })
       setWorkflowId(res.alertEventAnalyzeWorkflowId)
       setAlertCheckId(res.alertCheckId)
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+      }
+
+      timerRef.current = setTimeout(
+        () => {
+          getAlertEvents()
+        },
+        5 * 60 * 1000,
+      )
     }),
   ]
   useEffect(() => {
     if (startTime && endTime) {
       getAlertEvents()
     }
-  }, [pagination.pageIndex, startTime, endTime])
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+      }
+    }
+  }, [pagination.pageIndex, pagination.pageSize, startTime, endTime])
   function openWorkflowModal(workflowParams) {
     let result = '/dify/app/' + workflowId + '/run?'
     const params = Object.entries(workflowParams)
@@ -147,16 +162,21 @@ const AlertEventsPage = () => {
         const { value, row } = props
         return !alertCheckId ? (
           workflowMissToast('alertCheckId')
-        ) : value === 'unknown' ? (
-          <span className="text-gray-400">{t(value)}</span>
+        ) : ['unknown', 'skipped'].includes(value) ||
+          (value === 'failed' && !row.original.workflowRunId) ? (
+          <span className="text-gray-400 text-xs text-wrap [word-break:auto-phrase] text-center">
+            {t(value)}
+          </span>
         ) : (
           <Button
             type="link"
+            className="text-xs text-wrap [word-break:auto-phrase] "
+            size="small"
             onClick={() => {
               openResultModal(row.original.workflowRunId)
             }}
           >
-            {t(value)}
+            {t(value === 'failed' ? 'failedTo' : value)}
           </Button>
         )
       },
@@ -172,6 +192,8 @@ const AlertEventsPage = () => {
         ) : (
           <Button
             type="link"
+            className="text-xs"
+            size="small"
             onClick={() => {
               openWorkflowModal(workflowParams)
             }}
@@ -209,6 +231,7 @@ const AlertEventsPage = () => {
             display: 'flex',
             flexDirection: 'column',
             padding: '12px 24px',
+            fontSize: '12px',
           },
         }}
       >
@@ -230,7 +253,7 @@ const AlertEventsPage = () => {
           centered
           footer={() => <></>}
           maskClosable={false}
-          width={1000}
+          width={'80vw'}
           styles={{ body: { height: '80vh', overflowY: 'hidden', overflowX: 'hidden' } }}
         >
           {workflowUrl && <WorkflowsIframe src={workflowUrl} />}

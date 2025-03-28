@@ -33,6 +33,9 @@ func (h *handler) GetAlertRules() core.HandlerFunc {
 			)
 			return
 		}
+		if req.AlertRuleFilter != nil && len(req.AlertRuleFilter.Group) > 0 {
+			req.AlertRuleFilter.Groups = append(req.AlertRuleFilter.Groups, req.AlertRuleFilter.Group)
+		}
 
 		resp := h.alertService.GetAlertRules(req)
 		c.Payload(resp)

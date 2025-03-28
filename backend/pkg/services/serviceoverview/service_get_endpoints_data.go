@@ -5,49 +5,47 @@ package serviceoverview
 
 import (
 	"math"
-	"strconv"
+	"slices"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"go.uber.org/zap"
 )
 
-func (s *service) GetServicesEndPointData(startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule SortType) (res []response.ServiceEndPointsRes, err error) {
-	var duration string
-	var stepNS = endTime.Sub(startTime).Nanoseconds()
-	duration = strconv.FormatInt(stepNS/int64(time.Minute), 10) + "m"
-	filters := filter.ExtractFilterStr()
-	// step1 Query that meets the Endpoint of the Filter and return the corresponding RED metric
-	// RED metric contains the average, day-to-year rate of change and week-to-week rate of change over the selected time period
-	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filters)
+func (s *service) GetServicesEndPointData(
+	startTime, endTime time.Time, step time.Duration,
+	filter EndpointsFilter,
+	sortRule request.SortType,
+) ([]response.ServiceEndPointsRes, error) {
+	filterStrs := filter.ExtractFilterStr()
 
-	// step2 fill delay dependency
-	err = s.EndpointsDelaySource(endpointsMap, startTime, endTime, filters)
+	var opts = []prometheus.FetchEMOption{
+		prometheus.WithREDMetric(),
+		prometheus.WithDelaySource(),
+		prometheus.WithNamespace(),
+	}
+
+	if sortRule == request.SortByLogErrorCount {
+		opts = append(opts, prometheus.WithLogErrorCount())
+	} else if sortRule == request.MUTATIONSORT {
+		opts = append(opts, prometheus.WithRealTimeREDMetric())
+	}
+
+	endpointsMap, err := prometheus.FetchEndpointsData(
+		s.promRepo, filterStrs, startTime, endTime,
+		opts...,
+	)
+
 	if err != nil {
-		// TODO output error log, DelaySource query failed
+		s.logger.Error("failed to fetch endpoints data form", zap.Error(err))
 	}
 
-	// step2.. Fill Namespace information
-	err = s.EndpointsNamespaceInfo(endpointsMap, startTime, endTime, filters)
-	if err != nil {
-		// TODO output error log, Namespace query failed
-	}
+	s.sortWithRule(sortRule, endpointsMap)
 
-	// step3 Sort the URL according to the sorting rule and fill in the data that has not been queried in the previous period.
-	if sortRule == MUTATIONSORT {
-		// Fill the real-time RED metric for sorting (the case between 3 minutes before the current time)
-		s.EndpointsRealtimeREDMetric(filter, endpointsMap, startTime, endTime)
-	}
-	// Sort the endpoints according to the sorting rule and fill some unqueried data
-	err = s.sortWithRule(sortRule, endpointsMap)
-
-	// step4 Group Endpoints by service and maintain service ordering
-	services := fillServices(endpointsMap.MetricGroupList)
-
-	// step5 fills the RED chart data of the first three urls of each service group
-	s.EndpointRangeREDChart(&services, startTime, endTime, duration, step)
-
-	// step6 Fill null values and adjust the return structure
+	services := groupEndpointsByService(endpointsMap.MetricGroupList, 3)
 	var servicesResMsg []response.ServiceEndPointsRes
 	for _, service := range services {
 		if service.ServiceName == "" {
@@ -84,9 +82,11 @@ func (s *service) GetServicesEndPointData(startTime time.Time, endTime time.Time
 	return servicesResMsg, err
 }
 
-func (s *service) sortWithRule(sortRule SortType, endpointsMap *EndpointsMap) error {
+func (s *service) sortWithRule(sortRule request.SortType, endpointsMap *EndpointsMap) error {
 	switch sortRule {
-	case DODThreshold: //Sort by Day-to-Year Threshold
+	case request.SortByLatency, request.SortByErrorRate, request.SortByThroughput, request.SortByLogErrorCount:
+		slices.SortStableFunc(endpointsMap.MetricGroupList, prometheus.ReverseSortWithMetrics(sortRule))
+	case request.DODThreshold: //Sort by Day-to-Year Threshold
 		threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
 		if err != nil {
 			return err
@@ -117,21 +117,19 @@ func (s *service) sortWithRule(sortRule SortType, endpointsMap *EndpointsMap) er
 				endpoint.IsLatencyExceeded = true
 				endpoint.AlertCount += LatencyCount
 			}
-			//// Filter TPS does not compare throughput
-			//if Urls[i].TPSDayOverDay != nil && *Urls[i].TPSDayOverDay > tpsThreshold {
-			//	Urls[i].IsTPSExceeded = true
-			//	Urls[i].Count += TPSCount
-			//}
 		}
 		sortByDODThreshold(endpointsMap.MetricGroupList)
-	case MUTATIONSORT: //Sort by real-time mutation rate
+	case request.MUTATIONSORT: //Sort by real-time mutation rate
 		sortByMutation(endpointsMap.MetricGroupList)
 	}
 
 	return nil
 }
 
-func (*service) extractDetail(service ServiceDetail, startTime time.Time, endTime time.Time, step time.Duration) []response.ServiceDetail {
+func (*service) extractDetail(
+	service *ServiceDetail,
+	startTime, endTime time.Time, step time.Duration,
+) []response.ServiceDetail {
 	var newServiceDetails []response.ServiceDetail
 	for _, endpoint := range service.Endpoints {
 		newErrorRadio := response.Ratio{
@@ -139,38 +137,12 @@ func (*service) extractDetail(service ServiceDetail, startTime time.Time, endTim
 			WeekOverDay: endpoint.REDMetrics.WOW.ErrorRate,
 		}
 		newErrorRate := response.TempChartObject{
-			//ChartData: map[int64]float64{},
 			Ratio: newErrorRadio,
 		}
 		if endpoint.REDMetrics.Avg.ErrorRate != nil && !math.IsInf(*endpoint.REDMetrics.Avg.ErrorRate, 0) { // does not assign a value when it is infinite
 			newErrorRate.Value = endpoint.REDMetrics.Avg.ErrorRate
 		}
-		if endpoint.ErrorRateData != nil {
-			data := make(map[int64]float64)
-			// Convert chartData to map
-			for _, item := range endpoint.ErrorRateData {
-				timestamp := item.TimeStamp
-				value := item.Value
-				if !math.IsInf(value, 0) { // does not assign value when it is infinity
-					data[timestamp] = value
-				}
-			}
-			newErrorRate.ChartData = data
-		}
-		if newErrorRate.Value != nil && *newErrorRate.Value == 100 {
-			values := make(map[int64]float64)
-			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {
-				values[ts] = 100
-			}
-			newErrorRate.ChartData = values
-		}
-		if newErrorRate.Value != nil && *newErrorRate.Value == 0 {
-			values := make(map[int64]float64)
-			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {
-				values[ts] = 0
-			}
-			newErrorRate.ChartData = values
-		}
+
 		newtpsRadio := response.Ratio{
 			DayOverDay:  endpoint.REDMetrics.DOD.TPM,
 			WeekOverDay: endpoint.REDMetrics.WOW.TPM,
@@ -182,59 +154,18 @@ func (*service) extractDetail(service ServiceDetail, startTime time.Time, endTim
 		if endpoint.REDMetrics.Avg.TPM != nil && !math.IsInf(*endpoint.REDMetrics.Avg.TPM, 0) { // is not assigned when it is infinite
 			newtpsRate.Value = endpoint.REDMetrics.Avg.TPM
 		}
-		if endpoint.TPMData != nil {
-			data := make(map[int64]float64)
-			// Convert chartData to map
-			for _, item := range endpoint.TPMData {
-				timestamp := item.TimeStamp
-				value := item.Value
-				if !math.IsInf(value, 0) { // does not assign value when it is infinity
-					data[timestamp] = value
-				}
-			}
-			newtpsRate.ChartData = data
-		}
-		// No data found, is_error = true, filled with 0
-		if newErrorRate.Value == nil && newtpsRate.Value != nil {
-			values := make(map[int64]float64)
-			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {
-				values[ts] = 0
-			}
-			newErrorRate.ChartData = values
-			newErrorRate.Value = new(float64)
-			*newErrorRate.Value = 0
-		}
-		if newErrorRate.Value != nil && *newErrorRate.Value == 0 {
-			values := make(map[int64]float64)
-			for ts := startTime.UnixMicro(); ts <= endTime.UnixMicro(); ts += step.Microseconds() {
-				values[ts] = 0
-			}
-			newErrorRate.ChartData = values
-		}
 
 		newlatencyRadio := response.Ratio{
 			DayOverDay:  endpoint.REDMetrics.DOD.Latency,
 			WeekOverDay: endpoint.REDMetrics.WOW.Latency,
 		}
 		newlatencyRate := response.TempChartObject{
-			//ChartData: map[int64]float64{},
 			Ratio: newlatencyRadio,
 		}
 		if endpoint.REDMetrics.Avg.Latency != nil && !math.IsInf(*endpoint.REDMetrics.Avg.Latency, 0) { // does not assign a value when it is infinite
 			newlatencyRate.Value = endpoint.REDMetrics.Avg.Latency
 		}
-		if endpoint.LatencyData != nil {
-			data := make(map[int64]float64)
-			// Convert chartData to map
-			for _, item := range endpoint.LatencyData {
-				timestamp := item.TimeStamp
-				value := item.Value
-				if !math.IsInf(value, 0) { // does not assign value when it is infinity
-					data[timestamp] = value
-				}
-			}
-			newlatencyRate.ChartData = data
-		}
+
 		// The filling error rate is equal to 0 and cannot be found year-on-year. The uniform filling is 0 (filling is performed by judging whether there is a request and if there is a request)
 		if newlatencyRadio.DayOverDay != nil && newErrorRadio.DayOverDay == nil && newErrorRate.Value != nil && *newErrorRate.Value == 0 {
 			newErrorRate.Ratio.DayOverDay = new(float64)
