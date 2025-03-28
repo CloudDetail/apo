@@ -31,14 +31,14 @@ export default function SqlMetrics() {
         title: t('sqlMetrics.dbConnection'),
         accessor: 'dbUrl',
         Cell: ({ value }) => {
-          return <>{value ? value : <span className="text-slate-400">N/A</span>}</>
+          return <>{value || <span className="text-slate-400">N/A</span>}</>
         },
       },
       {
         title: t('sqlMetrics.dbOperation'),
         accessor: 'dbOperation',
         Cell: ({ value }) => {
-          return <>{value ? value : <span className="text-slate-400">N/A</span>}</>
+          return <>{value || <span className="text-slate-400">N/A</span>}</>
         },
       },
 

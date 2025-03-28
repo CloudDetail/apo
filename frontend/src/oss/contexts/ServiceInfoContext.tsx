@@ -4,7 +4,7 @@
  */
 
 import { createContext, useContextSelector } from '@fluentui/react-context-selector'
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useMemo, useState } from 'react'
 type Status = 'unknown' | 'normal' | 'critical' | 'loading'
 type PanelKey =
   | 'logs'
@@ -44,8 +44,7 @@ export const ServiceInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
       [key]: status,
     }))
   }
-  useEffect(() => {}, [])
-  const finalValue = {
+  const finalValue = useMemo(() => ({
     statusPanels,
     setPanelsStatus,
     dashboardVariable,
@@ -53,6 +52,6 @@ export const ServiceInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     openTab,
     activeTabKey,
     setActiveTabKey,
-  }
+  }), [statusPanels, dashboardVariable, openTab, activeTabKey])
   return <ServiceInfoContext.Provider value={finalValue}>{children}</ServiceInfoContext.Provider>
 }
