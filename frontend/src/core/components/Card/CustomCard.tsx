@@ -23,7 +23,7 @@ export default function CustomCard({
   styles,
   ...restProps
 }: CustomCardProps): ReactNode {
-  const headHeight = import.meta.env.VITE_APP_VERSION === 'CE' ? '60px' : '100px';
+  const headHeight = import.meta.env.VITE_APP_CODE_VERSION === 'CE' ? '60px' : '100px';
   const defaultStyles: CardPropsStyles = styleType
     ? {
         body: {
