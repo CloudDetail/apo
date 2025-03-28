@@ -22,8 +22,8 @@ type AuthDataGroup struct {
 	GroupID     int64  `gorm:"column:data_group_id;index:group_id_idx" json:"-"`
 	Type        string `gorm:"column:type;default:view" json:"type"` // view, edit
 
-	User *User `gorm:"foreignKey:SubjectID;references:UserID" json:"user,omitempty"`
-	Team *Team `gorm:"foreignKey:SubjectID;references:TeamID" json:"team,omitempty"`
+	User *User `json:"user,omitempty"`
+	Team *Team `json:"team,omitempty"`
 }
 
 func (adg AuthDataGroup) MarshalJSON() ([]byte, error) {

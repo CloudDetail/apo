@@ -6,6 +6,7 @@ package data
 import (
 	"context"
 	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -64,7 +65,7 @@ func (s *service) DeleteDataGroup(req *request.DeleteDataGroupRequest) error {
 		return s.dbRepo.DeleteDSGroup(ctx, req.GroupID)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), deleteGroupFunc, deleteDSGroupFunc)
+	return s.dbRepo.Transaction(context.Background(), deleteDSGroupFunc, deleteGroupFunc)
 }
 
 func (s *service) UpdateDataGroup(req *request.UpdateDataGroupRequest) error {
