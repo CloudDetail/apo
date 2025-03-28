@@ -123,6 +123,7 @@ const TimelapseLineChart = (props) => {
         // snap: true
       },
       axisLabel: {
+        hideOverlap: true,
         formatter: function (value) {
           return format(value, 'HH:mm')
         },
@@ -219,7 +220,6 @@ const TimelapseLineChart = (props) => {
     [serviceName, startTime, endTime, endpoint],
   )
   useEffect(() => {
-    // console.log(chartData)
     const newOption = {
       ...option,
       xAxis: {
@@ -233,6 +233,7 @@ const TimelapseLineChart = (props) => {
           formatter: function (value) {
             return format(value, 'HH:mm')
           },
+          hideOverlap: true,
         },
         min: startTime / 1000,
         max: endTime / 1000,

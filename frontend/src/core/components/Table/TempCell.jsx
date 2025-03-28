@@ -83,7 +83,7 @@ const TempCell = (props) => {
   }, [type, data])
   return (
     data && (
-      <div className="flex items-center flex-row flex-wrap justify-center pr-5">
+      <div className="flex items-center flex-row flex-wrap justify-center">
         <div className="flex mr-1 flex-1 justify-end">
           {/* eslint-disable-next-line react/prop-types */}
           <span className={displayValue === 'N/A' && 'text-slate-400'}>{displayValue}</span>
@@ -124,4 +124,4 @@ const TempCell = (props) => {
   )
 }
 
-export default TempCell
+export default React.memo(TempCell)

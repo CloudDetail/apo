@@ -95,14 +95,14 @@
     "toastMessage": "可能受该接口影响的所有服务入口分析，其中“服务入口”是指业务被访问时调用的第一个服务端点，是调用链路中的最上游。"
   },
   "contentIndex": {
-    "impactAnalysis": "{{serviceName}}的影响面分析",
-    "alertEvents": "{{serviceName}}的告警事件",
-    "serviceEndpointInstance": "{{serviceName}}的服务端点实例",
-    "k8sEvents": "{{serviceName}}的k8s事件",
-    "errorInstances": "{{serviceName}}的错误实例",
-    "databaseCalls": "{{serviceName}}的数据库调用",
-    "customMetricsDashboard": "用户自定义指标大盘",
-    "polarisMetricsRecommendation": "基于北极星因果指标的主要原因推荐: 根据数据确认是应用自身的问题，还是下游依赖的问题",
+    "impact": "{{serviceName}}的影响面分析",
+    "alert": "{{serviceName}}的告警事件",
+    "instance": "{{serviceName}}的服务端点实例",
+    "k8s": "{{serviceName}}的k8s事件",
+    "error": "{{serviceName}}的错误实例",
+    "sql": "{{serviceName}}的数据库调用",
+    "metrics": "用户自定义指标大盘",
+    "polarisMetrics": "基于北极星因果指标的主要原因推荐: 根据数据确认是应用自身的问题，还是下游依赖的问题",
     "logs": "日志",
     "trace": "链路追踪"
   },
@@ -156,7 +156,9 @@
   "timeLine": {
     "errorLogs": "错误日志",
     "logsInfo": "故障现场日志",
-    "traceLogs": "链路日志"
+    "traceLogs": "链路日志",
+    "viewAll": "查看当前时间段所有{{type}}",
+    "viewAllTooltip": "查看 {{startTime}} 至 {{endTime}}期间所有{{type}}"
   },
   "traceInfo": {
     "instanceName": "实例名",

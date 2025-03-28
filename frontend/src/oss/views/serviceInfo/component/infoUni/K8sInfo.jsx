@@ -13,9 +13,12 @@ import LoadingSpinner from 'src/core/components/Spinner'
 import { usePropsContext } from 'src/core/contexts/PropsContext'
 import { selectProcessedTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { useTranslation } from 'react-i18next'
+import { useServiceInfoContext } from 'src/oss/contexts/ServiceInfoContext'
 
-function K8sInfo(props) {
-  const { handlePanelStatus } = props
+function K8sInfo() {
+  const setPanelsStatus = useServiceInfoContext((ctx) => ctx.setPanelsStatus)
+  const openTab = useServiceInfoContext((ctx) => ctx.openTab)
+
   const [data, setData] = useState({})
   const { serviceName } = usePropsContext()
   const [colList, setColList] = useState([])
@@ -119,11 +122,12 @@ function K8sInfo(props) {
         .then((res) => {
           setData(res.data ?? {})
           setLoading(false)
-          handlePanelStatus(res.status)
+          if (res?.status === 'critical') openTab('k8s')
+          setPanelsStatus('k8s', res.status)
         })
         .catch((error) => {
           setData({})
-          handlePanelStatus('unknown')
+          setPanelsStatus('k8s', 'unknown')
           setLoading(false)
         })
     }
@@ -141,7 +145,7 @@ function K8sInfo(props) {
   )
   return (
     <>
-      <CAccordionBody>
+      <div>
         <CRow xs={{ cols: 6 }}>
           {Object.keys(data).map((key) => {
             const item = data[key]
@@ -166,7 +170,7 @@ function K8sInfo(props) {
           <LoadingSpinner loading={loading} />
           {!loading && (!data || Object.keys(data).length === 0) && <Empty />}
         </CRow>
-      </CAccordionBody>
+      </div>
     </>
   )
 }
