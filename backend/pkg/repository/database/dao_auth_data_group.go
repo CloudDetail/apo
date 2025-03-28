@@ -172,7 +172,7 @@ func (repo *daoRepo) GetGroupAuthDataGroupByGroup(groupID int64, subjectType str
 func (repo *daoRepo) GetDataGroupUsers(groupID int64) ([]AuthDataGroup, error) {
 	var ags []AuthDataGroup
 	err := repo.db.
-		Select("subject_id, type").
+		Select(`subject_id, "type"`).
 		Where("data_group_id = ? AND subject_type = ?", groupID, model.DATA_GROUP_SUB_TYP_USER).
 		Find(&ags).Error
 	if err != nil {
@@ -185,10 +185,9 @@ func (repo *daoRepo) GetDataGroupUsers(groupID int64) ([]AuthDataGroup, error) {
 	}
 
 	for i := 0; i < len(ags); i++ {
-		ag := ags[i]
 		// 第二步：查询对应的单个 User
 		var user User
-		err = repo.db.Find(&user, "user_id = ?", ag.SubjectID).
+		err = repo.db.Find(&user, "user_id = ?", ags[i].SubjectID).
 			First(&user).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return nil, err
@@ -196,7 +195,7 @@ func (repo *daoRepo) GetDataGroupUsers(groupID int64) ([]AuthDataGroup, error) {
 
 		// 将 User 数据赋值给 AuthDataGroup
 		if err == nil { // 如果找到 User
-			ag.User = &user
+			ags[i].User = &user
 		}
 	}
 
@@ -207,7 +206,7 @@ func (repo *daoRepo) GetDataGroupTeams(groupID int64) ([]AuthDataGroup, error) {
 	var ags []AuthDataGroup
 
 	err := repo.db.
-		Select("subject_id, type").
+		Select(`subject_id, "type"`).
 		Where("data_group_id = ? AND subject_type = ?", groupID, model.DATA_GROUP_SUB_TYP_TEAM).
 		Find(&ags).Error
 	if err != nil {
@@ -219,10 +218,9 @@ func (repo *daoRepo) GetDataGroupTeams(groupID int64) ([]AuthDataGroup, error) {
 	}
 
 	for i := 0; i < len(ags); i++ {
-		ag := ags[i]
 		// 第二步：查询对应的单个 User
 		var team Team
-		err = repo.db.Find(&team, "team_id = ?", ag.SubjectID).
+		err = repo.db.Find(&team, "team_id = ?", ags[i].SubjectID).
 			First(&team).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return nil, err
@@ -230,7 +228,7 @@ func (repo *daoRepo) GetDataGroupTeams(groupID int64) ([]AuthDataGroup, error) {
 
 		// 将 User 数据赋值给 AuthDataGroup
 		if err == nil { // 如果找到 User
-			ag.Team = &team
+			ags[i].Team = &team
 		}
 	}
 
