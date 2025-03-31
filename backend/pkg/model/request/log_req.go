@@ -11,11 +11,12 @@ type GetFaultLogPageListRequest struct {
 	Instance    string   `json:"instance"`    // instance name
 	NodeName    string   `json:"nodeName"`    // hostname
 	ContainerId string   `json:"containerId"` // container name
-	Pid         uint32   `json:"pid"`         // process number
-	TraceId     string   `json:"traceId"`     // TraceId
-	PageNum     int      `json:"pageNum"`     // page
-	PageSize    int      `json:"pageSize"`    // display number per page
-	GroupID     int64    `form:"groupId,omitempty"` // Data group id
+	Pid         uint32   `json:"pid"`               // process number
+	TraceId     string   `json:"traceId"`           // TraceId
+	PageNum     int      `json:"pageNum"`           // page
+	PageSize    int      `json:"pageSize"`          // display number per page
+	GroupID     int64    `json:"groupId,omitempty"` // Data group 
+	Pod         string   `json:"pod"`
 }
 
 type GetFaultLogContentRequest struct {
