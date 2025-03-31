@@ -3,16 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CAccordionBody, CButton, CToast, CToastBody } from '@coreui/react'
 import { Tooltip } from 'antd'
-import React, { useMemo, useEffect, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
-import { IoMdInformationCircleOutline } from 'react-icons/io'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 import { getServiceEntryEndpoints } from 'core/api/serviceInfo'
-import LoadingSpinner from 'src/core/components/Spinner'
 import StatusInfo from 'src/core/components/StatusInfo'
 import BasicTable from 'src/core/components/Table/basicTable'
 import TempCell from 'src/core/components/Table/TempCell'
@@ -21,18 +18,18 @@ import { usePropsContext } from 'src/core/contexts/PropsContext'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { getStep } from 'src/core/utils/step'
 import { convertTime } from 'src/core/utils/time'
-import EndpointTableModal from 'src/oss/views/service/component/EndpointTableModal'
 import { useTranslation } from 'react-i18next'
+import { useServiceInfoContext } from 'src/oss/contexts/ServiceInfoContext'
 
 export default function EntryImpact(props) {
-  const { handlePanelStatus } = props
+  const setPanelsStatus = useServiceInfoContext((ctx) => ctx.setPanelsStatus)
+  const openTab = useServiceInfoContext((ctx) => ctx.openTab)
+
   const navigate = useNavigate()
   const [data, setData] = useState([])
   const { serviceName, endpoint } = usePropsContext()
   const [loading, setLoading] = useState(false)
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
-  const [modalVisible, setModalVisible] = useState(false)
-  const [modalServiceName, setModalServiceName] = useState()
   const { t } = useTranslation('oss/serviceInfo')
 
   const columns = useMemo(
@@ -105,7 +102,7 @@ export default function EntryImpact(props) {
           },
           {
             title: t('entryImpact.avgResponseTime'),
-            minWidth: 140,
+            minWidth: 150,
             accessor: (idx) => `latency`,
             Cell: (props) => {
               const { value } = props
@@ -115,7 +112,7 @@ export default function EntryImpact(props) {
           {
             title: t('entryImpact.errorRate'),
             accessor: (idx) => `errorRate`,
-            minWidth: 140,
+            minWidth: 150,
             Cell: (props) => {
               const { value } = props
               return <TempCell type="errorRate" data={value} timeRange={{ startTime, endTime }} />
@@ -124,7 +121,7 @@ export default function EntryImpact(props) {
           {
             title: t('entryImpact.throughput'),
             accessor: (idx) => `tps`,
-            minWidth: 140,
+            minWidth: 150,
             Cell: (props) => {
               const { value } = props
               return <TempCell type="tps" data={value} timeRange={{ startTime, endTime }} />
@@ -135,7 +132,7 @@ export default function EntryImpact(props) {
       {
         title: t('entryImpact.logErrorCount'),
         accessor: `logs`,
-        minWidth: 140,
+        minWidth: 150,
         Cell: (props) => {
           const { value } = props
           return <TempCell type="logs" data={value} timeRange={{ startTime, endTime }} />
@@ -213,13 +210,14 @@ export default function EntryImpact(props) {
       })
         .then((res) => {
           setData(res.data ?? [])
-          handlePanelStatus(res.status)
+          if (res?.status === 'critical') openTab('impact')
+          setPanelsStatus('impact', res.status)
           //   setPageIndex(1)
           setLoading(false)
         })
         .catch(() => {
           //   setPageIndex(1)
-          handlePanelStatus('unknown')
+          setPanelsStatus('impact', 'unknown')
           setData([])
           setLoading(false)
         })
@@ -241,26 +239,17 @@ export default function EntryImpact(props) {
       data: data,
       showBorder: false,
       loading: false,
+      pagination: {
+        pageSize: 5,
+        pageIndex: 1,
+        total: data.length,
+      },
+      scrollY: 300,
     }
   }, [columns, data])
   return (
-    <CAccordionBody className="text-xs relative">
-      <LoadingSpinner loading={loading} />
-      <CToast autohide={false} visible={true} className="align-items-center w-full mb-2">
-        <div className="d-flex">
-          <CToastBody className=" flex flex-row items-center text-xs">
-            <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-            {t('entryImpact.toastMessage')}
-          </CToastBody>
-        </div>
-      </CToast>
+    <div className="text-xs relative">
       <BasicTable {...tableProps} />
-      <EndpointTableModal
-        visible={modalVisible}
-        serviceName={modalServiceName}
-        timeRange={{ startTime, endTime }}
-        closeModal={() => setModalVisible(false)}
-      />
-    </CAccordionBody>
+    </div>
   )
 }

@@ -8476,6 +8476,64 @@ const docTemplate = `{
                 }
             }
         },
+        "alert.AlertEvent": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                },
+                "createTime": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rawTags": {
+                    "description": "HACK the existing clickhouse query uses ` + "`" + `tags` + "`" + ` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/alert.RawTags"
+                        }
+                    ]
+                },
+                "receivedTime": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "sourceId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "updateTime": {
+                    "type": "string"
+                }
+            }
+        },
         "alert.AlertSchemaRequest": {
             "type": "object",
             "properties": {
@@ -9055,64 +9113,6 @@ const docTemplate = `{
                     }
                 },
                 "source": {
-                    "type": "string"
-                }
-            }
-        },
-        "clickhouse.PagedAlertEvent": {
-            "type": "object",
-            "properties": {
-                "alertId": {
-                    "type": "string"
-                },
-                "createTime": {
-                    "type": "string"
-                },
-                "detail": {
-                    "type": "string"
-                },
-                "endTime": {
-                    "type": "string"
-                },
-                "group": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "rawTags": {
-                    "description": "HACK the existing clickhouse query uses ` + "`" + `tags` + "`" + ` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/alert.RawTags"
-                        }
-                    ]
-                },
-                "receivedTime": {
-                    "type": "string"
-                },
-                "severity": {
-                    "type": "string"
-                },
-                "source": {
-                    "type": "string"
-                },
-                "sourceId": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "tags": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "updateTime": {
                     "type": "string"
                 }
             }
@@ -10701,6 +10701,38 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ComplexSpanTraceFilter": {
+            "type": "object",
+            "properties": {
+                "dataType": {
+                    "$ref": "#/definitions/request.DataType"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "mergeSep": {
+                    "type": "string"
+                },
+                "operation": {
+                    "$ref": "#/definitions/request.Operation"
+                },
+                "parentField": {
+                    "$ref": "#/definitions/request.ParentField"
+                },
+                "subFilters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ComplexSpanTraceFilter"
+                    }
+                },
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.CreateDataGroupRequest": {
             "type": "object",
             "required": [
@@ -11043,7 +11075,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "groupId": {
-                    "description": "Data group id",
+                    "description": "Data group",
                     "type": "integer"
                 },
                 "instance": {
@@ -11071,6 +11103,9 @@ const docTemplate = `{
                 "pid": {
                     "description": "process number",
                     "type": "integer"
+                },
+                "pod": {
+                    "type": "string"
                 },
                 "service": {
                     "description": "query service name",
@@ -11173,7 +11208,7 @@ const docTemplate = `{
                     "description": "filter",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/request.SpanTraceFilter"
+                        "$ref": "#/definitions/request.ComplexSpanTraceFilter"
                     }
                 },
                 "groupId": {
@@ -11924,7 +11959,7 @@ const docTemplate = `{
                 "events": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/clickhouse.PagedAlertEvent"
+                        "$ref": "#/definitions/alert.AlertEvent"
                     }
                 },
                 "totalCount": {

@@ -42,7 +42,8 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 		EqualsNotEmpty("labels['instance_id']", query.Instance).
 		EqualsNotEmpty("labels['content_key']", query.EndPoint).
 		EqualsNotEmpty("labels['node_name']", query.NodeName).
-		EqualsNotEmpty("trace_id", query.TraceId)
+		EqualsNotEmpty("trace_id", query.TraceId).
+		EqualsNotEmpty("labels['pod_name']", query.Pod)
 
 	if len(query.MultiServices) > 0 {
 		queryBuilder.In("labels['service_name']", query.MultiServices)
@@ -205,6 +206,7 @@ type FaultLogQuery struct {
 	Type           int      // 0 - slow & error, 1 - error
 	MultiServices  []string // Match multiple service
 	MultiNamespace []string // Match multiple namespace
+	Pod            string // Pod name
 }
 
 type QueryCount struct {
@@ -531,6 +533,7 @@ type availableFilters struct {
 func (f *availableFilters) SetAvailableFilters(filters []request.SpanTraceFilter, updateTime time.Time) {
 	f.Filters = filters
 	f.Keys = make([]string, 0)
+	f.Keys = append(f.Keys, "flags['is_error']", "flags['is_slow']")
 	for _, filter := range filters {
 		var field string
 		if len(filter.ParentField) > 0 {
