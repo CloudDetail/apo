@@ -3,12 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Card, Modal, Pagination, Tooltip } from 'antd'
+import { Button, Card, Modal, Tooltip } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactJson from 'react-json-view'
 import { useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
 import { getAlertEventsApi } from 'src/core/api/alerts'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { convertUTCToBeijing } from 'src/core/utils/time'
@@ -44,22 +43,28 @@ const AlertEventsPage = () => {
       </Tooltip>
     )
   }
-  const getAlertEvents = () => [
-    getAlertEventsApi({
+
+  const getAlertEvents = async () => {
+    const res = await getAlertEventsApi({
       startTime,
       endTime,
       pagination: {
         currentPage: pagination.pageIndex,
         pageSize: pagination.pageSize,
       },
-    }).then((res) => {
-      setAlertEvents(res?.events || [])
-      setPagination({
-        ...pagination,
-        total: res?.pagination.total || 0,
-      })
-      setWorkflowId(res.alertEventAnalyzeWorkflowId)
-      setAlertCheckId(res.alertCheckId)
+    })
+    const totalPages = Math.ceil(res.pagination.total / pagination.pageSize)
+    if (pagination.pageIndex > totalPages && totalPages > 0) {
+      setPagination({ ...pagination, pageIndex: totalPages })
+      return
+    }
+    setAlertEvents(res?.events || [])
+    setPagination({
+      ...pagination,
+      total: res?.pagination.total || 0,
+    })
+    setWorkflowId(res.alertEventAnalyzeWorkflowId)
+    setAlertCheckId(res.alertCheckId)
       if (timerRef.current) {
         clearTimeout(timerRef.current)
       }
@@ -70,8 +75,8 @@ const AlertEventsPage = () => {
         },
         5 * 60 * 1000,
       )
-    }),
-  ]
+  }
+
   useEffect(() => {
     if (startTime && endTime) {
       getAlertEvents()
@@ -204,13 +209,8 @@ const AlertEventsPage = () => {
       },
     },
   ]
-  const updatePagination = (pagination) => setPagination({ ...pagination, ...pagination })
   const changePagination = (page, pageSize) => {
-    updatePagination({
-      pageSize: pageSize,
-      pageIndex: page,
-      total: pagination.total,
-    })
+    setPagination({ ...pagination, pageIndex: page, pageSize })
   }
   const tableProps = useMemo(() => {
     return {
@@ -218,8 +218,14 @@ const AlertEventsPage = () => {
       data: alertEvents,
       showBorder: false,
       loading: false,
+      onChange: changePagination,
+      pagination: {
+        pageSize: pagination.pageSize,
+        pageIndex: pagination.pageIndex,
+        total: pagination.total,
+      },
     }
-  }, [alertEvents])
+  }, [alertEvents, pagination.pageIndex, pagination.pageSize, pagination.total])
   return (
     <>
       <Card
@@ -236,15 +242,6 @@ const AlertEventsPage = () => {
         }}
       >
         <BasicTable {...tableProps} />
-        <Pagination
-          defaultCurrent={1}
-          total={pagination.total}
-          current={pagination.pageIndex}
-          pageSize={pagination.pageSize}
-          className="flex-shrink-0 flex-grow-0 p-2"
-          align="end"
-          onChange={changePagination}
-        />
         <Modal
           open={modalOpen}
           title={t('workflowsModal')}
