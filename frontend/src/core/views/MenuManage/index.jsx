@@ -38,6 +38,7 @@ function MenuManagePage() {
     setSelectedKeys(selectedKeysValue)
   }
 
+  // Recursively traverses the tree structure to collect all keys and expanded keys
   const loopTree = (treeData = [], key = 'featureId') => {
     const allKeys = []
     const expandedKeys = []

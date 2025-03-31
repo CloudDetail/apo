@@ -9,6 +9,7 @@ import TranslationCom from './oss/components/TranslationCom'
 const UserPage = React.lazy(() => import('src/core/views/UserPage/index.jsx'))
 const UserManage = React.lazy(() => import('src/core/views/UserManage/index.jsx'))
 const MenuManage = React.lazy(() => import('src/core/views/MenuManage/index.jsx'))
+const RoleManage = React.lazy(() => import('src/core/views/RoleManage/index'))
 const AlertsIntegrationPage = React.lazy(
   () => import('src/core/views/IntegrationCenter/AlertsIntegration'),
 )
@@ -39,8 +40,14 @@ const baseRoutes = [
   },
   {
     path: '/system/menu-manage',
-    name: <TranslationCom text="memuManageName" space={namespace} />,
+    name: <TranslationCom text="menuManageName" space={namespace} />,
     element: MenuManage,
+    hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/system/role-manage',
+    name: <TranslationCom text="roleManageName" space={namespace} />,
+    element: RoleManage,
     hideSystemTimeRangePicker: true,
   },
   {
