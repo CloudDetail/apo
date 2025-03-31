@@ -15,6 +15,7 @@ import ModifyAlertRuleModal from './modal/ModifyAlertRuleModal'
 import Tag from 'src/core/components/Tag/Tag'
 import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
+import CustomCard from 'src/core/components/Card/CustomCard'
 
 export default function AlertsRule() {
   const { t } = useTranslation('oss/alert')
@@ -259,18 +260,7 @@ export default function AlertsRule() {
     }
   }, [column, data, pageIndex, pageSize, searchAlert, searchGroup])
   return (
-    <Card
-      style={{ height: 'calc(100vh - 60px)' }}
-      styles={{
-        body: {
-          height: '100%',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '12px 24px',
-        },
-      }}
-    >
+    <CustomCard styleType='alerts'>
       <LoadingSpinner loading={loading} />
       <div className="flex items-center justify-betweeen text-sm ">
         <Space className="flex-grow">
@@ -320,6 +310,6 @@ export default function AlertsRule() {
         closeModal={() => setModalVisible(false)}
         refresh={refreshTable}
       />
-    </Card>
+    </CustomCard>
   )
 }
