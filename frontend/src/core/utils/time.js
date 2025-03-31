@@ -203,20 +203,20 @@ export const formatTime = (time, reserve = 2) => {
   }
 }
 
-export function convertUTCToBeijing(utcTimeString) {
-  // 将 UTC 时间字符串转换为 Date 对象
+export function convertUTCToLocal(utcTimeString) {
+  // Convert the UTC time string to a Date object
   const utcDate = new Date(utcTimeString)
 
-  // 获取 UTC 时间
-  const beijingDate = new Date(utcDate.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }))
+  // Get the local UTC time
+  const localDate = new Date(utcDate.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }))
 
-  // 格式化为 YYYY-MM-DD HH:mm:ss
-  const year = beijingDate.getFullYear()
-  const month = String(beijingDate.getMonth() + 1).padStart(2, '0')
-  const day = String(beijingDate.getDate()).padStart(2, '0')
-  const hours = String(beijingDate.getHours()).padStart(2, '0')
-  const minutes = String(beijingDate.getMinutes()).padStart(2, '0')
-  const seconds = String(beijingDate.getSeconds()).padStart(2, '0')
+  // Format as YYYY-MM-DD HH:mm:ss
+  const year = localDate.getFullYear()
+  const month = String(localDate.getMonth() + 1).padStart(2, '0')
+  const day = String(localDate.getDate()).padStart(2, '0')
+  const hours = String(localDate.getHours()).padStart(2, '0')
+  const minutes = String(localDate.getMinutes()).padStart(2, '0')
+  const seconds = String(localDate.getSeconds()).padStart(2, '0')
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
