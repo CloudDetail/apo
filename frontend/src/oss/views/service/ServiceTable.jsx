@@ -5,12 +5,11 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { CButton, CCard, CToast, CToastBody } from '@coreui/react'
+import { CButton } from '@coreui/react'
 import { useNavigate } from 'react-router-dom'
 import TempCell from 'src/core/components/Table/TempCell'
 import StatusInfo from 'src/core/components/StatusInfo'
-import { IoMdInformationCircleOutline } from 'react-icons/io'
-import { getServiceChartsApi, getServicesAlertApi, getServicesEndpointsApi } from 'core/api/service'
+import { getServicesAlertApi, getServicesEndpointsApi } from 'core/api/service'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { getStep } from 'src/core/utils/step'
@@ -18,7 +17,7 @@ import { DelaySourceTimeUnit } from 'src/constants'
 import { convertTime } from 'src/core/utils/time'
 import EndpointTableModal from './component/EndpointTableModal'
 import LoadingSpinner from 'src/core/components/Spinner'
-import { Card, Select, Tooltip } from 'antd'
+import { Card, Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
 import TableFilter from 'src/core/components/Filter/TableFilter'
@@ -361,9 +360,9 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
     })
     getChartsData(serviceList, endpointList)
   }
-  const handleTableChange = (props) => {
-    if (props.pageSize && props.pageIndex) {
-      setPageSize(props.pageSize), setPageIndex(props.pageIndex)
+  const handleTableChange = (pageIndex, pageSize) => {
+    if (pageSize && pageIndex) {
+      setPageSize(pageSize), setPageIndex(pageIndex)
     }
   }
   const getSortRule = (sortById) => {
@@ -386,12 +385,11 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
     return {
       columns: column,
       data: paginatedData,
-      // data: [],
       onChange: handleTableChange,
       pagination: {
         pageSize: pageSize,
         pageIndex: pageIndex,
-        pageCount: Math.ceil(data.length / pageSize),
+        total: data.length,
       },
       emptyContent: (
         <div className="text-center">

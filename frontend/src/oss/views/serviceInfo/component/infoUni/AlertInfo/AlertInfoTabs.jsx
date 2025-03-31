@@ -14,9 +14,11 @@ import Empty from 'src/core/components/Empty/Empty'
 import { useDebounce } from 'react-use'
 import { useTranslation } from 'react-i18next'
 import { RuleGroupMap } from 'src/constants'
+import { useServiceInfoContext } from 'src/oss/contexts/ServiceInfoContext'
 
-export default function AlertInfoTabs(props) {
-  const { handlePanelStatus } = props
+export default function AlertInfoTabs() {
+  const setPanelsStatus = useServiceInfoContext((ctx) => ctx.setPanelsStatus)
+  const openTab = useServiceInfoContext((ctx) => ctx.openTab)
   const { serviceName, endpoint } = usePropsContext()
   const [loading, setLoading] = useState(true)
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
@@ -60,11 +62,12 @@ export default function AlertInfoTabs(props) {
         .then((res) => {
           setLoading(false)
           prepareData(res)
-          handlePanelStatus(res.status)
+          if (res?.status === 'critical') openTab('alert')
+          setPanelsStatus('alert', res.status)
         })
         .catch((error) => {
           setTabList([])
-          handlePanelStatus('unknown')
+          setPanelsStatus('alert', 'unknown')
           setLoading(false)
         })
     }
@@ -84,7 +87,7 @@ export default function AlertInfoTabs(props) {
   }, [i18n.language])
 
   return (
-    <CAccordionBody>
+    <div>
       {tabList?.length > 0 && (
         <CTabs activeItemKey={tabList[0].key}>
           <CTabList variant="tabs">
@@ -104,6 +107,6 @@ export default function AlertInfoTabs(props) {
       {tabList?.length === 0 && !loading && (
         <Empty context={t('alertInfo.alertInfoTabs.noAlertEvents')} />
       )}
-    </CAccordionBody>
+    </div>
   )
 }

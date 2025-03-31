@@ -69,7 +69,7 @@ function PolarisMetricsInfo() {
 
     //   !loading && image?.length === 0 && inferCause?.length ===0 &&
     // }
-    <CAccordionBody className="flex flex-row ">
+    <div className="flex flex-row ">
       {image && (
         <div className="w-1/3">
           <img
@@ -95,7 +95,7 @@ function PolarisMetricsInfo() {
           </div>
         </div>
       )}
-    </CAccordionBody>
+    </div>
   )
 }
 export default PolarisMetricsInfo

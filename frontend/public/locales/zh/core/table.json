@@ -1,5 +1,6 @@
 {
   "unsort": "取消排序",
   "desc": "点击降序",
-  "asc": "点击升序"
+  "asc": "点击升序",
+  "pagination": "总计{{total}}条数据"
 }
