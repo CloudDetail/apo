@@ -213,7 +213,7 @@ export default function UserManage() {
   }
   return (
     <>
-      <CustomCard>
+      <CustomCard style={{ backgroundColor: 'inherit' }}>
         <LoadingSpinner loading={loading} />
         <Flex className="mb-3 h-[40px]">
           <Flex className="w-full justify-between">
