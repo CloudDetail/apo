@@ -15,7 +15,7 @@ type GetFaultLogPageListRequest struct {
 	TraceId     string   `json:"traceId"`           // TraceId
 	PageNum     int      `json:"pageNum"`           // page
 	PageSize    int      `json:"pageSize"`          // display number per page
-	GroupID     int64    `form:"groupId,omitempty"` // Data group 
+	GroupID     int64    `json:"groupId,omitempty"` // Data group 
 	Pod         string   `json:"pod"`
 }
 
