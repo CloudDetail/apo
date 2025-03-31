@@ -46,7 +46,7 @@ func WithAlertCheckFlow(cfg *AlertCheckCfg) Option {
 			return
 		}
 
-		if cfg.MaxConcurrency == 0 {
+		if cfg.MaxConcurrency <= 0 {
 			cfg.MaxConcurrency = 1
 		}
 
