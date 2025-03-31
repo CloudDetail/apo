@@ -24,7 +24,7 @@ export default function CustomCard({
   ...restProps
 }: CustomCardProps): ReactNode {
   const headHeight = import.meta.env.VITE_APP_CODE_VERSION === 'CE' ? '60px' : '100px';
-  const defaultStyles: CardPropsStyles = styleType
+  const defaultStyles: CardPropsStyles = styleType === 'alerts'
     ? {
         body: {
           height: '100%',
