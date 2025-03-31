@@ -4383,168 +4383,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/mock": {
-            "get": {
-                "description": "xx list",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.mock"
-                ],
-                "summary": "xx list",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "which page",
-                        "name": "page_num",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Number of displays per page",
-                        "name": "page_size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "username",
-                        "name": "name",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.ListResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "create/edit xx",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.mock"
-                ],
-                "summary": "create/edit xx",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "name",
-                        "name": "name",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.CreateResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/mock/{id}": {
-            "get": {
-                "description": "xx details",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.mock"
-                ],
-                "summary": "xx details",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.DetailResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "delete xx",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.mock"
-                ],
-                "summary": "delete xx",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.DeleteResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
         "/api/network/podmap": {
             "get": {
                 "description": "query pod network call topology and call metrics",
@@ -9156,6 +8994,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "output": {
+                    "type": "string"
+                },
                 "rawTags": {
                     "description": "HACK the existing clickhouse query uses ` + "`" + `tags` + "`" + ` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
                     "allOf": [
@@ -11718,6 +11559,21 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CreateCustomRequest": {
+            "type": "object",
+            "properties": {
+                "customName": {
+                    "description": "UserName   string   ` + "`" + `json:\"userName\"` + "`" + `\nGroupName  string   ` + "`" + `json:\"groupName\"` + "`" + `",
+                    "type": "string"
+                },
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.CreateDataGroupRequest": {
             "type": "object",
             "required": [
@@ -12031,7 +11887,14 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "group": {
+                    "description": "Deprecated: use Groups instead",
                     "type": "string"
+                },
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "keyword": {
                     "type": "string"
@@ -12881,15 +12744,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.CreateResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "description": "primary key ID",
-                    "type": "integer"
-                }
-            }
-        },
         "response.CustonType": {
             "type": "object",
             "properties": {
@@ -12923,15 +12777,6 @@ const docTemplate = `{
             "properties": {
                 "error": {
                     "type": "string"
-                }
-            }
-        },
-        "response.DeleteResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "description": "primary key ID",
-                    "type": "integer"
                 }
             }
         },
@@ -12982,17 +12827,6 @@ const docTemplate = `{
                 },
                 "timestamp": {
                     "type": "integer"
-                }
-            }
-        },
-        "response.DetailResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
                 }
             }
         },
@@ -13171,6 +13005,9 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/model.Pagination"
+                },
+                "totalCount": {
+                    "type": "integer"
                 }
             }
         },
@@ -13353,7 +13190,7 @@ const docTemplate = `{
                 "alertEvents": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/clickhouse.PagedAlertEvent"
+                        "$ref": "#/definitions/alert.AlertEvent"
                     }
                 },
                 "pagination": {
@@ -14243,33 +14080,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.ListData": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "description": "ID",
-                    "type": "integer"
-                },
-                "name": {
-                    "description": "username",
-                    "type": "string"
-                }
-            }
-        },
-        "response.ListResponse": {
-            "type": "object",
-            "properties": {
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.ListData"
-                    }
-                },
-                "pagination": {
-                    "$ref": "#/definitions/response.Pagination"
-                }
-            }
-        },
         "response.LogChartResponse": {
             "type": "object",
             "properties": {
@@ -14559,23 +14369,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/response.OtherDB"
                     }
-                }
-            }
-        },
-        "response.Pagination": {
-            "type": "object",
-            "properties": {
-                "current_page": {
-                    "description": "current page number",
-                    "type": "integer"
-                },
-                "per_page_count": {
-                    "description": "number of pieces per page",
-                    "type": "integer"
-                },
-                "total": {
-                    "description": "total number of records",
-                    "type": "integer"
                 }
             }
         },
