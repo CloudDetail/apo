@@ -112,6 +112,45 @@ definitions:
       targetTagId:
         type: integer
     type: object
+  alert.AlertEvent:
+    properties:
+      alertId:
+        type: string
+      createTime:
+        type: string
+      detail:
+        type: string
+      endTime:
+        type: string
+      group:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      rawTags:
+        allOf:
+        - $ref: '#/definitions/alert.RawTags'
+        description: |-
+          HACK the existing clickhouse query uses `tags` as the filter field
+          so enrichTags in ch is named as 'tags' to filter new alertInput
+      receivedTime:
+        type: string
+      severity:
+        type: string
+      source:
+        type: string
+      sourceId:
+        type: string
+      status:
+        type: string
+      tags:
+        additionalProperties:
+          type: string
+        type: object
+      updateTime:
+        type: string
+    type: object
   alert.AlertSchemaRequest:
     properties:
       schema:
@@ -495,45 +534,6 @@ definitions:
           $ref: '#/definitions/clickhouse.LogContent'
         type: array
       source:
-        type: string
-    type: object
-  clickhouse.PagedAlertEvent:
-    properties:
-      alertId:
-        type: string
-      createTime:
-        type: string
-      detail:
-        type: string
-      endTime:
-        type: string
-      group:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      rawTags:
-        allOf:
-        - $ref: '#/definitions/alert.RawTags'
-        description: |-
-          HACK the existing clickhouse query uses `tags` as the filter field
-          so enrichTags in ch is named as 'tags' to filter new alertInput
-      receivedTime:
-        type: string
-      severity:
-        type: string
-      source:
-        type: string
-      sourceId:
-        type: string
-      status:
-        type: string
-      tags:
-        additionalProperties:
-          type: string
-        type: object
-      updateTime:
         type: string
     type: object
   clickhouse.ProfilingEvent:
@@ -1613,6 +1613,27 @@ definitions:
       numLayers:
         type: integer
     type: object
+  request.ComplexSpanTraceFilter:
+    properties:
+      dataType:
+        $ref: '#/definitions/request.DataType'
+      key:
+        type: string
+      mergeSep:
+        type: string
+      operation:
+        $ref: '#/definitions/request.Operation'
+      parentField:
+        $ref: '#/definitions/request.ParentField'
+      subFilters:
+        items:
+          $ref: '#/definitions/request.ComplexSpanTraceFilter'
+        type: array
+      value:
+        items:
+          type: string
+        type: array
+    type: object
   request.CreateDataGroupRequest:
     properties:
       datasourceList:
@@ -1840,7 +1861,7 @@ definitions:
         description: query end time
         type: integer
       groupId:
-        description: Data group id
+        description: Data group
         type: integer
       instance:
         description: instance name
@@ -1861,6 +1882,8 @@ definitions:
       pid:
         description: process number
         type: integer
+      pod:
+        type: string
       service:
         description: query service name
         items:
@@ -1931,7 +1954,7 @@ definitions:
       filters:
         description: filter
         items:
-          $ref: '#/definitions/request.SpanTraceFilter'
+          $ref: '#/definitions/request.ComplexSpanTraceFilter'
         type: array
       groupId:
         description: Data group id
@@ -2447,7 +2470,7 @@ definitions:
     properties:
       events:
         items:
-          $ref: '#/definitions/clickhouse.PagedAlertEvent'
+          $ref: '#/definitions/alert.AlertEvent'
         type: array
       totalCount:
         type: integer
