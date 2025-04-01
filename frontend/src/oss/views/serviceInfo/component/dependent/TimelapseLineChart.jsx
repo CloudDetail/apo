@@ -5,8 +5,7 @@
 
 import React, { useEffect, useState, useRef } from 'react'
 import ReactECharts from 'echarts-for-react'
-import { convertTime } from 'src/core/utils/time'
-import { format } from 'date-fns'
+import { convertTime, timeUtils } from 'src/core/utils/time'
 import Empty from 'src/core/components/Empty/Empty'
 import { ChartColorList } from 'src/constants'
 import { getServiceDsecendantMetricsApi } from 'core/api/serviceInfo'
@@ -125,7 +124,7 @@ const TimelapseLineChart = (props) => {
       axisLabel: {
         hideOverlap: true,
         formatter: function (value) {
-          return format(value, 'HH:mm')
+          return timeUtils.format(value, 'HH:mm')
         },
       },
     },
@@ -196,7 +195,7 @@ const TimelapseLineChart = (props) => {
       endTime: endTime,
       service: serviceName,
       endpoint: endpoint,
-      step: getStep(startTime, endTime),
+      step: timeUtils.getTimeStep(startTime, endTime),
     })
       .then((res) => {
         // console.log(res)
@@ -231,7 +230,7 @@ const TimelapseLineChart = (props) => {
         },
         axisLabel: {
           formatter: function (value) {
-            return format(value, 'HH:mm')
+            return timeUtils.format(value, 'HH:mm')
           },
           hideOverlap: true,
         },

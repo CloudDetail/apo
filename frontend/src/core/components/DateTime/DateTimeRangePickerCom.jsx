@@ -20,7 +20,6 @@ import {
   CInputGroup,
   CInputGroupText,
 } from '@coreui/react'
-import { endOfDay, format, startOfDay } from 'date-fns'
 import React, { useEffect, useState } from 'react'
 import { DateRange } from 'react-date-range'
 import { useSearchParams } from 'react-router-dom'
@@ -37,6 +36,7 @@ import {
   ISOToTimestamp,
   TimestampToISO,
   ValidDate,
+  timeUtils
 } from 'src/core/utils/time'
 import './index.css'
 import 'react-date-range/dist/styles.css' // main style file
@@ -70,8 +70,8 @@ export default function DateTimeRangePickerCom(props) {
   const [inputEndTime, setInputEndTime] = useState()
   const storeTimeRange = useSelector((state) => state.timeRange)
   const [dateRange, setDateRange] = useState({
-    startDate: startOfDay(new Date()),
-    endDate: endOfDay(new Date()),
+    startDate: timeUtils.startOfDay(new Date()),
+    endDate: timeUtils.endOfDay(new Date()),
     key: 'selection',
   })
   // yyyy-mm-dd hh:mm:ss 时间输入
@@ -115,18 +115,18 @@ export default function DateTimeRangePickerCom(props) {
   const handleDateRange = (ranges) => {
     let state = ranges.selection
     setDateRange({
-      startDate: startOfDay(state.startDate),
-      endDate: endOfDay(state.endDate),
+      startDate: timeUtils.startOfDay(state.startDate),
+      endDate: timeUtils.endOfDay(state.endDate),
       key: state.key,
     })
-    setInputStartTime(format(state.startDate, 'yyyy-MM-dd HH:mm:ss'))
-    setInputEndTime(format(endOfDay(state.endDate), 'yyyy-MM-dd HH:mm:ss'))
+    setInputStartTime(timeUtils.format(state.startDate, 'yyyy-MM-dd HH:mm:ss'))
+    setInputEndTime(timeUtils.format(timeUtils.endOfDay(state.endDate), 'yyyy-MM-dd HH:mm:ss'))
   }
 
   const handleTimeRange = (key) => {
     const { startTime, endTime } = getTimestampRange(key)
-    const fromString = convertTime(startTime, 'yyyy-mm-dd hh:mm:ss')
-    const toString = convertTime(endTime, 'yyyy-mm-dd hh:mm:ss')
+    const fromString = timeUtils.formatMicroTimestamp(startTime, 'yyyy-MM-dd HH:mm:ss')
+    const toString = timeUtils.formatMicroTimestamp(endTime, 'yyyy-MM-dd HH:mm:ss')
     setInputStartTime(fromString)
     setInputEndTime(toString)
     setDropdownVisible(false)
@@ -135,7 +135,7 @@ export default function DateTimeRangePickerCom(props) {
   const validStartTime = () => {
     let feedback = t('dateTimeRangePicker.selectCorrectTimeRangeFeedback')
     let result = true
-    if (!inputStartTime || inputStartTime?.length === 0 || !ValidDate(inputStartTime)) {
+    if (!inputStartTime || inputStartTime?.length === 0 || !timeUtils.isValid(inputStartTime)) {
       result = false
     } else if (new Date(inputStartTime) > new Date(inputEndTime)) {
       feedback = t('dateTimeRangePicker.startTimeLongerThanEndTimeFeedback')
@@ -151,7 +151,7 @@ export default function DateTimeRangePickerCom(props) {
   const validEndTime = () => {
     let feedback = t('dateTimeRangePicker.selectCorrectTimeRangeFeedback')
     let result = true
-    if (!inputEndTime || inputEndTime?.length === 0 || !ValidDate(inputEndTime)) {
+    if (!inputEndTime || inputEndTime?.length === 0 || !timeUtils.isValid(inputEndTime)) {
       result = false
     } else if (new Date(inputStartTime) > new Date(inputEndTime)) {
       feedback = t('dateTimeRangePicker.endTimeLessThanStartTimeFeedback')
@@ -167,12 +167,12 @@ export default function DateTimeRangePickerCom(props) {
   const initTimeRange = () => {
     let initFromString, initToString
     if (storeTimeRange.startTime && storeTimeRange.endTime) {
-      initFromString = TimestampToISO(storeTimeRange.startTime)
-      initToString = TimestampToISO(storeTimeRange.endTime)
+      initFromString = timeUtils.microTimestampToIso(storeTimeRange.startTime)
+      initToString = timeUtils.microTimestampToIso(storeTimeRange.endTime)
     } else {
       const initTimeRange = GetInitalTimeRange()
-      initFromString = convertTime(initTimeRange.startTime, 'yyyy-mm-dd hh:mm:ss')
-      initToString = convertTime(initTimeRange.endTime, 'yyyy-mm-dd hh:mm:ss')
+      initFromString = timeUtils.formatMicroTimestamp(initTimeRange.startTime, 'yyyy-MM-dd HH:mm:ss')
+      initToString = timeUtils.formatMicroTimestamp(initTimeRange.endTime, 'yyyy-MM-dd HH:mm:ss')
     }
 
     setInputStartTime(initFromString, 'yyyy-mm-dd hh:mm:ss')
@@ -189,9 +189,9 @@ export default function DateTimeRangePickerCom(props) {
       return
     }
     //iso -> timestamp -> string
-    const fromString = convertTime(ISOToTimestamp(from), 'yyyy-mm-dd hh:mm:ss')
-    const toString = convertTime(ISOToTimestamp(to), 'yyyy-mm-dd hh:mm:ss')
-    if (fromString && toString && ValidDate(fromString) && ValidDate(toString)) {
+    const fromString = timeUtils.formatMicroTimestamp(timeUtils.isoToMicroTimestamp(from), 'yyyy-MM-dd HH:mm:ss')
+    const toString = timeUtils.formatMicroTimestamp(timeUtils.isoToMicroTimestamp(to), 'yyyy-MM-dd HH:mm:ss')
+    if (fromString && toString && timeUtils.isValid(fromString) && timeUtils.isValid(toString)) {
       if (inputStartTime !== fromString || inputEndTime !== toString) {
         // console.log('url发现参数和store不符，更新精确时间')
         setInputStartTime(fromString)
@@ -208,8 +208,8 @@ export default function DateTimeRangePickerCom(props) {
     const endTimeValid = validEndTime()
     if (startTimeValid && endTimeValid) {
       setDateRange({
-        startDate: startOfDay(new Date(inputStartTime).getTime()),
-        endDate: endOfDay(new Date(inputEndTime).getTime()),
+        startDate: timeUtils.startOfDay(new Date(inputStartTime).getTime()),
+        endDate: timeUtils.endOfDay(new Date(inputEndTime).getTime()),
         key: 'selection',
       })
     }

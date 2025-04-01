@@ -6,6 +6,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
+import { timeUtils } from 'src/core/utils/time'
 
 export default function TimeSinceRefresh() {
   const { t } = useTranslation('core/dateTime')
@@ -14,9 +15,10 @@ export default function TimeSinceRefresh() {
   const [intervalTime, setIntervalTime] = useState(1000)
 
   const calculateTimeDifference = useCallback(() => {
-    const now = Date.now()
-    const diffInSeconds = Math.floor((now * 1000 - refreshTimestamp) / 1000000) // 微秒转秒，refreshTime 是微秒
-
+    // 使用timeUtils获取当前微秒时间戳
+    const now = timeUtils.nowMicro()
+    // 使用timeUtils计算秒级差异
+    const diffInSeconds = Math.floor(timeUtils.convertMicroTime(now - refreshTimestamp, 's', 0))
     const days = Math.floor(diffInSeconds / (3600 * 24))
     const hours = Math.floor((diffInSeconds % (3600 * 24)) / 3600)
     const minutes = Math.floor((diffInSeconds % 3600) / 60)
@@ -35,7 +37,7 @@ export default function TimeSinceRefresh() {
 
     // 动态调整时间更新的频率
     if (days > 0) {
-      setIntervalTime(86400000) // 当超过1小时，更新频率调整为1天
+      setIntervalTime(86400000) // 当超过1天，更新频率调整为1天
     } else if (hours > 0) {
       setIntervalTime(3600000) // 当超过1小时，更新频率调整为1小时
     } else if (minutes > 0) {
