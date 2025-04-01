@@ -5,11 +5,12 @@
 
 import { Card } from 'antd'
 import ClusterTable from './ClusterTable'
+import CustomCard from 'src/core/components/Card/CustomCard'
 
 export default function DataIntegrationPage() {
   return (
-    <Card style={{ height: 'calc(100vh - 100px)' }}>
+    <CustomCard>
       <ClusterTable />
-    </Card>
+    </CustomCard>
   )
 }

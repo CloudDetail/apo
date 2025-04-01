@@ -46,6 +46,10 @@ func WithAlertCheckFlow(cfg *AlertCheckCfg) Option {
 			return
 		}
 
+		if cfg.MaxConcurrency <= 0 {
+			cfg.MaxConcurrency = 1
+		}
+
 		cfg.CacheMinutes = maxFactorOf60LessThanN(cfg.CacheMinutes)
 		cfg.FlowName = "AlertCheck"
 
