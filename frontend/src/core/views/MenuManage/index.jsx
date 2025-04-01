@@ -16,6 +16,7 @@ import LoadingSpinner from 'src/core/components/Spinner'
 import { useUserContext } from 'src/core/contexts/UserContext'
 import { showToast } from 'src/core/utils/toast'
 import { useTranslation } from 'react-i18next'
+import CustomCard from 'src/core/components/Card/CustomCard'
 
 function MenuManagePage() {
   const { user, getUserPermission } = useUserContext()
@@ -110,7 +111,7 @@ function MenuManagePage() {
   }
   return (
     <>
-      <Card style={{ height: 'calc(100vh - 60px)', overflow: 'auto' }}>
+      <CustomCard style={{ overflow: 'auto' }}>
         <LoadingSpinner loading={loading} />
         <Button
           type="primary"
@@ -136,7 +137,7 @@ function MenuManagePage() {
         <Button type="primary" className="m-4" onClick={configMenu}>
           {t('index.save')}
         </Button>
-      </Card>
+      </CustomCard>
     </>
   )
 }

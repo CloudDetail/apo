@@ -13,6 +13,7 @@ import { showToast } from 'src/core/utils/toast'
 import { MdAdd, MdOutlineEdit } from 'react-icons/md'
 import ModifyAlertNotifyModal from './modal/ModifyAlertNotifyModal'
 import { useTranslation } from 'react-i18next' // 引入i18n
+import CustomCard from 'src/core/components/Card/CustomCard'
 
 export default function AlertsNotify() {
   const [data, setData] = useState([])
@@ -186,18 +187,7 @@ export default function AlertsNotify() {
     }
   }, [column, data, pageIndex, pageSize])
   return (
-    <Card
-      style={{ height: 'calc(100vh - 60px)' }}
-      styles={{
-        body: {
-          height: '100%',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '12px 24px',
-        },
-      }}
-    >
+    <CustomCard styleType='alerts'>
       <LoadingSpinner loading={loading} />
       <div className="flex items-center justify-betweeen text-sm ">
         <Space className="flex-grow">
@@ -234,6 +224,6 @@ export default function AlertsNotify() {
         closeModal={() => setModalVisible(false)}
         refresh={refreshTable}
       />
-    </Card>
+    </CustomCard>
   )
 }
