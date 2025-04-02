@@ -6,8 +6,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import ReactECharts from 'echarts-for-react'
 import { getStep } from 'src/core/utils/step'
-import { convertTime } from 'src/core/utils/time'
-import { format } from 'date-fns'
+import { convertTime, timeUtils } from 'src/core/utils/time'
 import { DelayLineChartTitleMap, MetricsLineChartColor, YValueMinInterval } from 'src/constants'
 import { useDispatch } from 'react-redux'
 import { useTranslation } from 'react-i18next'
@@ -125,7 +124,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
       axisLabel: {
         hideOverlap: true,
         formatter: function (value) {
-          return format(value, 'HH:mm')
+          return timeUtils.format(value, 'HH:mm')
         },
       },
       // axisLine: {
@@ -213,7 +212,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
           },
           axisLabel: {
             formatter: function (value) {
-              return format(value, 'HH:mm')
+              return timeUtils.format(value, 'HH:mm')
             },
             hideOverlap: true,
           },
