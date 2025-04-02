@@ -30,7 +30,7 @@ func (s *service) CreateRole(req *request.CreateRoleRequest) error {
 		return err
 	}
 
-	if len(f) != len(req.PermissionList) {
+	if len(req.PermissionList) > 0 && len(f) != len(req.PermissionList) {
 		return model.NewErrWithMessage(errors.New("permission does not exist"), code.PermissionNotExistError)
 	}
 
