@@ -25,13 +25,15 @@ func (s *service) CreateRole(req *request.CreateRoleRequest) error {
 		return model.NewErrWithMessage(errors.New("role already exists"), code.RoleExistsError)
 	}
 
-	f, err := s.dbRepo.GetFeature(req.PermissionList)
-	if err != nil {
-		return err
-	}
-
-	if len(req.PermissionList) > 0 && len(f) != len(req.PermissionList) {
-		return model.NewErrWithMessage(errors.New("permission does not exist"), code.PermissionNotExistError)
+	if len(req.PermissionList) > 0 {
+		f, err := s.dbRepo.GetFeature(req.PermissionList)
+		if err != nil {
+			return err
+		}
+	
+		if len(f) != len(req.PermissionList) {
+			return model.NewErrWithMessage(errors.New("permission does not exist"), code.PermissionNotExistError)
+		}
 	}
 
 	exist, err := s.dbRepo.UserExists(req.UserList...)
