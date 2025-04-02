@@ -3,22 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// 时间转换工具类
-import { 
-  format, 
-  formatDistance, 
-  parseISO, 
-  addDays, 
-  addMonths, 
-  addYears, 
-  isValid, 
-  startOfDay, 
-  endOfDay, 
-  startOfWeek, 
-  endOfWeek, 
-  startOfMonth, 
-  endOfMonth, 
-  differenceInDays, 
+// Time conversion utility class
+import {
+  format,
+  formatDistance,
+  parseISO,
+  addDays,
+  addMonths,
+  addYears,
+  isValid,
+  startOfDay,
+  endOfDay,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  differenceInDays,
   differenceInHours,
   differenceInYears,
   differenceInMonths,
@@ -31,37 +31,38 @@ import utc from 'dayjs/plugin/utc'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
+
 /**
- * 将微秒级时间转换为指定格式
- * @param {number} timeInMicros - 输入的微秒级时间戳
- * @param {string} format - 转换的格式，支持 'us', 'ms', 's', 'm', 'h', 'yyyy-mm-dd hh:mm:ss','yyyy-mm-dd hh:mm:ss.SSS'
- * @param {number} [precision=0] - 精度，小数点后的位数，仅适用于 'ms', 's', 'm', 'h'
- * @returns {null|string|number} 转换后的时间
+ * Convert microsecond timestamp to specified format
+ * @param {number} timeInMicros - Input microsecond timestamp
+ * @param {string} format - Target format, supports: 'us', 'ms', 's', 'm', 'h', 'yyyy-mm-dd hh:mm:ss','yyyy-mm-dd hh:mm:ss.SSS'
+ * @param {number} [precision=0] - Decimal precision, applies to 'ms', 's', 'm', 'h'
+ * @returns {null|string|number} Converted time
  */
 export function convertTime(timeInMicros, format, precision = 0) {
   if (timeInMicros === null) {
     return null
   }
-  const date = new Date(timeInMicros / 1000) // 转换为毫秒级时间戳
+  const date = new Date(timeInMicros / 1000) // Convert to millisecond timestamp
 
   switch (format) {
     case 'us':
-      return parseFloat(timeInMicros.toFixed(precision)) // 返回微秒
+      return parseFloat(timeInMicros.toFixed(precision)) // Return microseconds
     case 'ms':
-      return parseFloat((timeInMicros / 1000).toFixed(precision)) // 转换为毫秒
+      return parseFloat((timeInMicros / 1000).toFixed(precision)) // Convert to milliseconds
     case 's':
-      return parseFloat((timeInMicros / 1000000).toFixed(precision)) // 转换为秒
+      return parseFloat((timeInMicros / 1000000).toFixed(precision)) // Convert to seconds
     case 'm':
-      return parseFloat((timeInMicros / (1000000 * 60)).toFixed(precision)) // 转换为分钟
+      return parseFloat((timeInMicros / (1000000 * 60)).toFixed(precision)) // Convert to minutes
     case 'h':
-      return parseFloat((timeInMicros / (1000000 * 60 * 60)).toFixed(precision)) // 转换为小时
+      return parseFloat((timeInMicros / (1000000 * 60 * 60)).toFixed(precision)) // Convert to hours
     case 'HH:MM':
       const HH = String(date.getHours()).padStart(2, '0')
       const MM = String(date.getMinutes()).padStart(2, '0')
       return `${HH}:${MM}`
     case 'yyyy-mm-dd hh:mm:ss':
       const yyyy = date.getFullYear()
-      const mm = String(date.getMonth() + 1).padStart(2, '0') // 月份从0开始
+      const mm = String(date.getMonth() + 1).padStart(2, '0') // Months are 0-based
       const dd = String(date.getDate()).padStart(2, '0')
       const hh = String(date.getHours()).padStart(2, '0')
       const min = String(date.getMinutes()).padStart(2, '0')
@@ -81,12 +82,18 @@ export function convertTime(timeInMicros, format, precision = 0) {
   }
 }
 
+/**
+ * Split time range into intervals
+ * @param {number} startTimestamp - Start timestamp in microseconds
+ * @param {number} endTimestamp - End timestamp in microseconds
+ * @returns {Array} Time segments array
+ */
 export function splitTimeRange(startTimestamp, endTimestamp) {
-  // 将输入的微秒级时间戳转换为毫秒级时间戳
+  // Convert input microsecond timestamps to milliseconds
   let startTime = new Date(startTimestamp / 1000)
   let endTime = new Date(endTimestamp / 1000)
 
-  // 如果输入时间段不符合整分钟，调整为整分钟
+  // Adjust to full minutes if input is not aligned
   if (startTime.getSeconds() !== 0 || startTime.getMilliseconds() !== 0) {
     startTime.setSeconds(0, 0)
   }
@@ -95,13 +102,13 @@ export function splitTimeRange(startTimestamp, endTimestamp) {
     endTime.setSeconds(0, 0)
   }
 
-  // 计算总时间差，单位为分钟
+  // Calculate total time difference in minutes
   let totalMinutes = Math.ceil((endTime - startTime) / 60000)
 
-  // 确定分段数
+  // Determine number of segments (max 5)
   let segmentCount = Math.min(5, totalMinutes)
 
-  // 计算每段的分钟数，至少为1分钟
+  // Calculate minutes per segment (minimum 1 minute)
   let segmentMinutes = Math.ceil(totalMinutes / segmentCount)
 
   let segments = []
@@ -109,7 +116,7 @@ export function splitTimeRange(startTimestamp, endTimestamp) {
     let segmentStart = new Date(startTime.getTime() + i * segmentMinutes * 60000)
     let segmentEnd = new Date(segmentStart.getTime() + segmentMinutes * 60000)
 
-    // 确保最后一个时间段结束时间不超过endTime
+    // Ensure last segment doesn't exceed endTime
     if (segmentEnd > endTime) {
       segmentEnd = endTime
     }
@@ -119,7 +126,7 @@ export function splitTimeRange(startTimestamp, endTimestamp) {
       end: segmentEnd.getTime() * 1000,
     })
 
-    // 终止条件，防止时间段溢出
+    // Break loop if reached end time
     if (segmentEnd >= endTime) {
       break
     }
@@ -129,53 +136,51 @@ export function splitTimeRange(startTimestamp, endTimestamp) {
 }
 
 /**
- * 微秒时间戳转ISO
- * @param {number} timestamp - 输入的微秒级时间戳
- * @returns {string} 转换后的时间
+ * Convert microsecond timestamp to ISO format
+ * @param {number} timestamp - Input microsecond timestamp
+ * @returns {string} ISO formatted string
  */
 export function TimestampToISO(timestamp) {
-  const milliseconds = Math.floor(timestamp / 1000) // 转换为毫秒
-  const date = new Date(milliseconds) // 使用毫秒创建日期对象
-  const microseconds = timestamp % 1000 // 取微秒部分
-  const isoString = date.toISOString().replace('Z', '') // 移除末尾的 'Z'
-  const microPart = String(microseconds).padStart(3, '0') // 保证微秒部分是3位
+  const milliseconds = Math.floor(timestamp / 1000) // Convert to milliseconds
+  const date = new Date(milliseconds)
+  const microseconds = timestamp % 1000 // Extract microsecond part
+  const isoString = date.toISOString().replace('Z', '') // Remove trailing 'Z'
+  const microPart = String(microseconds).padStart(3, '0') // 3-digit microsecond
   return `${isoString}${microPart}Z`
 }
 
 /**
- * ISO转微秒时间戳
- * @param {string} isoString - 输入的ISO
- * @returns {number|null} 转换后的微秒级时间戳
+ * Convert ISO string to microsecond timestamp
+ * @param {string} isoString - ISO formatted string
+ * @returns {number|null} Microsecond timestamp
  */
 export function ISOToTimestamp(isoString) {
   const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/
-  // 验证格式
+  // Validate format
   if (!iso8601Regex.test(isoString)) {
     return null
   }
-  const datePart = isoString.slice(0, -4) + 'Z' // 去掉微秒部分后转换为日期
+  const datePart = isoString.slice(0, -4) + 'Z' // Truncate microseconds
   const date = new Date(datePart)
-  // 检查日期是否有效
+  // Check whether is a Invalid Date
   if (isNaN(date.getTime())) {
     return null
   }
-  const milliTimestamp = date.getTime() // 获取毫秒级时间戳
-  const microPart = isoString.slice(-4, -1) // 提取微秒部分
-  const microseconds = parseInt(microPart, 10) // 转换为整数
-  const microsecondTimestamp = milliTimestamp * 1000 + microseconds // 计算微秒级时间戳
-
-  return microsecondTimestamp
+  const milliTimestamp = date.getTime()
+  const microPart = isoString.slice(-4, -1) // Extract microseconds
+  const microseconds = parseInt(microPart, 10)
+  return milliTimestamp * 1000 + microseconds
 }
 
 /**
- * 判断字符串类型是否满足 yyyy-mm-dd hh:mm:ss 格式 满足返回true，反之false
- * @param {string} dateString - 输入的字符串类型时间
- * @returns {boolean} 是否合规
+ * Validate date string format (yyyy-mm-dd hh:mm:ss)
+ * @param {string} dateString - Input date string
+ * @returns {boolean} Validation result
  */
 export function ValidDate(dateString) {
-  // 尝试解析字符串
+  // Try to parse string
   const date = new Date(dateString)
-  // 检查是否为 Invalid Date
+  // Check whether is a Invalid Date
   if (isNaN(date.getTime())) {
     return false
   }
@@ -183,14 +188,14 @@ export function ValidDate(dateString) {
 }
 
 /**
- * yyyy-MM-dd HH:mm:ss 转ISO
- * @param {string} dateString - 输入的字符串类型时间
- * @returns {string} 是否合规
+ * Convert date string to ISO format
+ * @param {string} dateString - Input date string (yyyy-MM-dd HH:mm:ss)
+ * @returns {string} ISO formatted string
  */
 export function DateToISO(dateString) {
-  // 尝试解析字符串
+  // Try to parse string
   const date = new Date(dateString)
-  // 检查是否为 Invalid Date
+  // Check whether is a Invalid Date
   if (isNaN(date.getTime())) {
     return null
   }
@@ -198,10 +203,10 @@ export function DateToISO(dateString) {
 }
 
 /**
- * [时间单位转换-毫秒]
- * 默认 ms
- * @param   {number}  time [time value]
- * @return  {string|number}       [time value with unit]
+ * Format time duration with unit conversion
+ * @param {number} time - Time value in milliseconds
+ * @param {number} [reserve=2] - Decimal places
+ * @returns {string|number} Formatted value with unit
  */
 export const formatTime = (time, reserve = 2) => {
   let flag = false
@@ -402,19 +407,19 @@ export const formatUnit = (data, unit, reserve = 2) => {
 }
 
 /**
- * 时间工具类封装
+ * Time utility class encapsulation
  */
 export const timeUtils = {
   /**
-   * 格式化日期
-   * @param {Date|number|string} date - 日期对象、时间戳或日期字符串
-   * @param {string} formatStr - 格式化字符串，例如 'yyyy-MM-dd HH:mm:ss'
-   * @returns {string} 格式化后的日期字符串
+   * Format date
+   * @param {Date|number|string} date - Date object, timestamp or date string
+   * @param {string} formatStr - Format string, e.g. 'yyyy-MM-dd HH:mm:ss'
+   * @returns {string} Formatted date string
    */
   format: (date, formatStr = 'yyyy-MM-dd HH:mm:ss') => {
     if (!date) return ''
     try {
-      // 处理各种可能的输入类型
+      // Handle various input types
       let dateObj = date
       if (typeof date === 'string') {
         dateObj = new Date(date)
@@ -425,30 +430,30 @@ export const timeUtils = {
       if (!isValid(dateObj)) return ''
       return format(dateObj, formatStr)
     } catch (error) {
-      console.error('日期格式化错误:', error)
+      console.error('Date formatting error:', error)
       return ''
     }
   },
 
   /**
-   * 解析ISO格式日期字符串
-   * @param {string} isoStr - ISO格式日期字符串
-   * @returns {Date} 日期对象
+   * Parse ISO format date string
+   * @param {string} isoStr - ISO format date string
+   * @returns {Date} Date object
    */
   parseISO: (isoStr) => {
     try {
       return parseISO(isoStr)
     } catch (error) {
-      console.error('ISO日期解析错误:', error)
+      console.error('ISO date parsing error:', error)
       return new Date()
     }
   },
 
   /**
-   * 获取相对时间描述
-   * @param {Date|number|string} date - 日期对象、时间戳或日期字符串
-   * @param {Date} baseDate - 基准日期，默认为当前时间
-   * @returns {string} 相对时间描述，如"3天前"
+   * Get relative time description
+   * @param {Date|number|string} date - Date object, timestamp or date string
+   * @param {Date} baseDate - Base date, defaults to current time
+   * @returns {string} Relative time description, e.g. "3 days ago"
    */
   fromNow: (date, baseDate = new Date()) => {
     if (!date) return ''
@@ -463,17 +468,17 @@ export const timeUtils = {
       if (!isValid(dateObj)) return ''
       return formatDistance(dateObj, baseDate, { addSuffix: true })
     } catch (error) {
-      console.error('相对时间计算错误:', error)
+      console.error('Relative time calculation error:', error)
       return ''
     }
   },
 
   /**
-   * 日期加减操作
-   * @param {Date|number|string} date - 日期对象、时间戳或日期字符串
-   * @param {number} amount - 要加减的数量
-   * @param {string} unit - 单位：'day', 'month', 'year'
-   * @returns {Date} 新的日期对象
+   * Date addition/subtraction operations
+   * @param {Date|number|string} date - Date object, timestamp or date string
+   * @param {number} amount - Quantity to add/subtract
+   * @param {string} unit - Unit: 'day', 'month', 'year'
+   * @returns {Date} New date object
    */
   add: (date, amount, unit = 'day') => {
     if (!date) return new Date()
@@ -498,15 +503,15 @@ export const timeUtils = {
           return dateObj instanceof Date ? dateObj : new Date(dateObj)
       }
     } catch (error) {
-      console.error('日期加减操作错误:', error)
+      console.error('Date arithmetic operation error:', error)
       return new Date()
     }
   },
 
   /**
-   * 判断日期是否有效
-   * @param {Date|number|string} date - 日期对象、时间戳或日期字符串
-   * @returns {boolean} 是否为有效日期
+   * Check if date is valid
+   * @param {Date|number|string} date - Date object, timestamp or date string
+   * @returns {boolean} Whether the date is valid
    */
   isValid: (date) => {
     if (!date) return false
@@ -525,251 +530,245 @@ export const timeUtils = {
   },
 
   /**
-   * 获取当前时间的时间戳（毫秒）
-   * @returns {number} 当前时间戳
+   * Get current timestamp (milliseconds)
+   * @returns {number} Current timestamp
    */
   now: () => {
     return Date.now()
   },
 
   /**
-   * 转换为本地时区时间
-   * @param {string} utcTimeString - UTC时间字符串
-   * @returns {string} 本地时区时间字符串
+   * Convert to local timezone time
+   * @param {string} utcTimeString - UTC time string
+   * @returns {string} Local timezone time string
    */
   toLocalTime: (utcTimeString) => {
     return convertUTCToLocal(utcTimeString)
   },
+
   /**
-   * 微秒级时间戳转换为指定格式
-   * @param {number} microTimestamp - 微秒级时间戳
-   * @param {string} formatStr - 格式化字符串，例如 'yyyy-MM-dd HH:mm:ss.SSS'
-   * @returns {string} 格式化后的时间字符串
+   * Convert microsecond timestamp to specified format
+   * @param {number} microTimestamp - Microsecond timestamp
+   * @param {string} formatStr - Format string, e.g. 'yyyy-MM-dd HH:mm:ss.SSS'
+   * @returns {string} Formatted time string
    */
   formatMicroTimestamp: (microTimestamp, formatStr = 'yyyy-MM-dd HH:mm:ss.SSS') => {
     if (!microTimestamp) return ''
     try {
-      // 将微秒转换为毫秒
+      // Convert microseconds to milliseconds
       const milliseconds = Math.floor(microTimestamp / 1000)
       const date = new Date(milliseconds)
-      
-      // 处理微秒部分
-      const microsecondPart = String(microTimestamp % 1000).padStart(3, '0')
-      
-      // 先用date-fns格式化到毫秒
+
+      // Use date-fns to format with milliseconds
       let formatted = format(date, formatStr)
-      
-      // 如果格式中包含微秒占位符，则替换
+
+      // Return directly if format contains .SSS
       if (formatStr.includes('.SSS')) {
-        // 已经包含毫秒，我们可以在实际应用中扩展为微秒如果需要
-        return formatted
-      } else if (formatStr.includes('SSS')) {
-        // 直接包含毫秒占位符
-        return formatted
-      } else {
-        // 不需要微秒信息
         return formatted
       }
+
+      // Return formatted result without millisecond info
+      return formatted
     } catch (error) {
-      console.error('微秒时间戳格式化错误:', error)
+      console.error('Microsecond timestamp formatting error:', error)
       return ''
     }
   },
-  
+
   /**
-   * 将ISO格式转换为微秒级时间戳
-   * @param {string} isoString - ISO格式时间字符串
-   * @returns {number|null} 微秒级时间戳或null（如果转换失败）
+   * Convert ISO format to microsecond timestamp
+   * @param {string} isoString - ISO format time string
+   * @returns {number|null} Microsecond timestamp or null if conversion fails
    */
   isoToMicroTimestamp: (isoString) => {
     return ISOToTimestamp(isoString)
   },
-  
+
   /**
-   * 将微秒级时间戳转换为ISO格式
-   * @param {number} microTimestamp - 微秒级时间戳
-   * @returns {string} ISO格式时间字符串
+   * Convert microsecond timestamp to ISO format
+   * @param {number} microTimestamp - Microsecond timestamp
+   * @returns {string} ISO format time string
    */
   microTimestampToIso: (microTimestamp) => {
     return TimestampToISO(microTimestamp)
   },
-  
+
   /**
-   * 获取当前时间的微秒级时间戳
-   * 注意：JavaScript无法直接获取微秒精度，这里是模拟的
-   * @returns {number} 当前时间的微秒级时间戳（毫秒*1000+随机微秒）
+   * Get current microsecond timestamp
+   * Note: JavaScript cannot directly get microsecond precision, this is simulated
+   * @returns {number} Current microsecond timestamp (milliseconds*1000 + random microseconds)
    */
   nowMicro: () => {
     const now = Date.now()
-    // 模拟微秒部分（实际上JS无法获取真实微秒）
+    // Simulate microsecond part (actual JS cannot get real microseconds)
     const microPart = Math.floor(Math.random() * 1000)
     return now * 1000 + microPart
   },
-  
+
   /**
-   * 转换为指定时区的时间
-   * @param {Date|number|string} date - 日期对象、时间戳或日期字符串
-   * @param {string} timezone - 目标时区，例如 'Asia/Shanghai'，默认为本地时区
-   * @param {string} formatStr - 输出格式
-   * @returns {string} 指定时区的时间字符串
+   * Convert to specified timezone time
+   * @param {Date|number|string} date - Date object, timestamp or date string
+   * @param {string} timezone - Target timezone, e.g. 'Asia/Shanghai', defaults to local timezone
+   * @param {string} formatStr - Output format
+   * @returns {string} Time string in specified timezone
    */
   toTimezone: (date, timezone = Intl.DateTimeFormat().resolvedOptions().timeZone, formatStr = 'YYYY-MM-DD HH:mm:ss') => {
     if (!date) return ''
     try {
       return dayjs(date).tz(timezone).format(formatStr)
     } catch (error) {
-      console.error('时区转换错误:', error)
+      console.error('Timezone conversion error:', error)
       return ''
     }
   },
-  
+
   /**
-   * 将UTC时间转换为本地时间
-   * @param {string|Date} utcTime - UTC时间
-   * @param {string} formatStr - 输出格式
-   * @returns {string} 本地时间字符串
+   * Convert UTC time to local time
+   * @param {string|Date} utcTime - UTC time
+   * @param {string} formatStr - Output format
+   * @returns {string} Local time string
    */
   utcToLocal: (utcTime, formatStr = 'YYYY-MM-DD HH:mm:ss') => {
     if (!utcTime) return ''
     try {
       return dayjs.utc(utcTime).local().format(formatStr)
     } catch (error) {
-      console.error('UTC转本地时间错误:', error)
-      return convertUTCToLocal(utcTime) // 使用原有函数作为备选
+      console.error('UTC to local time conversion error:', error)
+      return convertUTCToLocal(utcTime) // Fallback to original function
     }
   },
-  
+
   /**
-   * 将本地时间转换为UTC时间
-   * @param {string|Date} localTime - 本地时间
-   * @param {string} formatStr - 输出格式
-   * @returns {string} UTC时间字符串
+   * Convert local time to UTC time
+   * @param {string|Date} localTime - Local time
+   * @param {string} formatStr - Output format
+   * @returns {string} UTC time string
    */
   localToUtc: (localTime, formatStr = 'YYYY-MM-DD HH:mm:ss') => {
     if (!localTime) return ''
     try {
       return dayjs(localTime).utc().format(formatStr)
     } catch (error) {
-      console.error('本地转UTC时间错误:', error)
+      console.error('Local to UTC conversion error:', error)
       return ''
     }
   },
-  
+
   /**
-   * 微秒级时间转换为指定单位和格式
-   * @param {number} microTimestamp - 微秒级时间戳
-   * @param {string} unit - 目标单位，支持 'us', 'ms', 's', 'm', 'h'
-   * @param {number} precision - 精度，小数点后位数
-   * @returns {number|null} 转换后的时间值
+   * Convert microsecond time to specified unit and format
+   * @param {number} microTimestamp - Microsecond timestamp
+   * @param {string} unit - Target unit: 'us', 'ms', 's', 'm', 'h'
+   * @param {number} precision - Decimal precision
+   * @returns {number|null} Converted time value
    */
   convertMicroTime: (microTimestamp, unit = 'ms', precision = 2) => {
     return Number(convertTime(microTimestamp, unit, precision))
   },
 
   /**
-   * 获取一天的开始时间
-   * @param {Date|number|string} date - 日期对象、时间戳或日期字符串
-   * @returns {Date} 当天开始时间的日期对象
+   * Get start time of a day
+   * @param {Date|number|string} date - Date object, timestamp or date string
+   * @returns {Date} Start time date object of the day
    */
   startOfDay: (date) => {
     if (!date) return startOfDay(new Date())
     try {
       return startOfDay(new Date(date))
     } catch (error) {
-      console.error('获取日开始时间错误:', error)
+      console.error('Error getting day start time:', error)
       return startOfDay(new Date())
     }
   },
-  
+
   /**
-   * 获取一天的结束时间
-   * @param {Date|number|string} date - 日期对象、时间戳或日期字符串
-   * @returns {Date} 当天结束时间的日期对象
+   * Get end time of a day
+   * @param {Date|number|string} date - Date object, timestamp or date string
+   * @returns {Date} End time date object of the day
    */
   endOfDay: (date) => {
     if (!date) return endOfDay(new Date())
     try {
       return endOfDay(new Date(date))
     } catch (error) {
-      console.error('获取日结束时间错误:', error)
+      console.error('Error getting day end time:', error)
       return endOfDay(new Date())
     }
   },
-  
+
   /**
-   * 获取一周的开始时间
-   * @param {Date|number|string} date - 日期对象、时间戳或日期字符串
-   * @param {Object} options - 配置选项，同date-fns的startOfWeek
-   * @returns {Date} 当周开始时间的日期对象
+   * Get start time of a week
+   * @param {Date|number|string} date - Date object, timestamp or date string
+   * @param {Object} options - Configuration options, same as date-fns startOfWeek
+   * @returns {Date} Start time date object of the week
    */
   startOfWeek: (date, options) => {
     if (!date) return startOfWeek(new Date(), options)
     try {
       return startOfWeek(new Date(date), options)
     } catch (error) {
-      console.error('获取周开始时间错误:', error)
+      console.error('Error getting week start time:', error)
       return startOfWeek(new Date(), options)
     }
   },
-  
+
   /**
-   * 获取一周的结束时间
-   * @param {Date|number|string} date - 日期对象、时间戳或日期字符串
-   * @param {Object} options - 配置选项，同date-fns的endOfWeek
-   * @returns {Date} 当周结束时间的日期对象
+   * Get end time of a week
+   * @param {Date|number|string} date - Date object, timestamp or date string
+   * @param {Object} options - Configuration options, same as date-fns endOfWeek
+   * @returns {Date} End time date object of the week
    */
   endOfWeek: (date, options) => {
     if (!date) return endOfWeek(new Date(), options)
     try {
       return endOfWeek(new Date(date), options)
     } catch (error) {
-      console.error('获取周结束时间错误:', error)
+      console.error('Error getting week end time:', error)
       return endOfWeek(new Date(), options)
     }
   },
-  
+
   /**
-   * 获取一个月的开始时间
-   * @param {Date|number|string} date - 日期对象、时间戳或日期字符串
-   * @returns {Date} 当月开始时间的日期对象
+   * Get start time of a month
+   * @param {Date|number|string} date - Date object, timestamp or date string
+   * @returns {Date} Start time date object of the month
    */
   startOfMonth: (date) => {
     if (!date) return startOfMonth(new Date())
     try {
       return startOfMonth(new Date(date))
     } catch (error) {
-      console.error('获取月开始时间错误:', error)
+      console.error('Error getting month start time:', error)
       return startOfMonth(new Date())
     }
   },
-  
+
   /**
-   * 获取一个月的结束时间
-   * @param {Date|number|string} date - 日期对象、时间戳或日期字符串
-   * @returns {Date} 当月结束时间的日期对象
+   * Get end time of a month
+   * @param {Date|number|string} date - Date object, timestamp or date string
+   * @returns {Date} End time date object of the month
    */
   endOfMonth: (date) => {
     if (!date) return endOfMonth(new Date())
     try {
       return endOfMonth(new Date(date))
     } catch (error) {
-      console.error('获取月结束时间错误:', error)
+      console.error('Error getting month end time:', error)
       return endOfMonth(new Date())
     }
   },
-  
+
   /**
-  * 获取两个日期之间的时间差
-  * @param {Date|number|string} dateLeft - 较早的日期
-  * @param {Date|number|string} dateRight - 较晚的日期
-  * @param {string} unit - 时间单位，可选值：'years', 'months', 'days', 'hours', 'minutes', 'seconds'
-  * @returns {number} 时间差
-  */
+   * Calculate time difference between two dates
+   * @param {Date|number|string} dateLeft - Earlier date
+   * @param {Date|number|string} dateRight - Later date
+   * @param {string} unit - Time unit, options: 'years', 'months', 'days', 'hours', 'minutes', 'seconds'
+   * @returns {number} Time difference
+   */
   getDiff: (dateLeft, dateRight, unit = 'days') => {
     try {
       const left = new Date(dateLeft);
       const right = new Date(dateRight);
-        
+
       switch(unit) {
         case 'years':
           return differenceInYears(right, left);
@@ -784,11 +783,11 @@ export const timeUtils = {
         case 'seconds':
           return differenceInSeconds(right, left);
         default:
-          console.warn(`未知的时间单位: ${unit}，使用默认单位 'days'`);
+          console.warn(`Unknown time unit: ${unit}, using default 'days'`);
           return differenceInDays(right, left);
         }
     } catch (error) {
-      console.error(`计算${unit}差异错误:`, error);
+      console.error(`Error calculating ${unit} difference:`, error);
       return 0;
     }
   },

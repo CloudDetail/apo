@@ -15,9 +15,9 @@ export default function TimeSinceRefresh() {
   const [intervalTime, setIntervalTime] = useState(1000)
 
   const calculateTimeDifference = useCallback(() => {
-    // 使用timeUtils获取当前微秒时间戳
+    // Use timeUtils to get the current microsecond timestamp
     const now = timeUtils.nowMicro()
-    // 使用timeUtils计算秒级差异
+    // Use timeUtils to calculate the second-level difference
     const diffInSeconds = Math.floor(timeUtils.convertMicroTime(now - refreshTimestamp, 's', 0))
     const days = Math.floor(diffInSeconds / (3600 * 24))
     const hours = Math.floor((diffInSeconds % (3600 * 24)) / 3600)

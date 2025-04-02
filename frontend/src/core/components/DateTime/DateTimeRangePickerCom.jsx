@@ -125,8 +125,8 @@ export default function DateTimeRangePickerCom(props) {
 
   const handleTimeRange = (key) => {
     const { startTime, endTime } = getTimestampRange(key)
-    const fromString = timeUtils.formatMicroTimestamp(startTime, 'yyyy-MM-dd HH:mm:ss')
-    const toString = timeUtils.formatMicroTimestamp(endTime, 'yyyy-MM-dd HH:mm:ss')
+    const fromString = convertTime(startTime, 'yyyy-mm-dd hh:mm:ss')
+    const toString = convertTime(endTime, 'yyyy-mm-dd hh:mm:ss')
     setInputStartTime(fromString)
     setInputEndTime(toString)
     setDropdownVisible(false)
@@ -171,8 +171,8 @@ export default function DateTimeRangePickerCom(props) {
       initToString = timeUtils.microTimestampToIso(storeTimeRange.endTime)
     } else {
       const initTimeRange = GetInitalTimeRange()
-      initFromString = timeUtils.formatMicroTimestamp(initTimeRange.startTime, 'yyyy-MM-dd HH:mm:ss')
-      initToString = timeUtils.formatMicroTimestamp(initTimeRange.endTime, 'yyyy-MM-dd HH:mm:ss')
+      initFromString = convertTime(initTimeRange.startTime, 'yyyy-mm-dd hh:mm:ss')
+      initToString = convertTime(initTimeRange.endTime, 'yyyy-mm-dd hh:mm:ss')
     }
 
     setInputStartTime(initFromString, 'yyyy-mm-dd hh:mm:ss')
@@ -189,8 +189,8 @@ export default function DateTimeRangePickerCom(props) {
       return
     }
     //iso -> timestamp -> string
-    const fromString = timeUtils.formatMicroTimestamp(timeUtils.isoToMicroTimestamp(from), 'yyyy-MM-dd HH:mm:ss')
-    const toString = timeUtils.formatMicroTimestamp(timeUtils.isoToMicroTimestamp(to), 'yyyy-MM-dd HH:mm:ss')
+    const fromString = convertTime(ISOToTimestamp(from), 'yyyy-mm-dd hh:mm:ss')
+    const toString = convertTime(ISOToTimestamp(to), 'yyyy-mm-dd hh:mm:ss')
     if (fromString && toString && timeUtils.isValid(fromString) && timeUtils.isValid(toString)) {
       if (inputStartTime !== fromString || inputEndTime !== toString) {
         // console.log('url发现参数和store不符，更新精确时间')
