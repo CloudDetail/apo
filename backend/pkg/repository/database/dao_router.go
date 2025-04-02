@@ -17,7 +17,7 @@ func (t *Router) TableName() string {
 	return "router"
 }
 
-func (repo *daoRepo) GetItemRouter(items *[]MenuItem) error {
+func (repo *daoRepo) FillItemRouter(items *[]MenuItem) error {
 	if items == nil {
 		return nil
 	}
@@ -43,4 +43,14 @@ func (repo *daoRepo) GetItemRouter(items *[]MenuItem) error {
 	}
 
 	return nil
+}
+
+func (repo *daoRepo) GetItemsRouter(itemIDs []int) ([]Router, error) {
+	var routers []Router
+
+	if err := repo.db.Where("router_id IN ?", itemIDs).Find(&routers).Error; err != nil {
+		return nil, err
+	}
+
+	return routers, nil
 }

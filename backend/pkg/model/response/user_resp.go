@@ -39,3 +39,5 @@ type GetSubjectFeatureResponse []database.Feature
 type GetUserRoleResponse []database.Role
 
 type GetUserTeamResponse []database.Team
+
+type CheckRouterPermissionResponse bool

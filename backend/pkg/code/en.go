@@ -142,6 +142,7 @@ var enText = map[string]string{
 	UserGrantPermissionError:   "Failed to grant permission",
 	ConfigureMenuError:         "Failed to configure menu",
 	PermissionNotExistError:    "Menu item does not exist",
+	CheckRouterError:           "Failed to check router",
 
 	GetAlertsInputTargetTagsError: "Failed to get alertinput target tags",
 	CreateAlertSourceFailed:       "Failed to create alert source",

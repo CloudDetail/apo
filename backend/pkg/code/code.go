@@ -170,6 +170,7 @@ const (
 	UserGrantPermissionError   = "B0925"
 	ConfigureMenuError         = "B0926"
 	PermissionNotExistError    = "B0927"
+	CheckRouterError           = "B0949"
 
 	// alertinput
 	GetAlertsInputTargetTagsError     = "B1301"
