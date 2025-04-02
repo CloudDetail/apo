@@ -13,6 +13,7 @@ import BasicTable from 'src/core/components/Table/basicTable'
 import { convertUTCToLocal } from 'src/core/utils/time'
 import WorkflowsIframe from '../workflows/workflowsIframe'
 import Tag from 'src/core/components/Tag/Tag'
+import CustomCard from 'src/core/components/Card/CustomCard'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -228,19 +229,7 @@ const AlertEventsPage = () => {
   }, [alertEvents, pagination.pageIndex, pagination.pageSize, pagination.total])
   return (
     <>
-      <Card
-        style={{ height: 'calc(100vh - 60px)' }}
-        styles={{
-          body: {
-            height: '100%',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            padding: '12px 24px',
-            fontSize: '12px',
-          },
-        }}
-      >
+      <CustomCard styleType='alerts'>
         <BasicTable {...tableProps} />
         <Modal
           open={modalOpen}
@@ -255,7 +244,7 @@ const AlertEventsPage = () => {
         >
           {workflowUrl && <WorkflowsIframe src={workflowUrl} />}
         </Modal>
-      </Card>
+      </CustomCard>
     </>
   )
 }

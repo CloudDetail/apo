@@ -15,7 +15,7 @@ import (
 )
 
 type AlertEvent struct {
-	Alert
+	Alert `mapstructure:",squash"`
 
 	ID uuid.UUID `json:"id" ch:"id"`
 

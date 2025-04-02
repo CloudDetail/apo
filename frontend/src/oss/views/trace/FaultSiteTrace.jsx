@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo, useState, useEffect, useRef } from 'react'
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import { traceTableMock } from './mock'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { convertTime, TimestampToISO } from 'src/core/utils/time'
@@ -17,6 +17,7 @@ import TraceErrorType from './component/TraceErrorType'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { Card, Tooltip, Button } from 'antd'
 import { useTranslation } from 'react-i18next'
+import { useDebouncedCallback } from 'use-debounce';
 
 function FaultSiteTrace() {
   const { t } = useTranslation('oss/trace')
@@ -138,12 +139,12 @@ function FaultSiteTrace() {
     if (startTime && endTime) {
       if (paramsChange) {
         if (pageIndex === 1) {
-          getTraceData()
+          debouncedGetTraceData()
         } else {
           setPageIndex(1)
         }
       } else if (prev.pageIndex !== pageIndex) {
-        getTraceData()
+        debouncedGetTraceData()
       }
     }
   }, [
@@ -382,7 +383,7 @@ function FaultSiteTrace() {
 
     return filters
   }
-  const getTraceData = () => {
+  const getTraceData = useCallback(() => {
     const { containerId, nodeName, pid } = instanceOption[instance] ?? {}
     setLoading(true)
     getTracePageListApi({
@@ -416,7 +417,22 @@ function FaultSiteTrace() {
         setTracePageList([])
         setLoading(false)
       })
-  }
+  }, [
+    startTime,
+    endTime,
+    service,
+    instance,
+    traceId,
+    endpoint,
+    namespace,
+    pageIndex,
+    pageSize,
+    instanceOption,
+    minDuration,
+    maxDuration,
+    faultTypeList,
+  ]);
+  const debouncedGetTraceData = useDebouncedCallback(getTraceData, 500);
   const handleTableChange = (pageIndex, pageSize) => {
     if (pageSize && pageIndex) {
       setPageSize(pageSize), setPageIndex(pageIndex)
