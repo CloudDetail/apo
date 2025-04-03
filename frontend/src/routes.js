@@ -8,7 +8,7 @@ import ossRoutes from './oss/routes'
 import TranslationCom from './oss/components/TranslationCom'
 const UserPage = React.lazy(() => import('src/core/views/UserPage/index.jsx'))
 const UserManage = React.lazy(() => import('src/core/views/UserManage/index.jsx'))
-const MenuManage = React.lazy(() => import('src/core/views/MenuManage/index.jsx'))
+const MenuManage = React.lazy(() => import('src/core/views/MenuManage/index'))
 const RoleManage = React.lazy(() => import('src/core/views/RoleManage/index'))
 const AlertsIntegrationPage = React.lazy(
   () => import('src/core/views/IntegrationCenter/AlertsIntegration'),

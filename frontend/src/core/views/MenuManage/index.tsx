@@ -1,0 +1,84 @@
+/**
+ * Copyright 2024 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React, { useMemo } from 'react';
+import { Menu } from 'antd';
+import { updateRoleApi } from 'src/core/api/role';
+import LoadingSpinner from 'src/core/components/Spinner';
+import { useUserContext } from 'src/core/contexts/UserContext';
+import { showToast } from 'src/core/utils/toast';
+import { useTranslation } from 'react-i18next';
+import { useRoles } from 'src/core/hooks/useRoles';
+import PermissionTree from 'src/core/components/PermissionTree';
+
+function MenuManagePage() {
+  const { roleList, selectedRole, loading, selectRole } = useRoles();
+  const { t } = useTranslation('core/menuManage');
+  const { getUserPermission } = useUserContext();
+
+  // 将角色列表转换为菜单项
+  const menuItems = useMemo(() => {
+    return roleList.map((role) => ({
+      key: role.roleId,
+      label: role.roleName
+    }));
+  }, [roleList]);
+
+  // 处理菜单选择
+  const onSelect = ({ key }: { key: string }) => {
+    selectRole(key);
+  };
+
+  // 处理权限保存
+  const handleSavePermissions = async (checkedKeys: React.Key[]) => {
+    if (!selectedRole) return;
+
+    try {
+      const params = new URLSearchParams();
+      params.append('roleId', selectedRole.roleId.toString());
+      params.append('roleName', selectedRole.roleName);
+      checkedKeys.forEach(key => params.append('permissionList', key.toString()));
+
+      await updateRoleApi(params);
+
+      showToast({
+        title: t('index.menuConfigSuccess'),
+        color: 'success',
+      });
+
+      // 更新用户权限
+      getUserPermission();
+    } catch (error) {
+      console.error('保存权限失败:', error);
+    }
+  };
+
+  return (
+    <>
+      <LoadingSpinner loading={loading} />
+      <div className='flex'>
+        <Menu
+          selectedKeys={[selectedRole?.roleId?.toString()]}
+          mode="vertical"
+          items={menuItems}
+          className='w-36'
+          onSelect={onSelect}
+        />
+
+        {selectedRole && (
+          <PermissionTree
+            subjectId={selectedRole.roleId}
+            subjectType="role"
+            onSave={handleSavePermissions}
+            readOnly={selectedRole.roleName === 'admin'}
+            className="w-full"
+          />
+        )}
+      </div>
+    </>
+  );
+}
+
+export default MenuManagePage;
