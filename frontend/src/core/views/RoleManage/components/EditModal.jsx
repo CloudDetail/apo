@@ -19,9 +19,10 @@ import { BsCheckAll } from 'react-icons/bs'
 import { getAllPermissionApi, getSubjectPermissionApi, configMenuApi } from 'src/core/api/permission'
 import { useUserContext } from 'src/core/contexts/UserContext'
 import i18n from 'src/i18n'
+import { updateRoleApi } from 'src/core/api/role'
 
 const EditModal = React.memo(
-  ({ selectedUser, modalEditVisibility, setModalEditVisibility, getUserList }) => {
+  ({ selectedRole, modalEditVisibility, setModalEditVisibility, getRoleList }) => {
     const { t } = useTranslation('core/roleManage')
     const [loading, setLoading] = useState(false)
     const [form] = Form.useForm()
@@ -42,6 +43,7 @@ const EditModal = React.memo(
   }
   const onCheck = (checkedKeysValue) => {
     setCheckedKeys(checkedKeysValue)
+    form.setFieldsValue({ permissions: checkedKeysValue })
   }
   const onSelect = (selectedKeysValue, info) => {
     setSelectedKeys(selectedKeysValue)
@@ -72,8 +74,8 @@ const EditModal = React.memo(
       const [allPermissions, subjectPermissions] = await Promise.all([
         getAllPermissionApi(params),
         getSubjectPermissionApi({
-          subjectId: user.userId,
-          subjectType: 'user',
+          subjectId: selectedRole.roleId,
+          subjectType: 'role',
         }),
       ])
 
@@ -94,7 +96,7 @@ const EditModal = React.memo(
 
   useEffect(() => {
     if (user.userId) fetchData()
-  }, [user.userId, i18n.language])
+  }, [user.userId, i18n.language, modalEditVisibility])
 
   //保存配置
   function configMenu() {
@@ -122,32 +124,43 @@ const EditModal = React.memo(
     useEffect(() => {
       if (modalEditVisibility) {
         form.resetFields()
+        console.log('useEffect in Edit:', selectedRole)
+        console.log("permissions: ", checkedKeys)
         form.setFieldsValue({
-          username: selectedUser?.username,
-          email: selectedUser?.email,
-          phone: selectedUser?.phone,
-          corporation: selectedUser?.corporation,
+          roleName: selectedRole.roleName,
+          description: selectedRole.description,
+          // Todo: 该角色的当前的权限需要展示
+          permissions: checkedKeys,
         })
       }
-    }, [modalEditVisibility])
+    }, [modalEditVisibility, selectedRole, form])
 
-    const editUser = () => {
+    const editRole = () => {
       if (loading) return
       form
-        .validateFields(['email', 'phone', 'corporation'])
-        .then(async ({ email = '', phone = '', corporation = '' }) => {
+        .validateFields(['roleName', 'description', 'permissions'])
+        .then(async ({ roleName = '', description = '', permissions }) => {
           setLoading(true)
 
           const params = {
-            email,
-            phone,
-            corporation,
+            roleName,
+            description,
+            permissionList: permissions
           }
 
-          await updateCorporationApi({ userId: selectedUser?.userId, ...params })
+          // const params = new URLSearchParams()
+
+          // params.append('roleName', roleName);
+          // params.append('description', description);
+
+          // checkedKeys.forEach((value) => params.append('permissionList', value))
+
+          // console.log('editRole: ', params)
+
+          await updateRoleApi({ roleId: selectedRole?.roleId, ...params })
 
           setModalEditVisibility(false)
-          getUserList()
+          getRoleList()
           showToast({ title: t('editModal.saveSuccess'), color: 'success' })
           form.resetFields()
         })
@@ -156,34 +169,6 @@ const EditModal = React.memo(
         })
         .finally(() => {
           setLoading(false)
-        })
-    }
-
-    const resetPassword = () => {
-      if (loading) return
-      form
-        .validateFields(['newPassword', 'confirmPassword'])
-        .then(async ({ newPassword, confirmPassword }) => {
-          try {
-            setLoading(true)
-            const params = { newPassword, confirmPassword }
-            await updatePasswordWithNoOldPwdApi({ userId: selectedUser?.userId, ...params })
-            showToast({
-              title: t('editModal.resetPasswordSuccess'),
-              color: 'success',
-            })
-            setModalEditVisibility(false)
-          } catch (error) {
-            console.error(error)
-            showToast({
-              title: error.response?.data?.message || t('editModal.resetPasswordFail'),
-              color: 'danger',
-            })
-            setModalEditVisibility(false)
-          } finally {
-            form.resetFields()
-            setLoading(false)
-          }
         })
     }
 
@@ -209,34 +194,31 @@ const EditModal = React.memo(
                 label={t('addModal.roleName')}
                 name="roleName"
               >
-                <div className="flex justify-start items-start">
-                  <Input disabled={true} value={selectedUser?.roleName} />
-                </div>
+                <Input />
               </Form.Item>
               <Form.Item
                 label={t('addModal.description')}
                 name="description"
               >
-                <div className="flex justify-start items-start">
-                  <Input placeholder={t('addModal.descriptionPlaceholder')} />
-                </div>
+                <Input placeholder={t('addModal.descriptionPlaceholder')} />
               </Form.Item>
               <Form.Item
                 label={t('addModal.permissions')}
-                name="description"
-                rules={[{ required: true, message: t('addModal.roleNameRequired') }]}
+                name="permissions"
               >
                 <div className="flex justify-start items-start">
-                  <Card style={{ height: 'calc(100vh - 60px)', overflow: 'auto', width: "100%" }}>
+                  <Card style={{ overflow: 'auto', width: "100%" }}>
                     <LoadingSpinner loading={loading} />
                     <Button
                       type="primary"
                       className="mx-4 mb-4"
-                      onClick={() => setCheckedKeys(allKeys)}
+                      onClick={() => {
+                        setCheckedKeys(allKeys)
+                        form.setFieldsValue({ permissions: allKeys })
+                      }}
                       icon={<BsCheckAll />}
                     >
-                      {/* {t('index.selectAll')} */}
-                      选择全部
+                      {t('index.selectAll')}
                     </Button>
                     <Tree
                       checkable
@@ -253,12 +235,9 @@ const EditModal = React.memo(
                     />
                   </Card>
                 </div>
-          {/* <div className="flex flex-col w-full justify-start items-start">
-            <MenuManagePage />
-          </div> */}
               </Form.Item>
-              <Button type="primary" onClick={() => {}}>
-                确认修改
+              <Button type="primary" onClick={editRole}>
+                {t('editModal.save')}
               </Button>
             </Form>
           </Flex>

@@ -35,7 +35,7 @@ import style from '../UserManage/index.module.css'
 import { useTranslation } from 'react-i18next'
 import { LuShieldCheck } from 'react-icons/lu'
 import DataGroupAuthorizeModal from 'src/core/components/PermissionAuthorize/DataGroupAuthorizeModal'
-import { getAllRolesApi, revokeUserRoleApi } from 'src/core/api/role'
+import { deleteRoleApi, getAllRolesApi, revokeUserRoleApi } from 'src/core/api/role'
 
 export default function UserManage() {
   const { t } = useTranslation('core/roleManage')
@@ -49,22 +49,40 @@ export default function UserManage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [total, setTotal] = useState(0)
-  const [selectedUser, setSelectedUser] = useState(null)
+  const [selectedRole, setSelectedRole] = useState(null)
   const [loading, setLoading] = useState(false)
   const [roleList, setRoleList] = useState([])
 
   const [authorizeModalVisibility, setAuthorizeModalVisibility] = useState(false)
 
-  useEffect(() => {
-    async function fetchRoles() {
-      try {
-        const roles = await getAllRolesApi(); // 等待 API 返回数据
-        setRoleList(roles)
-      } catch (error) {
-        console.error("Failed to fetch roles: ", error); // 捕获并处理错误
-      }
+  async function deleteRole(prop) {
+    const params = {
+      roleId: prop,
     }
-  
+    try {
+      await deleteRoleApi(params)
+      console.log('deleting role: ', params)
+      await fetchRoles()
+      showToast({
+        title: t('index.deleteSuccess'),
+        color: 'success',
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  async function fetchRoles() {
+    try {
+      const roles = await getAllRolesApi(); // 等待 API 返回数据
+      setRoleList(roles)
+      console.log('roles: ', roles)
+    } catch (error) {
+      console.error("Failed to fetch roles: ", error); // 捕获并处理错误
+    }
+  }
+
+  useEffect(() => {
     fetchRoles(); // 调用异步函数
   }, []); // 空依赖数组，确保只在组件挂载时调用一次
 
@@ -93,12 +111,13 @@ export default function UserManage() {
       dataIndex: 'userId',
       key: 'userId',
       align: 'center',
-      render: (userId, record) => {
+      render: (_, role) => {
         return (
           <>
             <Button
               onClick={() => {
-                setSelectedUser(record)
+                console.log('selectedRole:::: ', role)
+                setSelectedRole(role)
                 setModalEditVisibility(true)
               }}
               icon={<MdOutlineModeEdit />}
@@ -109,7 +128,7 @@ export default function UserManage() {
             </Button>
             <Popconfirm
               title={t('index.confirmDelete', { name: username })}
-              onConfirm={() => {}}
+              onConfirm={() => deleteRole(role.roleId)}
             >
               <Button type="text" icon={<RiDeleteBin5Line />} danger className="mr-1">
                 {t('index.delete')}
@@ -124,7 +143,7 @@ export default function UserManage() {
 
   const closeAuthorizeModal = () => {
     setAuthorizeModalVisibility(false)
-    setSelectedUser(null)
+    setSelectedRole(null)
   }
   return (
     <>
@@ -197,15 +216,15 @@ export default function UserManage() {
         </ConfigProvider>
       </div>
       <EditModal
-        selectedUser={selectedUser}
+        selectedRole={selectedRole}
         modalEditVisibility={modalEditVisibility}
         setModalEditVisibility={setModalEditVisibility}
-        getUserList={getUserListApi}
+        getRoleList={fetchRoles}
       />
       <AddModal
         modalAddVisibility={modalAddVisibility}
         setModalAddVisibility={setModalAddVisibility}
-        getUserList={('')}
+        getRoleList={fetchRoles}
       />
       {/* <DataGroupAuthorizeModal
         open={authorizeModalVisibility}

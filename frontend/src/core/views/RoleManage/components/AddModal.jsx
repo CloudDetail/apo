@@ -14,8 +14,9 @@ import { getAllPermissionApi, getSubjectPermissionApi, configMenuApi } from 'src
 import { useUserContext } from 'src/core/contexts/UserContext'
 import i18n from 'src/i18n'
 import { BsCheckAll } from 'react-icons/bs'
+import { createRoleApi } from 'src/core/api/role'
 
-const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) => {
+const AddModal = ({ modalAddVisibility, setModalAddVisibility, getRoleList }) => {
   const { t } = useTranslation('core/roleManage')
   const [loading, setLoading] = useState(false)
   const [form] = Form.useForm()
@@ -34,6 +35,7 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) =>
   }
   const onCheck = (checkedKeysValue) => {
     setCheckedKeys(checkedKeysValue)
+    form.setFieldsValue({ permissions: checkedKeysValue });
   }
   const onSelect = (selectedKeysValue, info) => {
     setSelectedKeys(selectedKeysValue)
@@ -61,13 +63,14 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) =>
     setLoading(true)
     try {
       const params = { language: i18n.language }
-      const [allPermissions, subjectPermissions] = await Promise.all([
-        getAllPermissionApi(params),
-        getSubjectPermissionApi({
-          subjectId: user.userId,
-          subjectType: 'user',
-        }),
-      ])
+      const allPermissions = await getAllPermissionApi(params)
+      // const [allPermissions, subjectPermissions] = await Promise.all([
+      //   getAllPermissionApi(params),
+      //   getSubjectPermissionApi({
+      //     subjectId: user.userId,
+      //     subjectType: 'user',
+      //   }),
+      // ])
 
       setPermissionTreeData(allPermissions || [])
       // 展开所有节点
@@ -88,51 +91,27 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) =>
     if (user.userId) fetchData()
   }, [user.userId, i18n.language])
 
-  // 保存配置
-  function configMenu() {
-    setLoading(true)
-    const params = new URLSearchParams()
-    checkedKeys.forEach((value) => params.append('permissionList', value))
-    configMenuApi(params)
-      .then((res) => {
-        showToast({
-          title: t('index.menuConfigSuccess'),
-          color: 'success',
-        })
-      })
-      .catch((error) => {
-        console.error(error)
-      })
-      .finally(() => {
-        fetchData()
-        getUserPermission()
-        setLoading(false)
-      })
-  }
-
   //创建 role
-  async function createUser() {
+  async function createRole() {
     if (loading) return //防止重复提交
     form
       .validateFields()
       .then(
         async ({
-          username,
-          password,
-          confirmPassword,
-          email = '',
-          phone = '',
-          corporation = '',
+          roleName,
+          description = '',
+          permissions,
         }) => {
           try {
             //设置加载状态
             setLoading(true)
             //创建用户
-            const params = { username, password, confirmPassword, email, phone, corporation }
-            await createUserApi(params)
+            const params = { roleName, description, permissionList: permissions }
+            console.log("params: ", params)
+            await createRoleApi(params)
             // 操作成功的反馈和状态清理
             setModalAddVisibility(false)
-            await getUserList()
+            await getRoleList() // 刷新
             showToast({ title: t('addModal.addSuccess'), color: 'success' })
           } catch (error) {
             console.error(error)
@@ -157,7 +136,7 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) =>
         title={t('addModal.title')}
         okText={<span>{t('addModal.add')}</span>}
         cancelText={<span>{t('addModal.cancel')}</span>}
-        onOk={createUser}
+        onOk={createRole}
         width={1000}
       >
         <Flex vertical className="w-full mt-4 mb-4">
@@ -182,20 +161,21 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) =>
               </Form.Item>
               <Form.Item
                 label={t('addModal.permissions')}
-                name="description"
-                rules={[{ required: true, message: t('addModal.roleNameRequired') }]}
+                name="permissions"
               >
                 <div className="flex justify-start items-start">
-                  <Card style={{ height: 'calc(100vh - 60px)', overflow: 'auto', width: "100%" }}>
+                  <Card style={{ overflow: 'auto', width: "100%" }}>
                     <LoadingSpinner loading={loading} />
                     <Button
                       type="primary"
                       className="mx-4 mb-4"
-                      onClick={() => setCheckedKeys(allKeys)}
+                      onClick={() => {
+                        setCheckedKeys(allKeys)
+                        form.setFieldsValue({ permissions: allKeys })
+                      }}
                       icon={<BsCheckAll />}
                     >
-                      {/* {t('index.selectAll')} */}
-                      选择全部
+                      {t('index.selectAll')}
                     </Button>
                     <Tree
                       checkable
@@ -206,7 +186,7 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getUserList }) =>
                       checkedKeys={checkedKeys}
                       onSelect={onSelect}
                       selectedKeys={selectedKeys}
-                      defaultExpandAll={true}
+                      defaultExpandAll={false}
                       treeData={permissionTreeData}
                       fieldNames={{ title: 'featureName', key: 'featureId' }}
                     />

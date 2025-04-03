@@ -12,7 +12,8 @@
     "cancel": "Cancel",
     "addRole": "Add Role",
     "deleteSuccess": "Successfully deleted user",
-    "dataGroup": "Data Permissions"
+    "dataGroup": "Data Permissions",
+    "selectAll": "Select All"
   },
   "addModal": {
     "title": "Add Role",
@@ -22,8 +23,9 @@
     "roleNamePlaceholder": "Please enter a role name",
     "roleNameRequired": "Please enter a role name",
     "description": "Role description",
-    "descriptionPlaceholder": "Please enter description for role",
+    "descriptionPlaceholder": "Please enter description for the role",
     "permissions": "Role Permissions",
+    "rolePermissionRequired": "Please select permissions for the role",
     "addSuccess": "User added successfully"
   },
   "editModal": {
@@ -37,7 +39,7 @@
     "phoneInvalid": "Please enter a valid phone number",
     "corporation": "Organization",
     "corporationPlaceholder": "Please enter organization",
-    "save": "Save User Info",
+    "save": "Save",
     "newPassword": "New Password",
     "newPasswordPlaceholder": "Please enter password",
     "newPasswordRequired": "Please enter password",

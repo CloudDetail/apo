@@ -12,7 +12,8 @@
     "cancel": "取消",
     "addRole": "新增角色",
     "deleteSuccess": "删除角色成功",
-    "dataGroup": "数据权限"
+    "dataGroup": "数据权限",
+    "selectAll": "选择全部"
   },
   "addModal": {
     "title": "新增角色",
@@ -24,6 +25,7 @@
     "description": "角色描述",
     "descriptionPlaceholder": "请输入角色描述",
     "permissions": "角色权限",
+    "rolePermissionRequired": "请选择角色权限",
     "addSuccess": "角色添加成功"
   },
   "editModal": {
