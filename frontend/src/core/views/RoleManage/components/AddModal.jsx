@@ -106,8 +106,11 @@ const AddModal = ({ modalAddVisibility, setModalAddVisibility, getRoleList }) =>
             //设置加载状态
             setLoading(true)
             //创建用户
-            const params = { roleName, description, permissionList: permissions }
-            console.log("params: ", params)
+            const params = new URLSearchParams()
+
+            params.append('roleName', roleName);
+            params.append('description', description);
+            permissions.forEach((value) => params.append('permissionList', value))
             await createRoleApi(params)
             // 操作成功的反馈和状态清理
             setModalAddVisibility(false)

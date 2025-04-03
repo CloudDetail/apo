@@ -129,7 +129,6 @@ const EditModal = React.memo(
         form.setFieldsValue({
           roleName: selectedRole.roleName,
           description: selectedRole.description,
-          // Todo: 该角色的当前的权限需要展示
           permissions: checkedKeys,
         })
       }
@@ -142,22 +141,18 @@ const EditModal = React.memo(
         .then(async ({ roleName = '', description = '', permissions }) => {
           setLoading(true)
 
-          const params = {
-            roleName,
-            description,
-            permissionList: permissions
-          }
+         
 
-          // const params = new URLSearchParams()
+          const params = new URLSearchParams()
 
-          // params.append('roleName', roleName);
-          // params.append('description', description);
+          params.append('roleId', selectedRole?.roleId);
+          params.append('roleName', roleName);
+          params.append('description', description);
 
-          // checkedKeys.forEach((value) => params.append('permissionList', value))
+          checkedKeys.forEach((value) => params.append('permissionList', value))
 
-          // console.log('editRole: ', params)
-
-          await updateRoleApi({ roleId: selectedRole?.roleId, ...params })
+          await updateRoleApi(params)
+          // await updateRoleApi({ roleId: selectedRole?.roleId, ...params })
 
           setModalEditVisibility(false)
           getRoleList()
