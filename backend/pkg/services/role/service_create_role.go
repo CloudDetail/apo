@@ -54,7 +54,7 @@ func (s *service) CreateRole(req *request.CreateRoleRequest) error {
 	}
 
 	var grantPermissionFunc = func(ctx context.Context) error {
-		return s.dbRepo.GrantPermission(ctx, int64(role.RoleID), model.PERMISSION_TYP_FEATURE, model.PERMISSION_SUB_TYP_ROLE, req.PermissionList)
+		return s.dbRepo.GrantPermission(ctx, int64(role.RoleID), model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE, req.PermissionList)
 	}
 
 	var grantRoleFunc = func(ctx context.Context) error {
