@@ -117,6 +117,7 @@ function EditModal({ selectedRole }) {
     <>
       <Card style={{ height: 'calc(100vh - 60px)', overflow: 'auto', width: '100%' }}>
         <LoadingSpinner loading={loading} />
+        {selectedRole?.roleName !== 'admin' ? (
         <Button
           type="primary"
           className="mx-4 mb-4"
@@ -125,8 +126,11 @@ function EditModal({ selectedRole }) {
         >
           {t('index.selectAll')}
         </Button>
+        ) : (
+          <></>
+        )}
         <Tree
-          checkable
+          checkable={selectedRole?.roleName !== 'admin'}
           onExpand={onExpand}
           expandedKeys={expandedKeys}
           autoExpandParent={autoExpandParent}
@@ -134,13 +138,17 @@ function EditModal({ selectedRole }) {
           checkedKeys={checkedKeys}
           onSelect={onSelect}
           selectedKeys={selectedKeys}
-          defaultExpandAll={false}
+          defaultExpandAll={true}
           treeData={permissionTreeData}
           fieldNames={{ title: 'featureName', key: 'featureId' }}
         />
+        {selectedRole?.roleName !== 'admin' ? (
         <Button type="primary" className="m-4" onClick={updateRole}>
           {t('index.save')}
         </Button>
+        ) : (
+          <></>
+        )}
       </Card>
     </>
   )

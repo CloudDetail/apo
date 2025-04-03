@@ -52,6 +52,7 @@ export default function UserManage() {
   const [loading, setLoading] = useState(false)
   const [roleList, setRoleList] = useState([])
   const { user, dispatch } = useUserContext()
+  console.log('currentUser: ', user)
 
   const [authorizeModalVisibility, setAuthorizeModalVisibility] = useState(false)
 
@@ -167,7 +168,7 @@ export default function UserManage() {
       key: 'role',
       align: 'center',
       render: (role, user) => {
-        return (
+        return user.username !== 'admin' ? (
           <>
             <Dropdown
               menu={{
@@ -183,6 +184,8 @@ export default function UserManage() {
               </a>
             </Dropdown>
           </>
+        ) : (
+          <></>
         )
       },
     },
@@ -211,7 +214,7 @@ export default function UserManage() {
       align: 'center',
       render: (userId, record) => {
         const { username } = record
-        return user.userId !== userId ? (
+        return username !== 'admin' ? (
           <>
             <Button
               onClick={() => {

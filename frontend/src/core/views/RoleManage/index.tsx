@@ -112,11 +112,10 @@ export default function UserManage() {
       key: 'userId',
       align: 'center',
       render: (_, role) => {
-        return (
+        return role.roleName !== 'admin' ? (
           <>
             <Button
               onClick={() => {
-                console.log('selectedRole:::: ', role)
                 setSelectedRole(role)
                 setModalEditVisibility(true)
               }}
@@ -135,6 +134,8 @@ export default function UserManage() {
               </Button>
             </Popconfirm>
           </>
+        ) : (
+          <></>
         )
       },
       width: 400,
