@@ -138,6 +138,10 @@ func (repo *daoRepo) UpdateRole(ctx context.Context, roleID int, roleName, descr
 }
 
 func (repo *daoRepo) GrantRoleWithRole(ctx context.Context, roleID int, userIDs []int64) error {
+	if len(userIDs) == 0 {
+		return nil
+	}
+	
 	userRoles := make([]UserRole, len(userIDs))
 	for i, userID := range userIDs {
 		userRoles[i] = UserRole{

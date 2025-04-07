@@ -1,6 +1,29 @@
 {
   "queries": [
     {
+      "title": "日志解析错误计数总览 - log error level count",
+      "describe": "记录了日志解析系统中按错误级别统计的总次数",
+      "targets": [
+          {
+              "expr": "increase(originx_logparser_level_count_total{pod_name=~\"$pod_name\",namespace=~\"$namespace\",pid=~\"$pid\",level=\"error\"}[$__interval])",
+              "legendFormat": "{{namespace}}:{{pod_name}}",
+              "refId": "A",
+              "variables": [
+                  "pod_name",
+                  "namespace",
+                  "pid",
+                  "__interval"
+              ]
+          }
+      ],
+      "unit": "short",
+      "params": [
+          "pod_name",
+          "namspace",
+          "pid"
+      ]
+    },
+    {
       "title": "Quick CPU / Mem / Disk - Pressure - CPU",
       "describe": "宿主机CPU压力指标(等待时间每秒)",
       "targets": [

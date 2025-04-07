@@ -6,7 +6,7 @@
 import React, { useMemo } from 'react'
 import ReactJson from 'react-json-view'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { convertUTCToBeijing } from 'src/core/utils/time'
+import { convertUTCToLocal } from 'src/core/utils/time'
 import { useTranslation } from 'react-i18next'
 
 export default function AlertInfoTable({ data }) {
@@ -29,7 +29,7 @@ export default function AlertInfoTable({ data }) {
             accessor: 'receivedTime',
             customWidth: 180,
             Cell: ({ value }) => {
-              return convertUTCToBeijing(value)
+              return convertUTCToLocal(value)
             },
           },
           {

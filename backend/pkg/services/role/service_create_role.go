@@ -25,13 +25,15 @@ func (s *service) CreateRole(req *request.CreateRoleRequest) error {
 		return model.NewErrWithMessage(errors.New("role already exists"), code.RoleExistsError)
 	}
 
-	f, err := s.dbRepo.GetFeature(req.PermissionList)
-	if err != nil {
-		return err
-	}
-
-	if len(f) != len(req.PermissionList) {
-		return model.NewErrWithMessage(errors.New("permission does not exist"), code.PermissionNotExistError)
+	if len(req.PermissionList) > 0 {
+		f, err := s.dbRepo.GetFeature(req.PermissionList)
+		if err != nil {
+			return err
+		}
+	
+		if len(f) != len(req.PermissionList) {
+			return model.NewErrWithMessage(errors.New("permission does not exist"), code.PermissionNotExistError)
+		}
 	}
 
 	exist, err := s.dbRepo.UserExists(req.UserList...)
@@ -52,7 +54,7 @@ func (s *service) CreateRole(req *request.CreateRoleRequest) error {
 	}
 
 	var grantPermissionFunc = func(ctx context.Context) error {
-		return s.dbRepo.GrantPermission(ctx, int64(role.RoleID), model.PERMISSION_TYP_FEATURE, model.PERMISSION_SUB_TYP_ROLE, req.PermissionList)
+		return s.dbRepo.GrantPermission(ctx, int64(role.RoleID), model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE, req.PermissionList)
 	}
 
 	var grantRoleFunc = func(ctx context.Context) error {

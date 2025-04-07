@@ -10,7 +10,7 @@ import ReactJson from 'react-json-view'
 import { useSelector } from 'react-redux'
 import { getAlertEventsApi } from 'src/core/api/alerts'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { convertUTCToBeijing } from 'src/core/utils/time'
+import { convertUTCToLocal } from 'src/core/utils/time'
 import WorkflowsIframe from '../workflows/workflowsIframe'
 import Tag from 'src/core/components/Tag/Tag'
 import CustomCard from 'src/core/components/Card/CustomCard'
@@ -126,7 +126,7 @@ const AlertEventsPage = () => {
       accessor: 'receivedTime',
       customWidth: 180,
       Cell: ({ value }) => {
-        return convertUTCToBeijing(value)
+        return convertUTCToLocal(value)
       },
     },
     {

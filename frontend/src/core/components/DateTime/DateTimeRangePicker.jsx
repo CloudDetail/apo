@@ -18,7 +18,6 @@ import {
   CInputGroup,
   CInputGroupText,
 } from '@coreui/react'
-import { endOfDay, format, startOfDay } from 'date-fns'
 import React, { useState, useEffect } from 'react'
 import { DateRange } from 'react-date-range'
 
@@ -27,7 +26,7 @@ import 'react-date-range/dist/theme/default.css' // theme css file
 import './index.css'
 import { useDispatch, useSelector } from 'react-redux'
 import { timeRangeMap } from 'src/core/store/reducers/timeRangeReducer'
-import { convertTime, ISOToTimestamp, TimestampToISO } from 'src/core/utils/time'
+import { convertTime, ISOToTimestamp, TimestampToISO, timeUtils } from 'src/core/utils/time'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { useUpdateEffect } from 'react-use'
 import { useTranslation } from 'react-i18next'
@@ -39,13 +38,13 @@ const DateTimeRangePicker = React.memo((props) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const storeTimeRange = useSelector((state) => state.timeRange)
   const [state, setState] = useState({
-    startDate: startOfDay(new Date()),
-    endDate: endOfDay(new Date()),
+    startDate: timeUtils.startOfDay(new Date()),
+    endDate: timeUtils.endOfDay(new Date()),
     key: 'selection',
   })
   // 展示用的starttime（取消快速范围，快速范围只用于获取精确数据）
-  const [startTime, setStartTime] = useState(format(state.startDate, 'yyyy-MM-dd HH:mm:ss'))
-  const [endTime, setEndTime] = useState(format(state.endDate, 'yyyy-MM-dd HH:mm:ss'))
+  const [startTime, setStartTime] = useState(timeUtils.format(state.startDate, 'yyyy-MM-dd HH:mm:ss'))
+  const [endTime, setEndTime] = useState(timeUtils.format(state.endDate, 'yyyy-MM-dd HH:mm:ss'))
   const [startTimeInvalid, setStartTimeInvalid] = useState(false)
   const [endTimeInvalid, setEndTimeInvalid] = useState(false)
   const [startTimeFeedback, setStartTimeFeedback] = useState()
@@ -184,8 +183,8 @@ const DateTimeRangePicker = React.memo((props) => {
     const endTimeValid = validEndTime()
     if (startTimeValid && endTimeValid) {
       setState({
-        startDate: startOfDay(new Date(startTime).getTime()),
-        endDate: endOfDay(new Date(endTime).getTime()),
+        startDate: timeUtils.startOfDay(new Date(startTime).getTime()),
+        endDate: timeUtils.endOfDay(new Date(endTime).getTime()),
         key: 'selection',
       })
     }
@@ -193,15 +192,15 @@ const DateTimeRangePicker = React.memo((props) => {
   const handleSelect = (ranges) => {
     let state = ranges.selection
     setState({
-      startDate: startOfDay(state.startDate),
-      endDate: endOfDay(state.endDate),
+      startDate: timeUtils.startOfDay(state.startDate),
+      endDate: timeUtils.endOfDay(state.endDate),
       key: state.key,
     })
-    setStartTime(format(state.startDate, 'yyyy-MM-dd HH:mm:ss'))
+    setStartTime(timeUtils.format(state.startDate, 'yyyy-MM-dd HH:mm:ss'))
     if (areDatesEqual(state.endDate, new Date())) {
-      setEndTime(format(new Date(), 'yyyy-MM-dd HH:mm:ss'))
+      setEndTime(timeUtils.format(new Date(), 'yyyy-MM-dd HH:mm:ss'))
     } else {
-      setEndTime(format(endOfDay(state.endDate), 'yyyy-MM-dd HH:mm:ss'))
+      setEndTime(timeUtils.format(timeUtils.endOfDay(state.endDate), 'yyyy-MM-dd HH:mm:ss'))
     }
   }
 
@@ -249,7 +248,7 @@ const DateTimeRangePicker = React.memo((props) => {
       return false
     }
 
-    return dateString === format(date.getTime(), 'yyyy-MM-dd HH:mm:ss')
+    return dateString === timeUtils.format(date.getTime(), 'yyyy-MM-dd HH:mm:ss')
   }
   const validStartTime = () => {
     let feedback = t('dateTimeRangePicker.selectCorrectTimeRangeFeedback')
@@ -328,7 +327,7 @@ const DateTimeRangePicker = React.memo((props) => {
                     onChange={changeStartTime}
                     required
                     invalid={startTimeInvalid}
-                    max={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
+                    max={timeUtils.format(new Date(), "yyyy-MM-dd'T'HH:mm")}
                   />
                   <CInputGroupText>
                     <CIcon icon={cilCalendar} />
@@ -345,7 +344,7 @@ const DateTimeRangePicker = React.memo((props) => {
                     onChange={changeEndTime}
                     required
                     invalid={endTimeInvalid}
-                    max={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
+                    max={timeUtils.format(new Date(), "yyyy-MM-dd'T'HH:mm")}
                   />
                   <CInputGroupText id="basic-addon2">
                     <CIcon icon={cilCalendar} />
