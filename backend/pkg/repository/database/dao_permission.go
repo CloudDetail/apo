@@ -77,10 +77,6 @@ func (repo *daoRepo) RevokePermission(ctx context.Context, subID int64, subType 
 }
 
 func (repo *daoRepo) GetAddAndDeletePermissions(subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error) {
-	if len(permList) == 0 {
-		return nil, nil, nil
-	}
-	
 	subPermissions, err := repo.GetSubjectPermission(subID, subType, typ)
 	if err != nil {
 		return
