@@ -195,7 +195,7 @@ const TimelapseLineChart = (props) => {
       endTime: endTime,
       service: serviceName,
       endpoint: endpoint,
-      step: timeUtils.getTimeStep(startTime, endTime),
+      step: getStep(startTime, endTime),
     })
       .then((res) => {
         // console.log(res)
