@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
-import { Form, FormInstance, Space, Button } from 'antd';
+import { Form, FormInstance, Space, Button, Flex } from 'antd';
 import CommonModal from './CommonModal';
+import { useTranslation } from 'react-i18next';
 
 interface FormModalProps {
   title: string;
@@ -17,9 +18,13 @@ interface FormModalProps {
 interface FormSectionProps {
   form?: FormInstance;
   onFinish?: (values: any) => void;
+  onCancel?: () => void;
   initialValues?: Record<string, any>;
   children: ReactNode;
   formProps?: Record<string, any>;
+  okText?: string;
+  cancelText?: string;
+  confirmLoading?: boolean;
 }
 
 // 表单区域组件
@@ -28,27 +33,32 @@ const FormSection: React.FC<FormSectionProps> = ({
   onFinish,
   initialValues,
   children,
-  formProps
+  formProps,
+  okText,
+  cancelText,
+  confirmLoading
 }) => {
   const [form] = Form.useForm(externalForm);
+  const { t } = useTranslation('common');
 
   return (
     <Form
       form={form}
-      layout="vertical"
+      layout="horizontal"
+      autoComplete="off"
       onFinish={onFinish}
       initialValues={initialValues}
       {...formProps}
     >
       {children}
-      <Space>
-        <Button type="primary" htmlType="submit">
-          保存
-        </Button>
+      <Flex justify="end" gap="small">
         <Button onClick={() => form.resetFields()}>
-          重置
+          {cancelText || t('reset')}
         </Button>
-      </Space>
+        <Button type="primary" htmlType="submit" loading={confirmLoading}>
+          {okText || t('confirm')}
+        </Button>
+      </Flex>
     </Form>
   );
 };
@@ -59,10 +69,6 @@ const FormModal: React.FC<FormModalProps> & { Section: typeof FormSection } = ({
   open,
   onCancel,
   width,
-  footer,
-  okText,
-  cancelText,
-  confirmLoading = false,
   children
 }) => {
   return (
@@ -71,10 +77,7 @@ const FormModal: React.FC<FormModalProps> & { Section: typeof FormSection } = ({
       open={open}
       onCancel={onCancel}
       width={width}
-      footer={footer}
-      okText={okText}
-      cancelText={cancelText}
-      confirmLoading={confirmLoading}
+      footer={null}
     >
       {children}
     </CommonModal>

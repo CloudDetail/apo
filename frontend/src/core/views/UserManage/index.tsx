@@ -430,19 +430,35 @@ export default function UserManage() {
         <FormModal.Section
           onFinish={handleAddUser}
         >
+        <Flex gap={16} className="mb-12">
         <Form.Item
           name="username"
+          layout="vertical"
           label={t('index.userName')}
           rules={[{ required: true, message: t('index.userNameRequired') }]}
+          style={{ marginBottom: 0, flex: 1 }}
         >
-          <Input />
+          <Input autoComplete="new-user" />
         </Form.Item>
+        <Form.Item
+          name="roleId"
+          layout="vertical"
+          label={t('index.role')}
+          rules={[{ required: true, message: t('addModal.roleRequired') }]}
+          style={{ marginBottom: 0, flex: 1 }}
+        >
+          <Select
+            placeholder={t('addModal.selectRole')}
+            options={roleItems}
+          />
+        </Form.Item>
+        </Flex>
         <Form.Item
           name="password"
           label={t('addModal.password')}
           rules={[{ required: true, message: t('index.passwordRequired') }]}
         >
-          <Input.Password />
+          <Input.Password autoComplete="new-password" />
         </Form.Item>
         <Form.Item
           label={t('editModal.confirmPassword')}
@@ -480,22 +496,12 @@ export default function UserManage() {
         >
           <Input />
         </Form.Item>
-        <Form.Item
-          name="roleId"
-          label={t('index.role')}
-          rules={[{ required: true, message: t('addModal.roleRequired') }]}
-        >
-          <Select
-            placeholder={t('addModal.selectRole')}
-            options={roleItems}
-          />
-        </Form.Item>
         </FormModal.Section>
       </FormModal>
 
       {/* 编辑用户模态框 */}
       <FormModal
-        title={t('index.editUser')}
+        title={t('editModal.title')}
         open={modalEditVisibility}
         onCancel={() => setModalEditVisibility(false)}
         footer={null}
@@ -515,10 +521,11 @@ export default function UserManage() {
             </Form.Item>
             <Form.Item
               name="role"
-              label='角色'
-              rules={[{ required: true, message: '请选择角色' }]}
+              label={t('index.role')}
+              rules={[{ required: true, message: t('addModal.selectRole') }]}
               style={{ marginBottom: 0, flex: 1 }}
             >
+              {/* Todo: 不应该选择完成之后，马上提交角色的变更 */}
               <Select
                 options={roleItems}
                 onChange={(value) => handleRevokeUserRole(selectedUser?.userId || '', value)}
@@ -582,31 +589,6 @@ export default function UserManage() {
             ]}
           >
             <Input.Password placeholder={t('editModal.confirmPasswordPlaceholder')} />
-          </Form.Item>
-        </FormModal.Section>
-      </FormModal>
-
-      {/* 编辑权限模态框 */}
-      <FormModal
-        title= {`设置 大雄 的角色`}
-        open={roleEditVisibility}
-        onCancel={() => setRoleModalVisibility(false)}
-        footer={null}
-      >
-        <FormModal.Section
-          onFinish={handleRevokeUserRole}
-        >
-          <Form.Item name='role'>
-          <Radio.Group
-            className="flex flex-col gap-2 m-2"
-            onChange={() => {}}
-            // value={1}
-            options={[
-              { value: 1, label: 'admin' },
-              { value: 2, label: 'manager' },
-              { value: 3, label: 'viewer' },
-            ]}
-          />
           </Form.Item>
         </FormModal.Section>
       </FormModal>

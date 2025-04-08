@@ -62,6 +62,7 @@
   "delete": "Delete",
   "add": "Add",
   "edit": "Edit",
+  "reset": "Reset",
   "saveSuccess": "Saved Successfully",
   "deleteSuccess": "Deleted Successfully",
   "addSuccess": "Added Successfully",
