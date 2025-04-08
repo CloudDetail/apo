@@ -4,7 +4,7 @@ import ReactJson from 'react-json-view'
 import { useSelector } from 'react-redux'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
-import { convertUTCToBeijing } from 'src/core/utils/time'
+import { convertUTCToLocal } from 'src/core/utils/time'
 import ServiceEndpointTag from 'src/pro/components/ServiceEndpointTag'
 import { useTranslation } from 'react-i18next'
 function isJSONString(str) {
@@ -40,7 +40,7 @@ const AlertEventTable = ({ scrolllHeight }) => {
       accessor: 'receivedTime',
       customWidth: 180,
       Cell: ({ value }) => {
-        return convertUTCToBeijing(value)
+        return convertUTCToLocal(value)
       },
     },
     {
