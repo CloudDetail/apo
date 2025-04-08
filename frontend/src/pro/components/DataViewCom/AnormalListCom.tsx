@@ -1,13 +1,10 @@
-import { Badge, Select, Tag, Tabs } from 'antd'
+import { Select, Tag, Tabs } from 'antd'
 import Empty from 'src/core/components/Empty/Empty'
 
 import React, { useEffect, useState, useRef } from 'react'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
 import { convertTime } from 'src/core/utils/time'
 
 import { VariableSizeList as List } from 'react-window'
-import { useSelector } from 'react-redux'
-import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { anormalTypes, anormalTypesOptions } from 'src/pro/constants'
 import { useTranslation } from 'react-i18next'
 

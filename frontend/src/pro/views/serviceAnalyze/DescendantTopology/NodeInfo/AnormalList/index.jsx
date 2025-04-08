@@ -3,7 +3,7 @@ import { Badge, Select, Tag, Tabs } from 'antd'
 import Empty from 'src/core/components/Empty/Empty'
 // @ts-ignore
 import React, { useEffect, useState, useRef } from 'react'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 import { convertTime } from 'src/core/utils/time'
 // @ts-ignore
 import { VariableSizeList as List } from 'react-window'
@@ -21,7 +21,7 @@ const AnormalList = () => {
     selectedNodeInfo,
     anormalTypes,
     anormalTypesOptions,
-  } = useAlertAnalyzeContext()
+  } = useServiceAnalyzeContext()
   const { startTime: stepStartTime, endTime: stepEndTime } = useSelector(selectSecondsTimeRange)
   const viewportHeight = window.innerHeight
   const [newAnormalList, setNewAnormalList] = useState([])

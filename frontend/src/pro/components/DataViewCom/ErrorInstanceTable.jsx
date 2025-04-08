@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import DelayLineChart from 'src/core/components/Chart/DelayLineChart'
 import ErrorCell from 'src/core/components/ErrorInstance/ErrorCell'
-import { ErrorChain } from 'src/core/components/ErrorInstance/ErrorChain'
 import BasicTable from 'src/core/components/Table/basicTable'
 import Timeline from 'src/core/components/TimeLine'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
@@ -22,29 +21,9 @@ function ErrorInstanceTable({ data }) {
       title: t('currentNodeError'),
       accessor: 'propations',
       Cell: (props) => {
-        const { value, updateSelectedValue, column } = props
-        // updateSelectedValue(column.id, value[0]);
-        const update = (item) => {
-          updateSelectedValue(column.id, item)
-        }
+        const { value, row } = props
 
-        return <ErrorCell data={value} update={update} />
-      },
-    },
-    {
-      title: t('errorPropagationChain'),
-      accessor: 'chain',
-      dependsOn: 'propations', // 该列依赖于第一列的值
-      Cell: (props) => {
-        const { value, dependsValue, originalRow } = props
-        return (
-          <ErrorChain
-            data={dependsValue?.customAbbreviation}
-            instance={originalRow.name}
-            chartId={originalRow.name}
-          />
-        )
-        // return  nodes?.length > 0 ? <Topology canZoom={false} data={{nodes, edges}}  /> : <Empty />
+        return <ErrorCell data={value} instance={row.values.name} />
       },
     },
 

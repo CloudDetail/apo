@@ -1,6 +1,6 @@
 import { Collapse } from 'antd'
 import { useEffect, useState } from 'react'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 import AnormalList from './AnormalList'
 import ErrorInstanceInfo from 'src/pro/views/serviceAnalyze/DescendantTopology/NodeInfo/ErrorInstanceInfo'
 import PolarisMetricsInfo from 'src/pro/views/serviceAnalyze/DescendantTopology/NodeInfo/PolarisMetricsInfoModal/PolarisMetricsInfo'
@@ -11,7 +11,7 @@ const NodeInfo = () => {
   const { t } = useTranslation('pro/serviceAnalyze')
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight)
   const [activeItem, setActiveItem] = useState([])
-  const { selectedNodeInfo } = useAlertAnalyzeContext()
+  const { selectedNodeInfo } = useServiceAnalyzeContext()
   const [errorInstanceOpen, setErrorInstanceOpen] = useState(false)
 
   useEffect(() => {
@@ -46,18 +46,12 @@ const NodeInfo = () => {
     {
       key: '2',
       label: t(`${i18nKey}.errorReport`),
-      children: (
-        <ErrorInstanceInfo
-          service={selectedNodeInfo?.service}
-          endpoint={selectedNodeInfo?.endpoint}
-          showLogs={false}
-          errorInstanceOpen={errorInstanceOpen}
-        />
-      ),
+      children: <ErrorInstanceInfo showLogs={false} errorInstanceOpen={errorInstanceOpen} />,
       forceRender: true,
       styles: {
         body: {
           paddingRight: 0,
+          width: '100%',
         },
       },
     },

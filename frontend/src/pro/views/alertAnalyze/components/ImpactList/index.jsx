@@ -1,7 +1,6 @@
-import { Button, Card, Pagination, Tag, Tooltip, Tree } from 'antd'
+import { Button, Pagination, Tooltip } from 'antd'
 import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
-import TempCell from 'src/core/components/Table/TempCell'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { getAlertDescendantContributionApi } from 'src/pro/api/alertAnalyze'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
@@ -9,7 +8,6 @@ import { useSelector } from 'react-redux'
 import { getStep } from 'src/core/utils/step'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import EventListModal from './EventListModal'
-import { showToast } from 'src/core/utils/toast'
 import ServiceEndpointTag from 'src/pro/components/ServiceEndpointTag'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -203,11 +201,13 @@ const ImpactList = () => {
               {t(`${i18nKey}.alertList`)}
             </Button>
             <Button
-              className='my-1'
+              className="my-1"
               variant="outlined"
               color="primary"
               onClick={() => {
-                window.open(`#/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}`)
+                window.open(
+                  `#/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}`,
+                )
               }}
             >
               {t(`${i18nKey}.rootCauseAnalysis`)}
@@ -218,8 +218,9 @@ const ImpactList = () => {
     },
   ]
   const openTopologyModal = (service, endpoint) => {
-    // setSelectedEndpointInfo({ service, endpoint })
-    window.open(`#/alert-analyze/info?service=${encodeURIComponent(service)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=业务告警分析(${encodeURIComponent(service)} -> endpoint=${encodeURIComponent(endpoint)})`)
+    window.open(
+      `#/alert-analyze/info?service=${encodeURIComponent(service)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=业务告警分析(${encodeURIComponent(service)} -> endpoint=${encodeURIComponent(endpoint)})`,
+    )
   }
   const closeModal = () => {
     setModalEndpointInfo(null)
@@ -283,7 +284,6 @@ const ImpactList = () => {
     if (pageData?.length > 0) {
       latestController.current.abort()
       latestController.current = new AbortController()
-      console.log(latestController.current)
       getServiceCharts()
     }
   }, [pageData])

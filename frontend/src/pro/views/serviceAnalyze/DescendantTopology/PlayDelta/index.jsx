@@ -1,6 +1,5 @@
 import { Button } from 'antd'
 import React from 'react'
-import { FiPlayCircle } from 'react-icons/fi'
 import {
   TbPlayerPauseFilled,
   TbPlayerPlayFilled,
@@ -8,11 +7,8 @@ import {
   TbPlayerTrackPrevFilled,
 } from 'react-icons/tb'
 import { useSelector } from 'react-redux'
-import DateTimeRangePickerCom from 'src/core/components/DateTime/DateTimeRangePickerCom'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
-import { getStep } from 'src/core/utils/step'
-import { convertTime } from 'src/core/utils/time'
 import DateTimeRangeSimple from './DateTimeRangeSimple'
 import { t } from 'i18next'
 
@@ -24,7 +20,7 @@ const PlayDelta = () => {
     deltaEndTime,
     setDeltaTimerange,
     changeAlertDescendantDelta,
-  } = useAlertAnalyzeContext()
+  } = useServiceAnalyzeContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const clickLeftTimerange = () => {
     const step = deltaEndTime - deltaStartTime

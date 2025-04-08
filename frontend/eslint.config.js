@@ -2,8 +2,9 @@
  * Copyright 2025 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
-
+const js = require('@eslint/js')
 module.exports = [
+  js.configs.recommended,
   {
     files: ['**/*.{js,jsx,ts,tsx}'], // 检查的文件类型
     languageOptions: {
@@ -25,7 +26,10 @@ module.exports = [
     },
     rules: {
       'react/react-in-jsx-scope': 'off',
-      // 禁止未使用的变量
+      'react/prop-types': 'warn',
+
+      'unused-imports/no-unused-imports': 'error',
+
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -34,17 +38,19 @@ module.exports = [
           ignoreRestSiblings: true,
         },
       ],
-      // 自动检测未使用的导入并移除
-      'unused-imports/no-unused-imports': 'error',
-      // 针对未使用的变量：支持使用 `_` 开头忽略
+
       'unused-imports/no-unused-vars': [
-        'error',
-        { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
+        'warn',
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+        },
       ],
-      'no-unused-vars': ['error', { vars: 'all', args: 'after-used', ignoreRestSiblings: true }], //禁止声明未使用的变量
-      'no-undef': 'error', //禁止使用未声明的变量
-      'react/prop-types': 'warn', // 要求组件使用 PropTypes 进行类型校验。
-      '@typescript-eslint/no-unused-vars': ['error'], //禁止未使用的变量。
+
+      'no-unused-vars': 'off',
+      'no-undef': 'off',
     },
   },
 ]

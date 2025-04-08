@@ -1,31 +1,22 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import TopologyCom from './Topology'
 import AnormalTypeFilter from './AnormalTypeFilter'
 import TimeLineChart from './TimeLineChart'
-import { Card, Divider, Modal, Splitter } from 'antd'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
+import { Card, Divider, Splitter } from 'antd'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 import NodeInfo from './NodeInfo'
 import PlayDelta from './PlayDelta'
 import LoadingSpinner from 'src/core/components/Spinner'
-import DateTimeRangePicker from 'src/core/components/DateTime/DateTimeRangePicker'
-import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 const DescendantTopology = () => {
   const { t } = useTranslation('pro/serviceAnalyze')
-  const { selectedEndpointInfo, setSelectedEndpointInfo, setSelectedNodeInfo, loading } =
-    useAlertAnalyzeContext()
-  const [searchParams] = useSearchParams()
+  const { loading } = useServiceAnalyzeContext()
 
   const [rightWidth, setRightWidth] = useState(300)
   const onResize = (sizes) => {
     setRightWidth(sizes[1])
   }
-  useEffect(() => {
-    const service = searchParams.get('service')
-    const endpoint = searchParams.get('endpoint')
-    setSelectedEndpointInfo({ service: service, endpoint: endpoint })
-  }, [searchParams])
   return (
     <>
       <Card

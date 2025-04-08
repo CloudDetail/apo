@@ -1,5 +1,5 @@
 import { Pagination } from 'antd'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import ReactJson from 'react-json-view'
 import { useSelector } from 'react-redux'
 import BasicTable from 'src/core/components/Table/basicTable'
