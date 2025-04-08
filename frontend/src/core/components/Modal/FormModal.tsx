@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Form, FormInstance, Space, Button } from 'antd';
-import CommonModal from '../CommonModal';
+import CommonModal from './CommonModal';
 
 interface FormModalProps {
   title: string;
