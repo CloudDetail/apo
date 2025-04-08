@@ -68,7 +68,6 @@ export default function DateTimeRangeSimple(props) {
   const storeTimeRange = useSelector((state) => state.timeRange)
   const { deltaStartTime, deltaEndTime, changeAlertDescendantDelta } = useAlertAnalyzeContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
-  // 使用Date对象替代dayjs
   const [dateRange, setDateRange] = useState([new Date(), new Date()])
   // yyyy-mm-dd hh:mm:ss 时间输入
   const updataUrlTimeRange = (fromString, toString) => {
