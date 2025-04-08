@@ -11,6 +11,7 @@ import PermissionTree from 'src/core/components/PermissionTree';
 import { useApiParams } from 'src/core/hooks/useApiParams';
 import { showToast } from 'src/core/utils/toast';
 import { Role } from 'src/core/types/role';
+import { LuShieldCheck } from 'react-icons/lu';
 
 export default function RoleManage() {
   const { t } = useTranslation('core/roleManage');
@@ -194,7 +195,9 @@ export default function RoleManage() {
               </Button>
             </Popconfirm>
             <Button
-              type="primary"
+              color="primary"
+              variant="outlined"
+              icon={<LuShieldCheck />}
               onClick={() => showPermissionModal(record)}
             >
               {t('index.configPermission')}
@@ -272,7 +275,7 @@ export default function RoleManage() {
         {/* 编辑角色模态框 */}
 
         <FormModal
-          title={t('index.editRole')}
+          title={t('editModal.title')}
           open={editModalVisible}
           onCancel={() => setEditModalVisible(false)}
           confirmLoading={updateLoading}

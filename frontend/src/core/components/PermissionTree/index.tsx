@@ -40,7 +40,7 @@ function PermissionTree({
   const [permissionTreeData, setPermissionTreeData] = useState<PermissionItem[]>([]);
   const [allKeys, setAllKeys] = useState<React.Key[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const { t, i18n } = useTranslation('core/common');
+  const { t, i18n } = useTranslation('common');
 
   const onExpand = (expandedKeysValue: React.Key[]) => {
     setExpandedKeys(expandedKeysValue);
