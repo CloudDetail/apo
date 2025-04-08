@@ -15,7 +15,6 @@ import {
   CInputGroup,
   CInputGroupText,
 } from '@coreui/react'
-import { endOfDay, format, startOfDay } from 'date-fns'
 import React, { useEffect, useState } from 'react'
 import { DateRange } from 'react-date-range'
 import { useSearchParams } from 'react-router-dom'
@@ -34,6 +33,7 @@ import {
   ISOToTimestamp,
   TimestampToISO,
   ValidDate,
+  timeUtils,
 } from 'src/core/utils/time'
 // import './index.css'
 import 'react-date-range/dist/styles.css' // main style file
@@ -68,7 +68,8 @@ export default function DateTimeRangeSimple(props) {
   const storeTimeRange = useSelector((state) => state.timeRange)
   const { deltaStartTime, deltaEndTime, changeAlertDescendantDelta } = useAlertAnalyzeContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
-  const [dateRange, setDateRange] = useState([dayjs(new Date()), dayjs(new Date())])
+  // 使用Date对象替代dayjs
+  const [dateRange, setDateRange] = useState([new Date(), new Date()])
   // yyyy-mm-dd hh:mm:ss 时间输入
   const updataUrlTimeRange = (fromString, toString) => {
     const params = new URLSearchParams(searchParams)
@@ -112,15 +113,19 @@ export default function DateTimeRangeSimple(props) {
   }
 
   const initTimeRange = () => {
-    let initFromString, initToString
+    let initFromDate, initToDate
     if (deltaStartTime && deltaEndTime) {
-      initFromString = dayjs(deltaStartTime / 1000)
-      initToString = dayjs(deltaEndTime / 1000)
+      initFromDate = new Date(deltaStartTime / 1000)
+      initToDate = new Date(deltaEndTime / 1000)
     }
-    console.log(initFromString, initToString)
+    console.log(initFromDate, initToDate)
 
-    setDateRange([initFromString, initToString])
-    updataUrlTimeRange(initFromString, initToString)
+    setDateRange([initFromDate, initToDate])
+    if (initFromDate && initToDate) {
+      const fromString = timeUtils.format(initFromDate)
+      const toString = timeUtils.format(initToDate)
+      updataUrlTimeRange(fromString, toString)
+    }
   }
   useEffect(() => {
     const from = searchParams.get(type + '-from')
@@ -136,7 +141,7 @@ export default function DateTimeRangeSimple(props) {
     const toString = convertTime(ISOToTimestamp(to), 'yyyy-mm-dd hh:mm:ss')
     if (fromString && toString && ValidDate(fromString) && ValidDate(toString)) {
       if (inputStartTime !== fromString || inputEndTime !== toString) {
-        setDateRange([dayjs(fromString), dayjs(toString)])
+        setDateRange([new Date(fromString), new Date(toString)])
         updataUrlTimeRange(fromString, toString)
       }
     } else {
@@ -149,20 +154,36 @@ export default function DateTimeRangeSimple(props) {
   }, [deltaStartTime, deltaEndTime])
   const onChange = (date, dateString) => {
     console.log('onChange')
-    setDateRange(date)
-    changeAlertDescendantDelta({
-      deltaStartTime: date[0].valueOf() * 1000,
-      deltaEndTime: date[1].valueOf() * 1000,
-    })
+    // Convert antd DatePicker's value to a Date object
+    const startDate = date[0] ? date[0].toDate() : null
+    const endDate = date[1] ? date[1].toDate() : null
+
+    setDateRange([startDate, endDate])
+    if (startDate && endDate) {
+      changeAlertDescendantDelta({
+        deltaStartTime: startDate.getTime() * 1000,
+        deltaEndTime: endDate.getTime() * 1000,
+      })
+    }
   }
   const disabledDate = (current) => {
     // 禁用范围之外的日期
-    return current && (current < dayjs(startTime / 1000) || current > dayjs(endTime / 1000))
+    if (!current) return false
+
+    const currentDate = current.toDate()
+    const startTimeDate = new Date(startTime / 1000)
+    const endTimeDate = new Date(endTime / 1000)
+
+    return currentDate < startTimeDate || currentDate > endTimeDate
   }
+
+  // Convert Date object to dayjs object (antd DatePicker requires dayjs)
+  const dateRangeDayjs = dateRange.map(date => date ? dayjs(date) : null)
+
   return (
     <DatePicker.RangePicker
       showTime
-      value={dateRange}
+      value={dateRangeDayjs}
       onChange={onChange}
       disabledDate={disabledDate}
       allowClear={false}

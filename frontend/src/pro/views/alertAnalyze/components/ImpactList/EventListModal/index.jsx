@@ -6,7 +6,7 @@ import { getAlertDescendantEventApi } from 'src/pro/api/alertAnalyze'
 import BasicTable from 'src/core/components/Table/basicTable'
 import TempCell from 'src/core/components/Table/TempCell'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
-import { convertUTCToBeijing } from 'src/core/utils/time'
+import { convertUTCToLocal } from 'src/core/utils/time'
 import { useTranslation } from 'react-i18next'
 function isJSONString(str) {
   try {
@@ -77,7 +77,7 @@ const EventListModal = ({ endpointInfo, modalVisible, closeModal }) => {
       accessor: 'receivedTime',
       customWidth: 180,
       Cell: ({ value }) => {
-        return convertUTCToBeijing(value)
+        return convertUTCToLocal(value)
       },
     },
     {

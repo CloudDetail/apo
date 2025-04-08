@@ -4,9 +4,8 @@ import DelayLineChart from 'src/core/components/Chart/DelayLineChart'
 import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
 import { selectSecondsTimeRange, toNearestSecond } from 'src/core/store/reducers/timeRangeReducer'
 import { getStep } from 'src/core/utils/step'
-import { convertTime } from 'src/core/utils/time'
+import { convertTime, timeUtils } from 'src/core/utils/time'
 import ReactECharts from 'echarts-for-react'
-import dayjs from 'dayjs' // 用来格式化时间
 import _ from 'lodash'
 import { useUpdate, useUpdateEffect } from 'react-use'
 import { t } from 'i18next'
@@ -87,18 +86,19 @@ const TimeLineChart = ({ rightWidth }) => {
           axisLabel: {
             hideOverlap: true,
             formatter: (value) => {
-              const time = dayjs(value)
-              // 根据时间差判断是否需要显示年份，月份等
-              if (time.diff(dayjs(), 'year') !== 0) {
-                return time.format('YYYY/MM/DD HH:mm')
-              } else if (time.diff(dayjs(), 'day') !== 0) {
-                return time.format('MM/DD HH:mm')
-              } else if (time.diff(dayjs(), 'hour') !== 0) {
-                return time.format('HH:mm')
-              } else if (time.diff(dayjs(), 'minute') !== 0) {
-                return time.format('HH:mm:ss') // 如果分钟不同，展示到秒
+              const time = new Date(value);
+              const now = new Date();
+
+              if (timeUtils.getDiff(time, now, 'years') !== 0) {
+                return timeUtils.format(time, 'yyyy/MM/dd HH:mm');
+              } else if (timeUtils.getDiff(time, now, 'days') !== 0) {
+                return timeUtils.format(time, 'MM/dd HH:mm');
+              } else if (timeUtils.getDiff(time, now, 'hours') !== 0) {
+                return timeUtils.format(time, 'HH:mm');
+              } else if (timeUtils.getDiff(time, now, 'minutes') !== 0) {
+                return timeUtils.format(time, 'HH:mm:ss'); // 如果分钟不同，展示到秒
               }
-              return time.format('HH:mm:ss') // 如果秒不同，展示到秒
+              return timeUtils.format(time, 'HH:mm:ss'); // 如果秒不同，展示到秒
             },
           },
           min: startTime / 1000,

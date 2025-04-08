@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { cloneDeep } from 'lodash'
 
 import { flameDataHandle, basiclineOption, buildLineSeriesData, stackDataHandle } from './service'
-import dayjs from 'dayjs'
+import { timeUtils } from 'src/core/utils/time'
 import { ThemeColor, ThemeStyle } from 'src/constants'
 import StackChart from './StackChart'
 import CopyButton from 'src/core/components/CopyButton'
@@ -44,7 +44,7 @@ function ChartStep({ data, occurrenceAt }: Props) {
         let option: any
         option = cloneDeep(basiclineOption)
         option.xAxis[0].data = chart.metricList[0].values.map((item: any) =>
-          dayjs(parseInt((item[0] * 1000).toString(), 10)).format('MM-DD HH:mm'),
+          timeUtils.format(parseInt((item[0] * 1000).toString(), 10), 'MM-dd HH:mm'),
         )
         // option.xAxis[0].data = chart.metricList[0].values.map((item: any) =>item[0] * 1000  );
         chart.metricList.forEach((metric: any) => {
@@ -63,7 +63,7 @@ function ChartStep({ data, occurrenceAt }: Props) {
             markLine: {
               data: [
                 {
-                  xAxis: dayjs(occurrenceAt / 1000000).format('MM-DD HH:mm'),
+                  xAxis: timeUtils.format(occurrenceAt / 1000000, 'MM-dd HH:mm'),
                   lineStyle: {
                     color: ThemeColor.red,
                     cap: 'round',
@@ -83,7 +83,7 @@ function ChartStep({ data, occurrenceAt }: Props) {
               emphasis: {
                 label: {
                   show: true,
-                  formatter: dayjs(occurrenceAt / 1000000).format('MM-DD HH:mm'),
+                  formatter: timeUtils.format(occurrenceAt / 1000000, 'MM-dd HH:mm'),
                 },
               },
             },
