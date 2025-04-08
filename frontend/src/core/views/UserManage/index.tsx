@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Flex, ConfigProvider, Popconfirm, Space, Dropdown, Form, Pagination, Divider, Select } from 'antd';
+import { Table, Button, Input, Flex, ConfigProvider, Popconfirm, Space, Dropdown, Form, Pagination, Divider, Select, Radio } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 import { MdOutlineModeEdit } from 'react-icons/md';
 import { RiDeleteBin5Line } from 'react-icons/ri';
@@ -42,6 +42,7 @@ export default function UserManage() {
   });
   const [updateLoading, setUpdateLoading] = useState(false);
   const [modalAddVisibility, setModalAddVisibility] = useState(false);
+  const [roleEditVisibility, setRoleModalVisibility] = useState(false);
   const [modalEditVisibility, setModalEditVisibility] = useState(false);
   const [authorizeModalVisibility, setAuthorizeModalVisibility] = useState(false);
   const { user } = useUserContext();
@@ -283,27 +284,6 @@ export default function UserManage() {
       dataIndex: 'role',
       key: 'role',
       align: 'center',
-      render: (role: string, user: User) => {
-        return user.username !== 'admin' ? (
-          <>
-            <Dropdown
-              menu={{
-                items: roleItems,
-                onClick: ({key}) => handleRevokeUserRole(user.userId, key)
-              }}
-            >
-              <a onClick={(e) => e.preventDefault()}>
-                <Space>
-                  { role }
-                  <DownOutlined />
-                </Space>
-              </a>
-            </Dropdown>
-          </>
-        ) : (
-          <></>
-        )
-      },
     },
     {
       title: t('index.corporation'),
@@ -330,7 +310,7 @@ export default function UserManage() {
       align: 'center',
       render: (userId: string | number, record: User) => {
         const { username } = record;
-        return username !== 'admin' ? (
+        return username !== 'admin' && (
           <>
             <Button
               onClick={() => {
@@ -363,8 +343,6 @@ export default function UserManage() {
               {t('index.dataGroup')}
             </Button>
           </>
-        ) : (
-          <></>
         )
       },
       width: 400,
@@ -526,13 +504,27 @@ export default function UserManage() {
           onFinish={handleEditUser}
           initialValues={selectedUser}
         >
-          <Form.Item
-            name="username"
-            label={t('index.userName')}
-            rules={[{ required: true, message: t('index.userNameRequired') }]}
-          >
-            <Input disabled />
-          </Form.Item>
+          <Flex gap={16} className="mb-6">
+            <Form.Item
+              name="username"
+              label={t('index.userName')}
+              rules={[{ required: true, message: t('index.userNameRequired') }]}
+              style={{ marginBottom: 0, flex: 1 }}
+            >
+              <Input disabled />
+            </Form.Item>
+            <Form.Item
+              name="role"
+              label='角色'
+              rules={[{ required: true, message: '请选择角色' }]}
+              style={{ marginBottom: 0, flex: 1 }}
+            >
+              <Select
+                options={roleItems}
+                onChange={(value) => handleRevokeUserRole(selectedUser?.userId || '', value)}
+              />
+            </Form.Item>
+          </Flex>
           <Form.Item
             name="corporation"
             label={t('index.corporation')}
@@ -590,6 +582,31 @@ export default function UserManage() {
             ]}
           >
             <Input.Password placeholder={t('editModal.confirmPasswordPlaceholder')} />
+          </Form.Item>
+        </FormModal.Section>
+      </FormModal>
+
+      {/* 编辑权限模态框 */}
+      <FormModal
+        title= {`设置 大雄 的角色`}
+        open={roleEditVisibility}
+        onCancel={() => setRoleModalVisibility(false)}
+        footer={null}
+      >
+        <FormModal.Section
+          onFinish={handleRevokeUserRole}
+        >
+          <Form.Item name='role'>
+          <Radio.Group
+            className="flex flex-col gap-2 m-2"
+            onChange={() => {}}
+            // value={1}
+            options={[
+              { value: 1, label: 'admin' },
+              { value: 2, label: 'manager' },
+              { value: 3, label: 'viewer' },
+            ]}
+          />
           </Form.Item>
         </FormModal.Section>
       </FormModal>
