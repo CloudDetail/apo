@@ -183,6 +183,7 @@ var enText = map[string]string{
 	RoleExistsError:                   "Role already exists",
 	CreateRoleError:                   "Failed to create role",
 	UpdateRoleError:                   "Failed to update role",
+	DeleteRoleError:                   "Failed to delete role",
 	APINotExist:                       "Api does not exist",
 	AuthError:                         "Failed to authorize permission",
 	GetGroupSubsError:                 "Failed to get data group's assigned subjects",

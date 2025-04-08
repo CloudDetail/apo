@@ -62,6 +62,7 @@ type Repo interface {
 	GrantRoleWithUser(ctx context.Context, userID int64, roleIDs []int) error
 	GrantRoleWithRole(ctx context.Context, roleID int, userIDs []int64) error
 	RevokeRole(ctx context.Context, userID int64, roleIDs []int) error
+	RevokeRoleWithRole(ctx context.Context, roleID int) error
 	GetSubjectPermission(subID int64, subType string, typ string) ([]int, error)
 	GetSubjectsPermission(subIDs []int64, subType string, typ string) ([]AuthPermission, error)
 	RoleExists(roleID int) (bool, error)

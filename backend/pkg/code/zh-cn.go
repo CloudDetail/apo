@@ -185,6 +185,7 @@ var zhCnText = map[string]string{
 	RoleExistsError:                   "角色已存在",
 	CreateRoleError:                   "创建角色失败",
 	UpdateRoleError:                   "更新角色失败",
+	DeleteRoleError:                   "删除角色失败",
 	APINotExist:                       "API不存在",
 	AuthError:                         "鉴权失败",
 	GetGroupSubsError:                 "获取数据组授权主体失败",

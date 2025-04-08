@@ -156,3 +156,8 @@ func (repo *daoRepo) GrantRoleWithRole(ctx context.Context, roleID int, userIDs 
 			DoNothing: true,
 		}).Create(&userRoles).Error
 }
+
+func (repo *daoRepo) RevokeRoleWithRole(ctx context.Context, roleID int) error {
+	return repo.GetContextDB(ctx).
+		Model(&UserRole{}).Where("role_id = ?", roleID).Delete(nil).Error
+}
