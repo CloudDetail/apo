@@ -10,9 +10,15 @@ import { convertTime } from 'src/core/utils/time'
 import { MdOutlineOpenInFull } from 'react-icons/md'
 import CopyPre from '../CopyPre'
 import { ErrorChain } from './ErrorChain'
+function safeCall(fn, ...args) {
+  if (typeof fn === 'function') {
+    return fn(...args)
+  }
+  return undefined
+}
 
 function ErrorCell(props) {
-  const { data, instance } = props
+  const { data, instance, canClickTo = true, update } = props
   const [options, setOptions] = useState([])
   const [visible, setVisible] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
@@ -36,6 +42,7 @@ function ErrorCell(props) {
       })
     })
     setOptions(options)
+    safeCall(update, options[0])
   }, [data])
   const PreCom = (value) => (
     <div className="relative max-h-14 overflow-auto mb-1">
@@ -60,6 +67,12 @@ function ErrorCell(props) {
           destroyInactiveTabPane
           tabPosition="left"
           style={{ height: 220 }}
+          onChange={(key) => {
+            const selected = options.find((item, i) => item.value + i === key)
+            if (selected) {
+              safeCall(update, selected)
+            }
+          }}
           items={options.map((item, i) => {
             return {
               label: (
@@ -103,6 +116,7 @@ function ErrorCell(props) {
                       data={item?.customAbbreviation}
                       instance={instance}
                       chartId={instance + item.value}
+                      canClickTo={canClickTo}
                     />
                   </div>
                 </div>
