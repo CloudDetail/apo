@@ -14,7 +14,8 @@
     "cancel": "Cancel",
     "addUser": "Add User",
     "deleteSuccess": "Successfully deleted user",
-    "dataGroup": "Data Permissions"
+    "dataGroup": "Data Permissions",
+    "revokeSuccess": "Successfully revoked user"
   },
   "addModal": {
     "title": "Add User",
@@ -39,7 +40,8 @@
     "phoneInvalid": "Please enter a valid phone number",
     "corporation": "Organization",
     "corporationPlaceholder": "Please enter organization",
-    "addSuccess": "User added successfully"
+    "addSuccess": "User added successfully",
+    "selectRole": "Role"
   },
   "editModal": {
     "title": "Edit User",

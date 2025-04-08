@@ -14,7 +14,8 @@
     "cancel": "取消",
     "addUser": "新增用户",
     "deleteSuccess": "删除用户成功",
-    "dataGroup": "数据权限"
+    "dataGroup": "数据权限",
+    "revokeSuccess": "修改成功"
   },
   "addModal": {
     "title": "新增用户",
@@ -42,7 +43,8 @@
     "addSuccess": "用户添加成功",
     "address": "地址",
     "addressPlaceholder": "请输入地址",
-    "addressRequired": "请输入地址"
+    "addressRequired": "请输入地址",
+    "selectRole": "选择角色"
   },
   "editModal": {
     "title": "编辑用户",

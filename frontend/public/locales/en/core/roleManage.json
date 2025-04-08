@@ -13,7 +13,9 @@
     "addRole": "Add Role",
     "deleteSuccess": "Successfully deleted user",
     "dataGroup": "Data Permissions",
-    "selectAll": "Select All"
+    "selectAll": "Select All",
+    "configPermission": "Set Permissions",
+    "viewPermission": "View Permissions"
   },
   "addModal": {
     "title": "Add Role",

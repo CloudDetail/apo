@@ -1,98 +1,162 @@
-/**
- * Copyright 2024 CloudDetail
- * SPDX-License-Identifier: Apache-2.0
- */
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Popconfirm, Form, Input } from 'antd';
+import { MdOutlineModeEdit } from 'react-icons/md';
+import { RiDeleteBin5Line } from 'react-icons/ri';
+import { useTranslation } from 'react-i18next';
+import LoadingSpinner from 'src/core/components/Spinner';
+import { getAllRolesApi, createRoleApi, updateRoleApi, deleteRoleApi } from 'src/core/api/role';
+import FormModal from 'src/core/components/Modal/FormModal';
+import CommonModal from 'src/core/components/Modal/CommonModal';
+import PermissionTree from 'src/core/components/PermissionTree';
+import { useApiParams } from 'src/core/hooks/useApiParams';
+import { showToast } from 'src/core/utils/toast';
+import { Role } from 'src/core/types/role';
 
-import {
-  Flex,
-  Form,
-  Input,
-  Button,
-  Divider,
-  Tooltip,
-  Modal,
-  Table,
-  ConfigProvider,
-  Popconfirm,
-  Spin,
-  Pagination,
-  Dropdown,
-  Space,
-  message,
-} from 'antd'
-import { DownOutlined } from '@ant-design/icons'
-import { getUserListApi, removeUserApi } from 'core/api/user'
-import { showToast } from 'core/utils/toast'
-import { useEffect, useState } from 'react'
-import { RiDeleteBin5Line } from 'react-icons/ri'
-import { MdOutlineModeEdit } from 'react-icons/md'
-import EditModal from './components/EditModal'
-import AddModal from './components/AddModal'
-import { BsPersonFillAdd } from 'react-icons/bs'
-import LoadingSpinner from 'src/core/components/Spinner'
-import { useUserContext } from 'src/core/contexts/UserContext'
-import style from '../UserManage/index.module.css'
-import { useTranslation } from 'react-i18next'
-import { LuShieldCheck } from 'react-icons/lu'
-import DataGroupAuthorizeModal from 'src/core/components/PermissionAuthorize/DataGroupAuthorizeModal'
-import { deleteRoleApi, getAllRolesApi, revokeUserRoleApi } from 'src/core/api/role'
+export default function RoleManage() {
+  const { t } = useTranslation('core/roleManage');
+  // Todo: 改成使用useRole的钩子
+  const [roleList, setRoleList] = useState<Role[]>([]);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [permissionModalVisible, setPermissionModalVisible] = useState(false);
 
-export default function UserManage() {
-  const { t } = useTranslation('core/roleManage')
-  const [modalAddVisibility, setModalAddVisibility] = useState(false)
-  // const [userList, setUserList] = useState([])
-  const [username, setUsername] = useState('')
-  const [role, setRole] = useState('')
-  const [corporation, setCorporation] = useState('')
-  const [tableVisibility, setTableVisibility] = useState(true)
-  const [modalEditVisibility, setModalEditVisibility] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-  const [total, setTotal] = useState(0)
-  const [selectedRole, setSelectedRole] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [roleList, setRoleList] = useState([])
+  // 使用 useApiParams 钩子
+  const { sendRequest: fetchRolesRequest } = useApiParams(getAllRolesApi);
+  const { sendRequest: addRoleRequest, loading: addLoading } = useApiParams(createRoleApi);
+  const { sendRequest: updateRoleRequest, loading: updateLoading } = useApiParams(updateRoleApi);
+  const { sendRequest: removeRoleRequest } = useApiParams(deleteRoleApi);
 
-  const [authorizeModalVisibility, setAuthorizeModalVisibility] = useState(false)
-
-  async function deleteRole(prop) {
-    const params = {
-      roleId: prop,
-    }
+  // 获取角色列表
+  const fetchRoles = async () => {
+    setLoading(true);
     try {
-      await deleteRoleApi(params)
-      console.log('deleting role: ', params)
-      await fetchRoles()
-      showToast({
-        title: t('index.deleteSuccess'),
-        color: 'success',
-      })
+      const roles = await fetchRolesRequest({}, { useURLSearchParams: false });
+      setRoleList(roles || []);
+      return roles;
     } catch (error) {
-      console.log(error)
+      console.error('获取角色列表失败:', error);
+      return [];
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  async function fetchRoles() {
-    try {
-      const roles = await getAllRolesApi(); // 等待 API 返回数据
-      setRoleList(roles)
-      console.log('roles: ', roles)
-    } catch (error) {
-      console.error("Failed to fetch roles: ", error); // 捕获并处理错误
-    }
-  }
+  // 添加角色
+  const handleAddRole = async (values: { roleName: string, description: string,  permissionList}) => {
+    // Todo: 添加角色的时候，权限的设置应该时有效的（现在是无效的）
+    await addRoleRequest(
+      {
+        roleName: values.roleName,
+        description: values.description,
+        permissionList: values.permissionList
+      },
+      {
+        onSuccess: () => {
+          showToast({
+            title: t('index.addSuccess'),
+            color: 'success',
+          });
+          fetchRoles();
+          setAddModalVisible(false);
+        },
+        onError: (error) => {
+          console.error('添加角色失败:', error);
+        }
+      }
+    );
+  };
 
+  // 更新角色
+  const handleEditRole = async (values: { roleName: string, description: string }) => {
+    if (!selectedRole) return;
+
+    await updateRoleRequest(
+      {
+        roleId: selectedRole.roleId,
+        roleName: values.roleName,
+        description: values.description
+      },
+      {
+        onSuccess: () => {
+          showToast({
+            title: t('index.updateSuccess'),
+            color: 'success',
+          });
+          fetchRoles();
+          setEditModalVisible(false);
+        },
+        onError: (error) => {
+          console.error('更新角色失败:', error);
+        }
+      }
+    );
+  };
+
+  // 删除角色
+  const removeRole = async (roleId: string | number) => {
+    await removeRoleRequest(
+      { roleId },
+      {
+        useURLSearchParams: false,
+        onSuccess: () => {
+          showToast({
+            title: t('index.deleteSuccess'),
+            color: 'success',
+          });
+          fetchRoles();
+        },
+        onError: (error) => {
+          console.error('删除角色失败:', error);
+        }
+      }
+    );
+  };
+
+  // 处理权限保存
+  const handleSavePermissions = async (checkedKeys: React.Key[]) => {
+    if (!selectedRole) return;
+
+    await updateRoleRequest(
+      {
+        roleId: selectedRole.roleId,
+        roleName: selectedRole.roleName,
+        permissionList: checkedKeys
+      },
+      {
+        onSuccess: () => {
+          showToast({
+            title: t('index.permissionUpdateSuccess'),
+            color: 'success',
+          });
+          setPermissionModalVisible(false);
+        },
+        onError: (error) => {
+          console.error('保存权限失败:', error);
+        }
+      }
+    );
+  };
+
+  // 初始化加载
   useEffect(() => {
-    fetchRoles(); // 调用异步函数
-  }, []); // 空依赖数组，确保只在组件挂载时调用一次
+    fetchRoles();
+  }, []);
 
-  //改变分页器
-  function paginationChange(page, pageSize) {
-    setPageSize(pageSize)
-    setCurrentPage(page)
-  }
+  // 打开编辑模态框
+  const showEditModal = (role: Role) => {
+    setSelectedRole(role);
+    setEditModalVisible(true);
+  };
 
-  //用户列表列定义
+  // 打开权限模态框
+  const showPermissionModal = (role: Role) => {
+    setSelectedRole(role);
+    setPermissionModalVisible(true);
+  };
+
+  // 角色列表列定义
   const columns = [
     {
       title: t('index.roleName'),
@@ -108,133 +172,149 @@ export default function UserManage() {
     },
     {
       title: t('index.operation'),
-      dataIndex: 'userId',
-      key: 'userId',
+      key: 'operation',
       align: 'center',
-      render: (_, role) => {
-        return role.roleName !== 'admin' ? (
+      render: (_: any, record: Role) => (
+        record.roleName !== 'admin' ? (
           <>
             <Button
-              onClick={() => {
-                setSelectedRole(role)
-                setModalEditVisibility(true)
-              }}
+              onClick={() => showEditModal(record)}
               icon={<MdOutlineModeEdit />}
               type="text"
-              className="mr-1"
+              className="mr-2"
             >
               {t('index.edit')}
             </Button>
             <Popconfirm
-              title={t('index.confirmDelete', { name: username })}
-              onConfirm={() => deleteRole(role.roleId)}
+              title={t('index.confirmDelete', { name: record.roleName })}
+              onConfirm={() => removeRole(record.roleId)}
             >
-              <Button type="text" icon={<RiDeleteBin5Line />} danger className="mr-1">
+              <Button type="text" icon={<RiDeleteBin5Line />} danger className="mr-2">
                 {t('index.delete')}
               </Button>
             </Popconfirm>
+            <Button
+              type="primary"
+              onClick={() => showPermissionModal(record)}
+            >
+              {t('index.configPermission')}
+            </Button>
           </>
         ) : (
-          <></>
+          <Button
+            type="primary"
+            onClick={() => showPermissionModal(record)}
+          >
+            {t('index.viewPermission')}
+          </Button>
         )
-      },
-      width: 400,
+      ),
     },
-  ]
+  ];
 
-  const closeAuthorizeModal = () => {
-    setAuthorizeModalVisibility(false)
-    setSelectedRole(null)
-  }
   return (
     <>
       <LoadingSpinner loading={loading} />
-      <div className={style.userManageContainer}>
-        <Flex className="mb-3 h-[40px]">
-          <Flex className="w-full justify-between">
-            <Flex className="w-full">
-              <Flex className="w-auto items-center justify-start mr-5">
-                <p className="text-md mr-2">{t('index.roleName')}：</p>
-                <Input
-                  placeholder={t('index.search')}
-                  className="w-2/3"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </Flex>
-              <Flex className="w-auto items-center justify-start">
-                <p className="text-md mr-2">{t('index.description')}：</p>
-                <Input
-                  placeholder={t('index.search')}
-                  className="w-2/3"
-                  value={corporation}
-                  onChange={(e) => setCorporation(e.target.value)}
-                />
-              </Flex>
-            </Flex>
-            <Flex className="w-full justify-end items-center">
-              <Button
-                type="primary"
-                icon={<BsPersonFillAdd size={20} />}
-                onClick={() => setModalAddVisibility(true)}
-                className="flex-grow-0 flex-shrink-0"
-              >
-                <span className="text-xs">{t('index.addRole')}</span>
-              </Button>
-            </Flex>
-          </Flex>
-        </Flex>
-
-        <ConfigProvider
-          theme={{
-            components: {
-              Table: {
-                headerBg: '#222631',
-              },
-            },
-          }}
+      <div className="p-4">
+        <Button
+          type="primary"
+          onClick={() => setAddModalVisible(true)}
+          className="mb-4"
         >
-          <Flex vertical className="w-full flex-1 pb-4 justify-between">
-            <Table
-              dataSource={roleList}
-              columns={columns}
-              pagination={false}
-              loading={!tableVisibility}
-              scroll={{ y: 'calc(100vh - 220px)' }}
+          {t('index.addRole')}
+        </Button>
+
+        <Table
+          dataSource={roleList}
+          columns={columns}
+          rowKey="roleId"
+        />
+
+        {/* 添加角色模态框 */}
+        <FormModal
+          title={t('index.addRole')}
+          open={addModalVisible}
+          onCancel={() => setAddModalVisible(false)}
+          confirmLoading={addLoading}
+        >
+          <FormModal.Section
+            onFinish={handleAddRole}
+          >
+          <Form.Item
+            name="roleName"
+            label={t('index.roleName')}
+            rules={[{ required: true, message: t('index.roleNameRequired') }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label={t('index.description')}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label={t('addModal.permissions')}
+            name="permissionList"
+          >
+          {selectedRole && (
+            <PermissionTree
+              subjectId={selectedRole.roleId}
+              subjectType="role"
+              onSave={handleSavePermissions}
+              readOnly={selectedRole.roleName === 'admin'}
             />
-            <Pagination
-              className="mt-4 absolute bottom-0 right-0"
-              align="end"
-              current={currentPage}
-              pageSize={pageSize}
-              total={total}
-              pageSizeOptions={[10, 30, 50]}
-              showSizeChanger
-              onChange={paginationChange}
-              showQuickJumper
+          )}
+          </Form.Item>
+          </FormModal.Section>
+        </FormModal>
+
+        {/* 编辑角色模态框 */}
+
+        <FormModal
+          title={t('index.editRole')}
+          open={editModalVisible}
+          onCancel={() => setEditModalVisible(false)}
+          confirmLoading={updateLoading}
+        >
+          <FormModal.Section
+            onFinish={handleEditRole}
+            initialValues={selectedRole ? { roleName: selectedRole.roleName, description: selectedRole.description } : {}}
+          >
+          <Form.Item
+            name="roleName"
+            label={t('index.roleName')}
+            rules={[{ required: true, message: t('index.roleNameRequired') }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label={t('index.description')}
+          >
+            <Input />
+          </Form.Item>
+          </FormModal.Section>
+        </FormModal>
+
+        {/* 权限配置模态框 */}
+        <CommonModal
+          title={t('index.configPermission')}
+          open={permissionModalVisible}
+          onCancel={() => setPermissionModalVisible(false)}
+          width={800}
+          footer={null}
+        >
+          {selectedRole && (
+            <PermissionTree
+              subjectId={selectedRole.roleId}
+              subjectType="role"
+              onSave={handleSavePermissions}
+              readOnly={selectedRole.roleName === 'admin'}
             />
-          </Flex>
-        </ConfigProvider>
+          )}
+        </CommonModal>
       </div>
-      <EditModal
-        selectedRole={selectedRole}
-        modalEditVisibility={modalEditVisibility}
-        setModalEditVisibility={setModalEditVisibility}
-        getRoleList={fetchRoles}
-      />
-      <AddModal
-        modalAddVisibility={modalAddVisibility}
-        setModalAddVisibility={setModalAddVisibility}
-        getRoleList={fetchRoles}
-      />
-      {/* <DataGroupAuthorizeModal
-        open={authorizeModalVisibility}
-        closeModal={closeAuthorizeModal}
-        subjectId={selectedUser?.userId}
-        subjectName={selectedUser?.username}
-        type="user"
-        refresh={refresh}
-      /> */}
     </>
-  )
+  );
 }

@@ -13,7 +13,9 @@
     "addRole": "新增角色",
     "deleteSuccess": "删除角色成功",
     "dataGroup": "数据权限",
-    "selectAll": "选择全部"
+    "selectAll": "选择全部",
+    "configPermission": "设置权限",
+    "viewPermission": "查看权限"
   },
   "addModal": {
     "title": "新增角色",
