@@ -37,7 +37,7 @@ function AlertAnalyzeCom() {
       style={{ position: 'relative' }}
       classNames={{
         body: 'p-0 ',
-        title: 'text-base',
+        title: 'text-sm',
       }}
       title={t(`alertEvent.alertEvents`)}
       size="small"
@@ -78,7 +78,6 @@ function AlertAnalyzeCom() {
         style={{
           height: 'calc(100vh - 180px)',
           boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
-          marginTop: '10px',
           // border: '1px solid rgb(229, 231, 235)',
         }}
         layout="vertical"

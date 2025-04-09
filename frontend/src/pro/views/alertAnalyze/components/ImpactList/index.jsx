@@ -1,7 +1,6 @@
-import { Button, Card, Pagination, Tag, Tooltip, Tree } from 'antd'
+import { Button, Pagination, Tabs, Tooltip } from 'antd'
 import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
-import TempCell from 'src/core/components/Table/TempCell'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { getAlertDescendantContributionApi } from 'src/pro/api/alertAnalyze'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
@@ -9,7 +8,6 @@ import { useSelector } from 'react-redux'
 import { getStep } from 'src/core/utils/step'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import EventListModal from './EventListModal'
-import { showToast } from 'src/core/utils/toast'
 import ServiceEndpointTag from 'src/pro/components/ServiceEndpointTag'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -17,7 +15,7 @@ import { useChartsContext } from 'src/core/contexts/ChartsContext'
 import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
 import TableFilter from 'src/core/components/Filter/TableFilter'
 import { useDebounce } from 'react-use'
-
+import styles from './index.module.scss'
 const i18nKey = 'impactList'
 
 const ImpactList = () => {
@@ -161,7 +159,26 @@ const ImpactList = () => {
           accessor: `contribution`,
           Cell: (props) => {
             const { trs } = props
-            return <ServiceEndpointTag service={trs.serviceName} endpoint={trs.endpoint} />
+            return (
+              <Tabs
+                className={styles.impactEntrys}
+                defaultActiveKey="1"
+                tabPosition="top"
+                activeKey="0"
+                tabBarStyle={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                items={[
+                  {
+                    label: (
+                      <div className=" whitespace-nowrap flex items-center">
+                        <ServiceEndpointTag service={trs.serviceName} endpoint={trs.endpoint} />
+                      </div>
+                    ),
+                    key: trs.serviceName + trs.endpoint,
+                    children: null,
+                  },
+                ]}
+              />
+            )
           },
         },
       ],
@@ -203,11 +220,13 @@ const ImpactList = () => {
               {t(`${i18nKey}.alertList`)}
             </Button>
             <Button
-              className='my-1'
+              className="my-1"
               variant="outlined"
               color="primary"
               onClick={() => {
-                window.open(`#/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}`)
+                window.open(
+                  `#/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}`,
+                )
               }}
             >
               {t(`${i18nKey}.rootCauseAnalysis`)}
@@ -219,7 +238,9 @@ const ImpactList = () => {
   ]
   const openTopologyModal = (service, endpoint) => {
     // setSelectedEndpointInfo({ service, endpoint })
-    window.open(`#/alert-analyze/info?service=${encodeURIComponent(service)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=业务告警分析(${encodeURIComponent(service)} -> endpoint=${encodeURIComponent(endpoint)})`)
+    window.open(
+      `#/alert-analyze/info?service=${encodeURIComponent(service)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=业务告警分析(${encodeURIComponent(service)} -> endpoint=${encodeURIComponent(endpoint)})`,
+    )
   }
   const closeModal = () => {
     setModalEndpointInfo(null)
@@ -308,9 +329,9 @@ const ImpactList = () => {
 
   return (
     <>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full  text-xs">
         <div className="text-base px-2 pt-2 font-bold flex justify-center items-center">
-          <span className="shrink-0">{t(`${i18nKey}.affectedBusinessEntry`)}</span>
+          <span className="shrink-0 text-sm">{t(`${i18nKey}.affectedBusinessEntry`)}</span>
           <TableFilter
             className="px-4 mb-0"
             setServiceName={setServiceName}
