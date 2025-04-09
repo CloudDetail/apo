@@ -1,4 +1,4 @@
-import { Button, Pagination, Tooltip } from 'antd'
+import { Button, Pagination, Tabs, Tooltip } from 'antd'
 import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
 import BasicTable from 'src/core/components/Table/basicTable'
@@ -15,7 +15,7 @@ import { useChartsContext } from 'src/core/contexts/ChartsContext'
 import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
 import TableFilter from 'src/core/components/Filter/TableFilter'
 import { useDebounce } from 'react-use'
-
+import styles from './index.module.scss'
 const i18nKey = 'impactList'
 
 const ImpactList = () => {
@@ -159,7 +159,26 @@ const ImpactList = () => {
           accessor: `contribution`,
           Cell: (props) => {
             const { trs } = props
-            return <ServiceEndpointTag service={trs.serviceName} endpoint={trs.endpoint} />
+            return (
+              <Tabs
+                className={styles.impactEntrys}
+                defaultActiveKey="1"
+                tabPosition="top"
+                activeKey="0"
+                tabBarStyle={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                items={[
+                  {
+                    label: (
+                      <div className=" whitespace-nowrap flex items-center">
+                        <ServiceEndpointTag service={trs.serviceName} endpoint={trs.endpoint} />
+                      </div>
+                    ),
+                    key: trs.serviceName + trs.endpoint,
+                    children: null,
+                  },
+                ]}
+              />
+            )
           },
         },
       ],
@@ -218,6 +237,7 @@ const ImpactList = () => {
     },
   ]
   const openTopologyModal = (service, endpoint) => {
+    // setSelectedEndpointInfo({ service, endpoint })
     window.open(
       `#/alert-analyze/info?service=${encodeURIComponent(service)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=业务告警分析(${encodeURIComponent(service)} -> endpoint=${encodeURIComponent(endpoint)})`,
     )
@@ -308,9 +328,9 @@ const ImpactList = () => {
 
   return (
     <>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full  text-xs">
         <div className="text-base px-2 pt-2 font-bold flex justify-center items-center">
-          <span className="shrink-0">{t(`${i18nKey}.affectedBusinessEntry`)}</span>
+          <span className="shrink-0 text-sm">{t(`${i18nKey}.affectedBusinessEntry`)}</span>
           <TableFilter
             className="px-4 mb-0"
             setServiceName={setServiceName}

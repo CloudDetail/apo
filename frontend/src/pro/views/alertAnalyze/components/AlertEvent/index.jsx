@@ -1,4 +1,4 @@
-import { Pagination } from 'antd'
+import { Tabs } from 'antd'
 import React, { useMemo } from 'react'
 import ReactJson from 'react-json-view'
 import { useSelector } from 'react-redux'
@@ -7,6 +7,7 @@ import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
 import { convertUTCToLocal } from 'src/core/utils/time'
 import ServiceEndpointTag from 'src/pro/components/ServiceEndpointTag'
 import { useTranslation } from 'react-i18next'
+import styles from './index.module.scss'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -25,7 +26,7 @@ const AlertEventTable = ({ scrolllHeight }) => {
     {
       title: t(`${i18nKey}.alertType`),
       accessor: 'group',
-      customWidth: 150,
+      customWidth: 100,
       Cell: ({ value }) => {
         return groupLabel[value]
       },
@@ -38,9 +39,15 @@ const AlertEventTable = ({ scrolllHeight }) => {
     {
       title: t(`${i18nKey}.lastAlertTime`),
       accessor: 'receivedTime',
-      customWidth: 180,
+      customWidth: 100,
       Cell: ({ value }) => {
-        return convertUTCToLocal(value)
+        const result = convertUTCToLocal(value)
+        return (
+          <div>
+            <div>{result.split(' ')[0]}</div>
+            <div>{result.split(' ')[1]}</div>
+          </div>
+        )
       },
     },
     {
@@ -72,19 +79,33 @@ const AlertEventTable = ({ scrolllHeight }) => {
       justifyContent: 'left',
       Cell: ({ value }) => {
         return (
-          <>
+          <div className="w-full">
             {value?.length > 0 ? (
-              <div className="flex flex-wrap">
-                {value?.map((item) => (
-                  <div className="flex-shrink-0 w-full">
-                    <ServiceEndpointTag service={item.serviceName} endpoint={item.endpoint} />
-                  </div>
-                ))}
-              </div>
+              value?.map((item) => (
+                <Tabs
+                  className={styles.impactEntrys}
+                  defaultActiveKey="1"
+                  tabPosition="top"
+                  activeKey="0"
+                  tabBarStyle={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                  items={value?.map((item) => {
+                    const id = item.serviceName + item.endpoint
+                    return {
+                      label: (
+                        <div className=" whitespace-nowrap flex items-center">
+                          <ServiceEndpointTag service={item.serviceName} endpoint={item.endpoint} />
+                        </div>
+                      ),
+                      key: id,
+                      children: null,
+                    }
+                  })}
+                />
+              ))
             ) : (
               <span className="text-gray-400">{t(`${i18nKey}.noRelatedApps`)}</span>
             )}
-          </>
+          </div>
         )
       },
     },
@@ -96,11 +117,25 @@ const AlertEventTable = ({ scrolllHeight }) => {
         return (
           <>
             {value?.length > 0 ? (
-              value?.map((item) => (
-                <div className="flex-shrink-0 ">
-                  <ServiceEndpointTag service={item.serviceName} endpoint={item.endpoint} />
-                </div>
-              ))
+              <Tabs
+                className={styles.impactEntrys}
+                defaultActiveKey="1"
+                tabPosition="top"
+                activeKey="0"
+                tabBarStyle={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                items={value?.map((item) => {
+                  const id = item.serviceName + item.endpoint
+                  return {
+                    label: (
+                      <div className=" whitespace-nowrap flex items-center">
+                        <ServiceEndpointTag service={item.serviceName} endpoint={item.endpoint} />
+                      </div>
+                    ),
+                    key: id,
+                    children: null,
+                  }
+                })}
+              />
             ) : (
               <span className="text-gray-400">{t(`${i18nKey}.noAffectedEntries`)}</span>
             )}
@@ -123,22 +158,19 @@ const AlertEventTable = ({ scrolllHeight }) => {
       data: alertEvents,
       showBorder: false,
       loading: false,
+      tdPadding: '2px',
+      onChange: changePagination,
+      pagination: {
+        pageSize: pagination.pageSize,
+        pageIndex: pagination.pageIndex,
+        total: pagination.total,
+      },
     }
   }, [alertEvents])
   return (
     <>
-      <div className="flex flex-col h-full">
-        {/* <div className="text-base px-4 pt-2 font-bold">{t(`${i18nKey}.alertEvents`)}</div> */}
+      <div className="flex flex-col h-full text-xs">
         <BasicTable {...tableProps} />
-        <Pagination
-          defaultCurrent={1}
-          total={pagination.total}
-          current={pagination.pageIndex}
-          pageSize={pagination.pageSize}
-          className="flex-shrink-0 flex-grow-0 p-2"
-          align="end"
-          onChange={changePagination}
-        />
       </div>
     </>
   )

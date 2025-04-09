@@ -43,7 +43,7 @@ const UnitedLayout = () => {
         </Sider>
         <Layout>
           <div className="body flex-grow-1">
-            <div className=" px-4 py-2 text-base">
+            <div className="px-4 py-0 text-sm">
               <AppBreadcrumb />
             </div>
             <AppContent />

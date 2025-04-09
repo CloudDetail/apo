@@ -9,7 +9,7 @@ import TableRow from './tableRow'
 import Empty from '../Empty/Empty'
 
 function TableBody(props) {
-  const { page, prepareRow, rowKey, loading, clickRow, emptyContent, scrollY } =
+  const { page, prepareRow, rowKey, loading, clickRow, emptyContent, scrollY, tdPadding } =
     props.tableBodyProps
   const getRowKeyValue = (row) => {
     if (row) {
@@ -32,7 +32,14 @@ function TableBody(props) {
         page.length > 0 &&
         page.map((row, idx) => {
           prepareRow(row)
-          return <TableRow row={row} key={getRowKeyValue(row)} clickRow={clickRow} />
+          return (
+            <TableRow
+              row={row}
+              key={getRowKeyValue(row)}
+              clickRow={clickRow}
+              tdPadding={tdPadding}
+            />
+          )
         })) ||
         loading || <Empty context={emptyContent} />}
     </tbody>
