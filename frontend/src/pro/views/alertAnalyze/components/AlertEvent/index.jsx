@@ -1,5 +1,5 @@
-import { Pagination } from 'antd'
-import React, { useEffect, useMemo, useState } from 'react'
+import { Pagination, Tabs } from 'antd'
+import React, { useMemo } from 'react'
 import ReactJson from 'react-json-view'
 import { useSelector } from 'react-redux'
 import BasicTable from 'src/core/components/Table/basicTable'
@@ -7,6 +7,7 @@ import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
 import { convertUTCToLocal } from 'src/core/utils/time'
 import ServiceEndpointTag from 'src/pro/components/ServiceEndpointTag'
 import { useTranslation } from 'react-i18next'
+import styles from './index.module.scss'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -38,7 +39,7 @@ const AlertEventTable = ({ scrolllHeight }) => {
     {
       title: t(`${i18nKey}.lastAlertTime`),
       accessor: 'receivedTime',
-      customWidth: 180,
+      customWidth: 100,
       Cell: ({ value }) => {
         return convertUTCToLocal(value)
       },
@@ -96,11 +97,25 @@ const AlertEventTable = ({ scrolllHeight }) => {
         return (
           <>
             {value?.length > 0 ? (
-              value?.map((item) => (
-                <div className="flex-shrink-0 ">
-                  <ServiceEndpointTag service={item.serviceName} endpoint={item.endpoint} />
-                </div>
-              ))
+              <Tabs
+                className={styles.impactEntrys}
+                defaultActiveKey="1"
+                tabPosition="top"
+                activeKey="0"
+                tabBarStyle={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                items={value?.map((item) => {
+                  const id = item.serviceName + item.endpoint
+                  return {
+                    label: (
+                      <div className=" whitespace-nowrap">
+                        <ServiceEndpointTag service={item.serviceName} endpoint={item.endpoint} />
+                      </div>
+                    ),
+                    key: id,
+                    children: null,
+                  }
+                })}
+              />
             ) : (
               <span className="text-gray-400">{t(`${i18nKey}.noAffectedEntries`)}</span>
             )}

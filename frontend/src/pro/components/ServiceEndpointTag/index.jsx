@@ -9,8 +9,8 @@ const ServiceEndpointTag = ({ service, endpoint }) => {
       key={service + endpoint}
       className="w-full flex-shrink-0 inline-block overflow-hidden whitespace-nowrap text-ellipsis"
     >
-      <div>
-        <div className="overflow-hidden whitespace-break-spaces">
+      <div className="flex flex-col">
+        <div className="overflow-hidden">
           <span className="text-gray-400">{t('service')}：</span>
           {service}
         </div>
