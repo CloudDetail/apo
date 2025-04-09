@@ -111,7 +111,6 @@
       min-width: 24px;
       flex: auto;
       align-items: center;
-      padding: 8px;
       display: flex;
 
       justify-content: center;
@@ -126,7 +125,6 @@
       align-items: center;
       align-content: center;
       flex: auto;
-      padding: 8px;
       height: initial;
       white-space: pre-wrap;
       display: flex;
