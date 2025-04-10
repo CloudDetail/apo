@@ -21,10 +21,12 @@ interface PermissionTreeProps {
   subjectId?: string | number;
   subjectType: 'role' | 'user';
   onSave?: (checkedKeys: React.Key[]) => void;
-  readOnly?: boolean;
   className?: string;
   hasSaveButton?: boolean;
+  actionsLocation?: 'top' | 'bottom';
+  actionStyle?: React.CSSProperties;
   style?: React.CSSProperties;
+  styles?: Record<SemanticDOM, React.CSSProperties>;
 }
 
 function PermissionTree({
@@ -34,10 +36,12 @@ function PermissionTree({
   subjectId,
   subjectType,
   onSave,
-  readOnly = false,
   className,
   hasSaveButton = true,
+  actionsLocation = 'bottom',
+  actionStyle,
   style,
+  styles
 }: PermissionTreeProps) {
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [internalCheckedKeys, setInternalCheckedKeys] = useState<React.Key[]>(defaultValue || []);
@@ -132,12 +136,36 @@ function PermissionTree({
     }
   }, [subjectId, i18n.language]);
 
+  // Todo: 可以把使用插槽的方式进行优化
+  const actionButtons = (
+    <Flex justify='flex-end' className='w-full pr-8' style={actionStyle}>
+      <Button
+        type="primary"
+        className="m-4"
+        onClick={handleSelectAll}
+        icon={<BsCheckAll />}
+      >
+        {t('selectAll')}
+      </Button>
+      { hasSaveButton && (
+        <Button type="primary" className="m-4" onClick={() => onSave?.(checkedKeys)}>
+          {t('save')}
+        </Button>
+      )}
+    </Flex>
+  )
+
   return (
     <>
-    <Card className={className} style={{ height: 'calc(100vh - 60px)', overflow: 'auto', ...style }}>
+    <Card
+      className={className}
+      style={{ height: 'calc(100vh - 60px)', overflow: 'auto', ...style }}
+      styles={styles}
+    >
       <LoadingSpinner loading={loading} />
+      { actionsLocation == 'top' && actionButtons }
       <Tree
-        checkable={!readOnly}
+        checkable={true}
         onExpand={setExpandedKeys}
         expandedKeys={expandedKeys}
         onCheck={onCheck}
@@ -147,23 +175,7 @@ function PermissionTree({
         fieldNames={{ title: 'featureName', key: 'featureId' }}
       />
     </Card>
-    <Flex justify='flex-end' className='w-full pr-8'>
-    {!readOnly && (
-        <Button
-          type="primary"
-          className="m-4"
-          onClick={handleSelectAll}
-          icon={<BsCheckAll />}
-        >
-          {t('selectAll')}
-        </Button>
-      )}
-      {!readOnly && hasSaveButton && (
-        <Button type="primary" className="m-4" onClick={() => onSave?.(checkedKeys)}>
-          {t('save')}
-        </Button>
-      )}
-      </Flex>
+    { actionsLocation === 'bottom' && actionButtons }
     </>
   );
 }

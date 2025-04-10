@@ -175,7 +175,6 @@ export default function RoleManage() {
       key: 'operation',
       align: 'center',
       render: (_: any, record: Role) => (
-        record.roleName !== 'admin' ? (
           <>
             <Button
               onClick={() => showEditModal(record)}
@@ -185,14 +184,16 @@ export default function RoleManage() {
             >
               {t('index.edit')}
             </Button>
-            <Popconfirm
-              title={t('index.confirmDelete', { name: record.roleName })}
-              onConfirm={() => removeRole(record.roleId)}
-            >
-              <Button type="text" icon={<RiDeleteBin5Line />} danger className="mr-2">
-                {t('index.delete')}
-              </Button>
-            </Popconfirm>
+            { record.roleName !== 'admin' &&
+              <Popconfirm
+                title={t('index.confirmDelete', { name: record.roleName })}
+                onConfirm={() => removeRole(record.roleId)}
+              >
+                <Button type="text" icon={<RiDeleteBin5Line />} danger className="mr-2">
+                  {t('index.delete')}
+                </Button>
+              </Popconfirm>
+            }
             <Button
               color="primary"
               variant="outlined"
@@ -202,16 +203,6 @@ export default function RoleManage() {
               {t('index.configPermission')}
             </Button>
           </>
-        ) : (
-          <Button
-            color="primary"
-            variant="outlined"
-            icon={<LuShieldCheck />}
-            onClick={() => showPermissionModal(record)}
-          >
-            {t('index.viewPermission')}
-          </Button>
-        )
       ),
     },
   ];
@@ -263,9 +254,11 @@ export default function RoleManage() {
           >
             <PermissionTree
               subjectType="role"
-              readOnly={false}
               hasSaveButton={false}
               style={{ height: 'calc(100vh - 240px)', overflow: 'auto' }}
+              actionsLocation="top"
+              actionStyle={{ justifyContent: 'flex-start' }}
+              styles={{ body: { padding: '0 8px' } }}
             />
           </Form.Item>
           </FormModal.Section>
@@ -287,7 +280,7 @@ export default function RoleManage() {
             label={t('index.roleName')}
             rules={[{ required: true, message: t('index.roleNameRequired') }]}
           >
-            <Input />
+            <Input disabled={selectedRole?.roleName === 'admin'} />
           </Form.Item>
           <Form.Item
             name="description"
@@ -311,8 +304,9 @@ export default function RoleManage() {
               subjectId={selectedRole.roleId}
               subjectType="role"
               onSave={handleSavePermissions}
-              readOnly={selectedRole.roleName === 'admin'}
-              style={{ height: 'calc(100vh - 120px)', overflow: 'auto' }}
+              style={{ height: 'calc(100vh - 210px)', overflow: 'auto' }}
+              styles={{ body: { padding: '8px' } }}
+              actionsLocation="bottom"
             />
           )}
         </CommonModal>

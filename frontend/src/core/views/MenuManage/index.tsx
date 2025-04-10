@@ -76,7 +76,7 @@ function MenuManagePage() {
             styles={{ body: { height: '100%', padding: '0px', paddingBlockStart: '2px' }}}
             // title={t('index.roleList')}
             title={
-              <Typography.Title level={5} className="mb-0 flex items-center justify-center">
+              <Typography.Title level={5} className="mb-0 flex items-center">
                 <TeamOutlined className="mr-2 text-blue-500" />
                 角色列表
               </Typography.Title>
@@ -111,7 +111,6 @@ function MenuManagePage() {
                 subjectId={selectedRole.roleId}
                 subjectType="role"
                 onSave={handleSavePermissions}
-                readOnly={selectedRole.roleName === 'admin'}
                 className="permission-tree"
                 style={{ height: 'calc(100vh - 240px)', border: 'none' }}
               />
