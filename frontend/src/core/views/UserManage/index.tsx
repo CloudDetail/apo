@@ -17,6 +17,10 @@ import { showToast } from 'src/core/utils/toast';
 import DataGroupAuthorizeModal from 'src/core/components/PermissionAuthorize/DataGroupAuthorizeModal';
 import { User } from 'src/core/types/user';
 import style from 'src/core/views/UserManage/index.module.css';
+import { SearchBar } from './components/SearchBar';
+import { UserTable } from './components/UserTable';
+import { AddUserModal } from './components/AddUserModal';
+import { EditUserModal } from './components/EditUserModal';
 
 // 用户搜索参数类型
 interface UserSearchParams {
@@ -271,139 +275,32 @@ export default function UserManage() {
     closeAuthorizeModal();
   };
 
-  // 用户列表列定义
-  const columns = [
-    {
-      title: t('index.userName'),
-      dataIndex: 'username',
-      key: 'username',
-      align: 'center',
-    },
-    {
-      title: t('index.role'),
-      dataIndex: 'role',
-      key: 'role',
-      align: 'center',
-    },
-    {
-      title: t('index.corporation'),
-      dataIndex: 'corporation',
-      key: 'corporation',
-      align: 'center',
-    },
-    {
-      title: t('index.phone'),
-      dataIndex: 'phone',
-      key: 'phone',
-      align: 'center',
-    },
-    {
-      title: t('index.email'),
-      dataIndex: 'email',
-      key: 'email',
-      align: 'center',
-    },
-    {
-      title: t('index.operation'),
-      dataIndex: 'userId',
-      key: 'userId',
-      align: 'center',
-      render: (userId: string | number, record: User) => {
-        const { username } = record;
-        return username !== 'admin' && (
-          <>
-            <Button
-              onClick={() => {
-                setSelectedUser(record);
-                setModalEditVisibility(true);
-              }}
-              icon={<MdOutlineModeEdit />}
-              type="text"
-              className="mr-1"
-            >
-              {t('index.edit')}
-            </Button>
-            <Popconfirm
-              title={t('index.confirmDelete', { name: username })}
-              onConfirm={() => handleRemoveUser(userId)}
-            >
-              <Button type="text" icon={<RiDeleteBin5Line />} danger className="mr-1">
-                {t('index.delete')}
-              </Button>
-            </Popconfirm>
-            <Button
-              color="primary"
-              variant="outlined"
-              icon={<LuShieldCheck />}
-              onClick={() => {
-                setAuthorizeModalVisibility(true);
-                setSelectedUser(record);
-              }}
-            >
-              {t('index.dataGroup')}
-            </Button>
-          </>
-        )
-      },
-      width: 400,
-    },
-  ];
-
   return (
     <>
       <LoadingSpinner loading={loading} />
       <div className={style.userManageContainer}>
-        <Flex className="mb-3 h-[40px]">
-          <Flex className="w-full justify-between">
-            <Flex className="w-full">
-              <Flex className="w-auto items-center justify-start mr-5">
-                <p className="text-md mr-2">{t('index.userName')}：</p>
-                <Input
-                  placeholder={t('index.search')}
-                  className="w-2/3"
-                  value={searchParams.username}
-                  onChange={handleUsernameChange}
-                />
-              </Flex>
-              <Flex className="w-auto items-center justify-start">
-                <p className="text-md mr-2">{t('index.corporation')}：</p>
-                <Input
-                  placeholder={t('index.search')}
-                  className="w-2/3"
-                  value={searchParams.corporation}
-                  onChange={handleCorporationChange}
-                />
-              </Flex>
-            </Flex>
-            <Flex className="w-full justify-end items-center">
-              <Button
-                type="primary"
-                icon={<BsPersonFillAdd size={20} />}
-                onClick={() => setModalAddVisibility(true)}
-                className="flex-grow-0 flex-shrink-0"
-              >
-                <span className="text-xs">{t('index.addUser')}</span>
-              </Button>
-            </Flex>
-          </Flex>
-        </Flex>
+        <SearchBar
+          username={searchParams.username}
+          corporation={searchParams.corporation}
+          onUsernameChange={handleUsernameChange}
+          onCorporationChange={handleCorporationChange}
+          onAddUser={() => setModalAddVisibility(true)}
+        />
 
-        <ConfigProvider
-          theme={{
-            components: {
-              Table: {
-                headerBg: '#222631',
-              },
-            },
-          }}
-        >
+        <ConfigProvider theme={{ components: { Table: { headerBg: '#222631' } } }}>
           <Flex vertical className="w-full flex-1 pb-4 justify-between">
-            <Table
-              dataSource={userList}
-              columns={columns}
-              pagination={false}
+            <UserTable
+              userList={userList}
               loading={loading}
-              scroll={{ y: 'calc(100vh - 220px)' }}
+              onEdit={(user) => {
+                setSelectedUser(user);
+                setModalEditVisibility(true);
+              }}
+              onDelete={handleRemoveUser}
+              onAuthorize={(user) => {
+                setSelectedUser(user);
+                setAuthorizeModalVisibility(true);
+              }}
             />
             <Pagination
               className="mt-4 absolute bottom-0 right-0"
@@ -419,181 +316,24 @@ export default function UserManage() {
         </ConfigProvider>
       </div>
 
-      {/* 添加用户模态框 */}
-      <FormModal
-        title={t('index.addUser')}
-        open={modalAddVisibility}
+      <AddUserModal
+        visible={modalAddVisibility}
+        loading={addLoading}
+        roleItems={roleItems}
         onCancel={() => setModalAddVisibility(false)}
-        confirmLoading={addLoading}
-        footer={null}
-      >
-        <FormModal.Section
-          onFinish={handleAddUser}
-        >
-        <Flex gap={16} className="mb-12">
-        <Form.Item
-          name="username"
-          layout="vertical"
-          label={t('index.userName')}
-          rules={[{ required: true, message: t('index.userNameRequired') }]}
-          style={{ marginBottom: 0, flex: 1 }}
-        >
-          <Input autoComplete="new-user" />
-        </Form.Item>
-        <Form.Item
-          name="roleId"
-          layout="vertical"
-          label={t('index.role')}
-          rules={[{ required: true, message: t('addModal.roleRequired') }]}
-          style={{ marginBottom: 0, flex: 1 }}
-        >
-          <Select
-            placeholder={t('addModal.selectRole')}
-            options={roleItems}
-          />
-        </Form.Item>
-        </Flex>
-        <Form.Item
-          name="password"
-          label={t('addModal.password')}
-          rules={[{ required: true, message: t('index.passwordRequired') }]}
-        >
-          <Input.Password autoComplete="new-password" />
-        </Form.Item>
-        <Form.Item
-          label={t('editModal.confirmPassword')}
-          name="confirmPassword"
-          rules={[
-            { required: true, message: t('editModal.confirmPasswordRequired') },
-            ({ getFieldValue }) => ({
-              validator(_, value) {
-                if (!value || getFieldValue('password') === value) {
-                  return Promise.resolve()
-                }
-                return Promise.reject(new Error(t('editModal.confirmPasswordMismatch')))
-              },
-            }),
-          ]}
-        >
-            <Input.Password placeholder={t('editModal.confirmPasswordPlaceholder')} />
-        </Form.Item>
-        <Form.Item
-          name="corporation"
-          label={t('index.corporation')}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          name="email"
-          label={t('index.email')}
-          rules={[{ type: 'email', message: t('index.emailInvalid') }]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          name="phone"
-          label={t('index.phone')}
-        >
-          <Input />
-        </Form.Item>
-        </FormModal.Section>
-      </FormModal>
+        onFinish={handleAddUser}
+      />
 
-      {/* 编辑用户模态框 */}
-      <FormModal
-        title={t('editModal.title')}
-        open={modalEditVisibility}
+      <EditUserModal
+        visible={modalEditVisibility}
+        user={selectedUser}
+        roleItems={roleItems}
         onCancel={() => setModalEditVisibility(false)}
-        footer={null}
-      >
-        <FormModal.Section
-          onFinish={handleEditUser}
-          initialValues={selectedUser}
-        >
-          <Flex gap={16} className="mb-6">
-            <Form.Item
-              name="username"
-              label={t('index.userName')}
-              rules={[{ required: true, message: t('index.userNameRequired') }]}
-              style={{ marginBottom: 0, flex: 1 }}
-            >
-              <Input disabled />
-            </Form.Item>
-            <Form.Item
-              name="role"
-              label={t('index.role')}
-              rules={[{ required: true, message: t('addModal.selectRole') }]}
-              style={{ marginBottom: 0, flex: 1 }}
-            >
-              {/* Todo: 不应该选择完成之后，马上提交角色的变更 */}
-              <Select
-                options={roleItems}
-                onChange={(value) => handleRevokeUserRole(selectedUser?.userId || '', value)}
-              />
-            </Form.Item>
-          </Flex>
-          <Form.Item
-            name="corporation"
-            label={t('index.corporation')}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="email"
-            label={t('index.email')}
-            rules={[{ type: 'email', message: t('index.emailInvalid') }]}
-          >
-            <Input placeholder={t('editModal.emailPlaceholder')} />
-          </Form.Item>
-          <Form.Item
-            name="phone"
-            label={t('index.phone')}
-            rules={[{ pattern: /^1[3-9]\d{9}$/, message: t('editModal.phoneInvalid') }]}
-          >
-            <Input placeholder={t('editModal.phonePlaceholder')} />
-          </Form.Item>
-        </FormModal.Section>
-        <Divider />
-        <FormModal.Section
-          onFinish={handleResetPassword}
-        >
-          <Form.Item
-            label={t('editModal.newPassword')}
-            name="newPassword"
-            rules={[
-              {
-                required: true,
-                message: t('editModal.newPasswordPlaceholder'),
-              },
-              {
-                pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()\-_+=<>?/{}[\]|:;.,~]).{9,}$/,
-                message: t('editModal.newPasswordPattern'),
-              },
-            ]}
-          >
-            <Input.Password placeholder={t('editModal.newPasswordPlaceholder')} />
-          </Form.Item>
-          <Form.Item
-            label={t('editModal.confirmPassword')}
-            name="confirmPassword"
-            rules={[
-              { required: true, message: t('editModal.confirmPasswordRequired') },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue('newPassword') === value) {
-                    return Promise.resolve()
-                  }
-                  return Promise.reject(new Error(t('editModal.confirmPasswordMismatch')))
-                },
-              }),
-            ]}
-          >
-            <Input.Password placeholder={t('editModal.confirmPasswordPlaceholder')} />
-          </Form.Item>
-        </FormModal.Section>
-      </FormModal>
+        onFinish={handleEditUser}
+        onResetPassword={handleResetPassword}
+        onRoleChange={handleRevokeUserRole}
+      />
 
-      {/* 数据组授权模态框 */}
       <DataGroupAuthorizeModal
         open={authorizeModalVisibility}
         closeModal={closeAuthorizeModal}
