@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tree, Button, Card } from 'antd';
+import { Tree, Button, Card, Flex } from 'antd';
 import { BsCheckAll } from 'react-icons/bs';
 import LoadingSpinner from 'src/core/components/Spinner';
 import { useTranslation } from 'react-i18next';
@@ -133,18 +133,9 @@ function PermissionTree({
   }, [subjectId, i18n.language]);
 
   return (
+    <>
     <Card className={className} style={{ height: 'calc(100vh - 60px)', overflow: 'auto', ...style }}>
       <LoadingSpinner loading={loading} />
-      {!readOnly && (
-        <Button
-          type="primary"
-          className="mx-4 mb-4"
-          onClick={handleSelectAll}
-          icon={<BsCheckAll />}
-        >
-          {t('selectAll')}
-        </Button>
-      )}
       <Tree
         checkable={!readOnly}
         onExpand={setExpandedKeys}
@@ -155,12 +146,25 @@ function PermissionTree({
         treeData={permissionTreeData}
         fieldNames={{ title: 'featureName', key: 'featureId' }}
       />
+    </Card>
+    <Flex justify='flex-end' className='w-full pr-8'>
+    {!readOnly && (
+        <Button
+          type="primary"
+          className="m-4"
+          onClick={handleSelectAll}
+          icon={<BsCheckAll />}
+        >
+          {t('selectAll')}
+        </Button>
+      )}
       {!readOnly && hasSaveButton && (
         <Button type="primary" className="m-4" onClick={() => onSave?.(checkedKeys)}>
           {t('save')}
         </Button>
       )}
-    </Card>
+      </Flex>
+    </>
   );
 }
 
