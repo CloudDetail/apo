@@ -46,7 +46,6 @@ export default function RoleManage() {
 
   // 添加角色
   const handleAddRole = async (values: { roleName: string, description: string,  permissionList}) => {
-    // Todo: 添加角色的时候，权限的设置应该时有效的（现在是无效的）
     await addRoleRequest(
       {
         roleName: values.roleName,
@@ -56,7 +55,7 @@ export default function RoleManage() {
       {
         onSuccess: () => {
           showToast({
-            title: t('index.addSuccess'),
+            title: t('addModal.addSuccess'),
             color: 'success',
           });
           fetchRoles();
@@ -260,20 +259,16 @@ export default function RoleManage() {
             label={t('addModal.permissions')}
             name="permissionList"
           >
-          {selectedRole && (
             <PermissionTree
-              subjectId={selectedRole.roleId}
               subjectType="role"
-              onSave={handleSavePermissions}
-              readOnly={selectedRole.roleName === 'admin'}
+              readOnly={false}
+              hasSaveButton={false}
             />
-          )}
           </Form.Item>
           </FormModal.Section>
         </FormModal>
 
         {/* 编辑角色模态框 */}
-
         <FormModal
           title={t('editModal.title')}
           open={editModalVisible}

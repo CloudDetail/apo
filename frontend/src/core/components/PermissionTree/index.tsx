@@ -15,48 +15,54 @@ interface PermissionItem {
 
 // 定义组件的属性接口
 interface PermissionTreeProps {
+  value?: React.Key[];
+  defaultValue?: React.Key[];
+  onChange?: (value: React.Key[]) => void;
   subjectId?: string | number;
   subjectType: 'role' | 'user';
   onSave?: (checkedKeys: React.Key[]) => void;
   readOnly?: boolean;
   className?: string;
+  hasSaveButton?: boolean;
 }
 
-/**
- * 通用权限树组件
- * 用于角色和用户的权限管理
- */
 function PermissionTree({
+  value,
+  defaultValue,
+  onChange,
   subjectId,
   subjectType,
   onSave,
   readOnly = false,
-  className
+  className,
+  hasSaveButton = true,
 }: PermissionTreeProps) {
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
-  const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
-  const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
-  const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
+  const [internalCheckedKeys, setInternalCheckedKeys] = useState<React.Key[]>(defaultValue || []);
   const [permissionTreeData, setPermissionTreeData] = useState<PermissionItem[]>([]);
   const [allKeys, setAllKeys] = useState<React.Key[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const { t, i18n } = useTranslation('common');
 
-  const onExpand = (expandedKeysValue: React.Key[]) => {
-    setExpandedKeys(expandedKeysValue);
-    setAutoExpandParent(false);
-  };
+  // 判断是否为受控模式
+  const isControlled = value !== undefined;
+  // 获取当前选中的键
+  const checkedKeys = isControlled ? value : internalCheckedKeys;
 
   const onCheck = (checkedKeysValue: React.Key[] | { checked: React.Key[]; halfChecked: React.Key[] }) => {
-    if (Array.isArray(checkedKeysValue)) {
-      setCheckedKeys(checkedKeysValue);
-    } else {
-      setCheckedKeys(checkedKeysValue.checked);
+    const newCheckedKeys = Array.isArray(checkedKeysValue) ? checkedKeysValue : checkedKeysValue.checked;
+
+    if (!isControlled) {
+      setInternalCheckedKeys(newCheckedKeys);
     }
+    onChange?.(newCheckedKeys);
   };
 
-  const onSelect = (selectedKeysValue: React.Key[]) => {
-    setSelectedKeys(selectedKeysValue);
+  const handleSelectAll = () => {
+    if (!isControlled) {
+      setInternalCheckedKeys(allKeys);
+    }
+    onChange?.(allKeys);
   };
 
   // 递归遍历树结构收集所有键和展开的键
@@ -78,42 +84,51 @@ function PermissionTree({
     return { allKeys, expandedKeys };
   };
 
-  const fetchData = async () => {
-    if (!subjectId) return;
-
+  const fetchPermissionList = async () => {
     setLoading(true);
     try {
       const params = { language: i18n.language };
-      const [allPermissions, subjectPermissions] = await Promise.all([
-        getAllPermissionApi(params),
-        getSubjectPermissionApi({
-          subjectId,
-          subjectType,
-        }),
-      ]);
-
+      const allPermissions = await getAllPermissionApi(params);
       setPermissionTreeData(allPermissions || []);
       const { allKeys, expandedKeys } = loopTree(allPermissions || []);
-
       setExpandedKeys(expandedKeys);
       setAllKeys(allKeys);
-      setCheckedKeys((subjectPermissions || []).map((permission: any) => permission.featureId));
+      return { allPermissions, allKeys, expandedKeys };
     } catch (error) {
-      console.error('获取权限失败', error);
+      console.error('获取权限列表失败:', error);
+      return { allPermissions: [], allKeys: [], expandedKeys: [] };
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (subjectId) fetchData();
-  }, [subjectId, i18n.language]);
-
-  const handleSave = () => {
-    if (onSave) {
-      onSave(checkedKeys);
+  const fetchSubjectPermissions = async () => {
+    if (!subjectId) return [];
+    try {
+      const subjectPermissions = await getSubjectPermissionApi({
+        subjectId,
+        subjectType,
+      });
+      const initialCheckedKeys = (subjectPermissions || []).map((permission: any) => permission.featureId);
+      if (!isControlled) {
+        setInternalCheckedKeys(initialCheckedKeys);
+      }
+      onChange?.(initialCheckedKeys);
+      return initialCheckedKeys;
+    } catch (error) {
+      console.error('获取主体权限失败:', error);
+      return [];
     }
   };
+
+  useEffect(() => {
+    // 总是获取权限列表
+    fetchPermissionList();
+    // 只有在有 subjectId 时才获取主体权限
+    if (subjectId) {
+      fetchSubjectPermissions();
+    }
+  }, [subjectId, i18n.language]);
 
   return (
     <Card className={className} style={{ height: 'calc(100vh - 60px)', overflow: 'auto' }}>
@@ -122,7 +137,7 @@ function PermissionTree({
         <Button
           type="primary"
           className="mx-4 mb-4"
-          onClick={() => setCheckedKeys(allKeys)}
+          onClick={handleSelectAll}
           icon={<BsCheckAll />}
         >
           {t('selectAll')}
@@ -130,19 +145,16 @@ function PermissionTree({
       )}
       <Tree
         checkable={!readOnly}
-        onExpand={onExpand}
+        onExpand={setExpandedKeys}
         expandedKeys={expandedKeys}
-        autoExpandParent={autoExpandParent}
         onCheck={onCheck}
         checkedKeys={checkedKeys}
-        onSelect={onSelect}
-        selectedKeys={selectedKeys}
         defaultExpandAll={true}
         treeData={permissionTreeData}
         fieldNames={{ title: 'featureName', key: 'featureId' }}
       />
-      {!readOnly && (
-        <Button type="primary" className="m-4" onClick={handleSave}>
+      {!readOnly && hasSaveButton && (
+        <Button type="primary" className="m-4" onClick={() => onSave?.(checkedKeys)}>
           {t('save')}
         </Button>
       )}
