@@ -225,7 +225,7 @@ const ImpactList = () => {
               color="primary"
               onClick={() => {
                 window.open(
-                  `#/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}`,
+                  `#/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}?service=${encodeURIComponent(row.serviceName)}&endpoint=${encodeURIComponent(row.endpoint)}`,
                 )
               }}
             >

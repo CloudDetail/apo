@@ -14,6 +14,16 @@ import mock61PngEn from 'src/pro/assets/en/6-1.png'
 import mock62PngEn from 'src/pro/assets/en/6-2.png'
 import mock7PngEn from 'src/pro/assets/en/7.png'
 import mock8PngEn from 'src/pro/assets/en/8.png'
+import {
+  ServiceAnalyzeProvider,
+  useServiceAnalyzeContext,
+} from 'src/pro/contexts/ServiceAnalyzeContext'
+import TimeLineChart from '../../serviceAnalyze/DescendantTopology/TimeLineChart'
+import AnormalTypeFilter from '../../serviceAnalyze/DescendantTopology/AnormalTypeFilter'
+import TopologyCom from '../../serviceAnalyze/DescendantTopology/Topology'
+import AnormalList from '../../serviceAnalyze/DescendantTopology/NodeInfo/AnormalList'
+import PlayDelta from '../../serviceAnalyze/DescendantTopology/PlayDelta'
+import LoadingSpinner from 'src/core/components/Spinner'
 const i18nKey = 'pro/chatAI:explanations'
 const pngLagnguageMap = {
   topologyExample: {
@@ -46,15 +56,50 @@ const pngLagnguageMap = {
   },
 }
 const language = i18next.language
+const wrapperClassName = 'w-full overflow-hidden border p-2 rounded bg-[#151920] mb-3 text-xs'
+const ServiceAnalyze = () => {
+  const { loading } = useServiceAnalyzeContext()
+  return (
+    <div className="relative">
+      <LoadingSpinner loading={loading} />
+      <div className={wrapperClassName}>
+        <div className="flex flex-row h-[200px]">
+          <div className="flex-grow flex-shrink w-2/3">
+            <TimeLineChart />
+          </div>
+          <div className="h-full flex flex-col justify-between w-1/3 text-xs">
+            <AnormalTypeFilter />
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <PlayDelta />
+        </div>
+      </div>
+      <div className={`h-[300px] ${wrapperClassName}`}>
+        <TopologyCom />
+      </div>
+      <div className={`h-[400px] ${wrapperClassName}`}>
+        <AnormalList scrollHeight={400} />
+      </div>
+    </div>
+  )
+}
 export const Explanations = [
-  <div>
-    <div>{t(`${i18nKey}.topologyExample`)}</div>
-    <Image src={pngLagnguageMap.topologyExample[language]} width={'60%'} />
-  </div>,
-  <>
-    <div>{t(`${i18nKey}.alertAnalysisTimeRange`)}</div>
-    <Image src={pngLagnguageMap.alertAnalysisTimeRange[language]} width={'90%'} />
-  </>,
+  <ServiceAnalyzeProvider>
+    <ServiceAnalyze />
+  </ServiceAnalyzeProvider>,
+  // <>
+  //   <div>{t(`${i18nKey}.alertAnalysisTimeRange`)}</div>
+  //   <Image src={pngLagnguageMap.alertAnalysisTimeRange[language]} width={'90%'} />
+  // </>,
   <>{t(`${i18nKey}.identifySuspectedRootCause`)}</>,
   <>
     <div>{t(`${i18nKey}.alertDetails`)}</div>

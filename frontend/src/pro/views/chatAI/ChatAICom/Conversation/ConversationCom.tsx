@@ -28,11 +28,11 @@ const ConversationCom = ({ dialogue, index, loading }: ConversationComProps) => 
     <>
       <div className="flex ">
         <div className="w-2/3 flex-grow-0 flex-shrink-0">
-          {dialogue?.conversation?.map((item) => {
+          {dialogue?.conversation?.map((item, index) => {
             return item.role === 'ai' ? (
               <AIMessage
                 message={item.message || ''}
-                loading={loading}
+                loading={loading && index === dialogue?.conversation.length - 1}
                 reportUrlList={item?.reportUrlList || []}
                 components={item.components || []}
               />

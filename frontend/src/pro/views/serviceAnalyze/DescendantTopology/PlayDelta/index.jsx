@@ -64,18 +64,16 @@ const PlayDelta = () => {
       <div className="flex">
         <Button
           type="link"
-          size="large"
           onClick={clickLeftTimerange}
           disabled={isPlaying || deltaStartTime === startTime}
         >
           <TbPlayerTrackPrevFilled />
         </Button>
-        <Button type="link" size="large" onClick={() => handlePlay()} disabled={isPlaying}>
+        <Button type="link" onClick={() => handlePlay()} disabled={isPlaying}>
           {isPlaying ? <TbPlayerPauseFilled /> : <TbPlayerPlayFilled />}
         </Button>
         <Button
           type="link"
-          size="large"
           onClick={clickRightTimerange}
           disabled={isPlaying || deltaEndTime === endTime}
         >
