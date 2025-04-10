@@ -24,6 +24,7 @@ interface PermissionTreeProps {
   readOnly?: boolean;
   className?: string;
   hasSaveButton?: boolean;
+  style?: React.CSSProperties;
 }
 
 function PermissionTree({
@@ -36,6 +37,7 @@ function PermissionTree({
   readOnly = false,
   className,
   hasSaveButton = true,
+  style,
 }: PermissionTreeProps) {
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [internalCheckedKeys, setInternalCheckedKeys] = useState<React.Key[]>(defaultValue || []);
@@ -131,7 +133,7 @@ function PermissionTree({
   }, [subjectId, i18n.language]);
 
   return (
-    <Card className={className} style={{ height: 'calc(100vh - 60px)', overflow: 'auto' }}>
+    <Card className={className} style={{ height: 'calc(100vh - 60px)', overflow: 'auto', ...style }}>
       <LoadingSpinner loading={loading} />
       {!readOnly && (
         <Button

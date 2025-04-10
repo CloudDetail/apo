@@ -204,7 +204,9 @@ export default function RoleManage() {
           </>
         ) : (
           <Button
-            type="primary"
+            color="primary"
+            variant="outlined"
+            icon={<LuShieldCheck />}
             onClick={() => showPermissionModal(record)}
           >
             {t('index.viewPermission')}
@@ -263,6 +265,7 @@ export default function RoleManage() {
               subjectType="role"
               readOnly={false}
               hasSaveButton={false}
+              style={{ height: 'calc(100vh - 240px)', overflow: 'auto' }}
             />
           </Form.Item>
           </FormModal.Section>
@@ -309,6 +312,7 @@ export default function RoleManage() {
               subjectType="role"
               onSave={handleSavePermissions}
               readOnly={selectedRole.roleName === 'admin'}
+              style={{ height: 'calc(100vh - 120px)', overflow: 'auto' }}
             />
           )}
         </CommonModal>
