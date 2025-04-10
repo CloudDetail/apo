@@ -249,6 +249,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
           brushMode: 'single',
         },
       })
+      chartRef.current?.getEchartsInstance().resize()
     }, 100)
     chart.on('brushEnd', function (params) {
       if (params.areas && params.areas.length > 0) {
@@ -274,7 +275,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
       ref={chartRef}
       theme="dark"
       option={option}
-      style={{ height: '200px', width: '250px' }}
+      style={{ height: '100%', width: '100%' }}
     />
   )
 }
