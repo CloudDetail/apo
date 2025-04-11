@@ -52,10 +52,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             rules={[{ required: true, message: t('addModal.selectRole') }]}
             style={{ marginBottom: 0, flex: 1 }}
           >
-            <Select
-              options={roleItems}
-              onChange={(value) => onRoleChange(user?.userId || '', value)}
-            />
+            <Select options={roleItems} />
           </Form.Item>
         </Flex>
         <Form.Item

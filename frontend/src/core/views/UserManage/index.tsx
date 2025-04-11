@@ -190,9 +190,17 @@ export default function UserManage() {
     console.log('handleEditUser')
     if (!selectedUser) return;
 
-    console.log('handleEditUser123')
+    console.log('handleEditUser123value: ', values)
 
     try {
+      // 更新角色
+      if (values.role !== selectedUser.role) {
+        await revokeUserRole({
+          userId: selectedUser.userId,
+          roleList: [values.role]
+        });
+      }
+
       // 更新公司信息
       if (values.corporation !== selectedUser.corporation) {
         await updateUserCorporation({
