@@ -34,7 +34,6 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
       open={visible}
       onCancel={onCancel}
       confirmLoading={loading}
-      // width='600px'
       footer={null}
     >
       <FormModal.Section onFinish={onFinish}>

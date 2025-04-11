@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from 'antd';
+import { Button, Flex } from 'antd';
 import { useTranslation } from 'react-i18next';
 import LoadingSpinner from 'src/core/components/Spinner';
 import { Role } from 'src/core/types/role';
@@ -66,7 +66,8 @@ export default function RoleManage() {
   return (
     <>
       <LoadingSpinner loading={loading} />
-      <div className="p-4">
+      <div className="p-0">
+        <Flex justify='flex-end'>
         <Button
           type="primary"
           onClick={() => setAddModalVisible(true)}
@@ -74,6 +75,7 @@ export default function RoleManage() {
         >
           {t('index.addRole')}
         </Button>
+        </Flex>
 
         <RoleTable
           roleList={roleList}
