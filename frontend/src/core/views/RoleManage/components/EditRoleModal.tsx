@@ -35,7 +35,7 @@ export const EditRoleModal: React.FC<EditRoleModalProps> = ({
         <Form.Item
           name="roleName"
           label={t('index.roleName')}
-          rules={[{ required: true, message: t('index.roleNameRequired') }]}
+          rules={[{ required: true, message: t('editModal.roleNameRequired') }]}
         >
           <Input disabled={selectedRole?.roleName === 'admin'} />
         </Form.Item>

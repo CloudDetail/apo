@@ -21,7 +21,7 @@ export const AddRoleModal: React.FC<AddRoleModalProps> = ({
 
   return (
     <FormModal
-      title={t('index.addRole')}
+      title={t('addModal.title')}
       open={visible}
       onCancel={onCancel}
       confirmLoading={loading}
@@ -30,7 +30,7 @@ export const AddRoleModal: React.FC<AddRoleModalProps> = ({
         <Form.Item
           name="roleName"
           label={t('index.roleName')}
-          rules={[{ required: true, message: t('index.roleNameRequired') }]}
+          rules={[{ required: true, message: t('addModal.roleNameRequired') }]}
         >
           <Input />
         </Form.Item>

@@ -4,6 +4,7 @@ import { useApiParams } from "src/core/hooks/useApiParams";
 import { Role } from "src/core/types/role";
 import { useUserContext } from "src/core/contexts/UserContext";
 import { showToast } from "src/core/utils/toast";
+import { useTranslation } from 'react-i18next';
 
 export const useMenuPermission = () => {
   const [roleList, setRoleList] = useState<Role[]>([]);
@@ -12,6 +13,7 @@ export const useMenuPermission = () => {
   const { getUserPermission } = useUserContext();
   const { sendRequest: fetchRolesRequest } = useApiParams(getAllRolesApi);
   const { sendRequest: updateRole, loading: updateLoading } = useApiParams(updateRoleApi);
+  const { t } = useTranslation('core/menuManage');
 
   const fetchRoles = async () => {
     setLoading(true);
@@ -24,7 +26,7 @@ export const useMenuPermission = () => {
         setSelectedRole(roles[0])
       }
     } catch (error) {
-      console.error('获取角色列表失败:', error);
+      console.error('Error fetch role list:', error);
     } finally {
       setLoading(false);
     }
@@ -47,13 +49,13 @@ export const useMenuPermission = () => {
       {
         onSuccess: () => {
           showToast({
-            title: '菜单配置成功',
+            title: t('index.menuSetSuccess'),
             color: 'success',
           });
           getUserPermission();
         },
         onError: (error) => {
-          console.error('保存权限失败:', error);
+          console.error('Error save permission:', error);
         }
       }
     );

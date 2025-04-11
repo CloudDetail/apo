@@ -15,7 +15,8 @@
     "dataGroup": "数据权限",
     "selectAll": "选择全部",
     "configPermission": "设置权限",
-    "viewPermission": "查看权限"
+    "viewPermission": "查看权限",
+    "permissions": "角色权限"
   },
   "addModal": {
     "title": "新增角色",
@@ -33,6 +34,7 @@
   "editModal": {
     "title": "编辑角色",
     "roleName": "用户名",
+    "roleNameRequired": "请输入角色名",
     "save": "修改角色信息",
     "getUserInfoFail": "获取角色信息失败",
     "saveSuccess": "保存成功",
@@ -40,7 +42,9 @@
     "resetPasswordFail": "未知错误",
     "address": "地址",
     "addressPlaceholder": "请输入地址",
-    "addressRequired": "请输入地址"
+    "addressRequired": "请输入地址",
+    "updateSuccess": "更新角色信息成功",
+    "deleteSuccess": "删除角色成功"
   },
 
   "save": "保存",

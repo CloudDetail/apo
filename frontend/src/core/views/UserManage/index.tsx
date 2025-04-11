@@ -23,7 +23,6 @@ import { AddUserModal } from './components/AddUserModal';
 import { EditUserModal } from './components/EditUserModal';
 import { useUserActions } from './hooks/useUserActions';
 
-// 用户搜索参数类型
 interface UserSearchParams {
   username?: string;
   corporation?: string;
@@ -65,7 +64,7 @@ export default function UserManage() {
     roleOptions
   } = useRoleActions();
 
-  // 获取用户列表
+  // Get user list
   const handleFetchUsers = async (params = searchParams) => {
     setLoading(true);
     try {
@@ -78,13 +77,12 @@ export default function UserManage() {
         setTotal(newTotal);
       }
     } catch (error) {
-      console.error('获取用户列表失败:', error);
+      console.error('Error fetch user list:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // 处理搜索
   const handleSearch = (type: 'username' | 'corporation', value: string) => {
     const newParams = {
       ...searchParams,
@@ -95,7 +93,6 @@ export default function UserManage() {
     handleFetchUsers(newParams);
   };
 
-  // 处理分页变化
   const handlePaginationChange = (page: number, size: number) => {
     const newParams = {
       ...searchParams,
@@ -106,7 +103,6 @@ export default function UserManage() {
     handleFetchUsers(newParams);
   };
 
-  // 删除用户
   const handleRemoveUser = async (userId: string | number) => {
     try {
       await removeUserById(userId);
@@ -116,11 +112,10 @@ export default function UserManage() {
         handleFetchUsers(searchParams);
       }
     } catch (error) {
-      console.error('删除用户失败:', error);
+      console.error('Error delete user:', error);
     }
   };
 
-  // 处理模态框
   const toggleModal = (modalName: keyof typeof modalStates, visible: boolean) => {
     setModalStates(prev => ({ ...prev, [modalName]: visible }));
     if (!visible) setSelectedUser(null);
@@ -182,7 +177,7 @@ export default function UserManage() {
             toggleModal('add', false);
             handleFetchUsers();
           } catch (error) {
-            console.error('添加用户失败:', error);
+            console.error('Error add user:', error);
           }
         }}
       />
@@ -199,7 +194,7 @@ export default function UserManage() {
             toggleModal('edit', false);
             handleFetchUsers();
           } catch (error) {
-            console.error('更新用户失败:', error);
+            console.error('Error update user:', error);
           }
         }}
         onResetPassword={async (values) => {
@@ -209,7 +204,7 @@ export default function UserManage() {
             toggleModal('edit', false);
             handleFetchUsers();
           } catch (error) {
-            console.error('重置密码失败:', error);
+            console.error('Error reset password:', error);
           }
         }}
       />

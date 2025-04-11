@@ -22,7 +22,6 @@ export default function RoleManage() {
     removeRole,
   } = useRoleManage();
 
-  // 模态框状态
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);

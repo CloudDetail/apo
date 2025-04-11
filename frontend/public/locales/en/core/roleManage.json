@@ -15,7 +15,8 @@
     "dataGroup": "Data Permissions",
     "selectAll": "Select All",
     "configPermission": "Set Permissions",
-    "viewPermission": "View Permissions"
+    "viewPermission": "View Permissions",
+    "permissions": "Role Permissions"
   },
   "addModal": {
     "title": "Add Role",
@@ -54,7 +55,9 @@
     "getUserInfoFail": "Failed to get user info",
     "saveSuccess": "Save successful",
     "resetPasswordSuccess": "Password reset successful",
-    "resetPasswordFail": "Unknown error"
+    "resetPasswordFail": "Unknown error",
+    "updateSuccess": "Update role successful",
+    "deleteSuccess":"Successfully deleted user"
   },
 
   "save": "Save",

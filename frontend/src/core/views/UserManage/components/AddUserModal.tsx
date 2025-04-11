@@ -63,26 +63,26 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
         <Form.Item
           name="password"
           label={t('addModal.password')}
-          rules={[{ required: true, message: t('index.passwordRequired') }]}
+          rules={[{ required: true, message: t('addModal.passwordRequired') }]}
         >
           <Input.Password autoComplete="new-password" />
         </Form.Item>
         <Form.Item
-          label={t('editModal.confirmPassword')}
+          label={t('addModal.confirmPassword')}
           name="confirmPassword"
           rules={[
-            { required: true, message: t('editModal.confirmPasswordRequired') },
+            { required: true, message: t('addModal.confirmPasswordRequired') },
             ({ getFieldValue }) => ({
               validator(_, value) {
                 if (!value || getFieldValue('password') === value) {
                   return Promise.resolve()
                 }
-                return Promise.reject(new Error(t('editModal.confirmPasswordMismatch')))
+                return Promise.reject(new Error(t('addModal.confirmPasswordMismatch')))
               },
             }),
           ]}
         >
-          <Input.Password placeholder={t('editModal.confirmPasswordPlaceholder')} />
+          <Input.Password placeholder={t('addModal.confirmPasswordPlaceholder')} />
         </Form.Item>
         <Form.Item
           name="corporation"
@@ -93,7 +93,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
         <Form.Item
           name="email"
           label={t('index.email')}
-          rules={[{ type: 'email', message: t('index.emailInvalid') }]}
+          rules={[{ type: 'email', message: t('addModal.emailInvalid') }]}
         >
           <Input />
         </Form.Item>

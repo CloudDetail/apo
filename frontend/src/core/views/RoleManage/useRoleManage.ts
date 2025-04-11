@@ -21,7 +21,7 @@ export const useRoleManage = () => {
       const roles = await fetchRolesRequest({}, { useURLSearchParams: false });
       setRoleList(roles || []);
     } catch (error) {
-      console.error('获取角色列表失败:', error);
+      console.error('Error fetch role list:', error);
     } finally {
       setLoading(false);
     }
@@ -35,7 +35,7 @@ export const useRoleManage = () => {
         return true;
       },
       onError: (error) => {
-        console.error('添加角色失败:', error);
+        console.error('Error add role:', error);
         return false;
       }
     });
@@ -46,12 +46,12 @@ export const useRoleManage = () => {
       { ...values, roleId },
       {
         onSuccess: () => {
-          showToast({ title: t('index.updateSuccess'), color: 'success' });
+          showToast({ title: t('editModal.updateSuccess'), color: 'success' });
           fetchRoles();
           return true;
         },
         onError: (error) => {
-          console.error('更新角色失败:', error);
+          console.error('Error update role:', error);
           return false;
         }
       }
@@ -64,12 +64,12 @@ export const useRoleManage = () => {
       {
         useURLSearchParams: false,
         onSuccess: () => {
-          showToast({ title: t('index.deleteSuccess'), color: 'success' });
+          showToast({ title: t('editModal.deleteSuccess'), color: 'success' });
           fetchRoles();
           return true;
         },
         onError: (error) => {
-          console.error('删除角色失败:', error);
+          console.error('Error delete role:', error);
           return false;
         }
       }

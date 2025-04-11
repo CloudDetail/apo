@@ -67,7 +67,8 @@
     "getUserInfoFail": "Failed to get user info",
     "saveSuccess": "Save successful",
     "resetPasswordSuccess": "Password reset successful",
-    "resetPasswordFail": "Unknown error"
+    "resetPasswordFail": "Unknown error",
+    "selectRole": "Please select role"
   },
 
   "save": "Save",

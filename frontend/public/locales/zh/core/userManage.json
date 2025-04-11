@@ -49,6 +49,7 @@
   "editModal": {
     "title": "编辑用户",
     "username": "用户名",
+    "usernameRequired": "请输入用户名",
     "email": "邮件",
     "emailPlaceholder": "请输入用户邮箱",
     "emailInvalid": "请输入有效的邮箱地址",
@@ -73,7 +74,8 @@
     "resetPasswordFail": "未知错误",
     "address": "地址",
     "addressPlaceholder": "请输入地址",
-    "addressRequired": "请输入地址"
+    "addressRequired": "请输入地址",
+    "selectRole": "请选择角色"
   },
 
   "save": "保存",

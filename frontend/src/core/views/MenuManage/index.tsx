@@ -56,7 +56,7 @@ function MenuManagePage() {
             title={
               <Typography.Title level={5} className="mb-0 flex items-center">
                 <TeamOutlined className="mr-2 text-blue-500" />
-                角色列表
+                {t('index.roleList')}
               </Typography.Title>
             }
             // bordered={false}
@@ -79,7 +79,7 @@ function MenuManagePage() {
             title={
               <Typography.Title level={5} className="mb-0 flex items-center">
                 <SafetyCertificateOutlined className="mr-2 text-blue-500" />
-                {selectedRole ? `菜单权限配置 - ${selectedRole.roleName}` : '请选择角色'}
+                {selectedRole ? `${t('index.menuPermissionSetting')} - ${selectedRole.roleName}` : t('index.selectRole')}
               </Typography.Title>
             }
             // bordered={false}

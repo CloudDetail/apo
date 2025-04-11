@@ -47,7 +47,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             name="username"
             labelCol={{ span: 8 }}
             label={t('index.userName')}
-            rules={[{ required: true, message: t('index.userNameRequired') }]}
+            rules={[{ required: true, message: t('editModal.userNameRequired') }]}
             style={{ marginBottom: 0, flex: 1 }}
           >
             <Input disabled />
@@ -57,7 +57,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             labelCol={{ span: 8 }}
             label={t('index.role')}
             initialValue={user?.roleList[0]?.roleId}
-            rules={[{ required: true, message: t('addModal.selectRole') }]}
+            rules={[{ required: true, message: t('editModal.selectRole') }]}
             style={{ marginBottom: 0, flex: 1 }}
           >
             <Select options={roleItems} />
@@ -72,7 +72,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
         <Form.Item
           name="email"
           label={t('index.email')}
-          rules={[{ type: 'email', message: t('index.emailInvalid') }]}
+          rules={[{ type: 'email', message: t('editModal.emailInvalid') }]}
         >
           <Input placeholder={t('editModal.emailPlaceholder')} />
         </Form.Item>
