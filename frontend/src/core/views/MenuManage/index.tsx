@@ -51,8 +51,14 @@ function MenuManagePage() {
           <Card
             className="w-48"
             style={{ width: '20%', borderTopRightRadius: '0px', borderBottomRightRadius: '0px' }}
-            styles={{ body: { height: '100%', padding: '0px', paddingBlockStart: '2px' }}}
-            // title={t('index.roleList')}
+            styles={{
+              body: {
+                height: '100%', padding: '0px', paddingBlockStart: '2px'
+              },
+              header: {
+                backgroundColor: '#1d1d1d',
+              }
+            }}
             title={
               <Typography.Title level={5} className="mb-0 flex items-center">
                 <TeamOutlined className="mr-2 text-blue-500" />
@@ -74,8 +80,14 @@ function MenuManagePage() {
           <Card
             className="flex-1 shadow-md"
             style={{ borderTopLeftRadius: '0px', borderBottomLeftRadius: '0px' }}
-            styles={{ body: { padding: '0px', paddingBlockStart: '2px', paddingInlineEnd: '12px' }}}
-            // title={selectedRole ? `${t('index.permissions')}: ${selectedRole.roleName}` : t('index.selectRole')}
+            styles={{
+              body: {
+                padding: '0px', paddingBlockStart: '2px', paddingInlineEnd: '12px'
+              },
+              header: {
+                backgroundColor: '#1d1d1d',
+              }
+            }}
             title={
               <Typography.Title level={5} className="mb-0 flex items-center">
                 <SafetyCertificateOutlined className="mr-2 text-blue-500" />

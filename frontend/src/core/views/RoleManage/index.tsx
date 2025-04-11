@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Flex } from 'antd';
 import { useTranslation } from 'react-i18next';
 import LoadingSpinner from 'src/core/components/Spinner';
+import { TeamOutlined } from '@ant-design/icons'; 
 import { Role } from 'src/core/types/role';
 import { useRoleManage } from './useRoleManage';
 import { RoleTable } from './components/RoleTable';
@@ -70,6 +71,7 @@ export default function RoleManage() {
         <Button
           type="primary"
           onClick={() => setAddModalVisible(true)}
+          icon={<TeamOutlined />} 
           className="mb-4"
         >
           {t('index.addRole')}
