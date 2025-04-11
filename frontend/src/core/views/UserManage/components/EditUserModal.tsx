@@ -45,7 +45,6 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
           >
             <Input disabled />
           </Form.Item>
-          {/* Todo: 角色的切换不应该马上发送请求 */}
           <Form.Item
             name="role"
             label={t('index.role')}

@@ -11,19 +11,23 @@ import LoadingSpinner from 'src/core/components/Spinner';
 import { useUserContext } from 'src/core/contexts/UserContext';
 import { showToast } from 'src/core/utils/toast';
 import { useTranslation } from 'react-i18next';
-import { useRoleList } from './useRoleList';
+import { useMenuPermission } from './useMenuPermission';
 import { useApiParams } from 'src/core/hooks/useApiParams';
 import PermissionTree from 'src/core/components/PermissionTree';
 import { Role } from 'src/core/types/role';
 
 function MenuManagePage() {
-  const { roleList, loading, fetchRoles } = useRoleList();
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const {
+    roleList,
+    selectedRole,
+    loading,
+    updateLoading,
+    fetchRoles,
+    handleRoleSelect,
+    handleSavePermissions
+  } = useMenuPermission();
   const { t } = useTranslation('core/menuManage');
-  const { getUserPermission } = useUserContext();
-  const { sendRequest: updateRole, loading: updateLoading } = useApiParams(updateRoleApi);
 
-  // 将角色列表转换为菜单项
   const menuItems = useMemo(() => {
     return roleList.map((role) => ({
       key: role.roleId,
@@ -32,35 +36,8 @@ function MenuManagePage() {
     }));
   }, [roleList]);
 
-  // 处理菜单选择
   const onSelect = ({ key }: { key: string }) => {
-    const role = roleList.find(role => role.roleId == key);
-    setSelectedRole(role || null);
-  };
-
-  // 处理权限保存
-  const handleSavePermissions = async (checkedKeys: React.Key[]) => {
-    if (!selectedRole) return;
-
-    await updateRole(
-      {
-        roleId: selectedRole.roleId,
-        roleName: selectedRole.roleName,
-        permissionList: checkedKeys
-      },
-      {
-        onSuccess: () => {
-          showToast({
-            title: t('index.menuConfigSuccess'),
-            color: 'success',
-          });
-          getUserPermission();
-        },
-        onError: (error) => {
-          console.error('保存权限失败:', error);
-        }
-      }
-    );
+    handleRoleSelect(key);
   };
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { getAllRolesApi } from "../api/role";
-import { useApiParams } from "./useApiParams";
-import { Role } from "./useRoles";
+import { getAllRolesApi } from "src/core/api/role";
+import { useApiParams } from "src/core/hooks/useApiParams";
+import { Role } from "src/core/types/role";
 
 // Todo: 需要补充和完善
 export const useRoleList = () => {
