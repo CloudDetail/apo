@@ -114,7 +114,7 @@ const Timeline = (props) => {
   }
 
   return (
-    <div className="w-full flex flex-col h-full text-xs ">
+    <div className="w-full flex flex-col text-xs h-[260px]">
       <ConfigProvider
         theme={{
           components: {
