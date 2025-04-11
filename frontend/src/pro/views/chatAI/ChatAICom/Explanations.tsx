@@ -24,6 +24,7 @@ import TopologyCom from '../../serviceAnalyze/DescendantTopology/Topology'
 import AnormalList from '../../serviceAnalyze/DescendantTopology/NodeInfo/AnormalList'
 import PlayDelta from '../../serviceAnalyze/DescendantTopology/PlayDelta'
 import LoadingSpinner from 'src/core/components/Spinner'
+import { useTranslation } from 'react-i18next'
 const i18nKey = 'pro/chatAI:explanations'
 const pngLagnguageMap = {
   topologyExample: {
@@ -58,7 +59,9 @@ const pngLagnguageMap = {
 const language = i18next.language
 const wrapperClassName = 'w-full overflow-hidden border p-2 rounded bg-[#151920] mb-3 text-xs'
 const ServiceAnalyze = () => {
-  const { loading } = useServiceAnalyzeContext()
+  const { loading,selectedNodeInfo } = useServiceAnalyzeContext()
+  const { t } = useTranslation('pro/serviceAnalyze')
+
   return (
     <div className="relative">
       <LoadingSpinner loading={loading} />
@@ -87,6 +90,15 @@ const ServiceAnalyze = () => {
         <TopologyCom />
       </div>
       <div className={`h-[400px] ${wrapperClassName}`}>
+        <div className='text-sm mb-1'>
+          {t(`node.alertList`)} (
+          {selectedNodeInfo?.endpoint ? (
+            <span>{t(`node.selected`)}</span>
+          ) : (
+            <span>{t(`node.all`)}</span>
+          )}
+          {t(`node.nodeTimeData`)})
+        </div>
         <AnormalList scrollHeight={400} />
       </div>
     </div>
