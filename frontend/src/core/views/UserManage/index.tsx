@@ -62,7 +62,6 @@ export default function UserManage() {
   const {
     loading: roleLoading,
     fetchRoles,
-    handleRevokeUserRole,
     roleOptions
   } = useRoleActions();
 

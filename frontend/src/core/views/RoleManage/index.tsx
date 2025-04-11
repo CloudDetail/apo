@@ -3,7 +3,7 @@ import { Button } from 'antd';
 import { useTranslation } from 'react-i18next';
 import LoadingSpinner from 'src/core/components/Spinner';
 import { Role } from 'src/core/types/role';
-import { useRoleManage } from './hooks/useRoleManage';
+import { useRoleManage } from './useRoleManage';
 import { RoleTable } from './components/RoleTable';
 import { AddRoleModal } from './components/AddRoleModal';
 import { EditRoleModal } from './components/EditRoleModal';
