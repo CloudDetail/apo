@@ -1,0 +1,111 @@
+import { useApiParams } from 'src/core/hooks/useApiParams';
+import { useTranslation } from 'react-i18next';
+import { showToast } from 'src/core/utils/toast';
+import { User } from 'src/core/types/user';
+import * as userApi from 'src/core/api/user';
+
+interface UserSearchParams {
+  username?: string;
+  corporation?: string;
+  currentPage: number;
+  pageSize: number;
+}
+
+interface UpdateUserData {
+  corporation?: string;
+  email?: string;
+  phone?: string;
+}
+
+interface PasswordData {
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export const useUserActions = () => {
+  const { t } = useTranslation('core/userManage');
+
+  const api = {
+    getList: useApiParams(userApi.getUserListApi),
+    remove: useApiParams(userApi.removeUserApi),
+    create: useApiParams(userApi.createUserApi),
+    updateCorporation: useApiParams(userApi.updateCorporationApi),
+    updateEmail: useApiParams(userApi.updateEmailApi),
+    updatePhone: useApiParams(userApi.updatePhoneApi),
+    resetPassword: useApiParams(userApi.updatePasswordWithNoOldPwdApi)
+  };
+
+  // 获取用户列表
+  const fetchUsers = async (params: UserSearchParams) => {
+    const result = await api.getList.sendRequest(params, { useURLSearchParams: false });
+    if (result) {
+      const { users, ...pagination } = result;
+      return {
+        users: users.map((user: User) => ({
+          ...user,
+          role: user.roleList?.[0]?.roleName
+        })),
+        ...pagination
+      };
+    }
+    return null;
+  };
+
+  // 删除用户
+  const removeUserById = async (userId: string | number) => {
+    await api.remove.sendRequest(
+      { userId },
+      {
+        useURLSearchParams: false,
+        onSuccess: () => {
+          showToast({ title: t('index.deleteSuccess'), color: 'success' });
+        }
+      }
+    );
+  };
+
+  // 创建用户
+  const createNewUser = async (userData: Record<string, any>) => {
+    await api.create.sendRequest(userData, {
+      onSuccess: () => {
+        showToast({ title: t('index.addSuccess'), color: 'success' });
+      }
+    });
+  };
+
+  // 更新用户信息
+  const updateUser = async (user: User, updates: UpdateUserData) => {
+    const { corporation, email, phone } = updates;
+    const tasks = [];
+
+    if (corporation !== user.corporation) {
+      tasks.push(api.updateCorporation.sendRequest({ userId: user.userId, corporation }));
+    }
+    if (email !== user.email) {
+      tasks.push(api.updateEmail.sendRequest({ username: user.username, email }));
+    }
+    if (phone !== user.phone) {
+      tasks.push(api.updatePhone.sendRequest({ username: user.username, phone }));
+    }
+
+    await Promise.all(tasks);
+    showToast({ title: t('index.updateSuccess'), color: 'success' });
+  };
+
+  // 重置密码
+  const resetPassword = async (userId: string | number, passwordData: PasswordData) => {
+    await api.resetPassword.sendRequest({
+      userId,
+      ...passwordData
+    });
+    showToast({ title: t('index.updateSuccess'), color: 'success' });
+  };
+
+  return {
+    fetchUsers,
+    removeUserById,
+    createNewUser,
+    updateUser,
+    resetPassword,
+  };
+};

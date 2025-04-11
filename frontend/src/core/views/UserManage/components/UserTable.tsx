@@ -10,7 +10,7 @@ interface UserTableProps {
   userList: User[];
   loading: boolean;
   onEdit: (user: User) => void;
-  onDelete: (userId: string | number) => void;
+  onDelete: (userId: string | number) => Promise<void>;
   onAuthorize: (user: User) => void;
 }
 

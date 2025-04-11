@@ -8,7 +8,15 @@ interface AddUserModalProps {
   loading: boolean;
   roleItems: Array<{ label: string; value: string | number }>;
   onCancel: () => void;
-  onFinish: (values: any) => void;
+  onFinish: (values: {
+    username: string;
+    password: string;
+    confirmPassword: string;
+    roleId: string | number;
+    corporation?: string;
+    email?: string;
+    phone?: string;
+  }) => Promise<void>;
 }
 
 export const AddUserModal: React.FC<AddUserModalProps> = ({

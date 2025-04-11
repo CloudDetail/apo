@@ -9,9 +9,16 @@ interface EditUserModalProps {
   user: User | null;
   roleItems: Array<{ label: string; value: string | number }>;
   onCancel: () => void;
-  onFinish: (values: any) => void;
-  onResetPassword: (values: any) => void;
-  onRoleChange: (userId: string | number, roleId: string | number) => void;
+  onFinish: (values: {
+    role: string | number;
+    corporation?: string;
+    email?: string;
+    phone?: string;
+  }) => Promise<void>;
+  onResetPassword: (values: {
+    newPassword: string;
+    confirmPassword: string;
+  }) => Promise<void>;
 }
 
 export const EditUserModal: React.FC<EditUserModalProps> = ({
@@ -21,7 +28,6 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
   onCancel,
   onFinish,
   onResetPassword,
-  onRoleChange,
 }) => {
   const { t } = useTranslation('core/userManage');
 

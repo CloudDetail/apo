@@ -6,16 +6,14 @@ import { useTranslation } from 'react-i18next';
 interface SearchBarProps {
   username: string;
   corporation: string;
-  onUsernameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onCorporationChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSearch: (type: 'username' | 'corporation', value: string) => void;
   onAddUser: () => void;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
   username,
   corporation,
-  onUsernameChange,
-  onCorporationChange,
+  onSearch,
   onAddUser,
 }) => {
   const { t } = useTranslation('core/userManage');
@@ -30,7 +28,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               placeholder={t('index.search')}
               className="w-2/3"
               value={username}
-              onChange={onUsernameChange}
+              onChange={(e) => onSearch('username', e.target.value)}
             />
           </Flex>
           <Flex className="w-auto items-center justify-start">
@@ -39,7 +37,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               placeholder={t('index.search')}
               className="w-2/3"
               value={corporation}
-              onChange={onCorporationChange}
+              onChange={(e) => onSearch('corporation', e.target.value)}
             />
           </Flex>
         </Flex>

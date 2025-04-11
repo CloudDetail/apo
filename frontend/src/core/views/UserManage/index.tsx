@@ -10,7 +10,7 @@ import { useUserContext } from 'src/core/contexts/UserContext';
 import LoadingSpinner from 'src/core/components/Spinner';
 import { getUserListApi, removeUserApi, createUserApi, updateCorporationApi, updateEmailApi, updatePhoneApi, updatePasswordWithNoOldPwdApi } from 'src/core/api/user';
 import { getAllRolesApi, revokeUserRoleApi } from 'src/core/api/role'
-import { useRoleList } from './hooks/useRoleList';
+import { useRoleActions } from './hooks/useRoleActions';
 import { useApiParams } from 'src/core/hooks/useApiParams';
 import FormModal from 'src/core/components/Modal/FormModal';
 import { showToast } from 'src/core/utils/toast';
@@ -21,6 +21,7 @@ import { SearchBar } from './components/SearchBar';
 import { UserTable } from './components/UserTable';
 import { AddUserModal } from './components/AddUserModal';
 import { EditUserModal } from './components/EditUserModal';
+import { useUserActions } from './hooks/useUserActions';
 
 // 用户搜索参数类型
 interface UserSearchParams {
@@ -44,48 +45,35 @@ export default function UserManage() {
     currentPage: 1,
     pageSize: 10
   });
-  const [updateLoading, setUpdateLoading] = useState(false);
-  const [modalAddVisibility, setModalAddVisibility] = useState(false);
-  const [roleEditVisibility, setRoleModalVisibility] = useState(false);
-  const [modalEditVisibility, setModalEditVisibility] = useState(false);
-  const [authorizeModalVisibility, setAuthorizeModalVisibility] = useState(false);
-  const { user } = useUserContext();
+  const [modalStates, setModalStates] = useState({
+    add: false,
+    edit: false,
+    authorize: false
+  });
 
-  // 使用 useApiParams 钩子
-  const { sendRequest: getUserList } = useApiParams(getUserListApi);
-  const { sendRequest: revokeUserRole } = useApiParams(revokeUserRoleApi)
-  const { sendRequest: removeUser } = useApiParams(removeUserApi);
-  const { sendRequest: createUser, loading: addLoading } = useApiParams(createUserApi);
-  const { sendRequest: updateUserCorporation } = useApiParams(updateCorporationApi);
-  const { sendRequest: updateUserEmail } = useApiParams(updateEmailApi);
-  const { sendRequest: updateUserPhone } = useApiParams(updatePhoneApi);
-  const { sendRequest: resetUerPassword } = useApiParams(updatePasswordWithNoOldPwdApi);
+  const {
+    fetchUsers,
+    removeUserById,
+    createNewUser,
+    updateUser,
+    resetPassword,
+  } = useUserActions();
 
-  const { roleList, loading: roleLoading, fetchRoles } = useRoleList();
+  const {
+    loading: roleLoading,
+    fetchRoles,
+    handleRevokeUserRole,
+    roleOptions
+  } = useRoleActions();
 
   // 获取用户列表
-  const fetchUsers = async (page = currentPage, size = pageSize, search = searchParams) => {
-    if (loading) return;
-
+  const handleFetchUsers = async (params = searchParams) => {
     setLoading(true);
-    const params = {
-      currentPage: page,
-      pageSize: size,
-      ...search
-    };
-
     try {
-      const result = await getUserList(params, { useURLSearchParams: false });
-
+      const result = await fetchUsers(params);
       if (result) {
         const { users, currentPage: newPage, pageSize: newSize, total: newTotal } = result;
-
-        const formattedUsers = users.map((user: User) => ({
-          ...user,
-          role: user.roleList?.[0]?.roleName
-        }));
-
-        setUserList(formattedUsers);
+        setUserList(users);
         setCurrentPage(newPage);
         setPageSize(newSize);
         setTotal(newTotal);
@@ -97,192 +85,52 @@ export default function UserManage() {
     }
   };
 
-  // 删除用户
-  const handleRemoveUser = async (userId: string | number) => {
-    await removeUser(
-      { userId },
-      {
-        useURLSearchParams: false,
-        onSuccess: () => {
-          showToast({
-            title: t('index.deleteSuccess'),
-            color: 'success',
-          });
-
-          // 重新获取用户列表
-          if (userList.length <= 1) {
-            fetchUsers(1);
-          } else {
-            fetchUsers();
-          }
-        },
-        onError: (error) => {
-          console.error('删除用户失败:', error);
-        }
-      }
-    );
+  // 处理搜索
+  const handleSearch = (type: 'username' | 'corporation', value: string) => {
+    const newParams = {
+      ...searchParams,
+      [type]: value,
+      currentPage: 1
+    };
+    setSearchParams(newParams);
+    handleFetchUsers(newParams);
   };
-
-  // 改变用户角色
-  const handleRevokeUserRole = async (userId: string | number, roleId: string | number) => {
-    await revokeUserRole(
-      {
-        userId,
-        roleList: [roleId]
-      },
-      {
-        onSuccess: () => {
-          showToast({
-            title: t('index.revokeSuccess'),
-            color: 'success',
-          });
-
-          // 重新获取用户列表
-          fetchUsers();
-        },
-        onError: (error) => {
-          console.error('撤销用户角色失败:', error);
-        }
-      }
-    );
-  };
-
-  // 添加用户
-  const handleAddUser = async (values: any) => {
-    await createUser(
-      values,
-      {
-        onSuccess: () => {
-          showToast({
-            title: t('index.addSuccess'),
-            color: 'success',
-          });
-          setModalAddVisibility(false);
-          fetchUsers();
-        },
-        onError: (error) => {
-          console.error('添加用户失败:', error);
-        }
-      }
-    );
-  };
-
-  // 更新密码
-  const handleResetPassword = async (values: any) => {
-    if (!selectedUser) return;
-
-    await resetUerPassword({
-      userId: selectedUser.userId,
-      newPassword: values.newPassword,
-      confirmPassword: values.confirmPassword
-    });
-
-    showToast({
-      title: t('index.updateSuccess'),
-      color: 'success',
-    });
-    setModalEditVisibility(false);
-    fetchUsers();
-  }
-
-  // 更新用户
-  const handleEditUser = async (values: any) => {
-    console.log('handleEditUser')
-    if (!selectedUser) return;
-
-    console.log('handleEditUser123value: ', values)
-
-    try {
-      // 更新角色
-      if (values.role !== selectedUser.role) {
-        await revokeUserRole({
-          userId: selectedUser.userId,
-          roleList: [values.role]
-        });
-      }
-
-      // 更新公司信息
-      if (values.corporation !== selectedUser.corporation) {
-        await updateUserCorporation({
-          userId: selectedUser.userId,
-          corporation: values.corporation
-        });
-      }
-
-      // 更新邮箱
-      if (values.email !== selectedUser.email) {
-        await updateUserEmail({
-          username: selectedUser.username,
-          email: values.email
-        });
-      }
-
-      // 更新电话
-      if (values.phone !== selectedUser.phone) {
-        await updateUserPhone({
-          username: selectedUser.username,
-          phone: values.phone
-        });
-      }
-
-      showToast({
-        title: t('index.updateSuccess'),
-        color: 'success',
-      });
-      setModalEditVisibility(false);
-      fetchUsers();
-    } catch (error) {
-      console.error('更新用户失败:', error);
-    }
-  };
-
-  // 角色下拉菜单项
-  const roleItems = roleList.map((role) => ({
-    label: role.roleName,
-    key: role.roleId,
-    value: role.roleId
-  }));
-
-  // 初始化加载
-  useEffect(() => {
-    fetchUsers();
-    fetchRoles();
-  }, []);
 
   // 处理分页变化
   const handlePaginationChange = (page: number, size: number) => {
-    setCurrentPage(page);
-    setPageSize(size);
-    fetchUsers(page, size);
-  };
-
-  // 用户名搜索变更
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const username = e.target.value;
-    const newParams = { ...searchParams, username };
+    const newParams = {
+      ...searchParams,
+      currentPage: page,
+      pageSize: size
+    };
     setSearchParams(newParams);
-    fetchUsers(1, pageSize, newParams);
+    handleFetchUsers(newParams);
   };
 
-  // 公司搜索变更
-  const handleCorporationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const corporation = e.target.value;
-    const newParams = { ...searchParams, corporation };
-    setSearchParams(newParams);
-    fetchUsers(1, pageSize, newParams);
+  // 删除用户
+  const handleRemoveUser = async (userId: string | number) => {
+    try {
+      await removeUserById(userId);
+      if (userList.length <= 1 && currentPage > 1) {
+        handleFetchUsers({ ...searchParams, currentPage: currentPage - 1 });
+      } else {
+        handleFetchUsers(searchParams);
+      }
+    } catch (error) {
+      console.error('删除用户失败:', error);
+    }
   };
 
-  // 关闭授权模态框
-  const closeAuthorizeModal = () => {
-    setAuthorizeModalVisibility(false);
-    setSelectedUser(null);
+  // 处理模态框
+  const toggleModal = (modalName: keyof typeof modalStates, visible: boolean) => {
+    setModalStates(prev => ({ ...prev, [modalName]: visible }));
+    if (!visible) setSelectedUser(null);
   };
 
-  // 刷新数据
-  const refresh = () => {
-    fetchUsers();
-    closeAuthorizeModal();
-  };
+  useEffect(() => {
+    handleFetchUsers();
+    fetchRoles();
+  }, []);
 
   return (
     <>
@@ -291,9 +139,8 @@ export default function UserManage() {
         <SearchBar
           username={searchParams.username}
           corporation={searchParams.corporation}
-          onUsernameChange={handleUsernameChange}
-          onCorporationChange={handleCorporationChange}
-          onAddUser={() => setModalAddVisibility(true)}
+          onSearch={handleSearch}
+          onAddUser={() => toggleModal('add', true)}
         />
 
         <ConfigProvider theme={{ components: { Table: { headerBg: '#222631' } } }}>
@@ -303,12 +150,12 @@ export default function UserManage() {
               loading={loading}
               onEdit={(user) => {
                 setSelectedUser(user);
-                setModalEditVisibility(true);
+                toggleModal('edit', true);
               }}
               onDelete={handleRemoveUser}
               onAuthorize={(user) => {
                 setSelectedUser(user);
-                setAuthorizeModalVisibility(true);
+                toggleModal('authorize', true);
               }}
             />
             <Pagination
@@ -326,30 +173,58 @@ export default function UserManage() {
       </div>
 
       <AddUserModal
-        visible={modalAddVisibility}
-        loading={addLoading}
-        roleItems={roleItems}
-        onCancel={() => setModalAddVisibility(false)}
-        onFinish={handleAddUser}
+        visible={modalStates.add}
+        loading={loading}
+        roleItems={roleOptions}
+        onCancel={() => toggleModal('add', false)}
+        onFinish={async (values) => {
+          try {
+            await createNewUser(values);
+            toggleModal('add', false);
+            handleFetchUsers();
+          } catch (error) {
+            console.error('添加用户失败:', error);
+          }
+        }}
       />
 
       <EditUserModal
-        visible={modalEditVisibility}
+        visible={modalStates.edit}
         user={selectedUser}
-        roleItems={roleItems}
-        onCancel={() => setModalEditVisibility(false)}
-        onFinish={handleEditUser}
-        onResetPassword={handleResetPassword}
-        onRoleChange={handleRevokeUserRole}
+        roleItems={roleOptions}
+        onCancel={() => toggleModal('edit', false)}
+        onFinish={async (values) => {
+          if (!selectedUser) return;
+          try {
+            if (values.role !== selectedUser.role) {
+              await handleRevokeUserRole(selectedUser.userId, values.role);
+            }
+            await updateUser(selectedUser, values);
+            toggleModal('edit', false);
+            handleFetchUsers();
+          } catch (error) {
+            console.error('更新用户失败:', error);
+          }
+        }}
+        onResetPassword={async (values) => {
+          if (!selectedUser) return;
+          try {
+            await resetPassword(selectedUser.userId, values);
+            toggleModal('edit', false);
+            handleFetchUsers();
+          } catch (error) {
+            console.error('重置密码失败:', error);
+          }
+        }}
       />
 
       <DataGroupAuthorizeModal
-        open={authorizeModalVisibility}
-        closeModal={closeAuthorizeModal}
+        open={modalStates.authorize}
+        closeModal={() => toggleModal('authorize', false)}
         subjectId={selectedUser?.userId}
         subjectName={selectedUser?.username}
         type="user"
-        refresh={refresh}
+        refresh={() => toggleModal('authorize', false)}
       />
     </>
   );
