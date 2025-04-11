@@ -22,7 +22,13 @@ const DataViewCom = ({ type, data, analyserNode }) => {
         return <InstanceTable data={data?.data || []} />
 
       case 'error':
-        return <ErrorInstanceTable data={data?.instances || []} />
+        return (
+          <ErrorInstanceTable
+            data={data?.instances || []}
+            service={analyserNode?.service}
+            endpoint={analyserNode?.endpoint}
+          />
+        )
       case 'log':
         return <FaultSiteLogsWrapper {...data} selectedNodeInfo={analyserNode} />
       case 'dashboard':
