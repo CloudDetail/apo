@@ -34,13 +34,14 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
       open={visible}
       onCancel={onCancel}
       confirmLoading={loading}
+      // width='600px'
       footer={null}
     >
       <FormModal.Section onFinish={onFinish}>
-        <Flex gap={16} className="mb-12">
+        <Flex gap={8} className="mb-6">
           <Form.Item
             name="username"
-            layout="vertical"
+            labelCol={{ span: 8 }}
             label={t('index.userName')}
             rules={[{ required: true, message: t('index.userNameRequired') }]}
             style={{ marginBottom: 0, flex: 1 }}
@@ -49,7 +50,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
           </Form.Item>
           <Form.Item
             name="roleId"
-            layout="vertical"
+            labelCol={{ span: 8 }}
             label={t('index.role')}
             rules={[{ required: true, message: t('addModal.roleRequired') }]}
             style={{ marginBottom: 0, flex: 1 }}

@@ -45,6 +45,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
         <Flex gap={16} className="mb-6">
           <Form.Item
             name="username"
+            labelCol={{ span: 8 }}
             label={t('index.userName')}
             rules={[{ required: true, message: t('index.userNameRequired') }]}
             style={{ marginBottom: 0, flex: 1 }}
@@ -53,6 +54,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
           </Form.Item>
           <Form.Item
             name="roleId"
+            labelCol={{ span: 8 }}
             label={t('index.role')}
             initialValue={user?.roleList[0]?.roleId}
             rules={[{ required: true, message: t('addModal.selectRole') }]}

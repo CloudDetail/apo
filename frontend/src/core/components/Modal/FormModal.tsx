@@ -48,6 +48,8 @@ const FormSection: React.FC<FormSectionProps> = ({
       autoComplete="off"
       onFinish={onFinish}
       initialValues={initialValues}
+      labelCol={{ span: 4 }}
+      // wrapperCol={{ span: 18 }}
       {...formProps}
     >
       {children}
