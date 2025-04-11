@@ -74,7 +74,7 @@ function MenuManagePage() {
           <Card
             className="flex-1 shadow-md"
             style={{ borderTopLeftRadius: '0px', borderBottomLeftRadius: '0px' }}
-            styles={{ body: { padding: '0px', paddingBlockStart: '2px' }}}
+            styles={{ body: { padding: '0px', paddingBlockStart: '2px', paddingInlineEnd: '12px' }}}
             // title={selectedRole ? `${t('index.permissions')}: ${selectedRole.roleName}` : t('index.selectRole')}
             title={
               <Typography.Title level={5} className="mb-0 flex items-center">

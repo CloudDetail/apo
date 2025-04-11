@@ -138,7 +138,7 @@ function PermissionTree({
 
   // Todo: 可以把使用插槽的方式进行优化
   const actionButtons = (
-    <Flex justify='flex-end' className='w-full pr-8' style={actionStyle}>
+    <Flex justify='flex-end' className='w-full' style={actionStyle}>
       <Button
         type="primary"
         className="m-4"
@@ -148,7 +148,7 @@ function PermissionTree({
         {t('selectAll')}
       </Button>
       { hasSaveButton && (
-        <Button type="primary" className="m-4" onClick={() => onSave?.(checkedKeys)}>
+        <Button type="primary" className="my-4" onClick={() => onSave?.(checkedKeys)}>
           {t('save')}
         </Button>
       )}

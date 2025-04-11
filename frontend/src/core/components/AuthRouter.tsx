@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { Spin } from 'antd'
 import FallbackPage from 'src/core/components/FallbackPage'
+import { getRouterPermissionApi } from '../api/permission'
 
-// Todo: 切换成真实的路由校验 API
-const checkRoutePermission = (route: string) => {
-  console.log("current route allowed: ", route)
-  return true
+const checkRoutePermission = async (route: string) => {
+  const authResult = await getRouterPermissionApi({ router: route });
+  return authResult
 }
 
 const AuthRouter = (WrappedComponent) => {
