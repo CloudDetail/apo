@@ -106,7 +106,7 @@ function MenuManagePage() {
               />
             ) : (
               <div className="text-center text-gray-500 py-8">
-                {t('index.pleaseSelectRole')}
+                {t('index.selectRole')}
               </div>
             )}
           </Card>
