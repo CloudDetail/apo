@@ -143,6 +143,7 @@ var enText = map[string]string{
 	ConfigureMenuError:         "Failed to configure menu",
 	PermissionNotExistError:    "Menu item does not exist",
 	CheckRouterError:           "Failed to check router",
+	RouterNotExistsError:       "Router does not exist",
 
 	GetAlertsInputTargetTagsError: "Failed to get alertinput target tags",
 	CreateAlertSourceFailed:       "Failed to create alert source",

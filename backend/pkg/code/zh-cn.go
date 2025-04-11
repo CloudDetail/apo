@@ -145,6 +145,7 @@ var zhCnText = map[string]string{
 	UserGrantPermissionError:   "授权失败",
 	ConfigureMenuError:         "配置菜单失败",
 	CheckRouterError:           "检查router权限失败",
+	RouterNotExistsError:       "路由不存在",
 
 	GetAlertsInputTargetTagsError:     "无法获取告警输入配置中的目标tag",
 	CreateAlertSourceFailed:           "创建告警源失败",

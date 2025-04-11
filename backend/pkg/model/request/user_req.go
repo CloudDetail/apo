@@ -114,5 +114,5 @@ type GetUserInfoRequest struct {
 }
 
 type CheckRouterPermissionRequest struct {
-	RouterID int `form:"routerId"`
+	Router string `form:"router"`
 }

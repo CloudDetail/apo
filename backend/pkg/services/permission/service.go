@@ -16,7 +16,7 @@ type Service interface {
 	GetUserConfig(req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error)
 	GetSubjectFeature(req *request.GetSubjectFeatureRequest) (resp response.GetSubjectFeatureResponse, err error)
 	CheckApiPermission(userID int64, method string, path string) (ok bool, err error)
-	CheckRouterPermission(userID int64, routerID int) (bool, error)
+	CheckRouterPermission(userID int64, router string) (bool, error)
 }
 
 type service struct {

@@ -38,7 +38,7 @@ type Handler interface {
 
 	// CheckRouterPermission Check a router is authorized to view.
 	// @Tags API.permission
-	// @Router /api/permission/router [post]
+	// @Router /api/permission/router [get]
 	CheckRouterPermission() core.HandlerFunc
 }
 

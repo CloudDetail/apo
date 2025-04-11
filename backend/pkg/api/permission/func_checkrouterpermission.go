@@ -18,15 +18,15 @@ import (
 // @Tags API.permission
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request formData routerId true "Router id"
+// @Param router query string true "Router"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.CheckRouterPermissionResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/permission/router [post]
+// @Router /api/permission/router [get]
 func (h *handler) CheckRouterPermission() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.CheckRouterPermissionRequest)
-		if err := c.ShouldBindPostForm(req); err != nil {
+		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -36,7 +36,7 @@ func (h *handler) CheckRouterPermission() core.HandlerFunc {
 		}
 
 		userID := middleware.GetContextUserID(c)
-		resp, err := h.permissionService.CheckRouterPermission(userID, req.RouterID)
+		resp, err := h.permissionService.CheckRouterPermission(userID, req.Router)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

@@ -47,10 +47,25 @@ func (repo *daoRepo) FillItemRouter(items *[]MenuItem) error {
 
 func (repo *daoRepo) GetItemsRouter(itemIDs []int) ([]Router, error) {
 	var routers []Router
+	var routerIDs []int
 
-	if err := repo.db.Where("router_id IN ?", itemIDs).Find(&routers).Error; err != nil {
+	if err := repo.db.Model(&MenuItem{}).Select("router_id").Where("item_id IN ?", itemIDs).Find(&routerIDs).Error; err != nil {
+		return nil, err
+	}
+
+	if err := repo.db.Where("router_id IN ?", routerIDs).Find(&routers).Error; err != nil {
 		return nil, err
 	}
 
 	return routers, nil
+}
+
+func (repo *daoRepo) GetRouter(routerTo string) (*Router, error) {
+	var router Router
+
+	if err := repo.db.Where("router_to = ?", routerTo).Find(&router).Error; err != nil {
+		return nil, err
+	}
+
+	return &router, nil
 }

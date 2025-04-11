@@ -3,9 +3,22 @@
 
 package permission
 
-import "github.com/CloudDetail/apo/backend/pkg/model"
+import (
+	"errors"
 
-func (s *service) CheckRouterPermission(userID int64, routerID int) (bool, error) {
+	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/model"
+)
+
+func (s *service) CheckRouterPermission(userID int64, routerTo string) (bool, error) {
+	router, err := s.dbRepo.GetRouter(routerTo)
+	if err != nil {
+		return false, err
+	}
+
+	if router == nil {
+		return false, model.NewErrWithMessage(errors.New("router does not exist"), code.RouterNotExistsError)
+	}
 	features, err := s.getUserFeatureIDs(userID)
 	if err != nil {
 		return false, err
@@ -40,6 +53,6 @@ func (s *service) CheckRouterPermission(userID int64, routerID int) (bool, error
 		authRouters[r.RouterID] = struct{}{}
 	}
 
-	_, ok := authRouters[routerID]
+	_, ok := authRouters[router.RouterID]
 	return ok, nil
 }
