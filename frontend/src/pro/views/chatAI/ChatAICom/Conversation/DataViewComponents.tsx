@@ -1,9 +1,9 @@
-import { CAccordion, CAccordionBody, CAccordionHeader, CAccordionItem } from '@coreui/react'
-import { Card } from 'antd'
-import React, { useEffect, useRef, useState } from 'react'
+import { Collapse } from 'antd'
+import React, { useEffect, useState } from 'react'
 import { useChatAIContext } from 'src/pro/contexts/ChatAIContext'
 import styles from './index.module.scss'
 import DataViewCom from 'src/pro/components/DataViewCom'
+import { SlArrowDown } from 'react-icons/sl'
 interface DataViewComponentsProps {
   components: any[]
 }
@@ -21,25 +21,37 @@ const DataViewComponents = ({ components }: DataViewComponentsProps) => {
       setAnalyserNode(causeNode)
     }
   }, [causeNode])
+  const panelStyle = {
+    marginBottom: 12,
+    border: 'none',
+  }
   return (
     <div className="w-full">
       {components.map((item, index) => (
-        <CAccordion
-          activeItemKey={item}
-          className={styles.fadeItem}
-          style={{ animationDelay: index * 0.2 }}
-        >
-          <CAccordionItem itemKey={item}>
-            <CAccordionHeader>
-              <span className="ml-2 h-[20px]">{dataViewType[item.type].title}</span>
-            </CAccordionHeader>
-            <CAccordionBody className="p-0 max-h-[500px] w-full overflow-hidden">
-              {analyserNode && (
+        <Collapse
+          className={styles.collapse}
+          bordered={false}
+          defaultActiveKey={[item.type]}
+          expandIconPosition={'end'}
+          items={[
+            {
+              key: item.type,
+              forceRender: true,
+              label: dataViewType[item.type].title,
+              children: analyserNode && (
                 <DataViewCom type={item.type} data={item.data} analyserNode={analyserNode} />
-              )}
-            </CAccordionBody>
-          </CAccordionItem>
-        </CAccordion>
+              ),
+              style: panelStyle,
+            },
+          ]}
+          expandIcon={({ isActive }) => {
+            return isActive ? (
+              <SlArrowDown className={'rotate-180'} size={18} />
+            ) : (
+              <SlArrowDown className={'rotate-0'} size={18} />
+            )
+          }}
+        />
       ))}
     </div>
   )

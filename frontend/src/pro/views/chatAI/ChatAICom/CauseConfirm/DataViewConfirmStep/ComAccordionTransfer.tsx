@@ -1,12 +1,12 @@
-import { CAccordion, CAccordionBody, CAccordionHeader, CAccordionItem } from '@coreui/react'
-import { Transfer, TransferProps, Image, Checkbox, Button, Form, ConfigProvider } from 'antd'
+import { Transfer, TransferProps, Image, Checkbox, Button, Form, Collapse } from 'antd'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
 import { useChatAIContext } from 'src/pro/contexts/ChatAIContext'
-import styles from './index.module.scss'
 import { MdDeleteOutline } from 'react-icons/md'
 import { useUpdateEffect } from 'react-use'
 import { useTranslation } from 'react-i18next'
+import { SlArrowDown } from 'react-icons/sl'
+import styles from './index.module.scss'
 const i18nKey = 'causeConfirm'
 const ComAccordionTransfer = () => {
   const { t } = useTranslation('pro/chatAI')
@@ -72,6 +72,10 @@ const ComAccordionTransfer = () => {
       setTargetKeys(newTargetKeys)
     }
   }, [form.getFieldValue('type')])
+  const panelStyle = {
+    marginBottom: 12,
+    border: 'none',
+  }
   const accordion = (direction, item, index) => {
     return (
       <div
@@ -80,17 +84,30 @@ const ComAccordionTransfer = () => {
         onDragStart={() => handleDragStart(index)}
         onDragOver={(e) => handleDragOver(e, index)}
         onDrop={(e) => handleDrop(e, index)}
+        className="h-full flex items-center grow"
       >
-        <CAccordion className={styles.accordion}>
-          <CAccordionItem itemKey={item}>
-            <CAccordionHeader className={styles.accordionHeader}>
-              <span className="ml-2 h-[20px]">{dataViewType[item].title}</span>
-            </CAccordionHeader>
-            <CAccordionBody className="p-0">
-              <Image width={'100%'} src={dataViewType[item].exampleImg} />
-            </CAccordionBody>
-          </CAccordionItem>
-        </CAccordion>
+        <Collapse
+          className={styles.collapse}
+          bordered={false}
+          defaultActiveKey={[item]}
+          expandIconPosition={'end'}
+          items={[
+            {
+              key: item,
+              forceRender: true,
+              label: dataViewType[item].title,
+              children: <Image width={'100%'} src={dataViewType[item].exampleImg} />,
+              style: panelStyle,
+            },
+          ]}
+          expandIcon={({ isActive }) => {
+            return isActive ? (
+              <SlArrowDown className={'rotate-180'} size={10} />
+            ) : (
+              <SlArrowDown className={'rotate-0'} size={10} />
+            )
+          }}
+        />
       </div>
     )
   }
@@ -119,7 +136,7 @@ const ComAccordionTransfer = () => {
                     onChange={(e) => onChange(e.target.checked, item)}
                   ></Checkbox>
                 )}
-                <div className="flex-1 p-2 w-0">{accordion(direction, item, index)}</div>
+                <div className="flex-1 w-0 pl-2">{accordion(direction, item, index)}</div>
                 {direction === 'right' && (
                   <Button
                     color="danger"

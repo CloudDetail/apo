@@ -18,3 +18,38 @@
   overflow: hidden; /* 隐藏超出部分 */
   text-overflow: ellipsis; /* 显示省略号 */
 }
+
+.collapse {
+  background: transparent;
+  flex-grow: 1;
+  font-size: 12px;
+  :global {
+    .ant-collapse-item-active .ant-collapse-header {
+      background-color: #285587;
+      // background-color: #28334e;
+      //   background-color: #3A5A89;
+      border-radius: 8px 8px 0 0;
+    }
+    .ant-collapse-item {
+      background-color: #1a1d22;
+      border-radius: 8px !important;
+      margin: 2px 0 !important;
+      //   background-color: #3A5A89;
+      .ant-collapse-item-active {
+        border-radius: 8px;
+        box-shadow: none;
+      }
+      .ant-collapse-header {
+        border-left: 10px solid #285587;
+        border-radius: 6px !important;
+        display: flex;
+        align-items: center;
+        padding: 2px 8px;
+      }
+      box-shadow: 0 0 4px rgba(24, 104, 220, 0.5);
+    }
+    .ant-collapse-content-box {
+      padding: 4px !important;
+    }
+  }
+}

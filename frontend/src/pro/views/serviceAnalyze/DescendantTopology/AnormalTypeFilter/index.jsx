@@ -1,9 +1,9 @@
 import { Checkbox, Col, Row, Flex } from 'antd'
 import React from 'react'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 
 const AnormalTypeFilter = () => {
-  const { anormalTypes, setAnormalTypes, anormalTypesOptions } = useAlertAnalyzeContext()
+  const { anormalTypes, setAnormalTypes, anormalTypesOptions } = useServiceAnalyzeContext()
   return (
     <Flex vertical>
       <Checkbox.Group

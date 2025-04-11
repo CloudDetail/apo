@@ -1,9 +1,9 @@
 // @ts-ignore
-import { Badge, Select, Tag, Tabs } from 'antd'
+import { Select, Tag, Tabs } from 'antd'
 import Empty from 'src/core/components/Empty/Empty'
 // @ts-ignore
 import React, { useEffect, useState, useRef } from 'react'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 import { convertTime } from 'src/core/utils/time'
 // @ts-ignore
 import { VariableSizeList as List } from 'react-window'
@@ -12,7 +12,7 @@ import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer
 import { useTranslation } from 'react-i18next'
 const i18nKey = 'node'
 
-const AnormalList = () => {
+const AnormalList = ({ scrollHeight = null }) => {
   const { t } = useTranslation('pro/dataViewCom')
 
   const {
@@ -21,9 +21,9 @@ const AnormalList = () => {
     selectedNodeInfo,
     anormalTypes,
     anormalTypesOptions,
-  } = useAlertAnalyzeContext()
+  } = useServiceAnalyzeContext()
   const { startTime: stepStartTime, endTime: stepEndTime } = useSelector(selectSecondsTimeRange)
-  const viewportHeight = window.innerHeight
+  const viewportHeight = scrollHeight ?? window.innerHeight
   const [newAnormalList, setNewAnormalList] = useState([])
   const [updateAnormalList, setUpdateAnormalList] = useState([])
   const [resolvedAnormalList, setResolvedAnormalList] = useState([])
@@ -251,9 +251,9 @@ const AnormalList = () => {
     setAllAnormalList(filterByAnormalType(allAnormalList))
   }, [deltaAnormalEvents, finalAnormalEvents, selectedNodeInfo, anormalType])
   return (
-    <div style={{ height: viewportHeight }}>
+    <div style={{ height: viewportHeight }} className="flex flex-col">
       <div
-        className="flex items-start justify-between"
+        className="flex items-start justify-between shrink-0"
         style={{ flexDirection: 'column', marginBottom: '0px' }}
       >
         <div>
@@ -267,6 +267,7 @@ const AnormalList = () => {
             onChange={(value) => {
               setAnormalType(value)
             }}
+            className="text-xs"
             style={{
               width: '100%',
               minWidth: '240px',
@@ -292,6 +293,7 @@ const AnormalList = () => {
         }}
         key={key}
         style={{ width: '100%' }}
+        className="flex-1 h-0"
       >
         <div
           style={
@@ -311,7 +313,7 @@ const AnormalList = () => {
         >
           {currentList.length ? (
             <List
-              height={viewportHeight - 310}
+              height={viewportHeight - 150}
               width={'100%'}
               itemSize={getRowHeight}
               itemData={getList(anormalStatus)}

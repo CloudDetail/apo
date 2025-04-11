@@ -41,7 +41,7 @@ import 'react-date-range/dist/theme/default.css' // theme css file
 import { useSelector } from 'react-redux'
 import { Button, DatePicker, Dropdown, Popover } from 'antd'
 import dayjs from 'dayjs'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 import { useUpdateEffect } from 'react-use'
 // logs: logsFrom, logsTo
 // traces: traceFrom, traceTo
@@ -66,7 +66,7 @@ export default function DateTimeRangeSimple(props) {
   const [inputStartTime, setInputStartTime] = useState()
   const [inputEndTime, setInputEndTime] = useState()
   const storeTimeRange = useSelector((state) => state.timeRange)
-  const { deltaStartTime, deltaEndTime, changeAlertDescendantDelta } = useAlertAnalyzeContext()
+  const { deltaStartTime, deltaEndTime, changeAlertDescendantDelta } = useServiceAnalyzeContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [dateRange, setDateRange] = useState([new Date(), new Date()])
   // yyyy-mm-dd hh:mm:ss 时间输入

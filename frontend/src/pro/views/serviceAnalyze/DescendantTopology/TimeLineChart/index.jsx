@@ -1,13 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
-import DelayLineChart from 'src/core/components/Chart/DelayLineChart'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
-import { selectSecondsTimeRange, toNearestSecond } from 'src/core/store/reducers/timeRangeReducer'
-import { getStep } from 'src/core/utils/step'
-import { convertTime, timeUtils } from 'src/core/utils/time'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
+import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
+import { timeUtils } from 'src/core/utils/time'
 import ReactECharts from 'echarts-for-react'
 import _ from 'lodash'
-import { useUpdate, useUpdateEffect } from 'react-use'
+import { useUpdateEffect } from 'react-use'
 import { t } from 'i18next'
 const TimeLineChart = ({ rightWidth }) => {
   const {
@@ -16,7 +14,7 @@ const TimeLineChart = ({ rightWidth }) => {
     deltaStartTime,
     deltaEndTime,
     changeAlertDescendantDelta,
-  } = useAlertAnalyzeContext()
+  } = useServiceAnalyzeContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [currentMarkLineX, setCurrentMarkLineX] = useState(0)
   const chartRef = useRef(null)
@@ -86,19 +84,19 @@ const TimeLineChart = ({ rightWidth }) => {
           axisLabel: {
             hideOverlap: true,
             formatter: (value) => {
-              const time = new Date(value);
-              const now = new Date();
+              const time = new Date(value)
+              const now = new Date()
 
               if (timeUtils.getDiff(time, now, 'years') !== 0) {
-                return timeUtils.format(time, 'yyyy/MM/dd HH:mm');
+                return timeUtils.format(time, 'yyyy/MM/dd HH:mm')
               } else if (timeUtils.getDiff(time, now, 'days') !== 0) {
-                return timeUtils.format(time, 'MM/dd HH:mm');
+                return timeUtils.format(time, 'MM/dd HH:mm')
               } else if (timeUtils.getDiff(time, now, 'hours') !== 0) {
-                return timeUtils.format(time, 'HH:mm');
+                return timeUtils.format(time, 'HH:mm')
               } else if (timeUtils.getDiff(time, now, 'minutes') !== 0) {
-                return timeUtils.format(time, 'HH:mm:ss'); // 如果分钟不同，展示到秒
+                return timeUtils.format(time, 'HH:mm:ss') // 如果分钟不同，展示到秒
               }
-              return timeUtils.format(time, 'HH:mm:ss'); // 如果秒不同，展示到秒
+              return timeUtils.format(time, 'HH:mm:ss') // 如果秒不同，展示到秒
             },
           },
           min: startTime / 1000,

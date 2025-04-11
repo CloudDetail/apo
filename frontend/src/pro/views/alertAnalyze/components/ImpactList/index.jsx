@@ -225,7 +225,7 @@ const ImpactList = () => {
               color="primary"
               onClick={() => {
                 window.open(
-                  `#/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}`,
+                  `#/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}?service=${encodeURIComponent(row.serviceName)}&endpoint=${encodeURIComponent(row.endpoint)}`,
                 )
               }}
             >
@@ -304,7 +304,6 @@ const ImpactList = () => {
     if (pageData?.length > 0) {
       latestController.current.abort()
       latestController.current = new AbortController()
-      console.log(latestController.current)
       getServiceCharts()
     }
   }, [pageData])

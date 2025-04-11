@@ -1,7 +1,7 @@
 import { Tabs, Tooltip } from 'antd'
 import React from 'react'
 import AnormalList from '../AnormalList'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 import { convertTime } from 'src/core/utils/time'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
@@ -10,7 +10,7 @@ const i18nKey = 'node'
 
 const AnormalTab = () => {
   const { t } = useTranslation('pro/serviceAnalyze')
-  const { deltaStartTime, deltaEndTime } = useAlertAnalyzeContext()
+  const { deltaStartTime, deltaEndTime } = useServiceAnalyzeContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const items = [
     {

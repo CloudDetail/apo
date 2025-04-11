@@ -1,5 +1,4 @@
-import { CAccordionBody, CImage } from '@coreui/react'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { getPolarisInferApi } from 'src/core/api/serviceInfo'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
@@ -7,10 +6,10 @@ import 'react-image-lightbox/style.css'
 import Lightbox from 'react-image-lightbox'
 import { getStep } from 'src/core/utils/step'
 import { useDebounce } from 'react-use'
-import { Skeleton, Table, Button, Select, Flex, Typography, Divider } from 'antd'
+import { Skeleton, Table, Button, Select, Flex, Divider } from 'antd'
 import FaultReportModal from './FaultReportModal'
 import { InfoCircleFilled } from '@ant-design/icons'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 import { SlowErrorType } from 'src/constants'
 import { useTranslation } from 'react-i18next'
 import i18next from 'i18next'
@@ -26,7 +25,7 @@ const options = [
 
 function PolarisMetricsInfo({ service, endpoint }) {
   const { t } = useTranslation('pro/serviceAnalyze')
-  const { selectedNodeInfo } = useAlertAnalyzeContext()
+  const { selectedNodeInfo } = useServiceAnalyzeContext()
   const [image, setImage] = useState()
   const [inferCause, setInferCause] = useState()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
