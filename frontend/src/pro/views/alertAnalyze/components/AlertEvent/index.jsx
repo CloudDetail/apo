@@ -28,13 +28,16 @@ const AlertEventTable = ({ scrolllHeight }) => {
       accessor: 'group',
       customWidth: 100,
       Cell: ({ value }) => {
-        return groupLabel[value]
+        return <span className=" break-keep">{groupLabel[value]}</span>
       },
     },
     {
       title: t(`${i18nKey}.alertName`),
       accessor: 'name',
       customWidth: 150,
+      Cell: ({ value }) => {
+        return <span className=" break-keep">{value}</span>
+      },
     },
     {
       title: t(`${i18nKey}.lastAlertTime`),
