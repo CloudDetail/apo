@@ -38,17 +38,6 @@ export const useRoleActions = () => {
       {
         userId,
         roleList: [roleId]
-      },
-      {
-        onSuccess: () => {
-          showToast({
-            title: t('index.revokeSuccess'),
-            color: 'success',
-          });
-        },
-        onError: (error) => {
-          console.error('撤销用户角色失败:', error);
-        }
       }
     );
   };

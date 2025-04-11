@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { showToast } from 'src/core/utils/toast';
 import { User } from 'src/core/types/user';
 import * as userApi from 'src/core/api/user';
+import { useRoleActions } from './useRoleActions';
 
 interface UserSearchParams {
   username?: string;
@@ -15,6 +16,7 @@ interface UpdateUserData {
   corporation?: string;
   email?: string;
   phone?: string;
+  roleId?: number | string;
 }
 
 interface PasswordData {
@@ -23,6 +25,8 @@ interface PasswordData {
 }
 
 export const useUserActions = () => {
+  const { handleRevokeUserRole } = useRoleActions();
+
   const { t } = useTranslation('core/userManage');
 
   const api = {
@@ -75,8 +79,12 @@ export const useUserActions = () => {
 
   // 更新用户信息
   const updateUser = async (user: User, updates: UpdateUserData) => {
-    const { corporation, email, phone } = updates;
+    const { corporation, email, phone, roleId } = updates;
     const tasks = [];
+
+    if (roleId !== user.roleList[0].roleId) {
+      tasks.push(handleRevokeUserRole(user.userId, roleId));
+    }
 
     if (corporation !== user.corporation) {
       tasks.push(api.updateCorporation.sendRequest({ userId: user.userId, corporation }));
@@ -88,8 +96,10 @@ export const useUserActions = () => {
       tasks.push(api.updatePhone.sendRequest({ username: user.username, phone }));
     }
 
-    await Promise.all(tasks);
-    showToast({ title: t('index.updateSuccess'), color: 'success' });
+    if (tasks.length > 0) {
+      await Promise.all(tasks);
+      showToast({ title: t('index.updateSuccess'), color: 'success' });
+    }
   };
 
   // 重置密码

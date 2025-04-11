@@ -52,8 +52,9 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             <Input disabled />
           </Form.Item>
           <Form.Item
-            name="role"
+            name="roleId"
             label={t('index.role')}
+            initialValue={user?.roleList[0]?.roleId}
             rules={[{ required: true, message: t('addModal.selectRole') }]}
             style={{ marginBottom: 0, flex: 1 }}
           >

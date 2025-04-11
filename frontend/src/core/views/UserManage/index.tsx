@@ -196,9 +196,6 @@ export default function UserManage() {
         onFinish={async (values) => {
           if (!selectedUser) return;
           try {
-            if (values.role !== selectedUser.role) {
-              await handleRevokeUserRole(selectedUser.userId, values.role);
-            }
             await updateUser(selectedUser, values);
             toggleModal('edit', false);
             handleFetchUsers();
