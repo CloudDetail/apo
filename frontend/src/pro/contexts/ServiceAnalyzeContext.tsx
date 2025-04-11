@@ -184,7 +184,7 @@ export const ServiceAnalyzeProvider: React.FC<{ children: ReactNode }> = ({ chil
         chartKeys[0],
       )
 
-      const maxcountTimestamp = Number(maxCountTimestamp)
+      let maxcountTimestamp = Number(maxCountTimestamp)
       if (maxcountTimestamp - step < stepStartTime) {
         maxcountTimestamp = stepStartTime + step
       }
@@ -368,7 +368,9 @@ export const ServiceAnalyzeProvider: React.FC<{ children: ReactNode }> = ({ chil
         initAlertDescendantTrend(),
         initAlertDescendantDelta(),
       ])
-    } finally {
+    } catch(error){
+      console.log(error)
+    }finally {
       setLoading(false)
     }
   }
