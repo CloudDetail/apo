@@ -10,7 +10,7 @@ import { useUserContext } from 'src/core/contexts/UserContext';
 import LoadingSpinner from 'src/core/components/Spinner';
 import { getUserListApi, removeUserApi, createUserApi, updateCorporationApi, updateEmailApi, updatePhoneApi, updatePasswordWithNoOldPwdApi } from 'src/core/api/user';
 import { getAllRolesApi, revokeUserRoleApi } from 'src/core/api/role'
-import { useRoles } from 'src/core/hooks/useRoles';
+import { useRoleList } from './hooks/useRoleList';
 import { useApiParams } from 'src/core/hooks/useApiParams';
 import FormModal from 'src/core/components/Modal/FormModal';
 import { showToast } from 'src/core/utils/toast';
@@ -61,7 +61,7 @@ export default function UserManage() {
   const { sendRequest: updateUserPhone } = useApiParams(updatePhoneApi);
   const { sendRequest: resetUerPassword } = useApiParams(updatePasswordWithNoOldPwdApi);
 
-  const { roleList, selectedRole, selectRole } = useRoles();
+  const { roleList, loading: roleLoading, fetchRoles } = useRoleList();
 
   // 获取用户列表
   const fetchUsers = async (page = currentPage, size = pageSize, search = searchParams) => {
@@ -246,6 +246,7 @@ export default function UserManage() {
   // 初始化加载
   useEffect(() => {
     fetchUsers();
+    fetchRoles();
   }, []);
 
   // 处理分页变化
@@ -285,7 +286,7 @@ export default function UserManage() {
 
   return (
     <>
-      <LoadingSpinner loading={loading} />
+      <LoadingSpinner loading={loading || roleLoading} />
       <div className={style.userManageContainer}>
         <SearchBar
           username={searchParams.username}

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Menu, Layout, Card, Typography } from 'antd';
 import { TeamOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { updateRoleApi } from 'src/core/api/role';
@@ -11,21 +11,19 @@ import LoadingSpinner from 'src/core/components/Spinner';
 import { useUserContext } from 'src/core/contexts/UserContext';
 import { showToast } from 'src/core/utils/toast';
 import { useTranslation } from 'react-i18next';
-import { useRoles } from 'src/core/hooks/useRoles';
+import { useRoleList } from './useRoleList';
 import { useApiParams } from 'src/core/hooks/useApiParams';
 import PermissionTree from 'src/core/components/PermissionTree';
-import classNames from 'classnames';
+import { Role } from 'src/core/types/role';
 
 function MenuManagePage() {
-  const { roleList, selectedRole, loading, selectRole } = useRoles();
+  const { roleList, loading, fetchRoles } = useRoleList();
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const { t } = useTranslation('core/menuManage');
   const { getUserPermission } = useUserContext();
-
-  // 使用 useApiParams 钩子处理角色权限更新
   const { sendRequest: updateRole, loading: updateLoading } = useApiParams(updateRoleApi);
 
   // 将角色列表转换为菜单项
-  // 优化菜单项，添加图标
   const menuItems = useMemo(() => {
     return roleList.map((role) => ({
       key: role.roleId,
@@ -36,7 +34,8 @@ function MenuManagePage() {
 
   // 处理菜单选择
   const onSelect = ({ key }: { key: string }) => {
-    selectRole(key);
+    const role = roleList.find(role => role.roleId == key);
+    setSelectedRole(role || null);
   };
 
   // 处理权限保存
@@ -55,8 +54,6 @@ function MenuManagePage() {
             title: t('index.menuConfigSuccess'),
             color: 'success',
           });
-
-          // 更新用户权限
           getUserPermission();
         },
         onError: (error) => {
@@ -65,6 +62,10 @@ function MenuManagePage() {
       }
     );
   };
+
+  useEffect(() => {
+    fetchRoles();
+  }, []);
 
   return (
     <Layout style={{ height: 'calc(100vh - 100px)', overflow: 'hidden' }}>
