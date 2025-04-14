@@ -166,7 +166,7 @@ func (repo *daoRepo) RevokeRoleWithRole(ctx context.Context, roleID int) error {
 func (repo *daoRepo) RoleGranted(roleID int) (bool, error) {
 	var count int64
 
-	err := repo.db.Model(&UserRole{}).Where("role_id = ?", roleID).Count(&count).Error
+	err := repo.db.Model(&UserRole{}).Distinct("router_id").Where("role_id = ?", roleID).Count(&count).Error
 	if err != nil {
 		return false, err
 	}
