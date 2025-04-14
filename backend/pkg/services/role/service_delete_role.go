@@ -21,9 +21,13 @@ func (s *service) DeleteRole(req *request.DeleteRoleRequest) error {
 		return model.NewErrWithMessage(errors.New("role does not exist"), code.RoleNotExistsError)
 	}
 
+	var revokeRoleFunc = func(ctx context.Context) error {
+		return s.dbRepo.RevokeRoleWithRole(ctx, req.RoleID)
+	}
+
 	var deleteFunc = func(ctx context.Context) error {
 		return s.dbRepo.DeleteRole(ctx, req.RoleID)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), deleteFunc)
+	return s.dbRepo.Transaction(context.Background(), revokeRoleFunc, deleteFunc)
 }

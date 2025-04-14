@@ -5,6 +5,12 @@ permissions:
 
 on:
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Deploy to dev environment'
+        required: true
+        type: boolean
+        default: false
   push:
     branches:
       - main
@@ -63,7 +69,7 @@ jobs:
   deploy-dev:
     runs-on: [self-hosted, dev]
     needs: [build-frontend]
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.deploy == 'true')
     steps:
     - name: Deploy to dev
       env: 
