@@ -64,5 +64,5 @@ func (s *service) RemoveUser(userID int64) error {
 		return s.dbRepo.RevokePermission(ctx, userID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE, nil)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), revokeFeaturePermFunc, deleteAuthDataGroupFunc, revokeRoleFunc,  removeFromTeam, removeUserFunc, removeDifyUserFunc)
+	return s.dbRepo.Transaction(context.Background(), revokeFeaturePermFunc, deleteAuthDataGroupFunc, revokeRoleFunc, removeFromTeam, removeUserFunc, removeDifyUserFunc)
 }

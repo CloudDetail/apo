@@ -69,7 +69,8 @@ type Repo interface {
 	GrantPermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
 	RevokePermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
 	GetAddAndDeletePermissions(subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error)
-	RoleGranted(userID int64, roleID int) (bool, error)
+	RoleGrantedToUser(userID int64, roleID int) (bool, error)
+	RoleGranted(roleID int) (bool, error)
 	FillItemRouter(items *[]MenuItem) error
 	GetItemsRouter(itemIDs []int) ([]Router, error)
 	GetRouter(routerTo string) (*Router, error)

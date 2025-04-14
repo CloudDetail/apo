@@ -136,7 +136,7 @@ var enText = map[string]string{
 	RoleNotExistsError:         "Role does not exist",
 	GetMenuConfigError:         "Failed to get menu config",
 	UpdateMenuConfigError:      "Failed to update menu config",
-	RoleGrantedError:           "Role already granted to user",
+	RoleGrantedError:           "Role has been granted to user",
 	GetFeatureError:            "Failed to get feature list",
 	AuthSubjectNotExistError:   "Subject of authorisation does not exist",
 	UserGrantPermissionError:   "Failed to grant permission",

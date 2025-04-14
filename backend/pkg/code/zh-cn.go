@@ -139,7 +139,7 @@ var zhCnText = map[string]string{
 	RoleNotExistsError:         "角色不存在",
 	GetMenuConfigError:         "获取菜单栏配置失败",
 	UpdateMenuConfigError:      "更新菜单栏配置失败",
-	RoleGrantedError:           "已经为用户分配过该权限",
+	RoleGrantedError:           "角色被分配",
 	GetFeatureError:            "获取功能列表失败",
 	AuthSubjectNotExistError:   "授权主体不存在",
 	UserGrantPermissionError:   "授权失败",
