@@ -27,7 +27,6 @@ interface FormSectionProps {
   confirmLoading?: boolean;
 }
 
-// 表单区域组件
 const FormSection: React.FC<FormSectionProps> = ({
   form: externalForm,
   onFinish,
@@ -65,7 +64,7 @@ const FormSection: React.FC<FormSectionProps> = ({
   );
 };
 
-// 为FormModal添加静态属性
+// Add static attributes for FormModal
 const FormModal: React.FC<FormModalProps> & { Section: typeof FormSection } = ({
   title,
   open,

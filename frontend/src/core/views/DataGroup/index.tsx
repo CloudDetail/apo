@@ -167,7 +167,7 @@ export default function DataGroupPage() {
         <Table
           dataSource={data}
           columns={columns}
-          pagination={{ current: currentPage, pageSize: pageSize, total: total }}
+          pagination={{ current: currentPage, pageSize: pageSize, total: total, hideOnSinglePage: true }}
           onChange={changePagination}
           scroll={{ y: 'calc(100vh - 240px)' }}
           className="overflow-auto"

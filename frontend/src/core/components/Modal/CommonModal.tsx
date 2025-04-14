@@ -21,8 +21,7 @@ interface CommonModalProps {
 }
 
 /**
- * 通用模态框组件
- * 可用于各种表单和展示场景
+ * Common Ant Modal component
  */
 const CommonModal: React.FC<CommonModalProps> = ({
   title,
@@ -41,13 +40,13 @@ const CommonModal: React.FC<CommonModalProps> = ({
   className,
   formId
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('common')
 
-  // 默认的底部按钮
+  // Default bottom buttons
   const defaultFooter = (
     <>
       <Button onClick={onCancel}>
-        {cancelText || t('cancel', '取消')}
+        {cancelText || t('cancel')}
       </Button>
       <Button
           type="primary"
@@ -56,7 +55,7 @@ const CommonModal: React.FC<CommonModalProps> = ({
           htmlType={formId ? 'submit' : 'button'}
           form={formId}
       >
-        {okText || t('confirm', '确定')}
+        {okText || t('confirm')}
       </Button>
     </>
   );

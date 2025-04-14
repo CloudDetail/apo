@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Input, Flex, ConfigProvider, Popconfirm, Space, Dropdown, Form, Pagination, Divider, Select, Radio } from 'antd';
+import variables from 'src/core/scss/_variables.scss';
 import { DownOutlined } from '@ant-design/icons';
 import { MdOutlineModeEdit } from 'react-icons/md';
 import { RiDeleteBin5Line } from 'react-icons/ri';
@@ -137,33 +138,31 @@ export default function UserManage() {
           onAddUser={() => toggleModal('add', true)}
         />
 
-        <ConfigProvider theme={{ components: { Table: { headerBg: '#222631' } } }}>
-          <Flex vertical className="w-full flex-1 pb-4 justify-between">
-            <UserTable
-              userList={userList}
-              loading={loading}
-              onEdit={(user) => {
-                setSelectedUser(user);
-                toggleModal('edit', true);
-              }}
-              onDelete={handleRemoveUser}
-              onAuthorize={(user) => {
-                setSelectedUser(user);
-                toggleModal('authorize', true);
-              }}
-            />
-            <Pagination
-              className="mt-4 absolute bottom-0 right-0"
-              current={currentPage}
-              pageSize={pageSize}
-              total={total}
-              pageSizeOptions={['10', '30', '50']}
-              showSizeChanger
-              onChange={handlePaginationChange}
-              showQuickJumper
-            />
-          </Flex>
-        </ConfigProvider>
+        <Flex vertical className="w-full flex-1 pb-4 justify-between">
+          <UserTable
+            userList={userList}
+            loading={loading}
+            onEdit={(user) => {
+              setSelectedUser(user);
+              toggleModal('edit', true);
+            }}
+            onDelete={handleRemoveUser}
+            onAuthorize={(user) => {
+              setSelectedUser(user);
+              toggleModal('authorize', true);
+            }}
+          />
+          <Pagination
+            className="mt-4 absolute bottom-0 right-0"
+            current={currentPage}
+            pageSize={pageSize}
+            total={total}
+            pageSizeOptions={['10', '30', '50']}
+            showSizeChanger
+            onChange={handlePaginationChange}
+            showQuickJumper
+          />
+        </Flex>
       </div>
 
       <AddUserModal

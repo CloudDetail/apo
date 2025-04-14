@@ -82,7 +82,7 @@ function MenuManagePage() {
             style={{ borderTopLeftRadius: '0px', borderBottomLeftRadius: '0px' }}
             styles={{
               body: {
-                padding: '0px', paddingBlockStart: '2px', paddingInlineEnd: '12px'
+                padding: '0px', paddingBlockStart: '2px'
               },
               header: {
                 backgroundColor: '#1d1d1d',
@@ -103,6 +103,7 @@ function MenuManagePage() {
                 onSave={handleSavePermissions}
                 className="permission-tree"
                 style={{ height: 'calc(100vh - 240px)', border: 'none' }}
+                actionStyle={{ paddingInlineEnd: '32px', justifyContent: 'flex-end' }}
               />
             ) : (
               <div className="text-center text-gray-500 py-8">

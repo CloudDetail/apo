@@ -34,6 +34,7 @@ export const PermissionModal: React.FC<PermissionModalProps> = ({
           onSave={onSave}
           style={{ height: 'calc(100vh - 210px)', overflow: 'auto' }}
           styles={{ body: { padding: '8px' } }}
+          actionStyle={{ paddingBlockEnd: '0px', justifyContent: 'flex-end' }}
         />
       )}
     </CommonModal>

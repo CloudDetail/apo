@@ -100,7 +100,7 @@ export const UserTable: React.FC<UserTableProps> = ({
       columns={columns}
       pagination={false}
       loading={loading}
-      scroll={{ y: 'calc(100vh - 220px)' }}
+      scroll={{ y: 'calc(100vh - 240px)' }}
     />
   );
 };

@@ -76,6 +76,8 @@ export const RoleTable: React.FC<RoleTableProps> = ({
       dataSource={roleList}
       columns={columns}
       rowKey="roleId"
+      pagination={{ hideOnSinglePage: true }}
+      scroll={{ y: 'calc(100vh - 240px)' }}
     />
   );
 };

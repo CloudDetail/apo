@@ -48,7 +48,7 @@ function PermissionTree({
 
   // Check if controlled mode
   const isControlled = value !== undefined || onChange !== undefined;
-  const checkedKeys = isControlled ? value : internalCheckedKeys;
+  const checkedKeys = isControlled ? value || [] : internalCheckedKeys;
 
   const onCheck = (checkedKeysValue: React.Key[] | { checked: React.Key[]; halfChecked: React.Key[] }) => {
     const newCheckedKeys = Array.isArray(checkedKeysValue) ? checkedKeysValue : checkedKeysValue.checked;
@@ -133,14 +133,14 @@ function PermissionTree({
     <Flex justify='flex-end' className='w-full' style={actionStyle}>
       <Button
         type="primary"
-        className="m-4"
+        className="m-4 mb-0"
         onClick={handleSelectAll}
         icon={<BsCheckAll />}
       >
         {t('selectAll')}
       </Button>
       {!isControlled && (
-        <Button type="primary" className="my-4" onClick={() => onSave?.(checkedKeys)}>
+        <Button type="primary" className="mt-4" onClick={() => onSave?.(checkedKeys)}>
           {t('save')}
         </Button>
       )}
