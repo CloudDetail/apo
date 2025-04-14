@@ -37,6 +37,7 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 		{"系统配置", "systemConfig"},
 		{"数据组管理", "dataGroup"},
 		{"团队管理", "team"},
+		{"角色管理", "role"},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
