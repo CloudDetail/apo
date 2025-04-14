@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useApiParams } from 'src/core/hooks/useApiParams';

@@ -1,20 +1,15 @@
 /**
- * Copyright 2024 CloudDetail
+ * Copyright 2025 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Menu, Layout, Card, Typography } from 'antd';
 import { TeamOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
-import { updateRoleApi } from 'src/core/api/role';
 import LoadingSpinner from 'src/core/components/Spinner';
-import { useUserContext } from 'src/core/contexts/UserContext';
-import { showToast } from 'src/core/utils/toast';
 import { useTranslation } from 'react-i18next';
 import { useMenuPermission } from './useMenuPermission';
-import { useApiParams } from 'src/core/hooks/useApiParams';
 import PermissionTree from 'src/core/components/PermissionTree';
-import { Role } from 'src/core/types/role';
 
 function MenuManagePage() {
   const {

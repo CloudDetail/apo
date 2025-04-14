@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React from 'react';
 import { Input, Flex, Button } from 'antd';
 import { BsPersonFillAdd } from 'react-icons/bs';

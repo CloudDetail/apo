@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React from 'react';
 import { Table, Button, Popconfirm } from 'antd';
 import { MdOutlineModeEdit } from 'react-icons/md';

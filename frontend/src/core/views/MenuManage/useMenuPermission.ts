@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useState } from "react";
 import { getAllRolesApi, updateRoleApi } from "src/core/api/role";
 import { useApiParams } from "src/core/hooks/useApiParams";

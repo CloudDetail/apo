@@ -1,20 +1,12 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Flex, ConfigProvider, Popconfirm, Space, Dropdown, Form, Pagination, Divider, Select, Radio } from 'antd';
-import variables from 'src/core/scss/_variables.scss';
-import { DownOutlined } from '@ant-design/icons';
-import { MdOutlineModeEdit } from 'react-icons/md';
-import { RiDeleteBin5Line } from 'react-icons/ri';
-import { LuShieldCheck } from 'react-icons/lu';
-import { BsPersonFillAdd } from 'react-icons/bs';
-import { useTranslation } from 'react-i18next';
-import { useUserContext } from 'src/core/contexts/UserContext';
+import { Flex, Pagination } from 'antd';
 import LoadingSpinner from 'src/core/components/Spinner';
-import { getUserListApi, removeUserApi, createUserApi, updateCorporationApi, updateEmailApi, updatePhoneApi, updatePasswordWithNoOldPwdApi } from 'src/core/api/user';
-import { getAllRolesApi, revokeUserRoleApi } from 'src/core/api/role'
 import { useRoleActions } from './hooks/useRoleActions';
-import { useApiParams } from 'src/core/hooks/useApiParams';
-import FormModal from 'src/core/components/Modal/FormModal';
-import { showToast } from 'src/core/utils/toast';
 import DataGroupAuthorizeModal from 'src/core/components/PermissionAuthorize/DataGroupAuthorizeModal';
 import { User } from 'src/core/types/user';
 import style from 'src/core/views/UserManage/index.module.css';
@@ -32,7 +24,6 @@ interface UserSearchParams {
 }
 
 export default function UserManage() {
-  const { t } = useTranslation('core/userManage');
   const [userList, setUserList] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React from 'react';
 import { Form, Input, Select, Flex } from 'antd';
 import { useTranslation } from 'react-i18next';

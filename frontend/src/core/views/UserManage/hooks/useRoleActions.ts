@@ -1,9 +1,12 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useState } from "react";
 import { getAllRolesApi, revokeUserRoleApi } from "src/core/api/role";
 import { useApiParams } from "src/core/hooks/useApiParams";
 import { Role } from "src/core/types/role";
-import { showToast } from "src/core/utils/toast";
-import { useTranslation } from "react-i18next";
 
 export interface RoleOption {
   label: string;
@@ -12,7 +15,6 @@ export interface RoleOption {
 }
 
 export const useRoleActions = () => {
-  const { t } = useTranslation('core/userManage');
   const [roleList, setRoleList] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
 

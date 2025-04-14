@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useApiParams } from 'src/core/hooks/useApiParams';
 import { useTranslation } from 'react-i18next';
 import { showToast } from 'src/core/utils/toast';
