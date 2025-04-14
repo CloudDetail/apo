@@ -111,11 +111,11 @@
       min-width: 24px;
       flex: auto;
       align-items: center;
-      padding: 8px;
       display: flex;
 
       justify-content: center;
-      color: rgb(161 161 170)
+      color: rgb(161 161 170);
+      word-break: normal;
     }
 
     td {
@@ -125,7 +125,6 @@
       align-items: center;
       align-content: center;
       flex: auto;
-      padding: 8px;
       height: initial;
       white-space: pre-wrap;
       display: flex;

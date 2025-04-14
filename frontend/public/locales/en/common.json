@@ -38,7 +38,7 @@
     "tps": "Throughput"
   },
   "units": {
-    "unit": "unit",
+    "unit": "Entry",
     "timesPerMinute": "tpm"
   },
   "ruleGroupMap": {

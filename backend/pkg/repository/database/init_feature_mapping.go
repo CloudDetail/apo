@@ -65,7 +65,7 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 			}
 
 			var menuItem MenuItem
-			if err := tx.Where("key = ?", mapping.MenuKey).First(&menuItem).Error; err != nil {
+			if err := tx.Where(`"key" = ?`, mapping.MenuKey).First(&menuItem).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					continue
 				}
