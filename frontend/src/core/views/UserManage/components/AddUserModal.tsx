@@ -31,7 +31,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
   onCancel,
   onFinish,
 }) => {
-  const { t } = useTranslation('core/userManage');
+  const { t, i18n } = useTranslation('core/userManage');
 
   return (
     <FormModal
@@ -45,16 +45,16 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
         <Flex gap={8} className="mb-6">
           <Form.Item
             name="username"
-            labelCol={{ span: 8 }}
+            labelCol={{ span: i18n.language === 'zh' ? 8 : 10 }}
             label={t('index.userName')}
             rules={[{ required: true, message: t('index.userNameRequired') }]}
-            style={{ marginBottom: 0, flex: 1 }}
+            style={{ marginBottom: 0, flex: 1, marginLeft: i18n.language === 'zh' ? 0 : 50 }}
           >
             <Input autoComplete="new-user" />
           </Form.Item>
           <Form.Item
             name="roleId"
-            labelCol={{ span: 8 }}
+            labelCol={{ span: i18n.language === 'zh' ? 8 : 10 }}
             label={t('index.role')}
             rules={[{ required: true, message: t('addModal.roleRequired') }]}
             style={{ marginBottom: 0, flex: 1 }}

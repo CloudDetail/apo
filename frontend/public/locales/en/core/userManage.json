@@ -61,7 +61,7 @@
     "newPasswordPlaceholder": "Please enter password",
     "newPasswordRequired": "Please enter password",
     "newPasswordPattern": "Password must contain uppercase letters, lowercase letters, special characters, and be longer than 8 characters",
-    "confirmPassword": "Confirm New Password",
+    "confirmPassword": "Confirm Password",
     "confirmPasswordPlaceholder": "Please re-enter password",
     "confirmPasswordRequired": "Please re-enter password",
     "confirmPasswordMismatch": "The two passwords do not match",

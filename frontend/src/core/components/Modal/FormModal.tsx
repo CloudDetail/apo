@@ -38,7 +38,7 @@ const FormSection: React.FC<FormSectionProps> = ({
   confirmLoading
 }) => {
   const [form] = Form.useForm(externalForm);
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
 
   return (
     <Form
@@ -47,7 +47,7 @@ const FormSection: React.FC<FormSectionProps> = ({
       autoComplete="off"
       onFinish={onFinish}
       initialValues={initialValues}
-      labelCol={{ span: 4 }}
+      labelCol={{ span: i18n.language === 'zh' ? 4 : 7 }}
       // wrapperCol={{ span: 18 }}
       {...formProps}
     >
