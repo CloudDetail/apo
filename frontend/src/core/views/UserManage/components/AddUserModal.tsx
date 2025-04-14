@@ -100,6 +100,8 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
         <Form.Item
           name="phone"
           label={t('index.phone')}
+          // Regular expression of Chinese mainland mobile phone number
+          rules={[{ pattern: /^1[3-9]\d{9}$/, message: t('addModal.phoneInvalid') }]}
         >
           <Input />
         </Form.Item>

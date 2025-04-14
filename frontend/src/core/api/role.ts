@@ -28,6 +28,5 @@ export function createRoleApi(params) {
 }
 
 export function updateRoleApi(params) {
-  console.log('updateRoleApi: ', params)
   return post(`/api/role/update`, params, headers.formUrlencoded)
 }

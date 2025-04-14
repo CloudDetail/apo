@@ -15,7 +15,9 @@
     "addUser": "Add User",
     "deleteSuccess": "Successfully deleted user",
     "dataGroup": "Data Permissions",
-    "revokeSuccess": "Successfully revoked user"
+    "revokeSuccess": "Successfully revoked user",
+    "updateSuccess": "Successfully updated user",
+    "addSuccess": "Successfully added user"
   },
   "addModal": {
     "title": "Add User",

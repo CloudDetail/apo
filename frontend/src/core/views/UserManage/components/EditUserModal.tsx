@@ -79,6 +79,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
         <Form.Item
           name="phone"
           label={t('index.phone')}
+          // Regular expression of Chinese mainland mobile phone number
           rules={[{ pattern: /^1[3-9]\d{9}$/, message: t('editModal.phoneInvalid') }]}
         >
           <Input placeholder={t('editModal.phonePlaceholder')} />

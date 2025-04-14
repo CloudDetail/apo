@@ -39,7 +39,6 @@ export const useUserActions = () => {
     resetPassword: useApiParams(userApi.updatePasswordWithNoOldPwdApi)
   };
 
-  // 获取用户列表
   const fetchUsers = async (params: UserSearchParams) => {
     const result = await api.getList.sendRequest(params, { useURLSearchParams: false });
     if (result) {
@@ -55,7 +54,6 @@ export const useUserActions = () => {
     return null;
   };
 
-  // 删除用户
   const removeUserById = async (userId: string | number) => {
     await api.remove.sendRequest(
       { userId },
@@ -68,7 +66,6 @@ export const useUserActions = () => {
     );
   };
 
-  // 创建用户
   const createNewUser = async (userData: Record<string, any>) => {
     await api.create.sendRequest(userData, {
       onSuccess: () => {
@@ -77,7 +74,6 @@ export const useUserActions = () => {
     });
   };
 
-  // 更新用户信息
   const updateUser = async (user: User, updates: UpdateUserData) => {
     const { corporation, email, phone, roleId } = updates;
     const tasks = [];
@@ -102,7 +98,6 @@ export const useUserActions = () => {
     }
   };
 
-  // 重置密码
   const resetPassword = async (userId: string | number, passwordData: PasswordData) => {
     await api.resetPassword.sendRequest({
       userId,

@@ -19,7 +19,6 @@ export const useRoleActions = () => {
   const { sendRequest: fetchRolesRequest } = useApiParams(getAllRolesApi);
   const { sendRequest: revokeUserRole } = useApiParams(revokeUserRoleApi);
 
-  // 获取角色列表
   const fetchRoles = async () => {
     setLoading(true);
     try {
@@ -32,7 +31,6 @@ export const useRoleActions = () => {
     }
   };
 
-  // 更改用户角色
   const handleRevokeUserRole = async (userId: string | number, roleId: string | number) => {
     await revokeUserRole(
       {
@@ -42,7 +40,7 @@ export const useRoleActions = () => {
     );
   };
 
-  // 转换角色列表为下拉菜单选项
+  // Get role dropdown menu options
   const getRoleOptions = (): RoleOption[] => {
     return roleList.map((role) => ({
       label: role.roleName,

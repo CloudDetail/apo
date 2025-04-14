@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Button } from 'antd';
+import { Table, Button, Popconfirm } from 'antd';
 import { MdOutlineModeEdit } from 'react-icons/md';
 import { RiDeleteBin5Line } from 'react-icons/ri';
 import { LuShieldCheck } from 'react-icons/lu';
@@ -49,15 +49,14 @@ export const RoleTable: React.FC<RoleTableProps> = ({
             {t('index.edit')}
           </Button>
           {record.roleName !== 'admin' && (
-            <Button
-              onClick={() => onDelete(record.roleId)}
-              icon={<RiDeleteBin5Line />}
-              type="text"
-              danger
-              className="mr-2"
-            >
-              {t('index.delete')}
-            </Button>
+            <Popconfirm
+              title={t('index.confirmDelete', { name: record.roleName })}
+              onConfirm={() => onDelete(record.roleId)}
+              >
+              <Button type="text" icon={<RiDeleteBin5Line />} danger className="mr-1">
+                {t('index.delete')}
+              </Button>
+            </Popconfirm>
           )}
           <Button
             color="primary"

@@ -15,7 +15,9 @@
     "addUser": "新增用户",
     "deleteSuccess": "删除用户成功",
     "dataGroup": "数据权限",
-    "revokeSuccess": "修改成功"
+    "revokeSuccess": "修改成功",
+    "updateSuccess": "更新用户成功",
+    "addSuccess": "添加用户成功"
   },
   "addModal": {
     "title": "新增用户",
