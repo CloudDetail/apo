@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { ReactNode } from 'react';
 import { Form, FormInstance, Space, Button, Flex } from 'antd';
 import CommonModal from './CommonModal';

@@ -1,9 +1,14 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useState } from 'react';
 
 /**
- * 用于构建 API 参数并发送请求的钩子
- * @param apiFunction 要调用的 API 函数
- * @returns 包含构建参数和发送请求方法的对象
+ * Hook for building API parameters and sending requests
+ * @param apiFunction API function to call
+ * @returns Object containing parameter builder and request methods
  */
 export function useApiParams<T = any, P = any>(
   apiFunction: (params: URLSearchParams | P) => Promise<T>
@@ -13,17 +18,17 @@ export function useApiParams<T = any, P = any>(
   const [data, setData] = useState<T | null>(null);
 
   /**
-   * 构建 URLSearchParams 并发送请求
-   * @param paramsObj 参数对象
-   * @param options 请求选项
-   * @returns 请求结果
+   * Build URLSearchParams and send request
+   * @param paramsObj Parameter object
+   * @param options Request options
+   * @returns Request result
    */
   const sendRequest = async (
     paramsObj: Record<string, any>,
     options?: {
       onSuccess?: (data: T) => void;
       onError?: (error: Error) => void;
-      useURLSearchParams?: boolean; // 是否使用 URLSearchParams
+      useURLSearchParams?: boolean; // Whether to use URLSearchParams
     }
   ): Promise<T | null> => {
     const { onSuccess, onError, useURLSearchParams = true } = options || {};
@@ -35,31 +40,31 @@ export function useApiParams<T = any, P = any>(
       let params: URLSearchParams | P;
 
       if (useURLSearchParams) {
-        // 构建 URLSearchParams
+        // Build URLSearchParams
         params = new URLSearchParams();
 
-        // 处理普通键值对
+        // Process key-value pairs
         Object.entries(paramsObj).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
             if (Array.isArray(value)) {
-              // 处理数组值
+              // Handle array values
               value.forEach(item => {
                 if (item !== undefined && item !== null) {
                   (params as URLSearchParams).append(key, item.toString());
                 }
               });
             } else {
-              // 处理普通值
+              // Handle primitive values
               (params as URLSearchParams).append(key, value.toString());
             }
           }
         });
       } else {
-        // 直接使用对象参数
+        // Use object parameters directly
         params = paramsObj as P;
       }
 
-      // 发送请求
+      // Send request
       const result = await apiFunction(params);
 
       setData(result);

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { ReactNode } from 'react';
 import { Modal, Form, Button } from 'antd';
 import { useTranslation } from 'react-i18next';

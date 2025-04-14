@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Tree, Button, Card, Flex } from 'antd';
 import { BsCheckAll } from 'react-icons/bs';
