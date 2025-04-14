@@ -120,7 +120,7 @@ const AreaChart = ({ type, data, timeRange }) => {
   return chartData && data ? (
     <Popover
       content={
-        <div onClickCapture={(e) => e.stopPropagation()}>
+        <div onClickCapture={(e) => e.stopPropagation()} className="h-52 w-64">
           <DelayLineChart data={data} timeRange={timeRange} type={type} />
         </div>
       }
