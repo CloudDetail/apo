@@ -40,9 +40,7 @@ export const AddRoleModal: React.FC<AddRoleModalProps> = ({
         <Form.Item label={t('addModal.permissions')} name="permissionList">
           <PermissionTree
             subjectType="role"
-            hasSaveButton={false}
             style={{ height: 'calc(100vh - 240px)', overflow: 'auto' }}
-            actionsLocation="top"
             actionStyle={{ justifyContent: 'flex-start' }}
             styles={{ body: { padding: '0 8px' } }}
           />

@@ -5,7 +5,7 @@ import LoadingSpinner from 'src/core/components/Spinner';
 import { useTranslation } from 'react-i18next';
 import { getAllPermissionApi, getSubjectPermissionApi } from 'src/core/api/permission';
 
-// 定义权限项的接口
+// Interface for permission item
 interface PermissionItem {
   featureId: string;
   featureName: string;
@@ -13,7 +13,7 @@ interface PermissionItem {
   [key: string]: any;
 }
 
-// 定义组件的属性接口
+// Component props interface
 interface PermissionTreeProps {
   value?: React.Key[];
   defaultValue?: React.Key[];
@@ -22,11 +22,9 @@ interface PermissionTreeProps {
   subjectType: 'role' | 'user';
   onSave?: (checkedKeys: React.Key[]) => void;
   className?: string;
-  hasSaveButton?: boolean;
-  actionsLocation?: 'top' | 'bottom';
   actionStyle?: React.CSSProperties;
   style?: React.CSSProperties;
-  styles?: Record<SemanticDOM, React.CSSProperties>;
+  styles?: Record<string, React.CSSProperties>;
 }
 
 function PermissionTree({
@@ -37,8 +35,6 @@ function PermissionTree({
   subjectType,
   onSave,
   className,
-  hasSaveButton = true,
-  actionsLocation = 'bottom',
   actionStyle,
   style,
   styles
@@ -50,9 +46,8 @@ function PermissionTree({
   const [loading, setLoading] = useState<boolean>(true);
   const { t, i18n } = useTranslation('common');
 
-  // 判断是否为受控模式
-  const isControlled = value !== undefined;
-  // 获取当前选中的键
+  // Check if controlled mode
+  const isControlled = value !== undefined || onChange !== undefined;
   const checkedKeys = isControlled ? value : internalCheckedKeys;
 
   const onCheck = (checkedKeysValue: React.Key[] | { checked: React.Key[]; halfChecked: React.Key[] }) => {
@@ -71,7 +66,7 @@ function PermissionTree({
     onChange?.(allKeys);
   };
 
-  // 递归遍历树结构收集所有键和展开的键
+  // Recursively traverse tree to collect all keys and expanded keys
   const loopTree = (treeData: PermissionItem[] = [], key: keyof PermissionItem = 'featureId') => {
     const allKeys: React.Key[] = [];
     const expandedKeys: React.Key[] = [];
@@ -101,7 +96,7 @@ function PermissionTree({
       setAllKeys(allKeys);
       return { allPermissions, allKeys, expandedKeys };
     } catch (error) {
-      console.error('获取权限列表失败:', error);
+      console.error('Failed to fetch permissions:', error);
       return { allPermissions: [], allKeys: [], expandedKeys: [] };
     } finally {
       setLoading(false);
@@ -122,21 +117,18 @@ function PermissionTree({
       onChange?.(initialCheckedKeys);
       return initialCheckedKeys;
     } catch (error) {
-      console.error('获取主体权限失败:', error);
+      console.error('Failed to fetch subject permissions:', error);
       return [];
     }
   };
 
   useEffect(() => {
-    // 总是获取权限列表
     fetchPermissionList();
-    // 只有在有 subjectId 时才获取主体权限
     if (subjectId) {
       fetchSubjectPermissions();
     }
   }, [subjectId, i18n.language]);
 
-  // Todo: 可以把使用插槽的方式进行优化
   const actionButtons = (
     <Flex justify='flex-end' className='w-full' style={actionStyle}>
       <Button
@@ -147,7 +139,7 @@ function PermissionTree({
       >
         {t('selectAll')}
       </Button>
-      { hasSaveButton && (
+      {!isControlled && (
         <Button type="primary" className="my-4" onClick={() => onSave?.(checkedKeys)}>
           {t('save')}
         </Button>
@@ -157,25 +149,25 @@ function PermissionTree({
 
   return (
     <>
-    <Card
-      className={className}
-      style={{ height: 'calc(100vh - 60px)', overflow: 'auto', ...style }}
-      styles={styles}
-    >
-      <LoadingSpinner loading={loading} />
-      { actionsLocation == 'top' && actionButtons }
-      <Tree
-        checkable={true}
-        onExpand={setExpandedKeys}
-        expandedKeys={expandedKeys}
-        onCheck={onCheck}
-        checkedKeys={checkedKeys}
-        defaultExpandAll={true}
-        treeData={permissionTreeData}
-        fieldNames={{ title: 'featureName', key: 'featureId' }}
-      />
-    </Card>
-    { actionsLocation === 'bottom' && actionButtons }
+      <Card
+        className={className}
+        style={{ height: 'calc(100vh - 60px)', overflow: 'auto', ...style }}
+        styles={styles}
+      >
+        <LoadingSpinner loading={loading} />
+        {isControlled && actionButtons}
+        <Tree
+          checkable={true}
+          onExpand={setExpandedKeys}
+          expandedKeys={expandedKeys}
+          onCheck={onCheck}
+          checkedKeys={checkedKeys}
+          defaultExpandAll={true}
+          treeData={permissionTreeData}
+          fieldNames={{ title: 'featureName', key: 'featureId' }}
+        />
+      </Card>
+      {!isControlled && actionButtons}
     </>
   );
 }
