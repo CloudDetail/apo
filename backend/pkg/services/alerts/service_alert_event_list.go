@@ -46,9 +46,8 @@ func (s *service) AlertEventList(req *request.AlertEventSearchRequest) (*respons
 }
 
 func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
-
-	startTime := record.ReceivedTime.Add(-15 * time.Minute)
-	endTime := record.ReceivedTime
+	startTime := record.UpdateTime.Add(-15 * time.Minute)
+	endTime := record.UpdateTime
 
 	record.WorkflowParams = alert.WorkflowParams{
 		StartTime: startTime.UnixMicro(),

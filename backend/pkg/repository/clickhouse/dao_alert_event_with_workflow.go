@@ -17,7 +17,7 @@ const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_COUNT = `WITH lastEvent AS (
   SELECT alert_id,status,%s as rounded_time
   FROM alert_event ae
   %s
-  ORDER BY received_time DESC LIMIT 1 BY alert_id
+  ORDER BY update_time DESC LIMIT 1 BY alert_id
 ),
 filtered_workflows AS (
   SELECT rounded_time,ref,output,
@@ -49,7 +49,7 @@ const SQL_GET_ALERTEVENT_COUNTS = `WITH lastEvent AS (
   SELECT *, %s as rounded_time
   FROM alert_event ae
   %s
-  ORDER BY received_time DESC LIMIT 1 BY alert_id
+  ORDER BY update_time DESC LIMIT 1 BY alert_id
 ),
 filtered_workflows AS (
   SELECT *,
@@ -79,7 +79,7 @@ const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD = `WITH lastEvent AS (
   SELECT *, %s as rounded_time
   FROM alert_event ae
   %s
-  ORDER BY received_time DESC
+  ORDER BY update_time DESC
   LIMIT 1 BY alert_id
 ),
 filtered_workflows AS (
@@ -101,7 +101,7 @@ SELECT
   ae.create_time,
   ae.update_time,
   ae.end_time,
-  ae.received_time,
+  ae.update_time,
   ae.detail,
   ae.status,
   ae.tags,
@@ -137,12 +137,12 @@ func getWorkflowRecordRoundedTime(cacheMinutes int) string {
 }
 
 func getEventRoundedTime(cacheMinutes int) string {
-	return fmt.Sprintf(`toStartOfInterval(ae.received_time, INTERVAL %d MINUTE) + INTERVAL %d MINUTE`, cacheMinutes, cacheMinutes)
+	return fmt.Sprintf(`toStartOfInterval(ae.update_time, INTERVAL %d MINUTE) + INTERVAL %d MINUTE`, cacheMinutes, cacheMinutes)
 }
 
 func sortbyParam(sortBy string) ([]string, []bool) {
 	if len(sortBy) == 0 {
-		return []string{"importance", "received_time"}, []bool{false, true}
+		return []string{"importance", "update_time"}, []bool{false, true}
 	}
 
 	sortBys := strings.Split(sortBy, ",")
@@ -157,14 +157,14 @@ func sortbyParam(sortBy string) ([]string, []bool) {
 		}
 
 		if parts[0] == "receivedTime" {
-			fields = append(fields, "received_time")
+			fields = append(fields, "update_time")
 			ascs = append(ascs, order == "asc")
 		} else if parts[0] == "isValid" {
 			fields = append(fields, "importance")
 			ascs = append(ascs, order == "asc")
 
 			if len(sortBys) == 1 {
-				fields = append(fields, "received_time")
+				fields = append(fields, "update_time")
 				ascs = append(ascs, order == "asc")
 			}
 		}
@@ -175,7 +175,7 @@ func sortbyParam(sortBy string) ([]string, []bool) {
 
 func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error) {
 	alertFilter := NewQueryBuilder().
-		Between("received_time", req.StartTime/1e6, req.EndTime/1e6)
+		Between("update_time", req.StartTime/1e6, req.EndTime/1e6)
 
 	if len(req.Filter.Namespaces) > 0 {
 		alertFilter.InStrings("tags['namespace']", req.Filter.Namespaces)
@@ -220,7 +220,7 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchR
 
 func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cacheMinutes int) (string, []any) {
 	alertFilter := NewQueryBuilder().
-		Between("received_time", req.StartTime/1e6, req.EndTime/1e6)
+		Between("update_time", req.StartTime/1e6, req.EndTime/1e6)
 
 	if len(req.Filter.Namespaces) > 0 {
 		alertFilter.InStrings("tags['namespace']", req.Filter.Namespaces)
@@ -272,7 +272,7 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cac
 
 func (ch *chRepo) GetAlertEventCounts(req *request.AlertEventSearchRequest, cacheMinutes int) (map[string]int64, error) {
 	alertFilter := NewQueryBuilder().
-		Between("received_time", req.StartTime/1e6, req.EndTime/1e6)
+		Between("update_time", req.StartTime/1e6, req.EndTime/1e6)
 
 	var counts []_alertEventCount
 	intervalMicro := int64(5*time.Minute) / 1e3
