@@ -9034,12 +9034,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "isValid": {
+                    "description": "Deprecated: use [Validity] instead, will remove after 1.7.x",
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "output": {
                     "type": "string"
                 },
                 "output": {
@@ -9075,6 +9073,9 @@ const docTemplate = `{
                     }
                 },
                 "updateTime": {
+                    "type": "string"
+                },
+                "validity": {
                     "type": "string"
                 },
                 "workflowId": {
@@ -11475,6 +11476,20 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "status": {
+                    "description": "firing or resolved",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "validity": {
+                    "description": "valid or invalid or skipped or unknown",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -11936,14 +11951,7 @@ const docTemplate = `{
                 },
                 "group": {
                     "description": "Deprecated: use Groups instead",
-                    "description": "Deprecated: use Groups instead",
                     "type": "string"
-                },
-                "groups": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "groups": {
                     "type": "array",
@@ -12768,6 +12776,12 @@ const docTemplate = `{
                 },
                 "alertEventAnalyzeWorkflowId": {
                     "type": "string"
+                },
+                "counts": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
                 },
                 "events": {
                     "type": "array",
