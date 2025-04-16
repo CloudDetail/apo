@@ -2,13 +2,14 @@ package clickhouse
 
 import (
 	"context"
+	"time"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"time"
 )
 
 func (ch *chRepo) GetDetectExecList(req *request.GetDefectDetectExecListRequest) ([]model.DetectMutation, int64, error) {
-	sql := `SELECT 
+	sql := `SELECT
     		name,
     		mutation_check_pql,
     		for_duration,
@@ -18,13 +19,13 @@ func (ch *chRepo) GetDetectExecList(req *request.GetDefectDetectExecListRequest)
     		synchronize_to_alert_rules,
     		group,
     		toUnixTimestamp64Micro(timestamp) AS timestamp
-			FROM detect_list 
-			ORDER BY timestamp DESC 
+			FROM detect_list
+			ORDER BY timestamp DESC
 			LIMIT ? OFFSET ?`
 	resp := []model.DetectMutation{}
 	countSql := `SELECT count(*) as total FROM detect_list`
-	var count []QueryCount
-	err := ch.conn.Select(context.Background(), &count, countSql, nil)
+	var count int64
+	err := ch.conn.QueryRow(context.Background(), countSql, nil).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -32,17 +33,17 @@ func (ch *chRepo) GetDetectExecList(req *request.GetDefectDetectExecListRequest)
 	if err != nil {
 		return nil, 0, err
 	}
-	return resp, int64(count[0].Total), nil
+	return resp, int64(count), nil
 }
 
 func (ch *chRepo) AddDetectMutation(mutation model.DetectMutation) error {
 	sql := `
-		INSERT INTO 
+		INSERT INTO
 		detect_list(
-		            name, 
-		            mutation_check_pql, 
-		            for_duration, step, 
-		            start_time, end_time, 
+		            name,
+		            mutation_check_pql,
+		            for_duration, step,
+		            start_time, end_time,
 		            timestamp,
 		            group)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
@@ -61,20 +62,20 @@ func (ch *chRepo) AddDetectMutation(mutation model.DetectMutation) error {
 }
 
 func (ch *chRepo) GetDistinctDetectExecList(req *request.GetDefectDetectRuleListRequest) ([]model.DetectMutation, int64, error) {
-	sql := `SELECT 
+	sql := `SELECT
     	name,
     	mutation_check_pql,
     	for_duration,
     	step,
     	group,
 		FROM detect_list
-		GROUP BY 
-    	name, 
-    	mutation_check_pql, 
-    	for_duration, 
-    	step, 
+		GROUP BY
+    	name,
+    	mutation_check_pql,
+    	for_duration,
+    	step,
     	group
-		ORDER BY 
+		ORDER BY
     	MAX(timestamp) DESC
 		LIMIT ? OFFSET ?`
 
@@ -84,11 +85,11 @@ func (ch *chRepo) GetDistinctDetectExecList(req *request.GetDefectDetectRuleList
 		return nil, 0, err
 	}
 	countSql := `SELECT COUNT(DISTINCT name, mutation_check_pql, for_duration, step, group) as total FROM detect_list`
-	var count []QueryCount
-	err = ch.conn.Select(context.Background(), &count, countSql, nil)
+	var count int64
+	err = ch.conn.QueryRow(context.Background(), countSql, nil).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return mutations, int64(count[0].Total), nil
+	return mutations, int64(count), nil
 }

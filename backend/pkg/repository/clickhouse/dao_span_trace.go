@@ -583,15 +583,14 @@ func (ch *chRepo) GetAnomalyTrace(req *request.GetAnomalySpanRequest) ([]QueryTr
 
 	countSql := fmt.Sprintf(TEMPLATE_QUERY_MUTATED_SPAN_TRACE, fieldSql, mutatedValueField, querySql, "")
 
-	var countResults []QueryCount
-	result := []QueryTraceResult{}
-	err := ch.conn.Select(context.Background(), &countResults, fmt.Sprintf(TEMPLATE_COUNT_MUTATED_SPAN_TRACE, countSql), queryBuilder.values...)
+	var count int64
+	err := ch.conn.QueryRow(context.Background(), fmt.Sprintf(TEMPLATE_COUNT_MUTATED_SPAN_TRACE, countSql), queryBuilder.values...).Scan(&count)
 	if err != nil {
 		log.Println("get total count error", err)
 		return nil, 0, err
 	}
 
-	count := int64(countResults[0].Total)
+	result := []QueryTraceResult{}
 	if count == 0 {
 		return result, 0, nil
 	}
