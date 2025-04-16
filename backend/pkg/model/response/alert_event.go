@@ -12,6 +12,7 @@ type AlertEventSearchResponse struct {
 	EventList  []alert.AEventWithWRecord `json:"events"`
 	Pagination *model.Pagination         `json:"pagination"`
 
-	AlertEventAnalyzeWorkflowID string `json:"alertEventAnalyzeWorkflowId"`
-	AlertCheckID                string `json:"alertCheckId"`
+	AlertEventAnalyzeWorkflowID string           `json:"alertEventAnalyzeWorkflowId"`
+	AlertCheckID                string           `json:"alertCheckId"`
+	Counts                      map[string]int64 `json:"counts"`
 }

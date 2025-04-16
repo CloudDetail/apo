@@ -12,7 +12,6 @@ import (
 func (repo *daoRepo) initRole() error {
 	roles := []Role{
 		{RoleName: model.ROLE_ADMIN},
-		{RoleName: model.ROLE_MANAGER},
 		{RoleName: model.ROLE_VIEWER},
 		{RoleName: model.ROLE_ANONYMOS},
 	}

@@ -37,7 +37,7 @@ func TestTransaction(t *testing.T) {
 	}
 
 	err = repo.Transaction(context.Background(), grantFunc, boomFunc)
-	exists, checkErr := repo.RoleGranted(239077004960, 2)
+	exists, checkErr := repo.RoleGrantedToUser(239077004960, 2)
 	if checkErr != nil {
 		t.Error(err)
 	}

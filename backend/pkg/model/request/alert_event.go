@@ -18,4 +18,9 @@ type AlertEventSearchRequest struct {
 type AlertEventSearchFilter struct {
 	Nodes      []string `json:"nodes" form:"nodes"`
 	Namespaces []string `json:"namespaces" form:"namespaces"`
+
+	// firing or resolved
+	Status []string `json:"status" form:"status"`
+	// valid or invalid or skipped or unknown
+	Validity []string `json:"validity" form:"validity"`
 }

@@ -16,12 +16,15 @@ type AEventWithWRecord struct {
 	WorkflowID   string `json:"workflowId" ch:"workflow_id"`
 	WorkflowName string `json:"workflowName" ch:"workflow_name"`
 
-	IsValid     string    `json:"isValid" ch:"is_valid"`
+	Validity    string    `json:"validity" ch:"validity"`
 	Output      string    `json:"output" ch:"output"`
 	RoundedTime time.Time `json:"-" ch:"rounded_time"`
 	Importance  uint8     `json:"-" ch:"importance"`
 
 	WorkflowParams WorkflowParams `json:"workflowParams"`
+
+	// Deprecated: use [Validity] instead, will remove after 1.7.x
+	IsValid string `json:"isValid" ch:"is_valid"`
 }
 
 type WorkflowParams struct {

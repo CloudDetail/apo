@@ -4677,6 +4677,50 @@
                 }
             }
         },
+        "/api/permission/router": {
+            "get": {
+                "description": "Check a router is authorized to view.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.permission"
+                ],
+                "summary": "Check a router is authorized to view.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Router",
+                        "name": "router",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/permission/sub/feature": {
             "get": {
                 "description": "Gets subject's permission.",
@@ -8989,6 +9033,9 @@
                 "output": {
                     "type": "string"
                 },
+                "output": {
+                    "type": "string"
+                },
                 "rawTags": {
                     "description": "HACK the existing clickhouse query uses `tags` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
                     "allOf": [
@@ -11880,7 +11927,14 @@
                 },
                 "group": {
                     "description": "Deprecated: use Groups instead",
+                    "description": "Deprecated: use Groups instead",
                     "type": "string"
+                },
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "groups": {
                     "type": "array",
