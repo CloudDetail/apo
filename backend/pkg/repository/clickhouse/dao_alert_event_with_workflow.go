@@ -101,7 +101,7 @@ SELECT
   ae.create_time,
   ae.update_time,
   ae.end_time,
-  ae.update_time,
+  ae.received_time,
   ae.detail,
   ae.status,
   ae.tags,
