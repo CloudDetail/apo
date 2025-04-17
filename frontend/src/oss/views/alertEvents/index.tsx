@@ -27,6 +27,7 @@ function isJSONString(str) {
 }
 
 
+
 const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
   const { t } = useTranslation('oss/alertEvents')
 
@@ -49,6 +50,7 @@ const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
     <div className="flex pb-2 ">
       {/* Todo: need to be translated */}
       <div>
+        {t('alertStatus')}:{' '}
         {t('alertStatus')}:{' '}
         <Checkbox.Group
           onChange={onStatusFilterChange}
