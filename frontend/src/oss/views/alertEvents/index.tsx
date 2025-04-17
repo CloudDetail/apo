@@ -287,16 +287,6 @@ const AlertEventsPage = () => {
               </AntdTag>
             ))}
 
-            {visible && (
-              <ReactJson
-                src={JSON.parse(detail || '')}
-                theme="brewer"
-                collapsed={false}
-                displayDataTypes={false}
-                style={{ width: '100%' }}
-                enableClipboard={false}
-              />
-            )}
             {isJSONString(detail) && (
               <Button
                 color="primary"
@@ -306,6 +296,17 @@ const AlertEventsPage = () => {
               >
                 { visible ? t('collapse') : t('expand') }
               </Button>
+            )}
+
+            {visible && (
+              <ReactJson
+                src={JSON.parse(detail || '')}
+                theme="brewer"
+                collapsed={false}
+                displayDataTypes={false}
+                style={{ width: '100%' }}
+                enableClipboard={false}
+              />
             )}
           </div>
         )
