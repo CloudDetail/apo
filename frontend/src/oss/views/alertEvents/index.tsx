@@ -46,9 +46,8 @@ const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
   ]
   return (
     <div className="flex pb-2 ">
-      {/* Todo: need to be translated */}
       <div>
-        {t('alertStatus')}:
+        {t('alertStatus')}:{' '}
         <Checkbox.Group
           onChange={onStatusFilterChange}
           options={statusOptions}
@@ -56,7 +55,7 @@ const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
         ></Checkbox.Group>
       </div>
       <div>
-        {t('alertValidity')}:
+        {t('alertValidity')}: {' '}
         <Checkbox.Group
           onChange={onValidFilterChange}
           options={validOptions}
@@ -78,7 +77,7 @@ const StatusPanel = ({ firingCounts, resolvedCounts}) => {
   ]
   return (
     <div className="flex pb-2 h-full flex-1  ">
-      <div className="w-full ml-1 rounded-xl flex h-full bg-[#141414] p-2">
+      <div className="w-full ml-1 rounded-xl flex h-full bg-[#141414] p-0">
         <div className="h-full shrink-0 pl-4 flex">
           {chartData.map((item) => (
             <div className="w-[100px] h-full block items-center">
@@ -293,7 +292,7 @@ const AlertEventsPage = () => {
                 size="small"
                 onClick={() => setVisible(!visible)}
               >
-                {visible ? '收起' : '更多'}
+                { visible ? t('collapse') : t('expand') }
               </Button>
             )}
           </div>
@@ -325,7 +324,7 @@ const AlertEventsPage = () => {
           <div className="text-center">
             <Tag type={value === 'firing' ? 'error' : 'success'}>{t(value)}</Tag>
             {value === 'resolved' && (
-              <span className="text-[10px] block text-gray-400">解决于{result}</span>
+              <span className="text-[10px] block text-gray-400">t('resolvedOn'){result}</span>
             )}
           </div>
         )

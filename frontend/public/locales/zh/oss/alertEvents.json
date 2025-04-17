@@ -35,5 +35,8 @@
   "In": "在",
   "alerts, AI identified": "条告警中，AI辅助识别",
   "invalid alerts for auto suppression": "条为无效告警，主动降噪",
-  "rate": "告警降噪率"
+  "rate": "告警降噪率",
+  "expand": "展开",
+  "collapse": "收起",
+  "resolvedOn": "解决于"
 }
