@@ -17,7 +17,7 @@ const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_COUNT = `WITH lastEvent AS (
   SELECT alert_id,status,%s as rounded_time
   FROM alert_event ae
   %s
-  ORDER BY update_time DESC LIMIT 1 BY alert_id
+  ORDER BY received_time DESC LIMIT 1 BY alert_id
 ),
 filtered_workflows AS (
   SELECT rounded_time,ref,output,
@@ -49,7 +49,7 @@ const SQL_GET_ALERTEVENT_COUNTS = `WITH lastEvent AS (
   SELECT *, %s as rounded_time
   FROM alert_event ae
   %s
-  ORDER BY update_time DESC LIMIT 1 BY alert_id
+  ORDER BY received_time DESC LIMIT 1 BY alert_id
 ),
 filtered_workflows AS (
   SELECT *,
@@ -79,8 +79,7 @@ const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD = `WITH lastEvent AS (
   SELECT *, %s as rounded_time
   FROM alert_event ae
   %s
-  ORDER BY update_time DESC
-  LIMIT 1 BY alert_id
+  ORDER BY received_time DESC LIMIT 1 BY alert_id
 ),
 filtered_workflows AS (
   SELECT *,
