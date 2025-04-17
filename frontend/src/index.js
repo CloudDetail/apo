@@ -65,6 +65,9 @@ const AppWrapper = () => {
                 Tree: {
                   nodeSelectedBg: '#33415580',
                 },
+                Table: {
+                  headerBg: '#1d1d1d'
+                },
               },
             }}
           >
