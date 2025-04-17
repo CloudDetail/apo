@@ -45,12 +45,12 @@ export default function CustomCard({
     <Card
       {...restProps}
       style={{  // Style of outermost container
-        ...style,
         height: 'calc(100vh - ' + headHeight +')',
+        ...style,
       }}
       styles={{  // Styles of internal sub-components
+        ...defaultStyles,
         ...styles,
-        ...defaultStyles
       }}
     >
       {children}

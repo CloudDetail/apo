@@ -34,6 +34,7 @@ const BasicTable = React.memo((props) => {
     paginationSize = 'normal',
   } = props
   const tableRef = useRef(null)
+  const debounceRef = useRef(null);
   const getSortByColumns = (columns) => {
     let sortByColumns = []
     _.forEach(columns, (column) => {
@@ -161,6 +162,27 @@ const BasicTable = React.memo((props) => {
       gotoPage(pagination.pageIndex - 1)
     }
   }, [pagination])
+
+  useEffect(() => {
+    const handler = (page, pageSize) => {
+      setPaginationLoading(true)
+      onChange?.(page, pageSize)
+        ?.finally?.(() => setPaginationLoading(false))
+      
+      requestAnimationFrame(() => {
+        gotoPage(page - 1);
+        setPageSize(pageSize);
+      });
+    };
+  
+    debounceRef.current = _.debounce(handler, 300)
+    
+    return () => {
+      debounceRef.current?.cancel();
+      setPaginationLoading(false);
+    };
+  }, [gotoPage, setPageSize, onChange]);
+
   return (
     <div className={showBorder ? 'basic-table border-table' : 'basic-table'}>
       <table {...getTableProps()} ref={tableRef}>
@@ -285,9 +307,8 @@ const BasicTable = React.memo((props) => {
           showSizeChanger={showSizeChanger}
           onShowSizeChange={(current, pageSize) => setPageSize(pageSize)}
           onChange={(page, pageSize) => {
-            gotoPage(page - 1)
-            setPageSize(pageSize)
-            onChange?.(page, pageSize)
+            setPaginationLoading(true)
+            debounceRef.current(page, pageSize)
           }}
           className="mt-1"
           showTotal={(total) => (

@@ -16,6 +16,7 @@ import PieChart from './PieChart'
 import CountUp from 'react-countup'
 import filterSvg from 'core/assets/images/filter.svg'
 import ReactJson from 'react-json-view'
+import { debounce } from 'lodash';
 import CustomCard from 'src/core/components/Card/CustomCard'
 function isJSONString(str) {
   try {
@@ -25,8 +26,6 @@ function isJSONString(str) {
     return false
   }
 }
-
-
 
 const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
   const { t } = useTranslation('oss/alertEvents')
@@ -48,14 +47,11 @@ const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
   ]
   return (
     <div className="flex pb-2 ">
-      {/* Todo: need to be translated */}
       <div>
         {t('alertStatus')}:{' '}
         <Checkbox.Group
           onChange={onStatusFilterChange}
-          onChange={onStatusFilterChange}
           options={statusOptions}
-          defaultValue={['firing']}
           defaultValue={['firing']}
         ></Checkbox.Group>
       </div>
@@ -172,7 +168,7 @@ const AlertEventsPage = () => {
   const [firingCounts, setFiringCounts] = useState(0)
   const [resolvedCounts, setResolvedCounts] = useState(0)
   const [statusFilter, setStatusFilter] = useState(['firing'])
-  const [validFilter, setValidFilter] = useState(['valid', 'other'])
+  const [validFilter, setValidFilter] = useState(['valid', 'skipped', 'failed', 'unknown'])
   const timerRef = useRef(null)
   const workflowMissToast = (type: 'alertCheckId' | 'workflowId') => {
     return (
@@ -182,8 +178,6 @@ const AlertEventsPage = () => {
     )
   }
   const getAlertEvents = () => {
-    // replace 'other' with 'skipped', 'failed', 'unknown'
-    const validFilterReady = validFilter.includes('other') ? [...validFilter, 'skipped', 'failed', 'unknown'] : validFilter
     getAlertEventsApi({
       startTime,
       endTime,
@@ -193,26 +187,21 @@ const AlertEventsPage = () => {
       },
       filter: {
         status: statusFilter,
-        validity: validFilterReady,
+        validity: validFilter,
       }
-    })
-    const totalPages = Math.ceil(res.pagination.total / pagination.pageSize)
-    if (pagination.pageIndex > totalPages && totalPages > 0) {
-      setPagination({ ...pagination, pageIndex: totalPages })
-      return
-    }
+    }).then((res) => {
       const totalPages = Math.ceil(res.pagination.total / pagination.pageSize)
       if (pagination.pageIndex > totalPages && totalPages > 0) {
         setPagination({ ...pagination, pageIndex: totalPages })
         return
       }
-    setAlertEvents(res?.events || [])
-    setPagination({
-      ...pagination,
-      total: res?.pagination.total || 0,
-    })
-    setWorkflowId(res.alertEventAnalyzeWorkflowId)
-    setAlertCheckId(res.alertCheckId)
+      setAlertEvents(res?.events || [])
+      setPagination({
+        ...pagination,
+        total: res?.pagination.total || 0,
+      })
+      setWorkflowId(res.alertEventAnalyzeWorkflowId)
+      setAlertCheckId(res.alertCheckId)
       if (timerRef.current) {
         clearTimeout(timerRef.current)
       }
@@ -316,7 +305,7 @@ const AlertEventsPage = () => {
       accessor: 'updateTime',
       customWidth: 100,
       Cell: ({ value }) => {
-        const result = convertUTCToBeijing(value)
+        const result = convertUTCToLocal(value)
         return (
           <div>
             <div>{result.split(' ')[0]}</div>
@@ -330,7 +319,7 @@ const AlertEventsPage = () => {
       accessor: 'status',
       customWidth: 120,
       Cell: ({ value, row }) => {
-        const result = convertUTCToBeijing(row.original.endTime)
+        const result = convertUTCToLocal(row.original.endTime)
         return (
           <div className="text-center">
             <Tag type={value === 'firing' ? 'error' : 'success'}>{t(value)}</Tag>
@@ -392,13 +381,13 @@ const AlertEventsPage = () => {
     },
   ]
   const updatePagination = (newPagination) => setPagination({ ...pagination, ...newPagination })
-  const changePagination = (props) => {
+  const changePagination = (page, pageSize) => {
     updatePagination({
-      pageSize: props.pageSize,
-      pageIndex: props.pageIndex,
-      // total: pagination.total,
+      pageSize: pageSize,
+      pageIndex: page,
     })
   }
+
   const tableProps = useMemo(() => {
     return {
       columns: columns,
@@ -408,14 +397,38 @@ const AlertEventsPage = () => {
       pagination: {
         pageSize: pagination.pageSize,
         pageIndex: pagination.pageIndex,
-        pageCount: Math.ceil(pagination.total / pagination.pageSize)
+        total: pagination.total
       },
-      onChange: changePagination
+      onChange: changePagination,
+      showSizeChanger: true
     }
   }, [alertEvents, pagination.pageIndex, pagination.pageSize, pagination.total])
   const chartHeight = 150
   const headHeight =
     (import.meta.env.VITE_APP_CODE_VERSION === 'CE' ? 60 : 100) + chartHeight + 'px'
+
+  const debouncedSetStatusFilter = useRef(
+    debounce((checkedValues) => {
+      setStatusFilter(checkedValues);
+    }, 300)
+  ).current;
+  
+  const debouncedSetValidFilter = useRef(
+    debounce((checkedValues) => {
+      const validFilterReady = checkedValues.includes('other') 
+        ? [...checkedValues.filter(f => f !== 'other'), 'skipped', 'failed', 'unknown'] 
+        : checkedValues;
+      setValidFilter(validFilterReady);
+    }, 300)
+  ).current;
+  
+  useEffect(() => {
+    return () => {
+      debouncedSetStatusFilter.cancel();
+      debouncedSetValidFilter.cancel();
+    };
+  }, []);
+  
   return (
     <>
       <div className="overflow-hidden h-full flex flex-col">
@@ -430,7 +443,8 @@ const AlertEventsPage = () => {
             resolvedCounts={resolvedCounts}
           />
         </div>
-        <Card
+        <CustomCard
+          styleType={'alerts'}
           style={{
             height: `calc(100vh - ${headHeight})`,
             display: 'flex',
@@ -445,19 +459,13 @@ const AlertEventsPage = () => {
           }}
         >
           <Filter
-            onStatusFilterChange={ checkedValues => {
-              console.log('checkedValues: ', checkedValues)
-              setStatusFilter(checkedValues)
-            }}
-            onValidFilterChange={ checkedValues => {
-              console.log('checkedValues: ', checkedValues)
-              setValidFilter(checkedValues)
-            }}
+            onStatusFilterChange={debouncedSetStatusFilter}
+            onValidFilterChange={debouncedSetValidFilter}
           />
           <div className="flex-1 overflow-hidden">
             <BasicTable {...tableProps} />
           </div>
-        </Card>
+        </CustomCard>
         <Modal
           open={modalOpen}
           title={t('workflowsModal')}
