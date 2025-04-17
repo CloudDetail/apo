@@ -36,5 +36,8 @@
   "In": "In",
   "alerts, AI identified": "alerts, AI identified",
   "invalid alerts for auto suppression": "invalid alerts for auto suppression",
-  "desc": "In {firing} alerts, AI identified {invalid} invalid alerts for auto suppression"
+  "desc": "In {firing} alerts, AI identified {invalid} invalid alerts for auto suppression",
+  "expand": "Detail",
+  "collapse": "Collapse",
+  "resolvedOn": "Resolved on"
 }

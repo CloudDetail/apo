@@ -26,10 +26,19 @@ function isJSONString(str) {
   }
 }
 
+
 const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
   const { t } = useTranslation('oss/alertEvents')
 
   const statusOptions = [
+    {
+      label: <Tag type={'error'}>{t('firing')}</Tag>,
+      value: 'firing',
+    },
+    {
+      label: <Tag type={'success'}>{t('resolved')}</Tag>,
+      value: 'resolved',
+    },
     {
       label: <Tag type={'error'}>{t('firing')}</Tag>,
       value: 'firing',
@@ -48,15 +57,17 @@ const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
     <div className="flex pb-2 ">
       {/* Todo: need to be translated */}
       <div>
-        {t('alertStatus')}:
+        {t('alertStatus')}:{' '}
         <Checkbox.Group
           onChange={onStatusFilterChange}
+          onChange={onStatusFilterChange}
           options={statusOptions}
+          defaultValue={['firing']}
           defaultValue={['firing']}
         ></Checkbox.Group>
       </div>
       <div>
-        {t('alertValidity')}:
+        {t('alertValidity')}: {' '}
         <Checkbox.Group
           onChange={onValidFilterChange}
           options={validOptions}
@@ -78,7 +89,7 @@ const StatusPanel = ({ firingCounts, resolvedCounts}) => {
   ]
   return (
     <div className="flex pb-2 h-full flex-1  ">
-      <div className="w-full ml-1 rounded-xl flex h-full bg-[#141414] p-2">
+      <div className="w-full ml-1 rounded-xl flex h-full bg-[#141414] p-0">
         <div className="h-full shrink-0 pl-4 flex">
           {chartData.map((item) => (
             <div className="w-[100px] h-full block items-center">
@@ -276,6 +287,17 @@ const AlertEventsPage = () => {
               </AntdTag>
             ))}
 
+            {isJSONString(detail) && (
+              <Button
+                color="primary"
+                variant="text"
+                size="small"
+                onClick={() => setVisible(!visible)}
+              >
+                { visible ? t('collapse') : t('expand') }
+              </Button>
+            )}
+
             {visible && (
               <ReactJson
                 src={JSON.parse(detail || '')}
@@ -285,16 +307,6 @@ const AlertEventsPage = () => {
                 style={{ width: '100%' }}
                 enableClipboard={false}
               />
-            )}
-            {isJSONString(detail) && (
-              <Button
-                color="primary"
-                variant="text"
-                size="small"
-                onClick={() => setVisible(!visible)}
-              >
-                {visible ? '收起' : '更多'}
-              </Button>
             )}
           </div>
         )
@@ -325,7 +337,7 @@ const AlertEventsPage = () => {
           <div className="text-center">
             <Tag type={value === 'firing' ? 'error' : 'success'}>{t(value)}</Tag>
             {value === 'resolved' && (
-              <span className="text-[10px] block text-gray-400">解决于{result}</span>
+              <span className="text-[10px] block text-gray-400">{t('resolvedOn')}{' '}{result}</span>
             )}
           </div>
         )

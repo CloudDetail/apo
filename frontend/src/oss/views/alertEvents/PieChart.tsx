@@ -3,6 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React from 'react'
 import ReactECharts from 'echarts-for-react'
 
@@ -32,14 +37,16 @@ const PieChart: React.FC<PieChartProps> = ({ data, title = '' }) => {
       show: true,
       color: '#ffffff',
       fontSize: 12,
+      margin: 20,
       formatter: '{b}: {d}%',
+      overflow: 'break', // or 'truncate' or 'none'
     },
     series: [
       {
         name: title,
         type: 'pie',
-        radius: ['50%', '70%'],
-        center: ['50%', '55%'],
+        radius: ['40%', '60%'],
+        center: ['50%', '50%'],
         data: data.map(item => ({
           ...item,
           itemStyle: {
@@ -57,7 +64,7 @@ const PieChart: React.FC<PieChartProps> = ({ data, title = '' }) => {
     ],
   }
 
-  return <ReactECharts option={option} style={{ height: '100%' }} />
+  return <ReactECharts option={option} style={{ height: '150px' }} />
 }
 
 export default PieChart
