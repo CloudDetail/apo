@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React from 'react'
 import ReactECharts from 'echarts-for-react'
 
@@ -35,7 +40,12 @@ const PieChart: React.FC<PieChartProps> = ({ data, title = '' }) => {
         type: 'pie',
         radius: ['50%', '70%'],
         center: ['50%', '55%'],
-        data,
+        data: data.map(item => ({
+          ...item,
+          itemStyle: {
+            color: item.type === 'error' ? '#ee6666' : '#91cc75'
+          }
+        })),
         emphasis: {
           itemStyle: {
             shadowBlur: 10,

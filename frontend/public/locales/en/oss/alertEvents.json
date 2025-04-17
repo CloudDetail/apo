@@ -28,5 +28,13 @@
   "workflowMiss": "Workflow not configured.",
   "missToast1": "The alert validity check workflow has not been set up, hence the alarm validity check is suspended.",
   "missToast2": "The alert root cause analysis workflow has not been configured, therefore the alarm root cause analysis is currently non-navigable.",
-  "other": "Other"
+  "other": "Other",
+  "alertStatus": "Alert Status",
+  "alertValidity": "Alert Validity",
+  "noAlertCheckId": "No workflow configured, no analysis available.",
+  "rate": "Alert Denoise Rate",
+  "In": "In",
+  "alerts, AI identified": "alerts, AI identified",
+  "invalid alerts for auto suppression": "invalid alerts for auto suppression",
+  "desc": "In {firing} alerts, AI identified {invalid} invalid alerts for auto suppression"
 }
