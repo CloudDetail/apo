@@ -25,12 +25,19 @@ function isJSONString(str) {
     return false
   }
 }
-const Filter = () => {
+
+const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
   const { t } = useTranslation('oss/alertEvents')
 
   const statusOptions = [
-    { label: <Tag type={'error'}>{t('firing')}</Tag>, value: 'firing' },
-    { label: <Tag type={'success'}>{t('resolved')}</Tag>, value: 'resolved' },
+    {
+      label: <Tag type={'error'}>{t('firing')}</Tag>,
+      value: 'firing',
+    },
+    {
+      label: <Tag type={'success'}>{t('resolved')}</Tag>,
+      value: 'resolved',
+    },
   ]
   const validOptions = [
     { label: t('valid'), value: 'valid' },
@@ -39,30 +46,35 @@ const Filter = () => {
   ]
   return (
     <div className="flex pb-2 ">
+      {/* Todo: need to be translated */}
       <div>
-        告警状态：
+        {t('alertStatus')}:
         <Checkbox.Group
-          // onChange={onChangeTypeList}
+          onChange={onStatusFilterChange}
           options={statusOptions}
+          defaultValue={['firing']}
         ></Checkbox.Group>
       </div>
       <div>
-        告警有效性：
+        {t('alertValidity')}:
         <Checkbox.Group
-          // onChange={onChangeTypeList}
+          onChange={onValidFilterChange}
           options={validOptions}
+          defaultValue={['valid', 'other']}
         ></Checkbox.Group>
       </div>
     </div>
   )
 }
 const formatter = (value) => <CountUp end={value as number} separator="," />
-const StatusPanel = () => {
+
+// Current info right panel
+const StatusPanel = ({ firingCounts, resolvedCounts}) => {
   const { t } = useTranslation('oss/alertEvents')
 
   const chartData = [
-    { name: t('firing'), value: 1048, type: 'error' },
-    { name: t('resolved'), value: 735, type: 'success' },
+    { name: t('firing'), value: firingCounts, type: 'error' },
+    { name: t('resolved'), value: resolvedCounts, type: 'success' },
   ]
   return (
     <div className="flex pb-2 h-full flex-1  ">
@@ -96,35 +108,43 @@ const StatusPanel = () => {
     </div>
   )
 }
-const ExtraPanel = () => {
+
+// Current info left panel
+const ExtraPanel = ({ firingCounts, invalidCounts, alertCheck }) => {
+  const { t } = useTranslation('oss/alertEvents')
   return (
     <div className=" pb-2 h-full  shrink-0 w-1/2 mr-3">
       <div className="w-full rounded-xl flex h-full bg-[#141414] p-2 ">
         <div className="ml-3 mr-7">
           <Image src={filterSvg} width={50} height={'100%'} preview={false} />
         </div>
-        <div className="flex flex-col h-full justify-center">
+        {alertCheck && <div className="flex flex-col h-full justify-center">
           <Statistic
             className=" flex flex-col justify-center"
-            title={<span className="text-white">{'告警降噪率'}</span>}
-            value={30}
+            title={<span className="text-white">{t('rate')}</span>}
+            value={firingCounts === 0 ? 0 : (invalidCounts / firingCounts) * 100}
             precision={2}
             suffix="%"
             formatter={formatter}
           />
           {/* <span className="text-gray-400 text-xs">AI辅助识别无效告警，助力聚焦核心问题</span> */}
           <span className="text-gray-400 text-xs">
-            在
+            {t('In')}
             <span className="mx-1">
-              <Tag type={'error'}>1048</Tag>
+              <Tag type={'error'}>{firingCounts}</Tag>
             </span>
-            条告警中，AI辅助识别{' '}
+            {t('alerts, AI identified')}
+            {' '}
             <span className="mx-1">
-              <Tag type={'warning'}>839</Tag>
+              <Tag type={'warning'}>{invalidCounts}</Tag>
             </span>
-            条为无效告警，主动降噪
+            {t('invalid alerts for auto suppression')}
           </span>
-        </div>
+        </div>}
+        {!alertCheck && <div className="flex flex-col h-full justify-center gap-4">
+          <span className="text-white">{t('rate')}</span>
+          <span className="text-white">{t('noAlertCheckId')}</span>
+          </div>}
       </div>
     </div>
   )
@@ -144,6 +164,11 @@ const AlertEventsPage = () => {
   const [workflowUrl, setWorkflowUrl] = useState(null)
   const [workflowId, setWorkflowId] = useState(null)
   const [alertCheckId, setAlertCheckId] = useState(null)
+  const [invalidCounts, setInvalidCounts] = useState(0)
+  const [firingCounts, setFiringCounts] = useState(0)
+  const [resolvedCounts, setResolvedCounts] = useState(0)
+  const [statusFilter, setStatusFilter] = useState(['firing'])
+  const [validFilter, setValidFilter] = useState(['valid', 'other'])
   const timerRef = useRef(null)
   const workflowMissToast = (type: 'alertCheckId' | 'workflowId') => {
     return (
@@ -153,6 +178,8 @@ const AlertEventsPage = () => {
     )
   }
   const getAlertEvents = () => {
+    // replace 'other' with 'skipped', 'failed', 'unknown'
+    const validFilterReady = validFilter.includes('other') ? [...validFilter, 'skipped', 'failed', 'unknown'] : validFilter
     getAlertEventsApi({
       startTime,
       endTime,
@@ -160,6 +187,10 @@ const AlertEventsPage = () => {
         currentPage: pagination.pageIndex,
         pageSize: pagination.pageSize,
       },
+      filter: {
+        status: statusFilter,
+        validity: validFilterReady,
+      }
     }).then((res) => {
       const totalPages = Math.ceil(res.pagination.total / pagination.pageSize)
       if (pagination.pageIndex > totalPages && totalPages > 0) {
@@ -183,6 +214,13 @@ const AlertEventsPage = () => {
         },
         5 * 60 * 1000,
       )
+
+      const invalid = res?.counts?.invalid
+      const firing = res?.counts?.firing
+      const resolved = res?.counts?.resolved
+      setInvalidCounts(invalid)
+      setFiringCounts(firing)
+      setResolvedCounts(resolved)
     })
   }
 
@@ -195,9 +233,9 @@ const AlertEventsPage = () => {
         clearTimeout(timerRef.current)
       }
     }
-  }, [pagination.pageIndex, pagination.pageSize, startTime, endTime])
+  }, [pagination.pageIndex, pagination.pageSize, startTime, endTime, statusFilter, validFilter])
   function openWorkflowModal(workflowParams) {
-    let result = '/dify/app/' + workflowId + '/run?'
+    let result = '/dify/app/' + workflowId + '/run-once?'
     const params = Object.entries(workflowParams)
       .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
       .join('&')
@@ -343,12 +381,12 @@ const AlertEventsPage = () => {
       },
     },
   ]
-  const updatePagination = (pagination) => setPagination({ ...pagination, ...pagination })
-  const changePagination = (page, pageSize) => {
+  const updatePagination = (newPagination) => setPagination({ ...pagination, ...newPagination })
+  const changePagination = (props) => {
     updatePagination({
-      pageSize: pageSize,
-      pageIndex: page,
-      total: pagination.total,
+      pageSize: props.pageSize,
+      pageIndex: props.pageIndex,
+      // total: pagination.total,
     })
   }
   const tableProps = useMemo(() => {
@@ -357,6 +395,12 @@ const AlertEventsPage = () => {
       data: alertEvents,
       showBorder: false,
       loading: false,
+      pagination: {
+        pageSize: pagination.pageSize,
+        pageIndex: pagination.pageIndex,
+        pageCount: Math.ceil(pagination.total / pagination.pageSize)
+      },
+      onChange: changePagination
     }
   }, [alertEvents, pagination.pageIndex, pagination.pageSize, pagination.total])
   const chartHeight = 150
@@ -364,19 +408,45 @@ const AlertEventsPage = () => {
     (import.meta.env.VITE_APP_CODE_VERSION === 'CE' ? 60 : 100) + chartHeight + 'px'
   return (
     <>
-      <div className=" overflow-hidden">
+      <div className="overflow-hidden h-full flex flex-col">
         <div style={{ height: chartHeight }} className="flex">
-          <ExtraPanel />
-          <StatusPanel />
+          <ExtraPanel
+            invalidCounts={invalidCounts}
+            firingCounts={firingCounts}
+            alertCheck={alertCheckId}
+          />
+          <StatusPanel
+            firingCounts={firingCounts}
+            resolvedCounts={resolvedCounts}
+          />
         </div>
         <Card
           style={{
-            height: 'calc(100vh - ' + headHeight + ')',
+            height: `calc(100vh - ${headHeight})`,
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+          bodyStyle={{
+            flex: 1,
+            overflow: 'auto',
+            padding: '16px',
+            display: 'flex',
+            flexDirection: 'column'
           }}
         >
-          <Filter />
-
-          <BasicTable {...tableProps} />
+          <Filter
+            onStatusFilterChange={ checkedValues => {
+              console.log('checkedValues: ', checkedValues)
+              setStatusFilter(checkedValues)
+            }}
+            onValidFilterChange={ checkedValues => {
+              console.log('checkedValues: ', checkedValues)
+              setValidFilter(checkedValues)
+            }}
+          />
+          <div className="flex-1 overflow-hidden">
+            <BasicTable {...tableProps} />
+          </div>
         </Card>
         <Modal
           open={modalOpen}

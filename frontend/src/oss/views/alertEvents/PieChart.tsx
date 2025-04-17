@@ -35,7 +35,12 @@ const PieChart: React.FC<PieChartProps> = ({ data, title = '' }) => {
         type: 'pie',
         radius: ['50%', '70%'],
         center: ['50%', '55%'],
-        data,
+        data: data.map(item => ({
+          ...item,
+          itemStyle: {
+            color: item.type === 'error' ? '#ee6666' : '#91cc75'
+          }
+        })),
         emphasis: {
           itemStyle: {
             shadowBlur: 10,
