@@ -51,7 +51,6 @@ const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
       {/* Todo: need to be translated */}
       <div>
         {t('alertStatus')}:{' '}
-        {t('alertStatus')}:{' '}
         <Checkbox.Group
           onChange={onStatusFilterChange}
           onChange={onStatusFilterChange}
