@@ -336,7 +336,7 @@ const AlertEventsPage = () => {
           <div className="text-center">
             <Tag type={value === 'firing' ? 'error' : 'success'}>{t(value)}</Tag>
             {value === 'resolved' && (
-              <span className="text-[10px] block text-gray-400">t('resolvedOn'){result}</span>
+              <span className="text-[10px] block text-gray-400">{t('resolvedOn')}{' '}{result}</span>
             )}
           </div>
         )
