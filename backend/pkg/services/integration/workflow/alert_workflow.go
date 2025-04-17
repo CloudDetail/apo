@@ -41,13 +41,18 @@ func New(chRepo clickhouse.Repo, client *DifyClient, logger *zap.Logger, opts ..
 func WithAlertCheckFlow(cfg *AlertCheckCfg) Option {
 	return func(f *AlertWorkflow) {
 		f.AlertCheck = cfg
-		if !cfg.HasValidAPIKey() {
-			f.logger.Info("can not find a valid workflow APIKey")
-			return
+
+		if cfg.MaxConcurrency <= 0 {
+			cfg.MaxConcurrency = 1
 		}
 
 		cfg.CacheMinutes = maxFactorOf60LessThanN(cfg.CacheMinutes)
 		cfg.FlowName = "AlertCheck"
+
+		if !cfg.HasValidAPIKey() {
+			f.logger.Info("can not find a valid workflow APIKey")
+			return
+		}
 
 		check := newAlertCheck(cfg, f.logger)
 		records, err := check.Run(context.Background(), f.client)

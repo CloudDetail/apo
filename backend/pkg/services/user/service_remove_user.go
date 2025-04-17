@@ -21,7 +21,6 @@ func (s *service) RemoveUser(userID int64) error {
 		return model.NewErrWithMessage(errors.New("user does not exist"), code.UserNotExistsError)
 	}
 
-	// 1. Get roles.
 	roles, err := s.dbRepo.GetUserRole(userID)
 	if err != nil {
 		return err
@@ -35,6 +34,10 @@ func (s *service) RemoveUser(userID int64) error {
 	user, err := s.dbRepo.GetUserInfo(userID)
 	if err != nil {
 		return err
+	}
+
+	var revokeRoleFunc = func(ctx context.Context) error {
+		return s.dbRepo.RevokeRole(ctx, userID, roleIDs)
 	}
 
 	var deleteAuthDataGroupFunc = func(ctx context.Context) error {
@@ -61,5 +64,5 @@ func (s *service) RemoveUser(userID int64) error {
 		return s.dbRepo.RevokePermission(ctx, userID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE, nil)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), revokeFeaturePermFunc, removeUserFunc, removeDifyUserFunc, removeFromTeam, deleteAuthDataGroupFunc)
+	return s.dbRepo.Transaction(context.Background(), revokeFeaturePermFunc, deleteAuthDataGroupFunc, revokeRoleFunc, removeFromTeam, removeUserFunc, removeDifyUserFunc)
 }

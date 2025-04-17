@@ -80,7 +80,7 @@ const TableFilter = (props) => {
       )
     }
   }, [searchNamespace])
-  // Todo: need to be outside
+
   const getDatasourceByGroup = () => {
     getDatasourceByGroupApi({
       groupId: groupId,

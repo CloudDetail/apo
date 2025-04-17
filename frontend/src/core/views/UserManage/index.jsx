@@ -31,6 +31,7 @@ import style from './index.module.css'
 import { useTranslation } from 'react-i18next'
 import { LuShieldCheck } from 'react-icons/lu'
 import DataGroupAuthorizeModal from 'src/core/components/PermissionAuthorize/DataGroupAuthorizeModal'
+import CustomCard from 'src/core/components/Card/CustomCard'
 
 export default function UserManage() {
   const { t } = useTranslation('core/userManage')
@@ -212,8 +213,8 @@ export default function UserManage() {
   }
   return (
     <>
-      <LoadingSpinner loading={loading} />
-      <div className={style.userManageContainer}>
+      <CustomCard style={{ backgroundColor: 'inherit' }}>
+        <LoadingSpinner loading={loading} />
         <Flex className="mb-3 h-[40px]">
           <Flex className="w-full justify-between">
             <Flex className="w-full">
@@ -279,7 +280,7 @@ export default function UserManage() {
             />
           </Flex>
         </ConfigProvider>
-      </div>
+      </CustomCard>
       <EditModal
         selectedUser={selectedUser}
         modalEditVisibility={modalEditVisibility}

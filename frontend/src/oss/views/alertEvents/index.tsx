@@ -7,16 +7,16 @@ import { Button, Modal, Tag as AntdTag, Tooltip, Statistic, Checkbox, Image, Car
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
 import { getAlertEventsApi } from 'src/core/api/alerts'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { convertUTCToBeijing } from 'src/core/utils/time'
+import { convertUTCToLocal } from 'src/core/utils/time'
 import WorkflowsIframe from '../workflows/workflowsIframe'
 import Tag from 'src/core/components/Tag/Tag'
 import PieChart from './PieChart'
 import CountUp from 'react-countup'
 import filterSvg from 'core/assets/images/filter.svg'
 import ReactJson from 'react-json-view'
+import CustomCard from 'src/core/components/Card/CustomCard'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -195,19 +195,24 @@ const AlertEventsPage = () => {
         status: statusFilter,
         validity: validFilterReady,
       }
-    }).then((res) => {
+    })
+    const totalPages = Math.ceil(res.pagination.total / pagination.pageSize)
+    if (pagination.pageIndex > totalPages && totalPages > 0) {
+      setPagination({ ...pagination, pageIndex: totalPages })
+      return
+    }
       const totalPages = Math.ceil(res.pagination.total / pagination.pageSize)
       if (pagination.pageIndex > totalPages && totalPages > 0) {
         setPagination({ ...pagination, pageIndex: totalPages })
         return
       }
-      setAlertEvents(res?.events || [])
-      setPagination({
-        ...pagination,
-        total: res?.pagination.total || 0,
-      })
-      setWorkflowId(res.alertEventAnalyzeWorkflowId)
-      setAlertCheckId(res.alertCheckId)
+    setAlertEvents(res?.events || [])
+    setPagination({
+      ...pagination,
+      total: res?.pagination.total || 0,
+    })
+    setWorkflowId(res.alertEventAnalyzeWorkflowId)
+    setAlertCheckId(res.alertCheckId)
       if (timerRef.current) {
         clearTimeout(timerRef.current)
       }

@@ -8,15 +8,15 @@ import { AlertIntegrationProvider } from 'src/core/contexts/AlertIntegrationCont
 import IntegrationDrawer from './ConfigDrawer'
 import AlertsDatasourceList from './AlertsDatasourceList'
 import AlertsIntegrationTable from './AlertsIntegrationTable'
+import CustomCard from 'src/core/components/Card/CustomCard'
 
 const AlertsIntegrationPage = () => {
   return (
     <AlertIntegrationProvider>
       <IntegrationDrawer />
-      <Card classNames={{ body: 'p-0' }}>
+      <CustomCard classNames={{ body: 'p-0' }}>
         <Flex
           style={{
-            height: 'calc(100vh - 60px)',
             boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
             padding: 10,
           }}
@@ -29,7 +29,7 @@ const AlertsIntegrationPage = () => {
             <AlertsIntegrationTable />
           </div>
         </Flex>
-      </Card>
+      </CustomCard>
     </AlertIntegrationProvider>
   )
 }
