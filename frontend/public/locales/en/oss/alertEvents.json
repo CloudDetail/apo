@@ -11,9 +11,11 @@
   "noAffectedEntries": "No affected entries detected",
   "alertEvents": "Alert Events",
   "isValid": "Alert Validity",
-  "cause": "Root Cause Analysis",
+  "cause": "AI-Driven Root Cause Analysis",
   "false": "Invalid",
   "true": "Valid",
+  "invalid": "Invalid",
+  "valid": "Valid",
   "unknown": "Unknown",
   "skipped": "Already resolved, skip analysis.",
   "failed": "Failed validation",
@@ -25,5 +27,6 @@
   "status": "Status",
   "workflowMiss": "Workflow not configured.",
   "missToast1": "The alert validity check workflow has not been set up, hence the alarm validity check is suspended.",
-  "missToast2": "The alert root cause analysis workflow has not been configured, therefore the alarm root cause analysis is currently non-navigable."
+  "missToast2": "The alert root cause analysis workflow has not been configured, therefore the alarm root cause analysis is currently non-navigable.",
+  "other": "Other"
 }

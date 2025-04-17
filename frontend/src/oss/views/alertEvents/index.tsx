@@ -3,10 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Card, Modal, Pagination, Tooltip } from 'antd'
+import { Button, Modal, Tag as AntdTag, Tooltip, Statistic, Checkbox, Image, Card } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import ReactJson from 'react-json-view'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { getAlertEventsApi } from 'src/core/api/alerts'
@@ -14,6 +13,10 @@ import BasicTable from 'src/core/components/Table/basicTable'
 import { convertUTCToBeijing } from 'src/core/utils/time'
 import WorkflowsIframe from '../workflows/workflowsIframe'
 import Tag from 'src/core/components/Tag/Tag'
+import PieChart from './PieChart'
+import CountUp from 'react-countup'
+import filterSvg from 'core/assets/images/filter.svg'
+import ReactJson from 'react-json-view'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -22,6 +25,111 @@ function isJSONString(str) {
     return false
   }
 }
+const Filter = () => {
+  const { t } = useTranslation('oss/alertEvents')
+
+  const statusOptions = [
+    { label: <Tag type={'error'}>{t('firing')}</Tag>, value: 'firing' },
+    { label: <Tag type={'success'}>{t('resolved')}</Tag>, value: 'resolved' },
+  ]
+  const validOptions = [
+    { label: t('valid'), value: 'valid' },
+    { label: t('invalid'), value: 'invalid' },
+    { label: t('other'), value: 'other' },
+  ]
+  return (
+    <div className="flex pb-2 ">
+      <div>
+        告警状态：
+        <Checkbox.Group
+          // onChange={onChangeTypeList}
+          options={statusOptions}
+        ></Checkbox.Group>
+      </div>
+      <div>
+        告警有效性：
+        <Checkbox.Group
+          // onChange={onChangeTypeList}
+          options={validOptions}
+        ></Checkbox.Group>
+      </div>
+    </div>
+  )
+}
+const formatter = (value) => <CountUp end={value as number} separator="," />
+const StatusPanel = () => {
+  const { t } = useTranslation('oss/alertEvents')
+
+  const chartData = [
+    { name: t('firing'), value: 1048, type: 'error' },
+    { name: t('resolved'), value: 735, type: 'success' },
+  ]
+  return (
+    <div className="flex pb-2 h-full flex-1  ">
+      <div className="w-full ml-1 rounded-xl flex h-full bg-[#141414] p-2">
+        <div className="h-full shrink-0 pl-4 flex">
+          {chartData.map((item) => (
+            <div className="w-[100px] h-full block items-center">
+              <Statistic
+                className="h-full flex flex-col justify-center"
+                title={<Tag type={item.type}>{item.name}</Tag>}
+                value={item.value}
+                formatter={formatter}
+              />
+            </div>
+          ))}
+          {/* <div className="">
+            <Statistic
+              className="h-full flex flex-col justify-center"
+              title={<span className="text-white">{'告警降噪率'}</span>}
+              value={30}
+              precision={2}
+              suffix="%"
+              formatter={formatter}
+            />
+          </div> */}
+        </div>
+        <div className="grow">
+          <PieChart data={chartData} />
+        </div>
+      </div>
+    </div>
+  )
+}
+const ExtraPanel = () => {
+  return (
+    <div className=" pb-2 h-full  shrink-0 w-1/2 mr-3">
+      <div className="w-full rounded-xl flex h-full bg-[#141414] p-2 ">
+        <div className="ml-3 mr-7">
+          <Image src={filterSvg} width={50} height={'100%'} preview={false} />
+        </div>
+        <div className="flex flex-col h-full justify-center">
+          <Statistic
+            className=" flex flex-col justify-center"
+            title={<span className="text-white">{'告警降噪率'}</span>}
+            value={30}
+            precision={2}
+            suffix="%"
+            formatter={formatter}
+          />
+          {/* <span className="text-gray-400 text-xs">AI辅助识别无效告警，助力聚焦核心问题</span> */}
+          <span className="text-gray-400 text-xs">
+            在
+            <span className="mx-1">
+              <Tag type={'error'}>1048</Tag>
+            </span>
+            条告警中，AI辅助识别{' '}
+            <span className="mx-1">
+              <Tag type={'warning'}>839</Tag>
+            </span>
+            条为无效告警，主动降噪
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const AlertEventsPage = () => {
   const { t } = useTranslation('oss/alertEvents')
   const [pagination, setPagination] = useState({
@@ -44,7 +152,7 @@ const AlertEventsPage = () => {
       </Tooltip>
     )
   }
-  const getAlertEvents = () => [
+  const getAlertEvents = () => {
     getAlertEventsApi({
       startTime,
       endTime,
@@ -53,6 +161,11 @@ const AlertEventsPage = () => {
         pageSize: pagination.pageSize,
       },
     }).then((res) => {
+      const totalPages = Math.ceil(res.pagination.total / pagination.pageSize)
+      if (pagination.pageIndex > totalPages && totalPages > 0) {
+        setPagination({ ...pagination, pageIndex: totalPages })
+        return
+      }
       setAlertEvents(res?.events || [])
       setPagination({
         ...pagination,
@@ -70,8 +183,9 @@ const AlertEventsPage = () => {
         },
         5 * 60 * 1000,
       )
-    }),
-  ]
+    })
+  }
+
   useEffect(() => {
     if (startTime && endTime) {
       getAlertEvents()
@@ -103,55 +217,80 @@ const AlertEventsPage = () => {
   }
   const columns = [
     {
-      title: t('alertType'),
-      accessor: 'group',
-      customWidth: 150,
-      Cell: ({ value }) => {
-        return groupLabel[value]
-      },
-    },
-    {
       title: t('alertName'),
       accessor: 'name',
-      customWidth: 150,
-    },
-    {
-      title: t('lastAlertTime'),
-      accessor: 'receivedTime',
-      customWidth: 180,
-      Cell: ({ value }) => {
-        return convertUTCToBeijing(value)
-      },
-    },
-    {
-      title: t('alertSource'),
-      accessor: 'source',
-      customWidth: 150,
+      justifyContent: 'left',
+      minWidth: 150,
     },
     {
       title: t('alertDetail'),
-      accessor: 'detail',
+      accessor: 'tags',
       justifyContent: 'left',
-      Cell: ({ value }) =>
-        isJSONString(value) ? (
-          <ReactJson
-            src={JSON.parse(value || '')}
-            theme="brewer"
-            collapsed={true}
-            displayDataTypes={false}
-            style={{ width: '100%' }}
-            enableClipboard={false}
-          />
-        ) : (
-          value
-        ),
+      Cell: ({ value, row }) => {
+        const [visible, setVisible] = useState(false)
+
+        const { detail } = row.original
+        return (
+          <div className="overflow-hidden">
+            {Object.entries(value || {}).map(([key, tagValue]) => (
+              <AntdTag className="text-pretty mb-1 break-all">
+                {key} = {tagValue}
+              </AntdTag>
+            ))}
+
+            {visible && (
+              <ReactJson
+                src={JSON.parse(detail || '')}
+                theme="brewer"
+                collapsed={false}
+                displayDataTypes={false}
+                style={{ width: '100%' }}
+                enableClipboard={false}
+              />
+            )}
+            {isJSONString(detail) && (
+              <Button
+                color="primary"
+                variant="text"
+                size="small"
+                onClick={() => setVisible(!visible)}
+              >
+                {visible ? '收起' : '更多'}
+              </Button>
+            )}
+          </div>
+        )
+      },
+    },
+
+    {
+      title: t('lastAlertTime'),
+      accessor: 'updateTime',
+      customWidth: 100,
+      Cell: ({ value }) => {
+        const result = convertUTCToBeijing(value)
+        return (
+          <div>
+            <div>{result.split(' ')[0]}</div>
+            <div>{result.split(' ')[1]}</div>
+          </div>
+        )
+      },
     },
     {
       title: t('status'),
       accessor: 'status',
       customWidth: 120,
-      Cell: ({ value }) => {
-        return <Tag type={value === 'firing' ? 'error' : 'success'}>{t(value)}</Tag>
+      Cell: ({ value, row }) => {
+        const result = convertUTCToBeijing(row.original.endTime)
+        return (
+          <div className="text-center">
+            <Tag type={value === 'firing' ? 'error' : 'success'}>{t(value)}</Tag>
+            {value === 'resolved' && (
+              <span className="text-[10px] block text-gray-400">解决于{result}</span>
+            )}
+          </div>
+        )
       },
     },
     {
@@ -219,32 +358,26 @@ const AlertEventsPage = () => {
       showBorder: false,
       loading: false,
     }
-  }, [alertEvents])
+  }, [alertEvents, pagination.pageIndex, pagination.pageSize, pagination.total])
+  const chartHeight = 150
+  const headHeight =
+    (import.meta.env.VITE_APP_CODE_VERSION === 'CE' ? 60 : 100) + chartHeight + 'px'
   return (
     <>
-      <Card
-        style={{ height: 'calc(100vh - 60px)' }}
-        styles={{
-          body: {
-            height: '100%',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            padding: '12px 24px',
-            fontSize: '12px',
-          },
-        }}
-      >
-        <BasicTable {...tableProps} />
-        <Pagination
-          defaultCurrent={1}
-          total={pagination.total}
-          current={pagination.pageIndex}
-          pageSize={pagination.pageSize}
-          className="flex-shrink-0 flex-grow-0 p-2"
-          align="end"
-          onChange={changePagination}
-        />
+      <div className=" overflow-hidden">
+        <div style={{ height: chartHeight }} className="flex">
+          <ExtraPanel />
+          <StatusPanel />
+        </div>
+        <Card
+          style={{
+            height: 'calc(100vh - ' + headHeight + ')',
+          }}
+        >
+          <Filter />
+
+          <BasicTable {...tableProps} />
+        </Card>
         <Modal
           open={modalOpen}
           title={t('workflowsModal')}
@@ -258,7 +391,7 @@ const AlertEventsPage = () => {
         >
           {workflowUrl && <WorkflowsIframe src={workflowUrl} />}
         </Modal>
-      </Card>
+      </div>
     </>
   )
 }

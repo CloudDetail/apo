@@ -1,0 +1,53 @@
+import React from 'react'
+import ReactECharts from 'echarts-for-react'
+
+interface PieChartProps {
+  data: { name: string; value: number }[]
+  title?: string
+}
+
+const PieChart: React.FC<PieChartProps> = ({ data, title = '' }) => {
+  const option = {
+    title: {
+      text: title,
+      left: 'center',
+      top: 10,
+      textStyle: {
+        fontSize: 18,
+      },
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}: {c} ({d}%)',
+    },
+    legend: {
+      show: false,
+    },
+    label: {
+      show: true,
+      color: '#ffffff',
+      fontSize: 12,
+      formatter: '{b}: {d}%',
+    },
+    series: [
+      {
+        name: title,
+        type: 'pie',
+        radius: ['50%', '70%'],
+        center: ['50%', '55%'],
+        data,
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.3)',
+          },
+        },
+      },
+    ],
+  }
+
+  return <ReactECharts option={option} style={{ height: '100%' }} />
+}
+
+export default PieChart

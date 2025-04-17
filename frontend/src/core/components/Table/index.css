@@ -131,6 +131,7 @@
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
+      word-break: break-word;
 
       &:last-child {
         border-right: none;
@@ -148,6 +149,7 @@
     border-right: 1px solid rgba(204, 204, 220, 0.12);
     /* 给单元格右侧添加边框 */
     box-sizing: border-box;
+    word-break: break-word;
   }
 
   th:last-child,

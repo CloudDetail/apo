@@ -10,10 +10,12 @@
   "affectedEntries": "受影响业务入口",
   "noAffectedEntries": "未分析出受影响业务入口",
   "alertEvents": "告警事件",
-  "isValid": "是否有效告警",
-  "cause": "根因分析",
+  "isValid": "告警有效性",
+  "cause": "AI智能根因分析",
   "false": "无效",
   "true": "有效",
+  "invalid": "无效",
+  "valid": "有效",
   "unknown": "未知",
   "skipped": "已解决，跳过分析",
   "failed": "有效性检查失败",
@@ -25,5 +27,6 @@
   "status": "告警状态",
   "workflowMiss": "工作流未配置",
   "missToast1": "未设置告警有效性检查工作流, 告警有效性检查暂停",
-  "missToast2": "未设置告警根因分析工作流, 告警根因分析当前无法跳转"
+  "missToast2": "未设置告警根因分析工作流, 告警根因分析当前无法跳转",
+  "other": "其他"
 }
