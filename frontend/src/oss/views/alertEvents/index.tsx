@@ -27,7 +27,7 @@ function isJSONString(str) {
 }
 
 
-const Filter = ({ onStatusFilterChange, onValidFilterChange }{ onStatusFilterChange, onValidFilterChange }) => {
+const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
   const { t } = useTranslation('oss/alertEvents')
 
   const statusOptions = [
