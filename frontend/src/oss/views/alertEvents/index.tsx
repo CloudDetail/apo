@@ -38,15 +38,7 @@ const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
     {
       label: <Tag type={'success'}>{t('resolved')}</Tag>,
       value: 'resolved',
-    },
-    {
-      label: <Tag type={'error'}>{t('firing')}</Tag>,
-      value: 'firing',
-    },
-    {
-      label: <Tag type={'success'}>{t('resolved')}</Tag>,
-      value: 'resolved',
-    },
+    }
   ]
   const validOptions = [
     { label: t('valid'), value: 'valid' },
