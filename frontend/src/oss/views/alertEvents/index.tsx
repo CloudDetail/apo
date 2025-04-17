@@ -26,10 +26,19 @@ function isJSONString(str) {
   }
 }
 
-const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
+
+const Filter = ({ onStatusFilterChange, onValidFilterChange }{ onStatusFilterChange, onValidFilterChange }) => {
   const { t } = useTranslation('oss/alertEvents')
 
   const statusOptions = [
+    {
+      label: <Tag type={'error'}>{t('firing')}</Tag>,
+      value: 'firing',
+    },
+    {
+      label: <Tag type={'success'}>{t('resolved')}</Tag>,
+      value: 'resolved',
+    },
     {
       label: <Tag type={'error'}>{t('firing')}</Tag>,
       value: 'firing',
@@ -46,11 +55,14 @@ const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
   ]
   return (
     <div className="flex pb-2 ">
+      {/* Todo: need to be translated */}
       <div>
         {t('alertStatus')}:{' '}
         <Checkbox.Group
           onChange={onStatusFilterChange}
+          onChange={onStatusFilterChange}
           options={statusOptions}
+          defaultValue={['firing']}
           defaultValue={['firing']}
         ></Checkbox.Group>
       </div>

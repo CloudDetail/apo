@@ -115,7 +115,8 @@
       display: flex;
 
       justify-content: center;
-      color: rgb(161 161 170)
+      color: rgb(161 161 170);
+      word-break: break-word;
     }
 
     td {
@@ -168,6 +169,7 @@
     }
 
     th {
+      word-break: break-word;
       /* padding: 0px; */
     }
   }
