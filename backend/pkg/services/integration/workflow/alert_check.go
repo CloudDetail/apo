@@ -305,13 +305,13 @@ type worker struct {
 func (w *worker) run(c *DifyClient, eventInput <-chan alert.AlertEvent, results chan<- model.WorkflowRecord, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for event := range eventInput {
-		endTime := event.ReceivedTime.UnixMicro()
+		endTime := event.UpdateTime.UnixMicro()
 		if w.expiredTS > 0 && endTime < w.expiredTS {
 			w.dropCount++
 			continue
 		}
 
-		startTime := event.ReceivedTime.Add(-15 * time.Minute).UnixMicro()
+		startTime := event.UpdateTime.Add(-15 * time.Minute).UnixMicro()
 		inputs, _ := json.Marshal(map[string]interface{}{
 			"alert":     event.Name,
 			"params":    event.TagsInStr(),
@@ -325,7 +325,7 @@ func (w *worker) run(c *DifyClient, eventInput <-chan alert.AlertEvent, results 
 		}
 
 		tw := time.Duration(w.CacheMinutes) * time.Minute
-		roundedTime := event.ReceivedTime.Truncate(tw).Add(tw)
+		roundedTime := event.UpdateTime.Truncate(tw).Add(tw)
 
 		var record model.WorkflowRecord
 		if resp == nil {
