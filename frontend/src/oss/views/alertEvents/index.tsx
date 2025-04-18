@@ -212,7 +212,7 @@ const AlertEventsPage = () => {
       setAlertEvents(res?.events || [])
       setPagination({ ...pagination, total: res?.pagination.total || 0 })
       setWorkflowId(res.alertEventAnalyzeWorkflowId)
-      setAlertCheckId('1')
+      setAlertCheckId(res.alertCheckId)
 
       setInvalidCounts(res?.counts['firing-invalid'])
       setFiringCounts(res?.counts?.firing)
