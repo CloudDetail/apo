@@ -17,7 +17,7 @@ type CreateRoleRequest struct {
 
 type UpdateRoleRequest struct {
 	RoleID         int    `form:"roleId" binding:"required"`
-	RoleName       string `form:"roleName"`
+	RoleName       string `form:"roleName" binding:"required"`
 	Description    string `form:"description"`
 	PermissionList []int  `form:"permissionList"`
 }

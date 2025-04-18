@@ -10,7 +10,6 @@ import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useNavigate } from 'react-router-dom'
 import { getEndpointTableApi } from 'core/api/service'
 import BasicTable from 'src/core/components/Table/basicTable'
-import TempCell from 'src/core/components/Table/TempCell'
 import { DelaySourceTimeUnit } from 'src/constants'
 import { getStep } from 'src/core/utils/step'
 import { useTranslation } from 'react-i18next'
@@ -162,9 +161,9 @@ function EndpointTableModal(props) {
       `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(props.endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}`,
     )
   }
-  const handleTableChange = (props) => {
-    if (props.pageSize && props.pageIndex) {
-      setPageSize(props.pageSize), setPageIndex(props.pageIndex)
+  const handleTableChange = (pageIndex, pageSize) => {
+    if (pageSize && pageIndex) {
+      setPageSize(pageSize), setPageIndex(pageIndex)
     }
   }
   useEffect(() => {
@@ -188,7 +187,7 @@ function EndpointTableModal(props) {
       pagination: {
         pageSize: pageSize,
         pageIndex: pageIndex,
-        pageCount: Math.ceil(data.length / pageSize),
+        total: data.length,
       },
     }
   }, [data, loading, pageIndex, pageSize])

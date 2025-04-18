@@ -7,16 +7,16 @@ import { Button, Modal, Tag as AntdTag, Tooltip, Statistic, Checkbox, Image, Car
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
 import { getAlertEventsApi } from 'src/core/api/alerts'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { convertUTCToBeijing } from 'src/core/utils/time'
+import { convertUTCToLocal } from 'src/core/utils/time'
 import WorkflowsIframe from '../workflows/workflowsIframe'
 import Tag from 'src/core/components/Tag/Tag'
 import PieChart from './PieChart'
 import CountUp from 'react-countup'
 import filterSvg from 'core/assets/images/filter.svg'
 import ReactJson from 'react-json-view'
+import { useDebounce } from 'react-use'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -25,8 +25,6 @@ function isJSONString(str) {
     return false
   }
 }
-
-
 
 const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
   const { t } = useTranslation('oss/alertEvents')
@@ -39,7 +37,7 @@ const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
     {
       label: <Tag type={'success'}>{t('resolved')}</Tag>,
       value: 'resolved',
-    }
+    },
   ]
   const validOptions = [
     { label: t('valid'), value: 'valid' },
@@ -53,14 +51,12 @@ const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
         {t('alertStatus')}:{' '}
         <Checkbox.Group
           onChange={onStatusFilterChange}
-          onChange={onStatusFilterChange}
           options={statusOptions}
-          defaultValue={['firing']}
           defaultValue={['firing']}
         ></Checkbox.Group>
       </div>
       <div>
-        {t('alertValidity')}: {' '}
+        {t('alertValidity')}:{' '}
         <Checkbox.Group
           onChange={onValidFilterChange}
           options={validOptions}
@@ -73,7 +69,7 @@ const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
 const formatter = (value) => <CountUp end={value as number} separator="," />
 
 // Current info right panel
-const StatusPanel = ({ firingCounts, resolvedCounts}) => {
+const StatusPanel = ({ firingCounts, resolvedCounts }) => {
   const { t } = useTranslation('oss/alertEvents')
 
   const chartData = [
@@ -122,33 +118,35 @@ const ExtraPanel = ({ firingCounts, invalidCounts, alertCheck }) => {
         <div className="ml-3 mr-7">
           <Image src={filterSvg} width={50} height={'100%'} preview={false} />
         </div>
-        {alertCheck && <div className="flex flex-col h-full justify-center">
-          <Statistic
-            className=" flex flex-col justify-center"
-            title={<span className="text-white">{t('rate')}</span>}
-            value={firingCounts === 0 ? 0 : (invalidCounts / firingCounts) * 100}
-            precision={2}
-            suffix="%"
-            formatter={formatter}
-          />
-          {/* <span className="text-gray-400 text-xs">AI辅助识别无效告警，助力聚焦核心问题</span> */}
-          <span className="text-gray-400 text-xs">
-            {t('In')}
-            <span className="mx-1">
-              <Tag type={'error'}>{firingCounts}</Tag>
+        {alertCheck && (
+          <div className="flex flex-col h-full justify-center">
+            <Statistic
+              className=" flex flex-col justify-center"
+              title={<span className="text-white">{t('rate')}</span>}
+              value={firingCounts === 0 ? 0 : (invalidCounts / firingCounts) * 100}
+              precision={2}
+              suffix="%"
+              formatter={formatter}
+            />
+            <span className="text-gray-400 text-xs">
+              {t('In')}
+              <span className="mx-1">
+                <Tag type={'error'}>{firingCounts}</Tag>
+              </span>
+              {t('alerts, AI identified')}{' '}
+              <span className="mx-1">
+                <Tag type={'warning'}>{invalidCounts}</Tag>
+              </span>
+              {t('invalid alerts for auto suppression')}
             </span>
-            {t('alerts, AI identified')}
-            {' '}
-            <span className="mx-1">
-              <Tag type={'warning'}>{invalidCounts}</Tag>
-            </span>
-            {t('invalid alerts for auto suppression')}
-          </span>
-        </div>}
-        {!alertCheck && <div className="flex flex-col h-full justify-center gap-4">
-          <span className="text-white">{t('rate')}</span>
-          <span className="text-white">{t('noAlertCheckId')}</span>
-          </div>}
+          </div>
+        )}
+        {!alertCheck && (
+          <div className="flex flex-col h-full justify-center gap-4">
+            <span className="text-white">{t('rate')}</span>
+            <span className="text-white">{t('noAlertCheckId')}</span>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -181,9 +179,18 @@ const AlertEventsPage = () => {
       </Tooltip>
     )
   }
+  const getAlertEventsRef = useRef<() => void>(() => {})
+
   const getAlertEvents = () => {
-    // replace 'other' with 'skipped', 'failed', 'unknown'
-    const validFilterReady = validFilter.includes('other') ? [...validFilter, 'skipped', 'failed', 'unknown'] : validFilter
+    // 🔁 每次都清掉旧定时器
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+    const validFilterReady = validFilter.includes('other')
+      ? [...validFilter.filter((f) => f !== 'other'), 'skipped', 'failed', 'unknown']
+      : validFilter
+
     getAlertEventsApi({
       startTime,
       endTime,
@@ -194,50 +201,41 @@ const AlertEventsPage = () => {
       filter: {
         status: statusFilter,
         validity: validFilterReady,
-      }
+      },
     }).then((res) => {
       const totalPages = Math.ceil(res.pagination.total / pagination.pageSize)
       if (pagination.pageIndex > totalPages && totalPages > 0) {
         setPagination({ ...pagination, pageIndex: totalPages })
         return
       }
+
       setAlertEvents(res?.events || [])
-      setPagination({
-        ...pagination,
-        total: res?.pagination.total || 0,
-      })
+      setPagination({ ...pagination, total: res?.pagination.total || 0 })
       setWorkflowId(res.alertEventAnalyzeWorkflowId)
-      setAlertCheckId(res.alertCheckId)
-      if (timerRef.current) {
-        clearTimeout(timerRef.current)
-      }
+      setAlertCheckId('1')
+
+      setInvalidCounts(res?.counts['firing-invalid'])
+      setFiringCounts(res?.counts?.firing)
+      setResolvedCounts(res?.counts?.resolved)
 
       timerRef.current = setTimeout(
         () => {
-          getAlertEvents()
+          getAlertEventsRef.current()
         },
         5 * 60 * 1000,
       )
-
-      const invalid = res?.counts?.invalid
-      const firing = res?.counts?.firing
-      const resolved = res?.counts?.resolved
-      setInvalidCounts(invalid)
-      setFiringCounts(firing)
-      setResolvedCounts(resolved)
     })
   }
-
-  useEffect(() => {
-    if (startTime && endTime) {
-      getAlertEvents()
-    }
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current)
+  useDebounce(
+    () => {
+      if (startTime && endTime) {
+        getAlertEvents()
       }
-    }
-  }, [pagination.pageIndex, pagination.pageSize, startTime, endTime, statusFilter, validFilter])
+    },
+    300,
+    [pagination.pageIndex, pagination.pageSize, startTime, endTime, statusFilter, validFilter],
+  )
+
   function openWorkflowModal(workflowParams) {
     let result = '/dify/app/' + workflowId + '/run-once?'
     const params = Object.entries(workflowParams)
@@ -287,7 +285,7 @@ const AlertEventsPage = () => {
                 size="small"
                 onClick={() => setVisible(!visible)}
               >
-                { visible ? t('collapse') : t('expand') }
+                {visible ? t('collapse') : t('expand')}
               </Button>
             )}
 
@@ -311,7 +309,7 @@ const AlertEventsPage = () => {
       accessor: 'updateTime',
       customWidth: 100,
       Cell: ({ value }) => {
-        const result = convertUTCToBeijing(value)
+        const result = convertUTCToLocal(value)
         return (
           <div>
             <div>{result.split(' ')[0]}</div>
@@ -325,12 +323,14 @@ const AlertEventsPage = () => {
       accessor: 'status',
       customWidth: 120,
       Cell: ({ value, row }) => {
-        const result = convertUTCToBeijing(row.original.endTime)
+        const result = convertUTCToLocal(row.original.endTime)
         return (
           <div className="text-center">
             <Tag type={value === 'firing' ? 'error' : 'success'}>{t(value)}</Tag>
             {value === 'resolved' && (
-              <span className="text-[10px] block text-gray-400">{t('resolvedOn')}{' '}{result}</span>
+              <span className="text-[10px] block text-gray-400">
+                {t('resolvedOn')} {result}
+              </span>
             )}
           </div>
         )
@@ -387,10 +387,10 @@ const AlertEventsPage = () => {
     },
   ]
   const updatePagination = (newPagination) => setPagination({ ...pagination, ...newPagination })
-  const changePagination = (props) => {
+  const changePagination = (pageIndex, pageSize) => {
     updatePagination({
-      pageSize: props.pageSize,
-      pageIndex: props.pageIndex,
+      pageSize: pageSize,
+      pageIndex: pageIndex,
       // total: pagination.total,
     })
   }
@@ -403,14 +403,24 @@ const AlertEventsPage = () => {
       pagination: {
         pageSize: pagination.pageSize,
         pageIndex: pagination.pageIndex,
-        pageCount: Math.ceil(pagination.total / pagination.pageSize)
+        total: pagination.total,
       },
-      onChange: changePagination
+      onChange: changePagination,
     }
   }, [alertEvents, pagination.pageIndex, pagination.pageSize, pagination.total])
   const chartHeight = 150
   const headHeight =
     (import.meta.env.VITE_APP_CODE_VERSION === 'CE' ? 60 : 100) + chartHeight + 'px'
+  getAlertEventsRef.current = getAlertEvents
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+      }
+    }
+  }, [])
+
   return (
     <>
       <div className="overflow-hidden h-full flex flex-col">
@@ -420,32 +430,29 @@ const AlertEventsPage = () => {
             firingCounts={firingCounts}
             alertCheck={alertCheckId}
           />
-          <StatusPanel
-            firingCounts={firingCounts}
-            resolvedCounts={resolvedCounts}
-          />
+          <StatusPanel firingCounts={firingCounts} resolvedCounts={resolvedCounts} />
         </div>
         <Card
           style={{
             height: `calc(100vh - ${headHeight})`,
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
           }}
-          bodyStyle={{
-            flex: 1,
-            overflow: 'auto',
-            padding: '16px',
-            display: 'flex',
-            flexDirection: 'column'
+          styles={{
+            body: {
+              flex: 1,
+              overflow: 'auto',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+            },
           }}
         >
           <Filter
-            onStatusFilterChange={ checkedValues => {
-              console.log('checkedValues: ', checkedValues)
+            onStatusFilterChange={(checkedValues) => {
               setStatusFilter(checkedValues)
             }}
-            onValidFilterChange={ checkedValues => {
-              console.log('checkedValues: ', checkedValues)
+            onValidFilterChange={(checkedValues) => {
               setValidFilter(checkedValues)
             }}
           />

@@ -129,7 +129,7 @@ func (r *AlertCheckResponse) CreatedAt() int64 {
 
 func (r *AlertCheckResponse) getOutput(defaultV string) string {
 	if r.resp.Data.Status != "succeeded" {
-		return "failed: " + string(r.resp.Data.Outputs)
+		return fmt.Sprintf("failed: status: %s, output: %s", r.resp.Data.Status, string(r.resp.Data.Outputs))
 	}
 
 	var res map[string]string

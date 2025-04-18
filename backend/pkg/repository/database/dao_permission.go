@@ -61,6 +61,10 @@ func (repo *daoRepo) GrantPermission(ctx context.Context, subID int64, subType s
 
 // RevokePermission It will delete all record related to sub if permissionIDs is empty.
 func (repo *daoRepo) RevokePermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error {
+	if len(permissionIDs) == 0 {
+		return nil
+	}
+	
 	query := repo.GetContextDB(ctx).
 		Model(&AuthPermission{}).
 		Where("subject_id = ? AND subject_type = ? AND type = ?", subID, subType, typ)
