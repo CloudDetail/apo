@@ -289,18 +289,31 @@ func (ch *chRepo) GetAlertEventCounts(req *request.AlertEventSearchRequest, cach
 	}
 
 	result := map[string]int64{
-		"firing":   0,
-		"resolved": 0,
-		"valid":    0,
-		"invalid":  0,
-		"skipped":  0,
-		"failed":   0,
-		"unknown":  0,
+		"firing":         0,
+		"resolved":       0,
+		"valid":          0,
+		"invalid":        0,
+		"skipped":        0,
+		"failed":         0,
+		"unknown":        0,
+		"firing-valid":   0,
+		"firing-invalid": 0,
+		"firing-other":   0,
 	}
 
 	for _, count := range counts {
 		result[count.Status] += int64(count.Count)
 		result[count.Validity] += int64(count.Count)
+
+		if count.Status == alert.StatusFiring {
+			if count.Validity == "valid" {
+				result["firing-valid"] += int64(count.Count)
+			} else if count.Validity == "invalid" {
+				result["firing-invalid"] += int64(count.Count)
+			} else {
+				result["firing-other"] += int64(count.Count)
+			}
+		}
 	}
 	return result, nil
 }
