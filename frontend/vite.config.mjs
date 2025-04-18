@@ -7,7 +7,6 @@ import react from '@vitejs/plugin-react'
 import path from 'node:path'
 import autoprefixer from 'autoprefixer'
 import tailwindcss from 'tailwindcss'
-import monacoEditorPlugin from 'vite-plugin-monaco-editor'
 export default defineConfig(() => {
   return {
     base: './',
@@ -35,18 +34,7 @@ export default defineConfig(() => {
         },
       },
     },
-    plugins: [
-      react(),
-      monacoEditorPlugin.default({
-        languageWorkers: ['json', 'editorWorkerService'],
-        customWorkers: [
-          {
-            label: 'graphql',
-            entry: 'monaco-graphql/dist/graphql.worker',
-          },
-        ],
-      }),
-    ],
+    plugins: [react()],
     resolve: {
       alias: [
         {
