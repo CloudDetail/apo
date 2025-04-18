@@ -175,11 +175,7 @@ func sortbyParam(sortBy string) ([]string, []bool) {
 func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error) {
 	alertFilter := NewQueryBuilder().
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
-		And(mergeWheres(
-			OrSep,
-			equals("end_time", 0),
-			lessThan("end_time", req.EndTime/1e6),
-		))
+		NotGreaterThan("end_time", req.EndTime/1e6)
 
 	if len(req.Filter.Namespaces) > 0 {
 		alertFilter.InStrings("tags['namespace']", req.Filter.Namespaces)
@@ -225,11 +221,7 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchR
 func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cacheMinutes int) (string, []any) {
 	alertFilter := NewQueryBuilder().
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
-		And(mergeWheres(
-			OrSep,
-			equals("end_time", 0),
-			lessThan("end_time", req.EndTime/1e6),
-		))
+		NotGreaterThan("end_time", req.EndTime/1e6)
 
 	if len(req.Filter.Namespaces) > 0 {
 		alertFilter.InStrings("tags['namespace']", req.Filter.Namespaces)
@@ -282,11 +274,7 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cac
 func (ch *chRepo) GetAlertEventCounts(req *request.AlertEventSearchRequest, cacheMinutes int) (map[string]int64, error) {
 	alertFilter := NewQueryBuilder().
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
-		And(mergeWheres(
-			OrSep,
-			equals("end_time", 0),
-			lessThan("end_time", req.EndTime/1e6),
-		))
+		NotGreaterThan("end_time", req.EndTime/1e6)
 
 	var counts []_alertEventCount
 	intervalMicro := int64(5*time.Minute) / 1e3
