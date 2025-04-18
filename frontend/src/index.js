@@ -22,6 +22,10 @@ import enUS from 'antd/es/locale/en_US'
 import { UserProvider } from './core/contexts/UserContext'
 import './i18n'
 import { useTranslation } from 'react-i18next'
+import { loader } from '@monaco-editor/react'
+import * as monaco from 'monaco-editor'
+
+loader.config({ monaco })
 
 const apiHost = import.meta.env.VITE_PUBLIC_POSTHOG_HOST
 const apiKey = import.meta.env.VITE_PUBLIC_POSTHOG_KEY
@@ -66,7 +70,7 @@ const AppWrapper = () => {
                   nodeSelectedBg: '#33415580',
                 },
                 Table: {
-                  headerBg: '#1d1d1d'
+                  headerBg: '#1d1d1d',
                 },
               },
             }}
