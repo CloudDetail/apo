@@ -24,7 +24,7 @@ func (ch *chRepo) GetDetectExecList(req *request.GetDefectDetectExecListRequest)
 			LIMIT ? OFFSET ?`
 	resp := []model.DetectMutation{}
 	countSql := `SELECT count(*) as total FROM detect_list`
-	var count int64
+	var count uint64
 	err := ch.conn.QueryRow(context.Background(), countSql, nil).Scan(&count)
 	if err != nil {
 		return nil, 0, err
@@ -85,7 +85,7 @@ func (ch *chRepo) GetDistinctDetectExecList(req *request.GetDefectDetectRuleList
 		return nil, 0, err
 	}
 	countSql := `SELECT COUNT(DISTINCT name, mutation_check_pql, for_duration, step, group) as total FROM detect_list`
-	var count int64
+	var count uint64
 	err = ch.conn.QueryRow(context.Background(), countSql, nil).Scan(&count)
 	if err != nil {
 		return nil, 0, err
