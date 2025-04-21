@@ -54,6 +54,8 @@ func (s *service) GetAlertEventsSvc(req *request.GetAlertEventsSvcReq) (*respons
 	}
 
 	for i := 0; i < len(impactEvents); i++ {
+		impactEvents[i].Alert.EnrichTags["source"] = impactEvents[i].Alert.Source
+		impactEvents[i].Tags["source"] = impactEvents[i].Alert.Source
 		impactEvents[i].ImpactEntries = searchEntryByServices(entryRelations, impactEvents[i].ImpactEndpoints)
 	}
 
