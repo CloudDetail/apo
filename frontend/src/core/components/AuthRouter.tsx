@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next'
 
 const checkRoutePermission = async (route: string) => {
   const authResult = await getRouterPermissionApi({ router: route });
-  return authResult
+  return authResult || route === '/user'
 }
 
 const AuthRouter = (WrappedComponent) => {
