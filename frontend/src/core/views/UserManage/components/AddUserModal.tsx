@@ -54,7 +54,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
           </Form.Item>
           <Form.Item
             name="roleId"
-            labelCol={{ span: i18n.language === 'zh' ? 8 : 10 }}
+            labelCol={{ span: 8 }}
             label={t('index.role')}
             rules={[{ required: true, message: t('addModal.roleRequired') }]}
             style={{ marginBottom: 0, flex: 1 }}

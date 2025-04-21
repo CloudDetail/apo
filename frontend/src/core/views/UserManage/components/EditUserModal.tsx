@@ -34,7 +34,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
   onFinish,
   onResetPassword,
 }) => {
-  const { t } = useTranslation('core/userManage');
+  const { t, i18n } = useTranslation('core/userManage');
 
   return (
     <FormModal
@@ -50,10 +50,10 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
         <Flex gap={16} className="mb-6">
           <Form.Item
             name="username"
-            labelCol={{ span: 8 }}
+            labelCol={{ span: i18n.language === 'zh' ? 8 : 10 }}
             label={t('index.userName')}
             rules={[{ required: true, message: t('editModal.userNameRequired') }]}
-            style={{ marginBottom: 0, flex: 1 }}
+            style={{ marginBottom: 0, flex: 1, marginLeft: i18n.language === 'zh' ? 0 : 50 }}
           >
             <Input disabled />
           </Form.Item>
