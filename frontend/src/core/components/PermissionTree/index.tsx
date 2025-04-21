@@ -138,7 +138,7 @@ function PermissionTree({
     <Flex justify='flex-end' className='w-full' style={actionStyle}>
       <Button
         type="primary"
-        className="m-4 mb-0"
+        className="m-4"
         onClick={handleSelectAll}
         icon={<BsCheckAll />}
       >
@@ -156,7 +156,7 @@ function PermissionTree({
     <>
       <Card
         className={className}
-        style={{ height: 'calc(100vh - 60px)', overflow: 'auto', ...style }}
+        style={{ height: 'calc(100vh - 60px)', overflow: 'auto', position: 'relative', ...style }}
         styles={styles}
       >
         <LoadingSpinner loading={loading} />
