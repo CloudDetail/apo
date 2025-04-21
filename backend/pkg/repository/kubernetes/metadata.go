@@ -240,8 +240,8 @@ func (m *Metadata) AddAlertRule(configFile string, alertRule request.AlertRule) 
 				code.AlertAlertAlreadyExistError)
 		}
 	} else {
-		name, _ := GetLabel(alertRule.Group)
-		alertRules.Groups = append(alertRules.Groups, AlertGroup{Name: name})
+		// name, _ := GetLabel(alertRule.Group)
+		alertRules.Groups = append(alertRules.Groups, AlertGroup{Name: alertRule.Group})
 	}
 
 	alertRules.Rules = append(alertRules.Rules, &alertRule)

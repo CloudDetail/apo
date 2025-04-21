@@ -91,8 +91,20 @@ func (builder *QueryBuilder) GreaterThan(key string, value any) *QueryBuilder {
 	return builder
 }
 
+func (builder *QueryBuilder) NotGreaterThan(key string, value any) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s <= ?", key))
+	builder.values = append(builder.values, value)
+	return builder
+}
+
 func (builder *QueryBuilder) LessThan(key string, value any) *QueryBuilder {
 	builder.where = append(builder.where, fmt.Sprintf("%s < ?", key))
+	builder.values = append(builder.values, value)
+	return builder
+}
+
+func (builder *QueryBuilder) NotLessThan(key string, value any) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s >= ?", key))
 	builder.values = append(builder.values, value)
 	return builder
 }

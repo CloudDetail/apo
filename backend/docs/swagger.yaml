@@ -18,6 +18,8 @@ definitions:
         type: string
       name:
         type: string
+      output:
+        type: string
       rawTags:
         allOf:
         - $ref: '#/definitions/alert.RawTags'
@@ -1799,7 +1801,12 @@ definitions:
       currentPage:
         type: integer
       group:
+        description: 'Deprecated: use Groups instead'
         type: string
+      groups:
+        items:
+          type: string
+        type: array
       keyword:
         type: string
       pageSize:
@@ -2319,12 +2326,6 @@ definitions:
       type:
         type: string
     type: object
-  response.CreateResponse:
-    properties:
-      id:
-        description: primary key ID
-        type: integer
-    type: object
   response.DBInfo:
     properties:
       dataBase:
@@ -2337,19 +2338,6 @@ definitions:
   response.DeleteOtherTableResponse:
     properties:
       error:
-        type: string
-    type: object
-  response.DeleteResponse:
-    properties:
-      id:
-        description: primary key ID
-        type: integer
-    type: object
-  response.DetailResponse:
-    properties:
-      id:
-        type: integer
-      name:
         type: string
     type: object
   response.Duration:
@@ -3084,24 +3072,6 @@ definitions:
         description: Normal or Warning
         type: string
     type: object
-  response.ListData:
-    properties:
-      id:
-        description: ID
-        type: integer
-      name:
-        description: username
-        type: string
-    type: object
-  response.ListResponse:
-    properties:
-      list:
-        items:
-          $ref: '#/definitions/response.ListData'
-        type: array
-      pagination:
-        $ref: '#/definitions/response.Pagination'
-    type: object
   response.LogChartResponse:
     properties:
       count:
@@ -3293,18 +3263,6 @@ definitions:
         items:
           $ref: '#/definitions/response.OtherDB'
         type: array
-    type: object
-  response.Pagination:
-    properties:
-      current_page:
-        description: current page number
-        type: integer
-      per_page_count:
-        description: number of pieces per page
-        type: integer
-      total:
-        description: total number of records
-        type: integer
     type: object
   response.Parse:
     properties:
@@ -5869,114 +5827,6 @@ paths:
             $ref: '#/definitions/code.Failure'
       tags:
       - API.metric
-  /api/mock:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: xx list
-      parameters:
-      - default: 1
-        description: which page
-        in: query
-        name: page_num
-        required: true
-        type: integer
-      - default: 10
-        description: Number of displays per page
-        in: query
-        name: page_size
-        type: integer
-      - description: username
-        in: query
-        name: name
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.ListResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: xx list
-      tags:
-      - API.mock
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: create/edit xx
-      parameters:
-      - description: name
-        in: formData
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.CreateResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: create/edit xx
-      tags:
-      - API.mock
-  /api/mock/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: delete xx
-      parameters:
-      - description: Id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.DeleteResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: delete xx
-      tags:
-      - API.mock
-    get:
-      consumes:
-      - application/json
-      description: xx details
-      parameters:
-      - description: ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.DetailResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: xx details
-      tags:
-      - API.mock
   /api/network/podmap:
     get:
       consumes:
@@ -6176,6 +6026,35 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Grant or revoke user's permission(feature).
+      tags:
+      - API.permission
+  /api/permission/router:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Check a router is authorized to view.
+      parameters:
+      - description: Router
+        in: query
+        name: router
+        required: true
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Check a router is authorized to view.
       tags:
       - API.permission
   /api/permission/sub/feature:

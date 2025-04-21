@@ -174,6 +174,7 @@ func setApiRouter(r *resource) {
 		permissionApi.GET("/sub/feature", permissionHandler.GetSubjectFeature())
 		permissionApi.POST("/operation", permissionHandler.PermissionOperation())
 		permissionApi.POST("/menu/configure", permissionHandler.ConfigureMenu())
+		permissionApi.GET("/router", permissionHandler.CheckRouterPermission())
 	}
 
 	roleApi := r.mux.Group("/api/role").Use(middlewares.AuthMiddleware())
