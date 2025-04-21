@@ -10,12 +10,21 @@ import { convertTime } from 'src/core/utils/time'
 import { MdOutlineOpenInFull } from 'react-icons/md'
 import CopyPre from '../CopyPre'
 import { ErrorChain } from './ErrorChain'
+import { v4 as uuidv4 } from 'uuid'
+
+function safeCall(fn, ...args) {
+  if (typeof fn === 'function') {
+    return fn(...args)
+  }
+  return undefined
+}
 
 function ErrorCell(props) {
-  const { data, instance } = props
+  const { data, instance, canClickTo = true, update } = props
   const [options, setOptions] = useState([])
   const [visible, setVisible] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
+  const chartId = 'chart_' + uuidv4()
   useEffect(() => {
     const options = []
     data.map((item) => {
@@ -36,6 +45,7 @@ function ErrorCell(props) {
       })
     })
     setOptions(options)
+    safeCall(update, options[0])
   }, [data])
   const PreCom = (value) => (
     <div className="relative max-h-14 overflow-auto mb-1">
@@ -60,19 +70,25 @@ function ErrorCell(props) {
           destroyInactiveTabPane
           tabPosition="left"
           style={{ height: 220 }}
+          onChange={(key) => {
+            const selected = options.find((item, i) => item.value + i === key)
+            if (selected) {
+              safeCall(update, selected)
+            }
+          }}
           items={options.map((item, i) => {
             return {
               label: (
                 <div className="flex-shrink w-48 ">
                   <div className=" overflow-x-hidden whitespace-pre-wrap w-full flex flex-row text-xs">
-                    <div className="text-gray-400 flex-shrink-0">Time：</div>
+                    <div className="text-gray-400 flex-shrink-0 text-[10px]">Time：</div>
                     <div className="flex-1 w-0 whitespace-nowrap text-wrap break-all">
                       {convertTime(item?.customAbbreviation.timestamp, 'yyyy-mm-dd hh:mm:ss')}
                     </div>
                   </div>
                   <div className=" overflow-x-hidden  w-full flex flex-row  text-xs">
-                    <div className="text-gray-400 flex-shrink-0">ErrorType：</div>
-                    <div className="flex-1 w-0 whitespace-nowrap text-wrap break-all">
+                    <div className="text-gray-400 flex-shrink-0 text-[10px]">ErrorType：</div>
+                    <div className="flex-1 w-0 whitespace-nowrap text-wrap break-all text-left">
                       {item?.customAbbreviation.error.type}
                     </div>
                   </div>
@@ -85,7 +101,7 @@ function ErrorCell(props) {
                   key={item.value + i}
                 >
                   <div className="h-1/3">
-                    <span className="text-gray-400 flex-shrink-0">Error Message：</span>
+                    <span className="text-gray-400 flex-shrink-0 text-[10px]">Error Message：</span>
                     <div
                       className="relative cursor-pointer"
                       onClick={() => {
@@ -97,12 +113,15 @@ function ErrorCell(props) {
                       <MdOutlineOpenInFull className=" absolute top-1 right-1" color="#3b82f6" />
                     </div>
                   </div>
-                  <span className="text-gray-400 flex-shrink-0"> Error Propagation Chain：</span>
+                  <span className="text-gray-400 flex-shrink-0 text-[10px]">
+                    Error Propagation Chain：
+                  </span>
                   <div className="h-0 flex-1">
                     <ErrorChain
                       data={item?.customAbbreviation}
                       instance={instance}
-                      chartId={instance + item.value}
+                      chartId={chartId}
+                      canClickTo={canClickTo}
                     />
                   </div>
                 </div>

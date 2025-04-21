@@ -3,6 +3,10 @@
     "selectAll": "Select All",
     "save": "Save",
     "menuConfigSuccess": "Menu configuration successful",
-    "errorFetchingPermissions": "Error fetching permissions"
+    "errorFetchingPermissions": "Error fetching permissions",
+    "roleList": "Role List",
+    "menuPermissionSetting": "Menu Permissions Setting",
+    "selectRole": "Please select a role",
+    "menuSetSuccess": "Menu setting successful"
   }
 }

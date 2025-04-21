@@ -6,21 +6,23 @@
 import React from 'react'
 import ossRoutes from './oss/routes'
 import TranslationCom from './oss/components/TranslationCom'
-const UserPage = React.lazy(() => import('src/core/views/UserPage/index.jsx'))
-const UserManage = React.lazy(() => import('src/core/views/UserManage/index.jsx'))
-const MenuManage = React.lazy(() => import('src/core/views/MenuManage/index.jsx'))
-const AlertsIntegrationPage = React.lazy(
+import AuthRouter from 'src/core/components/AuthRouter'
+const UserPage = AuthRouter(React.lazy(() => import('src/core/views/UserPage/index.jsx')))
+const UserManage = AuthRouter(React.lazy(() => import('src/core/views/UserManage/index')))
+const MenuManage = AuthRouter(React.lazy(() => import('src/core/views/MenuManage/index')))
+const RoleManage = AuthRouter(React.lazy(() => import('src/core/views/RoleManage/index')))
+const AlertsIntegrationPage = AuthRouter(React.lazy(
   () => import('src/core/views/IntegrationCenter/AlertsIntegration'),
-)
-const SystemConfiguration = React.lazy(() => import('src/core/views/SystemConfiguration/index.jsx'))
-const DataGroupPage = React.lazy(() => import('src/core/views/DataGroup/index'))
-const TeamPage = React.lazy(() => import('src/core/views/Team/index'))
-const DataIntegrationPage = React.lazy(
+))
+const SystemConfiguration = AuthRouter(React.lazy(() => import('src/core/views/SystemConfiguration/index.jsx')))
+const DataGroupPage = AuthRouter(React.lazy(() => import('src/core/views/DataGroup/index')))
+const TeamPage = AuthRouter(React.lazy(() => import('src/core/views/Team/index')))
+const DataIntegrationPage = AuthRouter(React.lazy(
   () => import('src/core/views/IntegrationCenter/DataIntegration'),
-)
-const IntegrationSettings = React.lazy(
+))
+const IntegrationSettings = AuthRouter(React.lazy(
   () => import('src/core/views/IntegrationCenter/DataIntegration/Integration'),
-)
+))
 const namespace = 'core/routes'
 
 const baseRoutes = [
@@ -39,8 +41,14 @@ const baseRoutes = [
   },
   {
     path: '/system/menu-manage',
-    name: <TranslationCom text="memuManageName" space={namespace} />,
+    name: <TranslationCom text="menuManageName" space={namespace} />,
     element: MenuManage,
+    hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/system/role-manage',
+    name: <TranslationCom text="roleManageName" space={namespace} />,
+    element: RoleManage,
     hideSystemTimeRangePicker: true,
   },
   {

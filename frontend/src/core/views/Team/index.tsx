@@ -13,6 +13,7 @@ import { deleteTeamApi, getTeamsApi } from 'src/core/api/team'
 import InfoModal from './InfoModal'
 import { showToast } from 'src/core/utils/toast'
 import DataGroupAuthorizeModal from 'src/core/components/PermissionAuthorize/DataGroupAuthorizeModal'
+import CustomCard from 'src/core/components/Card/CustomCard'
 
 function TeamPage() {
   const { t } = useTranslation('core/team')
@@ -142,8 +143,8 @@ function TeamPage() {
   }
   return (
     <>
-      <Card
-        style={{ height: 'calc(100vh - 100px)', overflow: 'hidden' }}
+      <CustomCard
+        style={{ overflow: 'hidden' }}
         classNames={{ body: 'h-full' }}
       >
         <div className="flex justify-between mb-2">
@@ -161,7 +162,7 @@ function TeamPage() {
           scroll={{ y: 'calc(100vh - 240px)' }}
           className="overflow-auto"
         ></Table>
-      </Card>
+      </CustomCard>
       <InfoModal
         open={infoModalVisible}
         closeModal={closeInfoModal}

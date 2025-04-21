@@ -34,7 +34,11 @@ function LogsInfo() {
         accessor: 'logs',
         Cell: (props) => {
           const { value } = props
-          return <DelayLineChart data={value} timeRange={{ startTime, endTime }} type={'logs'} />
+          return (
+            <div className="h-52 w-80">
+              <DelayLineChart data={value} timeRange={{ startTime, endTime }} type={'logs'} />
+            </div>
+          )
         },
       },
       {
@@ -42,7 +46,11 @@ function LogsInfo() {
         accessor: 'latency',
         Cell: (props) => {
           const { value } = props
-          return <DelayLineChart data={value} timeRange={{ startTime, endTime }} type={'p90'} />
+          return (
+            <div className="h-52 w-80">
+              <DelayLineChart data={value} timeRange={{ startTime, endTime }} type={'p90'} />
+            </div>
+          )
         },
       },
       {
@@ -51,7 +59,9 @@ function LogsInfo() {
         Cell: (props) => {
           const { value } = props
           return (
-            <DelayLineChart data={value} timeRange={{ startTime, endTime }} type={'errorRate'} />
+            <div className="h-52 w-80">
+              <DelayLineChart data={value} timeRange={{ startTime, endTime }} type={'errorRate'} />
+            </div>
           )
         },
       },

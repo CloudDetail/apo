@@ -26,3 +26,8 @@ export function getAllRoleList() {
 export function getSubjectPermissionApi(params) {
   return get('/api/permission/sub/feature', params)
 }
+
+// Get router permission
+export function getRouterPermissionApi(params) {
+  return get('/api/permission/router', params)
+}

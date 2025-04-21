@@ -20,14 +20,19 @@ func (s *service) AlertEventList(req *request.AlertEventSearchRequest) (*respons
 		return nil, err
 	}
 
+	counts, err := s.chRepo.GetAlertEventCounts(req, s.alertWorkflow.AlertCheck.CacheMinutes)
+	if err != nil {
+		return nil, err
+	}
 	for i := 0; i < len(events); i++ {
+		events[i].Alert.EnrichTags["source"] = events[i].Alert.Source
+
 		s.fillWorkflowParams(&events[i])
 		if events[i].IsValid == "unknown" && len(events[i].Output) > 0 {
 			events[i].IsValid = "failed"
 		} else if events[i].IsValid == "unknown" && events[i].Status == alert.StatusResolved {
 			events[i].IsValid = "skipped"
 		}
-		// or is unknown
 	}
 
 	req.Pagination.Total = count
@@ -36,13 +41,19 @@ func (s *service) AlertEventList(req *request.AlertEventSearchRequest) (*respons
 		Pagination:                  req.Pagination,
 		AlertEventAnalyzeWorkflowID: s.alertWorkflow.AnalyzeFlowId,
 		AlertCheckID:                s.alertWorkflow.AlertCheck.FlowId,
+		Counts:                      counts,
 	}, nil
 }
 
 func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
-
-	startTime := record.ReceivedTime.Add(-15 * time.Minute)
-	endTime := record.ReceivedTime
+	var startTime, endTime time.Time
+	if record.AlertEvent.Status == alert.StatusResolved {
+		startTime = record.EndTime.Add(-15 * time.Minute)
+		endTime = record.EndTime
+	} else {
+		startTime = record.UpdateTime.Add(-15 * time.Minute)
+		endTime = record.UpdateTime
+	}
 
 	record.WorkflowParams = alert.WorkflowParams{
 		StartTime: startTime.UnixMicro(),

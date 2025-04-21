@@ -30,6 +30,8 @@ const BasicTable = React.memo((props) => {
     setSortBy = null,
     showSizeChanger = false,
     scrollY = null,
+    tdPadding = null,
+    paginationSize = 'normal',
   } = props
   const tableRef = useRef(null)
   const getSortByColumns = (columns) => {
@@ -93,8 +95,21 @@ const BasicTable = React.memo((props) => {
       clickRow,
       emptyContent,
       scrollY,
+      tdPadding,
     }),
-    [pagination, page, data, pageIndex, pageSize, loading, rowKey, clickRow, emptyContent, scrollY],
+    [
+      pagination,
+      page,
+      data,
+      pageIndex,
+      pageSize,
+      loading,
+      rowKey,
+      clickRow,
+      emptyContent,
+      scrollY,
+      tdPadding,
+    ],
   )
   const SortRender = (isSorted, isSortedDesc, sortType = ['asc', 'desc']) => {
     const hasAsc = sortType.includes('asc')
@@ -278,6 +293,7 @@ const BasicTable = React.memo((props) => {
           showTotal={(total) => (
             <span className="text-xs text-gray-400">{t('pagination', { total })}</span>
           )}
+          size={paginationSize}
         />
       )}
     </div>

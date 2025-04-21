@@ -42,7 +42,8 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 		EqualsNotEmpty("labels['instance_id']", query.Instance).
 		EqualsNotEmpty("labels['content_key']", query.EndPoint).
 		EqualsNotEmpty("labels['node_name']", query.NodeName).
-		EqualsNotEmpty("trace_id", query.TraceId)
+		EqualsNotEmpty("trace_id", query.TraceId).
+		EqualsNotEmpty("labels['pod_name']", query.Pod)
 
 	if len(query.MultiServices) > 0 {
 		queryBuilder.In("labels['service_name']", query.MultiServices)
@@ -63,14 +64,14 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 		queryBuilder.Statement("(flags['is_error'] = true or (flags['is_profiled'] = true AND flags['is_slow'] = true))")
 	}
 	whereClause := queryBuilder.String()
-	var countResults []QueryCount
+
+	var count uint64
 	// Number of query records
-	err := ch.conn.Select(context.Background(), &countResults, fmt.Sprintf(TEMPLATE_COUNT_SPAN_TRACE, whereClause), queryBuilder.values...)
+	err := ch.conn.QueryRow(context.Background(), fmt.Sprintf(TEMPLATE_COUNT_SPAN_TRACE, whereClause), queryBuilder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	count := int64(countResults[0].Total)
 	result := []FaultLogResult{}
 	if count == 0 {
 		return result, 0, nil
@@ -96,9 +97,9 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 	sql := fmt.Sprintf(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, whereClause, bySql)
 	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
-		return nil, count, err
+		return nil, int64(count), err
 	}
-	return result, count, nil
+	return result, int64(count), nil
 }
 
 func (ch *chRepo) GetAvailableFilterKey(startTime, endTime time.Time, needUpdate bool) ([]request.SpanTraceFilter, error) {
@@ -149,14 +150,13 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 	}
 
 	whereClause := queryBuilder.String()
-	var countResults []QueryCount
+	var count uint64
 	// Number of query records
-	err := ch.conn.Select(context.Background(), &countResults, fmt.Sprintf(TEMPLATE_COUNT_SPAN_TRACE, whereClause), queryBuilder.values...)
+	err := ch.conn.QueryRow(context.Background(), fmt.Sprintf(TEMPLATE_COUNT_SPAN_TRACE, whereClause), queryBuilder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	count := int64(countResults[0].Total)
 	result := []QueryTraceResult{}
 	if count == 0 {
 		return result, 0, nil
@@ -185,9 +185,9 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 	sql := fmt.Sprintf(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, whereClause, bySql)
 	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
-		return nil, count, err
+		return nil, int64(count), err
 	}
-	return result, count, nil
+	return result, int64(count), nil
 }
 
 type FaultLogQuery struct {
@@ -205,10 +205,7 @@ type FaultLogQuery struct {
 	Type           int      // 0 - slow & error, 1 - error
 	MultiServices  []string // Match multiple service
 	MultiNamespace []string // Match multiple namespace
-}
-
-type QueryCount struct {
-	Total uint64 `ch:"total"`
+	Pod            string   // Pod name
 }
 
 type FaultLogResult struct {

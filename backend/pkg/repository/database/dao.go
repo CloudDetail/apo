@@ -62,14 +62,18 @@ type Repo interface {
 	GrantRoleWithUser(ctx context.Context, userID int64, roleIDs []int) error
 	GrantRoleWithRole(ctx context.Context, roleID int, userIDs []int64) error
 	RevokeRole(ctx context.Context, userID int64, roleIDs []int) error
+	RevokeRoleWithRole(ctx context.Context, roleID int) error
 	GetSubjectPermission(subID int64, subType string, typ string) ([]int, error)
 	GetSubjectsPermission(subIDs []int64, subType string, typ string) ([]AuthPermission, error)
 	RoleExists(roleID int) (bool, error)
 	GrantPermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
 	RevokePermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
 	GetAddAndDeletePermissions(subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error)
-	RoleGranted(userID int64, roleID int) (bool, error)
-	GetItemRouter(items *[]MenuItem) error
+	RoleGrantedToUser(userID int64, roleID int) (bool, error)
+	RoleGranted(roleID int) (bool, error)
+	FillItemRouter(items *[]MenuItem) error
+	GetItemsRouter(itemIDs []int) ([]Router, error)
+	GetRouter(routerTo string) (*Router, error)
 	GetRouterInsertedPage(routers []*Router, language string) error
 	GetFeatureTans(features *[]Feature, language string) error
 	GetMenuItemTans(menuItems *[]MenuItem, language string) error

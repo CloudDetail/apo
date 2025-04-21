@@ -35,6 +35,11 @@ type Handler interface {
 	// @Tags API.permission
 	// @Router /api/permission/menu/configure [post]
 	ConfigureMenu() core.HandlerFunc
+
+	// CheckRouterPermission Check a router is authorized to view.
+	// @Tags API.permission
+	// @Router /api/permission/router [get]
+	CheckRouterPermission() core.HandlerFunc
 }
 
 type handler struct {

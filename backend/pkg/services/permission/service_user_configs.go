@@ -33,7 +33,7 @@ func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.Get
 		return resp, err
 	}
 
-	err = s.dbRepo.GetItemRouter(&items)
+	err = s.dbRepo.FillItemRouter(&items)
 	if err != nil {
 		return resp, err
 	}
