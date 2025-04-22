@@ -334,7 +334,7 @@ func (w *worker) run(c *DifyClient, eventInput <-chan alert.AlertEvent, results 
 				WorkflowID:    w.FlowId,
 				WorkflowName:  w.FlowName,
 				Ref:           event.AlertID,
-				Input:         "",
+				Input:         event.ID.String(),
 				Output:        "failed: workflow execution failed due to API call failure",
 				CreatedAt:     roundedTime.UnixMicro(),
 				RoundedTime:   roundedTime.UnixMicro(),
@@ -345,7 +345,7 @@ func (w *worker) run(c *DifyClient, eventInput <-chan alert.AlertEvent, results 
 				WorkflowID:    w.FlowId,
 				WorkflowName:  w.FlowName,
 				Ref:           event.AlertID,
-				Input:         "",                                                 // TODO record input param
+				Input:         event.ID.String(),                                  // TODO record input param
 				Output:        resp.getOutput("failed: not find expected output"), // 'false' means valid alert
 				CreatedAt:     resp.CreatedAt(),
 				RoundedTime:   roundedTime.UnixMicro(),

@@ -75,6 +75,10 @@ SELECT count(1) as count,validity,status FROM(
 ) GROUP BY validity,status
 `
 
+const SQL_GET_ALERTEVENT = `SELECT *
+FROM alert_event ae
+%s`
+
 const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD = `WITH lastEvent AS (
   SELECT *, %s as rounded_time
   FROM alert_event ae
@@ -109,6 +113,7 @@ SELECT
   fw.workflow_id,
   fw.workflow_name,
   fw.importance,
+  fw.input,
   fw.output,
   CASE
     WHEN output = 'false' THEN 'true'
@@ -215,6 +220,35 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchR
 
 	result := make([]alert.AEventWithWRecord, 0)
 	err = ch.conn.Select(context.Background(), &result, sql, values...)
+	if err != nil {
+		return result, int64(count), err
+	}
+
+	var inputEventIDs []string
+	for _, e := range result {
+		if len(e.Input) > 0 {
+			inputEventIDs = append(inputEventIDs, e.Input)
+		}
+	}
+
+	inputEvents := make([]alert.AlertEvent, 0)
+	alertFilter = alertFilter.InStrings("toString(id)", inputEventIDs)
+	err = ch.conn.Select(context.Background(), &inputEvents, fmt.Sprintf(SQL_GET_ALERTEVENT, alertFilter.String()), alertFilter.values...)
+	if err != nil {
+		return result, int64(count), err
+	}
+	for i := 0; i < len(inputEvents); i++ {
+		for s := 0; s < len(result); s++ {
+			if result[s].AlertID == inputEvents[i].AlertID {
+				tmp := result[s].AlertEvent
+				result[s].AlertEvent = inputEvents[i]
+				result[s].AlertEvent.EndTime = tmp.EndTime
+				result[s].AlertEvent.Status = tmp.Status
+				break
+			}
+		}
+	}
+
 	return result, int64(count), err
 }
 
