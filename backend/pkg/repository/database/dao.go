@@ -73,7 +73,7 @@ type Repo interface {
 	RoleGranted(roleID int) (bool, error)
 	FillItemRouter(items *[]MenuItem) error
 	GetItemsRouter(itemIDs []int) ([]Router, error)
-	GetRouter(routerTo string) (*Router, error)
+	GetRouterByIDs(routerIDs []int) ([]Router, error)
 	GetRouterInsertedPage(routers []*Router, language string) error
 	GetFeatureTans(features *[]Feature, language string) error
 	GetMenuItemTans(menuItems *[]MenuItem, language string) error
@@ -212,6 +212,9 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		return nil, err
 	}
 	if err = daoRepo.initFeatureMenuItems(); err != nil {
+		return nil, err
+	}
+	if err = daoRepo.initFeatureRouter(); err != nil {
 		return nil, err
 	}
 	if err = daoRepo.initPermissions(); err != nil {

@@ -60,12 +60,12 @@ func (repo *daoRepo) GetItemsRouter(itemIDs []int) ([]Router, error) {
 	return routers, nil
 }
 
-func (repo *daoRepo) GetRouter(routerTo string) (*Router, error) {
-	var router Router
+func (repo *daoRepo) GetRouterByIDs(routerIDs []int) ([]Router, error) {
+	var routers []Router
 
-	if err := repo.db.Where("router_to = ?", routerTo).Find(&router).Error; err != nil {
+	if err := repo.db.Where("router_id IN ?", routerIDs).Find(&routers).Error; err != nil {
 		return nil, err
 	}
 
-	return &router, nil
+	return routers, nil
 }
