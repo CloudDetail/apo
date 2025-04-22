@@ -64,21 +64,21 @@ func (s *service) CheckRouterPermission(userID int64, routerTo string) (bool, er
 }
 
 func checkRouterMatch(checkRouter, matchRouter string) bool {
-    checkParts := strings.Split(checkRouter, "/")
-    matchParts := strings.Split(matchRouter, "/")
+	checkParts := strings.Split(checkRouter, "/")
+	matchParts := strings.Split(matchRouter, "/")
 
-    if len(checkParts) != len(matchParts) {
-        return false
-    }
+	if len(checkParts) != len(matchParts) {
+		return false
+	}
 
-    for i := range matchParts {
-        if strings.HasPrefix(matchParts[i], ":") {
-            continue
-        }
-        
-        if checkParts[i] != matchParts[i] {
-            return false
-        }
-    }
-    return true
+	for i := range matchParts {
+		if strings.HasPrefix(matchParts[i], ":") {
+			continue
+		}
+
+		if checkParts[i] != matchParts[i] {
+			return false
+		}
+	}
+	return true
 }
