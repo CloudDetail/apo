@@ -2323,7 +2323,7 @@ definitions:
     type: object
   response.AlertEventClassifyResponse:
     properties:
-      workflow_id:
+      workflowId:
         type: string
     type: object
   response.AlertEventSearchResponse:

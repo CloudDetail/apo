@@ -11661,7 +11661,7 @@ const docTemplate = `{
         "response.AlertEventClassifyResponse": {
             "type": "object",
             "properties": {
-                "workflow_id": {
+                "workflowId": {
                     "type": "string"
                 }
             }
