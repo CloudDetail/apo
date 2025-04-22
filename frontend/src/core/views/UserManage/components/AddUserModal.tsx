@@ -68,7 +68,16 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
         <Form.Item
           name="password"
           label={t('addModal.password')}
-          rules={[{ required: true, message: t('addModal.passwordRequired') }]}
+          rules={[
+            {
+              required: true,
+              message: t('addModal.passwordRequired')
+            },
+            {
+              pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()\-_+=<>?/{}[\]|:;.,~]).{9,}$/,
+              message: t('addModal.passwordPattern'),
+            },
+          ]}
         >
           <Input.Password autoComplete="new-password" />
         </Form.Item>
