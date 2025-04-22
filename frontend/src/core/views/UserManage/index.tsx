@@ -63,7 +63,11 @@ export default function UserManage() {
       const result = await fetchUsers(params);
       if (result) {
         const { users, currentPage: newPage, pageSize: newSize, total: newTotal } = result;
-        setUserList(users);
+        const usersReady = users.map((user: User) => ({
+          ...user,
+          key: user.userId
+        }));
+        setUserList(usersReady);
         setCurrentPage(newPage);
         setPageSize(newSize);
         setTotal(newTotal);
@@ -144,14 +148,11 @@ export default function UserManage() {
             }}
           />
           <Pagination
-            className="mt-4 absolute bottom-0 right-0"
+            className="mt-4 absolute bottom-5 right-0"
             current={currentPage}
             pageSize={pageSize}
             total={total}
-            pageSizeOptions={['10', '30', '50']}
-            showSizeChanger
             onChange={handlePaginationChange}
-            showQuickJumper
           />
         </Flex>
       </div>

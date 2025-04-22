@@ -43,7 +43,8 @@
     "corporation": "Organization",
     "corporationPlaceholder": "Please enter organization",
     "addSuccess": "User added successfully",
-    "selectRole": "Role"
+    "selectRole": "Role",
+    "roleRequired": "Please select a role"
   },
   "editModal": {
     "title": "Edit User",

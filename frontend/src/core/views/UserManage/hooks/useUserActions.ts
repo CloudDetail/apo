@@ -72,7 +72,11 @@ export const useUserActions = () => {
   };
 
   const createNewUser = async (userData: Record<string, any>) => {
-    await api.create.sendRequest(userData, {
+    const userDataReady = {
+      ...userData,
+      roleList: [userData.roleId]
+    }
+    await api.create.sendRequest(userDataReady, {
       onSuccess: () => {
         showToast({ title: t('index.addSuccess'), color: 'success' });
       }
