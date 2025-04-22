@@ -47,7 +47,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
             name="username"
             labelCol={{ span: i18n.language === 'zh' ? 8 : 10 }}
             label={t('index.userName')}
-            rules={[{ required: true, message: t('index.userNameRequired') }]}
+            rules={[{ required: true, message: t('addModal.usernameRequired') }]}
             style={{ marginBottom: 0, flex: 1, marginLeft: i18n.language === 'zh' ? 0 : 52 }}
           >
             <Input autoComplete="new-user" />
@@ -68,7 +68,16 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
         <Form.Item
           name="password"
           label={t('addModal.password')}
-          rules={[{ required: true, message: t('addModal.passwordRequired') }]}
+          rules={[
+            {
+              required: true,
+              message: t('addModal.passwordRequired')
+            },
+            {
+              pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()\-_+=<>?/{}[\]|:;.,~]).{9,}$/,
+              message: t('addModal.passwordPattern'),
+            },
+          ]}
         >
           <Input.Password autoComplete="new-password" />
         </Form.Item>
