@@ -67,23 +67,30 @@ const AlertEventTable = ({ scrolllHeight }) => {
 
         const { detail } = row.original
         return (
-          <div className="overflow-hidden">
-            {Object.entries(value || {}).map(([key, tagValue]) => (
-              <Tag className="text-pretty mb-1 break-all">
-                {key} = {tagValue}
-              </Tag>
-            ))}
-
-            {isJSONString(detail) && (
-              <Button
-                color="primary"
-                variant="text"
-                size="small"
-                onClick={() => setVisible(!visible)}
+          <div>
+            <div className="flex items-end">
+              <div
+                className={`transition-all overflow-hidden ${
+                  visible ? 'line-clamp-none max-h-full' : 'line-clamp-3 max-h-[6em]'
+                }`}
               >
-                {visible ? t('collapse') : t('expand')}
-              </Button>
-            )}
+                {Object.entries(value || {}).map(([key, tagValue]) => (
+                  <Tag className="text-pretty mb-1 break-all">
+                    {key} = {tagValue}
+                  </Tag>
+                ))}
+              </div>
+              {isJSONString(detail) && (
+                <Button
+                  color="primary"
+                  variant="text"
+                  size="small"
+                  onClick={() => setVisible(!visible)}
+                >
+                  {visible ? t('collapse') : t('expand')}
+                </Button>
+              )}
+            </div>
 
             {visible && (
               <ReactJson
