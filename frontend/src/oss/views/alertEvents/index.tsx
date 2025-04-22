@@ -7,7 +7,7 @@ import { Button, Modal, Tag as AntdTag, Tooltip, Statistic, Checkbox, Image, Car
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
-import { getAlertEventsApi } from 'src/core/api/alerts'
+import { getAlertEventsApi, getAlertWorkflowIdApi } from 'src/core/api/alerts'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { convertUTCToLocal } from 'src/core/utils/time'
 import WorkflowsIframe from '../workflows/workflowsIframe'
@@ -17,6 +17,7 @@ import CountUp from 'react-countup'
 import filterSvg from 'core/assets/images/filter.svg'
 import ReactJson from 'react-json-view'
 import { useDebounce } from 'react-use'
+import { showToast } from 'src/core/utils/toast'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -164,7 +165,6 @@ const AlertEventsPage = () => {
   const { startTime, endTime } = useSelector((state) => state.timeRange)
   const [modalOpen, setModalOpen] = useState(false)
   const [workflowUrl, setWorkflowUrl] = useState(null)
-  const [workflowId, setWorkflowId] = useState(null)
   const [alertCheckId, setAlertCheckId] = useState(null)
   const [invalidCounts, setInvalidCounts] = useState(0)
   const [firingCounts, setFiringCounts] = useState(0)
@@ -211,7 +211,7 @@ const AlertEventsPage = () => {
 
       setAlertEvents(res?.events || [])
       setPagination({ ...pagination, total: res?.pagination.total || 0 })
-      setWorkflowId(res.alertEventAnalyzeWorkflowId)
+      // setWorkflowId(res.alertEventAnalyzeWorkflowId)
       setAlertCheckId(res.alertCheckId)
 
       setInvalidCounts(res?.counts['firing-invalid'])
@@ -236,7 +236,15 @@ const AlertEventsPage = () => {
     [pagination.pageIndex, pagination.pageSize, startTime, endTime, statusFilter, validFilter],
   )
 
-  function openWorkflowModal(workflowParams) {
+  async function openWorkflowModal(workflowParams, group, name) {
+    const workflowId = await getWorkflowId(group, name)
+    if (!workflowId) {
+      showToast({
+        color: 'danger',
+        title: t('missToast2'),
+      })
+      return
+    }
     let result = '/dify/app/' + workflowId + '/run-once?'
     const params = Object.entries(workflowParams)
       .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
@@ -254,6 +262,10 @@ const AlertEventsPage = () => {
   const closeModal = () => {
     setWorkflowUrl(null)
     setModalOpen(false)
+  }
+  async function getWorkflowId(alertGroup, alertName) {
+    const res = await getAlertWorkflowIdApi({ alertGroup, alertName })
+    return res?.workflowId
   }
   const columns = [
     {
@@ -368,16 +380,14 @@ const AlertEventsPage = () => {
       accessor: 'cause',
       customWidth: 160,
       Cell: (props) => {
-        const { workflowParams } = props.row.original
-        return !workflowId ? (
-          workflowMissToast('workflowId')
-        ) : (
+        const { workflowParams, group, name } = props.row.original
+        return (
           <Button
             type="link"
             className="text-xs"
             size="small"
-            onClick={() => {
-              openWorkflowModal(workflowParams)
+            onClick={async () => {
+              await openWorkflowModal(workflowParams, group, name)
             }}
           >
             {t('viewWorkflow')}
