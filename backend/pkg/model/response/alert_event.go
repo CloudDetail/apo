@@ -18,5 +18,5 @@ type AlertEventSearchResponse struct {
 }
 
 type AlertEventClassifyResponse struct {
-	Workflow_id string `json:"workflow_id"`
+	WorkflowId string `json:"workflowId"`
 }

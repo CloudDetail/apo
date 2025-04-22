@@ -25,7 +25,7 @@ func (s *service) AlertEventClassify(req *request.AlertEventClassifyRequest) (*r
 	r, ok := cache.Get(req.AlertGroup + req.AlertName)
 	if ok {
 		return &response.AlertEventClassifyResponse{
-			Workflow_id: r,
+			WorkflowId: r,
 		}, nil
 	}
 
@@ -49,8 +49,8 @@ func (s *service) AlertEventClassify(req *request.AlertEventClassifyRequest) (*r
 		return nil, err
 	}
 
-	cache.Add(req.AlertGroup+req.AlertName, res["workflow_id"])
+	cache.Add(req.AlertGroup+req.AlertName, res["workflowId"])
 	return &response.AlertEventClassifyResponse{
-		Workflow_id: res["workflow_id"],
+		WorkflowId: res["workflowId"],
 	}, nil
 }
