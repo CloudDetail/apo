@@ -4,21 +4,12 @@
 package permission
 
 import (
-	"errors"
+	"strings"
 
-	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
 func (s *service) CheckRouterPermission(userID int64, routerTo string) (bool, error) {
-	router, err := s.dbRepo.GetRouter(routerTo)
-	if err != nil {
-		return false, err
-	}
-
-	if router == nil {
-		return false, model.NewErrWithMessage(errors.New("router does not exist"), code.RouterNotExistsError)
-	}
 	features, err := s.getUserFeatureIDs(userID)
 	if err != nil {
 		return false, err
@@ -39,20 +30,55 @@ func (s *service) CheckRouterPermission(userID int64, routerTo string) (bool, er
 		menuIDs[i] = menuMappings[i].MappedID
 	}
 
-	routers, err := s.dbRepo.GetItemsRouter(menuIDs)
+	routerIDs := make([]int, 0, len(routerMappings))
+	for _, mapping := range routerMappings {
+		routerIDs = append(routerIDs, mapping.MappedID)
+	}
+
+	routers, err := s.dbRepo.GetRouterByIDs(routerIDs)
 	if err != nil {
 		return false, err
 	}
 
-	authRouters := make(map[int]struct{})
-	for _, rm := range routerMappings {
-		authRouters[rm.MappedID] = struct{}{}
+	itemRouters, err := s.dbRepo.GetItemsRouter(menuIDs)
+	if err != nil {
+		return false, err
+	}
+
+	authRouters := []string{}
+	for _, r := range itemRouters {
+		authRouters = append(authRouters, r.RouterTo)
 	}
 
 	for _, r := range routers {
-		authRouters[r.RouterID] = struct{}{}
+		authRouters = append(authRouters, r.RouterTo)
 	}
 
-	_, ok := authRouters[router.RouterID]
-	return ok, nil
+	for _, r := range authRouters {
+		if checkRouterMatch(routerTo, r) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func checkRouterMatch(checkRouter, matchRouter string) bool {
+    checkParts := strings.Split(checkRouter, "/")
+    matchParts := strings.Split(matchRouter, "/")
+
+    if len(checkParts) != len(matchParts) {
+        return false
+    }
+
+    for i := range matchParts {
+        if strings.HasPrefix(matchParts[i], ":") {
+            continue
+        }
+        
+        if checkParts[i] != matchParts[i] {
+            return false
+        }
+    }
+    return true
 }
