@@ -47,7 +47,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
             name="username"
             labelCol={{ span: i18n.language === 'zh' ? 8 : 10 }}
             label={t('index.userName')}
-            rules={[{ required: true, message: t('index.userNameRequired') }]}
+            rules={[{ required: true, message: t('addModal.usernameRequired') }]}
             style={{ marginBottom: 0, flex: 1, marginLeft: i18n.language === 'zh' ? 0 : 52 }}
           >
             <Input autoComplete="new-user" />

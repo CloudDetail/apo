@@ -46,7 +46,8 @@
     "address": "地址",
     "addressPlaceholder": "请输入地址",
     "addressRequired": "请输入地址",
-    "selectRole": "选择角色"
+    "selectRole": "选择角色",
+    "roleRequired": "请选择角色"
   },
   "editModal": {
     "title": "编辑用户",

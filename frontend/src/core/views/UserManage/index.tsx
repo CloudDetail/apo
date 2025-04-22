@@ -63,7 +63,11 @@ export default function UserManage() {
       const result = await fetchUsers(params);
       if (result) {
         const { users, currentPage: newPage, pageSize: newSize, total: newTotal } = result;
-        setUserList(users);
+        const usersReady = users.map((user: User) => ({
+          ...user,
+          key: user.userId
+        }));
+        setUserList(usersReady);
         setCurrentPage(newPage);
         setPageSize(newSize);
         setTotal(newTotal);
