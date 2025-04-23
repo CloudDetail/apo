@@ -1717,6 +1717,44 @@
                 }
             }
         },
+        "/api/alerts/events/classify": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AlertEventClassifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AlertEventClassifyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/events/list": {
             "post": {
                 "consumes": [
@@ -9026,7 +9064,6 @@
                 },
                 "isValid": {
                     "description": "Deprecated: use [Validity] instead, will remove after 1.7.x",
-                    "description": "Deprecated: use [Validity] instead, will remove after 1.7.x",
                     "type": "string"
                 },
                 "name": {
@@ -9065,9 +9102,6 @@
                     }
                 },
                 "updateTime": {
-                    "type": "string"
-                },
-                "validity": {
                     "type": "string"
                 },
                 "validity": {
@@ -11496,20 +11530,6 @@
                     "items": {
                         "type": "string"
                     }
-                },
-                "status": {
-                    "description": "firing or resolved",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "validity": {
-                    "description": "valid or invalid or skipped or unknown",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -12804,12 +12824,6 @@
                 },
                 "alertEventAnalyzeWorkflowId": {
                     "type": "string"
-                },
-                "counts": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "integer"
-                    }
                 },
                 "counts": {
                     "type": "object",
