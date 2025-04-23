@@ -20,7 +20,7 @@ var _ Service = (*service)(nil)
 type Service interface {
 	// ========================告警检索========================
 	AlertEventList(req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error)
-
+	AlertDetail(req *request.GetAlertDetailRequest) (*response.GetAlertDetailResponse, error)
 	AlertEventClassify(req *request.AlertEventClassifyRequest) (*response.AlertEventClassifyResponse, error)
 
 	// ========================告警配置========================

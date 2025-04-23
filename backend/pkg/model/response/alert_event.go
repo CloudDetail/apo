@@ -17,6 +17,18 @@ type AlertEventSearchResponse struct {
 	Counts                      map[string]int64 `json:"counts"`
 }
 
+type GetAlertDetailResponse struct {
+	CurrentEvent *alert.AEventWithWRecord `json:"currentEvent"`
+
+	EventList  []alert.AEventWithWRecord `json:"events"`
+	Pagination *model.Pagination         `json:"pagination"`
+
+	AlertEventAnalyzeWorkflowID string `json:"alertEventAnalyzeWorkflowId"`
+	AlertCheckID                string `json:"alertCheckId"`
+
+	LocateIdx int `json:"locateIndx"`
+}
+
 type AlertEventClassifyResponse struct {
 	WorkflowId string `json:"workflowId"`
 }
