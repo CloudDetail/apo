@@ -4,6 +4,7 @@
 package dify
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -45,4 +46,21 @@ func TestRemoveUser(t *testing.T) {
 	}
 	fmt.Println(resp.Message)
 	assert.Equal(t, "success", resp.Result)
+}
+
+func TestRunWorkflows(t *testing.T) {
+	difyRepo, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create difyRepo: %v", err)
+	}
+	req := &DifyWorkflowRequest{
+		Inputs:       json.RawMessage(`{"input": "test"}`),
+		ResponseMode: "stream",
+		User:         "test",
+	}
+	_, err = difyRepo.WorkflowsRun(req, "test")
+	if err != nil {
+		t.Fatalf("Failed to run workflow: %v", err)
+	}
+
 }
