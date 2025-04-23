@@ -17,7 +17,7 @@ import (
 // @Param Request body request.GetAlertDetailRequest true "请求信息"
 // @Success 200 {object} response.GetAlertDetailResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/events/detail [post]
+// @Router /api/alerts/event/detail [post]
 func (h *handler) AlertEventDetail() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAlertDetailRequest)

@@ -1095,6 +1095,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/event/detail": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetAlertDetailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetAlertDetailResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/events/classify": {
             "get": {
                 "consumes": [
@@ -8750,6 +8788,9 @@ const docTemplate = `{
                 "secret": {
                     "type": "string"
                 },
+                "sendResolved": {
+                    "type": "boolean"
+                },
                 "url": {
                     "type": "string"
                 }
@@ -10896,6 +10937,29 @@ const docTemplate = `{
                 }
             }
         },
+        "request.GetAlertDetailRequest": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "integer"
+                },
+                "eventId": {
+                    "type": "string"
+                },
+                "locateEvent": {
+                    "type": "boolean"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                },
+                "startTime": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.GetAlertManagerConfigReceverRequest": {
             "type": "object",
             "properties": {
@@ -11894,6 +11958,32 @@ const docTemplate = `{
                 "traceId": {
                     "description": "TraceId",
                     "type": "string"
+                }
+            }
+        },
+        "response.GetAlertDetailResponse": {
+            "type": "object",
+            "properties": {
+                "alertCheckId": {
+                    "type": "string"
+                },
+                "alertEventAnalyzeWorkflowId": {
+                    "type": "string"
+                },
+                "currentEvent": {
+                    "$ref": "#/definitions/alert.AEventWithWRecord"
+                },
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.AEventWithWRecord"
+                    }
+                },
+                "locateIndx": {
+                    "type": "integer"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
                 }
             }
         },

@@ -24,8 +24,13 @@ type Handler interface {
 
 	// AlertEventList
 	// @Tags API.alerts
-	// @Router /api/alerts/events/list [post]
+	// @Router /api/alerts/event/list [post]
 	AlertEventList() core.HandlerFunc
+
+	// AlertEventDetail
+	// @Tags API.alerts
+	// @Router /api/alerts/event/detail [post]
+	AlertEventDetail() core.HandlerFunc
 
 	// AlertEventClassify
 	// @Tags API.alerts
