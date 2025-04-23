@@ -24,8 +24,3 @@ type AlertEventSearchFilter struct {
 	// valid or invalid or skipped or unknown
 	Validity []string `json:"validity" form:"validity"`
 }
-
-type AlertEventClassifyRequest struct {
-	AlertName  string `form:"alertName"`
-	AlertGroup string `form:"alertGroup"`
-}
