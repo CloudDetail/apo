@@ -105,7 +105,7 @@ func setApiRouter(r *resource) {
 		traceApi.GET("/flame", traceHandler.GetFlameGraphData())
 		traceApi.GET("/flame/process", traceHandler.GetProcessFlameGraph())
 		traceApi.POST("/pagelist", traceHandler.GetTracePageList())
-
+		
 		traceApi.Use(middlewares.AuthMiddleware())
 		traceApi.GET("/pagelist/filters", traceHandler.GetTraceFilters())
 		traceApi.POST("/pagelist/filter/value", traceHandler.GetTraceFilterValue())
@@ -114,9 +114,8 @@ func setApiRouter(r *resource) {
 
 	alertApi := r.mux.Group("/api/alerts")
 	{
-		alertHandler := alerts.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom, r.dify, r.alertWorkflow)
+		alertHandler := alerts.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom, r.alertWorkflow)
 		alertApi.POST("/event/list", alertHandler.AlertEventList())
-		alertApi.GET("/events/classify", alertHandler.AlertEventClassify())
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.POST("/outputs/dingtalk/:uuid", alertHandler.ForwardToDingTalk())
 
