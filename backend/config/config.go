@@ -91,8 +91,7 @@ type Config struct {
 		User    string `mapstructure:"user"`
 		URL     string `mapstructure:"url"`
 		APIKeys struct {
-			AlertCheck    string `mapstructure:"alert_check"`
-			AlertClassify string `mapstructure:"alert_classify"`
+			AlertCheck string `mapstructure:"alert_check"`
 		} `mapstructure:"api_keys"`
 		FlowIDs struct {
 			AlertCheck        string `mapstructure:"alert_check"`

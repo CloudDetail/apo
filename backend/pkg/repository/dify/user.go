@@ -8,11 +8,14 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/config"
 )
 
 // AddUser implements DifyRepo.
 func (d *difyRepo) AddUser(username string, password string, role string) (*DifyResponse, error) {
-	url := d.url + DIFY_ADD_USER
+	difyConf := config.Get().Dify
+	url := difyConf.URL + DIFY_ADD_USER
 
 	req := &DifyUser{
 		Password: password,
@@ -44,7 +47,8 @@ func (d *difyRepo) AddUser(username string, password string, role string) (*Dify
 
 // RemoveUser implements DifyRepo.
 func (d *difyRepo) RemoveUser(username string) (*DifyResponse, error) {
-	url := d.url + DIFY_REMOVE_USER + username
+	difyConf := config.Get().Dify
+	url := difyConf.URL + DIFY_REMOVE_USER + username
 
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
@@ -69,7 +73,8 @@ func (d *difyRepo) RemoveUser(username string) (*DifyResponse, error) {
 
 // UpdatePassword implements DifyRepo.
 func (d *difyRepo) UpdatePassword(username string, oldPassword string, newPassword string) (*DifyResponse, error) {
-	url := d.url + DIFY_PASSWORD_UPDATE
+	difyConf := config.Get().Dify
+	url := difyConf.URL + DIFY_PASSWORD_UPDATE
 
 	req := &DifyUser{
 		Password:    oldPassword,
@@ -100,7 +105,8 @@ func (d *difyRepo) UpdatePassword(username string, oldPassword string, newPasswo
 }
 
 func (d *difyRepo) ResetPassword(username string, newPassword string) (*DifyResponse, error) {
-	url := d.url + DIFY_RESET_PASSWORD
+	difyConf := config.Get().Dify
+	url := difyConf.URL + DIFY_RESET_PASSWORD
 
 	req := &DifyUser{
 		NewPassword: newPassword,

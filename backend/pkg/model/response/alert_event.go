@@ -16,7 +16,3 @@ type AlertEventSearchResponse struct {
 	AlertCheckID                string           `json:"alertCheckId"`
 	Counts                      map[string]int64 `json:"counts"`
 }
-
-type AlertEventClassifyResponse struct {
-	WorkflowId string `json:"workflowId"`
-}

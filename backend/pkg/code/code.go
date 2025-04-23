@@ -240,8 +240,7 @@ const (
 
 	GetClusterIntegrationFailed = "B1402"
 
-	GetAlertEventListError     = "B1501"
-	GetAlertEventClassifyError = "B1502"
+	GetAlertEventListError = "B1501"
 )
 
 func Text(lang string, code string) string {
