@@ -16,6 +16,7 @@ definitions:
         type: string
       isValid:
         description: 'Deprecated: use [Validity] instead, will remove after 1.7.x'
+        description: 'Deprecated: use [Validity] instead, will remove after 1.7.x'
         type: string
       name:
         type: string
@@ -42,6 +43,8 @@ definitions:
           type: string
         type: object
       updateTime:
+        type: string
+      validity:
         type: string
       validity:
         type: string
@@ -1665,6 +1668,13 @@ definitions:
       status:
         type: string
     type: object
+  request.AlertEventClassifyRequest:
+    properties:
+      alertGroup:
+        type: string
+      alertName:
+        type: string
+    type: object
   request.AlertEventSearchFilter:
     properties:
       namespaces:
@@ -1672,6 +1682,16 @@ definitions:
           type: string
         type: array
       nodes:
+        items:
+          type: string
+        type: array
+      status:
+        description: firing or resolved
+        items:
+          type: string
+        type: array
+      validity:
+        description: valid or invalid or skipped or unknown
         items:
           type: string
         type: array
@@ -2559,12 +2579,21 @@ definitions:
       error:
         type: string
     type: object
+  response.AlertEventClassifyResponse:
+    properties:
+      workflowId:
+        type: string
+    type: object
   response.AlertEventSearchResponse:
     properties:
       alertCheckId:
         type: string
       alertEventAnalyzeWorkflowId:
         type: string
+      counts:
+        additionalProperties:
+          type: integer
+        type: object
       counts:
         additionalProperties:
           type: integer

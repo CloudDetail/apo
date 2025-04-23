@@ -9026,6 +9026,7 @@
                 },
                 "isValid": {
                     "description": "Deprecated: use [Validity] instead, will remove after 1.7.x",
+                    "description": "Deprecated: use [Validity] instead, will remove after 1.7.x",
                     "type": "string"
                 },
                 "name": {
@@ -9064,6 +9065,9 @@
                     }
                 },
                 "updateTime": {
+                    "type": "string"
+                },
+                "validity": {
                     "type": "string"
                 },
                 "validity": {
@@ -11453,6 +11457,17 @@
                 }
             }
         },
+        "request.AlertEventClassifyRequest": {
+            "type": "object",
+            "properties": {
+                "alertGroup": {
+                    "type": "string"
+                },
+                "alertName": {
+                    "type": "string"
+                }
+            }
+        },
         "request.AlertEventSearchFilter": {
             "type": "object",
             "properties": {
@@ -11463,6 +11478,20 @@
                     }
                 },
                 "nodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "description": "firing or resolved",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "validity": {
+                    "description": "valid or invalid or skipped or unknown",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -12759,6 +12788,14 @@
                 }
             }
         },
+        "response.AlertEventClassifyResponse": {
+            "type": "object",
+            "properties": {
+                "workflowId": {
+                    "type": "string"
+                }
+            }
+        },
         "response.AlertEventSearchResponse": {
             "type": "object",
             "properties": {
@@ -12767,6 +12804,12 @@
                 },
                 "alertEventAnalyzeWorkflowId": {
                     "type": "string"
+                },
+                "counts": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
                 },
                 "counts": {
                     "type": "object",
