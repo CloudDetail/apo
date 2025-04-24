@@ -1133,44 +1133,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/alerts/events/classify": {
-            "get": {
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.alerts"
-                ],
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.AlertEventClassifyRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.AlertEventClassifyResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
         "/api/alerts/events/list": {
             "post": {
                 "consumes": [
@@ -8279,6 +8241,9 @@ const docTemplate = `{
                 "detail": {
                     "type": "string"
                 },
+                "duration": {
+                    "type": "string"
+                },
                 "endTime": {
                     "type": "string"
                 },
@@ -8290,6 +8255,9 @@ const docTemplate = `{
                 },
                 "isValid": {
                     "description": "Deprecated: use [Validity] instead, will remove after 1.7.x",
+                    "type": "string"
+                },
+                "lastCheckAt": {
                     "type": "string"
                 },
                 "name": {
@@ -10555,17 +10523,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.AlertEventClassifyRequest": {
-            "type": "object",
-            "properties": {
-                "alertGroup": {
-                    "type": "string"
-                },
-                "alertName": {
-                    "type": "string"
-                }
-            }
-        },
         "request.AlertEventSearchFilter": {
             "type": "object",
             "properties": {
@@ -11722,14 +11679,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.AlertEventClassifyResponse": {
-            "type": "object",
-            "properties": {
-                "workflowId": {
-                    "type": "string"
-                }
-            }
-        },
         "response.AlertEventSearchResponse": {
             "type": "object",
             "properties": {
@@ -11979,7 +11928,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/alert.AEventWithWRecord"
                     }
                 },
-                "locateIndx": {
+                "locateIndex": {
                     "type": "integer"
                 },
                 "pagination": {

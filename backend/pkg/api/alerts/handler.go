@@ -5,7 +5,6 @@ package alerts
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
-	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	so "github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 	"go.uber.org/zap"
@@ -31,11 +30,6 @@ type Handler interface {
 	// @Tags API.alerts
 	// @Router /api/alerts/event/detail [post]
 	AlertEventDetail() core.HandlerFunc
-
-	// AlertEventClassify
-	// @Tags API.alerts
-	// @Router /api/alerts/events/classify [get]
-	AlertEventClassify() core.HandlerFunc
 
 	// ========================告警配置========================
 
@@ -127,12 +121,11 @@ func New(
 	dbRepo database.Repo,
 	k8sRepo kubernetes.Repo,
 	promRepo prometheus.Repo,
-	difyRepo dify.DifyRepo,
 	alertworkFlow *workflow.AlertWorkflow,
 ) Handler {
 	return &handler{
 		logger:                 logger,
-		alertService:           alerts.New(chRepo, promRepo, k8sRepo, dbRepo, difyRepo, alertworkFlow),
+		alertService:           alerts.New(chRepo, promRepo, k8sRepo, dbRepo, alertworkFlow),
 		inputService:           alertinput.New(promRepo, dbRepo, chRepo, alertworkFlow),
 		serviceoverviewService: so.New(logger, chRepo, dbRepo, promRepo),
 	}

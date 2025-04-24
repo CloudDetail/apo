@@ -8,6 +8,8 @@ definitions:
         type: string
       detail:
         type: string
+      duration:
+        type: string
       endTime:
         type: string
       group:
@@ -16,6 +18,8 @@ definitions:
         type: string
       isValid:
         description: 'Deprecated: use [Validity] instead, will remove after 1.7.x'
+        type: string
+      lastCheckAt:
         type: string
       name:
         type: string
@@ -1545,13 +1549,6 @@ definitions:
       status:
         type: string
     type: object
-  request.AlertEventClassifyRequest:
-    properties:
-      alertGroup:
-        type: string
-      alertName:
-        type: string
-    type: object
   request.AlertEventSearchFilter:
     properties:
       namespaces:
@@ -2338,11 +2335,6 @@ definitions:
       error:
         type: string
     type: object
-  response.AlertEventClassifyResponse:
-    properties:
-      workflowId:
-        type: string
-    type: object
   response.AlertEventSearchResponse:
     properties:
       alertCheckId:
@@ -2512,7 +2504,7 @@ definitions:
         items:
           $ref: '#/definitions/alert.AEventWithWRecord'
         type: array
-      locateIndx:
+      locateIndex:
         type: integer
       pagination:
         $ref: '#/definitions/model.Pagination'
@@ -4295,30 +4287,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.GetAlertDetailResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      tags:
-      - API.alerts
-  /api/alerts/events/classify:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.AlertEventClassifyRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.AlertEventClassifyResponse'
         "400":
           description: Bad Request
           schema:
