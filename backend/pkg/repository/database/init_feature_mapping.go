@@ -96,7 +96,78 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 	})
 }
 
-// TODO add mapping of feature and router or api
+// TODO add mapping of feature and api
+
+func (repo *daoRepo) initFeatureRouter() error {
+	featureRoutes := map[string][]string{
+		"服务概览": {"/service/info", "/service/overview"},
+		"数据接入": {"/integration/data/settings", "/data/ingestion"},
+		"个人中心": {"/user", "/profile", "/account"},
+	}
+
+	return repo.db.Transaction(func(tx *gorm.DB) error {
+		var featureIDs, routerIDs []int
+		if err := tx.Model(&Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&Router{}).Select("router_id").Find(&routerIDs).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&FeatureMapping{}).
+			Where("feature_id not in ? OR (mapped_id NOT IN ? AND mapped_type = ?)", 
+				featureIDs, 
+				routerIDs, 
+				model.MAPPED_TYP_ROUTER).
+			Delete(nil).Error; err != nil {
+			return err
+		}
+
+		for featureName, routerPaths := range featureRoutes {
+			var feature Feature
+			if err := tx.Where("feature_name = ?", featureName).First(&feature).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					continue
+				}
+				return err
+			}
+
+			for _, routerPath := range routerPaths {
+				var router Router
+				if err := tx.Where(`"router_to" = ?`, routerPath).First(&router).Error; err != nil {
+					if errors.Is(err, gorm.ErrRecordNotFound) {
+						continue
+					}
+					return err
+				}
+
+				var count int64
+				if err := tx.Model(&FeatureMapping{}).
+					Where("feature_id = ? AND mapped_id = ? AND mapped_type = ?", 
+						feature.FeatureID, 
+						router.RouterID, 
+						model.MAPPED_TYP_ROUTER).
+					Count(&count).Error; err != nil {
+					return err
+				}
+
+				if count == 0 {
+					mapping := FeatureMapping{
+						FeatureID:  feature.FeatureID,
+						MappedID:   router.RouterID,
+						MappedType: model.MAPPED_TYP_ROUTER,
+					}
+					if err := tx.Create(&mapping).Error; err != nil {
+						return err
+					}
+				}
+			}
+		}
+
+		return nil
+	})
+}
 
 func (repo *daoRepo) initFeatureAPI() error {
 	featureAPI := map[string][]API{}

@@ -53,7 +53,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             labelCol={{ span: i18n.language === 'zh' ? 8 : 10 }}
             label={t('index.userName')}
             rules={[{ required: true, message: t('editModal.userNameRequired') }]}
-            style={{ marginBottom: 0, flex: 1, marginLeft: i18n.language === 'zh' ? 0 : 50 }}
+            style={{ marginBottom: 0, flex: 1, marginLeft: i18n.language === 'zh' ? 0 : 52 }}
           >
             <Input disabled />
           </Form.Item>
