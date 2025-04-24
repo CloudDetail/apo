@@ -5,6 +5,7 @@ package alerts
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	so "github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 	"go.uber.org/zap"
@@ -15,7 +16,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/services/alerts"
 
 	alertinput "github.com/CloudDetail/apo/backend/pkg/services/integration/alert"
-	"github.com/CloudDetail/apo/backend/pkg/services/integration/workflow"
 )
 
 type Handler interface {
@@ -121,12 +121,12 @@ func New(
 	dbRepo database.Repo,
 	k8sRepo kubernetes.Repo,
 	promRepo prometheus.Repo,
-	alertworkFlow *workflow.AlertWorkflow,
+	difyRepo dify.DifyRepo,
 ) Handler {
 	return &handler{
 		logger:                 logger,
-		alertService:           alerts.New(chRepo, promRepo, k8sRepo, dbRepo, alertworkFlow),
-		inputService:           alertinput.New(promRepo, dbRepo, chRepo, alertworkFlow),
+		alertService:           alerts.New(chRepo, promRepo, k8sRepo, dbRepo, difyRepo),
+		inputService:           alertinput.New(promRepo, dbRepo, chRepo, difyRepo),
 		serviceoverviewService: so.New(logger, chRepo, dbRepo, promRepo),
 	}
 }

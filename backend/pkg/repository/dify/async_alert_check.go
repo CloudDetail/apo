@@ -1,11 +1,7 @@
-// Copyright 2025 CloudDetail
-// SPDX-License-Identifier: Apache-2.0
-
-package workflow
+package dify
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -17,9 +13,16 @@ import (
 	"go.uber.org/zap"
 )
 
-const MAX_CACHE_SIZE = 100
+var _ asyncAlertCheck = &checkWorkers{}
+var _ asyncAlertCheck = &sampleWithFirstRecord{}
+var _ asyncAlertCheck = &sampleWithLastRecord{}
 
-type AlertCheckCfg struct {
+type asyncAlertCheck interface {
+	Run(ctx context.Context, client *DifyClient) (<-chan model.WorkflowRecord, error)
+	AddEvents(events []alert.AlertEvent)
+}
+
+type AlertCheckConfig struct {
 	FlowId        string
 	FlowName      string
 	APIKey        string
@@ -31,38 +34,33 @@ type AlertCheckCfg struct {
 	MaxConcurrency int
 }
 
-type alertCheck interface {
-	Run(ctx context.Context, client *DifyClient) (<-chan model.WorkflowRecord, error)
-	AddEvents(events []alert.AlertEvent)
-}
-
-func newAlertCheck(cfg *AlertCheckCfg, logger *zap.Logger) alertCheck {
+func newAsyncAlertCheck(cfg *AlertCheckConfig, logger *zap.Logger) asyncAlertCheck {
 	switch strings.ToLower(cfg.Sampling) {
 	case "no", "false", "disabled":
 		return &checkWorkers{
-			AlertCheckCfg: cfg,
-			logger:        logger,
-			eventInput:    newInputChan(),
+			AlertCheckConfig: cfg,
+			logger:           logger,
+			eventInput:       newInputChan(),
 		}
 	case "last":
-		return &sampleWithLatestRecord{
-			logger:        logger,
-			AlertCheckCfg: cfg,
-			prepareToRun:  make(map[string]alert.AlertEvent),
-			eventInput:    newInputChan(),
+		return &sampleWithLastRecord{
+			logger:           logger,
+			AlertCheckConfig: cfg,
+			prepareToRun:     make(map[string]alert.AlertEvent),
+			eventInput:       newInputChan(),
 		}
 	default:
 		return &sampleWithFirstRecord{
-			logger:        logger,
-			AlertCheckCfg: cfg,
-			checkedAlert:  make(map[string]struct{}),
-			eventInput:    newInputChan(),
+			logger:           logger,
+			AlertCheckConfig: cfg,
+			checkedAlert:     make(map[string]struct{}),
+			eventInput:       newInputChan(),
 		}
 	}
 }
 
 type checkWorkers struct {
-	*AlertCheckCfg
+	*AlertCheckConfig
 	logger *zap.Logger
 
 	eventInput *inputChan
@@ -74,9 +72,9 @@ func (c *checkWorkers) Run(ctx context.Context, client *DifyClient) (<-chan mode
 	for i := 0; i < c.MaxConcurrency; i++ {
 		wg.Add(1)
 		worker := worker{
-			logger:        c.logger,
-			expiredTS:     -1,
-			AlertCheckCfg: c.AlertCheckCfg,
+			logger:           c.logger,
+			expiredTS:        -1,
+			AlertCheckConfig: c.AlertCheckConfig,
 		}
 		go worker.run(client, c.eventInput.Ch, rChan, &wg)
 	}
@@ -102,15 +100,14 @@ func (c *checkWorkers) AddEvents(events []alert.AlertEvent) {
 
 type sampleWithFirstRecord struct {
 	logger *zap.Logger
-	*AlertCheckCfg
+	*AlertCheckConfig
 
 	eventInput *inputChan
 
 	checkedAlert map[string]struct{}
 	mutex        sync.Mutex
 
-	workers   []*worker
-	dropCount int // ignore data races.
+	workers []*worker
 }
 
 func (s *sampleWithFirstRecord) Run(
@@ -125,9 +122,9 @@ func (s *sampleWithFirstRecord) Run(
 	for i := 0; i < s.MaxConcurrency; i++ {
 		wg.Add(1)
 		worker := worker{
-			logger:        s.logger,
-			expiredTS:     expiredTS,
-			AlertCheckCfg: s.AlertCheckCfg,
+			logger:           s.logger,
+			expiredTS:        expiredTS,
+			AlertCheckConfig: s.AlertCheckConfig,
 		}
 		s.workers = append(s.workers, &worker)
 		go worker.run(client, s.eventInput.Ch, rChan, &wg)
@@ -151,17 +148,9 @@ func (s *sampleWithFirstRecord) cleanCache() {
 	now := time.Now()
 	expiredTS := now.Truncate(time.Duration(s.CacheMinutes) * time.Minute).UnixMicro()
 
-	dropCount := 0
 	for _, worker := range s.workers {
 		worker.expiredTS = expiredTS
-		dropCount += worker.dropCount
-		worker.dropCount = 0
 	}
-
-	if dropCount+s.dropCount > 0 {
-		s.logger.Info("check alert failed count", zap.Int("cacheMinutes", s.CacheMinutes), zap.Int("drop count", dropCount+s.dropCount))
-	}
-	s.dropCount++
 }
 
 func (s *sampleWithFirstRecord) AddEvents(events []alert.AlertEvent) {
@@ -178,7 +167,6 @@ func (s *sampleWithFirstRecord) AddEvents(events []alert.AlertEvent) {
 			continue
 		}
 		if remainSize > MAX_CACHE_SIZE {
-			s.dropCount++
 			s.logger.Info("too many alerts waiting for check, skip", zap.String("alertId", events[i].AlertID))
 			continue
 		}
@@ -188,20 +176,19 @@ func (s *sampleWithFirstRecord) AddEvents(events []alert.AlertEvent) {
 	}
 }
 
-type sampleWithLatestRecord struct {
+type sampleWithLastRecord struct {
 	logger *zap.Logger
-	*AlertCheckCfg
+	*AlertCheckConfig
 
 	eventInput *inputChan
 
 	prepareToRun map[string]alert.AlertEvent
 	mutex        sync.Mutex
 
-	workers   []*worker
-	dropCount int // ignore data races.
+	workers []*worker
 }
 
-func (s *sampleWithLatestRecord) Run(
+func (s *sampleWithLastRecord) Run(
 	ctx context.Context,
 	client *DifyClient,
 ) (<-chan model.WorkflowRecord, error) {
@@ -211,9 +198,9 @@ func (s *sampleWithLatestRecord) Run(
 	for i := 0; i < s.MaxConcurrency; i++ {
 		wg.Add(1)
 		worker := worker{
-			logger:        s.logger,
-			expiredTS:     -1,
-			AlertCheckCfg: s.AlertCheckCfg,
+			logger:           s.logger,
+			expiredTS:        -1,
+			AlertCheckConfig: s.AlertCheckConfig,
 		}
 		s.workers = append(s.workers, &worker)
 		go worker.run(client, s.eventInput.Ch, rChan, &wg)
@@ -230,7 +217,7 @@ func (s *sampleWithLatestRecord) Run(
 	return rChan, nil
 }
 
-func (s *sampleWithLatestRecord) AddEvents(events []alert.AlertEvent) {
+func (s *sampleWithLastRecord) AddEvents(events []alert.AlertEvent) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -241,7 +228,6 @@ func (s *sampleWithLatestRecord) AddEvents(events []alert.AlertEvent) {
 
 		if _, find := s.prepareToRun[event.AlertID]; !find {
 			if len(s.prepareToRun) > MAX_CACHE_SIZE {
-				s.dropCount++
 				continue
 			}
 		}
@@ -249,17 +235,7 @@ func (s *sampleWithLatestRecord) AddEvents(events []alert.AlertEvent) {
 	}
 }
 
-func (s *sampleWithLatestRecord) submit() {
-	dropCount := 0
-	for _, worker := range s.workers {
-		dropCount += worker.dropCount
-		worker.dropCount = 0
-	}
-	if dropCount+s.dropCount > 0 {
-		s.logger.Info("check alert failed count", zap.Int("cacheMinutes", s.CacheMinutes), zap.Int("drop count", dropCount+s.dropCount))
-	}
-	s.dropCount = 0
-
+func (s *sampleWithLastRecord) submit() {
 	s.mutex.Lock()
 	var cachedEvents []alert.AlertEvent
 	for _, event := range s.prepareToRun {
@@ -274,86 +250,11 @@ func (s *sampleWithLatestRecord) submit() {
 		for i := 0; i < len(cachedEvents); i++ {
 			select {
 			case <-ctx.Done():
-				s.dropCount += len(cachedEvents) - i
 				return
 			case s.eventInput.Ch <- cachedEvents[i]:
 			}
 		}
 	}()
-}
-
-type inputChan struct {
-	Ch         chan alert.AlertEvent
-	IsShutDown bool
-}
-
-func newInputChan() *inputChan {
-	return &inputChan{
-		Ch:         make(chan alert.AlertEvent, MAX_CACHE_SIZE+10),
-		IsShutDown: false,
-	}
-}
-
-type worker struct {
-	logger *zap.Logger
-	*AlertCheckCfg
-
-	expiredTS int64
-	dropCount int // ignore data races.
-}
-
-func (w *worker) run(c *DifyClient, eventInput <-chan alert.AlertEvent, results chan<- model.WorkflowRecord, wg *sync.WaitGroup) {
-	defer wg.Done()
-	for event := range eventInput {
-		endTime := event.UpdateTime.UnixMicro()
-		if w.expiredTS > 0 && endTime < w.expiredTS {
-			w.dropCount++
-			continue
-		}
-
-		startTime := event.UpdateTime.Add(-15 * time.Minute).UnixMicro()
-		inputs, _ := json.Marshal(map[string]interface{}{
-			"alert":     event.Name,
-			"params":    event.TagsInStr(),
-			"startTime": startTime,
-			"endTime":   endTime,
-		})
-		resp, err := c.alertCheck(&DifyRequest{Inputs: inputs}, w.Authorization, w.User)
-		if err != nil {
-			w.dropCount++
-			w.logger.Error("failed to to alert check", zap.Error(err))
-		}
-
-		tw := time.Duration(w.CacheMinutes) * time.Minute
-		roundedTime := event.UpdateTime.Truncate(tw).Add(tw)
-
-		var record model.WorkflowRecord
-		if resp == nil {
-			record = model.WorkflowRecord{
-				WorkflowRunID: "",
-				WorkflowID:    w.FlowId,
-				WorkflowName:  w.FlowName,
-				Ref:           event.AlertID,
-				Input:         "",
-				Output:        "failed: workflow execution failed due to API call failure",
-				CreatedAt:     roundedTime.UnixMicro(),
-				RoundedTime:   roundedTime.UnixMicro(),
-			}
-		} else {
-			record = model.WorkflowRecord{
-				WorkflowRunID: resp.WorkflowRunID(),
-				WorkflowID:    w.FlowId,
-				WorkflowName:  w.FlowName,
-				Ref:           event.AlertID,
-				Input:         "",                                                 // TODO record input param
-				Output:        resp.getOutput("failed: not find expected output"), // 'false' means valid alert
-				CreatedAt:     resp.CreatedAt(),
-				RoundedTime:   roundedTime.UnixMicro(),
-			}
-		}
-
-		results <- record
-	}
 }
 
 func waitForShutDown(
@@ -367,12 +268,4 @@ func waitForShutDown(
 	close(eventInput.Ch)
 	wg.Wait()
 	close(rChan)
-}
-
-func (c *AlertCheckCfg) HasValidAPIKey() bool {
-	if c == nil {
-		return false
-	}
-	// TODO check Destination
-	return len(c.APIKey) > 0
 }

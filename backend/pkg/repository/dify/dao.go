@@ -4,7 +4,9 @@
 package dify
 
 import (
-	"net/http"
+	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"go.uber.org/zap"
 )
 
 const (
@@ -32,13 +34,42 @@ type DifyRepo interface {
 	UpdatePassword(username string, oldPassword string, newPassword string) (*DifyResponse, error)
 	RemoveUser(username string) (*DifyResponse, error)
 	ResetPassword(username string, newPassword string) (*DifyResponse, error)
+
+	// ########################## Async AlertCheck Workflow #########################
+
+	PrepareAsyncAlertCheckWorkflow(cfg *AlertCheckConfig, logger *zap.Logger) (records <-chan model.WorkflowRecord, err error)
+	SubmitAlertEvents(events []alert.AlertEvent)
+
+	GetCacheMinutes() int
+	GetAlertCheckFlowID() string
+	GetAlertAnalyzeFlowID() string
 }
 
 type difyRepo struct {
-	cli *http.Client
+	cli *DifyClient
+
+	asyncAlertCheck
+
+	AlertCheckCFG      AlertCheckConfig
+	AlertAnalyzeFlowId string
 }
 
 func New() (DifyRepo, error) {
-	client := &http.Client{}
-	return &difyRepo{cli: client}, nil
+	// client := &http.Client{}
+	return &difyRepo{
+		cli:           &DifyClient{},
+		AlertCheckCFG: DefaultAlertCheckConfig(),
+	}, nil
+}
+
+func (r *difyRepo) GetCacheMinutes() int {
+	return r.AlertCheckCFG.CacheMinutes
+}
+
+func (r *difyRepo) GetAlertCheckFlowID() string {
+	return r.AlertCheckCFG.FlowId
+}
+
+func (r *difyRepo) GetAlertAnalyzeFlowID() string {
+	return r.AlertAnalyzeFlowId
 }

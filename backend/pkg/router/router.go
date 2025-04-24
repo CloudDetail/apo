@@ -4,16 +4,14 @@
 package router
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"net"
-	"net/http"
-	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
+	"github.com/CloudDetail/apo/backend/pkg/repository/dify/storage"
 	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
-	"github.com/CloudDetail/apo/backend/pkg/services/integration/workflow"
 
 	"go.uber.org/zap"
 
@@ -38,7 +36,6 @@ type resource struct {
 	k8sApi             kubernetes.Repo
 	deepflowClickhouse clickhouse.Repo
 	jaegerRepo         jaeger.JaegerRepo
-	alertWorkflow      *workflow.AlertWorkflow
 	dify               dify.DifyRepo
 }
 
@@ -125,10 +122,8 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	r.dify = difyRepo
 
 	difyConfig := config.Get().Dify
-	difyClient := workflow.NewDifyClient(DefaultDifyFastHttpClient, difyConfig.URL)
-	r.alertWorkflow = workflow.New(r.ch, difyClient, r.logger,
-		workflow.WithAlertAnalyzeFlow(difyConfig.FlowIDs.AlertEventAnalyze),
-		workflow.WithAlertCheckFlow(&workflow.AlertCheckCfg{
+	if len(difyConfig.APIKeys.AlertCheck) > 0 {
+		records, err := r.dify.PrepareAsyncAlertCheckWorkflow(&dify.AlertCheckConfig{
 			FlowId:         difyConfig.FlowIDs.AlertCheck,
 			APIKey:         difyConfig.APIKeys.AlertCheck,
 			Authorization:  fmt.Sprintf("Bearer %s", difyConfig.APIKeys.AlertCheck),
@@ -136,8 +131,13 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 			MaxConcurrency: difyConfig.MaxConcurrency,
 			CacheMinutes:   difyConfig.CacheMinutes,
 			Sampling:       difyConfig.Sampling,
-		}),
-	)
+		}, r.logger)
+		if err != nil {
+			logger.Error("failed to setup alertCheck workflow", zap.Error(err))
+		} else {
+			go storage.SaveRecords(context.Background(), r.ch, r.logger, records)
+		}
+	}
 
 	// Set API routing
 	setApiRouter(r)
@@ -145,16 +145,4 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	s := new(Server)
 	s.Mux = mux
 	return s, nil
-}
-
-var DefaultDifyFastHttpClient = &http.Client{
-	Transport: &http.Transport{
-		MaxIdleConns:        10,
-		MaxIdleConnsPerHost: 10,
-		DialContext: (&net.Dialer{
-			Timeout:   1 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).DialContext,
-	},
-	Timeout: 3 * time.Minute,
 }

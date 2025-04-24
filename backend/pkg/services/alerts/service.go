@@ -9,9 +9,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
-	"github.com/CloudDetail/apo/backend/pkg/services/integration/workflow"
 )
 
 var _ Service = (*service)(nil)
@@ -57,15 +57,15 @@ type service struct {
 	k8sApi   kubernetes.Repo
 	dbRepo   database.Repo
 
-	alertWorkflow *workflow.AlertWorkflow
+	difyRepo dify.DifyRepo
 }
 
-func New(chRepo clickhouse.Repo, promRepo prometheus.Repo, k8sApi kubernetes.Repo, dbRepo database.Repo, alertWorkflow *workflow.AlertWorkflow) Service {
+func New(chRepo clickhouse.Repo, promRepo prometheus.Repo, k8sApi kubernetes.Repo, dbRepo database.Repo, difyRepo dify.DifyRepo) Service {
 	return &service{
-		chRepo:        chRepo,
-		promRepo:      promRepo,
-		k8sApi:        k8sApi,
-		dbRepo:        dbRepo,
-		alertWorkflow: alertWorkflow,
+		chRepo:   chRepo,
+		promRepo: promRepo,
+		k8sApi:   k8sApi,
+		dbRepo:   dbRepo,
+		difyRepo: difyRepo,
 	}
 }

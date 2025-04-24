@@ -15,12 +15,12 @@ import (
 )
 
 func (s *service) AlertEventList(req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error) {
-	events, count, err := s.chRepo.GetAlertEventWithWorkflowRecord(req, s.alertWorkflow.AlertCheck.CacheMinutes)
+	events, count, err := s.chRepo.GetAlertEventWithWorkflowRecord(req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
 
-	counts, err := s.chRepo.GetAlertEventCounts(req, s.alertWorkflow.AlertCheck.CacheMinutes)
+	counts, err := s.chRepo.GetAlertEventCounts(req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
@@ -39,8 +39,8 @@ func (s *service) AlertEventList(req *request.AlertEventSearchRequest) (*respons
 	return &response.AlertEventSearchResponse{
 		EventList:                   events,
 		Pagination:                  req.Pagination,
-		AlertEventAnalyzeWorkflowID: s.alertWorkflow.AnalyzeFlowId,
-		AlertCheckID:                s.alertWorkflow.AlertCheck.FlowId,
+		AlertEventAnalyzeWorkflowID: s.difyRepo.GetAlertAnalyzeFlowID(),
+		AlertCheckID:                s.difyRepo.GetAlertCheckFlowID(),
 		Counts:                      counts,
 	}, nil
 }

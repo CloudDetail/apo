@@ -10,7 +10,7 @@ import (
 )
 
 func (s *service) AlertDetail(req *request.GetAlertDetailRequest) (*response.GetAlertDetailResponse, error) {
-	eventDetail, err := s.chRepo.GetAlertDetail(req, s.alertWorkflow.AlertCheck.CacheMinutes)
+	eventDetail, err := s.chRepo.GetAlertDetail(req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +22,7 @@ func (s *service) AlertDetail(req *request.GetAlertDetailRequest) (*response.Get
 
 	s.fillWorkflowParams(eventDetail)
 
-	releatedEvents, total, err := s.chRepo.GetRelatedAlertEvents(req, s.alertWorkflow.AlertCheck.CacheMinutes)
+	releatedEvents, total, err := s.chRepo.GetRelatedAlertEvents(req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
@@ -41,8 +41,8 @@ func (s *service) AlertDetail(req *request.GetAlertDetailRequest) (*response.Get
 		CurrentEvent:                eventDetail,
 		EventList:                   releatedEvents,
 		Pagination:                  req.Pagination,
-		AlertEventAnalyzeWorkflowID: s.alertWorkflow.AnalyzeFlowId,
-		AlertCheckID:                s.alertWorkflow.AlertCheck.FlowId,
+		AlertEventAnalyzeWorkflowID: s.difyRepo.GetAlertAnalyzeFlowID(),
+		AlertCheckID:                s.difyRepo.GetAlertCheckFlowID(),
 		LocateIdx:                   localIndex,
 	}, nil
 }
