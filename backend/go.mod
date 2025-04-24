@@ -2,7 +2,7 @@ module github.com/CloudDetail/apo/backend
 
 go 1.22.0
 
-toolchain go1.24.0
+toolchain go1.23.8
 
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.26.0
@@ -118,7 +118,7 @@ require (
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/grafana/regexp v0.0.0-20240518133315-a468a5bfb3bc // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/golang-lru/v2 v2.0.7
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/itchyny/timefmt-go v0.1.6 // indirect

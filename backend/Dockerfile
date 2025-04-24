@@ -1,4 +1,4 @@
-FROM golang:1.21.5-bullseye AS builder
+FROM golang:1.23.8-bullseye AS builder
 LABEL authors="apo"
 WORKDIR /build
 

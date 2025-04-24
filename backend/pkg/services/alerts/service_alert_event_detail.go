@@ -12,14 +12,19 @@ import (
 func (s *service) AlertDetail(req *request.GetAlertDetailRequest) (*response.GetAlertDetailResponse, error) {
 	eventDetail, err := s.chRepo.GetAlertDetail(req, s.alertWorkflow.AlertCheck.CacheMinutes)
 	if err != nil {
-		// TODO
+		return nil, err
+	}
+
+	if req.StartTime <= 0 || req.EndTime <= 0 {
+		req.StartTime = eventDetail.UpdateTime.Add(-2 * time.Hour).UnixMicro()
+		req.EndTime = eventDetail.UpdateTime.Add(15 * time.Minute).UnixMicro()
 	}
 
 	s.fillWorkflowParams(eventDetail)
 
 	releatedEvents, total, err := s.chRepo.GetRelatedAlertEvents(req, s.alertWorkflow.AlertCheck.CacheMinutes)
 	if err != nil {
-		// TODO
+		return nil, err
 	}
 
 	req.Pagination.Total = total
