@@ -109,6 +109,7 @@ SELECT
   fw.workflow_id,
   fw.workflow_name,
   fw.importance,
+  fw.created_at,
   fw.output,
   CASE
     WHEN output = 'false' THEN 'true'

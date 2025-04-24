@@ -47,12 +47,18 @@ func (s *service) AlertEventList(req *request.AlertEventSearchRequest) (*respons
 
 func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 	var startTime, endTime time.Time
-	if record.AlertEvent.Status == alert.StatusResolved {
+	if record.Status == alert.StatusResolved {
 		startTime = record.EndTime.Add(-15 * time.Minute)
 		endTime = record.EndTime
+		record.Duration = record.EndTime.Sub(record.CreateTime).Round(time.Minute).String()
 	} else {
-		startTime = record.UpdateTime.Add(-15 * time.Minute)
+		if record.Validity != "unknown" && record.Validity != "skipped" {
+			startTime = record.LastCheckAt.Add(-15 * time.Minute)
+		} else {
+			startTime = record.UpdateTime.Add(-15 * time.Minute)
+		}
 		endTime = record.UpdateTime
+		record.Duration = time.Since(record.CreateTime).Round(time.Minute).String()
 	}
 
 	record.WorkflowParams = alert.WorkflowParams{

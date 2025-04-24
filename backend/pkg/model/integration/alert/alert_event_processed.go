@@ -20,6 +20,9 @@ type AEventWithWRecord struct {
 	Output      string    `json:"output" ch:"output"`
 	RoundedTime time.Time `json:"-" ch:"rounded_time"`
 	Importance  uint8     `json:"-" ch:"importance"`
+	LastCheckAt time.Time `json:"lastCheckAt" ch:"created_at"`
+
+	Duration string `json:"duration" ch:"-"`
 
 	WorkflowParams WorkflowParams `json:"workflowParams"`
 

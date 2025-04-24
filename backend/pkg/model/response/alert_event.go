@@ -26,7 +26,7 @@ type GetAlertDetailResponse struct {
 	AlertEventAnalyzeWorkflowID string `json:"alertEventAnalyzeWorkflowId"`
 	AlertCheckID                string `json:"alertCheckId"`
 
-	LocateIdx int `json:"locateIndx"`
+	LocateIdx int `json:"locateIndex"`
 }
 
 type AlertEventClassifyResponse struct {
