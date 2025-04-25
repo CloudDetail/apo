@@ -3,7 +3,10 @@
 
 package alert
 
-import "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+import (
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/util"
+)
 
 func (repo *subRepo) SearchSchemaTarget(
 	schema string,
@@ -11,8 +14,13 @@ func (repo *subRepo) SearchSchemaTarget(
 	targets []alert.AlertEnrichSchemaTarget,
 ) ([]string, error) {
 	schema = SchemaPrefix + schema
+	sql := "SELECT * FROM "+schema+" WHERE "+sourceField+" = ? LIMIT 1"
+	validateSql, err := util.ValidateSQL(sql)
+	if err != nil {
+		return nil, err
+	}
 
-	rows, err := repo.db.Raw("SELECT * FROM "+schema+" WHERE "+sourceField+" = ? LIMIT 1", sourceValue).Rows()
+	rows, err := repo.db.Raw(validateSql, sourceValue).Rows()
 	if err != nil {
 		return nil, err
 	}

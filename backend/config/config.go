@@ -105,7 +105,7 @@ type Config struct {
 }
 
 type AnonymousUser struct {
-	Username string `mapstructure:"username"`
+	Username string `mapstructure:"username"` // TODO deprecated
 	Enable   bool   `mapstructure:"enable"`
 	Role     string `mapstructure:"role"`
 }
