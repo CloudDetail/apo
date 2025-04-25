@@ -9,17 +9,17 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (repo *daoRepo) initRole() error {
-	roles := []Role{
-		{RoleName: model.ROLE_ADMIN},
-		{RoleName: model.ROLE_VIEWER},
-		{RoleName: model.ROLE_ANONYMOS},
-	}
+var validRoles = []Role{
+	{RoleName: model.ROLE_ADMIN},
+	{RoleName: model.ROLE_VIEWER},
+	{RoleName: model.ROLE_ANONYMOS},
+}
 
+func (repo *daoRepo) initRole() error {
 	return repo.db.Transaction(func(tx *gorm.DB) error {
 		return tx.Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "role_name"}},
 			DoNothing: true,
-		}).Create(roles).Error
+		}).Create(validRoles).Error
 	})
 }
