@@ -14,18 +14,7 @@ func ValidateSQL(sql string) (string, error) {
 		return "", fmt.Errorf("SQL statement is empty")
 	}
 
-	if !strings.HasSuffix(sql, ";") {
-		return "", fmt.Errorf("SQL statement must end with a semicolon")
-	}
-
 	sqlLower := strings.ToLower(sql)
-
-	if strings.Contains(sqlLower, "drop table") || strings.Contains(sqlLower, "drop database") {
-		return "", fmt.Errorf("DROP statements are not allowed")
-	}
-	if strings.Contains(sqlLower, "truncate") {
-		return "", fmt.Errorf("TRUNCATE statements are not allowed")
-	}
 
 	if strings.Contains(sqlLower, "delete from") {
 		if !strings.Contains(sqlLower, "where") {
@@ -33,7 +22,7 @@ func ValidateSQL(sql string) (string, error) {
 		}
 	}
 
-	validCommands := []string{"select", "insert", "update", "delete", "create", "alter"}
+	validCommands := []string{"select", "insert", "update", "delete", "create", "alter", "drop", "truncate"}
 	hasValidCommand := false
 	for _, cmd := range validCommands {
 		if strings.HasPrefix(sqlLower, cmd) || strings.Contains(sqlLower, " "+cmd+" ") {
