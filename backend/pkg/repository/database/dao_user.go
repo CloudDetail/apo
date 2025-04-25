@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	adminPassword = "APO2024@admin"
+	adminPasswd = "APO2024@admin"
 
 	userFieldSql = "user_id, username, phone, email, corporation"
 )
@@ -50,7 +50,7 @@ func (repo *daoRepo) createAdmin() error {
 			admin = User{
 				UserID:   util.Generator.GenerateID(),
 				Username: model.ROLE_ADMIN,
-				Password: Encrypt(adminPassword),
+				Password: Encrypt(adminPasswd),
 			}
 
 			if err = repo.db.Create(&admin).Error; err != nil {
@@ -134,7 +134,7 @@ func (repo *daoRepo) Login(username, password string) (*User, error) {
 	}
 	enPassword := Encrypt(password)
 	if enPassword != user.Password {
-		return nil, model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswordIncorrectError)
+		return nil, model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswdIncorrectError)
 	}
 
 	return &user, nil
@@ -187,7 +187,7 @@ func (repo *daoRepo) UpdateUserPassword(userID int64, oldPassword, newPassword s
 		return err
 	}
 	if user.Password != Encrypt(oldPassword) {
-		return model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswordIncorrectError)
+		return model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswdIncorrectError)
 	}
 	user.Password = Encrypt(newPassword)
 	return repo.db.Updates(&user).Error

@@ -6,6 +6,7 @@ package network
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/CloudDetail/apo/backend/pkg/util"
 	"io"
 	"net/http"
 	"net/url"
@@ -68,7 +69,11 @@ func (s *service) GetPodMap(req *request.PodMapRequest) (*response.PodMapRespons
 	podMapResp := &podMap{
 		Result: new(response.PodMapResponse),
 	}
-	err = json.Unmarshal(body, &podMapResp)
+	validateBody, ok := util.ValidateResponseBytes(body)
+	if !ok {
+		return nil, fmt.Errorf("reponse body is invalid")
+	}
+	err = json.Unmarshal(validateBody, &podMapResp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
 	}
