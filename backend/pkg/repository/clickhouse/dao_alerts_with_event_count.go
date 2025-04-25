@@ -38,7 +38,7 @@ func (ch *chRepo) GetAlertsWithEventCount(
 		And(whereSQL)
 
 	var count uint64
-	countSql := fmt.Sprintf(GET_ALERT_EVENTS_COUNT, alertFilter.String())
+	countSql := buildAlertQuery(GET_ALERT_EVENTS_COUNT, alertFilter)
 	err := ch.conn.QueryRow(context.Background(), countSql, alertFilter.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
@@ -48,9 +48,12 @@ func (ch *chRepo) GetAlertsWithEventCount(
 	values = append(values, alertFilter.values...)
 	values = append(values, alertFilter.values...)
 
-	sql := fmt.Sprintf(GET_ALERTS_WITH_EVENT_COUNT, alertFilter.String(), alertFilter.String())
-
+	sql := buildAlertQuery(GET_ALERTS_WITH_EVENT_COUNT, alertFilter)
 	result := make([]alert.AlertWithEventCount, 0)
 	err = ch.conn.Select(context.Background(), &result, sql, values...)
 	return result, count, err
+}
+
+func buildAlertQuery(baseQuery string, queryBuilder *QueryBuilder) string {
+	return fmt.Sprintf(baseQuery, queryBuilder.String())
 }

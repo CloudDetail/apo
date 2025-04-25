@@ -50,7 +50,7 @@ func (s *service) TeamOperation(req *request.TeamOperationRequest) error {
 	}
 
 	var assignFunc = func(ctx context.Context) error {
-		return s.dbRepo.AssignUserToTeam(nil, req.UserID, toAdd)
+		return s.dbRepo.AssignUserToTeam(ctx, req.UserID, toAdd)
 	}
 
 	var removeFunc = func(ctx context.Context) error {

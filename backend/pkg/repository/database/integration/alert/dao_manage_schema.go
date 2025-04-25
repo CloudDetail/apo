@@ -149,18 +149,10 @@ func (repo *subRepo) UpdateSchemaData(schema string, columns []string, rows map[
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
 
-	schema = SchemaPrefix + schema
-
-	var columnPlaceHolder []string
-	for _, column := range columns {
-		if !AllowSchema.MatchString(column) {
-			return alert.ErrNotAllowSchema{Column: column}
-		}
-
-		columnPlaceHolder = append(columnPlaceHolder, fmt.Sprintf("%s = ?", column))
+	updateTemp, err := buildUpdateSchema(schema, columns)
+	if err != nil {
+		return err
 	}
-
-	updateTemp := fmt.Sprintf("UPDATE %s SET %s WHERE schema_row_id = ?", schema, strings.Join(columnPlaceHolder, ","))
 	for idx, row := range rows {
 		var args = make([]interface{}, 0, len(row)+1)
 		for _, value := range row {
@@ -179,6 +171,22 @@ func (repo *subRepo) UpdateSchemaData(schema string, columns []string, rows map[
 		}
 	}
 	return nil
+}
+
+func buildUpdateSchema(schema string, columns []string) (string, error) {
+	schema = SchemaPrefix + schema
+
+	var columnPlaceHolder []string
+	for _, column := range columns {
+		if !AllowSchema.MatchString(column) {
+			return "", alert.ErrNotAllowSchema{Column: column}
+		}
+
+		columnPlaceHolder = append(columnPlaceHolder, fmt.Sprintf("%s = ?", column))
+	}
+
+	updateTemp := fmt.Sprintf("UPDATE %s SET %s WHERE schema_row_id = ?", schema, strings.Join(columnPlaceHolder, ","))
+	return updateTemp, nil
 }
 
 func (repo *subRepo) ListSchema() ([]string, error) {
@@ -231,10 +239,9 @@ func EscapeString(input string) string {
 	return builder.String()
 }
 
-func (repo *subRepo) InsertSchemaData(schema string, columns []string, fullRows [][]string) error {
-	if !AllowSchema.MatchString(schema) {
-		return alert.ErrNotAllowSchema{Table: schema}
-	}
+const insertSchema = "INSERT INTO %s (%s) VALUES %s"
+
+func buildInsertSchema(schema string, columns []string, fullRows [][]string) string {
 	schema = SchemaPrefix + schema
 
 	valueRows := []string{}
@@ -247,10 +254,18 @@ func (repo *subRepo) InsertSchemaData(schema string, columns []string, fullRows 
 		valueRows = append(valueRows, fmt.Sprintf("(%s)", strings.Join(escapeRows, ",")))
 	}
 
-	sql := fmt.Sprintf("INSERT INTO %s (%s) VALUES %s",
+	sql := fmt.Sprintf(insertSchema,
 		schema,
 		strings.Join(columns, ","),
 		strings.Join(valueRows, ","))
+	return sql
+}
+
+func (repo *subRepo) InsertSchemaData(schema string, columns []string, fullRows [][]string) error {
+	if !AllowSchema.MatchString(schema) {
+		return alert.ErrNotAllowSchema{Table: schema}
+	}
+	sql := buildInsertSchema(schema, columns, fullRows)
 
 	validSql, err := util.ValidateSQL(sql)
 	if err != nil {

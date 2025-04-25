@@ -19,15 +19,20 @@ type NetSegments struct {
 }
 
 func (ch *chRepo) GetNetworkSpanSegments(traceId string, spanId string) ([]NetSegments, error) {
-	spanSegmentSqlTemplate := "SELECT %s FROM flow_log.l7_flow_log %s"
-	fields := "start_time, end_time, response_duration, tap_side, span_id, trace_id"
 	queryBuilder := NewQueryBuilder().
 		EqualsNotEmpty("trace_id", traceId).
 		EqualsNotEmpty("span_id", spanId)
-	executeSql := fmt.Sprintf(spanSegmentSqlTemplate, fields, queryBuilder.String())
+	executeSql := buildQuery(queryBuilder)
 	var netSegments []NetSegments
 	if err := ch.conn.Select(context.Background(), &netSegments, executeSql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return netSegments, nil
+}
+
+func buildQuery(queryBuilder *QueryBuilder) string {
+	spanSegmentSqlTemplate := "SELECT %s FROM flow_log.l7_flow_log %s"
+	fields := "start_time, end_time, response_duration, tap_side, span_id, trace_id"
+	executeSql := fmt.Sprintf(spanSegmentSqlTemplate, fields, queryBuilder.String())
+	return executeSql
 }
