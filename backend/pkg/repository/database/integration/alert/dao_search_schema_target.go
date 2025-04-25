@@ -5,7 +5,6 @@ package alert
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
-	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 func (repo *subRepo) SearchSchemaTarget(
@@ -14,13 +13,8 @@ func (repo *subRepo) SearchSchemaTarget(
 	targets []alert.AlertEnrichSchemaTarget,
 ) ([]string, error) {
 	schema = SchemaPrefix + schema
-	sql := "SELECT * FROM "+schema+" WHERE "+sourceField+" = ? LIMIT 1"
-	validateSql, err := util.ValidateSQL(sql)
-	if err != nil {
-		return nil, err
-	}
 
-	rows, err := repo.db.Raw(validateSql, sourceValue).Rows()
+	rows, err := repo.db.Table(schema).Where(sourceField, sourceValue).Rows()
 	if err != nil {
 		return nil, err
 	}

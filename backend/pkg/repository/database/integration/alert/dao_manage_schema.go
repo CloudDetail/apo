@@ -47,13 +47,8 @@ func (repo *subRepo) GetSchemaData(schema string) ([]string, map[int64][]string,
 		return nil, nil, alert.ErrNotAllowSchema{Table: schema}
 	}
 	schema = SchemaPrefix + schema
-	sql := "SELECT * FROM " + schema + ""
-	validSql, err := util.ValidateSQL(sql)
-	if err != nil {
-		return nil, nil, err
-	}
 
-	rows, err := repo.db.Raw(validSql).Rows()
+	rows, err := repo.db.Table(schema).Rows()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -130,13 +125,8 @@ func (repo *subRepo) ListSchemaColumns(schema string) ([]string, error) {
 		return nil, alert.ErrNotAllowSchema{Table: schema}
 	}
 	schema = SchemaPrefix + schema
-	sql := "SELECT * FROM " + schema + ""
-	validateSql, err := util.ValidateSQL(sql)
-	if err != nil {
-		return nil, err
-	}
 
-	rows, err := repo.db.Raw(validateSql).Rows()
+	rows, err := repo.db.Table(schema).Rows()
 	if err != nil {
 		return nil, err
 	}
