@@ -25,7 +25,7 @@ func ValidateSQL(sql string) (string, error) {
 	validCommands := []string{"select", "insert", "update", "delete", "create", "alter", "drop", "truncate"}
 	hasValidCommand := false
 	for _, cmd := range validCommands {
-		if strings.HasPrefix(sqlLower, cmd) || strings.Contains(sqlLower, " "+cmd+" ") {
+		if strings.Contains(sqlLower, cmd) {
 			hasValidCommand = true
 			break
 		}
