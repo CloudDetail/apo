@@ -4,7 +4,6 @@
 package polarisanalyzer
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,6 +20,8 @@ import (
 const (
 	PolarisInferAPI = "/analyze"
 )
+
+var byteUnmarshallingValidator = util.NewByteValidator(1024*1024, []string{}, []string{"$func", "$eval", "constructor", "prototype"}, 10)
 
 // QueryPolarisInfer implements Repo.
 func (p *polRepo) QueryPolarisInfer(req *request.GetPolarisInferRequest) (*PolarisInferRes, error) {
@@ -57,11 +58,7 @@ func (p *polRepo) QueryPolarisInfer(req *request.GetPolarisInferRequest) (*Polar
 	if err != nil {
 		return nil, err
 	}
-	validateBody, ok := util.ValidateResponseBytes(respBytes)
-	if !ok {
-		return nil, fmt.Errorf("reponse body is invalid")
-	}
-	if err = json.Unmarshal(validateBody, inferRes); err != nil {
+	if err = byteUnmarshallingValidator.ValidateAndUnmarshalJSON(respBytes, inferRes); err != nil {
 		return nil, err
 	}
 	return inferRes, nil

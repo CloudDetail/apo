@@ -6,11 +6,8 @@ package dify
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-
-	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 // AddUser implements DifyRepo.
@@ -38,11 +35,7 @@ func (d *difyRepo) AddUser(username string, password string, role string) (*Dify
 		return nil, err
 	}
 	var res DifyResponse
-	validateBody, ok := util.ValidateResponseBytes(body)
-	if !ok {
-		return nil, fmt.Errorf("reponse body is invalid")
-	}
-	err = json.Unmarshal(validateBody, &res)
+	err = byteUnmarshallingValidator.ValidateAndUnmarshalJSON(body, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -67,11 +60,7 @@ func (d *difyRepo) RemoveUser(username string) (*DifyResponse, error) {
 		return nil, err
 	}
 	var res DifyResponse
-	validateBody, ok := util.ValidateResponseBytes(body)
-	if !ok {
-		return nil, fmt.Errorf("reponse body is invalid")
-	}
-	err = json.Unmarshal(validateBody, &res)
+	err = byteUnmarshallingValidator.ValidateAndUnmarshalJSON(body, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -104,11 +93,7 @@ func (d *difyRepo) UpdatePassword(username string, oldPassword string, newPasswo
 	}
 
 	var res DifyResponse
-	validateBody, ok := util.ValidateResponseBytes(body)
-	if !ok {
-		return nil, fmt.Errorf("reponse body is invalid")
-	}
-	err = json.Unmarshal(validateBody, &res)
+	err = byteUnmarshallingValidator.ValidateAndUnmarshalJSON(body, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -138,11 +123,7 @@ func (d *difyRepo) ResetPassword(username string, newPassword string) (*DifyResp
 		return nil, err
 	}
 	var res DifyResponse
-	validateBody, ok := util.ValidateResponseBytes(body)
-	if !ok {
-		return nil, fmt.Errorf("reponse body is invalid")
-	}
-	err = json.Unmarshal(validateBody, &res)
+	err = byteUnmarshallingValidator.ValidateAndUnmarshalJSON(body, &res)
 	if err != nil {
 		return nil, err
 	}

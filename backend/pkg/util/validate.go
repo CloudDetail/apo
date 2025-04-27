@@ -5,7 +5,6 @@ package util
 
 import (
 	"encoding/json"
-	"io"
 	"testing"
 )
 
@@ -54,9 +53,6 @@ func IsValidStatusCode(statusCode int) bool {
 	return statusCode >= 100 && statusCode <= 599
 }
 
-func ValidateResponse(body io.ReadCloser) (io.ReadCloser, bool) {
-	return body, true
-}
 func ValidateResponseBytes(body []byte) ([]byte, bool) {
 	if len(body) > 2*1024*1024 { // 限制最大2MB
 		return nil, false

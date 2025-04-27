@@ -10,8 +10,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-
-	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 const (
@@ -68,11 +66,7 @@ func (p *polRepo) SortDescendantByRelevance(
 	if err != nil {
 		return nil, err
 	}
-	validateBody, ok := util.ValidateResponseBytes(respBytes)
-	if !ok {
-		return nil, fmt.Errorf("reponse body is invalid")
-	}
-	if err = json.Unmarshal(validateBody, relevanceRes); err != nil {
+	if err = byteUnmarshallingValidator.ValidateAndUnmarshalJSON(respBytes, relevanceRes); err != nil {
 		return nil, err
 	}
 

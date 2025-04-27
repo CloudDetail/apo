@@ -4,7 +4,6 @@
 package network
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 	"io"
@@ -27,6 +26,8 @@ type podMap struct {
 const (
 	sqlTemplate = "SELECT %s FROM vtap_app_edge_port %s %s"
 )
+
+var byteUnmarshallingValidator = util.NewByteValidator(10*1024*1024, []string{}, []string{"$func", "$eval", "constructor", "prototype"}, 10)
 
 func (s *service) GetPodMap(req *request.PodMapRequest) (*response.PodMapResponse, error) {
 	deepflowServer := config.Get().DeepFlow.ServerAddress
@@ -57,11 +58,7 @@ func (s *service) GetPodMap(req *request.PodMapRequest) (*response.PodMapRespons
 	podMapResp := &podMap{
 		Result: new(response.PodMapResponse),
 	}
-	validateBody, ok := util.ValidateResponseBytes(body)
-	if !ok {
-		return nil, fmt.Errorf("reponse body is invalid")
-	}
-	err = json.Unmarshal(validateBody, &podMapResp)
+	err = byteUnmarshallingValidator.ValidateAndUnmarshalJSON(body, &podMapResp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
 	}

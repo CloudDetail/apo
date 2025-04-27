@@ -13,6 +13,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
+var byteUnmarshallingValidator = util.NewByteValidator(1024*1024, []string{}, []string{"$func", "$eval", "constructor", "prototype"}, 10)
+
 func (d *difyRepo) WorkflowsRun(req *DifyWorkflowRequest, authorization string) (*CompletionResponse, error) {
 	jsonBytes, _ := json.Marshal(req)
 	fullReq, _ := http.NewRequest("POST", d.url+"/v1/workflows/run", bytes.NewReader(jsonBytes))
@@ -35,19 +37,12 @@ func (d *difyRepo) WorkflowsRun(req *DifyWorkflowRequest, authorization string) 
 
 	switch req.ResponseMode {
 	case "blocking":
-
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
 		}
-
-		validateBody, ok := util.ValidateResponseBytes(body)
-		if !ok {
-			return nil, fmt.Errorf("reponse body is invalid")
-		}
-
 		var completionResponse CompletionResponse
-		err = json.Unmarshal(validateBody, &completionResponse)
+		err = byteUnmarshallingValidator.ValidateAndUnmarshalJSON(body, &completionResponse)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse completion response, err: %w", err)
 		}

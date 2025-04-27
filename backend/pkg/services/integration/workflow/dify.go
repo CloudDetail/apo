@@ -44,6 +44,8 @@ func (c *DifyClient) alertCheck(req *DifyRequest, authorization string, user str
 	return nil, fmt.Errorf("alertCheck must be run in blocking mode")
 }
 
+var byteUnmarshallingValidator = util.NewByteValidator(1024*1024, []string{}, []string{"$func", "$eval", "constructor", "prototype"}, 10)
+
 func (c *DifyClient) WorkflowsRun(req *DifyRequest, authorization string, user string) (DifyResponse, error) {
 	req.User = user
 	jsonBytes, _ := json.Marshal(req)
@@ -72,11 +74,8 @@ func (c *DifyClient) WorkflowsRun(req *DifyRequest, authorization string, user s
 		if err != nil {
 			return nil, err
 		}
-		validateBody, ok := util.ValidateResponseBytes(respBytes)
-		if !ok {
-			return nil, fmt.Errorf("reponse body is invalid")
-		}
-		if err = json.Unmarshal(validateBody, completionResponse); err != nil {
+
+		if err = byteUnmarshallingValidator.ValidateAndUnmarshalJSON(respBytes, completionResponse); err != nil {
 			return nil, err
 		}
 		return completionResponse, nil
@@ -142,11 +141,7 @@ func (r *AlertCheckResponse) getOutput(defaultV string) string {
 	}
 
 	var res map[string]string
-	validatedBody, ok := util.ValidateResponseBytes(r.resp.Data.Outputs)
-	if !ok {
-		return ""
-	}
-	err := json.Unmarshal(validatedBody, &res)
+	err := byteUnmarshallingValidator.ValidateAndUnmarshalJSON(r.resp.Data.Outputs, &res)
 	if err != nil {
 		return defaultV
 	}
