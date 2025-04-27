@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 func (d *difyRepo) WorkflowsRun(req *DifyWorkflowRequest, authorization string) (*CompletionResponse, error) {
@@ -33,8 +35,19 @@ func (d *difyRepo) WorkflowsRun(req *DifyWorkflowRequest, authorization string) 
 
 	switch req.ResponseMode {
 	case "blocking":
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		validateBody, ok := util.ValidateResponseBytes(body)
+		if !ok {
+			return nil, fmt.Errorf("reponse body is invalid")
+		}
+
 		var completionResponse CompletionResponse
-		err = json.NewDecoder(resp.Body).Decode(&completionResponse)
+		err = json.Unmarshal(validateBody, &completionResponse)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse completion response, err: %w", err)
 		}
