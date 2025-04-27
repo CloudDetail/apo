@@ -5,7 +5,7 @@ package database
 
 import (
 	"context"
-	"crypto/md5"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -132,7 +132,7 @@ func (repo *daoRepo) createAnonymousUser() error {
 }
 
 func Encrypt(raw string) string {
-	h := md5.New()
+	h := sha256.New()
 	h.Write([]byte(raw))
 	return hex.EncodeToString(h.Sum(nil))
 }
