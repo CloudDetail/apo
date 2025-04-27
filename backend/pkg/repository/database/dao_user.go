@@ -20,8 +20,6 @@ import (
 )
 
 const (
-	adminPasswd = "APO2024@admin"
-
 	userFieldSql = "user_id, username, phone, email, corporation"
 )
 
@@ -53,7 +51,7 @@ func (repo *daoRepo) createAdmin() error {
 			admin = User{
 				UserID:   util.Generator.GenerateID(),
 				Username: model.ROLE_ADMIN,
-				Password: Encrypt(adminPasswd),
+				Password: Encrypt(config.Get().Server.InitAdminPassword),
 			}
 
 			if err = repo.db.Create(&admin).Error; err != nil {

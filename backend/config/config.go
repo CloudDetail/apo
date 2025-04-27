@@ -14,9 +14,10 @@ var config *Config
 
 type Config struct {
 	Server struct {
-		Port                     int `mapstructure:"port"`
-		AccessTokenExpireMinutes int `mapstructure:"access_token_expire_minutes"`
-		RefreshTokenExpireHours  int `mapstructure:"refresh_token_expire_hours"`
+		Port                     int    `mapstructure:"port"`
+		InitAdminPassword        string `mapstructure:"init_admin_password"`
+		AccessTokenExpireMinutes int    `mapstructure:"access_token_expire_minutes"`
+		RefreshTokenExpireHours  int    `mapstructure:"refresh_token_expire_hours"`
 	} `mapstructure:"server"`
 	Logger struct {
 		Level         string `mapstructure:"level"`
