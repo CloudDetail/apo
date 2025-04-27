@@ -8,6 +8,16 @@ import (
 	"gorm.io/gorm"
 )
 
+func isValidRoleName(roleName string) bool {
+	for _, role := range validRoles {
+		if roleName == role.RoleName {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (repo *daoRepo) initPermissions() error {
 	roleFeatures := map[string][]string{
 		model.ROLE_ADMIN: {
@@ -49,9 +59,17 @@ func (repo *daoRepo) initPermissions() error {
 		}
 
 		for roleName, featureNames := range roleFeatures {
+			if !isValidRoleName(roleName) {
+				continue
+			}
+
 			var role Role
 			if err = tx.Where("role_name = ?", roleName).First(&role).Error; err != nil {
 				return err
+			}
+
+			if role.RoleID <= 0 {
+				continue
 			}
 
 			var count int64
@@ -67,12 +85,24 @@ func (repo *daoRepo) initPermissions() error {
 			if count > 0 {
 				continue
 			}
+
+			validFeatureNames := make([]string, 0, len(featureNames))
+			for _, feature := range featureNames {
+				if isValidFeature(feature) {
+					validFeatureNames = append(validFeatureNames, feature)
+				}
+			}
+
 			var features []Feature
-			if err = tx.Where("feature_name IN ?", featureNames).Find(&features).Error; err != nil {
+			if err = tx.Where("feature_name IN ?", validFeatureNames).Find(&features).Error; err != nil {
 				return err
 			}
 
 			for _, feature := range features {
+				if feature.FeatureID <= 0 {
+					continue
+				}
+
 				permission := AuthPermission{
 					SubjectID:    int64(role.RoleID),
 					SubjectType:  "role",

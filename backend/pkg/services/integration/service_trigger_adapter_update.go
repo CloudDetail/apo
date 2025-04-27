@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/CloudDetail/apo/backend/pkg/util"
 	"log"
 	"net/http"
 	"os"
@@ -50,7 +51,11 @@ func (s *service) TriggerAdapterUpdate(req *integration.TriggerAdapterUpdateRequ
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		log.Println("trigger adapter update error: ", resp.StatusCode)
+		if util.IsValidStatusCode(resp.StatusCode) {
+			log.Printf("trigger adapter update error: %d\n", resp.StatusCode)
+		} else {
+			log.Println("trigger adapter update error: invalid status code")
+		}
 		return
 	} else {
 		log.Println("trigger adapter update success")

@@ -6,6 +6,7 @@ package polarisanalyzer
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/CloudDetail/apo/backend/pkg/util"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -50,7 +51,11 @@ func (p *polRepo) QueryPolarisInfer(req *request.GetPolarisInferRequest) (*Polar
 
 	// parse json data from res body
 	var inferRes PolarisInferRes
-	err = json.NewDecoder(res.Body).Decode(&inferRes)
+	validateBody, ok := util.ValidateResponse(res.Body)
+	if !ok {
+		return nil, fmt.Errorf("reponse body is invalid")
+	}
+	err = json.NewDecoder(validateBody).Decode(&inferRes)
 	return &inferRes, err
 }
 

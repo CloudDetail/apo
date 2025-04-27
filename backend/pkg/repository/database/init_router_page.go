@@ -9,6 +9,26 @@ import (
 	"gorm.io/gorm"
 )
 
+func isValidRouter(routerTo string) bool {
+	for _, router := range validRouters {
+		if router.RouterTo == routerTo {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isValidPageURL(url string) bool {
+	for _, page := range validPages {
+		if page.Url == url {
+			return true
+		}
+	}
+
+	return false
+}
+
 // initRouterPage init router-insertPage mapping records.
 func (repo *daoRepo) initRouterPage() error {
 	type page struct {
@@ -59,6 +79,10 @@ func (repo *daoRepo) initRouterPage() error {
 			return err
 		}
 		for router, pages := range routerPageMap {
+			if !isValidRouter(router) {
+				continue
+			}
+
 			var routerID int
 			err := tx.Model(&Router{}).Select("router_id").Where("router_to = ?", router).First(&routerID).Error
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -68,7 +92,18 @@ func (repo *daoRepo) initRouterPage() error {
 				return err
 			}
 
+			if routerID <= 0 {
+				continue
+			}
+
+			validPages := make([]page, 0, len(pages))
 			for _, page := range pages {
+				if isValidPageURL(page.url) {
+					validPages = append(validPages, page)
+				}
+			}
+
+			for _, page := range validPages {
 				var pageID int
 				err = tx.Model(&InsertPage{}).Select("page_id").Where("url = ?", page.url).First(&pageID).Error
 				if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -76,6 +111,10 @@ func (repo *daoRepo) initRouterPage() error {
 					continue
 				} else if err != nil {
 					return err
+				}
+
+				if pageID <= 0 {
+					continue
 				}
 
 				routerPage := RouterInsertPage{

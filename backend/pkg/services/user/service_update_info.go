@@ -78,7 +78,7 @@ func (s *service) UpdateUserPassword(req *request.UpdateUserPasswordRequest) err
 
 func checkPasswordComplexity(password string) error {
 	if len(password) < 8 {
-		return model.NewErrWithMessage(errors.New("length less than 8"), code.UserPasswordSimpleError)
+		return model.NewErrWithMessage(errors.New("length less than 8"), code.UserPasswdSimpleError)
 	}
 	var (
 		hasUpper     bool
@@ -102,16 +102,16 @@ func checkPasswordComplexity(password string) error {
 	}
 
 	if !hasUpper {
-		return model.NewErrWithMessage(errors.New("must contain at least one upper character"), code.UserPasswordSimpleError)
+		return model.NewErrWithMessage(errors.New("must contain at least one upper character"), code.UserPasswdSimpleError)
 	}
 	if !hasLower {
-		return model.NewErrWithMessage(errors.New("must contain at least one lower character"), code.UserPasswordSimpleError)
+		return model.NewErrWithMessage(errors.New("must contain at least one lower character"), code.UserPasswdSimpleError)
 	}
 	if !hasDigit {
-		return model.NewErrWithMessage(errors.New("must contain at least one digit"), code.UserPasswordSimpleError)
+		return model.NewErrWithMessage(errors.New("must contain at least one digit"), code.UserPasswdSimpleError)
 	}
 	if !hasSpecial {
-		return model.NewErrWithMessage(errors.New("must contain at least one special character"), code.UserPasswordSimpleError)
+		return model.NewErrWithMessage(errors.New("must contain at least one special character"), code.UserPasswdSimpleError)
 	}
 
 	return nil

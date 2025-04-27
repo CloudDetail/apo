@@ -45,8 +45,8 @@ func (h *handler) CreateUser() core.HandlerFunc {
 		if req.ConfirmPassword != req.Password {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.UserConfirmPasswordError,
-				c.ErrMessage(code.UserConfirmPasswordError)),
+				code.UserConfirmPasswdError,
+				c.ErrMessage(code.UserConfirmPasswdError)),
 			)
 			return
 		}

@@ -49,7 +49,7 @@ func (ch *chRepo) QueryLogContext(req *request.LogQueryContextRequest) ([]map[st
 		OrderBy("timestamp", false).
 		Limit(50).
 		String()
-	frontSql := fmt.Sprintf(querySQl, req.DataBase, req.TableName, timefront+tags, bySqlfront)
+	frontSql := fmt.Sprintf(logsBaseQuery, req.DataBase, req.TableName, timefront+tags, bySqlfront)
 	front, err := ch.queryRowsData(frontSql)
 	if err != nil {
 		front = []map[string]any{}
@@ -60,7 +60,7 @@ func (ch *chRepo) QueryLogContext(req *request.LogQueryContextRequest) ([]map[st
 		OrderBy("timestamp", true).
 		Limit(50).
 		String()
-	endSql := fmt.Sprintf(querySQl, req.DataBase, req.TableName, timeend+tags, bySqlend)
+	endSql := fmt.Sprintf(logsBaseQuery, req.DataBase, req.TableName, timeend+tags, bySqlend)
 	end, err := ch.queryRowsData(endSql)
 	if err != nil {
 		end = []map[string]any{}

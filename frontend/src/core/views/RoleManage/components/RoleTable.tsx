@@ -47,11 +47,13 @@ export const RoleTable: React.FC<RoleTableProps> = ({
         <>
           <Button
             onClick={() => onEdit(record)}
-            icon={<MdOutlineModeEdit />}
+            icon={<MdOutlineModeEdit className="text-blue-400 hover:text-blue-400" />}
             type="text"
             className="mr-2"
           >
-            {t('index.edit')}
+            <span className="text-blue-400 hover:text-blue-400">
+              {t('index.edit')}
+            </span>
           </Button>
           {record.roleName !== 'admin' && (
             <Popconfirm

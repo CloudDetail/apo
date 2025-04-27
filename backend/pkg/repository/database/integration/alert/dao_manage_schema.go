@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 const SchemaPrefix = "alert_input_schema_"
@@ -33,7 +34,12 @@ func (repo *subRepo) CreateSchema(schema string, columns []string) error {
 
 	sql := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (schema_row_id integer PRIMARY KEY AUTOINCREMENT,%s);", schema, strings.Join(fields, ", "))
 
-	return repo.db.Exec(sql).Error
+	validSql, err := util.ValidateSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	return repo.db.Exec(validSql).Error
 }
 
 func (repo *subRepo) GetSchemaData(schema string) ([]string, map[int64][]string, error) {
@@ -41,7 +47,8 @@ func (repo *subRepo) GetSchemaData(schema string) ([]string, map[int64][]string,
 		return nil, nil, alert.ErrNotAllowSchema{Table: schema}
 	}
 	schema = SchemaPrefix + schema
-	rows, err := repo.db.Raw("SELECT * FROM " + schema + "").Rows()
+
+	rows, err := repo.db.Table(schema).Rows()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -103,7 +110,13 @@ func (repo *subRepo) DeleteSchema(schema string) error {
 	}
 
 	schema = SchemaPrefix + schema
-	err = repo.db.Exec("DROP TABLE IF EXISTS " + schema).Error
+	sql := "DROP TABLE IF EXISTS " + schema
+	validSql, err := util.ValidateSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	err = repo.db.Exec(validSql).Error
 	return err
 }
 
@@ -112,7 +125,8 @@ func (repo *subRepo) ListSchemaColumns(schema string) ([]string, error) {
 		return nil, alert.ErrNotAllowSchema{Table: schema}
 	}
 	schema = SchemaPrefix + schema
-	rows, err := repo.db.Raw("SELECT * FROM " + schema + "").Rows()
+
+	rows, err := repo.db.Table(schema).Rows()
 	if err != nil {
 		return nil, err
 	}
@@ -135,18 +149,10 @@ func (repo *subRepo) UpdateSchemaData(schema string, columns []string, rows map[
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
 
-	schema = SchemaPrefix + schema
-
-	var columnPlaceHolder []string
-	for _, column := range columns {
-		if !AllowSchema.MatchString(column) {
-			return alert.ErrNotAllowSchema{Column: column}
-		}
-
-		columnPlaceHolder = append(columnPlaceHolder, fmt.Sprintf("%s = ?", column))
+	updateTemp, err := buildUpdateSchema(schema, columns)
+	if err != nil {
+		return err
 	}
-
-	updateTemp := fmt.Sprintf("UPDATE %s SET %s WHERE schema_row_id = ?", schema, strings.Join(columnPlaceHolder, ","))
 	for idx, row := range rows {
 		var args = make([]interface{}, 0, len(row)+1)
 		for _, value := range row {
@@ -154,12 +160,33 @@ func (repo *subRepo) UpdateSchemaData(schema string, columns []string, rows map[
 		}
 		args = append(args, idx)
 
-		err := repo.db.Exec(updateTemp, args...).Error
+		validateSql, err := util.ValidateSQL(updateTemp)
+		if err != nil {
+			return err
+		}
+
+		err = repo.db.Exec(validateSql, args...).Error
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func buildUpdateSchema(schema string, columns []string) (string, error) {
+	schema = SchemaPrefix + schema
+
+	var columnPlaceHolder []string
+	for _, column := range columns {
+		if !AllowSchema.MatchString(column) {
+			return "", alert.ErrNotAllowSchema{Column: column}
+		}
+
+		columnPlaceHolder = append(columnPlaceHolder, fmt.Sprintf("%s = ?", column))
+	}
+
+	updateTemp := fmt.Sprintf("UPDATE %s SET %s WHERE schema_row_id = ?", schema, strings.Join(columnPlaceHolder, ","))
+	return updateTemp, nil
 }
 
 func (repo *subRepo) ListSchema() ([]string, error) {
@@ -212,10 +239,9 @@ func EscapeString(input string) string {
 	return builder.String()
 }
 
-func (repo *subRepo) InsertSchemaData(schema string, columns []string, fullRows [][]string) error {
-	if !AllowSchema.MatchString(schema) {
-		return alert.ErrNotAllowSchema{Table: schema}
-	}
+const insertSchema = "INSERT INTO %s (%s) VALUES %s"
+
+func buildInsertSchema(schema string, columns []string, fullRows [][]string) string {
 	schema = SchemaPrefix + schema
 
 	valueRows := []string{}
@@ -228,14 +254,34 @@ func (repo *subRepo) InsertSchemaData(schema string, columns []string, fullRows 
 		valueRows = append(valueRows, fmt.Sprintf("(%s)", strings.Join(escapeRows, ",")))
 	}
 
-	sql := fmt.Sprintf("INSERT INTO %s (%s) VALUES %s",
+	sql := fmt.Sprintf(insertSchema,
 		schema,
 		strings.Join(columns, ","),
 		strings.Join(valueRows, ","))
-	err := repo.db.Exec(sql).Error
+	return sql
+}
+
+func (repo *subRepo) InsertSchemaData(schema string, columns []string, fullRows [][]string) error {
+	if !AllowSchema.MatchString(schema) {
+		return alert.ErrNotAllowSchema{Table: schema}
+	}
+	sql := buildInsertSchema(schema, columns, fullRows)
+
+	validSql, err := util.ValidateSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	err = repo.db.Exec(validSql).Error
 	return err
 }
 
 func (repo *subRepo) clearSchemaData(schema string) error {
-	return repo.db.Exec("TRUNCATE TABLE " + schema + ";").Error
+	sql := "TRUNCATE TABLE " + schema + ";"
+	validateSql, err := util.ValidateSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	return repo.db.Exec(validateSql).Error
 }

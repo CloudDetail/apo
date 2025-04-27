@@ -197,18 +197,22 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"cpu\"}[$__interval])",
+                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", node_name=~\"$node_name\", pid=~\"$pid\", type=\"cpu\"}[$__interval])",
                     "legendFormat": "OnCPU",
                     "refId": "oncpu",
                     "variables": [
                         "container_id",
+                        "node_name",
+                        "pid",
                         "__interval"
                     ]
                 }
             ],
             "unit": "ns",
             "params": [
-                "pod"
+                "pod",
+                "node_name",
+                "pid"
             ]
         },
         {
@@ -216,18 +220,22 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"file\"}[$__interval])",
+                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", node_name=~\"$node_name\", pid=~\"$pid\", type=\"file\"}[$__interval])",
                     "legendFormat": "File",
                     "refId": "File",
                     "variables": [
                         "container_id",
+                        "node_name",
+                        "pid",
                         "__interval"
                     ]
                 }
             ],
             "unit": "ns",
             "params": [
-                "pod"
+                "pod",
+                "node_name",
+                "pid"
             ]
         },
         {
@@ -235,18 +243,22 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"net\"}[$__interval])",
+                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", node_name=~\"$node_name\", pid=~\"$pid\", type=\"net\"}[$__interval])",
                     "legendFormat": "Net",
                     "refId": "net",
                     "variables": [
                         "container_id",
+                        "node_name",
+                        "pid",
                         "__interval"
                     ]
                 }
             ],
             "unit": "ns",
             "params": [
-                "pod"
+                "pod",
+                "node_name",
+                "pid"
             ]
         },
         {
@@ -254,18 +266,22 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"epoll\"}[$__interval])",
+                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", node_name=~\"$node_name\", pid=~\"$pid\", type=\"epoll\"}[$__interval])",
                     "legendFormat": "Epoll",
                     "refId": "epoll",
                     "variables": [
                         "container_id",
+                        "node_name",
+                        "pid",
                         "__interval"
                     ]
                 }
             ],
             "unit": "ns",
             "params": [
-                "pod"
+                "pod",
+                "node_name",
+                "pid"
             ]
         },
         {
@@ -273,18 +289,22 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"futex\"}[$__interval])",
+                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", node_name=~\"$node_name\", pid=~\"$pid\", type=\"futex\"}[$__interval])",
                     "legendFormat": "Futex",
                     "refId": "futex",
                     "variables": [
                         "container_id",
+                        "node_name",
+                        "pid",  
                         "__interval"
                     ]
                 }
             ],
             "unit": "ns",
             "params": [
-                "pod"
+                "pod",
+                "node_name",
+                "pid"
             ]
         },
         {
@@ -292,18 +312,22 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"idle\"}[$__interval])",
+                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", node_name=~\"$node_name\", pid=~\"$pid\", type=\"idle\"}[$__interval])",
                     "legendFormat": "Idle",
                     "refId": "idle",
                     "variables": [
                         "container_id",
+                        "node_name",
+                        "pid",
                         "__interval"
                     ]
                 }
             ],
             "unit": "ns",
             "params": [
-                "pod"
+                "pod",
+                "node_name",
+                "pid"
             ]
         },
         {
@@ -311,18 +335,22 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"other\"}[$__interval])",
+                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", node_name=~\"$node_name\", pid=~\"$pid\", type=\"other\"}[$__interval])",
                     "legendFormat": "Other",
                     "refId": "other",
                     "variables": [
                         "container_id",
+                        "node_name",
+                        "pid",
                         "__interval"
                     ]
                 }
             ],
             "unit": "ns",
             "params": [
-                "pod"
+                "pod",
+                "node_name",
+                "pid"
             ]
         },
         {
@@ -330,18 +358,22 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"runq\"}[$__interval])",
+                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", node_name=~\"$node_name\", pid=~\"$pid\", type=\"runq\"}[$__interval])",
                     "legendFormat": "Runqueue",
                     "refId": "runq",
                     "variables": [
                         "container_id",
+                        "node_name",
+                        "pid",
                         "__interval"
                     ]
                 }
             ],
             "unit": "ns",
             "params": [
-                "pod"
+                "pod",
+                "node_name",
+                "pid"
             ]
         }
     ],

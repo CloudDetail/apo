@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/CloudDetail/apo/backend/pkg/util"
 	"io"
 	"net/http"
 	"strings"
@@ -66,7 +67,11 @@ func (c *DifyClient) WorkflowsRun(req *DifyRequest, authorization string, user s
 	switch req.ResponseMode {
 	case "blocking":
 		var completionResponse CompletionResponse
-		err = json.NewDecoder(resp.Body).Decode(&completionResponse)
+		validateBody, ok := util.ValidateResponse(resp.Body)
+		if !ok {
+			return nil, fmt.Errorf("reponse body is invalid")
+		}
+		err = json.NewDecoder(validateBody).Decode(&completionResponse)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse completion response, err: %w", err)
 		}
@@ -133,7 +138,11 @@ func (r *AlertCheckResponse) getOutput(defaultV string) string {
 	}
 
 	var res map[string]string
-	err := json.Unmarshal(r.resp.Data.Outputs, &res)
+	validatedBody, ok := util.ValidateResponseBytes(r.resp.Data.Outputs)
+	if !ok {
+		return ""
+	}
+	err := json.Unmarshal(validatedBody, &res)
 	if err != nil {
 		return defaultV
 	}

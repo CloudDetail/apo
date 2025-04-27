@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/CloudDetail/apo/backend/pkg/util"
 	"gorm.io/gorm"
 )
 
@@ -32,7 +33,13 @@ func InitSQL(db *gorm.DB, model StructureDefine) error {
 			if err != nil {
 				return err
 			}
-			if err := db.Exec(string(sql)).Error; err != nil {
+
+			validSql, err := util.ValidateSQL(string(sql))
+			if err != nil {
+				return err
+			}
+
+			if err := db.Exec(validSql).Error; err != nil {
 				return err
 			}
 		}
@@ -49,7 +56,13 @@ func InitSQL(db *gorm.DB, model StructureDefine) error {
 		if err != nil {
 			continue
 		}
-		if err := db.Exec(string(sql)).Error; err != nil {
+
+		validSql, err := util.ValidateSQL(string(sql))
+		if err != nil {
+			return err
+		}
+
+		if err := db.Exec(validSql).Error; err != nil {
 			log.Printf("update [%s]:%s failed: err: %v", model.TableName(), script, err)
 			continue
 		}

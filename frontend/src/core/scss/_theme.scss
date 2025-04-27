@@ -2,6 +2,9 @@
  * Copyright 2024 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
+@import '@coreui/coreui/scss/functions';
+@import '@coreui/coreui/scss/variables';
+@import '@coreui/coreui/scss/mixins'; // 统一import全部CoreUI mixins
 
 body {
   background-color: var(--cui-tertiary-bg);
