@@ -70,11 +70,13 @@ export const UserTable: React.FC<UserTableProps> = ({
           <>
             <Button
               onClick={() => onEdit(record)}
-              icon={<MdOutlineModeEdit />}
+              icon={<MdOutlineModeEdit className="text-blue-400 hover:text-blue-400" />}
               type="text"
               className="mr-1"
             >
-              {t('index.edit')}
+              <span className="text-blue-400 hover:text-blue-400">
+                {t('index.edit')}
+              </span>
             </Button>
             <Popconfirm
               title={t('index.confirmDelete', { name: username })}
