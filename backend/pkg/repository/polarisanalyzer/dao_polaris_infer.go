@@ -6,11 +6,13 @@ package polarisanalyzer
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/CloudDetail/apo/backend/pkg/util"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/pkg/util"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -50,13 +52,19 @@ func (p *polRepo) QueryPolarisInfer(req *request.GetPolarisInferRequest) (*Polar
 	defer res.Body.Close()
 
 	// parse json data from res body
-	var inferRes PolarisInferRes
-	validateBody, ok := util.ValidateResponse(res.Body)
+	inferRes := &PolarisInferRes{}
+	respBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	validateBody, ok := util.ValidateResponseBytes(respBytes)
 	if !ok {
 		return nil, fmt.Errorf("reponse body is invalid")
 	}
-	err = json.NewDecoder(validateBody).Decode(&inferRes)
-	return &inferRes, err
+	if err = json.Unmarshal(validateBody, inferRes); err != nil {
+		return nil, err
+	}
+	return inferRes, nil
 }
 
 type PolarisInferRes struct {

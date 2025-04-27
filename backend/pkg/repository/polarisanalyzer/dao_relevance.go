@@ -8,9 +8,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/CloudDetail/apo/backend/pkg/util"
 	"io"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 const (
@@ -71,8 +72,7 @@ func (p *polRepo) SortDescendantByRelevance(
 	if !ok {
 		return nil, fmt.Errorf("reponse body is invalid")
 	}
-	err = json.Unmarshal(validateBody, relevanceRes)
-	if err != nil {
+	if err = json.Unmarshal(validateBody, relevanceRes); err != nil {
 		return nil, err
 	}
 

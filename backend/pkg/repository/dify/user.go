@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 // AddUser implements DifyRepo.
@@ -36,7 +38,7 @@ func (d *difyRepo) AddUser(username string, password string, role string) (*Dify
 		return nil, err
 	}
 	var res DifyResponse
-	validateBody, ok := validateResponse(body)
+	validateBody, ok := util.ValidateResponseBytes(body)
 	if !ok {
 		return nil, fmt.Errorf("reponse body is invalid")
 	}
@@ -65,7 +67,7 @@ func (d *difyRepo) RemoveUser(username string) (*DifyResponse, error) {
 		return nil, err
 	}
 	var res DifyResponse
-	validateBody, ok := validateResponse(body)
+	validateBody, ok := util.ValidateResponseBytes(body)
 	if !ok {
 		return nil, fmt.Errorf("reponse body is invalid")
 	}
@@ -100,8 +102,9 @@ func (d *difyRepo) UpdatePassword(username string, oldPassword string, newPasswo
 	if err != nil {
 		return nil, err
 	}
+
 	var res DifyResponse
-	validateBody, ok := validateResponse(body)
+	validateBody, ok := util.ValidateResponseBytes(body)
 	if !ok {
 		return nil, fmt.Errorf("reponse body is invalid")
 	}
@@ -135,7 +138,7 @@ func (d *difyRepo) ResetPassword(username string, newPassword string) (*DifyResp
 		return nil, err
 	}
 	var res DifyResponse
-	validateBody, ok := validateResponse(body)
+	validateBody, ok := util.ValidateResponseBytes(body)
 	if !ok {
 		return nil, fmt.Errorf("reponse body is invalid")
 	}
@@ -144,8 +147,4 @@ func (d *difyRepo) ResetPassword(username string, newPassword string) (*DifyResp
 		return nil, err
 	}
 	return &res, nil
-}
-
-func validateResponse(body []byte) ([]byte, bool) {
-	return body, true
 }
