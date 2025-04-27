@@ -14,7 +14,9 @@ import (
 
 const SchemaPrefix = "alert_input_schema_"
 
-var AllowSchema = regexp.MustCompile("^[a-zA-Z0-9_-]{1,40}$")
+var (
+	AllowSchema = regexp.MustCompile("^[a-zA-Z0-9_-]{1,40}$")
+)
 
 func (repo *subRepo) CreateSchema(schema string, columns []string) error {
 	if !AllowSchema.MatchString(schema) {
@@ -110,14 +112,8 @@ func (repo *subRepo) DeleteSchema(schema string) error {
 	}
 
 	schema = SchemaPrefix + schema
-	sql := "DROP TABLE IF EXISTS " + schema
-	validSql, err := util.ValidateSQL(sql)
-	if err != nil {
-		return err
-	}
 
-	err = repo.db.Exec(validSql).Error
-	return err
+	return repo.db.Migrator().DropTable(schema)
 }
 
 func (repo *subRepo) ListSchemaColumns(schema string) ([]string, error) {
@@ -160,12 +156,7 @@ func (repo *subRepo) UpdateSchemaData(schema string, columns []string, rows map[
 		}
 		args = append(args, idx)
 
-		validateSql, err := util.ValidateSQL(updateTemp)
-		if err != nil {
-			return err
-		}
-
-		err = repo.db.Exec(validateSql, args...).Error
+		err = repo.db.Exec(updateTemp, args...).Error
 		if err != nil {
 			return err
 		}
@@ -241,47 +232,44 @@ func EscapeString(input string) string {
 
 const insertSchema = "INSERT INTO %s (%s) VALUES %s"
 
-func buildInsertSchema(schema string, columns []string, fullRows [][]string) string {
+func buildInsertSchema(schema string, columns []string, fullRows [][]string) (string, []interface{}) {
 	schema = SchemaPrefix + schema
 
-	valueRows := []string{}
-	for _, row := range fullRows {
-		var escapeRows []string
-		for _, v := range row {
-			escapeRows = append(escapeRows, `'`+EscapeString(v)+`'`)
-		}
+	colPart := strings.Join(columns, ",")
 
-		valueRows = append(valueRows, fmt.Sprintf("(%s)", strings.Join(escapeRows, ",")))
+	valueRows := []string{}
+	params := []interface{}{}
+	for _, row := range fullRows {
+		placeholders := make([]string, len(row))
+		for i := range row {
+			placeholders[i] = "?"
+			params = append(params, row[i])
+		}
+		valueRows = append(valueRows, fmt.Sprintf("(%s)", strings.Join(placeholders, ",")))
 	}
 
 	sql := fmt.Sprintf(insertSchema,
 		schema,
-		strings.Join(columns, ","),
+		colPart,
 		strings.Join(valueRows, ","))
-	return sql
+
+	return sql, params
 }
 
 func (repo *subRepo) InsertSchemaData(schema string, columns []string, fullRows [][]string) error {
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
-	sql := buildInsertSchema(schema, columns, fullRows)
+	sql, params := buildInsertSchema(schema, columns, fullRows)
 
-	validSql, err := util.ValidateSQL(sql)
-	if err != nil {
-		return err
-	}
-
-	err = repo.db.Exec(validSql).Error
-	return err
+	return repo.db.Raw(sql, params...).Error
 }
 
 func (repo *subRepo) clearSchemaData(schema string) error {
-	sql := "TRUNCATE TABLE " + schema + ";"
-	validateSql, err := util.ValidateSQL(sql)
-	if err != nil {
-		return err
+	if !AllowSchema.MatchString(schema) {
+		return alert.ErrNotAllowSchema{Table: schema}
 	}
+	sql := "TRUNCATE TABLE " + schema + ";"
 
-	return repo.db.Exec(validateSql).Error
+	return repo.db.Exec(sql).Error
 }
