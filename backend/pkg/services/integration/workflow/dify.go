@@ -7,10 +7,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/CloudDetail/apo/backend/pkg/util"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 type DifyClient struct {
@@ -66,16 +67,19 @@ func (c *DifyClient) WorkflowsRun(req *DifyRequest, authorization string, user s
 
 	switch req.ResponseMode {
 	case "blocking":
-		var completionResponse CompletionResponse
-		validateBody, ok := util.ValidateResponse(resp.Body)
+		completionResponse := &CompletionResponse{}
+		respBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		validateBody, ok := util.ValidateResponseBytes(respBytes)
 		if !ok {
 			return nil, fmt.Errorf("reponse body is invalid")
 		}
-		err = json.NewDecoder(validateBody).Decode(&completionResponse)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse completion response, err: %w", err)
+		if err = json.Unmarshal(validateBody, completionResponse); err != nil {
+			return nil, err
 		}
-		return &completionResponse, nil
+		return completionResponse, nil
 	case "streaming":
 		panic("not implemented yet")
 	}
