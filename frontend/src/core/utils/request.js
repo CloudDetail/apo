@@ -93,6 +93,9 @@ instance.interceptors.response.use(
           isTokenRefreshing = true
           try {
             const newToken = await refreshAccessToken()
+            if (!newToken) {
+              throw new Error('Refresh token failed') // <-- 手动抛错
+            }
             lastTokenRefreshTime = Date.now()
             instance.defaults.headers.common.Authorization = `Bearer ${newToken}`
             pendingRequests.forEach(callback => callback(newToken))
