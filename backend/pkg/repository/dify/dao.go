@@ -37,7 +37,7 @@ type DifyRepo interface {
 
 	// ########################## Async AlertCheck Workflow #########################
 
-	PrepareAsyncAlertCheckWorkflow(cfg *AlertCheckConfig, logger *zap.Logger) (records <-chan model.WorkflowRecord, err error)
+	PrepareAsyncAlertCheckWorkflow(cfg *AlertCheckConfig, logger *zap.Logger) (records <-chan *model.WorkflowRecord, err error)
 	SubmitAlertEvents(events []alert.AlertEvent)
 
 	GetCacheMinutes() int

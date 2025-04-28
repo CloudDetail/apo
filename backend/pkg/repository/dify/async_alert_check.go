@@ -18,7 +18,7 @@ var _ asyncAlertCheck = &sampleWithFirstRecord{}
 var _ asyncAlertCheck = &sampleWithLastRecord{}
 
 type asyncAlertCheck interface {
-	Run(ctx context.Context, client *DifyClient) (<-chan model.WorkflowRecord, error)
+	Run(ctx context.Context, client *DifyClient) (<-chan *model.WorkflowRecord, error)
 	AddEvents(events []alert.AlertEvent)
 }
 
@@ -66,8 +66,8 @@ type checkWorkers struct {
 	eventInput *inputChan
 }
 
-func (c *checkWorkers) Run(ctx context.Context, client *DifyClient) (<-chan model.WorkflowRecord, error) {
-	rChan := make(chan model.WorkflowRecord, MAX_CACHE_SIZE+10)
+func (c *checkWorkers) Run(ctx context.Context, client *DifyClient) (<-chan *model.WorkflowRecord, error) {
+	rChan := make(chan *model.WorkflowRecord, MAX_CACHE_SIZE+10)
 	var wg sync.WaitGroup
 	for i := 0; i < c.MaxConcurrency; i++ {
 		wg.Add(1)
@@ -94,7 +94,7 @@ func (c *checkWorkers) AddEvents(events []alert.AlertEvent) {
 			continue
 		}
 		remainSize++
-		c.eventInput.Ch <- events[i]
+		c.eventInput.Ch <- &events[i]
 	}
 }
 
@@ -113,8 +113,8 @@ type sampleWithFirstRecord struct {
 func (s *sampleWithFirstRecord) Run(
 	ctx context.Context,
 	client *DifyClient,
-) (<-chan model.WorkflowRecord, error) {
-	rChan := make(chan model.WorkflowRecord, MAX_CACHE_SIZE+10)
+) (<-chan *model.WorkflowRecord, error) {
+	rChan := make(chan *model.WorkflowRecord, MAX_CACHE_SIZE+10)
 
 	var wg sync.WaitGroup
 	now := time.Now()
@@ -172,7 +172,7 @@ func (s *sampleWithFirstRecord) AddEvents(events []alert.AlertEvent) {
 		}
 		s.checkedAlert[events[i].AlertID] = struct{}{}
 		remainSize++
-		s.eventInput.Ch <- events[i]
+		s.eventInput.Ch <- &events[i]
 	}
 }
 
@@ -191,8 +191,8 @@ type sampleWithLastRecord struct {
 func (s *sampleWithLastRecord) Run(
 	ctx context.Context,
 	client *DifyClient,
-) (<-chan model.WorkflowRecord, error) {
-	rChan := make(chan model.WorkflowRecord, MAX_CACHE_SIZE+10)
+) (<-chan *model.WorkflowRecord, error) {
+	rChan := make(chan *model.WorkflowRecord, MAX_CACHE_SIZE+10)
 
 	var wg sync.WaitGroup
 	for i := 0; i < s.MaxConcurrency; i++ {
@@ -251,7 +251,7 @@ func (s *sampleWithLastRecord) submit() {
 			select {
 			case <-ctx.Done():
 				return
-			case s.eventInput.Ch <- cachedEvents[i]:
+			case s.eventInput.Ch <- &cachedEvents[i]:
 			}
 		}
 	}()
@@ -260,7 +260,7 @@ func (s *sampleWithLastRecord) submit() {
 func waitForShutDown(
 	ctx context.Context,
 	eventInput *inputChan,
-	rChan chan model.WorkflowRecord,
+	rChan chan *model.WorkflowRecord,
 	wg *sync.WaitGroup,
 ) {
 	<-ctx.Done()

@@ -1,4 +1,4 @@
-package amnotify
+package amreceiver
 
 import (
 	"context"
@@ -32,7 +32,7 @@ func TestReceiver(t *testing.T) {
 	assert.NoError(t, err)
 	tmpl.ExternalURL, err = url.Parse("http://example.com")
 	assert.NoError(t, err)
-	receiversMap, err := BuildReceivers(
+	receiversMap, err := buildAMReceivers(
 		conf.Receivers,
 		tmpl,
 		util.NewZapSlogHandler(zapLog),

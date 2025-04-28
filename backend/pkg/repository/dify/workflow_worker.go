@@ -13,13 +13,13 @@ import (
 const MAX_CACHE_SIZE = 100
 
 type inputChan struct {
-	Ch         chan alert.AlertEvent
+	Ch         chan *alert.AlertEvent
 	IsShutDown bool
 }
 
 func newInputChan() *inputChan {
 	return &inputChan{
-		Ch:         make(chan alert.AlertEvent, MAX_CACHE_SIZE+10),
+		Ch:         make(chan *alert.AlertEvent, MAX_CACHE_SIZE+10),
 		IsShutDown: false,
 	}
 }
@@ -31,7 +31,7 @@ type worker struct {
 	expiredTS int64
 }
 
-func (w *worker) run(c *DifyClient, eventInput <-chan alert.AlertEvent, results chan<- model.WorkflowRecord, wg *sync.WaitGroup) {
+func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results chan<- *model.WorkflowRecord, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for event := range eventInput {
 		endTime := event.UpdateTime.UnixMicro()
@@ -65,6 +65,8 @@ func (w *worker) run(c *DifyClient, eventInput <-chan alert.AlertEvent, results 
 				Output:        "failed: workflow execution failed due to API call failure",
 				CreatedAt:     roundedTime.UnixMicro(),
 				RoundedTime:   roundedTime.UnixMicro(),
+
+				InputRef: event,
 			}
 		} else {
 			record = model.WorkflowRecord{
@@ -76,8 +78,10 @@ func (w *worker) run(c *DifyClient, eventInput <-chan alert.AlertEvent, results 
 				Output:        resp.getOutput("failed: not find expected output"), // 'false' means valid alert
 				CreatedAt:     resp.CreatedAt(),
 				RoundedTime:   roundedTime.UnixMicro(),
+
+				InputRef: event,
 			}
 		}
-		results <- record
+		results <- &record
 	}
 }

@@ -101,6 +101,7 @@ SELECT
   ae.update_time,
   ae.end_time,
   ae.received_time,
+  ae.severity,
   ae.detail,
   ae.status,
   ae.tags,

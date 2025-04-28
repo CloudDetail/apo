@@ -15,4 +15,6 @@ type WorkflowRecord struct {
 
 	CreatedAt   int64 `json:"createdAt" ch:"created_at"`
 	RoundedTime int64 `json:"-" ch:"rounded_time"`
+
+	InputRef any `json:"-" ch:"-"`
 }

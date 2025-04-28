@@ -745,31 +745,35 @@ func (r *InhibitRule) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-type AlertReceiver struct {
-	Receiver
+// type AlertReceiver struct {
+// 	Receiver
 
-	Templates []string
-}
+// 	Templates []string `gorm:""`
+// }
 
 // Receiver configuration provides configuration on how to contact a receiver.
 type Receiver struct {
 	// A unique identifier for this receiver.
-	Name string `gorm:"column:name" yaml:"name" json:"name" binding:"required"`
+	Name string `gorm:"column:name;primaryKey" yaml:"name" json:"name" binding:"required"`
 
-	EmailConfigs     []*EmailConfig     `gorm:"column:email_configs;type:text" yaml:"email_configs,omitempty" json:"emailConfigs,omitempty"`
-	WebhookConfigs   []*WebhookConfig   `gorm:"column:webhook_configs;type:text" yaml:"webhook_configs,omitempty" json:"webhookConfigs,omitempty"`
-	DingTalkConfigs  []*DingTalkConfig  `gorm:"column:dingtalk_configs;type:text" yaml:"-" json:"dingTalkConfigs,omitempty"`
+	EmailConfigs     EmailConfigs       `gorm:"column:email_configs;type:text" yaml:"email_configs,omitempty" json:"emailConfigs,omitempty"`
+	WebhookConfigs   WebhookConfigs     `gorm:"column:webhook_configs;type:text" yaml:"webhook_configs,omitempty" json:"webhookConfigs,omitempty"`
+	DingTalkConfigs  DingTalkConfigs    `gorm:"column:dingtalk_configs;type:text" yaml:"-" json:"dingTalkConfigs,omitempty"`
 	DiscordConfigs   []*DiscordConfig   `gorm:"-" yaml:"discord_configs,omitempty" json:"-"`
 	PagerdutyConfigs []*PagerdutyConfig `gorm:"-" yaml:"pagerduty_configs,omitempty" json:"-"`
 	SlackConfigs     []*SlackConfig     `gorm:"-" yaml:"slack_configs,omitempty" json:"-"`
 	OpsGenieConfigs  []*OpsGenieConfig  `gorm:"-" yaml:"opsgenie_configs,omitempty" json:"-"`
-	WechatConfigs    []*WechatConfig    `gorm:"-" yaml:"wechat_configs,omitempty" json:"wechatConfigs,omitempty"`
+	WechatConfigs    WechatConfigs      `gorm:"-" yaml:"wechat_configs,omitempty" json:"wechatConfigs,omitempty"`
 	PushoverConfigs  []*PushoverConfig  `gorm:"-" yaml:"pushover_configs,omitempty" json:"-"`
 	VictorOpsConfigs []*VictorOpsConfig `gorm:"-" yaml:"victorops_configs,omitempty" json:"-"`
 	SNSConfigs       []*SNSConfig       `gorm:"-" yaml:"sns_configs,omitempty" json:"-"`
 	TelegramConfigs  []*TelegramConfig  `gorm:"-" yaml:"telegram_configs,omitempty" json:"-"`
 	WebexConfigs     []*WebexConfig     `gorm:"-" yaml:"webex_configs,omitempty" json:"-"`
 	MSTeamsConfigs   []*MSTeamsConfig   `gorm:"-" yaml:"msteams_configs,omitempty" json:"-"`
+}
+
+func (Receiver) TableName() string {
+	return "am_receivers"
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for Receiver.

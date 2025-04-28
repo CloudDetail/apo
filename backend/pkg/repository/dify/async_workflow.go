@@ -8,16 +8,18 @@ import (
 	"go.uber.org/zap"
 )
 
-func (r *difyRepo) PrepareAsyncAlertCheckWorkflow(cfg *AlertCheckConfig, logger *zap.Logger) (records <-chan model.WorkflowRecord, err error) {
+func (r *difyRepo) PrepareAsyncAlertCheckWorkflow(cfg *AlertCheckConfig, logger *zap.Logger) (records <-chan *model.WorkflowRecord, err error) {
 	if len(cfg.Sampling) == 0 {
 		cfg.Sampling = "first"
+	}
+	if len(cfg.FlowName) == 0 {
+		cfg.FlowName = "AlertCheck"
 	}
 	if cfg.CacheMinutes <= 0 {
 		cfg.CacheMinutes = 20
 	} else {
 		cfg.CacheMinutes = maxFactorOf60LessThanN(cfg.CacheMinutes)
 	}
-
 	if cfg.MaxConcurrency <= 0 {
 		cfg.MaxConcurrency = 1
 	}

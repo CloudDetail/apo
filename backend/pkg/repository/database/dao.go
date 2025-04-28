@@ -133,6 +133,14 @@ type Repo interface {
 	// Transaction Starts a transaction and automatically commit and rollback.
 	Transaction(ctx context.Context, funcs ...func(txCtx context.Context) error) error
 
+	GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
+	AddAMConfigReceiver(receiver amconfig.Receiver) error
+	UpdateAMConfigReceiver(receiver amconfig.Receiver, oldName string) error
+	DeleteAMConfigReceiver(name string) error
+
+	CheckAMReceiverCount() int64
+	MigrateAMReceiver(receivers []amconfig.Receiver) error
+
 	integration.ObservabilityInputManage
 }
 
@@ -255,6 +263,7 @@ func migrateTable(db *gorm.DB) error {
 	}
 
 	return db.AutoMigrate(
+		&amconfig.Receiver{},
 		&amconfig.DingTalkConfig{},
 		&Feature{},
 		&FeatureMapping{},

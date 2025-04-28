@@ -11,17 +11,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package amnotify
+package amreceiver
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"log/slog"
+	"net/url"
 
 	commoncfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/promslog"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/util"
 	"github.com/prometheus/alertmanager/config"
 	"github.com/prometheus/alertmanager/notify"
 	"github.com/prometheus/alertmanager/notify/email"
@@ -31,11 +40,127 @@ import (
 	"github.com/prometheus/alertmanager/types"
 )
 
-type ReceiverMap struct {
-	receivers map[string][]notify.Integration
+type Receivers interface {
+	HandleAlertCheckRecord(ctx context.Context, record *model.WorkflowRecord) error
+	// TODO
+	// HandleAlertResolvedRecord(ctx context.Context, record *model.WorkflowRecord) error
+
+	GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
+	AddAMConfigReceiver(receiver amconfig.Receiver) error
+	UpdateAMConfigReceiver(receiver amconfig.Receiver, oldName string) error
+	DeleteAMConfigReceiver(name string) error
 }
 
-func BuildReceivers(ncs []amconfig.Receiver, tmpl *template.Template, logger *slog.Logger, httpOpts ...commoncfg.HTTPClientOption) (ReceiverMap, error) {
+type AMReceivers struct {
+	database  database.Repo
+	receivers map[string][]notify.Integration
+
+	externalURL string
+	logger      *slog.Logger
+}
+
+func (r *AMReceivers) GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int) {
+	return r.database.GetAMConfigReceiver(filter, pageParam)
+}
+
+func (r *AMReceivers) AddAMConfigReceiver(receiver amconfig.Receiver) error {
+	err := r.database.AddAMConfigReceiver(receiver)
+	if err != nil {
+		return err
+	}
+
+	receivers, _ := r.database.GetAMConfigReceiver(nil, nil)
+	return r.UpdateReceivers(receivers)
+}
+
+func (r *AMReceivers) UpdateAMConfigReceiver(receiver amconfig.Receiver, oldName string) error {
+	err := r.database.UpdateAMConfigReceiver(receiver, oldName)
+	if err != nil {
+		return err
+	}
+	receivers, _ := r.database.GetAMConfigReceiver(nil, nil)
+	return r.UpdateReceivers(receivers)
+}
+
+func (r *AMReceivers) DeleteAMConfigReceiver(name string) error {
+	err := r.database.DeleteAMConfigReceiver(name)
+	if err != nil {
+		return err
+	}
+	receivers, _ := r.database.GetAMConfigReceiver(nil, nil)
+	return r.UpdateReceivers(receivers)
+}
+
+func (r *AMReceivers) UpdateReceivers(receivers []amconfig.Receiver) error {
+	tmpl, err := template.FromGlobs([]string{})
+	if err != nil {
+		return err
+	}
+	tmpl.ExternalURL, err = url.Parse(r.externalURL)
+	if err != nil {
+		return err
+	}
+
+	newReceiver, err := buildAMReceivers(receivers, tmpl, r.logger)
+	if err != nil {
+		return err
+	}
+	r.receivers = newReceiver.receivers
+	return nil
+}
+
+func (r *AMReceivers) HandleAlertCheckRecord(ctx context.Context, record *model.WorkflowRecord) error {
+	if record.WorkflowName != "AlertCheck" {
+		return nil
+	}
+	if record.Output != "false" {
+		return nil
+	}
+
+	alert, ok := record.InputRef.(alert.AlertEvent)
+	if !ok {
+		return fmt.Errorf("unexpect inputRef, should be alert.AlertEvent, got %T", record.InputRef)
+	}
+
+	var errs error
+	for name, integrations := range r.receivers {
+		for _, integration := range integrations {
+			// TODO set timeout and retry
+			_, err := integration.Notify(ctx, alert.ToAMAlert(false))
+			if err != nil {
+				errs = errors.Join(errs, fmt.Errorf("[%s] send alert failed: %w", name, err))
+			}
+		}
+	}
+
+	return errs
+}
+
+func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo) (Receivers, error) {
+	// TODO not support template now
+	tmpl, err := template.FromGlobs([]string{})
+	if err != nil {
+		return nil, err
+	}
+	tmpl.ExternalURL, err = url.Parse(externalURL)
+	if err != nil {
+		return nil, err
+	}
+
+	receivers, _ := dbRepo.GetAMConfigReceiver(nil, nil)
+
+	amReceiver, err := buildAMReceivers(
+		receivers,
+		tmpl,
+		util.NewZapSlogHandler(logger),
+	)
+	if err != nil {
+		amReceiver.database = dbRepo
+	}
+	return amReceiver, err
+}
+
+func buildAMReceivers(ncs []amconfig.Receiver, tmpl *template.Template, logger *slog.Logger, httpOpts ...commoncfg.HTTPClientOption) (*AMReceivers, error) {
 	receivers := map[string][]notify.Integration{}
 	var errs error
 	for _, nc := range ncs {
@@ -46,7 +171,7 @@ func BuildReceivers(ncs []amconfig.Receiver, tmpl *template.Template, logger *sl
 		}
 		receivers[nc.Name] = integrations
 	}
-	return ReceiverMap{receivers: receivers}, errs
+	return &AMReceivers{receivers: receivers, logger: logger}, errs
 }
 
 // buildReceiverIntegrations builds a list of integration notifiers off of a
@@ -59,11 +184,11 @@ func buildReceiverIntegrations(nc amconfig.Receiver, tmpl *template.Template, lo
 	rc := &config.Receiver{}
 	cfgBytes, err := yaml.Marshal(nc)
 	if err != nil {
-		// TODO do something
+		return nil, err
 	}
 	err = yaml.Unmarshal(cfgBytes, rc)
 	if err != nil {
-		// TODO do something
+		return nil, err
 	}
 
 	var (
@@ -87,7 +212,7 @@ func buildReceiverIntegrations(nc amconfig.Receiver, tmpl *template.Template, lo
 	}
 
 	for i, c := range nc.DingTalkConfigs {
-		// TODO transform to webhook config
+		// TODO transform into Function Call
 		cfg := &config.WebhookConfig{
 			NotifierConfig: config.NotifierConfig{},
 			HTTPConfig:     &commoncfg.HTTPClientConfig{},

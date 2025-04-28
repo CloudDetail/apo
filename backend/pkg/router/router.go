@@ -8,9 +8,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/CloudDetail/apo/backend/pkg/repository/amreceiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
-	"github.com/CloudDetail/apo/backend/pkg/repository/dify/storage"
 	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
 
 	"go.uber.org/zap"
@@ -37,6 +37,7 @@ type resource struct {
 	deepflowClickhouse clickhouse.Repo
 	jaegerRepo         jaeger.JaegerRepo
 	dify               dify.DifyRepo
+	receivers          amreceiver.Receivers
 }
 
 type Server struct {
@@ -115,6 +116,23 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	}
 	r.k8sApi = k8sApi
 
+	if config.Get().AMReceiver.Enabled {
+		// migrate AMReceiver from ConfigMap to database
+		if r.pkg_db.CheckAMReceiverCount() <= 0 {
+			receivers, total := r.k8sApi.GetAMConfigReceiver("", nil, nil, true)
+			if total > 0 {
+				err := r.pkg_db.MigrateAMReceiver(receivers)
+				if err != nil {
+					logger.Fatal("failed to migrate amconfig ", zap.Error(err))
+				}
+			}
+		}
+		r.receivers, err = amreceiver.SetupReceiver("http://example.com", r.logger, r.pkg_db)
+		if err != nil {
+			logger.Fatal("new alertReceiver err", zap.Error(err))
+		}
+	}
+
 	jaegerRepo, err := jaeger.New()
 	r.jaegerRepo = jaegerRepo
 
@@ -135,7 +153,16 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 		if err != nil {
 			logger.Error("failed to setup alertCheck workflow", zap.Error(err))
 		} else {
-			go storage.SaveRecords(context.Background(), r.ch, r.logger, records)
+			if config.Get().AMReceiver.Enabled {
+				go dify.HandleRecords(context.Background(), r.logger, records,
+					r.ch.AddWorkflowRecord,
+					r.receivers.HandleAlertCheckRecord,
+				)
+			} else {
+				go dify.HandleRecords(context.Background(), r.logger, records,
+					r.ch.AddWorkflowRecord,
+				)
+			}
 		}
 	}
 
