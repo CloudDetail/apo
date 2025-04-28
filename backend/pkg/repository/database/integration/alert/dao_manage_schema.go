@@ -4,6 +4,7 @@
 package alert
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -173,10 +174,11 @@ func buildUpdateSchema(schema string, columns []string) (string, error) {
 			return "", alert.ErrNotAllowSchema{Column: column}
 		}
 
-		columnPlaceHolder = append(columnPlaceHolder, fmt.Sprintf("%s = ?", column))
+        escapedColumn := fmt.Sprintf("`%s`", column)
+		columnPlaceHolder = append(columnPlaceHolder, fmt.Sprintf("%s = ?", escapedColumn))
 	}
 
-	updateTemp := fmt.Sprintf("UPDATE %s SET %s WHERE schema_row_id = ?", schema, strings.Join(columnPlaceHolder, ","))
+	updateTemp := fmt.Sprintf("UPDATE `%s` SET %s WHERE schema_row_id = ?", schema, strings.Join(columnPlaceHolder, ","))
 	return updateTemp, nil
 }
 
@@ -260,6 +262,13 @@ func (repo *subRepo) InsertSchemaData(schema string, columns []string, fullRows 
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
+
+	for _, column := range columns {
+		if !AllowField.MatchString(column) {
+			return errors.New("illegal columns")
+		}
+	}
+
 	sql, params := buildInsertSchema(schema, columns, fullRows)
 
 	return repo.db.Raw(sql, params...).Error
