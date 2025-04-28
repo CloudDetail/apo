@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { cloneDeep } from 'lodash'
 
-import { flameDataHandle, basiclineOption, buildLineSeriesData, stackDataHandle } from './service'
+import { basiclineOption, buildLineSeriesData, stackDataHandle } from './service'
 import { timeUtils } from 'src/core/utils/time'
 import { ThemeColor, ThemeStyle } from 'src/constants'
 import StackChart from './StackChart'
@@ -28,6 +28,7 @@ function ChartStep({ data, occurrenceAt }: Props) {
   const [chartData, setChartData] = useState<any>()
   const [chartOptionList, setChartOptionList] = useState<ChartOption[]>()
   const [stackList, setStackList] = useState<any[]>([])
+  const [timeRange, setTimeRange] = useState(null)
 
   const prepareMetricLegend = (metric: any) => {
     if (metric) {
@@ -120,6 +121,25 @@ function ChartStep({ data, occurrenceAt }: Props) {
       })
       chartData.length > 0 && chartOptionHandle(chartData)
     }
+    if (data.source === 'text' && data.text?.flameInfo) {
+      try {
+        const flameInfo = JSON.parse(data.text.flameInfo)
+        if (flameInfo && typeof flameInfo === 'object') {
+          const startTime = flameInfo.startTime || null
+          const endTime = flameInfo.endTime || null
+
+          if (startTime && endTime) {
+            setTimeRange({ startTime, endTime })
+          } else {
+            console.warn('flameInfo miss timerange ')
+          }
+        } else {
+          console.warn('flameInfo wrong')
+        }
+      } catch (error) {
+        console.error('flameInfo JSON error:', error)
+      }
+    }
   }
 
   useEffect(() => {
@@ -132,7 +152,7 @@ function ChartStep({ data, occurrenceAt }: Props) {
       return (
         chartData && (
           <div className="h-[500px] overflow-hidden">
-            <FlamegraphCanvas {...chartData} />
+            <FlamegraphCanvas {...chartData} timeRange={timeRange} />
           </div>
         )
       )

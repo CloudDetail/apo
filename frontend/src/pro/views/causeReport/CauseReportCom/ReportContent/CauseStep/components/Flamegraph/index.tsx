@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FlamegraphCanvasProps, FocusedItemData, LEVEL_HEIGHT, TooltipItemData } from './type'
 import Toolbox from './components/Toolbox'
 import CanvasRender from './components/CanvasRender'
@@ -6,7 +6,7 @@ import FlamegraphTooltip from './components/FlamegraphTooltip'
 
 function FlamegraphCanvas(props: FlamegraphCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const { levels, names, numTicks } = props
+  const { levels, names, numTicks, timeRange } = props
   const [barPositions, setbarPositions] = useState<any>()
   const [tooltipItem, setTooltipItem] = useState<TooltipItemData | null>(null)
   const [focusedItem, setFocusedItem] = useState<FocusedItemData | null>(null)
@@ -111,6 +111,7 @@ function FlamegraphCanvas(props: FlamegraphCanvasProps) {
         setSearchValue={setSearchValue}
         isFocused={focusedItem !== null}
         resetView={resetView}
+        timeRange={timeRange}
       />
       <FlamegraphTooltip position={mousePosition} tooltipItem={tooltipItem} />
       <div className="h-full overflow-auto">
