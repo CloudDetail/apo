@@ -28,12 +28,11 @@ type ProfilingEvent struct {
 const profiling_event_sql = `SELECT %s FROM profiling_event %s LIMIT %s`
 
 func (ch *chRepo) GetOnOffCPU(pid uint32, nodeName string, startTime, endTime int64) (*[]ProfilingEvent, error) {
-	queryBuilder := NewQueryBuilder()
-	querySql := queryBuilder.
+	queryBuilder := NewQueryBuilder().
 		Between("startTime", startTime, endTime).
 		Between("endTime", startTime, endTime).
 		EqualsNotEmpty("labels['node_name']", nodeName).
-		Equals("pid", pid).String()
+		Equals("pid", pid)
 	fieldSql := NewFieldBuilder().
 		Fields("timestamp").
 		Fields("innerCalls").
@@ -45,15 +44,12 @@ func (ch *chRepo) GetOnOffCPU(pid uint32, nodeName string, startTime, endTime in
 		Fields("labels").
 		Alias("intDiv(startTime, 1000)", "startTime").
 		Alias("intDiv(endTime, 1000)", "endTime").String()
-	sql := buildProfilingEventQuery(fieldSql, querySql)
+	limitBuilder := NewByLimitBuilder().Limit(10000)
+	queryBuilder.baseQuery = fmt.Sprintf("SELECT %s FROM profiling_event ", fieldSql)
 	result := make([]ProfilingEvent, 0)
-	err := ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
+	err := ch.conn.Select(context.Background(), &result, queryBuilder.String() + limitBuilder.String(), queryBuilder.values...)
 	if err != nil {
 		return nil, err
 	}
 	return &result, nil
-}
-
-func buildProfilingEventQuery(fieldSql string, querySql string) string {
-	return fmt.Sprintf(profiling_event_sql, fieldSql, querySql, "10000")
 }

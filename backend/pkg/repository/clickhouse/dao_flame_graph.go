@@ -5,7 +5,6 @@ package clickhouse
 
 import (
 	"context"
-	"fmt"
 )
 
 type FlameGraphData struct {
@@ -19,7 +18,7 @@ type FlameGraphData struct {
 	FlameBearer string            `ch:"flamebearer" json:"flameBearer"`
 }
 
-const flame_graph_sql = `SELECT DISTINCT toUnixTimestamp64Nano(start_time) as start_time, toUnixTimestamp64Nano(end_time) as end_time, pid, tid, sample_type, sample_rate, labels, flamebearer FROM flame_graph %s ORDER BY start_time DESC`
+const flame_graph_sql = `SELECT DISTINCT toUnixTimestamp64Nano(start_time) as start_time, toUnixTimestamp64Nano(end_time) as end_time, pid, tid, sample_type, sample_rate, labels, flamebearer FROM flame_graph `
 
 func (ch *chRepo) GetFlameGraphData(startTime, endTime int64, nodeName string, pid, tid int64, sampleType, spanId, traceId string) (*[]FlameGraphData, error) {
 	queryBuilder := NewQueryBuilder()
@@ -35,16 +34,13 @@ func (ch *chRepo) GetFlameGraphData(startTime, endTime int64, nodeName string, p
 	if tid >= 0 {
 		queryBuilder.Equals("tid", tid)
 	}
-	sql := buildFlameGraphQuery(queryBuilder)
+	queryBuilder.baseQuery = flame_graph_sql
+
+	byBuilder := NewByLimitBuilder().OrderBy("start_time", false)
 	result := make([]FlameGraphData, 0)
-	err := ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
+	err := ch.conn.Select(context.Background(), &result, queryBuilder.String() + byBuilder.String(), queryBuilder.values...)
 	if err != nil {
 		return nil, err
 	}
 	return &result, nil
-}
-
-func buildFlameGraphQuery(queryBuilder *QueryBuilder) string {
-	sql := fmt.Sprintf(flame_graph_sql, queryBuilder.String())
-	return sql
 }

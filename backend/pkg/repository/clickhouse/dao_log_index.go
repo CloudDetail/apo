@@ -4,9 +4,11 @@
 package clickhouse
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 const groupLogIndexQuery = "SELECT count(*) as count, `%s` as f FROM `%s`.`%s` WHERE %s GROUP BY %s ORDER BY count DESC LIMIT 10"
@@ -77,18 +79,14 @@ func (ch *chRepo) GetLogIndex(req *request.LogIndexRequest) (map[string]uint64, 
 			res[key] = v["count"].(uint64)
 		}
 	}
-	countSQL := countSQL(countLogIndexQuery, req)
-	countRows, err := ch.queryRowsData(countSQL)
+
+	builder := NewQueryBuilder().Between(fmt.Sprintf("toUnixTimestamp(`%s`)", req.TimeField), req.StartTime/1000000, req.EndTime/1000000).Statement(util.EscapeSQLString(req.Query))
+	builder.baseQuery = fmt.Sprintf("SELECT count(*) as count FROM `%s`.`%s`", req.DataBase, req.TableName)
+	var count uint64
+	err = ch.conn.QueryRow(context.Background(), builder.String(), builder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
-	if len(countRows) > 0 {
-		if countRows[0]["count"] != nil {
-			switch countRows[0]["count"].(type) {
-			case uint64:
-				return res, countRows[0]["count"].(uint64), nil
-			}
-		}
-	}
-	return res, 0, nil
+
+	return res, count, nil
 }

@@ -68,3 +68,13 @@ func TestByLimitBuilder(t *testing.T) {
 	util.NewValidator(t, "ByLimitBuilder").
 		CheckStringValue("byLimitSql", want, builder.String())
 }
+
+
+func TestBaseQuery(t *testing.T) {
+	builder := NewQueryBuilder()
+	builder.baseQuery = "SELECT * FROM TABLE_A "
+	builder.Equals("a", "a")
+	builder.Equals("b", "b")
+	want := "SELECT * FROM TABLE_A WHERE a = ? AND b = ?"
+	util.NewValidator(t, "Base Query").CheckStringValue("Base query", want, builder.String())
+}

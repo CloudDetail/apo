@@ -5,6 +5,7 @@ package clickhouse
 
 import (
 	"fmt"
+	"strings"
 )
 
 type FieldBuilder struct {
@@ -12,8 +13,9 @@ type FieldBuilder struct {
 }
 
 type QueryBuilder struct {
-	where  []string
-	values []interface{}
+	baseQuery string // select clause
+	where     []string
+	values    []interface{}
 }
 
 type ByLimitBuilder struct {
@@ -192,6 +194,13 @@ func (builder *QueryBuilder) Statement(where string) *QueryBuilder {
 // Return the query condition
 func (builder *QueryBuilder) String() string {
 	whereSql := ""
+	if len(builder.baseQuery) > 0 {
+		whereSql = builder.baseQuery
+		if !strings.HasSuffix(whereSql, " ") {
+			whereSql += " "
+		}
+	}
+
 	for i, where := range builder.where {
 		if i == 0 {
 			whereSql += "WHERE "

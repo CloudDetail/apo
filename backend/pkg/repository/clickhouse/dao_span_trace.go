@@ -45,6 +45,7 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 		EqualsNotEmpty("trace_id", query.TraceId).
 		EqualsNotEmpty("labels['pod_name']", query.Pod)
 
+	queryBuilder.baseQuery = "SELECT count(1) as total FROM span_trace "
 	if len(query.MultiServices) > 0 {
 		queryBuilder.In("labels['service_name']", query.MultiServices)
 	}
@@ -64,10 +65,9 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 		queryBuilder.Statement("(flags['is_error'] = true or (flags['is_profiled'] = true AND flags['is_slow'] = true))")
 	}
 
-	logCountQuery := buildTraceCountQuery(TEMPLATE_COUNT_SPAN_TRACE, queryBuilder)
 	var count uint64
 	// Number of query records
-	err := ch.conn.QueryRow(context.Background(), logCountQuery, queryBuilder.values...).Scan(&count)
+	err := ch.conn.QueryRow(context.Background(), queryBuilder.String(), queryBuilder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
