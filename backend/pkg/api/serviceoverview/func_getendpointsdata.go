@@ -66,7 +66,7 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 			MultiEndpoint:  req.EndpointName,
 			MultiNamespace: req.Namespace,
 		}
-		data, err = h.serviceoverview.GetServicesEndPointData(startTime, endTime, step, filter, req.SortRule)
+		data, err = h.serviceoverview.GetServicesEndPointData(c, startTime, endTime, step, filter, req.SortRule)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

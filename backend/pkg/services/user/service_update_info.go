@@ -9,6 +9,7 @@ import (
 	"unicode"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -48,8 +49,8 @@ func (s *service) UpdateUserPhone(req *request.UpdateUserPhoneRequest) error {
 	return s.dbRepo.UpdateUserPhone(req.UserID, req.Phone)
 }
 
-func (s *service) UpdateUserEmail(req *request.UpdateUserEmailRequest) error {
-	return s.dbRepo.UpdateUserEmail(req.UserID, req.Email)
+func (s *service) UpdateUserEmail(ctx core.Context, req *request.UpdateUserEmailRequest) error {
+	return s.dbRepo.UpdateUserEmail(ctx, req.UserID, req.Email)
 }
 
 func (s *service) UpdateUserPassword(req *request.UpdateUserPasswordRequest) error {
@@ -126,7 +127,7 @@ func containsRune(set string, char rune) bool {
 	return false
 }
 
-func (s *service) RestPassword(req *request.ResetPasswordRequest) error {
+func (s *service) RestPassword(c core.Context, req *request.ResetPasswordRequest) error {
 	if err := checkPasswordComplexity(req.NewPassword); err != nil {
 		return err
 	}
@@ -137,7 +138,7 @@ func (s *service) RestPassword(req *request.ResetPasswordRequest) error {
 	}
 
 	var resetPasswordFunc = func(ctx context.Context) error {
-		return s.dbRepo.RestPassword(req.UserID, req.NewPassword)
+		return s.dbRepo.RestPassword(c, req.UserID, req.NewPassword)
 	}
 
 	var resetDifyPasswordFunc = func(ctx context.Context) error {

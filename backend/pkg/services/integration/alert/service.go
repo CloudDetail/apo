@@ -21,7 +21,7 @@ var _ Service = &service{}
 
 type Service interface {
 	CreateAlertSource(source *alert.AlertSource) (*alert.AlertSource, error)
-	GetAlertSource(source *alert.SourceFrom) (*alert.AlertSource, error)
+	GetAlertSource(ctx core.Context, source *alert.SourceFrom) (*alert.AlertSource, error)
 	UpdateAlertSource(source *alert.AlertSource) (*alert.AlertSource, error)
 	DeleteAlertSource(source alert.SourceFrom) (*alert.AlertSource, error)
 	ListAlertSource() ([]alert.AlertSource, error)
@@ -34,7 +34,7 @@ type Service interface {
 	GetAlertEnrichRuleTags(ctx core.Context) ([]alert.TargetTag, error)
 
 	CreateSchema(req *alert.CreateSchemaRequest) error
-	DeleteSchema(schema string) error
+	DeleteSchema(ctx core.Context, schema string) error
 	ListSchema() ([]string, error)
 	ListSchemaColumns(schema string) ([]string, error)
 	UpdateSchemaData(req *alert.UpdateSchemaDataRequest) error

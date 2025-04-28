@@ -40,7 +40,7 @@ func (s *service) CheckRouterPermission(userID int64, routerTo string) (bool, er
 		return false, err
 	}
 
-	itemRouters, err := s.dbRepo.GetItemsRouter(menuIDs)
+	itemRouters, err := s.dbRepo.GetItemsRouter(userID, menuIDs)
 	if err != nil {
 		return false, err
 	}

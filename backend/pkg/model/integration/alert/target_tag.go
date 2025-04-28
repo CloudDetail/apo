@@ -10,6 +10,8 @@ type TargetTag struct {
 	Describe   string `gorm:"type:varchar(255);column:describe" json:"describe"`
 	DescribeEN string `gorm:"type:varchar(255);column:describe_en" json:"-"`
 	Field      string `gorm:"type:varchar(255);column:field" json:"targetTag"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (TargetTag) TableName() string {

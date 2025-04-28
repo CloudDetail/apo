@@ -11,6 +11,8 @@ type Router struct {
 	HideTimeSelector bool   `gorm:"column:hide_time_selector" json:"hideTimeSelector"`
 
 	Page *InsertPage `gorm:"-" json:"page,omitempty"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (t *Router) TableName() string {
@@ -45,15 +47,15 @@ func (repo *daoRepo) FillItemRouter(items *[]MenuItem) error {
 	return nil
 }
 
-func (repo *daoRepo) GetItemsRouter(itemIDs []int) ([]Router, error) {
+func (repo *daoRepo) GetItemsRouter(userID int64, itemIDs []int) ([]Router, error) {
 	var routers []Router
 	var routerIDs []int
 
-	if err := repo.db.Model(&MenuItem{}).Select("router_id").Where("item_id IN ?", itemIDs).Find(&routerIDs).Error; err != nil {
+	if err := repo.User(userID).Model(&MenuItem{}).Select("router_id").Where("item_id IN ?", itemIDs).Find(&routerIDs).Error; err != nil {
 		return nil, err
 	}
 
-	if err := repo.db.Where("router_id IN ?", routerIDs).Find(&routers).Error; err != nil {
+	if err := repo.User(userID).Where("router_id IN ?", routerIDs).Find(&routers).Error; err != nil {
 		return nil, err
 	}
 

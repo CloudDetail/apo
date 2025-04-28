@@ -12,6 +12,8 @@ type I18nTranslation struct {
 	FieldName   string `gorm:"column:field_name;type:varchar(20)" json:"field_name" mapstructure:"field_name"` // which field is translated
 	EntityID    int    `gorm:"column:entity_id" json:"-"`
 	EntityType  string `gorm:"column:entity_type;type:varchar(20)" json:"-" mapstructure:"entity_type"` // menu_item or feature
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (I18nTranslation) TableName() string {

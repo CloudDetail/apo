@@ -7,6 +7,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -15,7 +16,7 @@ import (
 
 // TODO move to prometheus package and avoid to repeated self
 func (s *service) GetServicesEndpointDataWithChart(
-	startTime time.Time, endTime time.Time, step time.Duration,
+	ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration,
 	filter EndpointsFilter, sortRule request.SortType,
 ) (res []response.ServiceEndPointsRes, err error) {
 	filtersStr := filter.ExtractFilterStr()
@@ -43,7 +44,7 @@ func (s *service) GetServicesEndpointDataWithChart(
 		return
 	}
 
-	s.sortWithRule(sortRule, endpointsMap)
+	s.sortWithRule(ctx, sortRule, endpointsMap)
 
 	// step4 Group Endpoints by service and maintain service ordering
 	services := groupEndpointsByService(endpointsMap.MetricGroupList, 3)

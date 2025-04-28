@@ -12,10 +12,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
-const (
-	UserIDKey = "userID"
-)
-
 func (m *middleware) AuthMiddleware() core.HandlerFunc {
 	return func(c core.Context) {
 		rawToken := c.GetHeader("Authorization")
@@ -41,7 +37,7 @@ func (m *middleware) AuthMiddleware() core.HandlerFunc {
 				return
 			}
 
-			c.Set(UserIDKey, anonymousUser.UserID)
+			c.Set(core.UserIDKey, anonymousUser.UserID)
 			c.Next()
 			return
 		}
@@ -65,13 +61,13 @@ func (m *middleware) AuthMiddleware() core.HandlerFunc {
 			return
 		}
 
-		c.Set(UserIDKey, claims.UserID)
+		c.Set(core.UserIDKey, claims.UserID)
 		c.Next()
 	}
 }
 
 func GetContextUserID(c core.Context) int64 {
-	userID, ok := c.Get(UserIDKey)
+	userID, ok := c.Get(core.UserIDKey)
 	if !ok {
 		return 0
 	}

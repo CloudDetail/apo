@@ -6,6 +6,7 @@ package database
 import (
 	"context"
 	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
@@ -17,6 +18,8 @@ type AuthPermission struct {
 	SubjectID    int64  `gorm:"column:subject_id;index:idx_sub_id_type" json:"subjectId"` // Role ID, user ID or team ID
 	SubjectType  string `gorm:"column:subject_type;type:varchar(10)" json:"subjectType"`  // role, user, team
 	PermissionID int    `gorm:"column:permission_id" json:"permissionId"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (AuthPermission) TableName() string {
@@ -64,7 +67,7 @@ func (repo *daoRepo) RevokePermission(ctx context.Context, subID int64, subType 
 	if len(permissionIDs) == 0 {
 		return nil
 	}
-	
+
 	query := repo.GetContextDB(ctx).
 		Model(&AuthPermission{}).
 		Where("subject_id = ? AND subject_type = ? AND type = ?", subID, subType, typ)

@@ -13,6 +13,8 @@ type AlertSource struct {
 	SourceFrom
 
 	Clusters []integration.Cluster `json:"clusters" gorm:"-"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 type AlertSource2Cluster struct {

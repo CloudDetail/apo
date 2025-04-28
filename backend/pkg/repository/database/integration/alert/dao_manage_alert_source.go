@@ -4,6 +4,7 @@
 package alert
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/google/uuid"
@@ -41,12 +42,12 @@ func (repo *subRepo) CreateAlertSource(alertSource *alert.AlertSource) error {
 	return repo.db.Create(&alertSource).Error
 }
 
-func (repo *subRepo) GetAlertSource(sourceId string) (*alert.AlertSource, error) {
+func (repo *subRepo) GetAlertSource(ctx core.Context, sourceId string) (*alert.AlertSource, error) {
 	var res alert.AlertSource
-	err := repo.db.First(&res, "source_id = ?", sourceId).Error
+	err := repo.UserByContext(ctx).First(&res, "source_id = ?", sourceId).Error
 	if err == nil {
 		var clusters []input.Cluster
-		err := repo.db.Raw(AlertSource2Cluster, res.SourceID).Scan(&clusters).Error
+		err := repo.UserByContext(ctx).Raw(AlertSource2Cluster, res.SourceID).Scan(&clusters).Error
 		if err == nil {
 			res.Clusters = clusters
 		}

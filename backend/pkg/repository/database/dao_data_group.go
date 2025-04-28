@@ -20,6 +20,8 @@ type DataGroup struct {
 	DatasourceList []DatasourceGroup `gorm:"foreignKey:GroupID;references:GroupID" json:"datasourceList"`
 	AuthType       string            `json:"authType,omitempty"`
 	Source         string            `gorm:"-" json:"source,omitempty"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 // DatasourceGroup is a mapping table of Datasource and DataGroup.
@@ -28,6 +30,8 @@ type DatasourceGroup struct {
 	Datasource string `gorm:"column:datasource;primary_key" json:"datasource"`
 	Type       string `gorm:"column:type" json:"type"`         // service or namespace
 	Category   string `gorm:"column:category" json:"category"` // apm or normal
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (dg *DataGroup) TableName() string {

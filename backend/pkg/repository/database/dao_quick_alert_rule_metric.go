@@ -16,6 +16,8 @@ type AlertMetricsData struct {
 	PQL    string `json:"pql" gorm:"not null;type:varchar(5000);column:pql"`
 	Unit   string `json:"unit" gorm:"not null;type:varchar(255);column:unit"`
 	Group  string `json:"group" gorm:"not null;type:varchar(255);column:group"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (a *AlertMetricsData) TableName() string {

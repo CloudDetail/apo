@@ -26,7 +26,7 @@ func (repo *daoRepo) initI18nTranslation() error {
 		return err
 	}
 
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+	return repo.Admin().Transaction(func(tx *gorm.DB) error {
 		var existingTranslations []I18nTranslation
 		var toInsert, toDelete, toUpdate []I18nTranslation
 		if err := tx.Find(&existingTranslations).Error; err != nil {

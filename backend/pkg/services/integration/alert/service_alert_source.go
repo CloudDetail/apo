@@ -7,15 +7,16 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
 	"go.uber.org/multierr"
 	"gorm.io/gorm"
 )
 
-func (s *service) GetAlertSource(source *alert.SourceFrom) (*alert.AlertSource, error) {
+func (s *service) GetAlertSource(ctx core.Context, source *alert.SourceFrom) (*alert.AlertSource, error) {
 	// TODO support search by sourceName
-	alertSource, err := s.dbRepo.GetAlertSource(source.SourceID)
+	alertSource, err := s.dbRepo.GetAlertSource(ctx, source.SourceID)
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, alert.ErrAlertSourceNotExist{}

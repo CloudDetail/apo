@@ -97,6 +97,8 @@ type Context interface {
 	LANGFromParam(param string) string
 
 	ErrMessage(errCode string) string
+
+	UserID() int64
 }
 
 type context struct {
@@ -253,4 +255,20 @@ func (c *context) LANGFromParam(param string) string {
 
 func (c *context) ErrMessage(errCode string) string {
 	return code.Text(c.LANG(), errCode)
+}
+
+const (
+	UserIDKey = "userID"
+)
+
+func (c *context) UserID() int64 {
+	userID, ok := c.Get(UserIDKey)
+	if !ok {
+		return -1
+	}
+	id, ok := userID.(int64)
+	if !ok {
+		return -1
+	}
+	return id
 }

@@ -4,6 +4,7 @@
 package alert
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
 )
@@ -31,14 +32,14 @@ func (s *service) CheckSchemaIsUsed(schema string) ([]string, error) {
 	return s.dbRepo.CheckSchemaIsUsed(schema)
 }
 
-func (s *service) DeleteSchema(schema string) error {
+func (s *service) DeleteSchema(ctx core.Context, schema string) error {
 	s.dispatcher.EnricherMap.Range(func(key, value any) bool {
 		enricher := value.(*enrich.AlertEnricher)
 		enricher.RemoveRuleByDeletedSchema(schema)
 		return true
 	})
 
-	return s.dbRepo.DeleteSchema(schema)
+	return s.dbRepo.DeleteSchema(ctx, schema)
 }
 
 func (s *service) ListSchemaColumns(schema string) ([]string, error) {

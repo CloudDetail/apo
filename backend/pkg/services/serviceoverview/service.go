@@ -6,6 +6,7 @@ package serviceoverview
 import (
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"go.uber.org/zap"
 
@@ -18,14 +19,14 @@ import (
 var _ Service = (*service)(nil)
 
 type Service interface {
-	GetServiceMoreUrl(startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule request.SortType) (res []response.ServiceDetail, err error)
-	GetThreshold(level string, serviceName string, endPoint string) (res response.GetThresholdResponse, err error)
+	GetServiceMoreUrl(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule request.SortType) (res []response.ServiceDetail, err error)
+	GetThreshold(ctx core.Context, level string, serviceName string, endPoint string) (res response.GetThresholdResponse, err error)
 	SetThreshold(level string, serviceName string, endPoint string, latency float64, errorRate float64, tps float64, log float64) (res response.SetThresholdResponse, err error)
 	GetServicesAlert(startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error)
-	GetServicesEndPointData(startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule request.SortType) (res []response.ServiceEndPointsRes, err error)
+	GetServicesEndPointData(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule request.SortType) (res []response.ServiceEndPointsRes, err error)
 
 	// TODO move to prometheus package and avoid to repeated again
-	GetServicesEndpointDataWithChart(startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule request.SortType) (res []response.ServiceEndPointsRes, err error)
+	GetServicesEndpointDataWithChart(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule request.SortType) (res []response.ServiceEndPointsRes, err error)
 
 	GetServicesRYGLightStatus(startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error)
 	GetMonitorStatus(startTime time.Time, endTime time.Time) (response.GetMonitorStatusResponse, error)

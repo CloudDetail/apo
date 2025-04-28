@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -16,8 +17,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
-func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error) {
-	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
+func (s *service) GetInstancesNew(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error) {
+	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx, "", "", database.GLOBAL)
 	if err != nil {
 		return res, err
 	}

@@ -20,6 +20,8 @@ type AlertEnrichRule struct {
 	// ---------------- schemaMapping --------------
 	Schema       string `json:"schema,omitempty" gorm:"type:varchar(255);column:schema"`
 	SchemaSource string `json:"schemaSource,omitempty" gorm:"type:varchar(255);column:schema_source"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 type AlertEnrichCondition struct {
@@ -38,6 +40,8 @@ type AlertEnrichSchemaTarget struct {
 	SchemaField string `json:"schemaField" gorm:"type:varchar(255);column:schema_field"`
 	TargetTagID int    `json:"targetTagId" gorm:"type:int;column:target_tag_id"`
 	CustomTag   string `json:"customTag" gorm:"type:varchar(255);column:custom_tag"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 type AlertEnrichRuleVO struct {

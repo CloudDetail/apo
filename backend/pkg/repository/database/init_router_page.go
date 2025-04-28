@@ -59,7 +59,7 @@ func (repo *daoRepo) initRouterPage() error {
 			{url: "jaeger/search", language: "en"},
 		},
 	}
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+	return repo.Admin().Transaction(func(tx *gorm.DB) error {
 		var routerIDs, pageIDs []int
 		if err := tx.Model(&Router{}).Select("router_id").Find(&routerIDs).Error; err != nil {
 			return err

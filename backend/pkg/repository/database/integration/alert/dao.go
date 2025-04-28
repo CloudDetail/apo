@@ -4,6 +4,7 @@
 package alert
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	dbdriver "github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 
 	"github.com/CloudDetail/apo/backend/config"
@@ -14,7 +15,7 @@ import (
 type AlertInput interface {
 	// Manage AlertSource
 	CreateAlertSource(*alert.AlertSource) error
-	GetAlertSource(sourceId string) (*alert.AlertSource, error)
+	GetAlertSource(ctx core.Context, sourceId string) (*alert.AlertSource, error)
 	UpdateAlertSource(alertSource *alert.AlertSource) error
 	DeleteAlertSource(alertSource alert.SourceFrom) (*alert.AlertSource, error)
 	ListAlertSource() ([]alert.AlertSource, error)
@@ -35,7 +36,7 @@ type AlertInput interface {
 
 	// Manage schema
 	CreateSchema(schema string, columns []string) error
-	DeleteSchema(string) error
+	DeleteSchema(core.Context, string) error
 	CheckSchemaIsUsed(schema string) ([]string, error)
 	ListSchema() ([]string, error)
 	ListSchemaColumns(schema string) ([]string, error)

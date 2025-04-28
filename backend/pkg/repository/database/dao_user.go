@@ -13,6 +13,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/util"
@@ -36,6 +37,8 @@ type User struct {
 	RoleList    []Role    `gorm:"many2many:user_role;joinForeignKey:UserID;joinReferences:RoleID" json:"roleList,omitempty"`
 	TeamList    []Team    `gorm:"many2many:user_team;joinForeignKey:UserID;joinReferences:TeamID" json:"teamList,omitempty"`
 	FeatureList []Feature `gorm:"-" json:"featureList,omitempty"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (t *User) TableName() string {
@@ -44,7 +47,7 @@ func (t *User) TableName() string {
 
 func (repo *daoRepo) createAdmin() error {
 	var admin User
-	err := repo.db.Where("username = ?", model.ROLE_ADMIN).First(&admin).Error
+	err := repo.Admin().Where("username = ?", model.ROLE_ADMIN).First(&admin).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -54,7 +57,7 @@ func (repo *daoRepo) createAdmin() error {
 				Password: Encrypt(config.Get().Server.InitAdminPassword),
 			}
 
-			if err = repo.db.Create(&admin).Error; err != nil {
+			if err = repo.Admin().Create(&admin).Error; err != nil {
 				return err
 			}
 		} else {
@@ -63,20 +66,20 @@ func (repo *daoRepo) createAdmin() error {
 	}
 
 	var role Role
-	if err = repo.db.Where("role_name = ?", model.ROLE_ADMIN).First(&role).Error; err != nil {
+	if err = repo.Admin().Where("role_name = ?", model.ROLE_ADMIN).First(&role).Error; err != nil {
 		return err
 	}
 	userRole := &UserRole{
 		UserID: admin.UserID,
 		RoleID: role.RoleID,
 	}
-	return repo.db.Save(userRole).Error
+	return repo.Admin().Save(userRole).Error
 }
 
 func (repo *daoRepo) createAnonymousUser() error {
 	conf := config.Get().User.AnonymousUser
 	var anonymousUser User
-	err := repo.db.Where("username = ?", AnonymousUsername).First(&anonymousUser).Error
+	err := repo.Admin().Where("username = ?", AnonymousUsername).First(&anonymousUser).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -87,7 +90,7 @@ func (repo *daoRepo) createAnonymousUser() error {
 				Password: Encrypt(strconv.FormatInt(util.Generator.GenerateID(), 10)),
 			}
 
-			if err = repo.db.Create(&anonymousUser).Error; err != nil {
+			if err = repo.Admin().Create(&anonymousUser).Error; err != nil {
 				return err
 			}
 		} else {
@@ -100,7 +103,7 @@ func (repo *daoRepo) createAnonymousUser() error {
 		return errors.New("invalid role")
 	}
 
-	if err = repo.db.Where("role_name = ?", conf.Role).First(&role).Error; err != nil {
+	if err = repo.Admin().Where("role_name = ?", conf.Role).First(&role).Error; err != nil {
 		return err
 	}
 
@@ -113,19 +116,19 @@ func (repo *daoRepo) createAnonymousUser() error {
 	}
 
 	var existingUserRole UserRole
-	err = repo.db.Where("user_id = ?", anonymousUser.UserID).First(&existingUserRole).Error
+	err = repo.Admin().Where("user_id = ?", anonymousUser.UserID).First(&existingUserRole).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			userRole := &UserRole{
 				UserID: anonymousUser.UserID,
 				RoleID: role.RoleID,
 			}
-			err = repo.db.Create(userRole).Error
+			err = repo.Admin().Create(userRole).Error
 		} else {
 			return err
 		}
 	} else {
-		err = repo.db.Model(&existingUserRole).Update("role_id", role.RoleID).Error
+		err = repo.Admin().Model(&existingUserRole).Update("role_id", role.RoleID).Error
 	}
 
 	return err
@@ -179,16 +182,16 @@ func (repo *daoRepo) UpdateUserPhone(userID int64, phone string) error {
 	return repo.db.Updates(&user).Error
 }
 
-func (repo *daoRepo) UpdateUserEmail(userID int64, email string) error {
+func (repo *daoRepo) UpdateUserEmail(ctx core.Context, userID int64, email string) error {
 	var user User
-	err := repo.db.Where("user_id = ?", userID).First(&user).Error
+	err := repo.UserByContext(ctx).Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
 	} else if err != nil {
 		return err
 	}
 	user.Email = email
-	return repo.db.Updates(&user).Error
+	return repo.UserByContext(ctx).Updates(&user).Error
 }
 
 func (repo *daoRepo) UpdateUserPassword(userID int64, oldPassword, newPassword string) error {
@@ -206,9 +209,9 @@ func (repo *daoRepo) UpdateUserPassword(userID int64, oldPassword, newPassword s
 	return repo.db.Updates(&user).Error
 }
 
-func (repo *daoRepo) RestPassword(userID int64, newPassword string) error {
+func (repo *daoRepo) RestPassword(ctx core.Context, userID int64, newPassword string) error {
 	var user User
-	err := repo.db.Where("user_id = ?", userID).First(&user).Error
+	err := repo.UserByContext(ctx).Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
 	} else if err != nil {
@@ -216,7 +219,7 @@ func (repo *daoRepo) RestPassword(userID int64, newPassword string) error {
 	}
 
 	user.Password = Encrypt(newPassword)
-	return repo.db.Updates(&user).Error
+	return repo.UserByContext(ctx).Updates(&user).Error
 }
 
 func (repo *daoRepo) UpdateUserInfo(ctx context.Context, userID int64, phone string, email string, corporation string) error {

@@ -6,6 +6,7 @@ package service
 import (
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -25,7 +26,7 @@ type Service interface {
 	// Get the delay curve of the dependent service
 	GetDescendantMetrics(req *request.GetDescendantMetricsRequest) ([]response.GetDescendantMetricsResponse, error)
 	// Get the dependent node delay correlation.
-	GetDescendantRelevance(req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error)
+	GetDescendantRelevance(ctx core.Context, req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error)
 	// Get Polaris metric analysis
 	GetPolarisInfer(req *request.GetPolarisInferRequest) (*response.GetPolarisInferResponse, error)
 	// Get error instance
@@ -46,9 +47,9 @@ type Service interface {
 	GetServiceList(req *request.GetServiceListRequest) ([]string, error)
 	// Get the list of service instances
 	// New interface
-	GetInstancesNew(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error)
+	GetInstancesNew(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error)
 	// Old interface
-	GetInstances(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error)
+	GetInstances(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error)
 	// Get the list of service instances
 	// DEPRECATED
 	GetServiceInstanceList(req *request.GetServiceInstanceListRequest) ([]string, error)

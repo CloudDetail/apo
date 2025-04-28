@@ -24,7 +24,7 @@ var validFeatures = []Feature{
 }
 
 func (repo *daoRepo) initFeature() error {
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+	return repo.Admin().Transaction(func(tx *gorm.DB) error {
 		var existingFeatures []Feature
 		if err := tx.Where("custom = ?", false).Find(&existingFeatures).Error; err != nil {
 			return err

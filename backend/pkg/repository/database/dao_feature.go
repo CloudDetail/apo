@@ -13,6 +13,8 @@ type Feature struct {
 
 	Children []Feature `gorm:"-" json:"children,omitempty" swaggerignore:"true"`
 	Source   string    `gorm:"-" json:"source,omitempty"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (t *Feature) TableName() string {
@@ -25,6 +27,8 @@ type FeatureMapping struct {
 	FeatureID  int    `gorm:"column:feature_id;index:feature_mapped_idx"`
 	MappedID   int    `gorm:"column:mapped_id;index:feature_mapped_idx"`
 	MappedType string `gorm:"column:mapped_type"` // menu router api
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (t *FeatureMapping) TableName() string {

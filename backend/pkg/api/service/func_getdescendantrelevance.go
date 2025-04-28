@@ -50,7 +50,7 @@ func (h *handler) GetDescendantRelevance() core.HandlerFunc {
 			c.HandleError(err, code.AuthError, []response.GetDescendantRelevanceResponse{})
 			return
 		}
-		res, err := h.serviceInfoService.GetDescendantRelevance(req)
+		res, err := h.serviceInfoService.GetDescendantRelevance(c, req)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

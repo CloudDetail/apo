@@ -6,6 +6,7 @@ package database
 import (
 	"errors"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"gorm.io/gorm"
 )
 
@@ -25,6 +26,8 @@ type Threshold struct {
 	Tps         float64 `gorm:"type:decimal(10,2)"`
 	ErrorRate   float64 `gorm:"type:decimal(10,2)"`
 	Log         float64 `gorm:"type:decimal(10,2)"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (Threshold) TableName() string {
@@ -47,13 +50,13 @@ func (repo *daoRepo) CreateOrUpdateThreshold(model *Threshold) error {
 	}
 }
 
-func (repo *daoRepo) GetOrCreateThreshold(serviceName string, endPoint string, level string) (Threshold, error) {
+func (repo *daoRepo) GetOrCreateThreshold(ctx core.Context, serviceName string, endPoint string, level string) (Threshold, error) {
 	var threshold Threshold
 	// Query based on serviceName and endPoint provided
-	result := repo.db.Where("service_name = ? AND end_point = ? AND Level = ?", serviceName, endPoint, level).First(&threshold)
+	result := repo.UserByContext(ctx).Where("service_name = ? AND end_point = ? AND Level = ?", serviceName, endPoint, level).First(&threshold)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		// If no record is found, query again based on serviceName = "global" and endPoint = "global"
-		result = repo.db.Where("Level = ?", GLOBAL).First(&threshold)
+		result = repo.UserByContext(ctx).Where("Level = ?", GLOBAL).First(&threshold)
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			// If the record is still not found, create a new threshold data
 			newThreshold := Threshold{
@@ -63,7 +66,7 @@ func (repo *daoRepo) GetOrCreateThreshold(serviceName string, endPoint string, l
 				ErrorRate: ERROR_RATE,
 				Log:       LOG,
 			}
-			if createErr := repo.db.Create(&newThreshold).Error; createErr != nil {
+			if createErr := repo.UserByContext(ctx).Create(&newThreshold).Error; createErr != nil {
 				return newThreshold, createErr
 			}
 			return newThreshold, nil

@@ -71,7 +71,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 		entryNodes, err := h.serviceInfoService.GetServiceEntryEndpoints(req)
 		if err == nil {
 			// TODO defaults to global Threshold first, and then adjusts to the Threshold of specific services.
-			threshold, err = h.serviceoverviewService.GetThreshold(database.GLOBAL, "", "")
+			threshold, err = h.serviceoverviewService.GetThreshold(c, database.GLOBAL, "", "")
 		}
 		if err == nil {
 			startTime := time.UnixMicro(req.StartTime)
@@ -84,7 +84,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 					ContainsEndpointName: entryNode.Endpoint,
 					Namespace:            "",
 				}
-				endpointResps, err = h.serviceoverviewService.GetServicesEndpointDataWithChart(startTime, endTime, step, filter, request.DODThreshold)
+				endpointResps, err = h.serviceoverviewService.GetServicesEndpointDataWithChart(c, startTime, endTime, step, filter, request.DODThreshold)
 				if err == nil {
 					for _, endpointResp := range endpointResps {
 						if serviceResp, found := result[endpointResp.ServiceName]; found {

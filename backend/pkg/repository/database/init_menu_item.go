@@ -42,9 +42,7 @@ var validMenuItemMappings = []struct {
 }
 
 func (repo *daoRepo) initMenuItems() error {
-	
-
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+	return repo.Admin().Transaction(func(tx *gorm.DB) error {
 		// Menu item might include item which not support to existing
 		// but the mapping between item and feature will be deleted
 		// because once a menu was deleted, the feature should also be deleted.

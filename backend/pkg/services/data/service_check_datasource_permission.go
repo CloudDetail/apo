@@ -15,13 +15,13 @@ import (
 
 func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, services interface{}, fillCategory string) (err error) {
 	var (
-		namespaceMap    = map[string]bool{}		// mapped all namespaces user can view
+		namespaceMap    = map[string]bool{}     // mapped all namespaces user can view
 		serviceMap      = map[string]struct{}{} // mapped all services user can view
 		namespaceSrvMap = map[string][]string{}
 		endTime         = time.Now()
 		startTime       = endTime.Add(-24 * time.Hour)
 		serviceList     []string
-		namespaceDs     []string		
+		namespaceDs     []string
 		serviceDs       []string
 		filteredNs      []string
 		filteredSrv     []string

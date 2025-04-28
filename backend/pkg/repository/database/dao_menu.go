@@ -18,6 +18,8 @@ type MenuItem struct {
 
 	Children []MenuItem `gorm:"-" json:"children,omitempty" swaggerignore:"true"`
 	Router   *Router    `gorm:"-" json:"router,omitempty"` // Frontend router.
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (t *MenuItem) TableName() string {

@@ -251,6 +251,8 @@ type DingTalkConfig struct {
 	UUID       string `json:"-" gorm:"column:uuid;unique;type:varchar(50)"`
 	URL        string `json:"url,omitempty" gorm:"column:url;type:varchar(150)"`
 	Secret     string `json:"secret,omitempty" gorm:"secret"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (t DingTalkConfig) TableName() string {

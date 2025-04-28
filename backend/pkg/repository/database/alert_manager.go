@@ -5,6 +5,7 @@ package database
 
 import (
 	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"gorm.io/gorm"
 )

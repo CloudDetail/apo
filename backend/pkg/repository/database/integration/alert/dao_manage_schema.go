@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
@@ -92,10 +93,10 @@ func (repo *subRepo) GetSchemaData(schema string) ([]string, map[int64][]string,
 }
 
 // Delete schema and related alertRules
-func (repo *subRepo) DeleteSchema(schema string) error {
+func (repo *subRepo) DeleteSchema(ctx core.Context, schema string) error {
 	var enrichRules []alert.AlertEnrichRule
 
-	err := repo.db.Find(&enrichRules, "schema = ?", schema).Error
+	err := repo.UserByContext(ctx).Find(&enrichRules, "schema = ?", schema).Error
 	if err != nil {
 		return err
 	}
@@ -105,14 +106,14 @@ func (repo *subRepo) DeleteSchema(schema string) error {
 		ruleIds = append(ruleIds, enrichRule.EnrichRuleID)
 	}
 
-	err = repo.db.Delete(&alert.AlertEnrichSchemaTarget{}, "enrich_rule_id in ?", ruleIds).Error
+	err = repo.UserByContext(ctx).Delete(&alert.AlertEnrichSchemaTarget{}, "enrich_rule_id in ?", ruleIds).Error
 	if err != nil {
 		return err
 	}
 
 	schema = SchemaPrefix + schema
 
-	return repo.db.Migrator().DropTable(schema)
+	return repo.UserByContext(ctx).Migrator().DropTable(schema)
 }
 
 func (repo *subRepo) ListSchemaColumns(schema string) ([]string, error) {

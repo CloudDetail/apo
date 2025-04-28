@@ -61,7 +61,7 @@ func (h *handler) GetServiceInstance() core.HandlerFunc {
 		step := time.Duration(req.Step * 1000)
 		serviceName := req.ServiceName
 		endpoint := req.Endpoint
-		data, err := h.serviceInfoService.GetInstancesNew(startTime, endTime, step, serviceName, endpoint)
+		data, err := h.serviceInfoService.GetInstancesNew(c, startTime, endTime, step, serviceName, endpoint)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

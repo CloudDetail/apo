@@ -15,6 +15,8 @@ type LogTableInfo struct {
 	ParseInfo    string `gorm:"type:varchar(255);column:parseinfo"`
 	Service      string `gorm:"type:varchar(255)"`
 	IsStructured bool   `gorm:"type:bool;column:structured"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (LogTableInfo) TableName() string {

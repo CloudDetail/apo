@@ -9,6 +9,7 @@ import (
 	"errors"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"gorm.io/gorm"
@@ -24,6 +25,8 @@ type AuthDataGroup struct {
 
 	User *User `gorm:"-" json:"user,omitempty"`
 	Team *Team `gorm:"-" json:"team,omitempty"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (adg AuthDataGroup) MarshalJSON() ([]byte, error) {
@@ -169,9 +172,9 @@ func (repo *daoRepo) GetGroupAuthDataGroupByGroup(groupID int64, subjectType str
 	return dataGroups, nil
 }
 
-func (repo *daoRepo) GetDataGroupUsers(groupID int64) ([]AuthDataGroup, error) {
+func (repo *daoRepo) GetDataGroupUsers(ctx core.Context, groupID int64) ([]AuthDataGroup, error) {
 	var ags []AuthDataGroup
-	err := repo.db.
+	err := repo.UserByContext(ctx).
 		Select("subject_id", "type").
 		Where("data_group_id = ? AND subject_type = ?", groupID, model.DATA_GROUP_SUB_TYP_USER).
 		Find(&ags).Error
@@ -200,7 +203,7 @@ func (repo *daoRepo) GetDataGroupUsers(groupID int64) ([]AuthDataGroup, error) {
 	return ags, nil
 }
 
-func (repo *daoRepo) GetDataGroupTeams(groupID int64) ([]AuthDataGroup, error) {
+func (repo *daoRepo) GetDataGroupTeams(ctx core.Context, groupID int64) ([]AuthDataGroup, error) {
 	var ags []AuthDataGroup
 
 	err := repo.db.
@@ -217,7 +220,7 @@ func (repo *daoRepo) GetDataGroupTeams(groupID int64) ([]AuthDataGroup, error) {
 
 	for i := 0; i < len(ags); i++ {
 		var team Team
-		err = repo.db.
+		err = repo.UserByContext(ctx).
 			Select("team_id", "team_name").
 			First(&team, "team_id = ?", ags[i].SubjectID).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
@@ -238,7 +241,7 @@ func (repo *daoRepo) CheckGroupPermission(userID, groupID int64, typ string) (bo
 		err   error
 	)
 
-	query := repo.db.Model(&AuthDataGroup{}).
+	query := repo.User(userID).Model(&AuthDataGroup{}).
 		Where("subject_id = ? AND data_group_id = ? AND subject_type = ?", userID, groupID, model.DATA_GROUP_SUB_TYP_USER)
 
 	if typ == "edit" {
@@ -259,7 +262,7 @@ func (repo *daoRepo) CheckGroupPermission(userID, groupID int64, typ string) (bo
 		return false, err
 	}
 
-	query = repo.db.Model(&AuthDataGroup{}).
+	query = repo.User(userID).Model(&AuthDataGroup{}).
 		Where("subject_id IN ? AND data_group_id = ? AND subject_type = ?", teamIDs, groupID, model.DATA_GROUP_SUB_TYP_TEAM)
 
 	if typ == "edit" {

@@ -4,6 +4,7 @@
 package data
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -23,7 +24,7 @@ type Service interface {
 	// CheckDatasourcePermission Filtering and filling data sources that users are not authorised to view. Expected *string or *[]string.
 	CheckDatasourcePermission(userID, groupID int64, namespaces, services interface{}, fillCategory string) (err error)
 	GroupSubsOperation(req *request.GroupSubsOperationRequest) error
-	GetGroupSubs(req *request.GetGroupSubsRequest) (response.GetGroupSubsResponse, error)
+	GetGroupSubs(ctx core.Context, req *request.GetGroupSubsRequest) (response.GetGroupSubsResponse, error)
 }
 
 type service struct {

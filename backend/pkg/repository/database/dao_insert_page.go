@@ -15,6 +15,8 @@ type InsertPage struct {
 	Url    string `gorm:"column:url;type:varchar(150)" json:"url"`
 	Type   string `gorm:"column:type;type:varchar(20)" json:"type"` // For now it's grafana or jaeger.
 	Custom bool   `gorm:"column:custom" json:"-"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 // RouterInsertPage maps router to inserted page.
@@ -23,6 +25,8 @@ type RouterInsertPage struct {
 	RouterID int    `gorm:"column:router_id"`
 	PageID   int    `gorm:"column:page_id"`
 	Language string `gorm:"column:language;type:varchar(20);default:NULL" json:"language"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (RouterInsertPage) TableName() string {

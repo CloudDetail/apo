@@ -39,7 +39,7 @@ func (h *handler) TeamOperation() core.HandlerFunc {
 			return
 		}
 
-		err := h.teamService.TeamOperation(req)
+		err := h.teamService.TeamOperation(c, req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {

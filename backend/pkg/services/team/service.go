@@ -4,6 +4,7 @@
 package team
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -12,9 +13,9 @@ import (
 type Service interface {
 	CreateTeam(req *request.CreateTeamRequest) error
 	UpdateTeam(req *request.UpdateTeamRequest) error
-	GetTeamList(req *request.GetTeamRequest) (resp response.GetTeamResponse, err error)
+	GetTeamList(ctx core.Context, req *request.GetTeamRequest) (resp response.GetTeamResponse, err error)
 	DeleteTeam(req *request.DeleteTeamRequest) error
-	TeamOperation(req *request.TeamOperationRequest) error
+	TeamOperation(ctx core.Context, req *request.TeamOperationRequest) error
 	TeamUserOperation(req *request.AssignToTeamRequest) error
 	GetTeamUser(req *request.GetTeamUserRequest) (response.GetTeamUserResponse, error)
 }

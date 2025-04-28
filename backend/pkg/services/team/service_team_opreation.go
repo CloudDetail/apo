@@ -6,18 +6,20 @@ package team
 import (
 	"context"
 	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) TeamOperation(req *request.TeamOperationRequest) error {
+func (s *service) TeamOperation(ctx core.Context, req *request.TeamOperationRequest) error {
 	teamIDs, err := s.dbRepo.GetUserTeams(req.UserID)
 	if err != nil {
 		return err
 	}
 
-	teams, _, err := s.dbRepo.GetTeamList(&request.GetTeamRequest{})
+	teams, _, err := s.dbRepo.GetTeamList(ctx, &request.GetTeamRequest{})
 	if err != nil {
 		return err
 	}

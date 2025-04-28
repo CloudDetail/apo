@@ -38,7 +38,7 @@ func (h *handler) UpdateUserEmail() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.UpdateUserEmail(req)
+		err := h.userService.UpdateUserEmail(c, req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {

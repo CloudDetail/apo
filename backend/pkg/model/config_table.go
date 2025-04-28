@@ -4,8 +4,9 @@
 package model
 
 import (
-	"github.com/CloudDetail/apo/backend/config"
 	"strings"
+
+	"github.com/CloudDetail/apo/backend/config"
 )
 
 type ModifyTableTTLMap struct {
@@ -25,6 +26,8 @@ type TableType struct {
 }
 type Table struct {
 	Name string
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 var tableType = map[string][]Table{

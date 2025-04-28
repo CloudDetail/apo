@@ -20,7 +20,7 @@ var validPages = []InsertPage{
 }
 
 func (repo *daoRepo) initInsertPages() error {
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+	return repo.Admin().Transaction(func(tx *gorm.DB) error {
 		var existingPage, toAdd []InsertPage
 		var toDelete []int
 		var toUpdate []InsertPage

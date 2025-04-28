@@ -9,6 +9,8 @@ type API struct {
 	Path    string `gorm:"column:path;type:varchar(255);index:idx_path_method,unique" mapstructure:"path"`
 	Method  string `gorm:"column:method;type:varchar(10);index:idx_path_method,unique" mapstructure:"method"`
 	Enabled bool   `gorm:"column:enabled;default:true"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (API) TableName() string {

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -22,10 +23,12 @@ import (
 	"gorm.io/gorm"
 )
 
+var _ Repo = &daoRepo{}
+
 // Define the Database query interface
 type Repo interface {
 	CreateOrUpdateThreshold(model *Threshold) error
-	GetOrCreateThreshold(serviceName string, endPoint string, level string) (Threshold, error)
+	GetOrCreateThreshold(ctx core.Context, serviceName string, endPoint string, level string) (Threshold, error)
 	DeleteThreshold(serviceName string, endPoint string) error
 	OperateLogTableInfo(model *LogTableInfo, op Operator) error
 	GetAllLogTable() ([]LogTableInfo, error)
@@ -44,14 +47,14 @@ type Repo interface {
 	Login(username, password string) (*User, error)
 	CreateUser(ctx context.Context, user *User) error
 	UpdateUserPhone(userID int64, phone string) error
-	UpdateUserEmail(userID int64, email string) error
+	UpdateUserEmail(ctx core.Context, userID int64, email string) error
 	UpdateUserPassword(userID int64, oldPassword, newPassword string) error
 	UpdateUserInfo(ctx context.Context, userID int64, phone string, email string, corporation string) error
 	GetUserInfo(userID int64) (User, error)
 	GetAnonymousUser() (User, error)
 	GetUserList(req *request.GetUserListRequest) ([]User, int64, error)
 	RemoveUser(ctx context.Context, userID int64) error
-	RestPassword(userID int64, newPassword string) error
+	RestPassword(ctx core.Context, userID int64, newPassword string) error
 	UserExists(userID ...int64) (bool, error)
 
 	GetUserRole(userID int64) ([]UserRole, error)
@@ -72,7 +75,7 @@ type Repo interface {
 	RoleGrantedToUser(userID int64, roleID int) (bool, error)
 	RoleGranted(roleID int) (bool, error)
 	FillItemRouter(items *[]MenuItem) error
-	GetItemsRouter(itemIDs []int) ([]Router, error)
+	GetItemsRouter(userID int64, itemIDs []int) ([]Router, error)
 	GetRouterByIDs(routerIDs []int) ([]Router, error)
 	GetRouterInsertedPage(routers []*Router, language string) error
 	GetFeatureTans(features *[]Feature, language string) error
@@ -92,7 +95,7 @@ type Repo interface {
 	GetFeatureMappingByMapped(mappedID int, mappedType string) (FeatureMapping, error)
 	GetMenuItems() ([]MenuItem, error)
 
-	GetTeamList(req *request.GetTeamRequest) ([]Team, int64, error)
+	GetTeamList(ctx core.Context, req *request.GetTeamRequest) ([]Team, int64, error)
 	DeleteTeam(ctx context.Context, teamID int64) error
 	CreateTeam(ctx context.Context, team Team) error
 	TeamExist(filter model.TeamFilter) (bool, error)
@@ -120,8 +123,8 @@ type Repo interface {
 	GetSubjectDataGroupList(subjectID int64, subjectType string, category string) ([]DataGroup, error)
 	GetModifyAndDeleteDataGroup(subjectID int64, subjectType string, dgPermissions []request.DataGroupPermission) (toModify []AuthDataGroup, toDelete []int64, err error)
 	DeleteAuthDataGroup(ctx context.Context, subjectID int64, subjectType string) error
-	GetDataGroupUsers(groupID int64) ([]AuthDataGroup, error)
-	GetDataGroupTeams(groupID int64) ([]AuthDataGroup, error)
+	GetDataGroupUsers(ctx core.Context, groupID int64) ([]AuthDataGroup, error)
+	GetDataGroupTeams(ctx core.Context, groupID int64) ([]AuthDataGroup, error)
 	CheckGroupPermission(userID, groupID int64, typ string) (bool, error)
 
 	GetAPIByPath(path string, method string) (*API, error)
@@ -243,6 +246,10 @@ func migrateTable(db *gorm.DB) error {
 		return err
 	}
 	err = db.AutoMigrate(&RouterInsertPage{})
+	if err != nil {
+		return err
+	}
+	err = db.AutoMigrate(&UserRole{})
 	if err != nil {
 		return err
 	}

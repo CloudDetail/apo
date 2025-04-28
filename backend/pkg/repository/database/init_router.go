@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var validRouters =  []Router{
+var validRouters = []Router{
 	{RouterTo: "/service", HideTimeSelector: false},
 	{RouterTo: "/logs/fault-site", HideTimeSelector: true},
 	{RouterTo: "/logs/full", HideTimeSelector: false},
@@ -37,7 +37,7 @@ var validRouters =  []Router{
 
 // initRouterData TODO Add mapping of router to feature when permission control is required
 func (repo *daoRepo) initRouterData() error {
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+	return repo.Admin().Transaction(func(tx *gorm.DB) error {
 		if err := tx.AutoMigrate(&Router{}); err != nil {
 			return err
 		}

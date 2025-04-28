@@ -44,7 +44,7 @@ func (repo *daoRepo) initPermissions() error {
 		},
 	}
 
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+	return repo.Admin().Transaction(func(tx *gorm.DB) error {
 		var featureIDs []int
 		if err := tx.Model(&Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
 			return err

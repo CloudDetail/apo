@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -17,7 +18,7 @@ import (
 )
 
 // GetDescendantRelevance implements Service.
-func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
+func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
 	// Query all descendant nodes
 	nodes, err := s.chRepo.ListDescendantNodes(req)
 	if err != nil {
@@ -72,7 +73,7 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 	if err != nil {
 		// Failed to query RED metric when adding log to TODO
 	}
-	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
+	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx, "", "", database.GLOBAL)
 	if err != nil {
 		// Failed to query the threshold when adding logs to TODO
 	}

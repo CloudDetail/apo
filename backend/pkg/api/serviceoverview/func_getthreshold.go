@@ -39,7 +39,7 @@ func (h *handler) GetThreshold() core.HandlerFunc {
 		serviceName := req.ServiceName
 		endPoint := req.Endpoint
 		level := req.Level
-		resp, err := h.serviceoverview.GetThreshold(level, serviceName, endPoint)
+		resp, err := h.serviceoverview.GetThreshold(c, level, serviceName, endPoint)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

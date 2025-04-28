@@ -11,6 +11,8 @@ type OtherLogTable struct {
 	TimeField string `gorm:"type:varchar(255);column:timefield"`
 	LogField  string `gorm:"type:varchar(255);column:logfield"`
 	Instance  string `gorm:"type:varchar(255)"`
+
+	AccessInfo string `gorm:"access_info"`
 }
 
 func (OtherLogTable) TableName() string {
