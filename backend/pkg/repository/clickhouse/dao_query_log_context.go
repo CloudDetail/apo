@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 var keys = []string{"source", "container_id", "pid", "container_name", "host_ip", "host_name", "k8s_namespace_name", "k8s_pod_name"}
@@ -49,7 +50,9 @@ func (ch *chRepo) QueryLogContext(req *request.LogQueryContextRequest) ([]map[st
 		OrderBy("timestamp", false).
 		Limit(50).
 		String()
-	frontSql := fmt.Sprintf(logsBaseQuery, req.DataBase, req.TableName, timefront+tags, bySqlfront)
+	database := util.EscapeSQLString(req.DataBase)
+	tablename := util.EscapeSQLString(req.TableName)
+	frontSql := fmt.Sprintf(logsBaseQuery, database, tablename, timefront+tags, bySqlfront)
 	front, err := ch.queryRowsData(frontSql)
 	if err != nil {
 		front = []map[string]any{}
@@ -60,7 +63,8 @@ func (ch *chRepo) QueryLogContext(req *request.LogQueryContextRequest) ([]map[st
 		OrderBy("timestamp", true).
 		Limit(50).
 		String()
-	endSql := fmt.Sprintf(logsBaseQuery, req.DataBase, req.TableName, timeend+tags, bySqlend)
+
+	endSql := fmt.Sprintf(logsBaseQuery, database, tablename, timeend+tags, bySqlend)
 	end, err := ch.queryRowsData(endSql)
 	if err != nil {
 		end = []map[string]any{}
