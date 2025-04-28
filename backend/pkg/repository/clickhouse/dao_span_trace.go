@@ -124,10 +124,6 @@ func (ch *chRepo) GetAvailableFilterKey(startTime, endTime time.Time, needUpdate
 	return ch.Filters, nil
 }
 
-func buildTraceCountQuery(baseQuery string, builder *QueryBuilder) string {
-	return fmt.Sprintf(baseQuery, builder.String())
-}
-
 func buildSpanTraceQuery(baseQuery string, fieldSql string, bySql string, builder *QueryBuilder) string {
 	sql := fmt.Sprintf(baseQuery, fieldSql, builder.String(), bySql)
 	return sql
@@ -158,10 +154,10 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 		queryBuilder.And(ch.extractSpanFilter(filter))
 	}
 
-	query := buildTraceCountQuery(TEMPLATE_COUNT_SPAN_TRACE, queryBuilder)
+	queryBuilder.baseQuery = "SELECT count(1) as total FROM span_trace "
 	var count uint64
 	// Number of query records
-	err := ch.conn.QueryRow(context.Background(), query, queryBuilder.values...).Scan(&count)
+	err := ch.conn.QueryRow(context.Background(), queryBuilder.String(), queryBuilder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
