@@ -192,7 +192,8 @@ func (repo *subRepo) ClearSchemaData(schema string) error {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
 
-	return repo.clearSchemaData(schema)
+	sql := "TRUNCATE TABLE " + schema + ";"
+	return repo.db.Exec(sql).Error
 }
 
 func EscapeString(input string) string {
@@ -251,13 +252,4 @@ func (repo *subRepo) InsertSchemaData(schema string, columns []string, fullRows 
 	}
 
 	return nil
-}
-
-func (repo *subRepo) clearSchemaData(schema string) error {
-	if !AllowSchema.MatchString(schema) {
-		return alert.ErrNotAllowSchema{Table: schema}
-	}
-	sql := "TRUNCATE TABLE " + schema + ";"
-
-	return repo.db.Exec(sql).Error
 }
