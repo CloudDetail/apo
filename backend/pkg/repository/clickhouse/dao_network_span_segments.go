@@ -31,8 +31,6 @@ func (ch *chRepo) GetNetworkSpanSegments(traceId string, spanId string) ([]NetSe
 }
 
 func buildQuery(queryBuilder *QueryBuilder) string {
-	spanSegmentSqlTemplate := "SELECT %s FROM flow_log.l7_flow_log %s"
-	fields := "start_time, end_time, response_duration, tap_side, span_id, trace_id"
-	executeSql := fmt.Sprintf(spanSegmentSqlTemplate, fields, queryBuilder.String())
+	executeSql := fmt.Sprintf("SELECT start_time, end_time, response_duration, tap_side, span_id, trace_id FROM flow_log.l7_flow_log %s", queryBuilder.String())
 	return executeSql
 }

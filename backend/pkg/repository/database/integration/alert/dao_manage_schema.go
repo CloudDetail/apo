@@ -19,11 +19,10 @@ var (
 )
 
 func (repo *subRepo) CreateSchema(schema string, columns []string) error {
+	schema = SchemaPrefix + schema
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
-
-	schema = SchemaPrefix + schema
 
 	var fields []string
 	for _, col := range columns {
@@ -45,10 +44,10 @@ func (repo *subRepo) CreateSchema(schema string, columns []string) error {
 }
 
 func (repo *subRepo) GetSchemaData(schema string) ([]string, map[int64][]string, error) {
+	schema = SchemaPrefix + schema
 	if !AllowSchema.MatchString(schema) {
 		return nil, nil, alert.ErrNotAllowSchema{Table: schema}
 	}
-	schema = SchemaPrefix + schema
 
 	rows, err := repo.db.Table(schema).Rows()
 	if err != nil {
@@ -117,10 +116,10 @@ func (repo *subRepo) DeleteSchema(schema string) error {
 }
 
 func (repo *subRepo) ListSchemaColumns(schema string) ([]string, error) {
+	schema = SchemaPrefix + schema
 	if !AllowSchema.MatchString(schema) {
 		return nil, alert.ErrNotAllowSchema{Table: schema}
 	}
-	schema = SchemaPrefix + schema
 
 	rows, err := repo.db.Table(schema).Rows()
 	if err != nil {
@@ -141,43 +140,34 @@ func (repo *subRepo) ListSchemaColumns(schema string) ([]string, error) {
 }
 
 func (repo *subRepo) UpdateSchemaData(schema string, columns []string, rows map[int][]string) error {
+	schema = SchemaPrefix + schema
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
 
-	updateTemp, err := buildUpdateSchema(schema, columns)
-	if err != nil {
-		return err
-	}
-	for idx, row := range rows {
-		var args = make([]interface{}, 0, len(row)+1)
-		for _, value := range row {
-			args = append(args, value)
+	for _, column := range columns {
+		if !AllowSchema.MatchString(column) {
+			return alert.ErrNotAllowSchema{Column: column}
 		}
-		args = append(args, idx)
+	}
 
-		err = repo.db.Exec(updateTemp, args...).Error
+	for idx, values := range rows {
+		if len(values) != len(columns) {
+			return fmt.Errorf("not allow row: %d", idx)
+		}
+
+		var updateColumns = map[string]any{}
+		for i := 0; i < len(columns); i++ {
+			updateColumns[columns[i]] = values[i]
+		}
+
+		err := repo.db.Table(schema).Where("schema_row_id = ?", idx).Updates(updateColumns).Error
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
-}
-
-func buildUpdateSchema(schema string, columns []string) (string, error) {
-	schema = SchemaPrefix + schema
-
-	var columnPlaceHolder []string
-	for _, column := range columns {
-		if !AllowSchema.MatchString(column) {
-			return "", alert.ErrNotAllowSchema{Column: column}
-		}
-
-		columnPlaceHolder = append(columnPlaceHolder, fmt.Sprintf("%s = ?", column))
-	}
-
-	updateTemp := fmt.Sprintf("UPDATE %s SET %s WHERE schema_row_id = ?", schema, strings.Join(columnPlaceHolder, ","))
-	return updateTemp, nil
 }
 
 func (repo *subRepo) ListSchema() ([]string, error) {
@@ -197,11 +187,11 @@ func (repo *subRepo) ListSchema() ([]string, error) {
 }
 
 func (repo *subRepo) ClearSchemaData(schema string) error {
+	schema = SchemaPrefix + schema
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
 
-	schema = SchemaPrefix + schema
 	return repo.clearSchemaData(schema)
 }
 
@@ -230,39 +220,37 @@ func EscapeString(input string) string {
 	return builder.String()
 }
 
-const insertSchema = "INSERT INTO %s (%s) VALUES %s"
-
-func buildInsertSchema(schema string, columns []string, fullRows [][]string) (string, []interface{}) {
-	schema = SchemaPrefix + schema
-
-	colPart := strings.Join(columns, ",")
-
-	valueRows := []string{}
-	params := []interface{}{}
-	for _, row := range fullRows {
-		placeholders := make([]string, len(row))
-		for i := range row {
-			placeholders[i] = "?"
-			params = append(params, row[i])
-		}
-		valueRows = append(valueRows, fmt.Sprintf("(%s)", strings.Join(placeholders, ",")))
-	}
-
-	sql := fmt.Sprintf(insertSchema,
-		schema,
-		colPart,
-		strings.Join(valueRows, ","))
-
-	return sql, params
-}
-
 func (repo *subRepo) InsertSchemaData(schema string, columns []string, fullRows [][]string) error {
+	schema = SchemaPrefix + schema
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
-	sql, params := buildInsertSchema(schema, columns, fullRows)
+	//	sql, params := buildInsertSchema(schema, columns, fullRows)
 
-	return repo.db.Raw(sql, params...).Error
+	for _, column := range columns {
+		if !AllowSchema.MatchString(column) {
+			return alert.ErrNotAllowSchema{Column: column}
+		}
+	}
+
+	for _, fullRow := range fullRows {
+		if len(fullRow) != len(columns) {
+			return fmt.Errorf("not allow row: %v", fullRow)
+		}
+
+		var values = map[string]any{}
+
+		for i := 0; i < len(columns); i++ {
+			values[columns[i]] = fullRow[i]
+		}
+
+		err := repo.db.Table(schema).Create(values).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (repo *subRepo) clearSchemaData(schema string) error {
