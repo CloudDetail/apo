@@ -15,24 +15,16 @@ const groupLogIndexQuery = "SELECT count(*) as count, `%s` as f FROM `%s`.`%s` W
 
 func groupBySQL(baseQuery string, req *request.LogIndexRequest) string {
 	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
-	sql := fmt.Sprintf(baseQuery,
-		req.Column,
-		req.DataBase,
-		req.TableName,
-		condition,
-		req.Column,
-	)
-	return sql
-}
 
-const countLogIndexQuery = "SELECT count(*) as count FROM `%s`.`%s` WHERE %s"
-
-func countSQL(baseQuery string, req *request.LogIndexRequest) string {
-	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
+	column := util.EscapeSQLString(req.Column)
+	database := util.EscapeSQLString(req.DataBase)
+	tableName := util.EscapeSQLString(req.TableName)
 	sql := fmt.Sprintf(baseQuery,
-		req.DataBase,
-		req.TableName,
+		column,
+		database,
+		tableName,
 		condition,
+		column,
 	)
 	return sql
 }

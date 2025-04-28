@@ -5,7 +5,6 @@ package clickhouse
 
 import (
 	"context"
-	"fmt"
 	"time"
 )
 
@@ -22,15 +21,11 @@ func (ch *chRepo) GetNetworkSpanSegments(traceId string, spanId string) ([]NetSe
 	queryBuilder := NewQueryBuilder().
 		EqualsNotEmpty("trace_id", traceId).
 		EqualsNotEmpty("span_id", spanId)
-	executeSql := buildQuery(queryBuilder)
+
+	queryBuilder.baseQuery = "SELECT start_time, end_time, response_duration, tap_side, span_id, trace_id FROM flow_log.l7_flow_log "
 	var netSegments []NetSegments
-	if err := ch.conn.Select(context.Background(), &netSegments, executeSql, queryBuilder.values...); err != nil {
+	if err := ch.conn.Select(context.Background(), &netSegments, queryBuilder.String(), queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return netSegments, nil
-}
-
-func buildQuery(queryBuilder *QueryBuilder) string {
-	executeSql := fmt.Sprintf("SELECT start_time, end_time, response_duration, tap_side, span_id, trace_id FROM flow_log.l7_flow_log %s", queryBuilder.String())
-	return executeSql
 }
