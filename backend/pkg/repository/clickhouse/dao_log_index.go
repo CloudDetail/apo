@@ -29,18 +29,6 @@ func groupBySQL(baseQuery string, req *request.LogIndexRequest) string {
 	return sql
 }
 
-const countLogIndexQuery = "SELECT count(*) as count FROM `%s`.`%s` WHERE %s"
-
-func countSQL(baseQuery string, req *request.LogIndexRequest) string {
-	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
-	sql := fmt.Sprintf(baseQuery,
-		req.DataBase,
-		req.TableName,
-		condition,
-	)
-	return sql
-}
-
 func (ch *chRepo) GetLogIndex(req *request.LogIndexRequest) (map[string]uint64, uint64, error) {
 	groupSQL := groupBySQL(groupLogIndexQuery, req)
 	groupRows, err := ch.queryRowsData(groupSQL)
