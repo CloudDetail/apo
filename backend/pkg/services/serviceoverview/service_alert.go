@@ -292,14 +292,13 @@ func GetAlertStatusCH(chRepo clickhouse.Repo,
 				continue
 			}
 
-			if alertReason != nil {
-				alertReason.Add(alertGroup.GetAlertType(), model.AlertDetail{
-					Timestamp:    event.ReceivedTime.UnixMicro(),
-					AlertObject:  event.GetTargetObj(),
-					AlertReason:  event.Name,
-					AlertMessage: event.Detail,
-				})
-			}
+			alertReason.Add(alertGroup.GetAlertType(), model.AlertDetail{
+				Timestamp:    event.ReceivedTime.UnixMicro(),
+				AlertObject:  event.GetTargetObj(),
+				AlertReason:  event.Name,
+				AlertMessage: event.Detail,
+			})
+
 			if alertEventsCountMap != nil {
 				alertEventsCountMap.Add(alertGroup.GetAlertType(), event.Severity, 1)
 			}

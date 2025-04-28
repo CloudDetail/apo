@@ -197,12 +197,7 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchR
 		resultFilter.InStrings("status", req.Filter.Status)
 	}
 
-	countSql := fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_COUNT,
-		getEventRoundedTime(cacheMinutes),
-		alertFilter.String(),
-		recordFilter.String(),
-		resultFilter.String(),
-	)
+	countSql := buildCountQuery(alertFilter, recordFilter, resultFilter, cacheMinutes)
 
 	values := append(alertFilter.values, recordFilter.values...)
 	values = append(values, resultFilter.values...)
@@ -216,6 +211,15 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchR
 	result := make([]alert.AEventWithWRecord, 0)
 	err = ch.conn.Select(context.Background(), &result, sql, values...)
 	return result, int64(count), err
+}
+
+func buildCountQuery(alertFilter *QueryBuilder, recordFilter *QueryBuilder, resultFilter *QueryBuilder, cacheMinutes int) string {
+	return fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_COUNT,
+		getEventRoundedTime(cacheMinutes),
+		alertFilter.String(),
+		recordFilter.String(),
+		resultFilter.String(),
+	)
 }
 
 func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cacheMinutes int) (string, []any) {

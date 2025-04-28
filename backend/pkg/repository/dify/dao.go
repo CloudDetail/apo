@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	DIFY_WORKFLOWS_RUN   = "/v1/workflows/run"
-	DIFY_ADD_USER        = "/console/api/workspaces/apo/members/add"
-	DIFY_REMOVE_USER     = "/console/api/workspaces/apo/members/"
-	DIFY_PASSWORD_UPDATE = "/console/api/apo/account/password"
-	DIFY_RESET_PASSWORD  = "/console/api/apo/account/reset-password"
+	DIFY_WORKFLOWS_RUN = "/v1/workflows/run"
+	DIFY_ADD_USER      = "/console/api/workspaces/apo/members/add"
+	DIFY_REMOVE_USER   = "/console/api/workspaces/apo/members/"
+	DIFY_PASSWD_UPDATE = "/console/api/apo/account/password"
+	DIFY_RESET_PASSWD  = "/console/api/apo/account/reset-password"
 )
 
 type DifyUser struct {

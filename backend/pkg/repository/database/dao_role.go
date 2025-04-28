@@ -6,7 +6,7 @@ package database
 import (
 	"context"
 	"errors"
-	"github.com/CloudDetail/apo/backend/config"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -34,9 +34,8 @@ func (t *UserRole) TableName() string {
 
 // GetRoles Get all roles for the given condition.
 func (repo *daoRepo) GetRoles(filter model.RoleFilter) ([]Role, error) {
-	conf := config.Get().User.AnonymousUser
 	var roles []Role
-	query := repo.db.Where("role_name != ?", conf.Username)
+	query := repo.db.Where("role_name != ?", AnonymousUsername)
 
 	if len(filter.Names) > 0 {
 		query = query.Where("role_name in ?", filter.Names)
@@ -141,7 +140,7 @@ func (repo *daoRepo) GrantRoleWithRole(ctx context.Context, roleID int, userIDs 
 	if len(userIDs) == 0 {
 		return nil
 	}
-	
+
 	userRoles := make([]UserRole, len(userIDs))
 	for i, userID := range userIDs {
 		userRoles[i] = UserRole{
@@ -161,7 +160,6 @@ func (repo *daoRepo) RevokeRoleWithRole(ctx context.Context, roleID int) error {
 	return repo.GetContextDB(ctx).
 		Model(&UserRole{}).Where("role_id = ?", roleID).Delete(nil).Error
 }
-
 
 func (repo *daoRepo) RoleGranted(roleID int) (bool, error) {
 	var count int64

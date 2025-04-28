@@ -29,6 +29,10 @@ export default function AlertInfoTabs() {
   const prepareData = (result) => {
     let tabList = []
     Object.keys(result.events).forEach((group) => {
+      if (RuleGroupMap[group] === undefined) {
+        return
+      }
+
       let num = 0
       const groupMap = result.events[group]
 

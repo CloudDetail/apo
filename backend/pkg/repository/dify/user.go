@@ -6,8 +6,11 @@ package dify
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 // AddUser implements DifyRepo.
@@ -35,7 +38,11 @@ func (d *difyRepo) AddUser(username string, password string, role string) (*Dify
 		return nil, err
 	}
 	var res DifyResponse
-	err = json.Unmarshal(body, &res)
+	validateBody, ok := util.ValidateResponseBytes(body)
+	if !ok {
+		return nil, fmt.Errorf("reponse body is invalid")
+	}
+	err = json.Unmarshal(validateBody, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +67,11 @@ func (d *difyRepo) RemoveUser(username string) (*DifyResponse, error) {
 		return nil, err
 	}
 	var res DifyResponse
-	err = json.Unmarshal(body, &res)
+	validateBody, ok := util.ValidateResponseBytes(body)
+	if !ok {
+		return nil, fmt.Errorf("reponse body is invalid")
+	}
+	err = json.Unmarshal(validateBody, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +80,7 @@ func (d *difyRepo) RemoveUser(username string) (*DifyResponse, error) {
 
 // UpdatePassword implements DifyRepo.
 func (d *difyRepo) UpdatePassword(username string, oldPassword string, newPassword string) (*DifyResponse, error) {
-	url := d.url + DIFY_PASSWORD_UPDATE
+	url := d.url + DIFY_PASSWD_UPDATE
 
 	req := &DifyUser{
 		Password:    oldPassword,
@@ -91,8 +102,13 @@ func (d *difyRepo) UpdatePassword(username string, oldPassword string, newPasswo
 	if err != nil {
 		return nil, err
 	}
+
 	var res DifyResponse
-	err = json.Unmarshal(body, &res)
+	validateBody, ok := util.ValidateResponseBytes(body)
+	if !ok {
+		return nil, fmt.Errorf("reponse body is invalid")
+	}
+	err = json.Unmarshal(validateBody, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +116,7 @@ func (d *difyRepo) UpdatePassword(username string, oldPassword string, newPasswo
 }
 
 func (d *difyRepo) ResetPassword(username string, newPassword string) (*DifyResponse, error) {
-	url := d.url + DIFY_RESET_PASSWORD
+	url := d.url + DIFY_RESET_PASSWD
 
 	req := &DifyUser{
 		NewPassword: newPassword,
@@ -122,7 +138,11 @@ func (d *difyRepo) ResetPassword(username string, newPassword string) (*DifyResp
 		return nil, err
 	}
 	var res DifyResponse
-	err = json.Unmarshal(body, &res)
+	validateBody, ok := util.ValidateResponseBytes(body)
+	if !ok {
+		return nil, fmt.Errorf("reponse body is invalid")
+	}
+	err = json.Unmarshal(validateBody, &res)
 	if err != nil {
 		return nil, err
 	}
