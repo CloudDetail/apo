@@ -4,6 +4,7 @@
 package clickhouse
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -63,6 +64,10 @@ func (ch *chRepo) QueryLogContext(req *request.LogQueryContextRequest) ([]map[st
 	// Validate time parameter
 	if req.Time <= 0 {
 		return nil, nil, fmt.Errorf("invalid time parameter")
+	}
+
+	if !util.IsValidIdentifier(req.DataBase) || !util.IsValidIdentifier(req.TableName) {
+		return nil, nil, errors.New("invalid database or table name")
 	}
 
 	logtime := req.Time / 1000000

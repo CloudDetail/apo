@@ -5,6 +5,7 @@ package clickhouse
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -30,6 +31,9 @@ func groupBySQL(baseQuery string, req *request.LogIndexRequest) string {
 }
 
 func (ch *chRepo) GetLogIndex(req *request.LogIndexRequest) (map[string]uint64, uint64, error) {
+	if !util.IsValidIdentifier(req.DataBase) || !util.IsValidIdentifier(req.TableName) || !util.IsValidIdentifier(req.Column) {
+		return nil, 0, errors.New("invalid database, table or column input")
+	}
 	groupSQL := groupBySQL(groupLogIndexQuery, req)
 	groupRows, err := ch.queryRowsData(groupSQL)
 	if err != nil {
