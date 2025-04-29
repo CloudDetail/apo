@@ -11,14 +11,15 @@ import (
 )
 
 type DifyClient struct {
-	http.Client
+	*http.Client
 
 	BaseURL string
 }
 
 func (c *DifyClient) alertCheck(req *WorkflowRequest, authorization string, user string) (*AlertCheckResponse, error) {
 	req.ResponseMode = "blocking"
-	resp, err := c.WorkflowsRun(req, authorization, user)
+	req.User = user
+	resp, err := c.WorkflowsRun(req, authorization)
 	if err != nil {
 		return nil, err
 	}
@@ -28,8 +29,7 @@ func (c *DifyClient) alertCheck(req *WorkflowRequest, authorization string, user
 	return nil, fmt.Errorf("alertCheck must be run in blocking mode")
 }
 
-func (c *DifyClient) WorkflowsRun(req *WorkflowRequest, authorization string, user string) (WorkflowResponse, error) {
-	req.User = user
+func (c *DifyClient) WorkflowsRun(req *WorkflowRequest, authorization string) (WorkflowResponse, error) {
 	jsonBytes, _ := json.Marshal(req)
 	fullReq, _ := http.NewRequest("POST", c.BaseURL+"/v1/workflows/run", bytes.NewReader(jsonBytes))
 

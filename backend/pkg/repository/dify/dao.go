@@ -4,13 +4,12 @@
 package dify
 
 import (
+	"fmt"
+
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"go.uber.org/zap"
-	"encoding/json"
-	"net/http"
-
-	"github.com/CloudDetail/apo/backend/config"
 )
 
 const (
@@ -33,31 +32,6 @@ type DifyResponse struct {
 	Message string `json:"message"`
 }
 
-type DifyWorkflowRequest struct {
-	Inputs       json.RawMessage `json:"inputs"`
-	ResponseMode string          `json:"response_mode"`
-	User         string          `json:"user"`
-}
-
-type CompletionResponse struct {
-	WorkflowRunID string                 `json:"workflow_run_id"`
-	TaskID        string                 `json:"task_id"`
-	Data          CompletionResponseData `json:"data"`
-}
-
-type CompletionResponseData struct {
-	ID         string          `json:"id"`
-	WorkflowID string          `json:"workload_id"`
-	Status     string          `json:"status"`
-	Outputs    json.RawMessage `json:"outputs"`
-
-	// Optional Response
-	// Error      string          `json:"error,omitempty"`
-	// ...
-
-	CreatedAt int64 `json:"created_at"`
-}
-
 type DifyRepo interface {
 	AddUser(username string, password string, role string) (*DifyResponse, error)
 	UpdatePassword(username string, oldPassword string, newPassword string) (*DifyResponse, error)
@@ -72,10 +46,13 @@ type DifyRepo interface {
 	GetCacheMinutes() int
 	GetAlertCheckFlowID() string
 	GetAlertAnalyzeFlowID() string
+
+	WorkflowsRun(req *WorkflowRequest, authorization string) (*CompletionResponse, error)
 }
 
 type difyRepo struct {
 	cli *DifyClient
+	url string
 
 	asyncAlertCheck
 
@@ -85,9 +62,14 @@ type difyRepo struct {
 
 func New() (DifyRepo, error) {
 	// client := &http.Client{}
+	difyConf := config.Get().Dify
 	return &difyRepo{
-		cli:           &DifyClient{},
+		cli: &DifyClient{
+			Client:  DefaultDifyFastHttpClient,
+			BaseURL: difyConf.URL,
+		},
 		AlertCheckCFG: DefaultAlertCheckConfig(),
+		url:           difyConf.URL,
 	}, nil
 }
 
@@ -101,4 +83,12 @@ func (r *difyRepo) GetAlertCheckFlowID() string {
 
 func (r *difyRepo) GetAlertAnalyzeFlowID() string {
 	return r.AlertAnalyzeFlowId
+}
+
+func (r *difyRepo) WorkflowsRun(req *WorkflowRequest, authorization string) (*CompletionResponse, error) {
+	resp, err := r.cli.WorkflowsRun(req, authorization)
+	if completResp, ok := resp.(*CompletionResponse); ok {
+		return completResp, err
+	}
+	return nil, fmt.Errorf("only support block request now")
 }
