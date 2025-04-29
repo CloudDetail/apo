@@ -57,7 +57,7 @@ func (v *ByteValidator) ValidateAndUnmarshalJSON(data []byte, target interface{}
 
 	// Perform deserialization
 	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields() // Prevent unknown field injection
+	// decoder.DisallowUnknownFields() // Prevent unknown field injection
 
 	return decoder.Decode(target)
 }
