@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/google/uuid"
@@ -71,6 +72,13 @@ func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any) (*alert.Aler
 	for k, v := range promAlert.Labels {
 		tags[k] = v
 	}
+
+	var updateTime time.Time
+	if promAlert.Status == model.StatusResolved.ToString() {
+		updateTime = endsAt
+	} else {
+		updateTime = time.Now()
+	}
 	var alertEvent = alert.AlertEvent{
 		Alert: alert.Alert{
 			Name:       promAlert.Labels["alertname"],
@@ -80,7 +88,7 @@ func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any) (*alert.Aler
 		},
 		Detail:     string(annotationsJson),
 		CreateTime: startsAt,
-		UpdateTime: time.Now(),
+		UpdateTime: updateTime,
 		EndTime:    endsAt,
 		Status:     promAlert.Status,
 		Severity:   promAlert.Labels["severity"],
