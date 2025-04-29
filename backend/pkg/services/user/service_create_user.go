@@ -32,8 +32,13 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 		return err
 	}
 
+	id, err := util.Generator.GenerateEncryptedID()
+	if err != nil {
+		return err
+	}
+
 	user := &database.User{
-		UserID:      util.Generator.GenerateID(),
+		UserID:      id,
 		Username:    req.Username,
 		Password:    req.Password,
 		Corporation: req.Corporation,

@@ -4,8 +4,15 @@
 package util
 
 import (
+	"errors"
+	"fmt"
+	"os"
+	"strconv"
 	"sync"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/config"
+	"github.com/capitalone/fpe/ff1"
 )
 
 const (
@@ -44,4 +51,38 @@ func (g *IDGenerator) GenerateID() int64 {
 
 	id := ((now - epoch) << timeShift) | g.sequence
 	return id
+}
+
+var (
+	fpeCipher ff1.Cipher
+	fpeDomain = 10
+	fpeLength = 14
+)
+
+func init() {
+	key := os.Getenv("APO_FPE_KEY")
+	if key == "" {
+		key = config.Get().Server.APOFpeKey
+	}
+
+	var err error
+	fpeCipher, err = ff1.NewCipher(fpeDomain, fpeLength, []byte(key), nil)
+	if err != nil {
+		panic(fmt.Errorf("failed to create cipher: %w", err))
+	}
+}
+
+func (g *IDGenerator) GenerateEncryptedID() (int64, error) {
+	raw := g.GenerateID()
+	src := fmt.Sprintf("%0*d", fpeLength, raw)
+	dstBytes, err := fpeCipher.Encrypt(src)
+	if err != nil {
+		return 0, err
+	}
+	cipherStr := string(dstBytes)
+	cipherInt, err := strconv.ParseInt(cipherStr, 10, 64)
+	if err != nil {
+		return 0, errors.New("encrypt output length exceed")
+	}
+	return cipherInt, nil
 }

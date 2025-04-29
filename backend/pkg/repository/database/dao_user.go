@@ -51,8 +51,13 @@ func (repo *daoRepo) createAdmin() error {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+			id, err := util.Generator.GenerateEncryptedID()
+			if err != nil {
+				return err
+			}
+
 			admin = User{
-				UserID:   util.Generator.GenerateID(),
+				UserID:   id,
 				Username: model.ROLE_ADMIN,
 				Password: Encrypt(config.Get().Server.InitAdminPassword),
 			}
@@ -83,8 +88,13 @@ func (repo *daoRepo) createAnonymousUser() error {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+			id, err := util.Generator.GenerateEncryptedID()
+			if err != nil {
+				return err
+			}
+
 			anonymousUser = User{
-				UserID:   util.Generator.GenerateID(),
+				UserID:   id,
 				Username: AnonymousUsername,
 				// random password
 				Password: Encrypt(strconv.FormatInt(util.Generator.GenerateID(), 10)),

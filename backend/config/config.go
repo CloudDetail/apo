@@ -18,6 +18,7 @@ type Config struct {
 		InitAdminPassword        string `mapstructure:"init_admin_password"`
 		AccessTokenExpireMinutes int    `mapstructure:"access_token_expire_minutes"`
 		RefreshTokenExpireHours  int    `mapstructure:"refresh_token_expire_hours"`
+		APOFpeKey                string `mapstructure:"apo_fpe_key"`
 	} `mapstructure:"server"`
 	Logger struct {
 		Level         string `mapstructure:"level"`
