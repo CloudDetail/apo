@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Card, Input, Popconfirm, Space } from 'antd'
+import { Button, Input, Popconfirm, Space } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { deleteAlertNotifyApi, getAlertmanagerListApi } from 'core/api/alerts'
@@ -187,7 +187,7 @@ export default function AlertsNotify() {
     }
   }, [column, data, pageIndex, pageSize])
   return (
-    <CustomCard styleType='alerts'>
+    <CustomCard styleType="alerts">
       <LoadingSpinner loading={loading} />
       <div className="flex items-center justify-betweeen text-sm ">
         <Space className="flex-grow">
@@ -206,7 +206,7 @@ export default function AlertsNotify() {
 
         <Button
           type="primary"
-          icon={<MdAdd size={20} />}
+          icon={<MdAdd />}
           onClick={clickAddRule}
           className="flex-grow-0 flex-shrink-0"
         >

@@ -46,6 +46,7 @@ func (h *AlertManagerHandler) handle(data *AlertManagerEvent) []*model.AlertEven
 			log.Println("[AlertManager] Error marshaling annotations: ", err)
 			continue
 		}
+		now := time.Now()
 		alertEvent := &model.AlertEvent{
 			ID:           model.GenUUID(),
 			Source:       model.AlertManagerSource,
@@ -54,8 +55,8 @@ func (h *AlertManagerHandler) handle(data *AlertManagerEvent) []*model.AlertEven
 			Status:       h.convertStatus(a.Status),
 			Group:        a.Labels["group"],
 			CreateTime:   startsAt,
-			UpdateTime:   startsAt,
-			ReceivedTime: time.Now(),
+			UpdateTime:   now,
+			ReceivedTime: now,
 			EndTime:      endsAt,
 			Detail:       string(annotationsJson),
 			Tags:         a.Labels,
