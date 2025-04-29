@@ -80,7 +80,7 @@ func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any) (*alert.Aler
 		},
 		Detail:     string(annotationsJson),
 		CreateTime: startsAt,
-		UpdateTime: startsAt,
+		UpdateTime: time.Now(),
 		EndTime:    endsAt,
 		Status:     promAlert.Status,
 		Severity:   promAlert.Labels["severity"],
