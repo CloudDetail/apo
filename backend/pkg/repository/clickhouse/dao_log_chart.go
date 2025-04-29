@@ -57,7 +57,36 @@ func calculateInterval(interval int64, timeField string) (string, int64, error) 
 
 const queryLogChart = "SELECT count(`%s`) as count, %s as timeline FROM `%s`.`%s` WHERE %s GROUP BY %s ORDER BY %s ASC"
 
+var dangerousPatterns = []string{
+    `(?i)\b(ALTER|CREATE|DELETE|DROP|EXEC(UTE)?|INSERT(INTO)?|MERGE|SELECT|UPDATE|UNION( ALL)?)\b`, 
+    `--.*`, 
+    `/\*.*?\*/`,
+    `;`,   
+    `['"]`, 
+}
+
+func validateQuery(query string) bool {
+    for _, pattern := range dangerousPatterns {
+        matched, _ := regexp.MatchString(pattern, query)
+        if matched {
+            return false 
+        }
+    }
+    return true
+}
+
 func chartSQL(baseQuery string, req *request.LogQueryRequest) (string, int64, error) {
+	if !util.IsValidIdentifier(req.DataBase) {
+		return "", 0, fmt.Errorf("invalid request parameters: %s", req.DataBase)
+	}
+
+	if !util.IsValidIdentifier(req.TableName) {
+		return "", 0, fmt.Errorf("invalid request parameters: %s", req.TableName)
+	}
+
+	if !validateQuery(req.Query) {
+		return "", 0, fmt.Errorf("invalid request query: %s", req.Query)
+	}
 	// Validate request parameters
 	if err := validateLogChartRequest(req); err != nil {
 		return "", 0, fmt.Errorf("invalid request parameters: %w", err)
