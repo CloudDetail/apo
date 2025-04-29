@@ -30,7 +30,7 @@ func (d PrometheusDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]a
 	receivedTime := time.Now()
 	for _, event := range events {
 		rawMap := event.(map[string]any)
-		alertEvent, err := d.convertAlertEvent(rawMap)
+		alertEvent, err := d.convertAlertEvent(rawMap, receivedTime)
 		if err != nil {
 			decodeErrs = multierr.Append(decodeErrs, err)
 			continue
@@ -49,7 +49,7 @@ func (d PrometheusDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]a
 	return alertEvents, decodeErrs
 }
 
-func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any) (*alert.AlertEvent, error) {
+func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any, receivedTime time.Time) (*alert.AlertEvent, error) {
 	var promAlert request.Alert
 	err := DecodeEvent(rawMap, &promAlert)
 	if err != nil {
@@ -77,7 +77,7 @@ func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any) (*alert.Aler
 	if promAlert.Status == model.StatusResolved.ToString() {
 		updateTime = endsAt
 	} else {
-		updateTime = time.Now()
+		updateTime = receivedTime
 	}
 	var alertEvent = alert.AlertEvent{
 		Alert: alert.Alert{
