@@ -9,7 +9,7 @@ import (
 
 func RestrictToUser(userID int64) func(*gorm.DB) *gorm.DB {
 	return func(d *gorm.DB) *gorm.DB {
-		return d.Where("access_info = ? or access_info = ''", strconv.Itoa(int(userID)))
+		return d.Where("access_info = ? or access_info = '' or access_info is null ", strconv.Itoa(int(userID)))
 	}
 }
 
