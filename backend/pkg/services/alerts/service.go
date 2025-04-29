@@ -4,9 +4,11 @@
 package alerts
 
 import (
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/repository/amreceiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
@@ -59,14 +61,30 @@ type service struct {
 	k8sApi   kubernetes.Repo
 	dbRepo   database.Repo
 	difyRepo dify.DifyRepo
+
+	enableInnerReceiver bool
+	receivers           amreceiver.Receivers
 }
 
-func New(chRepo clickhouse.Repo, promRepo prometheus.Repo, k8sApi kubernetes.Repo, dbRepo database.Repo, difyRepo dify.DifyRepo) Service {
+func New(
+	chRepo clickhouse.Repo,
+	promRepo prometheus.Repo,
+	k8sApi kubernetes.Repo,
+	dbRepo database.Repo,
+	difyRepo dify.DifyRepo,
+	receivers amreceiver.Receivers,
+) Service {
+
+	cfg := config.Get().AMReceiver
+
 	return &service{
 		chRepo:   chRepo,
 		promRepo: promRepo,
 		k8sApi:   k8sApi,
 		dbRepo:   dbRepo,
 		difyRepo: difyRepo,
+
+		enableInnerReceiver: cfg.Enabled,
+		receivers:           receivers,
 	}
 }

@@ -29,6 +29,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/repository/amreceiver/dingtalk"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 	"github.com/prometheus/alertmanager/config"
@@ -212,17 +213,8 @@ func buildReceiverIntegrations(nc amconfig.Receiver, tmpl *template.Template, lo
 	}
 
 	for i, c := range nc.DingTalkConfigs {
-		// TODO transform into Function Call
-		cfg := &config.WebhookConfig{
-			NotifierConfig: config.NotifierConfig{},
-			HTTPConfig:     &commoncfg.HTTPClientConfig{},
-			URL:            &config.SecretURL{},
-			URLFile:        "",
-			MaxAlerts:      0,
-			Timeout:        0,
-		}
-
-		add("dingtalk", i, c, func(l *slog.Logger) (notify.Notifier, error) { return webhook.New(cfg, tmpl, l, httpOpts...) })
+		c.AlertName = nc.Name
+		add("dingtalk", i, c, func(l *slog.Logger) (notify.Notifier, error) { return dingtalk.New(c, tmpl, l), nil })
 	}
 
 	// for i, c := range nc.PagerdutyConfigs {

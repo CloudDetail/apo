@@ -4,6 +4,7 @@
 package alerts
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/repository/amreceiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -126,10 +127,12 @@ func New(
 	k8sRepo kubernetes.Repo,
 	promRepo prometheus.Repo,
 	difyRepo dify.DifyRepo,
+
+	receivers amreceiver.Receivers,
 ) Handler {
 	return &handler{
 		logger:                 logger,
-		alertService:           alerts.New(chRepo, promRepo, k8sRepo, dbRepo, difyRepo),
+		alertService:           alerts.New(chRepo, promRepo, k8sRepo, dbRepo, difyRepo, receivers),
 		inputService:           alertinput.New(promRepo, dbRepo, chRepo, difyRepo),
 		serviceoverviewService: so.New(logger, chRepo, dbRepo, promRepo),
 	}

@@ -139,7 +139,7 @@ type Repo interface {
 	DeleteAMConfigReceiver(name string) error
 
 	CheckAMReceiverCount() int64
-	MigrateAMReceiver(receivers []amconfig.Receiver) error
+	MigrateAMReceiver(receivers []amconfig.Receiver) ([]amconfig.Receiver, error)
 
 	integration.ObservabilityInputManage
 }

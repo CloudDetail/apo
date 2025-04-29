@@ -121,9 +121,15 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 		if r.pkg_db.CheckAMReceiverCount() <= 0 {
 			receivers, total := r.k8sApi.GetAMConfigReceiver("", nil, nil, true)
 			if total > 0 {
-				err := r.pkg_db.MigrateAMReceiver(receivers)
+				migratedReceiver, err := r.pkg_db.MigrateAMReceiver(receivers)
 				if err != nil {
 					logger.Fatal("failed to migrate amconfig ", zap.Error(err))
+				}
+				for _, receiver := range migratedReceiver {
+					err := r.k8sApi.DeleteAMConfigReceiver("", receiver.Name)
+					if err != nil {
+						logger.Warn("remove migratedReceiver failed", zap.String("name", receiver.Name), zap.Error(err))
+					}
 				}
 			}
 		}
