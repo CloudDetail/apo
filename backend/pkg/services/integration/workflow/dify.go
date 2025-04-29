@@ -105,7 +105,7 @@ type CompletionResponse struct {
 
 type CompletionResponseData struct {
 	ID         string          `json:"id"`
-	WorkflowID string          `json:"workload_id"`
+	WorkflowID string          `json:"workflow_id"`
 	Status     string          `json:"status"`
 	Outputs    json.RawMessage `json:"outputs"`
 
