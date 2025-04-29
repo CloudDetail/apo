@@ -212,7 +212,8 @@ func (ch *chRepo) getGroupAlertEvents(startTime time.Time, endTime time.Time, fi
 
 func (ch *chRepo) getAlertEventsByWhere(startTime time.Time, endTime time.Time, filter request.AlertFilter, whereInstance *whereSQL, sortBy string, pageParam *request.PageParam) ([]alert.AlertEvent, uint64, error) {
 	builder := NewQueryBuilder().
-		Between("received_time", startTime.Unix(), endTime.Unix()).
+		Between("update_time", startTime.Unix(), endTime.Unix()).
+		NotGreaterThan("end_time", endTime.Unix()).
 		EqualsNotEmpty("source", filter.Source).
 		EqualsNotEmpty("group", filter.Group).
 		EqualsNotEmpty("name", filter.Name).
