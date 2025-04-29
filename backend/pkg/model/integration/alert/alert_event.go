@@ -5,7 +5,7 @@ package alert
 
 import (
 	"bytes"
-	"crypto/md5"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -48,7 +48,7 @@ func FastAlertID(alertName string, tags map[string]any) string {
 		buf.WriteString(tags[key].(string))
 	}
 
-	hash := md5.Sum(buf.Bytes())
+	hash := sha256.Sum256(buf.Bytes())
 	return fmt.Sprintf("%x", hash)
 }
 
@@ -65,7 +65,7 @@ func FastAlertIDByStringMap(alertName string, tags map[string]string) string {
 		buf.WriteString(tags[key])
 	}
 
-	hash := md5.Sum(buf.Bytes())
+	hash := sha256.Sum256(buf.Bytes())
 	return fmt.Sprintf("%x", hash)
 }
 

@@ -63,11 +63,11 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 	} else {
 		queryBuilder.Statement("(flags['is_error'] = true or (flags['is_profiled'] = true AND flags['is_slow'] = true))")
 	}
-	whereClause := queryBuilder.String()
 
+	logCountQuery := buildTraceCountQuery(TEMPLATE_COUNT_SPAN_TRACE, queryBuilder)
 	var count uint64
 	// Number of query records
-	err := ch.conn.QueryRow(context.Background(), fmt.Sprintf(TEMPLATE_COUNT_SPAN_TRACE, whereClause), queryBuilder.values...).Scan(&count)
+	err := ch.conn.QueryRow(context.Background(), logCountQuery, queryBuilder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -94,7 +94,7 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 		Offset((query.PageNum - 1) * query.PageSize).
 		String()
 	// Query list data
-	sql := fmt.Sprintf(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, whereClause, bySql)
+	sql := buildSpanTraceQuery(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, bySql, queryBuilder)
 	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
 		return nil, int64(count), err
@@ -124,6 +124,15 @@ func (ch *chRepo) GetAvailableFilterKey(startTime, endTime time.Time, needUpdate
 	return ch.Filters, nil
 }
 
+func buildTraceCountQuery(baseQuery string, builder *QueryBuilder) string {
+	return fmt.Sprintf(baseQuery, builder.String())
+}
+
+func buildSpanTraceQuery(baseQuery string, fieldSql string, bySql string, builder *QueryBuilder) string {
+	sql := fmt.Sprintf(baseQuery, fieldSql, builder.String(), bySql)
+	return sql
+}
+
 func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
@@ -149,10 +158,10 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 		queryBuilder.And(ch.extractSpanFilter(filter))
 	}
 
-	whereClause := queryBuilder.String()
+	query := buildTraceCountQuery(TEMPLATE_COUNT_SPAN_TRACE, queryBuilder)
 	var count uint64
 	// Number of query records
-	err := ch.conn.QueryRow(context.Background(), fmt.Sprintf(TEMPLATE_COUNT_SPAN_TRACE, whereClause), queryBuilder.values...).Scan(&count)
+	err := ch.conn.QueryRow(context.Background(), query, queryBuilder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -182,7 +191,7 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 		Offset((req.PageNum - 1) * req.PageSize).
 		String()
 	// Query list data
-	sql := fmt.Sprintf(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, whereClause, bySql)
+	sql := buildSpanTraceQuery(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, bySql, queryBuilder)
 	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
 		return nil, int64(count), err

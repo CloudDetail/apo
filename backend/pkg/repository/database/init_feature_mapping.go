@@ -5,11 +5,23 @@ package database
 
 import (
 	"errors"
+	"net/http"
+	"strings"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
+
+func isValidMenuItem(menuItem string) bool {
+	for _, mapping := range validMenuItemMappings {
+		if menuItem == mapping.MenuItem.Key {
+			return true
+		}
+	}
+
+	return false
+}
 
 func (repo *daoRepo) initFeatureMenuItems() error {
 	featureMenuMapping := []struct {
@@ -57,6 +69,14 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 		}
 
 		for _, mapping := range featureMenuMapping {
+			if !isValidFeature(mapping.FeatureName) {
+				continue
+			}
+
+			if !isValidMenuItem(mapping.MenuKey) {
+				continue
+			}
+
 			var feature Feature
 			if err := tx.Where("feature_name = ?", mapping.FeatureName).First(&feature).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -65,12 +85,20 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 				return err
 			}
 
+			if feature.FeatureID <= 0 {
+				continue
+			}
+
 			var menuItem MenuItem
 			if err := tx.Where(`"key" = ?`, mapping.MenuKey).First(&menuItem).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					continue
 				}
 				return err
+			}
+
+			if menuItem.ItemID <= 0 {
+				continue
 			}
 
 			var count int64
@@ -116,9 +144,9 @@ func (repo *daoRepo) initFeatureRouter() error {
 		}
 
 		if err := tx.Model(&FeatureMapping{}).
-			Where("feature_id not in ? OR (mapped_id NOT IN ? AND mapped_type = ?)", 
-				featureIDs, 
-				routerIDs, 
+			Where("feature_id not in ? OR (mapped_id NOT IN ? AND mapped_type = ?)",
+				featureIDs,
+				routerIDs,
 				model.MAPPED_TYP_ROUTER).
 			Delete(nil).Error; err != nil {
 			return err
@@ -144,9 +172,9 @@ func (repo *daoRepo) initFeatureRouter() error {
 
 				var count int64
 				if err := tx.Model(&FeatureMapping{}).
-					Where("feature_id = ? AND mapped_id = ? AND mapped_type = ?", 
-						feature.FeatureID, 
-						router.RouterID, 
+					Where("feature_id = ? AND mapped_id = ? AND mapped_type = ?",
+						feature.FeatureID,
+						router.RouterID,
 						model.MAPPED_TYP_ROUTER).
 					Count(&count).Error; err != nil {
 					return err
@@ -167,6 +195,29 @@ func (repo *daoRepo) initFeatureRouter() error {
 
 		return nil
 	})
+}
+
+func isValidFeature(featureName string) bool {
+	for _, validFeature := range validFeatures {
+		if featureName == validFeature.FeatureName {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isValidMethod(method string) bool {
+	switch strings.ToUpper(method) {
+	case http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
+		return true
+	default:
+		return false
+	}
+}
+
+func isValidPath(path string) bool {
+	return len(path) > 0 && path[0] == '/' && !strings.ContainsAny(path, ";&'=")
 }
 
 func (repo *daoRepo) initFeatureAPI() error {
@@ -203,6 +254,10 @@ func (repo *daoRepo) initFeatureAPI() error {
 
 		for featureName, apis := range featureAPI {
 			var feature Feature
+			if !isValidFeature(featureName) {
+				continue
+			}
+
 			if err := tx.Where("feature_name = ?", featureName).First(&feature).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					continue
@@ -210,7 +265,14 @@ func (repo *daoRepo) initFeatureAPI() error {
 				return err
 			}
 
+			validApis := make([]API, 0, len(apis))
 			for _, api := range apis {
+				if isValidMethod(api.Method) && isValidPath(api.Path) {
+					validApis = append(validApis, api)
+				}
+			}
+
+			for _, api := range validApis {
 				var apiRecord API
 				if err := tx.Where("path = ? AND method = ?", api.Path, api.Method).First(&apiRecord).Error; err != nil {
 					if errors.Is(err, gorm.ErrRecordNotFound) {

@@ -1202,7 +1202,7 @@ func (c *TLSConfig) getClientCertificate(ctx context.Context, secretManager Secr
 
 	cert, err := tls.X509KeyPair([]byte(certData), []byte(keyData))
 	if err != nil {
-		return nil, fmt.Errorf("unable to use specified client cert (%s) & key (%s): %w", certSecret.Description(), keySecret.Description(), err)
+		return nil, fmt.Errorf("unable to use specified client cert & key: %w", err)
 	}
 
 	return &cert, nil

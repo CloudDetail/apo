@@ -42,8 +42,8 @@ func (h *handler) ResetPassword() core.HandlerFunc {
 		if req.NewPassword != req.ConfirmPassword {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
-				code.UserConfirmPasswordError,
-				c.ErrMessage(code.UserConfirmPasswordError)),
+				code.UserConfirmPasswdError,
+				c.ErrMessage(code.UserConfirmPasswdError)),
 			)
 			return
 		}

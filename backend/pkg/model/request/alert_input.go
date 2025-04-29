@@ -152,7 +152,6 @@ type GetAlertManagerConfigReceverRequest struct {
 }
 
 type AlertRuleFilter struct {
-	// Deprecated: use Groups instead
 	Group    string   `form:"group" json:"group"`
 	Groups   []string `form:"groups" json:"groups"`
 	Alert    string   `form:"alert" json:"alert"`

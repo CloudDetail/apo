@@ -21,6 +21,8 @@ type Service interface {
 	AlertEventList(req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error)
 	AlertDetail(req *request.GetAlertDetailRequest) (*response.GetAlertDetailResponse, error)
 
+	AlertEventClassify(req *request.AlertEventClassifyRequest) (*response.AlertEventClassifyResponse, error)
+
 	// ========================告警配置========================
 
 	// InputAlertManager receive AlertManager alarm events
@@ -56,7 +58,6 @@ type service struct {
 	promRepo prometheus.Repo
 	k8sApi   kubernetes.Repo
 	dbRepo   database.Repo
-
 	difyRepo dify.DifyRepo
 }
 

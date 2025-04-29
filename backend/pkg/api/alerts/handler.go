@@ -30,6 +30,10 @@ type Handler interface {
 	// @Tags API.alerts
 	// @Router /api/alerts/event/detail [post]
 	AlertEventDetail() core.HandlerFunc
+	// AlertEventClassify
+	// @Tags API.alerts
+	// @Router /api/alerts/events/classify [get]
+	AlertEventClassify() core.HandlerFunc
 
 	// ========================告警配置========================
 

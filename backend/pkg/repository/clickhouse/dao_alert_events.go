@@ -161,7 +161,7 @@ func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter 
 		And(whereInstance)
 
 	var count uint64
-	countSql := fmt.Sprintf(GET_ALERT_EVENTS_COUNT, builder.String())
+	countSql := buildAlertEventsCountQuery(GET_ALERT_EVENTS_COUNT, builder)
 	err := ch.conn.QueryRow(context.Background(), countSql, builder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
@@ -176,7 +176,7 @@ func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter 
 		Offset((pageParam.CurrentPage - 1) * pageParam.PageSize).
 		Limit(pageParam.PageSize)
 
-	sql := fmt.Sprintf(SQL_GET_PAGED_ALERT_EVENT, builder.String(), orderBuilder.String())
+	sql := buildGetPagedAlertEventQuery(SQL_GET_PAGED_ALERT_EVENT, builder, orderBuilder)
 	var events []alert.AlertEvent
 	err = ch.conn.Select(context.Background(), &events, sql, builder.values...)
 	if err != nil {
@@ -184,6 +184,16 @@ func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter 
 	}
 
 	return events, count, err
+}
+
+func buildGetPagedAlertEventQuery(baseQuery string, builder *QueryBuilder, orderBuilder *ByLimitBuilder) string {
+	sql := fmt.Sprintf(baseQuery, builder.String(), orderBuilder.String())
+	return sql
+}
+
+func buildAlertEventsCountQuery(baseQuery string, builder *QueryBuilder) string {
+	countSql := fmt.Sprintf(baseQuery, builder.String())
+	return countSql
 }
 
 func (ch *chRepo) InsertBatchAlertEvents(ctx context.Context, events []*model.AlertEvent) error {

@@ -10523,6 +10523,17 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AlertEventClassifyRequest": {
+            "type": "object",
+            "properties": {
+                "alertGroup": {
+                    "type": "string"
+                },
+                "alertName": {
+                    "type": "string"
+                }
+            }
+        },
         "request.AlertEventSearchFilter": {
             "type": "object",
             "properties": {
@@ -11675,6 +11686,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.AlertEventClassifyResponse": {
+            "type": "object",
+            "properties": {
+                "workflowId": {
                     "type": "string"
                 }
             }

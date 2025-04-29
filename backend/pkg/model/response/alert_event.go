@@ -28,3 +28,7 @@ type GetAlertDetailResponse struct {
 
 	LocateIdx int `json:"locateIndex"`
 }
+
+type AlertEventClassifyResponse struct {
+	WorkflowId string `json:"workflowId"`
+}

@@ -61,3 +61,7 @@ export const deleteAlertNotifyApi = (params) => {
 export const getAlertEventsApi = (params) => {
   return post('/api/alerts/event/list', params)
 }
+
+export const getAlertWorkflowIdApi = (params) => {
+  return get('/api/alerts/events/classify', params)
+}
