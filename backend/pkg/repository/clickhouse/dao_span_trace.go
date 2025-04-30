@@ -5,12 +5,14 @@ package clickhouse
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 const (
@@ -35,7 +37,33 @@ const (
 	%s %s`
 )
 
+func validateFaultLogQuery(query *FaultLogQuery) error {
+	if !util.IsValidIdentifier(query.Service) || !util.IsValidIdentifier(query.Instance) || !util.IsValidIdentifier(query.NodeName) ||
+		!util.IsValidIdentifier(query.ContainerId) || !util.IsValidIdentifier(query.EndPoint) || !util.IsValidIdentifier(query.TraceId) ||
+		!util.IsValidIdentifier(query.Pod) {
+		return errors.New("invalid query parameter")
+	}
+
+	for _, service := range query.MultiServices {
+		if !util.IsValidIdentifier(service) {
+			return errors.New("invalid query parameter")
+		}
+	}
+
+	for _, namespace := range query.MultiNamespace {
+		if !util.IsValidIdentifier(namespace) {
+			return errors.New("invalid query parameter")
+		}
+	}
+
+	return nil
+}
+
 func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, int64, error) {
+	if err := validateFaultLogQuery(query); err != nil {
+		return nil, 0, err
+	}
+	
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", query.StartTime/1000000, query.EndTime/1000000).
 		EqualsNotEmpty("labels['service_name']", query.Service).

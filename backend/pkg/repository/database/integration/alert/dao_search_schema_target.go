@@ -25,6 +25,10 @@ func (repo *subRepo) SearchSchemaTarget(
 	if !AllowField.MatchString(sourceField) {
 		return nil, fmt.Errorf("invalid source field: %s", sourceField)
 	}
+
+	if !AllowField.MatchString(sourceValue) {
+		return nil, fmt.Errorf("invalid source value: %s", sourceValue)
+	}
 	
 	rows, err := repo.db.Table(schema).Where(fmt.Sprintf("%s = ?", sourceField), sourceValue).Limit(1).Rows()
 	if err != nil {

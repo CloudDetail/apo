@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 type ProfilingEvent struct {
@@ -28,6 +30,10 @@ type ProfilingEvent struct {
 const profiling_event_sql = `SELECT %s FROM profiling_event %s LIMIT %s`
 
 func (ch *chRepo) GetOnOffCPU(pid uint32, nodeName string, startTime, endTime int64) (*[]ProfilingEvent, error) {
+	if !util.IsValidIdentifier(nodeName) {
+		return nil, fmt.Errorf("invalid nodeName: %s", nodeName)
+	}
+
 	queryBuilder := NewQueryBuilder().
 		Between("startTime", startTime, endTime).
 		Between("endTime", startTime, endTime).
@@ -47,7 +53,7 @@ func (ch *chRepo) GetOnOffCPU(pid uint32, nodeName string, startTime, endTime in
 	limitBuilder := NewByLimitBuilder().Limit(10000)
 	queryBuilder.baseQuery = fmt.Sprintf("SELECT %s FROM profiling_event ", fieldSql)
 	result := make([]ProfilingEvent, 0)
-	err := ch.conn.Select(context.Background(), &result, queryBuilder.String() + limitBuilder.String(), queryBuilder.values...)
+	err := ch.conn.Select(context.Background(), &result, queryBuilder.String()+limitBuilder.String(), queryBuilder.values...)
 	if err != nil {
 		return nil, err
 	}

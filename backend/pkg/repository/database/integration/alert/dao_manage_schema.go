@@ -157,6 +157,12 @@ func (repo *subRepo) UpdateSchemaData(schema string, columns []string, rows map[
 			return fmt.Errorf("not allow row: %d", idx)
 		}
 
+		for _, value := range values {
+			if !util.IsValidIdentifier(value) {
+				return fmt.Errorf("invalid row value: %s", value)
+			}
+		}
+
 		var updateColumns = map[string]any{}
 		for i := 0; i < len(columns); i++ {
 			updateColumns[columns[i]] = values[i]
@@ -238,6 +244,12 @@ func (repo *subRepo) InsertSchemaData(schema string, columns []string, fullRows 
 	for _, fullRow := range fullRows {
 		if len(fullRow) != len(columns) {
 			return fmt.Errorf("not allow row: %v", fullRow)
+		}
+
+		for _, value := range fullRow {
+			if !util.IsValidIdentifier(value) {
+				return fmt.Errorf("invalid row value: %s", value)
+			}
 		}
 
 		var values = map[string]any{}

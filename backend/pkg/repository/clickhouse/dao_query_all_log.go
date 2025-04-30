@@ -46,6 +46,10 @@ func (ch *chRepo) QueryAllLogs(req *request.LogQueryRequest) ([]map[string]any, 
 		return nil, "", fmt.Errorf("invalid request parameters: %s", req.Query)
 	}
 
+	if !util.IsValidIdentifier(req.TimeField) {
+		return nil, "", fmt.Errorf("invalid request parameters: %s", req.TimeField)
+	}
+
 	// Build safe query condition
 	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
 
