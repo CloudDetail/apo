@@ -14,6 +14,7 @@ import {
 } from 'src/core/store/reducers/timeRangeReducer'
 import { getStep } from 'src/core/utils/step'
 import _ from 'lodash'
+import { anormalTypesOptions } from '../constants'
 export const alertAnalyzeInitialState = {
   loading: false,
   alertEvents: [],
@@ -122,45 +123,6 @@ export const AlertAnalyzeProvider = ({ children }) => {
   // 是否按过一键分析了
   const [isAnalyze, setIsAnalyze] = useState(false)
 
-  const anormalTypesOptions = [
-    {
-      value: 'unknown',
-      key: 0,
-      label: '未知',
-      hide: true,
-    },
-    {
-      value: 'app',
-      key: 1,
-      label: '应用接口异常类型',
-    },
-    {
-      value: 'container',
-      key: 2,
-      label: '容器异常类型',
-    },
-    {
-      value: 'infra',
-      key: 3,
-      label: '基础设施异常类型',
-    },
-    {
-      value: 'network',
-      key: 4,
-      label: '网络异常类型',
-    },
-    {
-      value: 'error',
-      key: 5,
-      label: 'JAVA Exception',
-    },
-    {
-      value: 'appInstance',
-      key: 6,
-      label: '应用实例异常类型',
-    },
-  ]
-
   const prepareTopologyNode = (data) => {
     let topologyNodesMap = {}
     data?.map((node) => {
@@ -184,7 +146,8 @@ export const AlertAnalyzeProvider = ({ children }) => {
         endTime: endTime,
         currentPage: pagination.pageIndex,
         pageSize: pagination.pageSize,
-        status: 'firing',
+        // status: 'firing',
+        step: getStep(startTime, endTime),
         // service: 'ts-gateway-service',
       }
 
@@ -192,7 +155,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
         getServiceAlertEventsApi(params),
         // getLogRuleApi({ tableName: 'test_logs', dataBase: 'default' }),
       ])
-      setAlertEvents(res.events || [])
+      setAlertEvents(res.alertEvents || [])
       setPagination({
         pageIndex: pagination.pageIndex,
         pageSize: pagination.pageSize,
@@ -212,7 +175,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
     }
   }
   // 获取告警的影响面分析
-  const getAlertEventImpact = (onlyUpdateEvents = false) => {
+  const getAlertEventImpact = (queryParams = {}) => {
     setLoading(true)
     const step = getStep(stepStartTime, stepEndTime)
     getAlertEventImpactApi({
@@ -221,14 +184,13 @@ export const AlertAnalyzeProvider = ({ children }) => {
       step,
       currentPage: pagination.pageIndex,
       pageSize: pagination.pageSize,
+      ...queryParams,
     })
       .then((res) => {
-        if (!onlyUpdateEvents) setEventImpactList(res.data || [])
-        setAlertEvents(res.alertEvents || [])
+        setEventImpactList(res.data || [])
       })
       .catch((error) => {
-        if (!onlyUpdateEvents) setEventImpactList([])
-        setAlertEvents([])
+        setEventImpactList([])
       })
       .finally(() => {
         setLoading(false)
@@ -437,11 +399,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
   useUpdateEffect(() => {
     if (startTime && endTime) {
       setLoading(true)
-      if (isAnalyze) {
-        getAlertEventImpact(true)
-      } else {
-        fetchData({ startTime, endTime })
-      }
+      fetchData({ startTime, endTime })
     }
   }, [pagination.pageIndex, pagination.pageSize])
   useEffect(() => {
@@ -529,6 +487,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
       setIsPlaying,
       prepareTopologyNode,
       setIsAnalyze,
+      getAlertEventImpact,
     }),
     [
       pagination,

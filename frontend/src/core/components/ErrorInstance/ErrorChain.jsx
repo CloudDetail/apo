@@ -5,10 +5,10 @@
 
 import * as d3 from 'd3'
 import dagreD3 from 'dagre-d3'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import _ from 'lodash'
 import nodeRed from 'src/core/assets/images/hexagon-red.svg'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import Empty from 'src/core/components/Empty/Empty'
 import { useSelector } from 'react-redux'
 import { TimestampToISO } from 'src/core/utils/time'
@@ -260,7 +260,7 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
     let graphWidth = +container.node()?.getBoundingClientRect().width
     //@ts-ignore
     let graphHeight = +container.node()?.getBoundingClientRect().height
-    let padding = 0
+    let padding = graphWidth * (g.node()?.length > 2 ? 0.15 : 0.1)
     let zoomScale = Math.min(
       3,
       0.8 *
@@ -274,23 +274,21 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
     const xCenterOffset = (graphWidth - g.graph().width * zoomScale) / 2
     //@ts-ignore
     const yCenterOffset = (graphHeight - g.graph().height * zoomScale) / 2
-    inner.attr(
-      'transform',
-      'translate(' + xCenterOffset + ',' + yCenterOffset / 2 + ') scale(' + zoomScale + ')',
-    )
 
-    // 缩放
-    const zoom = d3.zoom().on('zoom', function () {
-      let currentZoomTransform = d3.zoomTransform(this)
-      inner.attr(
-        'transform',
-        `translate(${currentZoomTransform.x + xCenterOffset},${
-          currentZoomTransform.y + yCenterOffset / 2
-        }) scale(${zoomScale + currentZoomTransform.k - 1})`,
-      )
-    })
-    // @ts-ignore
+    const zoom = d3
+      .zoom()
+      .scaleExtent([0.3, 3])
+      .on('zoom', (event) => {
+        inner.attr('transform', event.transform)
+      })
+
     svg.call(zoom)
+
+    const initialTransform = d3.zoomIdentity
+      .translate(xCenterOffset, yCenterOffset / 2)
+      .scale(zoomScale)
+
+    svg.call(zoom.transform, initialTransform)
   }
   useEffect(() => {
     if (data?.current) {

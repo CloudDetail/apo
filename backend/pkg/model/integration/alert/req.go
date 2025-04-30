@@ -3,7 +3,7 @@
 
 package alert
 
-type AlerEnrichRuleConfigRequest struct {
+type AlertEnrichRuleConfigRequest struct {
 	SourceId          string              `json:"sourceId"`
 	EnrichRuleConfigs []AlertEnrichRuleVO `json:"enrichRuleConfigs"`
 

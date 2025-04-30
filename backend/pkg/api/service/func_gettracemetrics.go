@@ -4,13 +4,15 @@
 package service
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // GetTraceMetrics get Trace related metrics
@@ -37,7 +39,7 @@ func (h *handler) GetTraceMetrics() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -45,7 +47,7 @@ func (h *handler) GetTraceMetrics() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, []response.GetTraceMetricsResponse{})
 			return
 		}
 		resp, err := h.serviceInfoService.GetTraceMetrics(req)
@@ -53,7 +55,7 @@ func (h *handler) GetTraceMetrics() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetTraceMetricsError,
-				code.Text(code.GetTraceMetricsError)).WithError(err),
+				c.ErrMessage(code.GetTraceMetricsError)).WithError(err),
 			)
 			return
 		}

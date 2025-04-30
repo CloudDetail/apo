@@ -162,7 +162,7 @@ export default function ModifyAlertRuleModal({
   }
   const saveRule = () => {
     form
-      .validateFields({ validateOnly: true })
+      .validateFields()
       .then(() => {
         const formState = form.getFieldsValue(true)
         const alertRule = {
@@ -288,7 +288,16 @@ export default function ModifyAlertRuleModal({
               onChange={(value) => changeGroupLabel('group', value?.key)}
             />
           </Form.Item>
-          <Form.Item label={t('modifyAlertRuleModal.alertRuleName')} name="alert" required>
+          <Form.Item
+            label={t('modifyAlertRuleModal.alertRuleName')}
+            name="alert"
+            required
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
             <Input placeholder={t('modifyAlertRuleModal.alertRuleName')} />
           </Form.Item>
           <Form.Item label={t('modifyAlertRuleModal.alertCondition')} name="condition">
@@ -310,7 +319,16 @@ export default function ModifyAlertRuleModal({
               <MonacoEditorWrapper defaultValue={expr} handleEditorChange={setExpr} />
             </div>
           </Form.Item> */}
-          <Form.Item label={t('modifyAlertRuleModal.duration')} name="for" required>
+          <Form.Item
+            label={t('modifyAlertRuleModal.duration')}
+            name="for"
+            required
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
             <InputNumber
               addonAfter={
                 <Select

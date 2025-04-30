@@ -4,7 +4,7 @@ import { BiCctv } from 'react-icons/bi'
 import { Badge } from 'antd'
 import { useUpdateEffect } from 'react-use'
 import _ from 'lodash'
-import { useAlertAnalyzeContext } from '../contexts/AlertAnalyzeContext'
+import { useServiceAnalyzeContext } from '../contexts/ServiceAnalyzeContext'
 
 const handleStyle = { left: 10 }
 
@@ -19,7 +19,7 @@ const AlertAnalyzeNode = React.memo((props) => {
     setSelectedNodeInfo,
     selectedNodeInfo,
     isPlaying,
-  } = useAlertAnalyzeContext()
+  } = useServiceAnalyzeContext()
   const [prevSumCount, setPrevSumCount] = useState(0)
   const onChange = useCallback((evt) => {}, [])
   const nodeRef = useRef(null)
@@ -90,7 +90,7 @@ const AlertAnalyzeNode = React.memo((props) => {
         className="invisible"
       />
       <div
-        className="nodeContent w-[200px] min-h-[60px] "
+        className="nodeContent w-[240px] min-h-[60px] "
         style={{ backgroundColor: 'rgba(19, 25, 32, 0.6)' }}
       >
         <div className="absolute top-0 left-0">

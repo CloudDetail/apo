@@ -1,25 +1,29 @@
 // @ts-ignore
-import { Badge, Select, Tag, Tabs } from 'antd'
+import { Select, Tag, Tabs } from 'antd'
 import Empty from 'src/core/components/Empty/Empty'
 // @ts-ignore
 import React, { useEffect, useState, useRef } from 'react'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 import { convertTime } from 'src/core/utils/time'
 // @ts-ignore
 import { VariableSizeList as List } from 'react-window'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
+import { useTranslation } from 'react-i18next'
+const i18nKey = 'node'
 
-const AnormalList = () => {
+const AnormalList = ({ scrollHeight = null }) => {
+  const { t } = useTranslation('pro/dataViewCom')
+
   const {
     finalAnormalEvents,
     deltaAnormalEvents,
     selectedNodeInfo,
     anormalTypes,
     anormalTypesOptions,
-  } = useAlertAnalyzeContext()
+  } = useServiceAnalyzeContext()
   const { startTime: stepStartTime, endTime: stepEndTime } = useSelector(selectSecondsTimeRange)
-  const viewportHeight = window.innerHeight
+  const viewportHeight = scrollHeight ?? window.innerHeight
   const [newAnormalList, setNewAnormalList] = useState([])
   const [updateAnormalList, setUpdateAnormalList] = useState([])
   const [resolvedAnormalList, setResolvedAnormalList] = useState([])
@@ -57,7 +61,7 @@ const AnormalList = () => {
       key: 'startFiring',
       label: (
         <Tag key={'startFiring'} color={'error'}>
-          {'新增'} {getList('startFiring').length}
+          {t('add')} {getList('startFiring').length}
         </Tag>
       ),
     },
@@ -65,7 +69,7 @@ const AnormalList = () => {
       key: 'updatedFiring',
       label: (
         <Tag key={'updatedFiring'} color={'warning'}>
-          {'重复'} {getList('updatedFiring').length}
+          {t('duplicate')} {getList('updatedFiring').length}
         </Tag>
       ),
     },
@@ -73,7 +77,7 @@ const AnormalList = () => {
       key: 'resolved',
       label: (
         <Tag key={'resolved'} color={'success'}>
-          {'已解决'} {getList('resolved').length}
+          {t('resolved')} {getList('resolved').length}
         </Tag>
       ),
     },
@@ -81,7 +85,7 @@ const AnormalList = () => {
       key: 'all',
       label: (
         <Tag key={'all'} color={'processing'}>
-          {'当前遗留'} {getList('all').length}
+          {t('currentBacklog')} {getList('all').length}
         </Tag>
       ),
     },
@@ -130,19 +134,19 @@ const AnormalList = () => {
         <div className="text-xs flex-grow">
           <div>{data[index].anormalReason}</div>
           <div>
-            <span className="text-gray-400">应用名称：</span>
+            <span className="text-gray-400">{t('appName')}：</span>
             {data[index].serviceName}
           </div>
           <div className="text-ellipsis text-wrap">
-            <span className="text-gray-400">服务端点：</span>
+            <span className="text-gray-400">{t('serviceEndpoint')}：</span>
             {data[index].endpoint}
           </div>
           <div className="text-ellipsis text-wrap">
-            <span className="text-gray-400">时间：</span>
+            <span className="text-gray-400">{t('time')}：</span>
             {convertTime(data[index].timestamp, 'yyyy-mm-dd hh:mm:ss.SSS')}
           </div>
           <div className="text-ellipsis text-wrap">
-            <span className="text-gray-400">详情：</span>
+            <span className="text-gray-400">{t('details')}：</span>
             {data[index].anormalMsg}
           </div>
         </div>
@@ -161,13 +165,6 @@ const AnormalList = () => {
         </div>
       </div>
     )
-  }
-
-  const removeType = (str) => {
-    if (str.includes('类型')) {
-      return str.replace('类型', '')
-    }
-    return str
   }
 
   useEffect(() => {
@@ -194,7 +191,7 @@ const AnormalList = () => {
       .map((item) => {
         return {
           value: item.key,
-          label: removeType(item.label),
+          label: item.label,
           type: item.value,
         }
       })
@@ -254,9 +251,9 @@ const AnormalList = () => {
     setAllAnormalList(filterByAnormalType(allAnormalList))
   }, [deltaAnormalEvents, finalAnormalEvents, selectedNodeInfo, anormalType])
   return (
-    <div style={{ height: viewportHeight }}>
+    <div style={{ height: viewportHeight }} className="flex flex-col">
       <div
-        className="flex items-start justify-between"
+        className="flex items-start justify-between shrink-0"
         style={{ flexDirection: 'column', marginBottom: '0px' }}
       >
         <div>
@@ -270,12 +267,13 @@ const AnormalList = () => {
             onChange={(value) => {
               setAnormalType(value)
             }}
+            className="text-xs"
             style={{
               width: '100%',
               minWidth: '240px',
               maxWidth: '700px',
             }}
-            placeholder="请选择错误类型"
+            placeholder={t('selectErrorType')}
           />
         </div>
         <div>
@@ -295,6 +293,7 @@ const AnormalList = () => {
         }}
         key={key}
         style={{ width: '100%' }}
+        className="flex-1 h-0"
       >
         <div
           style={
@@ -314,7 +313,7 @@ const AnormalList = () => {
         >
           {currentList.length ? (
             <List
-              height={viewportHeight - 310}
+              height={viewportHeight - 150}
               width={'100%'}
               itemSize={getRowHeight}
               itemData={getList(anormalStatus)}
@@ -324,7 +323,7 @@ const AnormalList = () => {
               {Row}
             </List>
           ) : (
-            <Empty context="暂无数据" />
+            <Empty />
           )}
         </div>
       </div>

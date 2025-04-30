@@ -4,17 +4,25 @@
 package alerts
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/integration/workflow"
 )
 
 var _ Service = (*service)(nil)
 
 type Service interface {
+	// ========================告警检索========================
+	AlertEventList(req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error)
+
+	AlertEventClassify(req *request.AlertEventClassifyRequest) (*response.AlertEventClassifyResponse, error)
+
 	// ========================告警配置========================
 
 	// InputAlertManager receive AlertManager alarm events
@@ -28,8 +36,8 @@ type Service interface {
 	UpdateAlertRuleFile(req *request.UpdateAlertRuleConfigRequest) error
 
 	// AlertRule Options
-	GetGroupList() response.GetGroupListResponse
-	GetMetricPQL() (*response.GetMetricPQLResponse, error)
+	GetGroupList(ctx core.Context) response.GetGroupListResponse
+	GetMetricPQL(ctx core.Context) (*response.GetMetricPQLResponse, error)
 
 	// AlertRule CRUD
 	GetAlertRules(req *request.GetAlertRuleRequest) response.GetAlertRulesResponse
@@ -50,13 +58,18 @@ type service struct {
 	promRepo prometheus.Repo
 	k8sApi   kubernetes.Repo
 	dbRepo   database.Repo
+	difyRepo dify.DifyRepo
+
+	alertWorkflow *workflow.AlertWorkflow
 }
 
-func New(chRepo clickhouse.Repo, promRepo prometheus.Repo, k8sApi kubernetes.Repo, dbRepo database.Repo) Service {
+func New(chRepo clickhouse.Repo, promRepo prometheus.Repo, k8sApi kubernetes.Repo, dbRepo database.Repo, difyRepo dify.DifyRepo, alertWorkflow *workflow.AlertWorkflow) Service {
 	return &service{
-		chRepo:   chRepo,
-		promRepo: promRepo,
-		k8sApi:   k8sApi,
-		dbRepo:   dbRepo,
+		chRepo:        chRepo,
+		promRepo:      promRepo,
+		k8sApi:        k8sApi,
+		dbRepo:        dbRepo,
+		difyRepo:      difyRepo,
+		alertWorkflow: alertWorkflow,
 	}
 }

@@ -4,12 +4,16 @@
 package log
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
+	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // GetFaultLogPageList get the fault site paging log
@@ -30,7 +34,7 @@ func (h *handler) GetFaultLogPageList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -43,7 +47,14 @@ func (h *handler) GetFaultLogPageList() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, req.GroupID, &req.Namespaces, &req.Service, "")
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, &response.GetFaultLogPageListResponse{
+				Pagination: &model.Pagination{
+					Total:       0,
+					CurrentPage: 0,
+					PageSize:    0,
+				},
+				List: []clickhouse.FaultLogResult{},
+			})
 			return
 		}
 		resp, err := h.logService.GetFaultLogPageList(req)
@@ -51,7 +62,7 @@ func (h *handler) GetFaultLogPageList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetFaultLogPageListError,
-				code.Text(code.GetFaultLogPageListError)).WithError(err),
+				c.ErrMessage(code.GetFaultLogPageListError)).WithError(err),
 			)
 			return
 		}

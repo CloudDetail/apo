@@ -5,10 +5,12 @@ package core
 
 import (
 	"errors"
+	"net/http"
+	"strings"
+	"sync"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"net/http"
-	"sync"
 
 	go_context "context"
 
@@ -68,7 +70,7 @@ type Context interface {
 	getPayload() interface{}
 
 	// AbortWithError error return
-	HandleError(err error, expectCode string)
+	HandleError(err error, expectCode string, emptyResp any)
 	// AbortWithError 错误返回
 	AbortWithError(err BusinessError)
 	abortError() BusinessError
@@ -90,6 +92,11 @@ type Context interface {
 	Request() *http.Request
 
 	ClientIP() string
+
+	LANG() string
+	LANGFromParam(param string) string
+
+	ErrMessage(errCode string) string
 
 	GetWriter() http.ResponseWriter
 }
@@ -164,21 +171,25 @@ func (c *context) SetHeader(key, value string) {
 	c.ctx.Header(key, value)
 }
 
-func (c *context) HandleError(err error, expectCode string) {
+func (c *context) HandleError(err error, expectCode string, emptyResp any) {
 	var vErr model.ErrWithMessage
+	var errCode string = expectCode
 	if errors.As(err, &vErr) {
-		c.AbortWithError(Error(
-			http.StatusBadRequest,
-			vErr.Code,
-			code.Text(vErr.Code),
-		).WithError(err))
-	} else {
-		c.AbortWithError(Error(
-			http.StatusBadRequest,
-			expectCode,
-			code.Text(expectCode),
-		).WithError(err))
+		errCode = vErr.Code
 	}
+
+	if errCode == code.GroupNoDataError {
+		if emptyResp != nil {
+			c.Payload(emptyResp)
+			return
+		}
+	}
+
+	c.AbortWithError(Error(
+		http.StatusBadRequest,
+		errCode,
+		c.ErrMessage(errCode),
+	).WithError(err))
 }
 
 func (c *context) AbortWithError(err BusinessError) {
@@ -218,6 +229,32 @@ func (c *context) Request() *http.Request {
 
 func (c *context) ClientIP() string {
 	return c.ctx.ClientIP()
+}
+
+func (c *context) LANG() string {
+	if c == nil {
+		return code.LANG_ZH
+	}
+	lang := c.GetHeader("APO-Language")
+	if strings.HasPrefix(strings.ToLower(lang), code.LANG_EN) {
+		return code.LANG_EN
+	}
+	return code.LANG_ZH
+}
+
+func (c *context) LANGFromParam(param string) string {
+	if len(param) > 0 {
+		if strings.HasPrefix(strings.ToLower(param), code.LANG_EN) {
+			return code.LANG_EN
+		}
+		return code.LANG_ZH
+	}
+
+	return c.LANG()
+}
+
+func (c *context) ErrMessage(errCode string) string {
+	return code.Text(c.LANG(), errCode)
 }
 
 func (c *context) GetWriter() http.ResponseWriter {

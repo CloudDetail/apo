@@ -4,14 +4,15 @@
 package service
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
@@ -25,6 +26,7 @@ import (
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
 // @Param service query string false "Query service name"
+// @Param services query []string false "query service list" collectionFormat(multi)
 // @Param source query string false "Query the alarm source"
 // @Param group query string false "Query alarm type"
 // @Param name query string false "Query alarm name"
@@ -43,15 +45,26 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
 
+		if len(req.Service) > 0 {
+			req.Services = append(req.Services, req.Service)
+		}
 		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Services, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, &response.GetAlertEventsResponse{
+				Pagination: &model.Pagination{
+					Total:       0,
+					CurrentPage: 0,
+					PageSize:    0,
+				},
+				TotalCount: 0,
+				EventList:  []alert.AlertEvent{},
+			})
 			return
 		}
 		resp, err := h.serviceInfoService.GetAlertEvents(req)
@@ -59,16 +72,14 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetAlertEventsError,
-				code.Text(code.GetAlertEventsError)).WithError(err),
+				c.ErrMessage(code.GetAlertEventsError)).WithError(err),
 			)
 			return
 		}
 		if resp == nil {
 			resp = &response.GetAlertEventsResponse{
-				Pagination: &model.Pagination{
-					Total: 0,
-				},
-				EventList: []clickhouse.PagedAlertEvent{},
+				TotalCount: 0,
+				EventList:  []alert.AlertEvent{},
 			}
 		}
 		c.Payload(resp)

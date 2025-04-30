@@ -4,7 +4,8 @@ import _ from 'lodash'
 import { ThemeColor, ThemeStyle } from 'src/constants'
 import { formatUnit } from 'src/core/utils/time'
 import { useCauseReportContext } from 'src/pro/contexts/CauseReportContext'
-
+import { useTranslation } from 'react-i18next'
+const i18nKey = 'topology'
 const redRGB = {
   r: 255,
   g: 60,
@@ -63,6 +64,7 @@ function getAllNodes(
 }
 
 function TraceTopologyCom({ data, category }: any) {
+  const { t } = useTranslation('pro/causeReport')
   const nodes = useRef<any>()
   const maxandminMutatedValue = useRef<any>()
   const chartRef = useRef<any>()
@@ -76,12 +78,12 @@ function TraceTopologyCom({ data, category }: any) {
   const theme = ThemeStyle['dark']
   const legendItems = [
     {
-      label: '无异常',
+      label: t(`${i18nKey}.noAnomaly`),
       color: ThemeColor.gray,
       yAxis: 0,
     },
     {
-      label: '异常',
+      label: t(`${i18nKey}.anomaly`),
       color: ThemeColor.red,
       yAxis: 0,
     },
@@ -152,23 +154,23 @@ function TraceTopologyCom({ data, category }: any) {
         const key = d3.select(this).attr('data-key')
         let node = nodes.current.find((opt: any) => opt.key === key)
         const htmlContent = `<div class='tooltip_content'>
-                    <div class='title'>${node.id}</div>
-                    <div class='content'>
-                        <div class='content-info'>URL: ${node.url}</div>
-                        <div class='content-info-row'>
-                            <div class='content-info'>是否被Profiled: ${node.isProfiled ? '是' : '否'}</div>
-                            <div class='content-info'>自身耗时: ${formatUnit(node.selfTime, 'ns')}</div>
-                        </div>
-                        <div class='content-info-row'>
-                            <div class='content-info'>历史基线: ${formatUnit(node.p90, 'ns')}</div>
-                            <div class='content-info'>本次耗时: ${formatUnit(node.totalTime, 'ns')}</div>
-                        </div>
-                        <div class='content-info-row'>
-                            <div class='content-info'>突变值占比: ${(node.mutatedValuePrecent * 100).toFixed(2) + '%'}</div>
-                            <div class='content-info'>突变值占比排名: ${node.mutatedValuePrecentSort}</div>
-                        </div>
-                    </div>
-                </div>`
+  <div class='title'>${node.id}</div>
+  <div class='content'>
+    <div class='content-info'>URL: ${node.url}</div>
+    <div class='content-info-row'>
+      <div class='content-info'>${t(`${i18nKey}.profiled`)}: ${node.isProfiled ? t(`${i18nKey}.profiled`) : t(`${i18nKey}.notProfiled`)}</div>
+      <div class='content-info'>${t(`${i18nKey}.selfTime`)}: ${formatUnit(node.selfTime, 'ns')}</div>
+    </div>
+    <div class='content-info-row'>
+      <div class='content-info'>${t(`${i18nKey}.historicalBaseline`)}: ${formatUnit(node.p90, 'ns')}</div>
+      <div class='content-info'>${t(`${i18nKey}.currentDuration`)}: ${formatUnit(node.totalTime, 'ns')}</div>
+    </div>
+    <div class='content-info-row'>
+      <div class='content-info'>${t(`${i18nKey}.mutationRatio`)}: ${(node.mutatedValuePrecent * 100).toFixed(2) + '%'}</div>
+      <div class='content-info'>${t(`${i18nKey}.mutationRank`)}: ${node.mutatedValuePrecentSort}</div>
+    </div>
+  </div>
+</div>`
         d3.select('#chart_tooltip').html(htmlContent)
       })
       // rect.on('mouseenter', () => {
@@ -370,13 +372,13 @@ function TraceTopologyCom({ data, category }: any) {
       .attr('transform', `translate(${WIDTH / 2 - (values.length * colorRectWidth) / 2}, 10)`)
     colorGWarp
       .append('text')
-      .text('(-)耗时突变减少')
+      .text('(-)' + t(`${i18nKey}.decrease`))
       .attr('x', (values.length * colorRectWidth) / 2 - 280)
       .attr('y', 10)
       .attr('style', `font-size: 14px;fill: ${ThemeColor.green}`)
     colorGWarp
       .append('text')
-      .text('(+)耗时突变增加')
+      .text('(+)' + t(`${i18nKey}.increase`))
       .attr('x', (values.length * colorRectWidth) / 2 + 170)
       .attr('y', 10)
       .attr('style', `font-size: 14px;fill: ${ThemeColor.red}`)

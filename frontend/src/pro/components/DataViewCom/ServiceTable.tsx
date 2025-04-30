@@ -10,47 +10,39 @@ import StatusInfo from 'src/core/components/StatusInfo'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export default function ServiceTable({ data }) {
+  const { t } = useTranslation('pro/dataViewCom')
+
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const column = [
     {
-      title: '应用名称',
+      title: t('applicationName'),
       accessor: 'serviceName',
       customWidth: 150,
     },
     {
-      title: '命名空间',
+      title: t('namespace'),
       accessor: 'namespaces',
       customWidth: 120,
       Cell: (props) => {
         return (props.value ?? []).length > 0 ? (
           props.value.join()
         ) : (
-          <span className="text-slate-400">N/A</span>
+          <span className="text-slate-400">{t('na')}</span>
         )
       },
     },
     {
-      title: '应用详情',
+      title: t('applicationDetails'),
       accessor: 'serviceDetails',
       hide: true,
       isNested: true,
       customWidth: '55%',
-      // clickCell: (props) => {
-      //   // const navigate = useNavigate()
-      //   // toServiceInfo()
-      //   const serviceName = props.cell.row.values.serviceName
-      //   const endpoint = props.trs.endpoint
-      //   // TODO encode
-      //   navigate(
-      //     `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}`,
-      //   )
-      // },
-
       children: [
         {
-          title: '服务端点',
+          title: t('serviceEndpoint'),
           accessor: 'endpoint',
           canExpand: false,
         },
@@ -59,16 +51,16 @@ export default function ServiceTable({ data }) {
             <Tooltip
               title={
                 <div>
-                  <div>自身：服务自身延时占比50%以上</div>
-                  <div>依赖：请求下游服务延时占比50%以上</div>
-                  <div>未知：未找到相关指标</div>
+                  <div>{t('delaySourceTooltipSelf')}</div>
+                  <div>{t('delaySourceTooltipDependency')}</div>
+                  <div>{t('delaySourceTooltipUnknown')}</div>
                 </div>
               }
             >
               <div className="flex flex-row justify-center items-center">
                 <div>
-                  <div className="text-center flex flex-row ">延时主要来源</div>
-                  <div className="block text-[10px]">(自身/依赖/未知)</div>
+                  <div className="text-center flex flex-row ">{t('delaySource')}</div>
+                  <div className="block text-[10px]">{t('delaySourceType')}</div>
                 </div>
                 <AiOutlineInfoCircle size={16} className="ml-1" />
               </div>
@@ -83,48 +75,28 @@ export default function ServiceTable({ data }) {
           },
         },
         {
-          title: '平均响应时间',
+          title: t('averageResponseTime'),
           minWidth: 140,
           accessor: `latency`,
-
           Cell: (props) => {
-            // eslint-disable-next-line react/prop-types
             const { value } = props
-
-            return (
-              <TempCell type="latency" data={value} timeRange={{ startTime, endTime }} />
-              // <div display="flex" sx={{ alignItems: 'center' }} color="white">
-              //   <div sx={{ flex: 1, mr: 1 }} color="white">
-              //     {/* eslint-disable-next-line react/prop-types */}
-              //     {value.value}
-              //   </div>
-
-              //   <div display="flex" sx={{ alignItems: 'center', height: 30 }}>
-              //     {' '}
-              //     <AreaChart color="rgba(76, 192, 192, 1)" />
-              //   </div>
-              // </div>
-            )
+            return <TempCell type="latency" data={value} timeRange={{ startTime, endTime }} />
           },
         },
         {
-          title: '错误率',
+          title: t('errorRate'),
           accessor: `errorRate`,
-
           minWidth: 140,
           Cell: (props) => {
-            // eslint-disable-next-line react/prop-types
             const { value } = props
             return <TempCell type="errorRate" data={value} timeRange={{ startTime, endTime }} />
           },
         },
         {
-          title: '吞吐量',
+          title: t('throughput'),
           accessor: `tps`,
           minWidth: 140,
-
           Cell: (props) => {
-            // eslint-disable-next-line react/prop-types
             const { value } = props
             return <TempCell type="tps" data={value} timeRange={{ startTime, endTime }} />
           },
@@ -132,20 +104,18 @@ export default function ServiceTable({ data }) {
       ],
     },
     {
-      title: '日志错误数',
+      title: t('logErrorCount'),
       accessor: `logs`,
       minWidth: 140,
       Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
         const { value } = props
         return <TempCell type="logs" data={value} timeRange={{ startTime, endTime }} />
       },
     },
     {
-      title: '基础设施状态',
+      title: t('infrastructureStatus'),
       accessor: `infrastructureStatus`,
       Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
         const { value, trs, column } = props
         const alertReason = trs?.alertReason?.[column.accessor]
         return (
@@ -156,10 +126,9 @@ export default function ServiceTable({ data }) {
       },
     },
     {
-      title: '网络质量状态',
+      title: t('networkQualityStatus'),
       accessor: `netStatus`,
-      Cell: (/** @type {{ value: any; }} */ props) => {
-        // eslint-disable-next-line react/prop-types
+      Cell: (props) => {
         const { value, trs, column } = props
         const alertReason = trs?.alertReason?.[column.accessor]
         return (
@@ -170,10 +139,9 @@ export default function ServiceTable({ data }) {
       },
     },
     {
-      title: 'K8s事件状态',
+      title: t('k8sEventStatus'),
       accessor: `k8sStatus`,
       Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
         const { value, trs, column } = props
         const alertReason = trs?.alertReason?.[column.accessor]
         return (
@@ -184,7 +152,7 @@ export default function ServiceTable({ data }) {
       },
     },
     {
-      title: '末次部署或重启时间',
+      title: t('lastDeploymentOrRestartTime'),
       accessor: `timestamp`,
       minWidth: 90,
       Cell: (props) => {
@@ -194,13 +162,14 @@ export default function ServiceTable({ data }) {
             {value !== null ? (
               convertTime(value, 'yyyy-mm-dd hh:mm:ss')
             ) : (
-              <span className="text-slate-400">N/A</span>
-            )}{' '}
+              <span className="text-slate-400">{t('na')}</span>
+            )}
           </>
         )
       },
     },
   ]
+
   const tableProps = useMemo(() => {
     return {
       columns: column,

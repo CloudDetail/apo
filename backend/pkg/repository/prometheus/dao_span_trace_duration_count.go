@@ -87,7 +87,7 @@ func (repo *promRepo) GetServiceWithNamespace(startTime, endTime int64, namespac
 	for _, sample := range vector {
 		service := string(sample.Metric["svc_name"])
 		namespace := string(sample.Metric["namespace"])
-		if len(namespace) == 0 || len(service) == 0 {
+		if len(service) == 0 {
 			continue
 		}
 		if _, exists := result[service]; !exists {
@@ -119,9 +119,7 @@ func (repo *promRepo) GetServiceNamespace(startTime, endTime int64, service stri
 
 	for _, sample := range vector {
 		namespace := string(sample.Metric["namespace"])
-		if len(namespace) > 0 {
-			result = append(result, namespace)
-		}
+		result = append(result, namespace)
 	}
 
 	return result, nil
@@ -147,7 +145,7 @@ func (repo *promRepo) GetNamespaceWithService(startTime, endTime int64) (map[str
 	for _, sample := range vector {
 		service := string(sample.Metric["svc_name"])
 		namespace := string(sample.Metric["namespace"])
-		if len(namespace) == 0 || len(service) == 0 {
+		if len(service) == 0 && len(namespace) == 0 {
 			continue
 		}
 		if _, exists := result[namespace]; !exists {
@@ -256,8 +254,9 @@ func (repo *promRepo) GetServiceEndPointList(startTime int64, endTime int64, ser
 }
 
 // Query the list of active instances
-func (repo *promRepo) GetActiveInstanceList(startTime int64, endTime int64, serviceName string) (*model.ServiceInstances, error) {
-	queryCondition := fmt.Sprintf("svc_name='%s'", serviceName)
+func (repo *promRepo) GetActiveInstanceList(startTime int64, endTime int64, serviceNames []string) (*model.ServiceInstances, error) {
+	queryCondition := fmt.Sprintf("%s'%s'", ServiceRegexPQLFilter, RegexMultipleValue(serviceNames...))
+
 	query := fmt.Sprintf(TEMPLATE_GET_ACTIVE_SERVICE_INSTANCE, queryCondition, VecFromS2E(startTime, endTime))
 	res, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
 	if err != nil {

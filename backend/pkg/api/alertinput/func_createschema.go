@@ -28,7 +28,7 @@ func (h *handler) CreateSchema() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.CreateSchemaFailed,
-				code.Text(code.CreateSchemaFailed)).WithError(err),
+				c.ErrMessage(code.CreateSchemaFailed)).WithError(err),
 			)
 			return
 		}
@@ -38,7 +38,7 @@ func (h *handler) CreateSchema() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.CreateSchemaFailed,
-				code.Text(code.CreateSchemaFailed)).WithError(err),
+				c.ErrMessage(code.CreateSchemaFailed)).WithError(err),
 			)
 			return
 		}

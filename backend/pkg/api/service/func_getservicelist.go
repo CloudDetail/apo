@@ -31,7 +31,7 @@ func (h *handler) GetServiceList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -41,7 +41,7 @@ func (h *handler) GetServiceList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetServiceListError,
-				code.Text(code.GetServiceListError)).WithError(err),
+				c.ErrMessage(code.GetServiceListError)).WithError(err),
 			)
 			return
 		}

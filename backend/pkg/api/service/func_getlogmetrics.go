@@ -4,13 +4,15 @@
 package service
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // GetLogMetrics get log metrics
@@ -37,7 +39,7 @@ func (h *handler) GetLogMetrics() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -45,7 +47,7 @@ func (h *handler) GetLogMetrics() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, []*response.GetLogMetricsResponse{})
 			return
 		}
 		resp, err := h.serviceInfoService.GetLogMetrics(req)
@@ -53,7 +55,7 @@ func (h *handler) GetLogMetrics() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetLogMetricsError,
-				code.Text(code.GetLogMetricsError)).WithError(err),
+				c.ErrMessage(code.GetLogMetricsError)).WithError(err),
 			)
 			return
 		}

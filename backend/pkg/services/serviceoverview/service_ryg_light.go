@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -14,7 +16,7 @@ import (
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error) {
+func (s *service) GetServicesRYGLightStatus(ctx core.Context, startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error) {
 	var servicesMap = &servicesRYGLightMap{
 		MetricGroupList: []*RYGLightStatus{},
 		MetricGroupMap:  map[prom.ServiceKey]*RYGLightStatus{},
@@ -51,7 +53,7 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 	}
 
 	avgLogErrorCountDoD, err := s.promRepo.QueryAggMetricsWithFilter(
-		prom.DayOnDay(prom.PQLAvgLogErrorCountWithFilters),
+		prom.DayOnDay(prom.PQLAvgLogErrorCountCombineEndpointsInfoWithFilters),
 		startMicroTS, endMicroTs,
 		prom.SVCGranularity, filters...)
 	if err == nil {
@@ -82,7 +84,7 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 
 		resp.ServiceList = append(resp.ServiceList, &response.ServiceRYGResult{
 			ServiceName: svcKey.SvcName,
-			RYGResult:   *status.ExposeRYGLightStatus(),
+			RYGResult:   *status.ExposeRYGLightStatus(ctx.LANG()),
 		})
 	}
 
@@ -108,69 +110,129 @@ type RYGLightStatus struct {
 	model.AlertEventLevelCountMap // Alarm event level statistics
 }
 
-func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
+func (s *RYGLightStatus) ExposeRYGLightStatus(lang string) *response.RYGResult {
 	var res = &response.RYGResult{}
 
 	latencyScore := ScoreFromDoD(s.LatencyDoD, 10, 20, 50)
 	if latencyScore >= 0 {
 		res.Score += latencyScore
+
+		var detail string
+		if lang == code.LANG_EN {
+			detail = fmt.Sprintf("latency day-on-day growth %.2f%%", *s.LatencyDoD)
+		} else {
+			detail = fmt.Sprintf("latency 同比增长 %.2f%%", *s.LatencyDoD)
+		}
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
 			Key:    "latency",
 			Score:  latencyScore,
-			Detail: fmt.Sprintf("latency 同比增长 %.2f%%", *s.LatencyDoD),
+			Detail: detail,
 		})
 	} else if latencyScore == -1 {
 		res.Score += 3
+
+		var detail string
+		if lang == code.LANG_EN {
+			detail = "Failed to get yesterday's latency metric, skipping check"
+		} else {
+			detail = "未获取到昨日延时,跳过检查"
+		}
+
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
 			Key:    "latency",
 			Score:  3,
-			Detail: "未获取到昨日延时,跳过检查",
+			Detail: detail,
 		})
 	}
 
 	errorRateScore := ScoreFromDoD(s.ErrorRateDoD, 5, 10, 20)
 	if errorRateScore >= 0 {
 		res.Score += errorRateScore
+
+		var detail string
+		if lang == code.LANG_EN {
+			detail = fmt.Sprintf("errorRate day-on-day growth %.2f%%", *s.ErrorRateDoD)
+		} else {
+			detail = fmt.Sprintf("errorRate 同比增长 %.2f%%", *s.ErrorRateDoD)
+		}
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
 			Key:    "errorRate",
 			Score:  errorRateScore,
-			Detail: fmt.Sprintf("errorRate 同比增长 %.2f%%", *s.ErrorRateDoD),
+			Detail: detail,
 		})
 	} else if s.ErrorRateAvg != nil && *s.ErrorRateAvg > 0 {
+		var detail string
+		if lang == code.LANG_EN {
+			detail = fmt.Sprintf("errorRate There were no errors at the same time yesterday. Today's error rate: %.2f%%", *s.ErrorRateAvg)
+		} else {
+			detail = fmt.Sprintf("errorRate 昨日同时期无错误,今日错误率: %.2f%%", *s.ErrorRateAvg)
+		}
+
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
 			Key:    "errorRate",
 			Score:  0,
-			Detail: fmt.Sprintf("errorRate 昨日同时期无错误,今日错误率: %.2f%%", *s.ErrorRateAvg),
+			Detail: detail,
 		})
 	} else {
+
+		var detail string
+		if lang == code.LANG_EN {
+			detail = "errorRate No errors occurred today."
+		} else {
+			detail = "errorRate 今日未发生错误"
+		}
+
 		res.Score += 3
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
 			Key:    "errorRate",
 			Score:  3,
-			Detail: "errorRate 今日未发生错误",
+			Detail: detail,
 		})
 	}
 
 	logErrorCountScore := ScoreFromDoD(s.LogErrorCountDoD, 5, 10, 20)
 	if logErrorCountScore >= 0 {
 		res.Score += logErrorCountScore
+
+		var detail string
+		if lang == code.LANG_EN {
+			detail = fmt.Sprintf("logErrorCount day-on-day growth %.2f%%", *s.LogErrorCountDoD)
+		} else {
+			detail = fmt.Sprintf("logErrorCount 同比增长 %.2f%%", *s.LogErrorCountDoD)
+		}
+
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
 			Key:    "logErrorCount",
 			Score:  logErrorCountScore,
-			Detail: fmt.Sprintf("logErrorCount 同比增长 %.2f%%", *s.LogErrorCountDoD),
+			Detail: detail,
 		})
 	} else if s.LogErrorCountAvg != nil && *s.LogErrorCountAvg > 0 {
+		var detail string
+		if lang == code.LANG_EN {
+			detail = fmt.Sprintf("logErrorCount There were no errors at the same time yesterday. Today's error count: %.2f%%", *s.LogErrorCountDoD)
+		} else {
+			detail = fmt.Sprintf("logErrorCount 昨日同时期无错误,今日日志错误数: %.0f%%", *s.ErrorRateAvg)
+		}
+
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
 			Key:    "logErrorCount",
 			Score:  0,
-			Detail: fmt.Sprintf("logErrorCount 昨日同时期无错误,今日日志错误数: %.0f%%", *s.ErrorRateAvg),
+			Detail: detail,
 		})
 	} else {
 		res.Score += 3
+
+		var detail string
+		if lang == code.LANG_EN {
+			detail = "logErrorCount No errors occurred today."
+		} else {
+			detail = "logErrorCount 今日未产生错误日志"
+		}
+
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
 			Key:    "logErrorCount",
 			Score:  3,
-			Detail: "logErrorCount 今日未产生错误日志",
+			Detail: detail,
 		})
 	}
 
@@ -180,22 +242,36 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
 			Key:    "alert",
 			Score:  alertScore,
-			Detail: getAlertScoreDetail(alertScore),
+			Detail: getAlertScoreDetail(lang, alertScore),
 		})
 	}
 
 	if len(s.Instances) < 2 {
+		var detail string
+		if lang == code.LANG_EN {
+			detail = "The number of application instances is less than 2, there is a risk of service unavailability"
+		} else {
+			detail = "应用实例数小于2, 存在服务不可用风险"
+		}
+
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
 			Key:    "replica",
 			Score:  0,
-			Detail: "应用实例数小于2, 存在服务不可用风险",
+			Detail: detail,
 		})
 	} else {
+		var detail string
+		if lang == code.LANG_EN {
+			detail = "Number of application instances is greater than 2, and the service has available replicas"
+		} else {
+			detail = "应用实例数大于2, 服务有可用副本"
+		}
+
 		res.Score += 3
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
 			Key:    "replica",
 			Score:  3,
-			Detail: "应用实例数大于2, 服务有可用副本",
+			Detail: detail,
 		})
 	}
 
@@ -258,15 +334,32 @@ func AlertScore(status *model.AlertStatus, eventLevelCountMap *model.AlertEventL
 	return 3
 }
 
-func getAlertScoreDetail(score int) string {
+func getAlertScoreDetail(lang string, score int) string {
 	if score <= 0 {
-		return "存在高优先级告警,系统存在严重问题"
+		if lang == code.LANG_EN {
+			return "There is a high-priority alert, the system has serious problems"
+		} else {
+			return "存在高优先级告警,系统存在严重问题"
+		}
 	} else if score <= 1 {
-		return "存在不同种类的低优先级告警"
+		if lang == code.LANG_EN {
+			return "There are different types of low-priority alerts"
+		} else {
+			return "存在不同种类的低优先级告警"
+		}
 	} else if score <= 2 {
-		return "存在低优先级告警,无明显影响"
+		if lang == code.LANG_EN {
+			return "There are low-priority alerts with no significant impact."
+		} else {
+			return "存在低优先级告警,无明显影响"
+		}
 	} else {
-		return "无告警,系统运行正常"
+
+		if lang == code.LANG_EN {
+			return "No alerts, the system is running normally."
+		} else {
+			return "无告警,系统运行正常"
+		}
 	}
 }
 
@@ -280,6 +373,10 @@ func (s *RYGLightStatus) AppendGroupIfNotExist(metricGroup prom.MGroupName, metr
 
 func (s *RYGLightStatus) InitEmptyGroup(key prom.ConvertFromLabels) prom.MetricGroup {
 	return &RYGLightStatus{}
+}
+
+func (s *RYGLightStatus) SetValues(roupName prom.MGroupName, metricName prom.MName, points []prom.Points) {
+	// Do Nothing
 }
 
 func (s *RYGLightStatus) SetValue(groupName prom.MGroupName, metricName prom.MName, value float64) {

@@ -6,6 +6,8 @@ package user
 import (
 	"context"
 	"errors"
+	"net/mail"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -13,7 +15,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
+func checkUserName(username string) error {
+	_, err := mail.ParseAddress(username + "@apo.com")
+	if err != nil {
+		return model.NewErrWithMessage(errors.New("username format invaild"), code.UserNameError)
+	}
+	return nil
+}
+
 func (s *service) CreateUser(req *request.CreateUserRequest) error {
+	if err := checkUserName(req.Username); err != nil {
+		return err
+	}
+
 	if err := checkPasswordComplexity(req.Password); err != nil {
 		return err
 	}
@@ -29,7 +43,7 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 
 	if len(req.RoleList) == 0 {
 		filter := model.RoleFilter{
-			Name: model.ROLE_VIEWER,
+			Name: model.ROLE_ADMIN,
 		}
 		roles, err := s.dbRepo.GetRoles(filter)
 		if err != nil {
@@ -52,20 +66,30 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 		}
 	}
 
-	filter := model.TeamFilter {
-		IDs: req.TeamList,
-	}
-	exist, err := s.dbRepo.TeamExist(filter)
-	if err != nil {
-		return err
-	}
-
-	if !exist {
-		return model.NewErrWithMessage(errors.New("team does not exist"), code.TeamNotExistError)
+	// Check if the team exists
+	if len(req.TeamList) > 0 {
+		filter := model.TeamFilter{
+			IDs: req.TeamList,
+		}
+		exist, err := s.dbRepo.TeamExist(filter)
+		if err != nil {
+			return err
+		}
+		if !exist {
+			return model.NewErrWithMessage(errors.New("team does not exist"), code.TeamNotExistError)
+		}
 	}
 
 	var assignTeamFunc = func(ctx context.Context) error {
 		return s.dbRepo.AssignUserToTeam(ctx, user.UserID, req.TeamList)
+	}
+
+	var createDifyUserFunc = func(ctx context.Context) error {
+		resp, err := s.difyRepo.AddUser(req.Username, req.Password, "admin")
+		if err != nil || resp.Result != "success" {
+			return errors.New("failed to create user in dify")
+		}
+		return nil
 	}
 
 	var createUserFunc = func(ctx context.Context) error {
@@ -76,5 +100,5 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 		return s.dbRepo.GrantRoleWithUser(ctx, user.UserID, req.RoleList)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), createUserFunc, grantRoleFunc, assignTeamFunc)
+	return s.dbRepo.Transaction(context.Background(), createUserFunc, createDifyUserFunc, grantRoleFunc, assignTeamFunc)
 }

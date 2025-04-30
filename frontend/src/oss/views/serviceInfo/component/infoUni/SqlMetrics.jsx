@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CAccordionBody } from '@coreui/react'
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useMemo, useState } from 'react'
 import BasicTable from 'src/core/components/Table/basicTable'
 import TempCell from 'src/core/components/Table/TempCell'
 import { usePropsContext } from 'src/core/contexts/PropsContext'
@@ -24,63 +23,66 @@ export default function SqlMetrics() {
   const [loading, setLoading] = useState(false)
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [pageIndex, setPageIndex] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(5)
   const [total, setTotal] = useState(0)
-  const column = [
-    {
-      title: t('sqlMetrics.dbConnection'),
-      accessor: 'dbUrl',
-      Cell: ({ value }) => {
-        return <>{value ? value : <span className="text-slate-400">N/A</span>}</>
+  const column = useMemo(
+    () => [
+      {
+        title: t('sqlMetrics.dbConnection'),
+        accessor: 'dbUrl',
+        Cell: ({ value }) => {
+          return <>{value || <span className="text-slate-400">N/A</span>}</>
+        },
       },
-    },
-    {
-      title: t('sqlMetrics.dbOperation'),
-      accessor: 'dbOperation',
-      Cell: ({ value }) => {
-        return <>{value ? value : <span className="text-slate-400">N/A</span>}</>
+      {
+        title: t('sqlMetrics.dbOperation'),
+        accessor: 'dbOperation',
+        Cell: ({ value }) => {
+          return <>{value || <span className="text-slate-400">N/A</span>}</>
+        },
       },
-    },
 
-    {
-      title: t('sqlMetrics.dbName'),
-      accessor: 'dbName',
-    },
-    {
-      title: t('sqlMetrics.avgResponseTime'),
-      accessor: 'latency',
-      minWidth: 200,
-      Cell: (props) => {
-        const { value } = props
-        return <TempCell type="latency" data={value} timeRange={{ startTime, endTime }} />
+      {
+        title: t('sqlMetrics.dbName'),
+        accessor: 'dbName',
       },
-    },
-    {
-      title: t('sqlMetrics.errorRate'),
-      accessor: 'errorRate',
-      minWidth: 200,
-
-      Cell: (props) => {
-        const { value } = props
-        return <TempCell type="errorRate" timeRange={{ startTime, endTime }} data={value} />
+      {
+        title: t('sqlMetrics.avgResponseTime'),
+        accessor: 'latency',
+        minWidth: 200,
+        Cell: (props) => {
+          const { value } = props
+          return <TempCell type="latency" data={value} timeRange={{ startTime, endTime }} />
+        },
       },
-    },
-    {
-      title: t('sqlMetrics.throughput'),
-      accessor: 'tps',
+      {
+        title: t('sqlMetrics.errorRate'),
+        accessor: 'errorRate',
+        minWidth: 200,
 
-      minWidth: 200,
-      Cell: (props) => {
-        const { value } = props
-        return <TempCell type="tps" timeRange={{ startTime, endTime }} data={value} />
+        Cell: (props) => {
+          const { value } = props
+          return <TempCell type="errorRate" timeRange={{ startTime, endTime }} data={value} />
+        },
       },
-    },
+      {
+        title: t('sqlMetrics.throughput'),
+        accessor: 'tps',
 
-    {
-      title: t('sqlMetrics.dbSource'),
-      accessor: 'dbSystem',
-    },
-  ]
+        minWidth: 200,
+        Cell: (props) => {
+          const { value } = props
+          return <TempCell type="tps" timeRange={{ startTime, endTime }} data={value} />
+        },
+      },
+
+      {
+        title: t('sqlMetrics.dbSource'),
+        accessor: 'dbSystem',
+      },
+    ],
+    [startTime, endTime],
+  )
   const getData = () => {
     if (startTime && endTime) {
       setLoading(true)
@@ -130,10 +132,9 @@ export default function SqlMetrics() {
     getData()
   }, [pageIndex, pageSize])
 
-  const handleTableChange = (props) => {
-    if (props.pageSize && props.pageIndex) {
-      setPageSize(props.pageSize)
-      setPageIndex(props.pageIndex)
+  const handleTableChange = (pageIndex, pageSize) => {
+    if (pageSize && pageIndex) {
+      setPageSize(pageSize), setPageIndex(pageIndex)
     }
   }
   const tableProps = useMemo(() => {
@@ -146,16 +147,17 @@ export default function SqlMetrics() {
       pagination: {
         pageSize: pageSize,
         pageIndex: pageIndex,
-        pageCount: Math.ceil(total / pageSize),
+        total: total,
       },
+      scrollY: 300,
     }
   }, [serviceName, data, column])
   return (
     <>
-      <CAccordionBody className="text-xs relative">
+      <div className="text-xs relative">
         <LoadingSpinner loading={loading} />
         {data && <BasicTable {...tableProps} />}
-      </CAccordionBody>
+      </div>
     </>
   )
 }

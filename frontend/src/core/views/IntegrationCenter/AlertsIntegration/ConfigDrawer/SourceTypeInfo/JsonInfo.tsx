@@ -7,7 +7,7 @@ import { Typography, Table } from 'antd'
 import { useTranslation } from 'react-i18next'
 import Title from 'antd/es/typography/Title'
 import Text from 'antd/es/typography/Text'
-import CopyPre from './CopyPre'
+import CopyPre from 'src/core/components/CopyPre'
 
 const JsonInfo = () => {
   const { t } = useTranslation('core/alertsIntegration')

@@ -4,9 +4,10 @@
 package service
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -34,7 +35,7 @@ func (h *handler) GetServiceInstanceOptions() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -42,7 +43,7 @@ func (h *handler) GetServiceInstanceOptions() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, make(map[string]*model.ServiceInstance))
 			return
 		}
 		resp, err := h.serviceInfoService.GetServiceInstanceOptions(req)
@@ -50,7 +51,7 @@ func (h *handler) GetServiceInstanceOptions() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetServiceInstanceOptionsError,
-				code.Text(code.GetServiceInstanceListError)).WithError(err),
+				c.ErrMessage(code.GetServiceInstanceListError)).WithError(err),
 			)
 			return
 		}

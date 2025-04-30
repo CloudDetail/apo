@@ -1,39 +1,42 @@
+import { t } from "i18next"
+
 export const anormalTypesOptions = [
   {
     value: 'unknown',
     key: 0,
-    label: '未知',
+    label: t('pro/constant:unknown'),
     hide: true,
   },
   {
     value: 'app',
     key: 1,
-    label: '应用接口异常类型',
+    label: t('pro/constant:app'),
   },
   {
     value: 'container',
     key: 2,
-    label: '容器异常类型',
+    label: t('pro/constant:container'),
   },
   {
     value: 'infra',
     key: 3,
-    label: '基础设施异常类型',
+    label: t('pro/constant:infra'),
   },
   {
     value: 'network',
     key: 4,
-    label: '网络异常类型',
+    label: t('pro/constant:network'),
   },
   {
     value: 'error',
     key: 5,
-    label: 'JAVA Exception',
+    label: t('pro/constant:error'),
   },
   {
     value: 'appInstance',
     key: 6,
-    label: '应用实例异常类型',
+    label: t('pro/constant:appInstance'),
   },
 ]
+
 export const anormalTypes = ['app', 'container', 'infra', 'network', 'error', 'appInstance']

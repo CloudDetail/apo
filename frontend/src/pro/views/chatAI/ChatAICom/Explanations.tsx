@@ -1,4 +1,5 @@
 import { Image } from 'antd'
+import i18next, { t } from 'i18next'
 import mock1Png from 'src/pro/assets/1.png'
 import mock2Png from 'src/pro/assets/2.png'
 import mock5Png from 'src/pro/assets/5.png'
@@ -6,65 +7,146 @@ import mock61Png from 'src/pro/assets/6-1.png'
 import mock62Png from 'src/pro/assets/6-2.png'
 import mock7Png from 'src/pro/assets/7.png'
 import mock8Png from 'src/pro/assets/8.png'
+import mock1PngEn from 'src/pro/assets/en/1.png'
+import mock2PngEn from 'src/pro/assets/en/2.png'
+import mock5PngEn from 'src/pro/assets/en/5.png'
+import mock61PngEn from 'src/pro/assets/en/6-1.png'
+import mock62PngEn from 'src/pro/assets/en/6-2.png'
+import mock7PngEn from 'src/pro/assets/en/7.png'
+import mock8PngEn from 'src/pro/assets/en/8.png'
+import {
+  ServiceAnalyzeProvider,
+  useServiceAnalyzeContext,
+} from 'src/pro/contexts/ServiceAnalyzeContext'
+import TimeLineChart from '../../serviceAnalyze/DescendantTopology/TimeLineChart'
+import AnormalTypeFilter from '../../serviceAnalyze/DescendantTopology/AnormalTypeFilter'
+import TopologyCom from '../../serviceAnalyze/DescendantTopology/Topology'
+import AnormalList from '../../serviceAnalyze/DescendantTopology/NodeInfo/AnormalList'
+import PlayDelta from '../../serviceAnalyze/DescendantTopology/PlayDelta'
+import LoadingSpinner from 'src/core/components/Spinner'
+import { useTranslation } from 'react-i18next'
+const i18nKey = 'pro/chatAI:explanations'
+const pngLagnguageMap = {
+  topologyExample: {
+    en: mock1PngEn,
+    zh: mock1Png,
+  },
+  alertAnalysisTimeRange: {
+    en: mock2PngEn,
+    zh: mock2Png,
+  },
+  upstream: {
+    en: mock5PngEn,
+    zh: mock5Png,
+  },
+  alertsFirst: {
+    en: mock61PngEn,
+    zh: mock61Png,
+  },
+  alertsSecond: {
+    en: mock62PngEn,
+    zh: mock62Png,
+  },
+  rootCause: {
+    en: mock7PngEn,
+    zh: mock7Png,
+  },
+  summary: {
+    en: mock8PngEn,
+    zh: mock8Png,
+  },
+}
+const language = i18next.language
+const wrapperClassName = 'w-full overflow-hidden border p-2 rounded bg-[#151920] mb-3 text-xs'
+const ServiceAnalyze = () => {
+  const { loading,selectedNodeInfo } = useServiceAnalyzeContext()
+  const { t } = useTranslation('pro/serviceAnalyze')
 
-export const Explanations = [
-  <div>
-    <div>拓扑示例如下：通过告警深入分析可以看到告警关联的完整业务调用关系。</div>
-    <Image src={mock1Png} width={'60%'} />
-  </div>,
-  <>
-    <div>
-      示例：在告警深入分析中，可以通过拖动时间范围可以看到不同时间段的告警详细信息。智能对话中，提交的是这段时间所有的告警信息，并且每个告警进行已经被关联至应用接口
-    </div>
-    <Image src={mock2Png} width={'90%'} />
-  </>,
-  <>先请LLM根据拓扑结构和告警信息完成疑似根因节点的识别。</>,
-  <>
-    告警信息详细解释：
-    <ol style={{ listStyleType: 'disc', paddingLeft: 20 }}>
-      <li>应用层告警（URL接口延时异常和错误异常）</li>
-      <li>容器告警（k8s事件比如容器killed， 容器重启等异常）</li>
-      <li>基础设施主机层告警（主机的CPU、 内存、磁盘、网卡吞吐量异常）</li>
-      <li>网络层告警（节点之间连接的网络周期性Ping值异常）</li>
-      <li>
-        错误告警（Java程序使用java
-        Exception，非Java程序，使用日志错误数异常。解决微服务场景中会识别不了错误的场景、将错误封装到error
-        code中，导致http status code永远是200）
-      </li>
-    </ol>
-    专家经验：只有应用层告警和错误告警能够在调用链路上传递。
-  </>,
-  <>
-    <div>
-      <div className="w-full">
-        <div>如下图示例，应用层告警和错误告警都是从下游往上游传递。</div>
-        <div>上游节点的应用告警是由下游传递导致的，所以上游节点不是疑似根因节点</div>
-        <div>
-          {`示例中应用告警传递过程 ts-route-service -> ts-travel-service -> ts-route-plan-service
-                    -> ts-gateway-servcie。`}
+  return (
+    <div className="relative">
+      <LoadingSpinner loading={loading} />
+      <div className={wrapperClassName}>
+        <div className="flex flex-row h-[200px]">
+          <div className="flex-grow flex-shrink w-2/3">
+            <TimeLineChart />
+          </div>
+          <div className="h-full flex flex-col justify-between w-1/3 text-xs">
+            <AnormalTypeFilter />
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <PlayDelta />
         </div>
       </div>
-      <Image src={mock5Png} width={'100%'} />
+      <div className={`h-[300px] ${wrapperClassName}`}>
+        <TopologyCom />
+      </div>
+      <div className={`h-[400px] ${wrapperClassName}`}>
+        <div className='text-sm mb-1'>
+          {t(`node.alertList`)} (
+          {selectedNodeInfo?.endpoint ? (
+            <span>{t(`node.selected`)}</span>
+          ) : (
+            <span>{t(`node.all`)}</span>
+          )}
+          {t(`node.nodeTimeData`)})
+        </div>
+        <AnormalList scrollHeight={400} />
+      </div>
     </div>
+  )
+}
+export const Explanations = [
+  <ServiceAnalyzeProvider>
+    <ServiceAnalyze />
+  </ServiceAnalyzeProvider>,
+  // <>
+  //   <div>{t(`${i18nKey}.alertAnalysisTimeRange`)}</div>
+  //   <Image src={pngLagnguageMap.alertAnalysisTimeRange[language]} width={'90%'} />
+  // </>,
+  <>{t(`${i18nKey}.identifySuspectedRootCause`)}</>,
+  <>
+    <div>{t(`${i18nKey}.alertDetails`)}</div>
+    <ol style={{ listStyleType: 'disc', paddingLeft: 20 }}>
+      <li>{t(`${i18nKey}.applicationAlert`)}</li>
+      <li>{t(`${i18nKey}.containerAlert`)}</li>
+      <li>{t(`${i18nKey}.infrastructureAlert`)}</li>
+      <li>{t(`${i18nKey}.networkAlert`)}</li>
+      <li>{t(`${i18nKey}.errorAlert`)}</li>
+    </ol>
+    <div>{t(`${i18nKey}.expertInsight`)}</div>
   </>,
   <>
-    <div>如果应用接口产生的告警是偶发的，应该排除出疑似根因节点以外。</div>
-    <div>偶发的告警定义：在故障排查时间段内，告警新增之后，很快的看到了已经解决。</div>
-    <div>新增发生在：11：19：35秒</div>
-    <Image src={mock61Png} width={'100%'} />
-
-    <div>已解决发生在：11：20：35秒</div>
-    <Image src={mock62Png} width={'100%'} />
+    <div>{t(`${i18nKey}.alertPropagationExample`)}</div>
+    <div>{t(`${i18nKey}.upstreamNotRootCause`)}</div>
+    <div>{t(`${i18nKey}.alertPropagationProcess`)}</div>
+    <Image src={pngLagnguageMap.upstream[language]} width={'100%'} />
   </>,
   <>
-    <div>根因节点产生的告警，应该沿着调用链路逆向传递到业务入口。</div>
-    <div>示例中，告警只传递到了某个上游就断掉了，说明该上游和下游告警节点都不是根因节点。</div>
-    <Image src={mock7Png} width={'100%'} />
+    <div>{t(`${i18nKey}.intermittentAlerts`)}</div>
+    <div>{t(`${i18nKey}.intermittentAlertDefinition`)}</div>
+    <div>{t(`${i18nKey}.alertOccurredAt`)}</div>
+    <Image src={pngLagnguageMap.alertsFirst[language]} width={'100%'} />
+    <div>{t(`${i18nKey}.alertResolvedAt`)}</div>
+    <Image src={pngLagnguageMap.alertsSecond[language]} width={'100%'} />
   </>,
   <>
-    <div>汇总</div>
-    <div>不同大模型的准确率不同，apo 使用 deepseek 模型进行分析</div>
-    <div>用户可以修改配置文件选择不同的大模型，如智谱、千帆、豆包等模型</div>
-    <Image src={mock8Png} width={'100%'} />
+    <div>{t(`${i18nKey}.rootCauseAlertPropagation`)}</div>
+    <div>{t(`${i18nKey}.alertPropagationBreak`)}</div>
+    <Image src={pngLagnguageMap.rootCause[language]} width={'100%'} />
+  </>,
+  <>
+    <div>{t(`${i18nKey}.summary`)}</div>
+    <div>{t(`${i18nKey}.aiModelAccuracy`)}</div>
+    <div>{t(`${i18nKey}.configurableAiModel`)}</div>
+    <Image src={pngLagnguageMap.summary[language]} width={'100%'} />
   </>,
 ]

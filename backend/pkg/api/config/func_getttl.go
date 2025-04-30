@@ -27,7 +27,7 @@ func (h *handler) GetTTL() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetTTLError,
-				code.Text(code.GetTTLError)).WithError(err),
+				c.ErrMessage(code.GetTTLError)).WithError(err),
 			)
 			return
 		}

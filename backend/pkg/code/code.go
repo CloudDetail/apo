@@ -3,7 +3,12 @@
 
 package code
 
-import "github.com/CloudDetail/apo/backend/config"
+const (
+	// Simplified Chinese
+	LANG_ZH = "zh"
+	// English
+	LANG_EN = "en"
+)
 
 const (
 	ServerError           = "A0001"
@@ -45,6 +50,7 @@ const (
 	GetServiceEntryEndpointsError       = "B0323"
 	GetServiceRYGLightError             = "B0324"
 	GetNamespaceListError               = "B0325"
+	GetServiceREDChartsError            = "B0326"
 
 	GetFaultLogPageListError = "B0401"
 	GetFaultLogContentError  = "B0402"
@@ -138,32 +144,34 @@ const (
 	K8sGetResourceError = "B1001"
 
 	// user api
-	UserNotExistsError         = "B0901"
-	UserPasswordIncorrectError = "B0902"
-	UserLoginError             = "B0903"
-	UserTokenExpireError       = "B0904"
-	UserAlreadyExists          = "B0905"
-	UserCreateError            = "B0906"
-	UserUpdateError            = "B0907"
-	UserConfirmPasswordError   = "B0908"
-	GetUserInfoError           = "B0909"
-	RemoveUserError            = "B0910"
-	UserPasswordSimpleError    = "B0911"
-	UserRemoveSelfError        = "B0912"
-	UserEmailUsed              = "B0914"
-	UserPhoneUsed              = "B0915"
-	UserPhoneFormatError       = "B0916"
-	UserGrantRoleError         = "B0917"
-	UserGetRolesERROR          = "B0918"
-	RoleNotExistsError         = "B0919"
-	GetMenuConfigError         = "B0920"
-	UpdateMenuConfigError      = "B0921"
-	RoleGrantedError           = "B0922"
-	GetFeatureError            = "B0923"
-	AuthSubjectNotExistError   = "B0924"
-	UserGrantPermissionError   = "B0925"
-	ConfigureMenuError         = "B0926"
-	PermissionNotExistError    = "B0927"
+	UserNotExistsError       = "B0901"
+	UserPasswdIncorrectError = "B0902"
+	UserLoginError           = "B0903"
+	UserTokenExpireError     = "B0904"
+	UserAlreadyExists        = "B0905"
+	UserCreateError          = "B0906"
+	UserUpdateError          = "B0907"
+	UserConfirmPasswdError   = "B0908"
+	GetUserInfoError         = "B0909"
+	RemoveUserError          = "B0910"
+	UserPasswdSimpleError    = "B0911"
+	UserRemoveSelfError      = "B0912"
+	UserEmailUsed            = "B0914"
+	UserPhoneUsed            = "B0915"
+	UserPhoneFormatError     = "B0916"
+	UserGrantRoleError       = "B0917"
+	UserGetRolesERROR        = "B0918"
+	RoleNotExistsError       = "B0919"
+	GetMenuConfigError       = "B0920"
+	UpdateMenuConfigError    = "B0921"
+	RoleGrantedError         = "B0922"
+	GetFeatureError          = "B0923"
+	AuthSubjectNotExistError = "B0924"
+	UserGrantPermissionError = "B0925"
+	ConfigureMenuError       = "B0926"
+	PermissionNotExistError  = "B0927"
+	CheckRouterError         = "B0949"
+	RouterNotExistsError     = "B0950"
 
 	// custom api
 	CreateCustomTypeError = "B1101"
@@ -196,25 +204,26 @@ const (
 	ListClusterFailed                 = "B1322"
 	GetAlertEnrichRuleFailed          = "B1323"
 	AlertSourceNotExisted             = "B1324"
-	GetDatasourceError         = "B0928"
-	DataSourceNotExistError    = "B0929"
-	CreateDataGroupError       = "B0930"
-	DeleteDataGroupError       = "B0931"
-	DataGroupNotExistError     = "B0932"
-	GetDataGroupError          = "B0933"
-	UpdateDataGroupError       = "B0934"
-	AllocateDatasourceError    = "B0935"
-	GetGroupDatasourceError    = "B0936"
-	DataGroupExistError        = "B0937"
-	DatasourceNotExistError    = "B0938"
-	AssignDataGroupError       = "B0939"
-	RoleExistsError            = "B0940"
-	CreateRoleError            = "B0941"
-	UpdateRoleError            = "B0942"
-	DeleteRoleError            = "B0943"
-	APINotExist                = "B0944"
-	AuthError                  = "B0945"
-	GetGroupSubsError          = "B0946"
+	GetDatasourceError                = "B0928"
+	DataSourceNotExistError           = "B0929"
+	CreateDataGroupError              = "B0930"
+	DeleteDataGroupError              = "B0931"
+	DataGroupNotExistError            = "B0932"
+	GetDataGroupError                 = "B0933"
+	UpdateDataGroupError              = "B0934"
+	AllocateDatasourceError           = "B0935"
+	GetGroupDatasourceError           = "B0936"
+	DataGroupExistError               = "B0937"
+	DatasourceNotExistError           = "B0938"
+	AssignDataGroupError              = "B0939"
+	RoleExistsError                   = "B0940"
+	CreateRoleError                   = "B0941"
+	UpdateRoleError                   = "B0942"
+	DeleteRoleError                   = "B0943"
+	APINotExist                       = "B0944"
+	AuthError                         = "B0945"
+	GetGroupSubsError                 = "B0946"
+	UserNameError                     = "B0947"
 
 	CreateTeamError       = "B1101"
 	TeamAlreadyExistError = "B1102"
@@ -225,18 +234,22 @@ const (
 	AssignToTeamError     = "B1107"
 	UnSupportedSubType    = "B1108"
 
-	GetIntegrationInstallDocFailed = "B1325"
-	GetIntegrationInstallConfigFileFailed = "B1326"
+	// integration api
+	GetIntegrationInstallDocFailed        = "B1400"
+	GetIntegrationInstallConfigFileFailed = "B1401"
+
+	GetClusterIntegrationFailed = "B1402"
+
+	GetAlertEventListError     = "B1501"
+	GetAlertEventClassifyError = "B1502"
 
 	UploadLicenseError = "B1401"
 	GetLicenseError    = "B1402"
 	LicenseFeatureValidationError = "B1403"
 )
 
-func Text(code string) string {
-	lang := config.Get().Language.Local
-
-	if lang == config.LANG_EN {
+func Text(lang string, code string) string {
+	if lang == LANG_EN {
 		return enText[code]
 	}
 	return zhCnText[code]

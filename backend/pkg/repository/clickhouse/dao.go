@@ -17,6 +17,7 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/integration"
 )
@@ -87,15 +88,18 @@ type Repo interface {
 	ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTableTTLMap) error
 	GetTables(tables []model.Table) ([]model.TablesQuery, error)
 
+	// ========== alert =================
+	GetAlertsWithEventCount(startTime, endTime time.Time, filter *alert.AlertEventFilter, maxSize int) ([]alert.AlertWithEventCount, uint64, error)
+
 	// ========== alert events ==========
 	// Query the alarm events sampled by group and level, and sampleCount the number of samples for each group and level.
 	GetAlertEventCountGroupByInstance(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]model.AlertEventCount, error)
 	// Query alarm events sampled by labels, sampleCount the number of samples for each label.
 	GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error)
 	// Query alarm events by pageParam
-	GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error)
-	GetAlertEventsByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, endpoints []model.EndpointKey, pageParam *request.PageParam, sortBy string) ([]PagedAlertEvent, int, error)
-	GetAlertEventsWithKeyByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, endpoints []model.EndpointKey) ([]AlertEventWithKey, error)
+	GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error)
+	GetAlertEventsByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error)
+	GetAlertEventsWithKeyByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventWithKey, error)
 	// 查询指定EventId的告警事件
 	GetAlertEventById(eventId string, startTime, endTime time.Time) (*model.AlertEvent, error)
 
@@ -120,6 +124,9 @@ type Repo interface {
 	AddDetectMutation(mutation model.DetectMutation) error
 	// GetDistinctDetectExecList 获取异常检测规则
 	GetDistinctDetectExecList(req *request.GetDefectDetectRuleListRequest) ([]model.DetectMutation, int64, error)
+	AddWorkflowRecords(ctx context.Context, records []model.WorkflowRecord) error
+	GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error)
+	GetAlertEventCounts(req *request.AlertEventSearchRequest, cacheMinutes int) (map[string]int64, error)
 
 	integration.Input
 }
@@ -127,15 +134,10 @@ type Repo interface {
 type chRepo struct {
 	conn     driver.Conn
 	database string
-	AvailableFilters
+	availableFilters
 	db *sql.DB
 
 	integration.Input
-}
-
-type AvailableFilters struct {
-	Filters          []request.SpanTraceFilter
-	FilterUpdateTime time.Time
 }
 
 func New(logger *zap.Logger, address []string, database string, username string, password string) (Repo, error) {
@@ -185,8 +187,7 @@ func New(logger *zap.Logger, address []string, database string, username string,
 	now := time.Now()
 	filters, err := repo.UpdateFilterKey(now.Add(-48*time.Hour), now)
 	if err == nil {
-		repo.Filters = filters
-		repo.FilterUpdateTime = now
+		repo.SetAvailableFilters(filters, now)
 	}
 
 	repo.Input, err = integration.NewInputRepo(repo.conn, repo.database)

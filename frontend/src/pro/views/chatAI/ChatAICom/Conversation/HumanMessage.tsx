@@ -27,7 +27,7 @@ const HumanMessage: React.FC<HumanMessageProps> = ({ message, fileList, img }) =
           const jsonString = JSON.stringify(res, null, 2)
           blob = new Blob([jsonString], { type: mimeType })
         } catch (e) {
-          alert('JSON 转换错误，请检查数据！')
+          // alert('JSON 转换错误，请检查数据！')
           return
         }
       } else if (fileExtension === 'txt') {

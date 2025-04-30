@@ -1,7 +1,7 @@
 package alertanalyze
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -9,16 +9,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"go.uber.org/zap"
 )
 
 var _ Service = (*service)(nil)
 
 type Service interface {
-	// ========================告警分析========================
+	// ========================AlertAnalyze========================
 
-	// AlertImpact 获取告警事件的影响面
-	// 如果关联所需的Label不足,error会返回ErrAlertImpactMissingTag提示期望哪些tag
-	AlertImpact(req *request.AlertImpactRequest) ([]clickhouse.EntryRelationship, []response.ImpactAlertEvent, map[model.EndpointKey]int, *model.Pagination, error)
+	// Get AlertEvents with relatedService and serviceEntry
+	// multi events exist for the same alertID
+	GetAlertEventsSvc(req *request.GetAlertEventsSvcReq) (*response.GetAlertEventsSvcResp, error)
+
+	GetAlertsImpact(req *request.AlertImpactRequest) ([]response.AlertRelatedEntry, error)
 
 	// 获取下游的故障贡献度排序
 	GetDescendantContribution(req *request.GetDescendantAlertContributaionRequest) (resp *response.GetDescendantAlertContributationResponse, err error)
@@ -36,7 +39,7 @@ type Service interface {
 	SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDeltaEventRequest) (*response.GetDescendantDeltaAnormalEventResponse, error)
 
 	// 获取预定义的检测表达式
-	DetectDefectsOptions() (*response.GetPredefinedDetectExprResponse, error)
+	DetectDefectsOptions(ctx core.Context) (*response.GetPredefinedDetectExprResponse, error)
 
 	// 缺陷检测
 	DetectDefects(req *request.DetectMutationRequest) error
@@ -53,14 +56,24 @@ type service struct {
 
 	k8sRepo kubernetes.Repo
 	dbRepo  database.Repo // TODO init
+
+	logger *zap.Logger
 }
 
-func New(chRepo clickhouse.Repo, promRepo prometheus.Repo, polRepo polarisanalyzer.Repo, k8sRepo kubernetes.Repo, dbRepo database.Repo) Service {
+func New(
+	chRepo clickhouse.Repo,
+	promRepo prometheus.Repo,
+	polRepo polarisanalyzer.Repo,
+	k8sRepo kubernetes.Repo,
+	dbRepo database.Repo,
+	logger *zap.Logger,
+) Service {
 	return &service{
 		chRepo:   chRepo,
 		promRepo: promRepo,
 		polRepo:  polRepo,
 		k8sRepo:  k8sRepo,
 		dbRepo:   dbRepo,
+		logger:   logger,
 	}
 }

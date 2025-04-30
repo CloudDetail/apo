@@ -3,18 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// If you want to override variables do it here
-@import "variables";
+// 自定义模块，用 @use
+@use './_variables' as variables;
+@use './_theme' as theme;
+@use './_custom' as custom;
 
-// Import styles
-@import "@coreui/coreui/scss/coreui";
-@import "@coreui/chartjs/scss/coreui-chartjs";
+// 官方库，用 @import
+@import '@coreui/coreui/scss/coreui';
+// @import '@coreui/chartjs/scss/coreui-chartjs';
 
-// Vendors
-@import "vendors/simplebar";
-
-// Custom styles for this theme
-@import "theme";
-
-// If you want to add custom CSS you can put it here
-@import "custom";
+// 第三方小库 simplebar
+@import 'vendors/simplebar';

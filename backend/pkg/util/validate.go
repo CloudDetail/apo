@@ -3,7 +3,11 @@
 
 package util
 
-import "testing"
+import (
+	"encoding/json"
+	"io"
+	"testing"
+)
 
 type Validator struct {
 	test      *testing.T
@@ -43,4 +47,22 @@ func (v *Validator) CheckBoolValue(key string, expect bool, got bool) *Validator
 		v.test.Errorf("[Check %s-%s] want=%t, got=%t", v.Operation, key, expect, got)
 	}
 	return v
+}
+
+func IsValidStatusCode(statusCode int) bool {
+	// 定义合法的状态码范围
+	return statusCode >= 100 && statusCode <= 599
+}
+
+func ValidateResponse(body io.ReadCloser) (io.ReadCloser, bool) {
+	return body, true
+}
+func ValidateResponseBytes(body []byte) ([]byte, bool) {
+	if len(body) > 2*1024*1024 { // 限制最大2MB
+		return nil, false
+	}
+	if !json.Valid(body) {
+		return nil, false
+	}
+	return body, true
 }

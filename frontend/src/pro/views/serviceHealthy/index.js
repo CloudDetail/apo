@@ -8,7 +8,9 @@ import { FaCircle } from 'react-icons/fa'
 import LoadingSpinner from 'src/core/components/Spinner'
 import BorderTag from 'src/core/components/Tag/BorderTag'
 import { getServiceHealthyApi } from 'src/pro/api/serviceHealthy'
+import { useTranslation } from 'react-i18next'
 export default function ServiceHealthyPage() {
+  const { t } = useTranslation('pro/healthy')
   const [data, setData] = useState([])
   const [serachServiceName, setSerachServiceName] = useState()
   const [serachEndpointName, setSerachEndpointName] = useState()
@@ -20,19 +22,19 @@ export default function ServiceHealthyPage() {
     red: '#ff3366',
   }
   const scoreMapList = [
-    { name: '严重异常', type: 'error' },
-    { name: '中度异常', type: 'magenta' },
-    { name: '轻微异常', type: 'warning' },
-    { name: '健康', type: 'success' },
+    { name: t('severeAbnormal'), type: 'error' },
+    { name: t('moderateAbnormal'), type: 'magenta' },
+    { name: t('mildAbnormal'), type: 'warning' },
+    { name: t('healthy'), type: 'success' },
   ]
   const column = [
     {
-      title: '服务名称',
+      title: t('serviceName'),
       accessor: 'serviceName',
       customWidth: 250,
     },
     {
-      title: '服务状态',
+      title: t('serviceStatus'),
       accessor: 'status',
       customWidth: 120,
       Cell: ({ value }) => {
@@ -46,9 +48,9 @@ export default function ServiceHealthyPage() {
       },
     },
     {
-      title: '服务健康总分',
+      title: t('serviceHealthScore'),
       accessor: 'percentScore',
-      customWidth: 120,
+      customWidth: 160,
     },
     {
       title: '得分详情',
@@ -57,20 +59,20 @@ export default function ServiceHealthyPage() {
       isNested: true,
       children: [
         {
-          title: '检查项',
+          title: t('checkItem'),
           accessor: 'key',
           customWidth: 120,
         },
         {
-          title: '健康状态',
+          title: t('healthStatus'),
           accessor: `score`,
-          customWidth: 120,
+          customWidth: 200,
           Cell: ({ value }) => {
             return <BorderTag {...scoreMapList[value]} />
           },
         },
         {
-          title: '状态详情',
+          title: t('statusDetails'),
           accessor: `detail`,
           justifyContent: 'left',
         },
@@ -136,36 +138,15 @@ export default function ServiceHealthyPage() {
       <LoadingSpinner loading={loading} />
       <div className="p-2 my-2 flex flex-row">
         <div className="flex flex-row items-center mr-5 text-sm">
-          <span className="text-nowrap">服务名称：</span>
+          <span className="text-nowrap">{t('serviceName')}：</span>
           <Input
             id="serviceName"
-            placeholder="检索"
+            placeholder={t('search')}
             value={serachServiceName}
             onChange={changeSearchValue}
             onPressEnter={handleKeyDown}
           />
         </div>
-        {/* <div className="flex flex-row items-center mr-5 text-sm">
-          <span className="text-nowrap">服务端点：</span>
-          <Input
-            id="endpointName"
-            placeholder="检索"
-            value={serachEndpointName}
-            onChange={changeSearchValue}
-            onPressEnter={handleKeyDown}
-          />
-        </div>
-        <div className="flex flex-row items-center mr-5 text-sm">
-          <span className="text-nowrap">命名空间：</span>
-          <Input
-            id="namespace"
-            placeholder="检索"
-            value={serachNamespace}
-            onChange={changeSearchValue}
-            onPressEnter={handleKeyDown}
-          />
-        </div> */}
-        <div>{/* <ThresholdCofigModal /> */}</div>
       </div>
 
       <CCard style={{ height: 'calc(100vh - 150px)' }}>

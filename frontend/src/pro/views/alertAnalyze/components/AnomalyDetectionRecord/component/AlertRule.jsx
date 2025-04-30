@@ -5,23 +5,27 @@ import Tag from 'src/core/components/Tag/Tag'
 import '../index.css'
 import { showToast } from 'src/core/utils/toast'
 import { convertTime } from 'src/core/utils/time'
+import { useTranslation } from 'react-i18next'
 
+const i18nKey = 'alertRule'
 export default function AlertRule({ startTime, endTime, step, setRefresh, refresh }) {
+  const { t } = useTranslation('pro/alertAnalyze')
+
   const columns = [
     {
-      title: '突变检测名',
+      title: t(`${i18nKey}.mutationDetectionName`),
       dataIndex: 'name',
       key: 'name',
       align: 'center',
     },
     {
-      title: '组名',
+      title: t(`${i18nKey}.groupName`),
       dataIndex: 'group',
       key: 'group',
       align: 'center',
     },
     {
-      title: '检测语句',
+      title: t(`${i18nKey}.detectionStatement`),
       dataIndex: 'mutationCheckPQL',
       key: 'mutationCheckPQL',
       align: 'center',
@@ -41,59 +45,59 @@ export default function AlertRule({ startTime, endTime, step, setRefresh, refres
                   />
                 ),
                 closable: false,
-                okText: '关闭',
+                okText: t(`${i18nKey}.cancel`),
                 width: '60vw',
                 icon: null,
                 style: { backgroundColor: '#1F1F1F' },
               })
             }}
           >
-            点击查看检测语句
+            {t(`${i18nKey}.viewStatement`)}
           </Button>
         )
       },
     },
     {
-      title: '检测周期(s)',
+      title: t(`${i18nKey}.detectionCycle`),
       dataIndex: 'step',
       key: 'step',
       align: 'center',
     },
     {
-      title: '告警等待时间',
+      title: t(`${i18nKey}.alertWaitTime`),
       dataIndex: 'for',
       key: 'for',
       align: 'center',
     },
     {
-      title: '是否同步到告警规则',
+      title: t(`${i18nKey}.syncToAlertRules`),
       dataIndex: 'synchronizeToAlertRules',
       key: 'synchronizeToAlertRules',
       align: 'center',
       render: (data) => {
-        console.log(data)
-        return data ? <p>是</p> : <p>否</p>
+        return data ? <p>{t(`${i18nKey}.yes`)}</p> : <p>{t(`${i18nKey}.no`)}</p>
       },
     },
     {
-      title: '操作',
+      title: t(`${i18nKey}.action`),
       dataIndex: 'originItem',
       align: 'center',
       render: (data) => {
         return (
           <Popconfirm
-            title="再次执行"
-            description="确定再次执行此突变检测吗"
+            title={t(`${i18nKey}.reRun`)}
+            description={t(`${i18nKey}.confirmReRun`)}
             onConfirm={() => addAgain(data)}
-            okText="确认"
-            cancelText="取消"
+            okText={t(`${i18nKey}.confirm`)}
+            cancelText={t(`${i18nKey}.cancel`)}
           >
-            <Button type="link">再次执行</Button>
+            <Button type="link">{t(`${i18nKey}.reRun`)}</Button>
           </Popconfirm>
         )
       },
     },
   ]
+
   const [dataSource, setDataSource] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -134,7 +138,7 @@ export default function AlertRule({ startTime, endTime, step, setRefresh, refres
       const result = await addMutationRule(newParams)
       if (result == 'ok') {
         showToast({
-          title: '再次执行突变检测成功',
+          title: t(`${i18nKey}.reRunSuccess`),
           color: 'success',
         })
         setCurrentPage(1)
@@ -181,7 +185,7 @@ export default function AlertRule({ startTime, endTime, step, setRefresh, refres
     <>
       <div className="flex flex-col h-full justify-between relative overflow-y-hidden">
         <div className="flex flex-col" style={{ flex: 1, overflowY: 'auto' }}>
-          <div className="text-base px-4">异常检测类型</div>
+          <div className="text-base px-4">{t(`${i18nKey}.anomalyDetectionType`)}</div>
           <Table
             loading={loadingStatus}
             className="w-full"

@@ -4,11 +4,6 @@
 package config
 
 const (
-	// Simplified Chinese
-	LANG_ZH_CN = "zh-cn"
-	// English
-	LANG_EN = "en"
-
 	// Prometheus
 	PROM_STORAGE_PROM = "prom"
 	// VictoriaMetrics
@@ -18,4 +13,6 @@ const (
 	DB_MYSQL = "mysql"
 	// sqllite
 	DB_SQLLITE = "sqllite"
+	// postgres
+	DB_POSTGRES = "postgres"
 )

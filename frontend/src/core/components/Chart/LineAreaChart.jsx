@@ -120,7 +120,7 @@ const AreaChart = ({ type, data, timeRange }) => {
   return chartData && data ? (
     <Popover
       content={
-        <div onClickCapture={(e) => e.stopPropagation()}>
+        <div onClickCapture={(e) => e.stopPropagation()} className="h-52 w-64">
           <DelayLineChart data={data} timeRange={timeRange} type={type} />
         </div>
       }
@@ -130,7 +130,7 @@ const AreaChart = ({ type, data, timeRange }) => {
       <Line data={chartData} options={options} />
     </Popover>
   ) : (
-    <div className="w-full h-full flex items-center">
+    <div className="w-full h-full flex items-center justify-center">
       <AiOutlineLineChart size={30} color="#98a2b3" />
     </div>
   )

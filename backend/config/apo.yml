@@ -1,5 +1,7 @@
 server:
   port: 8080
+  access_token_expire_minutes: 15
+  refresh_token_expire_hours: 48
 
 logger:
   level: DEBUG
@@ -72,3 +74,12 @@ user:
     username: anonymous
     enable: true
     role: admin
+
+dify:
+  url: http://localhost:5001
+  user: apo-backend
+  api_keys:
+    alert_check:
+  flow_ids: 
+    alert_check:
+    alert_event_analyze:

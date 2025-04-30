@@ -52,7 +52,8 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 		EqualsNotEmpty("labels['instance_id']", query.Instance).
 		EqualsNotEmpty("labels['content_key']", query.EndPoint).
 		EqualsNotEmpty("labels['node_name']", query.NodeName).
-		EqualsNotEmpty("trace_id", query.TraceId)
+		EqualsNotEmpty("trace_id", query.TraceId).
+		EqualsNotEmpty("labels['pod_name']", query.Pod)
 
 	if len(query.MultiServices) > 0 {
 		queryBuilder.In("labels['service_name']", query.MultiServices)
@@ -72,15 +73,15 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 	} else {
 		queryBuilder.Statement("(flags['is_error'] = true or (flags['is_profiled'] = true AND flags['is_slow'] = true))")
 	}
-	whereClause := queryBuilder.String()
-	var countResults []QueryCount
+
+	logCountQuery := buildTraceCountQuery(TEMPLATE_COUNT_SPAN_TRACE, queryBuilder)
+	var count uint64
 	// Number of query records
-	err := ch.conn.Select(context.Background(), &countResults, fmt.Sprintf(TEMPLATE_COUNT_SPAN_TRACE, whereClause), queryBuilder.values...)
+	err := ch.conn.QueryRow(context.Background(), logCountQuery, queryBuilder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	count := int64(countResults[0].Total)
 	result := []FaultLogResult{}
 	if count == 0 {
 		return result, 0, nil
@@ -103,12 +104,12 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 		Offset((query.PageNum - 1) * query.PageSize).
 		String()
 	// Query list data
-	sql := fmt.Sprintf(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, whereClause, bySql)
+	sql := buildSpanTraceQuery(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, bySql, queryBuilder)
 	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
-		return nil, count, err
+		return nil, int64(count), err
 	}
-	return result, count, nil
+	return result, int64(count), nil
 }
 
 func (ch *chRepo) GetAvailableFilterKey(startTime, endTime time.Time, needUpdate bool) ([]request.SpanTraceFilter, error) {
@@ -122,16 +123,24 @@ func (ch *chRepo) GetAvailableFilterKey(startTime, endTime time.Time, needUpdate
 
 	now := time.Now()
 	if len(ch.Filters) == 0 || now.Sub(ch.FilterUpdateTime) > 48*time.Hour {
-		filers, err := ch.UpdateFilterKey(now.Add(-48*time.Hour), now)
+		filters, err := ch.UpdateFilterKey(now.Add(-48*time.Hour), now)
 		if err != nil {
 			return []request.SpanTraceFilter{}, err
 		}
-		ch.Filters = filers
-		ch.FilterUpdateTime = now
+		ch.SetAvailableFilters(filters, now)
 		return ch.Filters, nil
 	}
 
 	return ch.Filters, nil
+}
+
+func buildTraceCountQuery(baseQuery string, builder *QueryBuilder) string {
+	return fmt.Sprintf(baseQuery, builder.String())
+}
+
+func buildSpanTraceQuery(baseQuery string, fieldSql string, bySql string, builder *QueryBuilder) string {
+	sql := fmt.Sprintf(baseQuery, fieldSql, builder.String(), bySql)
+	return sql
 }
 
 func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error) {
@@ -150,22 +159,23 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 	if len(req.Namespace) > 0 {
 		queryBuilder.In("labels['namespace']", req.Namespace)
 	}
-	for _, filter := range req.Filters {
-		AppendToBuilder(queryBuilder, filter)
-	}
 
 	if req.Pid > 0 {
 		queryBuilder.Equals("pid", req.Pid)
 	}
-	whereClause := queryBuilder.String()
-	var countResults []QueryCount
+
+	for _, filter := range req.Filters {
+		queryBuilder.And(ch.extractSpanFilter(filter))
+	}
+
+	query := buildTraceCountQuery(TEMPLATE_COUNT_SPAN_TRACE, queryBuilder)
+	var count uint64
 	// Number of query records
-	err := ch.conn.Select(context.Background(), &countResults, fmt.Sprintf(TEMPLATE_COUNT_SPAN_TRACE, whereClause), queryBuilder.values...)
+	err := ch.conn.QueryRow(context.Background(), query, queryBuilder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	count := int64(countResults[0].Total)
 	result := []QueryTraceResult{}
 	if count == 0 {
 		return result, 0, nil
@@ -191,12 +201,12 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 		Offset((req.PageNum - 1) * req.PageSize).
 		String()
 	// Query list data
-	sql := fmt.Sprintf(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, whereClause, bySql)
+	sql := buildSpanTraceQuery(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, bySql, queryBuilder)
 	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
-		return nil, count, err
+		return nil, int64(count), err
 	}
-	return result, count, nil
+	return result, int64(count), nil
 }
 
 type FaultLogQuery struct {
@@ -214,10 +224,7 @@ type FaultLogQuery struct {
 	Type           int      // 0 - slow & error, 1 - error
 	MultiServices  []string // Match multiple service
 	MultiNamespace []string // Match multiple namespace
-}
-
-type QueryCount struct {
-	Total uint64 `ch:"total"`
+	Pod            string   // Pod name
 }
 
 type FaultLogResult struct {
@@ -258,29 +265,94 @@ type QueryTraceResult struct {
 	IsMutated    uint8  `ch:"is_mutated" json:"isMutated"` // whether the delay changes abruptly
 }
 
-func AppendToBuilder(builder *QueryBuilder, f *request.SpanTraceFilter) error {
-	// TODO check key validity
-	if !ValidCheckAndAdjust(f) {
-		return nil
+func (af *availableFilters) extractSpanFilter(f *request.ComplexSpanTraceFilter) *whereSQL {
+	if !af.ValidCheckAndAdjust(f) {
+		return ALWAYS_FALSE
 	}
 
+	if len(f.SpanTraceFilters) > 0 {
+		whereSQLs := make([]*whereSQL, 0, len(f.SpanTraceFilters))
+		for _, subFilter := range f.SpanTraceFilters {
+			whereSQLs = append(whereSQLs, af.extractSpanFilter(subFilter))
+		}
+		return mergeWheres(getMergeSep(f.MergeSep), whereSQLs...)
+	}
+
+	if f.SpanTraceFilter == nil {
+		return ALWAYS_TRUE
+	}
+
+	key := formatFieldName(f.SpanTraceFilter)
+	param, success := extractFilterParams(f.SpanTraceFilter)
+
+	if !success {
+		return ALWAYS_FALSE
+	}
+
+	switch f.Operation {
+	case request.OpEqual:
+		return equals(key, param[0])
+	case request.OpNotEqual:
+		return notEquals(key, param[0])
+	case request.OpIn:
+		return in(key, param)
+	case request.OpNotIn:
+		return notIn(key, param)
+	case request.OpLike:
+		return like(key, param[0])
+	case request.OpNotLike:
+		return notLike(key, param[0])
+	case request.OpExists:
+		return exists(key)
+	case request.OpNotExists:
+		return notExists(key)
+	case request.OpContains:
+		return contains(key, param[0])
+	case request.OpNotContains:
+		return notContains(key, param[0])
+	case request.OpGreaterThan:
+		return greaterThan(key, param[0])
+	case request.OpLessThan:
+		return lessThan(key, param[0])
+	}
+
+	return ALWAYS_FALSE
+}
+
+func formatFieldName(f *request.SpanTraceFilter) string {
+	if f.ParentField == request.PF_Flags {
+		return fmt.Sprintf("flags['%s']", f.Key)
+	} else if f.ParentField == request.PF_Labels {
+		return fmt.Sprintf("labels['%s']", f.Key)
+	}
+	return f.Key
+}
+
+func extractFilterParams(f *request.SpanTraceFilter) ([]any, bool) {
 	var param []any
+
+	if len(f.Value) == 0 &&
+		f.Operation != request.OpExists &&
+		f.Operation != request.OpNotExists {
+		return nil, false
+	}
+
 	switch f.DataType {
 	case request.U32Column, request.U64Column:
 		for _, v := range f.Value {
-			i, err := strconv.ParseUint(v, 10, 64)
-			if err != nil {
-				return err
+			if i, err := strconv.ParseUint(v, 10, 64); err == nil {
+				param = append(param, i)
+			} else {
+				return nil, false
 			}
-			param = append(param, i)
 		}
 	case request.I64Column:
 		for _, v := range f.Value {
-			i, err := strconv.ParseInt(v, 10, 64)
-			if err != nil {
-				return err
+			if i, err := strconv.ParseInt(v, 10, 64); err == nil {
+				param = append(param, i)
+			} else {
+				return nil, false
 			}
-			param = append(param, i)
 		}
 	case request.StringColumn:
 		for _, v := range f.Value {
@@ -288,57 +360,14 @@ func AppendToBuilder(builder *QueryBuilder, f *request.SpanTraceFilter) error {
 		}
 	case request.BoolColumn:
 		for _, v := range f.Value {
-			b, err := strconv.ParseBool(v)
-			if err != nil {
-				return err
+			if b, err := strconv.ParseBool(v); err == nil {
+				param = append(param, b)
+			} else {
+				return nil, false
 			}
-			param = append(param, b)
 		}
 	}
-
-	key := f.Key
-	if f.ParentField == request.PF_Flags {
-		key = fmt.Sprintf("flags['%s']", key)
-	} else if f.ParentField == request.PF_Labels {
-		key = fmt.Sprintf("labels['%s']", key)
-	} else if len(f.ParentField) > 0 {
-		return fmt.Errorf("missing columns: '%s' while handle parent field", f.ParentField)
-	}
-
-	if len(param) == 0 {
-		if f.Operation != request.OpExists && f.Operation != request.OpNotExists {
-			return fmt.Errorf("failed to parse filter %+v, missing param for operation %s", f, f.Operation)
-		}
-	}
-
-	switch f.Operation {
-	case request.OpEqual:
-		builder.Equals(key, param[0])
-	case request.OpNotEqual:
-		builder.NotEquals(key, param[0])
-	case request.OpIn:
-		builder.In(key, param)
-	case request.OpNotIn:
-		builder.NotIn(key, param)
-	case request.OpLike:
-		builder.Like(key, param[0])
-	case request.OpNotLike:
-		builder.NotLike(key, param[0])
-	case request.OpExists:
-		builder.Exists(key)
-	case request.OpNotExists:
-		builder.NotExists(key)
-	case request.OpContains:
-		builder.Contains(key, param[0])
-	case request.OpNotContains:
-		builder.NotContains(key, param[0])
-	case request.OpGreaterThan:
-		builder.GreaterThan(key, param[0])
-	case request.OpLessThan:
-		builder.LessThan(key, param[0])
-	}
-
-	return nil
+	return param, true
 }
 
 type SpanTraceOptions struct {
@@ -409,8 +438,13 @@ func (ch *chRepo) GetFieldValues(searchText string, filter *request.SpanTraceFil
 		field = filter.Key
 	}
 
+	if !ch.CheckField(field) {
+		return nil, fmt.Errorf("field '%s' is invalid", field)
+	}
+
 	builder := NewQueryBuilder().
 		Between("timestamp", startTime.Unix(), endTime.Unix())
+
 	if filter.DataType == request.StringColumn && len(searchText) > 0 {
 		builder.Like(field, searchText+"%")
 	}
@@ -419,7 +453,6 @@ func (ch *chRepo) GetFieldValues(searchText string, filter *request.SpanTraceFil
 		Limit(100).
 		OrderBy("label_value", false)
 
-	// TODO check whether the key is legal
 	sql := fmt.Sprintf(SQL_GET_FILTER_VALUES, field, builder.String(), byLimits.String())
 
 	rows, err := ch.GetConn().Query(context.Background(), sql, builder.values...)
@@ -477,8 +510,24 @@ func (ch *chRepo) GetFieldValues(searchText string, filter *request.SpanTraceFil
 	}, nil
 }
 
-func ValidCheckAndAdjust(f *request.SpanTraceFilter) bool {
-	// TODO check the validity of filter
+func (af *availableFilters) ValidCheckAndAdjust(f *request.ComplexSpanTraceFilter) bool {
+	if len(f.SpanTraceFilters) > 0 {
+		for _, filter := range f.SpanTraceFilters {
+			if !af.ValidCheckAndAdjust(filter) {
+				return false
+			}
+		}
+		return true
+	}
+
+	if f.SpanTraceFilter == nil {
+		return true
+	}
+
+	field := formatFieldName(f.SpanTraceFilter)
+	if !af.CheckField(field) {
+		return false
+	}
 
 	switch f.Key {
 	case "duration":
@@ -543,15 +592,14 @@ func (ch *chRepo) GetAnomalyTrace(req *request.GetAnomalySpanRequest) ([]QueryTr
 
 	countSql := fmt.Sprintf(TEMPLATE_QUERY_MUTATED_SPAN_TRACE, fieldSql, mutatedValueField, querySql, "")
 
-	var countResults []QueryCount
-	result := []QueryTraceResult{}
-	err := ch.conn.Select(context.Background(), &countResults, fmt.Sprintf(TEMPLATE_COUNT_MUTATED_SPAN_TRACE, countSql), queryBuilder.values...)
+	var count uint64
+	err := ch.conn.QueryRow(context.Background(), fmt.Sprintf(TEMPLATE_COUNT_MUTATED_SPAN_TRACE, countSql), queryBuilder.values...).Scan(&count)
 	if err != nil {
 		log.Println("get total count error", err)
 		return nil, 0, err
 	}
 
-	count := int64(countResults[0].Total)
+	result := []QueryTraceResult{}
 	if count == 0 {
 		return result, 0, nil
 	}
@@ -561,5 +609,36 @@ func (ch *chRepo) GetAnomalyTrace(req *request.GetAnomalySpanRequest) ([]QueryTr
 		return result, 0, err
 	}
 
-	return result, count, nil
+	return result, int64(count), nil
+}
+
+type availableFilters struct {
+	Filters          []request.SpanTraceFilter
+	Keys             []string
+	FilterUpdateTime time.Time
+}
+
+func (f *availableFilters) SetAvailableFilters(filters []request.SpanTraceFilter, updateTime time.Time) {
+	f.Filters = filters
+	f.Keys = make([]string, 0)
+	f.Keys = append(f.Keys, "flags['is_error']", "flags['is_slow']")
+	for _, filter := range filters {
+		var field string
+		if len(filter.ParentField) > 0 {
+			field = fmt.Sprintf("%s['%s']", filter.ParentField, filter.Key)
+		} else {
+			field = filter.Key
+		}
+		f.Keys = append(f.Keys, field)
+	}
+	f.FilterUpdateTime = updateTime
+}
+
+func (f *availableFilters) CheckField(field string) bool {
+	for _, key := range f.Keys {
+		if key == field {
+			return true
+		}
+	}
+	return false
 }

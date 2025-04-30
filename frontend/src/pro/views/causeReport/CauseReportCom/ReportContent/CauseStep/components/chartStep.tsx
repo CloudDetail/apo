@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { cloneDeep } from 'lodash'
 
-import { flameDataHandle, basiclineOption, buildLineSeriesData, stackDataHandle } from './service'
-import dayjs from 'dayjs'
+import { basiclineOption, buildLineSeriesData, stackDataHandle } from './service'
+import { timeUtils } from 'src/core/utils/time'
 import { ThemeColor, ThemeStyle } from 'src/constants'
 import StackChart from './StackChart'
 import CopyButton from 'src/core/components/CopyButton'
 import GrafanaChart from './GrafanaChart'
 import { Card } from 'antd'
 import FlamegraphCanvas from './Flamegraph'
+import { useTranslation } from 'react-i18next'
 
 // const testPQL = 'sum by (device) (rate(node_disk_io_time_seconds_total{instance=\"10.10.103.219:9100\"}[5m]))*100';
 interface Props {
@@ -20,11 +21,14 @@ interface ChartOption {
   action: any
   option: any
 }
+const i18nKey = 'causeStep'
 function ChartStep({ data, occurrenceAt }: Props) {
+  const { t } = useTranslation('pro/causeReport')
   const theme = ThemeStyle['dark']
   const [chartData, setChartData] = useState<any>()
   const [chartOptionList, setChartOptionList] = useState<ChartOption[]>()
   const [stackList, setStackList] = useState<any[]>([])
+  const [timeRange, setTimeRange] = useState(null)
 
   const prepareMetricLegend = (metric: any) => {
     if (metric) {
@@ -41,7 +45,7 @@ function ChartStep({ data, occurrenceAt }: Props) {
         let option: any
         option = cloneDeep(basiclineOption)
         option.xAxis[0].data = chart.metricList[0].values.map((item: any) =>
-          dayjs(parseInt((item[0] * 1000).toString(), 10)).format('MM-DD HH:mm'),
+          timeUtils.format(parseInt((item[0] * 1000).toString(), 10), 'MM-dd HH:mm'),
         )
         // option.xAxis[0].data = chart.metricList[0].values.map((item: any) =>item[0] * 1000  );
         chart.metricList.forEach((metric: any) => {
@@ -60,7 +64,7 @@ function ChartStep({ data, occurrenceAt }: Props) {
             markLine: {
               data: [
                 {
-                  xAxis: dayjs(occurrenceAt / 1000000).format('MM-DD HH:mm'),
+                  xAxis: timeUtils.format(occurrenceAt / 1000000, 'MM-dd HH:mm'),
                   lineStyle: {
                     color: ThemeColor.red,
                     cap: 'round',
@@ -70,7 +74,7 @@ function ChartStep({ data, occurrenceAt }: Props) {
                     position: 'end',
                     fontsize: 12,
                     overflow: 'breakAll',
-                    formatter: '请求发生时间',
+                    formatter: t(`${i18nKey}.requestTime`),
                     color: theme.colors.text.primary,
                     distance: 18,
                   },
@@ -80,7 +84,7 @@ function ChartStep({ data, occurrenceAt }: Props) {
               emphasis: {
                 label: {
                   show: true,
-                  formatter: dayjs(occurrenceAt / 1000000).format('MM-DD HH:mm'),
+                  formatter: timeUtils.format(occurrenceAt / 1000000, 'MM-dd HH:mm'),
                 },
               },
             },
@@ -117,6 +121,25 @@ function ChartStep({ data, occurrenceAt }: Props) {
       })
       chartData.length > 0 && chartOptionHandle(chartData)
     }
+    if (data.source === 'text' && data.text?.flameInfo) {
+      try {
+        const flameInfo = JSON.parse(data.text.flameInfo)
+        if (flameInfo && typeof flameInfo === 'object') {
+          const startTime = flameInfo.startTime || null
+          const endTime = flameInfo.endTime || null
+
+          if (startTime && endTime) {
+            setTimeRange({ startTime, endTime })
+          } else {
+            console.warn('flameInfo miss timerange ')
+          }
+        } else {
+          console.warn('flameInfo wrong')
+        }
+      } catch (error) {
+        console.error('flameInfo JSON error:', error)
+      }
+    }
   }
 
   useEffect(() => {
@@ -129,7 +152,7 @@ function ChartStep({ data, occurrenceAt }: Props) {
       return (
         chartData && (
           <div className="h-[500px] overflow-hidden">
-            <FlamegraphCanvas {...chartData} />
+            <FlamegraphCanvas {...chartData} timeRange={timeRange} />
           </div>
         )
       )
@@ -161,7 +184,7 @@ function ChartStep({ data, occurrenceAt }: Props) {
       {ChartComponent()}
       {data?.conclusion?.length > 0 && (
         <div>
-          <span>分析结论：</span>
+          <span>{t(`${i18nKey}.analysisConclusion`)}：</span>
           {/* <a className='conclusion_tag' href={`/d/c902c778-2a67-463c-8f08-ae495df7fd28/2?var-pql=${testPQL}&viewPanel=1`}>{data.conclusion}</a> */}
           <span className="conclusion_tag">{data.conclusion}</span>
         </div>

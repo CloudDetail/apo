@@ -14,6 +14,10 @@ export interface FlamegraphCanvasProps {
   levels: number[][]
   names: string[]
   numTicks: number
+  timeRange?: {
+    startTime: number
+    endTime: number
+  }
 }
 export interface CanvasRenderProps extends FlamegraphCanvasProps {
   canvas: any

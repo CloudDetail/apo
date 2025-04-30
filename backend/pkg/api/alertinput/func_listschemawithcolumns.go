@@ -27,7 +27,7 @@ func (h *handler) ListSchemaWithColumns() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ListSchemaFailed,
-				code.Text(code.ListSchemaFailed)).WithError(err),
+				c.ErrMessage(code.ListSchemaFailed)).WithError(err),
 			)
 			return
 		}
@@ -41,7 +41,7 @@ func (h *handler) ListSchemaWithColumns() core.HandlerFunc {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.ListSchemaFailed,
-					code.Text(code.ListSchemaFailed)).WithError(err),
+					c.ErrMessage(code.ListSchemaFailed)).WithError(err),
 				)
 				return
 			}

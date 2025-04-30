@@ -4,9 +4,10 @@
 package service
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -37,7 +38,7 @@ func (h *handler) GetDescendantMetrics() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -45,7 +46,7 @@ func (h *handler) GetDescendantMetrics() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, nil)
 			return
 		}
 		resp, err := h.serviceInfoService.GetDescendantMetrics(req)
@@ -53,7 +54,7 @@ func (h *handler) GetDescendantMetrics() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetDescendantMetricsError,
-				code.Text(code.GetDescendantMetricsError)).WithError(err),
+				c.ErrMessage(code.GetDescendantMetricsError)).WithError(err),
 			)
 			return
 		}

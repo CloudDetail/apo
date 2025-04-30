@@ -1,3 +1,6 @@
+// Copyright 2025 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package integration
 
 import (
@@ -15,7 +18,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param Request body integration.GetCInstallRequest true "请求信息"
-// @Success 200 {object} integration.GetCInstallDocResponse
+// @Success 200 {object} integration.GetCInstallRequest
 // @Failure 400 {object} code.Failure
 // @Router /api/integration/cluster/install/cmd [get]
 func (h *handler) GetIntegrationInstallDoc() core.HandlerFunc {
@@ -25,7 +28,7 @@ func (h *handler) GetIntegrationInstallDoc() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -35,7 +38,7 @@ func (h *handler) GetIntegrationInstallDoc() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetIntegrationInstallDocFailed,
-				code.Text(code.GetIntegrationInstallDocFailed)+err.Error()).WithError(err),
+				c.ErrMessage(code.GetIntegrationInstallDocFailed)+err.Error()).WithError(err),
 			)
 			return
 		}

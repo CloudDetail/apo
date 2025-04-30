@@ -1,24 +1,21 @@
-import { CAccordionBody } from '@coreui/react'
 import React, { useMemo, useState, useEffect, useRef } from 'react'
 import BasicTable from 'src/core/components/Table/basicTable'
-import DelayLineChart from 'components/Chart/DelayLineChart'
-import { usePropsContext } from 'src/core/contexts/PropsContext'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { getStep } from 'src/core/utils/step'
 import { getServiceErrorInstancesApi } from 'src/core/api/serviceInfo'
 import ErrorCell from '../../../../../../core/components/ErrorInstance/ErrorCell'
-import { ErrorChain } from '../../../../../../core/components/ErrorInstance/ErrorChain'
 import { useDebounce } from 'react-use'
-import Timeline from '../../../../../../core/components/TimeLine'
 import { Button, Skeleton, Flex } from 'antd'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
-
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
+import { useTranslation } from 'react-i18next'
+const i18nKey = 'node'
 export default function ErrorInstanceInfo(props) {
+  const { t } = useTranslation('pro/serviceAnalyze')
   //showLogs 为true 服务于service info的tab，展示日志后两列，且支持点击节点跳转
   //showLogs false 服务于告警分析二级页面，不展示日志后两列，且不支持点击节点跳转
-  const { selectedNodeInfo, selectedEndpointInfo } = useAlertAnalyzeContext()
-  const { handlePanelStatus = null, service, endpoint, showLogs = true, errorInstanceOpen } = props
+  const { selectedNodeInfo, service, endpoint } = useServiceAnalyzeContext()
+  const { handlePanelStatus = null, showLogs = true, errorInstanceOpen } = props
   const [status, setStatus] = useState()
   const [data, setData] = useState()
   const [loading, setLoading] = useState(false)
@@ -28,78 +25,30 @@ export default function ErrorInstanceInfo(props) {
 
   const column = [
     {
-      title: '实例名',
+      title: t(`${i18nKey}.instanceName`),
       accessor: 'name',
       customWidth: 150,
     },
     {
-      title: '当前节点异常',
+      title: t(`${i18nKey}.currentNodeException`),
       accessor: 'propations',
+      minWidth: 500,
       Cell: (props) => {
-        const { value, updateSelectedValue, column } = props
-        // updateSelectedValue(column.id, value[0]);
+        const { value, column, updateSelectedValue, row } = props
         const update = (item) => {
           updateSelectedValue(column.id, item)
         }
 
-        return <ErrorCell data={value} update={update} />
-      },
-    },
-    {
-      title: '错误故障传播链',
-      accessor: 'chain',
-      dependsOn: 'propations', // 该列依赖于第一列的值
-      Cell: (props) => {
-        const { value, dependsValue, originalRow } = props
         return (
-          <ErrorChain
-            data={dependsValue?.customAbbreviation}
-            instance={originalRow.name}
-            chartId={originalRow.name}
-            endpoint={endpoint}
-            canClickTo={showLogs}
-          />
-        )
-        // return  nodes?.length > 0 ? <Topology canZoom={false} data={{nodes, edges}}  /> : <Empty />
-      },
-    },
-    {
-      title: '日志错误数量',
-      accessor: 'logs',
-      Cell: (props) => {
-        const { value } = props
-        return (
-          <div className="h-52 w-80">
-            <DelayLineChart data={value} timeRange={{ startTime, endTime }} type="logs" />
-          </div>
+          <ErrorCell data={value} instance={row.values.name} canClickTo={false} update={update} />
         )
       },
     },
     {
-      title: '日志信息',
-      accessor: 'detail',
-      customWidth: 320,
-      Cell: (props) => {
-        const { value, row } = props
-        return (
-          <Timeline
-            instance={row.original.name}
-            nodeName={row.original.nodeName}
-            pid={row.original.pid}
-            containerId={row.original.containerId}
-            type="errorLogs"
-            startTime={startTime}
-            endTime={endTime}
-            service={service}
-            endpoint={endpoint}
-          />
-        )
-      },
-    },
-    {
-      title: '操作',
+      title: t(`${i18nKey}.action`),
       accessor: 'action',
       dependsOn: 'propations',
+      customWidth: 160,
       Cell: (props) => {
         const { dependsValue } = props
         //dependsValue里有traceid
@@ -114,7 +63,7 @@ export default function ErrorInstanceInfo(props) {
             target="_blank"
             style={dependsValue ? {} : { color: 'gray' }}
           >
-            {dependsValue ? '查看报告' : '暂无可查看报告'}
+            {dependsValue ? t(`${i18nKey}.viewReport`) : t(`${i18nKey}.noReport`)}
           </Button>
         )
       },
@@ -126,12 +75,12 @@ export default function ErrorInstanceInfo(props) {
       getServiceErrorInstancesApi({
         startTime: startTime,
         endTime: endTime,
-        service: service,
-        endpoint: endpoint,
+        service: selectedNodeInfo.service,
+        endpoint: selectedNodeInfo.endpoint,
         step: getStep(startTime, endTime),
         ignoreEmptyPropationsInstance: true,
-        entryService: selectedEndpointInfo.service,
-        entryEndpoint: selectedEndpointInfo.endpoint,
+        entryService: service,
+        entryEndpoint: endpoint,
       })
         .then((res) => {
           setStatus(res.status)
@@ -158,7 +107,7 @@ export default function ErrorInstanceInfo(props) {
       }
     },
     300,
-    [service, startTime, endTime, endpoint],
+    [selectedNodeInfo, startTime, endTime],
   )
 
   useEffect(() => {
@@ -169,15 +118,15 @@ export default function ErrorInstanceInfo(props) {
 
   const tableProps = useMemo(() => {
     return {
-      columns: showLogs ? column : [...column.slice(0, 3), ...column.slice(-1)],
+      columns: column,
       data: data,
       showBorder: false,
       loading: false,
     }
-  }, [data, service])
+  }, [data, selectedNodeInfo])
 
   return (
-    <div key={reRender}>
+    <div key={reRender} className="w-full overflow-auto">
       {/* <CAccordionHeader onClick={() => handleToggle('error')}>
         {status && <StatusInfo status={status} />}
         <span className="ml-2">{service}的错误实例</span>
@@ -185,7 +134,7 @@ export default function ErrorInstanceInfo(props) {
       {selectedNodeInfo.endpoint ? (
         <Skeleton loading={loading}>
           {data && (
-            <div ref={tableRef} className="text-xs">
+            <div ref={tableRef} className="text-xs w-full min-w-[800px]">
               <BasicTable {...tableProps} />
             </div>
           )}
@@ -198,7 +147,7 @@ export default function ErrorInstanceInfo(props) {
               fontSize: '12px',
             }}
           >
-            请选择疑似节点查看错误链路和错误报告
+            {t(`${i18nKey}.selectNode`)}
           </p>
         </Flex>
       )}

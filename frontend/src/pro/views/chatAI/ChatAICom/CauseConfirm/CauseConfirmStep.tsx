@@ -1,5 +1,5 @@
 import { Col, Radio, Row } from 'antd'
-import { useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { useChatAIContext } from 'src/pro/contexts/ChatAIContext'
 interface NodeData {
   service: string
@@ -8,8 +8,9 @@ interface NodeData {
 interface CauseConfirmStepProps {
   nextStep: any
 }
-
+const i18nKey = 'causeConfirm'
 const CauseConfirmStep = ({ nextStep }: CauseConfirmStepProps) => {
+  const { t } = useTranslation('pro/chatAI')
   const causeNode = useChatAIContext((ctx) => ctx.causeNode)
   const suspectedNodeList = useChatAIContext((ctx) => ctx.suspectedNodeList)
   const selectedSuspectedNode = useChatAIContext((ctx) => ctx.selectedSuspectedNode)
@@ -30,7 +31,10 @@ const CauseConfirmStep = ({ nextStep }: CauseConfirmStepProps) => {
           <div className="text-xs text-[#9e9e9e] text-left  break-all">{node.endpoint}</div>
         </div>
         <Radio
-          checked={selectedSuspectedNode?.service === node.service}
+          checked={
+            selectedSuspectedNode?.service === node.service &&
+            selectedSuspectedNode?.endpoint === node.endpoint
+          }
           className="absolute right-0 top-0"
         ></Radio>
       </div>
@@ -38,13 +42,19 @@ const CauseConfirmStep = ({ nextStep }: CauseConfirmStepProps) => {
   }
   return (
     <div className="w-full text-center text-xs">
-      末次大模型推断根因节点为{' '}
+      {t(`${i18nKey}.lastAIDeduction`)}{' '}
       <span className="text-sm font-bold">
         {causeNode?.service}
         <span className="text-xs font-normal">（{causeNode?.endpoint}）</span>
       </span>
-      ,可<span className="font-extrabold">继续查看该节点的数据</span>或
-      <span className="font-extrabold">选择您怀疑的节点</span>作为根因节点
+      ,
+      <Trans
+        t={t}
+        i18nKey="causeConfirm.notify"
+        components={{
+          span: <span className="font-extrabold"></span>,
+        }}
+      />
       <div className="flex justify-around p-4 flex-wrap">
         <Row justify="space-between">
           {suspectedNodeList?.map((node) => (

@@ -16,6 +16,7 @@ import PermissionModal from './PermissionModal'
 import DatasourceTag from './component/DatasourceTag'
 import Paragraph from 'antd/es/typography/Paragraph'
 import { useTranslation } from 'react-i18next'
+import CustomCard from 'src/core/components/Card/CustomCard'
 
 export default function DataGroupPage() {
   const { t } = useTranslation('core/dataGroup')
@@ -153,8 +154,8 @@ export default function DataGroupPage() {
   ]
   return (
     <>
-      <Card
-        style={{ height: 'calc(100vh - 60px)', overflow: 'hidden' }}
+      <CustomCard
+        style={{ overflow: 'hidden' }}
         classNames={{ body: 'h-full' }}
       >
         <div className="flex justify-between mb-2">
@@ -167,12 +168,12 @@ export default function DataGroupPage() {
         <Table
           dataSource={data}
           columns={columns}
-          pagination={{ current: currentPage, pageSize: pageSize, total: total }}
+          pagination={{ current: currentPage, pageSize: pageSize, total: total, hideOnSinglePage: true }}
           onChange={changePagination}
           scroll={{ y: 'calc(100vh - 240px)' }}
           className="overflow-auto"
         ></Table>
-      </Card>
+      </CustomCard>
       <InfoModal
         open={infoModalVisible}
         closeModal={closeInfoModal}

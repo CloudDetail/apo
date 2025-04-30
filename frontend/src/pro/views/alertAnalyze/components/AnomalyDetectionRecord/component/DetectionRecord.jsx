@@ -4,8 +4,12 @@ import { getDetectionRecordApi, addMutationRule } from 'src/pro/api/alertAnalyze
 import { convertTime } from 'src/core/utils/time'
 import { showToast } from 'src/core/utils/toast'
 import '../index.css'
+import { useTranslation } from 'react-i18next'
 
+const i18nKey = 'detectionRecord'
 export default function DetectionRecord({ refresh }) {
+  const { t } = useTranslation('pro/alertAnalyze')
+
   const [dataSource, setDataSource] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -13,19 +17,19 @@ export default function DetectionRecord({ refresh }) {
   const [loadingStatus, setLoadingStatus] = useState(false)
   const columns = [
     {
-      title: '突变检测名',
+      title: t(`${i18nKey}.mutationDetectionName`),
       dataIndex: 'name',
       key: 'name',
       align: 'center',
     },
     {
-      title: '组名',
+      title: t(`${i18nKey}.groupName`),
       dataIndex: 'group',
       key: 'group',
       align: 'center',
     },
     {
-      title: '检测语句',
+      title: t(`${i18nKey}.detectionStatement`),
       dataIndex: 'mutationCheckPQL',
       key: 'mutationCheckPQL',
       align: 'center',
@@ -45,44 +49,44 @@ export default function DetectionRecord({ refresh }) {
                   />
                 ),
                 closable: false,
-                okText: '关闭',
+                okText: t(`${i18nKey}.close`),
                 width: '60vw',
                 icon: null,
                 style: { backgroundColor: '#1F1F1F' },
               })
             }}
           >
-            点击查看检测语句
+            {t(`${i18nKey}.viewStatement`)}
           </Button>
         )
       },
     },
     {
-      title: '查询开始时间',
+      title: t(`${i18nKey}.queryStartTime`),
       dataIndex: 'startTime',
       key: 'startTime',
       align: 'center',
     },
     {
-      title: '查询结束时间',
+      title: t(`${i18nKey}.queryEndTime`),
       dataIndex: 'endTime',
       key: 'endTime',
       align: 'center',
     },
     {
-      title: '检测周期(s)',
+      title: t(`${i18nKey}.detectionCycle`),
       dataIndex: 'step',
       key: 'step',
       align: 'center',
     },
     {
-      title: '告警等待时间',
+      title: t(`${i18nKey}.alertWaitTime`),
       dataIndex: 'for',
       key: 'for',
       align: 'center',
     },
     {
-      title: '本次执行时间',
+      title: t(`${i18nKey}.executionTime`),
       dataIndex: 'timestamp',
       key: 'timestamp',
       align: 'center',
@@ -142,7 +146,7 @@ export default function DetectionRecord({ refresh }) {
     <>
       <div className="flex flex-col h-full relative overflow-y-hidden">
         <div className="flex flex-col" style={{ flex: 1, overflowY: 'auto' }}>
-          <div className="text-base px-4">异常检测记录</div>
+          <div className="text-base px-4">{t(`${i18nKey}.anomalyDetectionRecord`)}</div>
           <Table
             columns={columns}
             dataSource={dataSource}

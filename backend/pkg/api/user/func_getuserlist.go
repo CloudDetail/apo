@@ -4,8 +4,9 @@
 package user
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -34,7 +35,7 @@ func (h *handler) GetUserList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -51,7 +52,7 @@ func (h *handler) GetUserList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetUserInfoError,
-				code.Text(code.GetUserInfoError)).WithError(err),
+				c.ErrMessage(code.GetUserInfoError)).WithError(err),
 			)
 			return
 		}

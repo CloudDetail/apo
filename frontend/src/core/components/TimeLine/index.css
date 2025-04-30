@@ -4,71 +4,71 @@
  */
 
 .timeline-container {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    height: 70px;
-    position: relative;
-  }
-  
-  .timeline {
-    display: flex;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    width: 100%;
-    /* padding: 0 10px; */
-    white-space: nowrap;
-    position: relative;
-  }
-  
-  .timeline::-webkit-scrollbar {
-    display: none; /* 隐藏滚动条 */
-  }
-  
-  .timeline-segment {
-    display: flex;
-    align-items: center;
-    padding: 0 8px;
-    position: relative;
-    height: 50px;
-  }
-  
-  .timeline-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-    position: relative;
-    z-index: 5;
-  }
-  
-  .timeline-button {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background-color: #467ffc;
-    border: none;
-    cursor: pointer;
-    margin: 5px;
-  }
-  
-  .timeline-item-title {
-    font-size: 14px;
-    margin-top: 5px;
-    position: absolute;
-    top: -15px;
-  }
-  
-  .timeline-item.active .timeline-button {
-    background-color: #c75c5d;
-  }
-  
-  .timeline-line {
-    height: 2px;
-    background-color: #467ffc;
-    flex-grow: 1;
-    position: absolute;
-    width: 100%;
-    z-index: 1;
-  }
-  
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 70px;
+  position: relative;
+}
+
+.timeline {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  width: 100%;
+  /* padding: 0 10px; */
+  white-space: nowrap;
+  position: relative;
+}
+
+.timeline::-webkit-scrollbar {
+  display: none;
+  /* 隐藏滚动条 */
+}
+
+.timeline-segment {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  position: relative;
+  height: 50px;
+}
+
+.timeline-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  z-index: 5;
+}
+
+.timeline-button {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #467ffc;
+  border: none;
+  cursor: pointer;
+  margin: 5px;
+}
+
+.timeline-item-title {
+  font-size: 14px;
+  margin-top: 5px;
+  position: absolute;
+  top: -15px;
+}
+
+.timeline-item.active .timeline-button {
+  background-color: #c75c5d;
+}
+
+.timeline-line {
+  height: 2px;
+  background-color: #467ffc;
+  flex-grow: 1;
+  position: absolute;
+  width: 100%;
+  z-index: 1;
+}

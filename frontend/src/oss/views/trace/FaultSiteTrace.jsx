@@ -3,12 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo, useState, useEffect, useRef } from 'react'
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import { traceTableMock } from './mock'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { getTimestampRange, timeRangeList } from 'src/core/store/reducers/timeRangeReducer'
-import { convertTime, ISOToTimestamp } from 'src/core/utils/time'
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { convertTime, TimestampToISO } from 'src/core/utils/time'
 import { getTracePageListApi } from 'core/api/trace.js'
 import EndpointTableModal from './component/JaegerIframeModal'
 import { useSelector } from 'react-redux'
@@ -17,8 +15,9 @@ import LogsTraceFilter from 'src/oss/components/Filter/LogsTraceFilter'
 import { DefaultTraceFilters } from 'src/constants'
 import TraceErrorType from './component/TraceErrorType'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
-import { Card, Tooltip } from 'antd'
+import { Card, Tooltip, Button } from 'antd'
 import { useTranslation } from 'react-i18next'
+import { useDebouncedCallback } from 'use-debounce';
 
 function FaultSiteTrace() {
   const { t } = useTranslation('oss/trace')
@@ -140,12 +139,12 @@ function FaultSiteTrace() {
     if (startTime && endTime) {
       if (paramsChange) {
         if (pageIndex === 1) {
-          getTraceData()
+          debouncedGetTraceData()
         } else {
           setPageIndex(1)
         }
       } else if (prev.pageIndex !== pageIndex) {
-        getTraceData()
+        debouncedGetTraceData()
       }
     }
   }, [
@@ -246,6 +245,32 @@ function FaultSiteTrace() {
         )
       },
     },
+    {
+      title: t('trace.operation'),
+      accessor: 'action',
+      // minWidth: 140,
+      Cell: (props) => {
+        const { row } = props
+        const { traceId, serviceName, instanceId } = row.original
+
+        const formattedStartTime = TimestampToISO(startTime)
+        const formattedEndTime = TimestampToISO(endTime)
+
+        const targetUrl = `#/logs/fault-site?logs-from=${encodeURIComponent(formattedStartTime)}&logs-to=${encodeURIComponent(formattedEndTime)}&service=${encodeURIComponent(serviceName)}&instance=${encodeURIComponent(instanceId)}&traceId=${encodeURIComponent(traceId)}`
+        return (
+          <div className="flex flex-col">
+            <Button
+              onClick={() => window.open(targetUrl)}
+              className="my-1"
+              variant="outlined"
+              color="primary"
+            >
+              {t('trace.viewLogs')}
+            </Button>
+          </div>
+        )
+      },
+    },
   ]
   const prepareFilter = () => {
     let filters = []
@@ -270,52 +295,49 @@ function FaultSiteTrace() {
         value: [(maxDuration * 1000).toString()],
       })
     }
-    if (faultTypeList?.includes('normal')) {
-      if (faultTypeList.length === 2) {
-        let type = faultTypeList.includes('slow') ? 'error' : 'slow'
-        filters.push({
-          ...DefaultTraceFilters[type],
-          operation: 'IN',
-          value: ['false'],
-        })
-      } else if (faultTypeList.length === 1) {
-        filters.push({
-          ...DefaultTraceFilters['error'],
-          operation: 'IN',
-          value: ['false'],
-        })
-        filters.push({
-          ...DefaultTraceFilters['slow'],
-          operation: 'IN',
-          value: ['false'],
-        })
+
+    // The selection of fault types is achieved through nested sub-filters
+    const createSingleOption = (type, operator = 'AND') => {
+      const subFilters = []
+      for (let key in type) {
+        if (key === 'slow' || key === 'error') {
+          subFilters.push({
+            ...DefaultTraceFilters[key],
+            operation: 'EQUAL',
+            value: [type[key]],
+          })
+        }
       }
-    } else {
-      faultTypeList?.forEach((type) => {
-        filters.push({
-          ...DefaultTraceFilters[type],
-          operation: 'IN',
-          value: ['true'],
-        })
-      })
+
+      return { mergeSep: operator, subFilters };
     }
-    // if (isSlow) {
-    //   filters.push({
-    //     ...DefaultTraceFilters.isSlow,
-    //     operation: 'IN',
-    //     value: [isSlow.toString()],
-    //   })
-    // }
-    // if (isError) {
-    //   filters.push({
-    //     ...DefaultTraceFilters.isError,
-    //     operation: 'IN',
-    //     value: [isError.toString()],
-    //   })
-    // }
+
+    const subFilters = []
+    faultTypeList?.forEach(faultType => {
+      switch (faultType) {
+        case 'slow':
+          subFilters.push(createSingleOption({ slow: 'true', error: 'false' }))
+          break
+        case 'error':
+          subFilters.push(createSingleOption({ slow: 'false', error: 'true' }))
+          break
+        case 'normal':
+          subFilters.push(createSingleOption({ slow: 'false', error: 'false' }))
+          break
+        case 'slowAndError':
+          subFilters.push(createSingleOption({ slow: 'true', error: 'true' }))
+          break
+      }
+    })
+
+    filters.push({
+      mergeSep: 'OR',
+      subFilters
+    })
+
     return filters
   }
-  const getTraceData = () => {
+  const getTraceData = useCallback(() => {
     const { containerId, nodeName, pid } = instanceOption[instance] ?? {}
     setLoading(true)
     getTracePageListApi({
@@ -349,11 +371,25 @@ function FaultSiteTrace() {
         setTracePageList([])
         setLoading(false)
       })
-  }
-  const handleTableChange = (props) => {
-    if (props.pageSize && props.pageIndex) {
-      setPageSize(props.pageSize)
-      setPageIndex(props.pageIndex)
+  }, [
+    startTime,
+    endTime,
+    service,
+    instance,
+    traceId,
+    endpoint,
+    namespace,
+    pageIndex,
+    pageSize,
+    instanceOption,
+    minDuration,
+    maxDuration,
+    faultTypeList,
+  ]);
+  const debouncedGetTraceData = useDebouncedCallback(getTraceData, 500);
+  const handleTableChange = (pageIndex, pageSize) => {
+    if (pageSize && pageIndex) {
+      setPageSize(pageSize), setPageIndex(pageIndex)
     }
   }
   // useEffect(() => {
@@ -371,7 +407,7 @@ function FaultSiteTrace() {
       pagination: {
         pageSize: pageSize,
         pageIndex: pageIndex,
-        pageCount: Math.ceil(total / pageSize),
+        total: total,
       },
     }
   }, [tracePageList, column])

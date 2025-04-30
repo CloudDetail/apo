@@ -4,12 +4,14 @@
 package log
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // GetServiceRoute get the application log corresponding to the service
@@ -30,14 +32,16 @@ func (h *handler) GetServiceRoute() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, "")
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, &response.GetServiceRouteResponse{
+				RouteRule: map[string]string{},
+			})
 			return
 		}
 		resp, err := h.logService.GetServiceRoute(req)
@@ -45,7 +49,7 @@ func (h *handler) GetServiceRoute() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetServiceRouteError,
-				code.Text(code.GetServiceRouteError)+err.Error()).WithError(err),
+				c.ErrMessage(code.GetServiceRouteError)+err.Error()).WithError(err),
 			)
 			return
 		}

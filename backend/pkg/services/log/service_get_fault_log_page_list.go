@@ -25,6 +25,7 @@ func (s *service) GetFaultLogPageList(req *request.GetFaultLogPageListRequest) (
 		Type:           2, // Slow && Error && Normal
 		PageNum:        req.PageNum,
 		PageSize:       req.PageSize,
+		Pod:            req.Pod,
 	}
 	list, total, err := s.chRepo.GetFaultLogPageList(query)
 	if err != nil {

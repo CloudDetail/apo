@@ -18,18 +18,18 @@ import (
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json
-// @Param Request body alert.AlerEnrichRuleConfigRequest true "Update Config"
+// @Param Request body alert.AlertEnrichRuleConfigRequest true "Update Config"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/source/enrich/update [post]
 func (h *handler) UpdateAlertSourceEnrichRule() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(alert.AlerEnrichRuleConfigRequest)
+		req := new(alert.AlertEnrichRuleConfigRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -42,7 +42,7 @@ func (h *handler) UpdateAlertSourceEnrichRule() core.HandlerFunc {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.AlertSourceNotExisted,
-					code.Text(code.AlertSourceNotExisted)).WithError(err),
+					c.ErrMessage(code.AlertSourceNotExisted)).WithError(err),
 				)
 				return
 			}
@@ -50,7 +50,7 @@ func (h *handler) UpdateAlertSourceEnrichRule() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.UpdateAlertEnrichRuleFailed,
-				code.Text(code.UpdateAlertEnrichRuleFailed)).WithError(err),
+				c.ErrMessage(code.UpdateAlertEnrichRuleFailed)).WithError(err),
 			)
 			return
 		}

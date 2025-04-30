@@ -9,15 +9,20 @@ import (
 )
 
 type Service interface {
-	CreateCluster(cluster *integration.ClusterIntegrationVO) error
-	GetClusterIntegration(clusterID string) (*integration.ClusterIntegration, error)
-	UpdateClusterIntegration(cluster *integration.ClusterIntegrationVO) error
+	GetStaticIntegration() map[string]any
+
+	CreateCluster(cluster *integration.ClusterIntegration) (*integration.Cluster, error)
+	GetClusterIntegration(clusterID string) (*integration.ClusterIntegrationVO, error)
+	UpdateClusterIntegration(cluster *integration.ClusterIntegration) error
 
 	ListCluster() ([]integration.Cluster, error)
 	DeleteCluster(cluster *integration.Cluster) error
 
 	GetIntegrationInstallConfigFile(req *integration.GetCInstallRequest) (*integration.GetCInstallConfigResponse, error)
+	// Deprecated
 	GetIntegrationInstallDoc(req *integration.GetCInstallRequest) ([]byte, error)
+
+	TriggerAdapterUpdate(req *integration.TriggerAdapterUpdateRequest)
 }
 
 var _ Service = &service{}

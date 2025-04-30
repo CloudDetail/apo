@@ -1,12 +1,12 @@
 import React from 'react'
-import { AlertAnalyzeProvider } from 'src/pro/contexts/AlertAnalyzeContext'
 import DescendantTopology from './DescendantTopology'
+import { ServiceAnalyzeProvider } from 'src/pro/contexts/ServiceAnalyzeContext'
 
 function ServiceAnalyzePage() {
   return (
-    <AlertAnalyzeProvider>
+    <ServiceAnalyzeProvider>
       <DescendantTopology />
-    </AlertAnalyzeProvider>
+    </ServiceAnalyzeProvider>
   )
 }
 export default ServiceAnalyzePage

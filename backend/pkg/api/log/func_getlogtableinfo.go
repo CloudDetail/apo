@@ -29,7 +29,7 @@ func (h *handler) GetLogTableInfo() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -38,7 +38,7 @@ func (h *handler) GetLogTableInfo() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetLogTableInfoError,
-				code.Text(code.GetLogTableInfoError)+err.Error()).WithError(err),
+				c.ErrMessage(code.GetLogTableInfoError)+err.Error()).WithError(err),
 			)
 			return
 		}

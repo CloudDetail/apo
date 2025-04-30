@@ -14,6 +14,7 @@ import Lightbox from 'react-image-lightbox'
 import { getStep } from 'src/core/utils/step'
 import { useDebounce } from 'react-use'
 import GlossaryTable from 'src/core/components/PolarisMetrics/GlossaryTable'
+import i18next from 'i18next'
 
 function PolarisMetricsInfo() {
   const [image, setImage] = useState()
@@ -24,6 +25,9 @@ function PolarisMetricsInfo() {
   const [isOpen, setIsOpen] = useState(false)
   window.global = window
   const global = window
+  const language = i18next.language
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
   const getData = () => {
     if (startTime && endTime) {
       setLoading(true)
@@ -33,6 +37,8 @@ function PolarisMetricsInfo() {
         service: serviceName,
         endpoint: endpoint,
         step: getStep(startTime, endTime),
+        language: language,
+        timezone: timeZone,
       })
         .then((res) => {
           setImage(res?.inferMetricsPng)
@@ -63,7 +69,7 @@ function PolarisMetricsInfo() {
 
     //   !loading && image?.length === 0 && inferCause?.length ===0 &&
     // }
-    <CAccordionBody className="flex flex-row ">
+    <div className="flex flex-row ">
       {image && (
         <div className="w-1/3">
           <img
@@ -89,7 +95,7 @@ function PolarisMetricsInfo() {
           </div>
         </div>
       )}
-    </CAccordionBody>
+    </div>
   )
 }
 export default PolarisMetricsInfo

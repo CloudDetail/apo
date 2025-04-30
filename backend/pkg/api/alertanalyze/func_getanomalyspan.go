@@ -26,7 +26,7 @@ func (h *handler) GetAnomalySpan() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -35,7 +35,7 @@ func (h *handler) GetAnomalySpan() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)),
+				c.ErrMessage(code.ParamBindError)),
 			)
 			return
 		}
@@ -45,7 +45,7 @@ func (h *handler) GetAnomalySpan() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetAnomalySpanError,
-				code.Text(code.GetAnomalySpanError)).WithError(err))
+				c.ErrMessage(code.GetAnomalySpanError)).WithError(err))
 			return
 		}
 		c.Payload(resp)

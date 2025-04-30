@@ -20,15 +20,15 @@ import (
 // @Param Request body integration.Cluster true "Cluster Info"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/integration/cluster/delete [post]
+// @Router /api/integration/cluster/delete [get]
 func (h *handler) DeleteCluster() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(integration.Cluster)
-		if err := c.ShouldBindJSON(req); err != nil {
+		if err := c.ShouldBindQuery(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -38,7 +38,7 @@ func (h *handler) DeleteCluster() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.DeleteClusterFailed,
-				code.Text(code.DeleteClusterFailed)).WithError(err),
+				c.ErrMessage(code.DeleteClusterFailed)).WithError(err),
 			)
 			return
 

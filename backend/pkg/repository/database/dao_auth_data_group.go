@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -21,8 +22,8 @@ type AuthDataGroup struct {
 	GroupID     int64  `gorm:"column:data_group_id;index:group_id_idx" json:"-"`
 	Type        string `gorm:"column:type;default:view" json:"type"` // view, edit
 
-	User *User `gorm:"foreignKey:SubjectID;references:UserID" json:"user,omitempty"`
-	Team *Team `gorm:"foreignKey:SubjectID;references:TeamID" json:"team,omitempty"`
+	User *User `gorm:"-" json:"user,omitempty"`
+	Team *Team `gorm:"-" json:"team,omitempty"`
 }
 
 func (adg AuthDataGroup) MarshalJSON() ([]byte, error) {
@@ -170,25 +171,64 @@ func (repo *daoRepo) GetGroupAuthDataGroupByGroup(groupID int64, subjectType str
 
 func (repo *daoRepo) GetDataGroupUsers(groupID int64) ([]AuthDataGroup, error) {
 	var ags []AuthDataGroup
-
-	err := repo.db.Preload("User", func(db *gorm.DB) *gorm.DB {
-		return db.Select("user_id, username")
-	}).
-		Select("subject_id, type").
+	err := repo.db.
+		Select("subject_id", "type").
 		Where("data_group_id = ? AND subject_type = ?", groupID, model.DATA_GROUP_SUB_TYP_USER).
 		Find(&ags).Error
-	return ags, err
+	if err != nil {
+		return nil, err
+	}
+
+	if len(ags) == 0 {
+		return ags, nil
+	}
+
+	for i := 0; i < len(ags); i++ {
+		var user User
+		err = repo.db.
+			Select("user_id", "username").
+			First(&user, "user_id = ?", ags[i].SubjectID).Error
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return nil, err
+		}
+
+		if err == nil {
+			ags[i].User = &user
+		}
+	}
+
+	return ags, nil
 }
 
 func (repo *daoRepo) GetDataGroupTeams(groupID int64) ([]AuthDataGroup, error) {
 	var ags []AuthDataGroup
 
-	err := repo.db.Preload("Team", func(db *gorm.DB) *gorm.DB {
-		return db.Select("team_id, team_name")
-	}).
-		Select("subject_id, type").
+	err := repo.db.
+		Select("subject_id", "type").
 		Where("data_group_id = ? AND subject_type = ?", groupID, model.DATA_GROUP_SUB_TYP_TEAM).
 		Find(&ags).Error
+	if err != nil {
+		return nil, err
+	}
+
+	if len(ags) == 0 {
+		return ags, nil
+	}
+
+	for i := 0; i < len(ags); i++ {
+		var team Team
+		err = repo.db.
+			Select("team_id", "team_name").
+			First(&team, "team_id = ?", ags[i].SubjectID).Error
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return nil, err
+		}
+
+		if err == nil {
+			ags[i].Team = &team
+		}
+	}
+
 	return ags, err
 }
 
@@ -202,7 +242,7 @@ func (repo *daoRepo) CheckGroupPermission(userID, groupID int64, typ string) (bo
 		Where("subject_id = ? AND data_group_id = ? AND subject_type = ?", userID, groupID, model.DATA_GROUP_SUB_TYP_USER)
 
 	if typ == "edit" {
-		query = query.Where("type = ?", typ)
+		query = query.Where(`"type" = ?`, typ)
 	}
 
 	err = query.Count(&count).Error
@@ -223,7 +263,7 @@ func (repo *daoRepo) CheckGroupPermission(userID, groupID int64, typ string) (bo
 		Where("subject_id IN ? AND data_group_id = ? AND subject_type = ?", teamIDs, groupID, model.DATA_GROUP_SUB_TYP_TEAM)
 
 	if typ == "edit" {
-		query = query.Where("type = ?", typ)
+		query = query.Where(`"type" = ?`, typ)
 	}
 
 	err = query.Count(&count).Error

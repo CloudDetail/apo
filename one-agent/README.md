@@ -1,13 +1,13 @@
 # OneAgent
-OneAgent 用于收集被监控环境中的各类可观测性数据，包括链路数据、日志数据和指标数据等。OneAgent 能够部署在各类环境中，包括传统服务器、容器、Kubernetes环境中。
+OneAgent is designed to collect various observability data from monitored environments, including trace data, log data, and metrics. OneAgent can be deployed in various environments, including traditional servers, containers, and Kubernetes environments.
 
-**OneAgent** 集成了以下内容：
+**OneAgent** integrates the following components:
 
-- 基于 Linux Preload 机制和 Kubernetes Webhook 机制自动安装 [OpenTelemetry](https://github.com/open-telemetry) 探针，应用重启生效
-- sdk-auto: 基于 [opentelemetry-go-instrumentation](https://github.com/open-telemetry/opentelemetry-go-instrumentation) 实现无侵入获取 Go 语言的链路数据
-- 基于 eBPF 技术，采集北极星因果指标，并实现链路数据的[回溯采样算法](https://www.usenix.org/conference/nsdi23/presentation/zhang-lei)
-- 通过 [ilogtail](https://github.com/alibaba/ilogtail) 采集故障现场日志，依据回溯算法采样结果保留故障现场日志
-- 通过 [Grafana Alloy](https://grafana.com/docs/alloy/latest/) 采集指标，通过配置的方式能够扩展采集各类指标
-- 集成 [node-agent](https://github.com/CloudDetail/node-agent) 探针，获取网络延时指标和进程状态指标
+- Automatic installation of [OpenTelemetry](https://github.com/open-telemetry) agents based on Linux Preload mechanism and Kubernetes Webhook mechanism, effective after application restart
+- Grafana Beyla: Non-intrusive trace data collection for Go applications using [Grafana Beyla](https://github.com/grafana/beyla)
+- Collection of Polaris causal metrics using eBPF technology, implementing trace data [retrospective sampling algorithm](https://www.usenix.org/conference/nsdi23/presentation/zhang-lei)
+- Collection of fault scene logs through [ilogtail](https://github.com/alibaba/ilogtail), preserving fault scene logs based on retrospective sampling results
+- Metric collection through [Grafana Alloy](https://grafana.com/docs/alloy/latest/), supporting extensible metric collection through configuration
+- Integration with [node-agent](https://github.com/CloudDetail/node-agent) probe to obtain network latency metrics and process status metrics
 
-在 OneAgent 中，链路数据、日志数据直接发送至 OpenTelemetry Collector，指标数据经 Alloy 采集之后发送至 OpenTelemetry Collector。
+In OneAgent, trace data and log data are sent directly to the OpenTelemetry Collector, while metric data is collected through Alloy before being sent to the OpenTelemetry Collector.

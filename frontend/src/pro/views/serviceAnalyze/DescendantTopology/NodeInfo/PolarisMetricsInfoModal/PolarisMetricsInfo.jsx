@@ -1,5 +1,4 @@
-import { CAccordionBody, CImage } from '@coreui/react'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { getPolarisInferApi } from 'src/core/api/serviceInfo'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
@@ -7,10 +6,14 @@ import 'react-image-lightbox/style.css'
 import Lightbox from 'react-image-lightbox'
 import { getStep } from 'src/core/utils/step'
 import { useDebounce } from 'react-use'
-import { Skeleton, Table, Button, Select, Flex, Typography, Divider } from 'antd'
+import { Skeleton, Table, Button, Select, Flex, Divider } from 'antd'
 import FaultReportModal from './FaultReportModal'
 import { InfoCircleFilled } from '@ant-design/icons'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
+import { SlowErrorType } from 'src/constants'
+import { useTranslation } from 'react-i18next'
+import i18next from 'i18next'
+const i18nKey = 'node.polaris'
 
 const options = [
   { value: 'network_time', label: 'network_time' },
@@ -21,7 +24,8 @@ const options = [
 ]
 
 function PolarisMetricsInfo({ service, endpoint }) {
-  const { selectedNodeInfo } = useAlertAnalyzeContext()
+  const { t } = useTranslation('pro/serviceAnalyze')
+  const { selectedNodeInfo } = useServiceAnalyzeContext()
   const [image, setImage] = useState()
   const [inferCause, setInferCause] = useState()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
@@ -32,49 +36,27 @@ function PolarisMetricsInfo({ service, endpoint }) {
   const [defaultSelected, setDefaultSelected] = useState('')
   const columns = [
     {
-      title: '类型',
+      title: t(`${i18nKey}.type`),
       dataIndex: 'type',
       key: 'type',
     },
     {
-      title: '含义',
+      title: t(`${i18nKey}.describe`),
       dataIndex: 'describe',
       key: 'describe',
     },
   ]
+  const dataSource = Object.entries(SlowErrorType).map(([key, value]) => ({
+    type: key,
+    key: key,
+    describe: value,
+  }))
 
-  const dataSource = [
-    {
-      key: '1',
-      type: 'network_time',
-      describe: '耗时为对外的服务调用和任何数据库和中间件，DNS等网络操作耗时',
-    },
-    {
-      key: '2',
-      type: 'CPU_time',
-      describe:
-        '程序代码在cpu上的执行时间.如果cpu_time过长，是由于嵌入层次过多或者循环过多导致在cpu上执行时间',
-    },
-    {
-      key: '3',
-      type: 'lock_gc_time',
-      describe:
-        '程序由于GC或者锁等待产生时延，如果是GC频繁,延时应该分布在不同时间点，如果是锁，一般是连续时间',
-    },
-    {
-      key: '4',
-      type: 'disk_io_time',
-      describe: '程序写文件时间',
-    },
-    {
-      key: '5',
-      type: 'schedule_time',
-      describe: '由于CPU争抢而产生的等待时间',
-    },
-  ]
   window.global = window
   const global = window
   const getData = () => {
+    const language = i18next.language
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
     if (startTime && endTime) {
       setLoading(true)
       getPolarisInferApi({
@@ -83,6 +65,8 @@ function PolarisMetricsInfo({ service, endpoint }) {
         service: service,
         endpoint: endpoint,
         step: getStep(startTime, endTime),
+        language: language,
+        timezone: timeZone,
       })
         .then((res) => {
           setImage(res?.inferMetricsPng)
@@ -162,18 +146,15 @@ function PolarisMetricsInfo({ service, endpoint }) {
             </div>
           )}
           <Divider />
-          <p className="mt-2">
-            请根据延时的波动曲线，从以下构成曲线中选择和延时曲线最相似的曲线作为接下来的排查方向。
-          </p>
+          <p className="mt-2">{t(`${i18nKey}.toast`)}</p>
           <p className="mt-4 text-xs">
             <span></span>
-            <InfoCircleFilled />{' '}
-            通过eBPF技术我们已经将延时拆分成了以下几项，所以延时的变化一定是由下列某一项或多项构成
+            <InfoCircleFilled /> {t(`${i18nKey}.info`)}
           </p>
           <Table dataSource={dataSource} columns={columns} pagination={false} className="mt-1" />
           <div className="flex items-center mt-4">
             <div className="flex items-center w-9/12">
-              <p>请选择故障类型查看报告：</p>
+              <p> {t(`${i18nKey}.costTime`)}</p>
               <Select
                 defaultValue={defaultSelected}
                 style={{ width: '30%' }}
@@ -183,7 +164,7 @@ function PolarisMetricsInfo({ service, endpoint }) {
             </div>
             <div className="flex items-center">
               <Button onClick={handlePolarisDetails} disabled={!selectedErrorType}>
-                点击查看报告
+                {t(`${i18nKey}.clickToView`)}
               </Button>
             </div>
           </div>
@@ -196,7 +177,7 @@ function PolarisMetricsInfo({ service, endpoint }) {
               fontSize: '12px',
             }}
           >
-            请选择疑似节点查看北极星指标和延时报告
+            {t(`${i18nKey}.selectNode`)}
           </p>
         </Flex>
       )}

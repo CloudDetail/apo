@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Topology from 'src/core/components/ReactFlow/Topology'
 import AlertAnalyzeNode from 'src/pro/components/AlertAnalyzeNode'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 function escapeId(id) {
   return id.replace(/[^a-zA-Z0-9-_]/g, '_')
 }
@@ -14,7 +14,7 @@ const TopologyCom = () => {
     playInterval,
     setTopologyNodesMap,
     prepareDataForChartAndTopologyNode,
-  } = useAlertAnalyzeContext()
+  } = useServiceAnalyzeContext()
   const [topologyData, setTopologyData] = useState({
     nodes: [],
     edges: [],
@@ -105,7 +105,6 @@ const TopologyCom = () => {
       }
     })
     let resultNodes = [...nodes]
-    console.log({ nodes: [...nodes], edges })
     let defaultValue = {
       app: [],
       container: [],
@@ -117,7 +116,6 @@ const TopologyCom = () => {
       acc[curr.id] = 1
       return acc
     }, {})
-    console.log(result)
     // prepareDataForChartAndTopologyNode(result)
     return { nodes: resultNodes, edges }
   }
@@ -131,7 +129,8 @@ const TopologyCom = () => {
     <>
       <Topology
         data={topologyData}
-        nodeHeight={230}
+        nodeHeight={250}
+        nodeWidth={200}
         nodeTypes={{ alertAnalyzeNode: AlertAnalyzeNode }}
       />
     </>

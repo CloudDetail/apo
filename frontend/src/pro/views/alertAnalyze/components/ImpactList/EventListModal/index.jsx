@@ -6,7 +6,8 @@ import { getAlertDescendantEventApi } from 'src/pro/api/alertAnalyze'
 import BasicTable from 'src/core/components/Table/basicTable'
 import TempCell from 'src/core/components/Table/TempCell'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
-import { convertUTCToBeijing } from 'src/core/utils/time'
+import { convertUTCToLocal } from 'src/core/utils/time'
+import { useTranslation } from 'react-i18next'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -15,8 +16,9 @@ function isJSONString(str) {
     return false
   }
 }
+const i18nKey = 'eventList'
 const EventListModal = ({ endpointInfo, modalVisible, closeModal }) => {
-  console.log(endpointInfo)
+  const { t } = useTranslation('pro/alertAnalyze')
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const { groupLabel } = useSelector((state) => state.groupLabelReducer)
   const [pagination, setPagination] = useState({
@@ -58,7 +60,7 @@ const EventListModal = ({ endpointInfo, modalVisible, closeModal }) => {
   }, [endpointInfo, modalVisible, pagination.pageIndex, pagination.pageSize])
   const columns = [
     {
-      title: '告警类型',
+      title: t(`${i18nKey}.alertType`),
       accessor: 'group',
       customWidth: 150,
       Cell: ({ value }) => {
@@ -66,25 +68,25 @@ const EventListModal = ({ endpointInfo, modalVisible, closeModal }) => {
       },
     },
     {
-      title: '告警事件名',
+      title: t(`${i18nKey}.alertName`),
       accessor: 'name',
       customWidth: 150,
     },
     {
-      title: '最近告警时间',
+      title: t(`${i18nKey}.lastAlertTime`),
       accessor: 'receivedTime',
       customWidth: 180,
       Cell: ({ value }) => {
-        return convertUTCToBeijing(value)
+        return convertUTCToLocal(value)
       },
     },
     {
-      title: '告警来源',
+      title: t(`${i18nKey}.alertSource`),
       accessor: 'source',
       customWidth: 150,
     },
     {
-      title: '告警详情',
+      title: t(`${i18nKey}.alertDetail`),
       accessor: 'detail',
       justifyContent: 'left',
       Cell: ({ value }) =>
@@ -102,7 +104,6 @@ const EventListModal = ({ endpointInfo, modalVisible, closeModal }) => {
         ),
     },
   ]
-
   const changePagination = (page, pageSize) => {
     setPagination({
       pageSize: pageSize,
@@ -123,14 +124,17 @@ const EventListModal = ({ endpointInfo, modalVisible, closeModal }) => {
       <Modal
         title={
           <span>
-            {endpointInfo?.service} ({endpointInfo?.endpoint})告警列表
+            {t(`${i18nKey}.alertListFor`, {
+              service: endpointInfo?.service,
+              endpoint: endpointInfo?.endpoint,
+            })}
           </span>
         }
         open={modalVisible}
         onCancel={closeModal}
         destroyOnClose
         centered
-        cancelText="关闭"
+        cancelText={t(`${i18nKey}.close`)}
         width={1000}
         footer={(_, { CancelBtn }) => (
           <>

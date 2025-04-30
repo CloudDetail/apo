@@ -5,6 +5,7 @@ package database
 
 import (
 	"context"
+
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -57,7 +58,7 @@ func (repo *daoRepo) CreateDatasourceGroup(ctx context.Context, datasource []mod
 		return nil
 	}
 
-	datasourceGroups := make([]DatasourceGroup, len(datasource))
+	datasourceGroups := make([]DatasourceGroup, 0, len(datasource))
 	for _, ds := range datasource {
 		dsGroup := DatasourceGroup{
 			GroupID:    dataGroupID,

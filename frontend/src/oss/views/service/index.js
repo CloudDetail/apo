@@ -7,6 +7,7 @@ import { useUserContext } from 'src/core/contexts/UserContext'
 import ServiceTable from './ServiceTable'
 import DataGroupTabs from 'src/core/components/DataGroupTabs'
 import { useEffect } from 'react'
+import { ChartsProvider } from 'src/core/contexts/ChartsContext'
 export default function ServiceView() {
   const { getUserDataGroup } = useUserContext()
   useEffect(() => {
@@ -15,9 +16,11 @@ export default function ServiceView() {
   return (
     <>
       <DataGroupTabs>
-        {(groupId) => (
-          <div style={{ height: 'calc(100vh - 120px)' }} className="overflow-hidden">
-            <ServiceTable groupId={groupId} />
+        {(groupId, height) => (
+          <div className="overflow-hidden">
+            <ChartsProvider>
+              <ServiceTable groupId={groupId} height={height} />
+            </ChartsProvider>
           </div>
         )}
       </DataGroupTabs>

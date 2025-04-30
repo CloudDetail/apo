@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -38,8 +39,8 @@ type Repo interface {
 	UpdateDingTalkReceiver(dingTalkConfig *amconfig.DingTalkConfig, oldName string) error
 	DeleteDingTalkReceiver(configFile, alertName string) error
 
-	ListQuickMutationMetric() ([]QuickMutationMetric, error)
-	ListQuickAlertRuleMetric() ([]AlertMetricsData, error)
+	ListQuickAlertRuleMetric(lang string) ([]AlertMetricsData, error)
+	ListQuickMutationMetric(lang string) ([]QuickMutationMetric, error)
 
 	Login(username, password string) (*User, error)
 	CreateUser(ctx context.Context, user *User) error
@@ -62,15 +63,19 @@ type Repo interface {
 	GrantRoleWithUser(ctx context.Context, userID int64, roleIDs []int) error
 	GrantRoleWithRole(ctx context.Context, roleID int, userIDs []int64) error
 	RevokeRole(ctx context.Context, userID int64, roleIDs []int) error
+	RevokeRoleWithRole(ctx context.Context, roleID int) error
 	GetSubjectPermission(subID int64, subType string, typ string) ([]int, error)
 	GetSubjectsPermission(subIDs []int64, subType string, typ string) ([]AuthPermission, error)
 	RoleExists(roleID int) (bool, error)
 	GrantPermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
 	RevokePermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
 	GetAddAndDeletePermissions(subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error)
-	RoleGranted(userID int64, roleID int) (bool, error)
-	GetItemRouter(items *[]MenuItem) error
-	GetRouterInsertedPage(routers []*Router) error
+	RoleGrantedToUser(userID int64, roleID int) (bool, error)
+	RoleGranted(roleID int) (bool, error)
+	FillItemRouter(items *[]MenuItem) error
+	GetItemsRouter(itemIDs []int) ([]Router, error)
+	GetRouterByIDs(routerIDs []int) ([]Router, error)
+	GetRouterInsertedPage(routers []*Router, language string) error
 	GetFeatureTans(features *[]Feature, language string) error
 	GetMenuItemTans(menuItems *[]MenuItem, language string) error
 
@@ -152,20 +157,23 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	databaseCfg := globalCfg.Database
 	switch databaseCfg.Connection {
 	case config.DB_MYSQL:
-		dbConfig = driver.NewMySqlDialector()
+		dbConfig, err = driver.NewMySqlDialector()
 	case config.DB_SQLLITE:
 		dbConfig = driver.NewSqlliteDialector()
+	case config.DB_POSTGRES:
+		dbConfig, err = driver.NewPostgresDialector()
 	default:
 		return nil, errors.New("database connection not supported")
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to database, err: %v", err)
 	}
 
 	// Connect to the database and set the log mode of GORM
 	database, err := gorm.Open(dbConfig, &gorm.Config{
 		Logger: logger.NewGormLogger(zapLogger),
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	// Get the underlying sqlDB
 	sqlDb, err := database.DB()
@@ -190,21 +198,10 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	}
 
 	// 检查并初始化预设快速突变检测指标表
-	err = daoRepo.InitPredefinedQuickMutationMetric(databaseCfg.InitScript.QuickMutationMetric)
-	if err != nil {
+	if err = driver.InitSQL(daoRepo.db, &QuickMutationMetric{}); err != nil {
 		return nil, err
 	}
-
-	var alertScript string
-	if len(databaseCfg.InitScript.QuickAlertRuleMetric) > 0 {
-		alertScript = databaseCfg.InitScript.QuickAlertRuleMetric
-	} else {
-		alertScript = "./sqlscripts/default_quick_alert_rule_metric.sql"
-	}
-	if err = daoRepo.initSql(AlertMetricsData{}, alertScript); err != nil {
-		return nil, err
-	}
-	if err = daoRepo.initApi(); err != nil {
+	if err = driver.InitSQL(daoRepo.db, &AlertMetricsData{}); err != nil {
 		return nil, err
 	}
 	if err = daoRepo.initRole(); err != nil {
@@ -228,7 +225,7 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err = daoRepo.initFeatureMenuItems(); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initFeatureAPI(); err != nil {
+	if err = daoRepo.initFeatureRouter(); err != nil {
 		return nil, err
 	}
 	if err = daoRepo.initPermissions(); err != nil {
@@ -255,6 +252,17 @@ func migrateTable(db *gorm.DB) error {
 	err := db.AutoMigrate(&AuthPermission{})
 	if err != nil {
 		return err
+	}
+	err = db.AutoMigrate(&RouterInsertPage{})
+	if err != nil {
+		return err
+	}
+	migrator := db.Migrator()
+	if migrator.HasIndex(&RouterInsertPage{}, "idx_router_insert_page_router_id") {
+		err := migrator.DropIndex(&RouterInsertPage{}, "idx_router_insert_page_router_id")
+		if err != nil {
+			return err
+		}
 	}
 
 	err = db.AutoMigrate(&QueryServiceType{})

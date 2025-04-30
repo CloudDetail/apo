@@ -6,7 +6,7 @@ package database
 // Router front end router.
 type Router struct {
 	RouterID         int    `gorm:"column:router_id;primary_key" json:"routerId"`
-	RouterTo         string `gorm:"column:router_to;uniqueIndex;type:varchar(20)" json:"to"`
+	RouterTo         string `gorm:"column:router_to;uniqueIndex;type:varchar(200)" json:"to"`
 	Custom           bool   `gorm:"column:custom;default:false" json:"-"`
 	HideTimeSelector bool   `gorm:"column:hide_time_selector" json:"hideTimeSelector"`
 
@@ -17,7 +17,7 @@ func (t *Router) TableName() string {
 	return "router"
 }
 
-func (repo *daoRepo) GetItemRouter(items *[]MenuItem) error {
+func (repo *daoRepo) FillItemRouter(items *[]MenuItem) error {
 	if items == nil {
 		return nil
 	}
@@ -43,4 +43,29 @@ func (repo *daoRepo) GetItemRouter(items *[]MenuItem) error {
 	}
 
 	return nil
+}
+
+func (repo *daoRepo) GetItemsRouter(itemIDs []int) ([]Router, error) {
+	var routers []Router
+	var routerIDs []int
+
+	if err := repo.db.Model(&MenuItem{}).Select("router_id").Where("item_id IN ?", itemIDs).Find(&routerIDs).Error; err != nil {
+		return nil, err
+	}
+
+	if err := repo.db.Where("router_id IN ?", routerIDs).Find(&routers).Error; err != nil {
+		return nil, err
+	}
+
+	return routers, nil
+}
+
+func (repo *daoRepo) GetRouterByIDs(routerIDs []int) ([]Router, error) {
+	var routers []Router
+
+	if err := repo.db.Where("router_id IN ?", routerIDs).Find(&routers).Error; err != nil {
+		return nil, err
+	}
+
+	return routers, nil
 }

@@ -4,8 +4,9 @@
 package data
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"net/http"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -29,14 +30,14 @@ func (h *handler) GroupSubsOperation() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
 
 		err := h.dataService.GroupSubsOperation(req)
 		if err != nil {
-			c.HandleError(err, code.AssignDataGroupError)
+			c.HandleError(err, code.AssignDataGroupError, nil)
 			return
 		}
 

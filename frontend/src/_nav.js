@@ -8,7 +8,7 @@ import CIcon from '@coreui/icons-react'
 import { cilSpeedometer } from '@coreui/icons'
 import { CBadge } from '@coreui/react'
 import { PiPath } from 'react-icons/pi'
-import { LuFileText } from 'react-icons/lu'
+import { LuFileText, LuWorkflow } from 'react-icons/lu'
 import { AiOutlineDashboard } from 'react-icons/ai'
 import { FaRegBell } from 'react-icons/fa'
 import { MdOutlineSettings } from 'react-icons/md'
@@ -18,6 +18,7 @@ import { GrSystem } from 'react-icons/gr'
 import TranslationCom from './oss/components/TranslationCom'
 import { FiDatabase } from 'react-icons/fi'
 import { BsBezier2 } from 'react-icons/bs'
+import { t } from 'i18next'
 
 const namespace = 'core/routes'
 const commercialNav = [
@@ -25,10 +26,9 @@ const commercialNav = [
     key: 'alertAnalyze',
     icon: <IoIosTrendingUp />,
     label: (
-      <>
-        告警分析
+      <>{t('pro/routes:alertAnalyze')}
         <CBadge color="info" className="ml-2">
-          免费公测
+          {t('pro/routes:free')}
         </CBadge>
       </>
     ),
@@ -179,5 +179,6 @@ const navIcon = {
   healthy: <TbWaveSawTool />,
   // dataGroup: <FiDatabase />,
   integration: <BsBezier2 />,
+  workflows: <LuWorkflow />,
 }
 export { _nav, commercialNav, navIcon }

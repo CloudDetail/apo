@@ -36,12 +36,12 @@ type Repo interface {
 	GetServiceWithNamespace(startTime, endTime int64, namespace []string) (map[string][]string, error)
 	// GetServiceNamespace  Get service's namespaces.
 	GetServiceNamespace(startTime, endTime int64, service string) ([]string, error)
-	// 查询服务实例列表, URL允许为空
+	// GetInstanceList query service instance list. URL can be empty.
 	GetInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
 	// Query the db instance for specified service
 	GetDescendantDatabase(startTime int64, endTime int64, serviceName string, endpoint string) ([]model.MiddlewareInstance, error)
 	// Query the list of active instances
-	GetActiveInstanceList(startTime int64, endTime int64, serviceName string) (*model.ServiceInstances, error)
+	GetActiveInstanceList(startTime int64, endTime int64, serviceNames []string) (*model.ServiceInstances, error)
 	// 查询在时间点过去一小时活跃过的实例
 	GetActiveRequestInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
 	// Query the service Endpoint list. The service permission is empty.
@@ -49,7 +49,8 @@ type Repo interface {
 	GetMultiServicesInstanceList(startTime int64, endTime int64, services []string) (map[string]*model.ServiceInstances, error)
 	// Query service instance failure rate
 	QueryInstanceErrorRate(startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error)
-	FillMetric(res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filters []string, granularity Granularity)
+	FillMetric(res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filters []string, granularity Granularity) error
+	FillRangeMetric(res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, step time.Duration, filters []string, granularity Granularity) error
 	// ========== span_trace_duration_count END ==========
 
 	QueryData(searchTime time.Time, query string) ([]MetricResult, error)
@@ -90,6 +91,9 @@ type Repo interface {
 	QueryProcessStartTime(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) (map[model.ServiceInstance]int64, error)
 	GetApi() v1.API
 	GetRange() string
+
+	LabelValues(expr string, label string, startTime, endTime int64) (prommodel.LabelValues, error)
+	QueryResult(expr string, regex string, startTime, endTime int64) ([]string, error)
 
 	GetNamespaceList(startTime int64, endTime int64) ([]string, error)
 	GetNamespaceWithService(startTime, endTime int64) (map[string][]string, error)

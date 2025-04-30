@@ -4,7 +4,6 @@
 package router
 
 import (
-	"github.com/CloudDetail/apo/backend/internal/api/mock"
 	"github.com/CloudDetail/apo/backend/pkg/api/alertanalyze"
 	alertinput "github.com/CloudDetail/apo/backend/pkg/api/alertinput"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
@@ -16,6 +15,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
 	"github.com/CloudDetail/apo/backend/pkg/api/license"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
+	"github.com/CloudDetail/apo/backend/pkg/api/metric"
 	networkapi "github.com/CloudDetail/apo/backend/pkg/api/network"
 	"github.com/CloudDetail/apo/backend/pkg/api/permission"
 	"github.com/CloudDetail/apo/backend/pkg/api/role"
@@ -30,15 +30,7 @@ import (
 )
 
 func setApiRouter(r *resource) {
-	middlewares := middleware.New(r.cache, r.pkg_db)
-	api := r.mux.Group("/api")
-	{
-		mockHandler := mock.New(r.logger, r.internal_db)
-		api.POST("/mock", mockHandler.Create())
-		api.GET("/mock", mockHandler.List())
-		api.GET("/mock/:id", mockHandler.Detail())
-		api.DELETE("/mock/:id", mockHandler.Delete())
-	}
+	middlewares := middleware.New(r.cache, r.pkg_db, r.dify)
 
 	serviceApi := r.mux.Group("/api/service").Use(middlewares.AuthMiddleware())
 	{
@@ -78,6 +70,7 @@ func setApiRouter(r *resource) {
 		serviceApi.GET("/alert/sample/events", serviceHandler.GetAlertEventsSample())
 
 		serviceApi.GET("/sql/metrics", serviceHandler.GetSQLMetrics())
+		serviceApi.POST("/redcharts", serviceHandler.GetServiceREDCharts())
 	}
 
 	logApi := r.mux.Group("/api/log").Use(middlewares.AuthMiddleware())
@@ -110,11 +103,13 @@ func setApiRouter(r *resource) {
 	traceApi := r.mux.Group("/api/trace")
 	{
 		traceHandler := trace.New(r.logger, r.pkg_db, r.ch, r.jaegerRepo, r.prom, r.k8sApi)
+		// These APIs are used by another project. DO NOT Auth.
 		traceApi.GET("/onoffcpu", traceHandler.GetOnOffCPU())
 		traceApi.GET("/flame", traceHandler.GetFlameGraphData())
 		traceApi.GET("/flame/process", traceHandler.GetProcessFlameGraph())
-		traceApi.Use(middlewares.AuthMiddleware())
 		traceApi.POST("/pagelist", traceHandler.GetTracePageList())
+
+		traceApi.Use(middlewares.AuthMiddleware())
 		traceApi.GET("/pagelist/filters", traceHandler.GetTraceFilters())
 		traceApi.POST("/pagelist/filter/value", traceHandler.GetTraceFilterValue())
 		traceApi.GET("/info", traceHandler.GetSingleTraceInfo())
@@ -122,9 +117,12 @@ func setApiRouter(r *resource) {
 
 	alertApi := r.mux.Group("/api/alerts")
 	{
-		alertHandler := alerts.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom)
+		alertHandler := alerts.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom, r.dify, r.alertWorkflow)
+		alertApi.POST("/event/list", alertHandler.AlertEventList())
+		alertApi.GET("/events/classify", alertHandler.AlertEventClassify())
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.POST("/outputs/dingtalk/:uuid", alertHandler.ForwardToDingTalk())
+
 		alertApi.Use(middlewares.AuthMiddleware())
 		alertApi.GET("/rules/file", alertHandler.GetAlertRuleFile())
 		alertApi.POST("/rules/file", alertHandler.UpdateAlertRuleFile())
@@ -144,7 +142,8 @@ func setApiRouter(r *resource) {
 		alertApi.DELETE("/alertmanager/receiver", alertHandler.DeleteAlertManagerConfigReceiver())
 
 		alertanalyzeHandler := alertanalyze.New(r.logger, r.ch, r.pkg_db, r.prom, r.pol, r.k8sApi)
-		alertApi.GET("/event/impact", alertanalyzeHandler.GetAlertImpact())
+		alertApi.POST("/alert/events", alertanalyzeHandler.GetAlertEvents())
+		alertApi.POST("/event/impact", alertanalyzeHandler.GetAlertImpact())
 		alertApi.GET("/descendant/anormal/contribution", alertanalyzeHandler.GetDescendantContribution())
 		alertApi.GET("/descendant/anormal/list", alertanalyzeHandler.GetDescendantAnormal())
 		alertApi.GET("/descendant/anormal/trend", alertanalyzeHandler.GetAnormalTrendByEntry())
@@ -166,7 +165,7 @@ func setApiRouter(r *resource) {
 
 	userApi := r.mux.Group("/api/user")
 	{
-		userHandler := user.New(r.logger, r.pkg_db, r.cache)
+		userHandler := user.New(r.logger, r.pkg_db, r.cache, r.dify)
 		userApi.POST("/login", userHandler.Login())
 		userApi.POST("/logout", userHandler.Logout())
 		userApi.GET("/refresh", userHandler.RefreshToken())
@@ -192,6 +191,7 @@ func setApiRouter(r *resource) {
 		permissionApi.GET("/sub/feature", permissionHandler.GetSubjectFeature())
 		permissionApi.POST("/operation", permissionHandler.PermissionOperation())
 		permissionApi.POST("/menu/configure", permissionHandler.ConfigureMenu())
+		permissionApi.GET("/router", permissionHandler.CheckRouterPermission())
 	}
 
 	roleApi := r.mux.Group("/api/role").Use(middlewares.AuthMiddleware())
@@ -236,6 +236,7 @@ func setApiRouter(r *resource) {
 	k8sApi := r.mux.Group("/api/k8s")
 	{
 		k8sHandler := k8s.New(r.k8sApi)
+		// These APIs are used by another project. DO NOT Auth.
 		k8sApi.GET("/namespaces", k8sHandler.GetNamespaceList())
 		k8sApi.GET("/namespace/info", k8sHandler.GetNamespaceInfo())
 		k8sApi.GET("/pods", k8sHandler.GetPodList())
@@ -264,7 +265,7 @@ func setApiRouter(r *resource) {
 
 	alertInputApi := r.mux.Group("/api/alertinput")
 	{
-		handler := alertinput.New(r.logger, r.ch, r.prom, r.pkg_db)
+		handler := alertinput.New(r.logger, r.ch, r.prom, r.pkg_db, r.alertWorkflow)
 		alertInputApi.POST("/event/source", handler.SourceHandler())
 		alertInputApi.POST("/event/json", handler.JsonHandler())
 		alertInputApi.POST("/source/create", handler.CreateAlertSource())
@@ -298,14 +299,25 @@ func setApiRouter(r *resource) {
 	integrationAPI := r.mux.Group("/api/integration")
 	{
 		handler := integration.New(r.pkg_db)
+		integrationAPI.GET("/configuration", handler.GetStaticIntegration())
+
 		integrationAPI.GET("/cluster/list", handler.ListCluster())
+		integrationAPI.GET("/cluster/get", handler.GetCluster())
 		integrationAPI.POST("/cluster/create", handler.CreateCluster())
 		integrationAPI.POST("/cluster/update", handler.UpdateCluster())
-		integrationAPI.POST("/cluster/delete", handler.DeleteCluster())
+		integrationAPI.GET("/cluster/delete", handler.DeleteCluster())
+
 		integrationAPI.GET("/cluster/install/config", handler.GetIntegrationInstallConfigFile())
 		integrationAPI.GET("/cluster/install/cmd", handler.GetIntegrationInstallDoc())
+		integrationAPI.GET("/adapter/update", handler.TriggerAdapterUpdate())
 	}
 
+	metricAPI := r.mux.Group("/api/metric")
+	{
+		handler := metric.New(r.logger, r.prom)
+		metricAPI.GET("/list", handler.ListMetrics())
+		metricAPI.POST("/query", handler.QueryMetrics())
+	}
 	licenseApi := r.mux.Group("/api/license")
 	{
 		licenseHandler := license.New(r.logger, r.cache, r.prom)

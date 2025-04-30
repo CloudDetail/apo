@@ -17,7 +17,13 @@ import { selectProcessedTimeRange } from 'src/core/store/reducers/timeRangeReduc
 import TopologyModal from './component/dependent/TopologyModal'
 import { useDebounce } from 'react-use'
 import { useTranslation } from 'react-i18next'
-
+import { ServiceInfoProvider } from 'src/oss/contexts/ServiceInfoContext'
+function escapeId(id) {
+  return id.replace(/[^a-zA-Z0-9-_]/g, '_')
+}
+function contactServiceEndpoint(service, endpoint) {
+  return escapeId(service + '-' + endpoint)
+}
 const ServiceInfo = () => {
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
@@ -37,10 +43,10 @@ const ServiceInfo = () => {
       return { nodes: [], edges: [] }
     }
     const current = data.current
-
+    const currentNodeId = 'current-' + contactServiceEndpoint(current.service, current.endpoint)
     const nodes = [
       {
-        id: 'current-' + current.service,
+        id: currentNodeId,
         data: {
           label: current.service,
           isTraced: current.isTraced,
@@ -52,8 +58,9 @@ const ServiceInfo = () => {
     ]
     const edges = []
     data.children?.forEach((child) => {
+      const childNodeId = 'child-' + contactServiceEndpoint(child.service, child.endpoint)
       nodes.push({
-        id: 'child-' + child.service,
+        id: childNodeId,
         data: {
           label: child.service,
           isTraced: child.isTraced,
@@ -63,14 +70,15 @@ const ServiceInfo = () => {
         type: 'serviceNode',
       })
       edges.push({
-        id: current.service + '-' + child.service,
-        source: 'current-' + current.service,
-        target: 'child-' + child.service,
+        id: currentNodeId + '-' + childNodeId,
+        source: currentNodeId,
+        target: childNodeId,
       })
     })
     data.parents?.forEach((parent) => {
+      const parentNodeId = 'parent-' + contactServiceEndpoint(parent.service, parent.endpoint)
       nodes.push({
-        id: 'parent-' + parent.service,
+        id: parentNodeId,
         data: {
           label: parent.service,
           isTraced: parent.isTraced,
@@ -80,9 +88,9 @@ const ServiceInfo = () => {
         type: 'serviceNode',
       })
       edges.push({
-        id: parent.service + '-' + current.service,
-        source: 'parent-' + parent.service,
-        target: 'current-' + current.service,
+        id: parentNodeId + '-' + currentNodeId,
+        source: parentNodeId,
+        target: currentNodeId,
         // markerEnd: markerEnd,
         // style:{
         //   stroke: '#6293FF'
@@ -124,27 +132,29 @@ const ServiceInfo = () => {
   return (
     <div className="h-full relative">
       <LoadingSpinner loading={loading} />
-      <PropsProvider value={{ serviceName, endpoint }}>
-        <>
-          <div className="flex flex-row">
-            <CCard className="mb-4 mr-1 h-[350px] p-2 w-2/5">
-              <CCardHeader className="py-0 flex flex-row justify-between">
-                <div>
-                  {serviceName}
-                  {t('index.directDependencies')}
-                  <div className="text-xs">
-                    {t('index.serviceEndpoint')}: {endpoint}
+      <ServiceInfoProvider>
+        <PropsProvider value={{ serviceName, endpoint }}>
+          <>
+            <div className="flex flex-row">
+              <CCard className="mb-4 mr-1 h-[350px] p-2 w-2/5">
+                <CCardHeader className="py-0 flex flex-row justify-between">
+                  <div>
+                    {serviceName}
+                    {t('index.directDependencies')}
+                    <div className="text-xs">
+                      {t('index.serviceEndpoint')}: {endpoint}
+                    </div>
                   </div>
-                </div>
-                <TopologyModal startTime={startTime} endTime={endTime} />
-              </CCardHeader>
-              <Topology canZoom={false} data={topologyData} />
-            </CCard>
-            <DependentTabs />
-          </div>
-          <InfoUni />
-        </>
-      </PropsProvider>
+                  <TopologyModal startTime={startTime} endTime={endTime} />
+                </CCardHeader>
+                <Topology canZoom={false} data={topologyData} />
+              </CCard>
+              <DependentTabs />
+            </div>
+            <InfoUni />
+          </>
+        </PropsProvider>
+      </ServiceInfoProvider>
     </div>
   )
 }

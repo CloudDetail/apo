@@ -1,0 +1,35 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.collapse {
+  background: transparent;
+  :global {
+    .ant-collapse-item-active .ant-collapse-header {
+      background-color: #285587;
+      // background-color: #28334e;
+      //   background-color: #3A5A89;
+      border-radius: 8px 8px 0 0;
+    }
+    .ant-collapse-item {
+      background-color: #1a1d22;
+      border-radius: 8px !important;
+      //   background-color: #3A5A89;
+      .ant-collapse-item-active {
+        border-radius: 8px;
+        box-shadow: none;
+      }
+      .ant-collapse-header {
+        border-left: 10px solid #285587;
+        border-radius: 8px !important;
+        display: flex;
+        align-items: center;
+      }
+      box-shadow: 0 0 4px rgba(24, 104, 220, 0.5);
+    }
+    .ant-collapse-content-box {
+      padding: 4px !important;
+    }
+  }
+}

@@ -1,14 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
-import DelayLineChart from 'src/core/components/Chart/DelayLineChart'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
-import { selectSecondsTimeRange, toNearestSecond } from 'src/core/store/reducers/timeRangeReducer'
-import { getStep } from 'src/core/utils/step'
-import { convertTime } from 'src/core/utils/time'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
+import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
+import { timeUtils } from 'src/core/utils/time'
 import ReactECharts from 'echarts-for-react'
-import dayjs from 'dayjs' // 用来格式化时间
 import _ from 'lodash'
-import { useUpdate, useUpdateEffect } from 'react-use'
+import { useUpdateEffect } from 'react-use'
+import { t } from 'i18next'
 const TimeLineChart = ({ rightWidth }) => {
   const {
     timeLineChartData,
@@ -16,7 +14,7 @@ const TimeLineChart = ({ rightWidth }) => {
     deltaStartTime,
     deltaEndTime,
     changeAlertDescendantDelta,
-  } = useAlertAnalyzeContext()
+  } = useServiceAnalyzeContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [currentMarkLineX, setCurrentMarkLineX] = useState(0)
   const chartRef = useRef(null)
@@ -86,18 +84,19 @@ const TimeLineChart = ({ rightWidth }) => {
           axisLabel: {
             hideOverlap: true,
             formatter: (value) => {
-              const time = dayjs(value)
-              // 根据时间差判断是否需要显示年份，月份等
-              if (time.diff(dayjs(), 'year') !== 0) {
-                return time.format('YYYY/MM/DD HH:mm')
-              } else if (time.diff(dayjs(), 'day') !== 0) {
-                return time.format('MM/DD HH:mm')
-              } else if (time.diff(dayjs(), 'hour') !== 0) {
-                return time.format('HH:mm')
-              } else if (time.diff(dayjs(), 'minute') !== 0) {
-                return time.format('HH:mm:ss') // 如果分钟不同，展示到秒
+              const time = new Date(value)
+              const now = new Date()
+
+              if (timeUtils.getDiff(time, now, 'years') !== 0) {
+                return timeUtils.format(time, 'yyyy/MM/dd HH:mm')
+              } else if (timeUtils.getDiff(time, now, 'days') !== 0) {
+                return timeUtils.format(time, 'MM/dd HH:mm')
+              } else if (timeUtils.getDiff(time, now, 'hours') !== 0) {
+                return timeUtils.format(time, 'HH:mm')
+              } else if (timeUtils.getDiff(time, now, 'minutes') !== 0) {
+                return timeUtils.format(time, 'HH:mm:ss') // 如果分钟不同，展示到秒
               }
-              return time.format('HH:mm:ss') // 如果秒不同，展示到秒
+              return timeUtils.format(time, 'HH:mm:ss') // 如果秒不同，展示到秒
             },
           },
           min: startTime / 1000,
@@ -111,7 +110,7 @@ const TimeLineChart = ({ rightWidth }) => {
             // areaStyle: {
             //   color: adjustAlpha(MetricsLineChartColor[type], 0.3), // 设置区域填充颜色
             // },
-            name: '异常数量',
+            name: t('pro/serviceAnalyze:abnormalCount'),
             type: 'line',
             smooth: true,
             // markLine: {
@@ -174,7 +173,7 @@ const TimeLineChart = ({ rightWidth }) => {
   }, [])
   useEffect(() => {
     handleResize()
-    updateMarkLine()
+    // updateMarkLine()
   }, [rightWidth])
   const onChartReady = (chart) => {
     // 确保下一帧再更新
@@ -226,32 +225,44 @@ const TimeLineChart = ({ rightWidth }) => {
   const updateMarkLine = () => {
     if (chartRef.current) {
       const chartInstance = chartRef.current.getEchartsInstance()
-      const x = chartInstance.convertToPixel({ xAxisIndex: 0 }, marklineTimestamp / 1000)
-      const yAxis = chartInstance.getModel().getComponent('yAxis').axis.scale.getExtent() // 获取Y轴数据范围
-      const y = chartInstance.convertToPixel({ yAxisIndex: 0 }, yAxis[0]) // 获取Y轴最小值的像素位置（即Y轴的0值）
-      const yTop = chartInstance.convertToPixel({ yAxisIndex: 0 }, yAxis[1]) // 获取Y轴最大值的像素位置（图表顶部）
+      console.log(chartInstance)
+      if (!chartInstance || chartInstance._disposed) {
+        console.warn('ECharts 实例未初始化或已被销毁')
+        return
+      }
 
-      //细线
-      chartInstance.setOption({
-        // graphic: [
-        //   {
-        //     type: 'line',
-        //     id: 'markLine', // 给标记线设定唯一ID，避免重复添加
-        //     shape: {
-        //       x1: x, // 动态更新X轴位置
-        //       x2: x,
-        //       y1: y,
-        //       y2: yTop,
-        //     },
-        //     style: {
-        //       stroke: 'blue',
-        //       lineWidth: 2,
-        //     },
-        //     transition: currentMarkLineX <= x ? ['position', 'shape'] : [''], // 定义过渡的属性
-        //   },
-        // ],
-      })
-      setCurrentMarkLineX(x)
+      console.log('ECharts 实例', chartInstance)
+
+      // if (typeof chartInstance.convertToPixel === 'function') {
+      //   const x = chartInstance.convertToPixel({ xAxisIndex: 0 }, marklineTimestamp / 1000)
+      //   setCurrentMarkLineX(x)
+      // } else {
+      //   console.warn('convertToPixel 方法不存在')
+      // }
+      // const yAxis = chartInstance.getModel().getComponent('yAxis').axis.scale.getExtent()
+      // const y = chartInstance.convertToPixel({ yAxisIndex: 0 }, yAxis[0]) // 获取Y轴最小值的像素位置（即Y轴的0值）
+      // const yTop = chartInstance.convertToPixel({ yAxisIndex: 0 }, yAxis[1]) // 获取Y轴最大值的像素位置（图表顶部）
+
+      // //细线
+      // chartInstance.setOption({
+      //   // graphic: [
+      //   //   {
+      //   //     type: 'line',
+      //   //     id: 'markLine', // 给标记线设定唯一ID，避免重复添加
+      //   //     shape: {
+      //   //       x1: x, // 动态更新X轴位置
+      //   //       x2: x,
+      //   //       y1: y,
+      //   //       y2: yTop,
+      //   //     },
+      //   //     style: {
+      //   //       stroke: 'blue',
+      //   //       lineWidth: 2,
+      //   //     },
+      //   //     transition: currentMarkLineX <= x ? ['position', 'shape'] : [''], // 定义过渡的属性
+      //   //   },
+      //   // ],
+      // })
     }
   }
   const updateBrush = () => {

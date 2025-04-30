@@ -1,11 +1,14 @@
-import { Pagination } from 'antd'
-import React, { useEffect, useMemo, useState } from 'react'
+import { Button, Pagination, Tabs, Tag } from 'antd'
+import React, { useMemo, useState } from 'react'
 import ReactJson from 'react-json-view'
 import { useSelector } from 'react-redux'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
-import { convertUTCToBeijing } from 'src/core/utils/time'
+import { convertUTCToLocal } from 'src/core/utils/time'
 import ServiceEndpointTag from 'src/pro/components/ServiceEndpointTag'
+import { useTranslation } from 'react-i18next'
+import styles from './index.module.scss'
+
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -14,101 +17,165 @@ function isJSONString(str) {
     return false
   }
 }
+const i18nKey = 'alertEvent'
 const AlertEventTable = ({ scrolllHeight }) => {
+  const { t } = useTranslation('pro/alertAnalyze')
+
   const { alertEvents, loading, isAnalyze, pagination, updatePagination } = useAlertAnalyzeContext()
   const { groupLabel } = useSelector((state) => state.groupLabelReducer)
   const columns = [
     {
-      title: '告警类型',
+      title: t(`${i18nKey}.alertType`),
       accessor: 'group',
-      customWidth: 150,
+      customWidth: 120,
       Cell: ({ value }) => {
         return groupLabel[value]
       },
     },
     {
-      title: '告警事件名',
+      title: t(`${i18nKey}.alertName`),
       accessor: 'name',
       customWidth: 150,
     },
     {
-      title: '最近告警时间',
+      title: t(`${i18nKey}.lastAlertTime`),
       accessor: 'receivedTime',
-      customWidth: 180,
+      customWidth: 100,
       Cell: ({ value }) => {
-        return convertUTCToBeijing(value)
+        const result = convertUTCToLocal(value)
+        return (
+          <div>
+            <div>{result.split(' ')[0]}</div>
+            <div>{result.split(' ')[1]}</div>
+          </div>
+        )
       },
     },
+    // {
+    //   title: t(`${i18nKey}.alertSource`),
+    //   accessor: 'source',
+    //   customWidth: 100,
+    // },
     {
-      title: '告警来源',
-      accessor: 'source',
-      customWidth: 150,
-    },
-    {
-      title: '告警详情',
-      accessor: 'detail',
+      title: t(`${i18nKey}.alertDetail`),
+      accessor: 'rawTags',
       justifyContent: 'left',
-      Cell: ({ value }) =>
-        isJSONString(value) ? (
-          <ReactJson
-            src={JSON.parse(value || '')}
-            theme="brewer"
-            collapsed={true}
-            displayDataTypes={false}
-            style={{ width: '100%' }}
-            enableClipboard={false}
-          />
-        ) : (
-          value
-        ),
-    },
-    {
-      title: '告警相关应用',
-      accessor: 'impactEndpoints',
-      justifyContent: 'left',
-      Cell: ({ value }) => {
-        return isAnalyze ? (
-          <>
-            {value?.length > 0 ? (
-              <div className="flex flex-wrap">
-                {value?.map((item) => (
-                  <div className="flex-shrink-0 w-full">
-                    <ServiceEndpointTag service={item.serviceName} endpoint={item.endpoint} />
-                  </div>
+      customWidth: '40%',
+
+      Cell: ({ value, row }) => {
+        const [visible, setVisible] = useState(false)
+
+        const { detail } = row.original
+        return (
+          <div>
+            <div className="flex items-end">
+              <div
+                className={`transition-all overflow-hidden ${
+                  visible ? 'line-clamp-none max-h-full' : 'line-clamp-3 max-h-[6em]'
+                }`}
+              >
+                {Object.entries(value || {}).map(([key, tagValue]) => (
+                  <Tag className="text-pretty mb-1 break-all">
+                    {key} = {tagValue}
+                  </Tag>
                 ))}
               </div>
-            ) : (
-              <span className="text-gray-400">未分析出告警相关应用</span>
+              {isJSONString(detail) && (
+                <Button
+                  color="primary"
+                  variant="text"
+                  size="small"
+                  onClick={() => setVisible(!visible)}
+                >
+                  {visible ? t('collapse') : t('expand')}
+                </Button>
+              )}
+            </div>
+
+            {visible && (
+              <ReactJson
+                src={JSON.parse(detail || '')}
+                theme="brewer"
+                collapsed={false}
+                displayDataTypes={false}
+                style={{ width: '100%' }}
+                enableClipboard={false}
+              />
             )}
-          </>
-        ) : (
-          <span className="text-gray-400">点击一键分析查看</span>
+          </div>
         )
       },
     },
     {
-      title: '受影响业务入口',
+      title: t(`${i18nKey}.relatedApps`),
+      accessor: 'impactEndpoints',
+      justifyContent: 'left',
+      Cell: ({ value }) => {
+        return (
+          <div className="w-full">
+            {value?.length > 0 ? (
+              <Tabs
+                className={styles.impactEntrys}
+                defaultActiveKey="1"
+                tabPosition="top"
+                activeKey="0"
+                tabBarStyle={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                items={value?.map((item) => {
+                  const id = item.serviceName + item.endpoint
+                  return {
+                    label: (
+                      <div className=" whitespace-nowrap flex items-center">
+                        <ServiceEndpointTag service={item.serviceName} endpoint={item.endpoint} />
+                      </div>
+                    ),
+                    key: id,
+                    children: null,
+                  }
+                })}
+              />
+            ) : (
+              <span className="text-gray-400">{t(`${i18nKey}.noRelatedApps`)}</span>
+            )}
+          </div>
+        )
+      },
+    },
+    {
+      title: t(`${i18nKey}.affectedEntries`),
       accessor: 'impactEntrys',
       justifyContent: 'left',
       Cell: ({ value }) => {
-        return isAnalyze ? (
+        return (
           <>
             {value?.length > 0 ? (
-              value?.map((item) => (
-                <div className="flex-shrink-0 ">
-                  <ServiceEndpointTag service={item.serviceName} endpoint={item.endpoint} />
-                </div>
-              ))
+              <Tabs
+                className={styles.impactEntrys}
+                defaultActiveKey="1"
+                tabPosition="top"
+                activeKey="0"
+                tabBarStyle={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                items={value?.map((item) => {
+                  const id = item.serviceName + item.endpoint
+                  return {
+                    label: (
+                      <div className=" whitespace-nowrap flex items-center">
+                        <ServiceEndpointTag service={item.serviceName} endpoint={item.endpoint} />
+                      </div>
+                    ),
+                    key: id,
+                    children: null,
+                  }
+                })}
+              />
             ) : (
-              <span className="text-gray-400">未分析出受影响业务入口</span>
+              <span className="text-gray-400">{t(`${i18nKey}.noAffectedEntries`)}</span>
             )}
           </>
-        ) : (
-          <span className="text-gray-400">点击一键分析查看</span>
         )
       },
     },
   ]
+
   const changePagination = (page, pageSize) => {
     updatePagination({
       pageSize: pageSize,
@@ -126,8 +193,8 @@ const AlertEventTable = ({ scrolllHeight }) => {
   }, [alertEvents])
   return (
     <>
-      <div className="flex flex-col h-full">
-        <div className="text-base px-4 pt-2 font-bold">告警事件</div>
+      <div className="flex flex-col h-full text-xs">
+        {/* <div className="text-base px-4 pt-2 font-bold">{t(`${i18nKey}.alertEvents`)}</div> */}
         <BasicTable {...tableProps} />
         <Pagination
           defaultCurrent={1}

@@ -1,0 +1,19 @@
+.impactEntrys {
+  width: 100%;
+
+  :global(.ant-tabs-tab) {
+    flex-shrink: 0;
+  }
+  :global(.ant-tabs-nav) {
+    margin: 0;
+  }
+  :global(.ant-tabs-tab) {
+    padding: 0;
+    display: flex;
+    align-items: center;
+    margin: 0 10px 0 0px !important;
+  }
+  :global(.ant-tabs-nav::before) {
+    display: none !important;
+  }
+}

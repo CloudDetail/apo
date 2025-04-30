@@ -5,10 +5,11 @@ package user
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"net/http"
 )
 
 // RefreshToken Refresh accessToken
@@ -32,13 +33,13 @@ func (h *handler) RefreshToken() core.HandlerFunc {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					vErr.Code,
-					code.Text(vErr.Code),
+					c.ErrMessage(vErr.Code),
 				).WithError(err))
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.UserTokenExpireError,
-					code.Text(code.UserTokenExpireError),
+					c.ErrMessage(code.UserTokenExpireError),
 				).WithError(err))
 			}
 			return

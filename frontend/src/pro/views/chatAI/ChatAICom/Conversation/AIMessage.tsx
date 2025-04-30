@@ -6,6 +6,7 @@ import { Button } from 'antd'
 import React from 'react'
 import DataViewComponents from './DataViewComponents'
 import styles from './index.module.scss'
+import { useTranslation } from 'react-i18next'
 
 // import remarkMath from 'remark-math'
 interface AIMessageProps {
@@ -21,6 +22,8 @@ const AIMessage: React.FC<AIMessageProps> = ({
   reportUrlList = [],
   components = [],
 }) => {
+  const { t } = useTranslation('pro/chatAI')
+
   const renderMarkdown = () => {
     return {
       __html: marked(message),
@@ -51,7 +54,7 @@ const AIMessage: React.FC<AIMessageProps> = ({
           {reportUrlList?.map((reportUrl, index) => (
             <div>
               <Button type="link" target="_blank" href={reportUrl}>
-                延时报告_{index + 1}
+                {t('latencyReport')}_{index + 1}
               </Button>
             </div>
           ))}

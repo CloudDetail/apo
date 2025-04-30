@@ -6,9 +6,13 @@ import tooltipPng3 from 'src/core/assets/images/tooltip3.png'
 import { Badge, Card, Space, Tooltip, Tag, Table } from 'antd'
 import { formatUnit } from 'src/core/utils/time'
 import { BsQuestionCircle } from 'react-icons/bs'
+import { useTranslation } from 'react-i18next'
+import { t } from 'i18next'
+const i18nKey = 'tableStep'
+
 const staticColumns = [
   {
-    title: '标签',
+    title: t(`pro/causeReport:${i18nKey}.label`),
     accessor: 'labels',
     dataIndex: 'labels',
     justifyContent: 'flex-start',
@@ -55,6 +59,8 @@ interface Props {
   data: any
 }
 function TableStep({ data }: Props) {
+  const { t } = useTranslation('pro/causeReport')
+
   const [tableList, setTableList] = useState<any[]>([])
 
   const dataHandle = () => {
@@ -67,7 +73,7 @@ function TableStep({ data }: Props) {
         0,
         ...[
           {
-            title: '历史基线',
+            title: t(`${i18nKey}.historicalBaseline`),
             accessor: 'baseline',
             dataIndex: 'baseline',
             render: (value, record) => {
@@ -81,22 +87,9 @@ function TableStep({ data }: Props) {
                 return <span>{record.unit ? formatUnit(value, record.unit) : value}</span>
               }
             },
-            Cell: (cell: any) => {
-              const { value: text } = cell
-              const { original: record } = cell.cell.row
-              if (record.baseAction) {
-                return (
-                  <Tooltip title={record.baseAction}>
-                    <span>{record.unit ? formatUnit(text, record.unit) : text}</span>
-                  </Tooltip>
-                )
-              } else {
-                return <span>{record.unit ? formatUnit(text, record.unit) : text}</span>
-              }
-            },
           },
           {
-            title: '故障调用',
+            title: t(`${i18nKey}.faultInvocation`),
             accessor: 'current',
             dataIndex: 'current',
             render: (value, record) => {
@@ -112,25 +105,6 @@ function TableStep({ data }: Props) {
                 return (
                   <span className={record.warn ? 'a_error' : ''}>
                     {record.unit ? formatUnit(value, record.unit) : value}
-                  </span>
-                )
-              }
-            },
-            Cell: (cell: any) => {
-              const { value: text } = cell
-              const { original: record } = cell.cell.row
-              if (record.currentAction) {
-                return (
-                  <Tooltip title={record.currentAction}>
-                    <span className={record.warn ? 'a_error' : ''}>
-                      {record.unit ? formatUnit(text, record.unit) : text}
-                    </span>
-                  </Tooltip>
-                )
-              } else {
-                return (
-                  <span className={record.warn ? 'a_error' : ''}>
-                    {record.unit ? formatUnit(text, record.unit) : text}
                   </span>
                 )
               }
@@ -231,11 +205,11 @@ function TableStep({ data }: Props) {
     <Card
       title={
         <div className="flex align-items-center w-full">
-          {data.report_name === '对外调用具体信息' ? (
+          {data.report_name === t(`${i18nKey}.externalCallDetails`) ? (
             <Tooltip
               title={
                 <div className="operate_tooltip_img">
-                  <img alt="图例" src={tooltipPng3} className="operate_tooltip_img" />
+                  <img src={tooltipPng3} className="operate_tooltip_img" />
                 </div>
               }
             >
@@ -251,7 +225,6 @@ function TableStep({ data }: Props) {
       }
     >
       <div className="table_step_description">
-        {/* <DataTable columns={columns} data={tableData}/> */}
         {tableList.map((table, index) => {
           return tableList?.length > 1 ? (
             <Card
@@ -269,7 +242,7 @@ function TableStep({ data }: Props) {
         })}
         {data?.conclusion?.length > 0 && (
           <div className="conclusion_div">
-            <span>分析结论：</span>
+            <span>{t(`${i18nKey}.analysisConclusion`)}：</span>
             <span className="conclusion_tag">{data.conclusion}</span>
           </div>
         )}

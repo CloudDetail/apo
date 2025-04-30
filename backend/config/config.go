@@ -17,7 +17,9 @@ var config *Config
 
 type Config struct {
 	Server struct {
-		Port int `mapstructure:"port"`
+		Port                     int `mapstructure:"port"`
+		AccessTokenExpireMinutes int `mapstructure:"access_token_expire_minutes"`
+		RefreshTokenExpireHours  int `mapstructure:"refresh_token_expire_hours"`
 	} `mapstructure:"server"`
 	Logger struct {
 		Level         string `mapstructure:"level"`
@@ -43,11 +45,15 @@ type Config struct {
 		Sqllite struct {
 			Database string `mapstructure:"database"`
 		} `mapstructure:"sqllite"`
-		InitScript struct {
-			QuickMutationMetric    string `mapstructure:"quick_mutation_metric"`
-			QuickAlertRuleMetric   string `mapstructure:"quick_alert_rule_metric"`
-			DefaultAlertTagMapping string `mapstructure:"default_alert_tag_mapping"`
-		} `mapstructure:"init_script"`
+		Postgres struct {
+			Host     string `mapstructure:"host"`
+			Port     int    `mapstructure:"port"`
+			Database string `mapstructure:"database"`
+			UserName string `mapstructure:"username"`
+			Password string `mapstructure:"password"`
+			SSLMode  string `mapstructure:"sslmode"`
+			Timezone string `mapstructure:"timezone"`
+		}
 	} `mapstructure:"database"`
 	ClickHouse struct {
 		Address  string `mapstructure:"address"`
@@ -67,9 +73,6 @@ type Config struct {
 
 		MetadataSettings MetadataSettings `mapstructure:"metadata_settings"`
 	} `mapstructure:"kubernetes"`
-	Language struct {
-		Local string `mapstructure:"local"`
-	} `mapstructure:"language"`
 	MetaServer struct {
 		Enable           bool                     `mapstructure:"enable"`
 		MetaSourceConfig configs.MetaSourceConfig `mapstructure:"meta_source_config"`
@@ -86,6 +89,22 @@ type Config struct {
 	User struct {
 		AnonymousUser `mapstructure:"anonymous_user"`
 	} `mapstructure:"user"`
+
+	Dify struct {
+		User    string `mapstructure:"user"`
+		URL     string `mapstructure:"url"`
+		APIKeys struct {
+			AlertCheck    string `mapstructure:"alert_check"`
+			AlertClassify string `mapstructure:"alert_classify"`
+		} `mapstructure:"api_keys"`
+		FlowIDs struct {
+			AlertCheck        string `mapstructure:"alert_check"`
+			AlertEventAnalyze string `mapstructure:"alert_event_analyze"`
+		} `mapstructure:"flow_ids"`
+		MaxConcurrency int    `mapstructure:"max_concurrency"`
+		CacheMinutes   int    `mapstructure:"cache_minutes"`
+		Sampling       string `mapstructure:"sampling"`
+	} `mapstructure:"dify"`
 	License struct {
 		LicensePath  string `mapstructure:"path"`
 		PrivatePath  string `mapstructure:"private_key"` // your private key to decrypt the license
@@ -96,7 +115,7 @@ type Config struct {
 }
 
 type AnonymousUser struct {
-	Username string `mapstructure:"username"`
+	Username string `mapstructure:"username"` // TODO deprecated
 	Enable   bool   `mapstructure:"enable"`
 	Role     string `mapstructure:"role"`
 }

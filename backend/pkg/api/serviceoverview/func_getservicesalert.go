@@ -4,10 +4,11 @@
 package serviceoverview
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"net/http"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 
@@ -40,7 +41,7 @@ func (h *handler) GetServicesAlert() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -48,7 +49,7 @@ func (h *handler) GetServicesAlert() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.ServiceNames, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, []response.ServiceAlertRes{})
 			return
 		}
 		var startTime time.Time
@@ -66,7 +67,7 @@ func (h *handler) GetServicesAlert() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetServicesAlertError,
-				code.Text(code.GetServicesAlertError)).WithError(err),
+				c.ErrMessage(code.GetServicesAlertError)).WithError(err),
 			)
 			return
 		}

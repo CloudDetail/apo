@@ -10,6 +10,8 @@ import BasicTable from 'src/core/components/Table/basicTable'
 import { getEntryEndpointApi } from 'src/pro/api/cause'
 import ServiceEndpointTag from 'src/pro/components/ServiceEndpointTag'
 import LoadingSpinner from 'src/core/components/Spinner'
+import { useTranslation } from 'react-i18next'
+const i18nKey = 'node'
 
 export default function FaultReportModal({
   modalVisibility,
@@ -18,6 +20,8 @@ export default function FaultReportModal({
   endpoint,
   reason,
 }) {
+  const { t } = useTranslation('pro/serviceAnalyze')
+
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [reportList, setReportList] = useState([])
   const [pageIndex, setPageIndex] = useState(1)
@@ -28,7 +32,7 @@ export default function FaultReportModal({
   //表格列定义
   const columns = [
     {
-      title: '本次请求耗时',
+      title: t(`${i18nKey}.costTime`),
       accessor: 'costTime',
       key: 'costTime',
       align: 'center',
@@ -44,15 +48,15 @@ export default function FaultReportModal({
               color={(duration - baseline) / baseline > 0 ? 'red' : 'green'}
               style={{ marginLeft: '5px' }}
             >
-              偏离基线
-              {((duration - baseline) / baseline).toFixed(2)}%
+              {t(`${i18nKey}.baselineDeviation`)}
+              {(((duration - baseline) / baseline) * 100).toFixed(2)}%
             </Tag>
           </div>
         )
       },
     },
     {
-      title: '请求时间',
+      title: t(`${i18nKey}.requestTime`),
       accessor: 'timestamp',
       key: 'requestTime',
       align: 'center',
@@ -62,7 +66,7 @@ export default function FaultReportModal({
       },
     },
     {
-      title: '入口信息',
+      title: t(`${i18nKey}.entryInfo`),
       accessor: 'serviceInfo',
       hide: true,
       isNested: true,
@@ -85,17 +89,17 @@ export default function FaultReportModal({
       },
       children: [
         {
-          title: '入口应用名称',
+          title: t(`${i18nKey}.entryApp`),
           accessor: `service`,
         },
         {
-          title: '入口服务端点',
+          title: t(`${i18nKey}.entryEndpoint`),
           accessor: `endpoint`,
         },
       ],
     },
     {
-      title: '查看报告',
+      title: t(`${i18nKey}.viewReport`),
       accessor: 'action',
       Cell: (cell) => {
         const { value } = cell
@@ -105,7 +109,7 @@ export default function FaultReportModal({
             href={`/#/cause/report/${encodeURIComponent(original.traceId)}/${encodeURIComponent(original.spanId)}?mutatedType=${encodeURIComponent(reason)}`}
             target="_blank"
           >
-            查看
+            {t(`${i18nKey}.view`)}
           </Button>
         )
       },
@@ -143,7 +147,7 @@ export default function FaultReportModal({
       setTotal(result.pagination.total)
     } catch (error) {
       setLoadingStatus(false)
-      throw new Error('请求列表错误')
+      throw new Error('error')
     }
   }
 
@@ -196,7 +200,7 @@ export default function FaultReportModal({
         destroyOnClose={true}
         footer={[]}
         bodyStyle={{ height: '70vh', overflowY: 'auto', overflowX: 'hidden' }}
-        title={' 故障类型为 ' + reason + ' 的延时报告列表'}
+        title={t(`${i18nKey}.faultReportModalTitle`, { reason })}
       >
         <div className="h-full pb-5 overflow-hidden">
           <LoadingSpinner loading={loadingStatus} />

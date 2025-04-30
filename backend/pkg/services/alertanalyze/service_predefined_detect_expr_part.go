@@ -1,13 +1,14 @@
 package alertanalyze
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // DetectDefectsOptions 提供快速指标模版
-func (s *service) DetectDefectsOptions() (*response.GetPredefinedDetectExprResponse, error) {
-	quickMutationMetric, err := s.dbRepo.ListQuickMutationMetric()
+func (s *service) DetectDefectsOptions(ctx core.Context) (*response.GetPredefinedDetectExprResponse, error) {
+	quickMutationMetric, err := s.dbRepo.ListQuickMutationMetric(ctx.LANG())
 	if err != nil {
 		return nil, err
 	}

@@ -4,9 +4,11 @@
 package service
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"net/http"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -34,7 +36,7 @@ func (h *handler) GetServiceInstanceInfoList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -42,7 +44,7 @@ func (h *handler) GetServiceInstanceInfoList() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, []prometheus.InstanceKey{})
 			return
 		}
 		resp, err := h.serviceInfoService.GetServiceInstanceInfoList(req)
@@ -50,7 +52,7 @@ func (h *handler) GetServiceInstanceInfoList() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetServiceInstanceListError,
-				code.Text(code.GetServiceInstanceListError)).WithError(err),
+				c.ErrMessage(code.GetServiceInstanceListError)).WithError(err),
 			)
 			return
 		}

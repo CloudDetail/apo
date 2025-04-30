@@ -29,9 +29,12 @@ func (h *handler) GetAlertRules() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
+		}
+		if req.AlertRuleFilter != nil && len(req.AlertRuleFilter.Group) > 0 {
+			req.AlertRuleFilter.Groups = append(req.AlertRuleFilter.Groups, req.AlertRuleFilter.Group)
 		}
 
 		resp := h.alertService.GetAlertRules(req)

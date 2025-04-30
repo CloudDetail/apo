@@ -22,6 +22,10 @@ import enUS from 'antd/es/locale/en_US'
 import { UserProvider } from './core/contexts/UserContext'
 import './i18n'
 import { useTranslation } from 'react-i18next'
+import { loader } from '@monaco-editor/react'
+import * as monaco from 'monaco-editor'
+
+loader.config({ monaco })
 
 const apiHost = import.meta.env.VITE_PUBLIC_POSTHOG_HOST
 const apiKey = import.meta.env.VITE_PUBLIC_POSTHOG_KEY
@@ -48,8 +52,15 @@ const AppWrapper = () => {
             theme={{
               algorithm: theme.darkAlgorithm,
               components: {
+                // Segmented: {
+                //   itemSelectedBg: '#4096ff',
+                // },
                 Segmented: {
-                  itemSelectedBg: '#4096ff',
+                  itemActiveBg: '#1c2b4a',
+                  itemSelectedBg: '#1c2b4a',
+                  trackBg: '#1e2635',
+                  itemSelectedColor: '#4d82ff',
+                  itemColor: 'rgba(255,255,255, 0.4)',
                 },
                 Layout: {
                   bodyBg: '#1d222b',
@@ -57,6 +68,9 @@ const AppWrapper = () => {
                 },
                 Tree: {
                   nodeSelectedBg: '#33415580',
+                },
+                Table: {
+                  headerBg: '#1d1d1d',
                 },
               },
             }}

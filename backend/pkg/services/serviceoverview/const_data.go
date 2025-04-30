@@ -7,12 +7,3 @@ package serviceoverview
 const ErrorCount = 1
 const TPSCount = 1
 const LatencyCount = 1
-
-type SortType int
-
-const (
-	// Sort by Day-over-Day Growth Rate Threshold
-	DODThreshold SortType = iota + 1
-	// Sort by mutation
-	MUTATIONSORT
-)

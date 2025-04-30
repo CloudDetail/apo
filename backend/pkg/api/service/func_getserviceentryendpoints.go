@@ -4,9 +4,10 @@
 package service
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"net/http"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/pkg/middleware"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -41,7 +42,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -55,7 +56,10 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 		userID := middleware.GetContextUserID(c)
 		err = h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError)
+			c.HandleError(err, code.AuthError, &response.GetServiceEntryEndpointsResponse{
+				Status: model.STATUS_NORMAL,
+				Data:   []*response.EntryInstanceData{},
+			})
 			return
 		}
 
@@ -72,7 +76,6 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 		if err == nil {
 			startTime := time.UnixMicro(req.StartTime)
 			endTime := time.UnixMicro(req.EndTime)
-			sortRule := serviceoverview.DODThreshold
 			step := time.Duration(req.Step * 1000)
 
 			for _, entryNode := range entryNodes {
@@ -81,7 +84,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 					ContainsEndpointName: entryNode.Endpoint,
 					Namespace:            "",
 				}
-				endpointResps, err = h.serviceoverviewService.GetServicesEndpointDataByFilter(startTime, endTime, step, filter, sortRule)
+				endpointResps, err = h.serviceoverviewService.GetServicesEndpointDataWithChart(startTime, endTime, step, filter, request.DODThreshold)
 				if err == nil {
 					for _, endpointResp := range endpointResps {
 						if serviceResp, found := result[endpointResp.ServiceName]; found {
@@ -155,7 +158,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetServiceEntryEndpointsError,
-				code.Text(code.GetServiceEntryEndpointsError)).WithError(err),
+				c.ErrMessage(code.GetServiceEntryEndpointsError)).WithError(err),
 			)
 			return
 		}

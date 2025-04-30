@@ -35,11 +35,16 @@ func (ch *chRepo) GetFlameGraphData(startTime, endTime int64, nodeName string, p
 	if tid >= 0 {
 		queryBuilder.Equals("tid", tid)
 	}
-	sql := fmt.Sprintf(flame_graph_sql, queryBuilder.String())
+	sql := buildFlameGraphQuery(queryBuilder)
 	result := make([]FlameGraphData, 0)
 	err := ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
 		return nil, err
 	}
 	return &result, nil
+}
+
+func buildFlameGraphQuery(queryBuilder *QueryBuilder) string {
+	sql := fmt.Sprintf(flame_graph_sql, queryBuilder.String())
+	return sql
 }

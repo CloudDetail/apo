@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux'
 import { useDebounce } from 'react-use'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { useChatAIContext } from 'src/pro/contexts/ChatAIContext'
-import { Button, Card, Divider, Tooltip } from 'antd'
+import { Button, Divider, Tooltip } from 'antd'
 import ChartInput from './ChartInput'
 import ConversationCom from './Conversation/ConversationCom'
 import { getStep } from 'src/core/utils/step'
@@ -16,7 +16,10 @@ import React from 'react'
 import { anormalTypes } from 'src/pro/constants'
 import { FaLocationCrosshairs } from 'react-icons/fa6'
 import { Explanations } from './Explanations'
+import { useTranslation } from 'react-i18next'
+import CustomCard from 'src/core/components/Card/CustomCard'
 const ChatAICom = () => {
+  const { t } = useTranslation('pro/chatAI')
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   //上下文
   const service = useChatAIContext((ctx) => ctx.service)
@@ -61,9 +64,18 @@ const ChatAICom = () => {
               ],
               explanation: Explanations[currentIndex],
             }
-          }
-          // 如果当前对话框有两条消息，则切换到下一个对话框
-          else if (updatedDialogue[currentIndex].conversation.length === 2) {
+          } else if (
+            updatedDialogue[currentIndex].conversation.length > 1 &&
+            updatedDialogue[currentIndex].conversation.length < 4 &&
+            currentIndex === 0
+          ) {
+            updatedDialogue[currentIndex].conversation[2] = {
+              role: parsedData.role,
+              message: (updatedDialogue[currentIndex].conversation[2]?.message || '') + nextChunk,
+              img: parsedData?.img,
+            }
+          } else if (updatedDialogue[currentIndex].conversation.length > 1) {
+            // 如果当前对话框有两条消息，则切换到下一个对话框
             currentIndex++
             // 初始化下一个对话框
             if (!updatedDialogue[currentIndex]) {
@@ -86,10 +98,12 @@ const ChatAICom = () => {
 
           // 在最后一个字符时，添加文件列表和 AI 回应初始化
           if (typeIndex + step >= content.length) {
-            updatedDialogue[currentIndex].conversation[0].fileList = parsedData.filename
-              ? [parsedData.filename]
-              : null
-            updatedDialogue[currentIndex].conversation[1] = {
+            updatedDialogue[currentIndex].conversation[
+              updatedDialogue[currentIndex].conversation.length - 1
+            ].fileList = parsedData.filename ? [parsedData.filename] : null
+            updatedDialogue[currentIndex].conversation[
+              updatedDialogue[currentIndex].conversation.length
+            ] = {
               role: 'ai',
               message: '',
             }
@@ -109,7 +123,6 @@ const ChatAICom = () => {
   }
   // 关闭流
   const closeStream = () => {
-    console.log(controller)
     // closeStoreStream()
     if (controller) {
       controller.abort()
@@ -213,13 +226,14 @@ const ChatAICom = () => {
             if (parsedData.role === 'ai') {
               setDialogue((prev) => {
                 const updatedDialogue = [...prev]
-                updatedDialogue[index].conversation[1] = {
+                let aiIndex = updatedDialogue[index].conversation.length > 2 ? 3 : 1
+                updatedDialogue[index].conversation[aiIndex] = {
                   message:
-                    (updatedDialogue[index].conversation[1]?.message || '') +
+                    (updatedDialogue[index].conversation[aiIndex]?.message || '') +
                     (parsedData?.content || ''),
                   role: 'ai',
                   reportUrlList: [
-                    ...(updatedDialogue[index].conversation[1]?.reportUrlList || []),
+                    ...(updatedDialogue[index].conversation[aiIndex]?.reportUrlList || []),
                     ...(parsedData.reportUrlList || []),
                   ],
                 }
@@ -233,7 +247,7 @@ const ChatAICom = () => {
         }
         processChunk()
       } catch (error) {
-        console.error('流读取失败:', error)
+        console.error('Error:', error)
         setIsDone(true)
       }
     }
@@ -274,7 +288,6 @@ const ChatAICom = () => {
         // 读取流数据
         const { value, done } = await reader.read()
         if (done) {
-          console.log('提问结束')
           setIsDone(true)
           break
         } // 流结束时退出循环
@@ -315,7 +328,7 @@ const ChatAICom = () => {
           }
         })
       } catch (error) {
-        console.log('读取或处理消息时发生错误:', error)
+        console.log('Error:', error)
         setIsDone(true)
         break // 根据业务需求决定是否退出循环
       }
@@ -386,7 +399,7 @@ const ChatAICom = () => {
     }
   }, [dialogue, isAutoScroll, causeConfirmvisibility]) // 在消息更新时检查自动滚动状态
   return (
-    <Card className="h-full overflow-hidden" classNames={{ body: 'p-0 h-full' }}>
+    <CustomCard style={{ overflow: 'hidden' }} classNames={{ body: 'h-full p-0' }}>
       <LoadingSpinner loading={!isDone && dialogue?.length === 0} />
       <div className="h-full w-full flex overflow-hidden flex-col">
         <div
@@ -395,17 +408,17 @@ const ChatAICom = () => {
             borderBottom: '1px solid #303030',
           }}
         >
-          <div className="w-2/3 p-3  text-lg font-bold flex items-center">
-            大模型对话 <HintCom />
+          <div className="w-2/3 p-1 text-base font-bold flex items-center">
+            {t('aiDialogue')} <HintCom />
           </div>
           <Divider type="vertical" className="h-full" />
-          <div className=" p-3  text-lg font-bold flex-grow ml-1">
+          <div className="p-2 text-base font-bold flex-grow ml-1">
             <div className="w-full  flex justify-between">
-              <div>数据与规则说明</div>
+              <div>{t('dataAndRules')}</div>
             </div>
           </div>
         </div>
-        <Tooltip title="确认根因节点、查看数据">
+        <Tooltip title={t('confirmRootCause')}>
           <Button
             className="absolute right-5 bottom-20 z-20"
             onClick={() => {
@@ -427,20 +440,20 @@ const ChatAICom = () => {
             <GlassCard
               content={
                 <p>
-                  尚未配置大语言模型 API 访问权限，请参阅
+                  {t('notConfigured')}
                   <a
                     className="underline text-sky-500"
                     target="_blank"
                     href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/APO接入大语言模型分析告警事件"
                   >
-                    接入大语言模型手册
+                    {t('configurationGuide')}
                   </a>
-                  进行配置
+                  {t('configureNow')}
                 </p>
               }
             />
           )}
-          <div className=" px-4 pt-4" id="conversation">
+          <div className=" px-4 pt-2 overflow-x-hidden" id="conversation">
             {dialogue.map((item, index) => (
               <ConversationCom
                 dialogue={item}
@@ -456,7 +469,7 @@ const ChatAICom = () => {
         </div>
         <ChartInput addChart={setChatQuery} loading={!isDone} closeStream={closeStream} />
       </div>
-    </Card>
+    </CustomCard>
   )
 }
 export default React.memo(ChatAICom)

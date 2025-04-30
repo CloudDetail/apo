@@ -10,10 +10,11 @@ import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useNavigate } from 'react-router-dom'
 import { getEndpointTableApi } from 'core/api/service'
 import BasicTable from 'src/core/components/Table/basicTable'
-import TempCell from 'src/core/components/Table/TempCell'
 import { DelaySourceTimeUnit } from 'src/constants'
 import { getStep } from 'src/core/utils/step'
 import { useTranslation } from 'react-i18next'
+import { useChartsContext } from 'src/core/contexts/ChartsContext'
+import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
 
 function EndpointTableModal(props) {
   const { i18n, t } = useTranslation('oss/service')
@@ -23,6 +24,7 @@ function EndpointTableModal(props) {
   const navigate = useNavigate()
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const getChartsData = useChartsContext((ctx) => ctx.getChartsData)
 
   const currentLanguage = i18n.language
 
@@ -101,21 +103,16 @@ function EndpointTableModal(props) {
       accessor: `latency`,
 
       Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
-        const { value } = props
+        const { value, row } = props
+        const { endpoint } = row.original
         return (
-          <TempCell type="latency" data={value} timeRange={timeRange} />
-          // <div display="flex" sx={{ alignItems: 'center' }} color="white">
-          //   <div sx={{ flex: 1, mr: 1 }} color="white">
-          //     {/* eslint-disable-next-line react/prop-types */}
-          //     {value.value}
-          //   </div>
-
-          //   <div display="flex" sx={{ alignItems: 'center', height: 30 }}>
-          //     {' '}
-          //     <AreaChart color="rgba(76, 192, 192, 1)" />
-          //   </div>
-          // </div>
+          <ChartTempCell
+            type="latency"
+            value={value}
+            service={serviceName}
+            endpoint={endpoint}
+            timeRange={timeRange}
+          />
         )
       },
     },
@@ -125,9 +122,17 @@ function EndpointTableModal(props) {
 
       minWidth: 140,
       Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
-        const { value } = props
-        return <TempCell type="errorRate" data={value} timeRange={timeRange} />
+        const { value, row } = props
+        const { endpoint } = row.original
+        return (
+          <ChartTempCell
+            type="errorRate"
+            value={value}
+            service={serviceName}
+            endpoint={endpoint}
+            timeRange={timeRange}
+          />
+        )
       },
     },
     {
@@ -137,8 +142,17 @@ function EndpointTableModal(props) {
 
       Cell: (props) => {
         // eslint-disable-next-line react/prop-types
-        const { value } = props
-        return <TempCell type="tps" data={value} timeRange={timeRange} />
+        const { value, row } = props
+        const { endpoint } = row.original
+        return (
+          <ChartTempCell
+            type="tps"
+            value={value}
+            service={serviceName}
+            endpoint={endpoint}
+            timeRange={timeRange}
+          />
+        )
       },
     },
   ]
@@ -147,10 +161,19 @@ function EndpointTableModal(props) {
       `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(props.endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}`,
     )
   }
-  const handleTableChange = (props) => {
-    if (props.pageSize && props.pageIndex) {
-      setPageSize(props.pageSize), setPageIndex(props.pageIndex)
+  const handleTableChange = (pageIndex, pageSize) => {
+    if (pageSize && pageIndex) {
+      setPageSize(pageSize), setPageIndex(pageIndex)
     }
+  }
+  useEffect(() => {
+    if (data) getServiceCharts()
+  }, [pageIndex, pageSize, data])
+  const getServiceCharts = async () => {
+    const paginatedData = data.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)
+    const endpointList = paginatedData.map((item) => item.endpoint)
+
+    await getChartsData([serviceName], endpointList)
   }
   const tableProps = useMemo(() => {
     const paginatedData = data.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)
@@ -164,7 +187,7 @@ function EndpointTableModal(props) {
       pagination: {
         pageSize: pageSize,
         pageIndex: pageIndex,
-        pageCount: Math.ceil(data.length / pageSize),
+        total: data.length,
       },
     }
   }, [data, loading, pageIndex, pageSize])

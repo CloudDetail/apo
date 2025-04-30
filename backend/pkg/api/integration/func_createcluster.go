@@ -18,30 +18,30 @@ import (
 // @Accept application/json
 // @Produce json
 // @Param Request body integration.Cluster true "Cluster Info"
-// @Success 200 {object} string "ok"
+// @Success 200 {object} integration.Cluster "created cluster info"
 // @Failure 400 {object} code.Failure
 // @Router /api/integration/cluster/create [post]
 func (h *handler) CreateCluster() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(integration.ClusterIntegrationVO)
+		req := new(integration.ClusterIntegration)
 		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
 
-		err := h.integrationService.CreateCluster(req)
+		cluster, err := h.integrationService.CreateCluster(req)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.CreateClusterFailed,
-				code.Text(code.CreateClusterFailed)).WithError(err),
+				c.ErrMessage(code.CreateClusterFailed)).WithError(err),
 			)
 			return
 		}
-		c.Payload("ok")
+		c.Payload(cluster)
 	}
 }

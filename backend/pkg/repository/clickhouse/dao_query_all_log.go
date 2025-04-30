@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	querySQl = "SELECT * FROM `%s`.`%s` WHERE %s %s"
+	logsBaseQuery = "SELECT * FROM `%s`.`%s` WHERE %s %s"
 )
 
 func (ch *chRepo) QueryAllLogs(req *request.LogQueryRequest) ([]map[string]any, string, error) {
@@ -20,7 +20,7 @@ func (ch *chRepo) QueryAllLogs(req *request.LogQueryRequest) ([]map[string]any, 
 		Limit(req.PageSize).
 		Offset(req.PageNum).
 		String()
-	sql := fmt.Sprintf(querySQl, req.DataBase, req.TableName, condition, bySql)
+	sql := buildAllLogsQuery(logsBaseQuery, req, condition, bySql)
 
 	results, err := ch.queryRowsData(sql)
 	if err != nil {
@@ -28,4 +28,8 @@ func (ch *chRepo) QueryAllLogs(req *request.LogQueryRequest) ([]map[string]any, 
 	}
 
 	return results, sql, nil
+}
+
+func buildAllLogsQuery(baseQuery string, req *request.LogQueryRequest, condition string, bySql string) string {
+	return fmt.Sprintf(baseQuery, req.DataBase, req.TableName, condition, bySql)
 }

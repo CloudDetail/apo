@@ -1,0 +1,531 @@
+{
+  "queries": [
+    {
+      "title": "Brokers",
+      "targets": [
+        {
+          "expr": "kafka_brokers{job=~\"$job\",name=~\"$name\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "job"
+      ]
+    },
+    {
+      "title": "Topics",
+      "targets": [
+        {
+          "expr": "count(kafka_topic_partitions{job=~\"$job\",name=~\"$name\",topic !~\"__.*\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "job"
+      ]
+    },
+    {
+      "title": "分区数",
+      "targets": [
+        {
+          "expr": "sum (kafka_topic_partitions{job=~\"$job\",name=~\"$name\",topic !~\"__.*\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "job"
+      ]
+    },
+    {
+      "title": "消费组",
+      "targets": [
+        {
+          "expr": "count(kafka_consumergroup_members{job=~\"$job\",name=~\"$name\",consumergroup!~\"__.*\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "job"
+      ]
+    },
+    {
+      "title": "消费者",
+      "targets": [
+        {
+          "expr": "sum(kafka_consumergroup_members{job=~\"$job\",name=~\"$name\",consumergroup!~\"__.*\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "job"
+      ]
+    },
+    {
+      "title": "Replicas",
+      "targets": [
+        {
+          "expr": "sum(kafka_topic_partition_replicas{job=~\"$job\",name=~\"$name\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "job"
+      ]
+    },
+    {
+      "title": "In Sync Replicas",
+      "targets": [
+        {
+          "expr": "sum(kafka_topic_partition_in_sync_replica{job=~\"$job\",name=~\"$name\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "job"
+      ]
+    },
+    {
+      "title": "Partitions not on preferred node",
+      "targets": [
+        {
+          "expr": "count(kafka_topic_partition_leader_is_preferred{job=~\"$job\",name=~\"$name\"}<1)",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "job"
+      ]
+    },
+    {
+      "title": "每秒总生产",
+      "targets": [
+        {
+          "expr": "sum(irate(kafka_topic_partition_current_offset{job=~\"$job\",name=~\"$name\",topic !~ \"__.*\"}[3m]))",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "locale",
+      "params": [
+        "job"
+      ]
+    },
+    {
+      "title": "每秒总消费",
+      "targets": [
+        {
+          "expr": "sum(irate(kafka_consumergroup_current_offset{job=~\"$job\",name=~'$name'}[3m]))",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "locale",
+      "params": [
+        "job"
+      ]
+    },
+    {
+      "title": "当前总积压",
+      "targets": [
+        {
+          "expr": "sum(kafka_consumergroup_lag_sum{job=~\"$job\",name=~\"$name\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "locale",
+      "params": [
+        "job"
+      ]
+    },
+    {
+      "title": "消费者与Topic - 消费组(关联右侧Topic表格)",
+      "targets": [
+        {
+          "expr": "kafka_consumergroup_members{job=~\"$job\",name=~\"$name\",consumergroup=~\"$consumergroup_hide\",consumergroup!~\"__.*\"}",
+          "legendFormat": "{{topic}}",
+          "refId": "A",
+          "variables": [
+            "consumergroup_hide",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "job",
+        "name",
+        "topic"
+      ]
+    },
+    {
+      "title": "消费者与Topic - Topic(关联左侧消费组表格)",
+      "targets": [
+        {
+          "expr": "sum by(topic) (kafka_topic_partitions{job=~\"$job\",name=~\"$name\",topic !~\"__.*\",topic=~\"$topic\"})",
+          "legendFormat": "{{topic}}",
+          "refId": "A",
+          "variables": [
+            "job",
+            "name",
+            "topic"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "consumer_group",
+        "job",
+        "name"
+      ]
+    },
+    {
+      "title": "消费者与Topic - 消费组积压>100（关联消费组，Topic）",
+      "targets": [
+        {
+          "expr": "sum(kafka_consumergroup_lag_sum{job=~\"$job\",name=~\"$name\",consumergroup=~\"$consumer_group\",consumergroup!~\"__.*\",topic!~\"__.*\"}) by (consumergroup, topic)>100",
+          "legendFormat": "{{consumergroup}} (topic: {{topic}})",
+          "refId": "A",
+          "variables": [
+            "consumer_group",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "locale",
+      "params": [
+        "job",
+        "name"
+      ]
+    },
+    {
+      "title": "消费者与Topic - Topic每秒生产（关联Topic）",
+      "targets": [
+        {
+          "expr": "sum(irate(kafka_topic_partition_current_offset{job=~\"$job\",name=~\"$name\",topic !~ \"__.*\",topic=~\"$topic\"}[3m])) by (topic)>0",
+          "legendFormat": "{{topic}}",
+          "refId": "B",
+          "variables": [
+            "job",
+            "name",
+            "topic"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "consumer_group",
+        "job",
+        "name"
+      ]
+    },
+    {
+      "title": "消费者与Topic - 消费组每秒消费（关联消费组，Topic）",
+      "targets": [
+        {
+          "expr": "sum(irate(kafka_consumergroup_current_offset{job=~\"$job\",name=~'$name',consumergroup=~\"$consumer_group\",topic=~\"$topic\",consumergroup!~\"__.*\",topic!~\"__.*\"}[3m])) by (consumergroup, topic)",
+          "legendFormat": "{{consumergroup}} (topic: {{topic}})",
+          "refId": "A",
+          "variables": [
+            "consumer_group",
+            "job",
+            "name",
+            "topic"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "consumer_group",
+        "job",
+        "name"
+      ]
+    },
+    {
+      "title": "消费者与Topic - Topic维度：每秒被消费总数 - 每秒生产*消费组数(负值为该秒消费不足)",
+      "targets": [
+        {
+          "expr": "sum(irate(kafka_consumergroup_current_offset{job=~\"$job\",name=~'$name',topic=~\"$topic\",consumergroup!~\"__.*\",topic!~\"__.*\"}[3m])) by (topic) - sum(irate(kafka_topic_partition_current_offset{job=~\"$job\",name=~\"$name\",topic!~\"__.*\",topic=~\"$topic\"}[3m])) by (topic) * count(kafka_consumergroup_lag_sum{job=~\"$job\",name=~\"$name\",consumergroup!~\"__.*\",topic!~\"__.*\",topic=~\"$topic\"}) by(topic) != 0",
+          "legendFormat": "{{topic}}",
+          "refId": "B",
+          "variables": [
+            "job",
+            "name",
+            "topic"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "consumer_group",
+        "job",
+        "name"
+      ]
+    },
+    {
+      "title": "消费者与Topic - 无关联Topic的消费组列表（持续出现的消费者最需要关注）",
+      "targets": [
+        {
+          "expr": "sum by (consumergroup,job,name) (kafka_consumergroup_members{job=~\"$job\",name=~\"$name\",consumergroup!~\"__.*\"}) unless sum by (consumergroup,job,name)(kafka_consumergroup_lag_sum{job=~\"$job\",name=~\"$name\",consumergroup!~\"__.*\",topic!~\"__.*\"}) ",
+          "legendFormat": "{{consumergroup}}",
+          "refId": "A",
+          "variables": [
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "locale",
+      "params": [
+        "job"
+      ]
+    },
+    {
+      "title": "消费者与Topic - 无消费组消费的Topic（持续出现的Topic需要关注） - 总消息数",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum by (topic,job,name)(kafka_topic_partition_current_offset{job=~\"$job\",name=~\"$name\",topic !~\"__.*\"} - kafka_topic_partition_oldest_offset{job=~\"$job\",name=~\"$name\",topic !~\"__.*\"}) unless count by (topic,job,name)(kafka_consumergroup_lag_sum{job=~\"$job\",name=~\"$name\",consumergroup!~\"__.*\",topic!~\"__.*\"}) ",
+          "legendFormat": "{{topic}} 总消息数",
+          "refId": "A",
+          "variables": [
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "locale",
+      "params": [
+        "job"
+      ]
+    },
+    {
+      "title": "消费者与Topic - 无消费组消费的Topic（持续出现的Topic需要关注） - 每秒生产",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "sum by (topic,job,name)(irate(kafka_topic_partition_current_offset{job=~\"$job\",name=~\"$name\",topic !~ \"__.*\"}[3m])) unless count by (topic,job,name)(kafka_consumergroup_lag_sum{job=~\"$job\",name=~\"$name\",consumergroup!~\"__.*\",topic!~\"__.*\"}) ",
+          "legendFormat": "{{topic}} 每秒生产",
+          "refId": "B",
+          "variables": [
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "locale",
+      "params": [
+        "job"
+      ]
+    },
+    {
+      "title": "分区维度【需指定消费组】 - 消费组【】各分区【当前积压】",
+      "targets": [
+        {
+          "expr": "sum(kafka_consumergroup_lag{job=~\"$job\",name=~\"$name\",consumergroup=~\"$consumer_group\",topic=~\"$topic\",consumergroup!~\"__.*\",topic!~\"__.*\"}) by (consumergroup, topic,partition)",
+          "legendFormat": "{{consumergroup}} (topic: {{topic}}) 分区:{{partition}}",
+          "refId": "A",
+          "variables": [
+            "consumer_group",
+            "job",
+            "name",
+            "topic"
+          ]
+        }
+      ],
+      "unit": "locale",
+      "params": [
+        "consumer_group",
+        "job",
+        "name"
+      ]
+    },
+    {
+      "title": "分区维度【需指定消费组】 - 消费组【】各分区【每秒消费】",
+      "targets": [
+        {
+          "expr": "irate(kafka_consumergroup_current_offset{job=~\"$job\",name=~'$name',consumergroup=~\"$consumer_group\",topic=~\"$topic\",consumergroup!~\"__.*\",topic!~\"__.*\"}[3m])",
+          "legendFormat": "{{consumergroup}} (topic: {{topic}}) 分区:{{partition}}",
+          "refId": "A",
+          "variables": [
+            "consumer_group",
+            "job",
+            "name",
+            "topic"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "consumer_group",
+        "job",
+        "name"
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "datasource",
+      "type": "datasource",
+      "label": "数据源",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "APO-VictoriaMetric",
+        "value": "APO-VictoriaMetric"
+      },
+      "regex": "",
+      "query": {
+        "query": "prometheus",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "job",
+      "type": "query",
+      "label": "JOB",
+      "options": null,
+      "current": {
+        "isNone": true,
+        "selected": false,
+        "text": "None",
+        "value": ""
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(kafka_brokers,job)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "name",
+      "type": "query",
+      "label": "名称",
+      "options": null,
+      "current": {
+        "isNone": true,
+        "selected": false,
+        "text": "None",
+        "value": ""
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(kafka_brokers{job=~\"$job\"},name)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "consumer_group",
+      "type": "query",
+      "label": "消费组",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "All",
+        "value": "$__all"
+      },
+      "regex": "/.*consumergroup=\"(.*)\".*/",
+      "query": {
+        "qryType": 3,
+        "query": "query_result(count by (consumergroup)(kafka_consumergroup_members{job=~\"$job\",name=~\"$name\",consumergroup!~\"__.*\"}))",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "topic",
+      "type": "query",
+      "label": "topic",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "All",
+        "value": "$__all"
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(kafka_consumergroup_lag_sum{job=~\"$job\",name=~\"$name\",topic !~\"__.*\",consumergroup=~\"$consumer_group\"},topic)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "consumergroup_hide",
+      "type": "query",
+      "label": "consumergroup_hide",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "All",
+        "value": "$__all"
+      },
+      "regex": "",
+      "query": {
+        "qryType": 1,
+        "query": "label_values(kafka_consumergroup_lag_sum{job=~\"$job\", name=~\"$name\", topic!~\"__.*\", topic=~\"$topic\", consumergroup!~\"__.*\"},consumergroup)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    }
+  ],
+  "title": "KAFKA 指标"
+}

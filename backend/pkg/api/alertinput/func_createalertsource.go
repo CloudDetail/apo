@@ -29,7 +29,7 @@ func (h *handler) CreateAlertSource() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -41,7 +41,7 @@ func (h *handler) CreateAlertSource() core.HandlerFunc {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.AlertSourceAlreadyExisted,
-					code.Text(code.AlertSourceAlreadyExisted)).WithError(err),
+					c.ErrMessage(code.AlertSourceAlreadyExisted)).WithError(err),
 				)
 				return
 			}
@@ -49,7 +49,7 @@ func (h *handler) CreateAlertSource() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.CreateAlertSourceFailed,
-				code.Text(code.CreateAlertSourceFailed)).WithError(err),
+				c.ErrMessage(code.CreateAlertSourceFailed)).WithError(err),
 			)
 			return
 		}

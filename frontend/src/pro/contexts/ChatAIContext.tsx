@@ -1,61 +1,83 @@
-import { ReactNode, useContext, useEffect, useMemo, useState } from 'react'
+import { ReactNode, useMemo, useState } from 'react'
 import { createContext, useContextSelector } from '@fluentui/react-context-selector'
 import { useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
-import { useDebounce, useStateList } from 'react-use'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
-import ServiceTable from '../components/DataViewCom/ServiceTable'
-import serviceImg from 'src/pro/assets/dataViewTypeExample/service.png'
-import alertImg from 'src/pro/assets/dataViewTypeExample/alert.png'
-import instanceImg from 'src/pro/assets/dataViewTypeExample/instance.png'
-import errorInstanceImg from 'src/pro/assets/dataViewTypeExample/errorInstance.png'
-import logsImg from 'src/pro/assets/dataViewTypeExample/logs.png'
-import dashboardImg from 'src/pro/assets/dataViewTypeExample/dashboard.png'
+import serviceImgZH from 'src/pro/assets/dataViewTypeExample/zh/service.png'
+import alertImgZH from 'src/pro/assets/dataViewTypeExample/zh/alert.png'
+import instanceImgZH from 'src/pro/assets/dataViewTypeExample/zh/instance.png'
+import errorInstanceImgZH from 'src/pro/assets/dataViewTypeExample/zh/errorInstance.png'
+import logsImgZH from 'src/pro/assets/dataViewTypeExample/zh/logs.png'
+import dashboardImgZH from 'src/pro/assets/dataViewTypeExample/zh/dashboard.png'
+
+import serviceImgEN from 'src/pro/assets/dataViewTypeExample/en/service.png'
+import alertImgEN from 'src/pro/assets/dataViewTypeExample/en/alert.png'
+import instanceImgEN from 'src/pro/assets/dataViewTypeExample/en/instance.png'
+import errorInstanceImgEN from 'src/pro/assets/dataViewTypeExample/en/errorInstance.png'
+import logsImgEN from 'src/pro/assets/dataViewTypeExample/en/logs.png'
+import dashboardImgEN from 'src/pro/assets/dataViewTypeExample/en/dashboard.png'
 import { getStep } from 'src/core/utils/step'
 import streamFetch from '../util/streamFetch'
-import SlowType from '../components/DataViewCom/SlowType'
-import LogsTabs from '../components/DataViewCom/FaultSiteLogs/LogsTabs'
-import { Button, Card } from 'antd'
 import { anormalTypes } from '../constants'
-import AnormalListCom from '../components/DataViewCom/AnormalListCom'
-import FaultSiteLogsWrapper from '../components/DataViewCom/FaultSiteLogs'
-import InstanceTable from '../components/DataViewCom/InstanceTable'
-import ErrorInstanceTable from '../components/DataViewCom/ErrorInstanceTable'
 import PolarisPng from 'src/pro/assets/9-1.png'
-import MetricsDashboardCom from '../components/DataViewCom/MetricsDashboard'
+import PolarisPngEn from 'src/pro/assets/en/9-1.png'
 import { showToast } from 'src/core/utils/toast'
 import GlossaryTable from 'src/core/components/PolarisMetrics/GlossaryTable'
+import i18next, { t } from 'i18next'
+const i18nKey = 'pro/chatAI:'
+const currentLang = i18next.language
+const imageMap = {
+  en: {
+    service: serviceImgEN,
+    alert: alertImgEN,
+    endpoint: instanceImgEN,
+    error: errorInstanceImgEN,
+    log: logsImgEN,
+    dashboard: dashboardImgEN,
+    slow: PolarisPngEn,
+  },
+  zh: {
+    service: serviceImgZH,
+    alert: alertImgZH,
+    endpoint: instanceImgZH,
+    error: errorInstanceImgZH,
+    log: logsImgZH,
+    dashboard: dashboardImgZH,
+    slow: PolarisPng,
+  },
+}
 // 定义上下文的数据类型
 const dataViewType = {
   service: {
-    title: '服务概览指标',
-    exampleImg: serviceImg,
+    title: t(`${i18nKey}dataViewType.serviceOverview`),
+    exampleImg: imageMap[currentLang].service,
   },
   alert: {
-    title: '告警事件',
-    exampleImg: alertImg,
+    title: t(`${i18nKey}dataViewType.alertEvents`),
+    exampleImg: imageMap[currentLang].alert,
   },
   endpoint: {
-    title: '服务端点实例',
-    exampleImg: instanceImg,
+    title: t(`${i18nKey}dataViewType.serviceEndpointInstance`),
+    exampleImg: imageMap[currentLang].endpoint,
   },
   error: {
-    title: '错误实例',
-    exampleImg: errorInstanceImg,
+    title: t(`${i18nKey}dataViewType.errorInstance`),
+    exampleImg: imageMap[currentLang].error,
   },
   log: {
-    title: '日志列表',
-    exampleImg: logsImg,
+    title: t(`${i18nKey}dataViewType.logList`),
+    exampleImg: imageMap[currentLang].log,
   },
   dashboard: {
-    title: '大盘',
-    exampleImg: dashboardImg,
+    title: t(`${i18nKey}dataViewType.dashboard`),
+    exampleImg: imageMap[currentLang].dashboard,
   },
   slow: {
-    title: '北极星指标和延时报告',
+    title: t(`${i18nKey}dataViewType.polarisMetrics`),
     exampleImg: PolarisPng,
   },
 }
+
 const dataViewTypeList = Object.entries(dataViewType).map(([key, value]) => ({
   key: key,
   title: value.title,
@@ -138,14 +160,15 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const analysisNode = async (type) => {
     if (type?.length === 0) {
       showToast({
-        title: '查看的数据类型不可为空',
+        title: t(`${i18nKey}emptyDataType`),
         color: 'danger',
       })
       return
     }
+
     if (!selectedSuspectedNode?.service) {
       showToast({
-        title: '请先选择根因节点',
+        title: t(`${i18nKey}selectRootCauseNode`),
         color: 'danger',
       })
       return
@@ -164,11 +187,15 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       updatedDialogue.push({
         conversation: [
           {
-            message: `我确认疑似节点${selectedSuspectedNode?.service}(${selectedSuspectedNode?.endpoint})为根因节点，请给出关于此节点的${typeTitle.join('、')}数据`,
+            message: t(`${i18nKey}confirmSuspectedNode`, {
+              service: selectedSuspectedNode?.service,
+              endpoint: selectedSuspectedNode?.endpoint,
+              typeTitle: typeTitle.join('、'),
+            }),
             role: 'human',
           },
           {
-            message: `好的，以下是您确认的根因节点的相关数据`,
+            message: t(`${i18nKey}aiResponse`),
             role: 'ai',
           },
         ],
@@ -178,6 +205,8 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setCauseConfirmvisibilit(false)
     setCauseNode(selectedSuspectedNode)
     try {
+      const language = i18next.language
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
       const response = await streamFetch('/ai/api/nodeinfo', {
         method: 'POST',
         headers: {
@@ -195,6 +224,8 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           anormalTypes: anormalTypes.join(','),
           withTopology: true,
           type: type,
+          language: language,
+          timezone: timeZone,
         }),
       })
 
@@ -249,8 +280,7 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                   if (type.includes('slow')) {
                     updatedDialogue[updatedDialogue.length - 1].explanation = (
                       <>
-                        通过 eBPF
-                        技术，我们已将延时分解为以下几个部分，延时的变化必然由以下某一项或多项因素构成。
+                        {t(`${i18nKey}ebpfExplanation`)}
                         <GlossaryTable />
                       </>
                     )
@@ -262,7 +292,6 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             }
           }
         } catch (error) {
-          console.log('读取或处理消息时发生错误:', error)
           setIsDone(true)
           break // 根据业务需求决定是否退出循环
         }

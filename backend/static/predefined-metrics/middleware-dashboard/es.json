@@ -1,0 +1,1839 @@
+{
+  "queries": [
+    {
+      "title": "关键指标 - 集群健康",
+      "targets": [
+        {
+          "expr": "elasticsearch_cluster_health_status{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",color=\"red\"}==1 or (elasticsearch_cluster_health_status{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",color=\"green\"}==1)+4 or (elasticsearch_cluster_health_status{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",color=\"yellow\"}==1)+22",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "关键指标 - 断路器次数",
+      "targets": [
+        {
+          "expr": "count(elasticsearch_breakers_tripped{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}>0)",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "关键指标 - CPU 平均使用率",
+      "targets": [
+        {
+          "expr": "sum (elasticsearch_process_cpu_percent{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"} ) / count (elasticsearch_process_cpu_percent{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"} )",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "percent",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "关键指标 - JVM 内存平均使用率",
+      "targets": [
+        {
+          "expr": "sum (elasticsearch_jvm_memory_used_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}) / sum (elasticsearch_jvm_memory_max_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}) * 100",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "percent",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "关键指标 - 集群节点数",
+      "targets": [
+        {
+          "expr": "elasticsearch_cluster_health_number_of_nodes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "关键指标 - 集群数据节点数",
+      "targets": [
+        {
+          "expr": "elasticsearch_cluster_health_number_of_data_nodes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "关键指标 - 集群等待任务数",
+      "targets": [
+        {
+          "expr": "elasticsearch_cluster_health_number_of_pending_tasks{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "关键指标 - 文件数",
+      "targets": [
+        {
+          "expr": "sum (elasticsearch_process_open_files_count{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"})",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "short",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "分片 - 主分片数",
+      "targets": [
+        {
+          "expr": "elasticsearch_cluster_health_active_primary_shards{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "分片 - 索引总和",
+      "targets": [
+        {
+          "expr": "elasticsearch_cluster_health_active_shards{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "分片 - 新创建的分片数",
+      "targets": [
+        {
+          "expr": "elasticsearch_cluster_health_initializing_shards{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "分片 - 移动分片数",
+      "targets": [
+        {
+          "expr": "elasticsearch_cluster_health_relocating_shards{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "分片 - 延迟分片数",
+      "targets": [
+        {
+          "expr": "elasticsearch_cluster_health_delayed_unassigned_shards{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\"} ",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "分片 - 未分配分片数",
+      "targets": [
+        {
+          "expr": "elasticsearch_cluster_health_unassigned_shards{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\"} ",
+          "legendFormat": "",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "JVM 垃圾回收 - 垃圾回收次数",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_jvm_gc_collection_seconds_count{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}} - {{gc}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "JVM 垃圾回收 - 垃圾回收时间",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_jvm_gc_collection_seconds_sum{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}} - {{gc}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "事务日志 - 事务日志数",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_translog_operations{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "事务日志 - 事务日志大小（bytes）",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_translog_size_in_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "断路器 - 断路器次数",
+      "targets": [
+        {
+          "expr": "elasticsearch_breakers_tripped{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}}: {{breaker}}",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "断路器 - 断路器估计大小（bytes） - A",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "elasticsearch_breakers_estimated_size_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}}: {{breaker}}",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "断路器 - 断路器估计大小（bytes） - limit for",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "elasticsearch_breakers_limit_size_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}}: limit for {{breaker}}",
+          "refId": "B",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "CPU 和 内存 - 平均负载 - load1",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "elasticsearch_os_load1{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "load1: {{name}}",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "CPU 和 内存 - 平均负载 - load5",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "elasticsearch_os_load5{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "load5: {{name}}",
+          "refId": "B",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "CPU 和 内存 - 平均负载 - load15",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "elasticsearch_os_load15{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "load15: {{name}}",
+          "refId": "C",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "CPU 和 内存 - CPU 使用率",
+      "targets": [
+        {
+          "expr": "elasticsearch_process_cpu_percent{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "CPU 和 内存 - JVM 内存占用 - used",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "elasticsearch_jvm_memory_used_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}} used: {{area}}",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "CPU 和 内存 - JVM 内存占用 - max",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "elasticsearch_jvm_memory_max_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}} max: {{area}}",
+          "refId": "C",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "CPU 和 内存 - JVM 内存占用 - peak used pool",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "elasticsearch_jvm_memory_pool_peak_used_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}} peak used pool: {{pool}}",
+          "refId": "D",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "CPU 和 内存 - JVM 已提交内存 - committed",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "elasticsearch_jvm_memory_committed_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}} committed: {{area}}",
+          "refId": "B",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "CPU 和 内存 - JVM 已提交内存 - max",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "elasticsearch_jvm_memory_max_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}} max: {{area}}",
+          "refId": "C",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "磁盘 和 网络 - 磁盘使用",
+      "targets": [
+        {
+          "expr": "1-(elasticsearch_filesystem_data_available_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}/elasticsearch_filesystem_data_size_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"})",
+          "legendFormat": "{{name}}: {{path}}",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "磁盘 和 网络 - 网络使用 - sent",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_transport_tx_size_bytes_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: sent ",
+          "refId": "D",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "磁盘 和 网络 - 网络使用 - received",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "-irate(elasticsearch_transport_rx_size_bytes_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: received",
+          "refId": "C",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "文档 - 节点文档数",
+      "targets": [
+        {
+          "expr": "elasticsearch_indices_docs{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "文档 - 文档索引率",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_indexing_index_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "文档 - 文档删除率",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_docs_deleted{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "文档 - 文档合并率",
+      "targets": [
+        {
+          "expr": "rate(elasticsearch_indices_merges_docs_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "文档 - 文档合并大小（bytes）",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_merges_total_size_bytes_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "时间 - 请求时间",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_search_query_time_seconds{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval]) ",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "时间 - 索引时间",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_indexing_index_time_seconds_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "时间 - 合并时间",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_merges_total_time_seconds_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "时间 - 索引存储限流时间",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_store_throttle_time_seconds_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作率 - indexing",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(elasticsearch_indices_indexing_index_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: indexing",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作率 - query",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(elasticsearch_indices_search_query_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: query",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作率 - fetch",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(elasticsearch_indices_search_fetch_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: fetch",
+          "refId": "C",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作率 - merges",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(elasticsearch_indices_merges_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: merges",
+          "refId": "D",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作率 - refresh",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(elasticsearch_indices_refresh_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: refresh",
+          "refId": "E",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作率 - flush",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(elasticsearch_indices_flush_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: flush",
+          "refId": "F",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作率 - get_exists",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(elasticsearch_indices_get_exists_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: get_exists",
+          "refId": "G",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作率 - get_missing",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(elasticsearch_indices_get_missing_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: get_missing",
+          "refId": "H",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作率 - get",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(elasticsearch_indices_get_tota{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: get",
+          "refId": "I",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作率 - indexing_delete",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "rate(elasticsearch_indices_indexing_delete_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: indexing_delete",
+          "refId": "J",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作时间 - indexing",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_indexing_index_time_seconds_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: indexing",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作时间 - query",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_search_query_time_seconds{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: query",
+          "refId": "B",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作时间 - fetch",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_search_fetch_time_seconds{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: fetch",
+          "refId": "C",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作时间 - merges",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_merges_total_time_seconds_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: merges",
+          "refId": "D",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作时间 - refresh",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_refresh_time_seconds_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: refresh",
+          "refId": "E",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作时间 - flush",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_flush_time_seconds{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: flush",
+          "refId": "F",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作时间 - get_exists",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_get_exists_time_seconds{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: get_exists",
+          "refId": "G",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作时间 - get_time",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_get_time_seconds{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: get_time",
+          "refId": "H",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作时间 - get_missing",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_get_missing_time_seconds{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: get_missing",
+          "refId": "I",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作时间 - indexing_delete",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_indexing_delete_time_seconds_total{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: indexing_delete",
+          "refId": "J",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "操作统计 - 操作时间 - get",
+      "describe": "",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_indices_get_time_seconds{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: get",
+          "refId": "K",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "线程池 - 线程池拒绝数",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_thread_pool_rejected_count{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: {{ type }}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "线程池 - 线程池等待任务数",
+      "targets": [
+        {
+          "expr": "elasticsearch_thread_pool_active_count{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}}: {{ type }}",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "线程池 - 线程池活跃线程数",
+      "targets": [
+        {
+          "expr": "elasticsearch_thread_pool_active_count{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}}: {{ type }}",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "线程池 - 线程池完成任务数",
+      "targets": [
+        {
+          "expr": "irate(elasticsearch_thread_pool_completed_count{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}: {{ type }}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "缓存 - 字段数据内存大小",
+      "targets": [
+        {
+          "expr": "elasticsearch_indices_fielddata_memory_size_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "缓存 - 字段数据驱逐数",
+      "targets": [
+        {
+          "expr": "rate(elasticsearch_indices_fielddata_evictions{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "缓存 - 请求缓存大小",
+      "targets": [
+        {
+          "expr": "elasticsearch_indices_query_cache_memory_size_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "缓存 - 请求缓存驱逐",
+      "targets": [
+        {
+          "expr": "rate(elasticsearch_indices_query_cache_evictions{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "缓存 - 过滤器缓存驱逐",
+      "targets": [
+        {
+          "expr": "rate(elasticsearch_indices_filter_cache_evictions{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}[$__rate_interval])",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "分段 - 索引分段数",
+      "targets": [
+        {
+          "expr": "elasticsearch_indices_segments_count{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "分段 - 分段内存大小 （bytes）",
+      "targets": [
+        {
+          "expr": "elasticsearch_indices_segments_memory_bytes{job=~\"$job\",instance=~\"$instance\",cluster=~\"$cluster\",name=~\"$name\"}",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "variables": [
+            "cluster",
+            "instance",
+            "job",
+            "name"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "索引文档数 和 总大小 - 主分片文档数",
+      "targets": [
+        {
+          "expr": "elasticsearch_indices_docs_primary{job=~\"$job\",instance=~\"$instance\"}",
+          "legendFormat": "{{index}}",
+          "refId": "A",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "索引文档数 和 总大小 - 所有节点上仅包含主分片的索引数据总大小",
+      "targets": [
+        {
+          "expr": "elasticsearch_indices_store_size_bytes_primary{job=~\"$job\",instance=~\"$instance\"}",
+          "legendFormat": "{{index}}",
+          "refId": "A",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "索引文档数 和 总大小 - 所有节点上所有分片的索引数据总大小",
+      "targets": [
+        {
+          "expr": "elasticsearch_indices_store_size_bytes_total{job=~\"$job\",instance=~\"$instance\"}",
+          "legendFormat": "{{index}}",
+          "refId": "A",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "索引文档值 - 所有节点主分片文档值大小 （bytes）",
+      "targets": [
+        {
+          "expr": "elasticsearch_indices_segment_doc_values_memory_bytes_primary{job=~\"$job\",instance=~\"$instance\"}",
+          "legendFormat": "{{index}}",
+          "refId": "A",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "索引文档值 - 所有节点所有分片文档值大小 （bytes）",
+      "targets": [
+        {
+          "expr": "elasticsearch_indices_segment_doc_values_memory_bytes_total{job=~\"$job\",instance=~\"$instance\"}",
+          "legendFormat": "{{index}}",
+          "refId": "A",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "索引字段 - 所有节点主分片字段大小 （bytes）",
+      "targets": [
+        {
+          "expr": "elasticsearch_indices_segment_fields_memory_bytes_primary{job=~\"$job\",instance=~\"$instance\"}",
+          "legendFormat": "{{index}}",
+          "refId": "A",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    },
+    {
+      "title": "索引字段 - 所有节点所有分片字段大小 （bytes）",
+      "targets": [
+        {
+          "expr": "elasticsearch_indices_segment_fields_memory_bytes_total{job=~\"$job\",instance=~\"$instance\"}",
+          "legendFormat": "{{index}}",
+          "refId": "A",
+          "variables": [
+            "instance",
+            "job"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cluster",
+        "job"
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "datasource",
+      "type": "datasource",
+      "label": "",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "APO-VictoriaMetric",
+        "value": "APO-VictoriaMetric"
+      },
+      "regex": "",
+      "query": {
+        "query": "prometheus",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "job",
+      "type": "query",
+      "label": "",
+      "options": null,
+      "current": {
+        "isNone": true,
+        "selected": false,
+        "text": "None",
+        "value": ""
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(elasticsearch_cluster_health_status, job)",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "cluster",
+      "type": "query",
+      "label": "",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "elasticsearch",
+        "value": "elasticsearch"
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(elasticsearch_indices_docs{job=~\"$job\"},cluster)",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "name",
+      "type": "query",
+      "label": "",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "All",
+        "value": "$__all"
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(elasticsearch_indices_docs{job=~\"$job\", cluster=~\"$cluster\", name!=\"\"},name)",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "instance",
+      "type": "query",
+      "label": "",
+      "options": null,
+      "current": {
+        "isNone": true,
+        "selected": false,
+        "text": "None",
+        "value": ""
+      },
+      "regex": "",
+      "query": {
+        "query": "label_values(elasticsearch_indices_docs{job=~\"$job\", cluster=~\"$cluster\", name!=\"\"},instance)",
+        "qryType": 1
+      }
+    }
+  ],
+  "title": "Elasticsearch 指标"
+}

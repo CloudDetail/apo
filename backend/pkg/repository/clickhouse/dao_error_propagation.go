@@ -57,10 +57,10 @@ func (ch *chRepo) ListErrorByEntryService(startTime, endTime int64, entryService
 	startTime = startTime / 1000000
 	endTime = endTime / 1000000
 
-	whereEntry := MergeWheres(
+	whereEntry := mergeWheres(
 		AndSep,
-		Equals("entry_service", entryService),
-		Equals("entry_url", entryEndpoint),
+		equals("entry_service", entryService),
+		equals("entry_url", entryEndpoint),
 	)
 	// 如果APM发生了断链
 	// 可以通过endpoints直接去除对应服务的Exception
@@ -73,10 +73,10 @@ func (ch *chRepo) ListErrorByEntryService(startTime, endTime int64, entryService
 				Value: []any{endpoint.ServiceName, endpoint.Endpoint},
 			})
 		}
-		whereEntry = MergeWheres(
+		whereEntry = mergeWheres(
 			OrSep,
 			whereEntry,
-			InGroup(whereEndpoints),
+			inGroup(whereEndpoints),
 		)
 	}
 

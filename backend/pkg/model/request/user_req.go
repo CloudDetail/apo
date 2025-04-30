@@ -112,3 +112,7 @@ type GetFeatureRequest struct {
 type GetUserInfoRequest struct {
 	UserID int64 `form:"userId"`
 }
+
+type CheckRouterPermissionRequest struct {
+	Router string `form:"router"`
+}

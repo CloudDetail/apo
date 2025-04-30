@@ -28,7 +28,7 @@ func (h *handler) AddDefectsDetect() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -40,14 +40,14 @@ func (h *handler) AddDefectsDetect() core.HandlerFunc {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					vErr.Code,
-					code.Text(vErr.Code)).WithError(err),
+					c.ErrMessage(vErr.Code)).WithError(err),
 				)
 				return
 			} else {
 				c.AbortWithError(core.Error(
 					http.StatusBadRequest,
 					code.DetectDefectsError,
-					code.Text(code.DetectDefectsError)).WithError(err),
+					c.ErrMessage(code.DetectDefectsError)).WithError(err),
 				)
 				return
 			}

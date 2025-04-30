@@ -1,8 +1,11 @@
 import { Descriptions } from 'antd'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useCauseReportContext } from 'src/pro/contexts/CauseReportContext'
 
 const Conclusion = () => {
+  const { t } = useTranslation('pro/causeReport')
+
   const { reportData } = useCauseReportContext()
   const [items, setItems] = useState([])
   useEffect(() => {
@@ -27,7 +30,7 @@ const Conclusion = () => {
       items.push({
         key: item.name,
         label: item.name,
-        children: '正常',
+        children: t('normal'),
       })
     })
     setItems(items)

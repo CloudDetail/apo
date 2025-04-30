@@ -3,22 +3,16 @@
 
 package integration
 
-import "time"
+import (
+	"strings"
+)
 
-type ClusterIntegration struct {
-	ClusterID   string `json:"clusterId"`
-	ClusterName string `json:"clusterName"`
-	ClusterType string `json:"clusterType"` // k8s,vm
+func (ci *ClusterIntegration) RemoveSecret() *ClusterIntegration {
+	ci.Trace.TraceAPI.ReplaceSecret()
+	ci.Metric.MetricAPI.ReplaceSecret()
+	ci.Log.LogAPI.ReplaceSecret()
 
-	Trace  TraceIntegration  `json:"trace"`
-	Metric MetricIntegration `json:"metric"`
-	Log    LogIntegration    `json:"log"`
-}
-
-func (ci *ClusterIntegration) RemoveSecret() {
-	ci.Trace.RemoveSecret()
-	ci.Metric.RemoveSecret()
-	ci.Log.RemoveSecret()
+	return ci
 }
 
 const (
@@ -34,136 +28,149 @@ const (
 )
 
 type TraceIntegration struct {
-	ClusterID string `json:"clusterId" gorm:"primaryKey;column:cluster_id"`
+	ClusterID string `json:"clusterId,omitempty" gorm:"primaryKey;column:cluster_id"`
 
-	Mode    string `json:"mode" gorm:"type:varchar(100);column:mode"`
-	ApmType string `json:"apmType" gorm:"type:varchar(100);column:apm_type"`
+	Mode    string `json:"mode" gorm:"type:varchar(255);column:mode"`
+	ApmType string `json:"apmType" gorm:"type:varchar(255);column:apm_type"`
 
-	TraceAPI          JSONField[TraceAPI]          `json:"traceAPI,omitempty" gorm:"type:json;column:trace_api"`
-	APOCollector      JSONField[APOCollector]      `json:"apoCollector" gorm:"type:json;column:apo_collector"`
-	SelfCollectConfig JSONField[SelfCollectConfig] `json:"selfCollectConfig" gorm:"type:json;column:self_collect_config"`
+	TraceAPI          JSONField[TraceAPI]               `json:"traceAPI,omitempty" gorm:"type:json;column:trace_api"`
+	SelfCollectConfig JSONField[TraceSelfCollectConfig] `json:"selfCollectConfig" gorm:"type:json;column:self_collect_config"`
 
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	UpdatedAt int64 `json:"-" gorm:"autoUpdateTime:second"`
+	IsDeleted bool  `gorm:"column:is_deleted;default:false"`
 }
 
+// TraceAPI contains config for different APM providers
+// using secret:"true" to hide the secret
 type TraceAPI struct {
-	Jaeger     *JaegerAPI     `json:"jaeger,omitempty"`
-	Skywalking *SkywalkingAPI `json:"skywalking,omitempty"`
-	ARMS       *ARMSAPI       `json:"arms,omitempty"`
-	NBS3       *NBS3API       `json:"nbs3,omitempty"`
+	Skywalking *SkywalkingConfig `json:"skywalking,omitempty" mapstructure:"skywalking"`
+	Jaeger     *JaegerConfig     `json:"jaeger,omitempty" mapstructure:"jaeger"`
+	Nbs3       *Nbs3Config       `json:"nbs3,omitempty" mapstructure:"nbs3"`
+	Arms       *ArmsConfig       `json:"arms,omitempty" mapstructure:"arms"`
+	Huawei     *HuaweiConfig     `json:"huawei,omitempty" mapstructure:"huawei"`
+	Elastic    *ElasticConfig    `json:"elastic,omitempty" mapstructure:"elastic"`
+	Pinpoint   *PinpointConfig   `json:"pinpoint,omitempty" mapstructure:"pinpoint"`
+
+	// Second
+	Timeout int64 `json:"timeout"`
 }
 
-func (i *TraceIntegration) RemoveSecret() {
-	if i.TraceAPI.Obj.Skywalking != nil {
-		i.TraceAPI.Obj.Skywalking.User = ""
-		i.TraceAPI.Obj.Skywalking.Password = ""
-	}
-
-	if i.TraceAPI.Obj.ARMS != nil {
-		i.TraceAPI.Obj.ARMS.AccessKey = ""
-		i.TraceAPI.Obj.ARMS.AccessSecret = ""
-	}
-
-	if i.TraceAPI.Obj.NBS3 != nil {
-		i.TraceAPI.Obj.NBS3.User = ""
-		i.TraceAPI.Obj.NBS3.Password = ""
-	}
+type SkywalkingConfig struct {
+	Address  string `json:"address" mapstructure:"address"`
+	User     string `json:"user" mapstructure:"user" secret:"true"`
+	Password string `json:"password" mapstructure:"password" secret:"true"`
 }
 
-type JaegerAPI struct {
-	Address string `json:"address"`
+type JaegerConfig struct {
+	Address string `json:"address" mapstructure:"address"`
 }
 
-type SkywalkingAPI struct {
-	Address  string `json:"address"`
-	User     string `json:"user"`
-	Password string `json:"password"`
+type Nbs3Config struct {
+	Address  string `json:"address" mapstructure:"address"`
+	User     string `json:"user" mapstructure:"user" secret:"true"`
+	Password string `json:"password" mapstructure:"password" secret:"true"`
 }
 
-type ARMSAPI struct {
-	Address      string `json:"address"`
-	AccessKey    string `json:"accessKey"`
-	AccessSecret string `json:"accessSecret"`
+type ArmsConfig struct {
+	Address      string `json:"address" mapstructure:"address"`
+	AccessKey    string `json:"accessKey" mapstructure:"access_key" secret:"true"`
+	AccessSecret string `json:"accessSecret" mapstructure:"access_secret" secret:"true"`
 }
 
-type NBS3API struct {
-	Address  string `json:"address"`
-	User     string `json:"user"`
-	Password string `json:"password"`
+type HuaweiConfig struct {
+	AccessKey    string `json:"accessKey" mapstructure:"access_key" secret:"true"`
+	AccessSecret string `json:"accessSecret" mapstructure:"access_secret" secret:"true"`
 }
 
-type SelfCollectConfig struct {
+type ElasticConfig struct {
+	Address  string `json:"address" mapstructure:"address"`
+	User     string `json:"user" mapstructure:"user" secret:"true"`
+	Password string `json:"password" mapstructure:"password" secret:"true"`
+}
+
+type PinpointConfig struct {
+	Address string `json:"address" mapstructure:"address"`
+}
+
+type TraceSelfCollectConfig struct {
 	InstrumentAll        bool     `json:"instrumentAll"`
 	InstrumentNS         []string `json:"instrumentNS,omitempty"`
 	InstrumentDisabledNS []string `json:"instrumentDisabledNS,omitempty"`
 }
 
 type APOCollector struct {
-	CollectorAddr        string `json:"collectorAddr,omitempty"`
-	CollectorGatewayAddr string `json:"collectorGatewayAddr"`
+	CollectorGatewayAddr string                `json:"collectorGatewayAddr"`
+	CollectorAddr        string                `json:"collectorAddr,omitempty"`
+	Ports                CollectorGatewayPorts `json:"ports"`
 }
 
+func (c *APOCollector) RemoveHttpPrefix() {
+	c.CollectorAddr = strings.TrimPrefix(c.CollectorAddr, "http://")
+	c.CollectorGatewayAddr = strings.TrimPrefix(c.CollectorGatewayAddr, "http://")
+}
+
+type CollectorGatewayPorts map[string]string
+
 type MetricIntegration struct {
-	ClusterID string `json:"clusterId" gorm:"primaryKey;column:cluster_id"`
+	ClusterID string `json:"clusterId,omitempty" gorm:"primaryKey;column:cluster_id"`
 
-	Mode string `json:"mode" gorm:"type:varchar(100);column:mode"`
-
+	Mode   string `json:"mode" gorm:"type:varchar(255);column:mode"`
 	Name   string `json:"name"`
 	DSType string `json:"dsType"`
 
 	MetricAPI *JSONField[MetricAPI] `json:"metricAPI" gorm:"type:json;column:metric_api"`
 
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	UpdatedAt int64 `json:"-" gorm:"autoUpdateTime:second"`
+	IsDeleted bool  `json:"-" gorm:"column:is_deleted;default:false"`
 }
 
 type MetricAPI struct {
-	VMConfig *VictoriaMetricConfig `json:"vmConfig,omitempty"`
-}
-
-func (i *MetricIntegration) RemoveSecret() {
-	if i.MetricAPI.Obj.VMConfig != nil {
-		i.MetricAPI.Obj.VMConfig.Username = ""
-		i.MetricAPI.Obj.VMConfig.Password = ""
-	}
+	VictoriaMetric *VictoriaMetricConfig `json:"victoriametric,omitempty"`
 }
 
 type PrometheusConfig struct {
 	ServerURL string `json:"serverURL"`
-	Username  string `json:"username"`
-	Password  string `json:"password"`
+	Username  string `json:"username" secret:"true"`
+	Password  string `json:"password" secret:"true"`
 }
 
 type VictoriaMetricConfig PrometheusConfig
 
 type LogIntegration struct {
-	ClusterID string `json:"clusterId" gorm:"primaryKey;column:cluster_id"`
+	ClusterID string `json:"clusterId,omitempty" gorm:"primaryKey;column:cluster_id"`
 
-	Mode string `json:"mode" gorm:"type:varchar(100);column:mode"`
+	Mode string `json:"mode" gorm:"type:varchar(255);column:mode"`
 
 	Name   string `json:"name" gorm:"type:json;column:name"`
 	DBType string `json:"dbType" gorm:"type:json;column:db_type"`
 
-	LogAPI *JSONField[LogAPI] `json:"logAPI,omitempty" gorm:"type:json;column:log_api"`
+	LogAPI               *JSONField[LogAPI]               `json:"logAPI,omitempty" gorm:"type:json;column:log_api"`
+	LogSelfCollectConfig *JSONField[LogSelfCollectConfig] `json:"selfCollectConfig" gorm:"type:json;column:self_collect_config"`
 
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
-}
-
-func (i *LogIntegration) RemoveSecret() {
-	if i.LogAPI.Obj.CHConfig != nil {
-		i.LogAPI.Obj.CHConfig.UserName = ""
-		i.LogAPI.Obj.CHConfig.Password = ""
-	}
+	UpdatedAt int64 `json:"-" gorm:"autoUpdateTime:second"`
+	IsDeleted bool  `json:"-" gorm:"column:is_deleted;default:false"`
 }
 
 type LogAPI struct {
-	CHConfig *ClickhouseConfig `json:"chConfig"`
+	Clickhouse *ClickhouseConfig `json:"clickhouse"`
+}
+
+type LogSelfCollectConfig struct {
+	Mode string `json:"mode"` // full,abnormal
 }
 
 type ClickhouseConfig struct {
 	Address     string `json:"address"`
-	UserName    string `json:"userName"`
-	Password    string `json:"password"` // Encrypt in B64
+	UserName    string `json:"userName" secret:"true"`
+	Password    string `json:"password" secret:"true"` // Encrypt in B64
 	Database    string `json:"database"`
 	Replication bool   `json:"replication"`
 	Cluster     string `json:"cluster"`
+}
+
+type AdapterAPIConfig struct {
+	APIs    map[string]any `json:"apis"`
+	Timeout int64          `json:"timeout"`
+
+	LastUpdateTS int64 `json:"lastUpdateTS"`
 }

@@ -10,8 +10,9 @@ import IframeDashboard from 'src/core/components/Dashboard/IframeDashboard'
 import { useTranslation } from 'react-i18next'
 
 function MiddlewareDashboard() {
-  const { t } = useTranslation('oss/middleware')
+  const { t, i18n } = useTranslation('oss/middleware')
 
+  
   return (
     <div className="text-xs" style={{ height: 'calc(100vh - 160px)' }}>
       <CToast autohide={false} visible={true} className="align-items-center w-full mb-2">
@@ -22,14 +23,19 @@ function MiddlewareDashboard() {
             <a
               className="underline text-sky-500"
               target="_blank"
-              href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/监控中间件/"
+              href=
+              {
+                i18n.language === 'zh'
+                ? "https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/监控中间件/"
+                : "https://docs.autopilotobservability.com/category/metrics-monitoring"
+              }
             >
               {t('dashboard.documentation')}
             </a>
           </CToastBody>
         </div>
       </CToast>
-      <IframeDashboard src={'grafana/dashboards/f/edwu5b9rkv94wb/'} />
+      <IframeDashboard dashboardKey="middleware" />
     </div>
   )
 }

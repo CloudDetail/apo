@@ -18,9 +18,9 @@ const TPS = 5.0
 
 type Threshold struct {
 	ID          uint    `gorm:"primaryKey;autoIncrement"`
-	ServiceName string  `gorm:"type:varchar(100)"`
-	Level       string  `gorm:"type:varchar(100)"`
-	EndPoint    string  `gorm:"type:varchar(100)"`
+	ServiceName string  `gorm:"type:varchar(255)"`
+	Level       string  `gorm:"type:varchar(255)"`
+	EndPoint    string  `gorm:"type:varchar(255)"`
 	Latency     float64 `gorm:"type:decimal(10,2)"`
 	Tps         float64 `gorm:"type:decimal(10,2)"`
 	ErrorRate   float64 `gorm:"type:decimal(10,2)"`

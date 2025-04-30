@@ -3,6 +3,10 @@
     "selectAll": "选择全部",
     "save": "保存",
     "menuConfigSuccess": "菜单配置成功",
-    "errorFetchingPermissions": "获取权限时出错"
+    "errorFetchingPermissions": "获取权限时出错",
+    "roleList": "角色列表",
+    "menuPermissionSetting": "菜单权限配置",
+    "selectRole": "请选择角色",
+    "menuSetSuccess": "菜单配置成功"
   }
 }

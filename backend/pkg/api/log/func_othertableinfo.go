@@ -29,7 +29,7 @@ func (h *handler) OtherTableInfo() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -38,7 +38,7 @@ func (h *handler) OtherTableInfo() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetOtherLogTableError,
-				code.Text(code.GetOtherLogTableError)).WithError(err),
+				c.ErrMessage(code.GetOtherLogTableError)).WithError(err),
 			)
 			return
 		}

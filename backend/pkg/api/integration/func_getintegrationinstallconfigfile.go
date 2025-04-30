@@ -1,3 +1,6 @@
+// Copyright 2025 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package integration
 
 import (
@@ -16,6 +19,7 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce text/plain
 // @Param Request body integration.GetCInstallRequest true "请求信息"
+// @Success 200 {object} integration.GetCInstallConfigResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/integration/cluster/install/config [get]
 func (h *handler) GetIntegrationInstallConfigFile() core.HandlerFunc {
@@ -25,7 +29,7 @@ func (h *handler) GetIntegrationInstallConfigFile() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -35,10 +39,11 @@ func (h *handler) GetIntegrationInstallConfigFile() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.GetIntegrationInstallConfigFileFailed,
-				code.Text(code.GetIntegrationInstallConfigFileFailed)).WithError(err),
+				c.ErrMessage(code.GetIntegrationInstallConfigFileFailed)).WithError(err),
 			)
 			return
 		}
+		c.SetHeader("Access-Control-Expose-Headers", "Content-Disposition,Content-Type")
 		c.SetHeader("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", configFile.FileName))
 		c.SetHeader("Content-Type", "text/plain")
 		c.Payload(configFile.Content)

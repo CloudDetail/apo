@@ -9,9 +9,11 @@ import './index.css'
 import _ from 'lodash'
 import TableBody from './tableBody'
 import LoadingSpinner from '../Spinner'
-import BasicPagination from './basicPagination'
-
+import { Pagination, Tooltip } from 'antd'
+import { VscTriangleUp, VscTriangleDown } from 'react-icons/vsc'
+import { useTranslation } from 'react-i18next'
 const BasicTable = React.memo((props) => {
+  const { t } = useTranslation('core/table')
   const {
     data,
     columns,
@@ -22,8 +24,14 @@ const BasicTable = React.memo((props) => {
     noHeader,
     showBorder,
     clickRow,
-    emptyContent = '暂无数据',
+    emptyContent = null,
     showLoading = true,
+    sortBy = [],
+    setSortBy = null,
+    showSizeChanger = false,
+    scrollY = null,
+    tdPadding = null,
+    paginationSize = 'normal',
   } = props
   const tableRef = useRef(null)
   const getSortByColumns = (columns) => {
@@ -57,26 +65,25 @@ const BasicTable = React.memo((props) => {
         disableSortBy: true,
       },
       initialState: {
-        sortBy: getSortByColumns(columns),
+        sortBy: sortBy,
         pageIndex: pagination?.pageIndex ? pagination.pageIndex - 1 : 0,
         pageSize: pagination?.pageSize ? pagination.pageSize : 100000,
       },
       columns,
       data,
-      manualPagination: pagination?.pageCount !== undefined,
-      ...(pagination?.pageCount !== undefined ? { pageCount: pagination.pageCount } : {}),
+      manualSortBy: true,
+      manualPagination: typeof onChange === 'function',
+      ...(typeof onChange === 'function'
+        ? {
+            pageCount: pagination?.total
+              ? Math.ceil(pagination.total / pagination.pageSize)
+              : undefined,
+          }
+        : {}),
     },
     useSortBy,
     usePagination,
   )
-  useEffect(() => {
-    setPaginationLoading(true)
-    if (onChange) {
-      onChange({ pageSize: pageSize, pageIndex: pageIndex + 1 })
-    }
-    setPaginationLoading(false)
-  }, [pageSize, pageIndex, onChange])
-
   const tableBodyProps = useMemo(
     () => ({
       page: page,
@@ -87,19 +94,92 @@ const BasicTable = React.memo((props) => {
       pageSize,
       clickRow,
       emptyContent,
+      scrollY,
+      tdPadding,
     }),
-    [page, data, pageIndex, pageSize, loading, rowKey, clickRow, emptyContent],
+    [
+      pagination,
+      page,
+      data,
+      pageIndex,
+      pageSize,
+      loading,
+      rowKey,
+      clickRow,
+      emptyContent,
+      scrollY,
+      tdPadding,
+    ],
   )
+  const SortRender = (isSorted, isSortedDesc, sortType = ['asc', 'desc']) => {
+    const hasAsc = sortType.includes('asc')
+    const hasDesc = sortType.includes('desc')
+    return (
+      <Tooltip
+        title={t(
+          !isSorted
+            ? hasAsc
+              ? 'asc'
+              : 'desc'
+            : isSortedDesc
+              ? 'unsort'
+              : hasDesc
+                ? 'desc'
+                : 'unsort',
+        )}
+      >
+        <div className="ml-3">
+          <SortIcon isSorted={isSorted} isSortedDesc={isSortedDesc} sortType={sortType || []} />
+        </div>
+      </Tooltip>
+    )
+  }
+  const getNextSortState = (isSorted, isSortedDesc, sortTypes) => {
+    if (!isSorted) {
+      return { desc: sortTypes.includes('desc') }
+    }
+    if (!isSortedDesc) {
+      return { desc: true }
+    }
+    return null
+  }
+  const SortIcon = ({ isSorted, isSortedDesc, sortType }) => (
+    <div className="flex flex-col cursor-pointer items-center">
+      {sortType.includes('asc') && (
+        <VscTriangleUp color={isSorted && !isSortedDesc ? '#5286e8' : 'grey'} />
+      )}
+      {sortType.includes('desc') && (
+        <VscTriangleDown
+          style={{ marginTop: sortType.length === 2 ? -6 : 0 }}
+          color={isSorted && isSortedDesc ? '#5286e8' : 'grey'}
+        />
+      )}
+    </div>
+  )
+  useEffect(() => {
+    if (typeof onChange === 'function') {
+      gotoPage(pagination.pageIndex - 1)
+    }
+  }, [pagination])
   return (
     <div className={showBorder ? 'basic-table border-table' : 'basic-table'}>
       <table {...getTableProps()} ref={tableRef}>
-        <thead>
+        <thead
+          className="m-0 overflow-y-scroll bg-[#1d1d1d]"
+          style={{ borderRadius: '8px 8px 0 0' }}
+        >
           {!noHeader &&
             headerGroups.map((headerGroup, idx) => (
               <tr {...headerGroup.getHeaderGroupProps()} key={`header_tr_${idx}`}>
                 {headerGroup.headers.map((column, idx) => {
+                  const sortedColumn = sortBy.length > 0 ? sortBy[0] : null
+                  const isSorted = sortedColumn?.id === column.id
+                  const isSortedDesc = isSorted ? sortedColumn?.desc : undefined
+
                   return (
                     <th
+                      {...column.getHeaderProps(column.getSortByToggleProps())}
+                      {...column.getSortByToggleProps()}
                       {...column.getHeaderProps({
                         style: {
                           width: column.customWidth,
@@ -107,22 +187,44 @@ const BasicTable = React.memo((props) => {
                           justifyContent: column.justifyContent ? column.justifyContent : 'center',
                           padding: column.isNested ? 0 : 8,
                           minWidth: column.minWidth,
+                          textDecoration: 'none',
                         },
                       })}
                       className={
-                        (column.isSorted ? (column.isSortedDesc ? 'sort-desc' : 'sort-asc') : '') +
-                        (column.canSort ? '  cursor-pointer' : '')
+                        (isSorted ? (isSortedDesc ? 'sort-desc' : 'sort-asc') : '') +
+                        (column.canSort ? 'cursor-pointer no-underline' : '') +
+                        (!column.isNested && 'hover:bg-[#303030]') +
+                        '    hover:no-underline'
                       }
                       key={`header_th_${idx}`}
                       onClick={() => {
-                        if (column.canSort) {
-                          column.toggleSortBy()
+                        if (!column.disableSortBy) {
+                          if (!isSorted) {
+                            if (isSortedDesc === undefined) {
+                              // column.toggleSortBy(false, false)
+                              setSortBy([{ id: column.id, desc: false }])
+                            }
+                          } else {
+                            if (!isSortedDesc) {
+                              // column.toggleSortBy(true, false)
+                              setSortBy([{ id: column.id, desc: true }])
+                            } else {
+                              // column.toggleSortBy()
+                              setSortBy([])
+                            }
+                          }
                         }
                       }}
                     >
                       {column.hide &&
                         column.isNested &&
                         column.children.map((item, index) => {
+                          const sortedColumn = sortBy.length > 0 ? sortBy[0] : null
+                          const valueKey =
+                            typeof item.accessor === 'function' ? item.accessor(0) : item.accessor
+                          const isSorted = sortedColumn?.id === valueKey
+                          const isSortedDesc = isSorted ? sortedColumn?.desc : undefined
+
                           return (
                             <th
                               style={{
@@ -135,13 +237,35 @@ const BasicTable = React.memo((props) => {
 
                                 minWidth: item.minWidth,
                               }}
+                              className={
+                                'hover:bg-[#303030] ' +
+                                (item.sortType?.length > 0 && 'cursor-pointer  no-underline')
+                              }
                               key={index}
+                              onClick={() => {
+                                if (!item.sortType?.length) return
+                                const nextState = getNextSortState(
+                                  isSorted,
+                                  isSortedDesc,
+                                  item.sortType,
+                                )
+                                if (nextState) {
+                                  setSortBy([{ id: valueKey, ...nextState }])
+                                } else {
+                                  setSortBy([])
+                                }
+                              }}
                             >
                               {item.title}
+                              {item.sortType?.length > 0 &&
+                                SortRender(isSorted, isSortedDesc, item.sortType)}
                             </th>
                           )
                         })}
-                      {!column.isNested && column.render('title')}
+                      <div className="flex justify-between items-center">
+                        {!column.isNested && column.render('title')}
+                        {!column.disableSortBy && SortRender(isSorted, isSortedDesc)}
+                      </div>
                     </th>
                   )
                 })}
@@ -151,16 +275,25 @@ const BasicTable = React.memo((props) => {
         {showLoading && <LoadingSpinner loading={loading || paginationLoading} />}
         <TableBody {...getTableBodyProps()} tableBodyProps={tableBodyProps}></TableBody>
       </table>
-      {pagination?.pageSize && (
-        <BasicPagination
+      {typeof pagination?.total === 'number' && pagination.total > 0 && (
+        <Pagination
+          defaultCurrent={1}
+          total={pagination?.total}
+          current={pageIndex + 1}
           pageSize={pageSize}
-          pageIndex={pageIndex}
-          page={page}
-          pageCount={pageCount}
-          previousPage={previousPage}
-          gotoPage={gotoPage}
-          nextPage={nextPage}
-          setPageSize={setPageSize}
+          align="end"
+          showSizeChanger={showSizeChanger}
+          onShowSizeChange={(current, pageSize) => setPageSize(pageSize)}
+          onChange={(page, pageSize) => {
+            gotoPage(page - 1)
+            setPageSize(pageSize)
+            onChange?.(page, pageSize)
+          }}
+          className="mt-1"
+          showTotal={(total) => (
+            <span className="text-xs text-gray-400">{t('pagination', { total })}</span>
+          )}
+          size={paginationSize}
         />
       )}
     </div>

@@ -27,10 +27,12 @@ func calculateInterval(interval int64, timeField string) (string, int64) {
 	return fmt.Sprintf("toStartOfInterval(`%s`, INTERVAL 1 day)", timeField), 86400
 }
 
-func chartSQL(req *request.LogQueryRequest) (string, int64) {
+const queryLogChart = "SELECT count(`%s`) as count, %s as timeline FROM `%s`.`%s` WHERE %s GROUP BY %s ORDER BY %s ASC"
+
+func chartSQL(baseQuery string, req *request.LogQueryRequest) (string, int64) {
 	group, interval := calculateInterval((req.EndTime-req.StartTime)/1000000, req.TimeField)
 	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
-	sql := fmt.Sprintf("SELECT count(`%s`) as count, %s as timeline FROM `%s`.`%s` WHERE %s GROUP BY %s ORDER BY %s ASC",
+	sql := fmt.Sprintf(baseQuery,
 		req.TimeField,
 		group,
 		req.DataBase,
@@ -42,7 +44,7 @@ func chartSQL(req *request.LogQueryRequest) (string, int64) {
 }
 
 func (ch *chRepo) GetLogChart(req *request.LogQueryRequest) ([]map[string]any, int64, error) {
-	sql, interval := chartSQL(req)
+	sql, interval := chartSQL(queryLogChart, req)
 	results, err := ch.queryRowsData(sql)
 	if err != nil {
 		return nil, interval, err

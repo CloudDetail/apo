@@ -4,7 +4,7 @@
 package alert
 
 import (
-	"os"
+	dbdriver "github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
@@ -45,7 +45,7 @@ type AlertInput interface {
 	ClearSchemaData(schema string) error
 	SearchSchemaTarget(schema string, sourceField string, sourceValue string, targets []alert.AlertEnrichSchemaTarget) ([]string, error)
 
-	ListAlertTargetTags() ([]alert.TargetTag, error)
+	ListAlertTargetTags(lang string) ([]alert.TargetTag, error)
 
 	// Load complate alertEnrichRule
 	LoadAlertEnrichRule() ([]alert.AlertSource, map[alert.SourceFrom][]alert.AlertEnrichRuleVO, error)
@@ -69,27 +69,9 @@ func NewAlertInputRepo(db *gorm.DB, cfg *config.Config) (*subRepo, error) {
 		return nil, err
 	}
 
-	var count int64
-	if err := repo.db.Model(&alert.TargetTag{}).Count(&count).Error; err != nil {
+	err := dbdriver.InitSQL(db, &alert.TargetTag{})
+	if err != nil {
 		return nil, err
-	}
-	if count > 0 {
-		return repo, nil
-	}
-
-	var sqlScript string = cfg.Database.InitScript.DefaultAlertTagMapping
-	if sqlScript == "" {
-		sqlScript = "./sqlscripts/default_alert_tag_mapping.sql"
-	}
-
-	if _, err := os.Stat(sqlScript); err == nil {
-		sql, err := os.ReadFile(sqlScript)
-		if err != nil {
-			return nil, err
-		}
-		if err := repo.db.Exec(string(sql)).Error; err != nil {
-			return nil, err
-		}
 	}
 
 	return repo, nil

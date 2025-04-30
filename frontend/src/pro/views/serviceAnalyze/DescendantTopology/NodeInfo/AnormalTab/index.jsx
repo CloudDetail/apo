@@ -1,13 +1,16 @@
 import { Tabs, Tooltip } from 'antd'
 import React from 'react'
 import AnormalList from '../AnormalList'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 import { convertTime } from 'src/core/utils/time'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
+import { useTranslation } from 'react-i18next'
+const i18nKey = 'node'
 
 const AnormalTab = () => {
-  const { deltaStartTime, deltaEndTime } = useAlertAnalyzeContext()
+  const { t } = useTranslation('pro/serviceAnalyze')
+  const { deltaStartTime, deltaEndTime } = useServiceAnalyzeContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const items = [
     {
@@ -21,7 +24,7 @@ const AnormalTab = () => {
             </span>
           }
         >
-          <span>当前播放时间段事件</span>
+          <span>{t(`${i18nKey}.currentTimeEvents`)}</span>
         </Tooltip>
       ),
       children: <AnormalList />,
@@ -37,7 +40,7 @@ const AnormalTab = () => {
             </span>
           }
         >
-          <span>分析总时间段事件</span>
+          <span>{t(`${i18nKey}.totalTimeEvents`)}</span>
         </Tooltip>
       ),
       children: <AnormalList />,

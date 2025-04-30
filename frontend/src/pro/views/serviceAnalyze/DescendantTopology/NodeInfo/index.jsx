@@ -1,14 +1,17 @@
 import { Collapse } from 'antd'
 import { useEffect, useState } from 'react'
-import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 import AnormalList from './AnormalList'
 import ErrorInstanceInfo from 'src/pro/views/serviceAnalyze/DescendantTopology/NodeInfo/ErrorInstanceInfo'
 import PolarisMetricsInfo from 'src/pro/views/serviceAnalyze/DescendantTopology/NodeInfo/PolarisMetricsInfoModal/PolarisMetricsInfo'
+import { useTranslation } from 'react-i18next'
 
+const i18nKey = 'node'
 const NodeInfo = () => {
+  const { t } = useTranslation('pro/serviceAnalyze')
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight)
   const [activeItem, setActiveItem] = useState([])
-  const { selectedNodeInfo } = useAlertAnalyzeContext()
+  const { selectedNodeInfo } = useServiceAnalyzeContext()
   const [errorInstanceOpen, setErrorInstanceOpen] = useState(false)
 
   useEffect(() => {
@@ -24,7 +27,7 @@ const NodeInfo = () => {
       key: '1',
       label: (
         <div className="flex items-center justify-between">
-          <div className="flex items-center">延时报告</div>
+          <div className="flex items-center">{t(`${i18nKey}.delayReport`)}</div>
         </div>
       ),
       children: (
@@ -42,19 +45,13 @@ const NodeInfo = () => {
     },
     {
       key: '2',
-      label: '错误报告',
-      children: (
-        <ErrorInstanceInfo
-          service={selectedNodeInfo?.service}
-          endpoint={selectedNodeInfo?.endpoint}
-          showLogs={false}
-          errorInstanceOpen={errorInstanceOpen}
-        />
-      ),
+      label: t(`${i18nKey}.errorReport`),
+      children: <ErrorInstanceInfo showLogs={false} errorInstanceOpen={errorInstanceOpen} />,
       forceRender: true,
       styles: {
         body: {
           paddingRight: 0,
+          width: '100%',
         },
       },
     },
@@ -62,8 +59,13 @@ const NodeInfo = () => {
       key: '3',
       label: (
         <div>
-          告警事件列表 ({selectedNodeInfo?.endpoint ? <span>当前选中</span> : <span>当前所有</span>}
-          节点播放时间段数据)
+          {t(`${i18nKey}.alertList`)} (
+          {selectedNodeInfo?.endpoint ? (
+            <span>{t(`${i18nKey}.selected`)}</span>
+          ) : (
+            <span>{t(`${i18nKey}.all`)}</span>
+          )}
+          {t(`${i18nKey}.nodeTimeData`)})
         </div>
       ),
       children: <AnormalList />,

@@ -6,10 +6,11 @@ package user
 import (
 	"context"
 	"errors"
+	"unicode"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"unicode"
 )
 
 func (s *service) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
@@ -55,12 +56,29 @@ func (s *service) UpdateUserPassword(req *request.UpdateUserPasswordRequest) err
 	if err := checkPasswordComplexity(req.NewPassword); err != nil {
 		return err
 	}
-	return s.dbRepo.UpdateUserPassword(req.UserID, req.OldPassword, req.NewPassword)
+
+	user, err := s.dbRepo.GetUserInfo(req.UserID)
+	if err != nil {
+		return err
+	}
+
+	var updatePasswordFunc = func(ctx context.Context) error {
+		return s.dbRepo.UpdateUserPassword(req.UserID, req.OldPassword, req.NewPassword)
+	}
+
+	var updateDifyPasswordFunc = func(ctx context.Context) error {
+		resp, err := s.difyRepo.UpdatePassword(user.Username, req.OldPassword, req.NewPassword)
+		if err != nil || resp.Result != "success" {
+			return errors.New("failed to update password in dify")
+		}
+		return nil
+	}
+	return s.dbRepo.Transaction(context.Background(), updatePasswordFunc, updateDifyPasswordFunc)
 }
 
 func checkPasswordComplexity(password string) error {
 	if len(password) < 8 {
-		return model.NewErrWithMessage(errors.New("length less than 8"), code.UserPasswordSimpleError)
+		return model.NewErrWithMessage(errors.New("length less than 8"), code.UserPasswdSimpleError)
 	}
 	var (
 		hasUpper     bool
@@ -84,16 +102,16 @@ func checkPasswordComplexity(password string) error {
 	}
 
 	if !hasUpper {
-		return model.NewErrWithMessage(errors.New("must contain at least one upper character"), code.UserPasswordSimpleError)
+		return model.NewErrWithMessage(errors.New("must contain at least one upper character"), code.UserPasswdSimpleError)
 	}
 	if !hasLower {
-		return model.NewErrWithMessage(errors.New("must contain at least one lower character"), code.UserPasswordSimpleError)
+		return model.NewErrWithMessage(errors.New("must contain at least one lower character"), code.UserPasswdSimpleError)
 	}
 	if !hasDigit {
-		return model.NewErrWithMessage(errors.New("must contain at least one digit"), code.UserPasswordSimpleError)
+		return model.NewErrWithMessage(errors.New("must contain at least one digit"), code.UserPasswdSimpleError)
 	}
 	if !hasSpecial {
-		return model.NewErrWithMessage(errors.New("must contain at least one special character"), code.UserPasswordSimpleError)
+		return model.NewErrWithMessage(errors.New("must contain at least one special character"), code.UserPasswdSimpleError)
 	}
 
 	return nil
@@ -112,7 +130,24 @@ func (s *service) RestPassword(req *request.ResetPasswordRequest) error {
 	if err := checkPasswordComplexity(req.NewPassword); err != nil {
 		return err
 	}
-	return s.dbRepo.RestPassword(req.UserID, req.NewPassword)
+
+	user, err := s.dbRepo.GetUserInfo(req.UserID)
+	if err != nil {
+		return err
+	}
+
+	var resetPasswordFunc = func(ctx context.Context) error {
+		return s.dbRepo.RestPassword(req.UserID, req.NewPassword)
+	}
+
+	var resetDifyPasswordFunc = func(ctx context.Context) error {
+		resp, err := s.difyRepo.ResetPassword(user.Username, req.NewPassword)
+		if err != nil || resp.Result != "success" {
+			return errors.New("failed to reset password in dify")
+		}
+		return nil
+	}
+	return s.dbRepo.Transaction(context.Background(), resetPasswordFunc, resetDifyPasswordFunc)
 }
 
 func (s *service) UpdateSelfInfo(req *request.UpdateSelfInfoRequest) error {

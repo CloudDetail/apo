@@ -119,6 +119,17 @@ const (
 	StatusFiring
 )
 
+func (s Status) ToString() string {
+	switch s {
+	case StatusResolved:
+		return "resolved"
+	case StatusFiring:
+		return "firing"
+	}
+
+	return "firing"
+}
+
 func (s *Status) Scan(src interface{}) error {
 	switch v := src.(type) {
 	case uint8:

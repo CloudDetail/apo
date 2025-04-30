@@ -96,12 +96,11 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 		alertEvents, err := s.chRepo.GetAlertEventsWithKeyByInstanceAndEndpoints(
 			startTime, endTime,
 			// 同时获取Firing和Resolved故障
-			request.AlertFilter{WithMutation: true},
+			request.AlertFilter{WithMutation: true, EndpointKeys: endpoints},
 			&model.RelatedInstances{
 				SIs: instances,
 				MIs: databaseInstances,
 			},
-			endpoints,
 		)
 
 		if err == nil {

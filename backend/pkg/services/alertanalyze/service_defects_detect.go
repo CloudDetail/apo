@@ -1,7 +1,6 @@
 package alertanalyze
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -321,15 +320,24 @@ func extractDetailTemplate(name string, tags map[string]string, summary string) 
 	if err != nil {
 		tagsStr = []byte("tags marshal error")
 	}
-	var summaryStr bytes.Buffer
-	json.HTMLEscape(&summaryStr, []byte(summary))
-	return `{"description":"` + name + ` 检测到异常\n  VALUE = %f\n  LABELS = ` + string(tagsStr) + `","summary":"` + summaryStr.String() + `"}`
+
+	detailTemplate := map[string]string{
+		"description": "`" + name + "`检测到异常\n VALUE = %f\n LABELS = " + string(tagsStr),
+		"summary":     summary,
+	}
+
+	bytes, _ := json.Marshal(detailTemplate)
+	return string(bytes)
 }
 
 func extractResolvedDetail(name string, tags map[string]string, summary string) string {
-	tagsStr, err := json.Marshal(tags)
-	if err != nil {
-		tagsStr = []byte("tags marshal error")
+	tagsStr, _ := json.Marshal(tags)
+
+	detail := map[string]string{
+		"description": "`" + name + "`检测到异常\n LABELS = " + string(tagsStr),
+		"summary":     summary,
 	}
-	return `{"description":"` + name + ` 检测到异常\n  LABELS = ` + string(tagsStr) + `","summary":"` + summary + `"}`
+
+	bytes, _ := json.Marshal(detail)
+	return string(bytes)
 }

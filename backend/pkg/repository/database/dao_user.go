@@ -9,20 +9,23 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
+
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 	"gorm.io/gorm"
-	"strconv"
 )
 
 const (
-	adminPassword = "APO2024@admin"
+	adminPasswd = "APO2024@admin"
 
 	userFieldSql = "user_id, username, phone, email, corporation"
 )
+
+const AnonymousUsername = "anonymous"
 
 type User struct {
 	UserID      int64  `gorm:"column:user_id;primary_key" json:"userId,omitempty"`
@@ -50,7 +53,7 @@ func (repo *daoRepo) createAdmin() error {
 			admin = User{
 				UserID:   util.Generator.GenerateID(),
 				Username: model.ROLE_ADMIN,
-				Password: Encrypt(adminPassword),
+				Password: Encrypt(adminPasswd),
 			}
 
 			if err = repo.db.Create(&admin).Error; err != nil {
@@ -75,13 +78,13 @@ func (repo *daoRepo) createAdmin() error {
 func (repo *daoRepo) createAnonymousUser() error {
 	conf := config.Get().User.AnonymousUser
 	var anonymousUser User
-	err := repo.db.Where("username = ?", conf.Username).First(&anonymousUser).Error
+	err := repo.db.Where("username = ?", AnonymousUsername).First(&anonymousUser).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			anonymousUser = User{
 				UserID:   util.Generator.GenerateID(),
-				Username: conf.Username,
+				Username: AnonymousUsername,
 				// random password
 				Password: Encrypt(strconv.FormatInt(util.Generator.GenerateID(), 10)),
 			}
@@ -95,8 +98,20 @@ func (repo *daoRepo) createAnonymousUser() error {
 	}
 
 	var role Role
+	if !isValidRoleName(conf.Role) {
+		return errors.New("invalid role")
+	}
+
 	if err = repo.db.Where("role_name = ?", conf.Role).First(&role).Error; err != nil {
 		return err
+	}
+
+	if role.RoleID <= 0 {
+		return errors.New("role does not exist")
+	}
+
+	if anonymousUser.UserID <= 0 {
+		return errors.New("anonymous user does not exist")
 	}
 
 	var existingUserRole UserRole
@@ -134,7 +149,7 @@ func (repo *daoRepo) Login(username, password string) (*User, error) {
 	}
 	enPassword := Encrypt(password)
 	if enPassword != user.Password {
-		return nil, model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswordIncorrectError)
+		return nil, model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswdIncorrectError)
 	}
 
 	return &user, nil
@@ -187,7 +202,7 @@ func (repo *daoRepo) UpdateUserPassword(userID int64, oldPassword, newPassword s
 		return err
 	}
 	if user.Password != Encrypt(oldPassword) {
-		return model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswordIncorrectError)
+		return model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswdIncorrectError)
 	}
 	user.Password = Encrypt(newPassword)
 	return repo.db.Updates(&user).Error
@@ -233,9 +248,8 @@ func (repo *daoRepo) GetUserInfo(userID int64) (User, error) {
 }
 
 func (repo *daoRepo) GetAnonymousUser() (User, error) {
-	conf := config.Get().User.AnonymousUser
 	var user User
-	err := repo.db.Select(userFieldSql).Where("username = ?", conf.Username).Find(&user).Error
+	err := repo.db.Select(userFieldSql).Where("username = ?", AnonymousUsername).Find(&user).Error
 	return user, err
 }
 
@@ -267,7 +281,7 @@ func (repo *daoRepo) GetUserList(req *request.GetUserListRequest) ([]User, int64
 		query = query.Where("corporation LIKE ?", fmt.Sprintf("%%%s%%", req.Corporation))
 	}
 
-	query = query.Where("username != ?", config.Get().User.AnonymousUser.Username)
+	query = query.Where("username != ?", AnonymousUsername)
 
 	err := query.Count(&count).Error
 	if err != nil {

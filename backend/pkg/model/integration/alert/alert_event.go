@@ -5,7 +5,8 @@ package alert
 
 import (
 	"bytes"
-	"crypto/md5"
+	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"time"
@@ -14,25 +15,19 @@ import (
 )
 
 type AlertEvent struct {
-	ID    uuid.UUID `json:"id" ch:"id"`
-	Group string    `json:"group" ch:"group" mapstructure:"group"`
+	Alert `mapstructure:",squash"`
 
-	AlertID  string `json:"alertId" ch:"alert_id" mapstructure:"alertId"`
-	Name     string `json:"name" ch:"name" mapstructure:"name"`
+	ID uuid.UUID `json:"id" ch:"id"`
+
+	Detail string `json:"detail" ch:"detail" mapstructure:"detail"`
+
+	CreateTime   time.Time `json:"createTime" ch:"create_time" mapstructure:"createTime"`
+	UpdateTime   time.Time `json:"updateTime" ch:"update_time" mapstructure:"updateTime"`
+	EndTime      time.Time `json:"endTime" ch:"end_time" mapstructure:"endTime"`
+	ReceivedTime time.Time `json:"receivedTime" ch:"received_time"  mapstructure:"receivedTime"`
+
 	Severity string `json:"severity" ch:"severity" mapstructure:"severity"`
 	Status   string `json:"status" ch:"status" mapstructure:"status"`
-	Detail   string `json:"detail" ch:"detail" mapstructure:"detail"`
-	// HACK the existing clickhouse query uses `tags` as the filter field
-	// so enrichTags in ch is named as 'tags' to filter new alertInput
-	Tags       map[string]any    `json:"tags" ch:"raw_tags" mapstructure:"tags"`
-	EnrichTags map[string]string `json:"enrich_tags" ch:"tags" mapstructure:"enrich_tags"`
-
-	CreateTime   time.Time `ch:"createTime" json:"createTime" mapstructure:"createTime"`
-	UpdateTime   time.Time `ch:"updateTime" json:"updateTime" mapstructure:"updateTime"`
-	EndTime      time.Time `ch:"endTime" json:"endTime" mapstructure:"endTime"`
-	ReceivedTime time.Time `ch:"receivedTime" json:"receivedTime" mapstructure:"receivedTime"`
-
-	SourceID string `ch:"sourceId" json:"sourceId" mapstructure:"sourceId"`
 }
 
 // calculate AlertID based on alertName and raw_tag
@@ -51,7 +46,7 @@ func FastAlertID(alertName string, tags map[string]any) string {
 		buf.WriteString(tags[key].(string))
 	}
 
-	hash := md5.Sum(buf.Bytes())
+	hash := sha256.Sum256(buf.Bytes())
 	return fmt.Sprintf("%x", hash)
 }
 
@@ -68,6 +63,18 @@ func FastAlertIDByStringMap(alertName string, tags map[string]string) string {
 		buf.WriteString(tags[key])
 	}
 
-	hash := md5.Sum(buf.Bytes())
+	hash := sha256.Sum256(buf.Bytes())
 	return fmt.Sprintf("%x", hash)
+}
+
+func (e *AlertEvent) TagsInStr() string {
+	param := e.EnrichTags
+	param["status"] = e.Status
+	// param["describe"] =
+	bytes, err := json.Marshal(e.Tags)
+	if err != nil {
+		return "{}"
+	}
+
+	return string(bytes)
 }

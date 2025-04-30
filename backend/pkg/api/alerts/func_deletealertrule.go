@@ -29,7 +29,7 @@ func (h *handler) DeleteAlertRule() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
@@ -39,7 +39,7 @@ func (h *handler) DeleteAlertRule() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.DeleteAlertRuleError,
-				code.Text(code.DeleteAlertRuleError)).WithError(err),
+				c.ErrMessage(code.DeleteAlertRuleError)).WithError(err),
 			)
 			return
 		}

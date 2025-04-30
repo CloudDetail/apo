@@ -1,0 +1,9 @@
+{
+  "alertAnalyze": "告警分析",
+  "businessAlertAnalyze": "业务告警分析",
+  "causeReport": "故障报告",
+  "mysqlDashboard": "MySQL大盘",
+  "serviceHealth": "服务健康状态",
+  "aiRootCauseAnalysis": "大模型根因分析",
+  "free": "免费公测"
+}

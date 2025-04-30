@@ -8,12 +8,17 @@ import (
 	polaris "github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/alertanalyze"
+	"github.com/CloudDetail/apo/backend/pkg/services/service"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 	"go.uber.org/zap"
 )
 
 type Handler interface {
 	// ========================告警分析========================
+	// GetAlertEvents 获取告警事件
+	// @Tags API.alerts
+	// @Router /api/alerts/alert/events [get]
+	GetAlertEvents() core.HandlerFunc
 
 	// GetAlertImpact 获取告警数据的影响面
 	// @Tags API.alerts
@@ -70,12 +75,14 @@ type handler struct {
 	logger                 *zap.Logger
 	alertanalyzeService    alertanalyze.Service
 	serviceoverviewService serviceoverview.Service
+	serviceInfoService     service.Service
 }
 
 func New(logger *zap.Logger, chRepo clickhouse.Repo, dbRepo database.Repo, promRepo prometheus.Repo, polRepo polaris.Repo, k8sRepo kubernetes.Repo) Handler {
 	return &handler{
 		logger:                 logger,
-		alertanalyzeService:    alertanalyze.New(chRepo, promRepo, polRepo, k8sRepo, dbRepo),
-		serviceoverviewService: serviceoverview.New(chRepo, dbRepo, promRepo),
+		alertanalyzeService:    alertanalyze.New(chRepo, promRepo, polRepo, k8sRepo, dbRepo, logger),
+		serviceoverviewService: serviceoverview.New(logger, chRepo, dbRepo, promRepo),
+		serviceInfoService:     service.New(chRepo, promRepo, polRepo, dbRepo),
 	}
 }

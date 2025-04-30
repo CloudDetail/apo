@@ -27,7 +27,7 @@ func (h *handler) ListAlertSource() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ListAlertSourceFailed,
-				code.Text(code.ListAlertSourceFailed)).WithError(err),
+				c.ErrMessage(code.ListAlertSourceFailed)).WithError(err),
 			)
 			return
 		}

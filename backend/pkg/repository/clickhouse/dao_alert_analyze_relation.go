@@ -1,6 +1,6 @@
-// File: dao_alert_analyzer_realtion.go
-// Package: clickhouse
-// Description: 包含了一些告警分析中使用到的结构和方法
+// Copyright 2025 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package clickhouse
 
 import (
@@ -107,7 +107,7 @@ func (ch *chRepo) SearchEntryEndpointsByAlertService(alertServices []AlertServic
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", startTime, endTime).
 		Equals("miss_top", false).
-		And(MergeWheres(OrSep, InGroup(endpoints), InGroup(services)))
+		And(mergeWheres(OrSep, inGroup(endpoints), inGroup(services)))
 
 	parentTopologys := []EntryRelationship{}
 	sql := fmt.Sprintf(SQL_GET_ENTRY_RELATIONSHIP,

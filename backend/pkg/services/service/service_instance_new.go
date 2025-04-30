@@ -39,6 +39,7 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 	}
 	for _, instance := range instanceList.InstanceMap {
 		key := prometheus.InstanceKey{
+			ServiceName: instance.ServiceName,
 			PID:         strconv.FormatInt(instance.Pid, 10),
 			ContainerId: instance.ContainerId,
 			Pod:         instance.PodName,
@@ -260,6 +261,8 @@ func DataToChart(data []prometheus.Points) map[int64]float64 {
 		value := item.Value
 		if !math.IsInf(value, 1) {
 			chart[timestamp] = value
+		} else {
+			chart[timestamp] = prometheus.RES_MAX_VALUE
 		}
 	}
 	return chart

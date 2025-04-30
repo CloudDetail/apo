@@ -14,6 +14,18 @@ service:
       field_name: "abbreviation"
       entity_type: "menu"
 
+workflows:
+  key: "workflows"
+  i18n:
+  - language: "en"
+    translation: "Workflows"
+    entity_type: "menu"
+    field_name: "label"
+  - language: "zh"
+    translation: "工作流"
+    entity_type: "menu"
+    field_name: "label"
+
 logs:
   key: "logs"
   i18n:
@@ -186,7 +198,7 @@ alertsRule:
   key: "alertsRule"
   i18n:
     - language: "en"
-      translation: "Alerts Rules"
+      translation: "Rules"
       field_name: "label"
       entity_type: "menu"
     - language: "zh"
@@ -210,6 +222,18 @@ alertsNotify:
       field_name: "abbreviation"
       entity_type: "menu"
 
+alertEvents: 
+  key: "alertEvents"
+  i18n:
+  - language: "en"
+    translation: "Events"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "告警事件"
+    field_name: "label"
+    entity_type: "menu"
+
 integration:
   key: "integration"
   i18n:
@@ -224,6 +248,22 @@ integration:
     - language: "zh"
       translation: "接入中心"
       field_name: "label"
+      entity_type: "menu"
+
+dataIntegration:
+  key: "dataIntegration"
+  i18n:
+    - language: "en"
+      translation: "Data Integrations"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "数据接入"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "Data"
+      field_name: "abbreviation"
       entity_type: "menu"
 
 alertsIntegration:
@@ -334,6 +374,18 @@ teamManage:
       field_name: "label"
       entity_type: "menu"
 
+roleManage:
+  key: "role"
+  i18n:
+    - language: "en"
+      translation: "Role"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "角色管理"
+      field_name: "label"
+      entity_type: "menu"
+
 msyql:
   key: "mysql"
   i18n:
@@ -375,6 +427,18 @@ healthy:
     field_name: "featureName"
   - language: "zh"
     translation: "服务概览"
+    entity_type: "feature"
+    field_name: "featureName"
+
+工作流:
+  key: "工作流"
+  i18n:
+  - language: "en"
+    translation: "Workflows"
+    entity_type: "feature"
+    field_name: "featureName"
+  - language: "zh"
+    translation: "工作流"
     entity_type: "feature"
     field_name: "featureName"
 
@@ -526,7 +590,7 @@ healthy:
   key: "告警规则"
   i18n:
   - language: "en"
-    translation: "Alerts Rules"
+    translation: "Rules"
     entity_type: "feature"
     field_name: "featureName"
 
@@ -547,6 +611,18 @@ healthy:
       entity_type: "feature"
       field_name: "featureName"
 
+告警事件: 
+  key: "告警事件"
+  i18n:
+  - language: "en"
+    translation: "Events"
+    field_name: "featureName"
+    entity_type: "feature"
+  - language: "zh"
+    translation: "告警事件"
+    field_name: "featureName"
+    entity_type: "feature"
+
 接入中心:
   key: "接入中心"
   i18n:
@@ -558,6 +634,18 @@ healthy:
       translation: "接入中心"
       field_name: "featureName"
       entity_type: "feature"
+
+数据接入:
+  key: "数据接入"
+  i18n:
+    - language: "en"
+      translation: "Data Integrations"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "数据接入"
+      field_name: "label"
+      entity_type: "menu"
 
 告警接入:
   key: "告警接入"
@@ -659,6 +747,18 @@ healthy:
       entity_type: "feature"
     - language: "zh"
       translation: "团队管理"
+      field_name: "featureName"
+      entity_type: "feature"
+
+角色管理:
+  key: "角色管理"
+  i18n:
+    - language: "en"
+      translation: "Role Management"
+      field_name: "featureName"
+      entity_type: "feature"
+    - language: "zh"
+      translation: "角色管理"
       field_name: "featureName"
       entity_type: "feature"
 

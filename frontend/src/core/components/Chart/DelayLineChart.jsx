@@ -6,8 +6,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import ReactECharts from 'echarts-for-react'
 import { getStep } from 'src/core/utils/step'
-import { convertTime } from 'src/core/utils/time'
-import { format } from 'date-fns'
+import { convertTime, timeUtils } from 'src/core/utils/time'
 import { DelayLineChartTitleMap, MetricsLineChartColor, YValueMinInterval } from 'src/constants'
 import { useDispatch } from 'react-redux'
 import { useTranslation } from 'react-i18next'
@@ -18,7 +17,7 @@ export const adjustAlpha = (color, alpha) => {
 }
 
 const DelayLineChart = ({ data, timeRange, type }) => {
-  const { t } = useTranslation('core/delayLineChart')
+  const { t } = useTranslation('common')
   const chartRef = useRef(null)
   const dispatch = useDispatch()
   const setStoreTimeRange = (value) => {
@@ -125,7 +124,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
       axisLabel: {
         hideOverlap: true,
         formatter: function (value) {
-          return format(value, 'HH:mm')
+          return timeUtils.format(value, 'HH:mm')
         },
       },
       // axisLine: {
@@ -174,6 +173,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
     },
     brush: {
       toolbox: ['lineX'],
+      xAxisIndex: 'all',
       brushStyle: {
         borderWidth: 1,
         color: 'rgba(120,140,180,0.3)',
@@ -212,7 +212,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
           },
           axisLabel: {
             formatter: function (value) {
-              return format(value, 'HH:mm')
+              return timeUtils.format(value, 'HH:mm')
             },
             hideOverlap: true,
           },
@@ -240,6 +240,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
   }, [data])
   const onChartReady = (chart) => {
     setTimeout(() => {
+      console.log('test', chart)
       chart.dispatchAction({
         type: 'takeGlobalCursor',
         key: 'brush',
@@ -248,6 +249,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
           brushMode: 'single',
         },
       })
+      chartRef.current?.getEchartsInstance().resize()
     }, 100)
     chart.on('brushEnd', function (params) {
       if (params.areas && params.areas.length > 0) {
@@ -273,7 +275,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
       ref={chartRef}
       theme="dark"
       option={option}
-      style={{ height: '200px', width: '250px' }}
+      style={{ height: '100%', width: '100%' }}
     />
   )
 }

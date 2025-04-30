@@ -6,15 +6,14 @@
 import { Typography, Image } from 'antd'
 import Paragraph from 'antd/es/typography/Paragraph'
 import Title from 'antd/es/typography/Title'
-import CopyButton from 'src/core/components/CopyButton'
 import img1 from 'src/core/assets/alertsIntegration/zabbix/image-1.png'
 import img2 from 'src/core/assets/alertsIntegration/zabbix/image-2.png'
 import img3 from 'src/core/assets/alertsIntegration/zabbix/image-3.png'
 import img4 from 'src/core/assets/alertsIntegration/zabbix/image-4.png'
 import img5 from 'src/core/assets/alertsIntegration/zabbix/image-5.png'
 import img6 from 'src/core/assets/alertsIntegration/zabbix/image-6.png'
-import CopyPre from './CopyPre'
 import { useTranslation } from 'react-i18next'
+import CopyPre from 'src/core/components/CopyPre'
 const zabbixExport = `zabbix_export:
   version: '7.0'
   media_types:

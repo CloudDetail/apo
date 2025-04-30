@@ -17,7 +17,7 @@ const (
 	(last_over_time(kindling_db_duration_nanoseconds_count{%s}[%s])) * on (container_id,node_name,pid) group_left (peer_ip,peer_port) (group by (container_id,node_name,pid,peer_ip,peer_port) (last_over_time(apo_network_middleware_connect[%s])))`
 )
 
-// 查询服务连接的数据库
+// GetDescendantDatabase query database which the service connected to.
 func (repo *promRepo) GetDescendantDatabase(startTime int64, endTime int64, serviceName string, endpoint string) ([]model.MiddlewareInstance, error) {
 	vec := VecFromS2E(startTime, endTime)
 

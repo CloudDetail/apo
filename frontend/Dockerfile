@@ -9,11 +9,12 @@ RUN yarn install
 
 COPY . .
 
-ENV NODE_OPTIONS --openssl-legacy-provider
+ENV NODE_OPTIONS=--openssl-legacy-provider
 ARG VITE_PUBLIC_POSTHOG_HOST
 ARG VITE_PUBLIC_POSTHOG_KEY
 ARG VITE_SHOW_MYSQL_HEALTH
 
+ENV NODE_OPTIONS="--max-old-space-size=6144"
 RUN yarn build
 
 FROM nginx:alpine

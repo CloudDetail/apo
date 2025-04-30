@@ -1,7 +1,6 @@
-import { Button, Card, Pagination, Tag, Tooltip, Tree } from 'antd'
-import React, { useEffect, useMemo, useState } from 'react'
+import { Button, Pagination, Tabs, Tooltip } from 'antd'
+import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
-import TempCell from 'src/core/components/Table/TempCell'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { getAlertDescendantContributionApi } from 'src/pro/api/alertAnalyze'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
@@ -9,12 +8,19 @@ import { useSelector } from 'react-redux'
 import { getStep } from 'src/core/utils/step'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import EventListModal from './EventListModal'
-import { showToast } from 'src/core/utils/toast'
 import ServiceEndpointTag from 'src/pro/components/ServiceEndpointTag'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useChartsContext } from 'src/core/contexts/ChartsContext'
+import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
+import TableFilter from 'src/core/components/Filter/TableFilter'
+import { useDebounce } from 'react-use'
+import styles from './index.module.scss'
+const i18nKey = 'impactList'
 
 const ImpactList = () => {
-  const { eventImpactList, setSelectedEndpointInfo } = useAlertAnalyzeContext()
+  const { t } = useTranslation('pro/alertAnalyze')
+  const { eventImpactList, getAlertEventImpact } = useAlertAnalyzeContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [pagination, setPagination] = useState({
     pageIndex: 1,
@@ -23,58 +29,106 @@ const ImpactList = () => {
   const [modalEndpointInfo, setModalEndpointInfo] = useState(null)
   const [modalVisible, setModalVisible] = useState(false)
   const navigate = useNavigate()
+  const getChartsData = useChartsContext((ctx) => ctx.getChartsData)
+  const [serviceName, setServiceName] = useState(null)
+  const [endpoint, setEndpoint] = useState(null)
+  const [namespace, setNamespace] = useState(null)
+
+  const isFirstRender = useRef(true)
+  const [sortBy, setSortBy] = useState()
+
+  const latestController = useRef(new AbortController())
+  const [pageData, setPageData] = useState([])
+
+  useDebounce(
+    () => {
+      if (isFirstRender.current) {
+        isFirstRender.current = false
+        return
+      }
+      getAlertEventImpact({
+        services: serviceName,
+        namespaces: namespace,
+        endpoints: endpoint,
+      })
+    },
+    300, // 延迟 300ms
+    [serviceName, endpoint, namespace], // 依赖项
+  )
+
   const column = [
     {
-      title: '入口应用名称',
+      title: t(`${i18nKey}.entryApplicationName`),
       accessor: 'serviceName',
       customWidth: 150,
     },
     {
-      title: '入口服务端点',
+      title: t(`${i18nKey}.entryServiceEndpoint`),
       accessor: 'endpoint',
       canExpand: false,
     },
-
     {
-      title: '平均响应时间',
+      title: t(`${i18nKey}.averageResponseTime`),
       minWidth: 140,
       accessor: `latency`,
-
+      disableSortBy: false,
       Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
-        const { value } = props
-
-        return <TempCell type="latency" data={value} timeRange={{ startTime, endTime }} />
+        const { value, row } = props
+        const { serviceName, endpoint } = row.original
+        return (
+          <ChartTempCell
+            type="latency"
+            value={value}
+            service={serviceName}
+            endpoint={endpoint}
+            timeRange={{ startTime, endTime }}
+          />
+        )
       },
     },
     {
-      title: '错误率',
+      title: t(`${i18nKey}.errorRate`),
       accessor: `errorRate`,
-
       minWidth: 140,
+      disableSortBy: false,
       Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
-        const { value } = props
-        return <TempCell type="errorRate" data={value} timeRange={{ startTime, endTime }} />
+        const { value, row } = props
+        const { serviceName, endpoint } = row.original
+        return (
+          <ChartTempCell
+            type="errorRate"
+            value={value}
+            service={serviceName}
+            endpoint={endpoint}
+            timeRange={{ startTime, endTime }}
+          />
+        )
       },
     },
     {
-      title: '吞吐量',
+      title: t(`${i18nKey}.throughput`),
       accessor: `tps`,
       minWidth: 140,
-
+      disableSortBy: false,
       Cell: (props) => {
-        // eslint-disable-next-line react/prop-types
-        const { value } = props
-        return <TempCell type="tps" data={value} timeRange={{ startTime, endTime }} />
+        const { value, row } = props
+        const { serviceName, endpoint } = row.original
+        return (
+          <ChartTempCell
+            type="tps"
+            value={value}
+            service={serviceName}
+            endpoint={endpoint}
+            timeRange={{ startTime, endTime }}
+          />
+        )
       },
     },
     {
-      title: '故障贡献度',
+      title: t(`${i18nKey}.faultContribution`),
       accessor: 'info',
       hide: true,
       isNested: true,
-      // customWidth: '55%',
       api: async (props) => {
         const { serviceName, endpoint } = props
         const step = getStep(startTime, endTime)
@@ -95,49 +149,58 @@ const ImpactList = () => {
       children: [
         {
           title: (
-            <Tooltip title="展示故障贡献度前三的下游">
+            <Tooltip title={t(`${i18nKey}.faultContributionHint`)}>
               <div className="flex flex-row justify-center items-center">
-                故障贡献度
+                {t(`${i18nKey}.faultContribution`)}
                 <AiOutlineInfoCircle size={16} className="ml-1" />
               </div>
             </Tooltip>
           ),
           accessor: `contribution`,
           Cell: (props) => {
-            // eslint-disable-next-line react/prop-types
             const { trs } = props
-            return <ServiceEndpointTag service={trs.serviceName} endpoint={trs.endpoint} />
-            // return <TempCell type="logs" data={value} timeRange={requestTimeRange} />
+            return (
+              <Tabs
+                className={styles.impactEntrys}
+                defaultActiveKey="1"
+                tabPosition="top"
+                activeKey="0"
+                tabBarStyle={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                items={[
+                  {
+                    label: (
+                      <div className=" whitespace-nowrap flex items-center">
+                        <ServiceEndpointTag service={trs.serviceName} endpoint={trs.endpoint} />
+                      </div>
+                    ),
+                    key: trs.serviceName + trs.endpoint,
+                    children: null,
+                  },
+                ]}
+              />
+            )
           },
         },
       ],
     },
     {
-      title: '告警影响百分比',
+      title: t(`${i18nKey}.alertImpactPercentage`),
       accessor: `relatedAlertRate`,
       minWidth: 140,
-
+      disableSortBy: false,
       Cell: ({ value }) => {
         if (typeof value !== 'number' || isNaN(value) || !isFinite(value)) {
           return '0%'
         }
-
-        // 处理 0 或空值的情况
-        if (value === 0) {
-          return '0%'
-        }
-
-        // 如果是有效数值则格式化保留两位小数
-        return parseFloat(value.toFixed(2)) + '%'
+        return value === 0 ? '0%' : parseFloat(value.toFixed(2)) + '%'
       },
     },
     {
-      title: '操作',
+      title: t(`${i18nKey}.action`),
       accessor: 'action',
       minWidth: 140,
       Cell: (props) => {
         const row = props.row.original
-
         return (
           <div className="flex flex-col">
             <Button
@@ -146,7 +209,7 @@ const ImpactList = () => {
               variant="outlined"
               color="primary"
             >
-              告警深入分析
+              {t(`${i18nKey}.deepAlertAnalysis`)}
             </Button>
             <Button
               className="my-1"
@@ -154,22 +217,19 @@ const ImpactList = () => {
               color="primary"
               onClick={() => openEventModal(row.serviceName, row.endpoint)}
             >
-              告警列表
+              {t(`${i18nKey}.alertList`)}
             </Button>
             <Button
+              className="my-1"
               variant="outlined"
               color="primary"
               onClick={() => {
-                navigate(
-                  `/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}`,
+                window.open(
+                  `#/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}?service=${encodeURIComponent(row.serviceName)}&endpoint=${encodeURIComponent(row.endpoint)}`,
                 )
-                // showToast({
-                //   title: '功能开发中，敬请期待',
-                //   color: 'info',
-                // })
               }}
             >
-              大模型根因分析
+              {t(`${i18nKey}.rootCauseAnalysis`)}
             </Button>
           </div>
         )
@@ -178,8 +238,8 @@ const ImpactList = () => {
   ]
   const openTopologyModal = (service, endpoint) => {
     // setSelectedEndpointInfo({ service, endpoint })
-    navigate(
-      `/alert-analyze/info?service=${encodeURIComponent(service)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=业务告警分析(${encodeURIComponent(service)} -> endpoint=${encodeURIComponent(endpoint)})`,
+    window.open(
+      `#/alert-analyze/info?service=${encodeURIComponent(service)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=业务告警分析(${encodeURIComponent(service)} -> endpoint=${encodeURIComponent(endpoint)})`,
     )
   }
   const closeModal = () => {
@@ -193,35 +253,98 @@ const ImpactList = () => {
     })
     setModalVisible(true)
   }
+
+  const getServiceCharts = async () => {
+    const data = sortData()
+    const paginatedData = data.slice(
+      (pagination.pageIndex - 1) * pagination.pageSize,
+      pagination.pageIndex * pagination.pageSize,
+    )
+    const endpointList = paginatedData.map((item) => item.endpoint)
+    const serviceList = paginatedData.map((item) => item.serviceName)
+    await getChartsData(serviceList, endpointList)
+  }
   const changePagination = (page, pageSize) => {
     setPagination({
       pageSize: pageSize,
       pageIndex: page,
     })
   }
-  const tableProps = useMemo(() => {
-    const paginatedData = eventImpactList.slice(
+  const getSortValueByColumnId = (id, row) => {
+    switch (id) {
+      case 'latency':
+        return row.latency.value
+      case 'errorRate':
+        return row.errorRate.value
+      case 'tps':
+        return row.tps.value
+      case 'relatedAlertRate':
+        return row.relatedAlertRate
+    }
+  }
+  const sortData = () => {
+    const data = [...eventImpactList]
+    if (sortBy?.length > 0 && sortBy[0].desc !== undefined) {
+      const columnId = sortBy[0].id
+      data.sort((a, b) => {
+        const rateA = getSortValueByColumnId(columnId, a)
+        const rateB = getSortValueByColumnId(columnId, b)
+
+        if (sortBy[0].desc) {
+          return rateB - rateA
+        } else {
+          return rateA - rateB
+        }
+      })
+    }
+    return data
+  }
+
+  useEffect(() => {
+    if (pageData?.length > 0) {
+      latestController.current.abort()
+      latestController.current = new AbortController()
+      getServiceCharts()
+    }
+  }, [pageData])
+  useEffect(() => {
+    const data = sortData()
+    const paginatedData = data.slice(
       (pagination.pageIndex - 1) * pagination.pageSize,
       pagination.pageIndex * pagination.pageSize,
     )
+    setPageData(paginatedData)
+  }, [eventImpactList, pagination.pageSize, pagination.pageIndex, sortBy])
+  const tableProps = useMemo(() => {
     return {
       columns: column,
-      data: paginatedData,
+      data: pageData,
       showBorder: false,
       loading: false,
+      sortBy: sortBy,
+      setSortBy: setSortBy,
     }
-  }, [eventImpactList, pagination.pageSize, pagination.pageIndex])
+  }, [pageData])
+
   return (
     <>
-      <div className="flex flex-col h-full">
-        <div className="text-base px-4 pt-2 font-bold">受告警影响的业务入口</div>
+      <div className="flex flex-col h-full  text-xs">
+        <div className="text-base px-2 pt-2 font-bold flex justify-center items-center">
+          <span className="shrink-0 text-sm">{t(`${i18nKey}.affectedBusinessEntry`)}</span>
+          <TableFilter
+            className="px-4 mb-0"
+            setServiceName={setServiceName}
+            setEndpoint={setEndpoint}
+            setNamespace={setNamespace}
+          />
+        </div>
         <BasicTable {...tableProps} />
         <Pagination
           defaultCurrent={1}
           total={eventImpactList?.length || 0}
           current={pagination.pageIndex}
           pageSize={pagination.pageSize}
-          className="flex-shrink-0 flex-grow-0 p-2"
+          className="flex-shrink-0 flex-grow-0 pb-3"
           align="end"
           onChange={changePagination}
         />

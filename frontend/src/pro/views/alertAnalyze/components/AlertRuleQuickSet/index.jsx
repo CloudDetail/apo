@@ -5,10 +5,12 @@ import { getMetricsApi, addMutationRule } from 'src/pro/api/alertAnalyze'
 import { useSelector } from 'react-redux'
 import { getStep } from 'src/core/utils/step'
 import { showToast } from 'src/core/utils/toast'
+import { useTranslation } from 'react-i18next'
 const { TextArea } = Input
 const { Option } = Select
-
+const i18nKey = 'alertRuleQuickSet'
 const AlertRuleQuickSet = ({ modalVisibility, closeModal }) => {
+  const { t } = useTranslation('pro/alertAnalyze')
   //获取时间信息
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const step = getStep(startTime, endTime)
@@ -93,7 +95,7 @@ const AlertRuleQuickSet = ({ modalVisibility, closeModal }) => {
     const result = await addMutationRule(uploadData)
     if (result == 'ok') {
       showToast({
-        title: '添加异常检测配置成功',
+        title: t('successAddConfig'),
         color: 'success',
       })
       closeModal()
@@ -141,11 +143,11 @@ const AlertRuleQuickSet = ({ modalVisibility, closeModal }) => {
     //         height:"7px"
     //     }}
     // >
-    <Select style={{ width: '90px' }} value={unit} onChange={(value) => setUnit(value)}>
-      <Option value="s">s (秒)</Option>
-      <Option value="m">m (分钟)</Option>
-      <Option value="h">h (小时)</Option>
-      <Option value="d">d (天)</Option>
+    <Select style={{ width: '120px' }} value={unit} onChange={(value) => setUnit(value)}>
+      <Option value="s">{t(`${i18nKey}.timeSeconds`)}</Option>
+      <Option value="m">{t(`${i18nKey}.timeMinutes`)}</Option>
+      <Option value="h">{t(`${i18nKey}.timeHours`)}</Option>
+      <Option value="d">{t(`${i18nKey}.timeDays`)}</Option>
     </Select>
     // </Form.Item>
   )
@@ -162,50 +164,23 @@ const AlertRuleQuickSet = ({ modalVisibility, closeModal }) => {
       maskClosable={false}
       onOk={handleOk}
       width={800}
-      okText={'保存'}
-      cancelText={'取消'}
-      title={'异常检测配置'}
+      okText={t(`${i18nKey}.save`)}
+      cancelText={t(`${i18nKey}.cancel`)}
+      title={t(`${i18nKey}.alertConfig`)}
       centered
       destroyOnClose
     >
-      <div
-        style={{
-          width: '95%',
-          height: '71vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'start',
-          alignItems: 'center',
-          marginTop: '30px',
-        }}
-      >
-        <Form
-          form={form}
-          style={{
-            width: '100%',
-          }}
-        >
-          <div
-            style={{
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div
-              style={{
-                width: '60%',
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
+      <div className="modal-container">
+        <Form form={form} className="form-container">
+          <div className="form-header">
+            <div className="form-left">
               <Form.Item
-                label="突变检测名"
+                label={t(`${i18nKey}.mutationName`)}
                 name="name"
                 rules={[
                   {
                     required: true,
-                    message: '请填写突变检测名',
+                    message: t(`${i18nKey}.enterMutationName`),
                   },
                 ]}
               >
@@ -213,123 +188,102 @@ const AlertRuleQuickSet = ({ modalVisibility, closeModal }) => {
               </Form.Item>
             </div>
             <Form.Item
-              label="告警时间"
-              name={'for'}
+              label={t(`${i18nKey}.alertTime`)}
+              name="for"
               rules={[
                 {
                   required: true,
-                  message: '请输入告警时间',
+                  message: t(`${i18nKey}.enterAlertTime`),
                 },
               ]}
-              style={{
-                width: '35%',
-              }}
+              className="form-right"
             >
               <Input addonAfter={selectAfter} />
             </Form.Item>
           </div>
-          <Card
-            title={'检测语句'}
-            style={{
-              height: 'auto',
-              paddingBottom: '40px',
-            }}
-          >
-            <Flex vertical>
-              <p
-                style={{
-                  marginBottom: '5px',
-                }}
-              >
-                <span style={{ color: 'red' }}>* </span>告警指标
-              </p>
+          <Card title={t(`${i18nKey}.detectionStatement`)} className="detection-card">
+            <Form.Item
+              layout="vertical"
+              label={
+                <p className="form-label">
+                  <span className="required">*</span> {t(`${i18nKey}.alertMetric`)}
+                </p>
+              }
+            >
               <Select
-                // mode="tags"
                 maxCount={1}
-                placeholder="请选择指标"
+                placeholder={t(`${i18nKey}.selectMetric`)}
                 options={metricsList}
-                style={{
-                  width: '100%',
-                  marginBottom: '20px',
-                }}
+                style={{ width: '100%', marginBottom: '20px' }}
                 onSelect={handleChange}
               />
-              <Form.Item
-                name="mutationCheckPQL"
-                layout="vertical"
-                rules={[
-                  {
-                    required: true,
-                    message: '请选择快速指标',
-                  },
-                ]}
-              >
-                <TextArea />
-              </Form.Item>
-            </Flex>
-            <Flex vertical>
-              <p
-                style={{
-                  marginTop: '50px',
-                  marginBottom: '5px',
-                }}
-              >
-                突变上界
-                <span style={{ fontSize: '12px', color: '#5286E8' }}>
-                  {' '}
-                  (指标大于该值时触发报警)
-                </span>
-              </p>
+            </Form.Item>
+            <Form.Item
+              name="mutationCheckPQL"
+              layout="vertical"
+              className="pt-4 pb-5"
+              rules={[
+                {
+                  required: true,
+                  message: t(`${i18nKey}.selectQuickMetric`),
+                },
+              ]}
+            >
+              <TextArea />
+            </Form.Item>
+            <Form.Item
+              layout="vertical"
+              label={
+                <p className="form-label">
+                  {t(`${i18nKey}.upperThreshold`)}
+                  <span className="text-xs text-gray-400">
+                    {' '}
+                    {t(`${i18nKey}.upperThresholdHint`)}
+                  </span>
+                </p>
+              }
+            >
               <Select
-                // mode="tags"
                 maxCount={1}
-                placeholder="请选择指标"
+                placeholder={t(`${i18nKey}.selectMetric`)}
                 options={metricsList}
-                style={{
-                  width: '100%',
-                  marginBottom: '20px',
-                }}
+                style={{ width: '100%', marginBottom: '20px' }}
                 onSelect={handleChangeUpper}
               />
-              <Form.Item name="mutationUpperLimit" layout="vertical">
-                <TextArea />
-              </Form.Item>
-            </Flex>
-            <Flex vertical>
-              <p
-                style={{
-                  marginTop: '50px',
-                  marginBottom: '5px',
-                }}
-              >
-                突变下界
-                <span style={{ fontSize: '12px', color: '#5286E8' }}>
-                  {' '}
-                  (指标小于该值时触发报警)
-                </span>
-              </p>
+            </Form.Item>
+            <Form.Item name="mutationUpperLimit" layout="vertical" className="pt-4 pb-5">
+              <TextArea />
+            </Form.Item>
+            <Form.Item
+              layout="vertical"
+              label={
+                <p className="form-label">
+                  {t(`${i18nKey}.lowerThreshold`)}
+                  <span className="text-xs text-gray-400">
+                    {' '}
+                    {t(`${i18nKey}.lowerThresholdHint`)}
+                  </span>
+                </p>
+              }
+            >
               <Select
-                // mode="tags"
                 maxCount={1}
-                placeholder="请选择指标"
+                placeholder={t(`${i18nKey}.selectMetric`)}
                 options={metricsList}
-                style={{
-                  width: '100%',
-                  marginBottom: '20px',
-                }}
+                style={{ width: '100%', marginBottom: '20px' }}
                 onSelect={handleChangeLower}
               />
-              <Form.Item name="mutationLowerLimit" layout="vertical">
-                <TextArea />
-              </Form.Item>
-            </Flex>
+            </Form.Item>
+            <Form.Item name="mutationLowerLimit" layout="vertical" className="pt-4 pb-5">
+              <TextArea />
+            </Form.Item>
           </Card>
           <Form.Item
             name="synchronizeToAlertRules"
             valuePropName="checked"
             style={{ marginTop: '10px' }}
           >
-            <Checkbox>同步创建告警规则</Checkbox>
+            <Checkbox>{t(`${i18nKey}.syncAlertRules`)}</Checkbox>
           </Form.Item>
         </Form>
       </div>

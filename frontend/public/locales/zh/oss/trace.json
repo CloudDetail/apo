@@ -14,6 +14,8 @@
     "noFault": "无异常：被采样的正常数据",
     "responseTime": "响应时间",
     "occurTime": "发生时间",
-    "traceId": "TraceID"
+    "traceId": "TraceID",
+    "operation": "操作",
+    "viewLogs": "查看日志"
   }
 }
