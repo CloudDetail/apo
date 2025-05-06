@@ -1133,6 +1133,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/events/classify": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AlertEventClassifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AlertEventClassifyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/events/list": {
             "post": {
                 "consumes": [
@@ -1643,6 +1681,143 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/slient": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetAlertSlienceConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetAlertSlienceConfigResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SetAlertSlienceConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RemoveAlertSlienceConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/slient/list": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ListAlertSlienceConfigResponse"
                         }
                     },
                     "400": {
@@ -10964,7 +11139,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "group": {
-                    "description": "Deprecated: use Groups instead",
                     "type": "string"
                 },
                 "groups": {
@@ -10988,6 +11162,14 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "request.GetAlertSlienceConfigRequest": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
                 }
             }
         },
@@ -11477,6 +11659,25 @@ const docTemplate = `{
                 "PF_Labels",
                 "PF_Flags"
             ]
+        },
+        "request.RemoveAlertSlienceConfigRequest": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.SetAlertSlienceConfigRequest": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                },
+                "forDuration": {
+                    "type": "string"
+                }
+            }
         },
         "request.SetSingleTTLRequest": {
             "type": "object",
@@ -12025,6 +12226,14 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetAlertSlienceConfigResponse": {
+            "type": "object",
+            "properties": {
+                "slience": {
+                    "$ref": "#/definitions/slienceconfig.AlertSlienceConfig"
                 }
             }
         },
@@ -12878,6 +13087,17 @@ const docTemplate = `{
                 }
             }
         },
+        "response.ListAlertSlienceConfigResponse": {
+            "type": "object",
+            "properties": {
+                "sliences": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/slienceconfig.AlertSlienceConfig"
+                    }
+                }
+            }
+        },
         "response.LogChartResponse": {
             "type": "object",
             "properties": {
@@ -13543,6 +13763,23 @@ const docTemplate = `{
                 "value": {
                     "description": "Value metric average",
                     "type": "number"
+                }
+            }
+        },
+        "slienceconfig.AlertSlienceConfig": {
+            "type": "object",
+            "properties": {
+                "alertID": {
+                    "type": "string"
+                },
+                "endAt": {
+                    "type": "string"
+                },
+                "for": {
+                    "type": "string"
+                },
+                "startAt": {
+                    "type": "string"
                 }
             }
         }

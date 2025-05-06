@@ -14,7 +14,6 @@ import (
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.ListAlertSlienceConfig true "请求信息"
 // @Success 200 {object} response.ListAlertSlienceConfigResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/slient/list [get]
