@@ -1,0 +1,18 @@
+# .github/codeql/codeql-javascript-typescript.yml
+name: "CodeQL Javascript/Typescript Configuration"
+
+# Specify paths relevant to JS/TS analysis
+paths:
+  - frontend/
+
+# Specify patterns to ignore for JS/TS analysis (can be JS/TS-specific or general)
+paths-ignore:
+  - '**/*.txt'
+  - '**/*.json'
+  - '**/*.md'
+  - '**/*.yml'
+  - '**/*.yaml'
+
+# Specify query suites/queries for JS/TS
+queries:
+  - uses: security-extended
