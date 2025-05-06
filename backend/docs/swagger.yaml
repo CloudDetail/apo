@@ -3602,14 +3602,26 @@ definitions:
     type: object
   slienceconfig.AlertSlienceConfig:
     properties:
-      alertID:
+      alertId:
+        type: string
+      alertName:
         type: string
       endAt:
         type: string
       for:
         type: string
+      group:
+        type: string
+      id:
+        type: integer
       startAt:
         type: string
+      tags:
+        $ref: '#/definitions/slienceconfig.TagsStr'
+    type: object
+  slienceconfig.TagsStr:
+    additionalProperties:
+      type: string
     type: object
 info:
   contact: {}

@@ -115,3 +115,8 @@ func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWReco
 		}
 	}
 }
+
+func (s *service) ManualResolveLatestAlertEventByAlertID(alertID string) error {
+	// TODO valid alertID
+	return s.chRepo.ManualResolveLatestAlertEventByAlertID(alertID)
+}

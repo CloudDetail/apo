@@ -13769,7 +13769,10 @@ const docTemplate = `{
         "slienceconfig.AlertSlienceConfig": {
             "type": "object",
             "properties": {
-                "alertID": {
+                "alertId": {
+                    "type": "string"
+                },
+                "alertName": {
                     "type": "string"
                 },
                 "endAt": {
@@ -13778,9 +13781,24 @@ const docTemplate = `{
                 "for": {
                     "type": "string"
                 },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
                 "startAt": {
                     "type": "string"
+                },
+                "tags": {
+                    "$ref": "#/definitions/slienceconfig.TagsStr"
                 }
+            }
+        },
+        "slienceconfig.TagsStr": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
             }
         }
     }

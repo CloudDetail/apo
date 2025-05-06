@@ -131,6 +131,11 @@ type Handler interface {
 	// @Tags API.alerts
 	// @Router /api/alerts/slient [delete]
 	RemoveAlertSlienceConfig() core.HandlerFunc
+
+	// MarkAlertResolvedManually
+	// @Tags API.alerts
+	// @Router /api/alerts/resolve [post]
+	MarkAlertResolvedManually() core.HandlerFunc
 }
 
 type handler struct {

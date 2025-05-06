@@ -2,11 +2,14 @@ package clickhouse
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/google/uuid"
 )
 
 const SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID = `SELECT * FROM alert_event ae
@@ -223,4 +226,38 @@ func (ch *chRepo) GetLatestAlertEventByAlertID(alertID string) (*alert.AlertEven
 		return nil, err
 	}
 	return &result, err
+}
+
+func (ch *chRepo) ManualResolveLatestAlertEventByAlertID(alertID string) error {
+	alertEventFilter := NewQueryBuilder().
+		Equals("alert_id", alertID).
+		GreaterThan("received_time", time.Now().Add(-7*24*time.Hour).Unix())
+	sql := fmt.Sprintf(SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID, alertEventFilter.String())
+	var result = alert.AlertEvent{}
+	err := ch.conn.QueryRow(context.Background(), sql, alertEventFilter.values...).ScanStruct(&result)
+	if err != nil {
+		return err
+	}
+
+	if result.Status == model.StatusResolved.ToString() {
+		return nil
+	}
+
+	result.Status = model.StatusResolved.ToString()
+	result.EndTime = time.Now()
+	result.ID = uuid.New()
+
+	detail := map[string]string{
+		"description": fmt.Sprintf("alert has been closed manally, LABELS: %+v", result.Tags),
+	}
+
+	detailsStr, err := json.Marshal(detail)
+	if err != nil {
+		return err
+	}
+	result.Detail = string(detailsStr)
+
+	return ch.InsertAlertEvent(context.Background(), []alert.AlertEvent{result}, alert.SourceFrom{
+		SourceInfo: alert.SourceInfo{SourceName: result.Source},
+	})
 }

@@ -59,6 +59,8 @@ type Service interface {
 	ListSlienceConfig() ([]slienceconfig.AlertSlienceConfig, error)
 	SetSlienceConfigByAlertID(req *request.SetAlertSlienceConfigRequest) error
 	RemoveSlienceConfigByAlertID(alertID string) error
+
+	ManualResolveLatestAlertEventByAlertID(alertID string) error
 }
 
 type service struct {

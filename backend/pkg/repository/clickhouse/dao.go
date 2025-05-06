@@ -116,6 +116,8 @@ type Repo interface {
 	CreateAlertNotifyRecord(ctx context.Context, record model.AlertNotifyRecord) error
 	GetLatestAlertEventByAlertID(alertID string) (*alert.AlertEvent, error)
 
+	ManualResolveLatestAlertEventByAlertID(alertID string) error
+
 	integration.Input
 }
 
