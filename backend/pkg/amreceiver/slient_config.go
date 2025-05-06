@@ -11,7 +11,7 @@ func (r *InnerReceivers) GetSlienceConfigByAlertID(alertID string) (*sc.AlertSli
 	if cfgPtr, find := r.slientCFGMap.Load(alertID); find {
 		return cfgPtr.(*sc.AlertSlienceConfig), nil
 	}
-	return nil, fmt.Errorf("alert[%s] is not slient", alertID)
+	return nil, nil
 }
 
 func (r *InnerReceivers) ListSlienceConfig() ([]sc.AlertSlienceConfig, error) {

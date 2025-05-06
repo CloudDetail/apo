@@ -16,7 +16,6 @@ func (repo *daoRepo) CheckAMReceiverCount() int64 {
 
 func (repo *daoRepo) MigrateAMReceiver(receivers []amconfig.Receiver) ([]amconfig.Receiver, error) {
 	extraReceiver := skipAPOReceiver(receivers)
-
 	err := repo.db.Transaction(func(tx *gorm.DB) error {
 		// TODO Read Dingtalk config from Database, transform into xxx
 		if err := tx.AutoMigrate(&amconfig.Receiver{}); err != nil {

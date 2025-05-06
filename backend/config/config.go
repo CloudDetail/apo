@@ -101,9 +101,9 @@ type Config struct {
 		CacheMinutes   int    `mapstructure:"cache_minutes"`
 		Sampling       string `mapstructure:"sampling"`
 	} `mapstructure:"dify"`
-	AMReceiver struct {
+	AlertReceiver struct {
 		Enabled bool `mapstructure:"enabled"`
-	} `mapstructure:"am_receiver"`
+	} `mapstructure:"alert_receiver"`
 }
 
 type AnonymousUser struct {

@@ -7,12 +7,12 @@ import (
 )
 
 type AlertSlienceConfig struct {
-	ID int `gorm:"primaryKey;auto_increment"`
+	ID int `gorm:"primryKey;auto_increment" json:"id"`
 
-	AlertID string    `gorm:"primaryKey;column:alert_id"`
-	For     string    `gorm:"for"`
-	StartAt time.Time `gorm:"start_at"`
-	EndAt   time.Time `gorm:"end_at"`
+	AlertID string    `gorm:"column:alert_id" json:"alertId"`
+	For     string    `gorm:"for" json:"for"`
+	StartAt time.Time `gorm:"start_at" json:"startAt"`
+	EndAt   time.Time `gorm:"end_at" json:"endAt"`
 }
 
 func (s AlertSlienceConfig) TableName() string {

@@ -81,7 +81,7 @@ func New(
 	receivers amreceiver.Receivers,
 ) Service {
 
-	cfg := config.Get().AMReceiver
+	cfg := config.Get().AlertReceiver
 
 	return &service{
 		chRepo:   chRepo,

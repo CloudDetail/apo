@@ -20,6 +20,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+
+	sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 )
 
 // Define the Database query interface
@@ -264,6 +266,7 @@ func migrateTable(db *gorm.DB) error {
 
 	return db.AutoMigrate(
 		&amconfig.Receiver{},
+		&sc.AlertSlienceConfig{},
 		&amconfig.DingTalkConfig{},
 		&Feature{},
 		&FeatureMapping{},

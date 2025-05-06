@@ -2,11 +2,10 @@ package response
 
 import "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 
-
 type GetAlertSlienceConfigResponse struct {
-	Slience *slienceconfig.AlertSlienceConfig
+	Slience *slienceconfig.AlertSlienceConfig `json:"slience"`
 }
 
 type ListAlertSlienceConfigResponse struct {
-	Sliences []slienceconfig.AlertSlienceConfig
+	Sliences []slienceconfig.AlertSlienceConfig `json:"sliences"`
 }

@@ -116,16 +116,16 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	}
 	r.k8sApi = k8sApi
 
-	if config.Get().AMReceiver.Enabled {
+	if config.Get().AlertReceiver.Enabled {
 		// migrate AMReceiver from ConfigMap to database
 		if r.pkg_db.CheckAMReceiverCount() <= 0 {
 			receivers, total := r.k8sApi.GetAMConfigReceiver("", nil, nil, true)
 			if total > 0 {
-				migratedReceiver, err := r.pkg_db.MigrateAMReceiver(receivers)
+				_, err := r.pkg_db.MigrateAMReceiver(receivers)
 				if err != nil {
 					logger.Fatal("failed to migrate amconfig ", zap.Error(err))
 				}
-				for _, receiver := range migratedReceiver {
+				for _, receiver := range receivers {
 					err := r.k8sApi.DeleteAMConfigReceiver("", receiver.Name)
 					if err != nil {
 						logger.Warn("remove migratedReceiver failed", zap.String("name", receiver.Name), zap.Error(err))
@@ -159,7 +159,7 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 		if err != nil {
 			logger.Error("failed to setup alertCheck workflow", zap.Error(err))
 		} else {
-			if config.Get().AMReceiver.Enabled {
+			if config.Get().AlertReceiver.Enabled {
 				go dify.HandleRecords(context.Background(), r.logger, records,
 					r.ch.AddWorkflowRecord,
 					r.receivers.HandleAlertCheckRecord,
