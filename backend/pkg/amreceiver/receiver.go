@@ -90,21 +90,35 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 		amReceiver.database = dbRepo
 		amReceiver.ch = chRepo
 	}
+
+	slienceCfgs, err := dbRepo.GetAlertSlience()
+	if err != nil {
+		return nil, err
+	}
+	for _, cfg := range slienceCfgs {
+		amReceiver.slientCFGMap.Store(cfg.AlertID, &cfg)
+	}
 	return amReceiver, err
 }
 
 func buildInnerReceivers(ncs []amconfig.Receiver, tmpl *template.Template, logger *slog.Logger, httpOpts ...commoncfg.HTTPClientOption) (*InnerReceivers, error) {
-	receivers := map[string][]notify.Integration{}
 	var errs error
+
+	var innerReceivers = &InnerReceivers{
+		receivers:   make(map[string][]notify.Integration),
+		externalURL: "",
+		logger:      logger,
+	}
 	for _, nc := range ncs {
 		integrations, err := buildReceiverIntegrations(nc, tmpl, logger, httpOpts...)
 		if err != nil {
 			logger.Error("Error building integrations", "err", err)
 			errs = errors.Join(errs, err)
 		}
-		receivers[nc.Name] = integrations
+		innerReceivers.receivers[nc.Name] = integrations
 	}
-	return &InnerReceivers{receivers: receivers, logger: logger}, errs
+
+	return innerReceivers, errs
 }
 
 // buildReceiverIntegrations builds a list of integration notifiers off of a
