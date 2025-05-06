@@ -1,0 +1,10 @@
+# .github/codeql/codeql-go.yml
+name: "CodeQL Go Configuration"
+
+# Specify paths relevant to Go analysis
+paths:
+  - .github/workflows/
+
+# Specify query suites/queries for Go
+queries:
+  - uses: security-extended
