@@ -151,7 +151,8 @@ func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter 
 	}
 
 	builder := NewQueryBuilder().
-		Between("received_time", startTime.Unix(), endTime.Unix()).
+		Between("update_time", startTime.Unix(), endTime.Unix()).
+		NotGreaterThan("end_time", endTime.Unix()).
 		EqualsNotEmpty("source", filter.Source).
 		EqualsNotEmpty("group", filter.Group).
 		EqualsNotEmpty("name", filter.Name).
