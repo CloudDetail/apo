@@ -5,10 +5,11 @@ package alerts
 
 import (
 	"github.com/CloudDetail/apo/backend/config"
+	"github.com/CloudDetail/apo/backend/pkg/amreceiver"
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/repository/amreceiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
@@ -53,6 +54,11 @@ type Service interface {
 	AddAMConfigReceiver(req *request.AddAlertManagerConfigReceiver) error
 	UpdateAMConfigReceiver(req *request.UpdateAlertManagerConfigReceiver) error
 	DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigReceiverRequest) error
+
+	GetSlienceConfig(alertID string) (*slienceconfig.AlertSlienceConfig, error)
+	ListSlienceConfig() ([]slienceconfig.AlertSlienceConfig, error)
+	SetSlienceConfig(req *request.SetAlertSlienceConfigRequest) error
+	RemoveSlienceConfig(alertID string) error
 }
 
 type service struct {

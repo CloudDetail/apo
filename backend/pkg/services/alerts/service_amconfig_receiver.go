@@ -16,7 +16,7 @@ import (
 )
 
 func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse {
-	if s.enableInnerReceiver {
+	if !s.enableInnerReceiver {
 		s.GetAMReceiversFromExternalAM(req)
 	}
 
@@ -147,7 +147,7 @@ func (s *service) UpdateAMReceiverForExternalAM(req *request.UpdateAlertManagerC
 }
 
 func (s *service) DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigReceiverRequest) error {
-	if s.enableInnerReceiver {
+	if !s.enableInnerReceiver {
 		return s.DeleteAMReceiverForExternalAM(req)
 	}
 

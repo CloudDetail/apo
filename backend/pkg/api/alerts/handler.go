@@ -4,7 +4,7 @@
 package alerts
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/repository/amreceiver"
+	"github.com/CloudDetail/apo/backend/pkg/amreceiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -111,6 +111,26 @@ type Handler interface {
 	// @Tags API.alerts
 	// @Router /api/alerts/rule/available/file/group/alert [get]
 	CheckAlertRule() core.HandlerFunc
+
+	// GetAlertSlienceConfig
+	// @Tags API.alerts
+	// @Router /api/alerts/slient [get]
+	GetAlertSlienceConfig() core.HandlerFunc
+
+	// ListAlertSlienceConfig
+	// @Tags API.alerts
+	// @Router /api/alerts/slient/list [get]
+	ListAlertSlienceConfig() core.HandlerFunc
+
+	// SetAlertSlienceConfig
+	// @Tags API.alerts
+	// @Router /api/alerts/slient [post]
+	SetAlertSlienceConfig() core.HandlerFunc
+
+	// RemoveAlertSlienceConfig
+	// @Tags API.alerts
+	// @Router /api/alerts/slient [delete]
+	RemoveAlertSlienceConfig() core.HandlerFunc
 }
 
 type handler struct {

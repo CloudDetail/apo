@@ -32,16 +32,16 @@ func TestReceiver(t *testing.T) {
 	assert.NoError(t, err)
 	tmpl.ExternalURL, err = url.Parse("http://example.com")
 	assert.NoError(t, err)
-	receiversMap, err := buildAMReceivers(
+	rm, err := buildInnerReceivers(
 		conf.Receivers,
 		tmpl,
 		util.NewZapSlogHandler(zapLog),
 	)
 
 	assert.NoError(t, err)
-	assert.Equal(t, 4, len(receiversMap.receivers))
+	assert.Equal(t, 4, len(rm.receivers))
 
-	integrations, ok := receiversMap.receivers["APO Alert Collector"]
+	integrations, ok := rm.receivers["APO Alert Collector"]
 	if !ok {
 		t.Fatal("missing APO Alert Collector")
 	}
