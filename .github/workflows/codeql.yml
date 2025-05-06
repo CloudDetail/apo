@@ -47,9 +47,7 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
-        paths: 'backend/,frontend/,.github/'
-        paths-ignore: '**/*.txt,**/*.json,**/*.md'
-        queries: security-extended
+        config-file: ./.github/codeql/codeql-${{ matrix.language }}.yml
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
