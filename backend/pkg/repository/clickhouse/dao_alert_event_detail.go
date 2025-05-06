@@ -79,26 +79,31 @@ filterWorkflow AS (
     END as importance
   FROM workflow_records fw
   %s
+),
+filterNotify AS (
+  SELECT *
+  FROM alert_notify_record anr
+  %s
 )
-SELECT ae.id,
-  ae.group,
-  ae.name,
-  ae.alert_id,
-  ae.create_time,
-  ae.update_time,
-  ae.end_time,
-  ae.received_time,
-  ae.detail,
-  ae.status,
-  ae.severity,
-  ae.tags,
-  ae.source,
-  fw.workflow_run_id,
-  fw.workflow_id,
-  fw.workflow_name,
-  fw.created_at,
-  fw.importance,
-  fw.output,
+SELECT ae.id as id,
+  ae.group as group,
+  ae.name as name,
+  ae.alert_id as alert_id,
+  ae.create_time as create_time,
+  ae.update_time as update_time,
+  ae.end_time as end_time,
+  ae.received_time as received_time,
+  ae.detail as detail,
+  ae.status as status,
+  ae.severity as severity,
+  ae.tags as tags,
+  ae.source as source,
+  fw.workflow_run_id as workflow_run_id,
+  fw.workflow_id as workflow_id,
+  fw.workflow_name as workflow_name,
+  fw.created_at as created_at,
+  fw.importance as importance,
+  fw.output as output,
   CASE
     WHEN output = 'false' THEN 'true'
     WHEN output = 'true' THEN 'false'
@@ -110,9 +115,13 @@ SELECT ae.id,
     WHEN fw.importance = 0 and ae.status = 'resolved' THEN 'skipped'
     WHEN fw.importance = 1 THEN 'invalid'
     WHEN fw.importance = 2 THEN 'valid'
-  END as validity
+  END as validity,
+  fn.success as notify_success,
+  fn.failed as notify_failed,
+  fn.created_at as notify_at
 FROM filterEvent ae
 LEFT JOIN filterWorkflow fw ON ae.rounded_time = fw.rounded_time
+LEFT JOIN filterNotify fn ON toString(ae.id) = fn.event_id
 %s`
 
 const SQL_GET_RELEATED_ALERT_EVENT_COUNT = `SELECT count(1) AS count
@@ -177,13 +186,12 @@ func (ch *chRepo) GetRelatedAlertEvents(req *request.GetAlertDetailRequest, cach
 		var index uint64
 		err := ch.conn.QueryRow(context.Background(), sql, values...).Scan(&index)
 		if err != nil {
-			// TODO do something
+			return nil, 0, err
 		}
 		offSet = getOffset(int(index), req.Pagination.PageSize)
 		req.Pagination.CurrentPage = int(index)/req.Pagination.PageSize + 1
 	}
 
-	var result = make([]alert.AEventWithWRecord, 0)
 	intervalMicro := int64(5*time.Minute) / 1e3
 	recordFilter := NewQueryBuilder().
 		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6).
@@ -193,15 +201,23 @@ func (ch *chRepo) GetRelatedAlertEvents(req *request.GetAlertDetailRequest, cach
 		OrderBy("received_time", false).
 		Limit(req.Pagination.PageSize).Offset(offSet)
 
+	notifyFilter := NewQueryBuilder().
+		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6).
+		Equals("alert_id", req.AlertID)
+
 	sql := fmt.Sprintf(SQL_GET_RELEATED_ALERT_EVENT,
 		getEventRoundedTime(cacheMinutes),
 		alertEventFilter.String(),
 		recordFilter.String(),
+		notifyFilter.String(),
 		resultLimit.String(),
 	)
 
 	values := alertEventFilter.values
 	values = append(values, recordFilter.values...)
+	values = append(values, notifyFilter.values...)
+
+	var result = make([]alert.AEventWithWRecord, 0)
 	err = ch.conn.Select(context.Background(), &result, sql, values...)
 	return result, int64(count), err
 }

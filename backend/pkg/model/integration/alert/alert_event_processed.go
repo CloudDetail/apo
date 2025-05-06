@@ -28,6 +28,14 @@ type AEventWithWRecord struct {
 
 	// Deprecated: use [Validity] instead, will remove after 1.7.x
 	IsValid string `json:"isValid" ch:"is_valid"`
+
+	NotifyDetail
+}
+
+type NotifyDetail struct {
+	SendSuccess string    `json:"notifySuccess" ch:"notify_success"`
+	SendFailed  string    `json:"notifyFailed" ch:"notify_failed"`
+	NotifyAt    time.Time `json:"notifyAt" ch:"notify_at"`
 }
 
 type WorkflowParams struct {
