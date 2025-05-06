@@ -7,6 +7,8 @@ import (
 )
 
 type AlertSlienceConfig struct {
+	ID int `gorm:"primaryKey;auto_increment"`
+
 	AlertID string    `gorm:"primaryKey;column:alert_id"`
 	For     string    `gorm:"for"`
 	StartAt time.Time `gorm:"start_at"`

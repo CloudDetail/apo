@@ -50,10 +50,10 @@ type Receivers interface {
 	UpdateAMConfigReceiver(receiver amconfig.Receiver, oldName string) error
 	DeleteAMConfigReceiver(name string) error
 
-	GetSlienceConfig(alertID string) (*slienceconfig.AlertSlienceConfig, error)
 	ListSlienceConfig() ([]slienceconfig.AlertSlienceConfig, error)
-	SetSlienceConfig(alertID string, forDuration string) error
-	RemoveSlienceConfig(alertID string) error
+	GetSlienceConfigByAlertID(alertID string) (*slienceconfig.AlertSlienceConfig, error)
+	SetSlienceConfigByAlertID(alertID string, forDuration string) error
+	RemoveSlienceConfigByAlertID(alertID string) error
 }
 
 type InnerReceivers struct {

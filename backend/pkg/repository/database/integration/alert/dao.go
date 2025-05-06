@@ -54,7 +54,7 @@ type AlertInput interface {
 	GetAlertSlience() ([]sc.AlertSlienceConfig, error)
 	AddAlertSlience(slience *sc.AlertSlienceConfig) error
 	UpdateAlertSlience(slience *sc.AlertSlienceConfig) error
-	DeleteAlertSlience(alertID string) error
+	DeleteAlertSlience(id int) error
 }
 
 type subRepo struct {

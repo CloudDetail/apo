@@ -16,9 +16,9 @@ func (repo *subRepo) AddAlertSlience(SlienceConfig *sc.AlertSlienceConfig) error
 }
 
 func (repo *subRepo) UpdateAlertSlience(SlienceConfig *sc.AlertSlienceConfig) error {
-	return repo.db.Where("alert_id = ?", SlienceConfig.AlertID).Updates(SlienceConfig).Error
+	return repo.db.Where("id = ?", SlienceConfig.ID).Updates(SlienceConfig).Error
 }
 
-func (repo *subRepo) DeleteAlertSlience(alertID string) error {
-	return repo.db.Delete(&sc.AlertSlienceConfig{}, "alert_id = ? ", alertID).Error
+func (repo *subRepo) DeleteAlertSlience(id int) error {
+	return repo.db.Delete(&sc.AlertSlienceConfig{}, "id = ? ", id).Error
 }

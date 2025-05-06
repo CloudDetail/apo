@@ -55,10 +55,10 @@ type Service interface {
 	UpdateAMConfigReceiver(req *request.UpdateAlertManagerConfigReceiver) error
 	DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigReceiverRequest) error
 
-	GetSlienceConfig(alertID string) (*slienceconfig.AlertSlienceConfig, error)
+	GetSlienceConfigByAlertID(alertID string) (*slienceconfig.AlertSlienceConfig, error)
 	ListSlienceConfig() ([]slienceconfig.AlertSlienceConfig, error)
-	SetSlienceConfig(req *request.SetAlertSlienceConfigRequest) error
-	RemoveSlienceConfig(alertID string) error
+	SetSlienceConfigByAlertID(req *request.SetAlertSlienceConfigRequest) error
+	RemoveSlienceConfigByAlertID(alertID string) error
 }
 
 type service struct {
