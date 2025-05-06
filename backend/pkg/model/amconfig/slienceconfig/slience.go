@@ -13,7 +13,7 @@ type AlertSlienceConfig struct {
 	EndAt   time.Time `gorm:"end_at"`
 }
 
-func (s *AlertSlienceConfig) TableName() string {
+func (s AlertSlienceConfig) TableName() string {
 	return "alert_slients"
 }
 
