@@ -35,8 +35,17 @@ func (r *InnerReceivers) SetSlienceConfigByAlertID(alertID string, forDuration s
 	if oldCFGPtr, find := r.slientCFGMap.Swap(alertID, slienceconfig); find {
 		cfg := oldCFGPtr.(*sc.AlertSlienceConfig)
 		slienceconfig.ID = cfg.ID
+		slienceconfig.AlertName = cfg.AlertName
+		slienceconfig.Group = cfg.Group
+		slienceconfig.Tags = cfg.Tags
 		return r.database.UpdateAlertSlience(slienceconfig)
 	} else {
+		event, err := r.ch.GetLatestAlertEventByAlertID(alertID)
+		if err == nil && event != nil {
+			slienceconfig.AlertName = event.Name
+			slienceconfig.Tags = event.EnrichTags
+			slienceconfig.Group = event.Group
+		}
 		return r.database.AddAlertSlience(slienceconfig)
 	}
 }

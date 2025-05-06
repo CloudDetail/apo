@@ -114,6 +114,7 @@ type Repo interface {
 	GetRelatedAlertEvents(req *request.GetAlertDetailRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error)
 
 	CreateAlertNotifyRecord(ctx context.Context, record model.AlertNotifyRecord) error
+	GetLatestAlertEventByAlertID(alertID string) (*alert.AlertEvent, error)
 
 	integration.Input
 }

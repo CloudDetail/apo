@@ -9,6 +9,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
+const SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID = `SELECT * FROM alert_event ae
+%s ORDER BY received_time DESC LIMIT 1`
+
 const SQL_GET_ALERT_DETAIL = `WITH targetEvent AS (
 	SELECT *, %s as rounded_time
     FROM alert_event ae
@@ -207,4 +210,17 @@ func getOffset(rowIndex, pageSize int) (offset int) {
 	pageNumber := rowIndex / pageSize
 	offset = pageNumber * pageSize
 	return offset
+}
+
+func (ch *chRepo) GetLatestAlertEventByAlertID(alertID string) (*alert.AlertEvent, error) {
+	alertEventFilter := NewQueryBuilder().
+		Equals("alert_id", alertID).
+		GreaterThan("received_time", time.Now().Add(-7*24*time.Hour).Unix())
+	sql := fmt.Sprintf(SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID, alertEventFilter.String())
+	var result = alert.AlertEvent{}
+	err := ch.conn.QueryRow(context.Background(), sql, alertEventFilter.values...).ScanStruct(&result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, err
 }
