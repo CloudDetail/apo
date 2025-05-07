@@ -1,4 +1,4 @@
-package amreceiver
+package receiver
 
 import (
 	"net/url"
@@ -27,7 +27,12 @@ func (r *InnerReceivers) updateReceiversInMemory(receivers []amconfig.Receiver) 
 }
 
 func (r *InnerReceivers) GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int) {
-	return r.database.GetAMConfigReceiver(filter, pageParam)
+	receivers, count, err := r.database.GetAMConfigReceiver(filter, pageParam)
+	if err != nil {
+		r.logger.Error("failed to list amconfigReceiver", "err", err)
+		return []amconfig.Receiver{}, 0
+	}
+	return receivers, count
 }
 
 func (r *InnerReceivers) AddAMConfigReceiver(receiver amconfig.Receiver) error {
@@ -36,7 +41,10 @@ func (r *InnerReceivers) AddAMConfigReceiver(receiver amconfig.Receiver) error {
 		return err
 	}
 
-	receivers, _ := r.database.GetAMConfigReceiver(nil, nil)
+	receivers, _, err := r.database.GetAMConfigReceiver(nil, nil)
+	if err != nil {
+		return err
+	}
 	return r.updateReceiversInMemory(receivers)
 }
 
@@ -45,7 +53,10 @@ func (r *InnerReceivers) UpdateAMConfigReceiver(receiver amconfig.Receiver, oldN
 	if err != nil {
 		return err
 	}
-	receivers, _ := r.database.GetAMConfigReceiver(nil, nil)
+	receivers, _, err := r.database.GetAMConfigReceiver(nil, nil)
+	if err != nil {
+		return err
+	}
 	return r.updateReceiversInMemory(receivers)
 }
 
@@ -54,6 +65,9 @@ func (r *InnerReceivers) DeleteAMConfigReceiver(name string) error {
 	if err != nil {
 		return err
 	}
-	receivers, _ := r.database.GetAMConfigReceiver(nil, nil)
+	receivers, _, err := r.database.GetAMConfigReceiver(nil, nil)
+	if err != nil {
+		return err
+	}
 	return r.updateReceiversInMemory(receivers)
 }

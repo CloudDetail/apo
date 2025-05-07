@@ -1,4 +1,4 @@
-package amreceiver
+package receiver
 
 import (
 	"fmt"

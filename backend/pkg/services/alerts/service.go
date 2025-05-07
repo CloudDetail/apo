@@ -5,11 +5,11 @@ package alerts
 
 import (
 	"github.com/CloudDetail/apo/backend/config"
-	"github.com/CloudDetail/apo/backend/pkg/amreceiver"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/receiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
@@ -71,7 +71,7 @@ type service struct {
 	difyRepo dify.DifyRepo
 
 	enableInnerReceiver bool
-	receivers           amreceiver.Receivers
+	receivers           receiver.Receivers
 }
 
 func New(
@@ -80,7 +80,7 @@ func New(
 	k8sApi kubernetes.Repo,
 	dbRepo database.Repo,
 	difyRepo dify.DifyRepo,
-	receivers amreceiver.Receivers,
+	receivers receiver.Receivers,
 ) Service {
 
 	cfg := config.Get().AlertReceiver

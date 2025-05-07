@@ -135,7 +135,7 @@ type Repo interface {
 	// Transaction Starts a transaction and automatically commit and rollback.
 	Transaction(ctx context.Context, funcs ...func(txCtx context.Context) error) error
 
-	GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
+	GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int, error)
 	AddAMConfigReceiver(receiver amconfig.Receiver) error
 	UpdateAMConfigReceiver(receiver amconfig.Receiver, oldName string) error
 	DeleteAMConfigReceiver(name string) error

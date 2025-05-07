@@ -4,7 +4,7 @@
 package alerts
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/amreceiver"
+	"github.com/CloudDetail/apo/backend/pkg/receiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -153,7 +153,7 @@ func New(
 	promRepo prometheus.Repo,
 	difyRepo dify.DifyRepo,
 
-	receivers amreceiver.Receivers,
+	receivers receiver.Receivers,
 ) Handler {
 	return &handler{
 		logger:                 logger,

@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/CloudDetail/apo/backend/pkg/amreceiver"
+	"github.com/CloudDetail/apo/backend/pkg/receiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
@@ -37,7 +37,7 @@ type resource struct {
 	deepflowClickhouse clickhouse.Repo
 	jaegerRepo         jaeger.JaegerRepo
 	dify               dify.DifyRepo
-	receivers          amreceiver.Receivers
+	receivers          receiver.Receivers
 }
 
 type Server struct {
@@ -133,7 +133,7 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 				}
 			}
 		}
-		r.receivers, err = amreceiver.SetupReceiver("http://example.com", r.logger, r.pkg_db, r.ch)
+		r.receivers, err = receiver.SetupReceiver("http://example.com", r.logger, r.pkg_db, r.ch)
 		if err != nil {
 			logger.Fatal("new alertReceiver err", zap.Error(err))
 		}

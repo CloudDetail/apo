@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (repo *daoRepo) GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int) {
+func (repo *daoRepo) GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int, error) {
 	var count int64
 	var countQuery = repo.db.Model(&amconfig.Receiver{})
 	if filter != nil {
@@ -16,7 +16,7 @@ func (repo *daoRepo) GetAMConfigReceiver(filter *request.AMConfigReceiverFilter,
 	}
 	err := countQuery.Count(&count).Error
 	if err != nil || count == 0 {
-		return nil, 0
+		return nil, 0, err
 	}
 
 	var result []amconfig.Receiver
@@ -33,9 +33,9 @@ func (repo *daoRepo) GetAMConfigReceiver(filter *request.AMConfigReceiverFilter,
 	}
 
 	if err != nil {
-		return nil, 0
+		return []amconfig.Receiver{}, 0, err
 	}
-	return result, int(count)
+	return result, int(count), nil
 }
 
 func (repo *daoRepo) AddAMConfigReceiver(receiver amconfig.Receiver) error {

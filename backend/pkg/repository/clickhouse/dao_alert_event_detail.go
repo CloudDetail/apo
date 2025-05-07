@@ -21,6 +21,12 @@ const SQL_GET_ALERT_DETAIL = `WITH targetEvent AS (
     %s
 	LIMIT 1
 ),
+latestEvent AS (
+	SELECT *
+	FROM alert_event ae
+    %s
+	ORDER BY received_time DESC limit 1
+),
 filterWorkflow AS(
     SELECT *,
       CASE
@@ -31,24 +37,26 @@ filterWorkflow AS(
 	FROM workflow_records
     %s AND rounded_time = (SELECT rounded_time FROM targetEvent)
 )
-SELECT ae.id,
-  ae.group,
-  ae.name,
-  ae.alert_id,
-  ae.create_time,
-  ae.update_time,
-  ae.end_time,
-  ae.received_time,
-  ae.detail,
-  ae.status,
-  ae.raw_tags,
-  ae.tags,
-  ae.source,
-  fw.workflow_run_id,
-  fw.workflow_id,
-  fw.workflow_name,
-  fw.importance,
-  fw.output,
+SELECT ae.id as id,
+  ae.group as group,
+  ae.name as name,
+  ae.alert_id as alert_id,
+  ae.create_time as create_time,
+  ae.update_time as update_time,
+  ae.end_time as end_time,
+  ae.received_time as received_time,
+  ae.detail as detail,
+  ae.status as status,
+  ae.severity as severity,
+  ae.raw_tags as raw_tags,
+  ae.tags as tags,
+  ae.source as source,
+  fw.workflow_run_id as workflow_run_id,
+  fw.workflow_id as workflow_id,
+  fw.workflow_name as workflow_name,
+  fw.importance as importance,
+  fw.output as output,
+  le.status as last_status,
   CASE
     WHEN output = 'false' THEN 'true'
     WHEN output = 'true' THEN 'false'
@@ -63,6 +71,7 @@ SELECT ae.id,
   END as validity
 FROM targetEvent ae
 LEFT JOIN filterWorkflow fw ON ae.rounded_time = fw.rounded_time
+LEFT JOIN latestEvent le ON ae.alert_id = le.alert_id
 LIMIT 1`
 
 const SQL_GET_RELEATED_ALERT_EVENT = `WITH filterEvent AS (
@@ -145,13 +154,18 @@ func (ch *chRepo) GetAlertDetail(req *request.GetAlertDetailRequest, cacheMinute
 		Equals("alert_id", req.AlertID).
 		Equals("toString(id)", req.EventID)
 
+	lastEventFilter := NewQueryBuilder().
+		Equals("alert_id", req.AlertID)
+
 	sql := fmt.Sprintf(SQL_GET_ALERT_DETAIL,
 		getEventRoundedTime(cacheMinutes),
 		alertFilter.String(),
+		lastEventFilter.String(),
 		recordFilter.String(),
 	)
 
 	var values = alertFilter.values
+	values = append(values, lastEventFilter.values...)
 	values = append(values, recordFilter.values...)
 
 	var result alert.AEventWithWRecord

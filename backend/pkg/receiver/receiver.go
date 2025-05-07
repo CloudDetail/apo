@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package amreceiver
+package receiver
 
 import (
 	"context"
@@ -19,17 +19,18 @@ import (
 	"log/slog"
 	"net/url"
 	"sync"
+	"time"
 
 	commoncfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/promslog"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 
-	"github.com/CloudDetail/apo/backend/pkg/amreceiver/dingtalk"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/receiver/dingtalk"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/util"
@@ -65,11 +66,12 @@ type InnerReceivers struct {
 	externalURL string
 	logger      *slog.Logger
 
+	// alertID -> slienceconfig.AlertSlienceConfig
 	slientCFGMap sync.Map
 }
 
 func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo, chRepo clickhouse.Repo) (Receivers, error) {
-	// TODO not support template now
+	// TODO not support custom template now
 	tmpl, err := template.FromGlobs([]string{})
 	if err != nil {
 		return nil, err
@@ -79,13 +81,20 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 		return nil, err
 	}
 
-	receivers, _ := dbRepo.GetAMConfigReceiver(nil, nil)
+	receivers, _, err := dbRepo.GetAMConfigReceiver(nil, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	amReceiver, err := buildInnerReceivers(
 		receivers,
 		tmpl,
 		util.NewZapSlogHandler(logger),
 	)
+
+	if err != nil {
+		return nil, err
+	}
 	if amReceiver != nil {
 		amReceiver.database = dbRepo
 		amReceiver.ch = chRepo
@@ -95,9 +104,12 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 	if err != nil {
 		return nil, err
 	}
-	for _, cfg := range slienceCfgs {
-		amReceiver.slientCFGMap.Store(cfg.AlertID, &cfg)
+
+	for i := 0; i < len(slienceCfgs); i++ {
+		amReceiver.slientCFGMap.Store(slienceCfgs[i].AlertID, &slienceCfgs[i])
 	}
+
+	go amReceiver.cleanupSlience(context.Background(), time.Minute)
 	return amReceiver, err
 }
 
@@ -201,4 +213,25 @@ func buildReceiverIntegrations(nc amconfig.Receiver, tmpl *template.Template, lo
 		return nil, &errs
 	}
 	return integrations, nil
+}
+
+func (r *InnerReceivers) cleanupSlience(ctx context.Context, interval time.Duration) {
+	cleanupTicker := time.NewTicker(interval)
+	for {
+		select {
+		case <-cleanupTicker.C:
+			now := time.Now()
+			r.slientCFGMap.Range(func(key, value any) bool {
+				val := value.(*slienceconfig.AlertSlienceConfig)
+				if now.After(val.EndAt) {
+					if err := r.database.DeleteAlertSlience(val.ID); err == nil {
+						r.slientCFGMap.Delete(key)
+					}
+				}
+				return true
+			})
+		case <-ctx.Done():
+			return
+		}
+	}
 }

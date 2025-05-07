@@ -11,6 +11,13 @@ import (
 type AEventWithWRecord struct {
 	AlertEvent
 
+	LastStatus string `json:"lastStatus,omitempty" ch:"last_status"`
+
+	WorkflowDetail
+	NotifyDetail
+}
+
+type WorkflowDetail struct {
 	WorkflowRunID string `json:"workflowRunId" ch:"workflow_run_id"`
 
 	WorkflowID   string `json:"workflowId" ch:"workflow_id"`
@@ -28,8 +35,6 @@ type AEventWithWRecord struct {
 
 	// Deprecated: use [Validity] instead, will remove after 1.7.x
 	IsValid string `json:"isValid" ch:"is_valid"`
-
-	NotifyDetail
 }
 
 type NotifyDetail struct {
