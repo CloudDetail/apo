@@ -27,6 +27,9 @@ const AlertsNotify = AuthRouter(React.lazy(() => import('src/oss/views/alerts/Al
 const ConfigPage = AuthRouter(React.lazy(() => import('src/oss/views/config/index')))
 const AlertEventsPage = AuthRouter(React.lazy(() => import('src/oss/views/alertEvents/index')))
 const WorkflowsPage = AuthRouter(React.lazy(() => import('src/oss/views/workflows/index')))
+const AlertEventDetailPage = AuthRouter(
+  React.lazy(() => import('src/oss/views/alertEvents/detail/index')),
+)
 
 const namespace = 'core/routes'
 
@@ -120,6 +123,12 @@ const ossRoutes = [
     path: '/workflows',
     name: <TranslationCom text="workflows" space={namespace} />,
     element: WorkflowsPage,
+    hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/alerts/events-detail/:alertId/:eventId',
+    name: <TranslationCom text="eventDetail" space={namespace} />,
+    element: AlertEventDetailPage,
     hideSystemTimeRangePicker: true,
   },
 ]

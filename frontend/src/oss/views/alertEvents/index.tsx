@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Modal, Tag as AntdTag, Tooltip, Statistic, Checkbox, Image, Card } from 'antd'
+import { Button, Modal, Tooltip, Statistic, Checkbox, Image, Card } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
@@ -15,8 +15,8 @@ import Tag from 'src/core/components/Tag/Tag'
 import PieChart from './PieChart'
 import CountUp from 'react-countup'
 import filterSvg from 'core/assets/images/filter.svg'
-import ReactJson from 'react-json-view'
 import { useDebounce } from 'react-use'
+import { AlertDeration, ALertIsValid, AlertStatus, AlertTags } from './components/AlertInfoCom'
 import { showToast } from 'src/core/utils/toast'
 function isJSONString(str) {
   try {
@@ -279,45 +279,12 @@ const AlertEventsPage = () => {
       accessor: 'tags',
       justifyContent: 'left',
       Cell: ({ value, row }) => {
-        const [visible, setVisible] = useState(false)
-
-        const { detail } = row.original
-        return (
-          <div className="overflow-hidden">
-            {Object.entries(value || {}).map(([key, tagValue]) => (
-              <AntdTag className="text-pretty mb-1 break-all">
-                {key} = {tagValue}
-              </AntdTag>
-            ))}
-
-            {isJSONString(detail) && (
-              <Button
-                color="primary"
-                variant="text"
-                size="small"
-                onClick={() => setVisible(!visible)}
-              >
-                {visible ? t('collapse') : t('expand')}
-              </Button>
-            )}
-
-            {visible && (
-              <ReactJson
-                src={JSON.parse(detail || '')}
-                theme="brewer"
-                collapsed={false}
-                displayDataTypes={false}
-                style={{ width: '100%' }}
-                enableClipboard={false}
-              />
-            )}
-          </div>
-        )
+        return <AlertTags tags={value} detail={row.original.detail} />
       },
     },
 
     {
-      title: t('lastAlertTime'),
+      title: '首次触发时间',
       accessor: 'updateTime',
       customWidth: 100,
       Cell: ({ value }) => {
@@ -331,21 +298,21 @@ const AlertEventsPage = () => {
       },
     },
     {
+      title: t('duration'),
+      accessor: 'duration',
+      customWidth: 100,
+      Cell: ({ value, row }) => {
+        const updateTime = convertUTCToLocal(row.original.updateTime)
+        return <AlertDeration duration={value} updateTime={updateTime} />
+      },
+    },
+    {
       title: t('status'),
       accessor: 'status',
       customWidth: 120,
       Cell: ({ value, row }) => {
-        const result = convertUTCToLocal(row.original.endTime)
-        return (
-          <div className="text-center">
-            <Tag type={value === 'firing' ? 'error' : 'success'}>{t(value)}</Tag>
-            {value === 'resolved' && (
-              <span className="text-[10px] block text-gray-400">
-                {t('resolvedOn')} {result}
-              </span>
-            )}
-          </div>
-        )
+        const resolvedTime = convertUTCToLocal(row.original.endTime)
+        return <AlertStatus status={value} resolvedTime={resolvedTime} />
       },
     },
     {
@@ -354,24 +321,15 @@ const AlertEventsPage = () => {
       customWidth: 160,
       Cell: (props) => {
         const { value, row } = props
-        return !alertCheckId ? (
-          workflowMissToast('alertCheckId')
-        ) : ['unknown', 'skipped'].includes(value) ||
-          (value === 'failed' && !row.original.workflowRunId) ? (
-          <span className="text-gray-400 text-xs text-wrap [word-break:auto-phrase] text-center">
-            {t(value)}
-          </span>
-        ) : (
-          <Button
-            type="link"
-            className="text-xs text-wrap [word-break:auto-phrase] "
-            size="small"
-            onClick={() => {
-              openResultModal(row.original.workflowRunId)
-            }}
-          >
-            {t(value === 'failed' ? 'failedTo' : value)}
-          </Button>
+        const checkTime = convertUTCToLocal(row.original.lastCheckAt)
+
+        return (
+          <ALertIsValid
+            isValid={value}
+            alertCheckId={alertCheckId}
+            checkTime={checkTime}
+            openResultModal={() => openResultModal(row.original.workflowRunId)}
+          />
         )
       },
     },

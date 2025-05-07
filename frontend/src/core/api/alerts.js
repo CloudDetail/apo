@@ -62,6 +62,25 @@ export const getAlertEventsApi = (params) => {
   return post('/api/alerts/event/list', params)
 }
 
+export const getAlertEventDetailApi = (params) => {
+  return post('/api/alerts/event/detail', params)
+}
+
 export const getAlertWorkflowIdApi = (params) => {
   return get('/api/alerts/events/classify', params)
+}
+
+export const getAlertSlientConfigApi = (params) => {
+  return get('/api/alerts/slient', params)
+}
+
+export const deleteAlertSlientConfigApi = (params) => {
+  return del('/api/alerts/slient', params)
+}
+export const saveAlertSlientConfigApi = (params) => {
+  return post('/api/alerts/slient', params)
+}
+
+export const resolveAlertApi = (params) => {
+  return post('/api/alerts/resolve', params)
 }
