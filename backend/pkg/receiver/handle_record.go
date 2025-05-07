@@ -57,8 +57,13 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx context.Context, record *mod
 		}
 	}
 
-	notifyRecord.Success = strings.Join(success, ";")
-	notifyRecord.Failed = strings.Join(fails, ";")
+	if len(r.receivers) == 0 {
+		// not set receiver
+		notifyRecord.Failed = "no receiver set"
+	} else {
+		notifyRecord.Success = strings.Join(success, ";")
+		notifyRecord.Failed = strings.Join(fails, ";")
+	}
 
 	err := r.ch.CreateAlertNotifyRecord(ctx, *notifyRecord)
 	if err != nil {
