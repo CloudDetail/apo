@@ -2,6 +2,7 @@ package clickhouse
 
 import (
 	"context"
+	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
@@ -16,7 +17,7 @@ func (ch *chRepo) CreateAlertNotifyRecord(ctx context.Context, record model.Aler
 	}
 	if err := batch.Append(
 		record.AlertID,
-		record.CreateAt,
+		time.UnixMicro(record.CreatedAt),
 		record.EventID,
 		record.Success,
 		record.Failed,

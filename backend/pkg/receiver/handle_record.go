@@ -8,8 +8,10 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/prometheus/alertmanager/notify"
+
+	pmodel "github.com/prometheus/common/model"
 )
 
 func (r *InnerReceivers) HandleAlertCheckRecord(ctx context.Context, record *model.WorkflowRecord) error {
@@ -25,22 +27,24 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx context.Context, record *mod
 		return fmt.Errorf("unexpect inputRef, should be alert.AlertEvent, got %T", record.InputRef)
 	}
 
-	if cfgPtr, find := r.slientCFGMap.Load(alert.AlertID); find {
-		if cfg, ok := cfgPtr.(*slienceconfig.AlertSlienceConfig); ok && cfg.IsSlient(alert) {
-			return nil
-		}
+	if _, find := r.slientCFGMap.Load(alert.AlertID); find {
+		return nil
 	}
 
-	alertNotifyRecord := &model.AlertNotifyRecord{
-		AlertID:  alert.AlertID,
-		CreateAt: time.Now().UnixMicro(),
-		EventID:  alert.ID.String(),
+	notifyRecord := &model.AlertNotifyRecord{
+		AlertID:   alert.AlertID,
+		CreatedAt: time.Now().UnixMicro(),
+		EventID:   alert.ID.String(),
 	}
 
 	var fails []string
 	var success []string
 	var errs error
+
+	ctx = notify.WithGroupKey(ctx, "alert_id")
+	ctx = notify.WithGroupLabels(ctx, pmodel.LabelSet{"alert_id": pmodel.LabelValue(alert.AlertID)})
 	for name, integrations := range r.receivers {
+		ctx = notify.WithReceiverName(ctx, name)
 		for _, integration := range integrations {
 			// TODO set timeout and retry
 			_, err := integration.Notify(ctx, alert.ToAMAlert(false))
@@ -53,10 +57,10 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx context.Context, record *mod
 		}
 	}
 
-	alertNotifyRecord.Success = strings.Join(success, ";")
-	alertNotifyRecord.Failed = strings.Join(fails, ";")
+	notifyRecord.Success = strings.Join(success, ";")
+	notifyRecord.Failed = strings.Join(fails, ";")
 
-	err := r.ch.CreateAlertNotifyRecord(ctx, *alertNotifyRecord)
+	err := r.ch.CreateAlertNotifyRecord(ctx, *notifyRecord)
 	if err != nil {
 		errs = errors.Join(errs, err)
 	}

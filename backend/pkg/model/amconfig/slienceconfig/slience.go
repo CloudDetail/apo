@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
-	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
 type AlertSlienceConfig struct {
@@ -23,15 +21,6 @@ type AlertSlienceConfig struct {
 
 func (s AlertSlienceConfig) TableName() string {
 	return "alert_slients"
-}
-
-func (s *AlertSlienceConfig) IsSlient(alert *alert.AlertEvent) bool {
-	if s.AlertID == alert.AlertID &&
-		s.StartAt.Before(alert.UpdateTime) &&
-		s.EndAt.After(alert.UpdateTime) {
-		return true
-	}
-	return false
 }
 
 type TagsStr map[string]string

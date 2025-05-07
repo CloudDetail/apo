@@ -20,9 +20,9 @@ type WorkflowRecord struct {
 }
 
 type AlertNotifyRecord struct {
-	AlertID  string `json:"alertId" ch:"alert_id"`
-	CreateAt int64  `json:"createdAt" ch:"created_at"`
-	EventID  string `json:"eventId" ch:"event_id"`
-	Success  string `json:"success" ch:"success"`
-	Failed   string `json:"failed" ch:"failed"`
+	AlertID   string `json:"alertId" ch:"alert_id"`
+	CreatedAt int64  `json:"createdAt" ch:"created_at"`
+	EventID   string `json:"eventId" ch:"event_id"`
+	Success   string `json:"success" ch:"success"`
+	Failed    string `json:"failed" ch:"failed"`
 }
