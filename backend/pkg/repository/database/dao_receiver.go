@@ -39,7 +39,7 @@ func (repo *daoRepo) GetAMConfigReceiver(filter *request.AMConfigReceiverFilter,
 }
 
 func (repo *daoRepo) AddAMConfigReceiver(receiver amconfig.Receiver) error {
-	if !repo.CheckAMConfigReceiverExist(receiver.Name) {
+	if repo.CheckAMConfigReceiverExist(receiver.Name) {
 		return fmt.Errorf("receiver name has been used: %s", receiver.Name)
 	}
 	return repo.db.Create(receiver).Error
@@ -54,7 +54,7 @@ func (repo *daoRepo) UpdateAMConfigReceiver(receiver amconfig.Receiver, oldName 
 		return fmt.Errorf("receiver not existed: %s", oldName)
 	}
 
-	if !repo.CheckAMConfigReceiverExist(receiver.Name) {
+	if repo.CheckAMConfigReceiverExist(receiver.Name) {
 		return fmt.Errorf("receiver name has been used: %s", receiver.Name)
 	}
 
