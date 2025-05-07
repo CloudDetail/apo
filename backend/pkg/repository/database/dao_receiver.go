@@ -11,7 +11,7 @@ import (
 func (repo *daoRepo) GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int, error) {
 	var count int64
 	var countQuery = repo.db.Model(&amconfig.Receiver{})
-	if filter != nil {
+	if filter != nil && len(filter.Name) > 0 {
 		countQuery.Where("name = ?", filter.Name)
 	}
 	err := countQuery.Count(&count).Error
