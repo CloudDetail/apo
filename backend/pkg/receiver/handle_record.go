@@ -20,13 +20,13 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx context.Context, record *mod
 		return nil
 	}
 
-	alert, ok := record.InputRef.(alert.AlertEvent)
+	alert, ok := record.InputRef.(*alert.AlertEvent)
 	if !ok {
 		return fmt.Errorf("unexpect inputRef, should be alert.AlertEvent, got %T", record.InputRef)
 	}
 
 	if cfgPtr, find := r.slientCFGMap.Load(alert.AlertID); find {
-		if cfg, ok := cfgPtr.(*slienceconfig.AlertSlienceConfig); ok && cfg.IsSlient(&alert) {
+		if cfg, ok := cfgPtr.(*slienceconfig.AlertSlienceConfig); ok && cfg.IsSlient(alert) {
 			return nil
 		}
 	}

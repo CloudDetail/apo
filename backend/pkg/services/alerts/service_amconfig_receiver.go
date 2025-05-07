@@ -21,7 +21,9 @@ func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigRecever
 	}
 
 	receivers, total := s.receivers.GetAMConfigReceiver(req.AMConfigReceiverFilter, req.PageParam)
-
+	if receivers == nil {
+		receivers = make([]amconfig.Receiver, 0)
+	}
 	return response.GetAlertManagerConfigReceiverResponse{
 		AMConfigReceivers: receivers,
 		Pagination: &model.Pagination{
