@@ -273,8 +273,10 @@ func (ch *chRepo) ManualResolveLatestAlertEventByAlertID(alertID string) error {
 		return nil
 	}
 
+	now := time.Now()
 	result.Status = model.StatusResolved.ToString()
-	result.EndTime = time.Now()
+	result.EndTime = now
+	result.ReceivedTime = now
 	result.ID = uuid.New()
 
 	detail := map[string]string{

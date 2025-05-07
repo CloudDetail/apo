@@ -17,7 +17,8 @@ func (s *service) AlertDetail(req *request.GetAlertDetailRequest) (*response.Get
 
 	if req.StartTime <= 0 || req.EndTime <= 0 {
 		req.StartTime = eventDetail.UpdateTime.Add(-2 * time.Hour).UnixMicro()
-		req.EndTime = eventDetail.UpdateTime.Add(15 * time.Minute).UnixMicro()
+		// req.EndTime = eventDetail.UpdateTime.Add(15 * time.Minute).UnixMicro()
+		req.EndTime = time.Now().UnixMicro()
 	}
 
 	s.fillWorkflowParams(eventDetail)
