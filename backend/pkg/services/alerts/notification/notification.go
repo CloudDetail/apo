@@ -19,7 +19,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/pkg/errors"
-	"github.com/prometheus/alertmanager/types"
 )
 
 type DingTalkNotification struct {
@@ -77,33 +76,59 @@ func (b *DingNotificationBuilder) renderText(data interface{}) (string, error) {
 	return b.tmpl.ExecuteTextString(b.textTpl, data)
 }
 
-func (b *DingNotificationBuilder) BuildByAlerts(receiver, status, externalURL string, truncatedAlerts int, alerts ...*types.Alert) (*DingTalkNotification, error) {
-	var input = map[string]any{
-		"receiver":        receiver,
-		"status":          status,
-		"alerts":          alerts,
-		"truncatedAlerts": truncatedAlerts,
-		"ExternalURL":     externalURL,
-	}
+// type Alerts []*types.Alert
 
-	title, err := b.renderTitle(input)
-	if err != nil {
-		return nil, err
-	}
-	content, err := b.renderText(input)
-	if err != nil {
-		return nil, err
-	}
+// func (as Alerts) Firing() []*types.Alert {
+// 	res := []*types.Alert{}
+// 	for _, a := range as {
+// 		if a.Status() == model.AlertFiring {
+// 			res = append(res, a)
+// 		}
+// 	}
+// 	return res
+// }
 
-	notification := &DingTalkNotification{
-		MessageType: "markdown",
-		Markdown: &DingTalkNotificationMarkdown{
-			Title: title,
-			Text:  content,
-		},
-	}
-	return notification, nil
-}
+// // Resolved returns the subset of alerts that are resolved.
+// func (as Alerts) Resolved() []*types.Alert {
+// 	res := []*types.Alert{}
+// 	for _, a := range as {
+// 		if a.Status() == model.AlertResolved {
+// 			res = append(res, a)
+// 		}
+// 	}
+// 	return res
+// }
+
+// type AlertNotification struct {
+// 	Receiver          string     `json:"receiver"`
+// 	Status            string     `json:"status"`
+// 	Alerts            Alerts     `json:"alerts"`
+// 	GroupLabels       request.KV `json:"groupLabels"`
+// 	CommonLabels      request.KV `json:"commonLabels"`
+// 	CommonAnnotations request.KV `json:"commonAnnotations"`
+// 	TruncatedAlerts   int        `json:"truncatedAlerts"`
+// 	ExternalURL       string     `json:"ExternalURL"`
+// }
+
+// func (b *DingNotificationBuilder) BuildByAlerts(input *AlertNotification) (*DingTalkNotification, error) {
+// 	title, err := b.renderTitle(input)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	content, err := b.renderText(input)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	notification := &DingTalkNotification{
+// 		MessageType: "markdown",
+// 		Markdown: &DingTalkNotificationMarkdown{
+// 			Title: title,
+// 			Text:  content,
+// 		},
+// 	}
+// 	return notification, nil
+// }
 
 func (b *DingNotificationBuilder) Build(m *request.ForwardToDingTalkRequest) (*DingTalkNotification, error) {
 	title, err := b.renderTitle(m)
