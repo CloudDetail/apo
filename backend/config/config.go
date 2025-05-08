@@ -102,7 +102,8 @@ type Config struct {
 		Sampling       string `mapstructure:"sampling"`
 	} `mapstructure:"dify"`
 	AlertReceiver struct {
-		Enabled bool `mapstructure:"enabled"`
+		Enabled     bool   `mapstructure:"enabled"`
+		ExternalURL string `mapstructure:"external_url"`
 	} `mapstructure:"alert_receiver"`
 }
 

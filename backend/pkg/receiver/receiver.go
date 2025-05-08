@@ -63,7 +63,7 @@ type InnerReceivers struct {
 
 	receivers map[string][]notify.Integration
 
-	externalURL string
+	externalURL *url.URL
 	logger      *slog.Logger
 
 	// alertID -> slienceconfig.AlertSlienceConfig
@@ -118,7 +118,7 @@ func buildInnerReceivers(ncs []amconfig.Receiver, tmpl *template.Template, logge
 
 	var innerReceivers = &InnerReceivers{
 		receivers:   make(map[string][]notify.Integration),
-		externalURL: "",
+		externalURL: tmpl.ExternalURL,
 		logger:      logger,
 	}
 	for _, nc := range ncs {

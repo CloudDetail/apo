@@ -133,7 +133,7 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 				}
 			}
 		}
-		r.receivers, err = receiver.SetupReceiver("http://example.com", r.logger, r.pkg_db, r.ch)
+		r.receivers, err = receiver.SetupReceiver(config.Get().AlertReceiver.ExternalURL, r.logger, r.pkg_db, r.ch)
 		if err != nil {
 			logger.Fatal("new alertReceiver err", zap.Error(err))
 		}

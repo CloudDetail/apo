@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var validRouters =  []Router{
+var validRouters = []Router{
 	{RouterTo: "/service", HideTimeSelector: false},
 	{RouterTo: "/logs/fault-site", HideTimeSelector: true},
 	{RouterTo: "/logs/full", HideTimeSelector: false},
@@ -28,6 +28,7 @@ var validRouters =  []Router{
 	{RouterTo: "/system/config", HideTimeSelector: true},
 	{RouterTo: "/system/team", HideTimeSelector: true},
 	{RouterTo: "/alerts/events", HideTimeSelector: false},
+	{RouterTo: "/alerts/events/detail", HideTimeSelector: false},
 	{RouterTo: "/workflows", HideTimeSelector: true},
 	{RouterTo: "/system/role-manage", HideTimeSelector: true},
 	{RouterTo: "/service/info", HideTimeSelector: false},

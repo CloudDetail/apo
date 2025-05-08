@@ -1,8 +1,6 @@
 package receiver
 
 import (
-	"net/url"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/prometheus/alertmanager/template"
@@ -13,10 +11,7 @@ func (r *InnerReceivers) updateReceiversInMemory(receivers []amconfig.Receiver) 
 	if err != nil {
 		return err
 	}
-	tmpl.ExternalURL, err = url.Parse(r.externalURL)
-	if err != nil {
-		return err
-	}
+	tmpl.ExternalURL = r.externalURL
 
 	newReceiver, err := buildInnerReceivers(receivers, tmpl, r.logger)
 	if err != nil {

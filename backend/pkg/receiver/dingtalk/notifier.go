@@ -44,7 +44,7 @@ func (n *Notifier) Notify(ctx context.Context, alerts ...*types.Alert) (bool, er
 			CommonLabels:      request.KV{},
 			CommonAnnotations: request.KV{},
 			TruncatedAlerts:   0,
-			ExternalURL:       "",
+			ExternalURL:       n.tmpl.ExternalURL.String(),
 		},
 	)
 	if err != nil {

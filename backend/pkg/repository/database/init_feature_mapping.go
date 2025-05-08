@@ -40,6 +40,7 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 		{"告警规则", "alertsRule"},
 		{"告警通知", "alertsNotify"},
 		{"告警事件", "alertEvents"},
+		{"告警事件详情", "alertEventDetail"},
 		{"数据接入", "dataIntegration"},
 		{"告警接入", "alertsIntegration"},
 		{"工作流", "workflows"},
