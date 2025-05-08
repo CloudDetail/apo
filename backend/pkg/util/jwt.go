@@ -11,7 +11,7 @@ import (
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 var secret = []byte("APO@2024")
@@ -27,7 +27,7 @@ type Claims struct {
 	Username  string `json:"username"`
 	UserID    int64  `json:"userID"`
 	IsRefresh bool   `json:"isRefresh"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 func GenerateTokens(username string, userID int64) (string, string, error) {
@@ -35,9 +35,9 @@ func GenerateTokens(username string, userID int64) (string, string, error) {
 	accessClaims := Claims{
 		Username: username,
 		UserID:   userID,
-		StandardClaims: jwt.StandardClaims{
-			IssuedAt:  issuedAt.Unix(),
-			ExpiresAt: issuedAt.Add(accessExpireTime).Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(issuedAt),
+			ExpiresAt: jwt.NewNumericDate(issuedAt.Add(accessExpireTime)),
 			Issuer:    "apo",
 		},
 	}
@@ -49,9 +49,9 @@ func GenerateTokens(username string, userID int64) (string, string, error) {
 		Username:  username,
 		UserID:    userID,
 		IsRefresh: true,
-		StandardClaims: jwt.StandardClaims{
-			IssuedAt:  issuedAt.Unix(),
-			ExpiresAt: issuedAt.Add(refreshExpireTime).Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(issuedAt),
+			ExpiresAt: jwt.NewNumericDate(issuedAt.Add(refreshExpireTime)),
 			Issuer:    "apo",
 		},
 	}
@@ -75,9 +75,9 @@ func RefreshToken(rawToken string) (string, error) {
 	accessClaims := Claims{
 		Username: claims.Username,
 		UserID:   claims.UserID,
-		StandardClaims: jwt.StandardClaims{
-			IssuedAt:  issuedAt.Unix(),
-			ExpiresAt: issuedAt.Add(accessExpireTime).Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(issuedAt),
+			ExpiresAt: jwt.NewNumericDate(issuedAt.Add(accessExpireTime)),
 			Issuer:    "apo",
 		},
 	}

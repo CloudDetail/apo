@@ -1,0 +1,20 @@
+# .github/codeql/codeql-actions.yml
+name: "CodeQL Go Configuration"
+
+# Specify paths relevant to Go analysis
+paths:
+  - backend/
+
+# Specify patterns to ignore for Go analysis (can be Go-specific or general)
+paths-ignore:
+  - '**/*.txt'
+  - '**/*.json'
+  - '**/*.md'
+  - '**/*.yml'
+  - '**/*.yaml'
+  # Add other Go-specific ignores if needed
+  # - 'backend/testdata/'
+
+# Specify query suites/queries for Go
+queries:
+  - uses: security-extended 
