@@ -41,8 +41,8 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx context.Context, record *mod
 	var success []string
 	var errs error
 
-	ctx = notify.WithGroupKey(ctx, "alert_id")
-	ctx = notify.WithGroupLabels(ctx, pmodel.LabelSet{"alert_id": pmodel.LabelValue(alert.AlertID)})
+	ctx = notify.WithGroupKey(ctx, "alertName")
+	ctx = notify.WithGroupLabels(ctx, pmodel.LabelSet{"alertName": pmodel.LabelValue(alert.Name)})
 	for name, integrations := range r.receivers {
 		ctx = notify.WithReceiverName(ctx, name)
 
@@ -55,7 +55,7 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx context.Context, record *mod
 					break
 				}
 			}
-			
+
 			if err != nil {
 				errs = errors.Join(errs, fmt.Errorf("[%s] send alert failed: %w", name, err))
 				fails = append(fails, fmt.Sprintf("%s:%s", name, integration.Name()))

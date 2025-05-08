@@ -332,7 +332,7 @@ a {
             {{ else }}
             <td class="alert alert-good">
               {{ .Alerts | len }} alert{{ if gt (len .Alerts) 1 }}s{{ end }} for {{ range .GroupLabels.SortedPairs }}
-                {{ .Name }}={{ .Value }} 
+                {{ .Name }}={{ .Value }}
               {{ end }}
             </td>
             {{ end }}
@@ -340,11 +340,6 @@ a {
           <tr>
             <td class="content-wrap">
               <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td class="content-block">
-                    <a href='{{ template "__alertmanagerURL" . }}' class="btn-primary">View in {{ template "__alertmanager" . }}</a>
-                  </td>
-                </tr>
                 {{ if gt (len .Alerts.Firing) 0 }}
                 <tr>
                   <td class="content-block">
@@ -359,7 +354,7 @@ a {
                     {{ range .Labels.SortedPairs }}{{ .Name }} = {{ .Value }}<br />{{ end }}
                     {{ if gt (len .Annotations) 0 }}<strong>Annotations</strong><br />{{ end }}
                     {{ range .Annotations.SortedPairs }}{{ .Name }} = {{ .Value }}<br />{{ end }}
-                    <a href="{{ .GeneratorURL }}">Source</a><br />
+                    <a href="{{ .GeneratorURL }}">View in APO</a><br />
                   </td>
                 </tr>
                 {{ end }}
@@ -387,7 +382,7 @@ a {
                     {{ range .Labels.SortedPairs }}{{ .Name }} = {{ .Value }}<br />{{ end }}
                     {{ if gt (len .Annotations) 0 }}<strong>Annotations</strong><br />{{ end }}
                     {{ range .Annotations.SortedPairs }}{{ .Name }} = {{ .Value }}<br />{{ end }}
-                    <a href="{{ .GeneratorURL }}">Source</a><br />
+                    <a href="{{ .GeneratorURL }}">View in APO</a><br />
                   </td>
                 </tr>
                 {{ end }}
@@ -399,7 +394,7 @@ a {
         <div class="footer">
           <table width="100%">
             <tr>
-              <td class="aligncenter content-block"><a href='{{ .ExternalURL }}'>Sent by {{ template "__alertmanager" . }}</a></td>
+              <td class="aligncenter content-block"><a href='{{ .ExternalURL }}'>Sent by APO</a></td>
             </tr>
           </table>
         </div></div>
