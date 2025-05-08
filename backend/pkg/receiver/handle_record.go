@@ -45,9 +45,17 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx context.Context, record *mod
 	ctx = notify.WithGroupLabels(ctx, pmodel.LabelSet{"alert_id": pmodel.LabelValue(alert.AlertID)})
 	for name, integrations := range r.receivers {
 		ctx = notify.WithReceiverName(ctx, name)
+
 		for _, integration := range integrations {
-			// TODO set timeout and retry
-			_, err := integration.Notify(ctx, alert.ToAMAlert(false))
+			var err error
+			var shouldRetry bool
+			for retry := 3; retry > 0; retry-- {
+				shouldRetry, err = integration.Notify(ctx, alert.ToAMAlert(false))
+				if !shouldRetry {
+					break
+				}
+			}
+			
 			if err != nil {
 				errs = errors.Join(errs, fmt.Errorf("[%s] send alert failed: %w", name, err))
 				fails = append(fails, fmt.Sprintf("%s:%s", name, integration.Name()))

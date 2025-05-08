@@ -44,12 +44,5 @@ func TestBuildNotifyFaction(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.NoError(t, err)
-
-	// TODO mock
-	// 	err = notification.SendNotification(dingTalkNotification, "", "")
-	// 	if err != nil {
-	// 		return true, err
-	// 	}
-	// }
+	// TODO mock send
 }
