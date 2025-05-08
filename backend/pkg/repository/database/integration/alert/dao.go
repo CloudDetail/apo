@@ -4,6 +4,7 @@
 package alert
 
 import (
+	sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 	dbdriver "github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 
 	"github.com/CloudDetail/apo/backend/config"
@@ -49,6 +50,11 @@ type AlertInput interface {
 
 	// Load complate alertEnrichRule
 	LoadAlertEnrichRule() ([]alert.AlertSource, map[alert.SourceFrom][]alert.AlertEnrichRuleVO, error)
+
+	GetAlertSlience() ([]sc.AlertSlienceConfig, error)
+	AddAlertSlience(slience *sc.AlertSlienceConfig) error
+	UpdateAlertSlience(slience *sc.AlertSlienceConfig) error
+	DeleteAlertSlience(id int) error
 }
 
 type subRepo struct {

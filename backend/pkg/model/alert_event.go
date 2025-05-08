@@ -94,7 +94,7 @@ func Str2SeverityLevel(levelText string) SeverityLevel {
 	}
 }
 
-func (s SeverityLevel) toString() string {
+func (s SeverityLevel) ToString() string {
 	switch s {
 	case SeverityLevelUnknown:
 		return "unknown"

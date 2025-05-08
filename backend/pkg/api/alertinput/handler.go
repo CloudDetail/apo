@@ -7,9 +7,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	alertinput "github.com/CloudDetail/apo/backend/pkg/services/integration/alert"
-	"github.com/CloudDetail/apo/backend/pkg/services/integration/workflow"
 	"go.uber.org/zap"
 )
 
@@ -145,9 +145,9 @@ type handler struct {
 	inputService alertinput.Service
 }
 
-func New(logger *zap.Logger, chRepo clickhouse.Repo, promRepo prometheus.Repo, dbRepo database.Repo, alertworkFlow *workflow.AlertWorkflow) Handler {
+func New(logger *zap.Logger, chRepo clickhouse.Repo, promRepo prometheus.Repo, dbRepo database.Repo, difyRepo dify.DifyRepo) Handler {
 	return &handler{
 		logger:       logger,
-		inputService: alertinput.New(promRepo, dbRepo, chRepo, alertworkFlow),
+		inputService: alertinput.New(promRepo, dbRepo, chRepo, difyRepo),
 	}
 }

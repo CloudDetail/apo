@@ -9,7 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/util"
+	"github.com/CloudDetail/apo/backend/pkg/util/jwt"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 func (m *middleware) AuthMiddleware() core.HandlerFunc {
 	return func(c core.Context) {
 		rawToken := c.GetHeader("Authorization")
-		token := util.ParseRawToken(rawToken)
+		token := jwt.ParseRawToken(rawToken)
 
 		if len(token) == 0 {
 			if !config.Get().User.AnonymousUser.Enable {
@@ -55,7 +55,7 @@ func (m *middleware) AuthMiddleware() core.HandlerFunc {
 			return
 		}
 
-		claims, err := util.ParseAccessToken(token)
+		claims, err := jwt.ParseAccessToken(token)
 		if err != nil {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,

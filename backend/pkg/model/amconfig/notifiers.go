@@ -246,6 +246,8 @@ func (c *DiscordConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 type DingTalkConfig struct {
+	NotifierConfig `yaml:",inline" json:",inline"`
+
 	ConfigFile string `json:"-" gorm:"column:config_file;type:varchar(50)"`
 	AlertName  string `json:"-" gorm:"column:alert_name;type:varchar(50)"`
 	UUID       string `json:"-" gorm:"column:uuid;unique;type:varchar(50)"`

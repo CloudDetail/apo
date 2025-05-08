@@ -4,9 +4,10 @@
 package cache
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/util"
 	"sync"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/pkg/util/jwt"
 )
 
 type Repo interface {
@@ -42,7 +43,7 @@ func (c *cache) refreshLoop() {
 
 func (c *cache) refreshCache() {
 	c.blackList.Range(func(token, _ any) bool {
-		if util.IsExpire(token.(string)) {
+		if jwt.IsExpire(token.(string)) {
 			c.blackList.Delete(token)
 		}
 		return true
