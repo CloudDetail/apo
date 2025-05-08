@@ -18,6 +18,7 @@ import filterSvg from 'core/assets/images/filter.svg'
 import { useDebounce } from 'react-use'
 import { AlertDeration, ALertIsValid, AlertStatus, AlertTags } from './components/AlertInfoCom'
 import { showToast } from 'src/core/utils/toast'
+import { useNavigate } from 'react-router-dom'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -155,6 +156,8 @@ const ExtraPanel = ({ firingCounts, invalidCounts, alertCheck }) => {
 
 const AlertEventsPage = () => {
   const { t } = useTranslation('oss/alertEvents')
+  const { t: ct } = useTranslation('common')
+  const navigate = useNavigate()
   const [pagination, setPagination] = useState({
     pageIndex: 1,
     pageSize: 10,
@@ -334,22 +337,38 @@ const AlertEventsPage = () => {
       },
     },
     {
-      title: <>{t('cause')}</>,
-      accessor: 'cause',
-      customWidth: 160,
+      title: ct('operation'),
+      accessor: 'operation',
+      customWidth: 220,
       Cell: (props) => {
-        const { workflowParams, group, name } = props.row.original
+        const { workflowParams, group, name, alertId, id } = props.row.original
         return (
-          <Button
-            type="link"
-            className="text-xs"
-            size="small"
-            onClick={async () => {
-              await openWorkflowModal(workflowParams, group, name)
-            }}
-          >
-            {t('viewWorkflow')}
-          </Button>
+          <div className="flex">
+            <Button
+              color="cyan"
+              variant="filled"
+              className="text-xs"
+              size="small"
+              onClick={async () => {
+                await openWorkflowModal(workflowParams, group, name)
+              }}
+            >
+              {t('cause')}
+            </Button>
+            <Button
+              color="primary"
+              variant="filled"
+              className="text-xs"
+              size="small"
+              onClick={() => {
+                navigate(
+                  `/alerts/events/detail/${encodeURIComponent(alertId)}/${encodeURIComponent(id)}`,
+                )
+              }}
+            >
+              {t('viewDetail')}
+            </Button>
+          </div>
         )
       },
     },

@@ -127,19 +127,22 @@ const Events = ({
       title: t('notifyStatus'),
       accessor: 'notifyAt',
       style: tdStyle,
-      customWidth: 160,
+      customWidth: 200,
       Cell: ({ value, row }) => {
         const { notifyFailed, notifySuccess } = row.original
         const notifyAt = convertUTCToLocal(value)
         return (
           <>
             {notifyFailed ? (
-              t('notifyFailed')
+              <span className="text-[#E84749]">{t('notifyFailed')}</span>
             ) : !notifySuccess ? (
-              t('unNotify')
+              <span className="text-gray-400">{t('unNotify')}</span>
             ) : (
               <>
-                {t('notifyAt')} {notifyAt}
+                <span className="">
+                  {' '}
+                  {t('notifyAt')} {notifyAt}
+                </span>
               </>
             )}
           </>

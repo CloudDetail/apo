@@ -72,9 +72,14 @@ const AlertEventDetailPage = () => {
       document.getElementById(eventId)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [alertEvents])
   const onResolvedAlert = () => {
-    resolveAlertApi({ alertId }).then((res) => {
-      getAlertEvents()
-    })
+    setLoading(true)
+    resolveAlertApi({ alertId })
+      .then((res) => {
+        getAlertEvents()
+      })
+      .catch(() => {
+        setLoading(false)
+      })
   }
   return (
     <Splitter

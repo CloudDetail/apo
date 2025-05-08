@@ -12,6 +12,7 @@
   "alertEvents": "Alert Events",
   "isValid": "Alert Validity",
   "cause": "AI-Driven Root Cause Analysis",
+  "viewDetail": "View Event Details",
   "false": "Invalid",
   "true": "Valid",
   "invalid": "Invalid",

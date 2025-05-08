@@ -12,6 +12,7 @@
   "alertEvents": "告警事件",
   "isValid": "告警有效性",
   "cause": "AI智能根因分析",
+  "viewDetail": "查看事件详情",
   "false": "无效",
   "true": "有效",
   "invalid": "无效",

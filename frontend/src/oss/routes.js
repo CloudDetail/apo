@@ -126,7 +126,7 @@ const ossRoutes = [
     hideSystemTimeRangePicker: true,
   },
   {
-    path: '/alerts/events-detail/:alertId/:eventId',
+    path: '/alerts/events/detail/:alertId/:eventId',
     name: <TranslationCom text="eventDetail" space={namespace} />,
     element: AlertEventDetailPage,
     hideSystemTimeRangePicker: true,

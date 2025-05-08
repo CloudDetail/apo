@@ -34,14 +34,14 @@ const CurrentEventDetail = ({
     {
       key: '3',
       label: t('createTime'),
-      children: convertUTCToLocal(detail?.createTime),
+      children: detail?.createTime && convertUTCToLocal(detail?.createTime),
     },
     {
       key: 'recordTime',
       label: t('recordTime'),
-      children: convertUTCToLocal(
-        detail?.status === 'firing' ? detail?.updateTime : detail?.endTime,
-      ),
+      children:
+        detail?.status &&
+        convertUTCToLocal(detail?.status === 'firing' ? detail?.updateTime : detail?.endTime),
     },
     {
       key: '4',
@@ -66,11 +66,11 @@ const CurrentEventDetail = ({
       key: '5',
       label: t('isValid'),
       span: 2,
-      children: (
+      children: detail && (
         <ALertIsValid
           alertCheckId={alertCheckId}
           isValid={detail?.isValid}
-          checkTime={convertUTCToLocal(detail?.lastCheckAt)}
+          // checkTime={convertUTCToLocal(detail?.lastCheckAt)}
           openResultModal={() => setModalOpen(true)}
         />
       ),
