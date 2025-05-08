@@ -287,8 +287,8 @@ const AlertEventsPage = () => {
     },
 
     {
-      title: '首次触发时间',
-      accessor: 'updateTime',
+      title: t('createTime'),
+      accessor: 'createTime',
       customWidth: 100,
       Cell: ({ value }) => {
         const result = convertUTCToLocal(value)
