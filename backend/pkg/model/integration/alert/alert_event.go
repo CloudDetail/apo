@@ -81,7 +81,7 @@ func (e *AlertEvent) TagsInStr() string {
 	return string(bytes)
 }
 
-func (e *AlertEvent) ToAMAlert(timeout bool) *types.Alert {
+func (e *AlertEvent) ToAMAlert(externalURL string, timeout bool) *types.Alert {
 	var convertLabels = make(model.LabelSet)
 	for k, v := range e.EnrichTags {
 		convertLabels[model.LabelName(k)] = model.LabelValue(v)
@@ -104,7 +104,7 @@ func (e *AlertEvent) ToAMAlert(timeout bool) *types.Alert {
 			Annotations:  convertAnnos,
 			StartsAt:     e.CreateTime,
 			EndsAt:       e.EndTime,
-			GeneratorURL: "", // TODO from static config
+			GeneratorURL: fmt.Sprintf("%s/%s/%s", externalURL, e.AlertID, e.ID.String()),
 		},
 		UpdatedAt: e.UpdateTime,
 		Timeout:   timeout,

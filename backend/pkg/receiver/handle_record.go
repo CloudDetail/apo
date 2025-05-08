@@ -47,10 +47,11 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx context.Context, record *mod
 		ctx = notify.WithReceiverName(ctx, name)
 
 		for _, integration := range integrations {
+			alerts := alert.ToAMAlert(r.externalURL.String(), false)
 			var err error
 			var shouldRetry bool
 			for retry := 3; retry > 0; retry-- {
-				shouldRetry, err = integration.Notify(ctx, alert.ToAMAlert(false))
+				shouldRetry, err = integration.Notify(ctx, alerts)
 				if !shouldRetry {
 					break
 				}
