@@ -36,6 +36,8 @@ type worker struct {
 
 func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results chan<- *model.WorkflowRecord, wg *sync.WaitGroup) {
 	defer wg.Done()
+	timeout := time.NewTimer(3 * time.Second)
+	defer timeout.Stop()
 	for event := range eventInput {
 		endTime := event.UpdateTime.UnixMicro()
 		if w.expiredTS > 0 && endTime < w.expiredTS {
@@ -85,6 +87,18 @@ func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results
 				InputRef: event,
 			}
 		}
-		results <- &record
+		if !timeout.Stop() {
+			select {
+			case <-timeout.C:
+			default:
+			}
+		}
+		timeout.Reset(3 * time.Second)
+		select {
+		case <-timeout.C:
+			w.logger.Error("too many record need to handler, drop")
+			continue
+		case results <- &record:
+		}
 	}
 }
