@@ -5,6 +5,7 @@ package alerts
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
@@ -50,7 +51,7 @@ func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 	if record.Status == alert.StatusResolved {
 		startTime = record.EndTime.Add(-15 * time.Minute)
 		endTime = record.EndTime
-		record.Duration = record.EndTime.Sub(record.CreateTime).Round(time.Minute).String()
+		record.Duration = formatDuration(record.EndTime.Sub(record.CreateTime))
 	} else {
 		if record.Validity != "unknown" && record.Validity != "skipped" {
 			startTime = record.LastCheckAt.Add(-15 * time.Minute)
@@ -58,7 +59,7 @@ func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 			startTime = record.UpdateTime.Add(-15 * time.Minute)
 		}
 		endTime = record.UpdateTime
-		record.Duration = time.Since(record.CreateTime).Round(time.Minute).String()
+		record.Duration = formatDuration(time.Since(record.CreateTime))
 	}
 
 	record.WorkflowParams = alert.WorkflowParams{
@@ -249,4 +250,11 @@ func tryGetAlertServiceByDB(repo prometheus.Repo, event *alert.AlertEvent, start
 	}
 
 	return endpoints, nil
+}
+
+func formatDuration(d time.Duration) string {
+	hour := int(d.Hours())
+	minute := int(d.Minutes()) % 60
+
+	return fmt.Sprintf("%02d:%02d", hour, minute)
 }
