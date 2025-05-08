@@ -21,9 +21,9 @@ type Service interface {
 	RefreshToken(token string) (response.RefreshTokenResponse, error)
 	UpdateUserInfo(req *request.UpdateUserInfoRequest) error
 	UpdateSelfInfo(req *request.UpdateSelfInfoRequest) error
-	UpdateUserPhone(req *request.UpdateUserPhoneRequest) error
+	UpdateUserPhone(ctx core.Context, req *request.UpdateUserPhoneRequest) error
 	UpdateUserEmail(ctx core.Context, req *request.UpdateUserEmailRequest) error
-	UpdateUserPassword(req *request.UpdateUserPasswordRequest) error
+	UpdateUserPassword(ctx core.Context, req *request.UpdateUserPasswordRequest) error
 	GetUserInfo(userID int64) (response.GetUserInfoResponse, error)
 	GetUserList(req *request.GetUserListRequest) (response.GetUserListResponse, error)
 	RemoveUser(userID int64) error

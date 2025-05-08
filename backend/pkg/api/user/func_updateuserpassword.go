@@ -50,7 +50,7 @@ func (h *handler) UpdateUserPassword() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.UpdateUserPassword(req)
+		err := h.userService.UpdateUserPassword(c, req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {

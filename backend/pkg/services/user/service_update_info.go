@@ -45,15 +45,15 @@ func (s *service) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
 	return s.dbRepo.Transaction(context.Background(), updateInfoFunc)
 }
 
-func (s *service) UpdateUserPhone(req *request.UpdateUserPhoneRequest) error {
-	return s.dbRepo.UpdateUserPhone(req.UserID, req.Phone)
+func (s *service) UpdateUserPhone(ctx core.Context, req *request.UpdateUserPhoneRequest) error {
+	return s.dbRepo.UpdateUserPhone(ctx, req.UserID, req.Phone)
 }
 
 func (s *service) UpdateUserEmail(ctx core.Context, req *request.UpdateUserEmailRequest) error {
 	return s.dbRepo.UpdateUserEmail(ctx, req.UserID, req.Email)
 }
 
-func (s *service) UpdateUserPassword(req *request.UpdateUserPasswordRequest) error {
+func (s *service) UpdateUserPassword(coreContext core.Context, req *request.UpdateUserPasswordRequest) error {
 	if err := checkPasswordComplexity(req.NewPassword); err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func (s *service) UpdateUserPassword(req *request.UpdateUserPasswordRequest) err
 	}
 
 	var updatePasswordFunc = func(ctx context.Context) error {
-		return s.dbRepo.UpdateUserPassword(req.UserID, req.OldPassword, req.NewPassword)
+		return s.dbRepo.UpdateUserPassword(coreContext, req.UserID, req.OldPassword, req.NewPassword)
 	}
 
 	var updateDifyPasswordFunc = func(ctx context.Context) error {

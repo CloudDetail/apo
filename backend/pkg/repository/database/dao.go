@@ -46,9 +46,9 @@ type Repo interface {
 
 	Login(username, password string) (*User, error)
 	CreateUser(ctx context.Context, user *User) error
-	UpdateUserPhone(userID int64, phone string) error
+	UpdateUserPhone(ctx core.Context, userID int64, phone string) error
 	UpdateUserEmail(ctx core.Context, userID int64, email string) error
-	UpdateUserPassword(userID int64, oldPassword, newPassword string) error
+	UpdateUserPassword(ctx core.Context, userID int64, oldPassword, newPassword string) error
 	UpdateUserInfo(ctx context.Context, userID int64, phone string, email string, corporation string) error
 	GetUserInfo(userID int64) (User, error)
 	GetAnonymousUser() (User, error)

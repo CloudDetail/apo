@@ -48,7 +48,7 @@ func (h *handler) UpdateUserPhone() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.UpdateUserPhone(req)
+		err := h.userService.UpdateUserPhone(c, req)
 		if err != nil {
 			var vErr model.ErrWithMessage
 			if errors.As(err, &vErr) {

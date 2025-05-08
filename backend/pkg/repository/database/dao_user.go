@@ -180,9 +180,9 @@ func (repo *daoRepo) CreateUser(ctx context.Context, user *User) error {
 	return db.Create(user).Error
 }
 
-func (repo *daoRepo) UpdateUserPhone(userID int64, phone string) error {
+func (repo *daoRepo) UpdateUserPhone(ctx core.Context, userID int64, phone string) error {
 	var user User
-	err := repo.db.Where("user_id = ?", userID).First(&user).Error
+	err := repo.UserByContext(ctx).Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
 	} else if err != nil {
@@ -204,9 +204,9 @@ func (repo *daoRepo) UpdateUserEmail(ctx core.Context, userID int64, email strin
 	return repo.UserByContext(ctx).Updates(&user).Error
 }
 
-func (repo *daoRepo) UpdateUserPassword(userID int64, oldPassword, newPassword string) error {
+func (repo *daoRepo) UpdateUserPassword(ctx core.Context, userID int64, oldPassword, newPassword string) error {
 	var user User
-	err := repo.db.Where("user_id = ?", userID).First(&user).Error
+	err := repo.UserByContext(ctx).Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
 	} else if err != nil {
@@ -234,7 +234,7 @@ func (repo *daoRepo) RestPassword(ctx core.Context, userID int64, newPassword st
 
 func (repo *daoRepo) UpdateUserInfo(ctx context.Context, userID int64, phone string, email string, corporation string) error {
 	var user User
-	err := repo.GetContextDB(ctx).Where("user_id = ?", userID).First(&user).Error
+	err := repo.GetContextDB(ctx).Scopes(RestrictToUser(userID)).Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return model.NewErrWithMessage(errors.New("user does not exist "), code.UserNotExistsError)
 	} else if err != nil {
@@ -244,7 +244,7 @@ func (repo *daoRepo) UpdateUserInfo(ctx context.Context, userID int64, phone str
 	user.Corporation = corporation
 	user.Phone = phone
 	user.Email = email
-	return repo.GetContextDB(ctx).Updates(&user).Error
+	return repo.GetContextDB(ctx).Scopes(RestrictToUser(userID)).Updates(&user).Error
 }
 
 func (repo *daoRepo) GetUserInfo(userID int64) (User, error) {
