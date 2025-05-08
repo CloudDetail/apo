@@ -35,7 +35,7 @@ filterWorkflow AS(
         ELSE 0
       END as importance
 	FROM workflow_records
-    %s AND rounded_time = (SELECT rounded_time FROM targetEvent)
+    %s
 )
 SELECT ae.id as id,
   ae.group as group,
@@ -147,15 +147,16 @@ FROM alert_event ae
 %s AND received_time > (SELECT received_time FROM target_event)`
 
 func (ch *chRepo) GetAlertDetail(req *request.GetAlertDetailRequest, cacheMinutes int) (*alert.AEventWithWRecord, error) {
-	recordFilter := NewQueryBuilder().
-		Equals("ref", req.AlertID)
-
 	alertFilter := NewQueryBuilder().
 		Equals("alert_id", req.AlertID).
 		Equals("toString(id)", req.EventID)
 
 	lastEventFilter := NewQueryBuilder().
 		Equals("alert_id", req.AlertID)
+
+	recordFilter := NewQueryBuilder().
+		Equals("ref", req.AlertID).
+		Equals("input", req.EventID)
 
 	sql := fmt.Sprintf(SQL_GET_ALERT_DETAIL,
 		alertFilter.String(),
