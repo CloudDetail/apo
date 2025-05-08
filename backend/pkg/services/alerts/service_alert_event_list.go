@@ -253,8 +253,21 @@ func tryGetAlertServiceByDB(repo prometheus.Repo, event *alert.AlertEvent, start
 }
 
 func formatDuration(d time.Duration) string {
+	day := 0
 	hour := int(d.Hours())
+
+	if hour > 24 {
+		day = hour / 24
+		hour = hour % 24
+	}
+
 	minute := int(d.Minutes()) % 60
 
-	return fmt.Sprintf("%02d:%02d", hour, minute)
+	if day > 0 {
+		return fmt.Sprintf("%dd %02dh %02dm", day, hour, minute)
+	} else if hour > 0 {
+		return fmt.Sprintf("%dh %02dm", hour, minute)
+	} else {
+		return fmt.Sprintf("%dm", minute)
+	}
 }

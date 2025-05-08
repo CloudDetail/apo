@@ -70,14 +70,14 @@ func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWReco
 		if records[i].AlertEvent.Status == alert.StatusResolved {
 			startTime = records[i].EndTime.Add(-15 * time.Minute)
 			endTime = records[i].EndTime
-			records[i].Duration = record.EndTime.Sub(records[i].CreateTime).Round(time.Minute).String()
+			records[i].Duration = formatDuration(record.EndTime.Sub(records[i].CreateTime))
 		} else {
 			startTime = records[i].UpdateTime.Add(-15 * time.Minute)
 			endTime = records[i].UpdateTime
 
 			duration := records[i].UpdateTime.Sub(records[i].CreateTime)
 			duration += time.Minute
-			records[i].Duration = duration.Round(time.Minute).String()
+			records[i].Duration = formatDuration(duration)
 		}
 		records[i].WorkflowParams = alert.WorkflowParams{
 			StartTime: startTime.UnixMicro(),
