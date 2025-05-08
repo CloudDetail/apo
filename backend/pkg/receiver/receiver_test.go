@@ -21,7 +21,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func TestReceiver(t *testing.T) {
+func TestBuildInnerReceiver(t *testing.T) {
 	zapLog := logger.NewLogger(logger.WithLevel("debug"))
 
 	conf := amconfig.Config{}
@@ -56,6 +56,7 @@ func TestReceiver(t *testing.T) {
 		ctx = notify.WithGroupLabels(ctx, model.LabelSet{"key": "value"})
 		ctx = notify.WithReceiverName(ctx, "apoaa")
 
+		// TODO Mock notify
 		ok, err := integration.Notify(ctx, &types.Alert{
 			Alert: model.Alert{
 				Labels: model.LabelSet{
