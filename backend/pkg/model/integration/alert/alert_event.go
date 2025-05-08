@@ -104,7 +104,7 @@ func (e *AlertEvent) ToAMAlert(externalURL string, timeout bool) *types.Alert {
 			Annotations:  convertAnnos,
 			StartsAt:     e.CreateTime,
 			EndsAt:       e.EndTime,
-			GeneratorURL: fmt.Sprintf("%s/%s/%s", externalURL, e.AlertID, e.ID.String()),
+			GeneratorURL: fmt.Sprintf("%s/detail/%s/%s", externalURL, e.AlertID, e.ID.String()),
 		},
 		UpdatedAt: e.UpdateTime,
 		Timeout:   timeout,
