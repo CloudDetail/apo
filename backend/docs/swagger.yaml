@@ -21,7 +21,15 @@ definitions:
         type: string
       lastCheckAt:
         type: string
+      lastStatus:
+        type: string
       name:
+        type: string
+      notifyAt:
+        type: string
+      notifyFailed:
+        type: string
+      notifySuccess:
         type: string
       output:
         type: string
@@ -2157,6 +2165,11 @@ definitions:
         type: integer
     type: object
   request.LogTableInfoRequest:
+    type: object
+  request.MarkAlertResolvedManuallyRequest:
+    properties:
+      alertId:
+        type: string
     type: object
   request.Operation:
     enum:
@@ -4457,6 +4470,30 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: the received alarm is forwarded to the DingTalk
+      tags:
+      - API.alerts
+  /api/alerts/resolve:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.MarkAlertResolvedManuallyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.alerts
   /api/alerts/rule:

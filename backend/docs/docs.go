@@ -1293,6 +1293,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/resolve": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.MarkAlertResolvedManuallyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/rule": {
             "post": {
                 "description": "update alarm rules",
@@ -8435,7 +8473,19 @@ const docTemplate = `{
                 "lastCheckAt": {
                     "type": "string"
                 },
+                "lastStatus": {
+                    "type": "string"
+                },
                 "name": {
+                    "type": "string"
+                },
+                "notifyAt": {
+                    "type": "string"
+                },
+                "notifyFailed": {
+                    "type": "string"
+                },
+                "notifySuccess": {
                     "type": "string"
                 },
                 "output": {
@@ -11603,6 +11653,14 @@ const docTemplate = `{
         },
         "request.LogTableInfoRequest": {
             "type": "object"
+        },
+        "request.MarkAlertResolvedManuallyRequest": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                }
+            }
         },
         "request.Operation": {
             "type": "string",

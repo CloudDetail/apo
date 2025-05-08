@@ -40,3 +40,7 @@ type AlertEventClassifyRequest struct {
 	AlertName  string `form:"alertName"`
 	AlertGroup string `form:"alertGroup"`
 }
+
+type MarkAlertResolvedManuallyRequest struct {
+	AlertID string `json:"alertId" form:"alertId"`
+}
