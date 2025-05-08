@@ -19,6 +19,7 @@ import { useDebounce } from 'react-use'
 import { AlertDeration, ALertIsValid, AlertStatus, AlertTags } from './components/AlertInfoCom'
 import { showToast } from 'src/core/utils/toast'
 import { useNavigate } from 'react-router-dom'
+import LoadingSpinner from 'src/core/components/Spinner'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -183,9 +184,8 @@ const AlertEventsPage = () => {
     )
   }
   const getAlertEventsRef = useRef<() => void>(() => {})
-
+  const [loading, setLoading] = useState(true)
   const getAlertEvents = () => {
-    // 🔁 每次都清掉旧定时器
     if (timerRef.current) {
       clearTimeout(timerRef.current)
       timerRef.current = null
@@ -220,7 +220,7 @@ const AlertEventsPage = () => {
       setInvalidCounts(res?.counts['firing-invalid'])
       setFiringCounts(res?.counts?.firing)
       setResolvedCounts(res?.counts?.resolved)
-
+      setLoading(false)
       timerRef.current = setTimeout(
         () => {
           getAlertEventsRef.current()
@@ -232,6 +232,8 @@ const AlertEventsPage = () => {
   useDebounce(
     () => {
       if (startTime && endTime) {
+        setLoading(true)
+
         getAlertEvents()
       }
     },
@@ -444,6 +446,7 @@ const AlertEventsPage = () => {
             }}
           />
           <div className="flex-1 overflow-hidden">
+            <LoadingSpinner loading={loading} />
             <BasicTable {...tableProps} />
           </div>
         </Card>

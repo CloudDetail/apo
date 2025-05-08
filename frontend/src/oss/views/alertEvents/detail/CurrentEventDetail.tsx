@@ -54,7 +54,10 @@ const CurrentEventDetail = ({
       label: t('currentStatus'),
       span: 2,
       children: (
-        <AlertStatus status={detail?.status} resolvedTime={convertUTCToLocal(detail?.endTime)} />
+        <AlertStatus
+          status={detail?.status}
+          // resolvedTime={convertUTCToLocal(detail?.endTime)}
+        />
       ),
     },
     {
