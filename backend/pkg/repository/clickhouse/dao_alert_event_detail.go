@@ -59,6 +59,7 @@ SELECT ae.id as id,
   fw.workflow_name as workflow_name,
   fw.importance as importance,
   fw.output as output,
+  fw.created_at as last_check_at,
   le.status as last_status,
   CASE
     WHEN output = 'false' THEN 'true'
@@ -113,7 +114,7 @@ SELECT ae.id as id,
   fw.workflow_run_id as workflow_run_id,
   fw.workflow_id as workflow_id,
   fw.workflow_name as workflow_name,
-  fw.created_at as created_at,
+  fw.created_at as last_check_at,
   fw.importance as importance,
   fw.output as output,
   CASE

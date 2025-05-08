@@ -110,7 +110,7 @@ SELECT
   fw.workflow_id,
   fw.workflow_name,
   fw.importance,
-  fw.created_at,
+  fw.created_at as last_check_at,
   fw.output,
   CASE
     WHEN output = 'false' THEN 'true'
