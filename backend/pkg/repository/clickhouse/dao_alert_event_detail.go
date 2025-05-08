@@ -16,7 +16,7 @@ const SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID = `SELECT * FROM alert_event ae
 %s ORDER BY received_time DESC LIMIT 1`
 
 const SQL_GET_ALERT_DETAIL = `WITH targetEvent AS (
-	SELECT *, %s as rounded_time
+	SELECT *
     FROM alert_event ae
     %s
 	LIMIT 1
@@ -70,12 +70,12 @@ SELECT ae.id as id,
     WHEN fw.importance = 2 THEN 'valid'
   END as validity
 FROM targetEvent ae
-LEFT JOIN filterWorkflow fw ON ae.rounded_time = fw.rounded_time
+LEFT JOIN filterWorkflow fw ON toString(ae.id) = fw.input
 LEFT JOIN latestEvent le ON ae.alert_id = le.alert_id
 LIMIT 1`
 
 const SQL_GET_RELEATED_ALERT_EVENT = `WITH filterEvent AS (
-    SELECT *, %s as rounded_time
+    SELECT *
     FROM alert_event ae
     %s
 ),
@@ -129,7 +129,7 @@ SELECT ae.id as id,
   fn.failed as notify_failed,
   fn.created_at as notify_at
 FROM filterEvent ae
-LEFT JOIN filterWorkflow fw ON ae.rounded_time = fw.rounded_time
+LEFT JOIN filterWorkflow fw ON toString(ae.id) = fw.input
 LEFT JOIN filterNotify fn ON toString(ae.id) = fn.event_id
 %s`
 
@@ -158,7 +158,6 @@ func (ch *chRepo) GetAlertDetail(req *request.GetAlertDetailRequest, cacheMinute
 		Equals("alert_id", req.AlertID)
 
 	sql := fmt.Sprintf(SQL_GET_ALERT_DETAIL,
-		getEventRoundedTime(cacheMinutes),
 		alertFilter.String(),
 		lastEventFilter.String(),
 		recordFilter.String(),
@@ -220,7 +219,6 @@ func (ch *chRepo) GetRelatedAlertEvents(req *request.GetAlertDetailRequest, cach
 		Equals("alert_id", req.AlertID)
 
 	sql := fmt.Sprintf(SQL_GET_RELEATED_ALERT_EVENT,
-		getEventRoundedTime(cacheMinutes),
 		alertEventFilter.String(),
 		recordFilter.String(),
 		notifyFilter.String(),
