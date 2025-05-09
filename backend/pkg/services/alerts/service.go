@@ -4,15 +4,17 @@
 package alerts
 
 import (
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/receiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
-	"github.com/CloudDetail/apo/backend/pkg/services/integration/workflow"
 )
 
 var _ Service = (*service)(nil)
@@ -20,6 +22,7 @@ var _ Service = (*service)(nil)
 type Service interface {
 	// ========================告警检索========================
 	AlertEventList(req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error)
+	AlertDetail(req *request.GetAlertDetailRequest) (*response.GetAlertDetailResponse, error)
 
 	AlertEventClassify(req *request.AlertEventClassifyRequest) (*response.AlertEventClassifyResponse, error)
 
@@ -51,6 +54,13 @@ type Service interface {
 	AddAMConfigReceiver(req *request.AddAlertManagerConfigReceiver) error
 	UpdateAMConfigReceiver(req *request.UpdateAlertManagerConfigReceiver) error
 	DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigReceiverRequest) error
+
+	GetSlienceConfigByAlertID(alertID string) (*slienceconfig.AlertSlienceConfig, error)
+	ListSlienceConfig() ([]slienceconfig.AlertSlienceConfig, error)
+	SetSlienceConfigByAlertID(req *request.SetAlertSlienceConfigRequest) error
+	RemoveSlienceConfigByAlertID(alertID string) error
+
+	ManualResolveLatestAlertEventByAlertID(alertID string) error
 }
 
 type service struct {
@@ -60,16 +70,29 @@ type service struct {
 	dbRepo   database.Repo
 	difyRepo dify.DifyRepo
 
-	alertWorkflow *workflow.AlertWorkflow
+	enableInnerReceiver bool
+	receivers           receiver.Receivers
 }
 
-func New(chRepo clickhouse.Repo, promRepo prometheus.Repo, k8sApi kubernetes.Repo, dbRepo database.Repo, difyRepo dify.DifyRepo, alertWorkflow *workflow.AlertWorkflow) Service {
+func New(
+	chRepo clickhouse.Repo,
+	promRepo prometheus.Repo,
+	k8sApi kubernetes.Repo,
+	dbRepo database.Repo,
+	difyRepo dify.DifyRepo,
+	receivers receiver.Receivers,
+) Service {
+
+	cfg := config.Get().AlertReceiver
+
 	return &service{
-		chRepo:        chRepo,
-		promRepo:      promRepo,
-		k8sApi:        k8sApi,
-		dbRepo:        dbRepo,
-		difyRepo:      difyRepo,
-		alertWorkflow: alertWorkflow,
+		chRepo:   chRepo,
+		promRepo: promRepo,
+		k8sApi:   k8sApi,
+		dbRepo:   dbRepo,
+		difyRepo: difyRepo,
+
+		enableInnerReceiver: cfg.Enabled,
+		receivers:           receivers,
 	}
 }

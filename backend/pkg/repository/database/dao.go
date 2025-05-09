@@ -20,6 +20,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+
+	sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 )
 
 // Define the Database query interface
@@ -138,6 +140,13 @@ type Repo interface {
 	UpdateCustomQuery(customName string, customType string) error
 	GetCustomQuery() ([]QueryServiceType, error)
 	DeleteCustomQuery(customName string) error
+	GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int, error)
+	AddAMConfigReceiver(receiver amconfig.Receiver) error
+	UpdateAMConfigReceiver(receiver amconfig.Receiver, oldName string) error
+	DeleteAMConfigReceiver(name string) error
+
+	CheckAMReceiverCount() int64
+	MigrateAMReceiver(receivers []amconfig.Receiver) ([]amconfig.Receiver, error)
 
 	integration.ObservabilityInputManage
 }
@@ -270,6 +279,8 @@ func migrateTable(db *gorm.DB) error {
 		return err
 	}
 	return db.AutoMigrate(
+		&amconfig.Receiver{},
+		&sc.AlertSlienceConfig{},
 		&amconfig.DingTalkConfig{},
 		&Feature{},
 		&FeatureMapping{},

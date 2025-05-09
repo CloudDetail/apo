@@ -6,7 +6,7 @@ package user
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/util"
+	"github.com/CloudDetail/apo/backend/pkg/util/jwt"
 )
 
 func (s *service) Login(req *request.LoginRequest) (response.LoginResponse, error) {
@@ -14,7 +14,7 @@ func (s *service) Login(req *request.LoginRequest) (response.LoginResponse, erro
 	if err != nil {
 		return response.LoginResponse{}, err
 	}
-	accessToken, refreshToken, err := util.GenerateTokens(user.Username, user.UserID)
+	accessToken, refreshToken, err := jwt.GenerateTokens(user.Username, user.UserID)
 	if err != nil {
 		return response.LoginResponse{}, err
 	}

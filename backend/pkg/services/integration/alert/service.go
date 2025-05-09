@@ -13,8 +13,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
-	"github.com/CloudDetail/apo/backend/pkg/services/integration/workflow"
 )
 
 var _ Service = &service{}
@@ -55,21 +55,20 @@ type service struct {
 	promRepo prometheus.Repo
 	dbRepo   database.Repo
 	ckRepo   clickhouse.Repo
+	difyRepo dify.DifyRepo
 
 	dispatcher         Dispatcher
 	AddAlertSourceLock sync.Mutex
 
 	// sourceType -> []alert.AlertEnrichRuleVO
 	defaultEnrichRules sync.Map
-
-	alertSubmit *workflow.AlertWorkflow
 }
 
 func New(
 	promRepo prometheus.Repo,
 	dbRepo database.Repo,
 	chRepo clickhouse.Repo,
-	alertWorkflow *workflow.AlertWorkflow,
+	difyRepo dify.DifyRepo,
 ) Service {
 	var service = &service{
 		promRepo: promRepo,
@@ -97,6 +96,6 @@ func New(
 		service.dispatcher.AddAlertSource(source, enricher)
 	}
 
-	service.alertSubmit = alertWorkflow
+	service.difyRepo = difyRepo
 	return service
 }

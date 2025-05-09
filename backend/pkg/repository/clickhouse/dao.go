@@ -124,9 +124,18 @@ type Repo interface {
 	AddDetectMutation(mutation model.DetectMutation) error
 	// GetDistinctDetectExecList 获取异常检测规则
 	GetDistinctDetectExecList(req *request.GetDefectDetectRuleListRequest) ([]model.DetectMutation, int64, error)
+	AddWorkflowRecord(ctx context.Context, record *model.WorkflowRecord) error
 	AddWorkflowRecords(ctx context.Context, records []model.WorkflowRecord) error
 	GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error)
 	GetAlertEventCounts(req *request.AlertEventSearchRequest, cacheMinutes int) (map[string]int64, error)
+
+	GetAlertDetail(req *request.GetAlertDetailRequest, cacheMinutes int) (*alert.AEventWithWRecord, error)
+	GetRelatedAlertEvents(req *request.GetAlertDetailRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error)
+
+	CreateAlertNotifyRecord(ctx context.Context, record model.AlertNotifyRecord) error
+	GetLatestAlertEventByAlertID(alertID string) (*alert.AlertEvent, error)
+
+	ManualResolveLatestAlertEventByAlertID(alertID string) error
 
 	integration.Input
 }

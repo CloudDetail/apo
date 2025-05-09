@@ -206,4 +206,10 @@ var enText = map[string]string{
 
 	GetAlertEventListError:     "Failed to get alert event list",
 	GetAlertEventClassifyError: "Failed to classify alert event list",
+
+	GetAlertSlienceError:    "Failed to get AlertSlience",
+	ListAlertSlienceError:   "Failed to list AlertSlience",
+	SetAlertSlienceError:    "Failed to set alertSlience",
+	RemoveAlertSlienceError: "Failed to remove alertSlience",
+	MarkAlertResolvedError:  "Failed to mark alertResourved",
 }

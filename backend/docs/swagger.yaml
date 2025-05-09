@@ -8,6 +8,8 @@ definitions:
         type: string
       detail:
         type: string
+      duration:
+        type: string
       endTime:
         type: string
       group:
@@ -17,7 +19,17 @@ definitions:
       isValid:
         description: 'Deprecated: use [Validity] instead, will remove after 1.7.x'
         type: string
+      lastCheckAt:
+        type: string
+      lastStatus:
+        type: string
       name:
+        type: string
+      notifyAt:
+        type: string
+      notifyFailed:
+        type: string
+      notifySuccess:
         type: string
       output:
         type: string
@@ -343,6 +355,8 @@ definitions:
     properties:
       secret:
         type: string
+      sendResolved:
+        type: boolean
       url:
         type: string
     type: object
@@ -1975,6 +1989,21 @@ definitions:
       truncatedAlerts:
         type: integer
     type: object
+  request.GetAlertDetailRequest:
+    properties:
+      alertId:
+        type: string
+      endTime:
+        type: integer
+      eventId:
+        type: string
+      locateEvent:
+        type: boolean
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+      startTime:
+        type: integer
+    type: object
   request.GetAlertManagerConfigReceverRequest:
     properties:
       amConfigFile:
@@ -2016,33 +2045,10 @@ definitions:
           type: string
         type: array
     type: object
-  request.GetAnomalySpanRequest:
+  request.GetAlertSlienceConfigRequest:
     properties:
-      contentKey:
+      alertId:
         type: string
-      currentPage:
-        type: integer
-      endTime:
-        type: integer
-      isError:
-        type: string
-      isSlow:
-        type: string
-      pageSize:
-        type: integer
-      reason:
-        type: string
-      service:
-        type: string
-      startTime:
-        type: integer
-    required:
-    - contentKey
-    - endTime
-    - service
-    - startTime
-    type: object
-  request.GetCustomRequest:
     type: object
   request.GetDataGroupRequest:
     properties:
@@ -2365,6 +2371,11 @@ definitions:
     type: object
   request.LogTableInfoRequest:
     type: object
+  request.MarkAlertResolvedManuallyRequest:
+    properties:
+      alertId:
+        type: string
+    type: object
   request.Operation:
     enum:
     - EQUAL
@@ -2410,6 +2421,18 @@ definitions:
     x-enum-varnames:
     - PF_Labels
     - PF_Flags
+  request.RemoveAlertSlienceConfigRequest:
+    properties:
+      alertId:
+        type: string
+    type: object
+  request.SetAlertSlienceConfigRequest:
+    properties:
+      alertId:
+        type: string
+      forDuration:
+        type: string
+    type: object
   request.SetSingleTTLRequest:
     properties:
       day:
@@ -2769,6 +2792,23 @@ definitions:
         description: TraceId
         type: string
     type: object
+  response.GetAlertDetailResponse:
+    properties:
+      alertCheckId:
+        type: string
+      alertEventAnalyzeWorkflowId:
+        type: string
+      currentEvent:
+        $ref: '#/definitions/alert.AEventWithWRecord'
+      events:
+        items:
+          $ref: '#/definitions/alert.AEventWithWRecord'
+        type: array
+      locateIndex:
+        type: integer
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+    type: object
   response.GetAlertEventsResponse:
     properties:
       events:
@@ -2818,21 +2858,10 @@ definitions:
       pagination:
         $ref: '#/definitions/model.Pagination'
     type: object
-  response.GetAnomalySpanResponse:
+  response.GetAlertSlienceConfigResponse:
     properties:
-      list:
-        items:
-          $ref: '#/definitions/clickhouse.QueryTraceResult'
-        type: array
-      pagination:
-        $ref: '#/definitions/model.Pagination'
-    type: object
-  response.GetCustomResponse:
-    properties:
-      customs:
-        items:
-          $ref: '#/definitions/response.CustonType'
-        type: array
+      slience:
+        $ref: '#/definitions/slienceconfig.AlertSlienceConfig'
     type: object
   response.GetDataGroupResponse:
     properties:
@@ -3494,6 +3523,13 @@ definitions:
         description: Normal or Warning
         type: string
     type: object
+  response.ListAlertSlienceConfigResponse:
+    properties:
+      sliences:
+        items:
+          $ref: '#/definitions/slienceconfig.AlertSlienceConfig'
+        type: array
+    type: object
   response.LogChartResponse:
     properties:
       count:
@@ -3927,31 +3963,28 @@ definitions:
         description: Value metric average
         type: number
     type: object
-  response.TopologyExternalClientCall:
+  slienceconfig.AlertSlienceConfig:
     properties:
-      childs:
-        items:
-          $ref: '#/definitions/model.TopologyNode'
-        type: array
-      endpoint:
+      alertId:
+        type: string
+      alertName:
+        type: string
+      endAt:
+        type: string
+      for:
         type: string
       group:
         type: string
-      isTraced:
-        type: boolean
-      service:
-        type: string
-      system:
-        type: string
-    type: object
-  response.TopologyNodeLevel:
-    properties:
-      depth:
+      id:
         type: integer
-      endpoint:
+      startAt:
         type: string
-      service:
-        type: string
+      tags:
+        $ref: '#/definitions/slienceconfig.TagsStr'
+    type: object
+  slienceconfig.TagsStr:
+    additionalProperties:
+      type: string
     type: object
 info:
   contact: {}
@@ -4735,351 +4768,28 @@ paths:
       summary: list alarm notification objects
       tags:
       - API.alerts
-  /api/alerts/anomaly-span/list:
+  /api/alerts/event/detail:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: 获取服务和根因类型的故障报告
       parameters:
       - description: 请求信息
         in: body
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/request.GetAnomalySpanRequest'
+          $ref: '#/definitions/request.GetAlertDetailRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.GetAnomalySpanResponse'
+            $ref: '#/definitions/response.GetAlertDetailResponse'
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: 获取服务和根因类型的故障报告
-      tags:
-      - API.alerts
-  /api/alerts/descendant/anormal/contribution:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: 获取下游故障贡献度
-      parameters:
-      - description: 查询开始时间
-        in: query
-        name: startTime
-        required: true
-        type: integer
-      - description: 查询结束时间
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: 查询服务名
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: 查询Endpoint
-        in: query
-        name: endpoint
-        required: true
-        type: string
-      - description: 查询步长(us)
-        in: query
-        name: step
-        required: true
-        type: integer
-      - description: 入口服务名
-        in: query
-        name: entryService
-        type: string
-      - description: 入口Endpoint
-        in: query
-        name: entryEndpoint
-        type: string
-      - description: 排序字段,支持latency和errorRate,多个使用,链接
-        in: query
-        name: sortBy
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.GetDescendantAlertContributationResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: 获取下游故障贡献度
-      tags:
-      - API.alerts
-  /api/alerts/descendant/anormal/delta:
-    post:
-      consumes:
-      - application/json
-      description: 获取下游告警事件
-      parameters:
-      - description: 查询开始时间
-        in: query
-        name: startTime
-        required: true
-        type: integer
-      - description: 查询结束时间
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: 查询步长(us)
-        in: query
-        name: step
-        required: true
-        type: integer
-      - description: 查询服务名
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: 查询Endpoint
-        in: query
-        name: endpoint
-        required: true
-        type: string
-      - description: 异常事件类型过滤
-        in: query
-        name: anormalTypes
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.GetDescendantAnormalEventResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: 获取下游告警事件
-      tags:
-      - API.alerts
-  /api/alerts/descendant/anormal/list:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: 获取下游告警事件
-      parameters:
-      - description: 查询开始时间
-        in: query
-        name: startTime
-        required: true
-        type: integer
-      - description: 查询结束时间
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: 查询服务名
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: 查询Endpoint
-        in: query
-        name: endpoint
-        required: true
-        type: string
-      - description: 入口服务名
-        in: query
-        name: entryService
-        type: string
-      - description: 入口Endpoint
-        in: query
-        name: entryEndpoint
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.GetDescendantAnormalEventResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: 获取下游告警事件
-      tags:
-      - API.alerts
-  /api/alerts/descendant/anormal/trend:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: 获取下游异常变化趋势
-      parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.GetDescendantAnormalTrendRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.GetDescendantDeltaAnormalEventResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: 获取下游异常变化趋势
-      tags:
-      - API.alerts
-  /api/alerts/detect/mutation/add:
-    post:
-      consumes:
-      - application/json
-      description: 执行异常检测
-      parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.DetectMutationRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: 执行异常检测
-      tags:
-      - API.alerts
-  /api/alerts/detect/mutation/exec-list:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: 获取异常检测执行记录
-      parameters:
-      - description: 当前页
-        in: query
-        name: currentPage
-        type: integer
-      - description: 页大小
-        in: query
-        name: pageSize
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.GetDefectDetectExecListResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: 获取异常检测执行记录
-      tags:
-      - API.alerts
-  /api/alerts/detect/mutation/metrics:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: 获取预定义检测表达式
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.GetPredefinedDetectExprResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: 获取预定义检测表达式
-      tags:
-      - API.alerts
-  /api/alerts/detect/mutation/rule-list:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: 获取异常检测规则
-      parameters:
-      - description: 当前页
-        in: query
-        name: currentPage
-        type: integer
-      - description: 页大小
-        in: query
-        name: pageSize
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.GetDefectDetectRuleListResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: 获取异常检测规则
-      tags:
-      - API.alerts
-  /api/alerts/event/impact:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: 获取告警数据的影响面
-      parameters:
-      - description: 查询告警事件ID
-        in: query
-        name: eventId
-        type: string
-      - description: 查询开始时间
-        in: query
-        name: startTime
-        required: true
-        type: integer
-      - description: 查询结束时间
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: 查询步长(us)
-        in: query
-        name: step
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/response.GetServiceEntryEndpointsResponse'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: 获取告警数据的影响面
       tags:
       - API.alerts
   /api/alerts/events/classify:
@@ -5183,6 +4893,30 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: the received alarm is forwarded to the DingTalk
+      tags:
+      - API.alerts
+  /api/alerts/resolve:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.MarkAlertResolvedManuallyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.alerts
   /api/alerts/rule:
@@ -5444,6 +5178,93 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: update basic alarm rules
+      tags:
+      - API.alerts
+  /api/alerts/slient:
+    delete:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.RemoveAlertSlienceConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetAlertSlienceConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAlertSlienceConfigResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SetAlertSlienceConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+  /api/alerts/slient/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ListAlertSlienceConfigResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.alerts
   /api/alertsinput/enrich/tags/list:

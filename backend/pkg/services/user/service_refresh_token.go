@@ -5,11 +5,11 @@ package user
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/util"
+	"github.com/CloudDetail/apo/backend/pkg/util/jwt"
 )
 
 func (s *service) RefreshToken(token string) (response.RefreshTokenResponse, error) {
-	accessToken, err := util.RefreshToken(token)
+	accessToken, err := jwt.RefreshToken(token)
 	var resp response.RefreshTokenResponse
 	if err != nil {
 		return resp, err
