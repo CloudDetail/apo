@@ -70,14 +70,14 @@ export const getAlertWorkflowIdApi = (params) => {
   return get('/api/alerts/events/classify', params)
 }
 
-export const getAlertSlientConfigApi = (params) => {
+export const getAlertSilentConfigApi = (params) => {
   return get('/api/alerts/slient', params)
 }
 
-export const deleteAlertSlientConfigApi = (params) => {
+export const deleteAlertSilentConfigApi = (params) => {
   return del('/api/alerts/slient', params)
 }
-export const saveAlertSlientConfigApi = (params) => {
+export const saveAlertSilentConfigApi = (params) => {
   return post('/api/alerts/slient', params)
 }
 

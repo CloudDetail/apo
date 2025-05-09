@@ -11,9 +11,9 @@ import { useParams } from 'react-router-dom'
 import { getAlertEventDetailApi, resolveAlertApi } from 'src/core/api/alerts'
 import { FaCheck, FaLocationDot } from 'react-icons/fa6'
 import { IoIosNotificationsOff } from 'react-icons/io'
-import SlientAlert from './SlientAlert'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useTranslation } from 'react-i18next'
+import SilentAlert from './SilentAlert'
 const AlertEventDetailPage = () => {
   const { t } = useTranslation('oss/alertEvents')
   const { alertId, eventId } = useParams()
@@ -122,7 +122,7 @@ const AlertEventDetailPage = () => {
                 </Button>
               )}
 
-              <SlientAlert alertId={alertId} />
+              <SilentAlert alertId={alertId} />
               <Button
                 color="primary"
                 variant="filled"

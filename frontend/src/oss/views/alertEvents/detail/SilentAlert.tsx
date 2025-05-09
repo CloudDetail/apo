@@ -7,7 +7,7 @@ import { Button, Popover, Select } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MdNotificationsPaused } from 'react-icons/md'
-import { getAlertSlientConfigApi, saveAlertSlientConfigApi } from 'src/core/api/alerts'
+import { getAlertSilentConfigApi, saveAlertSilentConfigApi } from 'src/core/api/alerts'
 import { convertUTCToLocal } from 'src/core/utils/time'
 const items = [
   {
@@ -47,45 +47,45 @@ const items = [
     value: '12h',
   },
 ]
-const SlientAlert = ({ alertId }: { alertId: string }) => {
+const SilentAlert = ({ alertId }: { alertId?: string | null }) => {
   const { t } = useTranslation('oss/alertEvents')
 
   const [slience, setSlience] = useState(null)
   const [forDuration, setForDuration] = useState(null)
 
-  const getAlertSlientConfig = () => {
-    getAlertSlientConfigApi({ alertId }).then((res) => {
+  const getAlertSilentConfig = () => {
+    getAlertSilentConfigApi({ alertId }).then((res) => {
       setForDuration(res?.slience?.for)
       setSlience(res?.slience)
     })
   }
-  const saveAlertSlientConfig = (forDuration) => {
-    saveAlertSlientConfigApi({ alertId, forDuration }).then((res) => {
-      getAlertSlientConfig()
+  const saveAlertSilentConfig = (forDuration) => {
+    saveAlertSilentConfigApi({ alertId, forDuration }).then((res) => {
+      getAlertSilentConfig()
     })
   }
   useEffect(() => {
-    getAlertSlientConfig()
+    getAlertSilentConfig()
   }, [alertId])
 
   const ConfigCom = useCallback(() => {
     return (
       <>
-        {t('slientFor')}：
+        {t('silentFor')}：
         <Select
           value={forDuration}
           style={{ width: 120 }}
           options={items}
-          onChange={saveAlertSlientConfig}
+          onChange={saveAlertSilentConfig}
         ></Select>
         <div className="text-xs mt-1">
           {slience ? (
             <span className="text-gray-400">
-              {t('slientTimerange')}：{convertUTCToLocal(slience.startAt)} to{' '}
+              {t('silentTimerange')}：{convertUTCToLocal(slience.startAt)} to{' '}
               {convertUTCToLocal(slience.endAt)}
             </span>
           ) : (
-            <span className="text-gray-400">{t('slientNotify')}</span>
+            <span className="text-gray-400">{t('silentNotify')}</span>
           )}
         </div>
       </>
@@ -101,10 +101,10 @@ const SlientAlert = ({ alertId }: { alertId: string }) => {
           classNames={{ icon: 'flex items-center' }}
           icon={<MdNotificationsPaused size={20} />}
         >
-          {forDuration ? t('slient') : t('onSlient')}
+          {forDuration ? t('silent') : t('onSilent')}
         </Button>
       </Popover>
     </>
   )
 }
-export default SlientAlert
+export default SilentAlert

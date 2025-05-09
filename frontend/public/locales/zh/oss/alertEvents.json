@@ -59,9 +59,9 @@
   "notifyFailed": "通知失败",
   "unNotify": "未通知",
   "notifyAt": "通知于",
-  "slientFor": "抑制告警时间",
-  "slientTimerange": "抑制起止时间",
-  "slientNotify": "抑制时间内将不再通知",
-  "slient": "告警抑制中",
-  "onSlient": "抑制后续告警"
+  "silentFor": "抑制告警时间",
+  "silentTimerange": "抑制起止时间",
+  "silentNotify": "抑制时间内将不再通知",
+  "silent": "告警抑制中",
+  "onSilent": "抑制后续告警"
 }

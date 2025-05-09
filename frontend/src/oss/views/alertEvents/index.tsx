@@ -334,6 +334,7 @@ const AlertEventsPage = () => {
             alertCheckId={alertCheckId}
             checkTime={checkTime}
             openResultModal={() => openResultModal(row.original.workflowRunId)}
+            workflowRunId={row.original.workflowRunId}
           />
         )
       },

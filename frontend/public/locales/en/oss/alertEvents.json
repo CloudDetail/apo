@@ -60,9 +60,9 @@
   "notifyFailed": "Notification Failed",
   "unNotify": "Not Notified",
   "notifyAt": "Notified At",
-  "slientFor": "Silence Duration",
-  "slientTimerange": "Silence Time Range",
-  "slientNotify": "No Notifications During Silence",
-  "slient": "Alarm Silenced",
-  "onSlient": "Silence Subsequent Alarms"
+  "silentFor": "Silence Duration",
+  "silentTimerange": "Silence Time Range",
+  "silentNotify": "No Notifications During Silence",
+  "silent": "Alarm Silenced",
+  "onSilent": "Silence Subsequent Alarms"
 }
