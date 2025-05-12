@@ -314,7 +314,7 @@ const AlertEventsPage = () => {
     {
       title: t('status'),
       accessor: 'status',
-      customWidth: 120,
+      customWidth: 100,
       Cell: ({ value, row }) => {
         const resolvedTime = convertUTCToLocal(row.original.endTime)
         return <AlertStatus status={value} resolvedTime={resolvedTime} />
@@ -323,7 +323,7 @@ const AlertEventsPage = () => {
     {
       title: t('isValid'),
       accessor: 'isValid',
-      customWidth: 160,
+      customWidth: 210,
       Cell: (props) => {
         const { value, row } = props
         const checkTime = convertUTCToLocal(row.original.lastCheckAt)
@@ -342,15 +342,15 @@ const AlertEventsPage = () => {
     {
       title: ct('operation'),
       accessor: 'operation',
-      customWidth: 220,
+      customWidth: 230,
       Cell: (props) => {
         const { workflowParams, group, name, alertId, id } = props.row.original
         return (
-          <div className="flex">
+          <div className="flex flex-col">
             <Button
               color="cyan"
               variant="filled"
-              className="text-xs"
+              className="text-xs my-2"
               size="small"
               onClick={async () => {
                 await openWorkflowModal(workflowParams, group, name)

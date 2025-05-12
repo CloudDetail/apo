@@ -21,7 +21,7 @@
   "skipped": "Already resolved, skip analysis.",
   "failed": "Failed validation",
   "failedTo": "Failed validation,click to detail",
-  "viewWorkflow": "View",
+  "viewWorkflow": "AI-Driven Root Cause Analysis",
   "workflowsModal": "Workflows",
   "firing": "Firing",
   "resolved": "Resolved",

@@ -74,7 +74,8 @@ const CurrentEventDetail = ({
           alertCheckId={alertCheckId}
           isValid={detail?.isValid}
           // checkTime={convertUTCToLocal(detail?.lastCheckAt)}
-          openResultModal={() => setModalOpen(true)}
+          openResultModal={() => openResultModal(detail.workflowRunId)}
+          workflowRunId={detail.workflowRunId}
         />
       ),
     },
@@ -88,6 +89,11 @@ const CurrentEventDetail = ({
   async function getWorkflowId(alertGroup, alertName) {
     const res = await getAlertWorkflowIdApi({ alertGroup, alertName })
     return res?.workflowId
+  }
+  function openResultModal(workflowRunId) {
+    let result = '/dify/app/' + alertCheckId + '/logs/' + workflowRunId
+    setWorkflowUrl(result)
+    setModalOpen(true)
   }
   async function openWorkflowModal() {
     const workflowId = await getWorkflowId(detail.group, detail.name)

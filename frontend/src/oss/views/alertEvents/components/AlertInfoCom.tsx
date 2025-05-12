@@ -115,9 +115,11 @@ const ALertIsValid = ({
   alertCheckId,
   checkTime,
   openResultModal,
+  workflowRunId,
 }: {
   isValid: 'unknown' | 'skipped' | 'invalid' | 'valid' | 'failed'
   alertCheckId?: string | null
+  workflowRunId?: string | null
   checkTime?: string | null
   openResultModal: any
 }) => {
