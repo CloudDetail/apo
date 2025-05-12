@@ -28,7 +28,6 @@ var validMenuItemMappings = []struct {
 	{MenuItem: MenuItem{Key: "alertsRule", Order: 27}, RouterKey: "/alerts/rule"},
 	{MenuItem: MenuItem{Key: "alertsNotify", Order: 29}, RouterKey: "/alerts/notify"},
 	{MenuItem: MenuItem{Key: "alertEvents", Order: 31}, RouterKey: "/alerts/events"},
-	{MenuItem: MenuItem{Key: "alertEventDetail", Order: 32}, RouterKey: "/alerts/events/detail/:alertID/:eventID"},
 	{MenuItem: MenuItem{Key: "integration", Order: 33}},
 	{MenuItem: MenuItem{Key: "dataIntegration", Order: 35}, RouterKey: "/integration/data"},
 	{MenuItem: MenuItem{Key: "alertsIntegration", Order: 37}, RouterKey: "/integration/alerts"},
