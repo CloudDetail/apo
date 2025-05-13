@@ -1,6 +1,6 @@
 stages:
 - triggers
-- release
+- buildartifact
 
 variables:
   DOCKER_BUILD_ARGS: ""
@@ -70,22 +70,20 @@ manual_trigger_frontend_arm:
     changes:
     - frontend/**/*
 
-trigger_build:
+trigger_release:
   stage: triggers
   # 触发规则改成外部触发器触发，并接收"TAG"变量
   rules:
   - if: $CI_PIPELINE_SOURCE == "trigger" && $TAG
   trigger:
-    include:
-    - local: backend/.gitlab-ci.yml
+    include: backend/.gitlab-ci.yml
     strategy: depend
 
 build_artifact:
-  stage: release
+  stage: buildartifact
   rules:
   - if: $CI_PIPELINE_SOURCE == "trigger" && $TAG
-    when: always
-  - when: never
+    when: on_success
   script:
   - echo "开始构建版本 $TAG"
   release:
