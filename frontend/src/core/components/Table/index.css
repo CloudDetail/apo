@@ -214,3 +214,15 @@
     color: rgba(204, 204, 220, 0.6);
   }
 }
+
+.no-tr-bottom {
+  .basic-table {
+    tr {
+      border-bottom: none
+    }
+
+    td {
+      border-bottom: 1px solid var(--cui-border-color);
+    }
+  }
+}

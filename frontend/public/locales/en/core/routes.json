@@ -24,5 +24,6 @@
   "dataIntegration": "Data Integration",
   "dataIntegrationSettings": "Cluster Integration",
   "alertEvents": "Alert Events",
-  "workflows": "Workflows"
+  "workflows": "Workflows",
+  "eventDetail": "Alert Event Details"
 }

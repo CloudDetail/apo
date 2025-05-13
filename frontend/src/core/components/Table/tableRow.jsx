@@ -18,11 +18,11 @@ export const commonStyle = (cell) => {
 }
 
 const Td = React.memo(
-  function Td({ cell, value, originalRow, selectedValues, updateSelectedValue }) {
+  function Td({ cell, value, originalRow, selectedValues, updateSelectedValue, style }) {
     return (
       <td
         {...cell.getCellProps({
-          style: commonStyle(cell),
+          style: style ? { ...commonStyle(cell), ...style } : commonStyle(cell),
         })}
       >
         {cell.column.dependsOn
@@ -60,7 +60,6 @@ function TableRow({ row, clickRow, tdPadding }) {
 
   const cellPropsArray = useMemo(() => {
     return row?.cells?.map((cell) => {
-      // 对每个单元格计算依赖值
       const cellValue = cell.column.dependsOn ? selectedValues[cell.column.dependsOn] : undefined
       cell.padding = tdPadding
       return {
@@ -72,6 +71,7 @@ function TableRow({ row, clickRow, tdPadding }) {
           updateSelectedValue(key, value)
         },
         isNested: cell.column.isNested,
+        style: cell.column.style,
       }
     })
   }, [row.cells, selectedValues])
