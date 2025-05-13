@@ -15,7 +15,7 @@ import { DelaySourceTimeUnit } from 'src/constants'
 import { Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import { useTranslation } from 'react-i18next'
 
 function DependentTable(props) {
@@ -203,7 +203,7 @@ function DependentTable(props) {
         `/service/info?service-name=${encodeURIComponent(props.serviceName)}&endpoint=${encodeURIComponent(props.endpoint)}&breadcrumb-name=${encodeURIComponent(props.serviceName)}`,
       )
     } else {
-      showToast({ title: t('dependent.dependentTable.unmonitoredService'), color: 'info' })
+      notify({ message: t('dependent.dependentTable.unmonitoredService'), type: 'info' })
     }
   }
 
@@ -216,7 +216,7 @@ function DependentTable(props) {
     }
   }, [columns, data, startTime, endTime, loading])
 
-  return <>{data && <BasicTable {...tableProps} />}</>
+  return <div className="text-xs">{data && <BasicTable {...tableProps} />}</div>
 }
 
 export default DependentTable

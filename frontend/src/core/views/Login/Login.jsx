@@ -3,21 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useReducer } from 'react'
-import { Button, Input, Form, Flex, Checkbox } from 'antd'
+import React, { useState, useEffect } from 'react'
+import { Button, Input, Form, Flex } from 'antd'
 import { loginApi } from 'core/api/user'
 import { useNavigate } from 'react-router-dom'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
-import { showToast } from 'core/utils/toast'
-import { getUserInfoApi } from 'core/api/user'
 import logo from 'core/assets/brand/logo.svg'
 import { AiOutlineLoading } from 'react-icons/ai'
 import style from './Login.module.css'
-import userReducer, { initialState } from 'src/core/store/reducers/userReducer'
 import { useUserContext } from 'src/core/contexts/UserContext'
 import { useTranslation } from 'react-i18next'
 import { workflowLoginApi } from 'src/core/api/workflows'
 import i18next from 'i18next'
+import { notify } from 'src/core/utils/notify'
 
 export default function Login() {
   const { user, dispatchUser } = useUserContext()
@@ -39,7 +37,7 @@ export default function Login() {
             window.localStorage.setItem('token', accessToken)
             window.localStorage.setItem('refreshToken', refreshToken)
             navigate('/')
-            showToast({ title: t('index.loginSuccess'), color: 'success' })
+            notify({ message: t('index.loginSuccess'), type: 'success' })
             remeberMe
               ? localStorage.setItem('username', values.username)
               : localStorage.removeItem('username')

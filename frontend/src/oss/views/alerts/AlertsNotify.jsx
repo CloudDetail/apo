@@ -3,14 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Input, Popconfirm, Space } from 'antd'
+import { Button, Input, Space } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
-import { RiDeleteBin5Line } from 'react-icons/ri'
 import { deleteAlertNotifyApi, getAlertmanagerListApi } from 'core/api/alerts'
 import LoadingSpinner from 'src/core/components/Spinner'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { showToast } from 'src/core/utils/toast'
-import { MdAdd, MdOutlineEdit } from 'react-icons/md'
+import { notify } from 'src/core/utils/notify'
+import { MdAdd } from 'react-icons/md'
 import ModifyAlertNotifyModal from './modal/ModifyAlertNotifyModal'
 import { useTranslation } from 'react-i18next' // 引入i18n
 import CustomCard from 'src/core/components/Card/CustomCard'
@@ -37,9 +36,9 @@ export default function AlertsNotify() {
             name: row.name,
           },
     ).then((res) => {
-      showToast({
-        title: t('notify.deleteSuccess'),
-        color: 'success',
+      notify({
+        message: t('notify.deleteSuccess'),
+        type: 'success',
       })
       refreshTable()
     })

@@ -17,7 +17,7 @@ import CountUp from 'react-countup'
 import filterSvg from 'core/assets/images/filter.svg'
 import { useDebounce } from 'react-use'
 import { AlertDeration, ALertIsValid, AlertStatus, AlertTags } from './components/AlertInfoCom'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import { useNavigate } from 'react-router-dom'
 import LoadingSpinner from 'src/core/components/Spinner'
 function isJSONString(str) {
@@ -244,9 +244,9 @@ const AlertEventsPage = () => {
   async function openWorkflowModal(workflowParams, group, name) {
     const workflowId = await getWorkflowId(group, name)
     if (!workflowId) {
-      showToast({
-        color: 'danger',
-        title: t('missToast2'),
+      notify({
+        type: 'error',
+        message: t('missToast2'),
       })
       return
     }

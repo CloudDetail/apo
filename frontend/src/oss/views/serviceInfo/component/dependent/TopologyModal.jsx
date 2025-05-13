@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CButton, CCard, CCardBody, CCardHeader } from '@coreui/react'
+import { CCard, CCardBody, CCardHeader } from '@coreui/react'
 import React, { useEffect, useMemo } from 'react'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -12,7 +12,7 @@ import Topology from 'src/core/components/ReactFlow/Topology'
 import { usePropsContext } from 'src/core/contexts/PropsContext'
 import TimelapseLineChart from './TimelapseLineChart'
 import DependentTable from './DependentTable'
-import { Modal } from 'antd'
+import { Button, Modal } from 'antd'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useTranslation } from 'react-i18next'
 
@@ -321,9 +321,14 @@ export default function TopologyModal(props) {
   }, [modalService, modalEndpoint, startTime, endTime])
   return (
     <>
-      <CButton color="primary" variant="ghost" size="sm" className="text-xs" onClick={openModal}>
+      <Button
+        color="primary"
+        variant="filled"
+        className="text-xs w-[100px] flex-wrap whitespace-normal h-full"
+        onClick={openModal}
+      >
         {t('dependent.topologyModal.viewMoreDependencies')}
-      </CButton>
+      </Button>
       {visible && (
         <>
           {/* <div className=" fixed bg-black h-full w-full top-0" style={{ zIndex: 999999 }}>

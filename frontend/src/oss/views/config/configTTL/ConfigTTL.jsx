@@ -4,13 +4,12 @@
  */
 
 import { CCard, CCardHeader } from '@coreui/react'
-import { Button, Collapse, Popconfirm, InputNumber, List, Space, Typography } from 'antd'
+import { Collapse, Popconfirm, InputNumber, Space, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { FaCheck } from 'react-icons/fa'
 import { getTTLApi, setTTLApi } from 'core/api/config'
 import { TableType } from 'src/constants'
 import TTLTable from './TTLTable'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
 import { useTranslation } from 'react-i18next'
 
@@ -76,9 +75,9 @@ function CollapsePanelHeader(props) {
       day: value,
     })
       .then(() => {
-        showToast({
-          title: t('configTTL.updateInfo'),
-          color: 'info',
+        notify({
+          message: t('configTTL.updateInfo'),
+          type: 'info',
         })
       })
       .catch(() => {})

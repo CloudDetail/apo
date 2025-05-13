@@ -5,8 +5,8 @@
 
 // src/toastContext.js
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { CToast, CToastBody, CToastClose, CToastHeader, CToaster } from '@coreui/react'
-import { setAddToastFunction, showToast } from 'src/core/utils/toast'
+import { CToast, CToastBody, CToastClose, CToaster } from '@coreui/react'
+import { setAddToastFunction } from 'src/core/utils/toast'
 import { FaCheck } from 'react-icons/fa'
 import { MdInfoOutline } from 'react-icons/md'
 import { PiWarningBold } from 'react-icons/pi'
@@ -20,7 +20,7 @@ export const ToastProvider = ({ children }) => {
       return [...prevToasts, { message, title, color }]
     })
   }, [])
-  
+
   const removeToast = useCallback(() => {
     setToasts((prevToasts) => prevToasts.slice(1))
   }, [])

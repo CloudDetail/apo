@@ -8,9 +8,9 @@ import { useEffect, useState } from 'react'
 import DatasourceSelector from './DatasourceSelector'
 import { creatDataGroupApi, updateDataGroupApi } from 'src/core/api/dataGroup'
 import { SaveDataGroupParams } from 'src/core/types/dataGroup'
-import { showToast } from 'src/core/utils/toast'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useTranslation } from 'react-i18next'
+import { notify } from 'src/core/utils/notify'
 
 interface InfoModalProps {
   open: boolean
@@ -32,9 +32,9 @@ const InfoModal = ({ open, closeModal, groupInfo, refresh }: InfoModalProps) => 
     }
     api(params)
       .then((res) => {
-        showToast({
-          color: 'success',
-          title: t('saveSuccess'),
+        notify({
+          type: 'success',
+          message: t('saveSuccess'),
         })
         refresh()
       })

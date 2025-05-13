@@ -12,8 +12,9 @@ function IframeDashboard({ dashboardKey, srcProp }) {
   const [src, setSrc] = useState(srcProp)
   const storeTimeRange = useSelector((state) => state.timeRange)
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
-  const menuItems = useSelector((state) => state.userReducer.menuItems);
+  const menuItems = useSelector((state) => state.userReducer.menuItems)
   const iframeRef = useRef(null)
+  const { theme } = useSelector((state) => state.settingReducer)
   // console.log(
   //   location,
   //   baseUrl +
@@ -30,9 +31,9 @@ function IframeDashboard({ dashboardKey, srcProp }) {
     }
   }
 
-  // Update src when srcProp changes 
-  useEffect(() => { 
-    setSrc(srcProp) 
+  // Update src when srcProp changes
+  useEffect(() => {
+    setSrc(srcProp)
   }, [srcProp])
 
   useEffect(() => {
@@ -133,40 +134,36 @@ function IframeDashboard({ dashboardKey, srcProp }) {
 
   useEffect(() => {
     // Find the item in menuItems where key === dashboardKey
-    const dashItem = menuItems.find((item) => item.key === dashboardKey);
+    const dashItem = menuItems.find((item) => item.key === dashboardKey)
     if (!dashItem?.router?.page?.url) {
-      return;
+      return
     }
-    let baseUrl = dashItem.router.page.url;
+    let baseUrl = dashItem.router.page.url
 
     // Append time range parameters
     // If baseUrl already contains '?', it means there are initial query parameters,
     // so use '&' to concatenate additional parameters.
-    let connector = baseUrl.includes('?') ? '&' : '?';
+    let connector = baseUrl.includes('?') ? '&' : '?'
 
     if (storeTimeRange.rangeType) {
       // If rangeType exists, find it in timeRangeList
-      const storeTimeRangeItem = timeRangeList.find(
-        (x) => x.rangeType === storeTimeRange.rangeType
-      );
+      const storeTimeRangeItem = timeRangeList.find((x) => x.rangeType === storeTimeRange.rangeType)
       if (storeTimeRangeItem) {
-        baseUrl += `${connector}from=${storeTimeRangeItem.from}&to=${storeTimeRangeItem.to}`;
+        baseUrl += `${connector}from=${storeTimeRangeItem.from}&to=${storeTimeRangeItem.to}`
       }
     } else {
       // Otherwise, use processedTimeRange
-      baseUrl += `${connector}from=${Math.round(startTime / 1000)}&to=${Math.round(endTime / 1000)}`;
+      baseUrl += `${connector}from=${Math.round(startTime / 1000)}&to=${Math.round(endTime / 1000)}`
     }
-
-    setSrc(baseUrl);
-  }, [dashboardKey, menuItems, storeTimeRange, startTime, endTime]);
-
-
+    baseUrl += `&theme=${theme}`
+    setSrc(baseUrl)
+  }, [dashboardKey, menuItems, storeTimeRange, startTime, endTime, theme])
 
   return (
     <iframe
       id="iframe"
       ref={iframeRef}
-      src={src}
+      src={'http://192.168.1.6:31364/' + src}
       width="100%"
       height="100%"
       frameBorder={0}

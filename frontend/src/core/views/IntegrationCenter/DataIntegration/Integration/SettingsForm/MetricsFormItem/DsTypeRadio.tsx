@@ -3,12 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Divider, Flex, Image, message, Radio } from 'antd'
+import { Divider, Flex, Image, Radio } from 'antd'
 import DatasourceItem from 'src/core/views/IntegrationCenter/components/DatasourceItem'
-import { metricsItems, traceItems } from 'src/core/views/IntegrationCenter/constant'
+import { metricsItems } from 'src/core/views/IntegrationCenter/constant'
 import apo from 'src/core/assets/images/logo.svg'
 import { useTranslation } from 'react-i18next'
-import { showToast } from 'src/core/utils/toast'
 import { useMessageContext } from 'src/core/contexts/MessageContext'
 
 interface DsTypeRadioProps {

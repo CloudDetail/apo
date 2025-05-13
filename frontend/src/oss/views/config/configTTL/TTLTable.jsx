@@ -6,7 +6,7 @@
 import { Form, Input, InputNumber, Table, Typography } from 'antd'
 import React, { useState } from 'react'
 import { setSingleTableTTLApi } from 'core/api/config'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import { useTranslation } from 'react-i18next'
 
 const EditableCell = ({
@@ -66,9 +66,9 @@ export default function TTLTable(props) {
   const confirmSingleTableTTL = () => {
     setSingleTableTTLApi({ name: editingKey, day: form.getFieldValue('originalDays') })
       .then((res) => {
-        showToast({
-          title: t('TTLTable.updateInfo'),
-          color: 'info',
+        notify({
+          message: t('TTLTable.updateInfo'),
+          type: 'info',
         })
       })
       .finally(() => {
@@ -77,7 +77,6 @@ export default function TTLTable(props) {
       })
   }
   const edit = (record) => {
-    console.log(record)
     form.setFieldsValue({
       name: record.name,
       originalDays: record.originalDays,

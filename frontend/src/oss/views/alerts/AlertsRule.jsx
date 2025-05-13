@@ -9,7 +9,7 @@ import { RiDeleteBin5Line } from 'react-icons/ri'
 import { deleteRuleApi, getAlertRulesApi, getAlertRulesStatusApi } from 'core/api/alerts'
 import LoadingSpinner from 'src/core/components/Spinner'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import { MdAdd, MdOutlineEdit } from 'react-icons/md'
 import ModifyAlertRuleModal from './modal/ModifyAlertRuleModal'
 import Tag from 'src/core/components/Tag/Tag'
@@ -65,9 +65,9 @@ export default function AlertsRule() {
       alert: rule.alert,
     })
       .then((res) => {
-        showToast({
-          title: t('rule.deleteSuccess'),
-          color: 'success',
+        notify({
+          message: t('rule.deleteSuccess'),
+          type: 'success',
         })
         refreshTable()
       })

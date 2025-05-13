@@ -1,0 +1,20 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+[data-coreui-theme='light'] {
+  --body-bg: #f0f1f7;
+  --color-sider: #ffffff;
+  //   --main-color: #1677ff;
+  --main-color: #02706b;
+  --row-hover-bg: #fafafa;
+  --header-bg: #fafafa;
+  --scrollbar-bg: #eaeaea;
+  --menu-selected-text-color: #ffffff;
+  --cui-primary: #02706b;
+  --text-color: #000000;
+  --disabled-color: #d5dce0;
+  --collapse-bg: #ffffff;
+  --active-collapse-bg: var(--ant-color-primary);
+}

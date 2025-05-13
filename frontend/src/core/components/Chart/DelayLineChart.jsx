@@ -8,7 +8,7 @@ import ReactECharts from 'echarts-for-react'
 import { getStep } from 'src/core/utils/step'
 import { convertTime, timeUtils } from 'src/core/utils/time'
 import { DelayLineChartTitleMap, MetricsLineChartColor, YValueMinInterval } from 'src/constants'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 
 export const adjustAlpha = (color, alpha) => {
@@ -23,6 +23,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
   const setStoreTimeRange = (value) => {
     dispatch({ type: 'SET_TIMERANGE', payload: value })
   }
+  const { theme } = useSelector((state) => state.settingReducer)
   const convertYValue = (value) => {
     switch (type) {
       case 'logs':
@@ -237,7 +238,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
       const chartInstance = chartRef.current.getEchartsInstance()
       onChartReady(chartInstance)
     }
-  }, [data])
+  }, [data, theme])
   const onChartReady = (chart) => {
     setTimeout(() => {
       console.log('test', chart)
@@ -273,7 +274,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
   return (
     <ReactECharts
       ref={chartRef}
-      theme="dark"
+      theme={theme}
       option={option}
       style={{ height: '100%', width: '100%' }}
     />
