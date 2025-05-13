@@ -12,7 +12,7 @@ import {
   getLogRuleServiceRouteRuleApi,
   updateLogRuleApi,
 } from 'core/api/logs'
-import { notify, notify } from 'src/core/utils/notify'
+import { notify } from 'src/core/utils/notify'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { getServiceListApi } from 'core/api/service'
 import ParseRuleTabs from './component/ParseRuleTabs'

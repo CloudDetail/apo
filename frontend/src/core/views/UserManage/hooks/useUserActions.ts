@@ -5,7 +5,7 @@
 
 import { useApiParams } from 'src/core/hooks/useApiParams'
 import { useTranslation } from 'react-i18next'
-import { notify, notify } from 'src/core/utils/notify'
+import { notify } from 'src/core/utils/notify'
 import { User } from 'src/core/types/user'
 import * as userApi from 'src/core/api/user'
 import { useRoleActions } from './useRoleActions'
