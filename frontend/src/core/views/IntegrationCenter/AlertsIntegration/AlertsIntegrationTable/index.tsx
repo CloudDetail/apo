@@ -6,14 +6,13 @@
 import { Button, Popconfirm, Table, TableProps, Typography } from 'antd'
 import { datasourceSrc } from '../../constant'
 import { MdOutlineEdit } from 'react-icons/md'
-import Search from 'antd/es/input/Search'
 import { deleteAlertIntegrationApi, getAlertInputSourceListApi } from 'src/core/api/alertInput'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { useAlertIntegrationContext } from 'src/core/contexts/AlertIntegrationContext'
-import { showToast } from 'src/core/utils/toast'
-import { AlertInputBaseInfo, AlertKey, SourceInfo } from 'src/core/types/alertIntegration'
+import { notify } from 'src/core/utils/notify'
+import { AlertInputBaseInfo, AlertKey } from 'src/core/types/alertIntegration'
 import { Trans, useTranslation } from 'react-i18next'
 
 const AlertsIntegrationTable = () => {
@@ -39,9 +38,9 @@ const AlertsIntegrationTable = () => {
   const deleteAlertIntegration = (sourceId: string) => {
     deleteAlertIntegrationApi(sourceId)
       .then((res) => {
-        showToast({
-          title: t('deleteSuccess'),
-          color: 'success',
+        notify({
+          message: t('deleteSuccess'),
+          type: 'success',
         })
       })
       .finally(() => {

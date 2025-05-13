@@ -18,6 +18,8 @@ const settingReducer = (state = initialState, { type, payload, ...rest }) => {
       return { ...state, monacoPromqlConfig: payload }
     case 'setLanguage':
       return { ...state, language: payload }
+    case 'setTheme':
+      return { ...state, theme: payload }
     default:
       return state
   }

@@ -8,7 +8,7 @@ import Title from 'antd/es/typography/Title'
 import Typography from 'antd/es/typography/Typography'
 import { creatAlertInputSourceApi, updateAlertsIntegrationApi } from 'src/core/api/alertInput'
 import { useEffect, useState } from 'react'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import BaseInfoDescriptions from './BaseInfoDescriptions'
 import { useAlertIntegrationContext } from 'src/core/contexts/AlertIntegrationContext'
 import { useSearchParams } from 'react-router-dom'
@@ -36,9 +36,9 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
   const creatAlertsIntegration = (params: AlertInputSourceParams) => {
     creatAlertInputSourceApi(params)
       .then((res) => {
-        showToast({
-          title: t('addSuccess'),
-          color: 'success',
+        notify({
+          message: t('addSuccess'),
+          type: 'success',
         })
         setType('view')
         if (!sourceId) {
@@ -53,9 +53,9 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
   }
   const updateAlertsIntegration = (params: AlertInputSourceParams) => {
     updateAlertsIntegrationApi(params).then((res) => {
-      showToast({
-        title: t('updatedSuccess'),
-        color: 'success',
+      notify({
+        message: t('updatedSuccess'),
+        type: 'success',
       })
       refreshDrawer()
       setType('view')

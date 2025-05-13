@@ -3,25 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import React, { useEffect, useRef, useMemo } from 'react'
 import ReactFlow, {
   ReactFlowProvider,
-  addEdge,
   useNodesState,
   useEdgesState,
   MarkerType,
   useReactFlow,
 } from 'reactflow'
 import { graphlib, layout as dagreLayout } from 'dagre'
-import * as d3 from 'd3'
 import 'reactflow/dist/style.css'
 import ServiceNode from './ServiceNode'
 import { useDispatch, useSelector } from 'react-redux'
 import MoreNode from './MoreNode'
-import { SmartBezierEdge } from '@tisoap/react-flow-smart-edge'
 import 'reactflow/dist/style.css'
 import { AiOutlineRollback } from 'react-icons/ai'
-import { Tooltip } from 'antd'
+import { theme, Tooltip } from 'antd'
 import CustomSelfLoopEdge from './LoopEdges'
 import './index.css'
 import { useTranslation } from 'react-i18next'
@@ -48,6 +45,8 @@ const LayoutFlow = (props) => {
     dispatch({ type: 'setModalData', payload: value })
   }
   const { fitView } = useReactFlow()
+  const { useToken } = theme
+  const { token } = useToken()
   const prepareData = () => {
     const initialNodes = data?.nodes || []
     const initialEdges = []
@@ -56,7 +55,7 @@ const LayoutFlow = (props) => {
         ...edge,
         markerEnd: markerEnd,
         style: {
-          stroke: '#6293FF',
+          stroke: token.colorPrimaryText,
         },
       })
     })
@@ -67,7 +66,7 @@ const LayoutFlow = (props) => {
     strokeWidth: 5,
     width: 25,
     height: 25,
-    color: '#6293ff',
+    color: token.colorPrimaryText,
   }
   const dagreGraph = new graphlib.Graph()
   dagreGraph.setDefaultEdgeLabel(() => ({}))

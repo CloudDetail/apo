@@ -8,9 +8,9 @@ import React, { useEffect, useState } from 'react'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { LuDatabase, LuServer } from 'react-icons/lu'
 import { ImTable2 } from 'react-icons/im'
-import { MdAdd, MdDeleteOutline, MdModeEdit } from 'react-icons/md'
-import { deleteLogOtherTableApi, deleteLogRuleApi } from 'core/api/logs'
-import { showToast } from 'src/core/utils/toast'
+import { MdAdd, MdDeleteOutline } from 'react-icons/md'
+import { deleteLogOtherTableApi } from 'core/api/logs'
+import { notify } from 'src/core/utils/notify'
 import ConfigTableModal from '../../ConfigTableModal'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
@@ -28,9 +28,9 @@ const DataSourceTree = () => {
       instance: table.instanceName,
       tableName: table.tableName,
     }).then((res) => {
-      showToast({
-        title: t('fullLogSider.dataSourceTree.deleteLogSuccessToast'),
-        color: 'success',
+      notify({
+        message: t('fullLogSider.dataSourceTree.deleteLogSuccessToast'),
+        type: 'success',
       })
       getLogTableInfo()
     })

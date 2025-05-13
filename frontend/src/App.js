@@ -8,8 +8,8 @@ import { HashRouter, Route, Routes } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { CSpinner, useColorModes } from '@coreui/react'
-import 'src/core/scss/style.scss'
 import './index.css'
+import 'src/core/scss/style.scss'
 import { promLanguageDefinition } from 'monaco-promql'
 import { getRuleGroupLabelApi } from 'src/core/api/alerts'
 // Containers
@@ -24,7 +24,7 @@ const Login = React.lazy(() => import('./core/views/Login/Login'))
 const App = () => {
   const { isColorModeSet, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
   // const { isColorModeSet, setColorMode } = useColorModes('dark')
-  const storedTheme = useSelector((state) => state.theme)
+  const { theme } = useSelector((state) => state.settingReducer)
   const dispatch = useDispatch()
   const setGroupLabel = (value) => {
     dispatch({ type: 'setGroupLabel', payload: value })
@@ -48,22 +48,15 @@ const App = () => {
       })
   }
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.href.split('?')[1])
-    const theme = urlParams.get('theme') && urlParams.get('theme').match(/^[A-Za-z0-9\s]+/)[0]
-    setColorMode('dark')
+    setColorMode(theme)
+  }, [theme])
+  useEffect(() => {
     if (window.location.hash !== '#/login') {
       getRuleGroupLabels()
     }
-    // if (theme) {
-    //   setColorMode('light')
-    // }
-
-    // if (isColorModeSet()) {
-    //   return
-    // }
     getMonacoPromqlConfig()
-    // setColorMode(storedTheme)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <HashRouter>
       <Suspense

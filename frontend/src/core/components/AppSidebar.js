@@ -10,6 +10,7 @@ import { navIcon } from 'src/_nav'
 import { ConfigProvider, Menu } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useUserContext } from '../contexts/UserContext'
+import { useSelector } from 'react-redux'
 const AppSidebarMenuIcon = (menuItem) => {
   return (
     <div className="appSidebarMenuIcon">
@@ -22,6 +23,8 @@ const AppSidebarMenuIcon = (menuItem) => {
 }
 const AppSidebar = ({ collapsed }) => {
   const { menuItems, user } = useUserContext()
+  const { theme } = useSelector((state) => state.settingReducer)
+
   const location = useLocation()
   const navigate = useNavigate()
   const [selectedKeys, setSelectedKeys] = useState([])
@@ -83,14 +86,16 @@ const AppSidebar = ({ collapsed }) => {
         components: {
           Menu: {
             itemHeight: 55,
-            darkItemBg: '#1d222b',
+            itemBg: 'var(--color-sider)',
+            itemSelectedBg: 'var(--main-color)',
+            itemSelectedColor: 'var(--menu-selected-text-color)',
           },
         },
       }}
     >
       <Menu
         mode="inline"
-        theme="dark"
+        theme={theme}
         inlineCollapsed={collapsed}
         items={menuList}
         onClick={onClick}

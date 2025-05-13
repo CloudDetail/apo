@@ -4,18 +4,18 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react'
-import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import logo from 'src/core/assets/brand/logo.svg'
-import { CContainer, CHeader, CHeaderNav, useColorModes, CImage } from '@coreui/react'
+import { CHeader, CHeaderNav, useColorModes, CImage } from '@coreui/react'
 import { AppBreadcrumb } from './index'
 import routes from 'src/routes'
 import CoachMask from './Mask/CoachMask'
 import DateTimeCombine from './DateTime/DateTimeCombine'
-import { Menu } from 'antd'
 import { commercialNav } from 'src/_nav'
 import UserToolBox from './UserToolBox'
 import { t } from 'i18next'
+import ThemeSwitcher from './ThemeSwitcher'
 
 const AppHeader = ({ type = 'default' }) => {
   const location = useLocation()
@@ -100,6 +100,7 @@ const AppHeader = ({ type = 'default' }) => {
         <CHeaderNav className="pr-4">
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
+          <ThemeSwitcher />
           <UserToolBox />
         </CHeaderNav>
       </div>

@@ -3,36 +3,36 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useApiParams } from 'src/core/hooks/useApiParams';
-import { useTranslation } from 'react-i18next';
-import { showToast } from 'src/core/utils/toast';
-import { User } from 'src/core/types/user';
-import * as userApi from 'src/core/api/user';
-import { useRoleActions } from './useRoleActions';
+import { useApiParams } from 'src/core/hooks/useApiParams'
+import { useTranslation } from 'react-i18next'
+import { notify, notify } from 'src/core/utils/notify'
+import { User } from 'src/core/types/user'
+import * as userApi from 'src/core/api/user'
+import { useRoleActions } from './useRoleActions'
 
 interface UserSearchParams {
-  username?: string;
-  corporation?: string;
-  currentPage: number;
-  pageSize: number;
+  username?: string
+  corporation?: string
+  currentPage: number
+  pageSize: number
 }
 
 interface UpdateUserData {
-  corporation?: string;
-  email?: string;
-  phone?: string;
-  roleId?: number | string;
+  corporation?: string
+  email?: string
+  phone?: string
+  roleId?: number | string
 }
 
 interface PasswordData {
-  newPassword: string;
-  confirmPassword: string;
+  newPassword: string
+  confirmPassword: string
 }
 
 export const useUserActions = () => {
-  const { handleRevokeUserRole } = useRoleActions();
+  const { handleRevokeUserRole } = useRoleActions()
 
-  const { t } = useTranslation('core/userManage');
+  const { t } = useTranslation('core/userManage')
 
   const api = {
     getList: useApiParams(userApi.getUserListApi),
@@ -41,23 +41,23 @@ export const useUserActions = () => {
     updateCorporation: useApiParams(userApi.updateCorporationApi),
     updateEmail: useApiParams(userApi.updateEmailApi),
     updatePhone: useApiParams(userApi.updatePhoneApi),
-    resetPassword: useApiParams(userApi.updatePasswordWithNoOldPwdApi)
-  };
+    resetPassword: useApiParams(userApi.updatePasswordWithNoOldPwdApi),
+  }
 
   const fetchUsers = async (params: UserSearchParams) => {
-    const result = await api.getList.sendRequest(params, { useURLSearchParams: false });
+    const result = await api.getList.sendRequest(params, { useURLSearchParams: false })
     if (result) {
-      const { users, ...pagination } = result;
+      const { users, ...pagination } = result
       return {
         users: users.map((user: User) => ({
           ...user,
-          role: user.roleList?.[0]?.roleName
+          role: user.roleList?.[0]?.roleName,
         })),
-        ...pagination
-      };
+        ...pagination,
+      }
     }
-    return null;
-  };
+    return null
+  }
 
   const removeUserById = async (userId: string | number) => {
     await api.remove.sendRequest(
@@ -65,55 +65,55 @@ export const useUserActions = () => {
       {
         useURLSearchParams: false,
         onSuccess: () => {
-          showToast({ title: t('index.deleteSuccess'), color: 'success' });
-        }
-      }
-    );
-  };
+          notify({ message: t('index.deleteSuccess'), type: 'success' })
+        },
+      },
+    )
+  }
 
   const createNewUser = async (userData: Record<string, any>) => {
     const userDataReady = {
       ...userData,
-      roleList: [userData.roleId]
+      roleList: [userData.roleId],
     }
     await api.create.sendRequest(userDataReady, {
       onSuccess: () => {
-        showToast({ title: t('index.addSuccess'), color: 'success' });
-      }
-    });
-  };
+        notify({ message: t('index.addSuccess'), type: 'success' })
+      },
+    })
+  }
 
   const updateUser = async (user: User, updates: UpdateUserData) => {
-    const { corporation, email, phone, roleId } = updates;
-    const tasks = [];
+    const { corporation, email, phone, roleId } = updates
+    const tasks = []
 
     if (roleId !== user.roleList[0].roleId) {
-      tasks.push(handleRevokeUserRole(user.userId, roleId));
+      tasks.push(handleRevokeUserRole(user.userId, roleId))
     }
 
     if (corporation !== user.corporation) {
-      tasks.push(api.updateCorporation.sendRequest({ userId: user.userId, corporation }));
+      tasks.push(api.updateCorporation.sendRequest({ userId: user.userId, corporation }))
     }
     if (email !== user.email) {
-      tasks.push(api.updateEmail.sendRequest({ username: user.username, email }));
+      tasks.push(api.updateEmail.sendRequest({ username: user.username, email }))
     }
     if (phone !== user.phone) {
-      tasks.push(api.updatePhone.sendRequest({ username: user.username, phone }));
+      tasks.push(api.updatePhone.sendRequest({ username: user.username, phone }))
     }
 
     if (tasks.length > 0) {
-      await Promise.all(tasks);
-      showToast({ title: t('index.updateSuccess'), color: 'success' });
+      await Promise.all(tasks)
+      notify({ message: t('index.updateSuccess'), type: 'success' })
     }
-  };
+  }
 
   const resetPassword = async (userId: string | number, passwordData: PasswordData) => {
     await api.resetPassword.sendRequest({
       userId,
-      ...passwordData
-    });
-    showToast({ title: t('index.updateSuccess'), color: 'success' });
-  };
+      ...passwordData,
+    })
+    notify({ message: t('index.updateSuccess'), type: 'success' })
+  }
 
   return {
     fetchUsers,
@@ -121,5 +121,5 @@ export const useUserActions = () => {
     createNewUser,
     updateUser,
     resetPassword,
-  };
-};
+  }
+}

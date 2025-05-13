@@ -5,14 +5,13 @@
 
 import { Flex, Popover, Button } from 'antd'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
-import { showToast } from 'core/utils/toast'
 import { useNavigate } from 'react-router-dom'
 import { logoutApi, getUserInfoApi } from 'core/api/user'
 import { HiUserCircle } from 'react-icons/hi'
-import { useEffect, useState, useReducer } from 'react'
-import userReducer, { initialState } from '../store/reducers/userReducer'
+import { useEffect } from 'react'
 import { useUserContext } from '../contexts/UserContext'
 import { useTranslation } from 'react-i18next'
+import { notify } from '../utils/notify'
 
 const UserToolBox = () => {
   const { user, dispatch } = useUserContext()
@@ -24,7 +23,7 @@ const UserToolBox = () => {
       <Flex vertical className={'flex items-center w-36 rounded-lg z-50'}>
         <Flex
           vertical
-          className="justify-center items-center w-full h-9 hover:bg-[#292E3B]"
+          className="justify-center items-center w-full h-9"
           onClick={() => navigate('/user')}
         >
           <Flex className="w-2/3 justify-around p-2">
@@ -32,11 +31,7 @@ const UserToolBox = () => {
             <p className="text-md select-none">{t('personalCenter')}</p>
           </Flex>
         </Flex>
-        <Flex
-          vertical
-          className="justify-center items-center w-full h-9 mt-2 hover:bg-[#292E3B]"
-          onClick={logout}
-        >
+        <Flex vertical className="justify-center items-center w-full h-9 mt-2" onClick={logout}>
           <Flex className="w-2/3 justify-around p-2">
             <LogoutOutlined className="text-md" />
             <p className="text-md select-none">{t('logout')}</p>
@@ -63,9 +58,9 @@ const UserToolBox = () => {
         type: 'removeUser',
       })
       navigate('/login')
-      showToast({
-        title: t('logoutSuccess'),
-        color: 'success',
+      notify({
+        message: t('logoutSuccess'),
+        type: 'success',
       })
     } catch (error) {
       console.error(error)
@@ -96,7 +91,7 @@ const UserToolBox = () => {
     <>
       {user?.username !== 'anonymous' ? (
         <Popover content={content}>
-          <div className="relative flex items-center select-none w-auto pl-2 pr-2 rounded-md hover:bg-[#30333C] cursor-pointer">
+          <div className="relative flex items-center select-none w-auto pl-2 pr-2 rounded-md cursor-pointer">
             <div>
               <HiUserCircle className="w-8 h-8" />
             </div>

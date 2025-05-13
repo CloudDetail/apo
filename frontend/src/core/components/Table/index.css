@@ -20,7 +20,8 @@
     flex: 1;
     overflow: hidden;
     margin-top: 5px;
-    color: white
+    color: var(--color-text);
+    background-color: var(--color-table-bg);
   }
 
   .spinner-warp {
@@ -90,7 +91,7 @@
 
 
   tr:hover {
-    background-color: rgb(29, 29, 29);
+    background-color: var(--row-hover-bg);
   }
 
   tr {
@@ -104,7 +105,7 @@
 
     box-sizing: border-box;
     border-bottom: 1px solid var(--cui-border-color);
-    color: white;
+    /* color: white; */
 
     th {
       font-weight: 500;
@@ -114,8 +115,9 @@
       display: flex;
 
       justify-content: center;
-      color: rgb(161 161 170);
+      /* color: rgb(161 161 170); */
       word-break: break-word;
+      background-color: var(--header-bg);
     }
 
     td {

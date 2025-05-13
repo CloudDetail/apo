@@ -1,0 +1,14 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.tabs {
+  height: 100%;
+
+  :global {
+    .ant-tabs-content {
+      height: 100% !important;
+    }
+  }
+}
