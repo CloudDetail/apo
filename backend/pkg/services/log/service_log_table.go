@@ -9,13 +9,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const (
-	defaultParseInfo = ""
-	defaultParseName = "all_logs"
-	defaultRouteRule = `starts_with(string!(."k8s.pod.name"), "apo")`
-	defaultParseRule = `.msg, err = parse_regex(.content, r' \[(?P<level>.*?)\] \[(?P<thread>.*?)\] \[(?P<method>.*?)\(.*?\)\] - (?P<msg>.*)')
+	defaultParseInfo	= ""
+	defaultParseName	= "all_logs"
+	defaultRouteRule	= `starts_with(string!(."k8s.pod.name"), "apo")`
+	defaultParseRule	= `.msg, err = parse_regex(.content, r' \[(?P<level>.*?)\] \[(?P<thread>.*?)\] \[(?P<method>.*?)\(.*?\)\] - (?P<msg>.*)')
 if err == null {
 	.content = encode_json(.msg)
 }
@@ -27,7 +28,7 @@ var defaultRouteRuleMap = map[string]string{
 	"k8s.pod.name": "apo",
 }
 
-func (s *service) InitParseLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error) {
+func (s *service) InitParseLogTable(ctx_core core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
 	sqls, err := s.chRepo.CreateLogTable(req)
 	res := &response.LogTableResponse{Sqls: sqls}
 	if err != nil {
@@ -40,14 +41,14 @@ func (s *service) InitParseLogTable(req *request.LogTableRequest) (*response.Log
 		return res, nil
 	}
 	logtable := &database.LogTableInfo{
-		Cluster:   req.Cluster,
-		DataBase:  req.DataBase,
-		Fields:    string(fieldsJSON),
-		Table:     req.TableName,
-		ParseName: defaultParseName,
-		RouteRule: defaultRouteRule,
-		ParseRule: defaultParseRule,
-		ParseInfo: defaultParseInfo,
+		Cluster:	req.Cluster,
+		DataBase:	req.DataBase,
+		Fields:		string(fieldsJSON),
+		Table:		req.TableName,
+		ParseName:	defaultParseName,
+		RouteRule:	defaultRouteRule,
+		ParseRule:	defaultParseRule,
+		ParseInfo:	defaultParseInfo,
 	}
 	// does not exist to insert logtableinfo
 	err = s.dbRepo.OperateLogTableInfo(logtable, database.QUERY)
@@ -62,7 +63,7 @@ func (s *service) InitParseLogTable(req *request.LogTableRequest) (*response.Log
 	return res, nil
 }
 
-func (s *service) DropLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error) {
+func (s *service) DropLogTable(ctx_core core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
 
 	sqls, err := s.chRepo.DropLogTable(req)
 	res := &response.LogTableResponse{Sqls: sqls}
@@ -71,9 +72,9 @@ func (s *service) DropLogTable(req *request.LogTableRequest) (*response.LogTable
 		return res, nil
 	}
 	logtable := &database.LogTableInfo{
-		Cluster:  req.Cluster,
-		DataBase: req.DataBase,
-		Table:    req.TableName,
+		Cluster:	req.Cluster,
+		DataBase:	req.DataBase,
+		Table:		req.TableName,
 	}
 	err = s.dbRepo.OperateLogTableInfo(logtable, database.DELETE)
 	if err != nil {
@@ -82,12 +83,12 @@ func (s *service) DropLogTable(req *request.LogTableRequest) (*response.LogTable
 	return res, nil
 }
 
-func (s *service) UpdateLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error) {
+func (s *service) UpdateLogTable(ctx_core core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
 	res := &response.LogTableResponse{}
 	logtable := &database.LogTableInfo{
-		Cluster:  req.Cluster,
-		DataBase: req.DataBase,
-		Table:    req.TableName,
+		Cluster:	req.Cluster,
+		DataBase:	req.DataBase,
+		Table:		req.TableName,
 	}
 	err := s.dbRepo.OperateLogTableInfo(logtable, database.QUERY)
 	if err != nil {

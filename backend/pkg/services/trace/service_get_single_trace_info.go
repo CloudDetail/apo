@@ -5,9 +5,10 @@ package trace
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetSingleTraceID(req *request.GetSingleTraceInfoRequest) (string, error) {
+func (s *service) GetSingleTraceID(ctx_core core.Context, req *request.GetSingleTraceInfoRequest) (string, error) {
 	result, err := s.jaegerRepo.GetSingleTrace(req.TraceID)
 	if err != nil {
 		return "", err

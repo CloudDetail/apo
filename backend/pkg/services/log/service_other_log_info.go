@@ -6,9 +6,10 @@ package log
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) OtherTableInfo(req *request.OtherTableInfoRequest) (*response.OtherTableInfoResponse, error) {
+func (s *service) OtherTableInfo(ctx_core core.Context, req *request.OtherTableInfoRequest) (*response.OtherTableInfoResponse, error) {
 	res := &response.OtherTableInfoResponse{}
 	rows, err := s.chRepo.OtherLogTableInfo(req)
 	if err != nil {
@@ -18,8 +19,8 @@ func (s *service) OtherTableInfo(req *request.OtherTableInfoRequest) (*response.
 	columns := make([]response.Column, 0, len(rows))
 	for _, row := range rows {
 		columns = append(columns, response.Column{
-			Name: row["name"].(string),
-			Type: row["type"].(string),
+			Name:	row["name"].(string),
+			Type:	row["type"].(string),
 		})
 	}
 	res.Columns = columns

@@ -8,11 +8,12 @@ import (
 	"regexp"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 var AllowField = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{0,63}$`)
 
-func (repo *subRepo) SearchSchemaTarget(
+func (repo *subRepo) SearchSchemaTarget(ctx_core core.Context,
 	schema string,
 	sourceField string, sourceValue string,
 	targets []alert.AlertEnrichSchemaTarget,
@@ -25,7 +26,7 @@ func (repo *subRepo) SearchSchemaTarget(
 	if !AllowField.MatchString(sourceField) {
 		return nil, fmt.Errorf("invalid source field: %s", sourceField)
 	}
-	
+
 	rows, err := repo.db.Table(schema).Where(fmt.Sprintf("%s = ?", sourceField), sourceValue).Limit(1).Rows()
 	if err != nil {
 		return nil, err

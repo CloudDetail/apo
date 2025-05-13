@@ -8,9 +8,10 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetTTL() (*response.GetTTLResponse, error) {
+func (s *service) GetTTL(ctx_core core.Context,) (*response.GetTTLResponse, error) {
 	tables, err := s.chRepo.GetTables(model.GetAllTables())
 	if err != nil {
 		log.Println("[GetTTL] Error getting tables: ", err)
@@ -18,11 +19,11 @@ func (s *service) GetTTL() (*response.GetTTLResponse, error) {
 	}
 	tableInfo := prepareTTLInfo(tables)
 	result := map[string][]model.ModifyTableTTLMap{
-		"logs":     {},
-		"trace":    {},
-		"k8s":      {},
-		"topology": {},
-		"other":    {},
+		"logs":		{},
+		"trace":	{},
+		"k8s":		{},
+		"topology":	{},
+		"other":	{},
 	}
 	TableToType := model.TableToType()
 
@@ -33,10 +34,10 @@ func (s *service) GetTTL() (*response.GetTTLResponse, error) {
 	}
 
 	return &response.GetTTLResponse{
-		Logs:     result["logs"],
-		Trace:    result["trace"],
-		K8s:      result["k8s"],
-		Other:    result["other"],
-		Topology: result["topology"],
+		Logs:		result["logs"],
+		Trace:		result["trace"],
+		K8s:		result["k8s"],
+		Other:		result["other"],
+		Topology:	result["topology"],
 	}, nil
 }

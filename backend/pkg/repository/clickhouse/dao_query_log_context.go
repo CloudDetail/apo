@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 var keys = []string{"source", "container_id", "pid", "container_name", "host_ip", "host_name", "k8s_namespace_name", "k8s_pod_name"}
@@ -39,7 +40,7 @@ func reverseSlice(s []map[string]any) {
 		s[i], s[j] = s[j], s[i]
 	}
 }
-func (ch *chRepo) QueryLogContext(req *request.LogQueryContextRequest) ([]map[string]any, []map[string]any, error) {
+func (ch *chRepo) QueryLogContext(ctx_core core.Context, req *request.LogQueryContextRequest) ([]map[string]any, []map[string]any, error) {
 	//condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
 	logtime := req.Time / 1000000
 	timefront := fmt.Sprintf("toUnixTimestamp(timestamp) < %d AND  toUnixTimestamp(timestamp) > %d ", logtime, logtime-60)

@@ -3,27 +3,29 @@
 
 package database
 
+import core "github.com/CloudDetail/apo/backend/pkg/core"
+
 type OtherLogTable struct {
-	ID        uint   `gorm:"primaryKey;autoIncrement"`
-	DataBase  string `gorm:"type:varchar(255);column:database"`
-	Table     string `gorm:"type:varchar(255);column:tablename"`
-	Cluster   string `gorm:"type:varchar(255)"`
-	TimeField string `gorm:"type:varchar(255);column:timefield"`
-	LogField  string `gorm:"type:varchar(255);column:logfield"`
-	Instance  string `gorm:"type:varchar(255)"`
+	ID		uint	`gorm:"primaryKey;autoIncrement"`
+	DataBase	string	`gorm:"type:varchar(255);column:database"`
+	Table		string	`gorm:"type:varchar(255);column:tablename"`
+	Cluster		string	`gorm:"type:varchar(255)"`
+	TimeField	string	`gorm:"type:varchar(255);column:timefield"`
+	LogField	string	`gorm:"type:varchar(255);column:logfield"`
+	Instance	string	`gorm:"type:varchar(255)"`
 }
 
 func (OtherLogTable) TableName() string {
 	return "otherlogtable"
 }
 
-func (repo *daoRepo) GetAllOtherLogTable() ([]OtherLogTable, error) {
+func (repo *daoRepo) GetAllOtherLogTable(ctx_core core.Context,) ([]OtherLogTable, error) {
 	var logTableInfo []OtherLogTable
 	err := repo.db.Find(&logTableInfo).Error
 	return logTableInfo, err
 }
 
-func (repo *daoRepo) OperatorOtherLogTable(model *OtherLogTable, op Operator) error {
+func (repo *daoRepo) OperatorOtherLogTable(ctx_core core.Context, model *OtherLogTable, op Operator) error {
 	var err error
 	switch op {
 	case INSERT:

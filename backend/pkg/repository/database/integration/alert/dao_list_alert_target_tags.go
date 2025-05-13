@@ -7,9 +7,10 @@ import (
 	"strings"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (repo *subRepo) ListAlertTargetTags(lang string) ([]alert.TargetTag, error) {
+func (repo *subRepo) ListAlertTargetTags(ctx_core core.Context, lang string) ([]alert.TargetTag, error) {
 	var targetTags []alert.TargetTag
 	err := repo.db.Model(&alert.TargetTag{}).
 		Select("id", "field", getTargetTag(lang), getTargetTagDescribe(lang)).
@@ -19,7 +20,7 @@ func (repo *subRepo) ListAlertTargetTags(lang string) ([]alert.TargetTag, error)
 }
 
 func getTargetTag(lang string) string {
-	if strings.HasPrefix(lang, "en") { // en_US,en
+	if strings.HasPrefix(lang, "en") {	// en_US,en
 		return `tag_name_en AS "tag_name"`
 	}
 	// if strings.HasPrefix(lang, "zh") { // zh_CN,zh
@@ -29,7 +30,7 @@ func getTargetTag(lang string) string {
 }
 
 func getTargetTagDescribe(lang string) string {
-	if strings.HasPrefix(lang, "en") { // en_US,en
+	if strings.HasPrefix(lang, "en") {	// en_US,en
 		return `describe_en AS "describe"`
 	}
 	// if strings.HasPrefix(lang, "zh") { // zh_CN,zh

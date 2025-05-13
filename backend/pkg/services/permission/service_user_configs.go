@@ -9,10 +9,11 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"sort"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 // GetUserConfig Gets menus and routes that users can view.
-func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error) {
+func (s *service) GetUserConfig(ctx_core core.Context, req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error) {
 	var resp response.GetUserConfigResponse
 	featureIDs, err := s.getUserFeatureIDs(req.UserID)
 	if err != nil {

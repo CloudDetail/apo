@@ -7,12 +7,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetGroupSubs(req *request.GetGroupSubsRequest) (response.GetGroupSubsResponse, error) {
+func (s *service) GetGroupSubs(ctx_core core.Context, req *request.GetGroupSubsRequest) (response.GetGroupSubsResponse, error) {
 	var (
-		resp response.GetGroupSubsResponse
-		err  error
+		resp	response.GetGroupSubsResponse
+		err	error
 	)
 
 	switch req.SubjectType {

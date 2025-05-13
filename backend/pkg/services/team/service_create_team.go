@@ -7,18 +7,18 @@ import (
 	"context"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
-func (s *service) CreateTeam(req *request.CreateTeamRequest) error {
+func (s *service) CreateTeam(ctx_core core.Context, req *request.CreateTeamRequest) error {
 	team := database.Team{
-		TeamID:      util.Generator.GenerateID(),
-		TeamName:    req.TeamName,
-		Description: req.Description,
+		TeamID:		util.Generator.GenerateID(),
+		TeamName:	req.TeamName,
+		Description:	req.Description,
 	}
 
 	filter := model.TeamFilter{
@@ -71,10 +71,10 @@ func (s *service) CreateTeam(req *request.CreateTeamRequest) error {
 	authDataGroup := make([]database.AuthDataGroup, len(req.DataGroupPermissions))
 	for i, dgPermission := range req.DataGroupPermissions {
 		authDataGroup[i] = database.AuthDataGroup{
-			GroupID:     dgPermission.DataGroupID,
-			SubjectType: model.DATA_GROUP_SUB_TYP_TEAM,
-			SubjectID:   team.TeamID,
-			Type:        dgPermission.PermissionType,
+			GroupID:	dgPermission.DataGroupID,
+			SubjectType:	model.DATA_GROUP_SUB_TYP_TEAM,
+			SubjectID:	team.TeamID,
+			Type:		dgPermission.PermissionType,
 		}
 	}
 

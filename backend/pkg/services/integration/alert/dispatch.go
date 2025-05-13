@@ -10,13 +10,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/decoder"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 type Dispatcher struct {
 	// SourceID -> *AlertSourceEnricher
-	EnricherMap sync.Map
+	EnricherMap	sync.Map
 	// SourceName -> *AlertSourceEnricher
-	SourceName2EnricherMap sync.Map
+	SourceName2EnricherMap	sync.Map
 }
 
 func (d *Dispatcher) DispatchEvents(
@@ -77,7 +78,7 @@ func (d *Dispatcher) AddAlertSource(
 	}
 }
 
-func (d *Dispatcher) DeleteAlertSource(
+func (d *Dispatcher) DeleteAlertSource(ctx_core core.Context,
 	source *alert.AlertSource,
 ) {
 	enricher, loaded := d.EnricherMap.LoadAndDelete(source.SourceID)

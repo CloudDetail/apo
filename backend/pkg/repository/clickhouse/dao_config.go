@@ -10,9 +10,10 @@ import (
 
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTableTTLMap) error {
+func (ch *chRepo) ModifyTableTTL(ctx_core core.Context, ctx context.Context, mapResult []model.ModifyTableTTLMap) error {
 	if len(mapResult) == 0 {
 		return nil
 	}
@@ -44,7 +45,7 @@ func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTa
 	return nil
 }
 
-func (ch *chRepo) GetTables(tables []model.Table) ([]model.TablesQuery, error) {
+func (ch *chRepo) GetTables(ctx_core core.Context, tables []model.Table) ([]model.TablesQuery, error) {
 	result := make([]model.TablesQuery, 0)
 	query := "SELECT name, create_table_query FROM system.tables WHERE database=(SELECT currentDatabase()) AND name NOT LIKE '.%'"
 	var args []interface{}

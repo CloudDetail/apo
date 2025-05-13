@@ -7,9 +7,10 @@ import (
 	"context"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) ConfigureMenu(req *request.ConfigureMenuRequest) error {
+func (s *service) ConfigureMenu(ctx_core core.Context, req *request.ConfigureMenuRequest) error {
 	filter := model.RoleFilter{
 		Names: []string{model.ROLE_ADMIN, model.ROLE_VIEWER, model.ROLE_MANAGER},
 	}

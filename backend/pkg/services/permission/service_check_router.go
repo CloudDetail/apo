@@ -7,9 +7,10 @@ import (
 	"strings"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) CheckRouterPermission(userID int64, routerTo string) (bool, error) {
+func (s *service) CheckRouterPermission(ctx_core core.Context, userID int64, routerTo string) (bool, error) {
 	features, err := s.getUserFeatureIDs(userID)
 	if err != nil {
 		return false, err

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const groupLogIndexQuery = "SELECT count(*) as count, `%s` as f FROM `%s`.`%s` WHERE %s GROUP BY %s ORDER BY count DESC LIMIT 10"
@@ -35,7 +36,7 @@ func countSQL(baseQuery string, req *request.LogIndexRequest) string {
 	return sql
 }
 
-func (ch *chRepo) GetLogIndex(req *request.LogIndexRequest) (map[string]uint64, uint64, error) {
+func (ch *chRepo) GetLogIndex(ctx_core core.Context, req *request.LogIndexRequest) (map[string]uint64, uint64, error) {
 	groupSQL := groupBySQL(groupLogIndexQuery, req)
 	groupRows, err := ch.queryRowsData(groupSQL)
 	if err != nil {

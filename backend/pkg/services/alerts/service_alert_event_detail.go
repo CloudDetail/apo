@@ -10,9 +10,10 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) AlertDetail(req *request.GetAlertDetailRequest) (*response.GetAlertDetailResponse, error) {
+func (s *service) AlertDetail(ctx_core core.Context, req *request.GetAlertDetailRequest) (*response.GetAlertDetailResponse, error) {
 	eventDetail, err := s.chRepo.GetAlertDetail(req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
@@ -42,12 +43,12 @@ func (s *service) AlertDetail(req *request.GetAlertDetailRequest) (*response.Get
 	s.fillSimilarEventWorkflowParams(releatedEvents)
 
 	return &response.GetAlertDetailResponse{
-		CurrentEvent:                eventDetail,
-		EventList:                   releatedEvents,
-		Pagination:                  req.Pagination,
-		AlertEventAnalyzeWorkflowID: s.difyRepo.GetAlertAnalyzeFlowID(),
-		AlertCheckID:                s.difyRepo.GetAlertCheckFlowID(),
-		LocateIdx:                   localIndex,
+		CurrentEvent:			eventDetail,
+		EventList:			releatedEvents,
+		Pagination:			req.Pagination,
+		AlertEventAnalyzeWorkflowID:	s.difyRepo.GetAlertAnalyzeFlowID(),
+		AlertCheckID:			s.difyRepo.GetAlertCheckFlowID(),
+		LocateIdx:			localIndex,
 	}, nil
 }
 
@@ -83,9 +84,9 @@ func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWReco
 			records[i].Duration = formatDuration(duration)
 		}
 		records[i].WorkflowParams = alert.WorkflowParams{
-			StartTime: startTime.UnixMicro(),
-			EndTime:   endTime.UnixMicro(),
-			NodeName:  records[i].AlertEvent.GetInfraNodeTag(),
+			StartTime:	startTime.UnixMicro(),
+			EndTime:	endTime.UnixMicro(),
+			NodeName:	records[i].AlertEvent.GetInfraNodeTag(),
 		}
 
 		var services, endpoints []string
@@ -99,11 +100,11 @@ func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWReco
 		}
 
 		parmas := alert.AlertAnalyzeWorkflowParams{
-			Node:      records[i].AlertEvent.GetInfraNodeTag(),
-			Namespace: records[i].AlertEvent.GetK8sNamespaceTag(),
-			Pod:       records[i].AlertEvent.GetK8sPodTag(),
-			Pid:       records[i].AlertEvent.GetPidTag(),
-			AlertName: records[i].AlertEvent.Name,
+			Node:		records[i].AlertEvent.GetInfraNodeTag(),
+			Namespace:	records[i].AlertEvent.GetK8sNamespaceTag(),
+			Pod:		records[i].AlertEvent.GetK8sPodTag(),
+			Pid:		records[i].AlertEvent.GetPidTag(),
+			AlertName:	records[i].AlertEvent.Name,
 		}
 
 		if len(services) == 1 {
@@ -120,7 +121,7 @@ func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWReco
 	}
 }
 
-func (s *service) ManualResolveLatestAlertEventByAlertID(alertID string) error {
+func (s *service) ManualResolveLatestAlertEventByAlertID(ctx_core core.Context, alertID string) error {
 	// TODO valid alertID
 	return s.chRepo.ManualResolveLatestAlertEventByAlertID(alertID)
 }

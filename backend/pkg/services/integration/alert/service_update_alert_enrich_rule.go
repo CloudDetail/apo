@@ -10,9 +10,10 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
 	"github.com/google/uuid"
 	"go.uber.org/multierr"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) UpdateAlertEnrichRule(req *alert.AlertEnrichRuleConfigRequest) error {
+func (s *service) UpdateAlertEnrichRule(ctx_core core.Context, req *alert.AlertEnrichRuleConfigRequest) error {
 	oldEnricherPtr, find := s.dispatcher.EnricherMap.Load(req.SourceId)
 	if !find {
 		return alert.ErrAlertSourceNotExist{}
@@ -82,16 +83,16 @@ func (s *service) UpdateAlertEnrichRule(req *alert.AlertEnrichRuleConfigRequest)
 		newE := newTagEnricher.Enrichers[i].(*enrich.TagEnricher)
 		newConditions = append(newConditions, req.EnrichRuleConfigs[newE.Order].Conditions...)
 		newAlertEnrichRules = append(newAlertEnrichRules, alert.AlertEnrichRule{
-			SourceID:     req.EnrichRuleConfigs[newE.Order].SourceID,
-			RuleOrder:    newE.Order,
-			EnrichRuleID: req.EnrichRuleConfigs[newE.Order].EnrichRuleID,
-			RType:        req.EnrichRuleConfigs[newE.Order].RType,
-			FromField:    req.EnrichRuleConfigs[newE.Order].FromField,
-			FromRegex:    req.EnrichRuleConfigs[newE.Order].FromRegex,
-			TargetTagId:  newE.TargetTagId,
-			CustomTag:    newE.CustomTag,
-			Schema:       newE.Schema,
-			SchemaSource: newE.SchemaSource,
+			SourceID:	req.EnrichRuleConfigs[newE.Order].SourceID,
+			RuleOrder:	newE.Order,
+			EnrichRuleID:	req.EnrichRuleConfigs[newE.Order].EnrichRuleID,
+			RType:		req.EnrichRuleConfigs[newE.Order].RType,
+			FromField:	req.EnrichRuleConfigs[newE.Order].FromField,
+			FromRegex:	req.EnrichRuleConfigs[newE.Order].FromRegex,
+			TargetTagId:	newE.TargetTagId,
+			CustomTag:	newE.CustomTag,
+			Schema:		newE.Schema,
+			SchemaSource:	newE.SchemaSource,
 		})
 		newSchemaTargets = append(newSchemaTargets, req.EnrichRuleConfigs[newE.Order].SchemaTargets...)
 	}
@@ -182,9 +183,9 @@ func (s *service) prepareAlertEnrichRule(
 		}
 
 		storedRules = append(storedRules, alert.AlertEnrichRuleVO{
-			AlertEnrichRule: newRule,
-			Conditions:      conditions,
-			SchemaTargets:   schemaTargets,
+			AlertEnrichRule:	newRule,
+			Conditions:		conditions,
+			SchemaTargets:		schemaTargets,
 		})
 	}
 

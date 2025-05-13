@@ -13,16 +13,17 @@ import (
 	"text/template"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const (
-	k8sTmplFilePattern           = "static/integration-tmpl/kubernetes/*.tmpl"
-	dockerComposeTmplFilePattern = "static/integration-tmpl/dockercompose/*.tmpl"
+	k8sTmplFilePattern		= "static/integration-tmpl/kubernetes/*.tmpl"
+	dockerComposeTmplFilePattern	= "static/integration-tmpl/dockercompose/*.tmpl"
 )
 
 var (
-	k8sTmpl           *template.Template
-	dockerComposeTmpl *template.Template
+	k8sTmpl			*template.Template
+	dockerComposeTmpl	*template.Template
 )
 
 func init() {
@@ -77,7 +78,7 @@ func defaultValue(v any, def any) string {
 	}
 }
 
-func (s *service) GetIntegrationInstallConfigFile(req *integration.GetCInstallRequest) (*integration.GetCInstallConfigResponse, error) {
+func (s *service) GetIntegrationInstallConfigFile(ctx_core core.Context, req *integration.GetCInstallRequest) (*integration.GetCInstallConfigResponse, error) {
 	clusterConfig, err := s.dbRepo.GetIntegrationConfig(req.ClusterID)
 	if err != nil {
 		return nil, err
@@ -106,20 +107,20 @@ func getIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*i
 	}
 
 	return &integration.GetCInstallConfigResponse{
-		FileName: fileName,
-		Content:  buf.Bytes(),
+		FileName:	fileName,
+		Content:	buf.Bytes(),
 	}, err
 }
 
 const (
-	sideCarTraceMode = "sidecar"
-	collectTraceMode = "collect"
-	selfCollectMode  = "self-collector"
+	sideCarTraceMode	= "sidecar"
+	collectTraceMode	= "collect"
+	selfCollectMode		= "self-collector"
 )
 
 var (
-	apoChartVersion         = "1.4"
-	apoComposeDeployVersion = "v1.3.000"
+	apoChartVersion		= "1.4"
+	apoComposeDeployVersion	= "v1.3.000"
 )
 
 func convert2DeployValues(ci *integration.ClusterIntegration) (map[string]any, error) {

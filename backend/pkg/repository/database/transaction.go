@@ -6,9 +6,10 @@ package database
 import (
 	"context"
 	"gorm.io/gorm"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (repo *daoRepo) GetContextDB(ctx context.Context) *gorm.DB {
+func (repo *daoRepo) GetContextDB(ctx_core core.Context, ctx context.Context) *gorm.DB {
 	ctxDB := ctx.Value(repo.transactionCtx)
 
 	if ctxDB != nil {
@@ -21,14 +22,14 @@ func (repo *daoRepo) GetContextDB(ctx context.Context) *gorm.DB {
 	return repo.db.WithContext(ctx)
 }
 
-func (repo *daoRepo) WithTransaction(ctx context.Context, tx *gorm.DB) context.Context {
+func (repo *daoRepo) WithTransaction(ctx_core core.Context, ctx context.Context, tx *gorm.DB) context.Context {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 	return context.WithValue(ctx, repo.transactionCtx, tx)
 }
 
-func (repo *daoRepo) Transaction(ctx context.Context, funcs ...func(txCtx context.Context) error) (err error) {
+func (repo *daoRepo) Transaction(ctx_core core.Context, ctx context.Context, funcs ...func(txCtx context.Context) error) (err error) {
 	tx := repo.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {

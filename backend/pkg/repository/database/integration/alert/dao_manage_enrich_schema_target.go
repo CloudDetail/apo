@@ -3,9 +3,12 @@
 
 package alert
 
-import "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+import (
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+)
 
-func (repo *subRepo) CheckSchemaIsUsed(schema string) ([]string, error) {
+func (repo *subRepo) CheckSchemaIsUsed(ctx_core core.Context, schema string) ([]string, error) {
 	var alertSource = make([]string, 0)
 	if !AllowSchema.MatchString(schema) {
 		return nil, alert.ErrNotAllowSchema{Table: schema}
@@ -34,26 +37,26 @@ func (repo *subRepo) CheckSchemaIsUsed(schema string) ([]string, error) {
 	return alertSource, err
 }
 
-func (repo *subRepo) AddAlertEnrichSchemaTarget(enrichSchemaTarget []alert.AlertEnrichSchemaTarget) error {
+func (repo *subRepo) AddAlertEnrichSchemaTarget(ctx_core core.Context, enrichSchemaTarget []alert.AlertEnrichSchemaTarget) error {
 	if len(enrichSchemaTarget) == 0 {
 		return nil
 	}
 	return repo.db.Create(&enrichSchemaTarget).Error
 }
 
-func (repo *subRepo) GetAlertEnrichSchemaTarget(sourceId string) ([]alert.AlertEnrichSchemaTarget, error) {
+func (repo *subRepo) GetAlertEnrichSchemaTarget(ctx_core core.Context, sourceId string) ([]alert.AlertEnrichSchemaTarget, error) {
 	var enrichSchemaTarget []alert.AlertEnrichSchemaTarget
 	err := repo.db.Find(&enrichSchemaTarget, "source_id = ?", sourceId).Error
 	return enrichSchemaTarget, err
 }
 
-func (repo *subRepo) DeleteAlertEnrichSchemaTarget(ruleIds []string) error {
+func (repo *subRepo) DeleteAlertEnrichSchemaTarget(ctx_core core.Context, ruleIds []string) error {
 	if len(ruleIds) == 0 {
 		return nil
 	}
 	return repo.db.Delete(&alert.AlertEnrichSchemaTarget{}, "enrich_rule_id in ?", ruleIds).Error
 }
 
-func (repo *subRepo) DeleteAlertEnrichSchemaTargetBySourceId(sourceId string) error {
+func (repo *subRepo) DeleteAlertEnrichSchemaTargetBySourceId(ctx_core core.Context, sourceId string) error {
 	return repo.db.Delete(&alert.AlertEnrichSchemaTarget{}, "source_id = ?", sourceId).Error
 }

@@ -12,9 +12,10 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/services/log/vector"
 	"gopkg.in/yaml.v3"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*response.LogParseResponse, error) {
+func (s *service) UpdateLogParseRule(ctx_core core.Context, req *request.UpdateLogParseRequest) (*response.LogParseResponse, error) {
 	// Update the log table
 	fields := make([]request.Field, 0)
 	if req.IsStructured {
@@ -27,8 +28,8 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 			}
 
 			parsedField := request.Field{
-				Name: match[1],
-				Type: "String",
+				Name:	match[1],
+				Type:	"String",
 			}
 
 			for _, customizedFiled := range req.TableFields {
@@ -41,10 +42,10 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 	}
 
 	logReq := &request.LogTableRequest{
-		DataBase:     req.DataBase,
-		TableName:    req.TableName,
-		Fields:       fields,
-		IsStructured: req.IsStructured,
+		DataBase:	req.DataBase,
+		TableName:	req.TableName,
+		Fields:		fields,
+		IsStructured:	req.IsStructured,
 	}
 	logReq.FillerValue()
 	_, err := s.UpdateLogTable(logReq)
@@ -67,9 +68,9 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 		req.ParseRule = ""
 	}
 	p := vector.ParseInfo{
-		ParseName: req.ParseName,
-		RouteRule: getRouteRule(req.RouteRule),
-		ParseRule: req.ParseRule,
+		ParseName:	req.ParseName,
+		RouteRule:	getRouteRule(req.RouteRule),
+		ParseRule:	req.ParseRule,
 	}
 
 	newData, err := p.UpdateParseRule(vectorCfg)
@@ -88,14 +89,14 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 	}
 
 	log := database.LogTableInfo{
-		Service:      strings.Join(req.Service, ","),
-		ParseInfo:    req.ParseInfo,
-		RouteRule:    getRouteRule(req.RouteRule),
-		Fields:       string(fieldsJSON),
-		Table:        req.TableName,
-		DataBase:     req.DataBase,
-		IsStructured: req.IsStructured,
-		ParseRule:    req.ParseRule,
+		Service:	strings.Join(req.Service, ","),
+		ParseInfo:	req.ParseInfo,
+		RouteRule:	getRouteRule(req.RouteRule),
+		Fields:		string(fieldsJSON),
+		Table:		req.TableName,
+		DataBase:	req.DataBase,
+		IsStructured:	req.IsStructured,
+		ParseRule:	req.ParseRule,
 	}
 
 	err = s.dbRepo.UpdateLogParseRule(&log)
@@ -104,10 +105,10 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 	}
 
 	res := &response.LogParseResponse{
-		ParseName:    req.ParseName,
-		ParseRule:    req.ParseRule,
-		RouteRule:    req.RouteRule,
-		IsStructured: req.IsStructured,
+		ParseName:	req.ParseName,
+		ParseRule:	req.ParseRule,
+		RouteRule:	req.RouteRule,
+		IsStructured:	req.IsStructured,
 	}
 	return res, nil
 }

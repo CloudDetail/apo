@@ -11,9 +11,10 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
 	"github.com/google/uuid"
 	"go.uber.org/multierr"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) CreateAlertSource(source *alertin.AlertSource) (*alertin.AlertSource, error) {
+func (s *service) CreateAlertSource(ctx_core core.Context, source *alertin.AlertSource) (*alertin.AlertSource, error) {
 	_, find := s.dispatcher.SourceName2EnricherMap.Load(source.SourceName)
 	if find {
 		return nil, alertin.ErrAlertSourceAlreadyExist{
@@ -66,8 +67,8 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 	if err != nil {
 		// return empty enricher
 		enricher = &enrich.AlertEnricher{
-			SourceFrom: source,
-			Enrichers:  []enrich.Enricher{},
+			SourceFrom:	source,
+			Enrichers:	[]enrich.Enricher{},
 		}
 		err = alertin.ErrIllegalAlertRule{Err: err}
 		s.dispatcher.AddAlertSource(*source, enricher)
@@ -96,8 +97,8 @@ func (s *service) createAlertSource(
 	}
 
 	enricher := &enrich.AlertEnricher{
-		SourceFrom: source,
-		Enrichers:  make([]enrich.Enricher, 0, len(enrichRules)),
+		SourceFrom:	source,
+		Enrichers:	make([]enrich.Enricher, 0, len(enrichRules)),
 	}
 
 	for i := 0; i < len(enrichRules); i++ {
@@ -146,8 +147,8 @@ func (s *service) createAlertSource(
 // load existed enricher from db when process initializing
 func (s *service) initExistedAlertSource(source alertin.SourceFrom, enrichRules []alertin.AlertEnrichRuleVO) (*enrich.AlertEnricher, error) {
 	enricher := &enrich.AlertEnricher{
-		SourceFrom: &source,
-		Enrichers:  make([]enrich.Enricher, 0, len(enrichRules)),
+		SourceFrom:	&source,
+		Enrichers:	make([]enrich.Enricher, 0, len(enrichRules)),
 	}
 	for idx, rule := range enrichRules {
 		tagEnricher, err := enrich.NewTagEnricher(rule, s.dbRepo, idx)

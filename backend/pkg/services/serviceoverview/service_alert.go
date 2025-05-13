@@ -14,6 +14,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func contains(arr []string, str string) bool {
@@ -24,7 +25,7 @@ func contains(arr []string, str string) bool {
 	}
 	return false
 }
-func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error) {
+func (s *service) GetServicesAlert(ctx_core core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error) {
 	svcInstances, err := s.promRepo.GetMultiServicesInstanceList(startTime.UnixMicro(), endTime.UnixMicro(), serviceNames)
 	if err != nil {
 		return nil, err
@@ -32,8 +33,8 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 	var services []ServiceDetail
 	for svc, instances := range svcInstances {
 		svcDetail := ServiceDetail{
-			ServiceName: svc,
-			Instances:   make([]Instance, 0),
+			ServiceName:	svc,
+			Instances:	make([]Instance, 0),
 		}
 		for _, instance := range instances.GetInstances() {
 			var convertName string
@@ -49,14 +50,14 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 				instanceType = VM
 			}
 			newInstance := Instance{
-				ConvertName:  convertName,
-				InstanceType: instanceType,
-				NodeName:     instance.NodeName,
-				Pod:          instance.PodName,
-				ContainerId:  instance.ContainerId,
-				SvcName:      instance.ServiceName,
-				Namespace:    instance.Namespace,
-				Pid:          strconv.FormatInt(instance.Pid, 10),
+				ConvertName:	convertName,
+				InstanceType:	instanceType,
+				NodeName:	instance.NodeName,
+				Pod:		instance.PodName,
+				ContainerId:	instance.ContainerId,
+				SvcName:	instance.ServiceName,
+				Namespace:	instance.Namespace,
+				Pid:		strconv.FormatInt(instance.Pid, 10),
 			}
 			svcDetail.Instances = append(svcDetail.Instances, newInstance)
 		}
@@ -129,7 +130,7 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		normalNowLog := s.getNormalLog(service, startTime, endTime, 0)
 		normalDayLog := s.getNormalLog(service, startTime, endTime, time.Hour*24)
 		normalWeekLog := s.getNormalLog(service, startTime, endTime, time.Hour*24*7)
-		var allLogNow, allLogDay, allLogWeek *float64 // Total log errors for current, yesterday, and last week
+		var allLogNow, allLogDay, allLogWeek *float64	// Total log errors for current, yesterday, and last week
 		// Integrate instance now,day,week,avg data
 		for _, instance := range service.Instances {
 			if instance.LogNow != nil {
@@ -204,10 +205,10 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 		}
 
 		newServiceRes := response.ServiceAlertRes{
-			ServiceName: service.ServiceName,
-			Logs:        newLogs,
-			AlertStatus: model.NORMAL_ALERT_STATUS,
-			AlertReason: model.AlertReason{},
+			ServiceName:	service.ServiceName,
+			Logs:		newLogs,
+			AlertStatus:	model.NORMAL_ALERT_STATUS,
+			AlertReason:	model.AlertReason{},
 		}
 
 		var serviceInstances []*model.ServiceInstance
@@ -217,12 +218,12 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 				pidI64 = -1
 			}
 			serviceInstances = append(serviceInstances, &model.ServiceInstance{
-				ServiceName: service.ServiceName,
-				ContainerId: instance.ContainerId,
-				PodName:     instance.Pod,
-				Namespace:   instance.Namespace,
-				NodeName:    instance.NodeName,
-				Pid:         pidI64,
+				ServiceName:	service.ServiceName,
+				ContainerId:	instance.ContainerId,
+				PodName:	instance.Pod,
+				Namespace:	instance.Namespace,
+				NodeName:	instance.NodeName,
+				Pid:		pidI64,
 			})
 		}
 
@@ -250,13 +251,13 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 // Fill in the alarm information from the Clickhouse and fill in the alertReason
 func GetAlertStatusCH(chRepo clickhouse.Repo,
 	alertReason *model.AlertReason, alertEventsCountMap *model.AlertEventLevelCountMap,
-	alertTypes []string, serviceName string, instances []*model.ServiceInstance, // filter
+	alertTypes []string, serviceName string, instances []*model.ServiceInstance,	// filter
 	startTime, endTime time.Time,
 ) (alertStatus model.AlertStatusCH) {
 	alertStatus = model.AlertStatusCH{
-		InfrastructureStatus: model.STATUS_NORMAL,
-		NetStatus:            model.STATUS_NORMAL,
-		K8sStatus:            model.STATUS_NORMAL,
+		InfrastructureStatus:	model.STATUS_NORMAL,
+		NetStatus:		model.STATUS_NORMAL,
+		K8sStatus:		model.STATUS_NORMAL,
 	}
 
 	if len(alertTypes) == 0 ||
@@ -270,8 +271,8 @@ func GetAlertStatusCH(chRepo clickhouse.Repo,
 			1, startTime, endTime,
 			request.AlertFilter{Services: []string{serviceName}, Status: "firing"},
 			&model.RelatedInstances{
-				SIs: instances,
-				MIs: []model.MiddlewareInstance{}, // TODO middleware alert status
+				SIs:	instances,
+				MIs:	[]model.MiddlewareInstance{},	// TODO middleware alert status
 			},
 		)
 
@@ -293,10 +294,10 @@ func GetAlertStatusCH(chRepo clickhouse.Repo,
 			}
 
 			alertReason.Add(alertGroup.GetAlertType(), model.AlertDetail{
-				Timestamp:    event.ReceivedTime.UnixMicro(),
-				AlertObject:  event.GetTargetObj(),
-				AlertReason:  event.Name,
-				AlertMessage: event.Detail,
+				Timestamp:	event.ReceivedTime.UnixMicro(),
+				AlertObject:	event.GetTargetObj(),
+				AlertReason:	event.Name,
+				AlertMessage:	event.Detail,
 			})
 
 			if alertEventsCountMap != nil {
@@ -312,10 +313,10 @@ func GetAlertStatusCH(chRepo clickhouse.Repo,
 			alertStatus.K8sStatus = model.STATUS_CRITICAL
 			for _, event := range k8sEvents {
 				alertReason.Add(model.K8sEventAlert, model.AlertDetail{
-					Timestamp:    event.Timestamp.UnixMicro(),
-					AlertObject:  event.GetObjName(),
-					AlertReason:  event.GetReason(),
-					AlertMessage: event.Body,
+					Timestamp:	event.Timestamp.UnixMicro(),
+					AlertObject:	event.GetObjName(),
+					AlertReason:	event.GetReason(),
+					AlertMessage:	event.Body,
 				})
 			}
 		}

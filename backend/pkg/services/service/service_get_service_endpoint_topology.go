@@ -7,9 +7,10 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetServiceEndpointTopology(req *request.GetServiceEndpointTopologyRequest) (*response.GetServiceEndpointTopologyResponse, error) {
+func (s *service) GetServiceEndpointTopology(ctx_core core.Context, req *request.GetServiceEndpointTopologyRequest) (*response.GetServiceEndpointTopologyResponse, error) {
 	// Query all upstream nodes
 	parents, err := s.chRepo.ListParentNodes(req)
 	if err != nil {
@@ -23,9 +24,9 @@ func (s *service) GetServiceEndpointTopology(req *request.GetServiceEndpointTopo
 	}
 
 	res := &response.GetServiceEndpointTopologyResponse{
-		Parents:  parents.GetNodes(),
-		Current:  model.NewServerNode(req.Service, req.Endpoint, true),
-		Children: children.GetNodes(),
+		Parents:	parents.GetNodes(),
+		Current:	model.NewServerNode(req.Service, req.Endpoint, true),
+		Children:	children.GetNodes(),
 	}
 	return res, nil
 }

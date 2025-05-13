@@ -5,9 +5,10 @@ package serviceoverview
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetThreshold(level string, serviceName string, endPoint string) (res response.GetThresholdResponse, err error) {
+func (s *service) GetThreshold(ctx_core core.Context, level string, serviceName string, endPoint string) (res response.GetThresholdResponse, err error) {
 	threshold, err := s.dbRepo.GetOrCreateThreshold(serviceName, endPoint, level)
 	if err != nil {
 		return res, err

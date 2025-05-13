@@ -9,12 +9,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/services/log/vector"
 	"gopkg.in/yaml.v3"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) DeleteLogParseRule(req *request.DeleteLogParseRequest) (*response.LogParseResponse, error) {
+func (s *service) DeleteLogParseRule(ctx_core core.Context, req *request.DeleteLogParseRequest) (*response.LogParseResponse, error) {
 	logReq := &request.LogTableRequest{
-		TableName: req.TableName,
-		DataBase:  req.DataBase,
+		TableName:	req.TableName,
+		DataBase:	req.DataBase,
 	}
 	logReq.FillerValue()
 
@@ -32,8 +33,8 @@ func (s *service) DeleteLogParseRule(req *request.DeleteLogParseRequest) (*respo
 		return nil, err
 	}
 	p := vector.ParseInfo{
-		ParseName: req.ParseName,
-		TableName: req.TableName,
+		ParseName:	req.ParseName,
+		TableName:	req.TableName,
 	}
 	newData, err := p.DeleteParseRule(vectorCfg)
 	if err != nil {
@@ -50,10 +51,10 @@ func (s *service) DeleteLogParseRule(req *request.DeleteLogParseRequest) (*respo
 
 	// Update sqlite table information
 	log := database.LogTableInfo{
-		ParseName: req.ParseName,
-		Table:     req.TableName,
-		DataBase:  logReq.DataBase,
-		Cluster:   logReq.Cluster,
+		ParseName:	req.ParseName,
+		Table:		req.TableName,
+		DataBase:	logReq.DataBase,
+		Cluster:	logReq.Cluster,
 	}
 	err = s.dbRepo.OperateLogTableInfo(&log, database.DELETE)
 	if err != nil {

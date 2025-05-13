@@ -11,31 +11,32 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const (
-	TEMPLATE_COUNT_SPAN_TRACE = "SELECT count(1) as total FROM span_trace %s"
-	TEMPLATE_QUERY_SPAN_TRACE = "SELECT %s FROM span_trace %s %s"
+	TEMPLATE_COUNT_SPAN_TRACE	= "SELECT count(1) as total FROM span_trace %s"
+	TEMPLATE_QUERY_SPAN_TRACE	= "SELECT %s FROM span_trace %s %s"
 
-	SQL_GET_LABEL_FILTER_KEYS = `SELECT DISTINCT
+	SQL_GET_LABEL_FILTER_KEYS	= `SELECT DISTINCT
     key, 'string' as data_type , 'labels' as parent_field
 	FROM span_trace st
 	ARRAY JOIN mapKeys(labels) AS key
 	%s %s`
 
-	SQL_GET_FLAGS_FILTER_KEYS = `SELECT DISTINCT
+	SQL_GET_FLAGS_FILTER_KEYS	= `SELECT DISTINCT
     key, 'bool' as data_type , 'flags' as parent_field
 	FROM span_trace st
 	ARRAY JOIN mapKeys(flags) AS key
 	%s %s`
 
-	SQL_GET_FILTER_VALUES = `SELECT DISTINCT
+	SQL_GET_FILTER_VALUES	= `SELECT DISTINCT
 	%s as label_value
 	FROM span_trace st
 	%s %s`
 )
 
-func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, int64, error) {
+func (ch *chRepo) GetFaultLogPageList(ctx_core core.Context, query *FaultLogQuery) ([]FaultLogResult, int64, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", query.StartTime/1000000, query.EndTime/1000000).
 		EqualsNotEmpty("labels['service_name']", query.Service).
@@ -102,7 +103,7 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 	return result, int64(count), nil
 }
 
-func (ch *chRepo) GetAvailableFilterKey(startTime, endTime time.Time, needUpdate bool) ([]request.SpanTraceFilter, error) {
+func (ch *chRepo) GetAvailableFilterKey(ctx_core core.Context, startTime, endTime time.Time, needUpdate bool) ([]request.SpanTraceFilter, error) {
 	if needUpdate {
 		filers, err := ch.UpdateFilterKey(startTime, endTime)
 		if err != nil {
@@ -133,7 +134,7 @@ func buildSpanTraceQuery(baseQuery string, fieldSql string, bySql string, builde
 	return sql
 }
 
-func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error) {
+func (ch *chRepo) GetTracePageList(ctx_core core.Context, req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
 		EqualsNotEmpty("labels['content_key']", req.EndPoint).
@@ -200,59 +201,59 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 }
 
 type FaultLogQuery struct {
-	StartTime      int64
-	EndTime        int64
-	Service        string
-	Instance       string
-	NodeName       string
-	ContainerId    string
-	Pid            uint32
-	EndPoint       string
-	TraceId        string
-	PageNum        int
-	PageSize       int
-	Type           int      // 0 - slow & error, 1 - error
-	MultiServices  []string // Match multiple service
-	MultiNamespace []string // Match multiple namespace
-	Pod            string   // Pod name
+	StartTime	int64
+	EndTime		int64
+	Service		string
+	Instance	string
+	NodeName	string
+	ContainerId	string
+	Pid		uint32
+	EndPoint	string
+	TraceId		string
+	PageNum		int
+	PageSize	int
+	Type		int		// 0 - slow & error, 1 - error
+	MultiServices	[]string	// Match multiple service
+	MultiNamespace	[]string	// Match multiple namespace
+	Pod		string		// Pod name
 }
 
 type FaultLogResult struct {
-	ServiceName string `ch:"service_name" json:"serviceName"`
-	InstanceId  string `ch:"instance_id" json:"instanceId"`
-	TraceId     string `ch:"trace_id" json:"traceId"`
-	StartTime   uint64 `ch:"start_time_us" json:"startTime"`
-	EndTime     uint64 `ch:"end_time_us" json:"endTime"`
-	EndPoint    string `ch:"endpoint" json:"endpoint"`
-	PodName     string `ch:"pod_name" json:"podName"`
-	ContainerId string `ch:"container_id" json:"containerId"`
-	NodeName    string `ch:"node_name" json:"nodeName"`
-	Pid         uint32 `ch:"pid" json:"pid"`
+	ServiceName	string	`ch:"service_name" json:"serviceName"`
+	InstanceId	string	`ch:"instance_id" json:"instanceId"`
+	TraceId		string	`ch:"trace_id" json:"traceId"`
+	StartTime	uint64	`ch:"start_time_us" json:"startTime"`
+	EndTime		uint64	`ch:"end_time_us" json:"endTime"`
+	EndPoint	string	`ch:"endpoint" json:"endpoint"`
+	PodName		string	`ch:"pod_name" json:"podName"`
+	ContainerId	string	`ch:"container_id" json:"containerId"`
+	NodeName	string	`ch:"node_name" json:"nodeName"`
+	Pid		uint32	`ch:"pid" json:"pid"`
 }
 
 type QueryTraceResult struct {
-	Timestamp         int64   `ch:"ts" json:"timestamp"`
-	Duration          uint64  `ch:"duration_us" json:"duration"`
-	ServiceName       string  `ch:"service_name" json:"serviceName"`
-	Pid               uint32  `ch:"pid" json:"pid"`
-	Tid               uint32  `ch:"tid" json:"tid"`
-	TraceId           string  `ch:"trace_id" json:"traceId"`
-	EndPoint          string  `ch:"endpoint" json:"endpoint"`
-	InstanceId        string  `ch:"instance_id" json:"instanceId"`
-	SpanId            string  `ch:"span_id" json:"spanId"`
-	ApmType           string  `ch:"apm_type" json:"apmType"`
-	Reason            string  `ch:"reason" json:"reason"`
-	IsError           bool    `ch:"is_error" json:"isError"`
-	IsSlow            bool    `ch:"is_slow" json:"isSlow"`
-	ThresholdValue    float64 `ch:"threshold_value" json:"thresholdValue"`
-	ThresholdMultiple float64 `ch:"threshold_multiple" json:"thresholdMultiple"`
+	Timestamp		int64	`ch:"ts" json:"timestamp"`
+	Duration		uint64	`ch:"duration_us" json:"duration"`
+	ServiceName		string	`ch:"service_name" json:"serviceName"`
+	Pid			uint32	`ch:"pid" json:"pid"`
+	Tid			uint32	`ch:"tid" json:"tid"`
+	TraceId			string	`ch:"trace_id" json:"traceId"`
+	EndPoint		string	`ch:"endpoint" json:"endpoint"`
+	InstanceId		string	`ch:"instance_id" json:"instanceId"`
+	SpanId			string	`ch:"span_id" json:"spanId"`
+	ApmType			string	`ch:"apm_type" json:"apmType"`
+	Reason			string	`ch:"reason" json:"reason"`
+	IsError			bool	`ch:"is_error" json:"isError"`
+	IsSlow			bool	`ch:"is_slow" json:"isSlow"`
+	ThresholdValue		float64	`ch:"threshold_value" json:"thresholdValue"`
+	ThresholdMultiple	float64	`ch:"threshold_multiple" json:"thresholdMultiple"`
 
-	Labels  map[string]string `ch:"labels" json:"labels"`
-	Flags   map[string]bool   `ch:"flags"  json:"flags"`
-	Metrics map[string]uint64 `ch:"metrics" json:"metrics"`
+	Labels	map[string]string	`ch:"labels" json:"labels"`
+	Flags	map[string]bool		`ch:"flags"  json:"flags"`
+	Metrics	map[string]uint64	`ch:"metrics" json:"metrics"`
 
-	MutatedValue uint64 `ch:"mutated_value" json:"mutatedValue"`
-	IsMutated    uint8  `ch:"is_mutated" json:"isMutated"` // whether the delay changes abruptly
+	MutatedValue	uint64	`ch:"mutated_value" json:"mutatedValue"`
+	IsMutated	uint8	`ch:"is_mutated" json:"isMutated"`	// whether the delay changes abruptly
 }
 
 func (af *availableFilters) extractSpanFilter(f *request.ComplexSpanTraceFilter) *whereSQL {
@@ -363,33 +364,33 @@ func extractFilterParams(f *request.SpanTraceFilter) ([]any, bool) {
 type SpanTraceOptions struct {
 	request.SpanTraceFilter
 
-	Options any `json:"options"`
+	Options	any	`json:"options"`
 }
 
 var const_span_filter = []request.SpanTraceFilter{
 	{
-		Key:      "pid",
-		DataType: request.U32Column,
+		Key:		"pid",
+		DataType:	request.U32Column,
 	},
 	{
-		Key:      "tid",
-		DataType: request.U32Column,
+		Key:		"tid",
+		DataType:	request.U32Column,
 	},
 	{
-		Key:      "duration",
-		DataType: request.U64Column,
+		Key:		"duration",
+		DataType:	request.U64Column,
 	},
 	{
-		Key:      "end_time",
-		DataType: request.U64Column,
+		Key:		"end_time",
+		DataType:	request.U64Column,
 	},
 	{
-		Key:      "start_time",
-		DataType: request.U64Column,
+		Key:		"start_time",
+		DataType:	request.U64Column,
 	},
 }
 
-func (ch *chRepo) UpdateFilterKey(startTime, endTime time.Time) ([]request.SpanTraceFilter, error) {
+func (ch *chRepo) UpdateFilterKey(ctx_core core.Context, startTime, endTime time.Time) ([]request.SpanTraceFilter, error) {
 	builder := NewQueryBuilder().
 		Between("timestamp", startTime.Unix(), endTime.Unix())
 
@@ -416,7 +417,7 @@ func (ch *chRepo) UpdateFilterKey(startTime, endTime time.Time) ([]request.SpanT
 	return filters, nil
 }
 
-func (ch *chRepo) GetFieldValues(searchText string, filter *request.SpanTraceFilter, startTime, endTime time.Time) (*SpanTraceOptions, error) {
+func (ch *chRepo) GetFieldValues(ctx_core core.Context, searchText string, filter *request.SpanTraceFilter, startTime, endTime time.Time) (*SpanTraceOptions, error) {
 	if filter.DataType == request.BoolColumn {
 		return &SpanTraceOptions{SpanTraceFilter: *filter, Options: []bool{true, false}}, nil
 	}
@@ -495,8 +496,8 @@ func (ch *chRepo) GetFieldValues(searchText string, filter *request.SpanTraceFil
 	}
 
 	return &SpanTraceOptions{
-		SpanTraceFilter: *filter,
-		Options:         res,
+		SpanTraceFilter:	*filter,
+		Options:		res,
 	}, nil
 }
 
@@ -529,9 +530,9 @@ func (af *availableFilters) ValidCheckAndAdjust(f *request.ComplexSpanTraceFilte
 }
 
 type availableFilters struct {
-	Filters          []request.SpanTraceFilter
-	Keys             []string
-	FilterUpdateTime time.Time
+	Filters			[]request.SpanTraceFilter
+	Keys			[]string
+	FilterUpdateTime	time.Time
 }
 
 func (f *availableFilters) SetAvailableFilters(filters []request.SpanTraceFilter, updateTime time.Time) {

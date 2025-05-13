@@ -10,9 +10,10 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest) (resp *response.GetAlertEventsSampleResponse, err error) {
+func (s *service) GetAlertEventsSample(ctx_core core.Context, req *request.GetAlertEventsSampleRequest) (resp *response.GetAlertEventsSampleResponse, err error) {
 	// Query the instance to which the Service belongs.
 	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.Services)
 	if err != nil || instances == nil {
@@ -39,8 +40,8 @@ func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest)
 		startTime, endTime,
 		req.AlertFilter,
 		&model.RelatedInstances{
-			SIs: instances.GetInstances(),
-			MIs: dbInstances,
+			SIs:	instances.GetInstances(),
+			MIs:	dbInstances,
 		},
 	)
 	if err != nil {
@@ -54,12 +55,12 @@ func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest)
 		status = model.STATUS_CRITICAL
 	}
 	return &response.GetAlertEventsSampleResponse{
-		EventMap: groupedEvents,
-		Status:   status,
+		EventMap:	groupedEvents,
+		Status:		status,
 	}, nil
 }
 
-func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.GetAlertEventsResponse, error) {
+func (s *service) GetAlertEvents(ctx_core core.Context, req *request.GetAlertEventsRequest) (*response.GetAlertEventsResponse, error) {
 	// Query the instance to which the Service belongs.
 	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.Services)
 	if err != nil {
@@ -82,8 +83,8 @@ func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.
 		startTime, endTime,
 		req.AlertFilter,
 		&model.RelatedInstances{
-			SIs: instances.GetInstances(),
-			MIs: dbInstances,
+			SIs:	instances.GetInstances(),
+			MIs:	dbInstances,
 		},
 		req.PageParam,
 	)
@@ -93,8 +94,8 @@ func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.
 
 	// HACK returns data directly as a list
 	return &response.GetAlertEventsResponse{
-		TotalCount: totalCount,
-		EventList:  events,
+		TotalCount:	totalCount,
+		EventList:	events,
 	}, nil
 }
 

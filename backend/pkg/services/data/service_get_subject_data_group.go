@@ -8,9 +8,10 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetSubjectDataGroup(req *request.GetSubjectDataGroupRequest) (response.GetSubjectDataGroupResponse, error) {
+func (s *service) GetSubjectDataGroup(ctx_core core.Context, req *request.GetSubjectDataGroupRequest) (response.GetSubjectDataGroupResponse, error) {
 	if req.SubjectType == model.DATA_GROUP_SUB_TYP_TEAM {
 		return s.dbRepo.GetSubjectDataGroupList(req.SubjectID, req.SubjectType, req.Category)
 	}
@@ -64,8 +65,8 @@ func (s *service) getUserDataGroup(userID int64, category string) ([]database.Da
 
 func (s *service) getDefaultDataGroup(category string) (database.DataGroup, error) {
 	defaultGroup := database.DataGroup{
-		GroupName: "default",
-		Source:    model.DATA_GROUP_SOURCE_DEFAULT,
+		GroupName:	"default",
+		Source:		model.DATA_GROUP_SOURCE_DEFAULT,
 	}
 
 	datasource, err := s.GetDataSource()
@@ -89,9 +90,9 @@ func (s *service) getDefaultDataGroup(category string) (database.DataGroup, erro
 	items := make([]database.DatasourceGroup, 0, len(filteredSources))
 	for _, ds := range filteredSources {
 		items = append(items, database.DatasourceGroup{
-			Datasource: ds.Datasource,
-			Type:       ds.Type,
-			Category:   ds.Category,
+			Datasource:	ds.Datasource,
+			Type:		ds.Type,
+			Category:	ds.Category,
 		})
 	}
 

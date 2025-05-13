@@ -8,10 +8,11 @@ import (
 	"fmt"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 // Deprecated
-func (s *service) GetIntegrationInstallDoc(req *integration.GetCInstallRequest) ([]byte, error) {
+func (s *service) GetIntegrationInstallDoc(ctx_core core.Context, req *integration.GetCInstallRequest) ([]byte, error) {
 	cluster, err := s.dbRepo.GetCluster(req.ClusterID)
 	if err != nil {
 		return nil, err

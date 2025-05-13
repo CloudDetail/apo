@@ -7,13 +7,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 var _ Service = (*service)(nil)
 
 type Service interface {
-	GetPodMap(req *request.PodMapRequest) (*response.PodMapResponse, error)
-	GetSpanSegmentsMetrics(req *request.SpanSegmentMetricsRequest) (response.SpanSegmentMetricsResponse, error)
+	GetPodMap(ctx_core core.Context, req *request.PodMapRequest) (*response.PodMapResponse, error)
+	GetSpanSegmentsMetrics(ctx_core core.Context, req *request.SpanSegmentMetricsRequest) (response.SpanSegmentMetricsResponse, error)
 }
 
 type service struct {

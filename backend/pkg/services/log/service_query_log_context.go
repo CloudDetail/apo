@@ -11,6 +11,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func log2item(logs []map[string]any, logFields map[string]interface{}) ([]response.LogItem, error) {
@@ -45,21 +46,21 @@ func log2item(logs []map[string]any, logFields map[string]interface{}) ([]respon
 		}
 
 		logitems[i] = response.LogItem{
-			Content:   content,
-			Tags:      tags,
-			Time:      timestamp,
-			LogFields: fields,
+			Content:	content,
+			Tags:		tags,
+			Time:		timestamp,
+			LogFields:	fields,
 		}
 	}
 	return logitems, nil
 }
 
-func (s *service) QueryLogContext(req *request.LogQueryContextRequest) (*response.LogQueryContextResponse, error) {
+func (s *service) QueryLogContext(ctx_core core.Context, req *request.LogQueryContextRequest) (*response.LogQueryContextResponse, error) {
 
 	logFields := map[string]interface{}{}
 	model := &database.LogTableInfo{
-		DataBase: req.DataBase,
-		Table:    req.TableName,
+		DataBase:	req.DataBase,
+		Table:		req.TableName,
 	}
 	// query log field json
 	s.dbRepo.OperateLogTableInfo(model, database.QUERY)
@@ -82,7 +83,7 @@ func (s *service) QueryLogContext(req *request.LogQueryContextRequest) (*respons
 	}
 
 	return &response.LogQueryContextResponse{
-		Front: frontItem,
-		Back:  endItem,
+		Front:	frontItem,
+		Back:	endItem,
 	}, nil
 }

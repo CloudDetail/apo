@@ -7,8 +7,7 @@ import (
 	"log"
 	"strings"
 	"sync"
-
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -20,48 +19,48 @@ import (
 var _ Service = &service{}
 
 type Service interface {
-	CreateAlertSource(source *alert.AlertSource) (*alert.AlertSource, error)
-	GetAlertSource(source *alert.SourceFrom) (*alert.AlertSource, error)
-	UpdateAlertSource(source *alert.AlertSource) (*alert.AlertSource, error)
-	DeleteAlertSource(source alert.SourceFrom) (*alert.AlertSource, error)
-	ListAlertSource() ([]alert.AlertSource, error)
+	CreateAlertSource(ctx_core core.Context, source *alert.AlertSource) (*alert.AlertSource, error)
+	GetAlertSource(ctx_core core.Context, source *alert.SourceFrom) (*alert.AlertSource, error)
+	UpdateAlertSource(ctx_core core.Context, source *alert.AlertSource) (*alert.AlertSource, error)
+	DeleteAlertSource(ctx_core core.Context, source alert.SourceFrom) (*alert.AlertSource, error)
+	ListAlertSource(ctx_core core.Context,) ([]alert.AlertSource, error)
 
-	UpdateAlertEnrichRule(req *alert.AlertEnrichRuleConfigRequest) error
-	GetAlertEnrichRule(sourceID string) ([]alert.AlertEnrichRuleVO, error)
+	UpdateAlertEnrichRule(ctx_core core.Context, req *alert.AlertEnrichRuleConfigRequest) error
+	GetAlertEnrichRule(ctx_core core.Context, sourceID string) ([]alert.AlertEnrichRuleVO, error)
 
-	ProcessAlertEvents(source alert.SourceFrom, data []byte) error
+	ProcessAlertEvents(ctx_core core.Context, source alert.SourceFrom, data []byte) error
 
 	GetAlertEnrichRuleTags(ctx core.Context) ([]alert.TargetTag, error)
 
-	CreateSchema(req *alert.CreateSchemaRequest) error
-	DeleteSchema(schema string) error
-	ListSchema() ([]string, error)
-	ListSchemaColumns(schema string) ([]string, error)
-	UpdateSchemaData(req *alert.UpdateSchemaDataRequest) error
-	CheckSchemaIsUsed(schema string) ([]string, error)
-	GetSchemaData(schema string) ([]string, map[int64][]string, error)
+	CreateSchema(ctx_core core.Context, req *alert.CreateSchemaRequest) error
+	DeleteSchema(ctx_core core.Context, schema string) error
+	ListSchema(ctx_core core.Context,) ([]string, error)
+	ListSchemaColumns(ctx_core core.Context, schema string) ([]string, error)
+	UpdateSchemaData(ctx_core core.Context, req *alert.UpdateSchemaDataRequest) error
+	CheckSchemaIsUsed(ctx_core core.Context, schema string) ([]string, error)
+	GetSchemaData(ctx_core core.Context, schema string) ([]string, map[int64][]string, error)
 
-	CreateCluster(cluster *input.Cluster) error
-	ListCluster() ([]input.Cluster, error)
-	UpdateCluster(cluster *input.Cluster) error
-	DeleteCluster(cluster *input.Cluster) error
+	CreateCluster(ctx_core core.Context, cluster *input.Cluster) error
+	ListCluster(ctx_core core.Context,) ([]input.Cluster, error)
+	UpdateCluster(ctx_core core.Context, cluster *input.Cluster) error
+	DeleteCluster(ctx_core core.Context, cluster *input.Cluster) error
 
-	GetDefaultAlertEnrichRule(sourceType string) (string, []alert.AlertEnrichRuleVO)
-	ClearDefaultAlertEnrichRule(sourceType string) (bool, error)
-	SetDefaultAlertEnrichRule(sourceType string, tagEnrichRules []alert.AlertEnrichRuleVO) error
+	GetDefaultAlertEnrichRule(ctx_core core.Context, sourceType string) (string, []alert.AlertEnrichRuleVO)
+	ClearDefaultAlertEnrichRule(ctx_core core.Context, sourceType string) (bool, error)
+	SetDefaultAlertEnrichRule(ctx_core core.Context, sourceType string, tagEnrichRules []alert.AlertEnrichRuleVO) error
 }
 
 type service struct {
-	promRepo prometheus.Repo
-	dbRepo   database.Repo
-	ckRepo   clickhouse.Repo
-	difyRepo dify.DifyRepo
+	promRepo	prometheus.Repo
+	dbRepo		database.Repo
+	ckRepo		clickhouse.Repo
+	difyRepo	dify.DifyRepo
 
-	dispatcher         Dispatcher
-	AddAlertSourceLock sync.Mutex
+	dispatcher		Dispatcher
+	AddAlertSourceLock	sync.Mutex
 
 	// sourceType -> []alert.AlertEnrichRuleVO
-	defaultEnrichRules sync.Map
+	defaultEnrichRules	sync.Map
 }
 
 func New(
@@ -71,9 +70,9 @@ func New(
 	difyRepo dify.DifyRepo,
 ) Service {
 	var service = &service{
-		promRepo: promRepo,
-		dbRepo:   dbRepo,
-		ckRepo:   chRepo,
+		promRepo:	promRepo,
+		dbRepo:		dbRepo,
+		ckRepo:		chRepo,
 	}
 
 	_, enrichMaps, err := service.dbRepo.LoadAlertEnrichRule()

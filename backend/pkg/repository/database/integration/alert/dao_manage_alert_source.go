@@ -7,6 +7,7 @@ import (
 	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/google/uuid"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const (
@@ -14,7 +15,7 @@ const (
 (select cluster_id from alert_source2_clusters where source_id = ?)`
 )
 
-func (repo *subRepo) CreateAlertSource(alertSource *alert.AlertSource) error {
+func (repo *subRepo) CreateAlertSource(ctx_core core.Context, alertSource *alert.AlertSource) error {
 	newS2C := []alert.AlertSource2Cluster{}
 	for _, cluster := range alertSource.Clusters {
 		if cluster.ID == "" {
@@ -26,8 +27,8 @@ func (repo *subRepo) CreateAlertSource(alertSource *alert.AlertSource) error {
 		}
 
 		newS2C = append(newS2C, alert.AlertSource2Cluster{
-			SourceID:  alertSource.SourceID,
-			ClusterID: cluster.ID,
+			SourceID:	alertSource.SourceID,
+			ClusterID:	cluster.ID,
 		})
 	}
 
@@ -41,7 +42,7 @@ func (repo *subRepo) CreateAlertSource(alertSource *alert.AlertSource) error {
 	return repo.db.Create(&alertSource).Error
 }
 
-func (repo *subRepo) GetAlertSource(sourceId string) (*alert.AlertSource, error) {
+func (repo *subRepo) GetAlertSource(ctx_core core.Context, sourceId string) (*alert.AlertSource, error) {
 	var res alert.AlertSource
 	err := repo.db.First(&res, "source_id = ?", sourceId).Error
 	if err == nil {
@@ -55,7 +56,7 @@ func (repo *subRepo) GetAlertSource(sourceId string) (*alert.AlertSource, error)
 	return &res, err
 }
 
-func (repo *subRepo) UpdateAlertSource(alertSource *alert.AlertSource) error {
+func (repo *subRepo) UpdateAlertSource(ctx_core core.Context, alertSource *alert.AlertSource) error {
 	err := repo.db.Delete(&alert.AlertSource2Cluster{}, "source_id = ?", alertSource.SourceID).Error
 	if err != nil {
 		return err
@@ -63,8 +64,8 @@ func (repo *subRepo) UpdateAlertSource(alertSource *alert.AlertSource) error {
 	newS2C := []alert.AlertSource2Cluster{}
 	for _, cluster := range alertSource.Clusters {
 		newS2C = append(newS2C, alert.AlertSource2Cluster{
-			SourceID:  alertSource.SourceID,
-			ClusterID: cluster.ID,
+			SourceID:	alertSource.SourceID,
+			ClusterID:	cluster.ID,
 		})
 	}
 
@@ -80,7 +81,7 @@ func (repo *subRepo) UpdateAlertSource(alertSource *alert.AlertSource) error {
 		Updates(alertSource).Error
 }
 
-func (repo *subRepo) ListAlertSource() ([]alert.AlertSource, error) {
+func (repo *subRepo) ListAlertSource(ctx_core core.Context,) ([]alert.AlertSource, error) {
 	var alertSources []alert.AlertSource
 	err := repo.db.Find(&alertSources, "source_name NOT LIKE ?", "APO_DEFAULT_ENRICH_RULE%").Error
 	if err != nil {
@@ -113,7 +114,7 @@ func (repo *subRepo) ListAlertSource() ([]alert.AlertSource, error) {
 	return alertSources, err
 }
 
-func (repo *subRepo) DeleteAlertSource(alertSource alert.SourceFrom) (*alert.AlertSource, error) {
+func (repo *subRepo) DeleteAlertSource(ctx_core core.Context, alertSource alert.SourceFrom) (*alert.AlertSource, error) {
 	deletedSource := alert.AlertSource{}
 	err := repo.db.First(&deletedSource, "source_id = ?", alertSource.SourceID).Error
 

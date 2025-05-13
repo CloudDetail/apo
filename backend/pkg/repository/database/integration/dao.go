@@ -11,6 +11,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration/alert"
 	"gorm.io/gorm"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 var IndependentTraceAPI = false
@@ -19,24 +20,24 @@ var IndependentLogDatabase = false
 
 type ObservabilityInputManage interface {
 	// Manage Cluster
-	CreateCluster(cluster *integration.Cluster) error
-	UpdateCluster(cluster *integration.Cluster) error
-	DeleteCluster(cluster *integration.Cluster) error
-	ListCluster() ([]integration.Cluster, error)
-	GetCluster(clusterID string) (integration.Cluster, error)
-	CheckClusterNameExisted(clusterName string) (bool, error)
+	CreateCluster(ctx_core core.Context, cluster *integration.Cluster) error
+	UpdateCluster(ctx_core core.Context, cluster *integration.Cluster) error
+	DeleteCluster(ctx_core core.Context, cluster *integration.Cluster) error
+	ListCluster(ctx_core core.Context,) ([]integration.Cluster, error)
+	GetCluster(ctx_core core.Context, clusterID string) (integration.Cluster, error)
+	CheckClusterNameExisted(ctx_core core.Context, clusterName string) (bool, error)
 
-	SaveIntegrationConfig(iConfig integration.ClusterIntegration) error
-	GetIntegrationConfig(clusterID string) (*integration.ClusterIntegration, error)
-	DeleteIntegrationConfig(clusterID string) error
+	SaveIntegrationConfig(ctx_core core.Context, iConfig integration.ClusterIntegration) error
+	GetIntegrationConfig(ctx_core core.Context, clusterID string) (*integration.ClusterIntegration, error)
+	DeleteIntegrationConfig(ctx_core core.Context, clusterID string) error
 
-	GetLatestTraceAPIs(lastUpdateTS int64) (*integration.AdapterAPIConfig, error)
+	GetLatestTraceAPIs(ctx_core core.Context, lastUpdateTS int64) (*integration.AdapterAPIConfig, error)
 
 	alert.AlertInput
 }
 
 type subRepos struct {
-	db *gorm.DB
+	db	*gorm.DB
 
 	alert.AlertInput
 }

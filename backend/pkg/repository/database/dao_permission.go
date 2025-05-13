@@ -7,23 +7,23 @@ import (
 	"context"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 // AuthPermission records which features are authorised to which subjects.
 type AuthPermission struct {
-	ID           int    `gorm:"primary_key;auto_increment" json:"id"`
-	Type         string `gorm:"column:type;index:idx_sub_id_type" json:"type"`            // feature
-	SubjectID    int64  `gorm:"column:subject_id;index:idx_sub_id_type" json:"subjectId"` // Role ID, user ID or team ID
-	SubjectType  string `gorm:"column:subject_type;type:varchar(10)" json:"subjectType"`  // role, user, team
-	PermissionID int    `gorm:"column:permission_id" json:"permissionId"`
+	ID		int	`gorm:"primary_key;auto_increment" json:"id"`
+	Type		string	`gorm:"column:type;index:idx_sub_id_type" json:"type"`			// feature
+	SubjectID	int64	`gorm:"column:subject_id;index:idx_sub_id_type" json:"subjectId"`	// Role ID, user ID or team ID
+	SubjectType	string	`gorm:"column:subject_type;type:varchar(10)" json:"subjectType"`	// role, user, team
+	PermissionID	int	`gorm:"column:permission_id" json:"permissionId"`
 }
 
 func (AuthPermission) TableName() string {
 	return "auth_permission"
 }
 
-func (repo *daoRepo) GetSubjectPermission(subID int64, subType string, typ string) ([]int, error) {
+func (repo *daoRepo) GetSubjectPermission(ctx_core core.Context, subID int64, subType string, typ string) ([]int, error) {
 	var permissionIDs []int
 	err := repo.db.Model(&AuthPermission{}).
 		Select("permission_id").
@@ -32,7 +32,7 @@ func (repo *daoRepo) GetSubjectPermission(subID int64, subType string, typ strin
 	return permissionIDs, err
 }
 
-func (repo *daoRepo) GetSubjectsPermission(subIDs []int64, subType string, typ string) ([]AuthPermission, error) {
+func (repo *daoRepo) GetSubjectsPermission(ctx_core core.Context, subIDs []int64, subType string, typ string) ([]AuthPermission, error) {
 	var permissions []AuthPermission
 	err := repo.db.Model(&AuthPermission{}).
 		Where("subject_id in ? AND subject_type = ? AND type = ?", subIDs, subType, typ).
@@ -40,7 +40,7 @@ func (repo *daoRepo) GetSubjectsPermission(subIDs []int64, subType string, typ s
 	return permissions, err
 }
 
-func (repo *daoRepo) GrantPermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error {
+func (repo *daoRepo) GrantPermission(ctx_core core.Context, ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error {
 	if len(permissionIDs) == 0 {
 		return nil
 	}
@@ -49,10 +49,10 @@ func (repo *daoRepo) GrantPermission(ctx context.Context, subID int64, subType s
 	permission := make([]AuthPermission, len(permissionIDs))
 	for i := range permissionIDs {
 		permission[i] = AuthPermission{
-			SubjectID:    subID,
-			SubjectType:  subType,
-			Type:         typ,
-			PermissionID: permissionIDs[i],
+			SubjectID:	subID,
+			SubjectType:	subType,
+			Type:		typ,
+			PermissionID:	permissionIDs[i],
 		}
 	}
 
@@ -60,7 +60,7 @@ func (repo *daoRepo) GrantPermission(ctx context.Context, subID int64, subType s
 }
 
 // RevokePermission It will delete all record related to sub if permissionIDs is empty.
-func (repo *daoRepo) RevokePermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error {
+func (repo *daoRepo) RevokePermission(ctx_core core.Context, ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error {
 	if len(permissionIDs) == 0 {
 		return nil
 	}
@@ -76,7 +76,7 @@ func (repo *daoRepo) RevokePermission(ctx context.Context, subID int64, subType 
 	return query.Delete(nil).Error
 }
 
-func (repo *daoRepo) GetAddAndDeletePermissions(subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error) {
+func (repo *daoRepo) GetAddAndDeletePermissions(ctx_core core.Context, subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error) {
 	subPermissions, err := repo.GetSubjectPermission(subID, subType, typ)
 	if err != nil {
 		return

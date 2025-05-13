@@ -9,9 +9,10 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"gorm.io/gorm"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (repo *daoRepo) GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int, error) {
+func (repo *daoRepo) GetAMConfigReceiver(ctx_core core.Context, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int, error) {
 	var count int64
 	var countQuery = repo.db.Model(&amconfig.Receiver{})
 	if filter != nil && len(filter.Name) > 0 {
@@ -41,14 +42,14 @@ func (repo *daoRepo) GetAMConfigReceiver(filter *request.AMConfigReceiverFilter,
 	return result, int(count), nil
 }
 
-func (repo *daoRepo) AddAMConfigReceiver(receiver amconfig.Receiver) error {
+func (repo *daoRepo) AddAMConfigReceiver(ctx_core core.Context, receiver amconfig.Receiver) error {
 	if repo.CheckAMConfigReceiverExist(receiver.Name) {
 		return fmt.Errorf("receiver name has been used: %s", receiver.Name)
 	}
 	return repo.db.Create(receiver).Error
 }
 
-func (repo *daoRepo) UpdateAMConfigReceiver(receiver amconfig.Receiver, oldName string) error {
+func (repo *daoRepo) UpdateAMConfigReceiver(ctx_core core.Context, receiver amconfig.Receiver, oldName string) error {
 	if receiver.Name == oldName {
 		return repo.db.Model(&amconfig.Receiver{Name: oldName}).Updates(receiver).Error
 	}
@@ -70,7 +71,7 @@ func (repo *daoRepo) UpdateAMConfigReceiver(receiver amconfig.Receiver, oldName 
 	})
 }
 
-func (repo *daoRepo) DeleteAMConfigReceiver(name string) error {
+func (repo *daoRepo) DeleteAMConfigReceiver(ctx_core core.Context, name string) error {
 	return repo.db.Delete(&amconfig.Receiver{}, "name = ?", name).Error
 }
 

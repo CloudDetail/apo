@@ -13,6 +13,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 // Regular expression variables at the package level
@@ -37,9 +38,9 @@ func prepareTTLInfo(tables []model.TablesQuery) []model.ModifyTableTTLMap {
 		}
 
 		item := model.ModifyTableTTLMap{
-			Name:          t.Name,
-			TTLExpression: originalTTLExpression,
-			OriginalDays:  originalDays,
+			Name:		t.Name,
+			TTLExpression:	originalTTLExpression,
+			OriginalDays:	originalDays,
 		}
 		mapResult = append(mapResult, item)
 	}
@@ -76,7 +77,7 @@ func convertModifyTableTTLMap(tables []model.TablesQuery, day int) ([]model.Modi
 	return mapResult, nil
 }
 
-func (s *service) SetTTL(req *request.SetTTLRequest) error {
+func (s *service) SetTTL(ctx_core core.Context, req *request.SetTTLRequest) error {
 	if req.Day <= 0 {
 		return errors.New("[SetTTL] Error : day should > 0  ")
 	}
@@ -89,7 +90,7 @@ func (s *service) SetTTL(req *request.SetTTLRequest) error {
 	return err
 }
 
-func (s *service) SetSingleTableTTL(req *request.SetSingleTTLRequest) error {
+func (s *service) SetSingleTableTTL(ctx_core core.Context, req *request.SetSingleTTLRequest) error {
 	if req.Day <= 0 {
 		return errors.New("[SetSingleTableTTL] Error: day should > 0  ")
 	}

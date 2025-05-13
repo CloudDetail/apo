@@ -8,7 +8,7 @@ import (
 	"net/url"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -16,7 +16,7 @@ import (
 	uuid2 "github.com/google/uuid"
 )
 
-func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse {
+func (s *service) GetAMConfigReceivers(ctx_core core.Context, req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse {
 	if !s.enableInnerReceiver {
 		s.GetAMReceiversFromExternalAM(req)
 	}
@@ -26,11 +26,11 @@ func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigRecever
 		receivers = make([]amconfig.Receiver, 0)
 	}
 	return response.GetAlertManagerConfigReceiverResponse{
-		AMConfigReceivers: receivers,
+		AMConfigReceivers:	receivers,
 		Pagination: &model.Pagination{
-			Total:       int64(total),
-			CurrentPage: req.CurrentPage,
-			PageSize:    req.PageSize,
+			Total:		int64(total),
+			CurrentPage:	req.CurrentPage,
+			PageSize:	req.PageSize,
 		},
 	}
 }
@@ -38,18 +38,18 @@ func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigRecever
 func (s *service) GetAMReceiversFromExternalAM(req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse {
 	if req.PageParam == nil {
 		req.PageParam = &request.PageParam{
-			CurrentPage: 1,
-			PageSize:    999,
+			CurrentPage:	1,
+			PageSize:	999,
 		}
 	}
 	// get the configuration of am from memory
 	receivers, totalCount := s.k8sApi.GetAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiverFilter, req.PageParam, req.RefreshCache)
 	resp := response.GetAlertManagerConfigReceiverResponse{
-		AMConfigReceivers: receivers,
+		AMConfigReceivers:	receivers,
 		Pagination: &model.Pagination{
-			Total:       int64(totalCount),
-			CurrentPage: req.CurrentPage,
-			PageSize:    req.PageSize,
+			Total:		int64(totalCount),
+			CurrentPage:	req.CurrentPage,
+			PageSize:	req.PageSize,
 		},
 	}
 
@@ -70,7 +70,7 @@ func (s *service) GetAMReceiversFromExternalAM(req *request.GetAlertManagerConfi
 
 	for i := range dingTalkReceivers {
 		receiver := amconfig.Receiver{
-			Name: dingTalkReceivers[i].AlertName,
+			Name:	dingTalkReceivers[i].AlertName,
 			DingTalkConfigs: []*amconfig.DingTalkConfig{
 				dingTalkReceivers[i]}}
 		resp.AMConfigReceivers = append(resp.AMConfigReceivers, receiver)
@@ -79,7 +79,7 @@ func (s *service) GetAMReceiversFromExternalAM(req *request.GetAlertManagerConfi
 	return resp
 }
 
-func (s *service) AddAMConfigReceiver(req *request.AddAlertManagerConfigReceiver) error {
+func (s *service) AddAMConfigReceiver(ctx_core core.Context, req *request.AddAlertManagerConfigReceiver) error {
 	if !s.enableInnerReceiver {
 		return s.AddAMReceiversForExternalAM(req)
 	}
@@ -113,7 +113,7 @@ func (s *service) AddAMReceiversForExternalAM(req *request.AddAlertManagerConfig
 	return nil
 }
 
-func (s *service) UpdateAMConfigReceiver(req *request.UpdateAlertManagerConfigReceiver) error {
+func (s *service) UpdateAMConfigReceiver(ctx_core core.Context, req *request.UpdateAlertManagerConfigReceiver) error {
 	if !s.enableInnerReceiver {
 		return s.UpdateAMReceiverForExternalAM(req)
 	}
@@ -149,7 +149,7 @@ func (s *service) UpdateAMReceiverForExternalAM(req *request.UpdateAlertManagerC
 	return nil
 }
 
-func (s *service) DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigReceiverRequest) error {
+func (s *service) DeleteAMConfigReceiver(ctx_core core.Context, req *request.DeleteAlertManagerConfigReceiverRequest) error {
 	if !s.enableInnerReceiver {
 		return s.DeleteAMReceiverForExternalAM(req)
 	}

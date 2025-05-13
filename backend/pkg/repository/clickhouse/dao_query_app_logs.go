@@ -9,18 +9,19 @@ import (
 	"strconv"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const (
-	SQL_GET_APP_LOG_SOURCE = `SELECT LogAttributes['_source_'] as LogSource
+	SQL_GET_APP_LOG_SOURCE	= `SELECT LogAttributes['_source_'] as LogSource
 		FROM ilogtail_logs
 		%s %s`
-	SQL_GET_APP_LOG = `SELECT toUnixTimestamp64Micro(Timestamp) as ts,Body
+	SQL_GET_APP_LOG	= `SELECT toUnixTimestamp64Micro(Timestamp) as ts,Body
 		FROM ilogtail_logs
 		%s %s`
 )
 
-func (ch *chRepo) QueryApplicationLogs(req *request.GetFaultLogContentRequest) (*Logs, []string, error) {
+func (ch *chRepo) QueryApplicationLogs(ctx_core core.Context, req *request.GetFaultLogContentRequest) (*Logs, []string, error) {
 
 	builder := NewQueryBuilder().
 		Between("Timestamp", int64(req.StartTime/1000000), int64(req.EndTime/1000000))
@@ -59,7 +60,7 @@ func (ch *chRepo) QueryApplicationLogs(req *request.GetFaultLogContentRequest) (
 	return &Logs{req.SourceFrom, logRaws}, sources, err
 }
 
-func (ch *chRepo) QueryApplicationLogsAvailableSource(faultLog FaultLogResult) ([]string, error) {
+func (ch *chRepo) QueryApplicationLogsAvailableSource(ctx_core core.Context, faultLog FaultLogResult) ([]string, error) {
 	builder := NewQueryBuilder().
 		Between("Timestamp", int64(faultLog.StartTime), int64(faultLog.EndTime))
 
@@ -98,13 +99,13 @@ func (ch *chRepo) queryApplicationLogsSource(builder *QueryBuilder) ([]string, e
 }
 
 type Logs struct {
-	Source   string       `json:"source"`
-	Contents []LogContent `json:"contents"`
+	Source		string		`json:"source"`
+	Contents	[]LogContent	`json:"contents"`
 }
 
 type LogContent struct {
-	Timestamp int64  `ch:"ts" json:"timestamp"`
-	Body      string `ch:"Body" json:"body"`
+	Timestamp	int64	`ch:"ts" json:"timestamp"`
+	Body		string	`ch:"Body" json:"body"`
 }
 
 type Source struct {

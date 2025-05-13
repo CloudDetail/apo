@@ -14,6 +14,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/services/log/vector"
 	"gopkg.in/yaml.v3"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func getRouteRule(routeMap map[string]string) string {
@@ -33,7 +34,7 @@ func getRouteRule(routeMap map[string]string) string {
 
 var fieldsRegexp = regexp.MustCompile(`\?P<(?P<name>\w+)>`)
 
-func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.LogParseResponse, error) {
+func (s *service) AddLogParseRule(ctx_core core.Context, req *request.AddLogParseRequest) (*response.LogParseResponse, error) {
 	// build the table first
 	logReq := &request.LogTableRequest{
 		TableName: "logs_" + req.ParseName,
@@ -50,8 +51,8 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 			}
 
 			parsedField := request.Field{
-				Name: match[1],
-				Type: "String",
+				Name:	match[1],
+				Type:	"String",
 			}
 
 			for _, customizedFiled := range req.Fields {
@@ -88,10 +89,10 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 		req.ParseRule = ""
 	}
 	p := vector.ParseInfo{
-		ParseName: req.ParseName,
-		TableName: "logs_" + req.ParseName,
-		RouteRule: getRouteRule(req.RouteRule),
-		ParseRule: req.ParseRule,
+		ParseName:	req.ParseName,
+		TableName:	"logs_" + req.ParseName,
+		RouteRule:	getRouteRule(req.RouteRule),
+		ParseRule:	req.ParseRule,
 	}
 
 	newData, err := p.AddParseRule(vectorCfg)
@@ -109,16 +110,16 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 
 	// Update sqlite table information
 	log := database.LogTableInfo{
-		ParseInfo:    req.ParseInfo,
-		ParseName:    req.ParseName,
-		RouteRule:    getRouteRule(req.RouteRule),
-		Table:        "logs_" + req.ParseName,
-		DataBase:     logReq.DataBase,
-		Cluster:      logReq.Cluster,
-		Fields:       string(fieldsJSON),
-		Service:      strings.Join(req.Service, ","),
-		IsStructured: req.IsStructured,
-		ParseRule:    req.ParseRule,
+		ParseInfo:	req.ParseInfo,
+		ParseName:	req.ParseName,
+		RouteRule:	getRouteRule(req.RouteRule),
+		Table:		"logs_" + req.ParseName,
+		DataBase:	logReq.DataBase,
+		Cluster:	logReq.Cluster,
+		Fields:		string(fieldsJSON),
+		Service:	strings.Join(req.Service, ","),
+		IsStructured:	req.IsStructured,
+		ParseRule:	req.ParseRule,
 	}
 
 	err = s.dbRepo.OperateLogTableInfo(&log, database.INSERT)
@@ -127,9 +128,9 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 	}
 
 	res := &response.LogParseResponse{
-		ParseName: req.ParseName,
-		ParseRule: req.ParseRule,
-		RouteRule: req.RouteRule,
+		ParseName:	req.ParseName,
+		ParseRule:	req.ParseRule,
+		RouteRule:	req.RouteRule,
 	}
 	return res, nil
 }

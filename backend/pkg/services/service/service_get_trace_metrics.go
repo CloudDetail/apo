@@ -6,9 +6,10 @@ package service
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetTraceMetrics(req *request.GetTraceMetricsRequest) ([]*response.GetTraceMetricsResponse, error) {
+func (s *service) GetTraceMetrics(ctx_core core.Context, req *request.GetTraceMetricsRequest) ([]*response.GetTraceMetricsResponse, error) {
 	// Get Trace related metrics
 	serviceInstances, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, req.Service, req.Endpoint)
 	if err != nil {
@@ -35,13 +36,13 @@ func (s *service) GetTraceMetrics(req *request.GetTraceMetricsRequest) ([]*respo
 		// Display only the list of instances with data
 		if exist_metrics(logs) || exist_metrics(p90) || exist_metrics(errorRate) {
 			metricResponse := &response.GetTraceMetricsResponse{
-				Name:        instance.GetInstanceId(),
-				ContainerId: instance.ContainerId,
-				NodeName:    instance.NodeName,
-				Pid:         instance.Pid,
-				Logs:        logs,
-				Latency:     p90,
-				ErrorRate:   errorRate,
+				Name:		instance.GetInstanceId(),
+				ContainerId:	instance.ContainerId,
+				NodeName:	instance.NodeName,
+				Pid:		instance.Pid,
+				Logs:		logs,
+				Latency:	p90,
+				ErrorRate:	errorRate,
 			}
 			result = append(result, metricResponse)
 		}

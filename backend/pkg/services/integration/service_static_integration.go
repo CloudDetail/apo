@@ -7,26 +7,27 @@ import (
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/mitchellh/mapstructure"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 // HACK use static config in configFile now
-func (s *service) GetStaticIntegration() map[string]any {
+func (s *service) GetStaticIntegration(ctx_core core.Context,) map[string]any {
 	resp := make(map[string]any)
 
 	chCfg := config.Get().ClickHouse
 	log := integration.LogIntegration{
-		Name:   "APO-DEFAULT-CH",
-		DBType: "clickhouse",
-		Mode:   "sql",
+		Name:	"APO-DEFAULT-CH",
+		DBType:	"clickhouse",
+		Mode:	"sql",
 		LogAPI: &integration.JSONField[integration.LogAPI]{
 			Obj: integration.LogAPI{
 				Clickhouse: &integration.ClickhouseConfig{
-					Address:     chCfg.Address,
-					Database:    chCfg.Database,
-					Replication: chCfg.Replica,
-					Cluster:     chCfg.Cluster,
-					UserName:    chCfg.Username,
-					Password:    chCfg.Password,
+					Address:	chCfg.Address,
+					Database:	chCfg.Database,
+					Replication:	chCfg.Replica,
+					Cluster:	chCfg.Cluster,
+					UserName:	chCfg.Username,
+					Password:	chCfg.Password,
 				},
 			},
 		},
@@ -36,9 +37,9 @@ func (s *service) GetStaticIntegration() map[string]any {
 
 	vmCfg := config.Get().Promethues
 	ds := integration.MetricIntegration{
-		Name:   "APO-DEFAULT-VM",
-		DSType: "victoriametric",
-		Mode:   "pql",
+		Name:	"APO-DEFAULT-VM",
+		DSType:	"victoriametric",
+		Mode:	"pql",
 		MetricAPI: &integration.JSONField[integration.MetricAPI]{
 			Obj: integration.MetricAPI{
 				VictoriaMetric: &integration.VictoriaMetricConfig{
@@ -46,8 +47,8 @@ func (s *service) GetStaticIntegration() map[string]any {
 				},
 			},
 		},
-		UpdatedAt: 0,
-		IsDeleted: false,
+		UpdatedAt:	0,
+		IsDeleted:	false,
 	}
 	ds.MetricAPI.ReplaceSecret()
 	resp["datasource"] = ds

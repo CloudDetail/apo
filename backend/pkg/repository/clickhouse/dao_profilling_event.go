@@ -7,27 +7,28 @@ import (
 	"context"
 	"fmt"
 	"time"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 type ProfilingEvent struct {
-	Timestamp       time.Time         `json:"timestamp" ch:"timestamp"`
-	StartTime       uint64            `json:"startTime" ch:"startTime"`
-	EndTime         uint64            `json:"endTime" ch:"endTime"`
-	Offset          int64             `json:"offset" ch:"offset"`
-	PID             uint32            `json:"pid" ch:"pid"`
-	TID             uint32            `json:"tid" ch:"tid"`
-	TransactionIDs  string            `json:"transactionIds" ch:"transactionIds"`
-	CPUEvents       string            `json:"cpuEvents" ch:"cpuEvents"`
-	InnerCalls      string            `json:"innerCalls" ch:"innerCalls"`
-	JavaFutexEvents string            `json:"javaFutexEvents" ch:"javaFutexEvents"`
-	Spans           string            `json:"spans" ch:"spans"`
-	ThreadName      string            `json:"threadName" ch:"threadName"` // thread name table in labels
-	Labels          map[string]string `json:"labels" ch:"labels"`
+	Timestamp	time.Time		`json:"timestamp" ch:"timestamp"`
+	StartTime	uint64			`json:"startTime" ch:"startTime"`
+	EndTime		uint64			`json:"endTime" ch:"endTime"`
+	Offset		int64			`json:"offset" ch:"offset"`
+	PID		uint32			`json:"pid" ch:"pid"`
+	TID		uint32			`json:"tid" ch:"tid"`
+	TransactionIDs	string			`json:"transactionIds" ch:"transactionIds"`
+	CPUEvents	string			`json:"cpuEvents" ch:"cpuEvents"`
+	InnerCalls	string			`json:"innerCalls" ch:"innerCalls"`
+	JavaFutexEvents	string			`json:"javaFutexEvents" ch:"javaFutexEvents"`
+	Spans		string			`json:"spans" ch:"spans"`
+	ThreadName	string			`json:"threadName" ch:"threadName"`	// thread name table in labels
+	Labels		map[string]string	`json:"labels" ch:"labels"`
 }
 
 const profiling_event_sql = `SELECT %s FROM profiling_event %s LIMIT %s`
 
-func (ch *chRepo) GetOnOffCPU(pid uint32, nodeName string, startTime, endTime int64) (*[]ProfilingEvent, error) {
+func (ch *chRepo) GetOnOffCPU(ctx_core core.Context, pid uint32, nodeName string, startTime, endTime int64) (*[]ProfilingEvent, error) {
 	queryBuilder := NewQueryBuilder()
 	querySql := queryBuilder.
 		Between("startTime", startTime, endTime).

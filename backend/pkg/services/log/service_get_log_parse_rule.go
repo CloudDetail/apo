@@ -13,6 +13,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 var routeReg = regexp.MustCompile(`\"(.*?)\"`)
@@ -41,17 +42,17 @@ func getRouteRuleMap(routeRule string) map[string]string {
 	return rc
 }
 
-func (s *service) GetLogParseRule(req *request.QueryLogParseRequest) (*response.LogParseResponse, error) {
+func (s *service) GetLogParseRule(ctx_core core.Context, req *request.QueryLogParseRequest) (*response.LogParseResponse, error) {
 	model := &database.LogTableInfo{
-		DataBase: req.DataBase,
-		Table:    req.TableName,
+		DataBase:	req.DataBase,
+		Table:		req.TableName,
 	}
 	err := s.dbRepo.OperateLogTableInfo(model, database.QUERY)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return &response.LogParseResponse{
-			ParseName: defaultParseName,
-			ParseRule: defaultParseRule,
-			RouteRule: defaultRouteRuleMap,
+			ParseName:	defaultParseName,
+			ParseRule:	defaultParseRule,
+			RouteRule:	defaultRouteRuleMap,
 		}, nil
 	} else if err != nil {
 		return nil, err
@@ -60,12 +61,12 @@ func (s *service) GetLogParseRule(req *request.QueryLogParseRequest) (*response.
 	logFields := []request.Field{}
 	json.Unmarshal([]byte(model.Fields), &logFields)
 	return &response.LogParseResponse{
-		Service:      strings.Split(model.Service, ","),
-		ParseName:    model.ParseName,
-		ParseRule:    model.ParseRule,
-		ParseInfo:    model.ParseInfo,
-		RouteRule:    getRouteRuleMap(model.RouteRule),
-		LogFields:    logFields,
-		IsStructured: model.IsStructured,
+		Service:	strings.Split(model.Service, ","),
+		ParseName:	model.ParseName,
+		ParseRule:	model.ParseRule,
+		ParseInfo:	model.ParseInfo,
+		RouteRule:	getRouteRuleMap(model.RouteRule),
+		LogFields:	logFields,
+		IsStructured:	model.IsStructured,
 	}, nil
 }

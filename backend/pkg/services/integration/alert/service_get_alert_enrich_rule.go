@@ -3,9 +3,12 @@
 
 package alert
 
-import "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+import (
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+)
 
-func (s *service) GetAlertEnrichRule(
+func (s *service) GetAlertEnrichRule(ctx_core core.Context,
 	sourceID string,
 ) ([]alert.AlertEnrichRuleVO, error) {
 	enrichRules, err := s.dbRepo.GetAlertEnrichRule(sourceID)
@@ -26,8 +29,8 @@ func (s *service) GetAlertEnrichRule(
 	var alertEnrichRuleVOs = make([]alert.AlertEnrichRuleVO, 0, len(enrichRules))
 	for _, enrichRule := range enrichRules {
 		enrichRuleVO := alert.AlertEnrichRuleVO{
-			Conditions:    []alert.AlertEnrichCondition{},
-			SchemaTargets: []alert.AlertEnrichSchemaTarget{},
+			Conditions:	[]alert.AlertEnrichCondition{},
+			SchemaTargets:	[]alert.AlertEnrichSchemaTarget{},
 		}
 		enrichRuleVO.AlertEnrichRule = enrichRule
 

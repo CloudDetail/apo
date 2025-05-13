@@ -5,11 +5,11 @@ package alerts
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) AddAlertRule(req *request.AddAlertRuleRequest) error {
+func (s *service) AddAlertRule(ctx_core core.Context, req *request.AddAlertRuleRequest) error {
 	if !checkOrFillGroupsLabel(req.AlertRule.Group, req.AlertRule.Labels) {
 		return core.Error(code.AlertGroupAndLabelMismatchError, "gourp and group label mismatch")
 	}

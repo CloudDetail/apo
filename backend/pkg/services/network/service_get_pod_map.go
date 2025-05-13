@@ -15,20 +15,21 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 type podMap struct {
-	OptStatus   string                   `json:"OPT_STATUS"`
-	Description string                   `json:"DESCRIPTION"`
-	Result      *response.PodMapResponse `json:"result"`
-	Debug       string                   `json:"debug"`
+	OptStatus	string				`json:"OPT_STATUS"`
+	Description	string				`json:"DESCRIPTION"`
+	Result		*response.PodMapResponse	`json:"result"`
+	Debug		string				`json:"debug"`
 }
 
 const (
 	sqlTemplate = "SELECT %s FROM vtap_app_edge_port %s %s"
 )
 
-func (s *service) GetPodMap(req *request.PodMapRequest) (*response.PodMapResponse, error) {
+func (s *service) GetPodMap(ctx_core core.Context, req *request.PodMapRequest) (*response.PodMapResponse, error) {
 	deepflowServer := config.Get().DeepFlow.ServerAddress
 	sql := buildPodMapQuery(req)
 	db := "flow_metrics"
@@ -36,9 +37,9 @@ func (s *service) GetPodMap(req *request.PodMapRequest) (*response.PodMapRespons
 
 	// Build request body parameters
 	formData := url.Values{
-		"db":             {db},
-		"data_precision": {dataPrecision},
-		"sql":            {sql},
+		"db":			{db},
+		"data_precision":	{dataPrecision},
+		"sql":			{sql},
 	}
 	// Initiate a POST request
 	resp, err := http.PostForm(deepflowServer+"/v1/query", formData)

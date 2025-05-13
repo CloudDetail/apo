@@ -6,9 +6,10 @@ package log
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) OtherTable(req *request.OtherTableRequest) (*response.OtherTableResponse, error) {
+func (s *service) OtherTable(ctx_core core.Context, req *request.OtherTableRequest) (*response.OtherTableResponse, error) {
 	res := &response.OtherTableResponse{}
 	rows, err := s.chRepo.OtherLogTable()
 	if err != nil {
@@ -27,8 +28,8 @@ func (s *service) OtherTable(req *request.OtherTableRequest) (*response.OtherTab
 			})
 		}
 		others = append(others, response.OtherDB{
-			DataBase: db,
-			Tables:   othertables,
+			DataBase:	db,
+			Tables:		othertables,
 		})
 	}
 	res.OtherTables = others

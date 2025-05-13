@@ -8,11 +8,11 @@ import (
 	"errors"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
-func (s *service) RemoveUser(userID int64) error {
+func (s *service) RemoveUser(ctx_core core.Context, userID int64) error {
 	exists, err := s.dbRepo.UserExists(userID)
 	if err != nil {
 		return err

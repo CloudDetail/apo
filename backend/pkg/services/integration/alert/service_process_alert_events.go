@@ -10,9 +10,10 @@ import (
 	"log"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) ProcessAlertEvents(source alert.SourceFrom, data []byte) error {
+func (s *service) ProcessAlertEvents(ctx_core core.Context, source alert.SourceFrom, data []byte) error {
 	events, err := s.dispatcher.DispatchEvents(&source, data)
 	if err != nil {
 		var errSourceNotExist alert.ErrAlertSourceNotExist

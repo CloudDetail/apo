@@ -6,6 +6,7 @@ package clickhouse
 import (
 	"context"
 	"log"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const (
@@ -49,7 +50,7 @@ const (
 
 // CountK8sEvents count the number of K8s events
 // Time in microseconds
-func (ch *chRepo) CountK8sEvents(startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error) {
+func (ch *chRepo) CountK8sEvents(ctx_core core.Context, startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error) {
 	result := make([]K8sEventsCount, 0)
 	// Execute query
 	rows, err := ch.conn.Query(context.Background(), countK8sEventsSQL, startTime/1e6, endTim/1e6, pods)
@@ -74,8 +75,8 @@ func (ch *chRepo) CountK8sEvents(startTime int64, endTim int64, pods []string) (
 }
 
 type K8sEventsCount struct {
-	TimeRange string
-	Reason    string
-	Severity  string
-	Count     uint64
+	TimeRange	string
+	Reason		string
+	Severity	string
+	Count		uint64
 }

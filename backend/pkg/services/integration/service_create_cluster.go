@@ -9,9 +9,10 @@ import (
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/google/uuid"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) CreateCluster(cluster *integration.ClusterIntegration) (*integration.Cluster, error) {
+func (s *service) CreateCluster(ctx_core core.Context, cluster *integration.ClusterIntegration) (*integration.Cluster, error) {
 	isExist, err := s.dbRepo.CheckClusterNameExisted(cluster.Name)
 	if err != nil {
 		return nil, err
@@ -58,12 +59,12 @@ func forceSetupMetricLogAPI(cluster *integration.ClusterIntegration) {
 	cluster.Log.LogAPI = &integration.JSONField[integration.LogAPI]{
 		Obj: integration.LogAPI{
 			Clickhouse: &integration.ClickhouseConfig{
-				Address:     chCfg.Address,
-				Database:    chCfg.Database,
-				Replication: chCfg.Replica,
-				Cluster:     chCfg.Cluster,
-				UserName:    chCfg.Username,
-				Password:    chCfg.Password,
+				Address:	chCfg.Address,
+				Database:	chCfg.Database,
+				Replication:	chCfg.Replica,
+				Cluster:	chCfg.Cluster,
+				UserName:	chCfg.Username,
+				Password:	chCfg.Password,
 			},
 		},
 	}

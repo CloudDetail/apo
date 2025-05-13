@@ -7,9 +7,10 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"go.uber.org/zap"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetFlameGraphData(req *request.GetFlameDataRequest) (resp response.GetFlameDataResponse, err error) {
+func (s *service) GetFlameGraphData(ctx_core core.Context, req *request.GetFlameDataRequest) (resp response.GetFlameDataResponse, err error) {
 	flameData, err := s.chRepo.GetFlameGraphData(req.StartTime, req.EndTime, req.NodeName,
 		req.PID, req.TID, req.SampleType, req.SpanID, req.TraceID)
 	if err != nil {

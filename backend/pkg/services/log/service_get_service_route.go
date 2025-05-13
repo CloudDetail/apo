@@ -9,9 +9,10 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetServiceRoute(req *request.GetServiceRouteRequest) (*response.GetServiceRouteResponse, error) {
+func (s *service) GetServiceRoute(ctx_core core.Context, req *request.GetServiceRouteRequest) (*response.GetServiceRouteResponse, error) {
 	serviceNames := []string{}
 	now := time.Now()
 	currentTimestamp := now.UnixMicro()

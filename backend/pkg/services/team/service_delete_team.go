@@ -7,12 +7,12 @@ import (
 	"context"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) DeleteTeam(req *request.DeleteTeamRequest) error {
+func (s *service) DeleteTeam(ctx_core core.Context, req *request.DeleteTeamRequest) error {
 	filter := model.TeamFilter{
 		ID: req.TeamID,
 	}

@@ -19,6 +19,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 var queryDict *QueryDict
@@ -58,15 +59,15 @@ func init() {
 	}
 }
 
-func (s *service) ListPreDefinedMetrics() []QueryInfo {
+func (s *service) ListPreDefinedMetrics(ctx_core core.Context,) []QueryInfo {
 	return queryDict.ListMetrics()
 }
 
-func (s *service) ListQuerys() []Query {
+func (s *service) ListQuerys(ctx_core core.Context,) []Query {
 	return queryDict.ListQuerys()
 }
 
-func (s *service) QueryMetrics(req *QueryMetricsRequest) *QueryMetricsResult {
+func (s *service) QueryMetrics(ctx_core core.Context, req *QueryMetricsRequest) *QueryMetricsResult {
 	// auto params
 
 	interval := prometheus.VecFromDuration(time.Duration(req.Step) * time.Microsecond)
@@ -145,17 +146,17 @@ func (s *service) executeQuery(
 				value := item.Value
 
 				tsMicro := timestamp.Unix() * 1000000
-				if !math.IsInf(float64(value), 0) { // does not assign value when it is infinity
+				if !math.IsInf(float64(value), 0) {	// does not assign value when it is infinity
 					chart.ChartData[tsMicro] = float64(value)
 				}
 			}
 
 			res = append(res, Timeseries{
-				Legend:       legend,
-				LegendFormat: target.LegendFormat,
-				Labels:       toStringMap(matrix[i].Metric),
+				Legend:		legend,
+				LegendFormat:	target.LegendFormat,
+				Labels:		toStringMap(matrix[i].Metric),
 				// Values: matrix[i].Values,
-				Chart: chart,
+				Chart:	chart,
 			})
 		}
 	}
@@ -163,9 +164,9 @@ func (s *service) executeQuery(
 	return &QueryResult{
 		// Query: query,
 
-		Title:      query.Title,
-		Unit:       query.Unit,
-		Timeseries: res,
+		Title:		query.Title,
+		Unit:		query.Unit,
+		Timeseries:	res,
 	}
 }
 
@@ -228,9 +229,9 @@ func (s *service) executeTargets(groupId int, target *Target, req *QueryMetricsR
 	}
 
 	return s.promRepo.GetApi().QueryRange(context.Background(), expr, v1.Range{
-		Start: time.UnixMicro(req.StartTime),
-		End:   time.UnixMicro(req.EndTime),
-		Step:  time.Microsecond * time.Duration(req.Step),
+		Start:	time.UnixMicro(req.StartTime),
+		End:	time.UnixMicro(req.EndTime),
+		Step:	time.Microsecond * time.Duration(req.Step),
 	})
 }
 
@@ -259,7 +260,7 @@ func (s *service) queryVar(
 	}
 
 	switch varSpec.Query.QryType {
-	case 1: // label_values
+	case 1:	// label_values
 		matches := labelValuesQry.FindStringSubmatch(varSpec.Query.Query)
 		if len(matches) != 3 {
 			log.Println("unexpected var query spec:", varSpec.Query.Query)
@@ -277,7 +278,7 @@ func (s *service) queryVar(
 			labels = append(labels, prometheus.EscapeRegexp(string(v)))
 		}
 		return strings.Join(labels, "|"), true, nil
-	case 3: // query_result
+	case 3:	// query_result
 		expr, _ := strings.CutPrefix(varSpec.Query.Query, "query_result(")
 		expr, _ = strings.CutSuffix(expr, ")")
 		labels, err := s.promRepo.QueryResult(expr, varSpec.Regex, startTime, endTime)

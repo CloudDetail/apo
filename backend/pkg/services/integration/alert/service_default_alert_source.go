@@ -10,15 +10,16 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/google/uuid"
 	"go.uber.org/multierr"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 var (
-	uuidZero          = uuid.UUID{}
-	defaultSourceName = "APO_DEFAULT_ENRICH_RULE"
-	commonSourceType  = "json"
+	uuidZero		= uuid.UUID{}
+	defaultSourceName	= "APO_DEFAULT_ENRICH_RULE"
+	commonSourceType	= "json"
 )
 
-func (s *service) ClearDefaultAlertEnrichRule(sourceType string) (bool, error) {
+func (s *service) ClearDefaultAlertEnrichRule(ctx_core core.Context, sourceType string) (bool, error) {
 	_, find := s.defaultEnrichRules.LoadAndDelete(sourceType)
 
 	sourceUUID := uuid.NewMD5(uuidZero, []byte(sourceType)).String()
@@ -33,7 +34,7 @@ func (s *service) ClearDefaultAlertEnrichRule(sourceType string) (bool, error) {
 	return find, storeError
 }
 
-func (s *service) GetDefaultAlertEnrichRule(sourceType string) (string, []alert.AlertEnrichRuleVO) {
+func (s *service) GetDefaultAlertEnrichRule(ctx_core core.Context, sourceType string) (string, []alert.AlertEnrichRuleVO) {
 	rules, find := s.defaultEnrichRules.Load(sourceType)
 	if find {
 		return sourceType, rules.([]alert.AlertEnrichRuleVO)
@@ -47,7 +48,7 @@ func (s *service) GetDefaultAlertEnrichRule(sourceType string) (string, []alert.
 	return "", []alert.AlertEnrichRuleVO{}
 }
 
-func (s *service) SetDefaultAlertEnrichRule(sourceType string, tagEnrichRules []alert.AlertEnrichRuleVO) error {
+func (s *service) SetDefaultAlertEnrichRule(ctx_core core.Context, sourceType string, tagEnrichRules []alert.AlertEnrichRuleVO) error {
 	existed, err := s.ClearDefaultAlertEnrichRule(sourceType)
 	if err != nil {
 		return err
@@ -55,10 +56,10 @@ func (s *service) SetDefaultAlertEnrichRule(sourceType string, tagEnrichRules []
 
 	sourceUUID := uuid.NewMD5(uuidZero, []byte(sourceType)).String()
 	sourceFrom := &alert.SourceFrom{
-		SourceID: sourceUUID,
+		SourceID:	sourceUUID,
 		SourceInfo: alert.SourceInfo{
-			SourceName: fmt.Sprintf("%s_%s", defaultSourceName, strings.ToUpper(sourceType)),
-			SourceType: sourceType,
+			SourceName:	fmt.Sprintf("%s_%s", defaultSourceName, strings.ToUpper(sourceType)),
+			SourceType:	sourceType,
 		},
 	}
 	rules, newR, newC, newS := s.prepareAlertEnrichRule(sourceFrom, tagEnrichRules)

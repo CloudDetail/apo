@@ -7,17 +7,17 @@ import (
 	"context"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) GroupSubsOperation(req *request.GroupSubsOperationRequest) error {
+func (s *service) GroupSubsOperation(ctx_core core.Context, req *request.GroupSubsOperationRequest) error {
 	var (
-		toDelete []int64
-		toAdd    []database.AuthDataGroup
-		subMap   = map[int64]database.AuthDataGroup{}
+		toDelete	[]int64
+		toAdd		[]database.AuthDataGroup
+		subMap		= map[int64]database.AuthDataGroup{}
 	)
 
 	filter := model.DataGroupFilter{
@@ -71,10 +71,10 @@ func (s *service) GroupSubsOperation(req *request.GroupSubsOperationRequest) err
 			ag, ok := subMap[sub.SubjectID]
 			if !ok {
 				toAdd = append(toAdd, database.AuthDataGroup{
-					SubjectID:   sub.SubjectID,
-					SubjectType: subjectType,
-					GroupID:     req.DataGroupID,
-					Type:        sub.Type,
+					SubjectID:	sub.SubjectID,
+					SubjectType:	subjectType,
+					GroupID:	req.DataGroupID,
+					Type:		sub.Type,
 				})
 			} else {
 				if ag.Type != sub.Type {

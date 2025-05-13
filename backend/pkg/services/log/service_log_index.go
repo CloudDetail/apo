@@ -8,9 +8,10 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetLogIndex(req *request.LogIndexRequest) (*response.LogIndexResponse, error) {
+func (s *service) GetLogIndex(ctx_core core.Context, req *request.LogIndexRequest) (*response.LogIndexResponse, error) {
 	res := &response.LogIndexResponse{}
 	list, sum, err := s.chRepo.GetLogIndex(req)
 	if err != nil {
@@ -21,9 +22,9 @@ func (s *service) GetLogIndex(req *request.LogIndexRequest) (*response.LogIndexR
 	for k, v := range list {
 		count += v
 		indexs = append(indexs, response.IndexItem{
-			IndexName: k,
-			Count:     v,
-			Percent:   float64(v) * 100 / float64(sum),
+			IndexName:	k,
+			Count:		v,
+			Percent:	float64(v) * 100 / float64(sum),
 		})
 	}
 	sort.Slice(indexs, func(i, j int) bool {

@@ -6,16 +6,17 @@ package log
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 // GetFaultLogContent implements Service.
-func (s *service) GetFaultLogContent(req *request.GetFaultLogContentRequest) (*response.GetFaultLogContentResponse, error) {
+func (s *service) GetFaultLogContent(ctx_core core.Context, req *request.GetFaultLogContentRequest) (*response.GetFaultLogContentResponse, error) {
 	logContest, sources, err := s.chRepo.QueryApplicationLogs(req)
 	if err != nil {
 		return nil, err
 	}
 	return &response.GetFaultLogContentResponse{
-		Sources:     sources,
-		LogContents: logContest,
+		Sources:	sources,
+		LogContents:	logContest,
 	}, nil
 }

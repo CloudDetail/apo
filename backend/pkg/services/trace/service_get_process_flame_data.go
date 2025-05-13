@@ -10,9 +10,10 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"go.uber.org/zap"
 	"math"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetProcessFlameGraphData(req *request.GetProcessFlameGraphRequest) (response.GetProcessFlameGraphResponse, error) {
+func (s *service) GetProcessFlameGraphData(ctx_core core.Context, req *request.GetProcessFlameGraphRequest) (response.GetProcessFlameGraphResponse, error) {
 	data, err := s.chRepo.GetFlameGraphData(req.StartTime, req.EndTime, req.NodeName,
 		req.PID, -1, req.SampleType, "", "")
 	if err != nil {
@@ -59,14 +60,14 @@ func (s *service) GetProcessFlameGraphData(req *request.GetProcessFlameGraphRequ
 		return response.GetProcessFlameGraphResponse{}, err
 	}
 	return response.GetProcessFlameGraphResponse{
-		StartTime:   startTime,
-		EndTime:     endTime,
-		Labels:      labels,
-		SampleRate:  sampleRate,
-		SampleType:  req.SampleType,
-		PID:         uint32(req.PID),
-		TID:         0,
-		FlameBearer: string(bearerStr),
+		StartTime:	startTime,
+		EndTime:	endTime,
+		Labels:		labels,
+		SampleRate:	sampleRate,
+		SampleType:	req.SampleType,
+		PID:		uint32(req.PID),
+		TID:		0,
+		FlameBearer:	string(bearerStr),
 	}, nil
 }
 

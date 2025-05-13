@@ -8,9 +8,10 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (ch *chRepo) CreateAlertNotifyRecord(ctx context.Context, record model.AlertNotifyRecord) error {
+func (ch *chRepo) CreateAlertNotifyRecord(ctx_core core.Context, ctx context.Context, record model.AlertNotifyRecord) error {
 	batch, err := ch.conn.PrepareBatch(ctx, `
 		INSERT INTO alert_notify_record (alert_id, created_at, event_id, success,failed)
 		VALUES

@@ -5,9 +5,10 @@ package user
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) Logout(req *request.LogoutRequest) error {
+func (s *service) Logout(ctx_core core.Context, req *request.LogoutRequest) error {
 	err := s.cacheRepo.AddToken(req.AccessToken)
 	if err != nil {
 		return err

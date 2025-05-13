@@ -6,9 +6,10 @@ package service
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetServiceInstanceOptions(req *request.GetServiceInstanceOptionsRequest) (map[string]*model.ServiceInstance, error) {
+func (s *service) GetServiceInstanceOptions(ctx_core core.Context, req *request.GetServiceInstanceOptionsRequest) (map[string]*model.ServiceInstance, error) {
 	// Get the list of active service instances
 	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, []string{req.ServiceName})
 	if err != nil {

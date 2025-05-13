@@ -8,11 +8,12 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const UP = 1.0
 
-func (s *service) GetMonitorStatus(startTime time.Time, endTime time.Time) (response.GetMonitorStatusResponse, error) {
+func (s *service) GetMonitorStatus(ctx_core core.Context, startTime time.Time, endTime time.Time) (response.GetMonitorStatusResponse, error) {
 	resp := response.GetMonitorStatusResponse{}
 	startMicroTS := startTime.UnixMicro()
 	endMicroTs := endTime.UnixMicro()

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -18,12 +18,12 @@ import (
 
 var subTime = -time.Hour * 24 * 15
 
-func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err error) {
+func (s *service) GetDataSource(ctx_core core.Context,) (resp response.GetDatasourceResponse, err error) {
 	var (
-		endTime        = time.Now()
-		startTime      = endTime.Add(subTime)
-		endTimeMicro   = endTime.UnixMicro()
-		startTimeMicro = startTime.UnixMicro()
+		endTime		= time.Now()
+		startTime	= endTime.Add(subTime)
+		endTimeMicro	= endTime.UnixMicro()
+		startTimeMicro	= startTime.UnixMicro()
 	)
 
 	servicesMap, err := s.promRepo.GetServiceWithNamespace(startTimeMicro, endTimeMicro, nil)
@@ -47,10 +47,10 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 			return strings.Compare(namespaces[i], namespaces[j]) < 0
 		})
 		ds := model.Datasource{
-			Datasource: service,
-			Type:       model.DATASOURCE_TYP_SERVICE,
-			Category:   model.DATASOURCE_CATEGORY_APM,
-			Nested:     namespaces,
+			Datasource:	service,
+			Type:		model.DATASOURCE_TYP_SERVICE,
+			Category:	model.DATASOURCE_CATEGORY_APM,
+			Nested:		namespaces,
 		}
 		serviceList = append(serviceList, ds)
 	}
@@ -59,9 +59,9 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 	for _, namespace := range allNamespaces.Items {
 		if _, ok := namespaceMap[namespace.Name]; !ok {
 			ds := model.Datasource{
-				Datasource: namespace.Name,
-				Type:       model.DATASOURCE_TYP_NAMESPACE,
-				Category:   model.DATASOURCE_CATEGORY_NORMAL,
+				Datasource:	namespace.Name,
+				Type:		model.DATASOURCE_TYP_NAMESPACE,
+				Category:	model.DATASOURCE_CATEGORY_NORMAL,
 			}
 			namespaceList = append(namespaceList, ds)
 		}
@@ -75,10 +75,10 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 			return strings.Compare(services[i], services[j]) < 0
 		})
 		ds := model.Datasource{
-			Datasource: namespace,
-			Type:       model.DATASOURCE_TYP_NAMESPACE,
-			Category:   model.DATASOURCE_CATEGORY_APM,
-			Nested:     services,
+			Datasource:	namespace,
+			Type:		model.DATASOURCE_TYP_NAMESPACE,
+			Category:	model.DATASOURCE_CATEGORY_APM,
+			Nested:		services,
 		}
 		namespaceList = append(namespaceList, ds)
 	}
@@ -96,16 +96,16 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 	return resp, nil
 }
 
-func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, userID int64) (response.GetGroupDatasourceResponse, error) {
+func (s *service) GetGroupDatasource(ctx_core core.Context, req *request.GetGroupDatasourceRequest, userID int64) (response.GetGroupDatasourceResponse, error) {
 	var (
-		groups       []database.DataGroup
-		err          error
-		namespaceMap = map[string][]string{}
-		serviceMap   = map[string][]string{}
-		filterMap    = map[string]struct{}{}
-		resp         = response.GetGroupDatasourceResponse{}
-		endTime      = time.Now()
-		startTime    = endTime.Add(subTime)
+		groups		[]database.DataGroup
+		err		error
+		namespaceMap	= map[string][]string{}
+		serviceMap	= map[string][]string{}
+		filterMap	= map[string]struct{}{}
+		resp		= response.GetGroupDatasourceResponse{}
+		endTime		= time.Now()
+		startTime	= endTime.Add(subTime)
 	)
 	if req.GroupID != 0 {
 		groups, err = s.getDataGroup(req.GroupID, req.Category)
@@ -179,10 +179,10 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 
 func (s *service) getNested(datasource string, typ string) ([]string, error) {
 	var (
-		endTime   = time.Now()
-		startTime = endTime.Add(-24 * time.Hour)
-		nested    []string
-		err       error
+		endTime		= time.Now()
+		startTime	= endTime.Add(-24 * time.Hour)
+		nested		[]string
+		err		error
 	)
 
 	if typ == model.DATASOURCE_TYP_NAMESPACE {

@@ -7,14 +7,14 @@ import (
 	"context"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) GetFeature(req *request.GetFeatureRequest) (response.GetFeatureResponse, error) {
+func (s *service) GetFeature(ctx_core core.Context, req *request.GetFeatureRequest) (response.GetFeatureResponse, error) {
 	features, err := s.dbRepo.GetFeature(nil)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (s *service) GetFeature(req *request.GetFeatureRequest) (response.GetFeatur
 	return rootFeatures, nil
 }
 
-func (s *service) GetSubjectFeature(req *request.GetSubjectFeatureRequest) (response.GetSubjectFeatureResponse, error) {
+func (s *service) GetSubjectFeature(ctx_core core.Context, req *request.GetSubjectFeatureRequest) (response.GetSubjectFeatureResponse, error) {
 	if req.SubjectType == model.PERMISSION_SUB_TYP_USER {
 		return s.getUserFeatureWithSource(req.SubjectID, req.Language)
 	}
@@ -129,7 +129,7 @@ func (s *service) getUserFeatureWithSource(userID int64, language string) (respo
 	return resp, err
 }
 
-func (s *service) PermissionOperation(req *request.PermissionOperationRequest) error {
+func (s *service) PermissionOperation(ctx_core core.Context, req *request.PermissionOperationRequest) error {
 	var exists bool
 	var err error
 	switch req.SubjectType {

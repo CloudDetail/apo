@@ -7,12 +7,12 @@ import (
 	"context"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) UpdateRole(req *request.UpdateRoleRequest) error {
+func (s *service) UpdateRole(ctx_core core.Context, req *request.UpdateRoleRequest) error {
 	idFilter := model.RoleFilter{
 		ID: req.RoleID,
 	}

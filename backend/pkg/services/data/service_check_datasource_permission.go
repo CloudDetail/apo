@@ -8,25 +8,25 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, services interface{}, fillCategory string) (err error) {
+func (s *service) CheckDatasourcePermission(ctx_core core.Context, userID, groupID int64, namespaces, services interface{}, fillCategory string) (err error) {
 	var (
-		namespaceMap    = map[string]bool{}     // mapped all namespaces user can view
-		serviceMap      = map[string]struct{}{} // mapped all services user can view
-		namespaceSrvMap = map[string][]string{}
-		endTime         = time.Now()
-		startTime       = endTime.Add(-24 * time.Hour)
-		serviceList     []string
-		namespaceDs     []string
-		serviceDs       []string
-		filteredNs      []string
-		filteredSrv     []string
-		filteredSrvMap  = map[string]struct{}{}
-		groups          = make([]database.DataGroup, 0)
+		namespaceMap	= map[string]bool{}	// mapped all namespaces user can view
+		serviceMap	= map[string]struct{}{}	// mapped all services user can view
+		namespaceSrvMap	= map[string][]string{}
+		endTime		= time.Now()
+		startTime	= endTime.Add(-24 * time.Hour)
+		serviceList	[]string
+		namespaceDs	[]string
+		serviceDs	[]string
+		filteredNs	[]string
+		filteredSrv	[]string
+		filteredSrvMap	= map[string]struct{}{}
+		groups		= make([]database.DataGroup, 0)
 	)
 
 	// Get user's data group

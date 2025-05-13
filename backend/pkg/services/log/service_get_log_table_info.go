@@ -6,9 +6,10 @@ package log
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetLogTableInfo(req *request.LogTableInfoRequest) (*response.LogTableInfoResponse, error) {
+func (s *service) GetLogTableInfo(ctx_core core.Context, req *request.LogTableInfoRequest) (*response.LogTableInfoResponse, error) {
 	rows, err := s.dbRepo.GetAllLogTable()
 	res := &response.LogTableInfoResponse{}
 	if err != nil {
@@ -17,10 +18,10 @@ func (s *service) GetLogTableInfo(req *request.LogTableInfoRequest) (*response.L
 	parses := make([]response.Parse, 0)
 	for _, row := range rows {
 		parses = append(parses, response.Parse{
-			DataBase:  row.DataBase,
-			ParseName: row.ParseName,
-			TableName: row.Table,
-			ParseInfo: row.ParseInfo,
+			DataBase:	row.DataBase,
+			ParseName:	row.ParseName,
+			TableName:	row.Table,
+			ParseInfo:	row.ParseInfo,
 		})
 	}
 
@@ -37,10 +38,10 @@ func (s *service) GetLogTableInfo(req *request.LogTableInfoRequest) (*response.L
 			instanceMap[other.Instance] = instance
 		}
 		instance[other.DataBase] = append(instance[other.DataBase], response.LogTableInfo{
-			LogField:  other.LogField,
-			TableName: other.Table,
-			TimeField: other.TimeField,
-			Cluster:   other.Cluster,
+			LogField:	other.LogField,
+			TableName:	other.Table,
+			TimeField:	other.TimeField,
+			Cluster:	other.Cluster,
 		})
 		instanceMap[other.Instance] = instance
 	}
@@ -48,13 +49,13 @@ func (s *service) GetLogTableInfo(req *request.LogTableInfoRequest) (*response.L
 		databases := make([]response.DBInfo, 0)
 		for dataBase, tables := range DataBases {
 			databases = append(databases, response.DBInfo{
-				DataBase: dataBase,
-				Tables:   tables,
+				DataBase:	dataBase,
+				Tables:		tables,
 			})
 		}
 		instances = append(instances, response.Instance{
-			InstanceName: instance,
-			DataBases:    databases,
+			InstanceName:	instance,
+			DataBases:	databases,
 		})
 	}
 

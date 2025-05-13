@@ -7,13 +7,14 @@ import (
 	"fmt"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const (
 	logsBaseQuery = "SELECT * FROM `%s`.`%s` WHERE %s %s"
 )
 
-func (ch *chRepo) QueryAllLogs(req *request.LogQueryRequest) ([]map[string]any, string, error) {
+func (ch *chRepo) QueryAllLogs(ctx_core core.Context, req *request.LogQueryRequest) ([]map[string]any, string, error) {
 	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
 	bySql := NewByLimitBuilder().
 		OrderBy(fmt.Sprintf("`%s`", req.TimeField), false).

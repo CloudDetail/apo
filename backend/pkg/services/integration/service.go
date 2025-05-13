@@ -6,23 +6,24 @@ package integration
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 type Service interface {
-	GetStaticIntegration() map[string]any
+	GetStaticIntegration(ctx_core core.Context,) map[string]any
 
-	CreateCluster(cluster *integration.ClusterIntegration) (*integration.Cluster, error)
-	GetClusterIntegration(clusterID string) (*integration.ClusterIntegrationVO, error)
-	UpdateClusterIntegration(cluster *integration.ClusterIntegration) error
+	CreateCluster(ctx_core core.Context, cluster *integration.ClusterIntegration) (*integration.Cluster, error)
+	GetClusterIntegration(ctx_core core.Context, clusterID string) (*integration.ClusterIntegrationVO, error)
+	UpdateClusterIntegration(ctx_core core.Context, cluster *integration.ClusterIntegration) error
 
-	ListCluster() ([]integration.Cluster, error)
-	DeleteCluster(cluster *integration.Cluster) error
+	ListCluster(ctx_core core.Context,) ([]integration.Cluster, error)
+	DeleteCluster(ctx_core core.Context, cluster *integration.Cluster) error
 
-	GetIntegrationInstallConfigFile(req *integration.GetCInstallRequest) (*integration.GetCInstallConfigResponse, error)
+	GetIntegrationInstallConfigFile(ctx_core core.Context, req *integration.GetCInstallRequest) (*integration.GetCInstallConfigResponse, error)
 	// Deprecated
-	GetIntegrationInstallDoc(req *integration.GetCInstallRequest) ([]byte, error)
+	GetIntegrationInstallDoc(ctx_core core.Context, req *integration.GetCInstallRequest) ([]byte, error)
 
-	TriggerAdapterUpdate(req *integration.TriggerAdapterUpdateRequest)
+	TriggerAdapterUpdate(ctx_core core.Context, req *integration.TriggerAdapterUpdateRequest)
 }
 
 var _ Service = &service{}

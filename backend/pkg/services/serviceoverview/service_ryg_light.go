@@ -12,12 +12,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error) {
+func (s *service) GetServicesRYGLightStatus(ctx_core core.Context, startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error) {
 	var servicesMap = &servicesRYGLightMap{
-		MetricGroupList: []*RYGLightStatus{},
-		MetricGroupMap:  map[prom.ServiceKey]*RYGLightStatus{},
+		MetricGroupList:	[]*RYGLightStatus{},
+		MetricGroupMap:		map[prom.ServiceKey]*RYGLightStatus{},
 	}
 
 	startMicroTS := startTime.UnixMicro()
@@ -81,8 +82,8 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 		}
 
 		resp.ServiceList = append(resp.ServiceList, &response.ServiceRYGResult{
-			ServiceName: svcKey.SvcName,
-			RYGResult:   *status.ExposeRYGLightStatus(),
+			ServiceName:	svcKey.SvcName,
+			RYGResult:	*status.ExposeRYGLightStatus(),
 		})
 	}
 
@@ -93,19 +94,19 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 // Red/Green/Yellow Status
 type RYGLightStatus struct {
 	// From Prometheus
-	LatencyAvg       *float64 // average latency for statistical services
-	ErrorRateAvg     *float64 // The average error rate is used get the current error situation
-	LogErrorCountAvg *float64 // average number of log errors is used to get the current log error condition
+	LatencyAvg		*float64	// average latency for statistical services
+	ErrorRateAvg		*float64	// The average error rate is used get the current error situation
+	LogErrorCountAvg	*float64	// average number of log errors is used to get the current log error condition
 
-	LatencyDoD       *float64 // Delay Day-over-Day Growth Rate
-	ErrorRateDoD     *float64 // Error Rate Day-over-Day Growth Rate
-	LogErrorCountDoD *float64 // log error Day-over-Day Growth Rate
+	LatencyDoD		*float64	// Delay Day-over-Day Growth Rate
+	ErrorRateDoD		*float64	// Error Rate Day-over-Day Growth Rate
+	LogErrorCountDoD	*float64	// log error Day-over-Day Growth Rate
 
-	Instances []*model.ServiceInstance
+	Instances	[]*model.ServiceInstance
 
 	// From Clickhouse
-	model.AlertStatus             // alarm status
-	model.AlertEventLevelCountMap // Alarm event level statistics
+	model.AlertStatus		// alarm status
+	model.AlertEventLevelCountMap	// Alarm event level statistics
 }
 
 func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
@@ -115,16 +116,16 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 	if latencyScore >= 0 {
 		res.Score += latencyScore
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
-			Key:    "latency",
-			Score:  latencyScore,
-			Detail: fmt.Sprintf("latency 同比增长 %.2f%%", *s.LatencyDoD),
+			Key:	"latency",
+			Score:	latencyScore,
+			Detail:	fmt.Sprintf("latency 同比增长 %.2f%%", *s.LatencyDoD),
 		})
 	} else if latencyScore == -1 {
 		res.Score += 3
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
-			Key:    "latency",
-			Score:  3,
-			Detail: "未获取到昨日延时,跳过检查",
+			Key:	"latency",
+			Score:	3,
+			Detail:	"未获取到昨日延时,跳过检查",
 		})
 	}
 
@@ -132,22 +133,22 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 	if errorRateScore >= 0 {
 		res.Score += errorRateScore
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
-			Key:    "errorRate",
-			Score:  errorRateScore,
-			Detail: fmt.Sprintf("errorRate 同比增长 %.2f%%", *s.ErrorRateDoD),
+			Key:	"errorRate",
+			Score:	errorRateScore,
+			Detail:	fmt.Sprintf("errorRate 同比增长 %.2f%%", *s.ErrorRateDoD),
 		})
 	} else if s.ErrorRateAvg != nil && *s.ErrorRateAvg > 0 {
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
-			Key:    "errorRate",
-			Score:  0,
-			Detail: fmt.Sprintf("errorRate 昨日同时期无错误,今日错误率: %.2f%%", *s.ErrorRateAvg),
+			Key:	"errorRate",
+			Score:	0,
+			Detail:	fmt.Sprintf("errorRate 昨日同时期无错误,今日错误率: %.2f%%", *s.ErrorRateAvg),
 		})
 	} else {
 		res.Score += 3
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
-			Key:    "errorRate",
-			Score:  3,
-			Detail: "errorRate 今日未发生错误",
+			Key:	"errorRate",
+			Score:	3,
+			Detail:	"errorRate 今日未发生错误",
 		})
 	}
 
@@ -155,22 +156,22 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 	if logErrorCountScore >= 0 {
 		res.Score += logErrorCountScore
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
-			Key:    "logErrorCount",
-			Score:  logErrorCountScore,
-			Detail: fmt.Sprintf("logErrorCount 同比增长 %.2f%%", *s.LogErrorCountDoD),
+			Key:	"logErrorCount",
+			Score:	logErrorCountScore,
+			Detail:	fmt.Sprintf("logErrorCount 同比增长 %.2f%%", *s.LogErrorCountDoD),
 		})
 	} else if s.LogErrorCountAvg != nil && *s.LogErrorCountAvg > 0 {
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
-			Key:    "logErrorCount",
-			Score:  0,
-			Detail: fmt.Sprintf("logErrorCount 昨日同时期无错误,今日日志错误数: %.0f%%", *s.ErrorRateAvg),
+			Key:	"logErrorCount",
+			Score:	0,
+			Detail:	fmt.Sprintf("logErrorCount 昨日同时期无错误,今日日志错误数: %.0f%%", *s.ErrorRateAvg),
 		})
 	} else {
 		res.Score += 3
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
-			Key:    "logErrorCount",
-			Score:  3,
-			Detail: "logErrorCount 今日未产生错误日志",
+			Key:	"logErrorCount",
+			Score:	3,
+			Detail:	"logErrorCount 今日未产生错误日志",
 		})
 	}
 
@@ -178,24 +179,24 @@ func (s *RYGLightStatus) ExposeRYGLightStatus() *response.RYGResult {
 	if alertScore >= 0 {
 		res.Score += alertScore
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
-			Key:    "alert",
-			Score:  alertScore,
-			Detail: getAlertScoreDetail(alertScore),
+			Key:	"alert",
+			Score:	alertScore,
+			Detail:	getAlertScoreDetail(alertScore),
 		})
 	}
 
 	if len(s.Instances) < 2 {
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
-			Key:    "replica",
-			Score:  0,
-			Detail: "应用实例数小于2, 存在服务不可用风险",
+			Key:	"replica",
+			Score:	0,
+			Detail:	"应用实例数小于2, 存在服务不可用风险",
 		})
 	} else {
 		res.Score += 3
 		res.ScoreDetail = append(res.ScoreDetail, response.RYGScoreDetail{
-			Key:    "replica",
-			Score:  3,
-			Detail: "应用实例数大于2, 服务有可用副本",
+			Key:	"replica",
+			Score:	3,
+			Detail:	"应用实例数大于2, 服务有可用副本",
 		})
 	}
 

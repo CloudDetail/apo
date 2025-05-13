@@ -9,11 +9,11 @@ import (
 	"unicode"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
+func (s *service) UpdateUserInfo(ctx_core core.Context, req *request.UpdateUserInfoRequest) error {
 	//userRoles, err := s.dbRepo.GetUserRole(req.UserID)
 	//if err != nil {
 	//	return err
@@ -44,15 +44,15 @@ func (s *service) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
 	return s.dbRepo.Transaction(context.Background(), updateInfoFunc)
 }
 
-func (s *service) UpdateUserPhone(req *request.UpdateUserPhoneRequest) error {
+func (s *service) UpdateUserPhone(ctx_core core.Context, req *request.UpdateUserPhoneRequest) error {
 	return s.dbRepo.UpdateUserPhone(req.UserID, req.Phone)
 }
 
-func (s *service) UpdateUserEmail(req *request.UpdateUserEmailRequest) error {
+func (s *service) UpdateUserEmail(ctx_core core.Context, req *request.UpdateUserEmailRequest) error {
 	return s.dbRepo.UpdateUserEmail(req.UserID, req.Email)
 }
 
-func (s *service) UpdateUserPassword(req *request.UpdateUserPasswordRequest) error {
+func (s *service) UpdateUserPassword(ctx_core core.Context, req *request.UpdateUserPasswordRequest) error {
 	if err := checkPasswordComplexity(req.NewPassword); err != nil {
 		return err
 	}
@@ -81,11 +81,11 @@ func checkPasswordComplexity(password string) error {
 		return core.Error(code.UserPasswdSimpleError, "length less than 8")
 	}
 	var (
-		hasUpper     bool
-		hasLower     bool
-		hasDigit     bool
-		hasSpecial   bool
-		specialChars = "!@#$%^&*()-_+=<>?/{}[]|:;.,~`"
+		hasUpper	bool
+		hasLower	bool
+		hasDigit	bool
+		hasSpecial	bool
+		specialChars	= "!@#$%^&*()-_+=<>?/{}[]|:;.,~`"
 	)
 
 	for _, char := range password {
@@ -126,7 +126,7 @@ func containsRune(set string, char rune) bool {
 	return false
 }
 
-func (s *service) RestPassword(req *request.ResetPasswordRequest) error {
+func (s *service) RestPassword(ctx_core core.Context, req *request.ResetPasswordRequest) error {
 	if err := checkPasswordComplexity(req.NewPassword); err != nil {
 		return err
 	}
@@ -150,6 +150,6 @@ func (s *service) RestPassword(req *request.ResetPasswordRequest) error {
 	return s.dbRepo.Transaction(context.Background(), resetPasswordFunc, resetDifyPasswordFunc)
 }
 
-func (s *service) UpdateSelfInfo(req *request.UpdateSelfInfoRequest) error {
+func (s *service) UpdateSelfInfo(ctx_core core.Context, req *request.UpdateSelfInfoRequest) error {
 	return s.dbRepo.UpdateUserInfo(context.Background(), req.UserID, req.Phone, req.Email, req.Corporation)
 }

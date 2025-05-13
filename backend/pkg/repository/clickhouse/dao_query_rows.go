@@ -3,7 +3,9 @@
 
 package clickhouse
 
-func (ch *chRepo) queryRowsData(sql string) ([]map[string]any, error) {
+import core "github.com/CloudDetail/apo/backend/pkg/core"
+
+func (ch *chRepo) queryRowsData(ctx_core core.Context, sql string) ([]map[string]any, error) {
 	rows, err := ch.db.Query(sql)
 	if err != nil {
 		return nil, err

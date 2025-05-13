@@ -12,15 +12,16 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/pkg/errors"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const (
-	SortByLatency   = "latency"
-	SortByErrorRate = "errorRate"
-	SortByTps       = "tps"
+	SortByLatency	= "latency"
+	SortByErrorRate	= "errorRate"
+	SortByTps	= "tps"
 )
 
-func (s *service) GetSQLMetrics(req *request.GetSQLMetricsRequest) (*response.GetSQLMetricsResponse, error) {
+func (s *service) GetSQLMetrics(ctx_core core.Context, req *request.GetSQLMetricsRequest) (*response.GetSQLMetricsResponse, error) {
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 	step := time.Duration(req.Step) * time.Microsecond
@@ -52,18 +53,18 @@ func (s *service) GetSQLMetrics(req *request.GetSQLMetricsRequest) (*response.Ge
 	var totalCount int
 	if req.PageParam == nil {
 		req.PageParam = &request.PageParam{
-			CurrentPage: 1,
-			PageSize:    99,
+			CurrentPage:	1,
+			PageSize:	99,
 		}
 	}
 	sqlMetricMap.MetricGroupList, totalCount = pageByParam(sqlMetricMap.MetricGroupList, req.PageParam)
 	var res = &response.GetSQLMetricsResponse{
 		Pagination: model.Pagination{
-			Total:       int64(totalCount),
-			CurrentPage: req.PageParam.CurrentPage,
-			PageSize:    req.PageParam.PageSize,
+			Total:		int64(totalCount),
+			CurrentPage:	req.PageParam.CurrentPage,
+			PageSize:	req.PageParam.PageSize,
 		},
-		SQLOperationDetails: []response.SQLOperationDetail{},
+		SQLOperationDetails:	[]response.SQLOperationDetail{},
 	}
 
 	// Fill the chart
@@ -71,29 +72,29 @@ func (s *service) GetSQLMetrics(req *request.GetSQLMetricsRequest) (*response.Ge
 	// Convert format
 	for _, metricGroups := range sqlMetricMap.MetricGroupList {
 		res.SQLOperationDetails = append(res.SQLOperationDetails, response.SQLOperationDetail{
-			SQLKey: metricGroups.SQLKey,
+			SQLKey:	metricGroups.SQLKey,
 			Latency: response.TempChartObject{
-				ChartData: metricGroups.LatencyChartData,
-				Value:     metricGroups.REDMetrics.Avg.Latency,
+				ChartData:	metricGroups.LatencyChartData,
+				Value:		metricGroups.REDMetrics.Avg.Latency,
 				Ratio: response.Ratio{
-					DayOverDay:  metricGroups.REDMetrics.DOD.Latency,
-					WeekOverDay: metricGroups.REDMetrics.WOW.Latency,
+					DayOverDay:	metricGroups.REDMetrics.DOD.Latency,
+					WeekOverDay:	metricGroups.REDMetrics.WOW.Latency,
 				},
 			},
 			ErrorRate: response.TempChartObject{
-				ChartData: metricGroups.ErrorRateChartData,
-				Value:     metricGroups.REDMetrics.Avg.ErrorRate,
+				ChartData:	metricGroups.ErrorRateChartData,
+				Value:		metricGroups.REDMetrics.Avg.ErrorRate,
 				Ratio: response.Ratio{
-					DayOverDay:  metricGroups.REDMetrics.DOD.ErrorRate,
-					WeekOverDay: metricGroups.REDMetrics.WOW.ErrorRate,
+					DayOverDay:	metricGroups.REDMetrics.DOD.ErrorRate,
+					WeekOverDay:	metricGroups.REDMetrics.WOW.ErrorRate,
 				},
 			},
 			Tps: response.TempChartObject{
-				ChartData: metricGroups.TpsChartData,
-				Value:     metricGroups.REDMetrics.Avg.TPM,
+				ChartData:	metricGroups.TpsChartData,
+				Value:		metricGroups.REDMetrics.Avg.TPM,
 				Ratio: response.Ratio{
-					DayOverDay:  metricGroups.REDMetrics.DOD.TPM,
-					WeekOverDay: metricGroups.REDMetrics.WOW.TPM,
+					DayOverDay:	metricGroups.REDMetrics.DOD.TPM,
+					WeekOverDay:	metricGroups.REDMetrics.WOW.TPM,
 				},
 			},
 		})
@@ -118,11 +119,11 @@ type SQLMetricMap = prom.MetricGroupMap[prom.SQLKey, *SQLMetricsWithChart]
 type SQLMetricsWithChart struct {
 	prom.SQLKey
 
-	REDMetrics prom.REDMetrics
+	REDMetrics	prom.REDMetrics
 
-	LatencyChartData   map[int64]float64
-	ErrorRateChartData map[int64]float64
-	TpsChartData       map[int64]float64
+	LatencyChartData	map[int64]float64
+	ErrorRateChartData	map[int64]float64
+	TpsChartData		map[int64]float64
 }
 
 func (s *SQLMetricsWithChart) InitEmptyGroup(key prom.ConvertFromLabels) prom.MetricGroup {
@@ -146,8 +147,8 @@ func (s *SQLMetricsWithChart) SetValues(metricGroup prom.MGroupName, metricName 
 // EndpointsREDMetric query Endpoint-level RED metric results (including average value, DoD/WoW Growth Rate)
 func (s *service) SQLREDMetric(startTime, endTime time.Time, service string) *SQLMetricMap {
 	var res = &SQLMetricMap{
-		MetricGroupList: []*SQLMetricsWithChart{},
-		MetricGroupMap:  map[prom.SQLKey]*SQLMetricsWithChart{},
+		MetricGroupList:	[]*SQLMetricsWithChart{},
+		MetricGroupMap:		map[prom.SQLKey]*SQLMetricsWithChart{},
 	}
 
 	var filters []string

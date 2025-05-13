@@ -11,9 +11,10 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResponse, error) {
+func (s *service) QueryLog(ctx_core core.Context, req *request.LogQueryRequest) (*response.LogQueryResponse, error) {
 	// calculate offset, if offset > 10000, calculate from histogram
 	offset := (req.PageNum - 1) * req.PageSize
 	if offset > 10000 {
@@ -39,8 +40,8 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 
 	// query column name and type
 	rows, err := s.chRepo.OtherLogTableInfo(&request.OtherTableInfoRequest{
-		DataBase:  req.DataBase,
-		TableName: req.TableName,
+		DataBase:	req.DataBase,
+		TableName:	req.TableName,
 	})
 	if err != nil {
 		res.Err = err.Error()
@@ -58,8 +59,8 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 	} else {
 		hiddenFields := []string{}
 		model := &database.LogTableInfo{
-			DataBase: req.DataBase,
-			Table:    req.TableName,
+			DataBase:	req.DataBase,
+			Table:		req.TableName,
 		}
 		// query log field json
 		s.dbRepo.OperateLogTableInfo(model, database.QUERY)

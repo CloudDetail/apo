@@ -11,6 +11,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func transferAlertManager(data *request.InputAlertManagerRequest) []*model.AlertEvent {
@@ -29,18 +30,18 @@ func transferAlertManager(data *request.InputAlertManagerRequest) []*model.Alert
 
 		now := time.Now()
 		alertEvent := &model.AlertEvent{
-			ID:           model.GenUUID(),
-			Source:       model.AlertManagerSource,
-			Name:         a.Labels["alertname"],
-			Severity:     convertSeverity(a.Labels["severity"]),
-			Status:       convertStatus(a.Status),
-			Group:        a.Labels["group"],
-			CreateTime:   startsAt,
-			UpdateTime:   now,
-			ReceivedTime: now,
-			EndTime:      endsAt,
-			Detail:       string(annotationsJson),
-			Tags:         a.Labels,
+			ID:		model.GenUUID(),
+			Source:		model.AlertManagerSource,
+			Name:		a.Labels["alertname"],
+			Severity:	convertSeverity(a.Labels["severity"]),
+			Status:		convertStatus(a.Status),
+			Group:		a.Labels["group"],
+			CreateTime:	startsAt,
+			UpdateTime:	now,
+			ReceivedTime:	now,
+			EndTime:	endsAt,
+			Detail:		string(annotationsJson),
+			Tags:		a.Labels,
 		}
 
 		events = append(events, alertEvent)
@@ -73,7 +74,7 @@ func convertStatus(status string) model.Status {
 	}
 }
 
-func (s *service) InputAlertManager(req *request.InputAlertManagerRequest) error {
+func (s *service) InputAlertManager(ctx_core core.Context, req *request.InputAlertManagerRequest) error {
 	events := transferAlertManager(req)
 	err := s.chRepo.InsertBatchAlertEvents(context.Background(), events)
 	if err != nil {

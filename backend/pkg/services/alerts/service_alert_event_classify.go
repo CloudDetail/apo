@@ -13,14 +13,15 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/hashicorp/golang-lru/v2/expirable"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 var cache = expirable.NewLRU[string, string](10, nil, time.Hour)
 
-func (s *service) AlertEventClassify(req *request.AlertEventClassifyRequest) (*response.AlertEventClassifyResponse, error) {
+func (s *service) AlertEventClassify(ctx_core core.Context, req *request.AlertEventClassifyRequest) (*response.AlertEventClassifyResponse, error) {
 	inputs, _ := json.Marshal(map[string]interface{}{
-		"alertGroup": req.AlertGroup,
-		"alertName":  req.AlertName,
+		"alertGroup":	req.AlertGroup,
+		"alertName":	req.AlertName,
 	})
 	r, ok := cache.Get(req.AlertGroup + req.AlertName)
 	if ok {
@@ -30,9 +31,9 @@ func (s *service) AlertEventClassify(req *request.AlertEventClassifyRequest) (*r
 	}
 
 	request := &dify.WorkflowRequest{
-		Inputs:       inputs,
-		ResponseMode: "blocking",
-		User:         "apo-backend",
+		Inputs:		inputs,
+		ResponseMode:	"blocking",
+		User:		"apo-backend",
 	}
 
 	difyconf := config.Get().Dify

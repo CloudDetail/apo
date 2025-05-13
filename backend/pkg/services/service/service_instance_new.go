@@ -14,9 +14,10 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error) {
+func (s *service) GetInstancesNew(ctx_core core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error) {
 	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
 	if err != nil {
 		return res, err
@@ -34,18 +35,18 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 	}
 	// Fill the instance
 	var instances = &InstanceMap{
-		MetricGroupList: []*prometheus.InstanceMetrics{},
-		MetricGroupMap:  map[prometheus.InstanceKey]*prometheus.InstanceMetrics{},
+		MetricGroupList:	[]*prometheus.InstanceMetrics{},
+		MetricGroupMap:		map[prometheus.InstanceKey]*prometheus.InstanceMetrics{},
 	}
 	for _, instance := range instanceList.InstanceMap {
 		key := prometheus.InstanceKey{
-			ServiceName: instance.ServiceName,
-			PID:         strconv.FormatInt(instance.Pid, 10),
-			ContainerId: instance.ContainerId,
-			Pod:         instance.PodName,
-			Namespace:   instance.Namespace,
-			NodeName:    instance.NodeName,
-			NodeIP:      instance.NodeIP,
+			ServiceName:	instance.ServiceName,
+			PID:		strconv.FormatInt(instance.Pid, 10),
+			ContainerId:	instance.ContainerId,
+			Pod:		instance.PodName,
+			Namespace:	instance.Namespace,
+			NodeName:	instance.NodeName,
+			NodeIP:		instance.NodeIP,
 		}
 		metric := &prometheus.InstanceMetrics{
 			InstanceKey: key,
@@ -102,10 +103,10 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 		// Construct the return value of the latency
 		latencyTempChartObject := response.TempChartObject{
 			Ratio: response.Ratio{
-				DayOverDay:  instance.REDMetrics.DOD.Latency,
-				WeekOverDay: instance.REDMetrics.WOW.Latency,
+				DayOverDay:	instance.REDMetrics.DOD.Latency,
+				WeekOverDay:	instance.REDMetrics.WOW.Latency,
 			},
-			Value: instance.REDMetrics.Avg.Latency,
+			Value:	instance.REDMetrics.Avg.Latency,
 		}
 		if instance.LatencyData != nil {
 			latencyTempChartObject.ChartData = DataToChart(instance.LatencyData)
@@ -116,10 +117,10 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 		// Construct the return value of error
 		errorTempChartObject := response.TempChartObject{
 			Ratio: response.Ratio{
-				DayOverDay:  instance.REDMetrics.DOD.ErrorRate,
-				WeekOverDay: instance.REDMetrics.WOW.ErrorRate,
+				DayOverDay:	instance.REDMetrics.DOD.ErrorRate,
+				WeekOverDay:	instance.REDMetrics.WOW.ErrorRate,
 			},
-			Value: instance.REDMetrics.Avg.ErrorRate,
+			Value:	instance.REDMetrics.Avg.ErrorRate,
 		}
 		if errorTempChartObject.Value == nil {
 			zero := new(float64)
@@ -134,10 +135,10 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 		// construct tps return value
 		tpsTempChartObject := response.TempChartObject{
 			Ratio: response.Ratio{
-				DayOverDay:  instance.REDMetrics.DOD.TPM,
-				WeekOverDay: instance.REDMetrics.WOW.TPM,
+				DayOverDay:	instance.REDMetrics.DOD.TPM,
+				WeekOverDay:	instance.REDMetrics.WOW.TPM,
 			},
-			Value: instance.REDMetrics.Avg.TPM,
+			Value:	instance.REDMetrics.Avg.TPM,
 		}
 		if instance.TPMData != nil {
 			tpsTempChartObject.ChartData = DataToChart(instance.TPMData)
@@ -148,10 +149,10 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 		// Construct log return value
 		logTempChartObject := response.TempChartObject{
 			Ratio: response.Ratio{
-				DayOverDay:  instance.LogDayOverDay,
-				WeekOverDay: instance.LogWeekOverWeek,
+				DayOverDay:	instance.LogDayOverDay,
+				WeekOverDay:	instance.LogWeekOverWeek,
 			},
-			Value: instance.LogAVGData,
+			Value:	instance.LogAVGData,
 		}
 		filters := ExtractLogFilter(instance.InstanceKey)
 		var normalNowLog, normalDayLog, normalWeekLog []prometheus.MetricResult
@@ -192,17 +193,17 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 		}
 
 		newInstance := response.InstanceData{
-			Name:        instance.InstanceKey.GenInstanceName(),
-			Namespace:   instance.Namespace,
-			NodeName:    instance.NodeName,
-			NodeIP:      instance.NodeIP,
-			Timestamp:   nil,
-			Latency:     latencyTempChartObject,
-			Tps:         tpsTempChartObject,
-			ErrorRate:   errorTempChartObject,
-			Logs:        logTempChartObject,
-			AlertStatus: model.NORMAL_ALERT_STATUS,
-			AlertReason: model.AlertReason{},
+			Name:		instance.InstanceKey.GenInstanceName(),
+			Namespace:	instance.Namespace,
+			NodeName:	instance.NodeName,
+			NodeIP:		instance.NodeIP,
+			Timestamp:	nil,
+			Latency:	latencyTempChartObject,
+			Tps:		tpsTempChartObject,
+			ErrorRate:	errorTempChartObject,
+			Logs:		logTempChartObject,
+			AlertStatus:	model.NORMAL_ALERT_STATUS,
+			AlertReason:	model.AlertReason{},
 		}
 
 		pidI64, err := strconv.ParseInt(instance.PID, 10, 64)
@@ -212,12 +213,12 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 
 		instanceSingleList := []*model.ServiceInstance{
 			{
-				ServiceName: serviceName,
-				ContainerId: instance.ContainerId,
-				PodName:     instance.Pod,
-				Namespace:   instance.Namespace,
-				NodeName:    instance.NodeName,
-				Pid:         pidI64,
+				ServiceName:	serviceName,
+				ContainerId:	instance.ContainerId,
+				PodName:	instance.Pod,
+				Namespace:	instance.Namespace,
+				NodeName:	instance.NodeName,
+				Pid:		pidI64,
 			},
 		}
 		// fill alarm status
