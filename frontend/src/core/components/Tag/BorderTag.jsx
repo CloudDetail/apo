@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { theme } from 'antd'
 import React from 'react'
 
 export default function BorderTag({ type, name }) {
@@ -32,7 +33,8 @@ export default function BorderTag({ type, name }) {
       border: 'rgb(75,85,99)',
     },
   }
-
+  const { useToken } = theme
+  const { token } = useToken()
   return (
     <>
       <div className="px-2 rounded-xl py-1 text-xs border text-[#9ca3af] border-[#9ca3af]">
@@ -44,7 +46,7 @@ export default function BorderTag({ type, name }) {
             color: ErrorTypeMap[type].border,
           }}
         ></span>
-        <span>{name}</span>
+        <span style={{ color: token.colorTextSecondary }}>{name}</span>
       </div>
     </>
   )
