@@ -29,14 +29,16 @@ func (e *EmailConfigs) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	val, ok := value.(string)
-	if !ok {
+	var val []byte
+	switch s := value.(type) {
+	case string:
+		val = []byte(s)
+	case []byte:
+		val = s
+	default:
 		return fmt.Errorf("failed to scan JSONField, expected string, got %T", value)
 	}
-	if len(val) == 0 {
-		return nil
-	}
-	return json.Unmarshal([]byte(val), e)
+	return json.Unmarshal(val, e)
 }
 
 func (e WebhookConfigs) Value() (driver.Value, error) {
@@ -54,14 +56,16 @@ func (e *WebhookConfigs) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	val, ok := value.(string)
-	if !ok {
+	var val []byte
+	switch s := value.(type) {
+	case string:
+		val = []byte(s)
+	case []byte:
+		val = s
+	default:
 		return fmt.Errorf("failed to scan JSONField, expected string, got %T", value)
 	}
-	if len(val) == 0 {
-		return nil
-	}
-	return json.Unmarshal([]byte(val), e)
+	return json.Unmarshal(val, e)
 }
 
 func (e DingTalkConfigs) Value() (driver.Value, error) {
@@ -79,14 +83,19 @@ func (e *DingTalkConfigs) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	val, ok := value.(string)
-	if !ok {
+	var val []byte
+	switch s := value.(type) {
+	case string:
+		val = []byte(s)
+	case []byte:
+		val = s
+	default:
 		return fmt.Errorf("failed to scan JSONField, expected string, got %T", value)
 	}
 	if len(val) == 0 {
 		return nil
 	}
-	return json.Unmarshal([]byte(val), e)
+	return json.Unmarshal(val, e)
 }
 
 func (e WechatConfigs) Value() (driver.Value, error) {
@@ -104,12 +113,17 @@ func (e *WechatConfigs) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	val, ok := value.(string)
-	if !ok {
+	var val []byte
+	switch s := value.(type) {
+	case string:
+		val = []byte(s)
+	case []byte:
+		val = s
+	default:
 		return fmt.Errorf("failed to scan JSONField, expected string, got %T", value)
 	}
 	if len(val) == 0 {
 		return nil
 	}
-	return json.Unmarshal([]byte(val), e)
+	return json.Unmarshal(val, e)
 }
