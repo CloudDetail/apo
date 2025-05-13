@@ -14,7 +14,7 @@ import (
 
 type AlertInput interface {
 	// Manage AlertSource
-	CreateAlertSource(*alert.AlertSource) error
+	CreateAlertSource(source *alert.AlertSource) error
 	GetAlertSource(sourceId string) (*alert.AlertSource, error)
 	UpdateAlertSource(alertSource *alert.AlertSource) error
 	DeleteAlertSource(alertSource alert.SourceFrom) (*alert.AlertSource, error)
@@ -36,7 +36,7 @@ type AlertInput interface {
 
 	// Manage schema
 	CreateSchema(schema string, columns []string) error
-	DeleteSchema(string) error
+	DeleteSchema(schema string) error
 	CheckSchemaIsUsed(schema string) ([]string, error)
 	ListSchema() ([]string, error)
 	ListSchemaColumns(schema string) ([]string, error)
