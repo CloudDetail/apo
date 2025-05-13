@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import ReactJson from 'react-json-view'
 import CostomTag from 'core/components/Tag/Tag'
 import { t } from 'i18next'
+import { useSelector } from 'react-redux'
 function isJSONString(str: string) {
   try {
     JSON.parse(str)
@@ -26,6 +27,7 @@ interface AlertTagsProps {
 }
 const AlertTags = ({ tags, detail, defaultVisible = false }: AlertTagsProps) => {
   const { t } = useTranslation('oss/alertEvents')
+  const { reactJsonTheme } = useSelector((state) => state.settingReducer)
   const [visible, setVisible] = useState(false)
 
   return (
@@ -47,7 +49,7 @@ const AlertTags = ({ tags, detail, defaultVisible = false }: AlertTagsProps) => 
       {(visible || defaultVisible) && isJSONString(detail) && (
         <ReactJson
           src={JSON.parse(detail || '')}
-          theme="brewer"
+          theme={reactJsonTheme}
           collapsed={false}
           displayDataTypes={false}
           style={{ width: '100%' }}
