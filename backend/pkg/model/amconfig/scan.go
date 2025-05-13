@@ -36,7 +36,7 @@ func (e *EmailConfigs) Scan(value interface{}) error {
 	case []byte:
 		val = s
 	default:
-		return fmt.Errorf("failed to scan JSONField, expected string, got %T", value)
+		return fmt.Errorf("failed to scan JSONField, expected string or []byte, got %T", value)
 	}
 	return json.Unmarshal(val, e)
 }
@@ -63,7 +63,7 @@ func (e *WebhookConfigs) Scan(value interface{}) error {
 	case []byte:
 		val = s
 	default:
-		return fmt.Errorf("failed to scan JSONField, expected string, got %T", value)
+		return fmt.Errorf("failed to scan JSONField, expected string or []byte, got %T", value)
 	}
 	return json.Unmarshal(val, e)
 }
@@ -90,7 +90,7 @@ func (e *DingTalkConfigs) Scan(value interface{}) error {
 	case []byte:
 		val = s
 	default:
-		return fmt.Errorf("failed to scan JSONField, expected string, got %T", value)
+		return fmt.Errorf("failed to scan JSONField, expected string or []byte, got %T", value)
 	}
 	if len(val) == 0 {
 		return nil
@@ -120,7 +120,7 @@ func (e *WechatConfigs) Scan(value interface{}) error {
 	case []byte:
 		val = s
 	default:
-		return fmt.Errorf("failed to scan JSONField, expected string, got %T", value)
+		return fmt.Errorf("failed to scan JSONField, expected string or []byte, got %T", value)
 	}
 	if len(val) == 0 {
 		return nil

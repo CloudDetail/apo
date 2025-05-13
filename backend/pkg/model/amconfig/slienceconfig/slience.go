@@ -50,7 +50,7 @@ func (e *TagsStr) Scan(value interface{}) error {
 	case []byte:
 		val = s
 	default:
-		return fmt.Errorf("failed to scan JSONField, expected string, got %T", value)
+		return fmt.Errorf("failed to scan JSONField, expected string or []byte, got %T", value)
 	}
 	return json.Unmarshal(val, e)
 }
