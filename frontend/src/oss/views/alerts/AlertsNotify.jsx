@@ -9,7 +9,7 @@ import { deleteAlertNotifyApi, getAlertmanagerListApi } from 'core/api/alerts'
 import LoadingSpinner from 'src/core/components/Spinner'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { notify } from 'src/core/utils/notify'
-import { MdAdd } from 'react-icons/md'
+import { MdAdd, MdOutlineEdit } from 'react-icons/md'
 import ModifyAlertNotifyModal from './modal/ModifyAlertNotifyModal'
 import { useTranslation } from 'react-i18next' // 引入i18n
 import CustomCard from 'src/core/components/Card/CustomCard'
