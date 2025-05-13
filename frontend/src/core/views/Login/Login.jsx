@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react'
-import { Button, Input, Form, Flex } from 'antd'
+import { Button, Input, Form, Flex, theme as antdTheme } from 'antd'
 import { loginApi } from 'core/api/user'
 import { useNavigate } from 'react-router-dom'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next'
 import { workflowLoginApi } from 'src/core/api/workflows'
 import i18next from 'i18next'
 import { notify } from 'src/core/utils/notify'
+import { useSelector } from 'react-redux'
 
 export default function Login() {
   const { user, dispatchUser } = useUserContext()
@@ -25,6 +26,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const { t } = useTranslation('core/login')
   const language = i18next.language
+  const { theme } = useSelector((state) => state.settingReducer)
+  console.log('thene: ', theme)
+  const { useToken } = antdTheme
+  const { token } = useToken()
   const login = () => {
     if (loading) return
     form
@@ -88,8 +93,19 @@ export default function Login() {
   }, [])
 
   return (
-    <Flex vertical className={style.loginBackground}>
-      <Flex vertical className="w-3/12 bg-[rgba(0,0,0,0.4)] rounded-lg p-10 drop-shadow-xl">
+    <Flex
+      vertical
+      className={style.loginBackground}
+      style={{ backgroundImage: theme === 'light' ? `url('src/core/assets/brand/bg-light.png')` : `url('src/core/assets/brand/bg.jpg')` }}
+    >
+      <Flex
+        vertical
+        className="w-3/12 rounded-lg p-10 drop-shadow-xl"
+        style={{
+          backgroundColor: theme === 'light' ? token.colorFillSecondary : token.colorBgMask,
+          color: token.colorTextSecondary
+        }}
+      >
         <Flex className="w-full justify-center items-center select-none">
           <img src={logo} className="w-12 mr-2" />
           <p className="text-2xl">{t('index.title')}</p>
@@ -103,7 +119,8 @@ export default function Login() {
             >
               <Input
                 size="large"
-                className="w-full bg-[rgba(17,18,23,0.5)] hover:bg-[rgba(17,18,23,0.5)]"
+                className="w-full"
+                style={{ backgroundColor: token.colorFillSecondary}}
                 prefix={<UserOutlined />}
               />
             </Form.Item>
@@ -114,17 +131,19 @@ export default function Login() {
             >
               <Input.Password
                 size="large"
-                className="w-full bg-[rgba(17,18,23,0.5)] hover:bg-[rgba(17,18,23,0.5)]"
+                className="w-full"
+                style={{ backgroundColor: token.colorFillSecondary}}
                 prefix={<LockOutlined />}
               />
             </Form.Item>
           </Form>
           <Flex className="w-full justify-between items-start mt-14">
             <Button
+              type="primary"
               size="large"
               disabled={loading}
               onClick={login}
-              className="bg-[#455EEB] w-full border-none"
+              className="w-full border-none"
             >
               {loading ? <AiOutlineLoading className="animate-spin" /> : t('index.login')}
             </Button>
