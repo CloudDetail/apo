@@ -128,10 +128,10 @@ func (repo *daoRepo) initFeatureMenuItems() error {
 
 func (repo *daoRepo) initFeatureRouter() error {
 	featureRoutes := map[string][]string{
-		"服务概览":   {"/service/info", "/service/overview"},
-		"数据接入":   {"/integration/data/settings", "/data/ingestion"},
-		"个人中心":   {"/user", "/profile", "/account"},
-		"告警事件详情": {"/alerts/events/detail/:alertID/:eventID"},
+		"服务概览": {"/service/info", "/service/overview"},
+		"数据接入": {"/integration/data/settings", "/data/ingestion"},
+		"个人中心": {"/user", "/profile", "/account"},
+		"告警事件": {"/alerts/events/detail/:alertID/:eventID"},
 	}
 
 	return repo.db.Transaction(func(tx *gorm.DB) error {
