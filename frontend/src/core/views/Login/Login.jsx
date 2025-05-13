@@ -110,7 +110,7 @@ export default function Login() {
             <label className="text-xs">{t('index.password')}</label>
             <Form.Item
               name="password"
-              rules={[{ required: true, message: t('index.enterUsername') }]}
+              rules={[{ required: true, message: t('index.enterPassword') }]}
             >
               <Input.Password
                 size="large"
