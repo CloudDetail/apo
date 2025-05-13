@@ -70,7 +70,7 @@ manual_trigger_frontend_arm:
     changes:
     - frontend/**/*
 
-trigger_rel:
+trigger_release:
   stage: triggers
   # 触发规则改成外部触发器触发，并接收"TAG"变量
   trigger:
