@@ -11,9 +11,6 @@ variables:
   CONTAINER_NAME: apo-backend-ee
   DIR_NAME: backend
 
-release:
-  stage: build
-
 build:
   # This job runs in the build stage, which runs first.
   stage: build
