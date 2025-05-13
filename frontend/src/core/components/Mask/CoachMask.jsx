@@ -8,16 +8,18 @@ import React, { useEffect, useState } from 'react'
 import { QuestionCircleOutlined, EyeOutlined } from '@ant-design/icons'
 import commingSoon from 'src/core/assets/images/commingSoon.svg'
 import i18n from 'i18next'
+import { useSelector } from 'react-redux'
 
 const CoachMask = React.memo(() => {
   const [visible, setVisible] = useState(false)
   const [images, setImages] = useState({})
   const [list, setList] = useState([])
+  const { theme } = useSelector((state) => state.settingReducer)
 
   const imageModules = import.meta.glob('src/core/assets/snapshot/**/*.png', { eager: true })
 
   const getImagePath = (imageName, language) => {
-    const path = `/src/core/assets/snapshot/${language}/${imageName}.png`
+    const path = `/src/core/assets/snapshot/${theme}/${language}/${imageName}.png`
     const module = imageModules[path]
     console.log('Available modules:', imageModules, path)
     // console.log('Target path:', path)
