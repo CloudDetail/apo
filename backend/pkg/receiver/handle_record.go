@@ -15,9 +15,10 @@ import (
 	"github.com/prometheus/alertmanager/notify"
 
 	pmodel "github.com/prometheus/common/model"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (r *InnerReceivers) HandleAlertCheckRecord(ctx context.Context, record *model.WorkflowRecord) error {
+func (r *InnerReceivers) HandleAlertCheckRecord(ctx_core core.Context, ctx context.Context, record *model.WorkflowRecord) error {
 	if record.WorkflowName != "AlertCheck" {
 		return nil
 	}
@@ -35,9 +36,9 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx context.Context, record *mod
 	}
 
 	notifyRecord := &model.AlertNotifyRecord{
-		AlertID:   alert.AlertID,
-		CreatedAt: time.Now().UnixMicro(),
-		EventID:   alert.ID.String(),
+		AlertID:	alert.AlertID,
+		CreatedAt:	time.Now().UnixMicro(),
+		EventID:	alert.ID.String(),
 	}
 
 	var fails []string

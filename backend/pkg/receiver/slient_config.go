@@ -8,20 +8,21 @@ import (
 	"time"
 
 	sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (r *InnerReceivers) GetSlienceConfigByAlertID(alertID string) (*sc.AlertSlienceConfig, error) {
+func (r *InnerReceivers) GetSlienceConfigByAlertID(ctx_core core.Context, alertID string) (*sc.AlertSlienceConfig, error) {
 	if cfgPtr, find := r.slientCFGMap.Load(alertID); find {
 		return cfgPtr.(*sc.AlertSlienceConfig), nil
 	}
 	return nil, nil
 }
 
-func (r *InnerReceivers) ListSlienceConfig() ([]sc.AlertSlienceConfig, error) {
+func (r *InnerReceivers) ListSlienceConfig(ctx_core core.Context,) ([]sc.AlertSlienceConfig, error) {
 	return r.database.GetAlertSlience()
 }
 
-func (r *InnerReceivers) SetSlienceConfigByAlertID(alertID string, forDuration string) error {
+func (r *InnerReceivers) SetSlienceConfigByAlertID(ctx_core core.Context, alertID string, forDuration string) error {
 	duration, err := time.ParseDuration(forDuration)
 	if err != nil {
 		return fmt.Errorf("duration is not valid: %w", err)
@@ -29,10 +30,10 @@ func (r *InnerReceivers) SetSlienceConfigByAlertID(alertID string, forDuration s
 
 	now := time.Now()
 	slienceconfig := &sc.AlertSlienceConfig{
-		AlertID: alertID,
-		For:     forDuration,
-		StartAt: time.Now(),
-		EndAt:   now.Add(duration),
+		AlertID:	alertID,
+		For:		forDuration,
+		StartAt:	time.Now(),
+		EndAt:		now.Add(duration),
 	}
 
 	if oldCFGPtr, find := r.slientCFGMap.Swap(alertID, slienceconfig); find {
@@ -53,7 +54,7 @@ func (r *InnerReceivers) SetSlienceConfigByAlertID(alertID string, forDuration s
 	}
 }
 
-func (r *InnerReceivers) RemoveSlienceConfigByAlertID(alertID string) error {
+func (r *InnerReceivers) RemoveSlienceConfigByAlertID(ctx_core core.Context, alertID string) error {
 	if cfgPtr, loaded := r.slientCFGMap.LoadAndDelete(alertID); loaded {
 		cfg := cfgPtr.(*sc.AlertSlienceConfig)
 		return r.database.DeleteAlertSlience(cfg.ID)

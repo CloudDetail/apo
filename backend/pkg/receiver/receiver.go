@@ -31,33 +31,34 @@ import (
 	"github.com/prometheus/alertmanager/notify/wechat"
 	"github.com/prometheus/alertmanager/template"
 	"github.com/prometheus/alertmanager/types"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 type Receivers interface {
-	HandleAlertCheckRecord(ctx context.Context, record *model.WorkflowRecord) error
+	HandleAlertCheckRecord(ctx_core core.Context, ctx context.Context, record *model.WorkflowRecord) error
 
-	GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
-	AddAMConfigReceiver(receiver amconfig.Receiver) error
-	UpdateAMConfigReceiver(receiver amconfig.Receiver, oldName string) error
-	DeleteAMConfigReceiver(name string) error
+	GetAMConfigReceiver(ctx_core core.Context, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
+	AddAMConfigReceiver(ctx_core core.Context, receiver amconfig.Receiver) error
+	UpdateAMConfigReceiver(ctx_core core.Context, receiver amconfig.Receiver, oldName string) error
+	DeleteAMConfigReceiver(ctx_core core.Context, name string) error
 
-	ListSlienceConfig() ([]slienceconfig.AlertSlienceConfig, error)
-	GetSlienceConfigByAlertID(alertID string) (*slienceconfig.AlertSlienceConfig, error)
-	SetSlienceConfigByAlertID(alertID string, forDuration string) error
-	RemoveSlienceConfigByAlertID(alertID string) error
+	ListSlienceConfig(ctx_core core.Context,) ([]slienceconfig.AlertSlienceConfig, error)
+	GetSlienceConfigByAlertID(ctx_core core.Context, alertID string) (*slienceconfig.AlertSlienceConfig, error)
+	SetSlienceConfigByAlertID(ctx_core core.Context, alertID string, forDuration string) error
+	RemoveSlienceConfigByAlertID(ctx_core core.Context, alertID string) error
 }
 
 type InnerReceivers struct {
-	database database.Repo
-	ch       clickhouse.Repo
+	database	database.Repo
+	ch		clickhouse.Repo
 
-	receivers map[string][]notify.Integration
+	receivers	map[string][]notify.Integration
 
-	externalURL *url.URL
-	logger      *slog.Logger
+	externalURL	*url.URL
+	logger		*slog.Logger
 
 	// alertID -> slienceconfig.AlertSlienceConfig
-	slientCFGMap sync.Map
+	slientCFGMap	sync.Map
 }
 
 func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo, chRepo clickhouse.Repo) (Receivers, error) {
@@ -107,9 +108,9 @@ func buildInnerReceivers(ncs []amconfig.Receiver, tmpl *template.Template, logge
 	var errs error
 
 	var innerReceivers = &InnerReceivers{
-		receivers:   make(map[string][]notify.Integration),
-		externalURL: tmpl.ExternalURL,
-		logger:      logger,
+		receivers:	make(map[string][]notify.Integration),
+		externalURL:	tmpl.ExternalURL,
+		logger:		logger,
 	}
 	for _, nc := range ncs {
 		integrations, err := buildReceiverIntegrations(nc, tmpl, logger, httpOpts...)
@@ -141,9 +142,9 @@ func buildReceiverIntegrations(nc amconfig.Receiver, tmpl *template.Template, lo
 	}
 
 	var (
-		errs         types.MultiError
-		integrations []notify.Integration
-		add          = func(name string, i int, rs notify.ResolvedSender, f func(l *slog.Logger) (notify.Notifier, error)) {
+		errs		types.MultiError
+		integrations	[]notify.Integration
+		add		= func(name string, i int, rs notify.ResolvedSender, f func(l *slog.Logger) (notify.Notifier, error)) {
 			n, err := f(logger.With("integration", name))
 			if err != nil {
 				errs.Add(err)
