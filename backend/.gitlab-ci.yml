@@ -11,6 +11,9 @@ variables:
   CONTAINER_NAME: apo-backend-ee
   DIR_NAME: backend
 
+release:
+  stage: build
+
 build:
   # This job runs in the build stage, which runs first.
   stage: build
@@ -18,7 +21,12 @@ build:
   - if: '$CI_COMMIT_BRANCH == "enterprise"'
   script:
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
-  - TAG_NAME="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-$DATE"
+  - |
+    if [[ -z "$TAG" ]]; then
+      TAG_NAME=$TAG
+    else
+      TAG_NAME="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-$DATE"
+    fi
   - echo "TAG_NAME=$TAG_NAME" > build.env
   - docker build -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
   artifacts:
