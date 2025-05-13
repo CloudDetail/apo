@@ -27,7 +27,6 @@ export default function Login() {
   const { t } = useTranslation('core/login')
   const language = i18next.language
   const { theme } = useSelector((state) => state.settingReducer)
-  console.log('thene: ', theme)
   const { useToken } = antdTheme
   const { token } = useToken()
   const login = () => {
