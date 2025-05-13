@@ -6,7 +6,6 @@ import { Button, Tag, Tooltip } from 'antd'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactJson from 'react-json-view'
-import CostomTag from 'core/components/Tag/Tag'
 import { t } from 'i18next'
 function isJSONString(str: string) {
   try {
@@ -86,9 +85,7 @@ const AlertStatus = ({
   if (!status) return
   return (
     <div className="text-center">
-      <CostomTag type={status === 'firing' ? 'error' : 'success'}>
-        {t(`oss/alertEvents:${status}`)}
-      </CostomTag>
+      <Tag color={status === 'firing' ? 'error' : 'success'}>{t(`oss/alertEvents:${status}`)}</Tag>
       {status === 'resolved' && resolvedTime && (
         <span className="text-[10px] block text-gray-400">
           {t('oss/alertEvents:resolvedOn')} {resolvedTime}
