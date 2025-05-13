@@ -216,7 +216,7 @@ function DependentTable(props) {
     }
   }, [columns, data, startTime, endTime, loading])
 
-  return <div className="text-xs">{data && <BasicTable {...tableProps} />}</div>
+  return <div className="text-xs h-full">{data && <BasicTable {...tableProps} />}</div>
 }
 
 export default DependentTable
