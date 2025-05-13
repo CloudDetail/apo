@@ -64,6 +64,12 @@ jobs:
         push: true
         tags: ${{ env.IMAGE_FULL_TAG_AMD64 }}
 
+    - name: push tag
+      uses: anothrNick/github-tag-action@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        CUSTOM_TAG: ${{ github.event.inputs.tag }}
+
   deploy-dev:
     runs-on: [self-hosted, dev]
     needs: [build-backend]
@@ -77,13 +83,3 @@ jobs:
         echo "IMAGE_FULL_NAME=$IMAGE_FULL_NAME"
         export KUBECONFIG="/root/.kube/config"
         kubectl set image deployment ${{ env.DEPLOYMENT_NAME }} ${{ env.CONTAINER_NAME }}=$IMAGE_FULL_NAME -n ${{ env.NAMESPACE }}
-
-  release-tag:
-    runs-on: ubuntu-latest
-    needs: [build-backend]
-    steps:
-    - name: push tag
-      uses: anothrNick/github-tag-action@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-        CUSTOM_TAG: ${{ github.event.inputs.tag }}
