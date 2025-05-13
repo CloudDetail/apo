@@ -15,26 +15,26 @@ type JSONField[T any] struct {
 }
 
 func (j JSONField[T]) Value() (driver.Value, error) {
-	// 将结构体序列化为 JSON 字符串
 	val, err := json.Marshal(j.Obj)
-	if err != nil {
-		return nil, err
-	}
-	return string(val), nil
+	return string(val), err
 }
 
 func (j *JSONField[T]) Scan(value interface{}) error {
-	// 如果值为 nil，则设置为零值
 	if value == nil {
 		j.Obj = *new(T)
 		return nil
 	}
-	// 将字符串反序列化为结构体
-	val, ok := value.(string)
-	if !ok {
-		return fmt.Errorf("failed to scan JSONField, expected string, got %T", value)
+
+	var val []byte
+	switch s := value.(type) {
+	case string:
+		val = []byte(s)
+	case []byte:
+		val = s
+	default:
+		return fmt.Errorf("failed to scan JSONField, expected string or []byte, got %T", value)
 	}
-	return json.Unmarshal([]byte(val), &j.Obj)
+	return json.Unmarshal(val, &j.Obj)
 }
 
 func (j *JSONField[T]) MarshalJSON() ([]byte, error) {
@@ -83,44 +83,50 @@ func acceptSecrets(va, vb reflect.Value) {
 	}
 }
 
-// replaceSecrets 遍历结构体字段，将带有 "secret" 标签的字段值替换为 "<secret>"
+// replace field value with "<secret>" if it has "secret" tag
 func replaceSecrets(v interface{}) {
-	val := reflect.ValueOf(v).Elem() // 获取结构体的值
-	typ := reflect.TypeOf(v).Elem()  // 获取结构体的类型
+	val := reflect.ValueOf(v).Elem()
+	typ := reflect.TypeOf(v).Elem()
 
-	// 遍历结构体的每个字段
 	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)     // 获取字段值
-		fieldType := typ.Field(i) // 获取字段类型信息
+		field := val.Field(i)
+		fieldType := typ.Field(i)
 
 		switch field.Kind() {
 		case reflect.String:
-			// 判断字段是否标记了 "secret" 标签
 			if fieldType.Tag.Get("secret") == "true" {
 				if len(field.String()) > 0 {
 					field.SetString(secretFieldValue)
 				}
 			}
 		case reflect.Struct:
-			replaceSecrets(field.Addr().Interface()) // 传递指针类型
+			replaceSecrets(field.Addr().Interface())
 		case reflect.Ptr:
 			if !field.IsNil() {
-				replaceSecrets(field.Interface()) // 递归处理指针指向的内容
+				replaceSecrets(field.Interface())
 			}
 		}
-
 	}
 }
 
 func (c APOCollector) Value() (driver.Value, error) {
-	return json.Marshal(c)
+	val, err := json.Marshal(c)
+	return string(val), err
 }
 
-// 实现 Scanner 接口，将 JSON 字符串扫描回 MapStringString
 func (c *APOCollector) Scan(value interface{}) error {
 	if value == nil {
 		*c = APOCollector{}
 		return nil
 	}
-	return json.Unmarshal(value.([]byte), c)
+	var val []byte
+	switch s := value.(type) {
+	case string:
+		val = []byte(s)
+	case []byte:
+		val = s
+	default:
+		return fmt.Errorf("failed to scan JSONField, expected string or []byte, got %T", value)
+	}
+	return json.Unmarshal(val, c)
 }

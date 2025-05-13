@@ -141,8 +141,8 @@ type LogIntegration struct {
 
 	Mode string `json:"mode" gorm:"type:varchar(255);column:mode"`
 
-	Name   string `json:"name" gorm:"type:json;column:name"`
-	DBType string `json:"dbType" gorm:"type:json;column:db_type"`
+	Name   string `json:"name" gorm:"type:varchar(255);column:name"`
+	DBType string `json:"dbType" gorm:"type:varchar(255);column:db_type"`
 
 	LogAPI               *JSONField[LogAPI]               `json:"logAPI,omitempty" gorm:"type:json;column:log_api"`
 	LogSelfCollectConfig *JSONField[LogSelfCollectConfig] `json:"selfCollectConfig" gorm:"type:json;column:self_collect_config"`
