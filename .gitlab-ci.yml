@@ -76,6 +76,7 @@ trigger_release:
   trigger:
     include:
     - local: backend/.gitlab-ci.yml
+    - local: frontend/.gitlab-ci.yml
     strategy: depend
   rules:
   - if: $CI_PIPELINE_SOURCE == "trigger" && $TAG

@@ -1,4 +1,5 @@
-stages: # List of stages for jobs, and their order of execution
+stages:
+# List of stages for jobs, and their order of execution
 - build
 - push-image
 - deploy
@@ -11,13 +12,19 @@ variables:
   DIR_NAME: frontend
   DOCKER_BUILD_ARGS: ""
 
-build: # This job runs in the build stage, which runs first.
+build:
+  # This job runs in the build stage, which runs first.
   stage: build
   rules:
   - if: '$CI_COMMIT_BRANCH == "enterprise"'
   script:
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
-  - TAG_NAME="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-$DATE"
+  - |
+    if [[ -z "$TAG" ]]; then
+      TAG_NAME="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-$DATE"
+    else
+      TAG_NAME=$TAG
+    fi
   - echo "TAG_NAME=$TAG_NAME" > build.env
   - echo "DOCKER_BUILD_ARGS=$DOCKER_BUILD_ARGS"
   - |
