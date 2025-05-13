@@ -83,7 +83,7 @@ jobs:
     needs: [build-backend]
     steps:
     - name: push tag
-      uses: anothrNick/github-tag-action@v1.73.0
+      uses: anothrNick/github-tag-action@v1
       env:
         GITHUB_TOKEN: ${{ github.token }}
         CUSTOM_TAG: ${{ github.event.inputs.tag }}
