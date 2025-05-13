@@ -97,7 +97,7 @@ const AppHeader = ({ type = 'default' }) => {
             <AppBreadcrumb />
           </CHeaderNav>
         )}
-        <CHeaderNav className="pr-4">
+        <CHeaderNav className="pr-4 flex items-center">
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
           <ThemeSwitcher />
