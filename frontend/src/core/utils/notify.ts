@@ -18,6 +18,8 @@ export interface NotifyOptions {
   duration?: number
   placement?: NotificationPlacement
   onClick?: () => void
+  showProgress?: boolean
+  pauseOnHover?: boolean
 }
 
 export const notify = (options: NotifyOptions) => {
@@ -26,11 +28,13 @@ export const notify = (options: NotifyOptions) => {
     return
   }
 
-  const { type, ...rest } = options
+  const { type, showProgress = true, pauseOnHover = true, ...rest } = options
 
   notifyApi[type]?.({
     duration: 3,
     placement: 'topRight',
+    showProgress,
+    pauseOnHover,
     ...rest,
   })
 }
