@@ -84,8 +84,10 @@ build_artifact:
   stage: release
   rules:
   - if: $CI_PIPELINE_SOURCE == "trigger" && $TAG
+    when: always
+  - when: never
   script:
-  - echo "版本发布就绪 $TAG"
+  - echo "开始构建版本 $TAG"
   release:
     name: "$TAG"
     tag_name: "$TAG"
