@@ -26,18 +26,18 @@ func (h *handler) SetTTL() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.SetTTLRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 		if err := h.configService.SetTTL(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.SetTTLError,
-				c.ErrMessage(code.SetTTLError)).WithError(err),
+				err,
 			)
 			return
 		}

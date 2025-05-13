@@ -26,19 +26,19 @@ func (h *handler) GetLogTableInfo() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.LogTableInfoRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 		resp, err := h.logService.GetLogTableInfo(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetLogTableInfoError,
-				c.ErrMessage(code.GetLogTableInfoError)+err.Error()).WithError(err),
+				err,
 			)
 			return
 		}

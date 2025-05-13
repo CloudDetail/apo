@@ -27,17 +27,17 @@ func (h *handler) GroupSubsOperation() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GroupSubsOperationRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		err := h.dataService.GroupSubsOperation(req)
 		if err != nil {
-			c.HandleError(err, code.AssignDataGroupError, nil)
+			c.AbortWithPermissionError(err, code.AssignDataGroupError, nil)
 			return
 		}
 

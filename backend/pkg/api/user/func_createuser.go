@@ -4,10 +4,8 @@
 package user
 
 import (
-	"errors"
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -35,47 +33,38 @@ func (h *handler) CreateUser() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.CreateUserRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 		if req.ConfirmPassword != req.Password {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.UserConfirmPasswdError,
-				c.ErrMessage(code.UserConfirmPasswdError)),
+				nil,
 			)
 			return
 		}
 
 		if len(req.Phone) > 0 && !phoneRegexp.MatchString(req.Phone) {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.UserPhoneFormatError,
-				c.ErrMessage(code.UserPhoneFormatError),
-			))
+				nil,
+			)
 			return
 		}
 
 		err := h.userService.CreateUser(req)
 		if err != nil {
-			var vErr model.ErrWithMessage
-			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					vErr.Code,
-					c.ErrMessage(vErr.Code),
-				).WithError(err))
-			} else {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.UserCreateError,
-					c.ErrMessage(code.UserCreateError),
-				).WithError(err))
-			}
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.UserCreateError,
+				err,
+			)
 			return
 		}
 		c.Payload("ok")

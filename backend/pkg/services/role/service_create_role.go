@@ -5,8 +5,9 @@ package role
 
 import (
 	"context"
-	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -22,7 +23,7 @@ func (s *service) CreateRole(req *request.CreateRoleRequest) error {
 	}
 
 	if len(roles) > 0 {
-		return model.NewErrWithMessage(errors.New("role already exists"), code.RoleExistsError)
+		return core.Error(code.RoleExistsError, "role already exists")
 	}
 
 	if len(req.PermissionList) > 0 {
@@ -30,9 +31,9 @@ func (s *service) CreateRole(req *request.CreateRoleRequest) error {
 		if err != nil {
 			return err
 		}
-	
+
 		if len(f) != len(req.PermissionList) {
-			return model.NewErrWithMessage(errors.New("permission does not exist"), code.PermissionNotExistError)
+			return core.Error(code.PermissionNotExistError, "permission does not exist")
 		}
 	}
 
@@ -42,7 +43,7 @@ func (s *service) CreateRole(req *request.CreateRoleRequest) error {
 	}
 
 	if !exist {
-		return model.NewErrWithMessage(errors.New("user does not exist"), code.UserNotExistsError)
+		return core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
 	role := &database.Role{
