@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { Modal, Form, Input, Select, Card, Checkbox, Flex } from 'antd'
+import { Modal, Form, Input, Select, Card, Checkbox } from 'antd'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { getMetricsApi, addMutationRule } from 'src/pro/api/alertAnalyze'
 import { useSelector } from 'react-redux'
 import { getStep } from 'src/core/utils/step'
-import { showToast } from 'src/core/utils/toast'
 import { useTranslation } from 'react-i18next'
+import { notify } from 'src/core/utils/notify'
 const { TextArea } = Input
 const { Option } = Select
 const i18nKey = 'alertRuleQuickSet'
@@ -94,9 +94,9 @@ const AlertRuleQuickSet = ({ modalVisibility, closeModal }) => {
     uploadData.step = step
     const result = await addMutationRule(uploadData)
     if (result == 'ok') {
-      showToast({
-        title: t('successAddConfig'),
-        color: 'success',
+      notify({
+        message: t('successAddConfig'),
+        type: 'success',
       })
       closeModal()
     }
