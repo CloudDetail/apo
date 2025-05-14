@@ -118,7 +118,7 @@ const (
 )
 
 var (
-	apoChartVersion         = "1.4"
+	apoChartVersion         = "1.7"
 	apoComposeDeployVersion = "v1.3.000"
 )
 
