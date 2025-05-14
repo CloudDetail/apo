@@ -85,8 +85,8 @@ const JsonInfo = () => {
   ]
 
   const code1 = `{
-  "name": "请求延时超过过去24h平均延时",
-  "detail": "{\"description\":\"VALUE = 7.6046459456754825\nLABELS = map[alertgroup:应用指标 alertname:请求延时超过过去24h平均延时 content_key:POST /api/v1/travelservice/trips/left group:app severity:warning svc_name:ts-travel-service]\"}",
+  "name": "Avg Request Latency over 1s (last 24h)",
+  "detail": "{\"description\":\"VALUE = 7.6046459456754825\nLABELS = map[alertgroup:app alertname:Avg Request Latency over 1s (last 24h) content_key:POST /api/v1/travelservice/trips/left group:app severity:warning svc_name:ts-travel-service]\"}",
   "alertId": "12312i095435asda",
   "tags": {
     "group": "app",
