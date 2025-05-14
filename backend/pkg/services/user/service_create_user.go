@@ -4,7 +4,6 @@
 package user
 
 import (
-	"context"
 	"errors"
 	"net/mail"
 
@@ -24,7 +23,7 @@ func checkUserName(username string) error {
 	return nil
 }
 
-func (s *service) CreateUser(ctx_core core.Context, req *request.CreateUserRequest) error {
+func (s *service) CreateUser(ctx core.Context, req *request.CreateUserRequest) error {
 	if err := checkUserName(req.Username); err != nil {
 		return err
 	}
@@ -46,7 +45,7 @@ func (s *service) CreateUser(ctx_core core.Context, req *request.CreateUserReque
 		filter := model.RoleFilter{
 			Name: model.ROLE_ADMIN,
 		}
-		roles, err := s.dbRepo.GetRoles(ctx_core, filter)
+		roles, err := s.dbRepo.GetRoles(ctx, filter)
 		if err != nil {
 			return err
 		}
@@ -58,7 +57,7 @@ func (s *service) CreateUser(ctx_core core.Context, req *request.CreateUserReque
 		filter := model.RoleFilter{
 			IDs: req.RoleList,
 		}
-		roles, err := s.dbRepo.GetRoles(ctx_core, filter)
+		roles, err := s.dbRepo.GetRoles(ctx, filter)
 		if err != nil {
 			return err
 		}
@@ -72,7 +71,7 @@ func (s *service) CreateUser(ctx_core core.Context, req *request.CreateUserReque
 		filter := model.TeamFilter{
 			IDs: req.TeamList,
 		}
-		exist, err := s.dbRepo.TeamExist(ctx_core, filter)
+		exist, err := s.dbRepo.TeamExist(ctx, filter)
 		if err != nil {
 			return err
 		}
@@ -81,11 +80,11 @@ func (s *service) CreateUser(ctx_core core.Context, req *request.CreateUserReque
 		}
 	}
 
-	var assignTeamFunc = func(ctx context.Context) error {
-		return s.dbRepo.AssignUserToTeam(ctx_core, ctx, user.UserID, req.TeamList)
+	var assignTeamFunc = func(ctx core.Context) error {
+		return s.dbRepo.AssignUserToTeam(ctx, user.UserID, req.TeamList)
 	}
 
-	var createDifyUserFunc = func(ctx context.Context) error {
+	var createDifyUserFunc = func(ctx core.Context) error {
 		resp, err := s.difyRepo.AddUser(req.Username, req.Password, "admin")
 		if err != nil || resp.Result != "success" {
 			return errors.New("failed to create user in dify")
@@ -93,13 +92,13 @@ func (s *service) CreateUser(ctx_core core.Context, req *request.CreateUserReque
 		return nil
 	}
 
-	var createUserFunc = func(ctx context.Context) error {
-		return s.dbRepo.CreateUser(ctx_core, ctx, user)
+	var createUserFunc = func(ctx core.Context) error {
+		return s.dbRepo.CreateUser(ctx, user)
 	}
 
-	var grantRoleFunc = func(ctx context.Context) error {
-		return s.dbRepo.GrantRoleWithUser(ctx_core, ctx, user.UserID, req.RoleList)
+	var grantRoleFunc = func(ctx core.Context) error {
+		return s.dbRepo.GrantRoleWithUser(ctx, user.UserID, req.RoleList)
 	}
 
-	return s.dbRepo.Transaction(ctx_core, context.Background(), createUserFunc, createDifyUserFunc, grantRoleFunc, assignTeamFunc)
+	return s.dbRepo.Transaction(ctx, createUserFunc, createDifyUserFunc, grantRoleFunc, assignTeamFunc)
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s service) GetNamespaceList(ctx_core core.Context) (*response.GetNamespaceListResponse, error) {
+func (s service) GetNamespaceList(ctx core.Context) (*response.GetNamespaceListResponse, error) {
 	list, err := s.k8sRepo.GetNamespaceList()
 	if err != nil {
 		return nil, err
@@ -19,7 +19,7 @@ func (s service) GetNamespaceList(ctx_core core.Context) (*response.GetNamespace
 	}, nil
 }
 
-func (s service) GetNamespaceInfo(ctx_core core.Context, req *request.GetNamespaceInfoRequest) (*response.GetNamespaceInfoResponse, error) {
+func (s service) GetNamespaceInfo(ctx core.Context, req *request.GetNamespaceInfoRequest) (*response.GetNamespaceInfoResponse, error) {
 	info, err := s.k8sRepo.GetNamespaceInfo(req.Namespace)
 	if err != nil {
 		return nil, err

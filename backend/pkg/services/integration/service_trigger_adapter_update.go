@@ -6,14 +6,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/CloudDetail/apo/backend/pkg/util"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 
-	"github.com/CloudDetail/apo/backend/pkg/model/integration"
+	"github.com/CloudDetail/apo/backend/pkg/util"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
 
 func init() {
@@ -29,8 +30,8 @@ const adapterUpdateAPI = "/trace/api/update"
 
 var adapterServiceAddress = "http://apo-apm-adapter-svc:8079"
 
-func (s *service) TriggerAdapterUpdate(ctx_core core.Context, req *integration.TriggerAdapterUpdateRequest) {
-	traceAPI, err := s.dbRepo.GetLatestTraceAPIs(ctx_core, req.LastUpdateTS)
+func (s *service) TriggerAdapterUpdate(ctx core.Context, req *integration.TriggerAdapterUpdateRequest) {
+	traceAPI, err := s.dbRepo.GetLatestTraceAPIs(ctx, req.LastUpdateTS)
 	if err != nil {
 		log.Println("get latest trace api error: ", err)
 	}

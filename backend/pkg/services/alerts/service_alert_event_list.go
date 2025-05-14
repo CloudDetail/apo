@@ -8,21 +8,21 @@ import (
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) AlertEventList(ctx_core core.Context, req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error) {
-	events, count, err := s.chRepo.GetAlertEventWithWorkflowRecord(ctx_core, req, s.difyRepo.GetCacheMinutes())
+func (s *service) AlertEventList(ctx core.Context, req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error) {
+	events, count, err := s.chRepo.GetAlertEventWithWorkflowRecord(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
 
-	counts, err := s.chRepo.GetAlertEventCounts(ctx_core, req, s.difyRepo.GetCacheMinutes())
+	counts, err := s.chRepo.GetAlertEventCounts(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
@@ -39,11 +39,11 @@ func (s *service) AlertEventList(ctx_core core.Context, req *request.AlertEventS
 
 	req.Pagination.Total = count
 	return &response.AlertEventSearchResponse{
-		EventList:			events,
-		Pagination:			req.Pagination,
-		AlertEventAnalyzeWorkflowID:	s.difyRepo.GetAlertAnalyzeFlowID(),
-		AlertCheckID:			s.difyRepo.GetAlertCheckFlowID(),
-		Counts:				counts,
+		EventList:                   events,
+		Pagination:                  req.Pagination,
+		AlertEventAnalyzeWorkflowID: s.difyRepo.GetAlertAnalyzeFlowID(),
+		AlertCheckID:                s.difyRepo.GetAlertCheckFlowID(),
+		Counts:                      counts,
 	}, nil
 }
 
@@ -64,9 +64,9 @@ func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 	}
 
 	record.WorkflowParams = alert.WorkflowParams{
-		StartTime:	startTime.UnixMicro(),
-		EndTime:	endTime.UnixMicro(),
-		NodeName:	record.AlertEvent.GetInfraNodeTag(),
+		StartTime: startTime.UnixMicro(),
+		EndTime:   endTime.UnixMicro(),
+		NodeName:  record.AlertEvent.GetInfraNodeTag(),
 	}
 
 	alertServices, _ := tryGetAlertService(s.promRepo, &record.AlertEvent, startTime, endTime)
@@ -82,11 +82,11 @@ func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 	}
 
 	parmas := alert.AlertAnalyzeWorkflowParams{
-		Node:		record.AlertEvent.GetInfraNodeTag(),
-		Namespace:	record.AlertEvent.GetK8sNamespaceTag(),
-		Pod:		record.AlertEvent.GetK8sPodTag(),
-		Pid:		record.AlertEvent.GetPidTag(),
-		AlertName:	record.AlertEvent.Name,
+		Node:      record.AlertEvent.GetInfraNodeTag(),
+		Namespace: record.AlertEvent.GetK8sNamespaceTag(),
+		Pod:       record.AlertEvent.GetK8sPodTag(),
+		Pid:       record.AlertEvent.GetPidTag(),
+		AlertName: record.AlertEvent.Name,
 	}
 
 	if len(services) == 1 {
@@ -130,8 +130,8 @@ func tryGetAlertServiceByService(_ prometheus.Repo, event *alert.AlertEvent, _ t
 
 	alertServices := []clickhouse.AlertService{
 		{
-			Service:	serviceName,
-			Endpoint:	event.GetEndpointTag(),
+			Service:  serviceName,
+			Endpoint: event.GetEndpointTag(),
 		},
 	}
 
@@ -240,9 +240,9 @@ func tryGetAlertServiceByDB(repo prometheus.Repo, event *alert.AlertEvent, start
 	}
 	var endpoints []clickhouse.AlertService
 	endpoints = append(endpoints, clickhouse.AlertService{
-		DatabaseURL:	dbURL,
-		DatabaseIP:	dbIP,
-		DatabasePort:	dbPort,
+		DatabaseURL:  dbURL,
+		DatabaseIP:   dbIP,
+		DatabasePort: dbPort,
 	})
 	for _, service := range services {
 		endpoints = append(endpoints, clickhouse.AlertService{

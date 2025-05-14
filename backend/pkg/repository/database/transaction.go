@@ -4,32 +4,28 @@
 package database
 
 import (
-	"context"
-	"gorm.io/gorm"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"gorm.io/gorm"
 )
 
-func (repo *daoRepo) GetContextDB(ctx_core core.Context, ctx context.Context) *gorm.DB {
-	ctxDB := ctx.Value(repo.transactionCtx)
-
-	if ctxDB != nil {
+func (repo *daoRepo) GetContextDB(ctx core.Context) *gorm.DB {
+	ctxDB, exist := ctx.Get(_transactionCtxKey)
+	if exist && ctxDB != nil {
 		tx, ok := ctxDB.(*gorm.DB)
 		if !ok {
 			return nil
 		}
 		return tx
 	}
-	return repo.db.WithContext(ctx)
+	return repo.db.WithContext(ctx.GetContext())
 }
 
-func (repo *daoRepo) WithTransaction(ctx_core core.Context, ctx context.Context, tx *gorm.DB) context.Context {
-	if ctx == nil {
-		ctx = context.Background()
-	}
-	return context.WithValue(ctx, repo.transactionCtx, tx)
+func (repo *daoRepo) WithTransaction(ctx core.Context, tx *gorm.DB) core.Context {
+	ctx.Set(_transactionCtxKey, tx)
+	return ctx
 }
 
-func (repo *daoRepo) Transaction(ctx_core core.Context, ctx context.Context, funcs ...func(txCtx context.Context) error) (err error) {
+func (repo *daoRepo) Transaction(ctx core.Context, funcs ...func(txCtx core.Context) error) (err error) {
 	tx := repo.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -37,7 +33,7 @@ func (repo *daoRepo) Transaction(ctx_core core.Context, ctx context.Context, fun
 		}
 	}()
 
-	txCtx := repo.WithTransaction(ctx_core, ctx, tx)
+	txCtx := repo.WithTransaction(ctx, tx)
 	for _, f := range funcs {
 		if err = f(txCtx); err != nil {
 			tx.Rollback()

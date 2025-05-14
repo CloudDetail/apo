@@ -4,24 +4,24 @@
 package alert
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
-func (s *service) GetAlertEnrichRule(ctx_core core.Context,
+func (s *service) GetAlertEnrichRule(ctx core.Context,
 	sourceID string,
 ) ([]alert.AlertEnrichRuleVO, error) {
-	enrichRules, err := s.dbRepo.GetAlertEnrichRule(ctx_core, sourceID)
+	enrichRules, err := s.dbRepo.GetAlertEnrichRule(ctx, sourceID)
 	if err != nil {
 		return nil, err
 	}
 
-	conditions, err := s.dbRepo.GetAlertEnrichConditions(ctx_core, sourceID)
+	conditions, err := s.dbRepo.GetAlertEnrichConditions(ctx, sourceID)
 	if err != nil {
 		return nil, err
 	}
 
-	schemaTargets, err := s.dbRepo.GetAlertEnrichSchemaTarget(ctx_core, sourceID)
+	schemaTargets, err := s.dbRepo.GetAlertEnrichSchemaTarget(ctx, sourceID)
 	if err != nil {
 		return nil, err
 	}
@@ -29,8 +29,8 @@ func (s *service) GetAlertEnrichRule(ctx_core core.Context,
 	var alertEnrichRuleVOs = make([]alert.AlertEnrichRuleVO, 0, len(enrichRules))
 	for _, enrichRule := range enrichRules {
 		enrichRuleVO := alert.AlertEnrichRuleVO{
-			Conditions:	[]alert.AlertEnrichCondition{},
-			SchemaTargets:	[]alert.AlertEnrichSchemaTarget{},
+			Conditions:    []alert.AlertEnrichCondition{},
+			SchemaTargets: []alert.AlertEnrichSchemaTarget{},
 		}
 		enrichRuleVO.AlertEnrichRule = enrichRule
 

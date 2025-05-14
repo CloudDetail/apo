@@ -10,7 +10,7 @@ import (
 )
 
 // CountK8sEvents get K8s events
-func (s *service) CountK8sEvents(ctx_core core.Context, req *request.GetK8sEventsRequest) (*response.GetK8sEventsResponse, error) {
+func (s *service) CountK8sEvents(ctx core.Context, req *request.GetK8sEventsRequest) (*response.GetK8sEventsResponse, error) {
 	startTime := req.StartTime
 	endTime := req.EndTime
 	// Get all the instance information of the service first
@@ -29,7 +29,7 @@ func (s *service) CountK8sEvents(ctx_core core.Context, req *request.GetK8sEvent
 		return resp, nil
 	}
 	// Use all pod instances as filter criteria to return a list of events related to the time period
-	counts, err := s.chRepo.CountK8sEvents(ctx_core, startTime, endTime, podInstances)
+	counts, err := s.chRepo.CountK8sEvents(ctx, startTime, endTime, podInstances)
 	if err != nil {
 		return resp, err
 	}

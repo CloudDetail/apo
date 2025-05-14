@@ -18,7 +18,7 @@ import (
 
 var subTime = -time.Hour * 24 * 15
 
-func (s *service) GetDataSource(ctx_core core.Context) (resp response.GetDatasourceResponse, err error) {
+func (s *service) GetDataSource(ctx core.Context) (resp response.GetDatasourceResponse, err error) {
 	var (
 		endTime        = time.Now()
 		startTime      = endTime.Add(subTime)
@@ -96,7 +96,7 @@ func (s *service) GetDataSource(ctx_core core.Context) (resp response.GetDatasou
 	return resp, nil
 }
 
-func (s *service) GetGroupDatasource(ctx_core core.Context, req *request.GetGroupDatasourceRequest, userID int64) (response.GetGroupDatasourceResponse, error) {
+func (s *service) GetGroupDatasource(ctx core.Context, req *request.GetGroupDatasourceRequest, userID int64) (response.GetGroupDatasourceResponse, error) {
 	var (
 		groups       []database.DataGroup
 		err          error
@@ -108,13 +108,13 @@ func (s *service) GetGroupDatasource(ctx_core core.Context, req *request.GetGrou
 		startTime    = endTime.Add(subTime)
 	)
 	if req.GroupID != 0 {
-		groups, err = s.getDataGroup(ctx_core, req.GroupID, req.Category)
+		groups, err = s.getDataGroup(ctx, req.GroupID, req.Category)
 	} else {
-		groups, err = s.getUserDataGroup(ctx_core, userID, req.Category)
+		groups, err = s.getUserDataGroup(ctx, userID, req.Category)
 	}
 
 	if len(groups) == 0 {
-		defaultGroup, err := s.getDefaultDataGroup(ctx_core, req.Category)
+		defaultGroup, err := s.getDefaultDataGroup(ctx, req.Category)
 		if err != nil {
 			return resp, err
 		}
@@ -194,12 +194,12 @@ func (s *service) getNested(datasource string, typ string) ([]string, error) {
 	return nested, err
 }
 
-func (s *service) getDataGroup(ctx_core core.Context, groupID int64, category string) ([]database.DataGroup, error) {
+func (s *service) getDataGroup(ctx core.Context, groupID int64, category string) ([]database.DataGroup, error) {
 	filter := model.DataGroupFilter{
 		ID: groupID,
 	}
 
-	dataGroups, _, err := s.dbRepo.GetDataGroup(ctx_core, filter)
+	dataGroups, _, err := s.dbRepo.GetDataGroup(ctx, filter)
 	if err != nil {
 		return dataGroups, err
 	}

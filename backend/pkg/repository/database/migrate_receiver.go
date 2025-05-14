@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (repo *daoRepo) CheckAMReceiverCount(ctx_core core.Context) int64 {
+func (repo *daoRepo) CheckAMReceiverCount(ctx core.Context) int64 {
 	var count int64
 	err := repo.db.Model(&amconfig.Receiver{}).Count(&count).Error
 	if err != nil {
@@ -18,7 +18,7 @@ func (repo *daoRepo) CheckAMReceiverCount(ctx_core core.Context) int64 {
 	return count
 }
 
-func (repo *daoRepo) MigrateAMReceiver(ctx_core core.Context, receivers []amconfig.Receiver) ([]amconfig.Receiver, error) {
+func (repo *daoRepo) MigrateAMReceiver(ctx core.Context, receivers []amconfig.Receiver) ([]amconfig.Receiver, error) {
 	extraReceiver := skipAPOReceiver(receivers)
 	err := repo.db.Transaction(func(tx *gorm.DB) error {
 		// TODO Read Dingtalk config from Database, transform into xxx

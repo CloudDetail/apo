@@ -4,40 +4,40 @@
 package log
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetFaultLogPageList(ctx_core core.Context, req *request.GetFaultLogPageListRequest) (*response.GetFaultLogPageListResponse, error) {
+func (s *service) GetFaultLogPageList(ctx core.Context, req *request.GetFaultLogPageListRequest) (*response.GetFaultLogPageListResponse, error) {
 	// Paging query fault site logs
 	query := &clickhouse.FaultLogQuery{
-		StartTime:	req.StartTime,
-		EndTime:	req.EndTime,
-		MultiServices:	req.Service,
-		MultiNamespace:	req.Namespaces,
-		NodeName:	req.NodeName,
-		ContainerId:	req.ContainerId,
-		Pid:		req.Pid,
-		Instance:	req.Instance,
-		TraceId:	req.TraceId,
-		Type:		2,	// Slow && Error && Normal
-		PageNum:	req.PageNum,
-		PageSize:	req.PageSize,
-		Pod:		req.Pod,
+		StartTime:      req.StartTime,
+		EndTime:        req.EndTime,
+		MultiServices:  req.Service,
+		MultiNamespace: req.Namespaces,
+		NodeName:       req.NodeName,
+		ContainerId:    req.ContainerId,
+		Pid:            req.Pid,
+		Instance:       req.Instance,
+		TraceId:        req.TraceId,
+		Type:           2, // Slow && Error && Normal
+		PageNum:        req.PageNum,
+		PageSize:       req.PageSize,
+		Pod:            req.Pod,
 	}
-	list, total, err := s.chRepo.GetFaultLogPageList(ctx_core, query)
+	list, total, err := s.chRepo.GetFaultLogPageList(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 	return &response.GetFaultLogPageListResponse{
 		Pagination: &model.Pagination{
-			Total:		total,
-			CurrentPage:	req.PageNum,
-			PageSize:	req.PageSize,
+			Total:       total,
+			CurrentPage: req.PageNum,
+			PageSize:    req.PageSize,
 		},
-		List:	list,
+		List: list,
 	}, nil
 }

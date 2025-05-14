@@ -15,7 +15,7 @@ import (
 )
 
 // TODO move to prometheus package and avoid to repeated self
-func (s *service) GetServicesEndpointDataWithChart(ctx_core core.Context,
+func (s *service) GetServicesEndpointDataWithChart(ctx core.Context,
 	startTime time.Time, endTime time.Time, step time.Duration,
 	filter EndpointsFilter, sortRule request.SortType,
 ) (res []response.ServiceEndPointsRes, err error) {
@@ -44,7 +44,7 @@ func (s *service) GetServicesEndpointDataWithChart(ctx_core core.Context,
 		return
 	}
 
-	s.sortWithRule(ctx_core, sortRule, endpointsMap)
+	s.sortWithRule(ctx, sortRule, endpointsMap)
 
 	// step4 Group Endpoints by service and maintain service ordering
 	services := groupEndpointsByService(endpointsMap.MetricGroupList, 3)

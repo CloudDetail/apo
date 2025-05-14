@@ -7,22 +7,22 @@ import (
 	"fmt"
 	"time"
 
-	sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 )
 
-func (r *InnerReceivers) GetSlienceConfigByAlertID(ctx_core core.Context, alertID string) (*sc.AlertSlienceConfig, error) {
+func (r *InnerReceivers) GetSlienceConfigByAlertID(ctx core.Context, alertID string) (*sc.AlertSlienceConfig, error) {
 	if cfgPtr, find := r.slientCFGMap.Load(alertID); find {
 		return cfgPtr.(*sc.AlertSlienceConfig), nil
 	}
 	return nil, nil
 }
 
-func (r *InnerReceivers) ListSlienceConfig(ctx_core core.Context) ([]sc.AlertSlienceConfig, error) {
-	return r.database.GetAlertSlience(ctx_core)
+func (r *InnerReceivers) ListSlienceConfig(ctx core.Context) ([]sc.AlertSlienceConfig, error) {
+	return r.database.GetAlertSlience(ctx)
 }
 
-func (r *InnerReceivers) SetSlienceConfigByAlertID(ctx_core core.Context, alertID string, forDuration string) error {
+func (r *InnerReceivers) SetSlienceConfigByAlertID(ctx core.Context, alertID string, forDuration string) error {
 	duration, err := time.ParseDuration(forDuration)
 	if err != nil {
 		return fmt.Errorf("duration is not valid: %w", err)
@@ -30,10 +30,10 @@ func (r *InnerReceivers) SetSlienceConfigByAlertID(ctx_core core.Context, alertI
 
 	now := time.Now()
 	slienceconfig := &sc.AlertSlienceConfig{
-		AlertID:	alertID,
-		For:		forDuration,
-		StartAt:	time.Now(),
-		EndAt:		now.Add(duration),
+		AlertID: alertID,
+		For:     forDuration,
+		StartAt: time.Now(),
+		EndAt:   now.Add(duration),
 	}
 
 	if oldCFGPtr, find := r.slientCFGMap.Swap(alertID, slienceconfig); find {
@@ -42,22 +42,22 @@ func (r *InnerReceivers) SetSlienceConfigByAlertID(ctx_core core.Context, alertI
 		slienceconfig.AlertName = cfg.AlertName
 		slienceconfig.Group = cfg.Group
 		slienceconfig.Tags = cfg.Tags
-		return r.database.UpdateAlertSlience(ctx_core, slienceconfig)
+		return r.database.UpdateAlertSlience(ctx, slienceconfig)
 	} else {
-		event, err := r.ch.GetLatestAlertEventByAlertID(ctx_core, alertID)
+		event, err := r.ch.GetLatestAlertEventByAlertID(ctx, alertID)
 		if err == nil && event != nil {
 			slienceconfig.AlertName = event.Name
 			slienceconfig.Tags = event.EnrichTags
 			slienceconfig.Group = event.Group
 		}
-		return r.database.AddAlertSlience(ctx_core, slienceconfig)
+		return r.database.AddAlertSlience(ctx, slienceconfig)
 	}
 }
 
-func (r *InnerReceivers) RemoveSlienceConfigByAlertID(ctx_core core.Context, alertID string) error {
+func (r *InnerReceivers) RemoveSlienceConfigByAlertID(ctx core.Context, alertID string) error {
 	if cfgPtr, loaded := r.slientCFGMap.LoadAndDelete(alertID); loaded {
 		cfg := cfgPtr.(*sc.AlertSlienceConfig)
-		return r.database.DeleteAlertSlience(ctx_core, cfg.ID)
+		return r.database.DeleteAlertSlience(ctx, cfg.ID)
 	}
 
 	return fmt.Errorf("alert[%s] is not slient", alertID)

@@ -4,13 +4,13 @@
 package log
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetLogTableInfo(ctx_core core.Context, req *request.LogTableInfoRequest) (*response.LogTableInfoResponse, error) {
-	rows, err := s.dbRepo.GetAllLogTable(ctx_core)
+func (s *service) GetLogTableInfo(ctx core.Context, req *request.LogTableInfoRequest) (*response.LogTableInfoResponse, error) {
+	rows, err := s.dbRepo.GetAllLogTable(ctx)
 	res := &response.LogTableInfoResponse{}
 	if err != nil {
 		return nil, err
@@ -18,14 +18,14 @@ func (s *service) GetLogTableInfo(ctx_core core.Context, req *request.LogTableIn
 	parses := make([]response.Parse, 0)
 	for _, row := range rows {
 		parses = append(parses, response.Parse{
-			DataBase:	row.DataBase,
-			ParseName:	row.ParseName,
-			TableName:	row.Table,
-			ParseInfo:	row.ParseInfo,
+			DataBase:  row.DataBase,
+			ParseName: row.ParseName,
+			TableName: row.Table,
+			ParseInfo: row.ParseInfo,
 		})
 	}
 
-	others, err := s.dbRepo.GetAllOtherLogTable(ctx_core)
+	others, err := s.dbRepo.GetAllOtherLogTable(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -38,10 +38,10 @@ func (s *service) GetLogTableInfo(ctx_core core.Context, req *request.LogTableIn
 			instanceMap[other.Instance] = instance
 		}
 		instance[other.DataBase] = append(instance[other.DataBase], response.LogTableInfo{
-			LogField:	other.LogField,
-			TableName:	other.Table,
-			TimeField:	other.TimeField,
-			Cluster:	other.Cluster,
+			LogField:  other.LogField,
+			TableName: other.Table,
+			TimeField: other.TimeField,
+			Cluster:   other.Cluster,
 		})
 		instanceMap[other.Instance] = instance
 	}
@@ -49,13 +49,13 @@ func (s *service) GetLogTableInfo(ctx_core core.Context, req *request.LogTableIn
 		databases := make([]response.DBInfo, 0)
 		for dataBase, tables := range DataBases {
 			databases = append(databases, response.DBInfo{
-				DataBase:	dataBase,
-				Tables:		tables,
+				DataBase: dataBase,
+				Tables:   tables,
 			})
 		}
 		instances = append(instances, response.Instance{
-			InstanceName:	instance,
-			DataBases:	databases,
+			InstanceName: instance,
+			DataBases:    databases,
 		})
 	}
 

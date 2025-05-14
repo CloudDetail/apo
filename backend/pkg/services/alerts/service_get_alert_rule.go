@@ -4,33 +4,33 @@
 package alerts
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetAlertRules(ctx_core core.Context, req *request.GetAlertRuleRequest) response.GetAlertRulesResponse {
+func (s *service) GetAlertRules(ctx core.Context, req *request.GetAlertRuleRequest) response.GetAlertRulesResponse {
 	if req.PageParam == nil {
 		req.PageParam = &request.PageParam{
-			CurrentPage:	1,
-			PageSize:	999,
+			CurrentPage: 1,
+			PageSize:    999,
 		}
 	}
 
 	rules, totalCount := s.k8sApi.GetAlertRules(req.AlertRuleFile, req.AlertRuleFilter, req.PageParam, req.RefreshCache)
 	return response.GetAlertRulesResponse{
-		AlertRules:	rules,
+		AlertRules: rules,
 		Pagination: &model.Pagination{
-			Total:		int64(totalCount),
-			CurrentPage:	req.CurrentPage,
-			PageSize:	req.PageSize,
+			Total:       int64(totalCount),
+			CurrentPage: req.CurrentPage,
+			PageSize:    req.PageSize,
 		},
 	}
 }
 
 // GetAlertRuleFile get alarm rules
-func (s *service) GetAlertRuleFile(ctx_core core.Context, req *request.GetAlertRuleConfigRequest) (*response.GetAlertRuleFileResponse, error) {
+func (s *service) GetAlertRuleFile(ctx core.Context, req *request.GetAlertRuleConfigRequest) (*response.GetAlertRuleFileResponse, error) {
 	rules, err := s.k8sApi.GetAlertRuleConfigFile(req.AlertRuleFile)
 	if err != nil {
 		return &response.GetAlertRuleFileResponse{AlertRules: map[string]string{}}, err

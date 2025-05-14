@@ -7,13 +7,13 @@ import (
 	"log"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetServiceREDCharts(ctx_core core.Context, req *request.GetServiceREDChartsRequest) (response.GetServiceREDChartsResponse, error) {
+func (s *service) GetServiceREDCharts(ctx core.Context, req *request.GetServiceREDChartsRequest) (response.GetServiceREDChartsResponse, error) {
 	step := time.Duration(req.Step * 1000)
 	filters := make([]string, 0, 4)
 	filters = append(filters, prometheus.ServiceRegexPQLFilter)

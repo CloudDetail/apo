@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
 var AllowField = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{0,63}$`)
 
-func (repo *subRepo) SearchSchemaTarget(ctx_core core.Context,
+func (repo *subRepo) SearchSchemaTarget(ctx core.Context,
 	schema string,
 	sourceField string, sourceValue string,
 	targets []alert.AlertEnrichSchemaTarget,

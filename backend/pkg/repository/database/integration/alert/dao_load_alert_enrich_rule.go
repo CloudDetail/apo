@@ -4,11 +4,11 @@
 package alert
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
-func (repo *subRepo) LoadAlertEnrichRule(ctx_core core.Context,) ([]alert.AlertSource, map[alert.SourceFrom][]alert.AlertEnrichRuleVO, error) {
+func (repo *subRepo) LoadAlertEnrichRule(ctx core.Context) ([]alert.AlertSource, map[alert.SourceFrom][]alert.AlertEnrichRuleVO, error) {
 	var sources []alert.AlertSource
 	err := repo.db.Find(&sources).Error
 	if err != nil {
@@ -39,9 +39,9 @@ func (repo *subRepo) LoadAlertEnrichRule(ctx_core core.Context,) ([]alert.AlertS
 		for _, rule := range enrichRules {
 			if rule.SourceID == source.SourceID {
 				ruleVO = append(ruleVO, alert.AlertEnrichRuleVO{
-					AlertEnrichRule:	rule,
-					Conditions:		searchConditions(rule.EnrichRuleID, enrichConditions),
-					SchemaTargets:		searchSchemaTarget(rule.EnrichRuleID, enrichSchemaTarget),
+					AlertEnrichRule: rule,
+					Conditions:      searchConditions(rule.EnrichRuleID, enrichConditions),
+					SchemaTargets:   searchSchemaTarget(rule.EnrichRuleID, enrichSchemaTarget),
 				})
 			}
 		}

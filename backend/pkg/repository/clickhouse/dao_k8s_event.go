@@ -8,15 +8,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
 const (
-	startTimeLayout	= "2006-01-02 15:04:05 -0700 MST"
+	startTimeLayout = "2006-01-02 15:04:05 -0700 MST"
 
 	// SQL _GET_K8S_EVENTS get K8s event alarm
-	SQL_GET_K8S_EVENTS	= `WITH grouped_events AS (
+	SQL_GET_K8S_EVENTS = `WITH grouped_events AS (
 			SELECT Timestamp,SeverityText,Body,ResourceAttributes,LogAttributes,
 				ROW_NUMBER() OVER (PARTITION BY ResourceAttributes['k8s.object.kind'] ORDER BY SeverityNumber) AS rn
 			FROM k8s_events
@@ -28,7 +28,7 @@ const (
 )
 
 // K8sAlert query K8S alarm
-func (ch *chRepo) GetK8sAlertEventsSample(ctx_core core.Context, startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) ([]K8sEvents, error) {
+func (ch *chRepo) GetK8sAlertEventsSample(ctx core.Context, startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) ([]K8sEvents, error) {
 	relatedObj := make([]string, 0)
 	for _, instance := range instances {
 		if instance == nil {
@@ -61,11 +61,11 @@ func (ch *chRepo) GetK8sAlertEventsSample(ctx_core core.Context, startTime time.
 }
 
 type K8sEvents struct {
-	Timestamp		time.Time		`ch:"Timestamp" json:"timestamp"`
-	SeverityText		string			`ch:"SeverityText" json:"SeverityText"`
-	Body			string			`ch:"Body" json:"body"`
-	ResourceAttributes	map[string]string	`ch:"ResourceAttributes" json:"resourceAttributes"`
-	LogAttributes		map[string]string	`ch:"LogAttributes" json:"logAttributes"`
+	Timestamp          time.Time         `ch:"Timestamp" json:"timestamp"`
+	SeverityText       string            `ch:"SeverityText" json:"SeverityText"`
+	Body               string            `ch:"Body" json:"body"`
+	ResourceAttributes map[string]string `ch:"ResourceAttributes" json:"resourceAttributes"`
+	LogAttributes      map[string]string `ch:"LogAttributes" json:"logAttributes"`
 }
 
 func (e *K8sEvents) GetObjKind() string {

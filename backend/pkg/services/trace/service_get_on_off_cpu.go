@@ -9,8 +9,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetOnOffCPU(ctx_core core.Context, req *request.GetOnOffCPURequest) (*response.GetOnOffCPUResponse, error) {
-	result, err := s.chRepo.GetOnOffCPU(ctx_core, req.PID, req.NodeName, req.StartTime, req.EndTime)
+func (s *service) GetOnOffCPU(ctx core.Context, req *request.GetOnOffCPURequest) (*response.GetOnOffCPUResponse, error) {
+	result, err := s.chRepo.GetOnOffCPU(ctx, req.PID, req.NodeName, req.StartTime, req.EndTime)
 	if err != nil {
 		return nil, err
 	}

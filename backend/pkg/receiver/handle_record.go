@@ -15,10 +15,9 @@ import (
 	"github.com/prometheus/alertmanager/notify"
 
 	pmodel "github.com/prometheus/common/model"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (r *InnerReceivers) HandleAlertCheckRecord(ctx_core core.Context, ctx context.Context, record *model.WorkflowRecord) error {
+func (r *InnerReceivers) HandleAlertCheckRecord(record *model.WorkflowRecord) error {
 	if record.WorkflowName != "AlertCheck" {
 		return nil
 	}
@@ -36,26 +35,28 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx_core core.Context, ctx conte
 	}
 
 	notifyRecord := &model.AlertNotifyRecord{
-		AlertID:	alert.AlertID,
-		CreatedAt:	time.Now().UnixMicro(),
-		EventID:	alert.ID.String(),
+		AlertID:   alert.AlertID,
+		CreatedAt: time.Now().UnixMicro(),
+		EventID:   alert.ID.String(),
 	}
 
 	var fails []string
 	var success []string
 	var errs error
 
-	ctx = notify.WithGroupKey(ctx, "alertName")
-	ctx = notify.WithGroupLabels(ctx, pmodel.LabelSet{"alertName": pmodel.LabelValue(alert.Name)})
+	gCtx := context.Background()
+
+	gCtx = notify.WithGroupKey(gCtx, "alertName")
+	gCtx = notify.WithGroupLabels(gCtx, pmodel.LabelSet{"alertName": pmodel.LabelValue(alert.Name)})
 	for name, integrations := range r.receivers {
-		ctx = notify.WithReceiverName(ctx, name)
+		gCtx = notify.WithReceiverName(gCtx, name)
 
 		for _, integration := range integrations {
 			alerts := alert.ToAMAlert(r.externalURL.String(), false)
 			var err error
 			var shouldRetry bool
 			for retry := 3; retry > 0; retry-- {
-				shouldRetry, err = integration.Notify(ctx, alerts)
+				shouldRetry, err = integration.Notify(gCtx, alerts)
 				if !shouldRetry {
 					break
 				}
@@ -78,7 +79,7 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx_core core.Context, ctx conte
 		notifyRecord.Failed = strings.Join(fails, ";")
 	}
 
-	err := r.ch.CreateAlertNotifyRecord(ctx_core, ctx, *notifyRecord)
+	err := r.ch.CreateAlertNotifyRecord(ctx, *notifyRecord)
 	if err != nil {
 		errs = errors.Join(errs, err)
 	}

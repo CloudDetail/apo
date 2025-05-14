@@ -25,7 +25,7 @@ func contains(arr []string, str string) bool {
 	}
 	return false
 }
-func (s *service) GetServicesAlert(ctx_core core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error) {
+func (s *service) GetServicesAlert(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error) {
 	svcInstances, err := s.promRepo.GetMultiServicesInstanceList(startTime.UnixMicro(), endTime.UnixMicro(), serviceNames)
 	if err != nil {
 		return nil, err
@@ -229,7 +229,7 @@ func (s *service) GetServicesAlert(ctx_core core.Context, startTime time.Time, e
 
 		// fill alarm status
 		newServiceRes.AlertStatusCH = GetAlertStatusCH(
-			ctx_core,
+			ctx,
 			s.chRepo, &newServiceRes.AlertReason, nil,
 			returnData, service.ServiceName, serviceInstances,
 			startTime, endTime,
@@ -250,7 +250,7 @@ func (s *service) GetServicesAlert(ctx_core core.Context, startTime time.Time, e
 }
 
 // Fill in the alarm information from the Clickhouse and fill in the alertReason
-func GetAlertStatusCH(ctx_core core.Context, chRepo clickhouse.Repo,
+func GetAlertStatusCH(ctx core.Context, chRepo clickhouse.Repo,
 	alertReason *model.AlertReason, alertEventsCountMap *model.AlertEventLevelCountMap,
 	alertTypes []string, serviceName string, instances []*model.ServiceInstance, // filter
 	startTime, endTime time.Time,
@@ -269,7 +269,7 @@ func GetAlertStatusCH(ctx_core core.Context, chRepo clickhouse.Repo,
 
 		// Query the alarm information related to the instance
 		events, _ := chRepo.GetAlertEventsSample(
-			ctx_core,
+			ctx,
 			1, startTime, endTime,
 			request.AlertFilter{Services: []string{serviceName}, Status: "firing"},
 			&model.RelatedInstances{
@@ -310,7 +310,7 @@ func GetAlertStatusCH(ctx_core core.Context, chRepo clickhouse.Repo,
 
 	if len(alertTypes) == 0 || contains(alertTypes, "k8sStatus") {
 		// Query K8s events of warning level and above
-		k8sEvents, _ := chRepo.GetK8sAlertEventsSample(ctx_core, startTime, endTime, instances)
+		k8sEvents, _ := chRepo.GetK8sAlertEventsSample(ctx, startTime, endTime, instances)
 		if len(k8sEvents) > 0 {
 			alertStatus.K8sStatus = model.STATUS_CRITICAL
 			for _, event := range k8sEvents {

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 const (
@@ -46,7 +46,7 @@ const (
 )
 
 // Query instance-related error propagation chain
-func (ch *chRepo) ListErrorPropagation(ctx_core core.Context, req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error) {
+func (ch *chRepo) ListErrorPropagation(ctx core.Context, req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
@@ -57,7 +57,7 @@ func (ch *chRepo) ListErrorPropagation(ctx_core core.Context, req *request.GetEr
 		Equals("nodes.is_error", true).
 		EqualsNotEmpty("entry_service", req.EntryService).
 		EqualsNotEmpty("entry_url", req.EntryEndpoint).
-		Statement("LENGTH(nodes.error_types) > 0")	// The data returned must be ErrorTypes
+		Statement("LENGTH(nodes.error_types) > 0") // The data returned must be ErrorTypes
 	bySql := NewByLimitBuilder().
 		OrderBy("timestamp", false).
 		Limit(2000).String()
@@ -70,16 +70,16 @@ func (ch *chRepo) ListErrorPropagation(ctx_core core.Context, req *request.GetEr
 }
 
 type ErrorInstancePropagation struct {
-	Timestamp	time.Time	`ch:"timestamp"`
-	Service		string		`ch:"service"`
-	InstanceId	string		`ch:"instance_id"`
-	TraceId		string		`ch:"trace_id"`
-	ErrorTypes	[]string	`ch:"error_types"`
-	ErrorMsgs	[]string	`ch:"error_msgs"`
-	ParentServices	[]string	`ch:"parent_services"`
-	ParentInstances	[]string	`ch:"parent_instances"`
-	ParentTraced	[]bool		`ch:"parent_traced"`
-	ChildServices	[]string	`ch:"child_services"`
-	ChildInstances	[]string	`ch:"child_instances"`
-	ChildTraced	[]bool		`ch:"child_traced"`
+	Timestamp       time.Time `ch:"timestamp"`
+	Service         string    `ch:"service"`
+	InstanceId      string    `ch:"instance_id"`
+	TraceId         string    `ch:"trace_id"`
+	ErrorTypes      []string  `ch:"error_types"`
+	ErrorMsgs       []string  `ch:"error_msgs"`
+	ParentServices  []string  `ch:"parent_services"`
+	ParentInstances []string  `ch:"parent_instances"`
+	ParentTraced    []bool    `ch:"parent_traced"`
+	ChildServices   []string  `ch:"child_services"`
+	ChildInstances  []string  `ch:"child_instances"`
+	ChildTraced     []bool    `ch:"child_traced"`
 }

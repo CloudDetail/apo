@@ -4,13 +4,13 @@
 package network
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetSpanSegmentsMetrics(ctx_core core.Context, req *request.SpanSegmentMetricsRequest) (response.SpanSegmentMetricsResponse, error) {
-	netSegments, err := s.chRepo.GetNetworkSpanSegments(ctx_core, req.TraceId, req.SpanId)
+func (s *service) GetSpanSegmentsMetrics(ctx core.Context, req *request.SpanSegmentMetricsRequest) (response.SpanSegmentMetricsResponse, error) {
+	netSegments, err := s.chRepo.GetNetworkSpanSegments(ctx, req.TraceId, req.SpanId)
 	if err != nil {
 		return nil, err
 	}
@@ -26,9 +26,9 @@ func (s *service) GetSpanSegmentsMetrics(ctx_core core.Context, req *request.Spa
 		}
 
 		duration := response.Duration{
-			StartTime:		segment.StartTime.UnixMicro(),
-			EndTime:		segment.EndTime.UnixMicro(),
-			ResponseDuration:	segment.ResponseDuration,
+			StartTime:        segment.StartTime.UnixMicro(),
+			EndTime:          segment.EndTime.UnixMicro(),
+			ResponseDuration: segment.ResponseDuration,
 		}
 		switch segment.TapSide {
 		case "c-p":

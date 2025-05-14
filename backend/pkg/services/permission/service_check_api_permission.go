@@ -9,8 +9,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
-func (s *service) CheckApiPermission(ctx_core core.Context, userID int64, method string, path string) (ok bool, err error) {
-	exists, err := s.dbRepo.UserExists(ctx_core, userID)
+func (s *service) CheckApiPermission(ctx core.Context, userID int64, method string, path string) (ok bool, err error) {
+	exists, err := s.dbRepo.UserExists(ctx, userID)
 	if err != nil {
 		return false, err
 	}
@@ -19,11 +19,11 @@ func (s *service) CheckApiPermission(ctx_core core.Context, userID int64, method
 		return false, core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
-	featureIDs, err := s.getUserFeatureIDs(ctx_core, userID)
+	featureIDs, err := s.getUserFeatureIDs(ctx, userID)
 	if err != nil {
 		return false, err
 	}
-	api, err := s.dbRepo.GetAPIByPath(ctx_core, path, method)
+	api, err := s.dbRepo.GetAPIByPath(ctx, path, method)
 	if err != nil {
 		return false, err
 	}
@@ -32,7 +32,7 @@ func (s *service) CheckApiPermission(ctx_core core.Context, userID int64, method
 		return false, core.Error(code.APINotExist, "api does not exist")
 	}
 
-	fm, err := s.dbRepo.GetFeatureMappingByMapped(ctx_core, api.ID, model.MAPPED_TYP_API)
+	fm, err := s.dbRepo.GetFeatureMappingByMapped(ctx, api.ID, model.MAPPED_TYP_API)
 	if err != nil {
 		return false, err
 	}

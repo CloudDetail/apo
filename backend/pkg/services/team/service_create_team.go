@@ -4,8 +4,6 @@
 package team
 
 import (
-	"context"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -14,7 +12,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
-func (s *service) CreateTeam(ctx_core core.Context, req *request.CreateTeamRequest) error {
+func (s *service) CreateTeam(ctx core.Context, req *request.CreateTeamRequest) error {
 	team := database.Team{
 		TeamID:      util.Generator.GenerateID(),
 		TeamName:    req.TeamName,
@@ -24,7 +22,7 @@ func (s *service) CreateTeam(ctx_core core.Context, req *request.CreateTeamReque
 	filter := model.TeamFilter{
 		Name: req.TeamName,
 	}
-	exists, err := s.dbRepo.TeamExist(ctx_core, filter)
+	exists, err := s.dbRepo.TeamExist(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -33,7 +31,7 @@ func (s *service) CreateTeam(ctx_core core.Context, req *request.CreateTeamReque
 		return core.Error(code.TeamAlreadyExistError, "team already existed")
 	}
 	if len(req.FeatureList) > 0 {
-		features, err := s.dbRepo.GetFeature(ctx_core, req.FeatureList)
+		features, err := s.dbRepo.GetFeature(ctx, req.FeatureList)
 		if err != nil {
 			return err
 		}
@@ -49,7 +47,7 @@ func (s *service) CreateTeam(ctx_core core.Context, req *request.CreateTeamReque
 			filter.IDs = append(filter.IDs, dgPermission.DataGroupID)
 		}
 
-		exist, err := s.dbRepo.DataGroupExist(ctx_core, filter)
+		exist, err := s.dbRepo.DataGroupExist(ctx, filter)
 		if err != nil {
 			return err
 		}
@@ -59,7 +57,7 @@ func (s *service) CreateTeam(ctx_core core.Context, req *request.CreateTeamReque
 		}
 	}
 
-	exist, err := s.dbRepo.UserExists(ctx_core, req.UserList...)
+	exist, err := s.dbRepo.UserExists(ctx, req.UserList...)
 	if err != nil {
 		return err
 	}
@@ -78,21 +76,21 @@ func (s *service) CreateTeam(ctx_core core.Context, req *request.CreateTeamReque
 		}
 	}
 
-	var assignDataGroupFunc = func(ctx context.Context) error {
-		return s.dbRepo.AssignDataGroup(ctx_core, ctx, authDataGroup)
+	var assignDataGroupFunc = func(ctx core.Context) error {
+		return s.dbRepo.AssignDataGroup(ctx, authDataGroup)
 	}
 
-	var createTeamFunc = func(ctx context.Context) error {
-		return s.dbRepo.CreateTeam(ctx_core, ctx, team)
+	var createTeamFunc = func(ctx core.Context) error {
+		return s.dbRepo.CreateTeam(ctx, team)
 	}
 
-	var grantPermissionFunc = func(ctx context.Context) error {
-		return s.dbRepo.GrantPermission(ctx_core, ctx, team.TeamID, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE, req.FeatureList)
+	var grantPermissionFunc = func(ctx core.Context) error {
+		return s.dbRepo.GrantPermission(ctx, team.TeamID, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE, req.FeatureList)
 	}
 
-	var inviteUserFunc = func(ctx context.Context) error {
-		return s.dbRepo.InviteUserToTeam(ctx_core, ctx, team.TeamID, req.UserList)
+	var inviteUserFunc = func(ctx core.Context) error {
+		return s.dbRepo.InviteUserToTeam(ctx, team.TeamID, req.UserList)
 	}
 
-	return s.dbRepo.Transaction(ctx_core, context.Background(), createTeamFunc, grantPermissionFunc, assignDataGroupFunc, inviteUserFunc)
+	return s.dbRepo.Transaction(ctx, createTeamFunc, grantPermissionFunc, assignDataGroupFunc, inviteUserFunc)
 }

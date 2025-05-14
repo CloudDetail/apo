@@ -9,7 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetLogMetrics(ctx_core core.Context, req *request.GetLogMetricsRequest) ([]*response.GetLogMetricsResponse, error) {
+func (s *service) GetLogMetrics(ctx core.Context, req *request.GetLogMetricsRequest) ([]*response.GetLogMetricsResponse, error) {
 	// Get log metrics
 	serviceInstances, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, req.Service, req.Endpoint)
 	if err != nil {

@@ -4,16 +4,15 @@
 package alert
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log"
 
-	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
-func (s *service) ProcessAlertEvents(ctx_core core.Context, source alert.SourceFrom, data []byte) error {
+func (s *service) ProcessAlertEvents(ctx core.Context, source alert.SourceFrom, data []byte) error {
 	events, err := s.dispatcher.DispatchEvents(&source, data)
 	if err != nil {
 		var errSourceNotExist alert.ErrAlertSourceNotExist
@@ -35,5 +34,5 @@ func (s *service) ProcessAlertEvents(ctx_core core.Context, source alert.SourceF
 	}
 
 	s.difyRepo.SubmitAlertEvents(events)
-	return s.ckRepo.InsertAlertEvent(ctx_core, context.Background(), events, source)
+	return s.ckRepo.InsertAlertEvent(ctx, events, source)
 }

@@ -4,23 +4,23 @@
 package trace
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetTracePageList(ctx_core core.Context, req *request.GetTracePageListRequest) (*response.GetTracePageListResponse, error) {
-	list, total, err := s.chRepo.GetTracePageList(ctx_core, req)
+func (s *service) GetTracePageList(ctx core.Context, req *request.GetTracePageListRequest) (*response.GetTracePageListResponse, error) {
+	list, total, err := s.chRepo.GetTracePageList(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	return &response.GetTracePageListResponse{
 		Pagination: &model.Pagination{
-			Total:		total,
-			CurrentPage:	req.PageNum,
-			PageSize:	req.PageSize,
+			Total:       total,
+			CurrentPage: req.PageNum,
+			PageSize:    req.PageSize,
 		},
-		List:	list,
+		List: list,
 	}, nil
 }

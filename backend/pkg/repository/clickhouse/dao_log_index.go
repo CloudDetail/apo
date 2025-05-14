@@ -6,8 +6,8 @@ package clickhouse
 import (
 	"fmt"
 
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 const groupLogIndexQuery = "SELECT count(*) as count, `%s` as f FROM `%s`.`%s` WHERE %s GROUP BY %s ORDER BY count DESC LIMIT 10"
@@ -36,9 +36,9 @@ func countSQL(baseQuery string, req *request.LogIndexRequest) string {
 	return sql
 }
 
-func (ch *chRepo) GetLogIndex(ctx_core core.Context, req *request.LogIndexRequest) (map[string]uint64, uint64, error) {
+func (ch *chRepo) GetLogIndex(ctx core.Context, req *request.LogIndexRequest) (map[string]uint64, uint64, error) {
 	groupSQL := groupBySQL(groupLogIndexQuery, req)
-	groupRows, err := ch.queryRowsData(ctx_core, groupSQL)
+	groupRows, err := ch.queryRowsData(ctx, groupSQL)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -79,7 +79,7 @@ func (ch *chRepo) GetLogIndex(ctx_core core.Context, req *request.LogIndexReques
 		}
 	}
 	countSQL := countSQL(countLogIndexQuery, req)
-	countRows, err := ch.queryRowsData(ctx_core, countSQL)
+	countRows, err := ch.queryRowsData(ctx, countSQL)
 	if err != nil {
 		return nil, 0, err
 	}

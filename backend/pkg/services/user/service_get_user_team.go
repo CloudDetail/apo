@@ -10,8 +10,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetUserTeam(ctx_core core.Context, req *request.GetUserTeamRequest) (response.GetUserTeamResponse, error) {
-	exists, err := s.dbRepo.UserExists(ctx_core, req.UserID)
+func (s *service) GetUserTeam(ctx core.Context, req *request.GetUserTeamRequest) (response.GetUserTeamResponse, error) {
+	exists, err := s.dbRepo.UserExists(ctx, req.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -20,5 +20,5 @@ func (s *service) GetUserTeam(ctx_core core.Context, req *request.GetUserTeamReq
 		return nil, core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
-	return s.dbRepo.GetAssignedTeam(ctx_core, req.UserID)
+	return s.dbRepo.GetAssignedTeam(ctx, req.UserID)
 }

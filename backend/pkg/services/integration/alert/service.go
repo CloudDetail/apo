@@ -20,35 +20,35 @@ import (
 var _ Service = &service{}
 
 type Service interface {
-	CreateAlertSource(ctx_core core.Context, source *alert.AlertSource) (*alert.AlertSource, error)
-	GetAlertSource(ctx_core core.Context, source *alert.SourceFrom) (*alert.AlertSource, error)
-	UpdateAlertSource(ctx_core core.Context, source *alert.AlertSource) (*alert.AlertSource, error)
-	DeleteAlertSource(ctx_core core.Context, source alert.SourceFrom) (*alert.AlertSource, error)
-	ListAlertSource(ctx_core core.Context) ([]alert.AlertSource, error)
+	CreateAlertSource(ctx core.Context, source *alert.AlertSource) (*alert.AlertSource, error)
+	GetAlertSource(ctx core.Context, source *alert.SourceFrom) (*alert.AlertSource, error)
+	UpdateAlertSource(ctx core.Context, source *alert.AlertSource) (*alert.AlertSource, error)
+	DeleteAlertSource(ctx core.Context, source alert.SourceFrom) (*alert.AlertSource, error)
+	ListAlertSource(ctx core.Context) ([]alert.AlertSource, error)
 
-	UpdateAlertEnrichRule(ctx_core core.Context, req *alert.AlertEnrichRuleConfigRequest) error
-	GetAlertEnrichRule(ctx_core core.Context, sourceID string) ([]alert.AlertEnrichRuleVO, error)
+	UpdateAlertEnrichRule(ctx core.Context, req *alert.AlertEnrichRuleConfigRequest) error
+	GetAlertEnrichRule(ctx core.Context, sourceID string) ([]alert.AlertEnrichRuleVO, error)
 
-	ProcessAlertEvents(ctx_core core.Context, source alert.SourceFrom, data []byte) error
+	ProcessAlertEvents(ctx core.Context, source alert.SourceFrom, data []byte) error
 
 	GetAlertEnrichRuleTags(ctx core.Context) ([]alert.TargetTag, error)
 
-	CreateSchema(ctx_core core.Context, req *alert.CreateSchemaRequest) error
-	DeleteSchema(ctx_core core.Context, schema string) error
-	ListSchema(ctx_core core.Context) ([]string, error)
-	ListSchemaColumns(ctx_core core.Context, schema string) ([]string, error)
-	UpdateSchemaData(ctx_core core.Context, req *alert.UpdateSchemaDataRequest) error
-	CheckSchemaIsUsed(ctx_core core.Context, schema string) ([]string, error)
-	GetSchemaData(ctx_core core.Context, schema string) ([]string, map[int64][]string, error)
+	CreateSchema(ctx core.Context, req *alert.CreateSchemaRequest) error
+	DeleteSchema(ctx core.Context, schema string) error
+	ListSchema(ctx core.Context) ([]string, error)
+	ListSchemaColumns(ctx core.Context, schema string) ([]string, error)
+	UpdateSchemaData(ctx core.Context, req *alert.UpdateSchemaDataRequest) error
+	CheckSchemaIsUsed(ctx core.Context, schema string) ([]string, error)
+	GetSchemaData(ctx core.Context, schema string) ([]string, map[int64][]string, error)
 
-	CreateCluster(ctx_core core.Context, cluster *input.Cluster) error
-	ListCluster(ctx_core core.Context) ([]input.Cluster, error)
-	UpdateCluster(ctx_core core.Context, cluster *input.Cluster) error
-	DeleteCluster(ctx_core core.Context, cluster *input.Cluster) error
+	CreateCluster(ctx core.Context, cluster *input.Cluster) error
+	ListCluster(ctx core.Context) ([]input.Cluster, error)
+	UpdateCluster(ctx core.Context, cluster *input.Cluster) error
+	DeleteCluster(ctx core.Context, cluster *input.Cluster) error
 
-	GetDefaultAlertEnrichRule(ctx_core core.Context, sourceType string) (string, []alert.AlertEnrichRuleVO)
-	ClearDefaultAlertEnrichRule(ctx_core core.Context, sourceType string) (bool, error)
-	SetDefaultAlertEnrichRule(ctx_core core.Context, sourceType string, tagEnrichRules []alert.AlertEnrichRuleVO) error
+	GetDefaultAlertEnrichRule(ctx core.Context, sourceType string) (string, []alert.AlertEnrichRuleVO)
+	ClearDefaultAlertEnrichRule(ctx core.Context, sourceType string) (bool, error)
+	SetDefaultAlertEnrichRule(ctx core.Context, sourceType string, tagEnrichRules []alert.AlertEnrichRuleVO) error
 }
 
 type service struct {
@@ -76,7 +76,7 @@ func New(
 		ckRepo:   chRepo,
 	}
 
-	// TODO ctx_core
+	// TODO ctx
 	_, enrichMaps, err := service.dbRepo.LoadAlertEnrichRule(nil)
 	if err != nil {
 		log.Printf("failed to init alertinput module,err: %v", err)

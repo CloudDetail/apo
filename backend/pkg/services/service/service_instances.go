@@ -17,8 +17,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetInstances(ctx_core core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error) {
-	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx_core, "", "", database.GLOBAL)
+func (s *service) GetInstances(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error) {
+	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx, "", "", database.GLOBAL)
 	if err != nil {
 		return res, err
 	}
@@ -294,7 +294,7 @@ func (s *service) GetInstances(ctx_core core.Context, startTime time.Time, endTi
 		}
 		// fill alarm status
 		newInstance.AlertStatusCH = serviceoverview.GetAlertStatusCH(
-			ctx_core,
+			ctx,
 			s.chRepo, &newInstance.AlertReason, nil,
 			nil, serviceName, instanceSingleList,
 			startTime, endTime,

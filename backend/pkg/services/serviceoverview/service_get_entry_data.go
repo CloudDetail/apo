@@ -7,13 +7,13 @@ import (
 	"sort"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 // Fetch the endpoint overview information based on the input endpoints.
-func (s *service) GetAlertRelatedEntryData(ctx_core core.Context,
+func (s *service) GetAlertRelatedEntryData(ctx core.Context,
 	startTime, endTime time.Time, namespaces []string,
 	entry []response.AlertRelatedEntry,
 ) (res []response.AlertRelatedEntry, err error) {
@@ -99,8 +99,8 @@ func splitEntries(entries []response.AlertRelatedEntry) ([][]string, map[prom.En
 	var entryMap = map[prom.EndpointKey]int{}
 	for idx, entry := range entries {
 		entryMap[prom.EndpointKey{
-			SvcName:	entry.ServiceName,
-			ContentKey:	entry.Endpoint,
+			SvcName:    entry.ServiceName,
+			ContentKey: entry.Endpoint,
 		}] = idx
 
 		services = append(services, entry.ServiceName)

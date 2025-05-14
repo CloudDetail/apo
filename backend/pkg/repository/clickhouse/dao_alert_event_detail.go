@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/google/uuid"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID = `SELECT * FROM alert_event ae
@@ -151,7 +151,7 @@ SELECT count(1) as index
 FROM alert_event ae
 %s AND received_time > (SELECT received_time FROM target_event)`
 
-func (ch *chRepo) GetAlertDetail(ctx_core core.Context, req *request.GetAlertDetailRequest, cacheMinutes int) (*alert.AEventWithWRecord, error) {
+func (ch *chRepo) GetAlertDetail(ctx core.Context, req *request.GetAlertDetailRequest, cacheMinutes int) (*alert.AEventWithWRecord, error) {
 	alertFilter := NewQueryBuilder().
 		Equals("alert_id", req.AlertID).
 		Equals("toString(id)", req.EventID)
@@ -178,7 +178,7 @@ func (ch *chRepo) GetAlertDetail(ctx_core core.Context, req *request.GetAlertDet
 	return &result, err
 }
 
-func (ch *chRepo) GetRelatedAlertEvents(ctx_core core.Context, req *request.GetAlertDetailRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error) {
+func (ch *chRepo) GetRelatedAlertEvents(ctx core.Context, req *request.GetAlertDetailRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error) {
 	alertEventFilter := NewQueryBuilder().
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
 		NotGreaterThan("end_time", req.EndTime/1e6).
@@ -249,7 +249,7 @@ func getOffset(rowIndex, pageSize int) (offset int) {
 	return offset
 }
 
-func (ch *chRepo) GetLatestAlertEventByAlertID(ctx_core core.Context, alertID string) (*alert.AlertEvent, error) {
+func (ch *chRepo) GetLatestAlertEventByAlertID(ctx core.Context, alertID string) (*alert.AlertEvent, error) {
 	alertEventFilter := NewQueryBuilder().
 		Equals("alert_id", alertID).
 		GreaterThan("received_time", time.Now().Add(-7*24*time.Hour).Unix())
@@ -262,7 +262,7 @@ func (ch *chRepo) GetLatestAlertEventByAlertID(ctx_core core.Context, alertID st
 	return &result, err
 }
 
-func (ch *chRepo) ManualResolveLatestAlertEventByAlertID(ctx_core core.Context, alertID string) error {
+func (ch *chRepo) ManualResolveLatestAlertEventByAlertID(ctx core.Context, alertID string) error {
 	alertEventFilter := NewQueryBuilder().
 		Equals("alert_id", alertID).
 		GreaterThan("received_time", time.Now().Add(-7*24*time.Hour).Unix())
@@ -293,7 +293,7 @@ func (ch *chRepo) ManualResolveLatestAlertEventByAlertID(ctx_core core.Context, 
 	}
 	result.Detail = string(detailsStr)
 
-	return ch.InsertAlertEvent(ctx_core, context.Background(), []alert.AlertEvent{result}, alert.SourceFrom{
+	return ch.InsertAlertEvent(ctx, []alert.AlertEvent{result}, alert.SourceFrom{
 		SourceInfo: alert.SourceInfo{SourceName: result.Source},
 	})
 }

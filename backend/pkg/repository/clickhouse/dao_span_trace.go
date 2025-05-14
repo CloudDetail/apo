@@ -36,7 +36,7 @@ const (
 	%s %s`
 )
 
-func (ch *chRepo) GetFaultLogPageList(ctx_core core.Context, query *FaultLogQuery) ([]FaultLogResult, int64, error) {
+func (ch *chRepo) GetFaultLogPageList(ctx core.Context, query *FaultLogQuery) ([]FaultLogResult, int64, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", query.StartTime/1000000, query.EndTime/1000000).
 		EqualsNotEmpty("labels['service_name']", query.Service).
@@ -103,9 +103,9 @@ func (ch *chRepo) GetFaultLogPageList(ctx_core core.Context, query *FaultLogQuer
 	return result, int64(count), nil
 }
 
-func (ch *chRepo) GetAvailableFilterKey(ctx_core core.Context, startTime, endTime time.Time, needUpdate bool) ([]request.SpanTraceFilter, error) {
+func (ch *chRepo) GetAvailableFilterKey(ctx core.Context, startTime, endTime time.Time, needUpdate bool) ([]request.SpanTraceFilter, error) {
 	if needUpdate {
-		filers, err := ch.UpdateFilterKey(ctx_core, startTime, endTime)
+		filers, err := ch.UpdateFilterKey(ctx, startTime, endTime)
 		if err != nil {
 			return []request.SpanTraceFilter{}, err
 		}
@@ -114,7 +114,7 @@ func (ch *chRepo) GetAvailableFilterKey(ctx_core core.Context, startTime, endTim
 
 	now := time.Now()
 	if len(ch.Filters) == 0 || now.Sub(ch.FilterUpdateTime) > 48*time.Hour {
-		filters, err := ch.UpdateFilterKey(ctx_core, now.Add(-48*time.Hour), now)
+		filters, err := ch.UpdateFilterKey(ctx, now.Add(-48*time.Hour), now)
 		if err != nil {
 			return []request.SpanTraceFilter{}, err
 		}
@@ -134,7 +134,7 @@ func buildSpanTraceQuery(baseQuery string, fieldSql string, bySql string, builde
 	return sql
 }
 
-func (ch *chRepo) GetTracePageList(ctx_core core.Context, req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error) {
+func (ch *chRepo) GetTracePageList(ctx core.Context, req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
 		EqualsNotEmpty("labels['content_key']", req.EndPoint).
@@ -390,7 +390,7 @@ var const_span_filter = []request.SpanTraceFilter{
 	},
 }
 
-func (ch *chRepo) UpdateFilterKey(ctx_core core.Context, startTime, endTime time.Time) ([]request.SpanTraceFilter, error) {
+func (ch *chRepo) UpdateFilterKey(ctx core.Context, startTime, endTime time.Time) ([]request.SpanTraceFilter, error) {
 	builder := NewQueryBuilder().
 		Between("timestamp", startTime.Unix(), endTime.Unix())
 
@@ -400,14 +400,14 @@ func (ch *chRepo) UpdateFilterKey(ctx_core core.Context, startTime, endTime time
 
 	sql := fmt.Sprintf(SQL_GET_LABEL_FILTER_KEYS, builder.String(), byLimits.String())
 	var labelRes []request.SpanTraceFilter
-	err := ch.GetConn(ctx_core).Select(context.Background(), &labelRes, sql, builder.values...)
+	err := ch.GetConn(ctx).Select(context.Background(), &labelRes, sql, builder.values...)
 	if err != nil {
 		return nil, err
 	}
 
 	sql = fmt.Sprintf(SQL_GET_FLAGS_FILTER_KEYS, builder.String(), byLimits.String())
 	var flagRes []request.SpanTraceFilter
-	err = ch.GetConn(ctx_core).Select(context.Background(), &flagRes, sql, builder.values...)
+	err = ch.GetConn(ctx).Select(context.Background(), &flagRes, sql, builder.values...)
 	if err != nil {
 		return nil, err
 	}
@@ -417,7 +417,7 @@ func (ch *chRepo) UpdateFilterKey(ctx_core core.Context, startTime, endTime time
 	return filters, nil
 }
 
-func (ch *chRepo) GetFieldValues(ctx_core core.Context, searchText string, filter *request.SpanTraceFilter, startTime, endTime time.Time) (*SpanTraceOptions, error) {
+func (ch *chRepo) GetFieldValues(ctx core.Context, searchText string, filter *request.SpanTraceFilter, startTime, endTime time.Time) (*SpanTraceOptions, error) {
 	if filter.DataType == request.BoolColumn {
 		return &SpanTraceOptions{SpanTraceFilter: *filter, Options: []bool{true, false}}, nil
 	}
@@ -446,7 +446,7 @@ func (ch *chRepo) GetFieldValues(ctx_core core.Context, searchText string, filte
 
 	sql := fmt.Sprintf(SQL_GET_FILTER_VALUES, field, builder.String(), byLimits.String())
 
-	rows, err := ch.GetConn(ctx_core).Query(context.Background(), sql, builder.values...)
+	rows, err := ch.GetConn(ctx).Query(context.Background(), sql, builder.values...)
 	if err != nil {
 		return nil, err
 	}

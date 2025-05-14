@@ -6,12 +6,12 @@ package service
 import (
 	"strconv"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetServiceInstanceList(ctx_core core.Context, req *request.GetServiceInstanceListRequest) ([]string, error) {
+func (s *service) GetServiceInstanceList(ctx core.Context, req *request.GetServiceInstanceListRequest) ([]string, error) {
 	// Get the list of active service instances
 	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, []string{req.ServiceName})
 	if err != nil {
@@ -21,7 +21,7 @@ func (s *service) GetServiceInstanceList(ctx_core core.Context, req *request.Get
 	return instances.GetInstanceIds(), nil
 }
 
-func (s *service) GetServiceInstanceInfoList(ctx_core core.Context, req *request.GetServiceInstanceListRequest) ([]prometheus.InstanceKey, error) {
+func (s *service) GetServiceInstanceInfoList(ctx core.Context, req *request.GetServiceInstanceListRequest) ([]prometheus.InstanceKey, error) {
 	var ins []prometheus.InstanceKey
 	// Get instance
 	instanceList, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, req.ServiceName, "")
@@ -32,12 +32,12 @@ func (s *service) GetServiceInstanceInfoList(ctx_core core.Context, req *request
 	// Fill the instance
 	for _, instance := range instanceList.GetInstanceIdMap() {
 		key := prometheus.InstanceKey{
-			PID:		strconv.FormatInt(instance.Pid, 10),
-			ContainerId:	instance.ContainerId,
-			Pod:		instance.PodName,
-			Namespace:	instance.Namespace,
-			NodeName:	instance.NodeName,
-			NodeIP:		instance.NodeIP,
+			PID:         strconv.FormatInt(instance.Pid, 10),
+			ContainerId: instance.ContainerId,
+			Pod:         instance.PodName,
+			Namespace:   instance.Namespace,
+			NodeName:    instance.NodeName,
+			NodeIP:      instance.NodeIP,
 		}
 		ins = append(ins, key)
 	}

@@ -14,20 +14,20 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/google/uuid"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 type AlertGroup string
 
 const (
-	APP_GROUP		AlertGroup	= "app"
-	NETWORK_GROUP		AlertGroup	= "network"
-	CONTAINER_GROUP		AlertGroup	= "container"
-	INFRA_GROUP		AlertGroup	= "infra"
-	MIDDLEWARE_GROUP	AlertGroup	= "middleware"
+	APP_GROUP        AlertGroup = "app"
+	NETWORK_GROUP    AlertGroup = "network"
+	CONTAINER_GROUP  AlertGroup = "container"
+	INFRA_GROUP      AlertGroup = "infra"
+	MIDDLEWARE_GROUP AlertGroup = "middleware"
 )
 
 func (g AlertGroup) GetAlertType() string {
@@ -52,7 +52,7 @@ func GetAlertType(g string) string {
 
 const (
 	// The SQL _GET_SAMPLE_ALERT_EVENT are grouped by the alarm_event name. Each group takes the record with the latest event and records the number of alarms with the same name in the returned result.
-	SQL_GET_SAMPLE_ALERT_EVENT	= `WITH grouped_alarm AS (
+	SQL_GET_SAMPLE_ALERT_EVENT = `WITH grouped_alarm AS (
 		SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status,
         	if(alert_id != '', alert_id, arrayStringConcat(arrayMap(x -> x.2, arraySort(arrayZip(mapKeys(tags), mapValues(tags)))), ', ')) AS alert_key,
 			ROW_NUMBER() OVER (PARTITION BY name, alert_key ORDER BY received_time desc) AS rn,
@@ -64,7 +64,7 @@ const (
 	FROM grouped_alarm
 	WHERE rn <= %d %s`
 
-	SQL_GET_GROUP_COUNTS_ALERT_EVENT	= `WITH grouped_alarm AS (
+	SQL_GET_GROUP_COUNTS_ALERT_EVENT = `WITH grouped_alarm AS (
 	SELECT group,severity,tags,
 		ROW_NUMBER() OVER (PARTITION BY %s) AS rn,
 		COUNT(*) OVER (PARTITION BY %s) AS alarm_count
@@ -75,16 +75,16 @@ const (
 	FROM grouped_alarm
 	WHERE rn <= 1`
 
-	GET_ALERT_EVENTS_COUNT	= `SELECT count(1) as count FROM alert_event %s`
+	GET_ALERT_EVENTS_COUNT = `SELECT count(1) as count FROM alert_event %s`
 
-	SQL_GET_PAGED_ALERT_EVENT	= `SELECT
+	SQL_GET_PAGED_ALERT_EVENT = `SELECT
 		source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status,alert_id
 	FROM alert_event
 	%s %s`
 )
 
 // GetAlertEventCountGroupByInstance to quickly query the number of alarms associated with each Instance (counted separately by alarm level)
-func (ch *chRepo) GetAlertEventCountGroupByInstance(ctx_core core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]model.AlertEventCount, error) {
+func (ch *chRepo) GetAlertEventCountGroupByInstance(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]model.AlertEventCount, error) {
 	builder := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
 		EqualsNotEmpty("source", filter.Source).
@@ -114,7 +114,7 @@ func (ch *chRepo) GetAlertEventCountGroupByInstance(ctx_core core.Context, start
 }
 
 // Obtain all alarm events of the instance GetAlarmsEvents
-func (ch *chRepo) GetAlertEventsSample(ctx_core core.Context, sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error) {
+func (ch *chRepo) GetAlertEventsSample(ctx core.Context, sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error) {
 	// Combined generation:
 	//  1. group = 'app' AND svc = svc_name
 	//  2. group = 'container' AND ((namespace,pod) in (...))
@@ -143,7 +143,7 @@ func (ch *chRepo) GetAlertEventsSample(ctx_core core.Context, sampleCount int, s
 	return events, err
 }
 
-func (ch *chRepo) GetAlertEvents(ctx_core core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam) ([]alert.AlertEvent, uint64, error) {
+func (ch *chRepo) GetAlertEvents(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam) ([]alert.AlertEvent, uint64, error) {
 	var whereInstance *whereSQL = ALWAYS_TRUE
 	if len(filter.Services) > 0 ||
 		len(filter.Endpoint) > 0 ||
@@ -198,8 +198,8 @@ func buildAlertEventsCountQuery(baseQuery string, builder *QueryBuilder) string 
 	return countSql
 }
 
-func (ch *chRepo) InsertBatchAlertEvents(ctx_core core.Context, ctx context.Context, events []*model.AlertEvent) error {
-	batch, err := ch.conn.PrepareBatch(ctx, `
+func (ch *chRepo) InsertBatchAlertEvents(ctx core.Context, events []*model.AlertEvent) error {
+	batch, err := ch.conn.PrepareBatch(ctx.GetContext(), `
 		INSERT INTO alert_event (source, id, alert_id, create_time, update_time, end_time, received_time, severity, group,
 		                         name, detail, tags, status)
 		VALUES
@@ -223,7 +223,7 @@ func (ch *chRepo) InsertBatchAlertEvents(ctx_core core.Context, ctx context.Cont
 }
 
 // ReadAlertEvent implement the Read method of the AlertEventDAO interface
-func (ch *chRepo) ReadAlertEvent(ctx_core core.Context, ctx context.Context, id uuid.UUID) (*model.AlertEvent, error) {
+func (ch *chRepo) ReadAlertEvent(ctx core.Context, id uuid.UUID) (*model.AlertEvent, error) {
 	var event model.AlertEvent
 	query := `
 		SELECT source, id, create_time, update_time, end_time, received_time, severity
@@ -231,7 +231,7 @@ func (ch *chRepo) ReadAlertEvent(ctx_core core.Context, ctx context.Context, id 
 		FROM alert_event
 		WHERE id = ?
 	`
-	err := ch.conn.QueryRow(ctx, query, id).Scan(
+	err := ch.conn.QueryRow(ctx.GetContext(), query, id).Scan(
 		&event.Source, &event.ID, &event.CreateTime, &event.UpdateTime, &event.EndTime,
 		&event.ReceivedTime, &event.Severity, &event.Group, &event.Name, &event.Detail, &event.Tags, &event.Status,
 	)
@@ -262,7 +262,7 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 						AndSep,
 						in("tags['svc_name']", arr),
 						equalsIfNotEmpty("tags['content_key']", filter.Endpoint),
-					),	// Compatible with older versions
+					), // Compatible with older versions
 					mergeWheres(
 						AndSep,
 						in("tags['serviceName']", arr),
@@ -332,8 +332,8 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 			}
 
 			k8sOrVm := mergeWheres(OrSep,
-				inGroup(k8sPods),	// Compatible with older versions
-				inGroup(vmPods),	// Compatible with older versions
+				inGroup(k8sPods), // Compatible with older versions
+				inGroup(vmPods),  // Compatible with older versions
 				inGroup(vmPodsNew),
 			)
 			whereInstance = append(whereInstance, mergeWheres(
@@ -404,8 +404,8 @@ type AlertEventSample struct {
 	model.AlertEvent
 
 	// Record line number
-	Rn		uint64	`ch:"rn" json:"-"`
-	AlarmCount	uint64	`ch:"alarm_count" json:"alarmCount"`
+	Rn         uint64 `ch:"rn" json:"-"`
+	AlarmCount uint64 `ch:"alarm_count" json:"alarmCount"`
 
-	AlertKey	string	`ch:"alert_key" json:"alertKey"`
+	AlertKey string `ch:"alert_key" json:"alertKey"`
 }

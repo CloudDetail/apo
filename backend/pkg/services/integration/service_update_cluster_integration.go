@@ -5,11 +5,11 @@ package integration
 
 import (
 	"github.com/CloudDetail/apo/backend/config"
-	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
 
-func (s *service) UpdateClusterIntegration(ctx_core core.Context, cluster *integration.ClusterIntegration) error {
+func (s *service) UpdateClusterIntegration(ctx core.Context, cluster *integration.ClusterIntegration) error {
 	// TODO 当前强制指定VM和CK配置
 	vmCfg := config.Get().Promethues
 	cluster.Metric.MetricAPI = &integration.JSONField[integration.MetricAPI]{
@@ -24,21 +24,21 @@ func (s *service) UpdateClusterIntegration(ctx_core core.Context, cluster *integ
 	cluster.Log.LogAPI = &integration.JSONField[integration.LogAPI]{
 		Obj: integration.LogAPI{
 			Clickhouse: &integration.ClickhouseConfig{
-				Address:	chCfg.Address,
-				Database:	chCfg.Database,
-				Replication:	chCfg.Replica,
-				Cluster:	chCfg.Cluster,
-				UserName:	chCfg.Username,
-				Password:	chCfg.Password,
+				Address:     chCfg.Address,
+				Database:    chCfg.Database,
+				Replication: chCfg.Replica,
+				Cluster:     chCfg.Cluster,
+				UserName:    chCfg.Username,
+				Password:    chCfg.Password,
 			},
 		},
 	}
 
 	cluster.APOCollector.RemoveHttpPrefix()
-	err := s.dbRepo.UpdateCluster(ctx_core, &cluster.Cluster)
+	err := s.dbRepo.UpdateCluster(ctx, &cluster.Cluster)
 	if err != nil {
 		return err
 	}
 
-	return s.dbRepo.SaveIntegrationConfig(ctx_core, *cluster)
+	return s.dbRepo.SaveIntegrationConfig(ctx, *cluster)
 }

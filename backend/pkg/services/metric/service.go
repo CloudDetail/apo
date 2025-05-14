@@ -4,16 +4,16 @@
 package metric
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 var _ Service = (*service)(nil)
 
 type Service interface {
-	ListPreDefinedMetrics(ctx_core core.Context,) []QueryInfo
-	ListQuerys(ctx_core core.Context,) []Query
-	QueryMetrics(ctx_core core.Context, req *QueryMetricsRequest) *QueryMetricsResult
+	ListPreDefinedMetrics(ctx core.Context) []QueryInfo
+	ListQuerys(ctx core.Context) []Query
+	QueryMetrics(ctx core.Context, req *QueryMetricsRequest) *QueryMetricsResult
 }
 
 type service struct {

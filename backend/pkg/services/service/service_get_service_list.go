@@ -4,10 +4,10 @@
 package service
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) GetServiceList(ctx_core core.Context, req *request.GetServiceListRequest) ([]string, error) {
+func (s *service) GetServiceList(ctx core.Context, req *request.GetServiceListRequest) ([]string, error) {
 	return s.promRepo.GetServiceList(req.StartTime, req.EndTime, req.Namespace)
 }

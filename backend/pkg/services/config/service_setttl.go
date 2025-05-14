@@ -4,7 +4,6 @@
 package config
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -48,8 +47,8 @@ func prepareTTLInfo(tables []model.TablesQuery) []model.ModifyTableTTLMap {
 	return mapResult
 }
 
-func (s *service) SetTableTTL(ctx_core core.Context, tableNames []model.Table, day int) error {
-	tables, err := s.chRepo.GetTables(ctx_core, tableNames)
+func (s *service) SetTableTTL(ctx core.Context, tableNames []model.Table, day int) error {
+	tables, err := s.chRepo.GetTables(ctx, tableNames)
 	if err != nil {
 		log.Println("[SetSingleTableTTL] Error getting tables: ", err)
 		return err
@@ -59,7 +58,7 @@ func (s *service) SetTableTTL(ctx_core core.Context, tableNames []model.Table, d
 		log.Println("[SetSingleTableTTL] Error convertModifyTableTTLMap: ", err)
 		return err
 	}
-	err = s.chRepo.ModifyTableTTL(ctx_core, context.Background(), mapResult)
+	err = s.chRepo.ModifyTableTTL(ctx, mapResult)
 	if err != nil {
 		log.Println("[SetSingleTableTTL] Error ModifyTableTTL: ", err)
 		return err
@@ -77,7 +76,7 @@ func convertModifyTableTTLMap(tables []model.TablesQuery, day int) ([]model.Modi
 	return mapResult, nil
 }
 
-func (s *service) SetTTL(ctx_core core.Context, req *request.SetTTLRequest) error {
+func (s *service) SetTTL(ctx core.Context, req *request.SetTTLRequest) error {
 	if req.Day <= 0 {
 		return errors.New("[SetTTL] Error : day should > 0  ")
 	}
@@ -86,11 +85,11 @@ func (s *service) SetTTL(ctx_core core.Context, req *request.SetTTLRequest) erro
 	if len(tables) == 0 {
 		return fmt.Errorf("type: %s does not have tables", req.DataType)
 	}
-	err := s.SetTableTTL(ctx_core, tables, req.Day)
+	err := s.SetTableTTL(ctx, tables, req.Day)
 	return err
 }
 
-func (s *service) SetSingleTableTTL(ctx_core core.Context, req *request.SetSingleTTLRequest) error {
+func (s *service) SetSingleTableTTL(ctx core.Context, req *request.SetSingleTTLRequest) error {
 	if req.Day <= 0 {
 		return errors.New("[SetSingleTableTTL] Error: day should > 0  ")
 	}
@@ -101,6 +100,6 @@ func (s *service) SetSingleTableTTL(ctx_core core.Context, req *request.SetSingl
 	tables := []model.Table{
 		{Name: req.Name},
 	}
-	err := s.SetTableTTL(ctx_core, tables, req.Day)
+	err := s.SetTableTTL(ctx, tables, req.Day)
 	return err
 }

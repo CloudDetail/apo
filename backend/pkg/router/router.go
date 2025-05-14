@@ -118,7 +118,7 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 
 	if config.Get().AlertReceiver.Enabled {
 		// migrate AMReceiver from ConfigMap to database
-		//  TODO ctx_core
+		//  TODO ctx
 		if r.pkg_db.CheckAMReceiverCount(nil) <= 0 {
 			receivers, total := r.k8sApi.GetAMConfigReceiver("", nil, nil, true)
 			if total > 0 {
@@ -161,12 +161,12 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 			logger.Error("failed to setup alertCheck workflow", zap.Error(err))
 		} else {
 			if config.Get().AlertReceiver.Enabled {
-				go dify.HandleRecords(nil, context.Background(), r.logger, records,
+				go dify.HandleRecords(context.Background(), r.logger, records,
 					r.ch.AddWorkflowRecord,
 					r.receivers.HandleAlertCheckRecord,
 				)
 			} else {
-				go dify.HandleRecords(nil, context.Background(), r.logger, records,
+				go dify.HandleRecords(context.Background(), r.logger, records,
 					r.ch.AddWorkflowRecord,
 				)
 			}

@@ -9,7 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/util/jwt"
 )
 
-func (s *service) RefreshToken(ctx_core core.Context, token string) (response.RefreshTokenResponse, error) {
+func (s *service) RefreshToken(ctx core.Context, token string) (response.RefreshTokenResponse, error) {
 	accessToken, err := jwt.RefreshToken(token)
 	var resp response.RefreshTokenResponse
 	if err != nil {
@@ -19,6 +19,6 @@ func (s *service) RefreshToken(ctx_core core.Context, token string) (response.Re
 	return resp, nil
 }
 
-func (s *service) IsInBlacklist(ctx_core core.Context, token string) (bool, error) {
-	return s.cacheRepo.IsInBlacklist(ctx_core, token)
+func (s *service) IsInBlacklist(ctx core.Context, token string) (bool, error) {
+	return s.cacheRepo.IsInBlacklist(ctx, token)
 }

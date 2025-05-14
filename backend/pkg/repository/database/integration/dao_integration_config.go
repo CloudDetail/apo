@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"go.uber.org/multierr"
 	"gorm.io/gorm"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func (repo *subRepos) updateTraceIntegration(t *integration.TraceIntegration) error {
@@ -99,7 +99,7 @@ func (repo *subRepos) updateLogIntegration(l *integration.LogIntegration) error 
 	return updateError
 }
 
-func (repo *subRepos) SaveIntegrationConfig(ctx_core core.Context, iConfig integration.ClusterIntegration) error {
+func (repo *subRepos) SaveIntegrationConfig(ctx core.Context, iConfig integration.ClusterIntegration) error {
 	iConfig.Trace.ClusterID = iConfig.ID
 	iConfig.Metric.ClusterID = iConfig.ID
 	iConfig.Log.ClusterID = iConfig.ID
@@ -118,8 +118,8 @@ func (repo *subRepos) SaveIntegrationConfig(ctx_core core.Context, iConfig integ
 }
 
 // get integration config for the cluster
-func (repo *subRepos) GetIntegrationConfig(ctx_core core.Context, clusterID string) (*integration.ClusterIntegration, error) {
-	cluster, err := repo.GetCluster(ctx_core, clusterID)
+func (repo *subRepos) GetIntegrationConfig(ctx core.Context, clusterID string) (*integration.ClusterIntegration, error) {
+	cluster, err := repo.GetCluster(ctx, clusterID)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (repo *subRepos) GetIntegrationConfig(ctx_core core.Context, clusterID stri
 	return res, err
 }
 
-func (repo *subRepos) DeleteIntegrationConfig(ctx_core core.Context, clusterID string) error {
+func (repo *subRepos) DeleteIntegrationConfig(ctx core.Context, clusterID string) error {
 	err := repo.db.Model(&integration.TraceIntegration{}).
 		Where("cluster_id = ?", clusterID).
 		Update("is_deleted", true).Error
@@ -182,13 +182,13 @@ func (repo *subRepos) DeleteIntegrationConfig(ctx_core core.Context, clusterID s
 }
 
 type traceAPI struct {
-	ApmType		string	`gorm:"apm_type"`
-	TraceAPI	string	`gorm:"trace_api"`
+	ApmType  string `gorm:"apm_type"`
+	TraceAPI string `gorm:"trace_api"`
 
-	UpdatedAt	int64	`gorm:"autoUpdateTime"`
+	UpdatedAt int64 `gorm:"autoUpdateTime"`
 }
 
-func (repo *subRepos) GetLatestTraceAPIs(ctx_core core.Context, lastUpdateTS int64) (*integration.AdapterAPIConfig, error) {
+func (repo *subRepos) GetLatestTraceAPIs(ctx core.Context, lastUpdateTS int64) (*integration.AdapterAPIConfig, error) {
 	var latestUpdateTraceAPI integration.TraceIntegration
 	err := repo.db.First(&latestUpdateTraceAPI, "updated_at > ?", lastUpdateTS).
 		Order("updated_at DESC").Error
@@ -243,9 +243,9 @@ func (repo *subRepos) GetLatestTraceAPIs(ctx_core core.Context, lastUpdateTS int
 
 	latestAPI["apmList"] = apmList
 	return &integration.AdapterAPIConfig{
-		APIs:		latestAPI,
-		Timeout:	timeoutI64,
-		LastUpdateTS:	latestUpdateTS,
+		APIs:         latestAPI,
+		Timeout:      timeoutI64,
+		LastUpdateTS: latestUpdateTS,
 	}, nil
 }
 

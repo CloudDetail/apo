@@ -9,12 +9,12 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetServiceMoreUrl(ctx_core core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule request.SortType) (res []response.ServiceDetail, err error) {
+func (s *service) GetServiceMoreUrl(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule request.SortType) (res []response.ServiceDetail, err error) {
 	filter := EndpointsFilter{
 		ServiceName: serviceNames,
 	}
@@ -35,7 +35,7 @@ func (s *service) GetServiceMoreUrl(ctx_core core.Context, startTime time.Time, 
 		return nil, nil
 	}
 
-	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx_core, "", "", database.GLOBAL)
+	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx, "", "", database.GLOBAL)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (s *service) GetServiceMoreUrl(ctx_core core.Context, startTime time.Time, 
 	}
 	// Sort all URLs
 	switch sortRule {
-	case request.DODThreshold:	//Sort by Day-to-Year Threshold
+	case request.DODThreshold: //Sort by Day-to-Year Threshold
 		sortByDODThreshold(endpoints)
 	}
 
@@ -97,35 +97,35 @@ func (s *service) GetServiceMoreUrl(ctx_core core.Context, startTime time.Time, 
 	var newServiceDetails []response.ServiceDetail
 	for _, url := range service.Endpoints {
 		newErrorRadio := response.Ratio{
-			DayOverDay:	url.REDMetrics.DOD.ErrorRate,
-			WeekOverDay:	url.REDMetrics.WOW.ErrorRate,
+			DayOverDay:  url.REDMetrics.DOD.ErrorRate,
+			WeekOverDay: url.REDMetrics.WOW.ErrorRate,
 		}
 		newErrorRate := response.TempChartObject{
 			Ratio: newErrorRadio,
 		}
-		if url.REDMetrics.Avg.ErrorRate != nil && !math.IsInf(*url.REDMetrics.Avg.ErrorRate, 0) {	// does not assign a value when it is infinite
+		if url.REDMetrics.Avg.ErrorRate != nil && !math.IsInf(*url.REDMetrics.Avg.ErrorRate, 0) { // does not assign a value when it is infinite
 			newErrorRate.Value = url.REDMetrics.Avg.ErrorRate
 		}
 
 		newtpsRadio := response.Ratio{
-			DayOverDay:	url.REDMetrics.DOD.TPM,
-			WeekOverDay:	url.REDMetrics.WOW.TPM,
+			DayOverDay:  url.REDMetrics.DOD.TPM,
+			WeekOverDay: url.REDMetrics.WOW.TPM,
 		}
 		newtpsRate := response.TempChartObject{
 			Ratio: newtpsRadio,
 		}
-		if url.REDMetrics.Avg.TPM != nil && !math.IsInf(*url.REDMetrics.Avg.TPM, 0) {	// is not assigned when it is infinite
+		if url.REDMetrics.Avg.TPM != nil && !math.IsInf(*url.REDMetrics.Avg.TPM, 0) { // is not assigned when it is infinite
 			newtpsRate.Value = url.REDMetrics.Avg.TPM
 		}
 
 		newlatencyRadio := response.Ratio{
-			DayOverDay:	url.REDMetrics.DOD.Latency,
-			WeekOverDay:	url.REDMetrics.WOW.Latency,
+			DayOverDay:  url.REDMetrics.DOD.Latency,
+			WeekOverDay: url.REDMetrics.WOW.Latency,
 		}
 		newlatencyRate := response.TempChartObject{
 			Ratio: newlatencyRadio,
 		}
-		if url.REDMetrics.Avg.Latency != nil && !math.IsInf(*url.REDMetrics.Avg.Latency, 0) {	// does not assign a value when it is infinite
+		if url.REDMetrics.Avg.Latency != nil && !math.IsInf(*url.REDMetrics.Avg.Latency, 0) { // does not assign a value when it is infinite
 			newlatencyRate.Value = url.REDMetrics.Avg.Latency
 		}
 
@@ -158,11 +158,11 @@ func (s *service) GetServiceMoreUrl(ctx_core core.Context, startTime time.Time, 
 		}
 
 		newServiceDetail := response.ServiceDetail{
-			Endpoint:	url.ContentKey,
-			ErrorRate:	newErrorRate,
-			Tps:		newtpsRate,
-			Latency:	newlatencyRate,
-			DelaySource:	delaySource,
+			Endpoint:    url.ContentKey,
+			ErrorRate:   newErrorRate,
+			Tps:         newtpsRate,
+			Latency:     newlatencyRate,
+			DelaySource: delaySource,
 		}
 		newServiceDetails = append(newServiceDetails, newServiceDetail)
 	}

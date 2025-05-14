@@ -4,17 +4,17 @@
 package database
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
 type I18nTranslation struct {
-	ID		int	`gorm:"column:id;primary_key;auto_increment" json:"-"`
-	Language	string	`gorm:"column:language;type:varchar(20)" json:"-" mapstructure:"language"`	// en, zh, etc.
-	Translation	string	`gorm:"column:translation;type:varchar(50)" json:"translation" mapstructure:"translation"`
-	FieldName	string	`gorm:"column:field_name;type:varchar(20)" json:"field_name" mapstructure:"field_name"`	// which field is translated
-	EntityID	int	`gorm:"column:entity_id" json:"-"`
-	EntityType	string	`gorm:"column:entity_type;type:varchar(20)" json:"-" mapstructure:"entity_type"`	// menu_item or feature
+	ID          int    `gorm:"column:id;primary_key;auto_increment" json:"-"`
+	Language    string `gorm:"column:language;type:varchar(20)" json:"-" mapstructure:"language"` // en, zh, etc.
+	Translation string `gorm:"column:translation;type:varchar(50)" json:"translation" mapstructure:"translation"`
+	FieldName   string `gorm:"column:field_name;type:varchar(20)" json:"field_name" mapstructure:"field_name"` // which field is translated
+	EntityID    int    `gorm:"column:entity_id" json:"-"`
+	EntityType  string `gorm:"column:entity_type;type:varchar(20)" json:"-" mapstructure:"entity_type"` // menu_item or feature
 }
 
 func (I18nTranslation) TableName() string {
@@ -27,7 +27,7 @@ func (repo *daoRepo) GetTranslation(targetIDs []int, targetType string, language
 	return translations, err
 }
 
-func (repo *daoRepo) GetFeatureTans(ctx_core core.Context, features *[]Feature, language string) error {
+func (repo *daoRepo) GetFeatureTans(ctx core.Context, features *[]Feature, language string) error {
 	featureIDs := make([]int, len(*features))
 	for i, f := range *features {
 		featureIDs[i] = f.FeatureID
@@ -49,7 +49,7 @@ func (repo *daoRepo) GetFeatureTans(ctx_core core.Context, features *[]Feature, 
 	return nil
 }
 
-func (repo *daoRepo) GetMenuItemTans(ctx_core core.Context, menuItems *[]MenuItem, language string) error {
+func (repo *daoRepo) GetMenuItemTans(ctx core.Context, menuItems *[]MenuItem, language string) error {
 	featureIDs := make([]int, len(*menuItems))
 	for i, f := range *menuItems {
 		featureIDs[i] = f.ItemID

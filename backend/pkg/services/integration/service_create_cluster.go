@@ -7,13 +7,13 @@ import (
 	"errors"
 
 	"github.com/CloudDetail/apo/backend/config"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/google/uuid"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) CreateCluster(ctx_core core.Context, cluster *integration.ClusterIntegration) (*integration.Cluster, error) {
-	isExist, err := s.dbRepo.CheckClusterNameExisted(ctx_core, cluster.Name)
+func (s *service) CreateCluster(ctx core.Context, cluster *integration.ClusterIntegration) (*integration.Cluster, error) {
+	isExist, err := s.dbRepo.CheckClusterNameExisted(ctx, cluster.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +23,7 @@ func (s *service) CreateCluster(ctx_core core.Context, cluster *integration.Clus
 
 	cluster.ID = uuid.NewString()
 	cluster.APOCollector.RemoveHttpPrefix()
-	err = s.dbRepo.CreateCluster(ctx_core, &cluster.Cluster)
+	err = s.dbRepo.CreateCluster(ctx, &cluster.Cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func (s *service) CreateCluster(ctx_core core.Context, cluster *integration.Clus
 	// HACK 当前强制指定VM和CK配置
 	forceSetupMetricLogAPI(cluster)
 
-	err = s.dbRepo.SaveIntegrationConfig(ctx_core, *cluster)
+	err = s.dbRepo.SaveIntegrationConfig(ctx, *cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -59,12 +59,12 @@ func forceSetupMetricLogAPI(cluster *integration.ClusterIntegration) {
 	cluster.Log.LogAPI = &integration.JSONField[integration.LogAPI]{
 		Obj: integration.LogAPI{
 			Clickhouse: &integration.ClickhouseConfig{
-				Address:	chCfg.Address,
-				Database:	chCfg.Database,
-				Replication:	chCfg.Replica,
-				Cluster:	chCfg.Cluster,
-				UserName:	chCfg.Username,
-				Password:	chCfg.Password,
+				Address:     chCfg.Address,
+				Database:    chCfg.Database,
+				Replication: chCfg.Replica,
+				Cluster:     chCfg.Cluster,
+				UserName:    chCfg.Username,
+				Password:    chCfg.Password,
 			},
 		},
 	}

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
 const GET_ALERTS_WITH_EVENT_COUNT = `WITH event_count AS (
@@ -29,7 +29,7 @@ FROM alert a LEFT JOIN event_count ec on a.alert_id = ec.alert_id
 ORDER BY received_time DESC LIMIT 5000;
 `
 
-func (ch *chRepo) GetAlertsWithEventCount(ctx_core core.Context,
+func (ch *chRepo) GetAlertsWithEventCount(ctx core.Context,
 	startTime, endTime time.Time,
 	filter *alert.AlertEventFilter, maxSize int,
 ) ([]alert.AlertWithEventCount, uint64, error) {

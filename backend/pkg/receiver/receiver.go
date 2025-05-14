@@ -35,17 +35,17 @@ import (
 )
 
 type Receivers interface {
-	HandleAlertCheckRecord(ctx_core core.Context, ctx context.Context, record *model.WorkflowRecord) error
+	HandleAlertCheckRecord(record *model.WorkflowRecord) error
 
-	GetAMConfigReceiver(ctx_core core.Context, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
-	AddAMConfigReceiver(ctx_core core.Context, receiver amconfig.Receiver) error
-	UpdateAMConfigReceiver(ctx_core core.Context, receiver amconfig.Receiver, oldName string) error
-	DeleteAMConfigReceiver(ctx_core core.Context, name string) error
+	GetAMConfigReceiver(ctx core.Context, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
+	AddAMConfigReceiver(ctx core.Context, receiver amconfig.Receiver) error
+	UpdateAMConfigReceiver(ctx core.Context, receiver amconfig.Receiver, oldName string) error
+	DeleteAMConfigReceiver(ctx core.Context, name string) error
 
-	ListSlienceConfig(ctx_core core.Context) ([]slienceconfig.AlertSlienceConfig, error)
-	GetSlienceConfigByAlertID(ctx_core core.Context, alertID string) (*slienceconfig.AlertSlienceConfig, error)
-	SetSlienceConfigByAlertID(ctx_core core.Context, alertID string, forDuration string) error
-	RemoveSlienceConfigByAlertID(ctx_core core.Context, alertID string) error
+	ListSlienceConfig(ctx core.Context) ([]slienceconfig.AlertSlienceConfig, error)
+	GetSlienceConfigByAlertID(ctx core.Context, alertID string) (*slienceconfig.AlertSlienceConfig, error)
+	SetSlienceConfigByAlertID(ctx core.Context, alertID string, forDuration string) error
+	RemoveSlienceConfigByAlertID(ctx core.Context, alertID string) error
 }
 
 type InnerReceivers struct {
@@ -72,7 +72,7 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 		return nil, err
 	}
 
-	// TODO ctx_core
+	// TODO ctx
 	receivers, _, err := dbRepo.GetAMConfigReceiver(nil, nil, nil)
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 		amReceiver.ch = chRepo
 	}
 
-	// ctx_core
+	// ctx
 	slienceCfgs, err := dbRepo.GetAlertSlience(nil)
 	if err != nil {
 		return nil, err
@@ -217,7 +217,7 @@ func (r *InnerReceivers) cleanupSlience(ctx context.Context, interval time.Durat
 			r.slientCFGMap.Range(func(key, value any) bool {
 				val := value.(*slienceconfig.AlertSlienceConfig)
 				if now.After(val.EndAt) {
-					// ctx_core
+					// ctx
 					if err := r.database.DeleteAlertSlience(nil, val.ID); err == nil {
 						r.slientCFGMap.Delete(key)
 					}

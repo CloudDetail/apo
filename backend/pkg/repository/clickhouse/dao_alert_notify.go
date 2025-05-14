@@ -4,15 +4,14 @@
 package clickhouse
 
 import (
-	"context"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
-func (ch *chRepo) CreateAlertNotifyRecord(ctx_core core.Context, ctx context.Context, record model.AlertNotifyRecord) error {
-	batch, err := ch.conn.PrepareBatch(ctx, `
+func (ch *chRepo) CreateAlertNotifyRecord(ctx core.Context, record model.AlertNotifyRecord) error {
+	batch, err := ch.conn.PrepareBatch(ctx.GetContext(), `
 		INSERT INTO alert_notify_record (alert_id, created_at, event_id, success,failed)
 		VALUES
 	`)

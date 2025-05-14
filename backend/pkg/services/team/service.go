@@ -4,20 +4,20 @@
 package team
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 type Service interface {
-	CreateTeam(ctx_core core.Context, req *request.CreateTeamRequest) error
-	UpdateTeam(ctx_core core.Context, req *request.UpdateTeamRequest) error
-	GetTeamList(ctx_core core.Context, req *request.GetTeamRequest) (resp response.GetTeamResponse, err error)
-	DeleteTeam(ctx_core core.Context, req *request.DeleteTeamRequest) error
-	TeamOperation(ctx_core core.Context, req *request.TeamOperationRequest) error
-	TeamUserOperation(ctx_core core.Context, req *request.AssignToTeamRequest) error
-	GetTeamUser(ctx_core core.Context, req *request.GetTeamUserRequest) (response.GetTeamUserResponse, error)
+	CreateTeam(ctx core.Context, req *request.CreateTeamRequest) error
+	UpdateTeam(ctx core.Context, req *request.UpdateTeamRequest) error
+	GetTeamList(ctx core.Context, req *request.GetTeamRequest) (resp response.GetTeamResponse, err error)
+	DeleteTeam(ctx core.Context, req *request.DeleteTeamRequest) error
+	TeamOperation(ctx core.Context, req *request.TeamOperationRequest) error
+	TeamUserOperation(ctx core.Context, req *request.AssignToTeamRequest) error
+	GetTeamUser(ctx core.Context, req *request.GetTeamUserRequest) (response.GetTeamUserResponse, error)
 }
 
 type service struct {

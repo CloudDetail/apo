@@ -10,7 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 )
 
-func (s *service) UpdateAlertRule(ctx_core core.Context, req *request.UpdateAlertRuleRequest) error {
+func (s *service) UpdateAlertRule(ctx core.Context, req *request.UpdateAlertRuleRequest) error {
 	if !checkOrFillGroupsLabel(req.AlertRule.Group, req.AlertRule.Labels) {
 		return core.Error(
 			code.AlertGroupAndLabelMismatchError,
@@ -21,11 +21,11 @@ func (s *service) UpdateAlertRule(ctx_core core.Context, req *request.UpdateAler
 	return s.k8sApi.UpdateAlertRule(req.AlertRuleFile, req.AlertRule, req.OldGroup, req.OldAlert)
 }
 
-func (s *service) DeleteAlertRule(ctx_core core.Context, req *request.DeleteAlertRuleRequest) error {
+func (s *service) DeleteAlertRule(ctx core.Context, req *request.DeleteAlertRuleRequest) error {
 	return s.k8sApi.DeleteAlertRule(req.AlertRuleFile, req.Group, req.Alert)
 }
 
-func (s *service) UpdateAlertRuleFile(ctx_core core.Context, req *request.UpdateAlertRuleConfigRequest) error {
+func (s *service) UpdateAlertRuleFile(ctx core.Context, req *request.UpdateAlertRuleConfigRequest) error {
 	return s.k8sApi.UpdateAlertRuleConfigFile(req.AlertRuleFile, []byte(req.Content))
 }
 

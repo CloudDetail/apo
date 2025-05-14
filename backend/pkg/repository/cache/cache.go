@@ -7,25 +7,25 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/util/jwt"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/util/jwt"
 )
 
 type Repo interface {
-	AddToken(ctx_core core.Context, token string) error
-	IsInBlacklist(ctx_core core.Context, token string) (bool, error)
+	AddToken(ctx core.Context, token string) error
+	IsInBlacklist(ctx core.Context, token string) (bool, error)
 }
 
 type cache struct {
 	blackList sync.Map
 }
 
-func (c *cache) IsInBlacklist(ctx_core core.Context, token string) (bool, error) {
+func (c *cache) IsInBlacklist(ctx core.Context, token string) (bool, error) {
 	_, ok := c.blackList.Load(token)
 	return ok, nil
 }
 
-func (c *cache) AddToken(ctx_core core.Context, token string) error {
+func (c *cache) AddToken(ctx core.Context, token string) error {
 	c.blackList.Store(token, struct{}{})
 	return nil
 }

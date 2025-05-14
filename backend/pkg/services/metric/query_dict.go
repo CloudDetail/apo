@@ -5,36 +5,37 @@ package metric
 
 import (
 	"fmt"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 type QueryDict struct {
-	querys		[]Query
-	queryMap	map[string][]Query
+	querys   []Query
+	queryMap map[string][]Query
 
-	groupedQuerys	[]*PreDefinedMetrics
+	groupedQuerys []*PreDefinedMetrics
 
 	// variableGroup []map[string]Variable
 	// groupName     []string
 
-	listQuerys	[]QueryInfo
+	listQuerys []QueryInfo
 }
 
 type QueryInfo struct {
-	ID	int	`json:"id"`
-	GroupID	int	`json:"-"`
+	ID      int `json:"id"`
+	GroupID int `json:"-"`
 
-	Title		string		`json:"title"`
-	Describe	string		`json:"describe"`
-	Params		[]string	`json:"params"`
-	Unit		string		`json:"unit"`
+	Title    string   `json:"title"`
+	Describe string   `json:"describe"`
+	Params   []string `json:"params"`
+	Unit     string   `json:"unit"`
 }
 
 func (q *QueryDict) ListMetrics() []QueryInfo {
 	return q.listQuerys
 }
 
-func (q *QueryDict) ListQuerys(ctx_core core.Context,) []Query {
+func (q *QueryDict) ListQuerys(ctx core.Context) []Query {
 	return q.querys
 }
 
@@ -91,12 +92,12 @@ func (q *QueryDict) AddPreDefinedMetrics(metrics *PreDefinedMetrics) {
 			}
 
 			q.listQuerys = append(q.listQuerys, QueryInfo{
-				ID:		metrics.Queries[i].ID,
-				GroupID:	metrics.Queries[i].GroupID,
-				Title:		metrics.Queries[i].Title,
-				Params:		metrics.Queries[i].Params,
-				Unit:		metrics.Queries[i].Unit,
-				Describe:	metrics.Queries[i].Describe,
+				ID:       metrics.Queries[i].ID,
+				GroupID:  metrics.Queries[i].GroupID,
+				Title:    metrics.Queries[i].Title,
+				Params:   metrics.Queries[i].Params,
+				Unit:     metrics.Queries[i].Unit,
+				Describe: metrics.Queries[i].Describe,
 			})
 		}
 	}

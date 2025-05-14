@@ -4,20 +4,18 @@
 package role
 
 import (
-	"context"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) UpdateRole(ctx_core core.Context, req *request.UpdateRoleRequest) error {
+func (s *service) UpdateRole(ctx core.Context, req *request.UpdateRoleRequest) error {
 	idFilter := model.RoleFilter{
 		ID: req.RoleID,
 	}
 
-	role, err := s.dbRepo.GetRoles(ctx_core, idFilter)
+	role, err := s.dbRepo.GetRoles(ctx, idFilter)
 	if err != nil {
 		return err
 	}
@@ -31,7 +29,7 @@ func (s *service) UpdateRole(ctx_core core.Context, req *request.UpdateRoleReque
 			Name: req.RoleName,
 		}
 
-		existRole, err := s.dbRepo.GetRoles(ctx_core, nameFilter)
+		existRole, err := s.dbRepo.GetRoles(ctx, nameFilter)
 		if err != nil {
 			return err
 		}
@@ -41,22 +39,22 @@ func (s *service) UpdateRole(ctx_core core.Context, req *request.UpdateRoleReque
 		}
 	}
 
-	toAdd, toDelete, err := s.dbRepo.GetAddAndDeletePermissions(ctx_core, int64(req.RoleID), model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE, req.PermissionList)
+	toAdd, toDelete, err := s.dbRepo.GetAddAndDeletePermissions(ctx, int64(req.RoleID), model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE, req.PermissionList)
 	if err != nil {
 		return err
 	}
 
-	var updateRoleFunc = func(ctx context.Context) error {
-		return s.dbRepo.UpdateRole(ctx_core, ctx, req.RoleID, req.RoleName, req.Description)
+	var updateRoleFunc = func(ctx core.Context) error {
+		return s.dbRepo.UpdateRole(ctx, req.RoleID, req.RoleName, req.Description)
 	}
 
-	var grantPermissionFunc = func(ctx context.Context) error {
-		return s.dbRepo.GrantPermission(ctx_core, ctx, int64(req.RoleID), model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE, toAdd)
+	var grantPermissionFunc = func(ctx core.Context) error {
+		return s.dbRepo.GrantPermission(ctx, int64(req.RoleID), model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE, toAdd)
 	}
 
-	var revokePermissionFunc = func(ctx context.Context) error {
-		return s.dbRepo.RevokePermission(ctx_core, ctx, int64(req.RoleID), model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE, toDelete)
+	var revokePermissionFunc = func(ctx core.Context) error {
+		return s.dbRepo.RevokePermission(ctx, int64(req.RoleID), model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE, toDelete)
 	}
 
-	return s.dbRepo.Transaction(ctx_core, context.Background(), updateRoleFunc, grantPermissionFunc, revokePermissionFunc)
+	return s.dbRepo.Transaction(ctx, updateRoleFunc, grantPermissionFunc, revokePermissionFunc)
 }

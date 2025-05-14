@@ -6,15 +6,15 @@ package clickhouse
 import (
 	"fmt"
 
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 const (
 	logsBaseQuery = "SELECT * FROM `%s`.`%s` WHERE %s %s"
 )
 
-func (ch *chRepo) QueryAllLogs(ctx_core core.Context, req *request.LogQueryRequest) ([]map[string]any, string, error) {
+func (ch *chRepo) QueryAllLogs(ctx core.Context, req *request.LogQueryRequest) ([]map[string]any, string, error) {
 	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
 	bySql := NewByLimitBuilder().
 		OrderBy(fmt.Sprintf("`%s`", req.TimeField), false).
@@ -23,7 +23,7 @@ func (ch *chRepo) QueryAllLogs(ctx_core core.Context, req *request.LogQueryReque
 		String()
 	sql := buildAllLogsQuery(logsBaseQuery, req, condition, bySql)
 
-	results, err := ch.queryRowsData(ctx_core, sql)
+	results, err := ch.queryRowsData(ctx, sql)
 	if err != nil {
 		return nil, sql, err
 	}

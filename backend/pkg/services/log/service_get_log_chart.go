@@ -14,9 +14,9 @@ import (
 
 const SecondToMirco = 1000000
 
-func (s *service) getChart(ctx_core core.Context, req *request.LogQueryRequest) (*response.LogChartResponse, error) {
+func (s *service) getChart(ctx core.Context, req *request.LogQueryRequest) (*response.LogChartResponse, error) {
 	res := &response.LogChartResponse{}
-	rows, interval, err := s.chRepo.GetLogChart(ctx_core, req)
+	rows, interval, err := s.chRepo.GetLogChart(ctx, req)
 	if err != nil {
 		res.Err = err.Error()
 		return res, nil
@@ -135,6 +135,6 @@ func (s *service) getChart(ctx_core core.Context, req *request.LogQueryRequest) 
 	return res, nil
 }
 
-func (s *service) GetLogChart(ctx_core core.Context, req *request.LogQueryRequest) (*response.LogChartResponse, error) {
-	return s.getChart(ctx_core, req)
+func (s *service) GetLogChart(ctx core.Context, req *request.LogQueryRequest) (*response.LogChartResponse, error) {
+	return s.getChart(ctx, req)
 }

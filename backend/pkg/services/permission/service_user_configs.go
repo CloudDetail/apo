@@ -14,14 +14,14 @@ import (
 )
 
 // GetUserConfig Gets menus and routes that users can view.
-func (s *service) GetUserConfig(ctx_core core.Context, req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error) {
+func (s *service) GetUserConfig(ctx core.Context, req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error) {
 	var resp response.GetUserConfigResponse
-	featureIDs, err := s.getUserFeatureIDs(ctx_core, req.UserID)
+	featureIDs, err := s.getUserFeatureIDs(ctx, req.UserID)
 	if err != nil {
 		return resp, err
 	}
 
-	res, err := s.dbRepo.GetFeatureMappingByFeature(ctx_core, featureIDs, model.MAPPED_TYP_MENU)
+	res, err := s.dbRepo.GetFeatureMappingByFeature(ctx, featureIDs, model.MAPPED_TYP_MENU)
 	itemIDs := make([]int, len(res))
 	for i := range res {
 		itemIDs[i] = res[i].MappedID
@@ -30,12 +30,12 @@ func (s *service) GetUserConfig(ctx_core core.Context, req *request.GetUserConfi
 		return resp, err
 	}
 
-	items, err := s.dbRepo.GetMenuItems(ctx_core)
+	items, err := s.dbRepo.GetMenuItems(ctx)
 	if err != nil {
 		return resp, err
 	}
 
-	err = s.dbRepo.FillItemRouter(ctx_core, &items)
+	err = s.dbRepo.FillItemRouter(ctx, &items)
 	if err != nil {
 		return resp, err
 	}
@@ -46,12 +46,12 @@ func (s *service) GetUserConfig(ctx_core core.Context, req *request.GetUserConfi
 		}
 	}
 
-	err = s.dbRepo.GetRouterInsertedPage(ctx_core, routers, req.Language)
+	err = s.dbRepo.GetRouterInsertedPage(ctx, routers, req.Language)
 	if err != nil {
 		return resp, err
 	}
 
-	err = s.dbRepo.GetMenuItemTans(ctx_core, &items, req.Language)
+	err = s.dbRepo.GetMenuItemTans(ctx, &items, req.Language)
 	if err != nil {
 		return resp, err
 	}

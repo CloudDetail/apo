@@ -15,7 +15,7 @@ import (
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-func (s *service) GetServicesRYGLightStatus(ctx_core core.Context, startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error) {
+func (s *service) GetServicesRYGLightStatus(ctx core.Context, startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error) {
 	var servicesMap = &servicesRYGLightMap{
 		MetricGroupList: []*RYGLightStatus{},
 		MetricGroupMap:  map[prom.ServiceKey]*RYGLightStatus{},
@@ -63,7 +63,7 @@ func (s *service) GetServicesRYGLightStatus(ctx_core core.Context, startTime tim
 		ServiceList: []*response.ServiceRYGResult{},
 	}
 
-	alertEventCount, _ := s.chRepo.GetAlertEventCountGroupByInstance(ctx_core, startTime,
+	alertEventCount, _ := s.chRepo.GetAlertEventCountGroupByInstance(ctx, startTime,
 		endTime,
 		request.AlertFilter{Status: "firing"},
 		nil,

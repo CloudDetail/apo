@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_COUNT = `WITH lastEvent AS (
@@ -175,7 +175,7 @@ func sortbyParam(sortBy string) ([]string, []bool) {
 	return fields, ascs
 }
 
-func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx_core core.Context, req *request.AlertEventSearchRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error) {
+func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request.AlertEventSearchRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error) {
 	alertFilter := NewQueryBuilder().
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
 		NotGreaterThan("end_time", req.EndTime/1e6)
@@ -278,7 +278,7 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cac
 	return sql, values
 }
 
-func (ch *chRepo) GetAlertEventCounts(ctx_core core.Context, req *request.AlertEventSearchRequest, cacheMinutes int) (map[string]int64, error) {
+func (ch *chRepo) GetAlertEventCounts(ctx core.Context, req *request.AlertEventSearchRequest, cacheMinutes int) (map[string]int64, error) {
 	alertFilter := NewQueryBuilder().
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
 		NotGreaterThan("end_time", req.EndTime/1e6)
@@ -299,16 +299,16 @@ func (ch *chRepo) GetAlertEventCounts(ctx_core core.Context, req *request.AlertE
 	}
 
 	result := map[string]int64{
-		"firing":		0,
-		"resolved":		0,
-		"valid":		0,
-		"invalid":		0,
-		"skipped":		0,
-		"failed":		0,
-		"unknown":		0,
-		"firing-valid":		0,
-		"firing-invalid":	0,
-		"firing-other":		0,
+		"firing":         0,
+		"resolved":       0,
+		"valid":          0,
+		"invalid":        0,
+		"skipped":        0,
+		"failed":         0,
+		"unknown":        0,
+		"firing-valid":   0,
+		"firing-invalid": 0,
+		"firing-other":   0,
 	}
 
 	for _, count := range counts {
@@ -329,7 +329,7 @@ func (ch *chRepo) GetAlertEventCounts(ctx_core core.Context, req *request.AlertE
 }
 
 type _alertEventCount struct {
-	Validity	string	`ch:"validity"`
-	Status		string	`ch:"status"`
-	Count		uint64	`ch:"count"`
+	Validity string `ch:"validity"`
+	Status   string `ch:"status"`
+	Count    uint64 `ch:"count"`
 }

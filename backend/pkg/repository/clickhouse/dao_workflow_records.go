@@ -4,15 +4,14 @@
 package clickhouse
 
 import (
-	"context"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
-func (ch *chRepo) AddWorkflowRecord(ctx_core core.Context, ctx context.Context, record *model.WorkflowRecord) error {
-	batch, err := ch.conn.PrepareBatch(ctx, `
+func (ch *chRepo) AddWorkflowRecord(ctx core.Context, record *model.WorkflowRecord) error {
+	batch, err := ch.conn.PrepareBatch(ctx.GetContext(), `
 		INSERT INTO workflow_records (workflow_run_id, workflow_id, workflow_name, ref, input, output, created_at, rounded_time)
 		VALUES
 	`)
@@ -37,8 +36,8 @@ func (ch *chRepo) AddWorkflowRecord(ctx_core core.Context, ctx context.Context, 
 	return nil
 }
 
-func (ch *chRepo) AddWorkflowRecords(ctx_core core.Context, ctx context.Context, records []model.WorkflowRecord) error {
-	batch, err := ch.conn.PrepareBatch(ctx, `
+func (ch *chRepo) AddWorkflowRecords(ctx core.Context, records []model.WorkflowRecord) error {
+	batch, err := ch.conn.PrepareBatch(ctx.GetContext(), `
 		INSERT INTO workflow_records (workflow_run_id, workflow_id, workflow_name, ref, input, output, created_at, rounded_time)
 		VALUES
 	`)

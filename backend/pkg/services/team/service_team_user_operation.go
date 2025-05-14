@@ -4,19 +4,17 @@
 package team
 
 import (
-	"context"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) TeamUserOperation(ctx_core core.Context, req *request.AssignToTeamRequest) error {
+func (s *service) TeamUserOperation(ctx core.Context, req *request.AssignToTeamRequest) error {
 	filter := model.TeamFilter{
 		ID: req.TeamID,
 	}
-	exists, err := s.dbRepo.TeamExist(ctx_core, filter)
+	exists, err := s.dbRepo.TeamExist(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -25,7 +23,7 @@ func (s *service) TeamUserOperation(ctx_core core.Context, req *request.AssignTo
 		return core.Error(code.TeamNotExistError, "team does not exist")
 	}
 
-	exists, err = s.dbRepo.UserExists(ctx_core, req.UserList...)
+	exists, err = s.dbRepo.UserExists(ctx, req.UserList...)
 	if err != nil {
 		return err
 	}
@@ -34,7 +32,7 @@ func (s *service) TeamUserOperation(ctx_core core.Context, req *request.AssignTo
 		return core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
-	hasUsers, err := s.dbRepo.GetTeamUsers(ctx_core, req.TeamID)
+	hasUsers, err := s.dbRepo.GetTeamUsers(ctx, req.TeamID)
 	if err != nil {
 		return err
 	}
@@ -57,13 +55,13 @@ func (s *service) TeamUserOperation(ctx_core core.Context, req *request.AssignTo
 		toDelete = append(toDelete, id)
 	}
 
-	var inviteFunc = func(ctx context.Context) error {
-		return s.dbRepo.InviteUserToTeam(ctx_core, ctx, req.TeamID, toAdd)
+	var inviteFunc = func(ctx core.Context) error {
+		return s.dbRepo.InviteUserToTeam(ctx, req.TeamID, toAdd)
 	}
 
-	var removeFunc = func(ctx context.Context) error {
-		return s.dbRepo.RemoveFromTeamByTeam(ctx_core, ctx, req.TeamID, toDelete)
+	var removeFunc = func(ctx core.Context) error {
+		return s.dbRepo.RemoveFromTeamByTeam(ctx, req.TeamID, toDelete)
 	}
 
-	return s.dbRepo.Transaction(ctx_core, context.Background(), inviteFunc, removeFunc)
+	return s.dbRepo.Transaction(ctx, inviteFunc, removeFunc)
 }

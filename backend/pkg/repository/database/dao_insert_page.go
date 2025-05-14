@@ -6,24 +6,24 @@ package database
 import (
 	"errors"
 
-	"gorm.io/gorm"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"gorm.io/gorm"
 )
 
 // InsertPage saves embedded interface.
 type InsertPage struct {
-	PageID	int	`gorm:"column:page_id;primary_key;auto_increment" json:"pageId"`
-	Url	string	`gorm:"column:url;type:varchar(150)" json:"url"`
-	Type	string	`gorm:"column:type;type:varchar(20)" json:"type"`	// For now it's grafana or jaeger.
-	Custom	bool	`gorm:"column:custom" json:"-"`
+	PageID int    `gorm:"column:page_id;primary_key;auto_increment" json:"pageId"`
+	Url    string `gorm:"column:url;type:varchar(150)" json:"url"`
+	Type   string `gorm:"column:type;type:varchar(20)" json:"type"` // For now it's grafana or jaeger.
+	Custom bool   `gorm:"column:custom" json:"-"`
 }
 
 // RouterInsertPage maps router to inserted page.
 type RouterInsertPage struct {
-	ID		int	`gorm:"column:id"`
-	RouterID	int	`gorm:"column:router_id"`
-	PageID		int	`gorm:"column:page_id"`
-	Language	string	`gorm:"column:language;type:varchar(20);default:NULL" json:"language"`
+	ID       int    `gorm:"column:id"`
+	RouterID int    `gorm:"column:router_id"`
+	PageID   int    `gorm:"column:page_id"`
+	Language string `gorm:"column:language;type:varchar(20);default:NULL" json:"language"`
 }
 
 func (RouterInsertPage) TableName() string {
@@ -34,7 +34,7 @@ func (t *InsertPage) TableName() string {
 	return "insert_page"
 }
 
-func (repo *daoRepo) GetRouterInsertedPage(ctx_core core.Context, routers []*Router, language string) error {
+func (repo *daoRepo) GetRouterInsertedPage(ctx core.Context, routers []*Router, language string) error {
 	if len(routers) == 0 {
 		return nil
 	}

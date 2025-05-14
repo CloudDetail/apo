@@ -19,7 +19,7 @@ var (
 	AllowSchema = regexp.MustCompile("^[a-zA-Z0-9_-]{1,40}$")
 )
 
-func (repo *subRepo) CreateSchema(ctx_core core.Context, schema string, columns []string) error {
+func (repo *subRepo) CreateSchema(ctx core.Context, schema string, columns []string) error {
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
@@ -45,7 +45,7 @@ func (repo *subRepo) CreateSchema(ctx_core core.Context, schema string, columns 
 	return repo.db.Exec(validSql).Error
 }
 
-func (repo *subRepo) GetSchemaData(ctx_core core.Context, schema string) ([]string, map[int64][]string, error) {
+func (repo *subRepo) GetSchemaData(ctx core.Context, schema string) ([]string, map[int64][]string, error) {
 	if !AllowSchema.MatchString(schema) {
 		return nil, nil, alert.ErrNotAllowSchema{Table: schema}
 	}
@@ -94,7 +94,7 @@ func (repo *subRepo) GetSchemaData(ctx_core core.Context, schema string) ([]stri
 }
 
 // Delete schema and related alertRules
-func (repo *subRepo) DeleteSchema(ctx_core core.Context, schema string) error {
+func (repo *subRepo) DeleteSchema(ctx core.Context, schema string) error {
 	var enrichRules []alert.AlertEnrichRule
 
 	err := repo.db.Find(&enrichRules, "schema = ?", schema).Error
@@ -117,7 +117,7 @@ func (repo *subRepo) DeleteSchema(ctx_core core.Context, schema string) error {
 	return repo.db.Migrator().DropTable(schema)
 }
 
-func (repo *subRepo) ListSchemaColumns(ctx_core core.Context, schema string) ([]string, error) {
+func (repo *subRepo) ListSchemaColumns(ctx core.Context, schema string) ([]string, error) {
 	if !AllowSchema.MatchString(schema) {
 		return nil, alert.ErrNotAllowSchema{Table: schema}
 	}
@@ -141,7 +141,7 @@ func (repo *subRepo) ListSchemaColumns(ctx_core core.Context, schema string) ([]
 	return append(columns[:idIdx], columns[idIdx+1:]...), nil
 }
 
-func (repo *subRepo) UpdateSchemaData(ctx_core core.Context, schema string, columns []string, rows map[int][]string) error {
+func (repo *subRepo) UpdateSchemaData(ctx core.Context, schema string, columns []string, rows map[int][]string) error {
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
@@ -181,7 +181,7 @@ func buildUpdateSchema(schema string, columns []string) (string, error) {
 	return updateTemp, nil
 }
 
-func (repo *subRepo) ListSchema(ctx_core core.Context) ([]string, error) {
+func (repo *subRepo) ListSchema(ctx core.Context) ([]string, error) {
 	tables, err := repo.db.Migrator().GetTables()
 	if err != nil {
 		return nil, err
@@ -197,7 +197,7 @@ func (repo *subRepo) ListSchema(ctx_core core.Context) ([]string, error) {
 	return schemas, nil
 }
 
-func (repo *subRepo) ClearSchemaData(ctx_core core.Context, schema string) error {
+func (repo *subRepo) ClearSchemaData(ctx core.Context, schema string) error {
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
@@ -257,7 +257,7 @@ func buildInsertSchema(schema string, columns []string, fullRows [][]string) (st
 	return sql, params
 }
 
-func (repo *subRepo) InsertSchemaData(ctx_core core.Context, schema string, columns []string, fullRows [][]string) error {
+func (repo *subRepo) InsertSchemaData(ctx core.Context, schema string, columns []string, fullRows [][]string) error {
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}

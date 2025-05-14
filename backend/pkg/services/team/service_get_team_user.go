@@ -11,11 +11,11 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetTeamUser(ctx_core core.Context, req *request.GetTeamUserRequest) (resp response.GetTeamUserResponse, err error) {
+func (s *service) GetTeamUser(ctx core.Context, req *request.GetTeamUserRequest) (resp response.GetTeamUserResponse, err error) {
 	filter := model.TeamFilter{
 		ID: req.TeamID,
 	}
-	exists, err := s.dbRepo.TeamExist(ctx_core, filter)
+	exists, err := s.dbRepo.TeamExist(ctx, filter)
 	if err != nil {
 		return
 	}
@@ -25,7 +25,7 @@ func (s *service) GetTeamUser(ctx_core core.Context, req *request.GetTeamUserReq
 		return
 	}
 
-	users, err := s.dbRepo.GetTeamUserList(ctx_core, req.TeamID)
+	users, err := s.dbRepo.GetTeamUserList(ctx, req.TeamID)
 	if err != nil {
 		return
 	}

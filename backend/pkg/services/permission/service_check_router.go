@@ -10,18 +10,18 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
-func (s *service) CheckRouterPermission(ctx_core core.Context, userID int64, routerTo string) (bool, error) {
-	features, err := s.getUserFeatureIDs(ctx_core, userID)
+func (s *service) CheckRouterPermission(ctx core.Context, userID int64, routerTo string) (bool, error) {
+	features, err := s.getUserFeatureIDs(ctx, userID)
 	if err != nil {
 		return false, err
 	}
 
-	menuMappings, err := s.dbRepo.GetFeatureMappingByFeature(ctx_core, features, model.MAPPED_TYP_MENU)
+	menuMappings, err := s.dbRepo.GetFeatureMappingByFeature(ctx, features, model.MAPPED_TYP_MENU)
 	if err != nil {
 		return false, err
 	}
 
-	routerMappings, err := s.dbRepo.GetFeatureMappingByFeature(ctx_core, features, model.MAPPED_TYP_ROUTER)
+	routerMappings, err := s.dbRepo.GetFeatureMappingByFeature(ctx, features, model.MAPPED_TYP_ROUTER)
 	if err != nil {
 		return false, err
 	}
@@ -36,12 +36,12 @@ func (s *service) CheckRouterPermission(ctx_core core.Context, userID int64, rou
 		routerIDs = append(routerIDs, mapping.MappedID)
 	}
 
-	routers, err := s.dbRepo.GetRouterByIDs(ctx_core, routerIDs)
+	routers, err := s.dbRepo.GetRouterByIDs(ctx, routerIDs)
 	if err != nil {
 		return false, err
 	}
 
-	itemRouters, err := s.dbRepo.GetItemsRouter(ctx_core, menuIDs)
+	itemRouters, err := s.dbRepo.GetItemsRouter(ctx, menuIDs)
 	if err != nil {
 		return false, err
 	}

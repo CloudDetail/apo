@@ -4,17 +4,17 @@
 package k8s
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 type Service interface {
-	GetNamespaceList(ctx_core core.Context,) (*response.GetNamespaceListResponse, error)
-	GetNamespaceInfo(ctx_core core.Context, req *request.GetNamespaceInfoRequest) (*response.GetNamespaceInfoResponse, error)
-	GetPodList(ctx_core core.Context, req *request.GetPodListRequest) (*response.GetPodListResponse, error)
-	GetPodInfo(ctx_core core.Context, req *request.GetPodInfoRequest) (*response.GetPodInfoResponse, error)
+	GetNamespaceList(ctx core.Context) (*response.GetNamespaceListResponse, error)
+	GetNamespaceInfo(ctx core.Context, req *request.GetNamespaceInfoRequest) (*response.GetNamespaceInfoResponse, error)
+	GetPodList(ctx core.Context, req *request.GetPodListRequest) (*response.GetPodListResponse, error)
+	GetPodInfo(ctx core.Context, req *request.GetPodInfoRequest) (*response.GetPodInfoResponse, error)
 }
 
 type service struct {

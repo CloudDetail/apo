@@ -7,27 +7,27 @@ import (
 	"context"
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const (
-	SQL_GET_PARENT_NODES	= `SELECT parent_service as parentService, parent_url as parentUrl, sum(case when flags['parent_traced'] then 1 else 0 end) > 0 as parentTraced,
+	SQL_GET_PARENT_NODES = `SELECT parent_service as parentService, parent_url as parentUrl, sum(case when flags['parent_traced'] then 1 else 0 end) > 0 as parentTraced,
 		labels['client_group'] as clientGroup, labels['client_type'] as clientType, labels['client_peer'] as clientPeer, labels['client_key'] as clientKey
 		FROM service_relationship
 		%s
 		GROUP BY parentService, parentUrl, clientGroup, clientType, clientPeer, clientKey
 	`
 
-	SQL_GET_CHILD_NODES	= `SELECT service, url, sum(case when flags['is_traced'] then 1 else 0 end) > 0 as traced,
+	SQL_GET_CHILD_NODES = `SELECT service, url, sum(case when flags['is_traced'] then 1 else 0 end) > 0 as traced,
 		labels['client_group'] as clientGroup, labels['client_type'] as clientType, labels['client_peer'] as clientPeer, labels['client_key'] as clientKey
 		FROM service_relationship
 		%s
 		GROUP BY service, url, clientGroup, clientType, clientPeer, clientKey
 	`
 
-	SQL_GET_DESCENDANT_TOPOLOGY	= `
+	SQL_GET_DESCENDANT_TOPOLOGY = `
 		WITH found_trace_ids AS
 		(
 			SELECT trace_id, path , '' as empty_path
@@ -46,7 +46,7 @@ const (
 		GROUP BY parentService, parentUrl, service, url, clientGroup, clientType, clientPeer, clientKey
 	`
 
-	SQL_GET_ENTRY_NODES	= `
+	SQL_GET_ENTRY_NODES = `
 		SELECT entry_service, entry_url
 		FROM service_relationship
 		%s
@@ -55,13 +55,13 @@ const (
 )
 
 // Query the list of upstream nodes
-func (ch *chRepo) ListParentNodes(ctx_core core.Context, req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error) {
+func (ch *chRepo) ListParentNodes(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
 		Equals("service", req.Service).
 		Equals("url", req.Endpoint).
-		NotEquals("parentService", "").	// Filter data with empty entry node
-		NotEquals("clientGroup", "").	// Ensure that the data of MQ -> A can be queried here.
+		NotEquals("parentService", ""). // Filter data with empty entry node
+		NotEquals("clientGroup", "").   // Ensure that the data of MQ -> A can be queried here.
 		EqualsNotEmpty("entry_service", req.EntryService).
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
 
@@ -75,7 +75,7 @@ func (ch *chRepo) ListParentNodes(ctx_core core.Context, req *request.GetService
 }
 
 // Query the downstream outbound call list
-func (ch *chRepo) ListChildNodes(ctx_core core.Context, req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error) {
+func (ch *chRepo) ListChildNodes(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
 		Equals("parent_service", req.Service).
@@ -93,7 +93,7 @@ func (ch *chRepo) ListChildNodes(ctx_core core.Context, req *request.GetServiceE
 }
 
 // Query the list of all descendant nodes
-func (ch *chRepo) ListDescendantNodes(ctx_core core.Context, req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error) {
+func (ch *chRepo) ListDescendantNodes(ctx core.Context, req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
@@ -111,7 +111,7 @@ func (ch *chRepo) ListDescendantNodes(ctx_core core.Context, req *request.GetDes
 }
 
 // Query the topological relationships of all descendants
-func (ch *chRepo) ListDescendantRelations(ctx_core core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error) {
+func (ch *chRepo) ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
@@ -129,7 +129,7 @@ func (ch *chRepo) ListDescendantRelations(ctx_core core.Context, req *request.Ge
 }
 
 // Query the list of related entry nodes
-func (ch *chRepo) ListEntryEndpoints(ctx_core core.Context, req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error) {
+func (ch *chRepo) ListEntryEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
@@ -148,13 +148,13 @@ func (ch *chRepo) ListEntryEndpoints(ctx_core core.Context, req *request.GetServ
 }
 
 type ParentNode struct {
-	ParentService	string	`ch:"parentService"`
-	ParentUrl	string	`ch:"parentUrl"`
-	ParentTraced	bool	`ch:"parentTraced"`
-	ClientGroup	string	`ch:"clientGroup"`
-	ClientType	string	`ch:"clientType"`
-	ClientPeer	string	`ch:"clientPeer"`
-	ClientKey	string	`ch:"clientKey"`
+	ParentService string `ch:"parentService"`
+	ParentUrl     string `ch:"parentUrl"`
+	ParentTraced  bool   `ch:"parentTraced"`
+	ClientGroup   string `ch:"clientGroup"`
+	ClientType    string `ch:"clientType"`
+	ClientPeer    string `ch:"clientPeer"`
+	ClientKey     string `ch:"clientKey"`
 }
 
 // Consider 2 scenarios
@@ -189,13 +189,13 @@ func getParentNodes(parentNodes []ParentNode) *model.TopologyNodes {
 }
 
 type ChildNode struct {
-	Service		string	`ch:"service"`
-	Url		string	`ch:"url"`
-	IsTraced	bool	`ch:"traced"`
-	ClientGroup	string	`ch:"clientGroup"`
-	ClientType	string	`ch:"clientType"`
-	ClientPeer	string	`ch:"clientPeer"`
-	ClientKey	string	`ch:"clientKey"`
+	Service     string `ch:"service"`
+	Url         string `ch:"url"`
+	IsTraced    bool   `ch:"traced"`
+	ClientGroup string `ch:"clientGroup"`
+	ClientType  string `ch:"clientType"`
+	ClientPeer  string `ch:"clientPeer"`
+	ClientKey   string `ch:"clientKey"`
 }
 
 // Consider 2 scenarios
@@ -322,15 +322,15 @@ func getDescendantNodes(relations []ChildRelation) *model.TopologyNodes {
 }
 
 type ChildRelation struct {
-	ParentService	string	`ch:"parentService"`
-	ParentUrl	string	`ch:"parentUrl"`
-	Service		string	`ch:"service"`
-	Url		string	`ch:"url"`
-	IsTraced	bool	`ch:"traced"`
-	ClientGroup	string	`ch:"clientGroup"`
-	ClientType	string	`ch:"clientType"`
-	ClientPeer	string	`ch:"clientPeer"`
-	ClientKey	string	`ch:"clientKey"`
+	ParentService string `ch:"parentService"`
+	ParentUrl     string `ch:"parentUrl"`
+	Service       string `ch:"service"`
+	Url           string `ch:"url"`
+	IsTraced      bool   `ch:"traced"`
+	ClientGroup   string `ch:"clientGroup"`
+	ClientType    string `ch:"clientType"`
+	ClientPeer    string `ch:"clientPeer"`
+	ClientKey     string `ch:"clientKey"`
 }
 
 func (relation *ChildRelation) getParentClientKey() string {
@@ -348,7 +348,7 @@ func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation 
 	}
 
 	relationMap := make(map[string]*model.ToplogyRelation)
-	childMap := make(map[string]struct{})	// remove dirty data
+	childMap := make(map[string]struct{}) // remove dirty data
 	for _, relation := range relations {
 		if relation.ClientGroup == model.GROUP_MQ {
 			// MQ data needs to be supplemented with a call link
@@ -358,13 +358,13 @@ func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation 
 				clientKey := relation.getParentClientKey()
 				if _, exist := relationMap[clientKey]; !exist {
 					relationMap[clientKey] = &model.ToplogyRelation{
-						ParentService:	relation.ParentService,
-						ParentEndpoint:	relation.ParentUrl,
-						Service:	relation.ClientPeer,
-						Endpoint:	relation.ClientKey,
-						IsTraced:	false,
-						Group:		relation.ClientGroup,
-						System:		relation.ClientType,
+						ParentService:  relation.ParentService,
+						ParentEndpoint: relation.ParentUrl,
+						Service:        relation.ClientPeer,
+						Endpoint:       relation.ClientKey,
+						IsTraced:       false,
+						Group:          relation.ClientGroup,
+						System:         relation.ClientType,
 					}
 				}
 			}
@@ -408,13 +408,13 @@ func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation 
 			if _, exist := childMap[key]; !exist {
 				// Service not monitored
 				relationMap[key] = &model.ToplogyRelation{
-					ParentService:	relation.ParentService,
-					ParentEndpoint:	relation.ParentUrl,
-					Service:	relation.ClientPeer,
-					Endpoint:	relation.ClientKey,
-					IsTraced:	relation.IsTraced,
-					Group:		relation.ClientGroup,
-					System:		relation.ClientType,
+					ParentService:  relation.ParentService,
+					ParentEndpoint: relation.ParentUrl,
+					Service:        relation.ClientPeer,
+					Endpoint:       relation.ClientKey,
+					IsTraced:       relation.IsTraced,
+					Group:          relation.ClientGroup,
+					System:         relation.ClientType,
 				}
 			}
 		}
@@ -426,12 +426,12 @@ func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation 
 }
 
 type ServiceNode struct {
-	Service		string	`ch:"service" json:"service"`
-	Endpoint	string	`ch:"url" json:"endpoint"`
-	IsTraced	bool	`ch:"traced" json:"isTraced"`
+	Service  string `ch:"service" json:"service"`
+	Endpoint string `ch:"url" json:"endpoint"`
+	IsTraced bool   `ch:"traced" json:"isTraced"`
 }
 
 type EntryNode struct {
-	Service		string	`ch:"entry_service" json:"service"`
-	Endpoint	string	`ch:"entry_url" json:"endpoint"`
+	Service  string `ch:"entry_service" json:"service"`
+	Endpoint string `ch:"entry_url" json:"endpoint"`
 }

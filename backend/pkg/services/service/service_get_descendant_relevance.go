@@ -18,9 +18,9 @@ import (
 )
 
 // GetDescendantRelevance implements Service.
-func (s *service) GetDescendantRelevance(ctx_core core.Context, req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
+func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
 	// Query all descendant nodes
-	nodes, err := s.chRepo.ListDescendantNodes(ctx_core, req)
+	nodes, err := s.chRepo.ListDescendantNodes(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (s *service) GetDescendantRelevance(ctx_core core.Context, req *request.Get
 	if err != nil {
 		// Failed to query RED metric when adding log to TODO
 	}
-	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx_core, "", "", database.GLOBAL)
+	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx, "", "", database.GLOBAL)
 	if err != nil {
 		// Failed to query the threshold when adding logs to TODO
 	}
@@ -109,7 +109,7 @@ func (s *service) GetDescendantRelevance(ctx_core core.Context, req *request.Get
 
 		// fill alarm status
 		descendantResp.AlertStatusCH = serviceoverview.GetAlertStatusCH(
-			ctx_core,
+			ctx,
 			s.chRepo, &descendantResp.AlertReason, nil,
 			[]string{}, descendant.Service, instanceList,
 			startTime, endTime,

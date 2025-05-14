@@ -28,8 +28,8 @@ var defaultRouteRuleMap = map[string]string{
 	"k8s.pod.name": "apo",
 }
 
-func (s *service) InitParseLogTable(ctx_core core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
-	sqls, err := s.chRepo.CreateLogTable(ctx_core, req)
+func (s *service) InitParseLogTable(ctx core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
+	sqls, err := s.chRepo.CreateLogTable(ctx, req)
 	res := &response.LogTableResponse{Sqls: sqls}
 	if err != nil {
 		res.Err = err.Error()
@@ -51,9 +51,9 @@ func (s *service) InitParseLogTable(ctx_core core.Context, req *request.LogTable
 		ParseInfo: defaultParseInfo,
 	}
 	// does not exist to insert logtableinfo
-	err = s.dbRepo.OperateLogTableInfo(ctx_core, logtable, database.QUERY)
+	err = s.dbRepo.OperateLogTableInfo(ctx, logtable, database.QUERY)
 	if err != nil {
-		err = s.dbRepo.OperateLogTableInfo(ctx_core, logtable, database.INSERT)
+		err = s.dbRepo.OperateLogTableInfo(ctx, logtable, database.INSERT)
 		if err != nil {
 			res.Err = err.Error()
 			return res, nil
@@ -63,9 +63,9 @@ func (s *service) InitParseLogTable(ctx_core core.Context, req *request.LogTable
 	return res, nil
 }
 
-func (s *service) DropLogTable(ctx_core core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
+func (s *service) DropLogTable(ctx core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
 
-	sqls, err := s.chRepo.DropLogTable(ctx_core, req)
+	sqls, err := s.chRepo.DropLogTable(ctx, req)
 	res := &response.LogTableResponse{Sqls: sqls}
 	if err != nil {
 		res.Err = err.Error()
@@ -76,21 +76,21 @@ func (s *service) DropLogTable(ctx_core core.Context, req *request.LogTableReque
 		DataBase: req.DataBase,
 		Table:    req.TableName,
 	}
-	err = s.dbRepo.OperateLogTableInfo(ctx_core, logtable, database.DELETE)
+	err = s.dbRepo.OperateLogTableInfo(ctx, logtable, database.DELETE)
 	if err != nil {
 		res.Err = err.Error()
 	}
 	return res, nil
 }
 
-func (s *service) UpdateLogTable(ctx_core core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
+func (s *service) UpdateLogTable(ctx core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
 	res := &response.LogTableResponse{}
 	logtable := &database.LogTableInfo{
 		Cluster:  req.Cluster,
 		DataBase: req.DataBase,
 		Table:    req.TableName,
 	}
-	err := s.dbRepo.OperateLogTableInfo(ctx_core, logtable, database.QUERY)
+	err := s.dbRepo.OperateLogTableInfo(ctx, logtable, database.QUERY)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (s *service) UpdateLogTable(ctx_core core.Context, req *request.LogTableReq
 		return nil, err
 	}
 
-	sqls, err := s.chRepo.UpdateLogTable(ctx_core, req, oldFields)
+	sqls, err := s.chRepo.UpdateLogTable(ctx, req, oldFields)
 	res.Sqls = sqls
 	if err != nil {
 		return nil, err

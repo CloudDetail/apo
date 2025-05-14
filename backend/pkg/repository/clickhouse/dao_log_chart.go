@@ -6,8 +6,8 @@ package clickhouse
 import (
 	"fmt"
 
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 func calculateInterval(interval int64, timeField string) (string, int64) {
@@ -44,9 +44,9 @@ func chartSQL(baseQuery string, req *request.LogQueryRequest) (string, int64) {
 	return sql, interval
 }
 
-func (ch *chRepo) GetLogChart(ctx_core core.Context, req *request.LogQueryRequest) ([]map[string]any, int64, error) {
+func (ch *chRepo) GetLogChart(ctx core.Context, req *request.LogQueryRequest) ([]map[string]any, int64, error) {
 	sql, interval := chartSQL(queryLogChart, req)
-	results, err := ch.queryRowsData(ctx_core, sql)
+	results, err := ch.queryRowsData(ctx, sql)
 	if err != nil {
 		return nil, interval, err
 	}

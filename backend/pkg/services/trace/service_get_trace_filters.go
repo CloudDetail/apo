@@ -11,8 +11,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetTraceFilters(ctx_core core.Context, startTime, endTime time.Time, needUpdate bool) (*response.GetTraceFiltersResponse, error) {
-	filters, err := s.chRepo.GetAvailableFilterKey(ctx_core, startTime, endTime, needUpdate)
+func (s *service) GetTraceFilters(ctx core.Context, startTime, endTime time.Time, needUpdate bool) (*response.GetTraceFiltersResponse, error) {
+	filters, err := s.chRepo.GetAvailableFilterKey(ctx, startTime, endTime, needUpdate)
 	if err != nil {
 		return &response.GetTraceFiltersResponse{
 			TraceFilters: []request.SpanTraceFilter{},

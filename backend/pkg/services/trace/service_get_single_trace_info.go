@@ -4,11 +4,11 @@
 package trace
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) GetSingleTraceID(ctx_core core.Context, req *request.GetSingleTraceInfoRequest) (string, error) {
+func (s *service) GetSingleTraceID(ctx core.Context, req *request.GetSingleTraceInfoRequest) (string, error) {
 	result, err := s.jaegerRepo.GetSingleTrace(req.TraceID)
 	if err != nil {
 		return "", err

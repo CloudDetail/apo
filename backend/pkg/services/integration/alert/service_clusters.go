@@ -4,24 +4,24 @@
 package alert
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/google/uuid"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) CreateCluster(ctx_core core.Context, cluster *input.Cluster) error {
+func (s *service) CreateCluster(ctx core.Context, cluster *input.Cluster) error {
 	cluster.ID = uuid.NewString()
-	return s.dbRepo.CreateCluster(ctx_core, cluster)
+	return s.dbRepo.CreateCluster(ctx, cluster)
 }
 
-func (s *service) ListCluster(ctx_core core.Context) ([]input.Cluster, error) {
-	return s.dbRepo.ListCluster(ctx_core)
+func (s *service) ListCluster(ctx core.Context) ([]input.Cluster, error) {
+	return s.dbRepo.ListCluster(ctx)
 }
 
-func (s *service) UpdateCluster(ctx_core core.Context, cluster *input.Cluster) error {
-	return s.dbRepo.UpdateCluster(ctx_core, cluster)
+func (s *service) UpdateCluster(ctx core.Context, cluster *input.Cluster) error {
+	return s.dbRepo.UpdateCluster(ctx, cluster)
 }
 
-func (s *service) DeleteCluster(ctx_core core.Context, cluster *input.Cluster) error {
-	return s.dbRepo.DeleteCluster(ctx_core, cluster)
+func (s *service) DeleteCluster(ctx core.Context, cluster *input.Cluster) error {
+	return s.dbRepo.DeleteCluster(ctx, cluster)
 }

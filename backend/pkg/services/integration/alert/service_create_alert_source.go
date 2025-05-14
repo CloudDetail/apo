@@ -14,7 +14,7 @@ import (
 	"go.uber.org/multierr"
 )
 
-func (s *service) CreateAlertSource(ctx_core core.Context, source *alertin.AlertSource) (*alertin.AlertSource, error) {
+func (s *service) CreateAlertSource(ctx core.Context, source *alertin.AlertSource) (*alertin.AlertSource, error) {
 	_, find := s.dispatcher.SourceName2EnricherMap.Load(source.SourceName)
 	if find {
 		return nil, alertin.ErrAlertSourceAlreadyExist{
@@ -30,7 +30,7 @@ func (s *service) CreateAlertSource(ctx_core core.Context, source *alertin.Alert
 		}
 	}
 
-	err := s.dbRepo.CreateAlertSource(ctx_core, source)
+	err := s.dbRepo.CreateAlertSource(ctx, source)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 		return enricher.(*enrich.AlertEnricher), alertin.ErrAlertSourceAlreadyExist{}
 	}
 
-	// TODO ctx_core
+	// TODO ctx
 	_, defaultRules := s.GetDefaultAlertEnrichRule(nil, source.SourceType)
 	storedRules, newR, newC, newS := s.prepareAlertEnrichRule(source, defaultRules)
 
@@ -77,13 +77,13 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 	}
 
 	var storeError error
-	// TODO ctx_core
+	// TODO ctx
 	err = s.dbRepo.AddAlertEnrichRule(nil, newR)
 	storeError = multierr.Append(storeError, err)
-	// TODO ctx_core
+	// TODO ctx
 	err = s.dbRepo.AddAlertEnrichConditions(nil, newC)
 	storeError = multierr.Append(storeError, err)
-	// TODO ctx_core
+	// TODO ctx
 	err = s.dbRepo.AddAlertEnrichSchemaTarget(nil, newS)
 	storeError = multierr.Append(storeError, err)
 

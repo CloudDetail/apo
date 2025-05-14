@@ -14,8 +14,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func (s *service) GetProcessFlameGraphData(ctx_core core.Context, req *request.GetProcessFlameGraphRequest) (response.GetProcessFlameGraphResponse, error) {
-	data, err := s.chRepo.GetFlameGraphData(ctx_core, req.StartTime, req.EndTime, req.NodeName,
+func (s *service) GetProcessFlameGraphData(ctx core.Context, req *request.GetProcessFlameGraphRequest) (response.GetProcessFlameGraphResponse, error) {
+	data, err := s.chRepo.GetFlameGraphData(ctx, req.StartTime, req.EndTime, req.NodeName,
 		req.PID, -1, req.SampleType, "", "")
 	if err != nil {
 		return response.GetProcessFlameGraphResponse{}, err

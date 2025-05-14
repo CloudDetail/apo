@@ -13,7 +13,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 )
 
-func (s *service) GetAlertEventsSample(ctx_core core.Context, req *request.GetAlertEventsSampleRequest) (resp *response.GetAlertEventsSampleResponse, err error) {
+func (s *service) GetAlertEventsSample(ctx core.Context, req *request.GetAlertEventsSampleRequest) (resp *response.GetAlertEventsSampleResponse, err error) {
 	// Query the instance to which the Service belongs.
 	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.Services)
 	if err != nil || instances == nil {
@@ -36,7 +36,7 @@ func (s *service) GetAlertEventsSample(ctx_core core.Context, req *request.GetAl
 
 	// Query the AlertEvent of the instance
 	events, err := s.chRepo.GetAlertEventsSample(
-		ctx_core,
+		ctx,
 		req.SampleCount,
 		startTime, endTime,
 		req.AlertFilter,
@@ -61,7 +61,7 @@ func (s *service) GetAlertEventsSample(ctx_core core.Context, req *request.GetAl
 	}, nil
 }
 
-func (s *service) GetAlertEvents(ctx_core core.Context, req *request.GetAlertEventsRequest) (*response.GetAlertEventsResponse, error) {
+func (s *service) GetAlertEvents(ctx core.Context, req *request.GetAlertEventsRequest) (*response.GetAlertEventsResponse, error) {
 	// Query the instance to which the Service belongs.
 	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.Services)
 	if err != nil {
@@ -81,7 +81,7 @@ func (s *service) GetAlertEvents(ctx_core core.Context, req *request.GetAlertEve
 
 	// Query the AlertEvent of the instance
 	events, totalCount, err := s.chRepo.GetAlertEvents(
-		ctx_core,
+		ctx,
 		startTime, endTime,
 		req.AlertFilter,
 		&model.RelatedInstances{
