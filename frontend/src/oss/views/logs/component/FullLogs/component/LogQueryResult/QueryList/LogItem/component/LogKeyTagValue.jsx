@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import ReactJson from 'react-json-view'
 import { Virtuoso } from 'react-virtuoso'
 import LogTagDropDown from './LogTagDropdown'
+import { useSelector } from 'react-redux'
 function isJSONString(str) {
   try {
     return typeof JSON.parse(str) === 'object' && JSON.parse(str) !== null
@@ -36,6 +37,7 @@ const determineTypeAndValue = (description, title) => {
 const formatValue = (value) => (typeof value === 'object' ? JSON.stringify(value) : value)
 
 const LogKeyTagValue = ({ title, description }) => {
+  const { reactJsonTheme } = useSelector((state) => state.settingReducer)
   const [type, setType] = useState(null)
   const [value, setValue] = useState([null])
   useEffect(() => {
@@ -60,7 +62,7 @@ const LogKeyTagValue = ({ title, description }) => {
           <ReactJson
             collapsed={1}
             src={value[0]}
-            theme="brewer"
+            theme={reactJsonTheme}
             displayDataTypes={false}
             style={{ width: '100%' }}
             enableClipboard={true}

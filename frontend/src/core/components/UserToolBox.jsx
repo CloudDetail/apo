@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Flex, Popover, Button } from 'antd'
+import { Flex, Popover, Button, theme } from 'antd'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { logoutApi, getUserInfoApi } from 'core/api/user'
@@ -18,23 +18,36 @@ const UserToolBox = () => {
   const navigate = useNavigate()
   const { t } = useTranslation('core/userToolBox')
 
+  const { useToken } = theme
+  const { token } = useToken()
+
   const content = (
     <>
       <Flex vertical className={'flex items-center w-36 rounded-lg z-50'}>
         <Flex
           vertical
-          className="justify-center items-center w-full h-9"
+          className="justify-center items-center w-full h-9 transition-colors"
           onClick={() => navigate('/user')}
+          onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = token.colorFillSecondary}}
+          onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorFillTertiary}}
+          onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--ant-layout-color-bg-body)'}}
         >
-          <Flex className="w-2/3 justify-around p-2">
+          <Flex className="w-2/3 justify-around p-2 cursor-pointer">
             <UserOutlined className="text-md" />
-            <p className="text-md select-none">{t('personalCenter')}</p>
+            <p className="text-md select-none my-2">{t('personalCenter')}</p>
           </Flex>
         </Flex>
-        <Flex vertical className="justify-center items-center w-full h-9 mt-2" onClick={logout}>
-          <Flex className="w-2/3 justify-around p-2">
+        <Flex
+          vertical
+          className="justify-center items-center w-full h-9 mt-2 transition-colors"
+          onClick={logout}
+          onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = token.colorFillSecondary}}
+          onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorFillTertiary}}
+          onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--ant-layout-color-bg-body)'}}
+        >
+          <Flex className="w-2/3 justify-around p-2 cursor-pointer">
             <LogoutOutlined className="text-md" />
-            <p className="text-md select-none">{t('logout')}</p>
+            <p className="text-md select-none my-2">{t('logout')}</p>
           </Flex>
         </Flex>
       </Flex>
@@ -96,7 +109,7 @@ const UserToolBox = () => {
               <HiUserCircle className="w-8 h-8" />
             </div>
             <div className="h-1/2 flex flex-col justify-center">
-              <p className="text-base relative -top-0.5">{user?.username}</p>
+              <p className="text-base relative -top-0.5 m-2">{user?.username}</p>
             </div>
           </div>
         </Popover>
