@@ -31,7 +31,7 @@ func (h *handler) TriggerAdapterUpdate() core.HandlerFunc {
 			)
 			return
 		}
-		h.integrationService.TriggerAdapterUpdate(req)
+		h.integrationService.TriggerAdapterUpdate(c, req)
 		c.Payload("ok")
 	}
 }

@@ -37,7 +37,7 @@ func (h *handler) GetAlertRules() core.HandlerFunc {
 			req.AlertRuleFilter.Groups = append(req.AlertRuleFilter.Groups, req.AlertRuleFilter.Group)
 		}
 
-		resp := h.alertService.GetAlertRules(req)
+		resp := h.alertService.GetAlertRules(c, req)
 		c.Payload(resp)
 	}
 }

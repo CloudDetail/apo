@@ -35,7 +35,7 @@ func (h *handler) DeleteRole() core.HandlerFunc {
 			return
 		}
 
-		err := h.roleService.DeleteRole(req)
+		err := h.roleService.DeleteRole(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

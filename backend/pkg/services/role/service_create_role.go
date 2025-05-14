@@ -17,7 +17,7 @@ func (s *service) CreateRole(ctx_core core.Context, req *request.CreateRoleReque
 	filter := model.RoleFilter{
 		Name: req.RoleName,
 	}
-	roles, err := s.dbRepo.GetRoles(filter)
+	roles, err := s.dbRepo.GetRoles(ctx_core, filter)
 	if err != nil {
 		return err
 	}
@@ -27,7 +27,7 @@ func (s *service) CreateRole(ctx_core core.Context, req *request.CreateRoleReque
 	}
 
 	if len(req.PermissionList) > 0 {
-		f, err := s.dbRepo.GetFeature(req.PermissionList)
+		f, err := s.dbRepo.GetFeature(ctx_core, req.PermissionList)
 		if err != nil {
 			return err
 		}
@@ -37,7 +37,7 @@ func (s *service) CreateRole(ctx_core core.Context, req *request.CreateRoleReque
 		}
 	}
 
-	exist, err := s.dbRepo.UserExists(req.UserList...)
+	exist, err := s.dbRepo.UserExists(ctx_core, req.UserList...)
 	if err != nil {
 		return err
 	}
@@ -47,20 +47,20 @@ func (s *service) CreateRole(ctx_core core.Context, req *request.CreateRoleReque
 	}
 
 	role := &database.Role{
-		RoleName:	req.RoleName,
-		Description:	req.Description,
+		RoleName:    req.RoleName,
+		Description: req.Description,
 	}
 	var createRoleFunc = func(ctx context.Context) error {
-		return s.dbRepo.CreateRole(ctx, role)
+		return s.dbRepo.CreateRole(ctx_core, ctx, role)
 	}
 
 	var grantPermissionFunc = func(ctx context.Context) error {
-		return s.dbRepo.GrantPermission(ctx, int64(role.RoleID), model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE, req.PermissionList)
+		return s.dbRepo.GrantPermission(ctx_core, ctx, int64(role.RoleID), model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE, req.PermissionList)
 	}
 
 	var grantRoleFunc = func(ctx context.Context) error {
-		return s.dbRepo.GrantRoleWithRole(ctx, role.RoleID, req.UserList)
+		return s.dbRepo.GrantRoleWithRole(ctx_core, ctx, role.RoleID, req.UserList)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), createRoleFunc, grantPermissionFunc, grantRoleFunc)
+	return s.dbRepo.Transaction(ctx_core, context.Background(), createRoleFunc, grantPermissionFunc, grantRoleFunc)
 }

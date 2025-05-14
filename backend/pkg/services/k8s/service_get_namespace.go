@@ -4,12 +4,12 @@
 package k8s
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s service) GetNamespaceList(ctx_core core.Context,) (*response.GetNamespaceListResponse, error) {
+func (s service) GetNamespaceList(ctx_core core.Context) (*response.GetNamespaceListResponse, error) {
 	list, err := s.k8sRepo.GetNamespaceList()
 	if err != nil {
 		return nil, err

@@ -7,7 +7,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -35,7 +34,7 @@ func (h *handler) CheckRouterPermission() core.HandlerFunc {
 		}
 
 		userID := c.UserID()
-		resp, err := h.permissionService.CheckRouterPermission(userID, req.Router)
+		resp, err := h.permissionService.CheckRouterPermission(c, userID, req.Router)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

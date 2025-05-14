@@ -36,7 +36,7 @@ func (h *handler) UpdateUserEmail() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.UpdateUserEmail(req)
+		err := h.userService.UpdateUserEmail(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

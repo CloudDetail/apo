@@ -78,18 +78,18 @@ func (repo *daoRepo) AssignDataGroup(ctx_core core.Context, ctx context.Context,
 	if len(authDataGroups) == 0 {
 		return nil
 	}
-	return repo.GetContextDB(ctx).Save(&authDataGroups).Error
+	return repo.GetContextDB(ctx_core, ctx).Save(&authDataGroups).Error
 }
 
 func (repo *daoRepo) RevokeDataGroupByGroup(ctx_core core.Context, ctx context.Context, dataGroupIDs []int64, subjectID int64) error {
 	if len(dataGroupIDs) == 0 {
 		return nil
 	}
-	return repo.GetContextDB(ctx).Model(&AuthDataGroup{}).Where("data_group_id IN ? AND subject_id = ?", dataGroupIDs, subjectID).Delete(nil).Error
+	return repo.GetContextDB(ctx_core, ctx).Model(&AuthDataGroup{}).Where("data_group_id IN ? AND subject_id = ?", dataGroupIDs, subjectID).Delete(nil).Error
 }
 
 func (repo *daoRepo) GetModifyAndDeleteDataGroup(ctx_core core.Context, subjectID int64, subjectType string, dgPermissions []request.DataGroupPermission) (toModify []AuthDataGroup, toDelete []int64, err error) {
-	authGroups, err := repo.GetAuthDataGroupBySub(subjectID, subjectType)
+	authGroups, err := repo.GetAuthDataGroupBySub(ctx_core, subjectID, subjectType)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -102,7 +102,7 @@ func (repo *daoRepo) GetModifyAndDeleteDataGroup(ctx_core core.Context, subjectI
 		filter := model.DataGroupFilter{
 			IDs: ids,
 		}
-		exists, err := repo.DataGroupExist(filter)
+		exists, err := repo.DataGroupExist(ctx_core, filter)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -143,7 +143,7 @@ func (repo *daoRepo) GetModifyAndDeleteDataGroup(ctx_core core.Context, subjectI
 }
 
 func (repo *daoRepo) DeleteAuthDataGroup(ctx_core core.Context, ctx context.Context, subjectID int64, subjectType string) error {
-	return repo.GetContextDB(ctx).
+	return repo.GetContextDB(ctx_core, ctx).
 		Model(&AuthDataGroup{}).
 		Where("subject_id = ? AND subject_type = ?", subjectID, subjectType).
 		Delete(nil).
@@ -154,7 +154,7 @@ func (repo *daoRepo) RevokeDataGroupBySub(ctx_core core.Context, ctx context.Con
 	if len(subjectIDs) == 0 {
 		return nil
 	}
-	return repo.GetContextDB(ctx).Model(&AuthDataGroup{}).Where("subject_id IN ? AND data_group_id = ?", subjectIDs, groupID).Delete(nil).Error
+	return repo.GetContextDB(ctx_core, ctx).Model(&AuthDataGroup{}).Where("subject_id IN ? AND data_group_id = ?", subjectIDs, groupID).Delete(nil).Error
 }
 
 func (repo *daoRepo) GetGroupAuthDataGroupByGroup(ctx_core core.Context, groupID int64, subjectType string) ([]AuthDataGroup, error) {
@@ -254,7 +254,7 @@ func (repo *daoRepo) CheckGroupPermission(ctx_core core.Context, userID, groupID
 		return true, nil
 	}
 
-	teamIDs, err := repo.GetUserTeams(userID)
+	teamIDs, err := repo.GetUserTeams(ctx_core, userID)
 	if err != nil {
 		return false, err
 	}

@@ -8,15 +8,15 @@ import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) ListCluster(ctx_core core.Context,) ([]integration.Cluster, error) {
-	return s.dbRepo.ListCluster()
+func (s *service) ListCluster(ctx_core core.Context) ([]integration.Cluster, error) {
+	return s.dbRepo.ListCluster(ctx_core)
 }
 
 func (s *service) DeleteCluster(ctx_core core.Context, cluster *integration.Cluster) error {
-	err := s.dbRepo.DeleteCluster(cluster)
+	err := s.dbRepo.DeleteCluster(ctx_core, cluster)
 	if err != nil {
 		return err
 	}
 
-	return s.dbRepo.DeleteIntegrationConfig(cluster.ID)
+	return s.dbRepo.DeleteIntegrationConfig(ctx_core, cluster.ID)
 }

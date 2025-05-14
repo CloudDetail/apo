@@ -16,6 +16,7 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
@@ -31,7 +32,6 @@ import (
 	"github.com/prometheus/alertmanager/notify/wechat"
 	"github.com/prometheus/alertmanager/template"
 	"github.com/prometheus/alertmanager/types"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 type Receivers interface {
@@ -42,23 +42,23 @@ type Receivers interface {
 	UpdateAMConfigReceiver(ctx_core core.Context, receiver amconfig.Receiver, oldName string) error
 	DeleteAMConfigReceiver(ctx_core core.Context, name string) error
 
-	ListSlienceConfig(ctx_core core.Context,) ([]slienceconfig.AlertSlienceConfig, error)
+	ListSlienceConfig(ctx_core core.Context) ([]slienceconfig.AlertSlienceConfig, error)
 	GetSlienceConfigByAlertID(ctx_core core.Context, alertID string) (*slienceconfig.AlertSlienceConfig, error)
 	SetSlienceConfigByAlertID(ctx_core core.Context, alertID string, forDuration string) error
 	RemoveSlienceConfigByAlertID(ctx_core core.Context, alertID string) error
 }
 
 type InnerReceivers struct {
-	database	database.Repo
-	ch		clickhouse.Repo
+	database database.Repo
+	ch       clickhouse.Repo
 
-	receivers	map[string][]notify.Integration
+	receivers map[string][]notify.Integration
 
-	externalURL	*url.URL
-	logger		*slog.Logger
+	externalURL *url.URL
+	logger      *slog.Logger
 
 	// alertID -> slienceconfig.AlertSlienceConfig
-	slientCFGMap	sync.Map
+	slientCFGMap sync.Map
 }
 
 func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo, chRepo clickhouse.Repo) (Receivers, error) {
@@ -72,7 +72,8 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 		return nil, err
 	}
 
-	receivers, _, err := dbRepo.GetAMConfigReceiver(nil, nil)
+	// TODO ctx_core
+	receivers, _, err := dbRepo.GetAMConfigReceiver(nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +92,8 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 		amReceiver.ch = chRepo
 	}
 
-	slienceCfgs, err := dbRepo.GetAlertSlience()
+	// ctx_core
+	slienceCfgs, err := dbRepo.GetAlertSlience(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -108,9 +110,9 @@ func buildInnerReceivers(ncs []amconfig.Receiver, tmpl *template.Template, logge
 	var errs error
 
 	var innerReceivers = &InnerReceivers{
-		receivers:	make(map[string][]notify.Integration),
-		externalURL:	tmpl.ExternalURL,
-		logger:		logger,
+		receivers:   make(map[string][]notify.Integration),
+		externalURL: tmpl.ExternalURL,
+		logger:      logger,
 	}
 	for _, nc := range ncs {
 		integrations, err := buildReceiverIntegrations(nc, tmpl, logger, httpOpts...)
@@ -142,9 +144,9 @@ func buildReceiverIntegrations(nc amconfig.Receiver, tmpl *template.Template, lo
 	}
 
 	var (
-		errs		types.MultiError
-		integrations	[]notify.Integration
-		add		= func(name string, i int, rs notify.ResolvedSender, f func(l *slog.Logger) (notify.Notifier, error)) {
+		errs         types.MultiError
+		integrations []notify.Integration
+		add          = func(name string, i int, rs notify.ResolvedSender, f func(l *slog.Logger) (notify.Notifier, error)) {
 			n, err := f(logger.With("integration", name))
 			if err != nil {
 				errs.Add(err)
@@ -215,7 +217,8 @@ func (r *InnerReceivers) cleanupSlience(ctx context.Context, interval time.Durat
 			r.slientCFGMap.Range(func(key, value any) bool {
 				val := value.(*slienceconfig.AlertSlienceConfig)
 				if now.After(val.EndAt) {
-					if err := r.database.DeleteAlertSlience(val.ID); err == nil {
+					// ctx_core
+					if err := r.database.DeleteAlertSlience(nil, val.ID); err == nil {
 						r.slientCFGMap.Delete(key)
 					}
 				}

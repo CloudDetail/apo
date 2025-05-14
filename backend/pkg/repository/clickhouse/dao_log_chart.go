@@ -46,7 +46,7 @@ func chartSQL(baseQuery string, req *request.LogQueryRequest) (string, int64) {
 
 func (ch *chRepo) GetLogChart(ctx_core core.Context, req *request.LogQueryRequest) ([]map[string]any, int64, error) {
 	sql, interval := chartSQL(queryLogChart, req)
-	results, err := ch.queryRowsData(sql)
+	results, err := ch.queryRowsData(ctx_core, sql)
 	if err != nil {
 		return nil, interval, err
 	}

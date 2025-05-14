@@ -76,7 +76,7 @@ func convertStatus(status string) model.Status {
 
 func (s *service) InputAlertManager(ctx_core core.Context, req *request.InputAlertManagerRequest) error {
 	events := transferAlertManager(req)
-	err := s.chRepo.InsertBatchAlertEvents(context.Background(), events)
+	err := s.chRepo.InsertBatchAlertEvents(ctx_core, context.Background(), events)
 	if err != nil {
 		log.Println("[AlertManager] Error inserting data: ", err)
 		return err

@@ -35,7 +35,7 @@ func (h *handler) RemoveUser() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.RemoveUser(req.UserID)
+		err := h.userService.RemoveUser(c, req.UserID)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

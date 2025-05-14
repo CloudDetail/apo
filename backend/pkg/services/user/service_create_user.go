@@ -34,19 +34,19 @@ func (s *service) CreateUser(ctx_core core.Context, req *request.CreateUserReque
 	}
 
 	user := &database.User{
-		UserID:		util.Generator.GenerateID(),
-		Username:	req.Username,
-		Password:	req.Password,
-		Corporation:	req.Corporation,
-		Email:		req.Email,
-		Phone:		req.Phone,
+		UserID:      util.Generator.GenerateID(),
+		Username:    req.Username,
+		Password:    req.Password,
+		Corporation: req.Corporation,
+		Email:       req.Email,
+		Phone:       req.Phone,
 	}
 
 	if len(req.RoleList) == 0 {
 		filter := model.RoleFilter{
 			Name: model.ROLE_ADMIN,
 		}
-		roles, err := s.dbRepo.GetRoles(filter)
+		roles, err := s.dbRepo.GetRoles(ctx_core, filter)
 		if err != nil {
 			return err
 		}
@@ -58,7 +58,7 @@ func (s *service) CreateUser(ctx_core core.Context, req *request.CreateUserReque
 		filter := model.RoleFilter{
 			IDs: req.RoleList,
 		}
-		roles, err := s.dbRepo.GetRoles(filter)
+		roles, err := s.dbRepo.GetRoles(ctx_core, filter)
 		if err != nil {
 			return err
 		}
@@ -72,7 +72,7 @@ func (s *service) CreateUser(ctx_core core.Context, req *request.CreateUserReque
 		filter := model.TeamFilter{
 			IDs: req.TeamList,
 		}
-		exist, err := s.dbRepo.TeamExist(filter)
+		exist, err := s.dbRepo.TeamExist(ctx_core, filter)
 		if err != nil {
 			return err
 		}
@@ -82,7 +82,7 @@ func (s *service) CreateUser(ctx_core core.Context, req *request.CreateUserReque
 	}
 
 	var assignTeamFunc = func(ctx context.Context) error {
-		return s.dbRepo.AssignUserToTeam(ctx, user.UserID, req.TeamList)
+		return s.dbRepo.AssignUserToTeam(ctx_core, ctx, user.UserID, req.TeamList)
 	}
 
 	var createDifyUserFunc = func(ctx context.Context) error {
@@ -94,12 +94,12 @@ func (s *service) CreateUser(ctx_core core.Context, req *request.CreateUserReque
 	}
 
 	var createUserFunc = func(ctx context.Context) error {
-		return s.dbRepo.CreateUser(ctx, user)
+		return s.dbRepo.CreateUser(ctx_core, ctx, user)
 	}
 
 	var grantRoleFunc = func(ctx context.Context) error {
-		return s.dbRepo.GrantRoleWithUser(ctx, user.UserID, req.RoleList)
+		return s.dbRepo.GrantRoleWithUser(ctx_core, ctx, user.UserID, req.RoleList)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), createUserFunc, createDifyUserFunc, grantRoleFunc, assignTeamFunc)
+	return s.dbRepo.Transaction(ctx_core, context.Background(), createUserFunc, createDifyUserFunc, grantRoleFunc, assignTeamFunc)
 }

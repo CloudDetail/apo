@@ -40,7 +40,7 @@ func (h *handler) GetUserDataGroup() core.HandlerFunc {
 		subReq.SubjectID = req.UserID
 		subReq.SubjectType = model.DATA_GROUP_SUB_TYP_USER
 		subReq.Category = req.Category
-		groups, err := h.dataService.GetSubjectDataGroup(subReq)
+		groups, err := h.dataService.GetSubjectDataGroup(c, subReq)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

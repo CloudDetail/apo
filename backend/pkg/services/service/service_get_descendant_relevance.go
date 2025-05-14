@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -14,13 +15,12 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 // GetDescendantRelevance implements Service.
 func (s *service) GetDescendantRelevance(ctx_core core.Context, req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
 	// Query all descendant nodes
-	nodes, err := s.chRepo.ListDescendantNodes(req)
+	nodes, err := s.chRepo.ListDescendantNodes(ctx_core, req)
 	if err != nil {
 		return nil, err
 	}
@@ -35,14 +35,14 @@ func (s *service) GetDescendantRelevance(ctx_core core.Context, req *request.Get
 	var services, endpoints []string
 	for _, node := range nodes.Nodes {
 		svcNode := polarisanalyzer.ServiceNode{
-			Service:	node.Service,
-			Endpoint:	node.Endpoint,
-			Group:		node.Group,
-			System:		node.System,
+			Service:  node.Service,
+			Endpoint: node.Endpoint,
+			Group:    node.Group,
+			System:   node.System,
 		}
 		unsortedDescendant = append(unsortedDescendant, polarisanalyzer.Relevance{
-			ServiceNode:	svcNode,
-			Relevance:	0,
+			ServiceNode: svcNode,
+			Relevance:   0,
 		})
 		descendants = append(descendants, svcNode)
 		isTracedMap[svcNode] = node.IsTraced
@@ -73,23 +73,23 @@ func (s *service) GetDescendantRelevance(ctx_core core.Context, req *request.Get
 	if err != nil {
 		// Failed to query RED metric when adding log to TODO
 	}
-	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
+	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx_core, "", "", database.GLOBAL)
 	if err != nil {
 		// Failed to query the threshold when adding logs to TODO
 	}
 	for _, descendant := range sortResult {
 		var descendantResp = response.GetDescendantRelevanceResponse{
-			ServiceName:		descendant.Service,
-			EndPoint:		descendant.Endpoint,
-			Group:			descendant.Group,
-			IsTraced:		isTracedMap[descendant.ServiceNode],
-			Distance:		descendant.Relevance,
-			DistanceType:		sortType,
-			DelaySource:		"unknown",
-			REDMetricsStatus:	model.STATUS_NORMAL,
-			AlertStatus:		model.NORMAL_ALERT_STATUS,
-			AlertReason:		model.AlertReason{},
-			LastUpdateTime:		nil,
+			ServiceName:      descendant.Service,
+			EndPoint:         descendant.Endpoint,
+			Group:            descendant.Group,
+			IsTraced:         isTracedMap[descendant.ServiceNode],
+			Distance:         descendant.Relevance,
+			DistanceType:     sortType,
+			DelaySource:      "unknown",
+			REDMetricsStatus: model.STATUS_NORMAL,
+			AlertStatus:      model.NORMAL_ALERT_STATUS,
+			AlertReason:      model.AlertReason{},
+			LastUpdateTime:   nil,
 		}
 
 		// Fill delay source and RED alarm (DelaySource/REDMetricsStatus)
@@ -109,6 +109,7 @@ func (s *service) GetDescendantRelevance(ctx_core core.Context, req *request.Get
 
 		// fill alarm status
 		descendantResp.AlertStatusCH = serviceoverview.GetAlertStatusCH(
+			ctx_core,
 			s.chRepo, &descendantResp.AlertReason, nil,
 			[]string{}, descendant.Service, instanceList,
 			startTime, endTime,
@@ -178,8 +179,8 @@ func (s *service) queryDescendantStatus(services []string, endpoints []string, s
 	}
 
 	var descendantStatusMap = &DescendantStatusMap{
-		MetricGroupList:	[]*DescendantStatus{},
-		MetricGroupMap:		map[prom.EndpointKey]*DescendantStatus{},
+		MetricGroupList: []*DescendantStatus{},
+		MetricGroupMap:  map[prom.EndpointKey]*DescendantStatus{},
 	}
 
 	descendantStatusMap.MergeMetricResults(prom.AVG, prom.LATENCY, avgLatency)
@@ -195,11 +196,11 @@ type DescendantStatusMap = prom.MetricGroupMap[prom.EndpointKey, *DescendantStat
 
 func (s *DescendantStatus) InitEmptyGroup(_ prom.ConvertFromLabels) prom.MetricGroup {
 	return &DescendantStatus{
-		DepLatency:		nil,
-		Latency:		nil,
-		LatencyDoD:		nil,
-		ErrorRateDoD:		nil,
-		RequestPerSecondDoD:	nil,
+		DepLatency:          nil,
+		Latency:             nil,
+		LatencyDoD:          nil,
+		ErrorRateDoD:        nil,
+		RequestPerSecondDoD: nil,
 	}
 }
 
@@ -236,19 +237,19 @@ func (s *DescendantStatus) SetValue(metricGroup prom.MGroupName, metricName prom
 }
 
 type DescendantStatus struct {
-	DepLatency	*float64
-	Latency		*float64
+	DepLatency *float64
+	Latency    *float64
 
-	LatencyDoD		*float64	// Delay Day-over-Day Growth Rate
-	ErrorRateDoD		*float64	// Error Rate Day-over-Day Growth Rate
-	RequestPerSecondDoD	*float64	// Request Day-over-Day Growth Rate
+	LatencyDoD          *float64 // Delay Day-over-Day Growth Rate
+	ErrorRateDoD        *float64 // Error Rate Day-over-Day Growth Rate
+	RequestPerSecondDoD *float64 // Request Day-over-Day Growth Rate
 }
 
 func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRelevanceResponse, descendantStatus *DescendantStatusMap, threshold database.Threshold) {
 	ts := time.Now()
 	descendantKey := prom.EndpointKey{
-		ContentKey:	descendantResp.EndPoint,
-		SvcName:	descendantResp.ServiceName,
+		ContentKey: descendantResp.EndPoint,
+		SvcName:    descendantResp.ServiceName,
 	}
 
 	if status, ok := descendantStatus.MetricGroupMap[descendantKey]; ok {
@@ -258,10 +259,10 @@ func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRel
 				descendantResp.DelaySource = "dependency"
 				delayDistribution := fmt.Sprintf("总延时: %.2f, 外部依赖延时: %.2f(%.2f)", *status.Latency, *status.DepLatency, depRatio)
 				descendantResp.AlertReason.Add(model.DelaySourceAlert, model.AlertDetail{
-					Timestamp:	ts.UnixMicro(),
-					AlertObject:	descendantResp.ServiceName,
-					AlertReason:	"外部依赖延时占总延时超过50%",
-					AlertMessage:	delayDistribution,
+					Timestamp:    ts.UnixMicro(),
+					AlertObject:  descendantResp.ServiceName,
+					AlertReason:  "外部依赖延时占总延时超过50%",
+					AlertMessage: delayDistribution,
 				})
 			} else {
 				descendantResp.DelaySource = "self"
@@ -272,60 +273,60 @@ func fillServiceDelaySourceAndREDAlarm(descendantResp *response.GetDescendantRel
 
 		if status.RequestPerSecondDoD == nil {
 			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
-				Timestamp:	ts.UnixMicro(),
-				AlertObject:	descendantResp.ServiceName,
-				AlertReason:	"TPS未采集到数据",
-				AlertMessage:	"",
+				Timestamp:    ts.UnixMicro(),
+				AlertObject:  descendantResp.ServiceName,
+				AlertReason:  "TPS未采集到数据",
+				AlertMessage: "",
 			})
 		} else if threshold.Tps > 0 && *status.RequestPerSecondDoD > threshold.Tps {
 			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
 			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
-				Timestamp:	ts.UnixMicro(),
-				AlertObject:	descendantResp.ServiceName,
-				AlertReason:	"TPS变化超过日同比阈值",
-				AlertMessage:	fmt.Sprintf("请求TPS日同比增长: %.2f%% 高于设定阈值 %.2f%%;", *status.RequestPerSecondDoD, threshold.Tps),
+				Timestamp:    ts.UnixMicro(),
+				AlertObject:  descendantResp.ServiceName,
+				AlertReason:  "TPS变化超过日同比阈值",
+				AlertMessage: fmt.Sprintf("请求TPS日同比增长: %.2f%% 高于设定阈值 %.2f%%;", *status.RequestPerSecondDoD, threshold.Tps),
 			})
 		}
 
 		if status.LatencyDoD == nil {
 			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
-				Timestamp:	ts.UnixMicro(),
-				AlertObject:	descendantResp.ServiceName,
-				AlertReason:	"延迟未采集到数据",
-				AlertMessage:	"",
+				Timestamp:    ts.UnixMicro(),
+				AlertObject:  descendantResp.ServiceName,
+				AlertReason:  "延迟未采集到数据",
+				AlertMessage: "",
 			})
 		} else if threshold.Latency > 0 && *status.LatencyDoD > threshold.Latency {
 			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
 			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
-				Timestamp:	ts.UnixMicro(),
-				AlertObject:	descendantResp.ServiceName,
-				AlertReason:	"延时变化超过日同比阈值",
-				AlertMessage:	fmt.Sprintf("延迟日同比增长: %.2f%% 高于设定阈值 %.2f%%;", *status.LatencyDoD, threshold.Latency),
+				Timestamp:    ts.UnixMicro(),
+				AlertObject:  descendantResp.ServiceName,
+				AlertReason:  "延时变化超过日同比阈值",
+				AlertMessage: fmt.Sprintf("延迟日同比增长: %.2f%% 高于设定阈值 %.2f%%;", *status.LatencyDoD, threshold.Latency),
 			})
 		}
 
 		if status.ErrorRateDoD == nil {
 			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
-				Timestamp:	ts.UnixMicro(),
-				AlertObject:	descendantResp.ServiceName,
-				AlertReason:	"错误率未采集到数据",
-				AlertMessage:	"",
+				Timestamp:    ts.UnixMicro(),
+				AlertObject:  descendantResp.ServiceName,
+				AlertReason:  "错误率未采集到数据",
+				AlertMessage: "",
 			})
 		} else if threshold.ErrorRate > 0 && *status.ErrorRateDoD > threshold.ErrorRate {
 			descendantResp.REDMetricsStatus = model.STATUS_CRITICAL
 			descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
-				Timestamp:	ts.UnixMicro(),
-				AlertObject:	descendantResp.ServiceName,
-				AlertReason:	"错误率变化超过日同比阈值",
-				AlertMessage:	fmt.Sprintf("错误率日同比增长: %.2f%% 高于设定阈值 %.2f%%;", *status.ErrorRateDoD, threshold.ErrorRate),
+				Timestamp:    ts.UnixMicro(),
+				AlertObject:  descendantResp.ServiceName,
+				AlertReason:  "错误率变化超过日同比阈值",
+				AlertMessage: fmt.Sprintf("错误率日同比增长: %.2f%% 高于设定阈值 %.2f%%;", *status.ErrorRateDoD, threshold.ErrorRate),
 			})
 		}
 	} else {
 		descendantResp.AlertReason.Add(model.REDMetricsAlert, model.AlertDetail{
-			Timestamp:	ts.UnixMicro(),
-			AlertObject:	descendantResp.ServiceName,
-			AlertReason:	"时间段内未统计到应用延时,应用无请求或未监控,忽略RED告警;",
-			AlertMessage:	"",
+			Timestamp:    ts.UnixMicro(),
+			AlertObject:  descendantResp.ServiceName,
+			AlertReason:  "时间段内未统计到应用延时,应用无请求或未监控,忽略RED告警;",
+			AlertMessage: "",
 		})
 	}
 }

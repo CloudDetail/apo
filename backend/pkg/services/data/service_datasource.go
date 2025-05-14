@@ -18,12 +18,12 @@ import (
 
 var subTime = -time.Hour * 24 * 15
 
-func (s *service) GetDataSource(ctx_core core.Context,) (resp response.GetDatasourceResponse, err error) {
+func (s *service) GetDataSource(ctx_core core.Context) (resp response.GetDatasourceResponse, err error) {
 	var (
-		endTime		= time.Now()
-		startTime	= endTime.Add(subTime)
-		endTimeMicro	= endTime.UnixMicro()
-		startTimeMicro	= startTime.UnixMicro()
+		endTime        = time.Now()
+		startTime      = endTime.Add(subTime)
+		endTimeMicro   = endTime.UnixMicro()
+		startTimeMicro = startTime.UnixMicro()
 	)
 
 	servicesMap, err := s.promRepo.GetServiceWithNamespace(startTimeMicro, endTimeMicro, nil)
@@ -47,10 +47,10 @@ func (s *service) GetDataSource(ctx_core core.Context,) (resp response.GetDataso
 			return strings.Compare(namespaces[i], namespaces[j]) < 0
 		})
 		ds := model.Datasource{
-			Datasource:	service,
-			Type:		model.DATASOURCE_TYP_SERVICE,
-			Category:	model.DATASOURCE_CATEGORY_APM,
-			Nested:		namespaces,
+			Datasource: service,
+			Type:       model.DATASOURCE_TYP_SERVICE,
+			Category:   model.DATASOURCE_CATEGORY_APM,
+			Nested:     namespaces,
 		}
 		serviceList = append(serviceList, ds)
 	}
@@ -59,9 +59,9 @@ func (s *service) GetDataSource(ctx_core core.Context,) (resp response.GetDataso
 	for _, namespace := range allNamespaces.Items {
 		if _, ok := namespaceMap[namespace.Name]; !ok {
 			ds := model.Datasource{
-				Datasource:	namespace.Name,
-				Type:		model.DATASOURCE_TYP_NAMESPACE,
-				Category:	model.DATASOURCE_CATEGORY_NORMAL,
+				Datasource: namespace.Name,
+				Type:       model.DATASOURCE_TYP_NAMESPACE,
+				Category:   model.DATASOURCE_CATEGORY_NORMAL,
 			}
 			namespaceList = append(namespaceList, ds)
 		}
@@ -75,10 +75,10 @@ func (s *service) GetDataSource(ctx_core core.Context,) (resp response.GetDataso
 			return strings.Compare(services[i], services[j]) < 0
 		})
 		ds := model.Datasource{
-			Datasource:	namespace,
-			Type:		model.DATASOURCE_TYP_NAMESPACE,
-			Category:	model.DATASOURCE_CATEGORY_APM,
-			Nested:		services,
+			Datasource: namespace,
+			Type:       model.DATASOURCE_TYP_NAMESPACE,
+			Category:   model.DATASOURCE_CATEGORY_APM,
+			Nested:     services,
 		}
 		namespaceList = append(namespaceList, ds)
 	}
@@ -98,23 +98,23 @@ func (s *service) GetDataSource(ctx_core core.Context,) (resp response.GetDataso
 
 func (s *service) GetGroupDatasource(ctx_core core.Context, req *request.GetGroupDatasourceRequest, userID int64) (response.GetGroupDatasourceResponse, error) {
 	var (
-		groups		[]database.DataGroup
-		err		error
-		namespaceMap	= map[string][]string{}
-		serviceMap	= map[string][]string{}
-		filterMap	= map[string]struct{}{}
-		resp		= response.GetGroupDatasourceResponse{}
-		endTime		= time.Now()
-		startTime	= endTime.Add(subTime)
+		groups       []database.DataGroup
+		err          error
+		namespaceMap = map[string][]string{}
+		serviceMap   = map[string][]string{}
+		filterMap    = map[string]struct{}{}
+		resp         = response.GetGroupDatasourceResponse{}
+		endTime      = time.Now()
+		startTime    = endTime.Add(subTime)
 	)
 	if req.GroupID != 0 {
-		groups, err = s.getDataGroup(req.GroupID, req.Category)
+		groups, err = s.getDataGroup(ctx_core, req.GroupID, req.Category)
 	} else {
-		groups, err = s.getUserDataGroup(userID, req.Category)
+		groups, err = s.getUserDataGroup(ctx_core, userID, req.Category)
 	}
 
 	if len(groups) == 0 {
-		defaultGroup, err := s.getDefaultDataGroup(req.Category)
+		defaultGroup, err := s.getDefaultDataGroup(ctx_core, req.Category)
 		if err != nil {
 			return resp, err
 		}
@@ -179,10 +179,10 @@ func (s *service) GetGroupDatasource(ctx_core core.Context, req *request.GetGrou
 
 func (s *service) getNested(datasource string, typ string) ([]string, error) {
 	var (
-		endTime		= time.Now()
-		startTime	= endTime.Add(-24 * time.Hour)
-		nested		[]string
-		err		error
+		endTime   = time.Now()
+		startTime = endTime.Add(-24 * time.Hour)
+		nested    []string
+		err       error
 	)
 
 	if typ == model.DATASOURCE_TYP_NAMESPACE {
@@ -194,12 +194,12 @@ func (s *service) getNested(datasource string, typ string) ([]string, error) {
 	return nested, err
 }
 
-func (s *service) getDataGroup(groupID int64, category string) ([]database.DataGroup, error) {
+func (s *service) getDataGroup(ctx_core core.Context, groupID int64, category string) ([]database.DataGroup, error) {
 	filter := model.DataGroupFilter{
 		ID: groupID,
 	}
 
-	dataGroups, _, err := s.dbRepo.GetDataGroup(filter)
+	dataGroups, _, err := s.dbRepo.GetDataGroup(ctx_core, filter)
 	if err != nil {
 		return dataGroups, err
 	}

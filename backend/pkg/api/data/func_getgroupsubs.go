@@ -36,7 +36,7 @@ func (h *handler) GetGroupSubs() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.dataService.GetGroupSubs(req)
+		resp, err := h.dataService.GetGroupSubs(c, req)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.GetGroupSubsError, nil)
 			return

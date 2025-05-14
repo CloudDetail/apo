@@ -22,7 +22,7 @@ import (
 // @Router /api/data/datasource [get]
 func (h *handler) GetDatasource() core.HandlerFunc {
 	return func(c core.Context) {
-		resp, err := h.dataService.GetDataSource()
+		resp, err := h.dataService.GetDataSource(c)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

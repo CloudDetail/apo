@@ -15,7 +15,7 @@ func (s *service) GetTeamUser(ctx_core core.Context, req *request.GetTeamUserReq
 	filter := model.TeamFilter{
 		ID: req.TeamID,
 	}
-	exists, err := s.dbRepo.TeamExist(filter)
+	exists, err := s.dbRepo.TeamExist(ctx_core, filter)
 	if err != nil {
 		return
 	}
@@ -25,7 +25,7 @@ func (s *service) GetTeamUser(ctx_core core.Context, req *request.GetTeamUserReq
 		return
 	}
 
-	users, err := s.dbRepo.GetTeamUserList(req.TeamID)
+	users, err := s.dbRepo.GetTeamUserList(ctx_core, req.TeamID)
 	if err != nil {
 		return
 	}

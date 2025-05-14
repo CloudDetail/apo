@@ -33,7 +33,7 @@ func (h *handler) DeleteAlertSource() core.HandlerFunc {
 			return
 		}
 
-		alert, err := h.inputService.DeleteAlertSource(*req)
+		alert, err := h.inputService.DeleteAlertSource(c, *req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

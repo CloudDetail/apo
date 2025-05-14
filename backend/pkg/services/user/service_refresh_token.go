@@ -4,9 +4,9 @@
 package user
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/util/jwt"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func (s *service) RefreshToken(ctx_core core.Context, token string) (response.RefreshTokenResponse, error) {
@@ -20,5 +20,5 @@ func (s *service) RefreshToken(ctx_core core.Context, token string) (response.Re
 }
 
 func (s *service) IsInBlacklist(ctx_core core.Context, token string) (bool, error) {
-	return s.cacheRepo.IsInBlacklist(token)
+	return s.cacheRepo.IsInBlacklist(ctx_core, token)
 }

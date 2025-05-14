@@ -6,11 +6,12 @@ package database
 import (
 	"context"
 	"errors"
+	"os"
+	"testing"
+
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/logger"
 	"github.com/stretchr/testify/assert"
-	"os"
-	"testing"
 )
 
 func TestTransaction(t *testing.T) {

@@ -4,12 +4,12 @@
 package database
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"gorm.io/gorm"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (repo *daoRepo) CheckAMReceiverCount(ctx_core core.Context,) int64 {
+func (repo *daoRepo) CheckAMReceiverCount(ctx_core core.Context) int64 {
 	var count int64
 	err := repo.db.Model(&amconfig.Receiver{}).Count(&count).Error
 	if err != nil {

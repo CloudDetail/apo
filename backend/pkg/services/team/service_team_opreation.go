@@ -12,12 +12,12 @@ import (
 )
 
 func (s *service) TeamOperation(ctx_core core.Context, req *request.TeamOperationRequest) error {
-	teamIDs, err := s.dbRepo.GetUserTeams(req.UserID)
+	teamIDs, err := s.dbRepo.GetUserTeams(ctx_core, req.UserID)
 	if err != nil {
 		return err
 	}
 
-	teams, _, err := s.dbRepo.GetTeamList(&request.GetTeamRequest{})
+	teams, _, err := s.dbRepo.GetTeamList(ctx_core, &request.GetTeamRequest{})
 	if err != nil {
 		return err
 	}
@@ -50,12 +50,12 @@ func (s *service) TeamOperation(ctx_core core.Context, req *request.TeamOperatio
 	}
 
 	var assignFunc = func(ctx context.Context) error {
-		return s.dbRepo.AssignUserToTeam(ctx, req.UserID, toAdd)
+		return s.dbRepo.AssignUserToTeam(ctx_core, ctx, req.UserID, toAdd)
 	}
 
 	var removeFunc = func(ctx context.Context) error {
-		return s.dbRepo.RemoveFromTeamByUser(ctx, req.UserID, toDelete)
+		return s.dbRepo.RemoveFromTeamByUser(ctx_core, ctx, req.UserID, toDelete)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), assignFunc, removeFunc)
+	return s.dbRepo.Transaction(ctx_core, context.Background(), assignFunc, removeFunc)
 }

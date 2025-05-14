@@ -9,12 +9,12 @@ import (
 )
 
 func (s *service) Logout(ctx_core core.Context, req *request.LogoutRequest) error {
-	err := s.cacheRepo.AddToken(req.AccessToken)
+	err := s.cacheRepo.AddToken(ctx_core, req.AccessToken)
 	if err != nil {
 		return err
 	}
 
-	err = s.cacheRepo.AddToken(req.RefreshToken)
+	err = s.cacheRepo.AddToken(ctx_core, req.RefreshToken)
 	if err != nil {
 		return err
 	}

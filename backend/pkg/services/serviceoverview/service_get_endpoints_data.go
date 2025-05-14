@@ -8,12 +8,12 @@ import (
 	"slices"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"go.uber.org/zap"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func (s *service) GetServicesEndPointData(ctx_core core.Context,
@@ -44,7 +44,7 @@ func (s *service) GetServicesEndPointData(ctx_core core.Context,
 		s.logger.Error("failed to fetch endpoints data form", zap.Error(err))
 	}
 
-	s.sortWithRule(sortRule, endpointsMap)
+	s.sortWithRule(ctx_core, sortRule, endpointsMap)
 
 	services := groupEndpointsByService(endpointsMap.MetricGroupList, 3)
 	var servicesResMsg []response.ServiceEndPointsRes
@@ -72,10 +72,10 @@ func (s *service) GetServicesEndPointData(ctx_core core.Context,
 		}
 
 		newServiceRes := response.ServiceEndPointsRes{
-			ServiceName:	service.ServiceName,
-			Namespaces:	nsList,
-			EndpointCount:	service.EndpointCount,
-			ServiceDetails:	serviceDetails,
+			ServiceName:    service.ServiceName,
+			Namespaces:     nsList,
+			EndpointCount:  service.EndpointCount,
+			ServiceDetails: serviceDetails,
 		}
 
 		servicesResMsg = append(servicesResMsg, newServiceRes)
@@ -83,12 +83,12 @@ func (s *service) GetServicesEndPointData(ctx_core core.Context,
 	return servicesResMsg, err
 }
 
-func (s *service) sortWithRule(sortRule request.SortType, endpointsMap *EndpointsMap) error {
+func (s *service) sortWithRule(ctx_core core.Context, sortRule request.SortType, endpointsMap *EndpointsMap) error {
 	switch sortRule {
 	case request.SortByLatency, request.SortByErrorRate, request.SortByThroughput, request.SortByLogErrorCount:
 		slices.SortStableFunc(endpointsMap.MetricGroupList, prometheus.ReverseSortWithMetrics(sortRule))
-	case request.DODThreshold:	//Sort by Day-to-Year Threshold
-		threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
+	case request.DODThreshold: //Sort by Day-to-Year Threshold
+		threshold, err := s.dbRepo.GetOrCreateThreshold(ctx_core, "", "", database.GLOBAL)
 		if err != nil {
 			return err
 		}
@@ -120,7 +120,7 @@ func (s *service) sortWithRule(sortRule request.SortType, endpointsMap *Endpoint
 			}
 		}
 		sortByDODThreshold(endpointsMap.MetricGroupList)
-	case request.MUTATIONSORT:	//Sort by real-time mutation rate
+	case request.MUTATIONSORT: //Sort by real-time mutation rate
 		sortByMutation(endpointsMap.MetricGroupList)
 	}
 
@@ -134,36 +134,36 @@ func (*service) extractDetail(
 	var newServiceDetails []response.ServiceDetail
 	for _, endpoint := range service.Endpoints {
 		newErrorRadio := response.Ratio{
-			DayOverDay:	endpoint.REDMetrics.DOD.ErrorRate,
-			WeekOverDay:	endpoint.REDMetrics.WOW.ErrorRate,
+			DayOverDay:  endpoint.REDMetrics.DOD.ErrorRate,
+			WeekOverDay: endpoint.REDMetrics.WOW.ErrorRate,
 		}
 		newErrorRate := response.TempChartObject{
 			Ratio: newErrorRadio,
 		}
-		if endpoint.REDMetrics.Avg.ErrorRate != nil && !math.IsInf(*endpoint.REDMetrics.Avg.ErrorRate, 0) {	// does not assign a value when it is infinite
+		if endpoint.REDMetrics.Avg.ErrorRate != nil && !math.IsInf(*endpoint.REDMetrics.Avg.ErrorRate, 0) { // does not assign a value when it is infinite
 			newErrorRate.Value = endpoint.REDMetrics.Avg.ErrorRate
 		}
 
 		newtpsRadio := response.Ratio{
-			DayOverDay:	endpoint.REDMetrics.DOD.TPM,
-			WeekOverDay:	endpoint.REDMetrics.WOW.TPM,
+			DayOverDay:  endpoint.REDMetrics.DOD.TPM,
+			WeekOverDay: endpoint.REDMetrics.WOW.TPM,
 		}
 		newtpsRate := response.TempChartObject{
 			//ChartData: map[int64]float64{},
 			Ratio: newtpsRadio,
 		}
-		if endpoint.REDMetrics.Avg.TPM != nil && !math.IsInf(*endpoint.REDMetrics.Avg.TPM, 0) {	// is not assigned when it is infinite
+		if endpoint.REDMetrics.Avg.TPM != nil && !math.IsInf(*endpoint.REDMetrics.Avg.TPM, 0) { // is not assigned when it is infinite
 			newtpsRate.Value = endpoint.REDMetrics.Avg.TPM
 		}
 
 		newlatencyRadio := response.Ratio{
-			DayOverDay:	endpoint.REDMetrics.DOD.Latency,
-			WeekOverDay:	endpoint.REDMetrics.WOW.Latency,
+			DayOverDay:  endpoint.REDMetrics.DOD.Latency,
+			WeekOverDay: endpoint.REDMetrics.WOW.Latency,
 		}
 		newlatencyRate := response.TempChartObject{
 			Ratio: newlatencyRadio,
 		}
-		if endpoint.REDMetrics.Avg.Latency != nil && !math.IsInf(*endpoint.REDMetrics.Avg.Latency, 0) {	// does not assign a value when it is infinite
+		if endpoint.REDMetrics.Avg.Latency != nil && !math.IsInf(*endpoint.REDMetrics.Avg.Latency, 0) { // does not assign a value when it is infinite
 			newlatencyRate.Value = endpoint.REDMetrics.Avg.Latency
 		}
 
@@ -186,10 +186,10 @@ func (*service) extractDetail(
 			*newErrorRate.Ratio.WeekOverDay = RES_MAX_VALUE
 		}
 		newServiceDetail := response.ServiceDetail{
-			Endpoint:	endpoint.ContentKey,
-			ErrorRate:	newErrorRate,
-			Tps:		newtpsRate,
-			Latency:	newlatencyRate,
+			Endpoint:  endpoint.ContentKey,
+			ErrorRate: newErrorRate,
+			Tps:       newtpsRate,
+			Latency:   newlatencyRate,
 		}
 		if endpoint.DelaySource == nil {
 			newServiceDetail.DelaySource = "unknown"

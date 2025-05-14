@@ -6,11 +6,11 @@ package service
 import (
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func (s *service) GetAlertEventsSample(ctx_core core.Context, req *request.GetAlertEventsSampleRequest) (resp *response.GetAlertEventsSampleResponse, err error) {
@@ -36,12 +36,13 @@ func (s *service) GetAlertEventsSample(ctx_core core.Context, req *request.GetAl
 
 	// Query the AlertEvent of the instance
 	events, err := s.chRepo.GetAlertEventsSample(
+		ctx_core,
 		req.SampleCount,
 		startTime, endTime,
 		req.AlertFilter,
 		&model.RelatedInstances{
-			SIs:	instances.GetInstances(),
-			MIs:	dbInstances,
+			SIs: instances.GetInstances(),
+			MIs: dbInstances,
 		},
 	)
 	if err != nil {
@@ -55,8 +56,8 @@ func (s *service) GetAlertEventsSample(ctx_core core.Context, req *request.GetAl
 		status = model.STATUS_CRITICAL
 	}
 	return &response.GetAlertEventsSampleResponse{
-		EventMap:	groupedEvents,
-		Status:		status,
+		EventMap: groupedEvents,
+		Status:   status,
 	}, nil
 }
 
@@ -80,11 +81,12 @@ func (s *service) GetAlertEvents(ctx_core core.Context, req *request.GetAlertEve
 
 	// Query the AlertEvent of the instance
 	events, totalCount, err := s.chRepo.GetAlertEvents(
+		ctx_core,
 		startTime, endTime,
 		req.AlertFilter,
 		&model.RelatedInstances{
-			SIs:	instances.GetInstances(),
-			MIs:	dbInstances,
+			SIs: instances.GetInstances(),
+			MIs: dbInstances,
 		},
 		req.PageParam,
 	)
@@ -94,8 +96,8 @@ func (s *service) GetAlertEvents(ctx_core core.Context, req *request.GetAlertEve
 
 	// HACK returns data directly as a list
 	return &response.GetAlertEventsResponse{
-		TotalCount:	totalCount,
-		EventList:	events,
+		TotalCount: totalCount,
+		EventList:  events,
 	}, nil
 }
 

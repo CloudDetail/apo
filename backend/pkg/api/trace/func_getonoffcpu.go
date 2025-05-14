@@ -37,7 +37,7 @@ func (h *handler) GetOnOffCPU() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.traceService.GetOnOffCPU(req)
+		resp, err := h.traceService.GetOnOffCPU(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

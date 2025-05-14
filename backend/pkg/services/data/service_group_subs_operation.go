@@ -15,15 +15,15 @@ import (
 
 func (s *service) GroupSubsOperation(ctx_core core.Context, req *request.GroupSubsOperationRequest) error {
 	var (
-		toDelete	[]int64
-		toAdd		[]database.AuthDataGroup
-		subMap		= map[int64]database.AuthDataGroup{}
+		toDelete []int64
+		toAdd    []database.AuthDataGroup
+		subMap   = map[int64]database.AuthDataGroup{}
 	)
 
 	filter := model.DataGroupFilter{
 		ID: req.DataGroupID,
 	}
-	exists, err := s.dbRepo.DataGroupExist(filter)
+	exists, err := s.dbRepo.DataGroupExist(ctx_core, filter)
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func (s *service) GroupSubsOperation(ctx_core core.Context, req *request.GroupSu
 	}
 
 	getAuthDataGroups := func(subjectType string) error {
-		authGroups, err := s.dbRepo.GetGroupAuthDataGroupByGroup(req.DataGroupID, subjectType)
+		authGroups, err := s.dbRepo.GetGroupAuthDataGroupByGroup(ctx_core, req.DataGroupID, subjectType)
 		if err != nil {
 			return err
 		}
@@ -54,12 +54,12 @@ func (s *service) GroupSubsOperation(ctx_core core.Context, req *request.GroupSu
 		for _, sub := range subjects {
 			switch subjectType {
 			case model.DATA_GROUP_SUB_TYP_USER:
-				exists, err = s.dbRepo.UserExists(sub.SubjectID)
+				exists, err = s.dbRepo.UserExists(ctx_core, sub.SubjectID)
 			case model.DATA_GROUP_SUB_TYP_TEAM:
 				filter := model.TeamFilter{
 					ID: sub.SubjectID,
 				}
-				exists, err = s.dbRepo.TeamExist(filter)
+				exists, err = s.dbRepo.TeamExist(ctx_core, filter)
 			}
 			if err != nil {
 				return err
@@ -71,10 +71,10 @@ func (s *service) GroupSubsOperation(ctx_core core.Context, req *request.GroupSu
 			ag, ok := subMap[sub.SubjectID]
 			if !ok {
 				toAdd = append(toAdd, database.AuthDataGroup{
-					SubjectID:	sub.SubjectID,
-					SubjectType:	subjectType,
-					GroupID:	req.DataGroupID,
-					Type:		sub.Type,
+					SubjectID:   sub.SubjectID,
+					SubjectType: subjectType,
+					GroupID:     req.DataGroupID,
+					Type:        sub.Type,
 				})
 			} else {
 				if ag.Type != sub.Type {
@@ -100,12 +100,12 @@ func (s *service) GroupSubsOperation(ctx_core core.Context, req *request.GroupSu
 	}
 
 	assignFunc := func(ctx context.Context) error {
-		return s.dbRepo.AssignDataGroup(ctx, toAdd)
+		return s.dbRepo.AssignDataGroup(ctx_core, ctx, toAdd)
 	}
 
 	revokeFunc := func(ctx context.Context) error {
-		return s.dbRepo.RevokeDataGroupBySub(ctx, toDelete, req.DataGroupID)
+		return s.dbRepo.RevokeDataGroupBySub(ctx_core, ctx, toDelete, req.DataGroupID)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), assignFunc, revokeFunc)
+	return s.dbRepo.Transaction(ctx_core, context.Background(), assignFunc, revokeFunc)
 }

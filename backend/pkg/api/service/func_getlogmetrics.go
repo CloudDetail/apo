@@ -44,12 +44,12 @@ func (h *handler) GetLogMetrics() core.HandlerFunc {
 		}
 
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, []*response.GetLogMetricsResponse{})
 			return
 		}
-		resp, err := h.serviceInfoService.GetLogMetrics(req)
+		resp, err := h.serviceInfoService.GetLogMetrics(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

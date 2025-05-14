@@ -11,7 +11,7 @@ import (
 
 func (s *service) OtherTableInfo(ctx_core core.Context, req *request.OtherTableInfoRequest) (*response.OtherTableInfoResponse, error) {
 	res := &response.OtherTableInfoResponse{}
-	rows, err := s.chRepo.OtherLogTableInfo(req)
+	rows, err := s.chRepo.OtherLogTableInfo(ctx_core, req)
 	if err != nil {
 		res.Err = err.Error()
 		return res, nil

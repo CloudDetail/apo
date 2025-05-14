@@ -6,35 +6,35 @@ package alerts
 import (
 	"errors"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func (s *service) GetSlienceConfigByAlertID(ctx_core core.Context, alertID string) (*slienceconfig.AlertSlienceConfig, error) {
 	if !s.enableInnerReceiver {
 		return nil, errors.New("inner alert is not open")
 	}
-	return s.receivers.GetSlienceConfigByAlertID(alertID)
+	return s.receivers.GetSlienceConfigByAlertID(ctx_core, alertID)
 }
 
-func (s *service) ListSlienceConfig(ctx_core core.Context,) ([]slienceconfig.AlertSlienceConfig, error) {
+func (s *service) ListSlienceConfig(ctx_core core.Context) ([]slienceconfig.AlertSlienceConfig, error) {
 	if !s.enableInnerReceiver {
 		return nil, errors.New("inner alert is not open")
 	}
-	return s.receivers.ListSlienceConfig()
+	return s.receivers.ListSlienceConfig(ctx_core)
 }
 
 func (s *service) SetSlienceConfigByAlertID(ctx_core core.Context, req *request.SetAlertSlienceConfigRequest) error {
 	if !s.enableInnerReceiver {
 		return errors.New("inner alert is not open")
 	}
-	return s.receivers.SetSlienceConfigByAlertID(req.AlertID, req.ForDuration)
+	return s.receivers.SetSlienceConfigByAlertID(ctx_core, req.AlertID, req.ForDuration)
 }
 
 func (s *service) RemoveSlienceConfigByAlertID(ctx_core core.Context, alertID string) error {
 	if !s.enableInnerReceiver {
 		return errors.New("inner alert is not open")
 	}
-	return s.receivers.RemoveSlienceConfigByAlertID(alertID)
+	return s.receivers.RemoveSlienceConfigByAlertID(ctx_core, alertID)
 }

@@ -38,7 +38,7 @@ func (h *handler) UpdateSelfInfo() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.UpdateSelfInfo(req)
+		err := h.userService.UpdateSelfInfo(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

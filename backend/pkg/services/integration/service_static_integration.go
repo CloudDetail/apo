@@ -11,7 +11,7 @@ import (
 )
 
 // HACK use static config in configFile now
-func (s *service) GetStaticIntegration(ctx_core core.Context,) map[string]any {
+func (s *service) GetStaticIntegration(ctx_core core.Context) map[string]any {
 	resp := make(map[string]any)
 
 	chCfg := config.Get().ClickHouse
@@ -53,7 +53,7 @@ func (s *service) GetStaticIntegration(ctx_core core.Context,) map[string]any {
 	ds.MetricAPI.ReplaceSecret()
 	resp["datasource"] = ds
 
-	if latestTraceAPI, err := s.dbRepo.GetLatestTraceAPIs(-1); err == nil {
+	if latestTraceAPI, err := s.dbRepo.GetLatestTraceAPIs(ctx_core, -1); err == nil {
 		if latestTraceAPI == nil {
 			resp["traceAPI"] = integration.TraceAPI{}
 		} else {

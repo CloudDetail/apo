@@ -9,5 +9,5 @@ import (
 )
 
 func (s *service) GetAlertEnrichRuleTags(ctx core.Context) ([]alert.TargetTag, error) {
-	return s.dbRepo.ListAlertTargetTags(ctx.LANG())
+	return s.dbRepo.ListAlertTargetTags(ctx, ctx.LANG())
 }

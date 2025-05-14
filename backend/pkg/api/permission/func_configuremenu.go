@@ -35,7 +35,7 @@ func (h *handler) ConfigureMenu() core.HandlerFunc {
 			return
 		}
 
-		err := h.permissionService.ConfigureMenu(req)
+		err := h.permissionService.ConfigureMenu(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

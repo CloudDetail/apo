@@ -13,7 +13,7 @@ import (
 
 func (s *service) GetDescendantMetrics(ctx_core core.Context, req *request.GetDescendantMetricsRequest) ([]response.GetDescendantMetricsResponse, error) {
 	// Query all descendant nodes
-	nodes, err := s.chRepo.ListDescendantNodes(req)
+	nodes, err := s.chRepo.ListDescendantNodes(ctx_core, req)
 	if err != nil {
 		return nil, err
 	}

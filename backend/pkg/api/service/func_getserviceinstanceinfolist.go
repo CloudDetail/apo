@@ -41,12 +41,12 @@ func (h *handler) GetServiceInstanceInfoList() core.HandlerFunc {
 		}
 
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, []prometheus.InstanceKey{})
 			return
 		}
-		resp, err := h.serviceInfoService.GetServiceInstanceInfoList(req)
+		resp, err := h.serviceInfoService.GetServiceInstanceInfoList(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

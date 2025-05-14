@@ -21,7 +21,7 @@ func (s *service) GetErrorInstanceLogs(ctx_core core.Context, req *request.GetEr
 		PageNum:	1,
 		PageSize:	5,
 	}
-	list, _, err := s.chRepo.GetFaultLogPageList(query)
+	list, _, err := s.chRepo.GetFaultLogPageList(ctx_core, query)
 	if err != nil {
 		return nil, err
 	}

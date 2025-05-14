@@ -293,7 +293,7 @@ func (ch *chRepo) ManualResolveLatestAlertEventByAlertID(ctx_core core.Context, 
 	}
 	result.Detail = string(detailsStr)
 
-	return ch.InsertAlertEvent(context.Background(), []alert.AlertEvent{result}, alert.SourceFrom{
+	return ch.InsertAlertEvent(ctx_core, context.Background(), []alert.AlertEvent{result}, alert.SourceFrom{
 		SourceInfo: alert.SourceInfo{SourceName: result.Source},
 	})
 }

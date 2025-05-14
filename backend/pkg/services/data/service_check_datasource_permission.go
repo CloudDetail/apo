@@ -15,23 +15,23 @@ import (
 
 func (s *service) CheckDatasourcePermission(ctx_core core.Context, userID, groupID int64, namespaces, services interface{}, fillCategory string) (err error) {
 	var (
-		namespaceMap	= map[string]bool{}	// mapped all namespaces user can view
-		serviceMap	= map[string]struct{}{}	// mapped all services user can view
-		namespaceSrvMap	= map[string][]string{}
-		endTime		= time.Now()
-		startTime	= endTime.Add(-24 * time.Hour)
-		serviceList	[]string
-		namespaceDs	[]string
-		serviceDs	[]string
-		filteredNs	[]string
-		filteredSrv	[]string
-		filteredSrvMap	= map[string]struct{}{}
-		groups		= make([]database.DataGroup, 0)
+		namespaceMap    = map[string]bool{}     // mapped all namespaces user can view
+		serviceMap      = map[string]struct{}{} // mapped all services user can view
+		namespaceSrvMap = map[string][]string{}
+		endTime         = time.Now()
+		startTime       = endTime.Add(-24 * time.Hour)
+		serviceList     []string
+		namespaceDs     []string
+		serviceDs       []string
+		filteredNs      []string
+		filteredSrv     []string
+		filteredSrvMap  = map[string]struct{}{}
+		groups          = make([]database.DataGroup, 0)
 	)
 
 	// Get user's data group
 	if groupID != 0 {
-		has, err := s.dbRepo.CheckGroupPermission(userID, groupID, "view")
+		has, err := s.dbRepo.CheckGroupPermission(ctx_core, userID, groupID, "view")
 		if err != nil {
 			return err
 		}
@@ -42,19 +42,19 @@ func (s *service) CheckDatasourcePermission(ctx_core core.Context, userID, group
 		filter := model.DataGroupFilter{
 			ID: groupID,
 		}
-		groups, _, err = s.dbRepo.GetDataGroup(filter)
+		groups, _, err = s.dbRepo.GetDataGroup(ctx_core, filter)
 		if err != nil {
 			return err
 		}
 	} else {
-		groups, err = s.getUserDataGroup(userID, fillCategory)
+		groups, err = s.getUserDataGroup(ctx_core, userID, fillCategory)
 		if err != nil {
 			return err
 		}
 	}
 
 	if len(groups) == 0 {
-		defaultGroup, err := s.getDefaultDataGroup(fillCategory)
+		defaultGroup, err := s.getDefaultDataGroup(ctx_core, fillCategory)
 		if err != nil {
 			return err
 		}

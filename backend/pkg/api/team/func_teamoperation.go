@@ -8,7 +8,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -36,7 +35,7 @@ func (h *handler) TeamOperation() core.HandlerFunc {
 			return
 		}
 
-		err := h.teamService.TeamOperation(req)
+		err := h.teamService.TeamOperation(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

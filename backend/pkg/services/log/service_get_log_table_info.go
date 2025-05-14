@@ -10,7 +10,7 @@ import (
 )
 
 func (s *service) GetLogTableInfo(ctx_core core.Context, req *request.LogTableInfoRequest) (*response.LogTableInfoResponse, error) {
-	rows, err := s.dbRepo.GetAllLogTable()
+	rows, err := s.dbRepo.GetAllLogTable(ctx_core)
 	res := &response.LogTableInfoResponse{}
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func (s *service) GetLogTableInfo(ctx_core core.Context, req *request.LogTableIn
 		})
 	}
 
-	others, err := s.dbRepo.GetAllOtherLogTable()
+	others, err := s.dbRepo.GetAllOtherLogTable(ctx_core)
 	if err != nil {
 		return nil, err
 	}

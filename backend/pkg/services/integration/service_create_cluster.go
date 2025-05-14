@@ -13,7 +13,7 @@ import (
 )
 
 func (s *service) CreateCluster(ctx_core core.Context, cluster *integration.ClusterIntegration) (*integration.Cluster, error) {
-	isExist, err := s.dbRepo.CheckClusterNameExisted(cluster.Name)
+	isExist, err := s.dbRepo.CheckClusterNameExisted(ctx_core, cluster.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +23,7 @@ func (s *service) CreateCluster(ctx_core core.Context, cluster *integration.Clus
 
 	cluster.ID = uuid.NewString()
 	cluster.APOCollector.RemoveHttpPrefix()
-	err = s.dbRepo.CreateCluster(&cluster.Cluster)
+	err = s.dbRepo.CreateCluster(ctx_core, &cluster.Cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func (s *service) CreateCluster(ctx_core core.Context, cluster *integration.Clus
 	// HACK 当前强制指定VM和CK配置
 	forceSetupMetricLogAPI(cluster)
 
-	err = s.dbRepo.SaveIntegrationConfig(*cluster)
+	err = s.dbRepo.SaveIntegrationConfig(ctx_core, *cluster)
 	if err != nil {
 		return nil, err
 	}

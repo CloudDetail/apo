@@ -12,7 +12,7 @@ import (
 )
 
 func (s *service) DeleteRole(ctx_core core.Context, req *request.DeleteRoleRequest) error {
-	exists, err := s.dbRepo.RoleExists(req.RoleID)
+	exists, err := s.dbRepo.RoleExists(ctx_core, req.RoleID)
 	if err != nil {
 		return err
 	}
@@ -21,7 +21,7 @@ func (s *service) DeleteRole(ctx_core core.Context, req *request.DeleteRoleReque
 		return core.Error(code.RoleNotExistsError, "role does not exist")
 	}
 
-	granted, err := s.dbRepo.RoleGranted(req.RoleID)
+	granted, err := s.dbRepo.RoleGranted(ctx_core, req.RoleID)
 	if err != nil {
 		return err
 	}
@@ -31,12 +31,12 @@ func (s *service) DeleteRole(ctx_core core.Context, req *request.DeleteRoleReque
 	}
 
 	var revokeRoleFunc = func(ctx context.Context) error {
-		return s.dbRepo.RevokeRoleWithRole(ctx, req.RoleID)
+		return s.dbRepo.RevokeRoleWithRole(ctx_core, ctx, req.RoleID)
 	}
 
 	var deleteFunc = func(ctx context.Context) error {
-		return s.dbRepo.DeleteRole(ctx, req.RoleID)
+		return s.dbRepo.DeleteRole(ctx_core, ctx, req.RoleID)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), revokeRoleFunc, deleteFunc)
+	return s.dbRepo.Transaction(ctx_core, context.Background(), revokeRoleFunc, deleteFunc)
 }

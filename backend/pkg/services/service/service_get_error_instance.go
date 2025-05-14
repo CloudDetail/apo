@@ -4,10 +4,10 @@
 package service
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func (s *service) GetErrorInstance(ctx_core core.Context, req *request.GetErrorInstanceRequest) (*response.GetErrorInstanceResponse, error) {
@@ -25,17 +25,17 @@ func (s *service) GetErrorInstance(ctx_core core.Context, req *request.GetErrorI
 		}
 
 		instanceList = append(instanceList, &response.ErrorInstance{
-			Name:		instance.GetInstanceId(),
-			ContainerId:	instance.ContainerId,
-			NodeName:	instance.NodeName,
-			Pid:		instance.Pid,
-			Propations:	make([]*response.ErrorPropation, 0),
-			Logs:		logs,
+			Name:        instance.GetInstanceId(),
+			ContainerId: instance.ContainerId,
+			NodeName:    instance.NodeName,
+			Pid:         instance.Pid,
+			Propations:  make([]*response.ErrorPropation, 0),
+			Logs:        logs,
 		})
 	}
 
 	// Get error propagation link
-	propagations, err := s.chRepo.ListErrorPropagation(req)
+	propagations, err := s.chRepo.ListErrorPropagation(ctx_core, req)
 	if err != nil {
 		return nil, err
 	}
@@ -50,17 +50,17 @@ func (s *service) GetErrorInstance(ctx_core core.Context, req *request.GetErrorI
 			parents := make([]*response.InstanceNode, 0)
 			for i, size := 0, len(propagation.ParentInstances); i < size; i++ {
 				parents = append(parents, &response.InstanceNode{
-					Service:	propagation.ParentServices[i],
-					Instance:	propagation.ParentInstances[i],
-					IsTraced:	propagation.ParentTraced[i],
+					Service:  propagation.ParentServices[i],
+					Instance: propagation.ParentInstances[i],
+					IsTraced: propagation.ParentTraced[i],
 				})
 			}
 			children := make([]*response.InstanceNode, 0)
 			for i, size := 0, len(propagation.ChildInstances); i < size; i++ {
 				children = append(children, &response.InstanceNode{
-					Service:	propagation.ChildServices[i],
-					Instance:	propagation.ChildInstances[i],
-					IsTraced:	propagation.ChildTraced[i],
+					Service:  propagation.ChildServices[i],
+					Instance: propagation.ChildInstances[i],
+					IsTraced: propagation.ChildTraced[i],
 				})
 			}
 
@@ -79,22 +79,22 @@ func (s *service) GetErrorInstance(ctx_core core.Context, req *request.GetErrorI
 			errorInfos := make([]*response.ErrorInfo, 0)
 			for i := 0; i < len(propagation.ErrorTypes); i++ {
 				errorInfos = append(errorInfos, &response.ErrorInfo{
-					Type:		propagation.ErrorTypes[i],
-					Message:	propagation.ErrorMsgs[i],
+					Type:    propagation.ErrorTypes[i],
+					Message: propagation.ErrorMsgs[i],
 				})
 			}
 
 			errorPropations = append(errorPropations, &response.ErrorPropation{
-				Timestamp:	propagation.Timestamp.UnixMicro(),
-				TraceId:	propagation.TraceId,
-				ErrorInfos:	errorInfos,
-				Parents:	parents,
+				Timestamp:  propagation.Timestamp.UnixMicro(),
+				TraceId:    propagation.TraceId,
+				ErrorInfos: errorInfos,
+				Parents:    parents,
 				Current: &response.InstanceNode{
-					Service:	propagation.Service,
-					Instance:	instanceId,
-					IsTraced:	true,
+					Service:  propagation.Service,
+					Instance: instanceId,
+					IsTraced: true,
 				},
-				Children:	children,
+				Children: children,
 			})
 			errorPropationsMap[instanceId] = errorPropations
 		}
@@ -109,9 +109,9 @@ func (s *service) GetErrorInstance(ctx_core core.Context, req *request.GetErrorI
 	// Unmatched InstanceId exists
 	for instanceId := range newInstanceList {
 		instanceList = append(instanceList, &response.ErrorInstance{
-			Name:		instanceId,
-			Propations:	errorPropationsMap[instanceId],
-			Logs:		make(map[int64]float64),
+			Name:       instanceId,
+			Propations: errorPropationsMap[instanceId],
+			Logs:       make(map[int64]float64),
 		})
 	}
 
@@ -123,7 +123,7 @@ func (s *service) GetErrorInstance(ctx_core core.Context, req *request.GetErrorI
 		}
 	}
 	return &response.GetErrorInstanceResponse{
-		Status:		status,
-		Instances:	filteredInstanceList,
+		Status:    status,
+		Instances: filteredInstanceList,
 	}, nil
 }

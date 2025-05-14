@@ -4,9 +4,9 @@
 package service
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func (s *service) GetLogMetrics(ctx_core core.Context, req *request.GetLogMetricsRequest) ([]*response.GetLogMetricsResponse, error) {
@@ -37,13 +37,13 @@ func (s *service) GetLogMetrics(ctx_core core.Context, req *request.GetLogMetric
 		// Display only the list of instances with data
 		if exist_metrics(logs) || exist_metrics(p90) || exist_metrics(errorRate) {
 			metricResponse := &response.GetLogMetricsResponse{
-				Name:		instance.GetInstanceId(),
-				ContainerId:	instance.ContainerId,
-				NodeName:	instance.NodeName,
-				Pid:		instance.Pid,
-				Logs:		logs,
-				Latency:	p90,
-				ErrorRate:	errorRate,
+				Name:        instance.GetInstanceId(),
+				ContainerId: instance.ContainerId,
+				NodeName:    instance.NodeName,
+				Pid:         instance.Pid,
+				Logs:        logs,
+				Latency:     p90,
+				ErrorRate:   errorRate,
 			}
 			result = append(result, metricResponse)
 		}

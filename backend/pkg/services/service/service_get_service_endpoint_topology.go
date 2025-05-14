@@ -12,13 +12,13 @@ import (
 
 func (s *service) GetServiceEndpointTopology(ctx_core core.Context, req *request.GetServiceEndpointTopologyRequest) (*response.GetServiceEndpointTopologyResponse, error) {
 	// Query all upstream nodes
-	parents, err := s.chRepo.ListParentNodes(req)
+	parents, err := s.chRepo.ListParentNodes(ctx_core, req)
 	if err != nil {
 		return nil, err
 	}
 
 	// Query all downstream nodes
-	children, err := s.chRepo.ListChildNodes(req)
+	children, err := s.chRepo.ListChildNodes(ctx_core, req)
 	if err != nil {
 		return nil, err
 	}

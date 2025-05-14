@@ -34,7 +34,7 @@ func (h *handler) UpdateAlertRuleFile() core.HandlerFunc {
 			return
 		}
 
-		err := h.alertService.UpdateAlertRuleFile(req)
+		err := h.alertService.UpdateAlertRuleFile(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

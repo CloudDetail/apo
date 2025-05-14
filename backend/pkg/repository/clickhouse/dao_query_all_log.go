@@ -23,7 +23,7 @@ func (ch *chRepo) QueryAllLogs(ctx_core core.Context, req *request.LogQueryReque
 		String()
 	sql := buildAllLogsQuery(logsBaseQuery, req, condition, bySql)
 
-	results, err := ch.queryRowsData(sql)
+	results, err := ch.queryRowsData(ctx_core, sql)
 	if err != nil {
 		return nil, sql, err
 	}

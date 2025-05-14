@@ -4,32 +4,32 @@
 package alert
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func (s *service) CreateSchema(ctx_core core.Context, req *alert.CreateSchemaRequest) error {
-	err := s.dbRepo.CreateSchema(req.Schema, req.Columns)
+	err := s.dbRepo.CreateSchema(ctx_core, req.Schema, req.Columns)
 	if err != nil {
 		return err
 	}
 	if len(req.FullRows) > 0 {
-		return s.dbRepo.InsertSchemaData(req.Schema, req.Columns, req.FullRows)
+		return s.dbRepo.InsertSchemaData(ctx_core, req.Schema, req.Columns, req.FullRows)
 	}
 	return nil
 }
 
-func (s *service) ListSchema(ctx_core core.Context,) ([]string, error) {
-	return s.dbRepo.ListSchema()
+func (s *service) ListSchema(ctx_core core.Context) ([]string, error) {
+	return s.dbRepo.ListSchema(ctx_core)
 }
 
 func (s *service) GetSchemaData(ctx_core core.Context, schema string) ([]string, map[int64][]string, error) {
-	return s.dbRepo.GetSchemaData(schema)
+	return s.dbRepo.GetSchemaData(ctx_core, schema)
 }
 
 func (s *service) CheckSchemaIsUsed(ctx_core core.Context, schema string) ([]string, error) {
-	return s.dbRepo.CheckSchemaIsUsed(schema)
+	return s.dbRepo.CheckSchemaIsUsed(ctx_core, schema)
 }
 
 func (s *service) DeleteSchema(ctx_core core.Context, schema string) error {
@@ -39,24 +39,24 @@ func (s *service) DeleteSchema(ctx_core core.Context, schema string) error {
 		return true
 	})
 
-	return s.dbRepo.DeleteSchema(schema)
+	return s.dbRepo.DeleteSchema(ctx_core, schema)
 }
 
 func (s *service) ListSchemaColumns(ctx_core core.Context, schema string) ([]string, error) {
-	return s.dbRepo.ListSchemaColumns(schema)
+	return s.dbRepo.ListSchemaColumns(ctx_core, schema)
 }
 
 func (s *service) UpdateSchemaData(ctx_core core.Context, req *alert.UpdateSchemaDataRequest) error {
 	if req.ClearAll {
-		err := s.dbRepo.ClearSchemaData(req.Schema)
+		err := s.dbRepo.ClearSchemaData(ctx_core, req.Schema)
 		if err != nil {
 			return err
 		}
 	}
 	if len(req.NewRows) > 0 {
-		return s.dbRepo.InsertSchemaData(req.Schema, req.Columns, req.NewRows)
+		return s.dbRepo.InsertSchemaData(ctx_core, req.Schema, req.Columns, req.NewRows)
 	} else if len(req.UpdateRows) > 0 {
-		return s.dbRepo.UpdateSchemaData(req.Schema, req.Columns, req.UpdateRows)
+		return s.dbRepo.UpdateSchemaData(ctx_core, req.Schema, req.Columns, req.UpdateRows)
 	}
 
 	return nil

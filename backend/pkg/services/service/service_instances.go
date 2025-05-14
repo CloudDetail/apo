@@ -12,13 +12,13 @@ import (
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func (s *service) GetInstances(ctx_core core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error) {
-	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
+	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx_core, "", "", database.GLOBAL)
 	if err != nil {
 		return res, err
 	}
@@ -121,13 +121,13 @@ func (s *service) GetInstances(ctx_core core.Context, startTime time.Time, endTi
 		}
 		// error's DoD/WoW Growth Rate
 		newErrorRadio := response.Ratio{
-			DayOverDay:	instance.ErrorRateDayOverDay,
-			WeekOverDay:	instance.ErrorRateWeekOverWeek,
+			DayOverDay:  instance.ErrorRateDayOverDay,
+			WeekOverDay: instance.ErrorRateWeekOverWeek,
 		}
 		newErrorRate := response.TempChartObject{
 			Ratio: newErrorRadio,
 		}
-		if instance.AvgErrorRate != nil && !math.IsInf(*instance.AvgErrorRate, 0) {	// is not assigned when it is infinity.
+		if instance.AvgErrorRate != nil && !math.IsInf(*instance.AvgErrorRate, 0) { // is not assigned when it is infinity.
 			newErrorRate.Value = instance.AvgErrorRate
 		}
 		if instance.ErrorRateData != nil {
@@ -136,7 +136,7 @@ func (s *service) GetInstances(ctx_core core.Context, startTime time.Time, endTi
 			for _, item := range instance.ErrorRateData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) {	// does not assign value when it is infinity
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
@@ -158,14 +158,14 @@ func (s *service) GetInstances(ctx_core core.Context, startTime time.Time, endTi
 		}
 
 		newtpsRadio := response.Ratio{
-			DayOverDay:	instance.TPSDayOverDay,
-			WeekOverDay:	instance.TPSWeekOverWeek,
+			DayOverDay:  instance.TPSDayOverDay,
+			WeekOverDay: instance.TPSWeekOverWeek,
 		}
 		newtpsRate := response.TempChartObject{
 			//ChartData: map[int64]float64{},
 			Ratio: newtpsRadio,
 		}
-		if instance.AvgTPS != nil && !math.IsInf(*instance.AvgTPS, 0) {	// No assignment when it is infinity
+		if instance.AvgTPS != nil && !math.IsInf(*instance.AvgTPS, 0) { // No assignment when it is infinity
 			newtpsRate.Value = instance.AvgTPS
 		}
 		// No data found, is_error = true, filled with 0
@@ -184,20 +184,20 @@ func (s *service) GetInstances(ctx_core core.Context, startTime time.Time, endTi
 			for _, item := range instance.TPSData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) {	// does not assign value when it is infinity
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
 			newtpsRate.ChartData = data
 		}
 		newlatencyRadio := response.Ratio{
-			DayOverDay:	instance.LatencyDayOverDay,
-			WeekOverDay:	instance.LatencyWeekOverWeek,
+			DayOverDay:  instance.LatencyDayOverDay,
+			WeekOverDay: instance.LatencyWeekOverWeek,
 		}
 		newlatencyRate := response.TempChartObject{
 			Ratio: newlatencyRadio,
 		}
-		if instance.AvgLatency != nil && !math.IsInf(*instance.AvgLatency, 0) {	// is not assigned when it is infinity.
+		if instance.AvgLatency != nil && !math.IsInf(*instance.AvgLatency, 0) { // is not assigned when it is infinity.
 			newlatencyRate.Value = instance.AvgLatency
 		}
 		if instance.LatencyData != nil {
@@ -206,7 +206,7 @@ func (s *service) GetInstances(ctx_core core.Context, startTime time.Time, endTi
 			for _, item := range instance.LatencyData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) {	// does not assign value when it is infinity
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
@@ -231,12 +231,12 @@ func (s *service) GetInstances(ctx_core core.Context, startTime time.Time, endTi
 			*newErrorRate.Ratio.WeekOverDay = serviceoverview.RES_MAX_VALUE
 		}
 		newLogRadio := response.Ratio{
-			DayOverDay:	instance.LogDayOverDay,
-			WeekOverDay:	instance.LogWeekOverWeek,
+			DayOverDay:  instance.LogDayOverDay,
+			WeekOverDay: instance.LogWeekOverWeek,
 		}
 		newlogs := response.TempChartObject{
-			Value:	instance.AvgLog,
-			Ratio:	newLogRadio,
+			Value: instance.AvgLog,
+			Ratio: newLogRadio,
 		}
 		if newlogs.Value == nil {
 			newlogs.Value = new(float64)
@@ -249,7 +249,7 @@ func (s *service) GetInstances(ctx_core core.Context, startTime time.Time, endTi
 			for _, item := range instance.LogData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) {	// does not assign value when it is infinity
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
@@ -264,17 +264,17 @@ func (s *service) GetInstances(ctx_core core.Context, startTime time.Time, endTi
 			newlogs.ChartData = values
 		}
 		newInstance := response.InstanceData{
-			Name:		instance.InstanceName,
-			Namespace:	instance.Namespace,
-			NodeName:	instance.NodeName,
-			NodeIP:		instance.NodeIP,
-			Timestamp:	nil,
-			Latency:	newlatencyRate,
-			Tps:		newtpsRate,
-			ErrorRate:	newErrorRate,
-			Logs:		newlogs,
-			AlertStatus:	model.NORMAL_ALERT_STATUS,
-			AlertReason:	model.AlertReason{},
+			Name:        instance.InstanceName,
+			Namespace:   instance.Namespace,
+			NodeName:    instance.NodeName,
+			NodeIP:      instance.NodeIP,
+			Timestamp:   nil,
+			Latency:     newlatencyRate,
+			Tps:         newtpsRate,
+			ErrorRate:   newErrorRate,
+			Logs:        newlogs,
+			AlertStatus: model.NORMAL_ALERT_STATUS,
+			AlertReason: model.AlertReason{},
 		}
 
 		pidI64, err := strconv.ParseInt(instance.Pid, 10, 64)
@@ -284,16 +284,17 @@ func (s *service) GetInstances(ctx_core core.Context, startTime time.Time, endTi
 
 		instanceSingleList := []*model.ServiceInstance{
 			{
-				ServiceName:	serviceName,
-				ContainerId:	instance.ContainerId,
-				PodName:	instance.Pod,
-				Namespace:	instance.Namespace,
-				NodeName:	instance.NodeName,
-				Pid:		pidI64,
+				ServiceName: serviceName,
+				ContainerId: instance.ContainerId,
+				PodName:     instance.Pod,
+				Namespace:   instance.Namespace,
+				NodeName:    instance.NodeName,
+				Pid:         pidI64,
 			},
 		}
 		// fill alarm status
 		newInstance.AlertStatusCH = serviceoverview.GetAlertStatusCH(
+			ctx_core,
 			s.chRepo, &newInstance.AlertReason, nil,
 			nil, serviceName, instanceSingleList,
 			startTime, endTime,

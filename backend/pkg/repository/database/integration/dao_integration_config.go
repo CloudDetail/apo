@@ -119,7 +119,7 @@ func (repo *subRepos) SaveIntegrationConfig(ctx_core core.Context, iConfig integ
 
 // get integration config for the cluster
 func (repo *subRepos) GetIntegrationConfig(ctx_core core.Context, clusterID string) (*integration.ClusterIntegration, error) {
-	cluster, err := repo.GetCluster(clusterID)
+	cluster, err := repo.GetCluster(ctx_core, clusterID)
 	if err != nil {
 		return nil, err
 	}

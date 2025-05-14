@@ -63,7 +63,7 @@ func (s *service) QueryLogContext(ctx_core core.Context, req *request.LogQueryCo
 		Table:		req.TableName,
 	}
 	// query log field json
-	s.dbRepo.OperateLogTableInfo(model, database.QUERY)
+	s.dbRepo.OperateLogTableInfo(ctx_core, model, database.QUERY)
 	var fields []request.Field
 	_ = json.Unmarshal([]byte(model.Fields), &fields)
 
@@ -71,7 +71,7 @@ func (s *service) QueryLogContext(ctx_core core.Context, req *request.LogQueryCo
 		logFields[field.Name] = struct{}{}
 	}
 
-	front, end, _ := s.chRepo.QueryLogContext(req)
+	front, end, _ := s.chRepo.QueryLogContext(ctx_core, req)
 
 	frontItem, err := log2item(front, logFields)
 	if err != nil {

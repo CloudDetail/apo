@@ -34,7 +34,7 @@ func (h *handler) UpdateAlertManagerConfigReceiver() core.HandlerFunc {
 			return
 		}
 
-		err := h.alertService.UpdateAMConfigReceiver(req)
+		err := h.alertService.UpdateAMConfigReceiver(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

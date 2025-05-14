@@ -82,7 +82,7 @@ func (repo *daoRepo) GrantRoleWithUser(ctx_core core.Context, ctx context.Contex
 	if len(roleIDs) == 0 {
 		return nil
 	}
-	db := repo.GetContextDB(ctx)
+	db := repo.GetContextDB(ctx_core, ctx)
 	userRole := make([]UserRole, len(roleIDs))
 	for i, roleID := range roleIDs {
 		userRole[i] = UserRole{
@@ -95,7 +95,7 @@ func (repo *daoRepo) GrantRoleWithUser(ctx_core core.Context, ctx context.Contex
 }
 
 func (repo *daoRepo) RevokeRole(ctx_core core.Context, ctx context.Context, userID int64, roleIDs []int) error {
-	return repo.GetContextDB(ctx).
+	return repo.GetContextDB(ctx_core, ctx).
 		Model(&UserRole{}).Where("user_id = ? AND role_id in ?", userID, roleIDs).Delete(nil).Error
 }
 
@@ -112,16 +112,16 @@ func (repo *daoRepo) RoleExists(ctx_core core.Context, roleID int) (bool, error)
 }
 
 func (repo *daoRepo) CreateRole(ctx_core core.Context, ctx context.Context, role *Role) error {
-	return repo.GetContextDB(ctx).Create(&role).Error
+	return repo.GetContextDB(ctx_core, ctx).Create(&role).Error
 }
 
 func (repo *daoRepo) DeleteRole(ctx_core core.Context, ctx context.Context, roleID int) error {
-	err := repo.GetContextDB(ctx).Model(&Role{}).Where("role_id = ?", roleID).Delete(nil).Error
+	err := repo.GetContextDB(ctx_core, ctx).Model(&Role{}).Where("role_id = ?", roleID).Delete(nil).Error
 	if err != nil {
 		return err
 	}
 
-	return repo.GetContextDB(ctx).
+	return repo.GetContextDB(ctx_core, ctx).
 		Model(&UserRole{}).
 		Where("role_id = ?", roleID).
 		Delete(nil).Error
@@ -134,7 +134,7 @@ func (repo *daoRepo) UpdateRole(ctx_core core.Context, ctx context.Context, role
 		Description:	description,
 	}
 
-	return repo.GetContextDB(ctx).Updates(&role).Error
+	return repo.GetContextDB(ctx_core, ctx).Updates(&role).Error
 }
 
 func (repo *daoRepo) GrantRoleWithRole(ctx_core core.Context, ctx context.Context, roleID int, userIDs []int64) error {
@@ -150,7 +150,7 @@ func (repo *daoRepo) GrantRoleWithRole(ctx_core core.Context, ctx context.Contex
 		}
 	}
 
-	return repo.GetContextDB(ctx).Clauses(
+	return repo.GetContextDB(ctx_core, ctx).Clauses(
 		clause.OnConflict{
 			Columns:	[]clause.Column{{Name: "user_id"}, {Name: "role_id"}},
 			DoNothing:	true,
@@ -158,7 +158,7 @@ func (repo *daoRepo) GrantRoleWithRole(ctx_core core.Context, ctx context.Contex
 }
 
 func (repo *daoRepo) RevokeRoleWithRole(ctx_core core.Context, ctx context.Context, roleID int) error {
-	return repo.GetContextDB(ctx).
+	return repo.GetContextDB(ctx_core, ctx).
 		Model(&UserRole{}).Where("role_id = ?", roleID).Delete(nil).Error
 }
 

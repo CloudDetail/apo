@@ -13,12 +13,12 @@ import (
 
 // Deprecated
 func (s *service) GetIntegrationInstallDoc(ctx_core core.Context, req *integration.GetCInstallRequest) ([]byte, error) {
-	cluster, err := s.dbRepo.GetCluster(req.ClusterID)
+	cluster, err := s.dbRepo.GetCluster(ctx_core, req.ClusterID)
 	if err != nil {
 		return nil, err
 	}
 
-	clusterConfig, err := s.dbRepo.GetIntegrationConfig(req.ClusterID)
+	clusterConfig, err := s.dbRepo.GetIntegrationConfig(ctx_core, req.ClusterID)
 	if err != nil {
 		return nil, err
 	}

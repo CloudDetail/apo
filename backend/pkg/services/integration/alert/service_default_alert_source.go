@@ -25,11 +25,11 @@ func (s *service) ClearDefaultAlertEnrichRule(ctx_core core.Context, sourceType 
 	sourceUUID := uuid.NewMD5(uuidZero, []byte(sourceType)).String()
 
 	var storeError error
-	err := s.dbRepo.DeleteAlertEnrichRuleBySourceId(sourceUUID)
+	err := s.dbRepo.DeleteAlertEnrichRuleBySourceId(ctx_core, sourceUUID)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.DeleteAlertEnrichConditionsBySourceId(sourceUUID)
+	err = s.dbRepo.DeleteAlertEnrichConditionsBySourceId(ctx_core, sourceUUID)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.DeleteAlertEnrichSchemaTargetBySourceId(sourceUUID)
+	err = s.dbRepo.DeleteAlertEnrichSchemaTargetBySourceId(ctx_core, sourceUUID)
 	storeError = multierr.Append(storeError, err)
 	return find, storeError
 }
@@ -49,7 +49,7 @@ func (s *service) GetDefaultAlertEnrichRule(ctx_core core.Context, sourceType st
 }
 
 func (s *service) SetDefaultAlertEnrichRule(ctx_core core.Context, sourceType string, tagEnrichRules []alert.AlertEnrichRuleVO) error {
-	existed, err := s.ClearDefaultAlertEnrichRule(sourceType)
+	existed, err := s.ClearDefaultAlertEnrichRule(ctx_core, sourceType)
 	if err != nil {
 		return err
 	}
@@ -67,15 +67,15 @@ func (s *service) SetDefaultAlertEnrichRule(ctx_core core.Context, sourceType st
 
 	var storeError error
 	if !existed {
-		err := s.dbRepo.CreateAlertSource(&alert.AlertSource{SourceFrom: *sourceFrom})
+		err := s.dbRepo.CreateAlertSource(ctx_core, &alert.AlertSource{SourceFrom: *sourceFrom})
 		storeError = multierr.Append(storeError, err)
 	}
 
-	err = s.dbRepo.AddAlertEnrichRule(newR)
+	err = s.dbRepo.AddAlertEnrichRule(ctx_core, newR)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.AddAlertEnrichConditions(newC)
+	err = s.dbRepo.AddAlertEnrichConditions(ctx_core, newC)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.AddAlertEnrichSchemaTarget(newS)
+	err = s.dbRepo.AddAlertEnrichSchemaTarget(ctx_core, newS)
 	storeError = multierr.Append(storeError, err)
 	return storeError
 }

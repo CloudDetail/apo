@@ -35,7 +35,7 @@ func (h *handler) GetUserTeam() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.userService.GetUserTeam(req)
+		resp, err := h.userService.GetUserTeam(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

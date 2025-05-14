@@ -16,7 +16,7 @@ func (s *service) TeamUserOperation(ctx_core core.Context, req *request.AssignTo
 	filter := model.TeamFilter{
 		ID: req.TeamID,
 	}
-	exists, err := s.dbRepo.TeamExist(filter)
+	exists, err := s.dbRepo.TeamExist(ctx_core, filter)
 	if err != nil {
 		return err
 	}
@@ -25,7 +25,7 @@ func (s *service) TeamUserOperation(ctx_core core.Context, req *request.AssignTo
 		return core.Error(code.TeamNotExistError, "team does not exist")
 	}
 
-	exists, err = s.dbRepo.UserExists(req.UserList...)
+	exists, err = s.dbRepo.UserExists(ctx_core, req.UserList...)
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (s *service) TeamUserOperation(ctx_core core.Context, req *request.AssignTo
 		return core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
-	hasUsers, err := s.dbRepo.GetTeamUsers(req.TeamID)
+	hasUsers, err := s.dbRepo.GetTeamUsers(ctx_core, req.TeamID)
 	if err != nil {
 		return err
 	}
@@ -58,12 +58,12 @@ func (s *service) TeamUserOperation(ctx_core core.Context, req *request.AssignTo
 	}
 
 	var inviteFunc = func(ctx context.Context) error {
-		return s.dbRepo.InviteUserToTeam(ctx, req.TeamID, toAdd)
+		return s.dbRepo.InviteUserToTeam(ctx_core, ctx, req.TeamID, toAdd)
 	}
 
 	var removeFunc = func(ctx context.Context) error {
-		return s.dbRepo.RemoveFromTeamByTeam(ctx, req.TeamID, toDelete)
+		return s.dbRepo.RemoveFromTeamByTeam(ctx_core, ctx, req.TeamID, toDelete)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), inviteFunc, removeFunc)
+	return s.dbRepo.Transaction(ctx_core, context.Background(), inviteFunc, removeFunc)
 }

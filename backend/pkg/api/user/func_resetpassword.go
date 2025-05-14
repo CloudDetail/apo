@@ -46,7 +46,7 @@ func (h *handler) ResetPassword() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.RestPassword(req)
+		err := h.userService.RestPassword(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

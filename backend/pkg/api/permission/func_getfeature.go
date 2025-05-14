@@ -40,7 +40,7 @@ func (h *handler) GetFeature() core.HandlerFunc {
 			req.Language = model.TRANSLATION_ZH
 		}
 
-		resp, err := h.permissionService.GetFeature(req)
+		resp, err := h.permissionService.GetFeature(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

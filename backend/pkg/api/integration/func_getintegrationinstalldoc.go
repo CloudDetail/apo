@@ -33,7 +33,7 @@ func (h *handler) GetIntegrationInstallDoc() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.integrationService.GetIntegrationInstallDoc(req)
+		resp, err := h.integrationService.GetIntegrationInstallDoc(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

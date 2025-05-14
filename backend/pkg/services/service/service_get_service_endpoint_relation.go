@@ -12,13 +12,13 @@ import (
 
 func (s *service) GetServiceEndpointRelation(ctx_core core.Context, req *request.GetServiceEndpointRelationRequest) (*response.GetServiceEndpointRelationResponse, error) {
 	// Query all upstream nodes
-	parents, err := s.chRepo.ListParentNodes(req)
+	parents, err := s.chRepo.ListParentNodes(ctx_core, req)
 	if err != nil {
 		return nil, err
 	}
 
 	// Query the calling relationship list of all downstream nodes
-	relations, err := s.chRepo.ListDescendantRelations(req)
+	relations, err := s.chRepo.ListDescendantRelations(ctx_core, req)
 	if err != nil {
 		return nil, err
 	}

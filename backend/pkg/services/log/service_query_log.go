@@ -18,7 +18,7 @@ func (s *service) QueryLog(ctx_core core.Context, req *request.LogQueryRequest) 
 	// calculate offset, if offset > 10000, calculate from histogram
 	offset := (req.PageNum - 1) * req.PageSize
 	if offset > 10000 {
-		logcharts, _ := s.GetLogChart(req)
+		logcharts, _ := s.GetLogChart(ctx_core, req)
 		var count = 0
 		for _, chart := range logcharts.Histograms {
 			count += int(chart.Count)
@@ -31,7 +31,7 @@ func (s *service) QueryLog(ctx_core core.Context, req *request.LogQueryRequest) 
 	}
 
 	req.PageNum = offset
-	logs, sql, err := s.chRepo.QueryAllLogs(req)
+	logs, sql, err := s.chRepo.QueryAllLogs(ctx_core, req)
 	res := &response.LogQueryResponse{Query: sql}
 	if err != nil {
 		res.Err = err.Error()
@@ -39,7 +39,7 @@ func (s *service) QueryLog(ctx_core core.Context, req *request.LogQueryRequest) 
 	}
 
 	// query column name and type
-	rows, err := s.chRepo.OtherLogTableInfo(&request.OtherTableInfoRequest{
+	rows, err := s.chRepo.OtherLogTableInfo(ctx_core, &request.OtherTableInfoRequest{
 		DataBase:	req.DataBase,
 		TableName:	req.TableName,
 	})
@@ -63,7 +63,7 @@ func (s *service) QueryLog(ctx_core core.Context, req *request.LogQueryRequest) 
 			Table:		req.TableName,
 		}
 		// query log field json
-		s.dbRepo.OperateLogTableInfo(model, database.QUERY)
+		s.dbRepo.OperateLogTableInfo(ctx_core, model, database.QUERY)
 		var fields []request.Field
 		_ = json.Unmarshal([]byte(model.Fields), &fields)
 

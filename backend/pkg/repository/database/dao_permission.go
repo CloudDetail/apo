@@ -45,7 +45,7 @@ func (repo *daoRepo) GrantPermission(ctx_core core.Context, ctx context.Context,
 		return nil
 	}
 
-	db := repo.GetContextDB(ctx)
+	db := repo.GetContextDB(ctx_core, ctx)
 	permission := make([]AuthPermission, len(permissionIDs))
 	for i := range permissionIDs {
 		permission[i] = AuthPermission{
@@ -65,7 +65,7 @@ func (repo *daoRepo) RevokePermission(ctx_core core.Context, ctx context.Context
 		return nil
 	}
 
-	query := repo.GetContextDB(ctx).
+	query := repo.GetContextDB(ctx_core, ctx).
 		Model(&AuthPermission{}).
 		Where("subject_id = ? AND subject_type = ? AND type = ?", subID, subType, typ)
 
@@ -77,12 +77,12 @@ func (repo *daoRepo) RevokePermission(ctx_core core.Context, ctx context.Context
 }
 
 func (repo *daoRepo) GetAddAndDeletePermissions(ctx_core core.Context, subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error) {
-	subPermissions, err := repo.GetSubjectPermission(subID, subType, typ)
+	subPermissions, err := repo.GetSubjectPermission(ctx_core, subID, subType, typ)
 	if err != nil {
 		return
 	}
 
-	permissions, err := repo.GetFeature(nil)
+	permissions, err := repo.GetFeature(ctx_core, nil)
 
 	permissionMap := make(map[int]struct{})
 	for _, permission := range permissions {

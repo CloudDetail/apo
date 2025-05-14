@@ -19,7 +19,7 @@ func (s *service) SetThreshold(ctx_core core.Context, level string, serviceName 
 	if level == database.GLOBAL {
 		threshold.Level = database.GLOBAL
 	}
-	err = s.dbRepo.CreateOrUpdateThreshold(threshold)
+	err = s.dbRepo.CreateOrUpdateThreshold(ctx_core, threshold)
 	return res, err
 
 }

@@ -20,12 +20,12 @@ func (s *service) AddOtherTable(ctx_core core.Context, req *request.AddOtherTabl
 		Table:		req.Table,
 		TimeField:	req.TimeField,
 	}
-	err := s.dbRepo.OperatorOtherLogTable(model, database.QUERY)
+	err := s.dbRepo.OperatorOtherLogTable(ctx_core, model, database.QUERY)
 	if err == nil {
 		res.Err = "table already exists"
 		return res, nil
 	} else {
-		err = s.dbRepo.OperatorOtherLogTable(model, database.INSERT)
+		err = s.dbRepo.OperatorOtherLogTable(ctx_core, model, database.INSERT)
 	}
 	if err != nil {
 		res.Err = err.Error()

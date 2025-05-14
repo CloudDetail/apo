@@ -16,11 +16,11 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/integration"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 type Repo interface {
@@ -71,12 +71,12 @@ type Repo interface {
 	GetLogChart(ctx_core core.Context, req *request.LogQueryRequest) ([]map[string]any, int64, error)
 	GetLogIndex(ctx_core core.Context, req *request.LogIndexRequest) (map[string]uint64, uint64, error)
 
-	OtherLogTable(ctx_core core.Context,) ([]map[string]any, error)
+	OtherLogTable(ctx_core core.Context) ([]map[string]any, error)
 	OtherLogTableInfo(ctx_core core.Context, req *request.OtherTableInfoRequest) ([]map[string]any, error)
 
 	InsertBatchAlertEvents(ctx_core core.Context, ctx context.Context, events []*model.AlertEvent) error
 	ReadAlertEvent(ctx_core core.Context, ctx context.Context, id uuid.UUID) (*model.AlertEvent, error)
-	GetConn(ctx_core core.Context,) driver.Conn
+	GetConn(ctx_core core.Context) driver.Conn
 
 	//config
 	ModifyTableTTL(ctx_core core.Context, ctx context.Context, mapResult []model.ModifyTableTTLMap) error
@@ -123,10 +123,10 @@ type Repo interface {
 }
 
 type chRepo struct {
-	conn		driver.Conn
-	database	string
+	conn     driver.Conn
+	database string
 	availableFilters
-	db	*sql.DB
+	db *sql.DB
 
 	integration.Input
 }
@@ -135,14 +135,14 @@ func New(logger *zap.Logger, address []string, database string, username string,
 	settings := clickhouse.Settings{}
 
 	conn, err := clickhouse.Open(&clickhouse.Options{
-		Addr:		address,
-		Settings:	settings,
+		Addr:     address,
+		Settings: settings,
 		Auth: clickhouse.Auth{
-			Database:	database,
-			Username:	username,
-			Password:	password,
+			Database: database,
+			Username: username,
+			Password: password,
 		},
-		DialTimeout:	time.Duration(5) * time.Second,
+		DialTimeout: time.Duration(5) * time.Second,
 	})
 	if err != nil {
 		return nil, err
@@ -160,23 +160,24 @@ func New(logger *zap.Logger, address []string, database string, username string,
 	// Use the wrapped Conn at the Debug log level, and output the time taken to execute SQL.
 	if logger.Level() == zap.DebugLevel {
 		repo = &chRepo{
-			database:	database,
+			database: database,
 			conn: &WrappedConn{
-				Conn:	conn,
-				logger:	logger,
+				Conn:   conn,
+				logger: logger,
 			},
-			db:	db,
+			db: db,
 		}
 	} else {
 		repo = &chRepo{
-			database:	database,
-			conn:		conn,
-			db:		db,
+			database: database,
+			conn:     conn,
+			db:       db,
 		}
 	}
 
 	now := time.Now()
-	filters, err := repo.UpdateFilterKey(now.Add(-48*time.Hour), now)
+	// TODO ctx_core
+	filters, err := repo.UpdateFilterKey(nil, now.Add(-48*time.Hour), now)
 	if err == nil {
 		repo.SetAvailableFilters(filters, now)
 	}
@@ -189,6 +190,6 @@ func New(logger *zap.Logger, address []string, database string, username string,
 	return repo, nil
 }
 
-func (ch *chRepo) GetConn(ctx_core core.Context,) driver.Conn {
+func (ch *chRepo) GetConn(ctx_core core.Context) driver.Conn {
 	return ch.conn
 }

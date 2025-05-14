@@ -8,7 +8,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -47,7 +46,7 @@ func (h *handler) UpdateUserPassword() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.UpdateUserPassword(req)
+		err := h.userService.UpdateUserPassword(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

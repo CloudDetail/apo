@@ -14,7 +14,7 @@ import (
 )
 
 func (s *service) AlertDetail(ctx_core core.Context, req *request.GetAlertDetailRequest) (*response.GetAlertDetailResponse, error) {
-	eventDetail, err := s.chRepo.GetAlertDetail(req, s.difyRepo.GetCacheMinutes())
+	eventDetail, err := s.chRepo.GetAlertDetail(ctx_core, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func (s *service) AlertDetail(ctx_core core.Context, req *request.GetAlertDetail
 
 	s.fillWorkflowParams(eventDetail)
 
-	releatedEvents, total, err := s.chRepo.GetRelatedAlertEvents(req, s.difyRepo.GetCacheMinutes())
+	releatedEvents, total, err := s.chRepo.GetRelatedAlertEvents(ctx_core, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
@@ -123,5 +123,5 @@ func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWReco
 
 func (s *service) ManualResolveLatestAlertEventByAlertID(ctx_core core.Context, alertID string) error {
 	// TODO valid alertID
-	return s.chRepo.ManualResolveLatestAlertEventByAlertID(alertID)
+	return s.chRepo.ManualResolveLatestAlertEventByAlertID(ctx_core, alertID)
 }

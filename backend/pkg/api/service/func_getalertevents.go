@@ -10,7 +10,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -53,7 +52,7 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 			req.Services = append(req.Services, req.Service)
 		}
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Services, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Services, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetAlertEventsResponse{
 				TotalCount: 0,
@@ -61,7 +60,7 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 			})
 			return
 		}
-		resp, err := h.serviceInfoService.GetAlertEvents(req)
+		resp, err := h.serviceInfoService.GetAlertEvents(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

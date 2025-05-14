@@ -42,7 +42,7 @@ func (h *handler) GetLogIndex() core.HandlerFunc {
 		if req.LogField == "" {
 			req.LogField = "content"
 		}
-		resp, err := h.logService.GetLogIndex(req)
+		resp, err := h.logService.GetLogIndex(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

@@ -38,7 +38,7 @@ func countSQL(baseQuery string, req *request.LogIndexRequest) string {
 
 func (ch *chRepo) GetLogIndex(ctx_core core.Context, req *request.LogIndexRequest) (map[string]uint64, uint64, error) {
 	groupSQL := groupBySQL(groupLogIndexQuery, req)
-	groupRows, err := ch.queryRowsData(groupSQL)
+	groupRows, err := ch.queryRowsData(ctx_core, groupSQL)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -79,7 +79,7 @@ func (ch *chRepo) GetLogIndex(ctx_core core.Context, req *request.LogIndexReques
 		}
 	}
 	countSQL := countSQL(countLogIndexQuery, req)
-	countRows, err := ch.queryRowsData(countSQL)
+	countRows, err := ch.queryRowsData(ctx_core, countSQL)
 	if err != nil {
 		return nil, 0, err
 	}

@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
@@ -23,7 +24,7 @@ type Service interface {
 	GetAlertSource(ctx_core core.Context, source *alert.SourceFrom) (*alert.AlertSource, error)
 	UpdateAlertSource(ctx_core core.Context, source *alert.AlertSource) (*alert.AlertSource, error)
 	DeleteAlertSource(ctx_core core.Context, source alert.SourceFrom) (*alert.AlertSource, error)
-	ListAlertSource(ctx_core core.Context,) ([]alert.AlertSource, error)
+	ListAlertSource(ctx_core core.Context) ([]alert.AlertSource, error)
 
 	UpdateAlertEnrichRule(ctx_core core.Context, req *alert.AlertEnrichRuleConfigRequest) error
 	GetAlertEnrichRule(ctx_core core.Context, sourceID string) ([]alert.AlertEnrichRuleVO, error)
@@ -34,14 +35,14 @@ type Service interface {
 
 	CreateSchema(ctx_core core.Context, req *alert.CreateSchemaRequest) error
 	DeleteSchema(ctx_core core.Context, schema string) error
-	ListSchema(ctx_core core.Context,) ([]string, error)
+	ListSchema(ctx_core core.Context) ([]string, error)
 	ListSchemaColumns(ctx_core core.Context, schema string) ([]string, error)
 	UpdateSchemaData(ctx_core core.Context, req *alert.UpdateSchemaDataRequest) error
 	CheckSchemaIsUsed(ctx_core core.Context, schema string) ([]string, error)
 	GetSchemaData(ctx_core core.Context, schema string) ([]string, map[int64][]string, error)
 
 	CreateCluster(ctx_core core.Context, cluster *input.Cluster) error
-	ListCluster(ctx_core core.Context,) ([]input.Cluster, error)
+	ListCluster(ctx_core core.Context) ([]input.Cluster, error)
 	UpdateCluster(ctx_core core.Context, cluster *input.Cluster) error
 	DeleteCluster(ctx_core core.Context, cluster *input.Cluster) error
 
@@ -51,16 +52,16 @@ type Service interface {
 }
 
 type service struct {
-	promRepo	prometheus.Repo
-	dbRepo		database.Repo
-	ckRepo		clickhouse.Repo
-	difyRepo	dify.DifyRepo
+	promRepo prometheus.Repo
+	dbRepo   database.Repo
+	ckRepo   clickhouse.Repo
+	difyRepo dify.DifyRepo
 
-	dispatcher		Dispatcher
-	AddAlertSourceLock	sync.Mutex
+	dispatcher         Dispatcher
+	AddAlertSourceLock sync.Mutex
 
 	// sourceType -> []alert.AlertEnrichRuleVO
-	defaultEnrichRules	sync.Map
+	defaultEnrichRules sync.Map
 }
 
 func New(
@@ -70,12 +71,13 @@ func New(
 	difyRepo dify.DifyRepo,
 ) Service {
 	var service = &service{
-		promRepo:	promRepo,
-		dbRepo:		dbRepo,
-		ckRepo:		chRepo,
+		promRepo: promRepo,
+		dbRepo:   dbRepo,
+		ckRepo:   chRepo,
 	}
 
-	_, enrichMaps, err := service.dbRepo.LoadAlertEnrichRule()
+	// TODO ctx_core
+	_, enrichMaps, err := service.dbRepo.LoadAlertEnrichRule(nil)
 	if err != nil {
 		log.Printf("failed to init alertinput module,err: %v", err)
 		return service

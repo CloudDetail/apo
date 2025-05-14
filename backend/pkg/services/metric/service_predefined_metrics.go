@@ -59,12 +59,12 @@ func init() {
 	}
 }
 
-func (s *service) ListPreDefinedMetrics(ctx_core core.Context,) []QueryInfo {
+func (s *service) ListPreDefinedMetrics(ctx_core core.Context) []QueryInfo {
 	return queryDict.ListMetrics()
 }
 
-func (s *service) ListQuerys(ctx_core core.Context,) []Query {
-	return queryDict.ListQuerys()
+func (s *service) ListQuerys(ctx_core core.Context) []Query {
+	return queryDict.ListQuerys(ctx_core)
 }
 
 func (s *service) QueryMetrics(ctx_core core.Context, req *QueryMetricsRequest) *QueryMetricsResult {

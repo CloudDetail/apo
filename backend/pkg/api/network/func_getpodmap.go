@@ -37,12 +37,12 @@ func (h *handler) GetPodMap() core.HandlerFunc {
 			return
 		}
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, 0, &req.Namespace, nil, "")
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, &req.Namespace, nil, "")
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, new(response.PodMapResponse))
 			return
 		}
-		resp, err := h.networkService.GetPodMap(req)
+		resp, err := h.networkService.GetPodMap(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

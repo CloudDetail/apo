@@ -38,18 +38,18 @@ func (s *service) UpdateUserInfo(ctx_core core.Context, req *request.UpdateUserI
 	//}
 
 	var updateInfoFunc = func(ctx context.Context) error {
-		return s.dbRepo.UpdateUserInfo(ctx, req.UserID, req.Phone, req.Email, req.Corporation)
+		return s.dbRepo.UpdateUserInfo(ctx_core, ctx, req.UserID, req.Phone, req.Email, req.Corporation)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), updateInfoFunc)
+	return s.dbRepo.Transaction(ctx_core, context.Background(), updateInfoFunc)
 }
 
 func (s *service) UpdateUserPhone(ctx_core core.Context, req *request.UpdateUserPhoneRequest) error {
-	return s.dbRepo.UpdateUserPhone(req.UserID, req.Phone)
+	return s.dbRepo.UpdateUserPhone(ctx_core, req.UserID, req.Phone)
 }
 
 func (s *service) UpdateUserEmail(ctx_core core.Context, req *request.UpdateUserEmailRequest) error {
-	return s.dbRepo.UpdateUserEmail(req.UserID, req.Email)
+	return s.dbRepo.UpdateUserEmail(ctx_core, req.UserID, req.Email)
 }
 
 func (s *service) UpdateUserPassword(ctx_core core.Context, req *request.UpdateUserPasswordRequest) error {
@@ -57,13 +57,13 @@ func (s *service) UpdateUserPassword(ctx_core core.Context, req *request.UpdateU
 		return err
 	}
 
-	user, err := s.dbRepo.GetUserInfo(req.UserID)
+	user, err := s.dbRepo.GetUserInfo(ctx_core, req.UserID)
 	if err != nil {
 		return err
 	}
 
 	var updatePasswordFunc = func(ctx context.Context) error {
-		return s.dbRepo.UpdateUserPassword(req.UserID, req.OldPassword, req.NewPassword)
+		return s.dbRepo.UpdateUserPassword(ctx_core, req.UserID, req.OldPassword, req.NewPassword)
 	}
 
 	var updateDifyPasswordFunc = func(ctx context.Context) error {
@@ -73,7 +73,7 @@ func (s *service) UpdateUserPassword(ctx_core core.Context, req *request.UpdateU
 		}
 		return nil
 	}
-	return s.dbRepo.Transaction(context.Background(), updatePasswordFunc, updateDifyPasswordFunc)
+	return s.dbRepo.Transaction(ctx_core, context.Background(), updatePasswordFunc, updateDifyPasswordFunc)
 }
 
 func checkPasswordComplexity(password string) error {
@@ -81,11 +81,11 @@ func checkPasswordComplexity(password string) error {
 		return core.Error(code.UserPasswdSimpleError, "length less than 8")
 	}
 	var (
-		hasUpper	bool
-		hasLower	bool
-		hasDigit	bool
-		hasSpecial	bool
-		specialChars	= "!@#$%^&*()-_+=<>?/{}[]|:;.,~`"
+		hasUpper     bool
+		hasLower     bool
+		hasDigit     bool
+		hasSpecial   bool
+		specialChars = "!@#$%^&*()-_+=<>?/{}[]|:;.,~`"
 	)
 
 	for _, char := range password {
@@ -131,13 +131,13 @@ func (s *service) RestPassword(ctx_core core.Context, req *request.ResetPassword
 		return err
 	}
 
-	user, err := s.dbRepo.GetUserInfo(req.UserID)
+	user, err := s.dbRepo.GetUserInfo(ctx_core, req.UserID)
 	if err != nil {
 		return err
 	}
 
 	var resetPasswordFunc = func(ctx context.Context) error {
-		return s.dbRepo.RestPassword(req.UserID, req.NewPassword)
+		return s.dbRepo.RestPassword(ctx_core, req.UserID, req.NewPassword)
 	}
 
 	var resetDifyPasswordFunc = func(ctx context.Context) error {
@@ -147,9 +147,9 @@ func (s *service) RestPassword(ctx_core core.Context, req *request.ResetPassword
 		}
 		return nil
 	}
-	return s.dbRepo.Transaction(context.Background(), resetPasswordFunc, resetDifyPasswordFunc)
+	return s.dbRepo.Transaction(ctx_core, context.Background(), resetPasswordFunc, resetDifyPasswordFunc)
 }
 
 func (s *service) UpdateSelfInfo(ctx_core core.Context, req *request.UpdateSelfInfoRequest) error {
-	return s.dbRepo.UpdateUserInfo(context.Background(), req.UserID, req.Phone, req.Email, req.Corporation)
+	return s.dbRepo.UpdateUserInfo(ctx_core, context.Background(), req.UserID, req.Phone, req.Email, req.Corporation)
 }

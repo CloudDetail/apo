@@ -48,7 +48,7 @@ func (h *handler) QueryLog() core.HandlerFunc {
 		if req.LogField == "" {
 			req.LogField = "content"
 		}
-		resp, err := h.logService.QueryLog(req)
+		resp, err := h.logService.QueryLog(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

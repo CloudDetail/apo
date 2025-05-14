@@ -8,9 +8,9 @@ import (
 	"regexp"
 	"strings"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/util"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const SchemaPrefix = "alert_input_schema_"
@@ -181,7 +181,7 @@ func buildUpdateSchema(schema string, columns []string) (string, error) {
 	return updateTemp, nil
 }
 
-func (repo *subRepo) ListSchema(ctx_core core.Context,) ([]string, error) {
+func (repo *subRepo) ListSchema(ctx_core core.Context) ([]string, error) {
 	tables, err := repo.db.Migrator().GetTables()
 	if err != nil {
 		return nil, err

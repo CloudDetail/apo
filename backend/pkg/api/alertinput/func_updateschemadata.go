@@ -33,7 +33,7 @@ func (h *handler) UpdateSchemaData() core.HandlerFunc {
 			return
 		}
 
-		err := h.inputService.UpdateSchemaData(req)
+		err := h.inputService.UpdateSchemaData(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

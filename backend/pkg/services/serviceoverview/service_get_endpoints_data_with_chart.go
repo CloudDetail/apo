@@ -7,11 +7,11 @@ import (
 	"math"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"go.uber.org/zap"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 // TODO move to prometheus package and avoid to repeated self
@@ -44,7 +44,7 @@ func (s *service) GetServicesEndpointDataWithChart(ctx_core core.Context,
 		return
 	}
 
-	s.sortWithRule(sortRule, endpointsMap)
+	s.sortWithRule(ctx_core, sortRule, endpointsMap)
 
 	// step4 Group Endpoints by service and maintain service ordering
 	services := groupEndpointsByService(endpointsMap.MetricGroupList, 3)
@@ -75,10 +75,10 @@ func (s *service) GetServicesEndpointDataWithChart(ctx_core core.Context,
 		}
 
 		newServiceRes := response.ServiceEndPointsRes{
-			ServiceName:	service.ServiceName,
-			Namespaces:	nsList,
-			EndpointCount:	service.EndpointCount,
-			ServiceDetails:	serviceDetails,
+			ServiceName:    service.ServiceName,
+			Namespaces:     nsList,
+			EndpointCount:  service.EndpointCount,
+			ServiceDetails: serviceDetails,
 		}
 
 		servicesResMsg = append(servicesResMsg, newServiceRes)
@@ -93,14 +93,14 @@ func (*service) extractDetailWithChart(
 	var newServiceDetails []response.ServiceDetail
 	for _, endpoint := range service.Endpoints {
 		newErrorRadio := response.Ratio{
-			DayOverDay:	endpoint.REDMetrics.DOD.ErrorRate,
-			WeekOverDay:	endpoint.REDMetrics.WOW.ErrorRate,
+			DayOverDay:  endpoint.REDMetrics.DOD.ErrorRate,
+			WeekOverDay: endpoint.REDMetrics.WOW.ErrorRate,
 		}
 		newErrorRate := response.TempChartObject{
 			//ChartData: map[int64]float64{},
 			Ratio: newErrorRadio,
 		}
-		if endpoint.REDMetrics.Avg.ErrorRate != nil && !math.IsInf(*endpoint.REDMetrics.Avg.ErrorRate, 0) {	// does not assign a value when it is infinite
+		if endpoint.REDMetrics.Avg.ErrorRate != nil && !math.IsInf(*endpoint.REDMetrics.Avg.ErrorRate, 0) { // does not assign a value when it is infinite
 			newErrorRate.Value = endpoint.REDMetrics.Avg.ErrorRate
 		}
 		if endpoint.ErrorRateData != nil {
@@ -109,7 +109,7 @@ func (*service) extractDetailWithChart(
 			for _, item := range endpoint.ErrorRateData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) {	// does not assign value when it is infinity
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
@@ -130,14 +130,14 @@ func (*service) extractDetailWithChart(
 			newErrorRate.ChartData = values
 		}
 		newtpsRadio := response.Ratio{
-			DayOverDay:	endpoint.REDMetrics.DOD.TPM,
-			WeekOverDay:	endpoint.REDMetrics.WOW.TPM,
+			DayOverDay:  endpoint.REDMetrics.DOD.TPM,
+			WeekOverDay: endpoint.REDMetrics.WOW.TPM,
 		}
 		newtpsRate := response.TempChartObject{
 			//ChartData: map[int64]float64{},
 			Ratio: newtpsRadio,
 		}
-		if endpoint.REDMetrics.Avg.TPM != nil && !math.IsInf(*endpoint.REDMetrics.Avg.TPM, 0) {	// is not assigned when it is infinite
+		if endpoint.REDMetrics.Avg.TPM != nil && !math.IsInf(*endpoint.REDMetrics.Avg.TPM, 0) { // is not assigned when it is infinite
 			newtpsRate.Value = endpoint.REDMetrics.Avg.TPM
 		}
 		if endpoint.TPMData != nil {
@@ -146,7 +146,7 @@ func (*service) extractDetailWithChart(
 			for _, item := range endpoint.TPMData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) {	// does not assign value when it is infinity
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
@@ -171,14 +171,14 @@ func (*service) extractDetailWithChart(
 		}
 
 		newlatencyRadio := response.Ratio{
-			DayOverDay:	endpoint.REDMetrics.DOD.Latency,
-			WeekOverDay:	endpoint.REDMetrics.WOW.Latency,
+			DayOverDay:  endpoint.REDMetrics.DOD.Latency,
+			WeekOverDay: endpoint.REDMetrics.WOW.Latency,
 		}
 		newlatencyRate := response.TempChartObject{
 			//ChartData: map[int64]float64{},
 			Ratio: newlatencyRadio,
 		}
-		if endpoint.REDMetrics.Avg.Latency != nil && !math.IsInf(*endpoint.REDMetrics.Avg.Latency, 0) {	// does not assign a value when it is infinite
+		if endpoint.REDMetrics.Avg.Latency != nil && !math.IsInf(*endpoint.REDMetrics.Avg.Latency, 0) { // does not assign a value when it is infinite
 			newlatencyRate.Value = endpoint.REDMetrics.Avg.Latency
 		}
 		if endpoint.LatencyData != nil {
@@ -187,7 +187,7 @@ func (*service) extractDetailWithChart(
 			for _, item := range endpoint.LatencyData {
 				timestamp := item.TimeStamp
 				value := item.Value
-				if !math.IsInf(value, 0) {	// does not assign value when it is infinity
+				if !math.IsInf(value, 0) { // does not assign value when it is infinity
 					data[timestamp] = value
 				}
 			}
@@ -212,10 +212,10 @@ func (*service) extractDetailWithChart(
 			*newErrorRate.Ratio.WeekOverDay = RES_MAX_VALUE
 		}
 		newServiceDetail := response.ServiceDetail{
-			Endpoint:	endpoint.ContentKey,
-			ErrorRate:	newErrorRate,
-			Tps:		newtpsRate,
-			Latency:	newlatencyRate,
+			Endpoint:  endpoint.ContentKey,
+			ErrorRate: newErrorRate,
+			Tps:       newtpsRate,
+			Latency:   newlatencyRate,
 		}
 		if endpoint.DelaySource == nil {
 			newServiceDetail.DelaySource = "unknown"

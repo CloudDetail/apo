@@ -25,11 +25,11 @@ FROM
 WHERE database = '%s' And table = '%s';
 `
 
-func (ch *chRepo) OtherLogTable(ctx_core core.Context,) ([]map[string]any, error) {
-	return ch.queryRowsData(queryOtherTablesSQL)
+func (ch *chRepo) OtherLogTable(ctx_core core.Context) ([]map[string]any, error) {
+	return ch.queryRowsData(ctx_core, queryOtherTablesSQL)
 }
 
 func (ch *chRepo) OtherLogTableInfo(ctx_core core.Context, req *request.OtherTableInfoRequest) ([]map[string]any, error) {
 	sql := fmt.Sprintf(queryOtherTableInfoSQL, req.DataBase, req.TableName)
-	return ch.queryRowsData(sql)
+	return ch.queryRowsData(ctx_core, sql)
 }

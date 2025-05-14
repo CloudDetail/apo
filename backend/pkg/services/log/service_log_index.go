@@ -13,7 +13,7 @@ import (
 
 func (s *service) GetLogIndex(ctx_core core.Context, req *request.LogIndexRequest) (*response.LogIndexResponse, error) {
 	res := &response.LogIndexResponse{}
-	list, sum, err := s.chRepo.GetLogIndex(req)
+	list, sum, err := s.chRepo.GetLogIndex(ctx_core, req)
 	if err != nil {
 		return nil, err
 	}

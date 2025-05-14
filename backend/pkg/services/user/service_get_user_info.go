@@ -19,12 +19,12 @@ func (s *service) GetUserInfo(ctx_core core.Context, userID int64) (response.Get
 	)
 
 	if userID == 0 {
-		user, err = s.dbRepo.GetAnonymousUser()
+		user, err = s.dbRepo.GetAnonymousUser(ctx_core)
 		resp.User = user
 		return resp, err
 	}
 
-	exists, err := s.dbRepo.UserExists(userID)
+	exists, err := s.dbRepo.UserExists(ctx_core, userID)
 	if err != nil {
 		return resp, err
 	}
@@ -33,7 +33,7 @@ func (s *service) GetUserInfo(ctx_core core.Context, userID int64) (response.Get
 		return resp, core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
-	user, err = s.dbRepo.GetUserInfo(userID)
+	user, err = s.dbRepo.GetUserInfo(ctx_core, userID)
 	if err != nil {
 		return resp, err
 	}
@@ -43,7 +43,7 @@ func (s *service) GetUserInfo(ctx_core core.Context, userID int64) (response.Get
 }
 
 func (s *service) GetUserList(ctx_core core.Context, req *request.GetUserListRequest) (resp response.GetUserListResponse, err error) {
-	users, count, err := s.dbRepo.GetUserList(req)
+	users, count, err := s.dbRepo.GetUserList(ctx_core, req)
 	resp.Users = users
 	resp.PageSize = req.PageSize
 	resp.CurrentPage = req.CurrentPage

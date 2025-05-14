@@ -35,7 +35,7 @@ func (h *handler) DataGroupOperation() core.HandlerFunc {
 			return
 		}
 
-		err := h.dataService.DataGroupOperation(req)
+		err := h.dataService.DataGroupOperation(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

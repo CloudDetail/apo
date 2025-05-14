@@ -7,16 +7,16 @@ import (
 	"sort"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const SecondToMirco = 1000000
 
-func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResponse, error) {
+func (s *service) getChart(ctx_core core.Context, req *request.LogQueryRequest) (*response.LogChartResponse, error) {
 	res := &response.LogChartResponse{}
-	rows, interval, err := s.chRepo.GetLogChart(req)
+	rows, interval, err := s.chRepo.GetLogChart(ctx_core, req)
 	if err != nil {
 		res.Err = err.Error()
 		return res, nil
@@ -71,9 +71,9 @@ func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResp
 			}
 			if _, ok := chartMap[from]; !ok {
 				chartMap[from] = &response.LogHistogram{
-					Count:	0,
-					From:	from,
-					To:	firstFrom - interval*i,
+					Count: 0,
+					From:  from,
+					To:    firstFrom - interval*i,
 				}
 			}
 		}
@@ -90,9 +90,9 @@ func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResp
 			// }
 			if _, ok := chartMap[from]; !ok {
 				chartMap[from] = &response.LogHistogram{
-					Count:	0,
-					From:	from,
-					To:	firstFrom - interval*i,
+					Count: 0,
+					From:  from,
+					To:    firstFrom - interval*i,
 				}
 			}
 		}
@@ -100,9 +100,9 @@ func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResp
 	for i := firstFrom; i < latestFrom; i += interval {
 		if _, ok := chartMap[i]; !ok {
 			chartMap[i] = &response.LogHistogram{
-				Count:	0,
-				From:	i,
-				To:	i + interval,
+				Count: 0,
+				From:  i,
+				To:    i + interval,
 			}
 		}
 	}
@@ -136,5 +136,5 @@ func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResp
 }
 
 func (s *service) GetLogChart(ctx_core core.Context, req *request.LogQueryRequest) (*response.LogChartResponse, error) {
-	return s.getChart(req)
+	return s.getChart(ctx_core, req)
 }

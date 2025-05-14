@@ -14,8 +14,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) GetRoles(ctx_core core.Context,) (response.GetRoleResponse, error) {
-	roles, err := s.dbRepo.GetRoles(model.RoleFilter{})
+func (s *service) GetRoles(ctx_core core.Context) (response.GetRoleResponse, error) {
+	roles, err := s.dbRepo.GetRoles(ctx_core, model.RoleFilter{})
 	var resp response.GetRoleResponse
 	if err != nil {
 		return resp, err
@@ -26,7 +26,7 @@ func (s *service) GetRoles(ctx_core core.Context,) (response.GetRoleResponse, er
 }
 
 func (s *service) GetUserRole(ctx_core core.Context, req *request.GetUserRoleRequest) (response.GetUserRoleResponse, error) {
-	userRole, err := s.dbRepo.GetUserRole(req.UserID)
+	userRole, err := s.dbRepo.GetUserRole(ctx_core, req.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (s *service) GetUserRole(ctx_core core.Context, req *request.GetUserRoleReq
 		roleIDs[i] = roleID.RoleID
 	}
 	filter := model.RoleFilter{IDs: roleIDs}
-	roles, err := s.dbRepo.GetRoles(filter)
+	roles, err := s.dbRepo.GetRoles(ctx_core, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -45,13 +45,13 @@ func (s *service) GetUserRole(ctx_core core.Context, req *request.GetUserRoleReq
 
 func (s *service) RoleOperation(ctx_core core.Context, req *request.RoleOperationRequest) error {
 	// 1. get user's role
-	userRole, err := s.dbRepo.GetUserRole(req.UserID)
+	userRole, err := s.dbRepo.GetUserRole(ctx_core, req.UserID)
 	if err != nil {
 		return err
 	}
 
 	// 2. get all roles
-	roles, err := s.dbRepo.GetRoles(model.RoleFilter{})
+	roles, err := s.dbRepo.GetRoles(ctx_core, model.RoleFilter{})
 	if err != nil {
 		return err
 	}
@@ -67,14 +67,14 @@ func (s *service) RoleOperation(ctx_core core.Context, req *request.RoleOperatio
 	}
 
 	var grantFunc = func(txCtx context.Context) error {
-		return s.dbRepo.GrantRoleWithUser(txCtx, req.UserID, addRoles)
+		return s.dbRepo.GrantRoleWithUser(ctx_core, txCtx, req.UserID, addRoles)
 	}
 
 	var revokeFunc = func(txCtx context.Context) error {
-		return s.dbRepo.RevokeRole(txCtx, req.UserID, deleteRoles)
+		return s.dbRepo.RevokeRole(ctx_core, txCtx, req.UserID, deleteRoles)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), grantFunc, revokeFunc)
+	return s.dbRepo.Transaction(ctx_core, context.Background(), grantFunc, revokeFunc)
 }
 
 // GetAddDeleteRoles Determine grant and revoke roles.

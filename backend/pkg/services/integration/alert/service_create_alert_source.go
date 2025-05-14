@@ -6,12 +6,12 @@ package alert
 import (
 	"errors"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	alertin "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
 	"github.com/google/uuid"
 	"go.uber.org/multierr"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func (s *service) CreateAlertSource(ctx_core core.Context, source *alertin.AlertSource) (*alertin.AlertSource, error) {
@@ -30,7 +30,7 @@ func (s *service) CreateAlertSource(ctx_core core.Context, source *alertin.Alert
 		}
 	}
 
-	err := s.dbRepo.CreateAlertSource(source)
+	err := s.dbRepo.CreateAlertSource(ctx_core, source)
 	if err != nil {
 		return nil, err
 	}
@@ -60,15 +60,16 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 		return enricher.(*enrich.AlertEnricher), alertin.ErrAlertSourceAlreadyExist{}
 	}
 
-	_, defaultRules := s.GetDefaultAlertEnrichRule(source.SourceType)
+	// TODO ctx_core
+	_, defaultRules := s.GetDefaultAlertEnrichRule(nil, source.SourceType)
 	storedRules, newR, newC, newS := s.prepareAlertEnrichRule(source, defaultRules)
 
 	enricher, err := s.createAlertSource(source, storedRules)
 	if err != nil {
 		// return empty enricher
 		enricher = &enrich.AlertEnricher{
-			SourceFrom:	source,
-			Enrichers:	[]enrich.Enricher{},
+			SourceFrom: source,
+			Enrichers:  []enrich.Enricher{},
 		}
 		err = alertin.ErrIllegalAlertRule{Err: err}
 		s.dispatcher.AddAlertSource(*source, enricher)
@@ -76,11 +77,14 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 	}
 
 	var storeError error
-	err = s.dbRepo.AddAlertEnrichRule(newR)
+	// TODO ctx_core
+	err = s.dbRepo.AddAlertEnrichRule(nil, newR)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.AddAlertEnrichConditions(newC)
+	// TODO ctx_core
+	err = s.dbRepo.AddAlertEnrichConditions(nil, newC)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.AddAlertEnrichSchemaTarget(newS)
+	// TODO ctx_core
+	err = s.dbRepo.AddAlertEnrichSchemaTarget(nil, newS)
 	storeError = multierr.Append(storeError, err)
 
 	s.dispatcher.AddAlertSource(*source, enricher)
@@ -97,8 +101,8 @@ func (s *service) createAlertSource(
 	}
 
 	enricher := &enrich.AlertEnricher{
-		SourceFrom:	source,
-		Enrichers:	make([]enrich.Enricher, 0, len(enrichRules)),
+		SourceFrom: source,
+		Enrichers:  make([]enrich.Enricher, 0, len(enrichRules)),
 	}
 
 	for i := 0; i < len(enrichRules); i++ {
@@ -147,8 +151,8 @@ func (s *service) createAlertSource(
 // load existed enricher from db when process initializing
 func (s *service) initExistedAlertSource(source alertin.SourceFrom, enrichRules []alertin.AlertEnrichRuleVO) (*enrich.AlertEnricher, error) {
 	enricher := &enrich.AlertEnricher{
-		SourceFrom:	&source,
-		Enrichers:	make([]enrich.Enricher, 0, len(enrichRules)),
+		SourceFrom: &source,
+		Enrichers:  make([]enrich.Enricher, 0, len(enrichRules)),
 	}
 	for idx, rule := range enrichRules {
 		tagEnricher, err := enrich.NewTagEnricher(rule, s.dbRepo, idx)

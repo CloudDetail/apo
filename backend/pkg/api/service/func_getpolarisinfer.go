@@ -41,12 +41,12 @@ func (h *handler) GetPolarisInfer() core.HandlerFunc {
 		}
 
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, nil)
 			return
 		}
-		res, err := h.serviceInfoService.GetPolarisInfer(req)
+		res, err := h.serviceInfoService.GetPolarisInfer(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

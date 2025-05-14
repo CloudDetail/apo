@@ -13,7 +13,7 @@ import (
 )
 
 func (s *service) RemoveUser(ctx_core core.Context, userID int64) error {
-	exists, err := s.dbRepo.UserExists(userID)
+	exists, err := s.dbRepo.UserExists(ctx_core, userID)
 	if err != nil {
 		return err
 	}
@@ -22,7 +22,7 @@ func (s *service) RemoveUser(ctx_core core.Context, userID int64) error {
 		return core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
-	roles, err := s.dbRepo.GetUserRole(userID)
+	roles, err := s.dbRepo.GetUserRole(ctx_core, userID)
 	if err != nil {
 		return err
 	}
@@ -32,25 +32,25 @@ func (s *service) RemoveUser(ctx_core core.Context, userID int64) error {
 		roleIDs = append(roleIDs, role.RoleID)
 	}
 
-	user, err := s.dbRepo.GetUserInfo(userID)
+	user, err := s.dbRepo.GetUserInfo(ctx_core, userID)
 	if err != nil {
 		return err
 	}
 
 	var revokeRoleFunc = func(ctx context.Context) error {
-		return s.dbRepo.RevokeRole(ctx, userID, roleIDs)
+		return s.dbRepo.RevokeRole(ctx_core, ctx, userID, roleIDs)
 	}
 
 	var deleteAuthDataGroupFunc = func(ctx context.Context) error {
-		return s.dbRepo.DeleteAuthDataGroup(ctx, userID, model.DATA_GROUP_SUB_TYP_USER)
+		return s.dbRepo.DeleteAuthDataGroup(ctx_core, ctx, userID, model.DATA_GROUP_SUB_TYP_USER)
 	}
 
 	var removeFromTeam = func(ctx context.Context) error {
-		return s.dbRepo.DeleteAllUserTeam(ctx, userID, "user")
+		return s.dbRepo.DeleteAllUserTeam(ctx_core, ctx, userID, "user")
 	}
 
 	var removeUserFunc = func(ctx context.Context) error {
-		return s.dbRepo.RemoveUser(ctx, userID)
+		return s.dbRepo.RemoveUser(ctx_core, ctx, userID)
 	}
 
 	var removeDifyUserFunc = func(ctx context.Context) error {
@@ -62,8 +62,8 @@ func (s *service) RemoveUser(ctx_core core.Context, userID int64) error {
 	}
 
 	var revokeFeaturePermFunc = func(ctx context.Context) error {
-		return s.dbRepo.RevokePermission(ctx, userID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE, nil)
+		return s.dbRepo.RevokePermission(ctx_core, ctx, userID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE, nil)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), revokeFeaturePermFunc, deleteAuthDataGroupFunc, revokeRoleFunc, removeFromTeam, removeUserFunc, removeDifyUserFunc)
+	return s.dbRepo.Transaction(ctx_core, context.Background(), revokeFeaturePermFunc, deleteAuthDataGroupFunc, revokeRoleFunc, removeFromTeam, removeUserFunc, removeDifyUserFunc)
 }

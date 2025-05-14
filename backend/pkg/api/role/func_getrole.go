@@ -23,7 +23,7 @@ import (
 func (h *handler) GetRole() core.HandlerFunc {
 	return func(c core.Context) {
 
-		resp, err := h.roleService.GetRoles()
+		resp, err := h.roleService.GetRoles(c)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

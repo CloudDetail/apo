@@ -49,7 +49,7 @@ func (h *handler) GetAlertEventsSample() core.HandlerFunc {
 			req.Services = append(req.Services, req.Service)
 		}
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Services, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Services, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetAlertEventsSampleResponse{
 				EventMap: map[string]map[string][]clickhouse.AlertEventSample{},
@@ -57,7 +57,7 @@ func (h *handler) GetAlertEventsSample() core.HandlerFunc {
 			})
 			return
 		}
-		resp, err := h.serviceInfoService.GetAlertEventsSample(req)
+		resp, err := h.serviceInfoService.GetAlertEventsSample(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

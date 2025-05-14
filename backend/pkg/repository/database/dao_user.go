@@ -157,7 +157,7 @@ func (repo *daoRepo) Login(ctx_core core.Context, username, password string) (*U
 }
 
 func (repo *daoRepo) CreateUser(ctx_core core.Context, ctx context.Context, user *User) error {
-	db := repo.GetContextDB(ctx)
+	db := repo.GetContextDB(ctx_core, ctx)
 	var count int64
 	err := db.Model(&User{}).Where("username = ?", user.Username).Count(&count).Error
 	if err != nil {
@@ -224,7 +224,7 @@ func (repo *daoRepo) RestPassword(ctx_core core.Context, userID int64, newPasswo
 
 func (repo *daoRepo) UpdateUserInfo(ctx_core core.Context, ctx context.Context, userID int64, phone string, email string, corporation string) error {
 	var user User
-	err := repo.GetContextDB(ctx).Where("user_id = ?", userID).First(&user).Error
+	err := repo.GetContextDB(ctx_core, ctx).Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return core.Error(code.UserNotExistsError, "user does not exist ")
 	} else if err != nil {
@@ -234,7 +234,7 @@ func (repo *daoRepo) UpdateUserInfo(ctx_core core.Context, ctx context.Context, 
 	user.Corporation = corporation
 	user.Phone = phone
 	user.Email = email
-	return repo.GetContextDB(ctx).Updates(&user).Error
+	return repo.GetContextDB(ctx_core, ctx).Updates(&user).Error
 }
 
 func (repo *daoRepo) GetUserInfo(ctx_core core.Context, userID int64) (User, error) {
@@ -248,7 +248,7 @@ func (repo *daoRepo) GetUserInfo(ctx_core core.Context, userID int64) (User, err
 	return user, err
 }
 
-func (repo *daoRepo) GetAnonymousUser(ctx_core core.Context,) (User, error) {
+func (repo *daoRepo) GetAnonymousUser(ctx_core core.Context) (User, error) {
 	var user User
 	err := repo.db.Select(userFieldSql).Where("username = ?", AnonymousUsername).Find(&user).Error
 	return user, err
@@ -300,12 +300,12 @@ func (repo *daoRepo) GetUserList(ctx_core core.Context, req *request.GetUserList
 }
 
 func (repo *daoRepo) RemoveUser(ctx_core core.Context, ctx context.Context, userID int64) error {
-	err := repo.GetContextDB(ctx).Model(&User{}).Where("user_id = ?", userID).Delete(nil).Error
+	err := repo.GetContextDB(ctx_core, ctx).Model(&User{}).Where("user_id = ?", userID).Delete(nil).Error
 	if err != nil {
 		return err
 	}
 
-	err = repo.GetContextDB(ctx).
+	err = repo.GetContextDB(ctx_core, ctx).
 		Model(&UserRole{}).
 		Where("user_id = ?", userID).
 		Delete(nil).
@@ -315,7 +315,7 @@ func (repo *daoRepo) RemoveUser(ctx_core core.Context, ctx context.Context, user
 		return err
 	}
 
-	return repo.GetContextDB(ctx).
+	return repo.GetContextDB(ctx_core, ctx).
 		Model(&UserTeam{}).
 		Where("user_id = ?", userID).
 		Delete(nil).

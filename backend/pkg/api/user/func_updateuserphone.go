@@ -46,7 +46,7 @@ func (h *handler) UpdateUserPhone() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.UpdateUserPhone(req)
+		err := h.userService.UpdateUserPhone(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

@@ -38,7 +38,7 @@ func (h *handler) GetTracePageList() core.HandlerFunc {
 		}
 
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, req.GroupID, &req.Namespace, &req.Service, "")
+		err := h.dataService.CheckDatasourcePermission(c, userID, req.GroupID, &req.Namespace, &req.Service, "")
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, response.GetTracePageListResponse{
 				List: []clickhouse.QueryTraceResult{},
@@ -57,7 +57,7 @@ func (h *handler) GetTracePageList() core.HandlerFunc {
 			req.PageSize = 10
 		}
 
-		resp, err := h.traceService.GetTracePageList(req)
+		resp, err := h.traceService.GetTracePageList(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

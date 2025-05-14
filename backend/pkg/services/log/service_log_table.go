@@ -6,17 +6,17 @@ package log
 import (
 	"encoding/json"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const (
-	defaultParseInfo	= ""
-	defaultParseName	= "all_logs"
-	defaultRouteRule	= `starts_with(string!(."k8s.pod.name"), "apo")`
-	defaultParseRule	= `.msg, err = parse_regex(.content, r' \[(?P<level>.*?)\] \[(?P<thread>.*?)\] \[(?P<method>.*?)\(.*?\)\] - (?P<msg>.*)')
+	defaultParseInfo = ""
+	defaultParseName = "all_logs"
+	defaultRouteRule = `starts_with(string!(."k8s.pod.name"), "apo")`
+	defaultParseRule = `.msg, err = parse_regex(.content, r' \[(?P<level>.*?)\] \[(?P<thread>.*?)\] \[(?P<method>.*?)\(.*?\)\] - (?P<msg>.*)')
 if err == null {
 	.content = encode_json(.msg)
 }
@@ -29,7 +29,7 @@ var defaultRouteRuleMap = map[string]string{
 }
 
 func (s *service) InitParseLogTable(ctx_core core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
-	sqls, err := s.chRepo.CreateLogTable(req)
+	sqls, err := s.chRepo.CreateLogTable(ctx_core, req)
 	res := &response.LogTableResponse{Sqls: sqls}
 	if err != nil {
 		res.Err = err.Error()
@@ -41,19 +41,19 @@ func (s *service) InitParseLogTable(ctx_core core.Context, req *request.LogTable
 		return res, nil
 	}
 	logtable := &database.LogTableInfo{
-		Cluster:	req.Cluster,
-		DataBase:	req.DataBase,
-		Fields:		string(fieldsJSON),
-		Table:		req.TableName,
-		ParseName:	defaultParseName,
-		RouteRule:	defaultRouteRule,
-		ParseRule:	defaultParseRule,
-		ParseInfo:	defaultParseInfo,
+		Cluster:   req.Cluster,
+		DataBase:  req.DataBase,
+		Fields:    string(fieldsJSON),
+		Table:     req.TableName,
+		ParseName: defaultParseName,
+		RouteRule: defaultRouteRule,
+		ParseRule: defaultParseRule,
+		ParseInfo: defaultParseInfo,
 	}
 	// does not exist to insert logtableinfo
-	err = s.dbRepo.OperateLogTableInfo(logtable, database.QUERY)
+	err = s.dbRepo.OperateLogTableInfo(ctx_core, logtable, database.QUERY)
 	if err != nil {
-		err = s.dbRepo.OperateLogTableInfo(logtable, database.INSERT)
+		err = s.dbRepo.OperateLogTableInfo(ctx_core, logtable, database.INSERT)
 		if err != nil {
 			res.Err = err.Error()
 			return res, nil
@@ -65,18 +65,18 @@ func (s *service) InitParseLogTable(ctx_core core.Context, req *request.LogTable
 
 func (s *service) DropLogTable(ctx_core core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
 
-	sqls, err := s.chRepo.DropLogTable(req)
+	sqls, err := s.chRepo.DropLogTable(ctx_core, req)
 	res := &response.LogTableResponse{Sqls: sqls}
 	if err != nil {
 		res.Err = err.Error()
 		return res, nil
 	}
 	logtable := &database.LogTableInfo{
-		Cluster:	req.Cluster,
-		DataBase:	req.DataBase,
-		Table:		req.TableName,
+		Cluster:  req.Cluster,
+		DataBase: req.DataBase,
+		Table:    req.TableName,
 	}
-	err = s.dbRepo.OperateLogTableInfo(logtable, database.DELETE)
+	err = s.dbRepo.OperateLogTableInfo(ctx_core, logtable, database.DELETE)
 	if err != nil {
 		res.Err = err.Error()
 	}
@@ -86,11 +86,11 @@ func (s *service) DropLogTable(ctx_core core.Context, req *request.LogTableReque
 func (s *service) UpdateLogTable(ctx_core core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
 	res := &response.LogTableResponse{}
 	logtable := &database.LogTableInfo{
-		Cluster:	req.Cluster,
-		DataBase:	req.DataBase,
-		Table:		req.TableName,
+		Cluster:  req.Cluster,
+		DataBase: req.DataBase,
+		Table:    req.TableName,
 	}
-	err := s.dbRepo.OperateLogTableInfo(logtable, database.QUERY)
+	err := s.dbRepo.OperateLogTableInfo(ctx_core, logtable, database.QUERY)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (s *service) UpdateLogTable(ctx_core core.Context, req *request.LogTableReq
 		return nil, err
 	}
 
-	sqls, err := s.chRepo.UpdateLogTable(req, oldFields)
+	sqls, err := s.chRepo.UpdateLogTable(ctx_core, req, oldFields)
 	res.Sqls = sqls
 	if err != nil {
 		return nil, err

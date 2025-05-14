@@ -13,7 +13,7 @@ import (
 )
 
 func (s *service) UpdateTeam(ctx_core core.Context, req *request.UpdateTeamRequest) error {
-	team, err := s.dbRepo.GetTeam(req.TeamID)
+	team, err := s.dbRepo.GetTeam(ctx_core, req.TeamID)
 	if err != nil {
 		return err
 	}
@@ -27,7 +27,7 @@ func (s *service) UpdateTeam(ctx_core core.Context, req *request.UpdateTeamReque
 			Name: req.TeamName,
 		}
 
-		exists, err := s.dbRepo.TeamExist(filter)
+		exists, err := s.dbRepo.TeamExist(ctx_core, filter)
 		if err != nil {
 			return err
 		}
@@ -51,7 +51,7 @@ func (s *service) UpdateTeam(ctx_core core.Context, req *request.UpdateTeamReque
 	// }
 
 	// determine added or removed users
-	hasUsers, err := s.dbRepo.GetTeamUsers(req.TeamID)
+	hasUsers, err := s.dbRepo.GetTeamUsers(ctx_core, req.TeamID)
 	if err != nil {
 		return err
 	}
@@ -75,15 +75,15 @@ func (s *service) UpdateTeam(ctx_core core.Context, req *request.UpdateTeamReque
 	}
 
 	var inviteFunc = func(ctx context.Context) error {
-		return s.dbRepo.InviteUserToTeam(ctx, req.TeamID, toAdd)
+		return s.dbRepo.InviteUserToTeam(ctx_core, ctx, req.TeamID, toAdd)
 	}
 
 	var removeFunc = func(ctx context.Context) error {
-		return s.dbRepo.RemoveFromTeamByTeam(ctx, req.TeamID, toDelete)
+		return s.dbRepo.RemoveFromTeamByTeam(ctx_core, ctx, req.TeamID, toDelete)
 	}
 
 	var updateTeamFunc = func(ctx context.Context) error {
-		return s.dbRepo.UpdateTeam(ctx, team)
+		return s.dbRepo.UpdateTeam(ctx_core, ctx, team)
 	}
 
 	// var grantPermissionFunc = func(ctx context.Context) error {
@@ -102,5 +102,5 @@ func (s *service) UpdateTeam(ctx_core core.Context, req *request.UpdateTeamReque
 	// 	return s.dbRepo.RevokeDataGroupByGroup(ctx, toDeleteDg, req.TeamID)
 	// }
 
-	return s.dbRepo.Transaction(context.Background(), updateTeamFunc, inviteFunc, removeFunc)
+	return s.dbRepo.Transaction(ctx_core, context.Background(), updateTeamFunc, inviteFunc, removeFunc)
 }

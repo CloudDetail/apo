@@ -40,7 +40,7 @@ func (h *handler) GetTraceFilters() core.HandlerFunc {
 
 		startTime := time.UnixMicro(req.StartTime)
 		endTime := time.UnixMicro(req.EndTime)
-		resp, err := h.traceService.GetTraceFilters(startTime, endTime, req.NeedUpdate)
+		resp, err := h.traceService.GetTraceFilters(c, startTime, endTime, req.NeedUpdate)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

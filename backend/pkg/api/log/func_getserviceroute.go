@@ -35,14 +35,14 @@ func (h *handler) GetServiceRoute() core.HandlerFunc {
 			return
 		}
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, "")
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, "")
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetServiceRouteResponse{
 				RouteRule: map[string]string{},
 			})
 			return
 		}
-		resp, err := h.logService.GetServiceRoute(req)
+		resp, err := h.logService.GetServiceRoute(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

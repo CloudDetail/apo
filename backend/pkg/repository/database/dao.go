@@ -21,8 +21,8 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
-	sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 )
 
 // Define the Database query interface
@@ -31,9 +31,9 @@ type Repo interface {
 	GetOrCreateThreshold(ctx_core core.Context, serviceName string, endPoint string, level string) (Threshold, error)
 	DeleteThreshold(ctx_core core.Context, serviceName string, endPoint string) error
 	OperateLogTableInfo(ctx_core core.Context, model *LogTableInfo, op Operator) error
-	GetAllLogTable(ctx_core core.Context,) ([]LogTableInfo, error)
+	GetAllLogTable(ctx_core core.Context) ([]LogTableInfo, error)
 	UpdateLogParseRule(ctx_core core.Context, model *LogTableInfo) error
-	GetAllOtherLogTable(ctx_core core.Context,) ([]OtherLogTable, error)
+	GetAllOtherLogTable(ctx_core core.Context) ([]OtherLogTable, error)
 	OperatorOtherLogTable(ctx_core core.Context, model *OtherLogTable, op Operator) error
 	CreateDingTalkReceiver(ctx_core core.Context, dingTalkConfig *amconfig.DingTalkConfig) error
 	// GetDingTalkReceiver get the webhook URL secret corresponding to the uuid.
@@ -51,7 +51,7 @@ type Repo interface {
 	UpdateUserPassword(ctx_core core.Context, userID int64, oldPassword, newPassword string) error
 	UpdateUserInfo(ctx_core core.Context, ctx context.Context, userID int64, phone string, email string, corporation string) error
 	GetUserInfo(ctx_core core.Context, userID int64) (User, error)
-	GetAnonymousUser(ctx_core core.Context,) (User, error)
+	GetAnonymousUser(ctx_core core.Context) (User, error)
 	GetUserList(ctx_core core.Context, req *request.GetUserListRequest) ([]User, int64, error)
 	RemoveUser(ctx_core core.Context, ctx context.Context, userID int64) error
 	RestPassword(ctx_core core.Context, userID int64, newPassword string) error
@@ -93,7 +93,7 @@ type Repo interface {
 
 	GetFeatureMappingByFeature(ctx_core core.Context, featureIDs []int, mappedType string) ([]FeatureMapping, error)
 	GetFeatureMappingByMapped(ctx_core core.Context, mappedID int, mappedType string) (FeatureMapping, error)
-	GetMenuItems(ctx_core core.Context,) ([]MenuItem, error)
+	GetMenuItems(ctx_core core.Context) ([]MenuItem, error)
 
 	GetTeamList(ctx_core core.Context, req *request.GetTeamRequest) ([]Team, int64, error)
 	DeleteTeam(ctx_core core.Context, ctx context.Context, teamID int64) error
@@ -141,16 +141,16 @@ type Repo interface {
 	UpdateAMConfigReceiver(ctx_core core.Context, receiver amconfig.Receiver, oldName string) error
 	DeleteAMConfigReceiver(ctx_core core.Context, name string) error
 
-	CheckAMReceiverCount(ctx_core core.Context,) int64
+	CheckAMReceiverCount(ctx_core core.Context) int64
 	MigrateAMReceiver(ctx_core core.Context, receivers []amconfig.Receiver) ([]amconfig.Receiver, error)
 
 	integration.ObservabilityInputManage
 }
 
 type daoRepo struct {
-	db		*gorm.DB
-	sqlDB		*sql.DB
-	transactionCtx	struct{}
+	db             *gorm.DB
+	sqlDB          *sql.DB
+	transactionCtx struct{}
 
 	integration.ObservabilityInputManage
 }
@@ -197,8 +197,8 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		return nil, err
 	}
 	daoRepo := &daoRepo{
-		db:	database,
-		sqlDB:	sqlDb,
+		db:    database,
+		sqlDB: sqlDb,
 	}
 
 	if err = driver.InitSQL(daoRepo.db, &AlertMetricsData{}); err != nil {

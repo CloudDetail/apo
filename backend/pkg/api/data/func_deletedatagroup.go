@@ -35,7 +35,7 @@ func (h *handler) DeleteDataGroup() core.HandlerFunc {
 			return
 		}
 
-		err := h.dataService.DeleteDataGroup(req)
+		err := h.dataService.DeleteDataGroup(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

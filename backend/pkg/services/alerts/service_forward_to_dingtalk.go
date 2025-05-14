@@ -11,7 +11,7 @@ import (
 )
 
 func (s *service) ForwardToDingTalk(ctx_core core.Context, req *request.ForwardToDingTalkRequest, uuid string) error {
-	config, err := s.dbRepo.GetDingTalkReceiver(uuid)
+	config, err := s.dbRepo.GetDingTalkReceiver(ctx_core, uuid)
 	if err != nil {
 		log.Println("get dingtalk receiver err:", err)
 		return err

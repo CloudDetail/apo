@@ -17,7 +17,7 @@ func (s *service) DeleteOtherTable(ctx_core core.Context, req *request.DeleteOth
 		Instance:	req.Instance,
 		Table:		req.TableName,
 	}
-	err := s.dbRepo.OperatorOtherLogTable(model, database.DELETE)
+	err := s.dbRepo.OperatorOtherLogTable(ctx_core, model, database.DELETE)
 	if err != nil {
 		res.Err = err.Error()
 	}

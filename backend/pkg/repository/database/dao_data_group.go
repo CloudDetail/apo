@@ -40,18 +40,18 @@ func (dsg *DatasourceGroup) TableName() string {
 }
 
 func (repo *daoRepo) CreateDataGroup(ctx_core core.Context, ctx context.Context, group *DataGroup) error {
-	return repo.GetContextDB(ctx).Create(group).Error
+	return repo.GetContextDB(ctx_core, ctx).Create(group).Error
 }
 
 func (repo *daoRepo) DeleteDataGroup(ctx_core core.Context, ctx context.Context, groupID int64) error {
 	group := DataGroup{
 		GroupID: groupID,
 	}
-	if err := repo.GetContextDB(ctx).Delete(&group).Error; err != nil {
+	if err := repo.GetContextDB(ctx_core, ctx).Delete(&group).Error; err != nil {
 		return err
 	}
 
-	return repo.GetContextDB(ctx).Model(&AuthDataGroup{}).Where("data_group_id = ?", groupID).Delete(nil).Error
+	return repo.GetContextDB(ctx_core, ctx).Model(&AuthDataGroup{}).Where("data_group_id = ?", groupID).Delete(nil).Error
 }
 
 func (repo *daoRepo) CreateDatasourceGroup(ctx_core core.Context, ctx context.Context, datasource []model.Datasource, dataGroupID int64) error {
@@ -70,18 +70,18 @@ func (repo *daoRepo) CreateDatasourceGroup(ctx_core core.Context, ctx context.Co
 		datasourceGroups = append(datasourceGroups, dsGroup)
 	}
 
-	return repo.GetContextDB(ctx).Clauses(clause.OnConflict{
+	return repo.GetContextDB(ctx_core, ctx).Clauses(clause.OnConflict{
 		Columns:	[]clause.Column{{Name: "group_id"}, {Name: "datasource"}},
 		DoNothing:	true,
 	}).Create(&datasourceGroups).Error
 }
 
 func (repo *daoRepo) DeleteDSGroup(ctx_core core.Context, ctx context.Context, groupID int64) error {
-	return repo.GetContextDB(ctx).Model(&DatasourceGroup{}).Where("group_id = ?", groupID).Delete(&DatasourceGroup{}).Error
+	return repo.GetContextDB(ctx_core, ctx).Model(&DatasourceGroup{}).Where("group_id = ?", groupID).Delete(&DatasourceGroup{}).Error
 }
 
 func (repo *daoRepo) UpdateDataGroup(ctx_core core.Context, ctx context.Context, groupID int64, groupName string, description string) error {
-	return repo.GetContextDB(ctx).
+	return repo.GetContextDB(ctx_core, ctx).
 		Model(&DataGroup{}).
 		Where("group_id = ?", groupID).
 		Update("group_name", groupName).
@@ -153,7 +153,7 @@ func (repo *daoRepo) GetDataGroup(ctx_core core.Context, filter model.DataGroupF
 }
 
 func (repo *daoRepo) RetrieveDataFromGroup(ctx_core core.Context, ctx context.Context, groupID int64, datasource []string) error {
-	return repo.GetContextDB(ctx).
+	return repo.GetContextDB(ctx_core, ctx).
 		Model(&DatasourceGroup{}).Where("group_id = ? AND datasource in ?", groupID, datasource).Delete(nil).Error
 }
 

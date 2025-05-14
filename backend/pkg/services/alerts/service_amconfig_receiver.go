@@ -18,38 +18,38 @@ import (
 
 func (s *service) GetAMConfigReceivers(ctx_core core.Context, req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse {
 	if !s.enableInnerReceiver {
-		s.GetAMReceiversFromExternalAM(req)
+		s.GetAMReceiversFromExternalAM(ctx_core, req)
 	}
 
-	receivers, total := s.receivers.GetAMConfigReceiver(req.AMConfigReceiverFilter, req.PageParam)
+	receivers, total := s.receivers.GetAMConfigReceiver(ctx_core, req.AMConfigReceiverFilter, req.PageParam)
 	if receivers == nil {
 		receivers = make([]amconfig.Receiver, 0)
 	}
 	return response.GetAlertManagerConfigReceiverResponse{
-		AMConfigReceivers:	receivers,
+		AMConfigReceivers: receivers,
 		Pagination: &model.Pagination{
-			Total:		int64(total),
-			CurrentPage:	req.CurrentPage,
-			PageSize:	req.PageSize,
+			Total:       int64(total),
+			CurrentPage: req.CurrentPage,
+			PageSize:    req.PageSize,
 		},
 	}
 }
 
-func (s *service) GetAMReceiversFromExternalAM(req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse {
+func (s *service) GetAMReceiversFromExternalAM(ctx_core core.Context, req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse {
 	if req.PageParam == nil {
 		req.PageParam = &request.PageParam{
-			CurrentPage:	1,
-			PageSize:	999,
+			CurrentPage: 1,
+			PageSize:    999,
 		}
 	}
 	// get the configuration of am from memory
 	receivers, totalCount := s.k8sApi.GetAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiverFilter, req.PageParam, req.RefreshCache)
 	resp := response.GetAlertManagerConfigReceiverResponse{
-		AMConfigReceivers:	receivers,
+		AMConfigReceivers: receivers,
 		Pagination: &model.Pagination{
-			Total:		int64(totalCount),
-			CurrentPage:	req.CurrentPage,
-			PageSize:	req.PageSize,
+			Total:       int64(totalCount),
+			CurrentPage: req.CurrentPage,
+			PageSize:    req.PageSize,
 		},
 	}
 
@@ -63,14 +63,14 @@ func (s *service) GetAMReceiversFromExternalAM(req *request.GetAlertManagerConfi
 	if req.AMConfigReceiverFilter != nil {
 		name = req.AMConfigReceiverFilter.Name
 	}
-	dingTalkReceivers, dingTalkCount, err := s.dbRepo.GetDingTalkReceiverByAlertName(req.AMConfigFile, name, page, pageSize)
+	dingTalkReceivers, dingTalkCount, err := s.dbRepo.GetDingTalkReceiverByAlertName(ctx_core, req.AMConfigFile, name, page, pageSize)
 	if err != nil {
 		return resp
 	}
 
 	for i := range dingTalkReceivers {
 		receiver := amconfig.Receiver{
-			Name:	dingTalkReceivers[i].AlertName,
+			Name: dingTalkReceivers[i].AlertName,
 			DingTalkConfigs: []*amconfig.DingTalkConfig{
 				dingTalkReceivers[i]}}
 		resp.AMConfigReceivers = append(resp.AMConfigReceivers, receiver)
@@ -81,13 +81,13 @@ func (s *service) GetAMReceiversFromExternalAM(req *request.GetAlertManagerConfi
 
 func (s *service) AddAMConfigReceiver(ctx_core core.Context, req *request.AddAlertManagerConfigReceiver) error {
 	if !s.enableInnerReceiver {
-		return s.AddAMReceiversForExternalAM(req)
+		return s.AddAMReceiversForExternalAM(ctx_core, req)
 	}
 
-	return s.receivers.AddAMConfigReceiver(req.AMConfigReceiver)
+	return s.receivers.AddAMConfigReceiver(ctx_core, req.AMConfigReceiver)
 }
 
-func (s *service) AddAMReceiversForExternalAM(req *request.AddAlertManagerConfigReceiver) error {
+func (s *service) AddAMReceiversForExternalAM(ctx_core core.Context, req *request.AddAlertManagerConfigReceiver) error {
 	if req.Type != "dingtalk" {
 		return s.k8sApi.AddAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver)
 	}
@@ -104,7 +104,7 @@ func (s *service) AddAMReceiversForExternalAM(req *request.AddAlertManagerConfig
 		req.AMConfigReceiver.DingTalkConfigs[i].UUID = uuid
 		req.AMConfigReceiver.DingTalkConfigs[i].AlertName = req.AMConfigReceiver.Name
 		req.AMConfigReceiver.DingTalkConfigs[i].ConfigFile = req.AMConfigFile
-		err = s.dbRepo.CreateDingTalkReceiver(req.AMConfigReceiver.DingTalkConfigs[i])
+		err = s.dbRepo.CreateDingTalkReceiver(ctx_core, req.AMConfigReceiver.DingTalkConfigs[i])
 		if err != nil {
 			s.k8sApi.DeleteAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver.Name)
 			return err
@@ -115,13 +115,13 @@ func (s *service) AddAMReceiversForExternalAM(req *request.AddAlertManagerConfig
 
 func (s *service) UpdateAMConfigReceiver(ctx_core core.Context, req *request.UpdateAlertManagerConfigReceiver) error {
 	if !s.enableInnerReceiver {
-		return s.UpdateAMReceiverForExternalAM(req)
+		return s.UpdateAMReceiverForExternalAM(ctx_core, req)
 	}
 
-	return s.receivers.UpdateAMConfigReceiver(req.AMConfigReceiver, req.OldName)
+	return s.receivers.UpdateAMConfigReceiver(ctx_core, req.AMConfigReceiver, req.OldName)
 }
 
-func (s *service) UpdateAMReceiverForExternalAM(req *request.UpdateAlertManagerConfigReceiver) error {
+func (s *service) UpdateAMReceiverForExternalAM(ctx_core core.Context, req *request.UpdateAlertManagerConfigReceiver) error {
 	if req.Type != "dingtalk" {
 		return s.k8sApi.UpdateAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver, req.OldName)
 	}
@@ -137,7 +137,7 @@ func (s *service) UpdateAMReceiverForExternalAM(req *request.UpdateAlertManagerC
 		req.AMConfigReceiver.DingTalkConfigs[i].AlertName = req.AMConfigReceiver.Name
 		req.AMConfigReceiver.DingTalkConfigs[i].ConfigFile = req.AMConfigFile
 
-		err = s.dbRepo.UpdateDingTalkReceiver(req.AMConfigReceiver.DingTalkConfigs[i], req.OldName)
+		err = s.dbRepo.UpdateDingTalkReceiver(ctx_core, req.AMConfigReceiver.DingTalkConfigs[i], req.OldName)
 		if err != nil {
 			// redo
 			s.k8sApi.DeleteAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver.Name)
@@ -151,13 +151,13 @@ func (s *service) UpdateAMReceiverForExternalAM(req *request.UpdateAlertManagerC
 
 func (s *service) DeleteAMConfigReceiver(ctx_core core.Context, req *request.DeleteAlertManagerConfigReceiverRequest) error {
 	if !s.enableInnerReceiver {
-		return s.DeleteAMReceiverForExternalAM(req)
+		return s.DeleteAMReceiverForExternalAM(ctx_core, req)
 	}
 
-	return s.receivers.DeleteAMConfigReceiver(req.Name)
+	return s.receivers.DeleteAMConfigReceiver(ctx_core, req.Name)
 }
 
-func (s *service) DeleteAMReceiverForExternalAM(req *request.DeleteAlertManagerConfigReceiverRequest) error {
+func (s *service) DeleteAMReceiverForExternalAM(ctx_core core.Context, req *request.DeleteAlertManagerConfigReceiverRequest) error {
 	err := s.k8sApi.DeleteAMConfigReceiver(req.AMConfigFile, req.Name)
 	if err != nil {
 		return err
@@ -165,7 +165,7 @@ func (s *service) DeleteAMReceiverForExternalAM(req *request.DeleteAlertManagerC
 	if req.Type != "dingtalk" {
 		return nil
 	}
-	return s.dbRepo.DeleteDingTalkReceiver(req.AMConfigFile, req.Name)
+	return s.dbRepo.DeleteDingTalkReceiver(ctx_core, req.AMConfigFile, req.Name)
 }
 
 func (s *service) addDingTalkWebhook(name string) (string, error) {

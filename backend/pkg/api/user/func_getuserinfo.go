@@ -37,7 +37,7 @@ func (h *handler) GetUserInfo() core.HandlerFunc {
 		if req.UserID == 0 {
 			req.UserID = c.UserID()
 		}
-		resp, err := h.userService.GetUserInfo(req.UserID)
+		resp, err := h.userService.GetUserInfo(c, req.UserID)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

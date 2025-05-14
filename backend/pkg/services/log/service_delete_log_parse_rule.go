@@ -44,7 +44,7 @@ func (s *service) DeleteLogParseRule(ctx_core core.Context, req *request.DeleteL
 	if err != nil {
 		return nil, err
 	}
-	_, err = s.chRepo.DropLogTable(logReq)
+	_, err = s.chRepo.DropLogTable(ctx_core, logReq)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (s *service) DeleteLogParseRule(ctx_core core.Context, req *request.DeleteL
 		DataBase:	logReq.DataBase,
 		Cluster:	logReq.Cluster,
 	}
-	err = s.dbRepo.OperateLogTableInfo(&log, database.DELETE)
+	err = s.dbRepo.OperateLogTableInfo(ctx_core, &log, database.DELETE)
 	if err != nil {
 		return nil, err
 	}

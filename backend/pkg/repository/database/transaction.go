@@ -37,7 +37,7 @@ func (repo *daoRepo) Transaction(ctx_core core.Context, ctx context.Context, fun
 		}
 	}()
 
-	txCtx := repo.WithTransaction(ctx, tx)
+	txCtx := repo.WithTransaction(ctx_core, ctx, tx)
 	for _, f := range funcs {
 		if err = f(txCtx); err != nil {
 			tx.Rollback()

@@ -4,9 +4,9 @@
 package service
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 // CountK8sEvents get K8s events
@@ -21,15 +21,15 @@ func (s *service) CountK8sEvents(ctx_core core.Context, req *request.GetK8sEvent
 	// If no Pod instance exists, null is returned.
 	podInstances := instanceList.GetPodInstances()
 	resp := &response.GetK8sEventsResponse{
-		Status:		"normal",
-		Reasons:	[]string{},
-		Data:		make(map[string]*response.K8sEventStatistics),
+		Status:  "normal",
+		Reasons: []string{},
+		Data:    make(map[string]*response.K8sEventStatistics),
 	}
 	if len(podInstances) == 0 {
 		return resp, nil
 	}
 	// Use all pod instances as filter criteria to return a list of events related to the time period
-	counts, err := s.chRepo.CountK8sEvents(startTime, endTime, podInstances)
+	counts, err := s.chRepo.CountK8sEvents(ctx_core, startTime, endTime, podInstances)
 	if err != nil {
 		return resp, err
 	}
@@ -43,10 +43,10 @@ func (s *service) CountK8sEvents(ctx_core core.Context, req *request.GetK8sEvent
 		eventCount, ok := eventCountMap[count.Reason]
 		if !ok {
 			eventCountMap[count.Reason] = &response.K8sEventStatistics{
-				EventName:	count.Reason,
-				DisplayName:	count.Reason,
-				Severity:	count.Severity,
-				Counts:		response.K8sEventCountValues{},
+				EventName:   count.Reason,
+				DisplayName: count.Reason,
+				Severity:    count.Severity,
+				Counts:      response.K8sEventCountValues{},
 			}
 			eventCountMap[count.Reason].Counts.AddCount(count)
 		} else {
@@ -86,92 +86,92 @@ func convertReason(reason string) string {
 // Container event reason list
 const (
 	// Container creation
-	CreatedContainer	= "Created"
+	CreatedContainer = "Created"
 	// Container start
-	StartedContainer	= "Started"
+	StartedContainer = "Started"
 	// Failed to start container
-	FailedToCreateContainer	= "Failed"
-	FailedToStartContainer	= "Failed"
+	FailedToCreateContainer = "Failed"
+	FailedToStartContainer  = "Failed"
 	// Delete container
-	KillingContainer	= "Killing"
-	PreemptContainer	= "Preempting"
+	KillingContainer = "Killing"
+	PreemptContainer = "Preempting"
 	// Failed to start container and retry
-	BackOffStartContainer	= "BackOff"
+	BackOffStartContainer = "BackOff"
 	// container timeout
-	ExceededGracePeriod	= "ExceededGracePeriod"
+	ExceededGracePeriod = "ExceededGracePeriod"
 )
 
 // Pod event reason list
 const (
 	// Failed to delete pod
-	FailedToKillPod	= "FailedKillPod"
+	FailedToKillPod = "FailedKillPod"
 	// Failed to create pod
-	FailedToCreatePodContainer	= "FailedCreatePodContainer"
-	FailedToMakePodDataDirectories	= "Failed"
+	FailedToCreatePodContainer     = "FailedCreatePodContainer"
+	FailedToMakePodDataDirectories = "Failed"
 	// Network not ready
-	NetworkNotReady	= "NetworkNotReady"
+	NetworkNotReady = "NetworkNotReady"
 )
 
 // Image event reason list
 const (
 	// Getting mirror
-	PullingImage	= "Pulling"
+	PullingImage = "Pulling"
 	// Image obtained successfully
-	PulledImage	= "Pulled"
+	PulledImage = "Pulled"
 	// Failed to get mirror
-	FailedToPullImage	= "Failed"
-	FailedToInspectImage	= "InspectFailed"
-	ErrImageNeverPullPolicy	= "ErrImageNeverPull"
+	FailedToPullImage       = "Failed"
+	FailedToInspectImage    = "InspectFailed"
+	ErrImageNeverPullPolicy = "ErrImageNeverPull"
 	// Retry pulling image
-	BackOffPullImage	= "BackOff"
+	BackOffPullImage = "BackOff"
 )
 
 // kubelet event reason list
 const (
 	// Host node is ready
-	NodeReady	= "NodeReady"
+	NodeReady = "NodeReady"
 	// Host node is not ready
-	NodeNotReady				= "NodeNotReady"
-	NodeSchedulable				= "NodeSchedulable"
-	NodeNotSchedulable			= "NodeNotSchedulable"
-	StartingKubelet				= "Starting"
-	KubeletSetupFailed			= "KubeletSetupFailed"
-	FailedAttachVolume			= "FailedAttachVolume"
-	FailedMountVolume			= "FailedMount"
-	VolumeResizeFailed			= "VolumeResizeFailed"
-	VolumeResizeSuccess			= "VolumeResizeSuccessful"
-	FileSystemResizeFailed			= "FileSystemResizeFailed"
-	FileSystemResizeSuccess			= "FileSystemResizeSuccessful"
-	FailedMapVolume				= "FailedMapVolume"
-	WarnAlreadyMountedVolume		= "AlreadyMountedVolume"
-	SuccessfulAttachVolume			= "SuccessfulAttachVolume"
-	SuccessfulMountVolume			= "SuccessfulMountVolume"
-	NodeRebooted				= "Rebooted"
-	NodeShutdown				= "Shutdown"
-	ContainerGCFailed			= "ContainerGCFailed"
-	ImageGCFailed				= "ImageGCFailed"
-	FailedNodeAllocatableEnforcement	= "FailedNodeAllocatableEnforcement"
-	SuccessfulNodeAllocatableEnforcement	= "NodeAllocatableEnforced"
-	SandboxChanged				= "SandboxChanged"
-	FailedCreatePodSandBox			= "FailedCreatePodSandBox"
-	FailedStatusPodSandBox			= "FailedPodSandBoxStatus"
-	FailedMountOnFilesystemMismatch		= "FailedMountOnFilesystemMismatch"
-	FailedPrepareDynamicResources		= "FailedPrepareDynamicResources"
-	PossibleMemoryBackedVolumesOnDisk	= "PossibleMemoryBackedVolumesOnDisk"
-	CgroupV1				= "CgroupV1"
+	NodeNotReady                         = "NodeNotReady"
+	NodeSchedulable                      = "NodeSchedulable"
+	NodeNotSchedulable                   = "NodeNotSchedulable"
+	StartingKubelet                      = "Starting"
+	KubeletSetupFailed                   = "KubeletSetupFailed"
+	FailedAttachVolume                   = "FailedAttachVolume"
+	FailedMountVolume                    = "FailedMount"
+	VolumeResizeFailed                   = "VolumeResizeFailed"
+	VolumeResizeSuccess                  = "VolumeResizeSuccessful"
+	FileSystemResizeFailed               = "FileSystemResizeFailed"
+	FileSystemResizeSuccess              = "FileSystemResizeSuccessful"
+	FailedMapVolume                      = "FailedMapVolume"
+	WarnAlreadyMountedVolume             = "AlreadyMountedVolume"
+	SuccessfulAttachVolume               = "SuccessfulAttachVolume"
+	SuccessfulMountVolume                = "SuccessfulMountVolume"
+	NodeRebooted                         = "Rebooted"
+	NodeShutdown                         = "Shutdown"
+	ContainerGCFailed                    = "ContainerGCFailed"
+	ImageGCFailed                        = "ImageGCFailed"
+	FailedNodeAllocatableEnforcement     = "FailedNodeAllocatableEnforcement"
+	SuccessfulNodeAllocatableEnforcement = "NodeAllocatableEnforced"
+	SandboxChanged                       = "SandboxChanged"
+	FailedCreatePodSandBox               = "FailedCreatePodSandBox"
+	FailedStatusPodSandBox               = "FailedPodSandBoxStatus"
+	FailedMountOnFilesystemMismatch      = "FailedMountOnFilesystemMismatch"
+	FailedPrepareDynamicResources        = "FailedPrepareDynamicResources"
+	PossibleMemoryBackedVolumesOnDisk    = "PossibleMemoryBackedVolumesOnDisk"
+	CgroupV1                             = "CgroupV1"
 )
 
 // Image manager event reason list
 const (
-	InvalidDiskCapacity	= "InvalidDiskCapacity"
-	FreeDiskSpaceFailed	= "FreeDiskSpaceFailed"
+	InvalidDiskCapacity = "InvalidDiskCapacity"
+	FreeDiskSpaceFailed = "FreeDiskSpaceFailed"
 )
 
 // Probe event reason list
 const (
 	// Container health check failed
-	ContainerUnhealthy	= "Unhealthy"
-	ContainerProbeWarning	= "ProbeWarning"
+	ContainerUnhealthy    = "Unhealthy"
+	ContainerProbeWarning = "ProbeWarning"
 )
 
 // Pod worker event reason list
@@ -186,6 +186,6 @@ const (
 
 // Lifecycle hooks
 const (
-	FailedPostStartHook	= "FailedPostStartHook"
-	FailedPreStopHook	= "FailedPreStopHook"
+	FailedPostStartHook = "FailedPostStartHook"
+	FailedPreStopHook   = "FailedPreStopHook"
 )

@@ -37,7 +37,7 @@ func (Team) TableName() string {
 
 func (repo *daoRepo) CreateTeam(ctx_core core.Context, ctx context.Context, team Team) error {
 	var count int64
-	err := repo.GetContextDB(ctx).Model(&Team{}).Where("team_name = ?", team.TeamName).Count(&count).Error
+	err := repo.GetContextDB(ctx_core, ctx).Model(&Team{}).Where("team_name = ?", team.TeamName).Count(&count).Error
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func (repo *daoRepo) CreateTeam(ctx_core core.Context, ctx context.Context, team
 	if count > 0 {
 		return core.Error(code.TeamAlreadyExistError, "team already exists")
 	}
-	return repo.GetContextDB(ctx).Create(&team).Error
+	return repo.GetContextDB(ctx_core, ctx).Create(&team).Error
 }
 
 func (repo *daoRepo) TeamExist(ctx_core core.Context, filter model.TeamFilter) (bool, error) {
@@ -75,7 +75,7 @@ func (repo *daoRepo) GetTeam(ctx_core core.Context, teamID int64) (Team, error) 
 }
 
 func (repo *daoRepo) UpdateTeam(ctx_core core.Context, ctx context.Context, team Team) error {
-	return repo.GetContextDB(ctx).Save(&team).Error
+	return repo.GetContextDB(ctx_core, ctx).Save(&team).Error
 }
 
 func (repo *daoRepo) GetTeamList(ctx_core core.Context, req *request.GetTeamRequest) ([]Team, int64, error) {
@@ -149,11 +149,11 @@ func (repo *daoRepo) GetTeamList(ctx_core core.Context, req *request.GetTeamRequ
 }
 
 func (repo *daoRepo) DeleteTeam(ctx_core core.Context, ctx context.Context, teamID int64) error {
-	if err := repo.GetContextDB(ctx).Model(&Team{}).Where("team_id = ?", teamID).Delete(nil).Error; err != nil {
+	if err := repo.GetContextDB(ctx_core, ctx).Model(&Team{}).Where("team_id = ?", teamID).Delete(nil).Error; err != nil {
 		return err
 	}
 
-	return repo.GetContextDB(ctx).Model(&UserTeam{}).Where("team_id = ?", teamID).Delete(nil).Error
+	return repo.GetContextDB(ctx_core, ctx).Model(&UserTeam{}).Where("team_id = ?", teamID).Delete(nil).Error
 }
 
 func (repo *daoRepo) GetUserTeams(ctx_core core.Context, userID int64) ([]int64, error) {
@@ -191,7 +191,7 @@ func (repo *daoRepo) AssignUserToTeam(ctx_core core.Context, ctx context.Context
 		userTeams = append(userTeams, ut)
 	}
 
-	return repo.GetContextDB(ctx).Create(&userTeams).Error
+	return repo.GetContextDB(ctx_core, ctx).Create(&userTeams).Error
 }
 
 func (repo *daoRepo) InviteUserToTeam(ctx_core core.Context, ctx context.Context, teamID int64, userIDs []int64) error {
@@ -207,23 +207,23 @@ func (repo *daoRepo) InviteUserToTeam(ctx_core core.Context, ctx context.Context
 		userTeams = append(userTeams, ut)
 	}
 
-	return repo.GetContextDB(ctx).Create(&userTeams).Error
+	return repo.GetContextDB(ctx_core, ctx).Create(&userTeams).Error
 }
 
 // RemoveFromTeamByUser remove user from some of his teams.
 func (repo *daoRepo) RemoveFromTeamByUser(ctx_core core.Context, ctx context.Context, userID int64, teamIDs []int64) error {
-	return repo.GetContextDB(ctx).Model(&UserTeam{}).Where("user_id = ? AND team_id IN ?", userID, teamIDs).Delete(nil).Error
+	return repo.GetContextDB(ctx_core, ctx).Model(&UserTeam{}).Where("user_id = ? AND team_id IN ?", userID, teamIDs).Delete(nil).Error
 }
 
 // RemoveFromTeamByTeam remove team's some users.
 func (repo *daoRepo) RemoveFromTeamByTeam(ctx_core core.Context, ctx context.Context, teamID int64, userIDs []int64) error {
-	return repo.GetContextDB(ctx).Model(&UserTeam{}).Where("team_id = ? AND user_id IN ?", teamID, userIDs).Delete(nil).Error
+	return repo.GetContextDB(ctx_core, ctx).Model(&UserTeam{}).Where("team_id = ? AND user_id IN ?", teamID, userIDs).Delete(nil).Error
 }
 
 // DeleteAllUserTeam Used for user or team was deleted.
 // If delete the user-related records, by is "user" otherwise by is "team"
 func (repo *daoRepo) DeleteAllUserTeam(ctx_core core.Context, ctx context.Context, id int64, by string) error {
-	query := repo.GetContextDB(ctx).Model(&UserTeam{})
+	query := repo.GetContextDB(ctx_core, ctx).Model(&UserTeam{})
 	if by == "user" {
 		query.Where("user_id = ?", id)
 	} else if by == "team" {

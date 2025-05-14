@@ -34,7 +34,7 @@ func (h *handler) GetAlertManagerConfigReceiver() core.HandlerFunc {
 			return
 		}
 
-		resp := h.alertService.GetAMConfigReceivers(req)
+		resp := h.alertService.GetAMConfigReceivers(c, req)
 		c.Payload(resp)
 	}
 }

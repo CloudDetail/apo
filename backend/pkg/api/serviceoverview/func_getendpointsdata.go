@@ -54,7 +54,7 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 		step := time.Duration(req.Step * 1000)
 
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, req.GroupID, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(c, userID, req.GroupID, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, []response.ServiceEndPointsRes{})
 			return
@@ -65,7 +65,7 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 			MultiEndpoint:  req.EndpointName,
 			MultiNamespace: req.Namespace,
 		}
-		data, err = h.serviceoverview.GetServicesEndPointData(startTime, endTime, step, filter, req.SortRule)
+		data, err = h.serviceoverview.GetServicesEndPointData(c, startTime, endTime, step, filter, req.SortRule)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

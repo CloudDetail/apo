@@ -33,7 +33,7 @@ func (h *handler) QueryLogContext() core.HandlerFunc {
 			)
 			return
 		}
-		resp, err := h.logService.QueryLogContext(req)
+		resp, err := h.logService.QueryLogContext(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

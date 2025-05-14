@@ -11,9 +11,9 @@ import (
 	"regexp"
 	"strconv"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 // Regular expression variables at the package level
@@ -38,9 +38,9 @@ func prepareTTLInfo(tables []model.TablesQuery) []model.ModifyTableTTLMap {
 		}
 
 		item := model.ModifyTableTTLMap{
-			Name:		t.Name,
-			TTLExpression:	originalTTLExpression,
-			OriginalDays:	originalDays,
+			Name:          t.Name,
+			TTLExpression: originalTTLExpression,
+			OriginalDays:  originalDays,
 		}
 		mapResult = append(mapResult, item)
 	}
@@ -48,8 +48,8 @@ func prepareTTLInfo(tables []model.TablesQuery) []model.ModifyTableTTLMap {
 	return mapResult
 }
 
-func (s *service) SetTableTTL(tableNames []model.Table, day int) error {
-	tables, err := s.chRepo.GetTables(tableNames)
+func (s *service) SetTableTTL(ctx_core core.Context, tableNames []model.Table, day int) error {
+	tables, err := s.chRepo.GetTables(ctx_core, tableNames)
 	if err != nil {
 		log.Println("[SetSingleTableTTL] Error getting tables: ", err)
 		return err
@@ -59,7 +59,7 @@ func (s *service) SetTableTTL(tableNames []model.Table, day int) error {
 		log.Println("[SetSingleTableTTL] Error convertModifyTableTTLMap: ", err)
 		return err
 	}
-	err = s.chRepo.ModifyTableTTL(context.Background(), mapResult)
+	err = s.chRepo.ModifyTableTTL(ctx_core, context.Background(), mapResult)
 	if err != nil {
 		log.Println("[SetSingleTableTTL] Error ModifyTableTTL: ", err)
 		return err
@@ -86,7 +86,7 @@ func (s *service) SetTTL(ctx_core core.Context, req *request.SetTTLRequest) erro
 	if len(tables) == 0 {
 		return fmt.Errorf("type: %s does not have tables", req.DataType)
 	}
-	err := s.SetTableTTL(tables, req.Day)
+	err := s.SetTableTTL(ctx_core, tables, req.Day)
 	return err
 }
 
@@ -101,6 +101,6 @@ func (s *service) SetSingleTableTTL(ctx_core core.Context, req *request.SetSingl
 	tables := []model.Table{
 		{Name: req.Name},
 	}
-	err := s.SetTableTTL(tables, req.Day)
+	err := s.SetTableTTL(ctx_core, tables, req.Day)
 	return err
 }

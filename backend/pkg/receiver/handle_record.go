@@ -78,7 +78,7 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx_core core.Context, ctx conte
 		notifyRecord.Failed = strings.Join(fails, ";")
 	}
 
-	err := r.ch.CreateAlertNotifyRecord(ctx, *notifyRecord)
+	err := r.ch.CreateAlertNotifyRecord(ctx_core, ctx, *notifyRecord)
 	if err != nil {
 		errs = errors.Join(errs, err)
 	}

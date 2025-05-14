@@ -28,7 +28,7 @@ func (s *service) GetFaultLogPageList(ctx_core core.Context, req *request.GetFau
 		PageSize:	req.PageSize,
 		Pod:		req.Pod,
 	}
-	list, total, err := s.chRepo.GetFaultLogPageList(query)
+	list, total, err := s.chRepo.GetFaultLogPageList(ctx_core, query)
 	if err != nil {
 		return nil, err
 	}

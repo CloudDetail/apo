@@ -6,10 +6,10 @@ package database
 import (
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"gorm.io/gorm"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func (repo *daoRepo) GetAMConfigReceiver(ctx_core core.Context, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int, error) {

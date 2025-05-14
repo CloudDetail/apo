@@ -104,30 +104,30 @@ func (s *service) UpdateAlertEnrichRule(ctx_core core.Context, req *alert.AlertE
 		enricher, loaded := s.dispatcher.EnricherMap.Load(req.SourceId)
 		if loaded {
 			sourceType := enricher.(*enrich.AlertEnricher).SourceType
-			s.SetDefaultAlertEnrichRule(sourceType, req.EnrichRuleConfigs)
+			s.SetDefaultAlertEnrichRule(ctx_core, sourceType, req.EnrichRuleConfigs)
 		}
 	}
 
-	err = s.dbRepo.DeleteAlertEnrichRule(deletedRules)
+	err = s.dbRepo.DeleteAlertEnrichRule(ctx_core, deletedRules)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.DeleteAlertEnrichConditions(deletedRules)
+	err = s.dbRepo.DeleteAlertEnrichConditions(ctx_core, deletedRules)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.DeleteAlertEnrichSchemaTarget(deletedRules)
-	storeError = multierr.Append(storeError, err)
-
-	err = s.dbRepo.DeleteAlertEnrichConditions(conditionsModifiedRules)
-	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.AddAlertEnrichConditions(newConditions)
+	err = s.dbRepo.DeleteAlertEnrichSchemaTarget(ctx_core, deletedRules)
 	storeError = multierr.Append(storeError, err)
 
-	err = s.dbRepo.DeleteAlertEnrichSchemaTarget(schemaTargetModifiedRules)
+	err = s.dbRepo.DeleteAlertEnrichConditions(ctx_core, conditionsModifiedRules)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.AddAlertEnrichSchemaTarget(newSchemaTargets)
+	err = s.dbRepo.AddAlertEnrichConditions(ctx_core, newConditions)
 	storeError = multierr.Append(storeError, err)
 
-	err = s.dbRepo.DeleteAlertEnrichRule(modifiedAlertEnrichRules)
+	err = s.dbRepo.DeleteAlertEnrichSchemaTarget(ctx_core, schemaTargetModifiedRules)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.AddAlertEnrichRule(newAlertEnrichRules)
+	err = s.dbRepo.AddAlertEnrichSchemaTarget(ctx_core, newSchemaTargets)
+	storeError = multierr.Append(storeError, err)
+
+	err = s.dbRepo.DeleteAlertEnrichRule(ctx_core, modifiedAlertEnrichRules)
+	storeError = multierr.Append(storeError, err)
+	err = s.dbRepo.AddAlertEnrichRule(ctx_core, newAlertEnrichRules)
 	storeError = multierr.Append(storeError, err)
 
 	return storeError

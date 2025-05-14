@@ -33,7 +33,7 @@ func (h *handler) DeleteOtherTable() core.HandlerFunc {
 			)
 			return
 		}
-		resp, err := h.logService.DeleteOtherTable(req)
+		resp, err := h.logService.DeleteOtherTable(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

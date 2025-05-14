@@ -48,7 +48,7 @@ func (s *service) UpdateLogParseRule(ctx_core core.Context, req *request.UpdateL
 		IsStructured:	req.IsStructured,
 	}
 	logReq.FillerValue()
-	_, err := s.UpdateLogTable(logReq)
+	_, err := s.UpdateLogTable(ctx_core, logReq)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (s *service) UpdateLogParseRule(ctx_core core.Context, req *request.UpdateL
 		ParseRule:	req.ParseRule,
 	}
 
-	err = s.dbRepo.UpdateLogParseRule(&log)
+	err = s.dbRepo.UpdateLogParseRule(ctx_core, &log)
 	if err != nil {
 		return nil, err
 	}

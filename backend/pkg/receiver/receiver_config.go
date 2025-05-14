@@ -4,10 +4,10 @@
 package receiver
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/prometheus/alertmanager/template"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func (r *InnerReceivers) updateReceiversInMemory(receivers []amconfig.Receiver) error {
@@ -26,7 +26,7 @@ func (r *InnerReceivers) updateReceiversInMemory(receivers []amconfig.Receiver) 
 }
 
 func (r *InnerReceivers) GetAMConfigReceiver(ctx_core core.Context, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int) {
-	receivers, count, err := r.database.GetAMConfigReceiver(filter, pageParam)
+	receivers, count, err := r.database.GetAMConfigReceiver(ctx_core, filter, pageParam)
 	if err != nil {
 		r.logger.Error("failed to list amconfigReceiver", "err", err)
 		return []amconfig.Receiver{}, 0
@@ -35,12 +35,12 @@ func (r *InnerReceivers) GetAMConfigReceiver(ctx_core core.Context, filter *requ
 }
 
 func (r *InnerReceivers) AddAMConfigReceiver(ctx_core core.Context, receiver amconfig.Receiver) error {
-	err := r.database.AddAMConfigReceiver(receiver)
+	err := r.database.AddAMConfigReceiver(ctx_core, receiver)
 	if err != nil {
 		return err
 	}
 
-	receivers, _, err := r.database.GetAMConfigReceiver(nil, nil)
+	receivers, _, err := r.database.GetAMConfigReceiver(ctx_core, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -48,11 +48,11 @@ func (r *InnerReceivers) AddAMConfigReceiver(ctx_core core.Context, receiver amc
 }
 
 func (r *InnerReceivers) UpdateAMConfigReceiver(ctx_core core.Context, receiver amconfig.Receiver, oldName string) error {
-	err := r.database.UpdateAMConfigReceiver(receiver, oldName)
+	err := r.database.UpdateAMConfigReceiver(ctx_core, receiver, oldName)
 	if err != nil {
 		return err
 	}
-	receivers, _, err := r.database.GetAMConfigReceiver(nil, nil)
+	receivers, _, err := r.database.GetAMConfigReceiver(ctx_core, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -60,11 +60,11 @@ func (r *InnerReceivers) UpdateAMConfigReceiver(ctx_core core.Context, receiver 
 }
 
 func (r *InnerReceivers) DeleteAMConfigReceiver(ctx_core core.Context, name string) error {
-	err := r.database.DeleteAMConfigReceiver(name)
+	err := r.database.DeleteAMConfigReceiver(ctx_core, name)
 	if err != nil {
 		return err
 	}
-	receivers, _, err := r.database.GetAMConfigReceiver(nil, nil)
+	receivers, _, err := r.database.GetAMConfigReceiver(ctx_core, nil, nil)
 	if err != nil {
 		return err
 	}

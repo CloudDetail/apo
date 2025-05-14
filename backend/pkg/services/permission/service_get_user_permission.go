@@ -4,17 +4,18 @@
 package permission
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
-func (s *service) getUserFeatureIDs(userID int64) ([]int, error) {
+func (s *service) getUserFeatureIDs(ctx_core core.Context, userID int64) ([]int, error) {
 	// 1. Get user's role
-	roles, err := s.dbRepo.GetUserRole(userID)
+	roles, err := s.dbRepo.GetUserRole(ctx_core, userID)
 	if err != nil {
 		return nil, err
 	}
 	// 2. Get user's team
-	teamIDs, err := s.dbRepo.GetUserTeams(userID)
+	teamIDs, err := s.dbRepo.GetUserTeams(ctx_core, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -24,17 +25,17 @@ func (s *service) getUserFeatureIDs(userID int64) ([]int, error) {
 	for i := range roleIDs {
 		roleIDs[i] = int64(roles[i].RoleID)
 	}
-	rolesFeatures, err := s.dbRepo.GetSubjectsPermission(roleIDs, model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE)
+	rolesFeatures, err := s.dbRepo.GetSubjectsPermission(ctx_core, roleIDs, model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE)
 	if err != nil {
 		return nil, err
 	}
 
-	uFeatureIDs, err := s.dbRepo.GetSubjectPermission(userID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE)
+	uFeatureIDs, err := s.dbRepo.GetSubjectPermission(ctx_core, userID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE)
 	if err != nil {
 		return nil, err
 	}
 
-	teamFeatures, err := s.dbRepo.GetSubjectsPermission(teamIDs, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE)
+	teamFeatures, err := s.dbRepo.GetSubjectsPermission(ctx_core, teamIDs, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE)
 	if err != nil {
 		return nil, err
 	}

@@ -33,7 +33,7 @@ func (h *handler) UpdateCluster() core.HandlerFunc {
 			return
 		}
 
-		err := h.inputService.UpdateCluster(req)
+		err := h.inputService.UpdateCluster(c, req)
 		if err != nil {
 
 		}

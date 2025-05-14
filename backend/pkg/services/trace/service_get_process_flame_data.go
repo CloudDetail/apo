@@ -5,16 +5,17 @@ package trace
 
 import (
 	"encoding/json"
+	"math"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"go.uber.org/zap"
-	"math"
-	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 func (s *service) GetProcessFlameGraphData(ctx_core core.Context, req *request.GetProcessFlameGraphRequest) (response.GetProcessFlameGraphResponse, error) {
-	data, err := s.chRepo.GetFlameGraphData(req.StartTime, req.EndTime, req.NodeName,
+	data, err := s.chRepo.GetFlameGraphData(ctx_core, req.StartTime, req.EndTime, req.NodeName,
 		req.PID, -1, req.SampleType, "", "")
 	if err != nil {
 		return response.GetProcessFlameGraphResponse{}, err
@@ -60,14 +61,14 @@ func (s *service) GetProcessFlameGraphData(ctx_core core.Context, req *request.G
 		return response.GetProcessFlameGraphResponse{}, err
 	}
 	return response.GetProcessFlameGraphResponse{
-		StartTime:	startTime,
-		EndTime:	endTime,
-		Labels:		labels,
-		SampleRate:	sampleRate,
-		SampleType:	req.SampleType,
-		PID:		uint32(req.PID),
-		TID:		0,
-		FlameBearer:	string(bearerStr),
+		StartTime:   startTime,
+		EndTime:     endTime,
+		Labels:      labels,
+		SampleRate:  sampleRate,
+		SampleType:  req.SampleType,
+		PID:         uint32(req.PID),
+		TID:         0,
+		FlameBearer: string(bearerStr),
 	}, nil
 }
 

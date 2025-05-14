@@ -35,5 +35,5 @@ func (s *service) ProcessAlertEvents(ctx_core core.Context, source alert.SourceF
 	}
 
 	s.difyRepo.SubmitAlertEvents(events)
-	return s.ckRepo.InsertAlertEvent(context.Background(), events, source)
+	return s.ckRepo.InsertAlertEvent(ctx_core, context.Background(), events, source)
 }

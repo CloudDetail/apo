@@ -11,8 +11,8 @@ import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (s *service) GetTTL(ctx_core core.Context,) (*response.GetTTLResponse, error) {
-	tables, err := s.chRepo.GetTables(model.GetAllTables())
+func (s *service) GetTTL(ctx_core core.Context) (*response.GetTTLResponse, error) {
+	tables, err := s.chRepo.GetTables(ctx_core, model.GetAllTables())
 	if err != nil {
 		log.Println("[GetTTL] Error getting tables: ", err)
 		return nil, err
