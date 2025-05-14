@@ -111,6 +111,9 @@ const AntdWrapper = memo(() => {
             itemSelectedBg: 'var(--main-color)',
             itemSelectedColor: 'var(--menu-selected-text-color)',
           },
+          Spin: {
+            dotSizeLG: 48,
+          },
         },
       }}
     >

@@ -4,14 +4,15 @@
  */
 
 import React from 'react'
-import { CSpinner } from '@coreui/react'
+import { Spin } from 'antd'
+import { LoadingOutlined } from '@ant-design/icons'
 
-const LoadingSpinner = ({ loading, size = null }) => {
+const LoadingSpinner = ({ loading, size = 'large' }) => {
   return (
     <>
       {loading ? (
-        <div className=" absolute top-0 left-0 w-full h-full z-10 fade show backdrop-brightness-50 backdrop-opacity-40 flex items-center justify-center">
-          <CSpinner size={size} />
+        <div className=" absolute top-0 left-0 w-full h-full z-50 bg-[var(--mask-bg)] flex items-center justify-center">
+          <Spin indicator={<LoadingOutlined spin />} size={size} />
         </div>
       ) : null}
     </>
