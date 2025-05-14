@@ -20,6 +20,7 @@ function isJSONString(str) {
 const i18nKey = 'alertEvent'
 const AlertEventTable = ({ scrolllHeight }) => {
   const { t } = useTranslation('pro/alertAnalyze')
+  const { reactJsonTheme } = useSelector((state) => state.settingReducer)
 
   const { alertEvents, loading, isAnalyze, pagination, updatePagination } = useAlertAnalyzeContext()
   const { groupLabel } = useSelector((state) => state.groupLabelReducer)
@@ -95,7 +96,7 @@ const AlertEventTable = ({ scrolllHeight }) => {
             {visible && (
               <ReactJson
                 src={JSON.parse(detail || '')}
-                theme="brewer"
+                theme={reactJsonTheme}
                 collapsed={false}
                 displayDataTypes={false}
                 style={{ width: '100%' }}
