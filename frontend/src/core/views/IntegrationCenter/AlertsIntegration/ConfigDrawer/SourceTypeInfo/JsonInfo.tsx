@@ -65,10 +65,10 @@ const JsonInfo = () => {
       description: t('jsonInfo.fields.tags.description'),
     },
     {
-      title: 'startTime',
-      meaning: t('jsonInfo.fields.startTime.meaning'),
+      title: 'createTime',
+      meaning: t('jsonInfo.fields.createTime.meaning'),
       type: 'int64',
-      description: t('jsonInfo.fields.startTime.description'),
+      description: t('jsonInfo.fields.createTime.description'),
     },
     {
       title: 'updateTime',
@@ -85,19 +85,20 @@ const JsonInfo = () => {
   ]
 
   const code1 = `{
-    "name": "Zabbix-Trigger-1",
-    "status": "trigger",
-    "detail": "Zabbix-Trigger-1",
-    "alertId": "1234567890",
-    "tags": {
-        "tag1": "value1",
-        "tag2": "value2"
-    },
-    "startTime": "2025-01-21T15:04:05+00:00",
-    "updateTime": 1737514800000,
-    "endTime": 1737514800000,
-    "severity": "error",
-    "status": "firing"
+  "name": "请求延时超过过去24h平均延时",
+  "detail": "{\"description\":\"VALUE = 7.6046459456754825\nLABELS = map[alertgroup:应用指标 alertname:请求延时超过过去24h平均延时 content_key:POST /api/v1/travelservice/trips/left group:app severity:warning svc_name:ts-travel-service]\"}",
+  "alertId": "12312i095435asda",
+  "tags": {
+    "group": "app",
+    "status": "firing",
+    "severity": "warning",
+    "node": "large-server-6",
+    "pid": "6642"
+  },
+  "createTime": "2025-04-29T16:41:00+08:00",
+  "updateTime": "2025-04-29T16:41:00+08:00",
+  "severity": "warning",
+  "status": "firing"
 }`
 
   const code2 = `{
