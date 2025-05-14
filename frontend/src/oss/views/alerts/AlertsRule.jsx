@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Input, Popconfirm, Select, Space, Tag } from 'antd'
+import { Button, Input, Popconfirm, Select, Space, Tag, theme } from 'antd'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { deleteRuleApi, getAlertRulesApi, getAlertRulesStatusApi } from 'core/api/alerts'
@@ -18,6 +18,8 @@ import CustomCard from 'src/core/components/Card/CustomCard'
 
 export default function AlertsRule() {
   const { t } = useTranslation('oss/alert')
+  const { useToken } = theme
+  const { token } = useToken()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(false)
   const [pageIndex, setPageIndex] = useState(1)
@@ -127,9 +129,9 @@ export default function AlertsRule() {
             <Button
               type="text"
               onClick={() => clickEditRule(row)}
-              icon={<MdOutlineEdit className="text-blue-400 hover:text-blue-400" />}
+              icon={<MdOutlineEdit style={{ color: token.colorPrimary }} />}
             >
-              <span className="text-blue-400 hover:text-blue-400">{t('rule.edit')}</span>
+              <span style={{ color: token.colorPrimary }}>{t('rule.edit')}</span>
             </Button>
             <Popconfirm
               title={<>{t('rule.confirmDelete', { name: row.alert })}</>}

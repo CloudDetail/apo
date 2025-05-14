@@ -10,6 +10,7 @@
 
 import React from 'react'
 import ReactECharts from 'echarts-for-react'
+import { theme } from 'antd';
 
 interface PieChartProps {
   data: { name: string; value: number }[]
@@ -17,6 +18,9 @@ interface PieChartProps {
 }
 
 const PieChart: React.FC<PieChartProps> = ({ data, title = '' }) => {
+  const { useToken } = theme
+  const { token } = useToken()
+
   const option = {
     title: {
       text: title,
@@ -35,7 +39,7 @@ const PieChart: React.FC<PieChartProps> = ({ data, title = '' }) => {
     },
     label: {
       show: true,
-      color: '#ffffff',
+      color: token.colorTextSecondary,
       fontSize: 12,
       margin: 20,
       formatter: '{b}: {d}%',
