@@ -96,7 +96,7 @@ const JsonInfo = () => {
     "pid": "6642"
   },
   "createTime": "2025-04-29T16:41:00+08:00",
-  "updateTime": "2025-04-29T16:41:00+08:00",
+  "updateTime": 1745916060000,
   "severity": "warning",
   "status": "firing"
 }`
