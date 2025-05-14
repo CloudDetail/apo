@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react'
-import _ from 'lodash'
+import React, { useState } from 'react'
 import { useCauseReportContext } from 'src/pro/contexts/CauseReportContext'
 import ReportHeader from './ReportHeader'
 import ReportTopology from './ReportTopology'
@@ -24,7 +23,6 @@ function CauseReportCom() {
   const { traceId, category, loading, dataMissing } = useCauseReportContext()
 
   const [showEmptyData, setShowEmptyData] = useState<boolean>(false)
-
   return (
     <>
       <LoadingSpinner loading={loading} />
@@ -41,7 +39,7 @@ function CauseReportCom() {
           </div>
           {category === 'slow' && <ReportTopology />}
           <Collapse
-            className="mb-2 bg-[#141414]"
+            className="mb-2 bg-[var(--ant-color-bg-container)]"
             items={[
               {
                 key: 'report',

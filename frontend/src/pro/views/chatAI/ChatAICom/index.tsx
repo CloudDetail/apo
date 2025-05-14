@@ -405,7 +405,7 @@ const ChatAICom = () => {
         <div
           className="flex overflow-y-scroll px-4"
           style={{
-            borderBottom: '1px solid #303030',
+            borderBottom: '1px solid var(--ant-color-split)',
           }}
         >
           <div className="w-2/3 p-1 text-base font-bold flex items-center">

@@ -1,4 +1,4 @@
-import { Col, Radio, Row } from 'antd'
+import { Col, Radio, Row, theme } from 'antd'
 import { Trans, useTranslation } from 'react-i18next'
 import { useChatAIContext } from 'src/pro/contexts/ChatAIContext'
 interface NodeData {
@@ -19,11 +19,17 @@ const CauseConfirmStep = ({ nextStep }: CauseConfirmStepProps) => {
     setSelectedSuspectedNode(node)
     nextStep()
   }
+  const { useToken } = theme
+  const { token } = useToken()
   const NodeCom = ({ node }) => {
     return (
       <div
-        className=" relative w-[200px] m-2 min-h-[30px] p-2 rounded-md border-2 border-solid border-[#6293ff] text-[#6293ff] overflow-hidden cursor-pointer transition-transform duration-300 hover:scale-110"
-        style={{ backgroundColor: 'rgba(19, 25, 32, 0.6)' }}
+        className=" relative w-[200px] m-2 min-h-[30px] p-2 rounded-md border-2 overflow-hidden cursor-pointer transition-transform duration-300 hover:scale-110"
+        style={{
+          backgroundColor: token.colorBgLayout,
+          color: token.colorPrimaryText,
+          borderColor: token.colorPrimaryText,
+        }}
         onClick={() => onSelectNode(node)}
       >
         <div className="text-center text-sm pt-2 px-2 break-all">

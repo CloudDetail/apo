@@ -15,6 +15,8 @@ const TimeLineChart = ({ rightWidth }) => {
     deltaEndTime,
     changeAlertDescendantDelta,
   } = useServiceAnalyzeContext()
+  const { theme } = useSelector((state) => state.settingReducer)
+
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [currentMarkLineX, setCurrentMarkLineX] = useState(0)
   const chartRef = useRef(null)
@@ -174,10 +176,8 @@ const TimeLineChart = ({ rightWidth }) => {
   useEffect(() => {
     handleResize()
     // updateMarkLine()
-  }, [rightWidth])
+  }, [rightWidth, theme])
   const onChartReady = (chart) => {
-    // 确保下一帧再更新
-    // 确保下一帧再更新
     if (chartRef.current) {
       const chart = chartRef.current.getEchartsInstance()
       setTimeout(() => {
@@ -225,13 +225,10 @@ const TimeLineChart = ({ rightWidth }) => {
   const updateMarkLine = () => {
     if (chartRef.current) {
       const chartInstance = chartRef.current.getEchartsInstance()
-      console.log(chartInstance)
       if (!chartInstance || chartInstance._disposed) {
         console.warn('ECharts 实例未初始化或已被销毁')
         return
       }
-
-      console.log('ECharts 实例', chartInstance)
 
       // if (typeof chartInstance.convertToPixel === 'function') {
       //   const x = chartInstance.convertToPixel({ xAxisIndex: 0 }, marklineTimestamp / 1000)
@@ -285,7 +282,6 @@ const TimeLineChart = ({ rightWidth }) => {
     updateMarkLine()
   }, [marklineTimestamp])
   useUpdateEffect(() => {
-    console.log(brushStartTime, brushEndTime)
     changeAlertDescendantDelta({
       deltaStartTime: brushStartTime,
       deltaEndTime: brushEndTime,
@@ -294,7 +290,7 @@ const TimeLineChart = ({ rightWidth }) => {
   return (
     <ReactECharts
       ref={chartRef}
-      theme="dark"
+      theme={theme}
       option={option}
       style={{ height: '200px', width: '100%' }}
       onChartReady={onChartReady}
