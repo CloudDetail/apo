@@ -99,14 +99,16 @@ const LogRuleList = () => {
     )
   }, [logRules])
   const onSelect = (selectedKeys, { selectedNodes }) => {
-    updateLoading(true)
-    updateTableInfo({
-      dataBase: selectedNodes[0].dataBase,
-      tableName: selectedNodes[0].tableName,
-      cluster: '',
-      parseName: selectedNodes[0].parseName,
-      type: 'logLibrary',
-    })
+    if (selectedNodes[0]) {
+      updateLoading(true)
+      updateTableInfo({
+        dataBase: selectedNodes[0].dataBase,
+        tableName: selectedNodes[0].tableName,
+        cluster: '',
+        parseName: selectedNodes[0].parseName,
+        type: 'logLibrary',
+      })
+    }
   }
   useEffect(() => {
     setSelectedKeys([tableInfo.dataBase + tableInfo.tableName])
