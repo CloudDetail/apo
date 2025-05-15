@@ -106,7 +106,10 @@ const BaseInfoContent = (props: BaseInfoContentProps) => {
     }
   }
   return (
-    <Card className="bg-[#202023] rounded-3xl" classNames={{ body: 'px-4 py-3' }}>
+    <Card
+      className="bg-[var(--ant-color-bg-layout)] rounded-3xl"
+      classNames={{ body: 'px-4 py-3' }}
+    >
       {type === 'view' ? (
         sourceName && (
           <BaseInfoDescriptions sourceName={sourceName} clusters={clusters} sourceId={sourceId} />

@@ -84,10 +84,10 @@ const AntdWrapper = memo(() => {
           //   itemSelectedBg: '#4096ff',
           // },
           Segmented: {
-            itemActiveBg: 'var(--body-bg)',
-            itemSelectedBg: 'var(--main-color)',
+            // itemActiveBg: 'var(--ant-color-bg-layout)',
+            // itemSelectedBg: 'var(--ant-color-bg-layout)',
             trackBg: 'var(--body-bg)',
-            itemSelectedColor: 'var(--menu-selected-text-color)',
+            itemSelectedColor: 'var(--ant-color-primary-text)',
             // itemColor: 'rgba(255,255,255, 0.4)',
           },
           Layout: {

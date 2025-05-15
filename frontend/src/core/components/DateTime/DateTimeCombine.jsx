@@ -61,7 +61,10 @@ function ShareLink() {
             ]}
             onChange={setShareType}
           />
-          <div className="my-2 text-gray-300 mx-1" style={{ color: token.colorTextSecondary }}>
+          <div
+            className="my-2 text-[var(--ant-color-text-secondary)] mx-1"
+            style={{ color: token.colorTextSecondary }}
+          >
             {shareType === t('dataTimeCombine.absoluteTimeText') ? (
               <>
                 {convertTime(startTime, 'yyyy-mm-dd hh:mm:ss')} to{' '}
