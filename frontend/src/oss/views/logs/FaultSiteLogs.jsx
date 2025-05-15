@@ -172,7 +172,7 @@ function FaultSiteLogs(props) {
       style={{ height: 'calc(100vh - 120px)' }}
     >
       <LoadingSpinner loading={loading} />
-      <CToast autohide={false} visible={true} className="align-items-center w-full my-2">
+      <CToast autohide={false} visible={true} className="flex items-center w-full my-2" style={{ width: '100%' }}>
         <div className="d-flex">
           <CToastBody className=" flex flex-row items-center text-xs">
             <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
@@ -188,7 +188,7 @@ function FaultSiteLogs(props) {
                 </a>
               </>
             ) : (
-              <p>
+              <p className='my-0'>
                 {t('faultSiteLogs.faultLogTableToast1')}
                 <a
                   className="underline text-sky-500"
