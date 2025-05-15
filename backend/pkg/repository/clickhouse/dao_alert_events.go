@@ -150,14 +150,39 @@ func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter 
 		whereInstance = extractFilter(filter, instances)
 	}
 
+	source, valid := validateInputStr(filter.Source)
+	if !valid {
+		return nil, 0, errors.New("invalid source")
+	}
+	group, valid := validateInputStr(filter.Group)
+	if !valid {
+		return nil, 0, errors.New("invalid group")
+	}
+	name, valid := validateInputStr(filter.Name)
+	if !valid {
+		return nil, 0, errors.New("invalid name")
+	}
+	id, valid := validateInputStr(filter.ID)
+	if !valid {
+		return nil, 0, errors.New("invalid id")
+	}
+	severity, valid := validateInputStr(filter.Severity)
+	if !valid {
+		return nil, 0, errors.New("invalid severity")
+	}
+	status, valid := validateInputStr(filter.Status)
+	if !valid {
+		return nil, 0, errors.New("invalid status")
+	}
+
 	builder := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
-		EqualsNotEmpty("source", filter.Source).
-		EqualsNotEmpty("group", filter.Group).
-		EqualsNotEmpty("name", filter.Name).
-		EqualsNotEmpty("id", filter.ID).
-		EqualsNotEmpty("severity", filter.Severity).
-		EqualsNotEmpty("status", filter.Status).
+		EqualsNotEmpty("source", source).
+		EqualsNotEmpty("group", group).
+		EqualsNotEmpty("name", name).
+		EqualsNotEmpty("id", id).
+		EqualsNotEmpty("severity", severity).
+		EqualsNotEmpty("status", status).
 		And(whereInstance)
 
 	var count uint64

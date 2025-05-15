@@ -6,6 +6,9 @@ package clickhouse
 import (
 	"fmt"
 	"regexp"
+	"strings"
+	"text/template"
+	"unicode/utf8"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/util"
@@ -57,22 +60,37 @@ func calculateInterval(interval int64, timeField string) (string, int64, error) 
 
 const queryLogChart = "SELECT count(`%s`) as count, %s as timeline FROM `%s`.`%s` WHERE %s GROUP BY %s ORDER BY %s ASC"
 
-var dangerousPatterns = []string{
-    `(?i)\b(ALTER|CREATE|DELETE|DROP|EXEC(UTE)?|INSERT(INTO)?|MERGE|SELECT|UPDATE|UNION( ALL)?)\b`, 
-    `--.*`, 
-    `/\*.*?\*/`,
-    `;`,   
-    `['"]`, 
+
+// HACK input check
+func validateInputStr(input string) (string, bool) {
+	if len(input) > 100 {
+		return "", false
+	}
+	if !utf8.Valid([]byte(input)) {
+		return "", false
+	}
+
+	// 使用HTMLEscape处理特殊字符
+	escapedResult := template.HTMLEscapeString(input)
+	return escapedResult, true
 }
 
+// HACK query validation
+var dangerousPattern = regexp.MustCompile(`and|exec|execute|insert|select|delete|update|count|drop|chr|mid|master|truncate|char|declare|sitename|net user|xp_cmdshell|or|like'|create|like|table|from|grant|use|group_concat|column_name|information_schema.columns|table_schema|union|where|order|by|\*|or|;|-|\+|,|'|//|/|%|#`)
+
+
 func validateQuery(query string) bool {
-    for _, pattern := range dangerousPatterns {
-        matched, _ := regexp.MatchString(pattern, query)
-        if matched {
-            return false 
-        }
-    }
-    return true
+	if len(query) > 100 {
+		return false
+	}
+
+	if !utf8.Valid([]byte(query)) {
+		return false
+	}
+
+	letterLower := strings.ToLower(query)
+	matched := dangerousPattern.MatchString(letterLower)
+	return !matched
 }
 
 func chartSQL(baseQuery string, req *request.LogQueryRequest) (string, int64, error) {

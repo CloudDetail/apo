@@ -38,7 +38,7 @@ func (ch *chRepo) GetLogIndex(req *request.LogIndexRequest) (map[string]uint64, 
 	if !validateQuery(req.Query) {
 		return nil, 0, errors.New("invalid query input")
 	}
-	
+
 	groupSQL := groupBySQL(groupLogIndexQuery, req)
 	groupRows, err := ch.queryRowsData(groupSQL)
 	if err != nil {
