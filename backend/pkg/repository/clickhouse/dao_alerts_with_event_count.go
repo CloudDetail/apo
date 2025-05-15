@@ -5,6 +5,7 @@ package clickhouse
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -28,10 +29,32 @@ FROM alert a LEFT JOIN event_count ec on a.alert_id = ec.alert_id
 ORDER BY received_time DESC LIMIT 5000;
 `
 
+func isValidFilters(filter *alert.AlertEventFilter) bool {
+	if _, valid := validateInputStr(filter.Name); !valid {
+		return false
+	}
+	if _, valid := validateInputStr(filter.Group); !valid {
+		return false
+	}
+	if _, valid := validateInputStr(filter.Source); !valid {
+		return false
+	}
+	if _, valid := validateInputStr(filter.Severity); !valid {
+		return false
+	}
+	if _, valid := validateInputStr(filter.Status); !valid {
+		return false
+	}
+	return true
+}
+
 func (ch *chRepo) GetAlertsWithEventCount(
 	startTime, endTime time.Time,
 	filter *alert.AlertEventFilter, maxSize int,
 ) ([]alert.AlertWithEventCount, uint64, error) {
+	if !isValidFilters(filter) {
+		return nil, 0, errors.New("invalid filter")
+	}
 	whereSQL := extractAlertEventFilter(filter)
 	alertFilter := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
