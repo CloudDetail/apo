@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Input, Popconfirm, Select, Space, theme } from 'antd'
+import { Button, Input, Popconfirm, Select, Space, Tag, theme } from 'antd'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { deleteRuleApi, getAlertRulesApi, getAlertRulesStatusApi } from 'core/api/alerts'
@@ -12,7 +12,6 @@ import BasicTable from 'src/core/components/Table/basicTable'
 import { notify } from 'src/core/utils/notify'
 import { MdAdd, MdOutlineEdit } from 'react-icons/md'
 import ModifyAlertRuleModal from './modal/ModifyAlertRuleModal'
-import Tag from 'src/core/components/Tag/Tag'
 import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import CustomCard from 'src/core/components/Card/CustomCard'
@@ -116,7 +115,7 @@ export default function AlertsRule() {
           state = alertStateMap[row.group + '-' + row.alert]
         }
         const tagConfig = getStateTagItem(state)
-        return <Tag type={tagConfig.type}>{tagConfig.context}</Tag>
+        return <Tag color={tagConfig.type}>{tagConfig.context}</Tag>
       },
     },
     {
