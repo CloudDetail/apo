@@ -37,5 +37,5 @@
 .rdrInRange,
 .rdrStartEdge,
 .rdrEndEdge {
-    background: var(--main-color) !important;
+    background: var(--ant-color-primary) !important;
 }

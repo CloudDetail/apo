@@ -40,7 +40,6 @@ posthog.init(apiKey, {
 const AntdWrapper = memo(() => {
   const { i18n } = useTranslation()
   const [locale, setLocale] = useState(zhCN)
-  const [rootColor, setRootColor] = useState()
   const [colorBgBase, setColorBgBase] = useState()
   useEffect(() => {
     setLocale(i18n.language === 'en' ? enUS : zhCN)
@@ -50,18 +49,17 @@ const AntdWrapper = memo(() => {
   const { useToken } = theme
   const { token } = useToken()
   const { colorMode } = useColorModes('coreui-free-react-admin-template-theme')
+  const lightColor = import.meta.env.VITE_LIGHT_THEME_MAIN_COLOR || '#1677ff'
+  const darkColor = import.meta.env.VITE_DARK_THEME_MAIN_COLOR || '#1677ff'
+
   useEffect(() => {
-    const rootColor = getComputedStyle(document.documentElement)
-      .getPropertyValue('--main-color')
-      .trim()
-    if (rootColor && storeTheme === 'light') {
-      document.documentElement.style.setProperty('--active-collapse-bg', rootColor)
+    if (storeTheme === 'light') {
+      document.documentElement.style.setProperty('--active-collapse-bg', lightColor)
     } else {
       document.documentElement.style.setProperty('--active-collapse-bg', '#285587')
     }
     setColorBgBase(getComputedStyle(document.documentElement).getPropertyValue('--body-bg').trim())
-    setRootColor(rootColor)
-  }, [storeTheme, colorMode])
+  }, [storeTheme])
   const [api, contextHolder] = notification.useNotification()
 
   useEffect(() => {
@@ -73,9 +71,9 @@ const AntdWrapper = memo(() => {
       theme={{
         algorithm: storeTheme === 'light' ? theme.defaultAlgorithm : theme.darkAlgorithm,
         token: {
-          colorPrimary: rootColor,
-          colorInfo: rootColor,
-          colorLink: rootColor,
+          colorPrimary: storeTheme === 'light' ? lightColor : darkColor,
+          colorInfo: storeTheme === 'light' ? lightColor : darkColor,
+          colorLink: storeTheme === 'light' ? lightColor : darkColor,
           colorBgLayout: colorBgBase,
         },
         cssVar: true,
@@ -108,8 +106,8 @@ const AntdWrapper = memo(() => {
           Menu: {
             itemBg: 'var(--color-sider)',
             darkItemBg: 'var(--color-sider)',
-            itemSelectedBg: 'var(--main-color)',
-            itemSelectedColor: 'var(--menu-selected-text-color)',
+            itemSelectedBg: storeTheme === 'light' ? lightColor : darkColor,
+            // itemSelectedColor: 'var(--menu-selected-text-color)',
           },
           Spin: {
             dotSizeLG: 48,
