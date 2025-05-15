@@ -23,8 +23,8 @@ const MoreNode = React.memo((prop) => {
         className="invisible"
       />
       <div
-        className="px-3 py-2 rounded-full border-2 border-solid border-[#6293ff] text-[#6293ff] overflow-hidden flex flex-row items-center justify-center"
-        style={{ backgroundColor: 'rgba(19, 25, 32, 0.6)' }}
+        className="px-3 py-2 rounded-full border-2 border-solid bg-[var(--ant-color-fill-secondary)] border-[var(--ant-color-primary-border)] text-[var(--ant-color-primary-text)] overflow-hidden flex flex-row items-center justify-center"
+        // style={{ backgroundColor: 'rgba(19, 25, 32, 0.6)' }}
       >
         <MdRemoveRedEye className="mr-2" />
         {t('moreNode.seeMore')}
