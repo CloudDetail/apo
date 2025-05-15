@@ -33,10 +33,10 @@ func (h *handler) SetThreshold() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.SetThresholdRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -49,10 +49,10 @@ func (h *handler) SetThreshold() core.HandlerFunc {
 		log := req.Log
 		resp, err := h.serviceoverview.SetThreshold(level, serviceName, endpoint, latency, errorRate, tps, log)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.SetThresholdError,
-				c.ErrMessage(code.SetThresholdError)).WithError(err),
+				err,
 			)
 			return
 		}

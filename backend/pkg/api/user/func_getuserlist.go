@@ -32,10 +32,10 @@ func (h *handler) GetUserList() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetUserListRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -49,10 +49,10 @@ func (h *handler) GetUserList() core.HandlerFunc {
 
 		resp, err := h.userService.GetUserList(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetUserInfoError,
-				c.ErrMessage(code.GetUserInfoError)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -5,9 +5,9 @@ package data
 
 import (
 	"context"
-	"errors"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -24,7 +24,7 @@ func (s *service) DataGroupOperation(req *request.DataGroupOperationRequest) err
 	case model.DATA_GROUP_SUB_TYP_USER:
 		exists, err = s.dbRepo.UserExists(req.SubjectID)
 	default:
-		err = model.NewErrWithMessage(errors.New("unsupported subject type"), code.UnSupportedSubType)
+		err = core.Error(code.UnSupportedSubType, "unsupported subject type")
 	}
 
 	if err != nil {
@@ -32,7 +32,7 @@ func (s *service) DataGroupOperation(req *request.DataGroupOperationRequest) err
 	}
 
 	if !exists {
-		return model.NewErrWithMessage(errors.New("subject does not exist"), code.AuthSubjectNotExistError)
+		return core.Error(code.AuthSubjectNotExistError, "subject does not exist")
 	}
 
 	toModify, toDelete, err := s.dbRepo.GetModifyAndDeleteDataGroup(req.SubjectID, req.SubjectType, req.DataGroupPermission)

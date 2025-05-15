@@ -24,10 +24,10 @@ func (h *handler) ListTargetTags() core.HandlerFunc {
 	return func(c core.Context) {
 		targetTags, err := h.inputService.GetAlertEnrichRuleTags(c)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetAlertsInputTargetTagsError,
-				c.ErrMessage(code.GetAlertsInputTargetTagsError)).WithError(err),
+				err,
 			)
 			return
 		}

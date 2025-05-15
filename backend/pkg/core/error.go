@@ -9,7 +9,7 @@ var _ BusinessError = (*businessError)(nil)
 
 type BusinessError interface {
 	// WithError setting error message
-	WithError(err error) BusinessError
+	WithStack(err error) BusinessError
 
 	// BusinessCode get business code
 	BusinessCode() string
@@ -22,6 +22,8 @@ type BusinessError interface {
 
 	// StackError get the error message with stack
 	StackError() error
+
+	Error() string
 }
 
 type businessError struct {
@@ -31,15 +33,14 @@ type businessError struct {
 	stackError   error  // error with stack information
 }
 
-func Error(httpCode int, businessCode, message string) BusinessError {
+func Error(businessCode, message string) BusinessError {
 	return &businessError{
-		httpCode:     httpCode,
 		businessCode: businessCode,
 		message:      message,
 	}
 }
 
-func (e *businessError) WithError(err error) BusinessError {
+func (e *businessError) WithStack(err error) BusinessError {
 	e.stackError = errors.WithStack(err)
 	return e
 }
@@ -58,4 +59,8 @@ func (e *businessError) Message() string {
 
 func (e *businessError) StackError() error {
 	return e.stackError
+}
+
+func (e businessError) Error() string {
+	return e.message
 }

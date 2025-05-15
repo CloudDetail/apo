@@ -26,10 +26,10 @@ func (h *handler) GetLogIndex() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.LogIndexRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -44,10 +44,10 @@ func (h *handler) GetLogIndex() core.HandlerFunc {
 		}
 		resp, err := h.logService.GetLogIndex(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetLogIndexError,
-				c.ErrMessage(code.GetLogIndexError)).WithError(err),
+				err,
 			)
 			return
 		}

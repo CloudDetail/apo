@@ -26,10 +26,10 @@ func (h *handler) UpdateAlertSourceEnrichRule() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(alert.AlertEnrichRuleConfigRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -39,18 +39,18 @@ func (h *handler) UpdateAlertSourceEnrichRule() core.HandlerFunc {
 			var vErr alert.ErrAlertSourceNotExist
 
 			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
+				c.AbortWithError(
 					http.StatusBadRequest,
 					code.AlertSourceNotExisted,
-					c.ErrMessage(code.AlertSourceNotExisted)).WithError(err),
+					err,
 				)
 				return
 			}
 
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.UpdateAlertEnrichRuleFailed,
-				c.ErrMessage(code.UpdateAlertEnrichRuleFailed)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -4,15 +4,15 @@
 package team
 
 import (
-	"errors"
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 func (s *service) GetTeamUser(req *request.GetTeamUserRequest) (resp response.GetTeamUserResponse, err error) {
-	filter := model.TeamFilter {
+	filter := model.TeamFilter{
 		ID: req.TeamID,
 	}
 	exists, err := s.dbRepo.TeamExist(filter)
@@ -21,7 +21,7 @@ func (s *service) GetTeamUser(req *request.GetTeamUserRequest) (resp response.Ge
 	}
 
 	if !exists {
-		err = model.NewErrWithMessage(errors.New("team does not exist"), code.TeamNotExistError)
+		err = core.Error(code.TeamNotExistError, "team does not exist")
 		return
 	}
 

@@ -25,10 +25,10 @@ func (h *handler) ListSchema() core.HandlerFunc {
 
 		schemas, err := h.inputService.ListSchema()
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ListSchemaFailed,
-				c.ErrMessage(code.ListSchemaFailed)).WithError(err),
+				err,
 			)
 			return
 		}

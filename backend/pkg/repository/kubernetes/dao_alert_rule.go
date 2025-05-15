@@ -5,7 +5,7 @@ package kubernetes
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	errmodel "github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/common/model"
@@ -120,23 +120,18 @@ func (k *k8sApi) UpdateAlertRuleConfigFile(configFile string, content []byte) er
 }
 
 func ValidateAlertRule(rule request.AlertRule) error {
-	var err errmodel.ErrWithMessage
 	var e error
 	var keepFiringFor model.Duration
 	if len(rule.KeepFiringFor) > 0 {
 		keepFiringFor, e = model.ParseDuration(rule.KeepFiringFor)
 		if e != nil {
-			err.Err = e
-			err.Code = code.AlertKeepFiringForIllegalError
-			return err
+			return core.Error(code.AlertKeepFiringForIllegalError, "").WithStack(e)
 		}
 	}
 
 	forDuration, e := model.ParseDuration(rule.For)
 	if e != nil {
-		err.Err = e
-		err.Code = code.AlertForIllegalError
-		return err
+		return core.Error(code.AlertForIllegalError, "").WithStack(e)
 	}
 	ruleNode := promfmt.RuleNode{
 		For:           forDuration,

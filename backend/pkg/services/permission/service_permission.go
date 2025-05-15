@@ -5,9 +5,9 @@ package permission
 
 import (
 	"context"
-	"errors"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -138,7 +138,7 @@ func (s *service) PermissionOperation(req *request.PermissionOperationRequest) e
 	case model.PERMISSION_SUB_TYP_USER:
 		exists, err = s.dbRepo.UserExists(req.SubjectID)
 	case model.PERMISSION_SUB_TYP_TEAM:
-		filter := model.TeamFilter {
+		filter := model.TeamFilter{
 			ID: req.SubjectID,
 		}
 		exists, err = s.dbRepo.TeamExist(filter)
@@ -149,7 +149,7 @@ func (s *service) PermissionOperation(req *request.PermissionOperationRequest) e
 		return err
 	}
 	if !exists {
-		return model.NewErrWithMessage(errors.New("subject of authorisation does not exist"), code.AuthSubjectNotExistError)
+		return core.Error(code.AuthSubjectNotExistError, "subject of authorisation does not exist")
 	}
 
 	addPermissions, deletePermissions, err := s.dbRepo.GetAddAndDeletePermissions(req.SubjectID, req.SubjectType, req.Type, req.PermissionList)

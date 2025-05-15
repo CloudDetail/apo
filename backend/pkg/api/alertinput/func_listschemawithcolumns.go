@@ -24,10 +24,10 @@ func (h *handler) ListSchemaWithColumns() core.HandlerFunc {
 	return func(c core.Context) {
 		schemas, err := h.inputService.ListSchema()
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ListSchemaFailed,
-				c.ErrMessage(code.ListSchemaFailed)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -38,10 +38,10 @@ func (h *handler) ListSchemaWithColumns() core.HandlerFunc {
 		for _, schema := range schemas {
 			columns, err := h.inputService.ListSchemaColumns(schema)
 			if err != nil {
-				c.AbortWithError(core.Error(
+				c.AbortWithError(
 					http.StatusBadRequest,
 					code.ListSchemaFailed,
-					c.ErrMessage(code.ListSchemaFailed)).WithError(err),
+					err,
 				)
 				return
 			}

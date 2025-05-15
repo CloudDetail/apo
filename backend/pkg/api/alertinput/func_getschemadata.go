@@ -25,20 +25,20 @@ func (h *handler) GetSchemaData() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(alert.AlertSchemaRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		columns, rows, err := h.inputService.GetSchemaData(req.Schema)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetSchemaDataFailed,
-				c.ErrMessage(code.GetSchemaDataFailed)).WithError(err),
+				err,
 			)
 			return
 		}

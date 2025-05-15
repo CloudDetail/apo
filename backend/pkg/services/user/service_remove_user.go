@@ -8,6 +8,7 @@ import (
 	"errors"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
@@ -18,7 +19,7 @@ func (s *service) RemoveUser(userID int64) error {
 	}
 
 	if !exists {
-		return model.NewErrWithMessage(errors.New("user does not exist"), code.UserNotExistsError)
+		return core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
 	roles, err := s.dbRepo.GetUserRole(userID)

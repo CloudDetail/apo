@@ -25,20 +25,20 @@ func (h *handler) DeleteSchema() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(alert.AlertSchemaRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		err := h.inputService.DeleteSchema(req.Schema)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.DeleteSchemaFailed,
-				c.ErrMessage(code.DeleteSchemaFailed)).WithError(err),
+				err,
 			)
 			return
 		}

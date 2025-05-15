@@ -4,24 +4,24 @@
 package data
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
 func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, services interface{}, fillCategory string) (err error) {
 	var (
-		namespaceMap    = map[string]bool{}		// mapped all namespaces user can view
+		namespaceMap    = map[string]bool{}     // mapped all namespaces user can view
 		serviceMap      = map[string]struct{}{} // mapped all services user can view
 		namespaceSrvMap = map[string][]string{}
 		endTime         = time.Now()
 		startTime       = endTime.Add(-24 * time.Hour)
 		serviceList     []string
-		namespaceDs     []string		
+		namespaceDs     []string
 		serviceDs       []string
 		filteredNs      []string
 		filteredSrv     []string
@@ -37,7 +37,7 @@ func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, s
 		}
 
 		if !has {
-			return model.NewErrWithMessage(errors.New("does not have group permission"), code.UserNoPermissionError)
+			return core.Error(code.UserNoPermissionError, "does not have group permission")
 		}
 		filter := model.DataGroupFilter{
 			ID: groupID,
@@ -131,7 +131,7 @@ func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, s
 		} else if services != nil && len(serviceDs) > 0 {
 			setInterface(services, serviceDs)
 		} else {
-			return model.NewErrWithMessage(errors.New("data group does not have corresponding data"), code.GroupNoDataError)
+			return core.Error(code.GroupNoDataError, "data group does not have corresponding data")
 		}
 		return nil
 	}
@@ -178,9 +178,9 @@ func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, s
 
 	// This means all the namespaces and services are filtered.
 	if len(filteredNs) == 0 && len(filteredSrv) == 0 && len(namespaceDs) > 0 && len(serviceDs) > 0 {
-		return model.NewErrWithMessage(errors.New("no permission"), code.UserNoPermissionError)
+		return core.Error(code.UserNoPermissionError, "no permission")
 	} else if len(filteredNs) == 0 && len(filteredSrv) == 0 {
-		return model.NewErrWithMessage(errors.New("data group does not have corresponding data"), code.GroupNoDataError)
+		return core.Error(code.GroupNoDataError, "data group does not have corresponding data")
 	}
 
 	setInterface(namespaces, filteredNs)

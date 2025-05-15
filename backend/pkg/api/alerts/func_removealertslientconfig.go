@@ -25,19 +25,19 @@ func (h *handler) RemoveAlertSlienceConfig() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.RemoveAlertSlienceConfigRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 		err := h.alertService.RemoveSlienceConfigByAlertID(req.AlertID)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.RemoveAlertSlienceError,
-				c.ErrMessage(code.RemoveAlertSlienceError)).WithError(err),
+				err,
 			)
 			return
 		}

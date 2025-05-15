@@ -25,20 +25,20 @@ func (h *handler) GetSchemaColumns() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(alert.AlertSchemaRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		columns, err := h.inputService.ListSchemaColumns(req.Schema)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetSchemaColumnsFailed,
-				c.ErrMessage(code.GetSchemaColumnsFailed)).WithError(err),
+				err,
 			)
 			return
 		}
