@@ -116,7 +116,9 @@ const SettingsForm = ({ formInitValues }) => {
             title={
               <Space>
                 {t('metricsIntegration')}
-                <span className="text-xs text-gray-400">{t('metricsHint')}</span>
+                <span className="text-xs text-[var(--ant-color-text-secondary)]">
+                  {t('metricsHint')}
+                </span>
               </Space>
             }
             size="small"
@@ -129,7 +131,9 @@ const SettingsForm = ({ formInitValues }) => {
             title={
               <Space>
                 {t('logsIntegration')}
-                <span className="text-xs text-gray-400">{t('logHint')}</span>
+                <span className="text-xs text-[var(--ant-color-text-secondary)]">
+                  {t('logHint')}
+                </span>
               </Space>
             }
             size="small"

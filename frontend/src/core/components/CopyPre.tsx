@@ -5,10 +5,12 @@
 
 import CopyButton from 'src/core/components/CopyButton'
 
-const CopyPre = ({ code,iconText="COPY" }) => {
+const CopyPre = ({ code, iconText = 'COPY' }) => {
   return (
     <div className="relative">
-      <pre className="text-xs p-3 bg-[var(--ant-color-bg-elevated)]">{code}</pre>
+      <pre className="text-xs p-3 " style={{ background: 'var(--ant-color-bg-container)' }}>
+        {code}
+      </pre>
       <div className="absolute right-2 top-2">
         <CopyButton value={code} iconText={iconText}></CopyButton>
       </div>
