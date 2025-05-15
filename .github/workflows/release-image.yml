@@ -1,4 +1,4 @@
-name: Release Backend Image
+name: Release Image
 
 permissions:
   contents: write
