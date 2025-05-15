@@ -27,7 +27,7 @@ jobs:
   build-images:
     runs-on: ubuntu-latest
     outputs:
-      IMAGE_TAG_NAME: ${{ steps.build-image.outputs.BACKEND_IMAGE_TAG_NAME }}
+      IMAGE_TAG_NAME: ${{ steps.build-image.outputs.IMAGE_TAG_NAME }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
