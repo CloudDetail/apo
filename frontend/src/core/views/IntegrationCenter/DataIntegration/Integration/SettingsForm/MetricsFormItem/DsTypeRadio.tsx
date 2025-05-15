@@ -43,7 +43,7 @@ const DsTypeRadio = ({ id, value, onChange }: DsTypeRadioProps) => {
   return (
     <div id={id} className="flex overflow-hidden">
       <div className="flex-shrink-0 flex-grow-0">
-        <div className="text-gray-400">{t('datasourceApo')}</div>
+        <div className="text-[var(--ant-color-text-secondary)]">{t('datasourceApo')}</div>
         <div className="relative w-[100px]" onClick={() => clickRadio('self-collector')}>
           <DatasourceItem
             size="small"
@@ -57,7 +57,7 @@ const DsTypeRadio = ({ id, value, onChange }: DsTypeRadioProps) => {
       </div>
       <Divider type="vertical" className="h-[60px] mt-4" />
       <div className="flex-1">
-        <div className="text-gray-400 ">{t('datasourceExisted')}</div>
+        <div className="text-[var(--ant-color-text-secondary)]">{t('datasourceExisted')}</div>
         <div className="flex flex-wrap ">
           {metricsItems.map((item) => (
             <div className="relative mx-1 mb-2" onClick={() => clickRadio(item.key)}>

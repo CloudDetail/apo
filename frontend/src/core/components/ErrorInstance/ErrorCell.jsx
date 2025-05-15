@@ -81,13 +81,17 @@ function ErrorCell(props) {
               label: (
                 <div className="flex-shrink w-48 ">
                   <div className=" overflow-x-hidden whitespace-pre-wrap w-full flex flex-row text-xs">
-                    <div className="text-gray-400 flex-shrink-0 text-[10px]">Time：</div>
+                    <div className="text-[var(--ant-color-text-secondary)] flex-shrink-0 text-[10px]">
+                      Time：
+                    </div>
                     <div className="flex-1 w-0 whitespace-nowrap text-wrap break-all">
                       {convertTime(item?.customAbbreviation.timestamp, 'yyyy-mm-dd hh:mm:ss')}
                     </div>
                   </div>
                   <div className=" overflow-x-hidden  w-full flex flex-row  text-xs">
-                    <div className="text-gray-400 flex-shrink-0 text-[10px]">ErrorType：</div>
+                    <div className="text-[var(--ant-color-text-secondary)] flex-shrink-0 text-[10px]">
+                      ErrorType：
+                    </div>
                     <div className="flex-1 w-0 whitespace-nowrap text-wrap break-all text-left">
                       {item?.customAbbreviation.error.type}
                     </div>
@@ -101,7 +105,9 @@ function ErrorCell(props) {
                   key={item.value + i}
                 >
                   <div className="h-1/3">
-                    <span className="text-gray-400 flex-shrink-0 text-[10px]">Error Message：</span>
+                    <span className="text-[var(--ant-color-text-secondary)] flex-shrink-0 text-[10px]">
+                      Error Message：
+                    </span>
                     <div
                       className="relative cursor-pointer"
                       onClick={() => {
@@ -113,7 +119,7 @@ function ErrorCell(props) {
                       <MdOutlineOpenInFull className=" absolute top-1 right-1" color="#3b82f6" />
                     </div>
                   </div>
-                  <span className="text-gray-400 flex-shrink-0 text-[10px]">
+                  <span className="text-[var(--ant-color-text-secondary)] flex-shrink-0 text-[10px]">
                     Error Propagation Chain：
                   </span>
                   <div className="h-0 flex-1">

@@ -43,6 +43,7 @@ import 'react-date-range/dist/styles.css' // main style file
 import 'react-date-range/dist/theme/default.css' // theme css file
 import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
+import { Button, Menu } from 'antd'
 // logs: logsFrom, logsTo
 // traces: traceFrom, traceTo
 const TypeUrlParamMap = {
@@ -216,13 +217,12 @@ export default function DateTimeRangePickerCom(props) {
   }, [inputStartTime, inputEndTime])
   return (
     <CDropdown
-      dark
       autoClose="outside"
       visible={dropdownVisible}
       onShow={() => setDropdownVisible(true)}
       onHide={() => setDropdownVisible(false)}
     >
-      <CDropdownToggle color="dark" className="" size="sm" onClick={() => setDropdownVisible(true)}>
+      <CDropdownToggle className="" size="sm" onClick={() => setDropdownVisible(true)}>
         <CIcon icon={cilClock} className="mr-2" />
         <span className="text-sm">
           {inputStartTime} to {inputEndTime}
@@ -231,7 +231,7 @@ export default function DateTimeRangePickerCom(props) {
       </CDropdownToggle>
       <CDropdownMenu className="m-0 p-0">
         <div className="w-[600px] flex">
-          <div className="w-3/5 border-r border-r-slate-700  px-3 py-2">
+          <div className="w-3/5 border-r border-r-slate-300  px-3 py-2">
             <CForm noValidate>
               <div>{t('dateTimeRangePicker.absoluteTimeRangeTitle')}</div>
 
@@ -268,9 +268,9 @@ export default function DateTimeRangePickerCom(props) {
                 </CInputGroupText>
                 <CFormFeedback invalid>{endTimeFeedback}</CFormFeedback>
               </CInputGroup>
-              <CButton color="primary" size="sm" className="mt-3" onClick={confirmTimeRange}>
-                {t('dateTimeRangePicker.applyTimeRangeButtonText')}
-              </CButton>
+              <Button type="primary" className="mt-3" onClick={confirmTimeRange}>
+                  {t('dateTimeRangePicker.applyTimeRangeButtonText')}
+              </Button>
             </CForm>
             <DateRange
               moveRangeOnFirstSelection={false}
@@ -283,15 +283,14 @@ export default function DateTimeRangePickerCom(props) {
           </div>
           <div className="w-2/5">
             <div className="p-2">{t('dateTimeRangePicker.quickRangeTitle')}</div>
-            <CDropdownMenu className="w-2/5 border-0 text-base">
-              {Object.keys(timeRangeMap).map((key) => {
-                return (
-                  <CDropdownItem key={key} onClick={() => handleTimeRange(key)}>
-                    {timeRangeMap[key].name}
-                  </CDropdownItem>
-                )
-              })}
-            </CDropdownMenu>
+            <Menu
+                selectedKeys={[storeTimeRange.rangeTypeKey]}
+                onClick={({ key }) => handleTimeRange(key)}
+              >
+                {Object.keys(timeRangeMap).map((key) => (
+                  <Menu.Item key={key}>{timeRangeMap[key].name}</Menu.Item>
+                ))}
+              </Menu>
           </div>
         </div>
       </CDropdownMenu>

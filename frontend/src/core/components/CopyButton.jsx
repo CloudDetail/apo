@@ -43,7 +43,7 @@ function CopyButton(props) {
   return (
     // <Button type="text" icon={<LuCopy />}>
     <div
-      className="cursor-pointer text-[var(--main-color)] flex items-center"
+      className="cursor-pointer text-[var(--ant-color-primary)] flex items-center"
       onClick={() => copyValue(value)}
     >
       {icon} <span className="p-2">{iconText}</span>

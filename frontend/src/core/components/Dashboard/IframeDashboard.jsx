@@ -163,7 +163,7 @@ function IframeDashboard({ dashboardKey, srcProp }) {
     <iframe
       id="iframe"
       ref={iframeRef}
-      src={'http://192.168.1.6:31364/' + src}
+      src={src}
       width="100%"
       height="100%"
       frameBorder={0}

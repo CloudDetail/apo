@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Modal, Tooltip, Statistic, Checkbox, Image, Card, Tag } from 'antd'
+import { Button, Modal, Tooltip, Statistic, Checkbox, Image, Card, Tag, theme } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
@@ -48,7 +48,6 @@ const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
   ]
   return (
     <div className="flex pb-2 ">
-      {/* Todo: need to be translated */}
       <div>
         {t('alertStatus')}:{' '}
         <Checkbox.Group
@@ -73,6 +72,8 @@ const formatter = (value) => <CountUp end={value as number} separator="," />
 // Current info right panel
 const StatusPanel = ({ firingCounts, resolvedCounts }) => {
   const { t } = useTranslation('oss/alertEvents')
+  const { useToken } = theme
+  const { token } = useToken()
 
   const chartData = [
     { name: t('firing'), value: firingCounts, type: 'error' },
@@ -80,7 +81,7 @@ const StatusPanel = ({ firingCounts, resolvedCounts }) => {
   ]
   return (
     <div className="flex pb-2 h-full flex-1  ">
-      <div className="w-full ml-1 rounded-xl flex h-full bg-[#141414] p-0">
+      <div className="w-full ml-1 rounded-xl flex h-full p-0" style={{ backgroundColor: token.colorBgContainer }}>
         <div className="h-full shrink-0 pl-4 flex">
           {chartData.map((item) => (
             <div className="w-[100px] h-full block items-center">
@@ -114,9 +115,11 @@ const StatusPanel = ({ firingCounts, resolvedCounts }) => {
 // Current info left panel
 const ExtraPanel = ({ firingCounts, invalidCounts, alertCheck }) => {
   const { t } = useTranslation('oss/alertEvents')
+  const { useToken } = theme
+  const { token } = useToken()
   return (
     <div className=" pb-2 h-full  shrink-0 w-1/2 mr-3">
-      <div className="w-full rounded-xl flex h-full bg-[#141414] p-2 ">
+      <div className="w-full rounded-xl flex h-full p-2 " style={{ backgroundColor: token.colorBgContainer }}>
         <div className="ml-3 mr-7">
           <Image src={filterSvg} width={50} height={'100%'} preview={false} />
         </div>
@@ -124,13 +127,13 @@ const ExtraPanel = ({ firingCounts, invalidCounts, alertCheck }) => {
           <div className="flex flex-col h-full justify-center">
             <Statistic
               className=" flex flex-col justify-center"
-              title={<span className="text-white">{t('rate')}</span>}
+              title={<span>{t('rate')}</span>}
               value={firingCounts === 0 ? 0 : (invalidCounts / firingCounts) * 100}
               precision={2}
               suffix="%"
               formatter={formatter}
             />
-            <span className="text-gray-400 text-xs">
+            <span className="text-gray-400 text-xs" style={{ color: token.colorTextSecondary }}>
               {t('In')}
               <span className="mx-1">
                 <Tag color={'error'}>{firingCounts}</Tag>
@@ -347,8 +350,8 @@ const AlertEventsPage = () => {
         return (
           <div className="flex flex-col">
             <Button
-              color="cyan"
-              variant="filled"
+              color="primary"
+              variant="outlined"
               className="text-xs my-2"
               size="small"
               onClick={async () => {
@@ -359,7 +362,7 @@ const AlertEventsPage = () => {
             </Button>
             <Button
               color="primary"
-              variant="filled"
+              variant="outlined"
               className="text-xs"
               size="small"
               onClick={() => {
