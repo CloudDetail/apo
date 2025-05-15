@@ -49,7 +49,7 @@ function ErrorCell(props) {
   }, [data])
   const PreCom = (value) => (
     <div className="relative max-h-14 overflow-auto mb-1">
-      <pre className="text-xs p-2 bg-[#161b22] text-wrap" style={{ background: '#161b22' }}>
+      <pre className="text-xs p-2 bg-[var(--ant-color-fill-quaternary)] text-wrap">
         {value}
       </pre>
     </div>
@@ -110,7 +110,7 @@ function ErrorCell(props) {
                       }}
                     >
                       {PreCom(item?.customAbbreviation?.error?.message)}
-                      <MdOutlineOpenInFull className=" absolute top-1 right-1" color="#3b82f6" />
+                      <MdOutlineOpenInFull className=" absolute top-1 right-1 text-[--ant-color-primary]" />
                     </div>
                   </div>
                   <span className="text-gray-400 flex-shrink-0 text-[10px]">
