@@ -10,7 +10,7 @@ import WorkflowsIframe from '../../workflows/workflowsIframe'
 import { useState } from 'react'
 import { FaEye } from 'react-icons/fa'
 import { getAlertWorkflowIdApi } from 'src/core/api/alerts'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 const CurrentEventDetail = ({
   detail,
   alertCheckId,
@@ -98,9 +98,9 @@ const CurrentEventDetail = ({
   async function openWorkflowModal() {
     const workflowId = await getWorkflowId(detail.group, detail.name)
     if (!workflowId) {
-      showToast({
-        color: 'danger',
-        title: t('missToast2'),
+      notify({
+        type: 'error',
+        message: t('missToast2'),
       })
       return
     }
