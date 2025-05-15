@@ -89,6 +89,7 @@ const AppSidebar = ({ collapsed }) => {
             itemBg: 'var(--color-sider)',
             itemSelectedBg: 'var(--ant-color-primary)',
             itemSelectedColor: 'var(--menu-selected-text-color)',
+            subMenuItemSelectedColor: 'var(--menu-selected-text-color)',
           },
         },
       }}

@@ -107,7 +107,7 @@ const AntdWrapper = memo(() => {
             itemBg: 'var(--color-sider)',
             darkItemBg: 'var(--color-sider)',
             itemSelectedBg: storeTheme === 'light' ? lightColor : darkColor,
-            // itemSelectedColor: 'var(--menu-selected-text-color)',
+            itemSelectedColor: 'var(--menu-selected-text-color)',
           },
           Spin: {
             dotSizeLG: 48,
