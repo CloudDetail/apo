@@ -35,7 +35,7 @@ func (t *UserRole) TableName() string {
 // GetRoles Get all roles for the given condition.
 func (repo *daoRepo) GetRoles(ctx core.Context, filter model.RoleFilter) ([]Role, error) {
 	var roles []Role
-	query := repo.db.Where("role_name != ?", AnonymousUsername)
+	query := repo.GetContextDB(ctx).Where("role_name != ?", AnonymousUsername)
 
 	if len(filter.Names) > 0 {
 		query = query.Where("role_name in ?", filter.Names)
@@ -57,20 +57,20 @@ func (repo *daoRepo) GetRoles(ctx core.Context, filter model.RoleFilter) ([]Role
 // GetUserRole Get user's role.
 func (repo *daoRepo) GetUserRole(ctx core.Context, userID int64) ([]UserRole, error) {
 	var userRoles []UserRole
-	err := repo.db.Where("user_id = ?", userID).Find(&userRoles).Error
+	err := repo.GetContextDB(ctx).Where("user_id = ?", userID).Find(&userRoles).Error
 	return userRoles, err
 }
 
 // GetUsersRole Get user's role in batch.
 func (repo *daoRepo) GetUsersRole(ctx core.Context, userIDs []int64) ([]UserRole, error) {
 	var userRoles []UserRole
-	err := repo.db.Where("user_id in ?", userIDs).Find(&userRoles).Error
+	err := repo.GetContextDB(ctx).Where("user_id in ?", userIDs).Find(&userRoles).Error
 	return userRoles, err
 }
 
 func (repo *daoRepo) RoleGrantedToUser(ctx core.Context, userID int64, roleID int) (bool, error) {
 	var count int64
-	if err := repo.db.Model(&UserRole{}).Where("role_id = ? AND user_id = ?", roleID, userID).Count(&count).Error; err != nil {
+	if err := repo.GetContextDB(ctx).Model(&UserRole{}).Where("role_id = ? AND user_id = ?", roleID, userID).Count(&count).Error; err != nil {
 		return false, err
 	}
 
@@ -100,7 +100,7 @@ func (repo *daoRepo) RevokeRole(ctx core.Context, userID int64, roleIDs []int) e
 
 func (repo *daoRepo) RoleExists(ctx core.Context, roleID int) (bool, error) {
 	var count int64
-	if err := repo.db.Model(&Role{}).Where("role_id = ?", roleID).Count(&count).Error; err != nil {
+	if err := repo.GetContextDB(ctx).Model(&Role{}).Where("role_id = ?", roleID).Count(&count).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
@@ -164,7 +164,7 @@ func (repo *daoRepo) RevokeRoleWithRole(ctx core.Context, roleID int) error {
 func (repo *daoRepo) RoleGranted(ctx core.Context, roleID int) (bool, error) {
 	var count int64
 
-	err := repo.db.Model(&UserRole{}).Where("role_id = ?", roleID).Count(&count).Error
+	err := repo.GetContextDB(ctx).Model(&UserRole{}).Where("role_id = ?", roleID).Count(&count).Error
 	if err != nil {
 		return false, err
 	}

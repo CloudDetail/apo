@@ -13,7 +13,7 @@ import (
 func (repo *subRepo) ListAlertTargetTags(ctx core.Context) ([]alert.TargetTag, error) {
 	lang := ctx.LANG()
 	var targetTags []alert.TargetTag
-	err := repo.db.Model(&alert.TargetTag{}).
+	err := repo.GetContextDB(ctx).Model(&alert.TargetTag{}).
 		Select("id", "field", getTargetTag(lang), getTargetTagDescribe(lang)).
 		Order("id ASC").
 		Scan(&targetTags).Error

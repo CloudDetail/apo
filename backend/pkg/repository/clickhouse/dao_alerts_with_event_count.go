@@ -40,7 +40,7 @@ func (ch *chRepo) GetAlertsWithEventCount(ctx core.Context,
 
 	var count uint64
 	countSql := buildAlertQuery(GET_ALERT_EVENTS_COUNT, alertFilter)
-	err := ch.conn.QueryRow(context.Background(), countSql, alertFilter.values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(context.Background(), countSql, alertFilter.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -51,7 +51,7 @@ func (ch *chRepo) GetAlertsWithEventCount(ctx core.Context,
 
 	sql := fmt.Sprintf(GET_ALERTS_WITH_EVENT_COUNT, alertFilter.String(), alertFilter.String())
 	result := make([]alert.AlertWithEventCount, 0)
-	err = ch.conn.Select(context.Background(), &result, sql, values...)
+	err = ch.GetContextDB(ctx).Select(context.Background(), &result, sql, values...)
 	return result, count, err
 }
 

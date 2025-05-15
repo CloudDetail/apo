@@ -68,7 +68,7 @@ func (ch *chRepo) GetFaultLogPageList(ctx core.Context, query *FaultLogQuery) ([
 	logCountQuery := buildTraceCountQuery(TEMPLATE_COUNT_SPAN_TRACE, queryBuilder)
 	var count uint64
 	// Number of query records
-	err := ch.conn.QueryRow(context.Background(), logCountQuery, queryBuilder.values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(context.Background(), logCountQuery, queryBuilder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -96,7 +96,7 @@ func (ch *chRepo) GetFaultLogPageList(ctx core.Context, query *FaultLogQuery) ([
 		String()
 	// Query list data
 	sql := buildSpanTraceQuery(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, bySql, queryBuilder)
-	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
+	err = ch.GetContextDB(ctx).Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
 		return nil, int64(count), err
 	}
@@ -162,7 +162,7 @@ func (ch *chRepo) GetTracePageList(ctx core.Context, req *request.GetTracePageLi
 	query := buildTraceCountQuery(TEMPLATE_COUNT_SPAN_TRACE, queryBuilder)
 	var count uint64
 	// Number of query records
-	err := ch.conn.QueryRow(context.Background(), query, queryBuilder.values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(context.Background(), query, queryBuilder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -193,7 +193,7 @@ func (ch *chRepo) GetTracePageList(ctx core.Context, req *request.GetTracePageLi
 		String()
 	// Query list data
 	sql := buildSpanTraceQuery(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, bySql, queryBuilder)
-	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
+	err = ch.GetContextDB(ctx).Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
 		return nil, int64(count), err
 	}

@@ -20,7 +20,7 @@ func (repo *subRepo) CreateAlertSource(ctx core.Context, alertSource *alert.Aler
 	for _, cluster := range alertSource.Clusters {
 		if cluster.ID == "" {
 			cluster.ID = uuid.NewString()
-			err := repo.db.Create(&cluster).Error
+			err := repo.GetContextDB(ctx).Create(&cluster).Error
 			if err != nil {
 				return err
 			}
@@ -33,21 +33,21 @@ func (repo *subRepo) CreateAlertSource(ctx core.Context, alertSource *alert.Aler
 	}
 
 	if len(newS2C) > 0 {
-		err := repo.db.Create(&newS2C).Error
+		err := repo.GetContextDB(ctx).Create(&newS2C).Error
 		if err != nil {
 			return err
 		}
 	}
 
-	return repo.db.Create(&alertSource).Error
+	return repo.GetContextDB(ctx).Create(&alertSource).Error
 }
 
 func (repo *subRepo) GetAlertSource(ctx core.Context, sourceId string) (*alert.AlertSource, error) {
 	var res alert.AlertSource
-	err := repo.db.First(&res, "source_id = ?", sourceId).Error
+	err := repo.GetContextDB(ctx).First(&res, "source_id = ?", sourceId).Error
 	if err == nil {
 		var clusters []input.Cluster
-		err := repo.db.Raw(AlertSource2Cluster, res.SourceID).Scan(&clusters).Error
+		err := repo.GetContextDB(ctx).Raw(AlertSource2Cluster, res.SourceID).Scan(&clusters).Error
 		if err == nil {
 			res.Clusters = clusters
 		}
@@ -57,7 +57,7 @@ func (repo *subRepo) GetAlertSource(ctx core.Context, sourceId string) (*alert.A
 }
 
 func (repo *subRepo) UpdateAlertSource(ctx core.Context, alertSource *alert.AlertSource) error {
-	err := repo.db.Delete(&alert.AlertSource2Cluster{}, "source_id = ?", alertSource.SourceID).Error
+	err := repo.GetContextDB(ctx).Delete(&alert.AlertSource2Cluster{}, "source_id = ?", alertSource.SourceID).Error
 	if err != nil {
 		return err
 	}
@@ -70,32 +70,32 @@ func (repo *subRepo) UpdateAlertSource(ctx core.Context, alertSource *alert.Aler
 	}
 
 	if len(newS2C) > 0 {
-		err = repo.db.Create(&newS2C).Error
+		err = repo.GetContextDB(ctx).Create(&newS2C).Error
 		if err != nil {
 			return err
 		}
 	}
 
-	return repo.db.Model(&alert.AlertSource{}).
+	return repo.GetContextDB(ctx).Model(&alert.AlertSource{}).
 		Where("source_id = ?", alertSource.SourceID).
 		Updates(alertSource).Error
 }
 
 func (repo *subRepo) ListAlertSource(ctx core.Context) ([]alert.AlertSource, error) {
 	var alertSources []alert.AlertSource
-	err := repo.db.Find(&alertSources, "source_name NOT LIKE ?", "APO_DEFAULT_ENRICH_RULE%").Error
+	err := repo.GetContextDB(ctx).Find(&alertSources, "source_name NOT LIKE ?", "APO_DEFAULT_ENRICH_RULE%").Error
 	if err != nil {
 		return nil, err
 	}
 
 	var clusters []input.Cluster
-	err = repo.db.Find(&clusters).Error
+	err = repo.GetContextDB(ctx).Find(&clusters).Error
 	if err != nil {
 		return nil, err
 	}
 
 	var s2cs []alert.AlertSource2Cluster
-	err = repo.db.Find(&s2cs).Error
+	err = repo.GetContextDB(ctx).Find(&s2cs).Error
 
 	var tmpClustersMap = make(map[string]input.Cluster)
 	for i := 0; i < len(clusters); i++ {
@@ -116,18 +116,18 @@ func (repo *subRepo) ListAlertSource(ctx core.Context) ([]alert.AlertSource, err
 
 func (repo *subRepo) DeleteAlertSource(ctx core.Context, alertSource alert.SourceFrom) (*alert.AlertSource, error) {
 	deletedSource := alert.AlertSource{}
-	err := repo.db.First(&deletedSource, "source_id = ?", alertSource.SourceID).Error
+	err := repo.GetContextDB(ctx).First(&deletedSource, "source_id = ?", alertSource.SourceID).Error
 
 	if err != nil || len(deletedSource.SourceID) == 0 {
 		return nil, err
 	}
 
-	err = repo.db.Delete(&alert.AlertSource2Cluster{}, "source_id = ?", alertSource.SourceID).Error
+	err = repo.GetContextDB(ctx).Delete(&alert.AlertSource2Cluster{}, "source_id = ?", alertSource.SourceID).Error
 	if err != nil {
 		return nil, err
 	}
 
-	err = repo.db.Delete(&alert.AlertSource{}, "source_id = ?", alertSource.SourceID).Error
+	err = repo.GetContextDB(ctx).Delete(&alert.AlertSource{}, "source_id = ?", alertSource.SourceID).Error
 	if err != nil {
 		return nil, err
 	}

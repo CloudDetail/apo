@@ -5,6 +5,7 @@ package alert
 
 import (
 	sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 	dbdriver "github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 
 	"github.com/CloudDetail/apo/backend/config"
@@ -59,13 +60,15 @@ type AlertInput interface {
 }
 
 type subRepo struct {
-	db *gorm.DB
+	*driver.DB
 }
 
 func NewAlertInputRepo(db *gorm.DB, cfg *config.Config) (*subRepo, error) {
-	repo := &subRepo{db}
+	repo := &subRepo{
+		DB: &driver.DB{DB: db},
+	}
 
-	if err := repo.db.AutoMigrate(
+	if err := repo.GetContextDB(nil).AutoMigrate(
 		&alert.AlertSource{},
 		&alert.TargetTag{},
 		&alert.AlertEnrichRule{},

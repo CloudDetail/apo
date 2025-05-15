@@ -12,12 +12,12 @@ func (repo *subRepo) AddAlertEnrichConditions(ctx core.Context, enrichConditions
 	if len(enrichConditions) == 0 {
 		return nil
 	}
-	return repo.db.Create(&enrichConditions).Error
+	return repo.GetContextDB(ctx).Create(&enrichConditions).Error
 }
 
 func (repo *subRepo) GetAlertEnrichConditions(ctx core.Context, sourceId string) ([]alert.AlertEnrichCondition, error) {
 	var enrichConditions []alert.AlertEnrichCondition
-	err := repo.db.Find(&enrichConditions, "source_id = ?", sourceId).Error
+	err := repo.GetContextDB(ctx).Find(&enrichConditions, "source_id = ?", sourceId).Error
 	return enrichConditions, err
 }
 
@@ -25,9 +25,9 @@ func (repo *subRepo) DeleteAlertEnrichConditions(ctx core.Context, ruleIds []str
 	if len(ruleIds) == 0 {
 		return nil
 	}
-	return repo.db.Delete(&alert.AlertEnrichCondition{}, "enrich_rule_id in ?", ruleIds).Error
+	return repo.GetContextDB(ctx).Delete(&alert.AlertEnrichCondition{}, "enrich_rule_id in ?", ruleIds).Error
 }
 
 func (repo *subRepo) DeleteAlertEnrichConditionsBySourceId(ctx core.Context, sourceId string) error {
-	return repo.db.Delete(&alert.AlertEnrichCondition{}, "source_id = ?", sourceId).Error
+	return repo.GetContextDB(ctx).Delete(&alert.AlertEnrichCondition{}, "source_id = ?", sourceId).Error
 }

@@ -37,7 +37,7 @@ func (t *FeatureMapping) TableName() string {
 
 func (repo *daoRepo) GetFeature(ctx core.Context, featureIDs []int) ([]Feature, error) {
 	var features []Feature
-	query := repo.db
+	query := repo.GetContextDB(ctx)
 	if featureIDs != nil {
 		query = query.Where("feature_id in ?", featureIDs)
 	}
@@ -48,18 +48,18 @@ func (repo *daoRepo) GetFeature(ctx core.Context, featureIDs []int) ([]Feature, 
 
 func (repo *daoRepo) GetFeatureMappingByFeature(ctx core.Context, featureIDs []int, mappedType string) ([]FeatureMapping, error) {
 	var featureMenuItem []FeatureMapping
-	err := repo.db.Where("feature_id in ? AND mapped_type = ?", featureIDs, mappedType).Order("mapped_id").Find(&featureMenuItem).Error
+	err := repo.GetContextDB(ctx).Where("feature_id in ? AND mapped_type = ?", featureIDs, mappedType).Order("mapped_id").Find(&featureMenuItem).Error
 	return featureMenuItem, err
 }
 
 func (repo *daoRepo) GetFeatureMappingByMapped(ctx core.Context, mappedID int, mappedType string) (FeatureMapping, error) {
 	var fm FeatureMapping
-	err := repo.db.Where("mapped_id = ? AND mapped_type = ?", mappedID, mappedType).Find(&fm).Error
+	err := repo.GetContextDB(ctx).Where("mapped_id = ? AND mapped_type = ?", mappedID, mappedType).Find(&fm).Error
 	return fm, err
 }
 
 func (repo *daoRepo) GetFeatureByName(ctx core.Context, name string) (int, error) {
 	var id int
-	err := repo.db.Model(&Feature{}).Select("feature_id").Where("feature_name = ?", name).Find(&id).Error
+	err := repo.GetContextDB(ctx).Model(&Feature{}).Select("feature_id").Where("feature_name = ?", name).Find(&id).Error
 	return id, err
 }

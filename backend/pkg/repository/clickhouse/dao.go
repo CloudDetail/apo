@@ -5,9 +5,7 @@ package clickhouse
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"net/url"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,6 +18,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/factory"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/integration"
 )
 
@@ -106,7 +105,7 @@ type Repo interface {
 	// ========== flame graph ===========
 	GetFlameGraphData(ctx core.Context, startTime, endTime int64, nodeName string, pid, tid int64, sampleType, spanId, traceId string) (*[]FlameGraphData, error)
 
-	AddWorkflowRecord(record *model.WorkflowRecord) error
+	AddWorkflowRecord(ctx core.Context, record *model.WorkflowRecord) error
 	AddWorkflowRecords(ctx core.Context, records []model.WorkflowRecord) error
 	GetAlertEventWithWorkflowRecord(ctx core.Context, req *request.AlertEventSearchRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error)
 	GetAlertEventCounts(ctx core.Context, req *request.AlertEventSearchRequest, cacheMinutes int) (map[string]int64, error)
@@ -123,10 +122,10 @@ type Repo interface {
 }
 
 type chRepo struct {
-	conn     driver.Conn
+	*factory.Conn
+
 	database string
 	availableFilters
-	db *sql.DB
 
 	integration.Input
 }
@@ -151,38 +150,30 @@ func New(logger *zap.Logger, address []string, database string, username string,
 		return nil, fmt.Errorf("failed to connect to clickhouse: %s", err)
 	}
 
-	dsn := fmt.Sprintf("clickhouse://%s:%s@%s/%s", username, url.QueryEscape(password), address[0], database)
-	db, err := sql.Open("clickhouse", dsn)
-	if err != nil {
-		return nil, err
-	}
 	var repo *chRepo
 	// Use the wrapped Conn at the Debug log level, and output the time taken to execute SQL.
 	if logger.Level() == zap.DebugLevel {
 		repo = &chRepo{
 			database: database,
-			conn: &WrappedConn{
+			Conn: &factory.Conn{Conn: &WrappedConn{
 				Conn:   conn,
 				logger: logger,
-			},
-			db: db,
+			}},
 		}
 	} else {
 		repo = &chRepo{
 			database: database,
-			conn:     conn,
-			db:       db,
+			Conn:     &factory.Conn{Conn: conn},
 		}
 	}
 
 	now := time.Now()
-	// TODO ctx
 	filters, err := repo.UpdateFilterKey(nil, now.Add(-48*time.Hour), now)
 	if err == nil {
 		repo.SetAvailableFilters(filters, now)
 	}
 
-	repo.Input, err = integration.NewInputRepo(repo.conn, repo.database)
+	repo.Input, err = integration.NewInputRepo(repo.Conn, repo.database)
 	if err != nil {
 		return nil, err
 	}
@@ -191,5 +182,5 @@ func New(logger *zap.Logger, address []string, database string, username string,
 }
 
 func (ch *chRepo) GetConn(ctx core.Context) driver.Conn {
-	return ch.conn
+	return ch.GetContextDB(ctx)
 }

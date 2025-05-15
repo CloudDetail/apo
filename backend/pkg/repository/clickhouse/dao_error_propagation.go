@@ -63,7 +63,7 @@ func (ch *chRepo) ListErrorPropagation(ctx core.Context, req *request.GetErrorIn
 		Limit(2000).String()
 	var results []ErrorInstancePropagation
 	sql := fmt.Sprintf(SQL_GET_INSTANCE_ERROR_PROPAGATION, ch.database, queryBuilder.String(), bySql, startTime, endTime, startTime, endTime)
-	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return results, nil

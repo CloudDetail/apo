@@ -21,6 +21,6 @@ func (API) TableName() string {
 
 func (repo *daoRepo) GetAPIByPath(ctx core.Context, path string, method string) (*API, error) {
 	var api API
-	err := repo.db.Where("path = ? AND method = ?", path, method).Find(&api).Error
+	err := repo.GetContextDB(ctx).Where("path = ? AND method = ?", path, method).Find(&api).Error
 	return &api, err
 }

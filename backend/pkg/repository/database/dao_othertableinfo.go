@@ -21,7 +21,7 @@ func (OtherLogTable) TableName() string {
 
 func (repo *daoRepo) GetAllOtherLogTable(ctx core.Context) ([]OtherLogTable, error) {
 	var logTableInfo []OtherLogTable
-	err := repo.db.Find(&logTableInfo).Error
+	err := repo.GetContextDB(ctx).Find(&logTableInfo).Error
 	return logTableInfo, err
 }
 
@@ -29,11 +29,11 @@ func (repo *daoRepo) OperatorOtherLogTable(ctx core.Context, model *OtherLogTabl
 	var err error
 	switch op {
 	case INSERT:
-		err = repo.db.Create(model).Error
+		err = repo.GetContextDB(ctx).Create(model).Error
 	case QUERY:
-		err = repo.db.Where("database=? AND tablename=? And instance=?", model.DataBase, model.Table, model.Instance).First(model).Error
+		err = repo.GetContextDB(ctx).Where("database=? AND tablename=? And instance=?", model.DataBase, model.Table, model.Instance).First(model).Error
 	case DELETE:
-		err = repo.db.Where("database=? AND tablename=? And instance=?", model.DataBase, model.Table, model.Instance).Delete(&OtherLogTable{}).Error
+		err = repo.GetContextDB(ctx).Where("database=? AND tablename=? And instance=?", model.DataBase, model.Table, model.Instance).Delete(&OtherLogTable{}).Error
 	}
 	return err
 }

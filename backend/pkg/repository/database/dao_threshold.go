@@ -35,26 +35,26 @@ func (Threshold) TableName() string {
 
 func (repo *daoRepo) CreateOrUpdateThreshold(ctx core.Context, model *Threshold) error {
 	var existing Threshold
-	result := repo.db.Where("service_name = ? AND end_point = ? AND Level = ?", model.ServiceName, model.EndPoint, model.Level).First(&existing)
+	result := repo.GetContextDB(ctx).Where("service_name = ? AND end_point = ? AND Level = ?", model.ServiceName, model.EndPoint, model.Level).First(&existing)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		// If no record is found, insert a new record
-		return repo.db.Create(model).Error
+		return repo.GetContextDB(ctx).Create(model).Error
 	} else if result.Error != nil {
 		// return error if other errors occur
 		return result.Error
 	} else {
 		// Update record if found
-		return repo.db.Model(&existing).Updates(model).Error
+		return repo.GetContextDB(ctx).Model(&existing).Updates(model).Error
 	}
 }
 
 func (repo *daoRepo) GetOrCreateThreshold(ctx core.Context, serviceName string, endPoint string, level string) (Threshold, error) {
 	var threshold Threshold
 	// Query based on serviceName and endPoint provided
-	result := repo.db.Where("service_name = ? AND end_point = ? AND Level = ?", serviceName, endPoint, level).First(&threshold)
+	result := repo.GetContextDB(ctx).Where("service_name = ? AND end_point = ? AND Level = ?", serviceName, endPoint, level).First(&threshold)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		// If no record is found, query again based on serviceName = "global" and endPoint = "global"
-		result = repo.db.Where("Level = ?", GLOBAL).First(&threshold)
+		result = repo.GetContextDB(ctx).Where("Level = ?", GLOBAL).First(&threshold)
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			// If the record is still not found, create a new threshold data
 			newThreshold := Threshold{
@@ -64,7 +64,7 @@ func (repo *daoRepo) GetOrCreateThreshold(ctx core.Context, serviceName string, 
 				ErrorRate: ERROR_RATE,
 				Log:       LOG,
 			}
-			if createErr := repo.db.Create(&newThreshold).Error; createErr != nil {
+			if createErr := repo.GetContextDB(ctx).Create(&newThreshold).Error; createErr != nil {
 				return newThreshold, createErr
 			}
 			return newThreshold, nil
@@ -76,7 +76,7 @@ func (repo *daoRepo) GetOrCreateThreshold(ctx core.Context, serviceName string, 
 }
 func (repo *daoRepo) DeleteThreshold(ctx core.Context, serviceName string, endPoint string) error {
 	// Delete records based on serviceName and endPoint
-	result := repo.db.Where("service_name = ? AND end_point = ?", serviceName, endPoint).Delete(&Threshold{})
+	result := repo.GetContextDB(ctx).Where("service_name = ? AND end_point = ?", serviceName, endPoint).Delete(&Threshold{})
 	if result.Error != nil {
 		return result.Error
 	}

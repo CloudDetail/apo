@@ -21,9 +21,9 @@ func (I18nTranslation) TableName() string {
 	return "i18n_translation"
 }
 
-func (repo *daoRepo) GetTranslation(targetIDs []int, targetType string, language string) ([]I18nTranslation, error) {
+func (repo *daoRepo) GetTranslation(ctx core.Context, targetIDs []int, targetType string, language string) ([]I18nTranslation, error) {
 	var translations []I18nTranslation
-	err := repo.db.Where(`entity_id in ? AND entity_type = ? AND "language" = ?`, targetIDs, targetType, language).Find(&translations).Error
+	err := repo.GetContextDB(ctx).Where(`entity_id in ? AND entity_type = ? AND "language" = ?`, targetIDs, targetType, language).Find(&translations).Error
 	return translations, err
 }
 
@@ -32,7 +32,7 @@ func (repo *daoRepo) GetFeatureTans(ctx core.Context, features *[]Feature, langu
 	for i, f := range *features {
 		featureIDs[i] = f.FeatureID
 	}
-	translations, err := repo.GetTranslation(featureIDs, model.TRANSLATION_TYP_FEATURE, language)
+	translations, err := repo.GetTranslation(ctx, featureIDs, model.TRANSLATION_TYP_FEATURE, language)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (repo *daoRepo) GetMenuItemTans(ctx core.Context, menuItems *[]MenuItem, la
 	for i, f := range *menuItems {
 		featureIDs[i] = f.ItemID
 	}
-	translations, err := repo.GetTranslation(featureIDs, model.TRANSLATION_TYP_MENU, language)
+	translations, err := repo.GetTranslation(ctx, featureIDs, model.TRANSLATION_TYP_MENU, language)
 	if err != nil {
 		return err
 	}

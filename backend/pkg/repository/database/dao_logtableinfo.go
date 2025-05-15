@@ -36,25 +36,25 @@ func (repo *daoRepo) OperateLogTableInfo(ctx core.Context, model *LogTableInfo, 
 	var err error
 	switch op {
 	case INSERT:
-		err = repo.db.Create(model).Error
+		err = repo.GetContextDB(ctx).Create(model).Error
 	case QUERY:
-		err = repo.db.Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).First(model).Error
+		err = repo.GetContextDB(ctx).Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).First(model).Error
 	case UPDATE:
-		err = repo.db.Model(&LogTableInfo{}).Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).Update("fields", model.Fields).Error
+		err = repo.GetContextDB(ctx).Model(&LogTableInfo{}).Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).Update("fields", model.Fields).Error
 	case DELETE:
-		return repo.db.Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).Delete(&LogTableInfo{}).Error
+		return repo.GetContextDB(ctx).Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).Delete(&LogTableInfo{}).Error
 	}
 	return err
 }
 
 func (repo *daoRepo) GetAllLogTable(ctx core.Context) ([]LogTableInfo, error) {
 	var logTableInfo []LogTableInfo
-	err := repo.db.Find(&logTableInfo).Error
+	err := repo.GetContextDB(ctx).Find(&logTableInfo).Error
 	return logTableInfo, err
 }
 
 func (repo *daoRepo) UpdateLogParseRule(ctx core.Context, model *LogTableInfo) error {
-	return repo.db.Model(&LogTableInfo{}).Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).Updates(map[string]interface{}{
+	return repo.GetContextDB(ctx).Model(&LogTableInfo{}).Where(`"database" = ? AND "tablename" = ?`, model.DataBase, model.Table).Updates(map[string]interface{}{
 		"parseinfo":  model.ParseInfo,
 		"parserule":  model.ParseRule,
 		"routerule":  model.RouteRule,

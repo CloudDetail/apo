@@ -49,7 +49,7 @@ func (ch *chRepo) GetOnOffCPU(ctx core.Context, pid uint32, nodeName string, sta
 		Alias("intDiv(endTime, 1000)", "endTime").String()
 	sql := buildProfilingEventQuery(fieldSql, querySql)
 	result := make([]ProfilingEvent, 0)
-	err := ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
+	err := ch.GetContextDB(ctx).Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
 		return nil, err
 	}

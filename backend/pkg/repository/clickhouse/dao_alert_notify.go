@@ -11,7 +11,7 @@ import (
 )
 
 func (ch *chRepo) CreateAlertNotifyRecord(ctx core.Context, record model.AlertNotifyRecord) error {
-	batch, err := ch.conn.PrepareBatch(ctx.GetContext(), `
+	batch, err := ch.GetContextDB(ctx).PrepareBatch(ctx.GetContext(), `
 		INSERT INTO alert_notify_record (alert_id, created_at, event_id, success,failed)
 		VALUES
 	`)

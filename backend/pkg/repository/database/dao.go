@@ -146,12 +146,8 @@ type Repo interface {
 	integration.ObservabilityInputManage
 }
 
-const (
-	_transactionCtxKey = "__transaction__"
-)
-
 type daoRepo struct {
-	db    *gorm.DB
+	*driver.DB
 	sqlDB *sql.DB
 
 	integration.ObservabilityInputManage
@@ -199,51 +195,52 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		return nil, err
 	}
 	daoRepo := &daoRepo{
-		db:    database,
+		DB:    &driver.DB{DB: database},
 		sqlDB: sqlDb,
 	}
 
-	if err = driver.InitSQL(daoRepo.db, &AlertMetricsData{}); err != nil {
+	if err = driver.InitSQL(database, &AlertMetricsData{}); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initRole(); err != nil {
+	if err = daoRepo.initRole(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initFeature(); err != nil {
+	if err = daoRepo.initFeature(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initRouterData(); err != nil {
+	if err = daoRepo.initRouterData(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initMenuItems(); err != nil {
+	if err = daoRepo.initMenuItems(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initInsertPages(); err != nil {
+	if err = daoRepo.initInsertPages(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initRouterPage(); err != nil {
+	if err = daoRepo.initRouterPage(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initFeatureMenuItems(); err != nil {
+	if err = daoRepo.initFeatureMenuItems(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initFeatureRouter(); err != nil {
+	if err = daoRepo.initFeatureRouter(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initPermissions(); err != nil {
+	if err = daoRepo.initPermissions(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initI18nTranslation(); err != nil {
+	if err = daoRepo.initI18nTranslation(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.createAdmin(); err != nil {
+	// TODO core.Context
+	if err = daoRepo.createAdmin(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.createAnonymousUser(); err != nil {
+	if err = daoRepo.createAnonymousUser(nil); err != nil {
 		return nil, err
 	}
 
-	if daoRepo.ObservabilityInputManage, err = integration.NewObservabilityInputManage(daoRepo.db, globalCfg); err != nil {
+	if daoRepo.ObservabilityInputManage, err = integration.NewObservabilityInputManage(database, globalCfg); err != nil {
 		return nil, err
 	}
 

@@ -6,16 +6,13 @@ package clickhouse
 import core "github.com/CloudDetail/apo/backend/pkg/core"
 
 func (ch *chRepo) queryRowsData(ctx core.Context, sql string) ([]map[string]any, error) {
-	rows, err := ch.db.Query(sql)
+	rows, err := ch.GetContextDB(ctx).Query(ctx.GetContext(), sql)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	columns, err := rows.Columns()
-	if err != nil {
-		return nil, err
-	}
+	columns := rows.Columns()
 	results := make([]map[string]interface{}, 0)
 	for rows.Next() {
 		values := make([]interface{}, len(columns))

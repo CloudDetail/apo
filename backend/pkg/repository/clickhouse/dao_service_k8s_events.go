@@ -54,7 +54,7 @@ const (
 func (ch *chRepo) CountK8sEvents(ctx core.Context, startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error) {
 	result := make([]K8sEventsCount, 0)
 	// Execute query
-	rows, err := ch.conn.Query(context.Background(), countK8sEventsSQL, startTime/1e6, endTim/1e6, pods)
+	rows, err := ch.GetContextDB(ctx).Query(context.Background(), countK8sEventsSQL, startTime/1e6, endTim/1e6, pods)
 	if err != nil {
 		return result, err
 	}

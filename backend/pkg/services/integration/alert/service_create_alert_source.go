@@ -60,7 +60,6 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 		return enricher.(*enrich.AlertEnricher), alertin.ErrAlertSourceAlreadyExist{}
 	}
 
-	// TODO ctx
 	_, defaultRules := s.GetDefaultAlertEnrichRule(nil, source.SourceType)
 	storedRules, newR, newC, newS := s.prepareAlertEnrichRule(source, defaultRules)
 
@@ -77,13 +76,10 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 	}
 
 	var storeError error
-	// TODO ctx
 	err = s.dbRepo.AddAlertEnrichRule(nil, newR)
 	storeError = multierr.Append(storeError, err)
-	// TODO ctx
 	err = s.dbRepo.AddAlertEnrichConditions(nil, newC)
 	storeError = multierr.Append(storeError, err)
-	// TODO ctx
 	err = s.dbRepo.AddAlertEnrichSchemaTarget(nil, newS)
 	storeError = multierr.Append(storeError, err)
 

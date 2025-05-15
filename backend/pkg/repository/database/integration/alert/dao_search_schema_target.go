@@ -27,7 +27,7 @@ func (repo *subRepo) SearchSchemaTarget(ctx core.Context,
 		return nil, fmt.Errorf("invalid source field: %s", sourceField)
 	}
 
-	rows, err := repo.db.Table(schema).Where(fmt.Sprintf("%s = ?", sourceField), sourceValue).Limit(1).Rows()
+	rows, err := repo.GetContextDB(ctx).Table(schema).Where(fmt.Sprintf("%s = ?", sourceField), sourceValue).Limit(1).Rows()
 	if err != nil {
 		return nil, err
 	}

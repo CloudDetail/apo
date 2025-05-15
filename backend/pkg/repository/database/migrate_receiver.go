@@ -11,7 +11,7 @@ import (
 
 func (repo *daoRepo) CheckAMReceiverCount(ctx core.Context) int64 {
 	var count int64
-	err := repo.db.Model(&amconfig.Receiver{}).Count(&count).Error
+	err := repo.GetContextDB(ctx).Model(&amconfig.Receiver{}).Count(&count).Error
 	if err != nil {
 		return -1
 	}
@@ -20,7 +20,7 @@ func (repo *daoRepo) CheckAMReceiverCount(ctx core.Context) int64 {
 
 func (repo *daoRepo) MigrateAMReceiver(ctx core.Context, receivers []amconfig.Receiver) ([]amconfig.Receiver, error) {
 	extraReceiver := skipAPOReceiver(receivers)
-	err := repo.db.Transaction(func(tx *gorm.DB) error {
+	err := repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		// TODO Read Dingtalk config from Database, transform into xxx
 		if err := tx.AutoMigrate(&amconfig.Receiver{}); err != nil {
 			return err

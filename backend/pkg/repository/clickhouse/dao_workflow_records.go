@@ -11,7 +11,7 @@ import (
 )
 
 func (ch *chRepo) AddWorkflowRecord(ctx core.Context, record *model.WorkflowRecord) error {
-	batch, err := ch.conn.PrepareBatch(ctx.GetContext(), `
+	batch, err := ch.GetContextDB(ctx).PrepareBatch(ctx.GetContext(), `
 		INSERT INTO workflow_records (workflow_run_id, workflow_id, workflow_name, ref, input, output, created_at, rounded_time)
 		VALUES
 	`)
@@ -37,7 +37,7 @@ func (ch *chRepo) AddWorkflowRecord(ctx core.Context, record *model.WorkflowReco
 }
 
 func (ch *chRepo) AddWorkflowRecords(ctx core.Context, records []model.WorkflowRecord) error {
-	batch, err := ch.conn.PrepareBatch(ctx.GetContext(), `
+	batch, err := ch.GetContextDB(ctx).PrepareBatch(ctx.GetContext(), `
 		INSERT INTO workflow_records (workflow_run_id, workflow_id, workflow_name, ref, input, output, created_at, rounded_time)
 		VALUES
 	`)

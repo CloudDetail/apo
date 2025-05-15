@@ -35,7 +35,7 @@ import (
 )
 
 type Receivers interface {
-	HandleAlertCheckRecord(record *model.WorkflowRecord) error
+	HandleAlertCheckRecord(ctx core.Context, record *model.WorkflowRecord) error
 
 	GetAMConfigReceiver(ctx core.Context, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
 	AddAMConfigReceiver(ctx core.Context, receiver amconfig.Receiver) error
@@ -72,7 +72,6 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 		return nil, err
 	}
 
-	// TODO ctx
 	receivers, _, err := dbRepo.GetAMConfigReceiver(nil, nil, nil)
 	if err != nil {
 		return nil, err

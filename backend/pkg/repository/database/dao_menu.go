@@ -31,6 +31,6 @@ func (t *MenuItem) TableName() string {
 func (repo *daoRepo) GetMenuItems(ctx core.Context) ([]MenuItem, error) {
 	var menuItems []MenuItem
 
-	err := repo.db.Find(&menuItems).Error
+	err := repo.GetContextDB(ctx).Find(&menuItems).Error
 	return menuItems, err
 }

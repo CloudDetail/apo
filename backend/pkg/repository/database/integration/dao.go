@@ -10,6 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/config"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration/alert"
 	"gorm.io/gorm"
 )
@@ -37,7 +38,7 @@ type ObservabilityInputManage interface {
 }
 
 type subRepos struct {
-	db *gorm.DB
+	*driver.DB
 
 	alert.AlertInput
 }
@@ -48,7 +49,7 @@ func NewObservabilityInputManage(db *gorm.DB, cfg *config.Config) (*subRepos, er
 	}
 
 	subRepos := &subRepos{
-		db: db,
+		DB: &driver.DB{DB: db},
 	}
 
 	var err error
@@ -56,7 +57,7 @@ func NewObservabilityInputManage(db *gorm.DB, cfg *config.Config) (*subRepos, er
 		return nil, fmt.Errorf("failed to init observability input manage, err: %v", err)
 	}
 
-	if err := subRepos.db.AutoMigrate(
+	if err := subRepos.GetContextDB(nil).AutoMigrate(
 		&integration.Cluster{},
 		&integration.TraceIntegration{},
 		&integration.MetricIntegration{},

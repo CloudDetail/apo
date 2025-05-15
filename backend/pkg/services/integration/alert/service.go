@@ -76,7 +76,6 @@ func New(
 		ckRepo:   chRepo,
 	}
 
-	// TODO ctx
 	_, enrichMaps, err := service.dbRepo.LoadAlertEnrichRule(nil)
 	if err != nil {
 		log.Printf("failed to init alertinput module,err: %v", err)

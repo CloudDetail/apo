@@ -23,7 +23,7 @@ func (AuthPermission) TableName() string {
 
 func (repo *daoRepo) GetSubjectPermission(ctx core.Context, subID int64, subType string, typ string) ([]int, error) {
 	var permissionIDs []int
-	err := repo.db.Model(&AuthPermission{}).
+	err := repo.GetContextDB(ctx).Model(&AuthPermission{}).
 		Select("permission_id").
 		Where("subject_id = ? AND subject_type = ? AND type = ?", subID, subType, typ).
 		Find(&permissionIDs).Error
@@ -32,7 +32,7 @@ func (repo *daoRepo) GetSubjectPermission(ctx core.Context, subID int64, subType
 
 func (repo *daoRepo) GetSubjectsPermission(ctx core.Context, subIDs []int64, subType string, typ string) ([]AuthPermission, error) {
 	var permissions []AuthPermission
-	err := repo.db.Model(&AuthPermission{}).
+	err := repo.GetContextDB(ctx).Model(&AuthPermission{}).
 		Where("subject_id in ? AND subject_type = ? AND type = ?", subIDs, subType, typ).
 		Find(&permissions).Error
 	return permissions, err

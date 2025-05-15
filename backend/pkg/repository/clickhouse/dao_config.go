@@ -36,7 +36,7 @@ func (ch *chRepo) ModifyTableTTL(ctx core.Context, mapResult []model.ModifyTable
 					escapedTableName, table.TTLExpression)
 			}
 
-			if err := ch.conn.Exec(ctx.GetContext(), finalQuery); err != nil {
+			if err := ch.GetContextDB(ctx).Exec(ctx.GetContext(), finalQuery); err != nil {
 				log.Printf("failed to modify TTL for table %s: %v\n\n", table.Name, err)
 			}
 		}(table)
@@ -62,7 +62,7 @@ func (ch *chRepo) GetTables(ctx core.Context, tables []model.Table) ([]model.Tab
 		argIndex++
 	}
 
-	rows, err := ch.conn.Query(context.Background(), query, args...)
+	rows, err := ch.GetContextDB(ctx).Query(context.Background(), query, args...)
 	if err != nil {
 		log.Println("Query failed:", err)
 		return nil, err

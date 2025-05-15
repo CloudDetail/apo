@@ -26,7 +26,7 @@ func (ch *chRepo) GetNetworkSpanSegments(ctx core.Context, traceId string, spanI
 		EqualsNotEmpty("span_id", spanId)
 	executeSql := buildQuery(queryBuilder)
 	var netSegments []NetSegments
-	if err := ch.conn.Select(context.Background(), &netSegments, executeSql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(context.Background(), &netSegments, executeSql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return netSegments, nil

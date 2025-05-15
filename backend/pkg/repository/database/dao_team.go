@@ -49,7 +49,7 @@ func (repo *daoRepo) CreateTeam(ctx core.Context, team Team) error {
 func (repo *daoRepo) TeamExist(ctx core.Context, filter model.TeamFilter) (bool, error) {
 	var count int64
 
-	query := repo.db.Model(&Team{})
+	query := repo.GetContextDB(ctx).Model(&Team{})
 	if filter.ID != 0 {
 		query.Where("team_id = ?", filter.ID)
 	} else if len(filter.IDs) > 0 {
@@ -68,7 +68,7 @@ func (repo *daoRepo) TeamExist(ctx core.Context, filter model.TeamFilter) (bool,
 
 func (repo *daoRepo) GetTeam(ctx core.Context, teamID int64) (Team, error) {
 	var team Team
-	err := repo.db.Find(&team, teamID).Error
+	err := repo.GetContextDB(ctx).Find(&team, teamID).Error
 	return team, err
 }
 
@@ -80,7 +80,7 @@ func (repo *daoRepo) GetTeamList(ctx core.Context, req *request.GetTeamRequest) 
 	var teams []Team
 	var count int64
 
-	query := repo.db.Model(&Team{}).Preload("UserList", func(db *gorm.DB) *gorm.DB {
+	query := repo.GetContextDB(ctx).Model(&Team{}).Preload("UserList", func(db *gorm.DB) *gorm.DB {
 		return db.Select("user_id, username")
 	})
 
@@ -89,7 +89,7 @@ func (repo *daoRepo) GetTeamList(ctx core.Context, req *request.GetTeamRequest) 
 	}
 
 	if len(req.FeatureList) > 0 {
-		subQuery := repo.db.Model(&AuthPermission{}).
+		subQuery := repo.GetContextDB(ctx).Model(&AuthPermission{}).
 			Select("subject_id").
 			Joins("JOIN feature f ON f.feature_id = auth_permission.permission_id").
 			Where("f.feature_id IN ? AND auth_permission.subject_type = ?", req.FeatureList, model.PERMISSION_SUB_TYP_TEAM)
@@ -121,7 +121,7 @@ func (repo *daoRepo) GetTeamList(ctx core.Context, req *request.GetTeamRequest) 
 	}
 
 	var tempFeatures []TempFeature
-	err = repo.db.Model(&AuthPermission{}).
+	err = repo.GetContextDB(ctx).Model(&AuthPermission{}).
 		Select("auth_permission.subject_id as team_id, f.feature_id, f.feature_name").
 		Joins("JOIN feature f ON f.feature_id = auth_permission.permission_id").
 		Where("auth_permission.subject_type = ? AND auth_permission.subject_id IN ?", model.PERMISSION_SUB_TYP_TEAM, teamIDs).
@@ -156,23 +156,23 @@ func (repo *daoRepo) DeleteTeam(ctx core.Context, teamID int64) error {
 
 func (repo *daoRepo) GetUserTeams(ctx core.Context, userID int64) ([]int64, error) {
 	var teamIDs []int64
-	err := repo.db.Model(&UserTeam{}).Select("team_id").Where("user_id = ?", userID).Find(&teamIDs).Error
+	err := repo.GetContextDB(ctx).Model(&UserTeam{}).Select("team_id").Where("user_id = ?", userID).Find(&teamIDs).Error
 	return teamIDs, err
 }
 
 func (repo *daoRepo) GetTeamUsers(ctx core.Context, teamID int64) ([]int64, error) {
 	var userIDs []int64
-	err := repo.db.Model(&UserTeam{}).Select("user_id").Where("team_id = ?", teamID).Find(&userIDs).Error
+	err := repo.GetContextDB(ctx).Model(&UserTeam{}).Select("user_id").Where("team_id = ?", teamID).Find(&userIDs).Error
 	return userIDs, err
 }
 
 func (repo *daoRepo) GetAssignedTeam(ctx core.Context, userID int64) ([]Team, error) {
 	var teams []Team
-	subQuery := repo.db.
+	subQuery := repo.GetContextDB(ctx).
 		Model(&UserTeam{}).
 		Select("team_id").
 		Where("user_id = ?", userID)
-	err := repo.db.Where("team_id IN (?)", subQuery).Find(&teams).Error
+	err := repo.GetContextDB(ctx).Where("team_id IN (?)", subQuery).Find(&teams).Error
 	return teams, err
 }
 
@@ -233,7 +233,7 @@ func (repo *daoRepo) DeleteAllUserTeam(ctx core.Context, id int64, by string) er
 
 func (repo *daoRepo) GetTeamUserList(ctx core.Context, teamID int64) ([]User, error) {
 	var users []User
-	subQuery := repo.db.Model(&UserTeam{}).Select("user_id").Where("team_id = ?", teamID)
-	err := repo.db.Where("user_id IN (?)", subQuery).Find(&users).Error
+	subQuery := repo.GetContextDB(ctx).Model(&UserTeam{}).Select("user_id").Where("team_id = ?", teamID)
+	err := repo.GetContextDB(ctx).Where("user_id IN (?)", subQuery).Find(&users).Error
 	return users, err
 }

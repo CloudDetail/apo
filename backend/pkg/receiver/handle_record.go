@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/prometheus/alertmanager/notify"
@@ -17,7 +18,7 @@ import (
 	pmodel "github.com/prometheus/common/model"
 )
 
-func (r *InnerReceivers) HandleAlertCheckRecord(record *model.WorkflowRecord) error {
+func (r *InnerReceivers) HandleAlertCheckRecord(ctx core.Context, record *model.WorkflowRecord) error {
 	if record.WorkflowName != "AlertCheck" {
 		return nil
 	}

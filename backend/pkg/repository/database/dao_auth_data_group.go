@@ -69,7 +69,7 @@ func (AuthDataGroup) TableName() string {
 
 func (repo *daoRepo) GetAuthDataGroupBySub(ctx core.Context, subjectID int64, subjectType string) ([]AuthDataGroup, error) {
 	var authDataGroups []AuthDataGroup
-	err := repo.db.Where("subject_id = ? AND subject_type = ?", subjectID, subjectType).Find(&authDataGroups).Error
+	err := repo.GetContextDB(ctx).Where("subject_id = ? AND subject_type = ?", subjectID, subjectType).Find(&authDataGroups).Error
 	return authDataGroups, err
 }
 
@@ -158,7 +158,7 @@ func (repo *daoRepo) RevokeDataGroupBySub(ctx core.Context, subjectIDs []int64, 
 
 func (repo *daoRepo) GetGroupAuthDataGroupByGroup(ctx core.Context, groupID int64, subjectType string) ([]AuthDataGroup, error) {
 	var dataGroups []AuthDataGroup
-	err := repo.db.Table("auth_data_group").
+	err := repo.GetContextDB(ctx).Table("auth_data_group").
 		Joins("INNER JOIN data_group dg ON dg.group_id = auth_data_group.data_group_id").
 		Where("dg.group_id = ? AND auth_data_group.subject_type = ?", groupID, subjectType).
 		Find(&dataGroups).Error
@@ -170,7 +170,7 @@ func (repo *daoRepo) GetGroupAuthDataGroupByGroup(ctx core.Context, groupID int6
 
 func (repo *daoRepo) GetDataGroupUsers(ctx core.Context, groupID int64) ([]AuthDataGroup, error) {
 	var ags []AuthDataGroup
-	err := repo.db.
+	err := repo.GetContextDB(ctx).
 		Select("subject_id", "type").
 		Where("data_group_id = ? AND subject_type = ?", groupID, model.DATA_GROUP_SUB_TYP_USER).
 		Find(&ags).Error
@@ -184,7 +184,7 @@ func (repo *daoRepo) GetDataGroupUsers(ctx core.Context, groupID int64) ([]AuthD
 
 	for i := 0; i < len(ags); i++ {
 		var user User
-		err = repo.db.
+		err = repo.GetContextDB(ctx).
 			Select("user_id", "username").
 			First(&user, "user_id = ?", ags[i].SubjectID).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
@@ -202,7 +202,7 @@ func (repo *daoRepo) GetDataGroupUsers(ctx core.Context, groupID int64) ([]AuthD
 func (repo *daoRepo) GetDataGroupTeams(ctx core.Context, groupID int64) ([]AuthDataGroup, error) {
 	var ags []AuthDataGroup
 
-	err := repo.db.
+	err := repo.GetContextDB(ctx).
 		Select("subject_id", "type").
 		Where("data_group_id = ? AND subject_type = ?", groupID, model.DATA_GROUP_SUB_TYP_TEAM).
 		Find(&ags).Error
@@ -216,7 +216,7 @@ func (repo *daoRepo) GetDataGroupTeams(ctx core.Context, groupID int64) ([]AuthD
 
 	for i := 0; i < len(ags); i++ {
 		var team Team
-		err = repo.db.
+		err = repo.GetContextDB(ctx).
 			Select("team_id", "team_name").
 			First(&team, "team_id = ?", ags[i].SubjectID).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
@@ -237,7 +237,7 @@ func (repo *daoRepo) CheckGroupPermission(ctx core.Context, userID, groupID int6
 		err   error
 	)
 
-	query := repo.db.Model(&AuthDataGroup{}).
+	query := repo.GetContextDB(ctx).Model(&AuthDataGroup{}).
 		Where("subject_id = ? AND data_group_id = ? AND subject_type = ?", userID, groupID, model.DATA_GROUP_SUB_TYP_USER)
 
 	if typ == "edit" {
@@ -258,7 +258,7 @@ func (repo *daoRepo) CheckGroupPermission(ctx core.Context, userID, groupID int6
 		return false, err
 	}
 
-	query = repo.db.Model(&AuthDataGroup{}).
+	query = repo.GetContextDB(ctx).Model(&AuthDataGroup{}).
 		Where("subject_id IN ? AND data_group_id = ? AND subject_type = ?", teamIDs, groupID, model.DATA_GROUP_SUB_TYP_TEAM)
 
 	if typ == "edit" {

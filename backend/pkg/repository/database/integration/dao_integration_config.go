@@ -13,24 +13,24 @@ import (
 	"gorm.io/gorm"
 )
 
-func (repo *subRepos) updateTraceIntegration(t *integration.TraceIntegration) error {
+func (repo *subRepos) updateTraceIntegration(ctx core.Context, t *integration.TraceIntegration) error {
 	var updateError error
 
 	if t.Mode == "sidecar" {
 		oldAPI := integration.TraceIntegration{}
-		err := repo.db.First(&oldAPI, "apm_type = ? and mode = 'sidecar'", t.ApmType).
+		err := repo.GetContextDB(ctx).First(&oldAPI, "apm_type = ? and mode = 'sidecar'", t.ApmType).
 			Order("updated_at DESC").Error
 		if err == nil {
 			t.TraceAPI.AcceptExistedSecret(oldAPI.TraceAPI.Obj)
 		}
 	}
 
-	updateError = repo.db.Save(t).Error
+	updateError = repo.GetContextDB(ctx).Save(t).Error
 
 	if !IndependentTraceAPI && t.Mode == "sidecar" {
 		// since traceAPI is not independent now
 		// Any change will affect all sidecar trace integrations
-		err := repo.db.Model(&integration.TraceIntegration{}).
+		err := repo.GetContextDB(ctx).Model(&integration.TraceIntegration{}).
 			Where("apm_type = ? and mode = 'sidecar'", t.ApmType).
 			Update("trace_api", t.TraceAPI).Error
 
@@ -41,27 +41,27 @@ func (repo *subRepos) updateTraceIntegration(t *integration.TraceIntegration) er
 }
 
 // save basic datasource for the platform, usually come from configmap
-func (repo *subRepos) UpdateAllMetricIntegration(m *integration.MetricIntegration) error {
+func (repo *subRepos) UpdateAllMetricIntegration(ctx core.Context, m *integration.MetricIntegration) error {
 	m.ClusterID = integration.PlatformClusterID.String()
-	return repo.updateMetricIntegration(m)
+	return repo.updateMetricIntegration(ctx, m)
 }
 
-func (repo *subRepos) updateMetricIntegration(m *integration.MetricIntegration) error {
+func (repo *subRepos) updateMetricIntegration(ctx core.Context, m *integration.MetricIntegration) error {
 	var updateError error
 
 	// oldAPI := integration.MetricIntegration{}
-	// err := repo.db.First(&oldAPI, "ds_type = ? ", m.DSType).
+	// err := repo.GetContextDB(ctx).First(&oldAPI, "ds_type = ? ", m.DSType).
 	// 	Order("updated_at DESC").Error
 	// if err == nil {
 	// 	m.MetricAPI.AcceptExistedSecret(oldAPI.MetricAPI.Obj)
 	// }
 
-	updateError = repo.db.Save(m).Error
+	updateError = repo.GetContextDB(ctx).Save(m).Error
 
 	if !IndependentMetricDatasource {
 		// Since Metric integration is not independent now
 		// Any change will affect all metric integrations
-		err := repo.db.Model(&integration.MetricIntegration{}).Omit("cluster_id").
+		err := repo.GetContextDB(ctx).Model(&integration.MetricIntegration{}).Omit("cluster_id").
 			Where("ds_type = ?", m.DSType).
 			Updates(m).Error
 		updateError = multierr.Append(updateError, err)
@@ -71,26 +71,26 @@ func (repo *subRepos) updateMetricIntegration(m *integration.MetricIntegration) 
 }
 
 // same as UpdateAllMetricIntegration
-func (repo *subRepos) UpdateAllLogIntegration(l *integration.LogIntegration) error {
+func (repo *subRepos) UpdateAllLogIntegration(ctx core.Context, l *integration.LogIntegration) error {
 	l.ClusterID = integration.PlatformClusterID.String()
-	return repo.updateLogIntegration(l)
+	return repo.updateLogIntegration(ctx, l)
 }
 
-func (repo *subRepos) updateLogIntegration(l *integration.LogIntegration) error {
+func (repo *subRepos) updateLogIntegration(ctx core.Context, l *integration.LogIntegration) error {
 	var updateError error
 
 	// oldAPI := integration.LogIntegration{}
-	// err := repo.db.First(&oldAPI, "db_type = ? ", l.DBType).
+	// err := repo.GetContextDB(ctx).First(&oldAPI, "db_type = ? ", l.DBType).
 	// 	Order("updated_at DESC").Error
 	// if err == nil {
 	// 	l.LogAPI.AcceptExistedSecret(oldAPI.LogAPI.Obj)
 	// }
 
-	updateError = repo.db.Save(l).Error
+	updateError = repo.GetContextDB(ctx).Save(l).Error
 
 	if !IndependentLogDatabase {
 		// same as updateMetricIntegration
-		err := repo.db.Model(&integration.LogIntegration{}).Omit("cluster_id").
+		err := repo.GetContextDB(ctx).Model(&integration.LogIntegration{}).Omit("cluster_id").
 			Where("db_type = ?", l.DBType).
 			Updates(l).Error
 		updateError = multierr.Append(updateError, err)
@@ -106,12 +106,12 @@ func (repo *subRepos) SaveIntegrationConfig(ctx core.Context, iConfig integratio
 
 	var storeErr error
 
-	storeErr = repo.updateTraceIntegration(&iConfig.Trace)
+	storeErr = repo.updateTraceIntegration(ctx, &iConfig.Trace)
 
-	err := repo.updateMetricIntegration(&iConfig.Metric)
+	err := repo.updateMetricIntegration(ctx, &iConfig.Metric)
 	storeErr = multierr.Append(storeErr, err)
 
-	err = repo.updateLogIntegration(&iConfig.Log)
+	err = repo.updateLogIntegration(ctx, &iConfig.Log)
 	storeErr = multierr.Append(storeErr, err)
 
 	return storeErr
@@ -129,7 +129,7 @@ func (repo *subRepos) GetIntegrationConfig(ctx core.Context, clusterID string) (
 	}
 
 	var traceIntegration integration.TraceIntegration
-	err = repo.db.
+	err = repo.GetContextDB(ctx).
 		Where("cluster_id = ?", clusterID).
 		Where("is_deleted = ?", false).
 		First(&traceIntegration).Error
@@ -139,7 +139,7 @@ func (repo *subRepos) GetIntegrationConfig(ctx core.Context, clusterID string) (
 	res.Trace = traceIntegration
 
 	var metricIntegration integration.MetricIntegration
-	err = repo.db.
+	err = repo.GetContextDB(ctx).
 		Where("cluster_id = ?", clusterID).
 		Where("is_deleted = ?", false).
 		First(&metricIntegration).Error
@@ -149,7 +149,7 @@ func (repo *subRepos) GetIntegrationConfig(ctx core.Context, clusterID string) (
 	res.Metric = metricIntegration
 
 	var logIntegration integration.LogIntegration
-	err = repo.db.
+	err = repo.GetContextDB(ctx).
 		Where("cluster_id = ?", clusterID).
 		Where("is_deleted = ?", false).
 		First(&logIntegration).Error
@@ -162,17 +162,17 @@ func (repo *subRepos) GetIntegrationConfig(ctx core.Context, clusterID string) (
 }
 
 func (repo *subRepos) DeleteIntegrationConfig(ctx core.Context, clusterID string) error {
-	err := repo.db.Model(&integration.TraceIntegration{}).
+	err := repo.GetContextDB(ctx).Model(&integration.TraceIntegration{}).
 		Where("cluster_id = ?", clusterID).
 		Update("is_deleted", true).Error
 
-	err2 := repo.db.Model(&integration.MetricIntegration{}).
+	err2 := repo.GetContextDB(ctx).Model(&integration.MetricIntegration{}).
 		Where("cluster_id = ?", clusterID).
 		Update("is_deleted", true).Error
 
 	err = multierr.Append(err, err2)
 
-	err3 := repo.db.Model(&integration.LogIntegration{}).
+	err3 := repo.GetContextDB(ctx).Model(&integration.LogIntegration{}).
 		Where("cluster_id = ?", clusterID).
 		Update("is_deleted", true).Error
 
@@ -190,7 +190,7 @@ type traceAPI struct {
 
 func (repo *subRepos) GetLatestTraceAPIs(ctx core.Context, lastUpdateTS int64) (*integration.AdapterAPIConfig, error) {
 	var latestUpdateTraceAPI integration.TraceIntegration
-	err := repo.db.First(&latestUpdateTraceAPI, "updated_at > ?", lastUpdateTS).
+	err := repo.GetContextDB(ctx).First(&latestUpdateTraceAPI, "updated_at > ?", lastUpdateTS).
 		Order("updated_at DESC").Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -206,7 +206,7 @@ func (repo *subRepos) GetLatestTraceAPIs(ctx core.Context, lastUpdateTS int64) (
   FROM trace_integrations WHERE is_deleted = false)
   SELECT apm_type, trace_api, updated_at FROM latestAPI WHERE rn = 1`
 
-	err = repo.db.Raw(sql).Scan(&latestTraceAPIs).Error
+	err = repo.GetContextDB(ctx).Raw(sql).Scan(&latestTraceAPIs).Error
 
 	if err != nil {
 		return nil, err

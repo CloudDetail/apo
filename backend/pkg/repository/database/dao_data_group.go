@@ -90,7 +90,7 @@ func (repo *daoRepo) UpdateDataGroup(ctx core.Context, groupID int64, groupName 
 // DataGroupExist check whether the group exists for the given condition.
 func (repo *daoRepo) DataGroupExist(ctx core.Context, filter model.DataGroupFilter) (bool, error) {
 	var count int64
-	query := repo.db
+	query := repo.GetContextDB(ctx)
 	if len(filter.Name) > 0 {
 		query = query.Where("group_name = ?", filter.Name)
 	}
@@ -112,7 +112,7 @@ func (repo *daoRepo) GetDataGroup(ctx core.Context, filter model.DataGroupFilter
 		dataGroups []DataGroup
 		count      int64
 	)
-	query := repo.db
+	query := repo.GetContextDB(ctx)
 	if len(filter.Name) > 0 {
 		query = query.Where("group_name like ?", "%"+filter.Name+"%")
 	}
@@ -131,7 +131,7 @@ func (repo *daoRepo) GetDataGroup(ctx core.Context, filter model.DataGroupFilter
 			conditions = append(conditions, []interface{}{item.Datasource, item.Type})
 		}
 
-		subQuery := repo.db.Model(&DatasourceGroup{}).
+		subQuery := repo.GetContextDB(ctx).Model(&DatasourceGroup{}).
 			Select("group_id").
 			Where("(datasource, type) IN ?", conditions)
 
@@ -157,7 +157,7 @@ func (repo *daoRepo) RetrieveDataFromGroup(ctx core.Context, groupID int64, data
 
 func (repo *daoRepo) GetGroupDatasource(ctx core.Context, groupID ...int64) ([]DatasourceGroup, error) {
 	var dsGroup []DatasourceGroup
-	err := repo.db.Where("group_id in ?", groupID).Find(&dsGroup).Error
+	err := repo.GetContextDB(ctx).Where("group_id in ?", groupID).Find(&dsGroup).Error
 	return dsGroup, err
 }
 
@@ -171,7 +171,7 @@ func (repo *daoRepo) GetSubjectDataGroupList(ctx core.Context, subjectID int64, 
 		return db
 	}
 
-	err := repo.db.Table("data_group").
+	err := repo.GetContextDB(ctx).Table("data_group").
 		Preload("DatasourceList", preloadQuery).
 		Select("data_group.group_id, data_group.group_name, data_group.description, auth_data_group.type as auth_type").
 		Joins("JOIN auth_data_group ON auth_data_group.data_group_id = data_group.group_id").

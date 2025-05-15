@@ -27,7 +27,7 @@ func (a *AlertMetricsData) TableName() string {
 // ListQuickMutationMetric list of all quick metrics
 func (repo *daoRepo) ListQuickAlertRuleMetric(ctx core.Context) ([]AlertMetricsData, error) {
 	var quickAlertMetrics []AlertMetricsData
-	err := repo.db.Model(&AlertMetricsData{}).
+	err := repo.GetContextDB(ctx).Model(&AlertMetricsData{}).
 		Select(getQuickAlertRuleNameField(ctx.LANG()), "pql", "unit", "group").
 		Scan(&quickAlertMetrics).
 		Error
