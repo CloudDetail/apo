@@ -102,7 +102,7 @@ const CoachMask = React.memo(() => {
   useEffect(() => {
     console.log(i18n.language)
     generateContent(i18n.language)
-  }, [i18n.language])
+  }, [i18n.language, theme])
 
   const shouldShowPopup = () => {
     const hasShown = localStorage.getItem('CoachMaskShown')

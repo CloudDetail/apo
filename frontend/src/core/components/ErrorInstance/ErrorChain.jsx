@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom'
 import Empty from 'src/core/components/Empty/Empty'
 import { useSelector } from 'react-redux'
 import { TimestampToISO } from 'src/core/utils/time'
+import { theme } from 'antd'
 function escapeId(id) {
   return id.replace(/[^a-zA-Z0-9-_]/g, '_')
 }
@@ -37,6 +38,8 @@ function splitTextToFitWidth(text, maxWidth) {
   return lines
 }
 export const ErrorChain = React.memo(function ErrorChain(props) {
+  const { useToken } = theme
+  const { token } = useToken()
   //canClickTo 是否点击跳转
   const { data, chartId = 'errorChain', endpoint, canClickTo = true } = props
   // const mutatedRef = useRef(props.instance)
@@ -96,7 +99,7 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
         id: escapeId(chartId + 'edge-parent-' + data.instance + '-current-' + current.instance),
         arrowhead: 'vee',
         arrowheadStyle: () => {
-          let color = 'rgba(42, 130, 228, 1)'
+          let color = token.colorPrimary
           return `fill:${color};stroke: none;`
         },
         curve: d3.curveBasis,
@@ -105,7 +108,7 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
           chartId + 'arrow-parent-' + data.instance + '-current-' + current.instance,
         ),
         style:
-          'stroke: rgba(42, 130, 228, 1); stroke-width: 3px; stroke-dasharray: 5, 5;fill: none', // 5px实线，5px空白
+          `stroke: ${token.colorPrimary}; stroke-width: 3px; stroke-dasharray: 5, 5;fill: none`, // 5px实线，5px空白
       })
     })
     data.children.forEach((data) => {
@@ -122,7 +125,7 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
         id: escapeId(chartId + 'edge-current-' + current.instance + '-child-' + data.instance),
         arrowhead: 'vee',
         arrowheadStyle: () => {
-          let color = 'rgba(42, 130, 228, 1)'
+          let color = token.colorPrimary
           return `fill:${color};stroke: none;`
         },
         curve: d3.curveBasis,
@@ -131,7 +134,7 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
           chartId + 'arrow-current-' + current.instance + '-child-' + data.instance,
         ),
         style:
-          'stroke: rgba(42, 130, 228, 1); stroke-width: 3px; stroke-dasharray: 5, 5;fill: none', // 5px实线，5px空白
+          `stroke: ${token.colorPrimary}; stroke-width: 3px; stroke-dasharray: 5, 5;fill: none`, // 5px实线，5px空白
       })
     })
     // 创建渲染器并准备 SVG 容器
@@ -225,7 +228,7 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
       .attr('height', nodeHeight)
       .attr('transform', `translate(0,0)`)
     inner.selectAll('g.node').selectAll('g.node rect').style('fill', 'none').style('stroke', 'none')
-    inner.selectAll('g.node tspan').style('fill', '#ffffff').style('font-size', labelSize)
+    inner.selectAll('g.node tspan').style('fill', token.colorFill).style('font-size', labelSize)
     inner.selectAll('g.label').attr('transform', `translate(${nodeWidth},${nodeHeight - 5})`)
     inner.selectAll('g.node').each(function (d) {
       const node = _.find(data, { instance: d })
@@ -244,7 +247,7 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
             .attr('x', 0)
             .attr('y', 0 + index * labelSize)
             .style('font-size', labelSize)
-            .style('fill', '#ffffff')
+            .style('fill', token.colorTextSecondary)
         })
       }
     })
@@ -295,7 +298,7 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
       draw()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data])
+  }, [data, token])
 
   // useEffect(() => {
   //   // console.log(d3.select('#arrow'))
