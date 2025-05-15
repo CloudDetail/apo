@@ -137,7 +137,7 @@ export default function ConfigTTL() {
     <CCard className="w-full">
       <CCardHeader className="inline-flex items-center">
         {t('configTTL.title')}
-        <Space className="text-xs ml-3 text-gray-300">
+        <Space className="text-xs ml-3 text-[var(--ant-color-text-secondary)]">
           <IoMdInformationCircleOutline size={18} color="#f7c01a" />
           {t('configTTL.updateInfo')}
         </Space>

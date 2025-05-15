@@ -21,3 +21,19 @@
   --chat-ask-bg: #e9e9e980;
   --chat-ai-bg: #cacbd0;
 }
+
+.ant-menu-submenu-selected {
+  background-color: var(--main-color);
+}
+
+.ant-menu-sub {
+  background-color: var(--color-sider);
+}
+
+.ant-menu-submenu-open {
+  background-color: var(--color-sider);
+}
+
+.ant-menu-submenu-open.ant-menu-submenu-selected .ant-menu-submenu-title {
+  color: var(--text-color);
+}

@@ -70,11 +70,11 @@ export const UserTable: React.FC<UserTableProps> = ({
           <>
             <Button
               onClick={() => onEdit(record)}
-              icon={<MdOutlineModeEdit className="text-blue-400 hover:text-blue-400" />}
+              icon={<MdOutlineModeEdit className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]" />}
               type="text"
               className="mr-1"
             >
-              <span className="text-blue-400 hover:text-blue-400">
+              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
                 {t('index.edit')}
               </span>
             </Button>
