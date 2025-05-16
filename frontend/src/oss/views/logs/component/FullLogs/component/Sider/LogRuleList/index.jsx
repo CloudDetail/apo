@@ -135,10 +135,11 @@ const LogRuleList = () => {
         <Button
           type="primary"
           size="small"
-          icon={<MdAdd size={20} />}
+          // icon={<MdAdd size={20} />}
           onClick={() => setModalVisible(true)}
-          className="flex-grow-0 flex-shrink-0"
+          className="flex-grow-0 flex-shrink-0 p-1 flex justify-center items-center"
         >
+          <MdAdd size={20} className='flex justify-center items-center' />
           {/* <span className="text-xs"></span> */}
         </Button>
       }
