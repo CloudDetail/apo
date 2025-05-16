@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react'
 // import DataTable from './dataTable';
-import BasicTable from 'src/core/components/Table/basicTable'
 import './tableStep.scss'
 import tooltipPng3 from 'src/core/assets/images/tooltip3.png'
-import { Badge, Card, Space, Tooltip, Tag, Table } from 'antd'
+import { Card, Space, Tooltip, Tag, Table } from 'antd'
 import { formatUnit } from 'src/core/utils/time'
 import { BsQuestionCircle } from 'react-icons/bs'
 import { useTranslation } from 'react-i18next'
@@ -207,8 +206,11 @@ function TableStep({ data }: Props) {
         <div className="flex align-items-center w-full">
           {data.report_name === t(`${i18nKey}.externalCallDetails`) ? (
             <Tooltip
+              classNames={{
+                body: 'w-[600px]',
+              }}
               title={
-                <div className="operate_tooltip_img">
+                <div className="operate_tooltip_img relative w-full">
                   <img src={tooltipPng3} className="operate_tooltip_img" />
                 </div>
               }

@@ -4,9 +4,12 @@ import * as echarts from 'echarts'
 import { isEqual } from 'lodash'
 // @ts-ignore
 import grafana from './grafana'
+import grafanaLight from './grafanaLight'
 import { Empty } from 'antd'
+import { useSelector } from 'react-redux'
 
 echarts.registerTheme('myDark', grafana)
+echarts.registerTheme('myLight', grafanaLight)
 // echarts.registerTheme('myMacarons', myMacarons);
 
 interface Props {
@@ -25,10 +28,11 @@ function GrafanaChart(props: Props, ref: any) {
       echartInstance: echartRef?.current?.getEchartsInstance() || null,
     }
   })
+  const { theme } = useSelector((state) => state.settingReducer)
 
   return option.series?.length > 0 && option.series[0]?.data?.length > 0 ? (
     <ReactEcharts
-      theme={'myDark'}
+      theme={theme === 'dark' ? 'myDark' : 'myLight'}
       ref={echartRef}
       className={className}
       option={option}

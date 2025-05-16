@@ -7,8 +7,9 @@ import nodeRed from 'src/core/assets/images/node/hexagon-red.svg'
 import nodeGrey from 'src/core/assets/images/node/hexagon-grey.svg'
 import unknowIcon from 'src/core/assets/images/unknown.png'
 import { formatUnit } from 'src/core/utils/time'
-import { ThemeColor, ThemeStyle } from 'src/constants'
+import { ThemeColor } from 'src/constants'
 import { useTranslation } from 'react-i18next'
+import { theme } from 'antd'
 
 interface Props {
   data: any
@@ -20,7 +21,8 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
 
   //   const { theme } = useSelector((state) => state.settingReducer)
   const chartRef = useRef<any>()
-  const theme = ThemeStyle['dark']
+  const { useToken } = theme
+  const { token } = useToken()
   const getNodeOrder = ({ nodes, edges }: any) => {
     let allNodeIds = nodes.map((node: any) => node.chartId)
     // 构造根据edge的调用顺序从头到底排序的nodeId数组
@@ -76,10 +78,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
       .attr('refX', 9)
       .attr('refY', 5)
       .attr('orient', 'auto')
-    arrowheads
-      .append('path')
-      .attr('d', 'M 0 0 L 10 5 L 0 10 L 4 5 z')
-      .attr('fill', theme.colors.text.primary)
+    arrowheads.append('path').attr('d', 'M 0 0 L 10 5 L 0 10 L 4 5 z').attr('fill', token.colorText)
 
     // const fontSize = 14;
 
@@ -147,7 +146,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
         .attr('x', 30) // X位置，根据需要调整
         .attr('y', 100) // Y位置，简单地用索引*行高来计算
         .style('font-size', '14')
-        .style('fill', theme.colors.text.primary)
+        .style('fill', token.colorText)
       // 为每部分文本创建一个<text>元素
       splitText.forEach((part, index) => {
         nodeG
@@ -156,7 +155,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
           .attr('x', 80) // X位置，根据需要调整
           .attr('y', 100 + index * 15) // Y位置，简单地用索引*行高来计算
           .style('font-size', '14')
-          .style('fill', theme.colors.text.primary)
+          .style('fill', token.colorText)
       })
       const timeY = 145
       const timeX = 125
@@ -170,10 +169,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
         nodeG
           .append('line')
           .attr('class', 'time_line')
-          .attr(
-            'style',
-            `stroke-width: 1px;stroke: ${theme.colors.text.primary};stroke-dasharray: 5, 2;`,
-          )
+          .attr('style', `stroke-width: 1px;stroke: ${token.colorText};stroke-dasharray: 5, 2;`)
           .attr('x1', timeX + selfTimeMaxWidth + 1)
           .attr('y1', timeY - 20)
           .attr('x2', timeX + selfTimeMaxWidth + 1)
@@ -181,7 +177,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
         nodeG
           .append('text')
           .text('selfTime')
-          .attr('style', `font-size: 11px;font-weight: 500; fill: ${theme.colors.text.primary}`)
+          .attr('style', `font-size: 11px;font-weight: 500; fill: ${token.colorText}`)
           .attr('x', function () {
             let textlen: any = this.getComputedTextLength()
             return timeX + selfTimeMaxWidth - textlen - 5
@@ -191,14 +187,14 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
         nodeG
           .append('text')
           .text('otherTime')
-          .attr('style', `font-size: 11px; font-weight: 500;fill: ${theme.colors.text.primary}`)
+          .attr('style', `font-size: 11px; font-weight: 500;fill: ${token.colorText}`)
           .attr('x', timeX + selfTimeMaxWidth + 7)
           .attr('y', timeY - 10)
 
         nodeG
           .append('text')
           .text(t('topology.historicalBaseline'))
-          .attr('style', `font-size: 11px; fill: ${theme.colors.text.primary}`)
+          .attr('style', `font-size: 11px; fill: ${token.colorText}`)
           .attr('x', 30)
           .attr('y', timeY + timeTextYOffest)
         const selfP90Width = selfTimeMaxWidth * (node.selfP90 / maxTime)
@@ -217,7 +213,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
         nodeG
           .append('text')
           .text(formatUnit(node.selfP90, 'ns'))
-          .attr('style', `font-size: 11px; font-weight: 500;fill: ${theme.colors.text.primary}`)
+          .attr('style', `font-size: 11px; font-weight: 500;fill: ${token.colorText}`)
           .attr('x', function () {
             let textlen: any = this.getComputedTextLength()
             return timeX + selfTimeMaxWidth - textlen - 4
@@ -237,7 +233,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
           nodeG
             .append('text')
             .text(formatUnit(node.p90 - node.selfP90, 'ns'))
-            .attr('style', `font-size: 11px; font-weight: 500; fill: ${theme.colors.text.primary}`)
+            .attr('style', `font-size: 11px; font-weight: 500; fill: ${token.colorText}`)
             .attr('x', timeX + selfTimeMaxWidth + 6)
             .attr('y', timeY + timeTextYOffest - 2)
         }
@@ -248,7 +244,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
         nodeG
           .append('text')
           .text(t('topology.currentDuration'))
-          .attr('style', `font-size: 11px;font-weight: 500; fill: ${theme.colors.text.primary}`)
+          .attr('style', `font-size: 11px;font-weight: 500; fill: ${token.colorText}`)
           .attr('x', 30)
           .attr('y', timeY + 34 + timeTextYOffest)
         nodeG
@@ -264,7 +260,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
         nodeG
           .append('text')
           .text(formatUnit(node.selfTime, 'ns'))
-          .attr('style', `font-size: 11px; font-weight: 500;fill: ${theme.colors.text.primary}`)
+          .attr('style', `font-size: 11px; font-weight: 500;fill: ${token.colorText}`)
           .attr('x', function () {
             let textlen: any = this.getComputedTextLength()
             return timeX + selfTimeMaxWidth - textlen - 4
@@ -285,7 +281,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
           nodeG
             .append('text')
             .text(formatUnit(node.totalTime - node.selfTime, 'ns'))
-            .attr('style', `font-size: 11px; font-weight: 500;fill: ${theme.colors.text.primary}`)
+            .attr('style', `font-size: 11px; font-weight: 500;fill: ${token.colorText}`)
             .attr('x', timeX + selfTimeMaxWidth + 6)
             .attr('y', timeY + 32 + timeTextYOffest)
         }
@@ -299,7 +295,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
         nodeG
           .append('text')
           .text(t('consumption'))
-          .attr('style', `font-size: 11px;font-weight: 500; fill: ${theme.colors.text.primary}`)
+          .attr('style', `font-size: 11px;font-weight: 500; fill: ${token.colorText}`)
           .attr('x', 20)
           .attr('y', timeY)
         nodeG
@@ -316,7 +312,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
         nodeG
           .append('text')
           .text(node.totalTime === -1 ? '∞' : formatUnit(node.totalTime, 'ms'))
-          .attr('style', `font-size: 11px; font-weight: 500;fill: ${theme.colors.text.primary}`)
+          .attr('style', `font-size: 11px; font-weight: 500;fill: ${token.colorText}`)
           .style('font-size', node.totalTime === -1 ? 18 : 12)
           .attr('x', 80 + totalTimeWidth + 10)
           .attr('y', timeY)
@@ -357,14 +353,14 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
         d3.select(`#${chartId}-line_warp`)
           .append('path')
           .attr('d', `M${startX},${startY} L${midX - 50},${midY}`)
-          .attr('stroke', theme.colors.text.primary)
+          .attr('stroke', token.colorText)
           .attr('stroke-width', 1)
           .attr('fill', 'none')
 
         d3.select(`#${chartId}-line_warp`)
           .append('path')
           .attr('d', `M${midX + 50},${midY} L${endX},${endY}`)
-          .attr('stroke', theme.colors.text.primary)
+          .attr('stroke', token.colorText)
           .attr('stroke-width', 1)
           .attr('fill', 'none')
           .attr('marker-end', `url(#${chartId}-arrow)`)
@@ -373,14 +369,14 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
             .append('text') // 添加文本元素
             .attr('x', midX) // 将文本放在中点的右侧，这里的 10 可以根据需要调整
             .attr('y', midY - 4)
-            .attr('style', `font-size: 14px; font-weight: 500;fill: ${theme.colors.text.primary}`)
+            .attr('style', `font-size: 14px; font-weight: 500;fill: ${token.colorText}`)
             .attr('text-anchor', 'middle') // 文本居中对齐
             .text(`${formatUnit(edge.nextCallTime, 'ms')}`) // 设置文本内容
           d3.select(`#${chartId}-line_warp`)
             .append('text') // 添加文本元素
             .attr('x', midX) // 将文本放在中点的右侧，这里的 10 可以根据需要调整
             .attr('y', midY + 14)
-            .attr('style', `font-size: 11px; font-weight: 500;fill: ${theme.colors.text.primary}`)
+            .attr('style', `font-size: 11px; font-weight: 500;fill: ${token.colorText}`)
             .attr('text-anchor', 'middle') // 文本居中对齐
             .text(t('client')) // 设置文本内容
         } else {
@@ -390,7 +386,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
             .attr('x', midX)
             .attr('y', midY)
             // .attr('dy', '.35em') // 根据需要调整以垂直居中
-            .attr('fill', theme.colors.text.primary) // 使用fill属性设置文本颜色
+            .attr('fill', token.colorText) // 使用fill属性设置文本颜色
             .style('font-size', '24px') // 放大文本，这里以24px为例
             .attr('text-anchor', 'middle') // 文本居中对齐
             // .attr('transform', `rotate(90, ${midX}, ${midY})`)
@@ -406,7 +402,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
           .append('path')
           .attr('id', `#${chartId}-line${idx}`)
           .attr('class', 'line_path')
-          .attr('style', `opacity: 1;stroke-width: 1;stroke: ${theme.colors.text.primary}`)
+          .attr('style', `opacity: 1;stroke-width: 1;stroke: ${token.colorText}`)
           .attr('fill', 'none')
           .attr('d', dpath)
           .attr('marker-end', `url(#${chartId}-arrow)`)
@@ -436,7 +432,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
         .attr('x', 70) // X位置，根据需要调整
         .attr('y', 50) // Y位置，简单地用索引*行高来计算
         .style('font-size', '14')
-        .style('fill', theme.colors.text.primary)
+        .style('fill', token.colorText)
       const textWidth = unknowText.node()?.getComputedTextLength() ?? 0
 
       const iconX = 70 + textWidth + 10
@@ -481,7 +477,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
       draw()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data])
+  }, [data, token])
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>

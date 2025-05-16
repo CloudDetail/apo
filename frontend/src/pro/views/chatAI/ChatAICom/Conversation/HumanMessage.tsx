@@ -1,9 +1,11 @@
 import { marked } from 'marked'
-import 'github-markdown-css/github-markdown-dark.css'
+import './github-markdown.css'
+
 import { Button, Image } from 'antd'
 import { LuPaperclip } from 'react-icons/lu'
 import { FaRegUser } from 'react-icons/fa'
 import { downloadFileApi } from 'src/pro/api/chatAI'
+import { useSelector } from 'react-redux'
 interface HumanMessageProps {
   message: string
   fileList: string[]
@@ -50,6 +52,7 @@ const HumanMessage: React.FC<HumanMessageProps> = ({ message, fileList, img }) =
       document.body.removeChild(link)
     })
   }
+  const { theme } = useSelector((state) => state.settingReducer)
 
   return (
     <div
@@ -63,8 +66,8 @@ const HumanMessage: React.FC<HumanMessageProps> = ({ message, fileList, img }) =
       <div className="overflow-hidden" style={{ maxWidth: '80%' }}>
         <div
           dangerouslySetInnerHTML={renderMarkdown()}
-          className="p-3  rounded-2xl markdown-body bg-[#2f2f2f] "
-          style={{ background: '#2f2f2f', fontSize: 14, minHeight: 0 }}
+          className={`p-3  rounded-2xl markdown-body bg-[var(--chat-ask-bg)] markdown-${theme}`}
+          style={{ background: 'var(--chat-ask-bg)', fontSize: 14, minHeight: 0 }}
         />
         <div className="text-right ">
           {img?.inferMetricsPng && (

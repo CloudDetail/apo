@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Handle, Position } from 'reactflow'
 import { BiCctv } from 'react-icons/bi'
-import { Badge } from 'antd'
+import { Badge, theme } from 'antd'
 import { useUpdateEffect } from 'react-use'
 import _ from 'lodash'
 import { useServiceAnalyzeContext } from '../contexts/ServiceAnalyzeContext'
@@ -73,6 +73,8 @@ const AlertAnalyzeNode = React.memo((props) => {
       setSelectedNodeInfo({ service: data.service, endpoint: data.endpoint })
     }
   }
+  const { useToken } = theme
+  const { token } = useToken()
   return (
     <div
       ref={nodeRef}
@@ -91,7 +93,11 @@ const AlertAnalyzeNode = React.memo((props) => {
       />
       <div
         className="nodeContent w-[240px] min-h-[60px] "
-        style={{ backgroundColor: 'rgba(19, 25, 32, 0.6)' }}
+        style={{
+          backgroundColor: token.colorBgLayout,
+          color: token.colorPrimaryText,
+          borderColor: token.colorPrimaryText,
+        }}
       >
         <div className="absolute top-0 left-0">
           {' '}
@@ -99,13 +105,20 @@ const AlertAnalyzeNode = React.memo((props) => {
         </div>
         <div className="text-center text-lg pt-2 px-2">
           {data.label}
-          <div className="text-xs text-[#9e9e9e] text-left  break-all">{data.endpoint}</div>
+          <div
+            className="text-xs  text-left  break-all"
+            style={{ color: token.colorTextSecondary }}
+          >
+            {data.endpoint}
+          </div>
           <div className="w-full text-left">
             {anormalTypes?.map((type) => {
               let typeItem = anormalTypesOptions.find((item) => item.value === type)
               return (
                 <div>
-                  <span className="text-gray-300 text-sm">{typeItem.label}</span>
+                  <span className="text-sm" style={{ color: token.colorText }}>
+                    {typeItem.label}
+                  </span>
                   <Badge
                     count={getCount(typeItem.key)}
                     showZero

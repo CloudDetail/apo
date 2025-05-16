@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import TopologyCom from './Topology'
 import AnormalTypeFilter from './AnormalTypeFilter'
 import TimeLineChart from './TimeLineChart'
-import { Card, Divider, Splitter } from 'antd'
+import { Card, Divider, Splitter, theme } from 'antd'
 import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 import NodeInfo from './NodeInfo'
 import PlayDelta from './PlayDelta'
@@ -17,6 +17,8 @@ const DescendantTopology = () => {
   const onResize = (sizes) => {
     setRightWidth(sizes[1])
   }
+  const { useToken } = theme
+  const { token } = useToken()
   return (
     <>
       <Card
@@ -35,7 +37,7 @@ const DescendantTopology = () => {
           </Splitter.Panel>
           <Splitter.Panel className="h-full overflow-auto flex flex-col">
             <div className="flex-grow-0 flex-shrink-0 overflow-hidden">
-              <div className="bg-[#2a3042] rounded p-2 m-2">
+              <div className="rounded p-2 m-2" style={{ background: token.colorBgLayout }}>
                 <div className=" text-base font-bold flex items-center pl-1">{t('alertTotal')}</div>
                 <Divider className="m-2" />
                 <div className=" flex flex-row overflow-hidden ">

@@ -1,14 +1,12 @@
-import { Button, Modal, Table, Pagination, Tag } from 'antd'
+import { Button, Modal, Pagination, Tag } from 'antd'
 import React, { useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { getFailureReportApi } from 'src/pro/api/alertAnalyze'
 import { convertTime } from 'src/core/utils/time'
 import { useDebounce, useUpdateEffect } from 'react-use'
-import { color } from 'echarts'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { getEntryEndpointApi } from 'src/pro/api/cause'
-import ServiceEndpointTag from 'src/pro/components/ServiceEndpointTag'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useTranslation } from 'react-i18next'
 const i18nKey = 'node'
@@ -106,6 +104,7 @@ export default function FaultReportModal({
         const { original } = cell.cell.row
         return (
           <Button
+            type="primary"
             href={`/#/cause/report/${encodeURIComponent(original.traceId)}/${encodeURIComponent(original.spanId)}?mutatedType=${encodeURIComponent(reason)}`}
             target="_blank"
           >

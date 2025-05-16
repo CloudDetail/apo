@@ -1,4 +1,4 @@
-import { Button, Card, Collapse } from 'antd'
+import { Button, Collapse } from 'antd'
 import { useCauseReportContext } from 'src/pro/contexts/CauseReportContext'
 import SingleLinkTopology from './SvgTopology'
 import TraceTopologyModal from './TraceTopology'
@@ -38,7 +38,7 @@ const ReportTopology = () => {
   return (
     <>
       <TraceTopologyModal modalVisible={modalVisible} closeModal={() => setModalVisible(false)} />
-      <Collapse className="mb-2 bg-[#141414]" items={items}></Collapse>
+      <Collapse className="mb-2 bg-[var(--ant-color-bg-container)]" items={items}></Collapse>
     </>
   )
 }

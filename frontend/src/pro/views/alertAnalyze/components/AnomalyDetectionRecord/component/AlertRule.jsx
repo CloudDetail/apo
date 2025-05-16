@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { Flex, Pagination, Table, Button, Modal, Input, Popconfirm } from 'antd'
+import React, { useState, useEffect } from 'react'
+import { Pagination, Table, Button, Modal, Input, Popconfirm } from 'antd'
 import { addMutationRule, getMutationList } from 'src/pro/api/alertAnalyze'
-import Tag from 'src/core/components/Tag/Tag'
-import '../index.css'
-import { showToast } from 'src/core/utils/toast'
 import { convertTime } from 'src/core/utils/time'
 import { useTranslation } from 'react-i18next'
+import { notify } from 'src/core/utils/notify'
 
 const i18nKey = 'alertRule'
 export default function AlertRule({ startTime, endTime, step, setRefresh, refresh }) {
@@ -137,9 +135,9 @@ export default function AlertRule({ startTime, endTime, step, setRefresh, refres
     try {
       const result = await addMutationRule(newParams)
       if (result == 'ok') {
-        showToast({
-          title: t(`${i18nKey}.reRunSuccess`),
-          color: 'success',
+        notify({
+          message: t(`${i18nKey}.reRunSuccess`),
+          type: 'success',
         })
         setCurrentPage(1)
         getData()
@@ -204,7 +202,7 @@ export default function AlertRule({ startTime, endTime, step, setRefresh, refres
           onChange={pageChange}
           showQuickJumper={true}
           showSizeChanger={true}
-          style={{ marginTop: '20px', zIndex: 10, backgroundColor: '#1F1F1F' }}
+          style={{ marginTop: '20px', zIndex: 10 }}
         />
       </div>
     </>

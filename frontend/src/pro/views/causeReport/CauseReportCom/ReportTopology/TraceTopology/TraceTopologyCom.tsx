@@ -1,10 +1,11 @@
 import React, { useEffect, useRef } from 'react'
 import * as d3 from 'd3'
 import _ from 'lodash'
-import { ThemeColor, ThemeStyle } from 'src/constants'
+import { ThemeColor } from 'src/constants'
 import { formatUnit } from 'src/core/utils/time'
 import { useCauseReportContext } from 'src/pro/contexts/CauseReportContext'
 import { useTranslation } from 'react-i18next'
+import { theme } from 'antd'
 const i18nKey = 'topology'
 const redRGB = {
   r: 255,
@@ -74,8 +75,8 @@ function TraceTopologyCom({ data, category }: any) {
   const { node, setNode: setSelectedErrorTreeNode } = useCauseReportContext()
   let selectedErrorTreeNode = useRef<any>()
   // const [parentWidth, setParentWidth] = useState(0);
-
-  const theme = ThemeStyle['dark']
+  const { useToken } = theme
+  const { token } = useToken()
   const legendItems = [
     {
       label: t(`${i18nKey}.noAnomaly`),
@@ -129,7 +130,7 @@ function TraceTopologyCom({ data, category }: any) {
         .append('text')
         .text(node.id.substring(0, Math.floor(rectWidth / 10)))
         .attr('class', 'node-text')
-        .attr('style', 'font-size: 12px; fill: #efefef; pointer-events: none;')
+        .attr('style', 'font-size: 12px; fill:  var(--ant-color-text-base); pointer-events: none;')
         .attr('x', left + 5)
         .attr('y', 20)
 
@@ -232,7 +233,7 @@ function TraceTopologyCom({ data, category }: any) {
         .append('text')
         .text(node.id.substring(0, Math.floor(rectWidth / 10)))
         .attr('class', 'node-text ')
-        .attr('style', 'font-size: 12px; fill: #efefef; pointer-events: none;')
+        .attr('style', 'font-size: 12px; fill: var(--ant-color-text-base); pointer-events: none;')
         .attr('x', left + 5)
         .attr('y', 20)
 
@@ -406,7 +407,7 @@ function TraceTopologyCom({ data, category }: any) {
         return i * colorRectWidth + colorRectWidth / 2 - this.getComputedTextLength() / 2
       })
       .attr('y', 35)
-      .style('fill', '#efefef')
+      .style('fill', 'var(--ant-color-text-base)')
 
     svg.on('click', () => {
       d3.select('#chart_tooltip').attr('style', `visibility: none;`)
@@ -461,7 +462,7 @@ function TraceTopologyCom({ data, category }: any) {
       .append('text')
       .attr('x', 15)
       .attr('y', 5)
-      .attr('style', `fill:${theme.colors.text.primary}`)
+      .attr('style', `fill:${token.colorText}`)
       .text(function (d) {
         return d.label
       })
