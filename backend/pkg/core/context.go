@@ -179,16 +179,21 @@ func (c *context) SetHeader(key, value string) {
 }
 
 func (c *context) AbortWithPermissionError(err error, expectCode string, emptyResp any) {
-	var vErr businessError
-	if errors.As(err, &vErr) {
-		if vErr.businessCode == code.GroupNoDataError {
-			if emptyResp != nil {
-				c.Payload(emptyResp)
-				return
-			}
-		}
+	if emptyResp == nil {
+		c.AbortWithError(http.StatusBadRequest, expectCode, err)
+		return
 	}
-	c.AbortWithError(http.StatusBadRequest, expectCode, err)
+
+	var vErr *businessError
+	if !errors.As(err, &vErr) {
+		c.AbortWithError(http.StatusBadRequest, expectCode, err)
+		return
+	}
+	if vErr.businessCode != code.GroupNoDataError {
+		c.AbortWithError(http.StatusBadRequest, expectCode, err)
+		return
+	}
+	c.Payload(emptyResp)
 }
 
 func (c *context) AbortWithError(statusCode int, commonCode string, err error) {
@@ -201,7 +206,7 @@ func (c *context) AbortWithError(statusCode int, commonCode string, err error) {
 	}
 	c.ctx.AbortWithStatus(statusCode)
 
-	var vErr businessError
+	var vErr *businessError
 	if errors.As(err, &vErr) {
 		vErr.httpCode = statusCode
 		if len(vErr.message) == 0 {

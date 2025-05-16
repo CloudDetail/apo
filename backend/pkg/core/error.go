@@ -61,6 +61,6 @@ func (e *businessError) StackError() error {
 	return e.stackError
 }
 
-func (e businessError) Error() string {
+func (e *businessError) Error() string {
 	return e.message
 }
