@@ -11,7 +11,7 @@ import { ChartColorList } from 'src/constants'
 import { getServiceDsecendantMetricsApi } from 'core/api/serviceInfo'
 import { getStep } from 'src/core/utils/step'
 import LoadingSpinner from 'src/core/components/Spinner'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useDebounce } from 'react-use'
 import { useTranslation } from 'react-i18next'
 
@@ -159,6 +159,7 @@ const TimelapseLineChart = (props) => {
   const [activeSeries, setActiveSeries] = useState(null)
   const [chartData, setChartData] = useState([])
   const [loading, setLoading] = useState(false)
+  const { theme } = useSelector((state) => state.settingReducer)
   const handleActiveServices = (item) => {
     const seriesName = item.serviceName + `(${item.endpoint})`
     const chartInstance = chartRef.current.getEchartsInstance()
@@ -253,7 +254,7 @@ const TimelapseLineChart = (props) => {
       onChartReady(chartInstance)
     }
     setOption(newOption)
-  }, [chartData])
+  }, [chartData, theme])
   const onChartReady = (chart) => {
     setTimeout(() => {
       chart.dispatchAction({
@@ -291,7 +292,7 @@ const TimelapseLineChart = (props) => {
         <div className="w-full flex flex-row h-full text-sm">
           <ReactECharts
             ref={chartRef}
-            theme="dark"
+            theme={theme}
             option={option}
             style={{ height: '100%', width: '50%' }}
           />

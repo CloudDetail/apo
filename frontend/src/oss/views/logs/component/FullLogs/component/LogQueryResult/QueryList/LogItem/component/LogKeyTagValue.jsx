@@ -7,6 +7,8 @@ import { useEffect, useState } from 'react'
 import ReactJson from 'react-json-view'
 import { Virtuoso } from 'react-virtuoso'
 import LogTagDropDown from './LogTagDropdown'
+import { useSelector } from 'react-redux'
+import { theme } from 'antd'
 function isJSONString(str) {
   try {
     return typeof JSON.parse(str) === 'object' && JSON.parse(str) !== null
@@ -36,8 +38,11 @@ const determineTypeAndValue = (description, title) => {
 const formatValue = (value) => (typeof value === 'object' ? JSON.stringify(value) : value)
 
 const LogKeyTagValue = ({ title, description }) => {
+  const { reactJsonTheme } = useSelector((state) => state.settingReducer)
   const [type, setType] = useState(null)
   const [value, setValue] = useState([null])
+  const { useToken } = theme
+  const { token } = useToken()
   useEffect(() => {
     const { type, value } = determineTypeAndValue(description, title)
     setType(type)
@@ -60,7 +65,7 @@ const LogKeyTagValue = ({ title, description }) => {
           <ReactJson
             collapsed={1}
             src={value[0]}
-            theme="brewer"
+            theme={reactJsonTheme}
             displayDataTypes={false}
             style={{ width: '100%' }}
             enableClipboard={true}
@@ -69,12 +74,14 @@ const LogKeyTagValue = ({ title, description }) => {
         </div>
       ) : type === 'longString' ? (
         <pre
-          className=" text-gray-300  h-full w-full overflow-hidden bg-[#0d0d0e] text-xs p-2 leading-relaxed"
+          className="h-full w-full overflow-hidden text-xs p-2 leading-relaxed"
           style={{
             whiteSpace: 'break-spaces',
             wordBreak: 'break-all',
             overflow: 'hidden',
             marginBottom: 3,
+            color: token.colorTextSecondary,
+            backgroundColor: token.colorBgContainer
           }}
         >
           {value?.length > 10 ? (

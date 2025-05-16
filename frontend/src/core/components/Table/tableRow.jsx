@@ -80,7 +80,7 @@ function TableRow({ row, clickRow, tdPadding }) {
     <tr
       {...row.getRowProps()}
       onClick={() => clickRow?.(row.original)}
-      className={(clickRow ? 'cursor-pointer' : '') + ' bg-[#141414]'}
+      className={clickRow ? 'cursor-pointer' : ''}
     >
       {cellPropsArray.map((props, idx) => {
         return props.isNested ? (

@@ -28,7 +28,7 @@ const LogItem = (props) => {
           {openContextModal && !tableInfo.timeField && (
             <Button
               color="primary"
-              variant="filled"
+              variant="outlined"
               size="small"
               onClick={() => openContextModal(log)}
               className="text-xs"

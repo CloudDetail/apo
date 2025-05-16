@@ -6,8 +6,8 @@
 import { Select } from 'antd'
 import i18next from 'i18next'
 import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { showToast } from '../utils/toast'
+import { useDispatch } from 'react-redux'
+import { notify } from '../utils/notify'
 import { useTranslation } from 'react-i18next'
 
 const LanguageSwitcher = () => {
@@ -22,9 +22,9 @@ const LanguageSwitcher = () => {
         dispatch({ type: 'setLanguage', payload: value }) // 更新 Redux 中的语言状态
       })
       .then(() => {
-        showToast({
-          title: t('languageSuccess'),
-          color: 'success',
+        notify({
+          message: t('languageSuccess'),
+          type: 'success',
         })
         window.location.reload()
       })

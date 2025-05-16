@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, message } from 'antd'
+import { message } from 'antd'
 import React from 'react'
 import { LuCopy } from 'react-icons/lu'
 
@@ -43,7 +43,7 @@ function CopyButton(props) {
   return (
     // <Button type="text" icon={<LuCopy />}>
     <div
-      className="cursor-pointer text-blue-500 flex items-center"
+      className="cursor-pointer text-[var(--ant-color-primary)] flex items-center"
       onClick={() => copyValue(value)}
     >
       {icon} <span className="p-2">{iconText}</span>

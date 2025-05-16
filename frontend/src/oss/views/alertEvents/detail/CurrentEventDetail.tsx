@@ -2,7 +2,7 @@
  * Copyright 2025 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
-import { Button, Descriptions, DescriptionsProps, Modal } from 'antd'
+import { Button, Descriptions, DescriptionsProps, Modal, theme } from 'antd'
 import { useTranslation } from 'react-i18next'
 import { AlertDeration, ALertIsValid, AlertStatus, AlertTags } from '../components/AlertInfoCom'
 import { convertUTCToLocal } from 'src/core/utils/time'
@@ -10,7 +10,7 @@ import WorkflowsIframe from '../../workflows/workflowsIframe'
 import { useState } from 'react'
 import { FaEye } from 'react-icons/fa'
 import { getAlertWorkflowIdApi } from 'src/core/api/alerts'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 const CurrentEventDetail = ({
   detail,
   alertCheckId,
@@ -21,6 +21,8 @@ const CurrentEventDetail = ({
   const { t } = useTranslation('oss/alertEvents')
   const [modalOpen, setModalOpen] = useState(false)
   const [workflowUrl, setWorkflowUrl] = useState(null)
+  const { useToken } = theme
+  const { token } = useToken()
   const closeModal = () => {
     setModalOpen(false)
   }
@@ -98,9 +100,9 @@ const CurrentEventDetail = ({
   async function openWorkflowModal() {
     const workflowId = await getWorkflowId(detail.group, detail.name)
     if (!workflowId) {
-      showToast({
-        color: 'danger',
-        title: t('missToast2'),
+      notify({
+        type: 'error',
+        message: t('missToast2'),
       })
       return
     }
@@ -112,7 +114,10 @@ const CurrentEventDetail = ({
     setModalOpen(true)
   }
   return (
-    <div className="w-full rounded-xl  h-full text-sm  bg-[#141414] p-2">
+    <div
+      className="w-full rounded-xl  h-full text-sm p-2"
+      style={{ backgroundColor: token.colorBgContainer }}
+    >
       <div className="flex flex-col h-full justify-between">
         <div className="flex-1 h-0 flex flex-col">
           <div className="text-base font-bold ">{t('alertEventDetail')}</div>
@@ -126,7 +131,7 @@ const CurrentEventDetail = ({
         <div className="w-full text-right grow-0 flex items-center justify-end overflow-auto">
           <Button
             color="primary"
-            variant="filled"
+            variant="outlined"
             className="ml-2"
             classNames={{ icon: 'flex items-center' }}
             icon={<FaEye />}

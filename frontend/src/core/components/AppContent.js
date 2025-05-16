@@ -5,11 +5,12 @@
 
 import React, { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { CContainer, CSpinner } from '@coreui/react'
+import { CContainer } from '@coreui/react'
 
 // routes config
 import routes from 'src/routes'
 import { useUserContext } from '../contexts/UserContext'
+import { Spin } from 'antd'
 
 const AppContent = () => {
   const { menuItems } = useUserContext()
@@ -19,7 +20,7 @@ const AppContent = () => {
   }
   return (
     <CContainer className="px-4" fluid>
-      <Suspense fallback={<CSpinner color="primary" />}>
+      <Suspense fallback={<Spin size={'large'} />}>
         <Routes>
           {routes.map((route, idx) => {
             return (

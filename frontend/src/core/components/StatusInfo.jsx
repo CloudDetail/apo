@@ -11,6 +11,7 @@ import { StatusColorMap } from 'src/constants'
 import { convertTime } from 'src/core/utils/time'
 import { useTranslation } from 'react-i18next'
 import { LoadingOutlined } from '@ant-design/icons'
+import { useSelector } from 'react-redux'
 
 function isJSONString(str) {
   try {
@@ -23,6 +24,7 @@ function isJSONString(str) {
 
 function StatusInfo({ status = 'unknown', alertReason = [], title = null }) {
   const { t } = useTranslation('oss/service')
+  const { reactJsonTheme } = useSelector((state) => state.settingReducer)
 
   return (
     <Popover
@@ -50,7 +52,7 @@ function StatusInfo({ status = 'unknown', alertReason = [], title = null }) {
                     {isJSONString(item.alertMessage) ? (
                       <ReactJson
                         src={JSON.parse(item.alertMessage)}
-                        theme="brewer"
+                        theme={reactJsonTheme}
                         collapsed={false}
                         displayDataTypes={false}
                         style={{ width: '100%' }}

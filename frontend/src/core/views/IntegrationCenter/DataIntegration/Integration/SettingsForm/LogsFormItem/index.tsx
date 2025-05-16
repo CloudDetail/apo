@@ -46,7 +46,7 @@ const LogsFormItem = () => {
         <Segmented options={logCollectModeOptions} />
       </Form.Item>
       {logCollectModeValue === 'sample' && (
-        <span className="text-xs text-gray-400 flex mt-1">
+        <span className="text-xs text-[var(--ant-color-text-secondary)] flex mt-1">
           <AiOutlineInfoCircle size={16} className="mr-1 " color="#1668dc" />
           {t('sampleHint')}
         </span>

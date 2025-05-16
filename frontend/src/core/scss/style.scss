@@ -5,7 +5,7 @@
 
 // 自定义模块，用 @use
 @use './_variables' as variables;
-@use './_theme' as theme;
+@use './theme/index' as theme;
 @use './_custom' as custom;
 
 // 官方库，用 @import
@@ -14,3 +14,6 @@
 
 // 第三方小库 simplebar
 @import 'vendors/simplebar';
+a {
+  text-decoration: inherit !important;
+}

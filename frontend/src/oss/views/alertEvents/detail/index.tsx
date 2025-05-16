@@ -2,7 +2,7 @@
  * Copyright 2025 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
-import { Button, Splitter } from 'antd'
+import { Button, Splitter, theme } from 'antd'
 import CurrentEventDetail from './CurrentEventDetail'
 import Events from './Events'
 import { useDebounce } from 'react-use'
@@ -27,6 +27,8 @@ const AlertEventDetailPage = () => {
   const [alertCheckId, setAlertCheckId] = useState(null)
   const [alertEvents, setAlertEvents] = useState([])
   const [detail, setDetail] = useState(null)
+  const { useToken } = theme
+  const { token } = useToken()
 
   const getAlertEvents = (locateEvent = false, pageIndex = null) => {
     setLoading(true)
@@ -94,29 +96,46 @@ const AlertEventDetailPage = () => {
         <CurrentEventDetail detail={detail} alertCheckId={alertCheckId} />
       </Splitter.Panel>
       <Splitter.Panel collapsible>
-        <div className="flex flex-col h-full bg-[#141414] rounded-xl p-2 relative text-xs">
+        <div
+          className="flex flex-col h-full rounded-xl p-2 relative text-xs"
+          style={{ backgroundColor: token.colorBgContainer }}
+        >
           <LoadingSpinner loading={loading} />
           <div className="font-bold flex justify-between items-center">
             {t('historyTitle')}
             <div className="flex items-center">
               {detail?.lastStatus === 'resolved' ? (
                 <Button
-                  color="green"
-                  variant="filled"
+                  // color="green"
+                  variant="outlined"
                   className="ml-2"
                   classNames={{ icon: 'flex items-center' }}
                   icon={<FaCheck size={20} />}
+                  style={{
+                    color: token.colorSuccessText,
+                    backgroundColor: token.colorSuccessBg,
+                    borderColor: token.colorSuccessBorder
+                  }}
+                  onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorSuccessBgHover; e.currentTarget.style.color = token.colorSuccessTextActive}}
+                  onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = token.colorSuccessBg}}
                 >
                   {t('alertResolved')}
                 </Button>
               ) : (
                 <Button
-                  color="green"
-                  variant="filled"
+                  // color="green"
+                  variant="outlined"
                   className="ml-2"
                   classNames={{ icon: 'flex items-center' }}
                   icon={<IoIosNotificationsOff size={20} />}
                   onClick={onResolvedAlert}
+                  style={{
+                    color: token.colorSuccessText,
+                    backgroundColor: token.colorSuccessBg,
+                    borderColor: token.colorSuccessBorder
+                  }}
+                  onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorSuccessBgHover; e.currentTarget.style.color = token.colorSuccessTextActive}}
+                  onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = token.colorSuccessBg}}
                 >
                   {t('onResolved')}
                 </Button>
@@ -125,10 +144,11 @@ const AlertEventDetailPage = () => {
               <SilentAlert alertId={alertId} />
               <Button
                 color="primary"
-                variant="filled"
+                variant="outlined"
                 className="ml-2"
                 icon={<FaLocationDot />}
                 onClick={() => goToAlertLocation()}
+                // style={{ backgroundColor: token.colorFillTertiary }}
               >
                 {t('location')}
               </Button>

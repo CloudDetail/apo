@@ -26,6 +26,8 @@ import { createRoot } from 'react-dom/client'
 import { MYSQL_KEYWORD } from './MySQLKeyWord'
 // import WhereBox from './WhereBox'
 import React from 'react'
+import { theme as themeAntd } from 'antd'
+import { useSelector } from 'react-redux'
 
 export const CodeHintsType = {
   history: 1,
@@ -76,6 +78,11 @@ const Editors = (props) => {
   const formRefs = useRef(null)
   const [isFocus, setIsFocus] = useState(false)
   // const { onSetLocalData } = useLocalStorages();
+
+  const { useToken } = themeAntd
+  const { token } = useToken()
+
+  const { theme } = useSelector((state) => state.settingReducer)
 
   // 回车事件
   const handleEnter = () => {
@@ -412,7 +419,7 @@ const Editors = (props) => {
     autofocus: false,
     styleActiveLine: true,
     // 主题
-    theme: 'material-darker',
+    theme: `material-${theme}er`,
     inputStyle: 'contenteditable',
     // 溢出滚动而非换行
     lineWrapping: isMultipleLines,
@@ -474,7 +481,11 @@ const Editors = (props) => {
       /> */}
       <div
         className="codemirrorInput"
-        style={{ overflow: isMultipleLines && isFocus ? '' : 'hidden' }}
+        style={{
+          overflow: isMultipleLines && isFocus ? '' : 'hidden',
+          backgroundColor: theme === 'light' ? token.colorBgContainer : '',
+          borderColor: token.colorBorder
+        }}
       >
         <CodeMirror
           className={'editorsDom'}
@@ -490,7 +501,7 @@ const Editors = (props) => {
           }}
           onFocus={() => setIsFocus(true)}
         />
-        <span className={'afterBox'}></span>
+        {/* <span className={'afterBox'}></span> */}
       </div>
       {/* <CreateLogFilter tid={currentTid} /> */}
     </div>

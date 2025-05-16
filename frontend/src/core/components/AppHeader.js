@@ -4,18 +4,19 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react'
-import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import logo from 'src/core/assets/brand/logo.svg'
-import { CContainer, CHeader, CHeaderNav, useColorModes, CImage } from '@coreui/react'
+import { CHeader, CHeaderNav, useColorModes, CImage } from '@coreui/react'
 import { AppBreadcrumb } from './index'
 import routes from 'src/routes'
 import CoachMask from './Mask/CoachMask'
 import DateTimeCombine from './DateTime/DateTimeCombine'
-import { Menu } from 'antd'
 import { commercialNav } from 'src/_nav'
 import UserToolBox from './UserToolBox'
 import { t } from 'i18next'
+import ThemeSwitcher from './ThemeSwitcher'
+import { theme } from 'antd'
 
 const AppHeader = ({ type = 'default' }) => {
   const location = useLocation()
@@ -70,7 +71,8 @@ const AppHeader = ({ type = 'default' }) => {
     borderBottom: 0,
     zIndex: 998,
   }
-
+  const { useToken } = theme
+  const { token } = useToken()
   return (
     <CHeader position="sticky" className="mb-1 p-0" ref={headerRef} style={vars}>
       <div className="flex justify-between items-center w-full">
@@ -85,7 +87,12 @@ const AppHeader = ({ type = 'default' }) => {
                 onClick={() => onClick(item.to)}
                 className="h-[50px] items-center px-3 flex justify-center text-sm cursor-pointer"
                 style={{
-                  backgroundColor: selectedKeys.includes(item.key) ? 'rgb(22, 104, 220)' : 'black',
+                  backgroundColor: selectedKeys.includes(item.key)
+                    ? token.colorPrimary
+                    : token.colorBgBase,
+                  color: selectedKeys.includes(item.key)
+                    ? 'var(--menu-selected-text-color)'
+                    : token.colorText,
                 }}
               >
                 <span className="pr-2">{item.icon}</span> {item.label}
@@ -97,9 +104,10 @@ const AppHeader = ({ type = 'default' }) => {
             <AppBreadcrumb />
           </CHeaderNav>
         )}
-        <CHeaderNav className="pr-4">
+        <CHeaderNav className="pr-4 flex items-center">
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
+          <ThemeSwitcher />
           <UserToolBox />
         </CHeaderNav>
       </div>

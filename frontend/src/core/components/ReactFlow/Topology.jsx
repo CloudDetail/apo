@@ -3,25 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import React, { useEffect, useRef, useMemo } from 'react'
 import ReactFlow, {
   ReactFlowProvider,
-  addEdge,
   useNodesState,
   useEdgesState,
   MarkerType,
   useReactFlow,
 } from 'reactflow'
 import { graphlib, layout as dagreLayout } from 'dagre'
-import * as d3 from 'd3'
 import 'reactflow/dist/style.css'
 import ServiceNode from './ServiceNode'
 import { useDispatch, useSelector } from 'react-redux'
 import MoreNode from './MoreNode'
-import { SmartBezierEdge } from '@tisoap/react-flow-smart-edge'
 import 'reactflow/dist/style.css'
 import { AiOutlineRollback } from 'react-icons/ai'
-import { Tooltip } from 'antd'
+import { theme, Tooltip } from 'antd'
 import CustomSelfLoopEdge from './LoopEdges'
 import './index.css'
 import { useTranslation } from 'react-i18next'
@@ -48,6 +45,8 @@ const LayoutFlow = (props) => {
     dispatch({ type: 'setModalData', payload: value })
   }
   const { fitView } = useReactFlow()
+  const { useToken } = theme
+  const { token } = useToken()
   const prepareData = () => {
     const initialNodes = data?.nodes || []
     const initialEdges = []
@@ -56,7 +55,7 @@ const LayoutFlow = (props) => {
         ...edge,
         markerEnd: markerEnd,
         style: {
-          stroke: '#6293FF',
+          stroke: token.colorPrimaryText,
         },
       })
     })
@@ -67,7 +66,7 @@ const LayoutFlow = (props) => {
     strokeWidth: 5,
     width: 25,
     height: 25,
-    color: '#6293ff',
+    color: token.colorPrimaryText,
   }
   const dagreGraph = new graphlib.Graph()
   dagreGraph.setDefaultEdgeLabel(() => ({}))
@@ -166,6 +165,8 @@ const LayoutFlow = (props) => {
 }
 function FlowWithProvider(props) {
   const { t } = useTranslation('oss/serviceInfo')
+  const { useToken } = theme
+  const { token } = useToken()
   const { modalDataUrl } = useSelector((state) => state.topologyReducer)
   const dispatch = useDispatch()
 
@@ -181,7 +182,7 @@ function FlowWithProvider(props) {
           placement="bottom"
         >
           <div
-            className=" absolute top-0 right-3 h-10 flex items-center justify-center cursor-pointer"
+            className=" absolute top-12 right-8 h-10 flex items-center justify-center cursor-pointer"
             style={{ zIndex: 1 }}
             onClick={() => rollback()}
           >
@@ -203,7 +204,7 @@ function FlowWithProvider(props) {
             >
               <path
                 d="M45.4542 4.75L73.167 52.75C76.8236 59.0833 72.2529 67 64.9398 67L9.51418 67C2.20107 67 -2.36962 59.0833 1.28693 52.75L28.9997 4.75C32.6563 -1.58334 41.7977 -1.58334 45.4542 4.75Z"
-                fill="#6293ff"
+                fill={token.colorPrimary}
               />
             </marker>
           </defs>

@@ -8,6 +8,7 @@ const initialState = {
   theme: 'light',
   monacoPromqlConfig: {},
   language: 'zh',
+  reactJsonTheme: 'shapeshifter:inverted'
 }
 
 const settingReducer = (state = initialState, { type, payload, ...rest }) => {
@@ -18,6 +19,8 @@ const settingReducer = (state = initialState, { type, payload, ...rest }) => {
       return { ...state, monacoPromqlConfig: payload }
     case 'setLanguage':
       return { ...state, language: payload }
+    case 'setTheme':
+      return { ...state, theme: payload, reactJsonTheme: payload === 'light' ? 'shapeshifter:inverted' : 'brewer' }
     default:
       return state
   }
