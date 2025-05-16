@@ -109,6 +109,7 @@ const CurrentEventDetail = ({
         type: 'error',
         message: t('missToast2'),
       })
+      setLoading(false)
       return
     }
     let result = '/dify/app/' + workflowId + '/run-once?'
