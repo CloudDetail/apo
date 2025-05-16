@@ -24,7 +24,6 @@ import './i18n'
 import { useTranslation } from 'react-i18next'
 import { loader } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
-import { useColorModes } from '@coreui/react'
 import { setNotifyApi } from './core/utils/notify'
 
 loader.config({ monaco })
@@ -36,6 +35,16 @@ posthog.init(apiKey, {
   api_host: apiHost,
   person_profiles: 'identified_only',
 })
+function getThemeColor(mode) {
+  try {
+    const config = window.__APP_CONFIG__ || {}
+    return (
+      (config.themes && config.themes[mode] && config.themes[mode].colorPrimary) || '#1677ff' // 默认颜色
+    )
+  } catch (e) {
+    return '#1677ff'
+  }
+}
 
 const AntdWrapper = memo(() => {
   const { i18n } = useTranslation()
@@ -46,11 +55,7 @@ const AntdWrapper = memo(() => {
   }, [i18n.language])
   const state = useSelector((state) => state.settingReducer)
   const { theme: storeTheme } = state
-  const { useToken } = theme
-  const { token } = useToken()
-  const { colorMode } = useColorModes('coreui-free-react-admin-template-theme')
-  const lightColor = import.meta.env.VITE_LIGHT_THEME_MAIN_COLOR || '#1677ff'
-  const darkColor = import.meta.env.VITE_DARK_THEME_MAIN_COLOR || '#1677ff'
+  const lightColor = getThemeColor(storeTheme)
 
   useEffect(() => {
     if (storeTheme === 'light') {
@@ -65,15 +70,16 @@ const AntdWrapper = memo(() => {
   useEffect(() => {
     setNotifyApi(api)
   }, [api])
+
   return (
     <ConfigProvider
       locale={locale}
       theme={{
         algorithm: storeTheme === 'light' ? theme.defaultAlgorithm : theme.darkAlgorithm,
         token: {
-          colorPrimary: storeTheme === 'light' ? lightColor : darkColor,
-          colorInfo: storeTheme === 'light' ? lightColor : darkColor,
-          colorLink: storeTheme === 'light' ? lightColor : darkColor,
+          colorPrimary: getThemeColor(storeTheme),
+          colorInfo: getThemeColor(storeTheme),
+          colorLink: getThemeColor(storeTheme),
           colorBgLayout: colorBgBase,
         },
         cssVar: true,
@@ -106,7 +112,7 @@ const AntdWrapper = memo(() => {
           Menu: {
             itemBg: 'var(--color-sider)',
             darkItemBg: 'var(--color-sider)',
-            itemSelectedBg: storeTheme === 'light' ? lightColor : darkColor,
+            itemSelectedBg: getThemeColor(storeTheme),
             itemSelectedColor: 'var(--menu-selected-text-color)',
           },
           Spin: {
