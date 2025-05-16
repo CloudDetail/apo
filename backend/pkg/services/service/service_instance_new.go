@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -16,7 +17,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
-func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error) {
+func (s *service) GetInstancesNew(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error) {
 	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
 	if err != nil {
 		return res, err
@@ -222,6 +223,7 @@ func (s *service) GetInstancesNew(startTime time.Time, endTime time.Time, step t
 		}
 		// fill alarm status
 		newInstance.AlertStatusCH = serviceoverview.GetAlertStatusCH(
+			ctx,
 			s.chRepo, &newInstance.AlertReason, nil,
 			nil, serviceName, instanceSingleList,
 			startTime, endTime,

@@ -4,11 +4,12 @@
 package log
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetLogTableInfo(req *request.LogTableInfoRequest) (*response.LogTableInfoResponse, error) {
+func (s *service) GetLogTableInfo(ctx core.Context, req *request.LogTableInfoRequest) (*response.LogTableInfoResponse, error) {
 	rows, err := s.dbRepo.GetAllLogTable()
 	res := &response.LogTableInfoResponse{}
 	if err != nil {

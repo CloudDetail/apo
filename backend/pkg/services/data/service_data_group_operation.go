@@ -7,12 +7,12 @@ import (
 	"context"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) DataGroupOperation(req *request.DataGroupOperationRequest) error {
+func (s *service) DataGroupOperation(ctx core.Context, req *request.DataGroupOperationRequest) error {
 	var exists bool
 	var err error
 	switch req.SubjectType {

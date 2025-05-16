@@ -44,12 +44,12 @@ func (h *handler) GetTraceMetrics() core.HandlerFunc {
 		}
 
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, []response.GetTraceMetricsResponse{})
 			return
 		}
-		resp, err := h.serviceInfoService.GetTraceMetrics(req)
+		resp, err := h.serviceInfoService.GetTraceMetrics(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

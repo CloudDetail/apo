@@ -4,13 +4,14 @@
 package log
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 )
 
-func (s *service) GetFaultLogPageList(req *request.GetFaultLogPageListRequest) (*response.GetFaultLogPageListResponse, error) {
+func (s *service) GetFaultLogPageList(ctx core.Context, req *request.GetFaultLogPageListRequest) (*response.GetFaultLogPageListResponse, error) {
 	// Paging query fault site logs
 	query := &clickhouse.FaultLogQuery{
 		StartTime:      req.StartTime,

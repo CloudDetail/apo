@@ -33,7 +33,7 @@ func (h *handler) UpdateLogParseRule() core.HandlerFunc {
 			)
 			return
 		}
-		resp, err := h.logService.UpdateLogParseRule(req)
+		resp, err := h.logService.UpdateLogParseRule(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

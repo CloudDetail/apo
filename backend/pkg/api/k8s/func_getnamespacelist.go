@@ -22,7 +22,7 @@ import (
 func (h *handler) GetNamespaceList() core.HandlerFunc {
 	return func(c core.Context) {
 
-		resp, err := h.k8sService.GetNamespaceList()
+		resp, err := h.k8sService.GetNamespaceList(c)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

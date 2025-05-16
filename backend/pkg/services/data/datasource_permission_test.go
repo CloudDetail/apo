@@ -64,7 +64,7 @@ func TestDataSourcePermission(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = s.CheckDatasourcePermission(anonymousUser.UserID, 0, &namespaceList, nil, model.DATASOURCE_CATEGORY_APM)
+	err = s.CheckDatasourcePermission(nil, anonymousUser.UserID, 0, &namespaceList, nil, model.DATASOURCE_CATEGORY_APM)
 	if err != nil {
 		t.Fatal(err)
 	}

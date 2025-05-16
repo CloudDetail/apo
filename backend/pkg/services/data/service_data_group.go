@@ -7,7 +7,7 @@ import (
 	"context"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -15,7 +15,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
-func (s *service) CreateDataGroup(req *request.CreateDataGroupRequest) error {
+func (s *service) CreateDataGroup(ctx core.Context, req *request.CreateDataGroupRequest) error {
 	filter := model.DataGroupFilter{
 		Name: req.GroupName,
 	}
@@ -44,7 +44,7 @@ func (s *service) CreateDataGroup(req *request.CreateDataGroupRequest) error {
 	return s.dbRepo.Transaction(context.Background(), createGroupFunc, createDSGroupFunc)
 }
 
-func (s *service) DeleteDataGroup(req *request.DeleteDataGroupRequest) error {
+func (s *service) DeleteDataGroup(ctx core.Context, req *request.DeleteDataGroupRequest) error {
 	filter := model.DataGroupFilter{
 		ID: req.GroupID,
 	}
@@ -68,7 +68,7 @@ func (s *service) DeleteDataGroup(req *request.DeleteDataGroupRequest) error {
 	return s.dbRepo.Transaction(context.Background(), deleteDSGroupFunc, deleteGroupFunc)
 }
 
-func (s *service) UpdateDataGroup(req *request.UpdateDataGroupRequest) error {
+func (s *service) UpdateDataGroup(ctx core.Context, req *request.UpdateDataGroupRequest) error {
 	idFilter := model.DataGroupFilter{
 		ID: req.GroupID,
 	}
@@ -104,7 +104,7 @@ func (s *service) UpdateDataGroup(req *request.UpdateDataGroupRequest) error {
 	}
 
 	// 2. Get all datasource
-	datasource, err := s.GetDataSource()
+	datasource, err := s.GetDataSource(ctx)
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func (s *service) UpdateDataGroup(req *request.UpdateDataGroupRequest) error {
 	return s.dbRepo.Transaction(context.Background(), updateNameFunc, assignFunc, retrieveFunc)
 }
 
-func (s *service) GetDataGroup(req *request.GetDataGroupRequest) (resp response.GetDataGroupResponse, err error) {
+func (s *service) GetDataGroup(ctx core.Context, req *request.GetDataGroupRequest) (resp response.GetDataGroupResponse, err error) {
 	filter := model.DataGroupFilter{
 		Name:           req.GroupName,
 		PageSize:       &req.PageSize,

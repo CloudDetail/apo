@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, services interface{}, fillCategory string) (err error) {
+func (s *service) CheckDatasourcePermission(ctx core.Context, userID, groupID int64, namespaces, services interface{}, fillCategory string) (err error) {
 	var (
 		namespaceMap    = map[string]bool{}     // mapped all namespaces user can view
 		serviceMap      = map[string]struct{}{} // mapped all services user can view
@@ -47,14 +47,14 @@ func (s *service) CheckDatasourcePermission(userID, groupID int64, namespaces, s
 			return err
 		}
 	} else {
-		groups, err = s.getUserDataGroup(userID, fillCategory)
+		groups, err = s.getUserDataGroup(ctx, userID, fillCategory)
 		if err != nil {
 			return err
 		}
 	}
 
 	if len(groups) == 0 {
-		defaultGroup, err := s.getDefaultDataGroup(fillCategory)
+		defaultGroup, err := s.getDefaultDataGroup(ctx, fillCategory)
 		if err != nil {
 			return err
 		}

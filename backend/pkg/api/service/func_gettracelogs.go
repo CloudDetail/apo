@@ -45,12 +45,12 @@ func (h *handler) GetTraceLogs() core.HandlerFunc {
 		}
 
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, []clickhouse.FaultLogResult{})
 			return
 		}
-		resp, err := h.serviceInfoService.GetTraceLogs(req)
+		resp, err := h.serviceInfoService.GetTraceLogs(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

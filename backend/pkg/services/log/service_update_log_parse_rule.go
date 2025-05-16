@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -14,7 +15,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*response.LogParseResponse, error) {
+func (s *service) UpdateLogParseRule(ctx core.Context, req *request.UpdateLogParseRequest) (*response.LogParseResponse, error) {
 	// Update the log table
 	fields := make([]request.Field, 0)
 	if req.IsStructured {
@@ -47,7 +48,7 @@ func (s *service) UpdateLogParseRule(req *request.UpdateLogParseRequest) (*respo
 		IsStructured: req.IsStructured,
 	}
 	logReq.FillerValue()
-	_, err := s.UpdateLogTable(logReq)
+	_, err := s.UpdateLogTable(ctx, logReq)
 	if err != nil {
 		return nil, err
 	}

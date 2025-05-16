@@ -36,7 +36,7 @@ func (h *handler) GetGroupDatasource() core.HandlerFunc {
 		}
 
 		userID := c.UserID()
-		resp, err := h.dataService.GetGroupDatasource(req, userID)
+		resp, err := h.dataService.GetGroupDatasource(c, req, userID)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.GetGroupDatasourceError, nil)
 			return

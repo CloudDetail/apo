@@ -38,7 +38,7 @@ func (h *handler) GetServiceInstanceList() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.serviceInfoService.GetServiceInstanceList(req)
+		resp, err := h.serviceInfoService.GetServiceInstanceList(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

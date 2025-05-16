@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -17,7 +18,7 @@ import (
 )
 
 // GetDescendantRelevance implements Service.
-func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
+func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
 	// Query all descendant nodes
 	nodes, err := s.chRepo.ListDescendantNodes(req)
 	if err != nil {
@@ -108,6 +109,7 @@ func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequ
 
 		// fill alarm status
 		descendantResp.AlertStatusCH = serviceoverview.GetAlertStatusCH(
+			ctx,
 			s.chRepo, &descendantResp.AlertReason, nil,
 			[]string{}, descendant.Service, instanceList,
 			startTime, endTime,

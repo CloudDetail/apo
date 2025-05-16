@@ -6,11 +6,12 @@ package log
 import (
 	"sort"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetLogIndex(req *request.LogIndexRequest) (*response.LogIndexResponse, error) {
+func (s *service) GetLogIndex(ctx core.Context, req *request.LogIndexRequest) (*response.LogIndexResponse, error) {
 	res := &response.LogIndexResponse{}
 	list, sum, err := s.chRepo.GetLogIndex(req)
 	if err != nil {

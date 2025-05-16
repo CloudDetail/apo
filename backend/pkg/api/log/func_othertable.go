@@ -33,7 +33,7 @@ func (h *handler) OtherTable() core.HandlerFunc {
 			)
 			return
 		}
-		resp, err := h.logService.OtherTable(req)
+		resp, err := h.logService.OtherTable(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

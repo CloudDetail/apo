@@ -7,13 +7,14 @@ import (
 	"sort"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 const SecondToMirco = 1000000
 
-func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResponse, error) {
+func (s *service) getChart(ctx core.Context, req *request.LogQueryRequest) (*response.LogChartResponse, error) {
 	res := &response.LogChartResponse{}
 	rows, interval, err := s.chRepo.GetLogChart(req)
 	if err != nil {
@@ -134,6 +135,6 @@ func (s *service) getChart(req *request.LogQueryRequest) (*response.LogChartResp
 	return res, nil
 }
 
-func (s *service) GetLogChart(req *request.LogQueryRequest) (*response.LogChartResponse, error) {
-	return s.getChart(req)
+func (s *service) GetLogChart(ctx core.Context, req *request.LogQueryRequest) (*response.LogChartResponse, error) {
+	return s.getChart(ctx, req)
 }

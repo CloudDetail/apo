@@ -4,11 +4,12 @@
 package service
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetTraceMetrics(req *request.GetTraceMetricsRequest) ([]*response.GetTraceMetricsResponse, error) {
+func (s *service) GetTraceMetrics(ctx core.Context, req *request.GetTraceMetricsRequest) ([]*response.GetTraceMetricsResponse, error) {
 	// Get Trace related metrics
 	serviceInstances, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, req.Service, req.Endpoint)
 	if err != nil {

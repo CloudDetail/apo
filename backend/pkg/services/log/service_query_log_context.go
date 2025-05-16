@@ -8,6 +8,7 @@ import (
 	"errors"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -54,7 +55,7 @@ func log2item(logs []map[string]any, logFields map[string]interface{}) ([]respon
 	return logitems, nil
 }
 
-func (s *service) QueryLogContext(req *request.LogQueryContextRequest) (*response.LogQueryContextResponse, error) {
+func (s *service) QueryLogContext(ctx core.Context, req *request.LogQueryContextRequest) (*response.LogQueryContextResponse, error) {
 
 	logFields := map[string]interface{}{}
 	model := &database.LogTableInfo{

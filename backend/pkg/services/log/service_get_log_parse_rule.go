@@ -6,10 +6,12 @@ package log
 import (
 	"encoding/json"
 	"errors"
-	"gorm.io/gorm"
 	"regexp"
 	"strings"
 
+	"gorm.io/gorm"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -41,7 +43,7 @@ func getRouteRuleMap(routeRule string) map[string]string {
 	return rc
 }
 
-func (s *service) GetLogParseRule(req *request.QueryLogParseRequest) (*response.LogParseResponse, error) {
+func (s *service) GetLogParseRule(ctx core.Context, req *request.QueryLogParseRequest) (*response.LogParseResponse, error) {
 	model := &database.LogTableInfo{
 		DataBase: req.DataBase,
 		Table:    req.TableName,

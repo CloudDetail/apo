@@ -9,7 +9,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -39,7 +38,7 @@ func (h *handler) GetMonitorStatus() core.HandlerFunc {
 		startTime := time.UnixMicro(req.StartTime)
 		endTime := time.UnixMicro(req.EndTime)
 
-		resp, err := h.serviceoverview.GetMonitorStatus(startTime, endTime)
+		resp, err := h.serviceoverview.GetMonitorStatus(c, startTime, endTime)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
