@@ -46,12 +46,13 @@ export default function Login() {
               ? localStorage.setItem('username', values.username)
               : localStorage.removeItem('username')
             localStorage.setItem('remeberMe', String(remeberMe))
+
+            await loginDify(values)
           }
         } catch (error) {
           console.error(error)
         } finally {
           setLoading(false)
-          await loginDify(values)
         }
       })
       .catch((errorInfo) => {

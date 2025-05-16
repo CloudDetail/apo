@@ -295,7 +295,7 @@
                     "variables": [
                         "container_id",
                         "node_name",
-                        "pid",  
+                        "pid",
                         "__interval"
                     ]
                 }
@@ -432,7 +432,7 @@
             "regex": "",
             "query": {
                 "qryType": 1,
-                "query": "label_values(kindling_span_trace_duration_nanoseconds_count{pod=~\"$pod\"},container_id)",
+                "query": "label_values(originx_thread_polaris_nanoseconds_count{pod=~\"$pod\"},container_id)",
                 "refId": "PrometheusVariableQueryEditor-VariableQuery"
             }
         },
