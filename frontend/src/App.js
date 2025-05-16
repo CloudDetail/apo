@@ -7,11 +7,12 @@ import React, { Suspense, useEffect } from 'react'
 import { HashRouter, Route, Routes } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
-import { CSpinner, useColorModes } from '@coreui/react'
+import { useColorModes } from '@coreui/react'
 import './index.css'
 import 'src/core/scss/style.scss'
 import { promLanguageDefinition } from 'monaco-promql'
 import { getRuleGroupLabelApi } from 'src/core/api/alerts'
+import { Spin } from 'antd'
 // Containers
 const DefaultLayout = React.lazy(() => import('src/core/layout/DefaultLayout'))
 const UnitedLayout = React.lazy(() => import('src/pro/layout/UnitedLayout'))
@@ -63,7 +64,7 @@ const App = () => {
       <Suspense
         fallback={
           <div className="pt-3 text-center">
-            <CSpinner color="primary" variant="grow" />
+            <Spin />
           </div>
         }
       >

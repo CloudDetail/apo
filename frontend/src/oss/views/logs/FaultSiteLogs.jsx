@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
-import { CTab, CTabList, CTabs, CRow, CCol, CCard, CToast, CToastBody } from '@coreui/react'
+import { CTab, CTabList, CTabs, CRow, CCol, CCard } from '@coreui/react'
 import { convertTime } from 'src/core/utils/time'
 import { getLogContentApi, getLogPageListApi } from 'core/api/logs'
 import { useSearchParams } from 'react-router-dom'
@@ -171,42 +171,35 @@ function FaultSiteLogs(props) {
       style={{ height: 'calc(100vh - 120px)' }}
     >
       <LoadingSpinner loading={loading} />
-      <CToast
-        autohide={false}
-        visible={true}
-        className="flex items-center w-full my-2"
-        style={{ width: '100%' }}
-      >
-        <div className="d-flex">
-          <CToastBody className=" flex flex-row items-center text-xs">
-            <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-            {i18n.language === 'zh' ? (
-              <>
-                {t('faultSiteLogs.faultLogTableToast')}
-                <a
-                  className="underline text-sky-500"
-                  target="_blank"
-                  href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置日志采集/配置故障日志采集"
-                >
-                  <span>{t('faultSiteLogs.documentText')}</span>
-                </a>
-              </>
-            ) : (
-              <p className="my-0">
-                {t('faultSiteLogs.faultLogTableToast1')}
-                <a
-                  className="underline text-sky-500"
-                  target="_blank"
-                  href="https://docs.autopilotobservability.com/Logs%20Monitoring/Fault%20Log%20Collection"
-                >
-                  <span>{t('faultSiteLogs.documentText')}</span>
-                </a>
-                {t('faultSiteLogs.faultLogTableToast2')}
-              </p>
-            )}
-          </CToastBody>
+      <div className="flex items-center w-full mt-2" style={{ width: '100%' }}>
+        <div className="flex  items-center">
+          <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
+          {i18n.language === 'zh' ? (
+            <>
+              {t('faultSiteLogs.faultLogTableToast')}
+              <a
+                className="underline text-sky-500"
+                target="_blank"
+                href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置日志采集/配置故障日志采集"
+              >
+                <span>{t('faultSiteLogs.documentText')}</span>
+              </a>
+            </>
+          ) : (
+            <p className="my-0">
+              {t('faultSiteLogs.faultLogTableToast1')}
+              <a
+                className="underline text-sky-500"
+                target="_blank"
+                href="https://docs.autopilotobservability.com/Logs%20Monitoring/Fault%20Log%20Collection"
+              >
+                <span>{t('faultSiteLogs.documentText')}</span>
+              </a>
+              {t('faultSiteLogs.faultLogTableToast2')}
+            </p>
+          )}
         </div>
-      </CToast>
+      </div>
       <div className="flex-grow-0 flex-shrink-0">
         <LogsTraceFilter type="logs" />
       </div>

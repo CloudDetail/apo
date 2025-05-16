@@ -165,6 +165,8 @@ const LayoutFlow = (props) => {
 }
 function FlowWithProvider(props) {
   const { t } = useTranslation('oss/serviceInfo')
+  const { useToken } = theme
+  const { token } = useToken()
   const { modalDataUrl } = useSelector((state) => state.topologyReducer)
   const dispatch = useDispatch()
 
@@ -180,7 +182,7 @@ function FlowWithProvider(props) {
           placement="bottom"
         >
           <div
-            className=" absolute top-0 right-3 h-10 flex items-center justify-center cursor-pointer"
+            className=" absolute top-12 right-8 h-10 flex items-center justify-center cursor-pointer"
             style={{ zIndex: 1 }}
             onClick={() => rollback()}
           >
@@ -202,7 +204,7 @@ function FlowWithProvider(props) {
             >
               <path
                 d="M45.4542 4.75L73.167 52.75C76.8236 59.0833 72.2529 67 64.9398 67L9.51418 67C2.20107 67 -2.36962 59.0833 1.28693 52.75L28.9997 4.75C32.6563 -1.58334 41.7977 -1.58334 45.4542 4.75Z"
-                fill="#6293ff"
+                fill={token.colorPrimary}
               />
             </marker>
           </defs>
