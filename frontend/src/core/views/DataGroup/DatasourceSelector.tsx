@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Alert, Card, Segmented, Select, Table, TableProps, Tag, Tree } from 'antd'
+import { Alert, Segmented, Table, Tag, Tree } from 'antd'
 import { useEffect, useState } from 'react'
-import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { getAllDatasourceApi } from 'src/core/api/dataGroup'
 import styles from './index.module.scss'
 import { DatasourceType } from 'src/core/types/dataGroup'
@@ -217,7 +216,7 @@ const DatasourceSelector = (props) => {
           />
         ))}
       </div>
-      <div className="flex-1 overflow-auto pl-2 py-0 bg-[#141414] flex flex-col">
+      <div className="flex-1 overflow-auto pl-2 py-0 bg-[var(--ant-color-bg-container)] flex flex-col">
         <div className="flex-shrink-0 flex-grow-0">
           <Segmented
             options={viewTypeList}

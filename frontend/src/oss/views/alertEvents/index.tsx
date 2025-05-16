@@ -81,7 +81,10 @@ const StatusPanel = ({ firingCounts, resolvedCounts }) => {
   ]
   return (
     <div className="flex pb-2 h-full flex-1  ">
-      <div className="w-full ml-1 rounded-xl flex h-full p-0" style={{ backgroundColor: token.colorBgContainer }}>
+      <div
+        className="w-full ml-1 rounded-xl flex h-full p-0"
+        style={{ backgroundColor: token.colorBgContainer }}
+      >
         <div className="h-full shrink-0 pl-4 flex">
           {chartData.map((item) => (
             <div className="w-[100px] h-full block items-center">
@@ -119,7 +122,10 @@ const ExtraPanel = ({ firingCounts, invalidCounts, alertCheck }) => {
   const { token } = useToken()
   return (
     <div className=" pb-2 h-full  shrink-0 w-1/2 mr-3">
-      <div className="w-full rounded-xl flex h-full p-2 " style={{ backgroundColor: token.colorBgContainer }}>
+      <div
+        className="w-full rounded-xl flex h-full p-2 "
+        style={{ backgroundColor: token.colorBgContainer }}
+      >
         <div className="ml-3 mr-7">
           <Image src={filterSvg} width={50} height={'100%'} preview={false} />
         </div>
@@ -244,6 +250,8 @@ const AlertEventsPage = () => {
   )
 
   async function openWorkflowModal(workflowParams, group, name) {
+    setLoading(true)
+    setModalOpen(true)
     const workflowId = await getWorkflowId(group, name)
     if (!workflowId) {
       notify({
@@ -257,7 +265,7 @@ const AlertEventsPage = () => {
       .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
       .join('&')
     setWorkflowUrl(result + params)
-    setModalOpen(true)
+    setLoading(false)
     // buildParams('workflowParams', workflowParams)
     // return paramsArray.join('&')
   }
@@ -464,6 +472,7 @@ const AlertEventsPage = () => {
           width={'80vw'}
           styles={{ body: { height: '80vh', overflowY: 'hidden', overflowX: 'hidden' } }}
         >
+          <LoadingSpinner loading={loading} />
           {workflowUrl && <WorkflowsIframe src={workflowUrl} />}
         </Modal>
       </div>
