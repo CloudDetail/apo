@@ -100,7 +100,7 @@ export default function AlertsRule() {
       accessor: 'expr',
       justifyContent: 'left',
       Cell: ({ value }) => {
-        return <span className="text-[var(--ant-color-text-secondary)]">{value}</span>
+        return <span className="text-[var(--ant-color-text)]">{value}</span>
       },
     },
 
