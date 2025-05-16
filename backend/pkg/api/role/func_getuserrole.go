@@ -26,20 +26,21 @@ func (h *handler) GetUserRole() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetUserRoleRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		resp, err := h.roleService.GetUserRole(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.UserGetRolesERROR,
-				c.ErrMessage(code.UserGetRolesERROR)).WithError(err))
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

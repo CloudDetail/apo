@@ -5,14 +5,15 @@ package team
 
 import (
 	"context"
-	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 func (s *service) DeleteTeam(req *request.DeleteTeamRequest) error {
-	filter := model.TeamFilter {
+	filter := model.TeamFilter{
 		ID: req.TeamID,
 	}
 	exists, err := s.dbRepo.TeamExist(filter)
@@ -21,7 +22,7 @@ func (s *service) DeleteTeam(req *request.DeleteTeamRequest) error {
 	}
 
 	if !exists {
-		return model.NewErrWithMessage(errors.New("team does not exist"), code.TeamNotExistError)
+		return core.Error(code.TeamNotExistError, "team does not exist")
 	}
 
 	permissionIDs, err := s.dbRepo.GetSubjectPermission(req.TeamID, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE)

@@ -6,7 +6,6 @@ package trace
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 
@@ -30,18 +29,18 @@ func (h *handler) GetTracePageList() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetTracePageListRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		userID := middleware.GetContextUserID(c)
+		userID := c.UserID()
 		err := h.dataService.CheckDatasourcePermission(userID, req.GroupID, &req.Namespace, &req.Service, "")
 		if err != nil {
-			c.HandleError(err, code.AuthError, response.GetTracePageListResponse{
+			c.AbortWithPermissionError(err, code.AuthError, response.GetTracePageListResponse{
 				List: []clickhouse.QueryTraceResult{},
 				Pagination: &model.Pagination{
 					Total:       0,
@@ -60,10 +59,10 @@ func (h *handler) GetTracePageList() core.HandlerFunc {
 
 		resp, err := h.traceService.GetTracePageList(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetTracePageListError,
-				c.ErrMessage(code.GetTracePageListError)).WithError(err),
+				err,
 			)
 			return
 		}

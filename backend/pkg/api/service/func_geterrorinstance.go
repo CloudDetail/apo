@@ -6,7 +6,6 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -36,18 +35,18 @@ func (h *handler) GetErrorInstance() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetErrorInstanceRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		userID := middleware.GetContextUserID(c)
+		userID := c.UserID()
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, &response.GetErrorInstanceResponse{
+			c.AbortWithPermissionError(err, code.AuthError, &response.GetErrorInstanceResponse{
 				Status:    model.STATUS_NORMAL,
 				Instances: []*response.ErrorInstance{},
 			})
@@ -55,10 +54,10 @@ func (h *handler) GetErrorInstance() core.HandlerFunc {
 		}
 		resp, err := h.serviceInfoService.GetErrorInstance(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetErrorInstanceError,
-				c.ErrMessage(code.GetErrorInstanceError)).WithError(err),
+				err,
 			)
 			return
 		}

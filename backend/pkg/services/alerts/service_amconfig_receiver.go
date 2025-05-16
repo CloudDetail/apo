@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -92,7 +93,7 @@ func (s *service) AddAMReceiversForExternalAM(req *request.AddAlertManagerConfig
 	}
 
 	if req.AMConfigReceiver.DingTalkConfigs == nil || len(req.AMConfigReceiver.DingTalkConfigs) == 0 {
-		return model.NewErrWithMessage(fmt.Errorf("receiver is empty"), code.AlertManagerEmptyReceiver)
+		return core.Error(code.AlertManagerEmptyReceiver, "receiver is empty")
 	}
 
 	for i := range req.AMConfigReceiver.DingTalkConfigs {
@@ -126,7 +127,7 @@ func (s *service) UpdateAMReceiverForExternalAM(req *request.UpdateAlertManagerC
 	}
 
 	if req.AMConfigReceiver.DingTalkConfigs == nil || len(req.AMConfigReceiver.DingTalkConfigs) == 0 {
-		return model.NewErrWithMessage(fmt.Errorf("receiver is empty"), code.AlertManagerEmptyReceiver)
+		return core.Error(code.AlertManagerEmptyReceiver, "receiver is empty")
 	}
 
 	for i := range req.AMConfigReceiver.DingTalkConfigs {

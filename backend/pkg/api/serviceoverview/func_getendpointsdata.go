@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 
@@ -40,10 +39,10 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetEndPointsDataRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -54,10 +53,10 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 		endTime = time.UnixMicro(req.EndTime)
 		step := time.Duration(req.Step * 1000)
 
-		userID := middleware.GetContextUserID(c)
+		userID := c.UserID()
 		err := h.dataService.CheckDatasourcePermission(userID, req.GroupID, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, []response.ServiceEndPointsRes{})
+			c.AbortWithPermissionError(err, code.AuthError, []response.ServiceEndPointsRes{})
 			return
 		}
 
@@ -68,10 +67,10 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 		}
 		data, err = h.serviceoverview.GetServicesEndPointData(startTime, endTime, step, filter, req.SortRule)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetTop3UrlListError,
-				c.ErrMessage(code.GetTop3UrlListError)).WithError(err),
+				err,
 			)
 			return
 		}

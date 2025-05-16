@@ -5,8 +5,9 @@ package team
 
 import (
 	"context"
-	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -20,7 +21,7 @@ func (s *service) CreateTeam(req *request.CreateTeamRequest) error {
 		Description: req.Description,
 	}
 
-	filter := model.TeamFilter {
+	filter := model.TeamFilter{
 		Name: req.TeamName,
 	}
 	exists, err := s.dbRepo.TeamExist(filter)
@@ -29,7 +30,7 @@ func (s *service) CreateTeam(req *request.CreateTeamRequest) error {
 	}
 
 	if exists {
-		return model.NewErrWithMessage(errors.New("team already existed"), code.TeamAlreadyExistError)
+		return core.Error(code.TeamAlreadyExistError, "team already existed")
 	}
 	if len(req.FeatureList) > 0 {
 		features, err := s.dbRepo.GetFeature(req.FeatureList)
@@ -38,7 +39,7 @@ func (s *service) CreateTeam(req *request.CreateTeamRequest) error {
 		}
 
 		if len(features) != len(req.FeatureList) {
-			return model.NewErrWithMessage(errors.New("permission does not exist"), code.PermissionNotExistError)
+			return core.Error(code.PermissionNotExistError, "permission does not exist")
 		}
 	}
 
@@ -54,7 +55,7 @@ func (s *service) CreateTeam(req *request.CreateTeamRequest) error {
 		}
 
 		if !exist {
-			return model.NewErrWithMessage(errors.New("data group does not exist"), code.DataGroupNotExistError)
+			return core.Error(code.DataGroupNotExistError, "data group does not exist")
 		}
 	}
 
@@ -64,7 +65,7 @@ func (s *service) CreateTeam(req *request.CreateTeamRequest) error {
 	}
 
 	if !exist {
-		return model.NewErrWithMessage(errors.New("user does not exist"), code.UserNotExistsError)
+		return core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
 	authDataGroup := make([]database.AuthDataGroup, len(req.DataGroupPermissions))

@@ -7,7 +7,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -29,25 +28,26 @@ func (h *handler) GetServiceREDCharts() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceREDChartsRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.GetServiceREDChartsError),
-			))
+				err,
+			)
 			return
 		}
 
-		userID := middleware.GetContextUserID(c)
+		userID := c.UserID()
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.ServiceList, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, response.GetServiceREDChartsResponse{})
+			c.AbortWithPermissionError(err, code.AuthError, response.GetServiceREDChartsResponse{})
 		}
 		resp, err := h.serviceInfoService.GetServiceREDCharts(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetServiceListError,
-				c.ErrMessage(code.GetServiceREDChartsError)).WithError(err))
+				err,
+			)
 			return
 		}
 

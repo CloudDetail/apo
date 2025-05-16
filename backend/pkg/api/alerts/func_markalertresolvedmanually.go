@@ -25,20 +25,20 @@ func (h *handler) MarkAlertResolvedManually() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.MarkAlertResolvedManuallyRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		err := h.alertService.ManualResolveLatestAlertEventByAlertID(req.AlertID)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetAlertSlienceError,
-				c.ErrMessage(code.MarkAlertResolvedError)).WithError(err),
+				err,
 			)
 			return
 		}

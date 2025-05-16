@@ -25,11 +25,11 @@ func (h *handler) GetRole() core.HandlerFunc {
 
 		resp, err := h.roleService.GetRoles()
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.UserGetRolesERROR,
-				c.ErrMessage(code.UserGetRolesERROR),
-			))
+				err,
+			)
 		}
 		c.Payload(resp)
 	}

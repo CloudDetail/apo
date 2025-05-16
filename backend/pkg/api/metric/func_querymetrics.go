@@ -24,10 +24,10 @@ func (h *handler) QueryMetrics() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(metric.QueryMetricsRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}

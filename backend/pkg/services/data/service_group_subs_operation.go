@@ -5,8 +5,9 @@ package data
 
 import (
 	"context"
-	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -27,7 +28,7 @@ func (s *service) GroupSubsOperation(req *request.GroupSubsOperationRequest) err
 		return err
 	}
 	if !exists {
-		return model.NewErrWithMessage(errors.New("data group not exist"), code.DataGroupNotExistError)
+		return core.Error(code.DataGroupNotExistError, "data group not exist")
 	}
 
 	getAuthDataGroups := func(subjectType string) error {

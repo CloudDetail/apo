@@ -28,10 +28,10 @@ func (h *handler) GetFeature() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetFeatureRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -42,10 +42,11 @@ func (h *handler) GetFeature() core.HandlerFunc {
 
 		resp, err := h.permissionService.GetFeature(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetFeatureError,
-				c.ErrMessage(code.GetFeatureError)).WithError(err))
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

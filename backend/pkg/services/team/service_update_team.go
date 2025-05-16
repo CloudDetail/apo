@@ -5,9 +5,9 @@ package team
 
 import (
 	"context"
-	"errors"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -19,7 +19,7 @@ func (s *service) UpdateTeam(req *request.UpdateTeamRequest) error {
 	}
 
 	if team.TeamID == 0 {
-		return model.NewErrWithMessage(errors.New("team does not exist"), code.TeamAlreadyExistError)
+		return core.Error(code.TeamAlreadyExistError, "team does not exist")
 	}
 
 	if team.TeamName != req.TeamName {
@@ -33,7 +33,7 @@ func (s *service) UpdateTeam(req *request.UpdateTeamRequest) error {
 		}
 
 		if exists {
-			return model.NewErrWithMessage(errors.New("team already existed"), code.TeamAlreadyExistError)
+			return core.Error(code.TeamAlreadyExistError, "team already existed")
 		}
 	}
 
@@ -60,7 +60,7 @@ func (s *service) UpdateTeam(req *request.UpdateTeamRequest) error {
 	for _, id := range hasUsers {
 		hasUserMap[id] = struct{}{}
 	}
-	
+
 	var toAdd, toDelete []int64
 	for _, id := range req.UserList {
 		if _, ok := hasUserMap[id]; !ok {
@@ -99,7 +99,7 @@ func (s *service) UpdateTeam(req *request.UpdateTeamRequest) error {
 	// }
 
 	// var removeDataGroupFunc = func(ctx context.Context) error {
-	// 	return s.dbRepo.RevokeDataGroupByGroup(ctx, toDeleteDg, req.TeamID)	
+	// 	return s.dbRepo.RevokeDataGroupByGroup(ctx, toDeleteDg, req.TeamID)
 	// }
 
 	return s.dbRepo.Transaction(context.Background(), updateTeamFunc, inviteFunc, removeFunc)

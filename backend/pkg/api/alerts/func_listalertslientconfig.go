@@ -24,10 +24,10 @@ func (h *handler) ListAlertSlienceConfig() core.HandlerFunc {
 	return func(c core.Context) {
 		sliences, err := h.alertService.ListSlienceConfig()
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetAlertSlienceError,
-				c.ErrMessage(code.ListAlertSlienceError)).WithError(err),
+				err,
 			)
 			return
 		}

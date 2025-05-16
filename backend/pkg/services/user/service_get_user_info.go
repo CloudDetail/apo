@@ -4,9 +4,8 @@
 package user
 
 import (
-	"errors"
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -31,7 +30,7 @@ func (s *service) GetUserInfo(userID int64) (response.GetUserInfoResponse, error
 	}
 
 	if !exists {
-		return resp, model.NewErrWithMessage(errors.New("user does not exist"), code.UserNotExistsError)
+		return resp, core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
 	user, err = s.dbRepo.GetUserInfo(userID)

@@ -4,10 +4,7 @@
 package user
 
 import (
-	"errors"
 	"net/http"
-
-	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -30,30 +27,21 @@ func (h *handler) Logout() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.LogoutRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		err := h.userService.Logout(req)
 		if err != nil {
-			var vErr model.ErrWithMessage
-			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					vErr.Code,
-					c.ErrMessage(vErr.Code),
-				).WithError(err))
-			} else {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.InValidToken,
-					c.ErrMessage(code.InValidToken),
-				).WithError(err))
-			}
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.InValidToken,
+				err,
+			)
 			return
 		}
 		c.Payload("ok")

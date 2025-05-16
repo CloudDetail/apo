@@ -24,10 +24,10 @@ func (h *handler) GetTTL() core.HandlerFunc {
 	return func(c core.Context) {
 		resp, err := h.configService.GetTTL()
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetTTLError,
-				c.ErrMessage(code.GetTTLError)).WithError(err),
+				err,
 			)
 			return
 		}

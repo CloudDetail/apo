@@ -26,19 +26,19 @@ func (h *handler) DeleteLogParseRule() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.DeleteLogParseRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 		resp, err := h.logService.DeleteLogParseRule(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.DeleteLogParseRuleError,
-				c.ErrMessage(code.DeleteLogParseRuleError)+err.Error()).WithError(err),
+				err,
 			)
 			return
 		}

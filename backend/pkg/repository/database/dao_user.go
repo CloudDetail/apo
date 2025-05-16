@@ -13,6 +13,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/util"
@@ -143,13 +144,13 @@ func (repo *daoRepo) Login(username, password string) (*User, error) {
 	var user User
 	err := repo.db.Where("username = ?", username).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
+		return nil, core.Error(code.UserNotExistsError, "user does not exists")
 	} else if err != nil {
 		return nil, err
 	}
 	enPassword := Encrypt(password)
 	if enPassword != user.Password {
-		return nil, model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswdIncorrectError)
+		return nil, core.Error(code.UserPasswdIncorrectError, "password incorrect")
 	}
 
 	return &user, nil
@@ -163,7 +164,7 @@ func (repo *daoRepo) CreateUser(ctx context.Context, user *User) error {
 		return err
 	}
 	if count > 0 {
-		return model.NewErrWithMessage(errors.New("user already exists"), code.UserAlreadyExists)
+		return core.Error(code.UserAlreadyExists, "user already exists")
 	}
 	user.Password = Encrypt(user.Password)
 	return db.Create(user).Error
@@ -173,7 +174,7 @@ func (repo *daoRepo) UpdateUserPhone(userID int64, phone string) error {
 	var user User
 	err := repo.db.Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
+		return core.Error(code.UserNotExistsError, "user does not exists")
 	} else if err != nil {
 		return err
 	}
@@ -185,7 +186,7 @@ func (repo *daoRepo) UpdateUserEmail(userID int64, email string) error {
 	var user User
 	err := repo.db.Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
+		return core.Error(code.UserNotExistsError, "user does not exists")
 	} else if err != nil {
 		return err
 	}
@@ -197,12 +198,12 @@ func (repo *daoRepo) UpdateUserPassword(userID int64, oldPassword, newPassword s
 	var user User
 	err := repo.db.Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
+		return core.Error(code.UserNotExistsError, "user does not exists")
 	} else if err != nil {
 		return err
 	}
 	if user.Password != Encrypt(oldPassword) {
-		return model.NewErrWithMessage(errors.New("password incorrect"), code.UserPasswdIncorrectError)
+		return core.Error(code.UserPasswdIncorrectError, "password incorrect")
 	}
 	user.Password = Encrypt(newPassword)
 	return repo.db.Updates(&user).Error
@@ -212,7 +213,7 @@ func (repo *daoRepo) RestPassword(userID int64, newPassword string) error {
 	var user User
 	err := repo.db.Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return model.NewErrWithMessage(errors.New("user does not exists"), code.UserNotExistsError)
+		return core.Error(code.UserNotExistsError, "user does not exists")
 	} else if err != nil {
 		return err
 	}
@@ -225,7 +226,7 @@ func (repo *daoRepo) UpdateUserInfo(ctx context.Context, userID int64, phone str
 	var user User
 	err := repo.GetContextDB(ctx).Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return model.NewErrWithMessage(errors.New("user does not exist "), code.UserNotExistsError)
+		return core.Error(code.UserNotExistsError, "user does not exist ")
 	} else if err != nil {
 		return err
 	}

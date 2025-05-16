@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -39,10 +37,10 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceEntryEndpointsRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -53,10 +51,10 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			alertResps    []response.ServiceAlertRes
 		)
 
-		userID := middleware.GetContextUserID(c)
+		userID := c.UserID()
 		err = h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, &response.GetServiceEntryEndpointsResponse{
+			c.AbortWithPermissionError(err, code.AuthError, &response.GetServiceEntryEndpointsResponse{
 				Status: model.STATUS_NORMAL,
 				Data:   []*response.EntryInstanceData{},
 			})
@@ -155,10 +153,10 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 		}
 
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetServiceEntryEndpointsError,
-				c.ErrMessage(code.GetServiceEntryEndpointsError)).WithError(err),
+				err,
 			)
 			return
 		}

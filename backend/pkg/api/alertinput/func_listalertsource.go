@@ -24,10 +24,10 @@ func (h *handler) ListAlertSource() core.HandlerFunc {
 	return func(c core.Context) {
 		alertSources, err := h.inputService.ListAlertSource()
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ListAlertSourceFailed,
-				c.ErrMessage(code.ListAlertSourceFailed)).WithError(err),
+				err,
 			)
 			return
 		}

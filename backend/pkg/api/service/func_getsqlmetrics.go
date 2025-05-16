@@ -6,7 +6,6 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -36,17 +35,17 @@ func (h *handler) GetSQLMetrics() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetSQLMetricsRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
-		userID := middleware.GetContextUserID(c)
+		userID := c.UserID()
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, &response.GetSQLMetricsResponse{
+			c.AbortWithPermissionError(err, code.AuthError, &response.GetSQLMetricsResponse{
 				Pagination: model.Pagination{
 					Total:       0,
 					CurrentPage: 0,
@@ -58,10 +57,10 @@ func (h *handler) GetSQLMetrics() core.HandlerFunc {
 		}
 		resp, err := h.serviceInfoService.GetSQLMetrics(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetSQLMetricError,
-				c.ErrMessage(code.GetSQLMetricError)).WithError(err),
+				err,
 			)
 			return
 		}

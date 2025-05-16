@@ -6,7 +6,6 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -32,18 +31,18 @@ func (h *handler) CountK8sEvents() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetK8sEventsRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		userID := middleware.GetContextUserID(c)
+		userID := c.UserID()
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, &response.GetK8sEventsResponse{
+			c.AbortWithPermissionError(err, code.AuthError, &response.GetK8sEventsResponse{
 				Status:  model.STATUS_NORMAL,
 				Reasons: []string{},
 				Data:    make(map[string]*response.K8sEventStatistics),
@@ -52,10 +51,10 @@ func (h *handler) CountK8sEvents() core.HandlerFunc {
 		}
 		resp, err := h.serviceInfoService.CountK8sEvents(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetK8sEventError,
-				c.ErrMessage(code.GetK8sEventError)).WithError(err),
+				err,
 			)
 			return
 		}

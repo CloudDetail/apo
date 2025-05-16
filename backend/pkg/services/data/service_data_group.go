@@ -5,9 +5,9 @@ package data
 
 import (
 	"context"
-	"errors"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -25,7 +25,7 @@ func (s *service) CreateDataGroup(req *request.CreateDataGroupRequest) error {
 	}
 
 	if exists {
-		return model.NewErrWithMessage(errors.New("data group already exists"), code.DataGroupExistError)
+		return core.Error(code.DataGroupExistError, "data group already exists")
 	}
 	group := database.DataGroup{
 		Description: req.Description,
@@ -54,7 +54,7 @@ func (s *service) DeleteDataGroup(req *request.DeleteDataGroupRequest) error {
 	}
 
 	if !exists {
-		return model.NewErrWithMessage(errors.New("data group does not exist"), code.DataGroupNotExistError)
+		return core.Error(code.DataGroupNotExistError, "data group does not exist")
 	}
 
 	var deleteGroupFunc = func(ctx context.Context) error {
@@ -78,7 +78,7 @@ func (s *service) UpdateDataGroup(req *request.UpdateDataGroupRequest) error {
 	}
 
 	if len(groups) == 0 {
-		return model.NewErrWithMessage(errors.New("data group does not exist"), code.DataGroupNotExistError)
+		return core.Error(code.DataGroupNotExistError, "data group does not exist")
 	}
 
 	group := groups[0]
@@ -93,7 +93,7 @@ func (s *service) UpdateDataGroup(req *request.UpdateDataGroupRequest) error {
 		}
 
 		if exists {
-			return model.NewErrWithMessage(errors.New("data group already exist"), code.DataGroupExistError)
+			return core.Error(code.DataGroupExistError, "data group already exist")
 		}
 	}
 

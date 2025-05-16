@@ -26,19 +26,19 @@ func (h *handler) GetAlertSlienceConfig() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAlertSlienceConfigRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 		config, err := h.alertService.GetSlienceConfigByAlertID(req.AlertID)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetAlertSlienceError,
-				c.ErrMessage(code.GetAlertSlienceError)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -27,10 +27,10 @@ func (h *handler) GetDataGroup() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetDataGroupRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -44,10 +44,11 @@ func (h *handler) GetDataGroup() core.HandlerFunc {
 
 		resp, err := h.dataService.GetDataGroup(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetDataGroupError,
-				c.ErrMessage(code.GetDataGroupError)).WithError(err))
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

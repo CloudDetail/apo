@@ -5,9 +5,9 @@ package database
 
 import (
 	"context"
-	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 // AuthPermission records which features are authorised to which subjects.
@@ -64,7 +64,7 @@ func (repo *daoRepo) RevokePermission(ctx context.Context, subID int64, subType 
 	if len(permissionIDs) == 0 {
 		return nil
 	}
-	
+
 	query := repo.GetContextDB(ctx).
 		Model(&AuthPermission{}).
 		Where("subject_id = ? AND subject_type = ? AND type = ?", subID, subType, typ)
@@ -96,7 +96,7 @@ func (repo *daoRepo) GetAddAndDeletePermissions(subID int64, subType, typ string
 
 	for _, permission := range permList {
 		if _, exists := permissionMap[permission]; !exists {
-			err = model.NewErrWithMessage(errors.New("permission does not exist"), code.PermissionNotExistError)
+			err = core.Error(code.PermissionNotExistError, "permission does not exist")
 			return
 		}
 		if _, hasRole := subPermissionMap[permission]; !hasRole {

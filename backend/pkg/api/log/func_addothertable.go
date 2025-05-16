@@ -26,20 +26,20 @@ func (h *handler) AddOtherTable() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.AddOtherTableRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 		req.FillerValue()
 		resp, err := h.logService.AddOtherTable(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.AddOtherLogTableError,
-				c.ErrMessage(code.AddOtherLogTableError)+err.Error()).WithError(err),
+				err,
 			)
 			return
 		}

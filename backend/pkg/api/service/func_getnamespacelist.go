@@ -27,20 +27,20 @@ func (h *handler) GetNamespaceList() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceNamespaceListRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		resp, err := h.serviceInfoService.GetServiceNamespaceList(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetNamespaceListError,
-				c.ErrMessage(code.GetNamespaceListError)).WithError(err),
+				err,
 			)
 			return
 		}

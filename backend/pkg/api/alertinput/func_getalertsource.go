@@ -25,21 +25,21 @@ func (h *handler) GetAlertSource() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(alert.SourceFrom)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		resp, err := h.inputService.GetAlertSource(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.CreateAlertSourceFailed,
 				// TODO ErrorCode
-				c.ErrMessage(code.GetAlertSourceFailed)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -29,10 +29,10 @@ func (h *handler) GetMonitorStatus() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetMonitorStatusRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -41,11 +41,11 @@ func (h *handler) GetMonitorStatus() core.HandlerFunc {
 
 		resp, err := h.serviceoverview.GetMonitorStatus(startTime, endTime)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetMonitorStatusError,
-				c.ErrMessage(code.GetMonitorStatusError),
-			))
+				err,
+			)
 		}
 		c.Payload(resp)
 	}

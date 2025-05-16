@@ -6,7 +6,6 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 
@@ -37,26 +36,26 @@ func (h *handler) GetTraceLogs() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetTraceLogsRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		userID := middleware.GetContextUserID(c)
+		userID := c.UserID()
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, []clickhouse.FaultLogResult{})
+			c.AbortWithPermissionError(err, code.AuthError, []clickhouse.FaultLogResult{})
 			return
 		}
 		resp, err := h.serviceInfoService.GetTraceLogs(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetTraceLogsError,
-				c.ErrMessage(code.GetTraceLogsError)).WithError(err),
+				err,
 			)
 			return
 		}

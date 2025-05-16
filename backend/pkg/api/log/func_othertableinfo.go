@@ -26,19 +26,19 @@ func (h *handler) OtherTableInfo() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.OtherTableInfoRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 		resp, err := h.logService.OtherTableInfo(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetOtherLogTableError,
-				c.ErrMessage(code.GetOtherLogTableError)).WithError(err),
+				err,
 			)
 			return
 		}

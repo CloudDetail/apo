@@ -9,6 +9,7 @@ import (
 	"net/mail"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -18,7 +19,7 @@ import (
 func checkUserName(username string) error {
 	_, err := mail.ParseAddress(username + "@apo.com")
 	if err != nil {
-		return model.NewErrWithMessage(errors.New("username format invaild"), code.UserNameError)
+		return core.Error(code.UserNameError, "username format invaild")
 	}
 	return nil
 }
@@ -62,7 +63,7 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 			return err
 		}
 		if len(roles) != len(req.RoleList) {
-			return model.NewErrWithMessage(errors.New("role does not exist"), code.RoleNotExistsError)
+			return core.Error(code.RoleNotExistsError, "role does not exist")
 		}
 	}
 
@@ -76,7 +77,7 @@ func (s *service) CreateUser(req *request.CreateUserRequest) error {
 			return err
 		}
 		if !exist {
-			return model.NewErrWithMessage(errors.New("team does not exist"), code.TeamNotExistError)
+			return core.Error(code.TeamNotExistError, "team does not exist")
 		}
 	}
 

@@ -62,11 +62,11 @@ func New(logger *zap.Logger) (*Mux, error) {
 				logger.Error("got panic", zap.String("panic", fmt.Sprintf("%+v", err)), zap.String("stack", stackInfo))
 
 				// BuisnessError return code is 500
-				context.AbortWithError(Error(
+				context.AbortWithError(
 					http.StatusInternalServerError,
 					code.ServerError,
-					context.ErrMessage(code.ServerError),
-				))
+					nil,
+				)
 			}
 
 			// Error occurred, return

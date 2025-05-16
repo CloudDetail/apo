@@ -25,20 +25,20 @@ func (h *handler) GetAlertSourceEnrichRule() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(alert.SourceFrom)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		rules, err := h.inputService.GetAlertEnrichRule(req.SourceID)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetAlertEnrichRuleFailed,
-				c.ErrMessage(code.GetAlertEnrichRuleFailed)).WithError(err),
+				err,
 			)
 			return
 		}

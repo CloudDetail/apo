@@ -8,7 +8,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -28,18 +27,18 @@ func (h *handler) GetGroupDatasource() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetGroupDatasourceRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		userID := middleware.GetContextUserID(c)
+		userID := c.UserID()
 		resp, err := h.dataService.GetGroupDatasource(req, userID)
 		if err != nil {
-			c.HandleError(err, code.GetGroupDatasourceError, nil)
+			c.AbortWithPermissionError(err, code.GetGroupDatasourceError, nil)
 			return
 		}
 		c.Payload(resp)

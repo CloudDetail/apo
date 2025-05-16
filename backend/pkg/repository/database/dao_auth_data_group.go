@@ -6,9 +6,9 @@ package database
 import (
 	"context"
 	"encoding/json"
-	"errors"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"gorm.io/gorm"
@@ -107,7 +107,7 @@ func (repo *daoRepo) GetModifyAndDeleteDataGroup(subjectID int64, subjectType st
 			return nil, nil, err
 		}
 		if !exists {
-			return nil, nil, model.NewErrWithMessage(errors.New("data group not exist"), code.DataGroupNotExistError)
+			return nil, nil, core.Error(code.DataGroupNotExistError, "data group not exist")
 		}
 	}
 

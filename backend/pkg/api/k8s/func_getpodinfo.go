@@ -27,20 +27,21 @@ func (h *handler) GetPodInfo() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetPodInfoRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		resp, err := h.k8sService.GetPodInfo(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.K8sGetResourceError,
-				c.ErrMessage(code.K8sGetResourceError)).WithError(err))
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

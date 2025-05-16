@@ -29,10 +29,10 @@ func (h *handler) GetThreshold() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetThresholdRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -41,10 +41,10 @@ func (h *handler) GetThreshold() core.HandlerFunc {
 		level := req.Level
 		resp, err := h.serviceoverview.GetThreshold(level, serviceName, endPoint)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetThresholdError,
-				c.ErrMessage(code.GetThresholdError)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -5,8 +5,9 @@ package role
 
 import (
 	"context"
-	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -20,13 +21,13 @@ func (s *service) UpdateRole(req *request.UpdateRoleRequest) error {
 	if err != nil {
 		return err
 	}
-	
-	if len(role) == 0{
-		return model.NewErrWithMessage(errors.New("role does not exist"), code.RoleNotExistsError)
+
+	if len(role) == 0 {
+		return core.Error(code.RoleNotExistsError, "role does not exist")
 	}
 
 	if role[0].RoleName != req.RoleName {
-		nameFilter := model.RoleFilter {
+		nameFilter := model.RoleFilter{
 			Name: req.RoleName,
 		}
 
@@ -36,7 +37,7 @@ func (s *service) UpdateRole(req *request.UpdateRoleRequest) error {
 		}
 
 		if len(existRole) > 0 {
-			return model.NewErrWithMessage(errors.New("role already exist"), code.RoleExistsError)
+			return core.Error(code.RoleExistsError, "role already exist")
 		}
 	}
 

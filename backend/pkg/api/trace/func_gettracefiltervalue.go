@@ -28,10 +28,10 @@ func (h *handler) GetTraceFilterValue() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetTraceFilterValueRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -41,10 +41,10 @@ func (h *handler) GetTraceFilterValue() core.HandlerFunc {
 		resp, err := h.traceService.GetTraceFilterValues(startTime, endTime, req.SearchText, req.Filter)
 
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetTraceFilterValueError,
-				c.ErrMessage(code.GetTraceFilterValueError)).WithError(err),
+				err,
 			)
 			return
 		}

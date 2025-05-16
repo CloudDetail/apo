@@ -31,20 +31,20 @@ func (h *handler) GetProcessFlameGraph() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetProcessFlameGraphRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		resp, err := h.traceService.GetProcessFlameGraphData(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetFlameGraphError,
-				c.ErrMessage(code.GetFlameGraphError)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -4,10 +4,8 @@
 package team
 
 import (
-	"errors"
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -29,30 +27,21 @@ func (h *handler) UpdateTeam() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.UpdateTeamRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		err := h.teamService.UpdateTeam(req)
 		if err != nil {
-			var vErr model.ErrWithMessage
-			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					vErr.Code,
-					c.ErrMessage(vErr.Code)).WithError(err),
-				)
-			} else {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.UpdateTeamError,
-					c.ErrMessage(code.UpdateTeamError)).WithError(err),
-				)
-			}
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.UpdateTeamError,
+				err,
+			)
 			return
 		}
 		c.Payload("ok")

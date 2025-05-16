@@ -5,8 +5,9 @@ package role
 
 import (
 	"context"
-	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -90,7 +91,7 @@ func GetAddDeleteRoles(userRoles []database.UserRole, want []int, all []database
 
 	for _, role := range want {
 		if _, exists := roleMap[role]; !exists {
-			return nil, nil, model.NewErrWithMessage(errors.New("role does not exist"), code.RoleNotExistsError)
+			return nil, nil, core.Error(code.RoleNotExistsError, "role does not exist")
 		}
 		if _, hasRole := userRoleMap[role]; !hasRole {
 			addRoles = append(addRoles, role)

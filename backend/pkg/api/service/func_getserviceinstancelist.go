@@ -30,20 +30,20 @@ func (h *handler) GetServiceInstanceList() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceInstanceListRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		resp, err := h.serviceInfoService.GetServiceInstanceList(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetServiceInstanceListError,
-				c.ErrMessage(code.GetServiceInstanceListError)).WithError(err),
+				err,
 			)
 			return
 		}

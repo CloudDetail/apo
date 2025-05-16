@@ -7,7 +7,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -27,21 +26,21 @@ func (h *handler) CheckRouterPermission() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.CheckRouterPermissionRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		userID := middleware.GetContextUserID(c)
+		userID := c.UserID()
 		resp, err := h.permissionService.CheckRouterPermission(userID, req.Router)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.CheckRouterError,
-				c.ErrMessage(code.CheckRouterError)).WithError(err),
+				err,
 			)
 		}
 		c.Payload(resp)

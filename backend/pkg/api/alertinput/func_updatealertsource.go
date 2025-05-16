@@ -26,10 +26,10 @@ func (h *handler) UpdateAlertSource() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(alert.AlertSource)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -38,18 +38,18 @@ func (h *handler) UpdateAlertSource() core.HandlerFunc {
 		if err != nil {
 			var vErr alert.ErrAlertSourceAlreadyExist
 			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
+				c.AbortWithError(
 					http.StatusBadRequest,
 					code.AlertSourceAlreadyExisted,
-					c.ErrMessage(code.AlertSourceAlreadyExisted)).WithError(err),
+					err,
 				)
 				return
 			}
 
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.UpdateAlertSourceFailed,
-				c.ErrMessage(code.UpdateAlertSourceFailed)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -25,20 +25,20 @@ func (h *handler) AlertEventDetail() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAlertDetailRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		resp, err := h.alertService.AlertDetail(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetAlertEventListError,
-				c.ErrMessage(code.GetAlertEventListError)).WithError(err),
+				err,
 			)
 			return
 		}

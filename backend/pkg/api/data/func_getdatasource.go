@@ -24,10 +24,11 @@ func (h *handler) GetDatasource() core.HandlerFunc {
 	return func(c core.Context) {
 		resp, err := h.dataService.GetDataSource()
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetDatasourceError,
-				c.ErrMessage(code.GetDatasourceError)).WithError(err))
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

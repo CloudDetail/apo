@@ -25,20 +25,20 @@ func (h *handler) SetAlertSlienceConfig() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.SetAlertSlienceConfigRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		err := h.alertService.SetSlienceConfigByAlertID(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.SetAlertSlienceError,
-				c.ErrMessage(code.SetAlertSlienceError)).WithError(err),
+				err,
 			)
 			return
 		}

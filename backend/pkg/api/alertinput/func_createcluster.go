@@ -25,20 +25,20 @@ func (h *handler) CreateCluster() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(integration.Cluster)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		err := h.inputService.CreateCluster(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.CreateClusterFailed,
-				c.ErrMessage(code.CreateClusterFailed)).WithError(err),
+				err,
 			)
 			return
 		}

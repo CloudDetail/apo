@@ -4,12 +4,12 @@
 package data
 
 import (
-	"errors"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -134,7 +134,7 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 				}
 				namespaceMap[ds.Datasource] = []string{}
 			} else if ds.Type == model.DATASOURCE_TYP_SERVICE {
-				serviceMap[ds.Datasource] = []string{}	
+				serviceMap[ds.Datasource] = []string{}
 			}
 		}
 	}
@@ -205,7 +205,7 @@ func (s *service) getDataGroup(groupID int64, category string) ([]database.DataG
 	}
 
 	if len(dataGroups) == 0 {
-		return nil, model.NewErrWithMessage(errors.New("data group does not exits"), code.DataGroupNotExistError)
+		return nil, core.Error(code.DataGroupNotExistError, "data group does not exits")
 	}
 
 	for i, group := range dataGroups {

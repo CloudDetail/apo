@@ -9,7 +9,7 @@ import (
 	"unicode"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -78,7 +78,7 @@ func (s *service) UpdateUserPassword(req *request.UpdateUserPasswordRequest) err
 
 func checkPasswordComplexity(password string) error {
 	if len(password) < 8 {
-		return model.NewErrWithMessage(errors.New("length less than 8"), code.UserPasswdSimpleError)
+		return core.Error(code.UserPasswdSimpleError, "length less than 8")
 	}
 	var (
 		hasUpper     bool
@@ -102,16 +102,16 @@ func checkPasswordComplexity(password string) error {
 	}
 
 	if !hasUpper {
-		return model.NewErrWithMessage(errors.New("must contain at least one upper character"), code.UserPasswdSimpleError)
+		return core.Error(code.UserPasswdSimpleError, "must contain at least one upper character")
 	}
 	if !hasLower {
-		return model.NewErrWithMessage(errors.New("must contain at least one lower character"), code.UserPasswdSimpleError)
+		return core.Error(code.UserPasswdSimpleError, "must contain at least one lower character")
 	}
 	if !hasDigit {
-		return model.NewErrWithMessage(errors.New("must contain at least one digit"), code.UserPasswdSimpleError)
+		return core.Error(code.UserPasswdSimpleError, "must contain at least one digit")
 	}
 	if !hasSpecial {
-		return model.NewErrWithMessage(errors.New("must contain at least one special character"), code.UserPasswdSimpleError)
+		return core.Error(code.UserPasswdSimpleError, "must contain at least one special character")
 	}
 
 	return nil

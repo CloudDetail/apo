@@ -5,9 +5,9 @@ package team
 
 import (
 	"context"
-	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -35,7 +35,7 @@ func (s *service) TeamOperation(req *request.TeamOperationRequest) error {
 	var toAdd, toDelete []int64
 	for _, id := range req.TeamList {
 		if _, ok := teamMap[id]; !ok {
-			return model.NewErrWithMessage(errors.New("team does not exist"), code.TeamNotExistError)
+			return core.Error(code.TeamNotExistError, "team does not exist")
 		}
 
 		if _, ok := uTeamMap[id]; !ok {
