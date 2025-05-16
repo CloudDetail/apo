@@ -2,7 +2,7 @@
  * Copyright 2025 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
-import { Button, Descriptions, DescriptionsProps, Modal, theme } from 'antd'
+import { Button, Descriptions, DescriptionsProps, Modal, Result, theme } from 'antd'
 import { useTranslation } from 'react-i18next'
 import { AlertDeration, ALertIsValid, AlertStatus, AlertTags } from '../components/AlertInfoCom'
 import { convertUTCToLocal } from 'src/core/utils/time'
@@ -10,7 +10,6 @@ import WorkflowsIframe from '../../workflows/workflowsIframe'
 import { useState } from 'react'
 import { FaEye } from 'react-icons/fa'
 import { getAlertWorkflowIdApi } from 'src/core/api/alerts'
-import { notify } from 'src/core/utils/notify'
 import LoadingSpinner from 'src/core/components/Spinner'
 const CurrentEventDetail = ({
   detail,
@@ -112,26 +111,13 @@ const CurrentEventDetail = ({
       if (!workflowId) {
         throw new Error()
       }
-      if (!workflowId) {
-        notify({
-          type: 'error',
-          message: t('missToast2'),
-        })
-        setLoading(false)
-        return
-      }
       let result = '/dify/app/' + workflowId + '/run-once?'
       const params = Object.entries(detail.workflowParams)
         .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
         .join('&')
       setWorkflowUrl(result + params)
     } catch {
-      notify({
-        type: 'error',
-        message: t('missToast2'),
-      })
       setLoading(false)
-      setModalOpen(false)
       return
     } finally {
       setLoading(false)
@@ -179,6 +165,13 @@ const CurrentEventDetail = ({
         width={'80vw'}
         styles={{ body: { height: '80vh', overflowY: 'hidden', overflowX: 'hidden' } }}
       >
+        {!loading && !workflowUrl && (
+          <Result
+            status="error"
+            title={t('missToast2')}
+            className="h-full flex flex-col items-center justify-center w-full"
+          />
+        )}
         <LoadingSpinner loading={loading} />
         {workflowUrl && <WorkflowsIframe src={workflowUrl} />}
       </Modal>
