@@ -3,13 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Flex, Popconfirm, Form, Input, Collapse, Divider } from 'antd'
-import { MailOutlined, ApartmentOutlined, LockOutlined, PhoneOutlined } from '@ant-design/icons'
-import { updateEmailApi, updateCorporationApi, updatePhoneApi, getUserInfoApi } from 'core/api/user'
-import { showToast } from 'core/utils/toast'
-import { useEffect, useState } from 'react'
+import { Button, Flex, Popconfirm, Form, Input } from 'antd'
+import { updateCorporationApi, getUserInfoApi } from 'core/api/user'
+import { useEffect } from 'react'
 import { useUserContext } from 'src/core/contexts/UserContext'
 import { useTranslation } from 'react-i18next'
+import { notify } from 'src/core/utils/notify'
 
 export default function UserInfo() {
   const { t } = useTranslation('core/userPage')
@@ -45,9 +44,9 @@ export default function UserInfo() {
           phone,
         }
         await updateCorporationApi({ userId: user.userId, ...params })
-        showToast({
-          title: t('userInfo.updateSuccess'),
-          color: 'success',
+        notify({
+          message: t('userInfo.updateSuccess'),
+          type: 'success',
         })
         form.resetFields()
       })

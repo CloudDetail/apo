@@ -5,11 +5,12 @@
 
 import Editor from '@monaco-editor/react'
 import { promLanguageDefinition } from 'monaco-promql'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useSelector } from 'react-redux'
 
 const MonacoEditorWrapper = ({ defaultValue, handleEditorChange = null, readOnly = false }) => {
   const { monacoPromqlConfig } = useSelector((state) => state.settingReducer)
+  const { theme } = useSelector((state) => state.settingReducer)
   const handleEditorDidMount = async (editor, monaco) => {
     const languageId = promLanguageDefinition.id
     // 注册 PromQL 语言
@@ -26,25 +27,14 @@ const MonacoEditorWrapper = ({ defaultValue, handleEditorChange = null, readOnly
         monacoPromqlConfig.completionItemProvider,
       )
     }
-
-    // 自定义主题
-    monaco.editor.defineTheme('customTheme', {
-      base: 'vs-dark',
-      inherit: true,
-      rules: [],
-      colors: {
-        'editor.background': '#141414',
-      },
-    })
-    monaco.editor.setTheme('customTheme')
   }
 
   return (
-    <div className="bg-[#141414] p-2 rounded w-full">
+    <div className="p-2 rounded w-full">
       <Editor
         width="100%"
         height="50px"
-        theme="customTheme"
+        theme={theme === 'light' ? 'vs' : 'vs-dark'}
         language="promql"
         options={{
           readOnly: readOnly,

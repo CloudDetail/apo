@@ -2,12 +2,12 @@
  * Copyright 2025 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
-import { Button, Tag, Tooltip } from 'antd'
+import { Button, Tag, theme, Tooltip } from 'antd'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactJson from 'react-json-view'
-import CostomTag from 'core/components/Tag/Tag'
 import { t } from 'i18next'
+import { useSelector } from 'react-redux'
 function isJSONString(str: string) {
   try {
     JSON.parse(str)
@@ -26,6 +26,7 @@ interface AlertTagsProps {
 }
 const AlertTags = ({ tags, detail, defaultVisible = false }: AlertTagsProps) => {
   const { t } = useTranslation('oss/alertEvents')
+  const { reactJsonTheme } = useSelector((state) => state.settingReducer)
   const [visible, setVisible] = useState(false)
 
   return (
@@ -47,7 +48,7 @@ const AlertTags = ({ tags, detail, defaultVisible = false }: AlertTagsProps) => 
       {(visible || defaultVisible) && isJSONString(detail) && (
         <ReactJson
           src={JSON.parse(detail || '')}
-          theme="brewer"
+          theme={reactJsonTheme}
           collapsed={false}
           displayDataTypes={false}
           style={{ width: '100%' }}
@@ -65,11 +66,14 @@ const AlertDeration = ({
   updateTime?: string | null
 }) => {
   const { t } = useTranslation('oss/alertEvents')
+  const { useToken } = theme
+  const { token } = useToken()
+
   return (
     <div>
       {duration}
       {updateTime && (
-        <span className="text-[10px] block text-gray-400">
+        <span className="text-[10px] block" style={{ color: token.colorTextSecondary }}>
           {t('oss/alertEvents:updateTime')} {updateTime}
         </span>
       )}
@@ -86,9 +90,7 @@ const AlertStatus = ({
   if (!status) return
   return (
     <div className="text-center">
-      <CostomTag type={status === 'firing' ? 'error' : 'success'}>
-        {t(`oss/alertEvents:${status}`)}
-      </CostomTag>
+      <Tag color={status === 'firing' ? 'error' : 'success'}>{t(`oss/alertEvents:${status}`)}</Tag>
       {status === 'resolved' && resolvedTime && (
         <span className="text-[10px] block text-gray-400">
           {t('oss/alertEvents:resolvedOn')} {resolvedTime}
@@ -123,6 +125,9 @@ const ALertIsValid = ({
   checkTime?: string | null
   openResultModal: any
 }) => {
+  const { useToken } = theme
+  const { token } = useToken()
+
   return (
     <>
       {!alertCheckId ? (
@@ -140,11 +145,12 @@ const ALertIsValid = ({
             onClick={() => {
               openResultModal()
             }}
+            style={{ color: token.colorSuccess, backgroundColor: token.colorSuccessBg }}
           >
             {t(`oss/alertEvents:${isValid === 'failed' ? 'failedTo' : isValid}`)}
           </Button>
           {checkTime && (
-            <span className="text-[10px] block text-gray-400">
+            <span className="text-[10px] block" style={{ color: token.colorTextSecondary }}>
               {t('oss/alertEvents:checkedOn')} {checkTime}
             </span>
           )}

@@ -10,7 +10,7 @@ import { MdOutlineEdit } from 'react-icons/md'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { useNavigate } from 'react-router-dom'
 import { deleteClusterIntegrationApi, getIntegrationClusterListApi } from 'src/core/api/integration'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import InstallCmd from './Integration/InstallCmd'
 import { GoCommandPalette } from 'react-icons/go'
 const ClusterTable = () => {
@@ -22,9 +22,9 @@ const ClusterTable = () => {
   const [clusterInfo, setClusterInfo] = useState(null)
   const deleteClusterIntegration = (id: string) => {
     deleteClusterIntegrationApi(id).then((res) => {
-      showToast({
-        color: 'success',
-        title: ct('deleteSuccess'),
+      notify({
+        type: 'success',
+        message: ct('deleteSuccess'),
       })
       getData()
     })
@@ -128,9 +128,13 @@ const ClusterTable = () => {
         }}
         // title={t('installCmdTitle')}
         width={800}
-         styles={{ body: { height: '70vh', overflowY: 'hidden', overflowX: 'hidden' } }}
+        styles={{ body: { height: '70vh', overflowY: 'hidden', overflowX: 'hidden' } }}
       >
-        <InstallCmd clusterId={clusterInfo?.id} clusterType={clusterInfo?.clusterType} apoCollector={clusterInfo?.apoCollector}/>
+        <InstallCmd
+          clusterId={clusterInfo?.id}
+          clusterType={clusterInfo?.clusterType}
+          apoCollector={clusterInfo?.apoCollector}
+        />
       </Modal>
     </div>
   )

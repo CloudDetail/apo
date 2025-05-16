@@ -11,7 +11,7 @@ import { getTeamsApi } from 'src/core/api/team'
 import { getUserListApi } from 'src/core/api/user'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { DataGroupSubsParams, SaveDataGroupParams } from 'src/core/types/dataGroup'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 
 interface PermissionModalProps {
   open: boolean
@@ -29,9 +29,9 @@ const PermissionModal = ({ open, closeModal, groupInfo, refresh }: PermissionMod
 
   const updateDataGroupSubs = (params: DataGroupSubsParams) => {
     updateDataGroupSubsApi(params).then((res) => {
-      showToast({
-        color: 'success',
-        title: t('savePermissionSuccess'),
+      notify({
+        type: 'success',
+        message: t('savePermissionSuccess'),
       })
       refresh()
     })

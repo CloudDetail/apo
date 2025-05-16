@@ -8,20 +8,20 @@
 }
 
 .rdrDayNumber span {
-    color: #CCCCDC;
+    color: var(--text-color);
 }
 
 .rdrMonthAndYearPickers select {
-    color: #CCCCDC;
+    color: var(--text-color)
 }
 
 .rdrDayDisabled {
-    background-color: rgba(0, 0, 0, 0);
+    background-color: var(--body-bg);
     font-size: 0;
 }
 
 .rdrDayPassive .rdrDayNumber span {
-    color: #555555;
+    color: var(--disabled-color);
 }
 
 .rdrDayPassive {
@@ -31,4 +31,11 @@
 .refresh-date-time .ant-dropdown-button .ant-dropdown-trigger {
     width: auto;
     padding: 0 10px;
+}
+
+.rdrDaySelected,
+.rdrInRange,
+.rdrStartEdge,
+.rdrEndEdge {
+    background: var(--ant-color-primary) !important;
 }

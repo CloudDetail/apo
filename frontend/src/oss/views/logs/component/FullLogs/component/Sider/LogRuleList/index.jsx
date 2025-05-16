@@ -10,7 +10,7 @@ import ConfigLogRuleModal from '../../ConfigLogRuleModal'
 import { MdAdd, MdDeleteOutline, MdModeEdit } from 'react-icons/md'
 import './index.css'
 import { deleteLogRuleApi } from 'core/api/logs'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
 const LogRuleList = () => {
@@ -31,9 +31,9 @@ const LogRuleList = () => {
       parseName: rule.parseName,
       tableName: rule.tableName,
     }).then((res) => {
-      showToast({
-        title: t('fullLogSider.logRuleList.deleteLogSuccessToast'),
-        color: 'success',
+      notify({
+        message: t('fullLogSider.logRuleList.deleteLogSuccessToast'),
+        type: 'success',
       })
       getLogTableInfo()
     })

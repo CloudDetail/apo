@@ -5,10 +5,10 @@
 
 // src/api/request.js
 import axios from 'axios'
-import { showToast } from './toast'
 import qs from 'qs'
 import TranslationCom from 'src/oss/components/TranslationCom'
 import i18next from 'i18next'
+import { notify } from './notify'
 
 const namespace = 'core/login'
 const MAX_RETRY_ATTEMPTS = 3
@@ -124,14 +124,14 @@ instance.interceptors.response.use(
         case 400:
           if (data.code === 'A0004') {
             window.location.href = '/#/login'
-            showToast({
-              title: <TranslationCom text="request.notLoggedIn" space={namespace} />,
-              color: 'danger',
+            notify({
+              type: 'error',
+              message: <TranslationCom text="request.notLoggedIn" space={namespace} />,
             })
           } else {
-            showToast({
-              title: data.message,
-              color: 'danger',
+            notify({
+              type: 'error',
+              message: data.message,
             })
           }
           break
@@ -140,23 +140,23 @@ instance.interceptors.response.use(
           break
 
         case 403:
-          showToast({
-            title: <TranslationCom text="request.accessDenied" space={namespace} />,
-            color: 'danger',
+          notify({
+            type: 'error',
+            message: <TranslationCom text="request.accessDenied" space={namespace} />,
           })
           break
 
         default:
-          showToast({
-            title: <TranslationCom text="request.requestFailed" space={namespace} />,
-            message: data.message,
-            color: 'danger',
+          notify({
+            type: 'error',
+            message: <TranslationCom text="request.requestFailed" space={namespace} />,
+            description: data.message,
           })
       }
     } else {
-      showToast({
-        title: error.message,
-        color: 'danger',
+      notify({
+        type: 'error',
+        message: error.message,
       })
     }
     return Promise.reject(error)
