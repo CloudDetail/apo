@@ -5,6 +5,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { Button, Input, Form, Flex, theme as antdTheme } from 'antd'
+import bgLight from 'src/core/assets/brand/bg-light.png'
+import bg from 'src/core/assets/brand/bg.jpg'
 import { loginApi } from 'core/api/user'
 import { useNavigate } from 'react-router-dom'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
@@ -96,7 +98,7 @@ export default function Login() {
     <Flex
       vertical
       className={style.loginBackground}
-      style={{ backgroundImage: theme === 'light' ? `url('src/core/assets/brand/bg-light.png')` : `url('src/core/assets/brand/bg.jpg')` }}
+      style={{ backgroundImage: theme === 'light' ? `url(${bgLight})` : `url(${bg})` }}
     >
       <Flex
         vertical
