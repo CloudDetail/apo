@@ -33,7 +33,7 @@ func (h *handler) GetSchemaColumns() core.HandlerFunc {
 			return
 		}
 
-		columns, err := h.inputService.ListSchemaColumns(req.Schema)
+		columns, err := h.inputService.ListSchemaColumns(c, req.Schema)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

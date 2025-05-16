@@ -4,11 +4,12 @@
 package alert
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
 )
 
-func (s *service) CreateSchema(req *alert.CreateSchemaRequest) error {
+func (s *service) CreateSchema(ctx core.Context, req *alert.CreateSchemaRequest) error {
 	err := s.dbRepo.CreateSchema(req.Schema, req.Columns)
 	if err != nil {
 		return err
@@ -19,19 +20,19 @@ func (s *service) CreateSchema(req *alert.CreateSchemaRequest) error {
 	return nil
 }
 
-func (s *service) ListSchema() ([]string, error) {
+func (s *service) ListSchema(ctx core.Context) ([]string, error) {
 	return s.dbRepo.ListSchema()
 }
 
-func (s *service) GetSchemaData(schema string) ([]string, map[int64][]string, error) {
+func (s *service) GetSchemaData(ctx core.Context, schema string) ([]string, map[int64][]string, error) {
 	return s.dbRepo.GetSchemaData(schema)
 }
 
-func (s *service) CheckSchemaIsUsed(schema string) ([]string, error) {
+func (s *service) CheckSchemaIsUsed(ctx core.Context, schema string) ([]string, error) {
 	return s.dbRepo.CheckSchemaIsUsed(schema)
 }
 
-func (s *service) DeleteSchema(schema string) error {
+func (s *service) DeleteSchema(ctx core.Context, schema string) error {
 	s.dispatcher.EnricherMap.Range(func(key, value any) bool {
 		enricher := value.(*enrich.AlertEnricher)
 		enricher.RemoveRuleByDeletedSchema(schema)
@@ -41,11 +42,11 @@ func (s *service) DeleteSchema(schema string) error {
 	return s.dbRepo.DeleteSchema(schema)
 }
 
-func (s *service) ListSchemaColumns(schema string) ([]string, error) {
+func (s *service) ListSchemaColumns(ctx core.Context, schema string) ([]string, error) {
 	return s.dbRepo.ListSchemaColumns(schema)
 }
 
-func (s *service) UpdateSchemaData(req *alert.UpdateSchemaDataRequest) error {
+func (s *service) UpdateSchemaData(ctx core.Context, req *alert.UpdateSchemaDataRequest) error {
 	if req.ClearAll {
 		err := s.dbRepo.ClearSchemaData(req.Schema)
 		if err != nil {

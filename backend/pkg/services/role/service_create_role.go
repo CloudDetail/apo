@@ -7,13 +7,13 @@ import (
 	"context"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) CreateRole(req *request.CreateRoleRequest) error {
+func (s *service) CreateRole(ctx core.Context, req *request.CreateRoleRequest) error {
 	filter := model.RoleFilter{
 		Name: req.RoleName,
 	}

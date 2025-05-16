@@ -33,7 +33,7 @@ func (h *handler) MarkAlertResolvedManually() core.HandlerFunc {
 			return
 		}
 
-		err := h.alertService.ManualResolveLatestAlertEventByAlertID(req.AlertID)
+		err := h.alertService.ManualResolveLatestAlertEventByAlertID(c, req.AlertID)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

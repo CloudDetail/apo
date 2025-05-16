@@ -33,7 +33,7 @@ func (h *handler) ClearDefaultAlertEnrichRule() core.HandlerFunc {
 			return
 		}
 
-		_, err := h.inputService.ClearDefaultAlertEnrichRule(req.SourceType)
+		_, err := h.inputService.ClearDefaultAlertEnrichRule(c, req.SourceType)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

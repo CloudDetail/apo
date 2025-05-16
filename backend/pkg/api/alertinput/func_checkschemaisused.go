@@ -33,7 +33,7 @@ func (h *handler) CheckSchemaIsUsed() core.HandlerFunc {
 			return
 		}
 
-		alertSources, err := h.inputService.CheckSchemaIsUsed(req.Schema)
+		alertSources, err := h.inputService.CheckSchemaIsUsed(c, req.Schema)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

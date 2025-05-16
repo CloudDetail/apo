@@ -22,7 +22,7 @@ import (
 // @Router /api/config/getTTL [get]
 func (h *handler) GetTTL() core.HandlerFunc {
 	return func(c core.Context) {
-		resp, err := h.configService.GetTTL()
+		resp, err := h.configService.GetTTL(c)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

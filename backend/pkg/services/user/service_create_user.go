@@ -9,7 +9,7 @@ import (
 	"net/mail"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -24,7 +24,7 @@ func checkUserName(username string) error {
 	return nil
 }
 
-func (s *service) CreateUser(req *request.CreateUserRequest) error {
+func (s *service) CreateUser(ctx core.Context, req *request.CreateUserRequest) error {
 	if err := checkUserName(req.Username); err != nil {
 		return err
 	}

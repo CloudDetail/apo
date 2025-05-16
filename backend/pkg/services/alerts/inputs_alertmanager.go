@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -73,7 +74,7 @@ func convertStatus(status string) model.Status {
 	}
 }
 
-func (s *service) InputAlertManager(req *request.InputAlertManagerRequest) error {
+func (s *service) InputAlertManager(ctx core.Context, req *request.InputAlertManagerRequest) error {
 	events := transferAlertManager(req)
 	err := s.chRepo.InsertBatchAlertEvents(context.Background(), events)
 	if err != nil {

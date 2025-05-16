@@ -33,7 +33,7 @@ func (h *handler) CreateCluster() core.HandlerFunc {
 			return
 		}
 
-		cluster, err := h.integrationService.CreateCluster(req)
+		cluster, err := h.integrationService.CreateCluster(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

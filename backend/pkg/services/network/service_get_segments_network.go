@@ -4,11 +4,12 @@
 package network
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetSpanSegmentsMetrics(req *request.SpanSegmentMetricsRequest) (response.SpanSegmentMetricsResponse, error) {
+func (s *service) GetSpanSegmentsMetrics(ctx core.Context, req *request.SpanSegmentMetricsRequest) (response.SpanSegmentMetricsResponse, error) {
 	netSegments, err := s.chRepo.GetNetworkSpanSegments(req.TraceId, req.SpanId)
 	if err != nil {
 		return nil, err

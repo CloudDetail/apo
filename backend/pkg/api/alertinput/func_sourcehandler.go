@@ -43,7 +43,7 @@ func (h *handler) SourceHandler() core.HandlerFunc {
 			)
 			return
 		}
-		err = h.inputService.ProcessAlertEvents(sourceFrom, data)
+		err = h.inputService.ProcessAlertEvents(c, sourceFrom, data)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

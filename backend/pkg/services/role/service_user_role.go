@@ -7,14 +7,14 @@ import (
 	"context"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) GetRoles() (response.GetRoleResponse, error) {
+func (s *service) GetRoles(ctx core.Context) (response.GetRoleResponse, error) {
 	roles, err := s.dbRepo.GetRoles(model.RoleFilter{})
 	var resp response.GetRoleResponse
 	if err != nil {
@@ -25,7 +25,7 @@ func (s *service) GetRoles() (response.GetRoleResponse, error) {
 	return resp, nil
 }
 
-func (s *service) GetUserRole(req *request.GetUserRoleRequest) (response.GetUserRoleResponse, error) {
+func (s *service) GetUserRole(ctx core.Context, req *request.GetUserRoleRequest) (response.GetUserRoleResponse, error) {
 	userRole, err := s.dbRepo.GetUserRole(req.UserID)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (s *service) GetUserRole(req *request.GetUserRoleRequest) (response.GetUser
 	return roles, nil
 }
 
-func (s *service) RoleOperation(req *request.RoleOperationRequest) error {
+func (s *service) RoleOperation(ctx core.Context, req *request.RoleOperationRequest) error {
 	// 1. get user's role
 	userRole, err := s.dbRepo.GetUserRole(req.UserID)
 	if err != nil {

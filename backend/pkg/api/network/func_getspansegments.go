@@ -32,7 +32,7 @@ func (h *handler) GetSpanSegmentsMetrics() core.HandlerFunc {
 			)
 			return
 		}
-		resp, err := h.networkService.GetSpanSegmentsMetrics(req)
+		resp, err := h.networkService.GetSpanSegmentsMetrics(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

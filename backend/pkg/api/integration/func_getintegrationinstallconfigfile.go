@@ -34,7 +34,7 @@ func (h *handler) GetIntegrationInstallConfigFile() core.HandlerFunc {
 			return
 		}
 
-		configFile, err := h.integrationService.GetIntegrationInstallConfigFile(req)
+		configFile, err := h.integrationService.GetIntegrationInstallConfigFile(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

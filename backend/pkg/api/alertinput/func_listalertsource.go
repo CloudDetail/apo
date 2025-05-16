@@ -22,7 +22,7 @@ import (
 // @Router /api/alertinput/source/list [get]
 func (h *handler) ListAlertSource() core.HandlerFunc {
 	return func(c core.Context) {
-		alertSources, err := h.inputService.ListAlertSource()
+		alertSources, err := h.inputService.ListAlertSource(c)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

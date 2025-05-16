@@ -42,7 +42,7 @@ func (h *handler) GetPodMap() core.HandlerFunc {
 			c.AbortWithPermissionError(err, code.AuthError, new(response.PodMapResponse))
 			return
 		}
-		resp, err := h.networkService.GetPodMap(req)
+		resp, err := h.networkService.GetPodMap(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

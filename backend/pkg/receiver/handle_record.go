@@ -44,17 +44,19 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx context.Context, record *mod
 	var success []string
 	var errs error
 
-	ctx = notify.WithGroupKey(ctx, "alertName")
-	ctx = notify.WithGroupLabels(ctx, pmodel.LabelSet{"alertName": pmodel.LabelValue(alert.Name)})
+	gCtx := context.Background()
+
+	gCtx = notify.WithGroupKey(gCtx, "alertName")
+	gCtx = notify.WithGroupLabels(gCtx, pmodel.LabelSet{"alertName": pmodel.LabelValue(alert.Name)})
 	for name, integrations := range r.receivers {
-		ctx = notify.WithReceiverName(ctx, name)
+		gCtx = notify.WithReceiverName(gCtx, name)
 
 		for _, integration := range integrations {
 			alerts := alert.ToAMAlert(r.externalURL.String(), false)
 			var err error
 			var shouldRetry bool
 			for retry := 3; retry > 0; retry-- {
-				shouldRetry, err = integration.Notify(ctx, alerts)
+				shouldRetry, err = integration.Notify(gCtx, alerts)
 				if !shouldRetry {
 					break
 				}

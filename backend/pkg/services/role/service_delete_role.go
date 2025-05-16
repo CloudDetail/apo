@@ -7,11 +7,11 @@ import (
 	"context"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) DeleteRole(req *request.DeleteRoleRequest) error {
+func (s *service) DeleteRole(ctx core.Context, req *request.DeleteRoleRequest) error {
 	exists, err := s.dbRepo.RoleExists(req.RoleID)
 	if err != nil {
 		return err

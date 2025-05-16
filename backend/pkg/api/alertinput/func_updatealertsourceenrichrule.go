@@ -34,7 +34,7 @@ func (h *handler) UpdateAlertSourceEnrichRule() core.HandlerFunc {
 			return
 		}
 
-		err := h.inputService.UpdateAlertEnrichRule(req)
+		err := h.inputService.UpdateAlertEnrichRule(c, req)
 		if err != nil {
 			var vErr alert.ErrAlertSourceNotExist
 

@@ -41,7 +41,7 @@ func (h *handler) GetUserConfig() core.HandlerFunc {
 			req.Language = model.TRANSLATION_ZH
 		}
 
-		resp, err := h.permissionService.GetUserConfig(req)
+		resp, err := h.permissionService.GetUserConfig(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

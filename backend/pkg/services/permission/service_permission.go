@@ -7,14 +7,14 @@ import (
 	"context"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) GetFeature(req *request.GetFeatureRequest) (response.GetFeatureResponse, error) {
+func (s *service) GetFeature(ctx core.Context, req *request.GetFeatureRequest) (response.GetFeatureResponse, error) {
 	features, err := s.dbRepo.GetFeature(nil)
 	if err != nil {
 		return nil, err
@@ -46,9 +46,9 @@ func (s *service) GetFeature(req *request.GetFeatureRequest) (response.GetFeatur
 	return rootFeatures, nil
 }
 
-func (s *service) GetSubjectFeature(req *request.GetSubjectFeatureRequest) (response.GetSubjectFeatureResponse, error) {
+func (s *service) GetSubjectFeature(ctx core.Context, req *request.GetSubjectFeatureRequest) (response.GetSubjectFeatureResponse, error) {
 	if req.SubjectType == model.PERMISSION_SUB_TYP_USER {
-		return s.getUserFeatureWithSource(req.SubjectID, req.Language)
+		return s.getUserFeatureWithSource(ctx, req.SubjectID, req.Language)
 	}
 
 	featureIDs, err := s.dbRepo.GetSubjectPermission(req.SubjectID, req.SubjectType, model.PERMISSION_TYP_FEATURE)
@@ -64,7 +64,7 @@ func (s *service) GetSubjectFeature(req *request.GetSubjectFeatureRequest) (resp
 	return featureList, nil
 }
 
-func (s *service) getUserFeatureWithSource(userID int64, language string) (response.GetSubjectFeatureResponse, error) {
+func (s *service) getUserFeatureWithSource(ctx core.Context, userID int64, language string) (response.GetSubjectFeatureResponse, error) {
 	// Get user's roles and teams
 	roles, err := s.dbRepo.GetUserRole(userID)
 	if err != nil {
@@ -129,7 +129,7 @@ func (s *service) getUserFeatureWithSource(userID int64, language string) (respo
 	return resp, err
 }
 
-func (s *service) PermissionOperation(req *request.PermissionOperationRequest) error {
+func (s *service) PermissionOperation(ctx core.Context, req *request.PermissionOperationRequest) error {
 	var exists bool
 	var err error
 	switch req.SubjectType {

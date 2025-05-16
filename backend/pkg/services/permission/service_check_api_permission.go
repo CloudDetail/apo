@@ -5,11 +5,11 @@ package permission
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
-func (s *service) CheckApiPermission(userID int64, method string, path string) (ok bool, err error) {
+func (s *service) CheckApiPermission(ctx core.Context, userID int64, method string, path string) (ok bool, err error) {
 	exists, err := s.dbRepo.UserExists(userID)
 	if err != nil {
 		return false, err
@@ -19,7 +19,7 @@ func (s *service) CheckApiPermission(userID int64, method string, path string) (
 		return false, core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
-	featureIDs, err := s.getUserFeatureIDs(userID)
+	featureIDs, err := s.getUserFeatureIDs(ctx, userID)
 	if err != nil {
 		return false, err
 	}

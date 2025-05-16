@@ -46,7 +46,7 @@ func (h *handler) GetTeam() core.HandlerFunc {
 			}
 		}
 
-		resp, err := h.teamService.GetTeamList(req)
+		resp, err := h.teamService.GetTeamList(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

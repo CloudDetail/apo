@@ -8,7 +8,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -35,7 +34,7 @@ func (h *handler) Logout() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.Logout(req)
+		err := h.userService.Logout(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

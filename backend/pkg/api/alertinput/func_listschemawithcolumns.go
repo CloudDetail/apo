@@ -22,7 +22,7 @@ import (
 // @Router /api/alertinput/schema/listwithcolumns [get]
 func (h *handler) ListSchemaWithColumns() core.HandlerFunc {
 	return func(c core.Context) {
-		schemas, err := h.inputService.ListSchema()
+		schemas, err := h.inputService.ListSchema(c)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
@@ -36,7 +36,7 @@ func (h *handler) ListSchemaWithColumns() core.HandlerFunc {
 			Schemas: make(map[string][]string, len(schemas)),
 		}
 		for _, schema := range schemas {
-			columns, err := h.inputService.ListSchemaColumns(schema)
+			columns, err := h.inputService.ListSchemaColumns(c, schema)
 			if err != nil {
 				c.AbortWithError(
 					http.StatusBadRequest,

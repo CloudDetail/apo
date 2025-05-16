@@ -34,7 +34,7 @@ func (h *handler) DeleteAlertRule() core.HandlerFunc {
 			return
 		}
 
-		err := h.alertService.DeleteAlertRule(req)
+		err := h.alertService.DeleteAlertRule(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

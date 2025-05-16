@@ -33,7 +33,7 @@ func (h *handler) SetTTL() core.HandlerFunc {
 			)
 			return
 		}
-		if err := h.configService.SetTTL(req); err != nil {
+		if err := h.configService.SetTTL(c, req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.SetTTLError,

@@ -5,12 +5,13 @@ package integration
 
 import (
 	"github.com/CloudDetail/apo/backend/config"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/mitchellh/mapstructure"
 )
 
 // HACK use static config in configFile now
-func (s *service) GetStaticIntegration() map[string]any {
+func (s *service) GetStaticIntegration(ctx core.Context) map[string]any {
 	resp := make(map[string]any)
 
 	chCfg := config.Get().ClickHouse

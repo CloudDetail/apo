@@ -35,7 +35,7 @@ func (h *handler) Login() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.userService.Login(req)
+		resp, err := h.userService.Login(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

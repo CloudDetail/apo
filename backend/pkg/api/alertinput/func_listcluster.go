@@ -22,7 +22,7 @@ import (
 // @Router /api/alertinput/cluster/list [get]
 func (h *handler) ListCluster() core.HandlerFunc {
 	return func(c core.Context) {
-		clusters, err := h.inputService.ListCluster()
+		clusters, err := h.inputService.ListCluster(c)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

@@ -6,13 +6,14 @@ package alert
 import (
 	"sort"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
 	"github.com/google/uuid"
 	"go.uber.org/multierr"
 )
 
-func (s *service) UpdateAlertEnrichRule(req *alert.AlertEnrichRuleConfigRequest) error {
+func (s *service) UpdateAlertEnrichRule(ctx core.Context, req *alert.AlertEnrichRuleConfigRequest) error {
 	oldEnricherPtr, find := s.dispatcher.EnricherMap.Load(req.SourceId)
 	if !find {
 		return alert.ErrAlertSourceNotExist{}
@@ -103,7 +104,7 @@ func (s *service) UpdateAlertEnrichRule(req *alert.AlertEnrichRuleConfigRequest)
 		enricher, loaded := s.dispatcher.EnricherMap.Load(req.SourceId)
 		if loaded {
 			sourceType := enricher.(*enrich.AlertEnricher).SourceType
-			s.SetDefaultAlertEnrichRule(sourceType, req.EnrichRuleConfigs)
+			s.SetDefaultAlertEnrichRule(ctx, sourceType, req.EnrichRuleConfigs)
 		}
 	}
 

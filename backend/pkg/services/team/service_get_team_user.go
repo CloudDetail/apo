@@ -5,13 +5,13 @@ package team
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetTeamUser(req *request.GetTeamUserRequest) (resp response.GetTeamUserResponse, err error) {
+func (s *service) GetTeamUser(ctx core.Context, req *request.GetTeamUserRequest) (resp response.GetTeamUserResponse, err error) {
 	filter := model.TeamFilter{
 		ID: req.TeamID,
 	}

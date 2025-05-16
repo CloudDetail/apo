@@ -33,7 +33,7 @@ func (h *handler) GetAlertSource() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.inputService.GetAlertSource(req)
+		resp, err := h.inputService.GetAlertSource(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

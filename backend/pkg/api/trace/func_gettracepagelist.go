@@ -57,7 +57,7 @@ func (h *handler) GetTracePageList() core.HandlerFunc {
 			req.PageSize = 10
 		}
 
-		resp, err := h.traceService.GetTracePageList(req)
+		resp, err := h.traceService.GetTracePageList(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

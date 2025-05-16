@@ -35,7 +35,7 @@ func (h *handler) DeleteTeam() core.HandlerFunc {
 			return
 		}
 
-		err := h.teamService.DeleteTeam(req)
+		err := h.teamService.DeleteTeam(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

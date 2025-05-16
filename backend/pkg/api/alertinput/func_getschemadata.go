@@ -33,7 +33,7 @@ func (h *handler) GetSchemaData() core.HandlerFunc {
 			return
 		}
 
-		columns, rows, err := h.inputService.GetSchemaData(req.Schema)
+		columns, rows, err := h.inputService.GetSchemaData(c, req.Schema)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

@@ -32,7 +32,7 @@ func (h *handler) RemoveAlertSlienceConfig() core.HandlerFunc {
 			)
 			return
 		}
-		err := h.alertService.RemoveSlienceConfigByAlertID(req.AlertID)
+		err := h.alertService.RemoveSlienceConfigByAlertID(c, req.AlertID)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

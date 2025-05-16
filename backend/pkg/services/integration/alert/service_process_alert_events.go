@@ -9,10 +9,11 @@ import (
 	"fmt"
 	"log"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
-func (s *service) ProcessAlertEvents(source alert.SourceFrom, data []byte) error {
+func (s *service) ProcessAlertEvents(ctx core.Context, source alert.SourceFrom, data []byte) error {
 	events, err := s.dispatcher.DispatchEvents(&source, data)
 	if err != nil {
 		var errSourceNotExist alert.ErrAlertSourceNotExist

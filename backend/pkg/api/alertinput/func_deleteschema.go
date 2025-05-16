@@ -33,7 +33,7 @@ func (h *handler) DeleteSchema() core.HandlerFunc {
 			return
 		}
 
-		err := h.inputService.DeleteSchema(req.Schema)
+		err := h.inputService.DeleteSchema(c, req.Schema)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

@@ -7,13 +7,14 @@ import (
 	"errors"
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
 	"go.uber.org/multierr"
 	"gorm.io/gorm"
 )
 
-func (s *service) GetAlertSource(source *alert.SourceFrom) (*alert.AlertSource, error) {
+func (s *service) GetAlertSource(ctx core.Context, source *alert.SourceFrom) (*alert.AlertSource, error) {
 	// TODO support search by sourceName
 	alertSource, err := s.dbRepo.GetAlertSource(source.SourceID)
 
@@ -23,7 +24,7 @@ func (s *service) GetAlertSource(source *alert.SourceFrom) (*alert.AlertSource, 
 	return alertSource, err
 }
 
-func (s *service) UpdateAlertSource(source *alert.AlertSource) (*alert.AlertSource, error) {
+func (s *service) UpdateAlertSource(ctx core.Context, source *alert.AlertSource) (*alert.AlertSource, error) {
 	if len(source.SourceID) <= 0 {
 		return nil, fmt.Errorf("must use sourceId to specify the data source")
 	}
@@ -42,17 +43,17 @@ func (s *service) UpdateAlertSource(source *alert.AlertSource) (*alert.AlertSour
 	return source, err
 }
 
-func (s *service) ListAlertSource() ([]alert.AlertSource, error) {
+func (s *service) ListAlertSource(ctx core.Context) ([]alert.AlertSource, error) {
 	return s.dbRepo.ListAlertSource()
 }
 
-func (s *service) DeleteAlertSource(source alert.SourceFrom) (*alert.AlertSource, error) {
+func (s *service) DeleteAlertSource(ctx core.Context, source alert.SourceFrom) (*alert.AlertSource, error) {
 	deletedSource, err := s.dbRepo.DeleteAlertSource(source)
 	if err != nil {
 		return nil, err
 	}
 
-	s.dispatcher.DeleteAlertSource(deletedSource)
+	s.dispatcher.DeleteAlertSource(ctx, deletedSource)
 
 	var storeError error
 	err = s.dbRepo.DeleteAlertEnrichRuleBySourceId(source.SourceID)

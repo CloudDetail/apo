@@ -58,7 +58,7 @@ func (h *handler) CreateUser() core.HandlerFunc {
 			return
 		}
 
-		err := h.userService.CreateUser(req)
+		err := h.userService.CreateUser(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

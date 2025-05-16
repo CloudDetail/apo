@@ -4,12 +4,13 @@
 package team
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetTeamList(req *request.GetTeamRequest) (resp response.GetTeamResponse, err error) {
+func (s *service) GetTeamList(ctx core.Context, req *request.GetTeamRequest) (resp response.GetTeamResponse, err error) {
 	teams, count, err := s.dbRepo.GetTeamList(req)
 	if err != nil {
 		return
