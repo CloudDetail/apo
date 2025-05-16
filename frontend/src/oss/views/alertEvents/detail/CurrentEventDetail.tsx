@@ -11,6 +11,7 @@ import { useState } from 'react'
 import { FaEye } from 'react-icons/fa'
 import { getAlertWorkflowIdApi } from 'src/core/api/alerts'
 import { notify } from 'src/core/utils/notify'
+import LoadingSpinner from 'src/core/components/Spinner'
 const CurrentEventDetail = ({
   detail,
   alertCheckId,
@@ -21,6 +22,7 @@ const CurrentEventDetail = ({
   const { t } = useTranslation('oss/alertEvents')
   const [modalOpen, setModalOpen] = useState(false)
   const [workflowUrl, setWorkflowUrl] = useState(null)
+  const [loading, setLoading] = useState(true)
   const { useToken } = theme
   const { token } = useToken()
   const closeModal = () => {
@@ -98,6 +100,9 @@ const CurrentEventDetail = ({
     setModalOpen(true)
   }
   async function openWorkflowModal() {
+    setLoading(true)
+    setModalOpen(true)
+
     const workflowId = await getWorkflowId(detail.group, detail.name)
     if (!workflowId) {
       notify({
@@ -111,7 +116,7 @@ const CurrentEventDetail = ({
       .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
       .join('&')
     setWorkflowUrl(result + params)
-    setModalOpen(true)
+    setLoading(false)
   }
   return (
     <div
@@ -155,6 +160,7 @@ const CurrentEventDetail = ({
         width={'80vw'}
         styles={{ body: { height: '80vh', overflowY: 'hidden', overflowX: 'hidden' } }}
       >
+        <LoadingSpinner loading={loading} />
         {workflowUrl && <WorkflowsIframe src={workflowUrl} />}
       </Modal>
     </div>
