@@ -250,24 +250,29 @@ const AlertEventsPage = () => {
   )
 
   async function openWorkflowModal(workflowParams, group, name) {
-    setLoading(true)
-    setModalOpen(true)
-    const workflowId = await getWorkflowId(group, name)
-    if (!workflowId) {
+    try {
+      setLoading(true)
+      setModalOpen(true)
+      const workflowId = await getWorkflowId(group, name)
+      if (!workflowId) {
+        throw new Error()
+      }
+      let result = '/dify/app/' + workflowId + '/run-once?'
+      const params = Object.entries(workflowParams)
+        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+        .join('&')
+      setWorkflowUrl(result + params)
+    } catch {
       notify({
         type: 'error',
         message: t('missToast2'),
       })
+      setLoading(false)
+      setModalOpen(false)
       return
+    } finally {
+      setLoading(false)
     }
-    let result = '/dify/app/' + workflowId + '/run-once?'
-    const params = Object.entries(workflowParams)
-      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-      .join('&')
-    setWorkflowUrl(result + params)
-    setLoading(false)
-    // buildParams('workflowParams', workflowParams)
-    // return paramsArray.join('&')
   }
   function openResultModal(workflowRunId) {
     let result = '/dify/app/' + alertCheckId + '/logs/' + workflowRunId
@@ -279,8 +284,13 @@ const AlertEventsPage = () => {
     setModalOpen(false)
   }
   async function getWorkflowId(alertGroup, alertName) {
-    const res = await getAlertWorkflowIdApi({ alertGroup, alertName })
-    return res?.workflowId
+    try {
+      const res = await getAlertWorkflowIdApi({ alertGroup, alertName })
+      return res?.workflowId
+    } catch (error) {
+      console.error('获取 workflowId 失败:', error)
+      return null
+    }
   }
   const columns = [
     {

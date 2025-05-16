@@ -168,8 +168,8 @@ function K8sInfo() {
             )
           })}
           <LoadingSpinner loading={loading} />
-          {!loading && (!data || Object.keys(data).length === 0) && <Empty />}
         </CRow>
+        {!loading && (!data || Object.keys(data).length === 0) && <Empty />}
       </div>
     </>
   )

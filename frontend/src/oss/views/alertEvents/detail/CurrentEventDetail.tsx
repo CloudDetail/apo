@@ -91,8 +91,12 @@ const CurrentEventDetail = ({
     },
   ]
   async function getWorkflowId(alertGroup, alertName) {
-    const res = await getAlertWorkflowIdApi({ alertGroup, alertName })
-    return res?.workflowId
+    try {
+      const res = await getAlertWorkflowIdApi({ alertGroup, alertName })
+      return res?.workflowId
+    } catch (error) {
+      return null
+    }
   }
   function openResultModal(workflowRunId) {
     let result = '/dify/app/' + alertCheckId + '/logs/' + workflowRunId
@@ -100,23 +104,38 @@ const CurrentEventDetail = ({
     setModalOpen(true)
   }
   async function openWorkflowModal() {
-    setLoading(true)
-    setModalOpen(true)
+    try {
+      setLoading(true)
+      setModalOpen(true)
 
-    const workflowId = await getWorkflowId(detail.group, detail.name)
-    if (!workflowId) {
+      const workflowId = await getWorkflowId(detail.group, detail.name)
+      if (!workflowId) {
+        throw new Error()
+      }
+      if (!workflowId) {
+        notify({
+          type: 'error',
+          message: t('missToast2'),
+        })
+        setLoading(false)
+        return
+      }
+      let result = '/dify/app/' + workflowId + '/run-once?'
+      const params = Object.entries(detail.workflowParams)
+        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+        .join('&')
+      setWorkflowUrl(result + params)
+    } catch {
       notify({
         type: 'error',
         message: t('missToast2'),
       })
+      setLoading(false)
+      setModalOpen(false)
       return
+    } finally {
+      setLoading(false)
     }
-    let result = '/dify/app/' + workflowId + '/run-once?'
-    const params = Object.entries(detail.workflowParams)
-      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-      .join('&')
-    setWorkflowUrl(result + params)
-    setLoading(false)
   }
   return (
     <div
