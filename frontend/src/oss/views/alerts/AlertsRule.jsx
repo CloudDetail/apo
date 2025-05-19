@@ -263,7 +263,7 @@ export default function AlertsRule() {
   return (
     <CustomCard styleType="alerts">
       <LoadingSpinner loading={loading} />
-      <div className="flex items-center justify-betweeen text-sm ">
+      <div className="flex items-center justify-between text-sm ">
         <Space className="flex-grow">
           <Space className="flex-1">
             <span className="text-nowrap">{t('rule.groupName')}：</span>

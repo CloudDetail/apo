@@ -166,7 +166,7 @@ const BasicTable = React.memo((props) => {
   }, [pagination])
   return (
     <div className={showBorder ? 'basic-table border-table' : 'basic-table'}>
-      <table {...getTableProps()} ref={tableRef}>
+      <table {...getTableProps()} ref={tableRef} className='m-0'>
         <thead
           className="m-0 overflow-y-scroll "
           style={{ borderRadius: '8px 8px 0 0', color: token?.headerColor }}

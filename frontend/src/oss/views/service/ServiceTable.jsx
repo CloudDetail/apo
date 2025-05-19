@@ -17,7 +17,7 @@ import { DelaySourceTimeUnit } from 'src/constants'
 import { convertTime } from 'src/core/utils/time'
 import EndpointTableModal from './component/EndpointTableModal'
 import LoadingSpinner from 'src/core/components/Spinner'
-import { Card, Tooltip } from 'antd'
+import { Card, Space, Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
 import TableFilter from 'src/core/components/Filter/TableFilter'
@@ -25,6 +25,8 @@ import { useTranslation } from 'react-i18next'
 import React from 'react'
 import { ChartsProvider, useChartsContext } from 'src/core/contexts/ChartsContext'
 import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
+import CustomCard from 'src/core/components/Card/CustomCard'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) => {
   const { t, i18n } = useTranslation('oss/service')
   const navigate = useNavigate()
@@ -432,37 +434,87 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
     }
   }, [data, pageIndex, pageSize])
   return (
-    <div style={{ width: '100%', overflow: 'hidden' }} className="h-full flex flex-col">
+  //   <div style={{ width: '100%', overflow: 'hidden' }} className="h-full flex flex-col">
+  //   <LoadingSpinner loading={loading} />
+  //   <TableFilter
+  //     groupId={groupId}
+  //     setServiceName={setServiceName}
+  //     setEndpoint={setEndpoint}
+  //     setNamespace={setNamespace}
+  //     className="mb-2"
+  //   />
+  //   <Card className="flex-1 overflow-hidden" styles={{ body: { height: height, padding: 0 } }}>
+  //     <div className="mb-4 h-full p-2 text-xs justify-between">
+  //       <BasicTable {...tableProps} />
+  //     </div>
+  //     <ChartsProvider>
+  //       <EndpointTableModal
+  //         visible={modalVisible}
+  //         serviceName={modalServiceName}
+  //         timeRange={requestTimeRange}
+  //         closeModal={() => setModalVisible(false)}
+  //       />
+  //     </ChartsProvider>
+  //   </Card>
+  // </div>
+
+    // <CustomCard styleType="alerts">
+    //   <LoadingSpinner loading={loading} />
+
+    //   <div className="flex items-center justify-between text-sm ">
+    //     <Space className="flex-grow w-full border-b">
+    //       <TableFilter
+    //         groupId={groupId}
+    //         setServiceName={setServiceName}
+    //         setEndpoint={setEndpoint}
+    //         setNamespace={setNamespace}
+    //         className="mb-2"
+    //       />
+    //     </Space>
+    //   </div>
+
+    //   <div className="flex-1 overflow-auto">
+    //     <div className="h-full text-xs justify-between">
+    //       <BasicTable {...tableProps} />
+    //     </div>
+    //   </div>
+
+    //   <ChartsProvider>
+    //     <EndpointTableModal
+    //       visible={modalVisible}
+    //       serviceName={modalServiceName}
+    //       timeRange={requestTimeRange}
+    //       closeModal={() => setModalVisible(false)}
+    //     />
+    //   </ChartsProvider>
+    // </CustomCard>
+
+    <BasicCard>
       <LoadingSpinner loading={loading} />
-      {/* <CToast autohide={false} visible={true} className="align-items-center w-full my-2">
-        <div className="d-flex">
-          <CToastBody className=" flex flex-row items-center text-xs">
-            <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-            {t('index.serviceTableToast')}
-          </CToastBody>
-        </div>
-      </CToast> */}
-      <TableFilter
-        groupId={groupId}
-        setServiceName={setServiceName}
-        setEndpoint={setEndpoint}
-        setNamespace={setNamespace}
-        className="mb-2"
-      />
-      <Card className="flex-1 overflow-hidden" styles={{ body: { height: height, padding: 0 } }}>
-        <div className="mb-4 h-full p-2 text-xs justify-between">
-          <BasicTable {...tableProps} />
-        </div>
-        <ChartsProvider>
-          <EndpointTableModal
-            visible={modalVisible}
-            serviceName={modalServiceName}
-            timeRange={requestTimeRange}
-            closeModal={() => setModalVisible(false)}
-          />
-        </ChartsProvider>
-      </Card>
-    </div>
+
+      <BasicCard.Filter>
+        <TableFilter
+          groupId={groupId}
+          setServiceName={setServiceName}
+          setEndpoint={setEndpoint}
+          setNamespace={setNamespace}
+          className="mb-2"
+        />
+      </BasicCard.Filter>
+
+      <BasicCard.Table>
+        <BasicTable {...tableProps} />
+      </BasicCard.Table>
+
+      <ChartsProvider>
+        <EndpointTableModal
+          visible={modalVisible}
+          serviceName={modalServiceName}
+          timeRange={requestTimeRange}
+          closeModal={() => setModalVisible(false)}
+        />
+      </ChartsProvider>
+    </BasicCard>
   )
 })
 export default ServiceTable
