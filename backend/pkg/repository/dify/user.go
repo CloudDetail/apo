@@ -6,9 +6,12 @@ package dify
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/CloudDetail/apo/backend/pkg/util"
 	"io"
 	"net/http"
 )
+
+var byteUnmarshallingValidator = util.NewByteValidator(1024*1024, []string{}, []string{"$func", "$eval", "constructor", "prototype"}, 10)
 
 // AddUser implements DifyRepo.
 func (d *difyRepo) AddUser(username string, password string, role string) (*DifyResponse, error) {

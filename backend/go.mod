@@ -7,6 +7,7 @@ toolchain go1.23.8
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.34.0
 	github.com/CloudDetail/metadata v0.0.0-20240903055919-f0487c96aa95
+	github.com/capitalone/fpe v1.2.1
 	github.com/dave/dst v0.27.3
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-logr/zapr v1.3.0
@@ -48,7 +49,6 @@ require (
 )
 
 require (
-	github.com/capitalone/fpe v1.2.1 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/coder/quartz v0.1.2 // indirect
