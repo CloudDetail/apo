@@ -55,7 +55,7 @@ export default function ALertConditionCom({ expr, setExpr }) {
 
   return (
     <>
-      <div className="flex border-1 border-solid rounded border-[#424242] hover:border-[#3c89e8] focus:border-[#3c89e8]">
+      <div className="flex border-1 border-solid rounded border-[var(--ant-color-border-secondary)] hover:border-[var(--ant-color-primary-border-hover)] focus:border-[var(--ant-color-primary-border)]">
         <div className="flex-grow-0 flex-shrink-0 flex items-center px-2">
           <Dropdown
             menu={{

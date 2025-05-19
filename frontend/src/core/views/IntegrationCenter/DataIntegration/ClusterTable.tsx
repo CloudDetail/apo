@@ -58,9 +58,9 @@ const ClusterTable = () => {
                 // setGroupInfo(record)
                 toSettingPage(record.id, record.clusterType)
               }}
-              icon={<MdOutlineEdit className="text-blue-400 hover:text-blue-400" />}
+              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
             >
-              <span className="text-blue-400 hover:text-blue-400">{ct('edit')}</span>
+              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">{ct('edit')}</span>
             </Button>
             <Popconfirm
               title={t('confirmDelete', {

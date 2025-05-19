@@ -64,7 +64,7 @@ function TeamPage() {
                 setInfoModalVisible(true)
                 setTeamInfo(record)
               }}
-              icon={<MdOutlineEdit className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]" />}
+              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
             >
               <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
                 {ct('edit')}

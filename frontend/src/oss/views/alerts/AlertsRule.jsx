@@ -100,7 +100,7 @@ export default function AlertsRule() {
       accessor: 'expr',
       justifyContent: 'left',
       Cell: ({ value }) => {
-        return <span className="text-[var(--ant-color-text-secondary)]">{value}</span>
+        return <span className="text-[var(--ant-color-text)]">{value}</span>
       },
     },
 
@@ -129,7 +129,7 @@ export default function AlertsRule() {
             <Button
               type="text"
               onClick={() => clickEditRule(row)}
-              icon={<MdOutlineEdit className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]" />}
+              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
             >
               <span style={{ color: token.colorPrimary }}>{t('rule.edit')}</span>
             </Button>

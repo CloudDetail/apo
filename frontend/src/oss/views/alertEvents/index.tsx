@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Modal, Tooltip, Statistic, Checkbox, Image, Card, Tag, theme } from 'antd'
+import { Button, Modal, Tooltip, Statistic, Checkbox, Image, Card, Tag, theme, Result } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
@@ -16,7 +16,6 @@ import CountUp from 'react-countup'
 import filterSvg from 'core/assets/images/filter.svg'
 import { useDebounce } from 'react-use'
 import { AlertDeration, ALertIsValid, AlertStatus, AlertTags } from './components/AlertInfoCom'
-import { notify } from 'src/core/utils/notify'
 import { useNavigate } from 'react-router-dom'
 import LoadingSpinner from 'src/core/components/Spinner'
 function isJSONString(str) {
@@ -263,12 +262,7 @@ const AlertEventsPage = () => {
         .join('&')
       setWorkflowUrl(result + params)
     } catch {
-      notify({
-        type: 'error',
-        message: t('missToast2'),
-      })
       setLoading(false)
-      setModalOpen(false)
       return
     } finally {
       setLoading(false)
@@ -483,6 +477,13 @@ const AlertEventsPage = () => {
           styles={{ body: { height: '80vh', overflowY: 'hidden', overflowX: 'hidden' } }}
         >
           <LoadingSpinner loading={loading} />
+          {!loading && !workflowUrl && (
+            <Result
+              status="error"
+              title={t('missToast2')}
+              className="h-full flex flex-col items-center justify-center w-full"
+            />
+          )}
           {workflowUrl && <WorkflowsIframe src={workflowUrl} />}
         </Modal>
       </div>
