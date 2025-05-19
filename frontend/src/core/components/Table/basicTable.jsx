@@ -295,7 +295,9 @@ const BasicTable = React.memo((props) => {
           }}
           className="mt-1"
           showTotal={(total) => (
-            <span className="text-xs text-gray-400">{t('pagination', { total })}</span>
+            <span className="text-xs text-[var(--ant-color-text-secondary)]">
+              {t('pagination', { total })}
+            </span>
           )}
           size={paginationSize}
         />

@@ -92,7 +92,7 @@ const AlertStatus = ({
     <div className="text-center">
       <Tag color={status === 'firing' ? 'error' : 'success'}>{t(`oss/alertEvents:${status}`)}</Tag>
       {status === 'resolved' && resolvedTime && (
-        <span className="text-[10px] block text-gray-400">
+        <span className="text-[10px] block text-[var(--ant-color-text-secondary)]">
           {t('oss/alertEvents:resolvedOn')} {resolvedTime}
         </span>
       )}
@@ -107,7 +107,9 @@ const workflowMissToast = (type: 'alertCheckId' | 'workflowId') => {
       }
     >
       <div>
-        <span className="text-gray-400 text-xs">{t('oss/alertEvents:workflowMiss')}</span>
+        <span className="text-[var(--ant-color-text-secondary)] text-xs">
+          {t('oss/alertEvents:workflowMiss')}
+        </span>
       </div>
     </Tooltip>
   )
@@ -133,7 +135,7 @@ const ALertIsValid = ({
       {!alertCheckId ? (
         workflowMissToast('alertCheckId')
       ) : ['unknown', 'skipped'].includes(isValid) || (isValid === 'failed' && !workflowRunId) ? (
-        <span className="text-gray-400 text-wrap [word-break:auto-phrase] text-center flex items-center">
+        <span className="text-[var(--ant-color-text-secondary)] text-wrap [word-break:auto-phrase] text-center flex items-center">
           {t(`oss/alertEvents:${isValid}`)}
         </span>
       ) : (

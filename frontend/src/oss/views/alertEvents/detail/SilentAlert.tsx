@@ -82,12 +82,12 @@ const SilentAlert = ({ alertId }: { alertId?: string | null }) => {
         ></Select>
         <div className="text-xs mt-1">
           {slience ? (
-            <span className="text-gray-400">
+            <span className="text-[var(--ant-color-text-secondary)]">
               {t('silentTimerange')}：{convertUTCToLocal(slience.startAt)} to{' '}
               {convertUTCToLocal(slience.endAt)}
             </span>
           ) : (
-            <span className="text-gray-400">{t('silentNotify')}</span>
+            <span className="text-[var(--ant-color-text-secondary)]">{t('silentNotify')}</span>
           )}
         </div>
       </>
@@ -105,10 +105,15 @@ const SilentAlert = ({ alertId }: { alertId?: string | null }) => {
           style={{
             color: token.colorWarningText,
             backgroundColor: token.colorWarningBg,
-            borderColor: token.colorWarningBorder
+            borderColor: token.colorWarningBorder,
           }}
-          onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorWarningBgHover; e.currentTarget.style.color = token.colorWarningTextActive}}
-          onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = token.colorWarningBg}}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = token.colorWarningBgHover
+            e.currentTarget.style.color = token.colorWarningTextActive
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = token.colorWarningBg
+          }}
         >
           {forDuration ? t('silent') : t('onSilent')}
         </Button>

@@ -132,13 +132,13 @@ const ExtraPanel = ({ firingCounts, invalidCounts, alertCheck }) => {
           <div className="flex flex-col h-full justify-center">
             <Statistic
               className=" flex flex-col justify-center"
-              title={<span>{t('rate')}</span>}
+              title={<span className="text-[var(--ant-color-text)]">{t('rate')}</span>}
               value={firingCounts === 0 ? 0 : (invalidCounts / firingCounts) * 100}
               precision={2}
               suffix="%"
               formatter={formatter}
             />
-            <span className="text-gray-400 text-xs" style={{ color: token.colorTextSecondary }}>
+            <span className="text-xs" style={{ color: token.colorTextSecondary }}>
               {t('In')}
               <span className="mx-1">
                 <Tag color={'error'}>{firingCounts}</Tag>
@@ -186,7 +186,7 @@ const AlertEventsPage = () => {
   const workflowMissToast = (type: 'alertCheckId' | 'workflowId') => {
     return (
       <Tooltip title={type === 'alertCheckId' ? t('missToast1') : t('missToast2')}>
-        <span className="text-gray-400 text-xs">{t('workflowMiss')}</span>
+        <span className="text-[var(--ant-color-text-secondary)] text-xs">{t('workflowMiss')}</span>
       </Tooltip>
     )
   }
