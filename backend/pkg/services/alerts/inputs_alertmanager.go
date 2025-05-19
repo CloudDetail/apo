@@ -26,6 +26,8 @@ func transferAlertManager(data *request.InputAlertManagerRequest) []*model.Alert
 			log.Println("[AlertManager] Error marshaling annotations: ", err)
 			continue
 		}
+
+		now := time.Now()
 		alertEvent := &model.AlertEvent{
 			ID:           model.GenUUID(),
 			Source:       model.AlertManagerSource,
@@ -34,8 +36,8 @@ func transferAlertManager(data *request.InputAlertManagerRequest) []*model.Alert
 			Status:       convertStatus(a.Status),
 			Group:        a.Labels["group"],
 			CreateTime:   startsAt,
-			UpdateTime:   startsAt,
-			ReceivedTime: time.Now(),
+			UpdateTime:   now,
+			ReceivedTime: now,
 			EndTime:      endsAt,
 			Detail:       string(annotationsJson),
 			Tags:         a.Labels,

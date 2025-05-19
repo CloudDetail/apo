@@ -6,9 +6,7 @@
 import { cilCalendar, cilClock } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import {
-  CButton,
   CDropdown,
-  CDropdownItem,
   CDropdownMenu,
   CDropdownToggle,
   CForm,
@@ -30,6 +28,7 @@ import { convertTime, ISOToTimestamp, TimestampToISO, timeUtils } from 'src/core
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { useUpdateEffect } from 'react-use'
 import { useTranslation } from 'react-i18next'
+import { Button, Menu } from 'antd'
 
 const DateTimeRangePicker = React.memo((props) => {
   const { t } = useTranslation('core/dateTime')
@@ -43,7 +42,9 @@ const DateTimeRangePicker = React.memo((props) => {
     key: 'selection',
   })
   // 展示用的starttime（取消快速范围，快速范围只用于获取精确数据）
-  const [startTime, setStartTime] = useState(timeUtils.format(state.startDate, 'yyyy-MM-dd HH:mm:ss'))
+  const [startTime, setStartTime] = useState(
+    timeUtils.format(state.startDate, 'yyyy-MM-dd HH:mm:ss'),
+  )
   const [endTime, setEndTime] = useState(timeUtils.format(state.endDate, 'yyyy-MM-dd HH:mm:ss'))
   const [startTimeInvalid, setStartTimeInvalid] = useState(false)
   const [endTimeInvalid, setEndTimeInvalid] = useState(false)
@@ -289,14 +290,13 @@ const DateTimeRangePicker = React.memo((props) => {
   return (
     <>
       <CDropdown
-        dark
+        // dark
         autoClose="outside"
         visible={dropdownVisible}
         onShow={() => setDropdownVisible(true)}
         onHide={() => setDropdownVisible(false)}
       >
         <CDropdownToggle
-          color="dark"
           className="dateTimeRangePicker flex items-center"
           size="sm"
           onClick={() => setDropdownVisible(true)}
@@ -312,7 +312,7 @@ const DateTimeRangePicker = React.memo((props) => {
         </CDropdownToggle>
         <CDropdownMenu className="m-0 p-0">
           <div className="w-[600px] flex">
-            <div className="w-3/5 border-r border-r-slate-700  px-3 py-2">
+            <div className="w-3/5 border-r border-r-slate-300  px-3 py-2">
               <CForm noValidate>
                 <div>{t('dateTimeRangePicker.absoluteTimeRangeTitle')}</div>
 
@@ -351,9 +351,9 @@ const DateTimeRangePicker = React.memo((props) => {
                   </CInputGroupText>
                   <CFormFeedback invalid>{endTimeFeedback}</CFormFeedback>
                 </CInputGroup>
-                <CButton color="primary" size="sm" className="mt-3" onClick={confirmTimeRange}>
+                <Button type="primary" className="mt-3" onClick={confirmTimeRange}>
                   {t('dateTimeRangePicker.applyTimeRangeButtonText')}
-                </CButton>
+                </Button>
               </CForm>
               <DateRange
                 moveRangeOnFirstSelection={false}
@@ -368,19 +368,14 @@ const DateTimeRangePicker = React.memo((props) => {
             </div>
             <div className="w-2/5">
               <div className="p-2">{t('dateTimeRangePicker.quickRangeTitle')}</div>
-              <CDropdownMenu className="w-2/5 border-0">
-                {Object.keys(timeRangeMap).map((key) => {
-                  return (
-                    <CDropdownItem
-                      key={key}
-                      onClick={() => selectTimeRange(key)}
-                      active={storeTimeRange.rangeTypeKey === key}
-                    >
-                      {timeRangeMap[key].name}
-                    </CDropdownItem>
-                  )
-                })}
-              </CDropdownMenu>
+              <Menu
+                selectedKeys={[storeTimeRange.rangeTypeKey]}
+                onClick={({ key }) => selectTimeRange(key)}
+              >
+                {Object.keys(timeRangeMap).map((key) => (
+                  <Menu.Item key={key}>{timeRangeMap[key].name}</Menu.Item>
+                ))}
+              </Menu>
             </div>
           </div>
         </CDropdownMenu>

@@ -239,7 +239,7 @@ function FaultSiteTrace() {
         const { value } = props
 
         return (
-          <a className=" cursor-pointer text-blue-500" onClick={() => openJeagerModal(value)}>
+          <a className=" cursor-pointer text-[var(--ant-color-link)]" onClick={() => openJeagerModal(value)}>
             {value}
           </a>
         )

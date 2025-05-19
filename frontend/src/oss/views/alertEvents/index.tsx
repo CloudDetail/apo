@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Modal, Tag as AntdTag, Tooltip, Statistic, Checkbox, Image, Card } from 'antd'
+import { Button, Modal, Tooltip, Statistic, Checkbox, Image, Card, Tag, theme, Result } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
@@ -11,13 +11,13 @@ import { getAlertEventsApi, getAlertWorkflowIdApi } from 'src/core/api/alerts'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { convertUTCToLocal } from 'src/core/utils/time'
 import WorkflowsIframe from '../workflows/workflowsIframe'
-import Tag from 'src/core/components/Tag/Tag'
 import PieChart from './PieChart'
 import CountUp from 'react-countup'
 import filterSvg from 'core/assets/images/filter.svg'
-import ReactJson from 'react-json-view'
 import { useDebounce } from 'react-use'
-import { showToast } from 'src/core/utils/toast'
+import { AlertDeration, ALertIsValid, AlertStatus, AlertTags } from './components/AlertInfoCom'
+import { useNavigate } from 'react-router-dom'
+import LoadingSpinner from 'src/core/components/Spinner'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -32,11 +32,11 @@ const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
 
   const statusOptions = [
     {
-      label: <Tag type={'error'}>{t('firing')}</Tag>,
+      label: <Tag color={'error'}>{t('firing')}</Tag>,
       value: 'firing',
     },
     {
-      label: <Tag type={'success'}>{t('resolved')}</Tag>,
+      label: <Tag color={'success'}>{t('resolved')}</Tag>,
       value: 'resolved',
     },
   ]
@@ -47,7 +47,6 @@ const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
   ]
   return (
     <div className="flex pb-2 ">
-      {/* Todo: need to be translated */}
       <div>
         {t('alertStatus')}:{' '}
         <Checkbox.Group
@@ -72,6 +71,8 @@ const formatter = (value) => <CountUp end={value as number} separator="," />
 // Current info right panel
 const StatusPanel = ({ firingCounts, resolvedCounts }) => {
   const { t } = useTranslation('oss/alertEvents')
+  const { useToken } = theme
+  const { token } = useToken()
 
   const chartData = [
     { name: t('firing'), value: firingCounts, type: 'error' },
@@ -79,13 +80,16 @@ const StatusPanel = ({ firingCounts, resolvedCounts }) => {
   ]
   return (
     <div className="flex pb-2 h-full flex-1  ">
-      <div className="w-full ml-1 rounded-xl flex h-full bg-[#141414] p-0">
+      <div
+        className="w-full ml-1 rounded-xl flex h-full p-0"
+        style={{ backgroundColor: token.colorBgContainer }}
+      >
         <div className="h-full shrink-0 pl-4 flex">
           {chartData.map((item) => (
             <div className="w-[100px] h-full block items-center">
               <Statistic
                 className="h-full flex flex-col justify-center"
-                title={<Tag type={item.type}>{item.name}</Tag>}
+                title={<Tag color={item.type}>{item.name}</Tag>}
                 value={item.value}
                 formatter={formatter}
               />
@@ -113,9 +117,14 @@ const StatusPanel = ({ firingCounts, resolvedCounts }) => {
 // Current info left panel
 const ExtraPanel = ({ firingCounts, invalidCounts, alertCheck }) => {
   const { t } = useTranslation('oss/alertEvents')
+  const { useToken } = theme
+  const { token } = useToken()
   return (
     <div className=" pb-2 h-full  shrink-0 w-1/2 mr-3">
-      <div className="w-full rounded-xl flex h-full bg-[#141414] p-2 ">
+      <div
+        className="w-full rounded-xl flex h-full p-2 "
+        style={{ backgroundColor: token.colorBgContainer }}
+      >
         <div className="ml-3 mr-7">
           <Image src={filterSvg} width={50} height={'100%'} preview={false} />
         </div>
@@ -123,20 +132,20 @@ const ExtraPanel = ({ firingCounts, invalidCounts, alertCheck }) => {
           <div className="flex flex-col h-full justify-center">
             <Statistic
               className=" flex flex-col justify-center"
-              title={<span className="text-white">{t('rate')}</span>}
+              title={<span>{t('rate')}</span>}
               value={firingCounts === 0 ? 0 : (invalidCounts / firingCounts) * 100}
               precision={2}
               suffix="%"
               formatter={formatter}
             />
-            <span className="text-gray-400 text-xs">
+            <span className="text-gray-400 text-xs" style={{ color: token.colorTextSecondary }}>
               {t('In')}
               <span className="mx-1">
-                <Tag type={'error'}>{firingCounts}</Tag>
+                <Tag color={'error'}>{firingCounts}</Tag>
               </span>
               {t('alerts, AI identified')}{' '}
               <span className="mx-1">
-                <Tag type={'warning'}>{invalidCounts}</Tag>
+                <Tag color={'warning'}>{invalidCounts}</Tag>
               </span>
               {t('invalid alerts for auto suppression')}
             </span>
@@ -155,6 +164,8 @@ const ExtraPanel = ({ firingCounts, invalidCounts, alertCheck }) => {
 
 const AlertEventsPage = () => {
   const { t } = useTranslation('oss/alertEvents')
+  const { t: ct } = useTranslation('common')
+  const navigate = useNavigate()
   const [pagination, setPagination] = useState({
     pageIndex: 1,
     pageSize: 10,
@@ -180,9 +191,8 @@ const AlertEventsPage = () => {
     )
   }
   const getAlertEventsRef = useRef<() => void>(() => {})
-
+  const [loading, setLoading] = useState(true)
   const getAlertEvents = () => {
-    // 🔁 每次都清掉旧定时器
     if (timerRef.current) {
       clearTimeout(timerRef.current)
       timerRef.current = null
@@ -217,7 +227,7 @@ const AlertEventsPage = () => {
       setInvalidCounts(res?.counts['firing-invalid'])
       setFiringCounts(res?.counts?.firing)
       setResolvedCounts(res?.counts?.resolved)
-
+      setLoading(false)
       timerRef.current = setTimeout(
         () => {
           getAlertEventsRef.current()
@@ -229,6 +239,8 @@ const AlertEventsPage = () => {
   useDebounce(
     () => {
       if (startTime && endTime) {
+        setLoading(true)
+
         getAlertEvents()
       }
     },
@@ -237,22 +249,24 @@ const AlertEventsPage = () => {
   )
 
   async function openWorkflowModal(workflowParams, group, name) {
-    const workflowId = await getWorkflowId(group, name)
-    if (!workflowId) {
-      showToast({
-        color: 'danger',
-        title: t('missToast2'),
-      })
+    try {
+      setLoading(true)
+      setModalOpen(true)
+      const workflowId = await getWorkflowId(group, name)
+      if (!workflowId) {
+        throw new Error()
+      }
+      let result = '/dify/app/' + workflowId + '/run-once?'
+      const params = Object.entries(workflowParams)
+        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+        .join('&')
+      setWorkflowUrl(result + params)
+    } catch {
+      setLoading(false)
       return
+    } finally {
+      setLoading(false)
     }
-    let result = '/dify/app/' + workflowId + '/run-once?'
-    const params = Object.entries(workflowParams)
-      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-      .join('&')
-    setWorkflowUrl(result + params)
-    setModalOpen(true)
-    // buildParams('workflowParams', workflowParams)
-    // return paramsArray.join('&')
   }
   function openResultModal(workflowRunId) {
     let result = '/dify/app/' + alertCheckId + '/logs/' + workflowRunId
@@ -264,8 +278,13 @@ const AlertEventsPage = () => {
     setModalOpen(false)
   }
   async function getWorkflowId(alertGroup, alertName) {
-    const res = await getAlertWorkflowIdApi({ alertGroup, alertName })
-    return res?.workflowId
+    try {
+      const res = await getAlertWorkflowIdApi({ alertGroup, alertName })
+      return res?.workflowId
+    } catch (error) {
+      console.error('获取 workflowId 失败:', error)
+      return null
+    }
   }
   const columns = [
     {
@@ -279,46 +298,13 @@ const AlertEventsPage = () => {
       accessor: 'tags',
       justifyContent: 'left',
       Cell: ({ value, row }) => {
-        const [visible, setVisible] = useState(false)
-
-        const { detail } = row.original
-        return (
-          <div className="overflow-hidden">
-            {Object.entries(value || {}).map(([key, tagValue]) => (
-              <AntdTag className="text-pretty mb-1 break-all">
-                {key} = {tagValue}
-              </AntdTag>
-            ))}
-
-            {isJSONString(detail) && (
-              <Button
-                color="primary"
-                variant="text"
-                size="small"
-                onClick={() => setVisible(!visible)}
-              >
-                {visible ? t('collapse') : t('expand')}
-              </Button>
-            )}
-
-            {visible && (
-              <ReactJson
-                src={JSON.parse(detail || '')}
-                theme="brewer"
-                collapsed={false}
-                displayDataTypes={false}
-                style={{ width: '100%' }}
-                enableClipboard={false}
-              />
-            )}
-          </div>
-        )
+        return <AlertTags tags={value} detail={row.original.detail} />
       },
     },
 
     {
-      title: t('lastAlertTime'),
-      accessor: 'updateTime',
+      title: t('createTime'),
+      accessor: 'createTime',
       customWidth: 100,
       Cell: ({ value }) => {
         const result = convertUTCToLocal(value)
@@ -331,67 +317,75 @@ const AlertEventsPage = () => {
       },
     },
     {
+      title: t('duration'),
+      accessor: 'duration',
+      customWidth: 100,
+      Cell: ({ value, row }) => {
+        const updateTime = convertUTCToLocal(row.original.updateTime)
+        return <AlertDeration duration={value} updateTime={updateTime} />
+      },
+    },
+    {
       title: t('status'),
       accessor: 'status',
-      customWidth: 120,
+      customWidth: 100,
       Cell: ({ value, row }) => {
-        const result = convertUTCToLocal(row.original.endTime)
-        return (
-          <div className="text-center">
-            <Tag type={value === 'firing' ? 'error' : 'success'}>{t(value)}</Tag>
-            {value === 'resolved' && (
-              <span className="text-[10px] block text-gray-400">
-                {t('resolvedOn')} {result}
-              </span>
-            )}
-          </div>
-        )
+        const resolvedTime = convertUTCToLocal(row.original.endTime)
+        return <AlertStatus status={value} resolvedTime={resolvedTime} />
       },
     },
     {
       title: t('isValid'),
       accessor: 'isValid',
-      customWidth: 160,
+      customWidth: 210,
       Cell: (props) => {
         const { value, row } = props
-        return !alertCheckId ? (
-          workflowMissToast('alertCheckId')
-        ) : ['unknown', 'skipped'].includes(value) ||
-          (value === 'failed' && !row.original.workflowRunId) ? (
-          <span className="text-gray-400 text-xs text-wrap [word-break:auto-phrase] text-center">
-            {t(value)}
-          </span>
-        ) : (
-          <Button
-            type="link"
-            className="text-xs text-wrap [word-break:auto-phrase] "
-            size="small"
-            onClick={() => {
-              openResultModal(row.original.workflowRunId)
-            }}
-          >
-            {t(value === 'failed' ? 'failedTo' : value)}
-          </Button>
+        const checkTime = convertUTCToLocal(row.original.lastCheckAt)
+
+        return (
+          <ALertIsValid
+            isValid={value}
+            alertCheckId={alertCheckId}
+            checkTime={checkTime}
+            openResultModal={() => openResultModal(row.original.workflowRunId)}
+            workflowRunId={row.original.workflowRunId}
+          />
         )
       },
     },
     {
-      title: <>{t('cause')}</>,
-      accessor: 'cause',
-      customWidth: 160,
+      title: ct('operation'),
+      accessor: 'operation',
+      customWidth: 230,
       Cell: (props) => {
-        const { workflowParams, group, name } = props.row.original
+        const { workflowParams, group, name, alertId, id } = props.row.original
         return (
-          <Button
-            type="link"
-            className="text-xs"
-            size="small"
-            onClick={async () => {
-              await openWorkflowModal(workflowParams, group, name)
-            }}
-          >
-            {t('viewWorkflow')}
-          </Button>
+          <div className="flex flex-col">
+            <Button
+              color="primary"
+              variant="outlined"
+              className="text-xs my-2"
+              size="small"
+              onClick={async () => {
+                await openWorkflowModal(workflowParams, group, name)
+              }}
+            >
+              {t('cause')}
+            </Button>
+            <Button
+              color="primary"
+              variant="outlined"
+              className="text-xs"
+              size="small"
+              onClick={() => {
+                navigate(
+                  `/alerts/events/detail/${encodeURIComponent(alertId)}/${encodeURIComponent(id)}`,
+                )
+              }}
+            >
+              {t('viewDetail')}
+            </Button>
+          </div>
         )
       },
     },
@@ -467,6 +461,7 @@ const AlertEventsPage = () => {
             }}
           />
           <div className="flex-1 overflow-hidden">
+            <LoadingSpinner loading={loading} />
             <BasicTable {...tableProps} />
           </div>
         </Card>
@@ -481,6 +476,14 @@ const AlertEventsPage = () => {
           width={'80vw'}
           styles={{ body: { height: '80vh', overflowY: 'hidden', overflowX: 'hidden' } }}
         >
+          <LoadingSpinner loading={loading} />
+          {!loading && !workflowUrl && (
+            <Result
+              status="error"
+              title={t('missToast2')}
+              className="h-full flex flex-col items-center justify-center w-full"
+            />
+          )}
           {workflowUrl && <WorkflowsIframe src={workflowUrl} />}
         </Modal>
       </div>

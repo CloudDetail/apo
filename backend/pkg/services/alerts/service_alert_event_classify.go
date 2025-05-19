@@ -29,7 +29,7 @@ func (s *service) AlertEventClassify(req *request.AlertEventClassifyRequest) (*r
 		}, nil
 	}
 
-	request := &dify.DifyWorkflowRequest{
+	request := &dify.WorkflowRequest{
 		Inputs:       inputs,
 		ResponseMode: "blocking",
 		User:         "apo-backend",

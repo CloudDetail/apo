@@ -101,6 +101,7 @@ SELECT
   ae.update_time,
   ae.end_time,
   ae.received_time,
+  ae.severity,
   ae.detail,
   ae.status,
   ae.tags,
@@ -109,6 +110,7 @@ SELECT
   fw.workflow_id,
   fw.workflow_name,
   fw.importance,
+  fw.created_at as last_check_at,
   fw.output,
   CASE
     WHEN output = 'false' THEN 'true'

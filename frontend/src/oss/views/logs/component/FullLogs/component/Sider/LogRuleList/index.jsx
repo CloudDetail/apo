@@ -10,7 +10,7 @@ import ConfigLogRuleModal from '../../ConfigLogRuleModal'
 import { MdAdd, MdDeleteOutline, MdModeEdit } from 'react-icons/md'
 import './index.css'
 import { deleteLogRuleApi } from 'core/api/logs'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
 const LogRuleList = () => {
@@ -31,9 +31,9 @@ const LogRuleList = () => {
       parseName: rule.parseName,
       tableName: rule.tableName,
     }).then((res) => {
-      showToast({
-        title: t('fullLogSider.logRuleList.deleteLogSuccessToast'),
-        color: 'success',
+      notify({
+        message: t('fullLogSider.logRuleList.deleteLogSuccessToast'),
+        type: 'success',
       })
       getLogTableInfo()
     })
@@ -99,14 +99,16 @@ const LogRuleList = () => {
     )
   }, [logRules])
   const onSelect = (selectedKeys, { selectedNodes }) => {
-    updateLoading(true)
-    updateTableInfo({
-      dataBase: selectedNodes[0].dataBase,
-      tableName: selectedNodes[0].tableName,
-      cluster: '',
-      parseName: selectedNodes[0].parseName,
-      type: 'logLibrary',
-    })
+    if (selectedNodes[0]) {
+      updateLoading(true)
+      updateTableInfo({
+        dataBase: selectedNodes[0].dataBase,
+        tableName: selectedNodes[0].tableName,
+        cluster: '',
+        parseName: selectedNodes[0].parseName,
+        type: 'logLibrary',
+      })
+    }
   }
   useEffect(() => {
     setSelectedKeys([tableInfo.dataBase + tableInfo.tableName])
@@ -133,10 +135,11 @@ const LogRuleList = () => {
         <Button
           type="primary"
           size="small"
-          icon={<MdAdd size={20} />}
+          // icon={<MdAdd size={20} />}
           onClick={() => setModalVisible(true)}
-          className="flex-grow-0 flex-shrink-0"
+          className="flex-grow-0 flex-shrink-0 p-1 flex justify-center items-center"
         >
+          <MdAdd size={20} className='flex justify-center items-center' />
           {/* <span className="text-xs"></span> */}
         </Button>
       }

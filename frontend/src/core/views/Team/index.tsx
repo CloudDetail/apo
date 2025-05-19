@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Card, Flex, Popconfirm, Table } from 'antd'
+import { Button, Flex, Popconfirm, Table } from 'antd'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LuShieldCheck } from 'react-icons/lu'
@@ -11,7 +11,7 @@ import { MdOutlineEdit } from 'react-icons/md'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { deleteTeamApi, getTeamsApi } from 'src/core/api/team'
 import InfoModal from './InfoModal'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import DataGroupAuthorizeModal from 'src/core/components/PermissionAuthorize/DataGroupAuthorizeModal'
 import CustomCard from 'src/core/components/Card/CustomCard'
 
@@ -64,9 +64,11 @@ function TeamPage() {
                 setInfoModalVisible(true)
                 setTeamInfo(record)
               }}
-              icon={<MdOutlineEdit className="text-blue-400 hover:text-blue-400" />}
+              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
             >
-              <span className="text-blue-400 hover:text-blue-400">{ct('edit')}</span>
+              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
+                {ct('edit')}
+              </span>
             </Button>
             <Popconfirm
               title={t('confirmDelete', {
@@ -124,9 +126,9 @@ function TeamPage() {
   const deleteTeam = (teamId: string) => {
     deleteTeamApi(teamId)
       .then((res) => {
-        showToast({
-          color: 'success',
-          title: t('deleteSuccess'),
+        notify({
+          type: 'success',
+          message: t('deleteSuccess'),
         })
       })
       .finally(() => {
@@ -143,10 +145,7 @@ function TeamPage() {
   }
   return (
     <>
-      <CustomCard
-        style={{ overflow: 'hidden' }}
-        classNames={{ body: 'h-full' }}
-      >
+      <CustomCard style={{ overflow: 'hidden' }} classNames={{ body: 'h-full' }}>
         <div className="flex justify-between mb-2">
           {/* <DataGroupFilter /> */}
           <div></div>

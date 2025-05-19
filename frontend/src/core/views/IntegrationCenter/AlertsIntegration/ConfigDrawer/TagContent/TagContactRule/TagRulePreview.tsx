@@ -53,12 +53,14 @@ const TagRulePreview = ({ index }: TagRulePreviewProps) => {
               {t('tagRulePreview.conditions')}
               {ruleInfo.conditions?.map((condition, index) => (
                 <>
-                  {index > 0 && <span className="text-[#89ddff] mx-1"> '&&'</span>}
-                  <span className="mx-1  text-[#eeffff]">{condition.fromField}</span>
-                  <span className="text-[#89ddff]">
+                  {index > 0 && <span className="text-[var(--ant-blue)] mx-1"> &&</span>}
+                  <span className="mx-1  text-[var(--ant-color-text-base)]">
+                    {condition.fromField}
+                  </span>
+                  <span className="text-[var(--ant-blue)]">
                     {condition.operation === 'match' ? '==' : '!=='}{' '}
                   </span>
-                  <span className="text-[#c3e88d] mx-1">“{condition.expr}”</span>
+                  <span className="text-[var(--ant-lime)] mx-1">“{condition.expr}”</span>
                 </>
               ))}
             </div>
@@ -102,7 +104,6 @@ const TagRulePreview = ({ index }: TagRulePreviewProps) => {
                   }}
                 />
               </div>
-
               <div className="flex p-2 m-2 border rounded-xl max-w-[600px] justify-center">
                 <div className="w-[220px]">
                   <div className="m-2 text-base w-[120px] text-center">{t('extractedField')}</div>

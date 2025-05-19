@@ -128,21 +128,30 @@ func (repo *subRepos) GetIntegrationConfig(clusterID string) (*integration.Clust
 	}
 
 	var traceIntegration integration.TraceIntegration
-	err = repo.db.Find(&traceIntegration, "cluster_id = ?", clusterID, "is_deleted = ?", false).Error
+	err = repo.db.
+		Where("cluster_id = ?", clusterID).
+		Where("is_deleted = ?", false).
+		First(&traceIntegration).Error
 	if err != nil {
 		return res, err
 	}
 	res.Trace = traceIntegration
 
 	var metricIntegration integration.MetricIntegration
-	err = repo.db.Find(&metricIntegration, "cluster_id = ?", clusterID, "is_deleted = ?", false).Error
+	err = repo.db.
+		Where("cluster_id = ?", clusterID).
+		Where("is_deleted = ?", false).
+		First(&metricIntegration).Error
 	if err != nil {
 		return res, err
 	}
 	res.Metric = metricIntegration
 
 	var logIntegration integration.LogIntegration
-	err = repo.db.Find(&logIntegration, "cluster_id = ?", clusterID, "is_deleted = ?", false).Error
+	err = repo.db.
+		Where("cluster_id = ?", clusterID).
+		Where("is_deleted = ?", false).
+		First(&logIntegration).Error
 	if err != nil {
 		return res, err
 	}

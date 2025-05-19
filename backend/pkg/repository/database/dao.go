@@ -21,6 +21,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+
+	sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 )
 
 var _ Repo = &daoRepo{}
@@ -135,6 +137,14 @@ type Repo interface {
 	WithTransaction(ctx context.Context, tx *gorm.DB) context.Context
 	// Transaction Starts a transaction and automatically commit and rollback.
 	Transaction(ctx context.Context, funcs ...func(txCtx context.Context) error) error
+
+	GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int, error)
+	AddAMConfigReceiver(receiver amconfig.Receiver) error
+	UpdateAMConfigReceiver(receiver amconfig.Receiver, oldName string) error
+	DeleteAMConfigReceiver(name string) error
+
+	CheckAMReceiverCount() int64
+	MigrateAMReceiver(receivers []amconfig.Receiver) ([]amconfig.Receiver, error)
 
 	integration.ObservabilityInputManage
 }
@@ -262,6 +272,8 @@ func migrateTable(db *gorm.DB) error {
 	}
 
 	return db.AutoMigrate(
+		&amconfig.Receiver{},
+		&sc.AlertSlienceConfig{},
 		&amconfig.DingTalkConfig{},
 		&Feature{},
 		&FeatureMapping{},

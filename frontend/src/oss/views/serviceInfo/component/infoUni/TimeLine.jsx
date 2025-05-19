@@ -154,7 +154,7 @@ const Timeline = (props) => {
               {item.startTime && (
                 <List.Item.Meta
                   title={
-                    <span className="text-gray-400 text-xs">
+                    <span className="text-[var(--ant-color-text-secondary)] text-xs">
                       {convertTime(item.startTime, 'yyyy-mm-dd hh:mm:ss') +
                         ' ' +
                         t(`timeLine.${type}`)}

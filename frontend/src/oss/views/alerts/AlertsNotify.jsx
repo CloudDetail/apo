@@ -3,17 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Card, Input, Popconfirm, Space } from 'antd'
+import { Button, Input, Popconfirm, Space } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
-import { RiDeleteBin5Line } from 'react-icons/ri'
 import { deleteAlertNotifyApi, getAlertmanagerListApi } from 'core/api/alerts'
 import LoadingSpinner from 'src/core/components/Spinner'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import { MdAdd, MdOutlineEdit } from 'react-icons/md'
 import ModifyAlertNotifyModal from './modal/ModifyAlertNotifyModal'
 import { useTranslation } from 'react-i18next' // 引入i18n
 import CustomCard from 'src/core/components/Card/CustomCard'
+import { RiDeleteBin5Line } from 'react-icons/ri'
 
 export default function AlertsNotify() {
   const [data, setData] = useState([])
@@ -37,9 +37,9 @@ export default function AlertsNotify() {
             name: row.name,
           },
     ).then((res) => {
-      showToast({
-        title: t('notify.deleteSuccess'),
-        color: 'success',
+      notify({
+        message: t('notify.deleteSuccess'),
+        type: 'success',
       })
       refreshTable()
     })
@@ -115,9 +115,9 @@ export default function AlertsNotify() {
             <Button
               type="text"
               onClick={() => clickEditRule(row)}
-              icon={<MdOutlineEdit className="text-blue-400 hover:text-blue-400" />}
+              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
             >
-              <span className="text-blue-400 hover:text-blue-400">{t('notify.edit')}</span>
+              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">{t('notify.edit')}</span>
             </Button>
             <Popconfirm
               title={<>{t('notify.confirmDelete', { name: row.name })}</>}
@@ -187,7 +187,7 @@ export default function AlertsNotify() {
     }
   }, [column, data, pageIndex, pageSize])
   return (
-    <CustomCard styleType='alerts'>
+    <CustomCard styleType="alerts">
       <LoadingSpinner loading={loading} />
       <div className="flex items-center justify-betweeen text-sm ">
         <Space className="flex-grow">
@@ -206,7 +206,7 @@ export default function AlertsNotify() {
 
         <Button
           type="primary"
-          icon={<MdAdd size={20} />}
+          icon={<MdAdd />}
           onClick={clickAddRule}
           className="flex-grow-0 flex-shrink-0"
         >

@@ -130,6 +130,7 @@ func (repo *daoRepo) initFeatureRouter() error {
 		"服务概览": {"/service/info", "/service/overview"},
 		"数据接入": {"/integration/data/settings", "/data/ingestion"},
 		"个人中心": {"/user", "/profile", "/account"},
+		"告警事件": {"/alerts/events/detail/:alertID/:eventID"},
 	}
 
 	return repo.Admin().Transaction(func(tx *gorm.DB) error {

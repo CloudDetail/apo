@@ -28,6 +28,7 @@ var validRouters = []Router{
 	{RouterTo: "/system/config", HideTimeSelector: true},
 	{RouterTo: "/system/team", HideTimeSelector: true},
 	{RouterTo: "/alerts/events", HideTimeSelector: false},
+	{RouterTo: "/alerts/events/detail/:alertID/:eventID", HideTimeSelector: false},
 	{RouterTo: "/workflows", HideTimeSelector: true},
 	{RouterTo: "/system/role-manage", HideTimeSelector: true},
 	{RouterTo: "/service/info", HideTimeSelector: false},

@@ -15,7 +15,7 @@ import LogQueryResult from './component/LogQueryResult'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { useDebounce, useUpdateEffect } from 'react-use'
 import FullLogSider from './component/Sider'
-import { Button, Layout } from 'antd'
+import { Button, Layout, theme } from 'antd'
 import Sider from 'antd/es/layout/Sider'
 import { Content } from 'antd/es/layout/layout'
 import { AiOutlineCaretLeft, AiOutlineCaretRight } from 'react-icons/ai'
@@ -35,6 +35,8 @@ function FullLogs() {
 
   const [searchParams] = useSearchParams()
   const [collapsed, setCollapsed] = useState(false)
+  const { useToken } = theme
+  const { token } = useToken()
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
   useUpdateEffect(() => {
     if (startTime && endTime) {
@@ -74,9 +76,9 @@ function FullLogs() {
             className={`logSiderButton ${collapsed ? ' closeButton ' : 'openButton'}`}
           >
             {collapsed ? (
-              <AiOutlineCaretRight color="#1a83fe" />
+              <AiOutlineCaretRight color={token.colorPrimary} />
             ) : (
-              <AiOutlineCaretLeft color="#1a83fe" />
+              <AiOutlineCaretLeft color={token.colorPrimary} />
             )}
           </div>
           <Sider

@@ -15,7 +15,10 @@ const TagContent = ({ sourceId }: TagContentProps) => {
   const { t } = useTranslation('core/alertsIntegration')
   return (
     <>
-      <Card className="bg-[#202023] rounded-3xl mt-4" classNames={{ body: 'px-4 py-3' }}>
+      <Card
+        className="bg-[var(--ant-color-bg-layout)] rounded-3xl mt-4"
+        classNames={{ body: 'px-4 py-3' }}
+      >
         <Typography>
           <Title level={5} className="flex items-center">
             {t('rulesTitle')}
