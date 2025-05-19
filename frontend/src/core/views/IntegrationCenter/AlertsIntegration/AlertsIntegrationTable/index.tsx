@@ -73,9 +73,9 @@ const AlertsIntegrationTable = () => {
             <Button
               type="text"
               onClick={() => openDrawer(record.sourceId, record.sourceType)}
-              icon={<MdOutlineEdit className="text-blue-400 hover:text-blue-400" />}
+              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
             >
-              <span className="text-blue-400 hover:text-blue-400">{t('edit')}</span>
+              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">{t('edit')}</span>
             </Button>
             <Popconfirm
               title={
