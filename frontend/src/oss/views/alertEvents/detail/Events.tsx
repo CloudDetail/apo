@@ -59,7 +59,7 @@ const Events = ({
         const style = {
           width: 1,
           height: '100%',
-          borderLeft: '2px solid rgba(253, 253, 253, 0.12)',
+          borderLeft: '3px solid var(--ant-color-split)',
           flexGrow: 1,
         }
 
@@ -86,7 +86,11 @@ const Events = ({
                 <div style={style}></div>
               </div>
               {eventId === id ? (
-                <FaLocationDot className="w-4 h-4 m-2" color="#1668dc" size={24} />
+                <FaLocationDot
+                  className="w-4 h-4 m-2"
+                  style={{ color: 'var(--ant-color-primary)' }}
+                  size={24}
+                />
               ) : (
                 <div
                   style={{
@@ -136,7 +140,7 @@ const Events = ({
             {notifyFailed ? (
               <span className="text-[#E84749]">{t('notifyFailed')}</span>
             ) : !notifySuccess ? (
-              <span className="text-gray-400">{t('unNotify')}</span>
+              <span className="text-[var(--ant-color-text-secondary)]">{t('unNotify')}</span>
             ) : (
               <>
                 <span className="">
