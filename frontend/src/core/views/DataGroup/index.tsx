@@ -15,7 +15,6 @@ import PermissionModal from './PermissionModal'
 import DatasourceTag from './component/DatasourceTag'
 import Paragraph from 'antd/es/typography/Paragraph'
 import { useTranslation } from 'react-i18next'
-import CustomCard from 'src/core/components/Card/CustomCard'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
 
 export default function DataGroupPage() {

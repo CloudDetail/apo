@@ -13,7 +13,6 @@ import { deleteTeamApi, getTeamsApi } from 'src/core/api/team'
 import InfoModal from './InfoModal'
 import { notify } from 'src/core/utils/notify'
 import DataGroupAuthorizeModal from 'src/core/components/PermissionAuthorize/DataGroupAuthorizeModal'
-import CustomCard from 'src/core/components/Card/CustomCard'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
 
 function TeamPage() {

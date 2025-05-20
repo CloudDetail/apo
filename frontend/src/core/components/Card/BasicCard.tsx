@@ -54,26 +54,24 @@ export const BasicCard: React.FC<CardProps> & {
       }}
     >
       {/* Header Section */}
-      {/* <div className='w-full text-sm font-medium flex items-center justify-between'>
-        {headerContent.map((header, index) => (
-          <React.Fragment key={index}>{header}</React.Fragment>
-        ))}
-      </div> */}
-      {headerContent.map((header, index) => (
-        <div className='w-full text-sm font-medium flex items-center justify-between'>
-          <React.Fragment key={index}>{header}</React.Fragment>
+      {headerContent.length > 0 && headerContent.map((header, index) => (
+        <div className='w-full text-sm font-medium flex items-center justify-between' key={index}>
+          {header}
         </div>
       ))}
 
       {/* Table Section */}
-      <div className="flex-1 overflow-auto">
+      {tableContent && <div className="flex-1 overflow-auto">
         <div className="h-full text-xs justify-between">
           {tableContent && <>{tableContent}</>}
         </div>
-      </div>
+      </div>}
 
       {/* Other Content */}
-      <div className="card-other">{otherContent}</div>
+      {otherContent.length > 0 && otherContent.map((content, index) => (
+          <React.Fragment key={index}>{content}</React.Fragment>
+        ))
+      }
     </Card>
   );
 };

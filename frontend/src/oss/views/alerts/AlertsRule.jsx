@@ -14,7 +14,6 @@ import { MdAdd, MdOutlineEdit } from 'react-icons/md'
 import ModifyAlertRuleModal from './modal/ModifyAlertRuleModal'
 import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-import CustomCard from 'src/core/components/Card/CustomCard'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
 
 export default function AlertsRule() {

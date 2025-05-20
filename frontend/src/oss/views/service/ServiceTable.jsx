@@ -25,7 +25,6 @@ import { useTranslation } from 'react-i18next'
 import React from 'react'
 import { ChartsProvider, useChartsContext } from 'src/core/contexts/ChartsContext'
 import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
-import CustomCard from 'src/core/components/Card/CustomCard'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
 const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) => {
   const { t, i18n } = useTranslation('oss/service')
