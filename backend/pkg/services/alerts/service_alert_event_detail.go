@@ -7,13 +7,14 @@ import (
 	"encoding/json"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) AlertDetail(req *request.GetAlertDetailRequest) (*response.GetAlertDetailResponse, error) {
-	eventDetail, err := s.chRepo.GetAlertDetail(req, s.difyRepo.GetCacheMinutes())
+func (s *service) AlertDetail(ctx core.Context, req *request.GetAlertDetailRequest) (*response.GetAlertDetailResponse, error) {
+	eventDetail, err := s.chRepo.GetAlertDetail(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +27,7 @@ func (s *service) AlertDetail(req *request.GetAlertDetailRequest) (*response.Get
 
 	s.fillWorkflowParams(eventDetail)
 
-	releatedEvents, total, err := s.chRepo.GetRelatedAlertEvents(req, s.difyRepo.GetCacheMinutes())
+	releatedEvents, total, err := s.chRepo.GetRelatedAlertEvents(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +121,7 @@ func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWReco
 	}
 }
 
-func (s *service) ManualResolveLatestAlertEventByAlertID(alertID string) error {
+func (s *service) ManualResolveLatestAlertEventByAlertID(ctx core.Context, alertID string) error {
 	// TODO valid alertID
-	return s.chRepo.ManualResolveLatestAlertEventByAlertID(alertID)
+	return s.chRepo.ManualResolveLatestAlertEventByAlertID(ctx, alertID)
 }

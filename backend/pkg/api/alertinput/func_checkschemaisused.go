@@ -25,20 +25,20 @@ func (h *handler) CheckSchemaIsUsed() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(alert.AlertSchemaRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		alertSources, err := h.inputService.CheckSchemaIsUsed(req.Schema)
+		alertSources, err := h.inputService.CheckSchemaIsUsed(c, req.Schema)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.CheckSchemaUsedFailed,
-				c.ErrMessage(code.CheckSchemaUsedFailed)).WithError(err),
+				err,
 			)
 			return
 		}

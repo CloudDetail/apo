@@ -43,7 +43,7 @@ func testListParentNodes(t *testing.T, repo Repo) {
 		Service:   "stuck-demo-undertow",
 		Endpoint:  "GET /db/query",
 	}
-	resp, err := repo.ListParentNodes(req)
+	resp, err := repo.ListParentNodes(nil, req)
 	if err != nil {
 		t.Errorf("Error to list parent nodes: %v", err)
 	}
@@ -66,7 +66,7 @@ func testKafkaListParentNodes(t *testing.T, repo Repo) {
 		Service:   "kafka-consumer",
 		Endpoint:  "topic_login process",
 	}
-	resp, err := repo.ListParentNodes(req)
+	resp, err := repo.ListParentNodes(nil, req)
 	if err != nil {
 		t.Errorf("Error to list parent nodes: %v", err)
 	}
@@ -89,7 +89,7 @@ func testListChildNodes(t *testing.T, repo Repo) {
 		Service:   "stuck-demo-tomcat",
 		Endpoint:  "GET /redis/query",
 	}
-	resp, err := repo.ListChildNodes(req)
+	resp, err := repo.ListChildNodes(nil, req)
 	if err != nil {
 		t.Errorf("Error to list child nodes: %v", err)
 	}
@@ -126,7 +126,7 @@ func testDescendantNodes(t *testing.T, repo Repo) {
 		Service:   "kafka-provider",
 		Endpoint:  "GET /send",
 	}
-	resp, err := repo.ListDescendantNodes(req)
+	resp, err := repo.ListDescendantNodes(nil, req)
 	if err != nil {
 		t.Errorf("Error to list child nodes: %v", err)
 	}
@@ -156,7 +156,7 @@ func testDescendantRelations(t *testing.T, repo Repo) {
 		Service:   "stuck-demo-tomcat",
 		Endpoint:  "GET /wait/callOthers",
 	}
-	resp, err := repo.ListDescendantRelations(req)
+	resp, err := repo.ListDescendantRelations(nil, req)
 	if err != nil {
 		t.Errorf("Error to list descendant relation: %v", err)
 	}
@@ -199,7 +199,7 @@ func testKafkaDescendantRelations(t *testing.T, repo Repo) {
 		Service:   "kafka-provider",
 		Endpoint:  "GET /send",
 	}
-	resp, err := repo.ListDescendantRelations(req)
+	resp, err := repo.ListDescendantRelations(nil, req)
 	if err != nil {
 		t.Errorf("Error to list descendant relation: %v", err)
 	}
@@ -228,7 +228,7 @@ func testKafkaDescendantRelations(t *testing.T, repo Repo) {
 
 func testCountK8sEvents(t *testing.T, repo Repo) {
 	pods := []string{"ts-travel2-service-fdbbd5946-l4h2r"}
-	count, err := repo.CountK8sEvents(1722244803099000, 1722245703099000, pods)
+	count, err := repo.CountK8sEvents(nil, 1722244803099000, 1722245703099000, pods)
 	if err != nil {
 		t.Errorf("Error to get k8s events: %v", err)
 	}

@@ -6,13 +6,14 @@ package serviceoverview
 import (
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 const UP = 1.0
 
-func (s *service) GetMonitorStatus(startTime time.Time, endTime time.Time) (response.GetMonitorStatusResponse, error) {
+func (s *service) GetMonitorStatus(ctx core.Context, startTime time.Time, endTime time.Time) (response.GetMonitorStatusResponse, error) {
 	resp := response.GetMonitorStatusResponse{}
 	startMicroTS := startTime.UnixMicro()
 	endMicroTs := endTime.UnixMicro()

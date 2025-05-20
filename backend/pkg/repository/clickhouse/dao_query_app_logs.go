@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strconv"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -20,7 +21,7 @@ const (
 		%s %s`
 )
 
-func (ch *chRepo) QueryApplicationLogs(req *request.GetFaultLogContentRequest) (*Logs, []string, error) {
+func (ch *chRepo) QueryApplicationLogs(ctx core.Context, req *request.GetFaultLogContentRequest) (*Logs, []string, error) {
 
 	builder := NewQueryBuilder().
 		Between("Timestamp", int64(req.StartTime/1000000), int64(req.EndTime/1000000))
@@ -35,7 +36,7 @@ func (ch *chRepo) QueryApplicationLogs(req *request.GetFaultLogContentRequest) (
 	}
 
 	var sources []string
-	sources, err := ch.queryApplicationLogsSource(builder)
+	sources, err := ch.queryApplicationLogsSource(ctx, builder)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -55,11 +56,11 @@ func (ch *chRepo) QueryApplicationLogs(req *request.GetFaultLogContentRequest) (
 
 	sql := fmt.Sprintf(SQL_GET_APP_LOG, builder.String(), byBuilder.String())
 	var logRaws []LogContent
-	err = ch.conn.Select(context.Background(), &logRaws, sql, builder.values...)
+	err = ch.GetContextDB(ctx).Select(context.Background(), &logRaws, sql, builder.values...)
 	return &Logs{req.SourceFrom, logRaws}, sources, err
 }
 
-func (ch *chRepo) QueryApplicationLogsAvailableSource(faultLog FaultLogResult) ([]string, error) {
+func (ch *chRepo) QueryApplicationLogsAvailableSource(ctx core.Context, faultLog FaultLogResult) ([]string, error) {
 	builder := NewQueryBuilder().
 		Between("Timestamp", int64(faultLog.StartTime), int64(faultLog.EndTime))
 
@@ -76,16 +77,16 @@ func (ch *chRepo) QueryApplicationLogsAvailableSource(faultLog FaultLogResult) (
 		builder.Equals("LogAttributes['pid']", strconv.FormatUint(uint64(faultLog.Pid), 10))
 	}
 
-	return ch.queryApplicationLogsSource(builder)
+	return ch.queryApplicationLogsSource(ctx, builder)
 }
 
-func (ch *chRepo) queryApplicationLogsSource(builder *QueryBuilder) ([]string, error) {
+func (ch *chRepo) queryApplicationLogsSource(ctx core.Context, builder *QueryBuilder) ([]string, error) {
 	byBuilder := NewByLimitBuilder().
 		GroupBy("LogSource")
 
 	sql := fmt.Sprintf(SQL_GET_APP_LOG_SOURCE, builder.String(), byBuilder.String())
 	var sources []Source
-	err := ch.conn.Select(context.Background(), &sources, sql, builder.values...)
+	err := ch.GetContextDB(ctx).Select(context.Background(), &sources, sql, builder.values...)
 	if err != nil {
 		return nil, err
 	}

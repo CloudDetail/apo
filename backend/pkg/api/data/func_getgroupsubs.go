@@ -28,17 +28,17 @@ func (h *handler) GetGroupSubs() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetGroupSubsRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		resp, err := h.dataService.GetGroupSubs(req)
+		resp, err := h.dataService.GetGroupSubs(c, req)
 		if err != nil {
-			c.HandleError(err, code.GetGroupSubsError, nil)
+			c.AbortWithPermissionError(err, code.GetGroupSubsError, nil)
 			return
 		}
 		c.Payload(resp)

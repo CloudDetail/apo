@@ -69,7 +69,7 @@ func NewTagEnricher(
 		}
 	}
 
-	targetTags, err := dbRepo.ListAlertTargetTags("")
+	targetTags, err := dbRepo.ListAlertTargetTags(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
 	case "tagMapping":
 		alertEvent.EnrichTags[e.targetTag] = value
 	case "schemaMapping":
-		targets, err := e.DBRepo.SearchSchemaTarget(e.Schema, e.SchemaSource, value, e.SchemaTarget)
+		targets, err := e.DBRepo.SearchSchemaTarget(nil, e.Schema, e.SchemaSource, value, e.SchemaTarget)
 		if err != nil {
 			return
 		}

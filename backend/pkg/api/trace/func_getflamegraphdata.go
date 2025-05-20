@@ -33,19 +33,19 @@ func (h *handler) GetFlameGraphData() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetFlameDataRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
-		resp, err := h.traceService.GetFlameGraphData(req)
+		resp, err := h.traceService.GetFlameGraphData(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetFlameGraphError,
-				c.ErrMessage(code.GetFlameGraphError)).WithError(err),
+				err,
 			)
 			return
 		}

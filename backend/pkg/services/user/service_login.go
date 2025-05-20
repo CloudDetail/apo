@@ -4,13 +4,14 @@
 package user
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/util/jwt"
 )
 
-func (s *service) Login(req *request.LoginRequest) (response.LoginResponse, error) {
-	user, err := s.dbRepo.Login(req.Username, req.Password)
+func (s *service) Login(ctx core.Context, req *request.LoginRequest) (response.LoginResponse, error) {
+	user, err := s.dbRepo.Login(ctx, req.Username, req.Password)
 	if err != nil {
 		return response.LoginResponse{}, err
 	}

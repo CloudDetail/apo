@@ -3,22 +3,25 @@
 
 package alert
 
-import "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+)
 
-func (s *service) GetAlertEnrichRule(
+func (s *service) GetAlertEnrichRule(ctx core.Context,
 	sourceID string,
 ) ([]alert.AlertEnrichRuleVO, error) {
-	enrichRules, err := s.dbRepo.GetAlertEnrichRule(sourceID)
+	enrichRules, err := s.dbRepo.GetAlertEnrichRule(ctx, sourceID)
 	if err != nil {
 		return nil, err
 	}
 
-	conditions, err := s.dbRepo.GetAlertEnrichConditions(sourceID)
+	conditions, err := s.dbRepo.GetAlertEnrichConditions(ctx, sourceID)
 	if err != nil {
 		return nil, err
 	}
 
-	schemaTargets, err := s.dbRepo.GetAlertEnrichSchemaTarget(sourceID)
+	schemaTargets, err := s.dbRepo.GetAlertEnrichSchemaTarget(ctx, sourceID)
 	if err != nil {
 		return nil, err
 	}

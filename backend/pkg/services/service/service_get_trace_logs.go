@@ -4,11 +4,12 @@
 package service
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 )
 
-func (s *service) GetTraceLogs(req *request.GetTraceLogsRequest) ([]clickhouse.FaultLogResult, error) {
+func (s *service) GetTraceLogs(ctx core.Context, req *request.GetTraceLogsRequest) ([]clickhouse.FaultLogResult, error) {
 	// Get trace fault site log
 	query := &clickhouse.FaultLogQuery{
 		StartTime:   req.StartTime,
@@ -23,7 +24,7 @@ func (s *service) GetTraceLogs(req *request.GetTraceLogsRequest) ([]clickhouse.F
 		PageNum:     1,
 		PageSize:    5,
 	}
-	list, _, err := s.chRepo.GetFaultLogPageList(query)
+	list, _, err := s.chRepo.GetFaultLogPageList(ctx, query)
 	if err != nil {
 		return nil, err
 	}

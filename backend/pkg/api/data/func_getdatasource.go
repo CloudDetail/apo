@@ -22,12 +22,13 @@ import (
 // @Router /api/data/datasource [get]
 func (h *handler) GetDatasource() core.HandlerFunc {
 	return func(c core.Context) {
-		resp, err := h.dataService.GetDataSource()
+		resp, err := h.dataService.GetDataSource(c)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetDatasourceError,
-				c.ErrMessage(code.GetDatasourceError)).WithError(err))
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

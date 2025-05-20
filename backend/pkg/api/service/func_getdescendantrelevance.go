@@ -6,7 +6,6 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -36,26 +35,26 @@ func (h *handler) GetDescendantRelevance() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetDescendantRelevanceRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
+		userID := c.UserID()
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, []response.GetDescendantRelevanceResponse{})
+			c.AbortWithPermissionError(err, code.AuthError, []response.GetDescendantRelevanceResponse{})
 			return
 		}
-		res, err := h.serviceInfoService.GetDescendantRelevance(req)
+		res, err := h.serviceInfoService.GetDescendantRelevance(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetDescendantRelevanceError,
-				c.ErrMessage(code.GetDescendantRelevanceError)).WithError(err),
+				err,
 			)
 			return
 		}

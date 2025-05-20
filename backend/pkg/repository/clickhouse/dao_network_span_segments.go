@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 type NetSegments struct {
@@ -18,13 +20,13 @@ type NetSegments struct {
 	TraceId          string    `ch:"trace_id"`
 }
 
-func (ch *chRepo) GetNetworkSpanSegments(traceId string, spanId string) ([]NetSegments, error) {
+func (ch *chRepo) GetNetworkSpanSegments(ctx core.Context, traceId string, spanId string) ([]NetSegments, error) {
 	queryBuilder := NewQueryBuilder().
 		EqualsNotEmpty("trace_id", traceId).
 		EqualsNotEmpty("span_id", spanId)
 	executeSql := buildQuery(queryBuilder)
 	var netSegments []NetSegments
-	if err := ch.conn.Select(context.Background(), &netSegments, executeSql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(context.Background(), &netSegments, executeSql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return netSegments, nil

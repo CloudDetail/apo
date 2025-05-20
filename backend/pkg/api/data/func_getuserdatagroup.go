@@ -28,10 +28,10 @@ func (h *handler) GetUserDataGroup() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetUserDataGroupRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -40,12 +40,12 @@ func (h *handler) GetUserDataGroup() core.HandlerFunc {
 		subReq.SubjectID = req.UserID
 		subReq.SubjectType = model.DATA_GROUP_SUB_TYP_USER
 		subReq.Category = req.Category
-		groups, err := h.dataService.GetSubjectDataGroup(subReq)
+		groups, err := h.dataService.GetSubjectDataGroup(c, subReq)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetDataGroupError,
-				c.ErrMessage(code.GetDataGroupError)).WithError(err),
+				err,
 			)
 			return
 		}

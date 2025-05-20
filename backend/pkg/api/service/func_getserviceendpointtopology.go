@@ -6,7 +6,6 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -35,30 +34,30 @@ func (h *handler) GetServiceEndpointTopology() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceEndpointTopologyRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
+		userID := c.UserID()
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, &response.GetServiceEndpointTopologyResponse{
+			c.AbortWithPermissionError(err, code.AuthError, &response.GetServiceEndpointTopologyResponse{
 				Parents:  []*model.TopologyNode{},
 				Current:  &model.TopologyNode{},
 				Children: []*model.TopologyNode{},
 			})
 			return
 		}
-		resp, err := h.serviceInfoService.GetServiceEndpointTopology(req)
+		resp, err := h.serviceInfoService.GetServiceEndpointTopology(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetServiceUrlTopologyError,
-				c.ErrMessage(code.GetServiceUrlTopologyError)).WithError(err),
+				err,
 			)
 			return
 		}

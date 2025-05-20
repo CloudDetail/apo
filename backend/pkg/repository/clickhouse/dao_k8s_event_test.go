@@ -23,7 +23,7 @@ func TestChRepo_K8sAlert(t *testing.T) {
 			NodeName: "worker-23",
 		},
 	}
-	k8sAlert, err := repo.GetK8sAlertEventsSample(oneHourAgo, currentTime, instances)
+	k8sAlert, err := repo.GetK8sAlertEventsSample(nil, oneHourAgo, currentTime, instances)
 	if err != nil {
 		t.Fatalf("Error to get k8sAlert: %v", err)
 	}

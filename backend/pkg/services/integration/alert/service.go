@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -20,35 +20,35 @@ import (
 var _ Service = &service{}
 
 type Service interface {
-	CreateAlertSource(source *alert.AlertSource) (*alert.AlertSource, error)
-	GetAlertSource(source *alert.SourceFrom) (*alert.AlertSource, error)
-	UpdateAlertSource(source *alert.AlertSource) (*alert.AlertSource, error)
-	DeleteAlertSource(source alert.SourceFrom) (*alert.AlertSource, error)
-	ListAlertSource() ([]alert.AlertSource, error)
+	CreateAlertSource(ctx core.Context, source *alert.AlertSource) (*alert.AlertSource, error)
+	GetAlertSource(ctx core.Context, source *alert.SourceFrom) (*alert.AlertSource, error)
+	UpdateAlertSource(ctx core.Context, source *alert.AlertSource) (*alert.AlertSource, error)
+	DeleteAlertSource(ctx core.Context, source alert.SourceFrom) (*alert.AlertSource, error)
+	ListAlertSource(ctx core.Context) ([]alert.AlertSource, error)
 
-	UpdateAlertEnrichRule(*alert.AlertEnrichRuleConfigRequest) error
-	GetAlertEnrichRule(sourceID string) ([]alert.AlertEnrichRuleVO, error)
+	UpdateAlertEnrichRule(ctx core.Context, req *alert.AlertEnrichRuleConfigRequest) error
+	GetAlertEnrichRule(ctx core.Context, sourceID string) ([]alert.AlertEnrichRuleVO, error)
 
-	ProcessAlertEvents(source alert.SourceFrom, data []byte) error
+	ProcessAlertEvents(ctx core.Context, source alert.SourceFrom, data []byte) error
 
 	GetAlertEnrichRuleTags(ctx core.Context) ([]alert.TargetTag, error)
 
-	CreateSchema(req *alert.CreateSchemaRequest) error
-	DeleteSchema(schema string) error
-	ListSchema() ([]string, error)
-	ListSchemaColumns(schema string) ([]string, error)
-	UpdateSchemaData(req *alert.UpdateSchemaDataRequest) error
-	CheckSchemaIsUsed(schema string) ([]string, error)
-	GetSchemaData(schema string) ([]string, map[int64][]string, error)
+	CreateSchema(ctx core.Context, req *alert.CreateSchemaRequest) error
+	DeleteSchema(ctx core.Context, schema string) error
+	ListSchema(ctx core.Context) ([]string, error)
+	ListSchemaColumns(ctx core.Context, schema string) ([]string, error)
+	UpdateSchemaData(ctx core.Context, req *alert.UpdateSchemaDataRequest) error
+	CheckSchemaIsUsed(ctx core.Context, schema string) ([]string, error)
+	GetSchemaData(ctx core.Context, schema string) ([]string, map[int64][]string, error)
 
-	CreateCluster(cluster *input.Cluster) error
-	ListCluster() ([]input.Cluster, error)
-	UpdateCluster(cluster *input.Cluster) error
-	DeleteCluster(cluster *input.Cluster) error
+	CreateCluster(ctx core.Context, cluster *input.Cluster) error
+	ListCluster(ctx core.Context) ([]input.Cluster, error)
+	UpdateCluster(ctx core.Context, cluster *input.Cluster) error
+	DeleteCluster(ctx core.Context, cluster *input.Cluster) error
 
-	GetDefaultAlertEnrichRule(sourceType string) (string, []alert.AlertEnrichRuleVO)
-	ClearDefaultAlertEnrichRule(sourceType string) (bool, error)
-	SetDefaultAlertEnrichRule(sourceType string, tagEnrichRules []alert.AlertEnrichRuleVO) error
+	GetDefaultAlertEnrichRule(ctx core.Context, sourceType string) (string, []alert.AlertEnrichRuleVO)
+	ClearDefaultAlertEnrichRule(ctx core.Context, sourceType string) (bool, error)
+	SetDefaultAlertEnrichRule(ctx core.Context, sourceType string, tagEnrichRules []alert.AlertEnrichRuleVO) error
 }
 
 type service struct {
@@ -76,7 +76,7 @@ func New(
 		ckRepo:   chRepo,
 	}
 
-	_, enrichMaps, err := service.dbRepo.LoadAlertEnrichRule()
+	_, enrichMaps, err := service.dbRepo.LoadAlertEnrichRule(nil)
 	if err != nil {
 		log.Printf("failed to init alertinput module,err: %v", err)
 		return service

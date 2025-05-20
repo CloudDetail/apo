@@ -4,12 +4,10 @@
 package user
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
 // RefreshToken Refresh accessToken
@@ -26,22 +24,13 @@ func (h *handler) RefreshToken() core.HandlerFunc {
 	return func(c core.Context) {
 		token := c.GetHeader("Authorization")
 
-		resp, err := h.userService.RefreshToken(token)
+		resp, err := h.userService.RefreshToken(c, token)
 		if err != nil {
-			var vErr model.ErrWithMessage
-			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					vErr.Code,
-					c.ErrMessage(vErr.Code),
-				).WithError(err))
-			} else {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.UserTokenExpireError,
-					c.ErrMessage(code.UserTokenExpireError),
-				).WithError(err))
-			}
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.UserTokenExpireError,
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

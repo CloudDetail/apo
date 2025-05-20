@@ -26,22 +26,22 @@ func (h *handler) InputAlertManager() core.HandlerFunc {
 	return func(c core.Context) {
 		data, err := io.ReadAll(c.Request().Body)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.AcceptAlertEventFailed,
-				c.ErrMessage(code.AcceptAlertEventFailed)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		// using APO-VM-ALERT as default source
 		sourceFrom := alert.SourceFrom{SourceID: alert.ApoVMAlertSourceID}
-		err = h.inputService.ProcessAlertEvents(sourceFrom, data)
+		err = h.inputService.ProcessAlertEvents(c, sourceFrom, data)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ProcessAlertEventFailed,
-				c.ErrMessage(code.ProcessAlertEventFailed)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -4,10 +4,8 @@
 package role
 
 import (
-	"errors"
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -29,30 +27,21 @@ func (h *handler) DeleteRole() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.DeleteRoleRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		err := h.roleService.DeleteRole(req)
+		err := h.roleService.DeleteRole(c, req)
 		if err != nil {
-			var vErr model.ErrWithMessage
-			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					vErr.Code,
-					c.ErrMessage(vErr.Code)).WithError(err),
-				)
-			} else {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.DeleteRoleError,
-					c.ErrMessage(code.DeleteRoleError)).WithError(err),
-				)
-			}
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.DeleteRoleError,
+				err,
+			)
 			return
 		}
 		c.Payload("ok")

@@ -303,10 +303,10 @@ UserDeleteError: "删除用户失败",
 ```go
 resp, err := h.userService.Create(c, req)
 if err != nil {
-    c.AbortWithError(core.Error(
+    c.AbortWithError(
         http.StatusBadRequest,
         code.UserCreateError,
-        code.Text(code.UserCreateError)).WithError(err),
+        err,
     )
     return
 }

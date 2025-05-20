@@ -7,12 +7,13 @@ import (
 	"sort"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 // Fetch the endpoint overview information based on the input endpoints.
-func (s *service) GetAlertRelatedEntryData(
+func (s *service) GetAlertRelatedEntryData(ctx core.Context,
 	startTime, endTime time.Time, namespaces []string,
 	entry []response.AlertRelatedEntry,
 ) (res []response.AlertRelatedEntry, err error) {

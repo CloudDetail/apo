@@ -4,11 +4,12 @@
 package alerts
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) CheckAlertRule(req *request.CheckAlertRuleRequest) (response.CheckAlertRuleResponse, error) {
+func (s *service) CheckAlertRule(ctx core.Context, req *request.CheckAlertRuleRequest) (response.CheckAlertRuleResponse, error) {
 	var resp response.CheckAlertRuleResponse
 	find, err := s.k8sApi.CheckAlertRule(req.AlertRuleFile, req.Group, req.Alert)
 	if err != nil {

@@ -4,20 +4,21 @@
 package service
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetServiceEndpointTopology(req *request.GetServiceEndpointTopologyRequest) (*response.GetServiceEndpointTopologyResponse, error) {
+func (s *service) GetServiceEndpointTopology(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) (*response.GetServiceEndpointTopologyResponse, error) {
 	// Query all upstream nodes
-	parents, err := s.chRepo.ListParentNodes(req)
+	parents, err := s.chRepo.ListParentNodes(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
 	// Query all downstream nodes
-	children, err := s.chRepo.ListChildNodes(req)
+	children, err := s.chRepo.ListChildNodes(ctx, req)
 	if err != nil {
 		return nil, err
 	}
