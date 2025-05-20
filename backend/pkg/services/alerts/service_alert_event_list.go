@@ -86,6 +86,7 @@ func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 		Pod:       record.AlertEvent.GetK8sPodTag(),
 		Pid:       record.AlertEvent.GetPidTag(),
 		AlertName: record.AlertEvent.Name,
+		Detail:    record.Detail,
 	}
 
 	if len(services) == 1 {
