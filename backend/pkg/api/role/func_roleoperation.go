@@ -36,7 +36,7 @@ func (h *handler) RoleOperation() core.HandlerFunc {
 			return
 		}
 
-		err := h.roleService.RoleOperation(req)
+		err := h.roleService.RoleOperation(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

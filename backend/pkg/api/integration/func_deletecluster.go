@@ -33,7 +33,7 @@ func (h *handler) DeleteCluster() core.HandlerFunc {
 			return
 		}
 
-		err := h.integrationService.DeleteCluster(req)
+		err := h.integrationService.DeleteCluster(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

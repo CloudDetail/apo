@@ -4,14 +4,15 @@
 package integration
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
 
-func (s *service) ListCluster() ([]integration.Cluster, error) {
+func (s *service) ListCluster(ctx core.Context) ([]integration.Cluster, error) {
 	return s.dbRepo.ListCluster()
 }
 
-func (s *service) DeleteCluster(cluster *integration.Cluster) error {
+func (s *service) DeleteCluster(ctx core.Context, cluster *integration.Cluster) error {
 	err := s.dbRepo.DeleteCluster(cluster)
 	if err != nil {
 		return err

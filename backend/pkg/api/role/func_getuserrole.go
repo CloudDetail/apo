@@ -34,7 +34,7 @@ func (h *handler) GetUserRole() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.roleService.GetUserRole(req)
+		resp, err := h.roleService.GetUserRole(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -15,7 +16,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-func (s *service) AlertEventList(req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error) {
+func (s *service) AlertEventList(ctx core.Context, req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error) {
 	events, count, err := s.chRepo.GetAlertEventWithWorkflowRecord(req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err

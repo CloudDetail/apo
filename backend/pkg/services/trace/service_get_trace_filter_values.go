@@ -6,12 +6,13 @@ package trace
 import (
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 )
 
-func (s *service) GetTraceFilterValues(startTime, endTime time.Time, searchText string, filter request.SpanTraceFilter) (*response.GetTraceFilterValueResponse, error) {
+func (s *service) GetTraceFilterValues(ctx core.Context, startTime, endTime time.Time, searchText string, filter request.SpanTraceFilter) (*response.GetTraceFilterValueResponse, error) {
 	option, err := s.chRepo.GetFieldValues(searchText, &filter, startTime, endTime)
 	if err != nil {
 		return &response.GetTraceFilterValueResponse{

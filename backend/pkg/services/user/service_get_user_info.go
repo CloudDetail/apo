@@ -5,13 +5,13 @@ package user
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) GetUserInfo(userID int64) (response.GetUserInfoResponse, error) {
+func (s *service) GetUserInfo(ctx core.Context, userID int64) (response.GetUserInfoResponse, error) {
 	var (
 		user database.User
 		err  error
@@ -42,7 +42,7 @@ func (s *service) GetUserInfo(userID int64) (response.GetUserInfoResponse, error
 	return resp, nil
 }
 
-func (s *service) GetUserList(req *request.GetUserListRequest) (resp response.GetUserListResponse, err error) {
+func (s *service) GetUserList(ctx core.Context, req *request.GetUserListRequest) (resp response.GetUserListResponse, err error) {
 	users, count, err := s.dbRepo.GetUserList(req)
 	resp.Users = users
 	resp.PageSize = req.PageSize

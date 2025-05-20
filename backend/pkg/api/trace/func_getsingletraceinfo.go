@@ -35,7 +35,7 @@ func (h *handler) GetSingleTraceInfo() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.traceService.GetSingleTraceID(req)
+		resp, err := h.traceService.GetSingleTraceID(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

@@ -33,7 +33,7 @@ func (h *handler) SetSingleTableTTL() core.HandlerFunc {
 			)
 			return
 		}
-		if err := h.configService.SetSingleTableTTL(req); err != nil {
+		if err := h.configService.SetSingleTableTTL(c, req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.SetSingleTableTTLError,

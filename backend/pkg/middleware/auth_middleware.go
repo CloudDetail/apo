@@ -23,7 +23,7 @@ func (m *middleware) AuthMiddleware() core.HandlerFunc {
 				return
 			}
 
-			anonymousUser, err := m.userService.GetUserInfo(0)
+			anonymousUser, err := m.userService.GetUserInfo(c, 0)
 			if err != nil {
 				c.AbortWithError(http.StatusBadRequest, code.AuthError, nil)
 				return
@@ -34,7 +34,7 @@ func (m *middleware) AuthMiddleware() core.HandlerFunc {
 			return
 		}
 
-		if ok, _ := m.userService.IsInBlacklist(token); ok {
+		if ok, _ := m.userService.IsInBlacklist(c, token); ok {
 			c.AbortWithError(http.StatusBadRequest, code.InValidToken, nil)
 			return
 		}

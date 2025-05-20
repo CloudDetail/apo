@@ -4,10 +4,11 @@
 package permission
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
-func (s *service) getUserFeatureIDs(userID int64) ([]int, error) {
+func (s *service) getUserFeatureIDs(ctx core.Context, userID int64) ([]int, error) {
 	// 1. Get user's role
 	roles, err := s.dbRepo.GetUserRole(userID)
 	if err != nil {

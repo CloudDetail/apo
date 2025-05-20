@@ -7,12 +7,12 @@ import (
 	"context"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) UpdateTeam(req *request.UpdateTeamRequest) error {
+func (s *service) UpdateTeam(ctx core.Context, req *request.UpdateTeamRequest) error {
 	team, err := s.dbRepo.GetTeam(req.TeamID)
 	if err != nil {
 		return err

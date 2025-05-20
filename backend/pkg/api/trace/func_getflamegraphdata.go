@@ -40,7 +40,7 @@ func (h *handler) GetFlameGraphData() core.HandlerFunc {
 			)
 			return
 		}
-		resp, err := h.traceService.GetFlameGraphData(req)
+		resp, err := h.traceService.GetFlameGraphData(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

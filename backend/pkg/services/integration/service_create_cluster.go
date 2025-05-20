@@ -7,11 +7,12 @@ import (
 	"errors"
 
 	"github.com/CloudDetail/apo/backend/config"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/google/uuid"
 )
 
-func (s *service) CreateCluster(cluster *integration.ClusterIntegration) (*integration.Cluster, error) {
+func (s *service) CreateCluster(ctx core.Context, cluster *integration.ClusterIntegration) (*integration.Cluster, error) {
 	isExist, err := s.dbRepo.CheckClusterNameExisted(cluster.Name)
 	if err != nil {
 		return nil, err

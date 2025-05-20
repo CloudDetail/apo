@@ -33,7 +33,7 @@ func (h *handler) AlertEventList() core.HandlerFunc {
 			return
 		}
 
-		list, err := h.alertService.AlertEventList(req)
+		list, err := h.alertService.AlertEventList(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

@@ -6,6 +6,7 @@ package alert
 import (
 	"errors"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	alertin "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
@@ -13,7 +14,7 @@ import (
 	"go.uber.org/multierr"
 )
 
-func (s *service) CreateAlertSource(source *alertin.AlertSource) (*alertin.AlertSource, error) {
+func (s *service) CreateAlertSource(ctx core.Context, source *alertin.AlertSource) (*alertin.AlertSource, error) {
 	_, find := s.dispatcher.SourceName2EnricherMap.Load(source.SourceName)
 	if find {
 		return nil, alertin.ErrAlertSourceAlreadyExist{
@@ -59,7 +60,7 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 		return enricher.(*enrich.AlertEnricher), alertin.ErrAlertSourceAlreadyExist{}
 	}
 
-	_, defaultRules := s.GetDefaultAlertEnrichRule(source.SourceType)
+	_, defaultRules := s.GetDefaultAlertEnrichRule(nil, source.SourceType)
 	storedRules, newR, newC, newS := s.prepareAlertEnrichRule(source, defaultRules)
 
 	enricher, err := s.createAlertSource(source, storedRules)

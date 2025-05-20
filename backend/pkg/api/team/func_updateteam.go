@@ -35,7 +35,7 @@ func (h *handler) UpdateTeam() core.HandlerFunc {
 			return
 		}
 
-		err := h.teamService.UpdateTeam(req)
+		err := h.teamService.UpdateTeam(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

@@ -47,7 +47,7 @@ func (h *handler) GetUserList() core.HandlerFunc {
 			}
 		}
 
-		resp, err := h.userService.GetUserList(req)
+		resp, err := h.userService.GetUserList(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

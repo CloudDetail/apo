@@ -33,7 +33,7 @@ func (h *handler) GetAlertSourceEnrichRule() core.HandlerFunc {
 			return
 		}
 
-		rules, err := h.inputService.GetAlertEnrichRule(req.SourceID)
+		rules, err := h.inputService.GetAlertEnrichRule(c, req.SourceID)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

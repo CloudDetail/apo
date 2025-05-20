@@ -7,12 +7,12 @@ import (
 	"context"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) TeamUserOperation(req *request.AssignToTeamRequest) error {
+func (s *service) TeamUserOperation(ctx core.Context, req *request.AssignToTeamRequest) error {
 	filter := model.TeamFilter{
 		ID: req.TeamID,
 	}

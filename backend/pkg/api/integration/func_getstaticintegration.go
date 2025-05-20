@@ -17,7 +17,7 @@ import (
 // @Router /api/integration/configuration [get]
 func (h *handler) GetStaticIntegration() core.HandlerFunc {
 	return func(c core.Context) {
-		storeIntegration := h.integrationService.GetStaticIntegration()
+		storeIntegration := h.integrationService.GetStaticIntegration(c)
 		c.Payload(storeIntegration)
 	}
 }

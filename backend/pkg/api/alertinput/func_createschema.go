@@ -33,7 +33,7 @@ func (h *handler) CreateSchema() core.HandlerFunc {
 			return
 		}
 
-		err := h.inputService.CreateSchema(req)
+		err := h.inputService.CreateSchema(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

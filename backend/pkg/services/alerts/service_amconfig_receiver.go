@@ -8,7 +8,7 @@ import (
 	"net/url"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -16,12 +16,12 @@ import (
 	uuid2 "github.com/google/uuid"
 )
 
-func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse {
+func (s *service) GetAMConfigReceivers(ctx core.Context, req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse {
 	if !s.enableInnerReceiver {
-		s.GetAMReceiversFromExternalAM(req)
+		s.GetAMReceiversFromExternalAM(ctx, req)
 	}
 
-	receivers, total := s.receivers.GetAMConfigReceiver(req.AMConfigReceiverFilter, req.PageParam)
+	receivers, total := s.receivers.GetAMConfigReceiver(ctx, req.AMConfigReceiverFilter, req.PageParam)
 	if receivers == nil {
 		receivers = make([]amconfig.Receiver, 0)
 	}
@@ -35,7 +35,7 @@ func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigRecever
 	}
 }
 
-func (s *service) GetAMReceiversFromExternalAM(req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse {
+func (s *service) GetAMReceiversFromExternalAM(ctx core.Context, req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse {
 	if req.PageParam == nil {
 		req.PageParam = &request.PageParam{
 			CurrentPage: 1,
@@ -79,15 +79,15 @@ func (s *service) GetAMReceiversFromExternalAM(req *request.GetAlertManagerConfi
 	return resp
 }
 
-func (s *service) AddAMConfigReceiver(req *request.AddAlertManagerConfigReceiver) error {
+func (s *service) AddAMConfigReceiver(ctx core.Context, req *request.AddAlertManagerConfigReceiver) error {
 	if !s.enableInnerReceiver {
-		return s.AddAMReceiversForExternalAM(req)
+		return s.AddAMReceiversForExternalAM(ctx, req)
 	}
 
-	return s.receivers.AddAMConfigReceiver(req.AMConfigReceiver)
+	return s.receivers.AddAMConfigReceiver(ctx, req.AMConfigReceiver)
 }
 
-func (s *service) AddAMReceiversForExternalAM(req *request.AddAlertManagerConfigReceiver) error {
+func (s *service) AddAMReceiversForExternalAM(ctx core.Context, req *request.AddAlertManagerConfigReceiver) error {
 	if req.Type != "dingtalk" {
 		return s.k8sApi.AddAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver)
 	}
@@ -113,15 +113,15 @@ func (s *service) AddAMReceiversForExternalAM(req *request.AddAlertManagerConfig
 	return nil
 }
 
-func (s *service) UpdateAMConfigReceiver(req *request.UpdateAlertManagerConfigReceiver) error {
+func (s *service) UpdateAMConfigReceiver(ctx core.Context, req *request.UpdateAlertManagerConfigReceiver) error {
 	if !s.enableInnerReceiver {
-		return s.UpdateAMReceiverForExternalAM(req)
+		return s.UpdateAMReceiverForExternalAM(ctx, req)
 	}
 
-	return s.receivers.UpdateAMConfigReceiver(req.AMConfigReceiver, req.OldName)
+	return s.receivers.UpdateAMConfigReceiver(ctx, req.AMConfigReceiver, req.OldName)
 }
 
-func (s *service) UpdateAMReceiverForExternalAM(req *request.UpdateAlertManagerConfigReceiver) error {
+func (s *service) UpdateAMReceiverForExternalAM(ctx core.Context, req *request.UpdateAlertManagerConfigReceiver) error {
 	if req.Type != "dingtalk" {
 		return s.k8sApi.UpdateAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver, req.OldName)
 	}
@@ -149,15 +149,15 @@ func (s *service) UpdateAMReceiverForExternalAM(req *request.UpdateAlertManagerC
 	return nil
 }
 
-func (s *service) DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigReceiverRequest) error {
+func (s *service) DeleteAMConfigReceiver(ctx core.Context, req *request.DeleteAlertManagerConfigReceiverRequest) error {
 	if !s.enableInnerReceiver {
-		return s.DeleteAMReceiverForExternalAM(req)
+		return s.DeleteAMReceiverForExternalAM(ctx, req)
 	}
 
-	return s.receivers.DeleteAMConfigReceiver(req.Name)
+	return s.receivers.DeleteAMConfigReceiver(ctx, req.Name)
 }
 
-func (s *service) DeleteAMReceiverForExternalAM(req *request.DeleteAlertManagerConfigReceiverRequest) error {
+func (s *service) DeleteAMReceiverForExternalAM(ctx core.Context, req *request.DeleteAlertManagerConfigReceiverRequest) error {
 	err := s.k8sApi.DeleteAMConfigReceiver(req.AMConfigFile, req.Name)
 	if err != nil {
 		return err

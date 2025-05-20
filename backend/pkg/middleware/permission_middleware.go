@@ -19,7 +19,7 @@ func (m *middleware) PermissionMiddleware() core.HandlerFunc {
 		}
 		method, path := c.GetMethodPath()
 
-		can, err := m.permissionService.CheckApiPermission(userID, method, path)
+		can, err := m.permissionService.CheckApiPermission(c, userID, method, path)
 		if err != nil {
 			c.AbortWithError(http.StatusForbidden, code.AuthError, err)
 			return

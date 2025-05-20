@@ -36,7 +36,7 @@ func (h *handler) InputAlertManager() core.HandlerFunc {
 
 		// using APO-VM-ALERT as default source
 		sourceFrom := alert.SourceFrom{SourceID: alert.ApoVMAlertSourceID}
-		err = h.inputService.ProcessAlertEvents(sourceFrom, data)
+		err = h.inputService.ProcessAlertEvents(c, sourceFrom, data)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

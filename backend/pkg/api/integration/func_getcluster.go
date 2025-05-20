@@ -33,7 +33,7 @@ func (h *handler) GetCluster() core.HandlerFunc {
 			return
 		}
 
-		clusterIntegration, err := h.integrationService.GetClusterIntegration(req.ID)
+		clusterIntegration, err := h.integrationService.GetClusterIntegration(c, req.ID)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

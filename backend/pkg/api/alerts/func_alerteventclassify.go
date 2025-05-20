@@ -33,7 +33,7 @@ func (h *handler) AlertEventClassify() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.alertService.AlertEventClassify(req)
+		resp, err := h.alertService.AlertEventClassify(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

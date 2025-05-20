@@ -4,17 +4,19 @@
 package permission
 
 import (
+	"sort"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
-	"sort"
 )
 
 // GetUserConfig Gets menus and routes that users can view.
-func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error) {
+func (s *service) GetUserConfig(ctx core.Context, req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error) {
 	var resp response.GetUserConfigResponse
-	featureIDs, err := s.getUserFeatureIDs(req.UserID)
+	featureIDs, err := s.getUserFeatureIDs(ctx, req.UserID)
 	if err != nil {
 		return resp, err
 	}

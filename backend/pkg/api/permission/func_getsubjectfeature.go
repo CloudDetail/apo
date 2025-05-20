@@ -36,7 +36,7 @@ func (h *handler) GetSubjectFeature() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.permissionService.GetSubjectFeature(req)
+		resp, err := h.permissionService.GetSubjectFeature(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

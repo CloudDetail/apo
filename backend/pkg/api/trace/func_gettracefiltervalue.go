@@ -38,7 +38,7 @@ func (h *handler) GetTraceFilterValue() core.HandlerFunc {
 
 		startTime := time.UnixMicro(req.StartTime)
 		endTime := time.UnixMicro(req.EndTime)
-		resp, err := h.traceService.GetTraceFilterValues(startTime, endTime, req.SearchText, req.Filter)
+		resp, err := h.traceService.GetTraceFilterValues(c, startTime, endTime, req.SearchText, req.Filter)
 
 		if err != nil {
 			c.AbortWithError(

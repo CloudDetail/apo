@@ -35,7 +35,7 @@ func (h *handler) CreateTeam() core.HandlerFunc {
 			return
 		}
 
-		err := h.teamService.CreateTeam(req)
+		err := h.teamService.CreateTeam(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

@@ -36,7 +36,7 @@ func (h *handler) TeamUserOperation() core.HandlerFunc {
 			return
 		}
 
-		err := h.teamService.TeamUserOperation(req)
+		err := h.teamService.TeamUserOperation(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

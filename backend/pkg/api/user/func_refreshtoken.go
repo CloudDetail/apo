@@ -24,7 +24,7 @@ func (h *handler) RefreshToken() core.HandlerFunc {
 	return func(c core.Context) {
 		token := c.GetHeader("Authorization")
 
-		resp, err := h.userService.RefreshToken(token)
+		resp, err := h.userService.RefreshToken(c, token)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

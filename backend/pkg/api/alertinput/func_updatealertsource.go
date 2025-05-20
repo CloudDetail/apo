@@ -34,7 +34,7 @@ func (h *handler) UpdateAlertSource() core.HandlerFunc {
 			return
 		}
 
-		source, err := h.inputService.UpdateAlertSource(req)
+		source, err := h.inputService.UpdateAlertSource(c, req)
 		if err != nil {
 			var vErr alert.ErrAlertSourceAlreadyExist
 			if errors.As(err, &vErr) {

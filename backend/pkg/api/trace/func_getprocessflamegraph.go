@@ -8,7 +8,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -39,7 +38,7 @@ func (h *handler) GetProcessFlameGraph() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.traceService.GetProcessFlameGraphData(req)
+		resp, err := h.traceService.GetProcessFlameGraphData(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

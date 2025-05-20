@@ -36,7 +36,7 @@ func (h *handler) ForwardToDingTalk() core.HandlerFunc {
 			return
 		}
 
-		if err := h.alertService.ForwardToDingTalk(req, uuid); err != nil {
+		if err := h.alertService.ForwardToDingTalk(c, req, uuid); err != nil {
 			// TODO Error code
 			c.AbortWithError(http.StatusBadRequest, "", nil)
 		}

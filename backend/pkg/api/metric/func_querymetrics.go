@@ -32,7 +32,7 @@ func (h *handler) QueryMetrics() core.HandlerFunc {
 			return
 		}
 
-		resp := h.metricService.QueryMetrics(req)
+		resp := h.metricService.QueryMetrics(c, req)
 		c.Payload(resp)
 	}
 }

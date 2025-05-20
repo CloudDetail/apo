@@ -37,7 +37,7 @@ func (h *handler) PermissionOperation() core.HandlerFunc {
 			return
 		}
 
-		err := h.permissionService.PermissionOperation(req)
+		err := h.permissionService.PermissionOperation(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

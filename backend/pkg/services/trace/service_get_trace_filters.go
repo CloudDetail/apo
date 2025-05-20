@@ -6,11 +6,12 @@ package trace
 import (
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetTraceFilters(startTime, endTime time.Time, needUpdate bool) (*response.GetTraceFiltersResponse, error) {
+func (s *service) GetTraceFilters(ctx core.Context, startTime, endTime time.Time, needUpdate bool) (*response.GetTraceFiltersResponse, error) {
 	filters, err := s.chRepo.GetAvailableFilterKey(startTime, endTime, needUpdate)
 	if err != nil {
 		return &response.GetTraceFiltersResponse{

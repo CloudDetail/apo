@@ -4,12 +4,14 @@
 package alerts
 
 import (
+	"log"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/services/alerts/notification"
-	"log"
 )
 
-func (s *service) ForwardToDingTalk(req *request.ForwardToDingTalkRequest, uuid string) error {
+func (s *service) ForwardToDingTalk(ctx core.Context, req *request.ForwardToDingTalkRequest, uuid string) error {
 	config, err := s.dbRepo.GetDingTalkReceiver(uuid)
 	if err != nil {
 		log.Println("get dingtalk receiver err:", err)
