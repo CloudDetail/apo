@@ -159,6 +159,22 @@ export default function UserManage() {
         />
       </BasicCard.Table>
 
+      <AddUserModal
+        visible={modalStates.add}
+        loading={loading}
+        roleItems={roleOptions}
+        onCancel={() => toggleModal('add', false)}
+        onFinish={async (values) => {
+          try {
+            await createNewUser(values);
+            toggleModal('add', false);
+            handleFetchUsers();
+          } catch (error) {
+            console.error('Error add user:', error);
+          }
+        }}
+      />
+
       <EditUserModal
         visible={modalStates.edit}
         user={selectedUser}
