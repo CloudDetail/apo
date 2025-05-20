@@ -27,7 +27,6 @@ import { ChartsProvider, useChartsContext } from 'src/core/contexts/ChartsContex
 import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
 const ServiceTable = React.memo(({ groupId, height }) => {
-  console.log('height: ', height)
   const { t, i18n } = useTranslation('oss/service')
   const navigate = useNavigate()
   const [data, setData] = useState([])
