@@ -296,7 +296,7 @@ function FaultSiteLogs(props) {
       <LoadingSpinner loading={loading} />
 
       <BasicCard.Header>
-        <div className="w-full flex justify-start items-center">
+        <div className="w-full flex justify-start items-center text-sm font-normal">
           <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
           {i18n.language === 'zh' ? (
             <>

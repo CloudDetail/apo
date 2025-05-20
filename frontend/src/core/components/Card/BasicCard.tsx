@@ -1,4 +1,3 @@
-// Card.tsx
 import React, { ReactElement } from 'react';
 import { SLOT_TYPES, CardTable, CardHeader } from './CardSlots';
 import { Card, Space } from 'antd';
@@ -55,11 +54,16 @@ export const BasicCard: React.FC<CardProps> & {
       }}
     >
       {/* Header Section */}
-      <div className='w-full text-sm font-medium flex flex-col items-center justify-between'>
+      {/* <div className='w-full text-sm font-medium flex items-center justify-between'>
         {headerContent.map((header, index) => (
           <React.Fragment key={index}>{header}</React.Fragment>
         ))}
-      </div>
+      </div> */}
+      {headerContent.map((header, index) => (
+        <div className='w-full text-sm font-medium flex items-center justify-between'>
+          <React.Fragment key={index}>{header}</React.Fragment>
+        </div>
+      ))}
 
       {/* Table Section */}
       <div className="flex-1 overflow-auto">

@@ -434,65 +434,10 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
     }
   }, [data, pageIndex, pageSize])
   return (
-  //   <div style={{ width: '100%', overflow: 'hidden' }} className="h-full flex flex-col">
-  //   <LoadingSpinner loading={loading} />
-  //   <TableFilter
-  //     groupId={groupId}
-  //     setServiceName={setServiceName}
-  //     setEndpoint={setEndpoint}
-  //     setNamespace={setNamespace}
-  //     className="mb-2"
-  //   />
-  //   <Card className="flex-1 overflow-hidden" styles={{ body: { height: height, padding: 0 } }}>
-  //     <div className="mb-4 h-full p-2 text-xs justify-between">
-  //       <BasicTable {...tableProps} />
-  //     </div>
-  //     <ChartsProvider>
-  //       <EndpointTableModal
-  //         visible={modalVisible}
-  //         serviceName={modalServiceName}
-  //         timeRange={requestTimeRange}
-  //         closeModal={() => setModalVisible(false)}
-  //       />
-  //     </ChartsProvider>
-  //   </Card>
-  // </div>
-
-    // <CustomCard styleType="alerts">
-    //   <LoadingSpinner loading={loading} />
-
-    //   <div className="flex items-center justify-between text-sm ">
-    //     <Space className="flex-grow w-full border-b">
-    //       <TableFilter
-    //         groupId={groupId}
-    //         setServiceName={setServiceName}
-    //         setEndpoint={setEndpoint}
-    //         setNamespace={setNamespace}
-    //         className="mb-2"
-    //       />
-    //     </Space>
-    //   </div>
-
-    //   <div className="flex-1 overflow-auto">
-    //     <div className="h-full text-xs justify-between">
-    //       <BasicTable {...tableProps} />
-    //     </div>
-    //   </div>
-
-    //   <ChartsProvider>
-    //     <EndpointTableModal
-    //       visible={modalVisible}
-    //       serviceName={modalServiceName}
-    //       timeRange={requestTimeRange}
-    //       closeModal={() => setModalVisible(false)}
-    //     />
-    //   </ChartsProvider>
-    // </CustomCard>
-
     <BasicCard>
       <LoadingSpinner loading={loading} />
 
-      <BasicCard.Filter>
+      <BasicCard.Header>
         <TableFilter
           groupId={groupId}
           setServiceName={setServiceName}
@@ -500,7 +445,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
           setNamespace={setNamespace}
           className="mb-2"
         />
-      </BasicCard.Filter>
+      </BasicCard.Header>
 
       <BasicCard.Table>
         <BasicTable {...tableProps} />
