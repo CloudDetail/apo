@@ -16,6 +16,7 @@ import DatasourceTag from './component/DatasourceTag'
 import Paragraph from 'antd/es/typography/Paragraph'
 import { useTranslation } from 'react-i18next'
 import CustomCard from 'src/core/components/Card/CustomCard'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 
 export default function DataGroupPage() {
   const { t } = useTranslation('core/dataGroup')
@@ -154,15 +155,18 @@ export default function DataGroupPage() {
     },
   ]
   return (
-    <>
-      <CustomCard style={{ overflow: 'hidden' }} classNames={{ body: 'h-full' }}>
-        <div className="flex justify-between mb-2">
+    <BasicCard>
+      <BasicCard.Header>
+        <div className="w-full flex justify-between mt-2">
           {/* <DataGroupFilter /> */}
           <div></div>
           <Button type="primary" onClick={() => setInfoModalVisible(true)}>
             {t('add')}
           </Button>
         </div>
+      </BasicCard.Header>
+
+      <BasicCard.Table>
         <Table
           dataSource={data}
           columns={columns}
@@ -176,7 +180,8 @@ export default function DataGroupPage() {
           scroll={{ y: 'calc(100vh - 240px)' }}
           className="overflow-auto"
         ></Table>
-      </CustomCard>
+      </BasicCard.Table>
+
       <InfoModal
         open={infoModalVisible}
         closeModal={closeInfoModal}
@@ -189,6 +194,6 @@ export default function DataGroupPage() {
         groupInfo={groupInfo}
         refresh={refresh}
       />
-    </>
+    </BasicCard>
   )
 }
