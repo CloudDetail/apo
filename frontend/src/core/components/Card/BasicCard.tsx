@@ -1,6 +1,6 @@
 // Card.tsx
 import React, { ReactElement } from 'react';
-import { SLOT_TYPES, CardLoading, CardFilter, CardAction, CardTable, CardModal } from './CardSlots';
+import { SLOT_TYPES, CardTable, CardHeader } from './CardSlots';
 import { Card, Space } from 'antd';
 
 type CardProps = {
@@ -9,14 +9,11 @@ type CardProps = {
 
 export const BasicCard: React.FC<CardProps> & {
   // Loading: typeof CardLoading;
-  Filter?: typeof CardFilter;
-  Action?: typeof CardAction;
+  Header: typeof CardHeader;
   Table: typeof CardTable;
   // Modal: typeof CardModal;
 } = ({ children }) => {
-  // let loadingContent: ReactElement | null = null;
-  let filterContent: ReactElement | null = null;
-  let actionContent: ReactElement | null = null;
+  let headerContent: ReactElement[] = [];
   let tableContent: ReactElement | null = null;
   // let modalContent: ReactElement | null = null;
   const otherContent: ReactElement[] = [];
@@ -27,14 +24,11 @@ export const BasicCard: React.FC<CardProps> & {
   React.Children.forEach(children, child => {
     if (!React.isValidElement(child)) return;
 
-    const slotType = (child.type as any).slotType;
+    const slotType = (child.type as any)?.slotType;
 
     switch (slotType) {
-      case SLOT_TYPES.FILTER:
-        filterContent = child;
-        break;
-      case SLOT_TYPES.ACTION:
-        actionContent = child;
+      case SLOT_TYPES.HEADER:
+        headerContent.push(child);
         break;
       case SLOT_TYPES.TABLE:
         tableContent = child;
@@ -60,27 +54,25 @@ export const BasicCard: React.FC<CardProps> & {
         },
       }}
     >
-
-      <div className="flex items-center justify-between text-sm border-b font-medium border-[var(--ant-color-border)]">
-        <Space className="flex-grow w-full">
-          {filterContent && <>{filterContent}</>}
-        </Space>
-        <Space className="flex-grow w-full">
-          {actionContent && <>{actionContent}</>}
-        </Space>
+      {/* Header Section */}
+      <div className='w-full text-sm font-medium flex items-center justify-between'>
+        {headerContent.map((header, index) => (
+          <React.Fragment key={index}>{header}</React.Fragment>
+        ))}
       </div>
 
+      {/* Table Section */}
       <div className="flex-1 overflow-auto">
         <div className="h-full text-xs justify-between">
           {tableContent && <>{tableContent}</>}
         </div>
       </div>
 
+      {/* Other Content */}
       <div className="card-other">{otherContent}</div>
     </Card>
   );
 };
 
-BasicCard.Filter = CardFilter;
-BasicCard.Action = CardAction;
+BasicCard.Header = CardHeader;
 BasicCard.Table = CardTable;
