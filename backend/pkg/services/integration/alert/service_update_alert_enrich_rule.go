@@ -19,7 +19,7 @@ func (s *service) UpdateAlertEnrichRule(req *alert.AlertEnrichRuleConfigRequest)
 	}
 
 	oldEnricher := oldEnricherPtr.(*enrich.AlertEnricher)
-	sourceFrom := &alert.SourceFrom{SourceID: req.SourceId}
+	sourceFrom := &alert.SourceFrom{SourceID: req.SourceId, SourceInfo: oldEnricher.SourceInfo}
 	newTagEnricher, err := s.createAlertSource(sourceFrom, req.EnrichRuleConfigs)
 	if err != nil {
 
@@ -96,7 +96,10 @@ func (s *service) UpdateAlertEnrichRule(req *alert.AlertEnrichRuleConfigRequest)
 		newSchemaTargets = append(newSchemaTargets, req.EnrichRuleConfigs[newE.Order].SchemaTargets...)
 	}
 
-	s.dispatcher.AddOrUpdateAlertSourceRule(alert.SourceFrom{SourceID: req.SourceId}, newTagEnricher)
+	s.dispatcher.AddOrUpdateAlertSourceRule(alert.SourceFrom{
+		SourceID:   req.SourceId,
+		SourceInfo: oldEnricher.SourceInfo,
+	}, newTagEnricher)
 
 	var storeError error
 	if req.SetAsDefault {
