@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/CloudDetail/apo/backend/config"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/logger"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -59,12 +60,12 @@ func TestDataSourcePermission(t *testing.T) {
 
 	namespaceList := []string{}
 
-	anonymousUser, err := s.dbRepo.GetAnonymousUser(nil)
+	anonymousUser, err := s.dbRepo.GetAnonymousUser(core.EmptyCtx())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = s.CheckDatasourcePermission(nil, anonymousUser.UserID, 0, &namespaceList, nil, model.DATASOURCE_CATEGORY_APM)
+	err = s.CheckDatasourcePermission(core.EmptyCtx(), anonymousUser.UserID, 0, &namespaceList, nil, model.DATASOURCE_CATEGORY_APM)
 	if err != nil {
 		t.Fatal(err)
 	}

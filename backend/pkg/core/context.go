@@ -102,7 +102,6 @@ type Context interface {
 	ClientIP() string
 
 	LANG() string
-	LANGFromParam(param string) string
 	UserID() int64
 
 	ErrMessage(errCode string) string
@@ -254,17 +253,6 @@ func (c *context) LANG() string {
 		return code.LANG_EN
 	}
 	return code.LANG_ZH
-}
-
-func (c *context) LANGFromParam(param string) string {
-	if len(param) > 0 {
-		if strings.HasPrefix(strings.ToLower(param), code.LANG_EN) {
-			return code.LANG_EN
-		}
-		return code.LANG_ZH
-	}
-
-	return c.LANG()
 }
 
 func (c *context) ErrMessage(errCode string) string {

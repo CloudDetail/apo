@@ -30,15 +30,15 @@ func TestTransaction(t *testing.T) {
 	}
 
 	var grantFunc = func(ctx core.Context) error {
-		return repo.GrantRoleWithUser(nil, 239077004960, []int{2})
+		return repo.GrantRoleWithUser(core.EmptyCtx(), 239077004960, []int{2})
 	}
 
 	var boomFunc = func(ctx core.Context) error {
 		return errors.New("boom")
 	}
 
-	err = repo.Transaction(nil, grantFunc, boomFunc)
-	exists, checkErr := repo.RoleGrantedToUser(nil, 239077004960, 2)
+	err = repo.Transaction(core.EmptyCtx(), grantFunc, boomFunc)
+	exists, checkErr := repo.RoleGrantedToUser(core.EmptyCtx(), 239077004960, 2)
 	if checkErr != nil {
 		t.Error(err)
 	}

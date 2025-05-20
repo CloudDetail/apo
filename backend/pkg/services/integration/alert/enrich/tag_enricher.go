@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/itchyny/gojq"
@@ -69,7 +70,7 @@ func NewTagEnricher(
 		}
 	}
 
-	targetTags, err := dbRepo.ListAlertTargetTags(nil)
+	targetTags, err := dbRepo.ListAlertTargetTags(core.EmptyCtx())
 	if err != nil {
 		return nil, err
 	}
