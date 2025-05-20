@@ -7,10 +7,8 @@ type CardProps = {
 };
 
 export const BasicCard: React.FC<CardProps> & {
-  // Loading: typeof CardLoading;
   Header: typeof CardHeader;
   Table: typeof CardTable;
-  // Modal: typeof CardModal;
 } = ({ children }) => {
   let headerContent: ReactElement[] = [];
   let tableContent: ReactElement | null = null;
@@ -18,7 +16,7 @@ export const BasicCard: React.FC<CardProps> & {
   const otherContent: ReactElement[] = [];
 
   //@ts-ignore
-  const headHeight = import.meta.env.VITE_APP_CODE_VERSION === 'CE' ? 'var(--ce-app-head-height)' : 'var(--ee-app-head-height)';
+  const contentHeight = import.meta.env.VITE_APP_CODE_VERSION === 'CE' ? 'var(--ce-app-content-height)' : 'var(--ee-app-content-height)';
 
   React.Children.forEach(children, child => {
     if (!React.isValidElement(child)) return;
@@ -41,7 +39,7 @@ export const BasicCard: React.FC<CardProps> & {
   return (
     <Card
       style={{
-        height: 'calc(100vh - ' + headHeight +')',
+        height: contentHeight,
       }}
       styles={{
         body: {
