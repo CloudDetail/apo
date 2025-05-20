@@ -3,25 +3,28 @@
 
 package alert
 
-import sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
+import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+	sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
+)
 
-func (repo *subRepo) GetAlertSlience() ([]sc.AlertSlienceConfig, error) {
+func (repo *subRepo) GetAlertSlience(ctx core.Context) ([]sc.AlertSlienceConfig, error) {
 	var result []sc.AlertSlienceConfig
-	err := repo.db.Find(&result).Error
+	err := repo.GetContextDB(ctx).Find(&result).Error
 	if err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (repo *subRepo) AddAlertSlience(SlienceConfig *sc.AlertSlienceConfig) error {
-	return repo.db.Create(SlienceConfig).Error
+func (repo *subRepo) AddAlertSlience(ctx core.Context, SlienceConfig *sc.AlertSlienceConfig) error {
+	return repo.GetContextDB(ctx).Create(SlienceConfig).Error
 }
 
-func (repo *subRepo) UpdateAlertSlience(SlienceConfig *sc.AlertSlienceConfig) error {
-	return repo.db.Where("id = ?", SlienceConfig.ID).Updates(SlienceConfig).Error
+func (repo *subRepo) UpdateAlertSlience(ctx core.Context, SlienceConfig *sc.AlertSlienceConfig) error {
+	return repo.GetContextDB(ctx).Where("id = ?", SlienceConfig.ID).Updates(SlienceConfig).Error
 }
 
-func (repo *subRepo) DeleteAlertSlience(id int) error {
-	return repo.db.Delete(&sc.AlertSlienceConfig{}, "id = ? ", id).Error
+func (repo *subRepo) DeleteAlertSlience(ctx core.Context, id int) error {
+	return repo.GetContextDB(ctx).Delete(&sc.AlertSlienceConfig{}, "id = ? ", id).Error
 }

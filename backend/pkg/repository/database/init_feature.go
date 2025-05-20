@@ -4,6 +4,7 @@
 package database
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"gorm.io/gorm"
 )
 
@@ -25,8 +26,8 @@ var validFeatures = []Feature{
 	{FeatureName: "服务健康状态"},
 }
 
-func (repo *daoRepo) initFeature() error {
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+func (repo *daoRepo) initFeature(ctx core.Context) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		var existingFeatures []Feature
 		if err := tx.Where("custom = ?", false).Find(&existingFeatures).Error; err != nil {
 			return err

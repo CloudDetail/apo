@@ -4,22 +4,24 @@
 package permission
 
 import (
+	"sort"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
-	"sort"
 )
 
 // GetUserConfig Gets menus and routes that users can view.
-func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error) {
+func (s *service) GetUserConfig(ctx core.Context, req *request.GetUserConfigRequest) (response.GetUserConfigResponse, error) {
 	var resp response.GetUserConfigResponse
-	featureIDs, err := s.getUserFeatureIDs(req.UserID)
+	featureIDs, err := s.getUserFeatureIDs(ctx, req.UserID)
 	if err != nil {
 		return resp, err
 	}
 
-	res, err := s.dbRepo.GetFeatureMappingByFeature(featureIDs, model.MAPPED_TYP_MENU)
+	res, err := s.dbRepo.GetFeatureMappingByFeature(ctx, featureIDs, model.MAPPED_TYP_MENU)
 	itemIDs := make([]int, len(res))
 	for i := range res {
 		itemIDs[i] = res[i].MappedID
@@ -28,12 +30,12 @@ func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.Get
 		return resp, err
 	}
 
-	items, err := s.dbRepo.GetMenuItems()
+	items, err := s.dbRepo.GetMenuItems(ctx)
 	if err != nil {
 		return resp, err
 	}
 
-	err = s.dbRepo.FillItemRouter(&items)
+	err = s.dbRepo.FillItemRouter(ctx, &items)
 	if err != nil {
 		return resp, err
 	}
@@ -44,12 +46,12 @@ func (s *service) GetUserConfig(req *request.GetUserConfigRequest) (response.Get
 		}
 	}
 
-	err = s.dbRepo.GetRouterInsertedPage(routers, req.Language)
+	err = s.dbRepo.GetRouterInsertedPage(ctx, routers, req.Language)
 	if err != nil {
 		return resp, err
 	}
 
-	err = s.dbRepo.GetMenuItemTans(&items, req.Language)
+	err = s.dbRepo.GetMenuItemTans(ctx, &items, req.Language)
 	if err != nil {
 		return resp, err
 	}

@@ -4,6 +4,7 @@
 package database
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"gorm.io/gorm"
 )
@@ -18,7 +19,7 @@ func isValidRoleName(roleName string) bool {
 	return false
 }
 
-func (repo *daoRepo) initPermissions() error {
+func (repo *daoRepo) initPermissions(ctx core.Context) error {
 	roleFeatures := map[string][]string{
 		model.ROLE_ADMIN: {
 			"服务概览", "工作流", "日志检索", "故障现场日志", "全量日志", "链路追踪",
@@ -44,7 +45,7 @@ func (repo *daoRepo) initPermissions() error {
 		},
 	}
 
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		var featureIDs []int
 		if err := tx.Model(&Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
 			return err

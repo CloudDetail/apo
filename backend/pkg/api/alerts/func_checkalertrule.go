@@ -4,10 +4,8 @@
 package alerts
 
 import (
-	"errors"
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -31,32 +29,21 @@ func (h *handler) CheckAlertRule() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.CheckAlertRuleRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		resp, err := h.alertService.CheckAlertRule(req)
+		resp, err := h.alertService.CheckAlertRule(c, req)
 		if err != nil {
-			var vErr model.ErrWithMessage
-			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					vErr.Code,
-					c.ErrMessage(vErr.Code),
-				).WithError(err),
-				)
-			} else {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.AddAlertRuleError,
-					c.ErrMessage(code.UpdateAlertRuleError),
-				).WithError(err),
-				)
-			}
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.AddAlertRuleError,
+				err,
+			)
 			return
 		}
 

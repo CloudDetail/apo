@@ -4,10 +4,8 @@
 package role
 
 import (
-	"errors"
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -32,30 +30,21 @@ func (h *handler) UpdateRole() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.UpdateRoleRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		err := h.roleService.UpdateRole(req)
+		err := h.roleService.UpdateRole(c, req)
 		if err != nil {
-			var vErr model.ErrWithMessage
-			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					vErr.Code,
-					c.ErrMessage(vErr.Code)).WithError(err),
-				)
-			} else {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.UpdateRoleError,
-					c.ErrMessage(code.UpdateRoleError)).WithError(err),
-				)
-			}
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.UpdateRoleError,
+				err,
+			)
 			return
 		}
 		c.Payload("ok")

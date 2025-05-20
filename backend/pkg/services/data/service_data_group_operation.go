@@ -4,15 +4,13 @@
 package data
 
 import (
-	"context"
-	"errors"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) DataGroupOperation(req *request.DataGroupOperationRequest) error {
+func (s *service) DataGroupOperation(ctx core.Context, req *request.DataGroupOperationRequest) error {
 	var exists bool
 	var err error
 	switch req.SubjectType {
@@ -20,11 +18,11 @@ func (s *service) DataGroupOperation(req *request.DataGroupOperationRequest) err
 		filter := model.TeamFilter{
 			ID: req.SubjectID,
 		}
-		exists, err = s.dbRepo.TeamExist(filter)
+		exists, err = s.dbRepo.TeamExist(ctx, filter)
 	case model.DATA_GROUP_SUB_TYP_USER:
-		exists, err = s.dbRepo.UserExists(req.SubjectID)
+		exists, err = s.dbRepo.UserExists(ctx, req.SubjectID)
 	default:
-		err = model.NewErrWithMessage(errors.New("unsupported subject type"), code.UnSupportedSubType)
+		err = core.Error(code.UnSupportedSubType, "unsupported subject type")
 	}
 
 	if err != nil {
@@ -32,21 +30,21 @@ func (s *service) DataGroupOperation(req *request.DataGroupOperationRequest) err
 	}
 
 	if !exists {
-		return model.NewErrWithMessage(errors.New("subject does not exist"), code.AuthSubjectNotExistError)
+		return core.Error(code.AuthSubjectNotExistError, "subject does not exist")
 	}
 
-	toModify, toDelete, err := s.dbRepo.GetModifyAndDeleteDataGroup(req.SubjectID, req.SubjectType, req.DataGroupPermission)
+	toModify, toDelete, err := s.dbRepo.GetModifyAndDeleteDataGroup(ctx, req.SubjectID, req.SubjectType, req.DataGroupPermission)
 	if err != nil {
 		return err
 	}
 
-	var assignDataGroupFunc = func(ctx context.Context) error {
+	var assignDataGroupFunc = func(ctx core.Context) error {
 		return s.dbRepo.AssignDataGroup(ctx, toModify)
 	}
 
-	var revokeDataGroupFunc = func(ctx context.Context) error {
+	var revokeDataGroupFunc = func(ctx core.Context) error {
 		return s.dbRepo.RevokeDataGroupByGroup(ctx, toDelete, req.SubjectID)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), assignDataGroupFunc, revokeDataGroupFunc)
+	return s.dbRepo.Transaction(ctx, assignDataGroupFunc, revokeDataGroupFunc)
 }

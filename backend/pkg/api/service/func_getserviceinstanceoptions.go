@@ -6,12 +6,10 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -32,26 +30,26 @@ func (h *handler) GetServiceInstanceOptions() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceInstanceOptionsRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
+		userID := c.UserID()
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, make(map[string]*model.ServiceInstance))
+			c.AbortWithPermissionError(err, code.AuthError, make(map[string]*model.ServiceInstance))
 			return
 		}
-		resp, err := h.serviceInfoService.GetServiceInstanceOptions(req)
+		resp, err := h.serviceInfoService.GetServiceInstanceOptions(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetServiceInstanceOptionsError,
-				c.ErrMessage(code.GetServiceInstanceListError)).WithError(err),
+				err,
 			)
 			return
 		}

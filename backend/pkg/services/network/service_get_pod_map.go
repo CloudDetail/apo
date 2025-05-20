@@ -6,12 +6,14 @@ package network
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/CloudDetail/apo/backend/pkg/util"
 	"io"
 	"net/http"
 	"net/url"
 
+	"github.com/CloudDetail/apo/backend/pkg/util"
+
 	"github.com/CloudDetail/apo/backend/config"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -28,7 +30,7 @@ const (
 	sqlTemplate = "SELECT %s FROM vtap_app_edge_port %s %s"
 )
 
-func (s *service) GetPodMap(req *request.PodMapRequest) (*response.PodMapResponse, error) {
+func (s *service) GetPodMap(ctx core.Context, req *request.PodMapRequest) (*response.PodMapResponse, error) {
 	deepflowServer := config.Get().DeepFlow.ServerAddress
 	sql := buildPodMapQuery(req)
 	db := "flow_metrics"

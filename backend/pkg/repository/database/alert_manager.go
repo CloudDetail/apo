@@ -5,26 +5,28 @@ package database
 
 import (
 	"errors"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"gorm.io/gorm"
 )
 
-func (repo *daoRepo) CreateDingTalkReceiver(dingTalkConfig *amconfig.DingTalkConfig) error {
-	return repo.db.Create(dingTalkConfig).Error
+func (repo *daoRepo) CreateDingTalkReceiver(ctx core.Context, dingTalkConfig *amconfig.DingTalkConfig) error {
+	return repo.GetContextDB(ctx).Create(dingTalkConfig).Error
 }
 
-func (repo *daoRepo) GetDingTalkReceiver(uuid string) (amconfig.DingTalkConfig, error) {
+func (repo *daoRepo) GetDingTalkReceiver(ctx core.Context, uuid string) (amconfig.DingTalkConfig, error) {
 	config := amconfig.DingTalkConfig{}
-	err := repo.db.Select("url, secret").Where("uuid = ?", uuid).First(&config).Error
+	err := repo.GetContextDB(ctx).Select("url, secret").Where("uuid = ?", uuid).First(&config).Error
 	return config, err
 }
 
-func (repo *daoRepo) GetDingTalkReceiverByAlertName(configFile string, alertName string, page, pageSize int) ([]*amconfig.DingTalkConfig, int64, error) {
+func (repo *daoRepo) GetDingTalkReceiverByAlertName(ctx core.Context, configFile string, alertName string, page, pageSize int) ([]*amconfig.DingTalkConfig, int64, error) {
 	var dingTalkConfigs []*amconfig.DingTalkConfig
 	offset := (page - 1) * pageSize
 
-	query := repo.db.Select("alert_name, url, secret").Where("config_file = ?", configFile)
-	countQuery := repo.db.Model(&amconfig.DingTalkConfig{}).Select("*").Where("config_file = ?", configFile)
+	query := repo.GetContextDB(ctx).Select("alert_name, url, secret").Where("config_file = ?", configFile)
+	countQuery := repo.GetContextDB(ctx).Model(&amconfig.DingTalkConfig{}).Select("*").Where("config_file = ?", configFile)
 
 	if len(alertName) > 0 {
 		query = query.Where("alert_name = ?", alertName)
@@ -41,10 +43,10 @@ func (repo *daoRepo) GetDingTalkReceiverByAlertName(configFile string, alertName
 	return dingTalkConfigs, count, nil
 }
 
-func (repo *daoRepo) UpdateDingTalkReceiver(dingTalkConfig *amconfig.DingTalkConfig, oldName string) error {
-	return repo.db.Where("config_file = ? AND alert_name = ?", dingTalkConfig.ConfigFile, oldName).Updates(dingTalkConfig).Error
+func (repo *daoRepo) UpdateDingTalkReceiver(ctx core.Context, dingTalkConfig *amconfig.DingTalkConfig, oldName string) error {
+	return repo.GetContextDB(ctx).Where("config_file = ? AND alert_name = ?", dingTalkConfig.ConfigFile, oldName).Updates(dingTalkConfig).Error
 }
 
-func (repo *daoRepo) DeleteDingTalkReceiver(configFile, alertName string) error {
-	return repo.db.Where("config_file = ? AND alert_name = ?", configFile, alertName).Delete(&amconfig.DingTalkConfig{}).Error
+func (repo *daoRepo) DeleteDingTalkReceiver(ctx core.Context, configFile, alertName string) error {
+	return repo.GetContextDB(ctx).Where("config_file = ? AND alert_name = ?", configFile, alertName).Delete(&amconfig.DingTalkConfig{}).Error
 }

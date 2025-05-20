@@ -6,14 +6,15 @@ package database
 import (
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"gorm.io/gorm"
 )
 
-func (repo *daoRepo) GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int, error) {
+func (repo *daoRepo) GetAMConfigReceiver(ctx core.Context, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int, error) {
 	var count int64
-	var countQuery = repo.db.Model(&amconfig.Receiver{})
+	var countQuery = repo.GetContextDB(ctx).Model(&amconfig.Receiver{})
 	if filter != nil && len(filter.Name) > 0 {
 		countQuery.Where("name = ?", filter.Name)
 	}
@@ -23,7 +24,7 @@ func (repo *daoRepo) GetAMConfigReceiver(filter *request.AMConfigReceiverFilter,
 	}
 
 	var result []amconfig.Receiver
-	query := repo.db.Model(&amconfig.Receiver{})
+	query := repo.GetContextDB(ctx).Model(&amconfig.Receiver{})
 
 	if filter != nil && len(filter.Name) > 0 {
 		query.Where("name = ?", filter.Name)
@@ -41,42 +42,42 @@ func (repo *daoRepo) GetAMConfigReceiver(filter *request.AMConfigReceiverFilter,
 	return result, int(count), nil
 }
 
-func (repo *daoRepo) AddAMConfigReceiver(receiver amconfig.Receiver) error {
-	if repo.CheckAMConfigReceiverExist(receiver.Name) {
+func (repo *daoRepo) AddAMConfigReceiver(ctx core.Context, receiver amconfig.Receiver) error {
+	if repo.CheckAMConfigReceiverExist(ctx, receiver.Name) {
 		return fmt.Errorf("receiver name has been used: %s", receiver.Name)
 	}
-	return repo.db.Create(receiver).Error
+	return repo.GetContextDB(ctx).Create(receiver).Error
 }
 
-func (repo *daoRepo) UpdateAMConfigReceiver(receiver amconfig.Receiver, oldName string) error {
+func (repo *daoRepo) UpdateAMConfigReceiver(ctx core.Context, receiver amconfig.Receiver, oldName string) error {
 	if receiver.Name == oldName {
-		return repo.db.Model(&amconfig.Receiver{Name: oldName}).Updates(receiver).Error
+		return repo.GetContextDB(ctx).Model(&amconfig.Receiver{Name: oldName}).Updates(receiver).Error
 	}
 
-	if !repo.CheckAMConfigReceiverExist(oldName) {
+	if !repo.CheckAMConfigReceiverExist(ctx, oldName) {
 		return fmt.Errorf("receiver not existed: %s", oldName)
 	}
 
-	if repo.CheckAMConfigReceiverExist(receiver.Name) {
+	if repo.CheckAMConfigReceiverExist(ctx, receiver.Name) {
 		return fmt.Errorf("receiver name has been used: %s", receiver.Name)
 	}
 
-	return repo.db.Transaction(func(tx *gorm.DB) error {
-		err := repo.db.Delete(&amconfig.Receiver{}, "name = ?", oldName).Error
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
+		err := repo.GetContextDB(ctx).Delete(&amconfig.Receiver{}, "name = ?", oldName).Error
 		if err != nil {
 			return err
 		}
-		return repo.db.Create(receiver).Error
+		return repo.GetContextDB(ctx).Create(receiver).Error
 	})
 }
 
-func (repo *daoRepo) DeleteAMConfigReceiver(name string) error {
-	return repo.db.Delete(&amconfig.Receiver{}, "name = ?", name).Error
+func (repo *daoRepo) DeleteAMConfigReceiver(ctx core.Context, name string) error {
+	return repo.GetContextDB(ctx).Delete(&amconfig.Receiver{}, "name = ?", name).Error
 }
 
-func (repo *daoRepo) CheckAMConfigReceiverExist(name string) bool {
+func (repo *daoRepo) CheckAMConfigReceiverExist(ctx core.Context, name string) bool {
 	var count int64
-	err := repo.db.Model(&amconfig.Receiver{}).Where("name = ?", name).Count(&count).Error
+	err := repo.GetContextDB(ctx).Model(&amconfig.Receiver{}).Where("name = ?", name).Count(&count).Error
 	if err != nil {
 		return false
 	}

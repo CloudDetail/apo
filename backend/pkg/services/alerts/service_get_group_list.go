@@ -11,8 +11,11 @@ import (
 )
 
 func (s *service) GetGroupList(ctx core.Context) response.GetGroupListResponse {
-
-	if ctx.LANG() == code.LANG_ZH {
+	var lang = code.LANG_EN
+	if ctx != nil {
+		lang = ctx.LANG()
+	}
+	if lang == code.LANG_ZH {
 		return response.GetGroupListResponse{
 			GroupsLabel: kubernetes.GroupsCNLabel,
 		}

@@ -3,10 +3,13 @@
 
 package integration
 
-import "github.com/CloudDetail/apo/backend/pkg/model/integration"
+import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration"
+)
 
-func (s *service) GetClusterIntegration(clusterID string) (*integration.ClusterIntegrationVO, error) {
-	config, err := s.dbRepo.GetIntegrationConfig(clusterID)
+func (s *service) GetClusterIntegration(ctx core.Context, clusterID string) (*integration.ClusterIntegrationVO, error) {
+	config, err := s.dbRepo.GetIntegrationConfig(ctx, clusterID)
 	if err != nil {
 		return nil, err
 	}

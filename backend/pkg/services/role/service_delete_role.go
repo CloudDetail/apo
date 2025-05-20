@@ -4,39 +4,37 @@
 package role
 
 import (
-	"context"
-	"errors"
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) DeleteRole(req *request.DeleteRoleRequest) error {
-	exists, err := s.dbRepo.RoleExists(req.RoleID)
+func (s *service) DeleteRole(ctx core.Context, req *request.DeleteRoleRequest) error {
+	exists, err := s.dbRepo.RoleExists(ctx, req.RoleID)
 	if err != nil {
 		return err
 	}
 
 	if !exists {
-		return model.NewErrWithMessage(errors.New("role does not exist"), code.RoleNotExistsError)
+		return core.Error(code.RoleNotExistsError, "role does not exist")
 	}
 
-	granted, err := s.dbRepo.RoleGranted(req.RoleID)
+	granted, err := s.dbRepo.RoleGranted(ctx, req.RoleID)
 	if err != nil {
 		return err
 	}
 
 	if granted {
-		return model.NewErrWithMessage(errors.New("role has been granted"), code.RoleGrantedError)
+		return core.Error(code.RoleGrantedError, "role has been granted")
 	}
 
-	var revokeRoleFunc = func(ctx context.Context) error {
+	var revokeRoleFunc = func(ctx core.Context) error {
 		return s.dbRepo.RevokeRoleWithRole(ctx, req.RoleID)
 	}
 
-	var deleteFunc = func(ctx context.Context) error {
+	var deleteFunc = func(ctx core.Context) error {
 		return s.dbRepo.DeleteRole(ctx, req.RoleID)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), revokeRoleFunc, deleteFunc)
+	return s.dbRepo.Transaction(ctx, revokeRoleFunc, deleteFunc)
 }

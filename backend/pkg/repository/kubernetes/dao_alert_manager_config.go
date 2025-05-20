@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
@@ -118,7 +118,7 @@ func (k *k8sApi) UpdateAlertManagerConfigFile(alertManagerConfig string, content
 
 func ValidateAMConfigReceiver(receiver amconfig.Receiver) error {
 	if len(receiver.WebhookConfigs) == 0 && len(receiver.EmailConfigs) == 0 && len(receiver.WechatConfigs) == 0 {
-		return model.NewErrWithMessage(fmt.Errorf("receiver %s has no webhook, wechat or email config", receiver.Name), code.AlertManagerEmptyReceiver)
+		return core.Error(code.AlertManagerEmptyReceiver, fmt.Sprintf("receiver %s has no webhook, wechat or email config", receiver.Name))
 	}
 
 	for _, receiver := range receiver.WebhookConfigs {
@@ -131,10 +131,16 @@ func ValidateAMConfigReceiver(receiver amconfig.Receiver) error {
 	if receiver.EmailConfigs != nil {
 		for _, cfg := range receiver.EmailConfigs {
 			if len(cfg.From) == 0 {
-				return model.NewErrWithMessage(fmt.Errorf("receiver %s email config has no from", receiver.Name), code.AlertManagerReceiverEmailFromMissing)
+				return core.Error(
+					code.AlertManagerReceiverEmailFromMissing,
+					fmt.Sprintf("receiver %s email config has no from", receiver.Name),
+				)
 			}
 			if len(cfg.Smarthost.String()) == 0 {
-				return model.NewErrWithMessage(fmt.Errorf("receiver %s email config has no smarthost", receiver.Name), code.AlertManagerReceiverEmailHostMissing)
+				return core.Error(
+					code.AlertManagerReceiverEmailHostMissing,
+					fmt.Sprintf("receiver %s email config has no smarthost", receiver.Name),
+				)
 			}
 		}
 	}

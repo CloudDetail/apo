@@ -25,15 +25,15 @@ func (h *handler) UpdateCluster() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(input.Cluster)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		err := h.inputService.UpdateCluster(req)
+		err := h.inputService.UpdateCluster(c, req)
 		if err != nil {
 
 		}

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -36,17 +35,17 @@ func (h *handler) GetServiceInstance() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceInstanceRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
-		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
+		userID := c.UserID()
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, &response.InstancesRes{
+			c.AbortWithPermissionError(err, code.AuthError, &response.InstancesRes{
 				Status: model.STATUS_NORMAL,
 				Data:   []response.InstanceData{},
 			})
@@ -61,12 +60,12 @@ func (h *handler) GetServiceInstance() core.HandlerFunc {
 		step := time.Duration(req.Step * 1000)
 		serviceName := req.ServiceName
 		endpoint := req.Endpoint
-		data, err := h.serviceInfoService.GetInstancesNew(startTime, endTime, step, serviceName, endpoint)
+		data, err := h.serviceInfoService.GetInstancesNew(c, startTime, endTime, step, serviceName, endpoint)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetOverviewServiceInstanceListError,
-				c.ErrMessage(code.GetOverviewServiceInstanceListError)).WithError(err),
+				err,
 			)
 			return
 		}

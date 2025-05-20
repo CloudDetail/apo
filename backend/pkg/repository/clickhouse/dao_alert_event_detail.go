@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -150,7 +151,7 @@ SELECT count(1) as index
 FROM alert_event ae
 %s AND received_time > (SELECT received_time FROM target_event)`
 
-func (ch *chRepo) GetAlertDetail(req *request.GetAlertDetailRequest, cacheMinutes int) (*alert.AEventWithWRecord, error) {
+func (ch *chRepo) GetAlertDetail(ctx core.Context, req *request.GetAlertDetailRequest, cacheMinutes int) (*alert.AEventWithWRecord, error) {
 	alertFilter := NewQueryBuilder().
 		Equals("alert_id", req.AlertID).
 		Equals("toString(id)", req.EventID)
@@ -173,11 +174,11 @@ func (ch *chRepo) GetAlertDetail(req *request.GetAlertDetailRequest, cacheMinute
 	values = append(values, recordFilter.values...)
 
 	var result alert.AEventWithWRecord
-	err := ch.conn.QueryRow(context.Background(), sql, values...).ScanStruct(&result)
+	err := ch.GetContextDB(ctx).QueryRow(context.Background(), sql, values...).ScanStruct(&result)
 	return &result, err
 }
 
-func (ch *chRepo) GetRelatedAlertEvents(req *request.GetAlertDetailRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error) {
+func (ch *chRepo) GetRelatedAlertEvents(ctx core.Context, req *request.GetAlertDetailRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error) {
 	alertEventFilter := NewQueryBuilder().
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
 		NotGreaterThan("end_time", req.EndTime/1e6).
@@ -186,7 +187,7 @@ func (ch *chRepo) GetRelatedAlertEvents(req *request.GetAlertDetailRequest, cach
 	countSql := fmt.Sprintf(SQL_GET_RELEATED_ALERT_EVENT_COUNT, alertEventFilter.String())
 
 	var count uint64
-	err := ch.conn.QueryRow(context.Background(), countSql, alertEventFilter.values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(context.Background(), countSql, alertEventFilter.values...).Scan(&count)
 	if err != nil || count == 0 {
 		return nil, int64(count), err
 	}
@@ -202,7 +203,7 @@ func (ch *chRepo) GetRelatedAlertEvents(req *request.GetAlertDetailRequest, cach
 		values = append(values, alertEventFilter.values...)
 
 		var index uint64
-		err := ch.conn.QueryRow(context.Background(), sql, values...).Scan(&index)
+		err := ch.GetContextDB(ctx).QueryRow(context.Background(), sql, values...).Scan(&index)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -235,7 +236,7 @@ func (ch *chRepo) GetRelatedAlertEvents(req *request.GetAlertDetailRequest, cach
 	values = append(values, notifyFilter.values...)
 
 	var result = make([]alert.AEventWithWRecord, 0)
-	err = ch.conn.Select(context.Background(), &result, sql, values...)
+	err = ch.GetContextDB(ctx).Select(context.Background(), &result, sql, values...)
 	return result, int64(count), err
 }
 
@@ -248,26 +249,26 @@ func getOffset(rowIndex, pageSize int) (offset int) {
 	return offset
 }
 
-func (ch *chRepo) GetLatestAlertEventByAlertID(alertID string) (*alert.AlertEvent, error) {
+func (ch *chRepo) GetLatestAlertEventByAlertID(ctx core.Context, alertID string) (*alert.AlertEvent, error) {
 	alertEventFilter := NewQueryBuilder().
 		Equals("alert_id", alertID).
 		GreaterThan("received_time", time.Now().Add(-7*24*time.Hour).Unix())
 	sql := fmt.Sprintf(SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID, alertEventFilter.String())
 	var result = alert.AlertEvent{}
-	err := ch.conn.QueryRow(context.Background(), sql, alertEventFilter.values...).ScanStruct(&result)
+	err := ch.GetContextDB(ctx).QueryRow(context.Background(), sql, alertEventFilter.values...).ScanStruct(&result)
 	if err != nil {
 		return nil, err
 	}
 	return &result, err
 }
 
-func (ch *chRepo) ManualResolveLatestAlertEventByAlertID(alertID string) error {
+func (ch *chRepo) ManualResolveLatestAlertEventByAlertID(ctx core.Context, alertID string) error {
 	alertEventFilter := NewQueryBuilder().
 		Equals("alert_id", alertID).
 		GreaterThan("received_time", time.Now().Add(-7*24*time.Hour).Unix())
 	sql := fmt.Sprintf(SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID, alertEventFilter.String())
 	var result = alert.AlertEvent{}
-	err := ch.conn.QueryRow(context.Background(), sql, alertEventFilter.values...).ScanStruct(&result)
+	err := ch.GetContextDB(ctx).QueryRow(context.Background(), sql, alertEventFilter.values...).ScanStruct(&result)
 	if err != nil {
 		return err
 	}
@@ -292,7 +293,7 @@ func (ch *chRepo) ManualResolveLatestAlertEventByAlertID(alertID string) error {
 	}
 	result.Detail = string(detailsStr)
 
-	return ch.InsertAlertEvent(context.Background(), []alert.AlertEvent{result}, alert.SourceFrom{
+	return ch.InsertAlertEvent(ctx, []alert.AlertEvent{result}, alert.SourceFrom{
 		SourceInfo: alert.SourceInfo{SourceName: result.Source},
 	})
 }

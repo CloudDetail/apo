@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -75,7 +76,7 @@ type AlertService struct {
 
 // SearchEntryEndpointsByAlertService 根据下游节点查询入口节点
 // 链路中存在异步节点时,不保留真正的入口节点
-func (ch *chRepo) SearchEntryEndpointsByAlertService(alertServices []AlertService, startTime, endTime int64) ([]EntryRelationship, error) {
+func (ch *chRepo) SearchEntryEndpointsByAlertService(ctx core.Context, alertServices []AlertService, startTime, endTime int64) ([]EntryRelationship, error) {
 	// microseconds -> seconds
 	startTime = startTime / 1000000
 	endTime = endTime / 1000000
@@ -114,14 +115,14 @@ func (ch *chRepo) SearchEntryEndpointsByAlertService(alertServices []AlertServic
 		ch.database,
 		queryBuilder.String(),
 	)
-	if err := ch.conn.Select(context.Background(), &parentTopologys, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(context.Background(), &parentTopologys, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 
 	return parentTopologys, nil
 }
 
-func (ch *chRepo) ListDescendantRelationsWithoutEdge(req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error) {
+func (ch *chRepo) ListDescendantRelationsWithoutEdge(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
@@ -132,7 +133,7 @@ func (ch *chRepo) ListDescendantRelationsWithoutEdge(req *request.GetServiceEndp
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
 	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, ch.database, queryBuilder.String())
 	results := []ChildRelation{}
-	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return getDescendantServiceNode(results), nil

@@ -6,6 +6,7 @@ package database
 import (
 	"errors"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"gorm.io/gorm"
 )
 
@@ -30,7 +31,7 @@ func isValidPageURL(url string) bool {
 }
 
 // initRouterPage init router-insertPage mapping records.
-func (repo *daoRepo) initRouterPage() error {
+func (repo *daoRepo) initRouterPage(ctx core.Context) error {
 	type page struct {
 		url      string
 		language string
@@ -63,7 +64,7 @@ func (repo *daoRepo) initRouterPage() error {
 			{url: "grafana/d/0D6dTg3Zk/mysql-e68c87-e6a087", language: "en"},
 		},
 	}
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		var routerIDs, pageIDs []int
 		if err := tx.Model(&Router{}).Select("router_id").Find(&routerIDs).Error; err != nil {
 			return err

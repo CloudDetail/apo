@@ -23,12 +23,12 @@ import (
 func (h *handler) ListSchema() core.HandlerFunc {
 	return func(c core.Context) {
 
-		schemas, err := h.inputService.ListSchema()
+		schemas, err := h.inputService.ListSchema(c)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ListSchemaFailed,
-				c.ErrMessage(code.ListSchemaFailed)).WithError(err),
+				err,
 			)
 			return
 		}

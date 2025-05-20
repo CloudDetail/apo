@@ -107,7 +107,8 @@ func New(logger *zap.Logger, chRepo clickhouse.Repo, dbRepo database.Repo, k8sAp
 	logservice := log.New(chRepo, dbRepo, k8sApi, promRepo)
 	req := &request.LogTableRequest{}
 	req.FillerValue()
-	_, err := logservice.InitParseLogTable(req)
+
+	_, err := logservice.InitParseLogTable(nil, req)
 	if err != nil {
 		logger.Error("create default log table failed", zap.Error(err))
 	}

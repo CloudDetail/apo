@@ -26,20 +26,20 @@ func (h *handler) UpdateAlertRuleFile() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.UpdateAlertRuleConfigRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		err := h.alertService.UpdateAlertRuleFile(req)
+		err := h.alertService.UpdateAlertRuleFile(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.UpdateAlertRuleError,
-				c.ErrMessage(code.UpdateAlertRuleError)).WithError(err),
+				err,
 			)
 			return
 		}

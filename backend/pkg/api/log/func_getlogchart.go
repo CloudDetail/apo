@@ -26,10 +26,10 @@ func (h *handler) GetLogChart() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.LogQueryRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -42,12 +42,12 @@ func (h *handler) GetLogChart() core.HandlerFunc {
 		if req.LogField == "" {
 			req.LogField = "content"
 		}
-		resp, err := h.logService.GetLogChart(req)
+		resp, err := h.logService.GetLogChart(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetLogChartError,
-				c.ErrMessage(code.GetLogChartError)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -6,12 +6,13 @@ package config
 import (
 	"log"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetTTL() (*response.GetTTLResponse, error) {
-	tables, err := s.chRepo.GetTables(model.GetAllTables())
+func (s *service) GetTTL(ctx core.Context) (*response.GetTTLResponse, error) {
+	tables, err := s.chRepo.GetTables(ctx, model.GetAllTables())
 	if err != nil {
 		log.Println("[GetTTL] Error getting tables: ", err)
 		return nil, err

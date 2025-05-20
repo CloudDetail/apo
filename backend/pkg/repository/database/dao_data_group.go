@@ -4,8 +4,7 @@
 package database
 
 import (
-	"context"
-
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -38,11 +37,11 @@ func (dsg *DatasourceGroup) TableName() string {
 	return "datasource_group"
 }
 
-func (repo *daoRepo) CreateDataGroup(ctx context.Context, group *DataGroup) error {
+func (repo *daoRepo) CreateDataGroup(ctx core.Context, group *DataGroup) error {
 	return repo.GetContextDB(ctx).Create(group).Error
 }
 
-func (repo *daoRepo) DeleteDataGroup(ctx context.Context, groupID int64) error {
+func (repo *daoRepo) DeleteDataGroup(ctx core.Context, groupID int64) error {
 	group := DataGroup{
 		GroupID: groupID,
 	}
@@ -53,7 +52,7 @@ func (repo *daoRepo) DeleteDataGroup(ctx context.Context, groupID int64) error {
 	return repo.GetContextDB(ctx).Model(&AuthDataGroup{}).Where("data_group_id = ?", groupID).Delete(nil).Error
 }
 
-func (repo *daoRepo) CreateDatasourceGroup(ctx context.Context, datasource []model.Datasource, dataGroupID int64) error {
+func (repo *daoRepo) CreateDatasourceGroup(ctx core.Context, datasource []model.Datasource, dataGroupID int64) error {
 	if len(datasource) == 0 {
 		return nil
 	}
@@ -75,11 +74,11 @@ func (repo *daoRepo) CreateDatasourceGroup(ctx context.Context, datasource []mod
 	}).Create(&datasourceGroups).Error
 }
 
-func (repo *daoRepo) DeleteDSGroup(ctx context.Context, groupID int64) error {
+func (repo *daoRepo) DeleteDSGroup(ctx core.Context, groupID int64) error {
 	return repo.GetContextDB(ctx).Model(&DatasourceGroup{}).Where("group_id = ?", groupID).Delete(&DatasourceGroup{}).Error
 }
 
-func (repo *daoRepo) UpdateDataGroup(ctx context.Context, groupID int64, groupName string, description string) error {
+func (repo *daoRepo) UpdateDataGroup(ctx core.Context, groupID int64, groupName string, description string) error {
 	return repo.GetContextDB(ctx).
 		Model(&DataGroup{}).
 		Where("group_id = ?", groupID).
@@ -89,9 +88,9 @@ func (repo *daoRepo) UpdateDataGroup(ctx context.Context, groupID int64, groupNa
 }
 
 // DataGroupExist check whether the group exists for the given condition.
-func (repo *daoRepo) DataGroupExist(filter model.DataGroupFilter) (bool, error) {
+func (repo *daoRepo) DataGroupExist(ctx core.Context, filter model.DataGroupFilter) (bool, error) {
 	var count int64
-	query := repo.db
+	query := repo.GetContextDB(ctx)
 	if len(filter.Name) > 0 {
 		query = query.Where("group_name = ?", filter.Name)
 	}
@@ -108,12 +107,12 @@ func (repo *daoRepo) DataGroupExist(filter model.DataGroupFilter) (bool, error) 
 	return count > 0, nil
 }
 
-func (repo *daoRepo) GetDataGroup(filter model.DataGroupFilter) ([]DataGroup, int64, error) {
+func (repo *daoRepo) GetDataGroup(ctx core.Context, filter model.DataGroupFilter) ([]DataGroup, int64, error) {
 	var (
 		dataGroups []DataGroup
 		count      int64
 	)
-	query := repo.db
+	query := repo.GetContextDB(ctx)
 	if len(filter.Name) > 0 {
 		query = query.Where("group_name like ?", "%"+filter.Name+"%")
 	}
@@ -132,7 +131,7 @@ func (repo *daoRepo) GetDataGroup(filter model.DataGroupFilter) ([]DataGroup, in
 			conditions = append(conditions, []interface{}{item.Datasource, item.Type})
 		}
 
-		subQuery := repo.db.Model(&DatasourceGroup{}).
+		subQuery := repo.GetContextDB(ctx).Model(&DatasourceGroup{}).
 			Select("group_id").
 			Where("(datasource, type) IN ?", conditions)
 
@@ -151,18 +150,18 @@ func (repo *daoRepo) GetDataGroup(filter model.DataGroupFilter) ([]DataGroup, in
 	return dataGroups, count, err
 }
 
-func (repo *daoRepo) RetrieveDataFromGroup(ctx context.Context, groupID int64, datasource []string) error {
+func (repo *daoRepo) RetrieveDataFromGroup(ctx core.Context, groupID int64, datasource []string) error {
 	return repo.GetContextDB(ctx).
 		Model(&DatasourceGroup{}).Where("group_id = ? AND datasource in ?", groupID, datasource).Delete(nil).Error
 }
 
-func (repo *daoRepo) GetGroupDatasource(groupID ...int64) ([]DatasourceGroup, error) {
+func (repo *daoRepo) GetGroupDatasource(ctx core.Context, groupID ...int64) ([]DatasourceGroup, error) {
 	var dsGroup []DatasourceGroup
-	err := repo.db.Where("group_id in ?", groupID).Find(&dsGroup).Error
+	err := repo.GetContextDB(ctx).Where("group_id in ?", groupID).Find(&dsGroup).Error
 	return dsGroup, err
 }
 
-func (repo *daoRepo) GetSubjectDataGroupList(subjectID int64, subjectType string, category string) ([]DataGroup, error) {
+func (repo *daoRepo) GetSubjectDataGroupList(ctx core.Context, subjectID int64, subjectType string, category string) ([]DataGroup, error) {
 	var dataGroups []DataGroup
 
 	preloadQuery := func(db *gorm.DB) *gorm.DB {
@@ -172,7 +171,7 @@ func (repo *daoRepo) GetSubjectDataGroupList(subjectID int64, subjectType string
 		return db
 	}
 
-	err := repo.db.Table("data_group").
+	err := repo.GetContextDB(ctx).Table("data_group").
 		Preload("DatasourceList", preloadQuery).
 		Select("data_group.group_id, data_group.group_name, data_group.description, auth_data_group.type as auth_type").
 		Joins("JOIN auth_data_group ON auth_data_group.data_group_id = data_group.group_id").

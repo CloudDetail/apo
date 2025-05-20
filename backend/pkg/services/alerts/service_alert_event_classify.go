@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/config"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
@@ -17,7 +18,7 @@ import (
 
 var cache = expirable.NewLRU[string, string](10, nil, time.Hour)
 
-func (s *service) AlertEventClassify(req *request.AlertEventClassifyRequest) (*response.AlertEventClassifyResponse, error) {
+func (s *service) AlertEventClassify(ctx core.Context, req *request.AlertEventClassifyRequest) (*response.AlertEventClassifyResponse, error) {
 	inputs, _ := json.Marshal(map[string]interface{}{
 		"alertGroup": req.AlertGroup,
 		"alertName":  req.AlertName,

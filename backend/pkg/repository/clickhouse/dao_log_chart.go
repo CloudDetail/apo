@@ -6,6 +6,7 @@ package clickhouse
 import (
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -43,9 +44,9 @@ func chartSQL(baseQuery string, req *request.LogQueryRequest) (string, int64) {
 	return sql, interval
 }
 
-func (ch *chRepo) GetLogChart(req *request.LogQueryRequest) ([]map[string]any, int64, error) {
+func (ch *chRepo) GetLogChart(ctx core.Context, req *request.LogQueryRequest) ([]map[string]any, int64, error) {
 	sql, interval := chartSQL(queryLogChart, req)
-	results, err := ch.queryRowsData(sql)
+	results, err := ch.queryRowsData(ctx, sql)
 	if err != nil {
 		return nil, interval, err
 	}

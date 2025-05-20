@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -58,15 +59,15 @@ func init() {
 	}
 }
 
-func (s *service) ListPreDefinedMetrics() []QueryInfo {
+func (s *service) ListPreDefinedMetrics(ctx core.Context) []QueryInfo {
 	return queryDict.ListMetrics()
 }
 
-func (s *service) ListQuerys() []Query {
-	return queryDict.ListQuerys()
+func (s *service) ListQuerys(ctx core.Context) []Query {
+	return queryDict.ListQuerys(ctx)
 }
 
-func (s *service) QueryMetrics(req *QueryMetricsRequest) *QueryMetricsResult {
+func (s *service) QueryMetrics(ctx core.Context, req *QueryMetricsRequest) *QueryMetricsResult {
 	// auto params
 
 	interval := prometheus.VecFromDuration(time.Duration(req.Step) * time.Microsecond)

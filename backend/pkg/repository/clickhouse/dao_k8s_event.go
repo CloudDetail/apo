@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
@@ -27,7 +28,7 @@ const (
 )
 
 // K8sAlert query K8S alarm
-func (ch *chRepo) GetK8sAlertEventsSample(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) ([]K8sEvents, error) {
+func (ch *chRepo) GetK8sAlertEventsSample(ctx core.Context, startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) ([]K8sEvents, error) {
 	relatedObj := make([]string, 0)
 	for _, instance := range instances {
 		if instance == nil {
@@ -52,7 +53,7 @@ func (ch *chRepo) GetK8sAlertEventsSample(startTime time.Time, endTime time.Time
 	query := fmt.Sprintf(SQL_GET_K8S_EVENTS, builder.String(), 1)
 	// Execute query
 	var res []K8sEvents
-	err := ch.conn.Select(context.Background(), &res, query, builder.values...)
+	err := ch.GetContextDB(ctx).Select(context.Background(), &res, query, builder.values...)
 	if err != nil {
 		return nil, err
 	}

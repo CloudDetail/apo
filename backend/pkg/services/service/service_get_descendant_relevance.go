@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -18,9 +19,9 @@ import (
 )
 
 // GetDescendantRelevance implements Service.
-func (s *service) GetDescendantRelevance(req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
+func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
 	// Query all descendant nodes
-	nodes, err := s.chRepo.ListDescendantNodes(&req.GetDescendantMetricsRequest)
+	nodes, err := s.chRepo.ListDescendantNodes(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +101,7 @@ func (s *service) fillDescendantWithAlertStatus(services []string, endpoints []s
 		alermCheckErr = multierr.Append(alermCheckErr, err)
 
 	}
-	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
+	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx, "", "", database.GLOBAL)
 	if err != nil {
 		// Failed to query the threshold when adding logs to TODO
 		alermCheckErr = multierr.Append(alermCheckErr, err)
@@ -138,6 +139,7 @@ func (s *service) fillDescendantWithAlertStatus(services []string, endpoints []s
 
 		// fill alarm status
 		descendantResp.AlertStatusCH = serviceoverview.GetAlertStatusCH(
+			ctx,
 			s.chRepo, &descendantResp.AlertReason, nil,
 			[]string{}, descendant.Service, instanceList,
 			startTime, endTime,

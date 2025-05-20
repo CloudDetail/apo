@@ -4,13 +4,14 @@
 package database
 
 import (
-	"context"
 	"errors"
-	"github.com/CloudDetail/apo/backend/config"
-	"github.com/CloudDetail/apo/backend/pkg/logger"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/CloudDetail/apo/backend/config"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/logger"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTransaction(t *testing.T) {
@@ -28,16 +29,16 @@ func TestTransaction(t *testing.T) {
 		return
 	}
 
-	var grantFunc = func(ctx context.Context) error {
-		return repo.GrantRoleWithUser(ctx, 239077004960, []int{2})
+	var grantFunc = func(ctx core.Context) error {
+		return repo.GrantRoleWithUser(core.EmptyCtx(), 239077004960, []int{2})
 	}
 
-	var boomFunc = func(ctx context.Context) error {
+	var boomFunc = func(ctx core.Context) error {
 		return errors.New("boom")
 	}
 
-	err = repo.Transaction(context.Background(), grantFunc, boomFunc)
-	exists, checkErr := repo.RoleGrantedToUser(239077004960, 2)
+	err = repo.Transaction(core.EmptyCtx(), grantFunc, boomFunc)
+	exists, checkErr := repo.RoleGrantedToUser(core.EmptyCtx(), 239077004960, 2)
 	if checkErr != nil {
 		t.Error(err)
 	}

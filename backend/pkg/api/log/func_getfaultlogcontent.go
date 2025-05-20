@@ -25,28 +25,28 @@ func (h *handler) GetFaultLogContent() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetFaultLogContentRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		// TODO GetFaultLogContentRequest's service is unused, won't check data permission
-		//userID := middleware.GetContextUserID(c)
-		//err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.ServiceName, "")
+		//userID := c.UserID()
+		//err := h.dataService.CheckDatasourcePermission(c,userID, 0, nil, &req.ServiceName, "")
 		//if err != nil {
-		//	c.HandleError(err, code.AuthError)
+		//	c.AbortWithPermissionError(err, code.AuthError)
 		//	return
 		//}
 
-		resp, err := h.logService.GetFaultLogContent(req)
+		resp, err := h.logService.GetFaultLogContent(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetFaultLogContentError,
-				c.ErrMessage(code.GetFaultLogContentError)).WithError(err),
+				err,
 			)
 			return
 		}

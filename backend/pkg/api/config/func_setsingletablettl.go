@@ -26,18 +26,18 @@ func (h *handler) SetSingleTableTTL() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.SetSingleTTLRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
-		if err := h.configService.SetSingleTableTTL(req); err != nil {
-			c.AbortWithError(core.Error(
+		if err := h.configService.SetSingleTableTTL(c, req); err != nil {
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.SetSingleTableTTLError,
-				c.ErrMessage(code.SetSingleTableTTLError)).WithError(err),
+				err,
 			)
 			return
 		}

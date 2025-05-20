@@ -24,6 +24,9 @@ const (
 
 // QueryPolarisInfer implements Repo.
 func (p *polRepo) QueryPolarisInfer(req *request.GetPolarisInferRequest) (*PolarisInferRes, error) {
+	if req.Step < 60e6 {
+		req.Step = 60e6 // interval must be large than 1m
+	}
 
 	params := url.Values{}
 	params.Add("startTime", strconv.FormatInt(req.StartTime, 10))

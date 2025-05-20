@@ -25,20 +25,20 @@ func (h *handler) GetIntegrationInstallDoc() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(integration.GetCInstallRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		resp, err := h.integrationService.GetIntegrationInstallDoc(req)
+		resp, err := h.integrationService.GetIntegrationInstallDoc(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetIntegrationInstallDocFailed,
-				c.ErrMessage(code.GetIntegrationInstallDocFailed)+err.Error()).WithError(err),
+				err,
 			)
 			return
 		}
