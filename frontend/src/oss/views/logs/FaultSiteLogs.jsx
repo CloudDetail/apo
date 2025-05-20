@@ -17,6 +17,7 @@ import LogsTraceFilter from 'src/oss/components/Filter/LogsTraceFilter'
 import { useSelector } from 'react-redux'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
 import { useTranslation } from 'react-i18next'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 function FaultSiteLogs(props) {
   const { t, i18n } = useTranslation('oss/faultSiteLogs')
   const { startTime, endTime, service, instance, traceId, instanceOption, namespace } = useSelector(
@@ -166,19 +167,142 @@ function FaultSiteLogs(props) {
     }
   }, [logContent])
   return (
-    <CCard
-      className="h-full flex flex-col overflow-hidden text-xs px-2"
-      style={{ height: 'calc(100vh - 120px)' }}
-    >
+    // <CCard
+    //   className="h-full flex flex-col overflow-hidden text-xs px-2"
+    //   style={{ height: 'calc(100vh - 120px)' }}
+    // >
+    //   <LoadingSpinner loading={loading} />
+    //   <div className="flex items-center w-full mt-2" style={{ width: '100%' }}>
+        // <div className="flex  items-center">
+        //   <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
+        //   {i18n.language === 'zh' ? (
+        //     <>
+        //       {t('faultSiteLogs.faultLogTableToast')}
+        //       <a
+        //         className="underline text-sky-500"
+        //         target="_blank"
+        //         href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置日志采集/配置故障日志采集"
+        //       >
+        //         <span>{t('faultSiteLogs.documentText')}</span>
+        //       </a>
+        //     </>
+        //   ) : (
+        //     <p className="my-0">
+        //       {t('faultSiteLogs.faultLogTableToast1')}
+        //       <a
+        //         className="underline text-sky-500"
+        //         target="_blank"
+        //         href="https://docs.autopilotobservability.com/Logs%20Monitoring/Fault%20Log%20Collection"
+        //       >
+        //         <span>{t('faultSiteLogs.documentText')}</span>
+        //       </a>
+        //       {t('faultSiteLogs.faultLogTableToast2')}
+        //     </p>
+        //   )}
+        // </div>
+    //   </div>
+      // <div className="flex-grow-0 flex-shrink-0">
+      //   <LogsTraceFilter type="logs" />
+      // </div>
+      // <div className="flex-grow flex-shrink overflow-hidden flex-column-tab ">
+      //   {logsPageList?.length > 0 && (
+      //     <CTabs
+      //       key={pageIndex + activeItemKey}
+      //       activeItemKey={activeItemKey}
+      //       className="flex flex-row h-full logs-tab"
+      //       onChange={changeActiveItemKey}
+      //     >
+      //       <CTabList variant="tabs" className="flex-col w-[200px] shrink-0 flex-nowrap">
+      //         <div className="overflow-y-auto w-full overflow-x-hidden flex-1">
+      //           {logsPageList &&
+      //             logsPageList.map((logs, index) => {
+      //               return (
+      //                 <CTab
+      //                   itemKey={index}
+      //                   key={index}
+      //                   ref={(el) => (refs.current[index] = el)}
+      //                   onClick={() => changeActiveItemKey(index)}
+      //                 >
+      //                   {convertTime(logs.startTime, 'yyyy-mm-dd hh:mm:ss.SSS')}{' '}
+      //                   {t('faultSiteLogs.faultLogsText')}
+      //                 </CTab>
+      //               )
+      //             })}
+      //         </div>
+
+      //         <div className="w-full overflow-hidden flex-grow-0 flex items-end justify-end">
+      //           <CustomPagination
+      //             pageIndex={pageIndex}
+      //             pageSize={pageSize}
+      //             total={total}
+      //             previousPage={() => setPageIndex(pageIndex - 1)}
+      //             nextPage={() => setPageIndex(pageIndex + 1)}
+      //             gotoPage={(index) => setPageIndex(index)}
+      //             maxButtons={2}
+      //           />
+      //         </div>
+      //       </CTabList>
+
+      //       {logsPageList[activeItemKey] && (
+      //         <div className="p-3 w-full h-full overflow-hidden flex flex-col relative">
+      //           <LoadingSpinner loading={logContentLoading} />
+      //           <div className="flex-grow-0 flex-shrink-0">
+      //             <CCard className="mx-4 my-2 p-2 font-bold">
+      //               <CRow className="my-1 ">
+      //                 <CCol sm="2" className="text-gray-400 font-bold">
+      //                   Trace Id
+      //                 </CCol>
+      //                 <CCol sm="auto">{logsPageList[activeItemKey]?.traceId}</CCol>
+      //               </CRow>
+      //               <CRow className="my-1">
+      //                 <CCol sm="2" className="text-gray-400 font-bold">
+      //                   {t('faultSiteLogs.endpoint')}
+      //                 </CCol>
+      //                 <CCol sm="auto">{logsPageList[activeItemKey]?.endpoint}</CCol>
+      //               </CRow>
+      //               <CRow className="my-1">
+      //                 <CCol sm="2" className="text-gray-400 font-bold">
+      //                   {t('faultSiteLogs.timeOfFailure')}
+      //                 </CCol>
+      //                 <CCol sm="auto">
+      //                   {convertTime(
+      //                     logsPageList[activeItemKey]?.startTime,
+      //                     'yyyy-mm-dd hh:mm:ss.SSS',
+      //                   )}
+      //                 </CCol>
+      //               </CRow>
+      //             </CCard>
+      //           </div>
+      //           <div className="text-base font-bold mb-2">
+      //             {t('faultSiteLogs.specificLogInformation')}
+      //           </div>
+      //           <div className="flex flex-row items-center">
+      //             <span className="text-nowrap">Source：</span>
+      //             <CustomSelect
+      //               options={logContent?.sources ?? []}
+      //               value={source}
+      //               onChange={(value) => setSource(value)}
+      //             />
+      //           </div>
+      //           <LogContent data={logContent} />
+      //         </div>
+      //       )}
+      //     </CTabs>
+      //   )}
+      //   {(!logsPageList || logsPageList?.length === 0) && <Empty />}
+      // </div>
+    // </CCard>
+    <BasicCard>
       <LoadingSpinner loading={loading} />
-      <div className="flex items-center w-full mt-2" style={{ width: '100%' }}>
-        <div className="flex  items-center">
+
+      <BasicCard.Header>
+        <div className="w-full flex justify-start items-center">
           <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
           {i18n.language === 'zh' ? (
             <>
               {t('faultSiteLogs.faultLogTableToast')}
               <a
-                className="underline text-sky-500"
+                className="underline text-[var(--ant-color-link)] hover:text-[var(--ant-color-link-hover)] active:text-[var(--ant-color-link-active)]"
                 target="_blank"
                 href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置日志采集/配置故障日志采集"
               >
@@ -189,7 +313,7 @@ function FaultSiteLogs(props) {
             <p className="my-0">
               {t('faultSiteLogs.faultLogTableToast1')}
               <a
-                className="underline text-sky-500"
+                className="underline text-[var(--ant-color-link)] hover:text-[var(--ant-color-link-hover)] active:text-[var(--ant-color-link-active)]"
                 target="_blank"
                 href="https://docs.autopilotobservability.com/Logs%20Monitoring/Fault%20Log%20Collection"
               >
@@ -199,11 +323,16 @@ function FaultSiteLogs(props) {
             </p>
           )}
         </div>
-      </div>
-      <div className="flex-grow-0 flex-shrink-0">
-        <LogsTraceFilter type="logs" />
-      </div>
-      <div className="flex-grow flex-shrink overflow-hidden flex-column-tab ">
+      </BasicCard.Header>
+
+      <BasicCard.Header>
+        <div className="w-full flex-none">
+          <LogsTraceFilter type="logs" />
+        </div>
+      </BasicCard.Header>
+
+      <BasicCard.Table>
+      <div className="h-full flex-grow flex-shrink overflow-hidden flex-column-tab ">
         {logsPageList?.length > 0 && (
           <CTabs
             key={pageIndex + activeItemKey}
@@ -290,7 +419,8 @@ function FaultSiteLogs(props) {
         )}
         {(!logsPageList || logsPageList?.length === 0) && <Empty />}
       </div>
-    </CCard>
+      </BasicCard.Table>
+    </BasicCard>
   )
 }
 export default FaultSiteLogs

@@ -55,7 +55,7 @@ export const BasicCard: React.FC<CardProps> & {
       }}
     >
       {/* Header Section */}
-      <div className='w-full text-sm font-medium flex items-center justify-between'>
+      <div className='w-full text-sm font-medium flex flex-col items-center justify-between'>
         {headerContent.map((header, index) => (
           <React.Fragment key={index}>{header}</React.Fragment>
         ))}

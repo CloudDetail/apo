@@ -15,6 +15,7 @@ import ModifyAlertRuleModal from './modal/ModifyAlertRuleModal'
 import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import CustomCard from 'src/core/components/Card/CustomCard'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 
 export default function AlertsRule() {
   const { t } = useTranslation('oss/alert')
@@ -261,10 +262,11 @@ export default function AlertsRule() {
     }
   }, [column, data, pageIndex, pageSize, searchAlert, searchGroup])
   return (
-    <CustomCard styleType="alerts">
+    <BasicCard>
       <LoadingSpinner loading={loading} />
-      <div className="flex items-center justify-between text-sm ">
-        <Space className="flex-grow">
+
+      <BasicCard.Header>
+        <Space className="flex-grow mb-2">
           <Space className="flex-1">
             <span className="text-nowrap">{t('rule.groupName')}：</span>
             <Select
@@ -295,22 +297,22 @@ export default function AlertsRule() {
           type="primary"
           icon={<MdAdd />}
           onClick={clickAddRule}
-          className="flex-grow-0 flex-shrink-0"
+          className="flex-grow-0 flex-shrink-0 mb-2"
         >
           <span className="text-xs">{t('rule.addAlertRule')}</span>
         </Button>
-      </div>
-      <div className="text-sm flex-1 overflow-auto">
-        <div className="h-full text-xs justify-between">
-          <BasicTable {...tableProps} />
-        </div>
-      </div>
+      </BasicCard.Header>
+
+      <BasicCard.Table>
+        <BasicTable {...tableProps} />
+      </BasicCard.Table>
+
       <ModifyAlertRuleModal
         modalVisible={modalVisible}
         ruleInfo={modalInfo}
         closeModal={() => setModalVisible(false)}
         refresh={refreshTable}
       />
-    </CustomCard>
+    </BasicCard>
   )
 }
