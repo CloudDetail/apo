@@ -235,7 +235,12 @@ func (c *context) LANG() string {
 	if c == nil {
 		return code.LANG_ZH
 	}
-	lang := c.GetHeader("APO-Language")
+	lang := code.LANG_EN
+
+	if c.ctx.Request != nil {
+		lang = c.GetHeader("APO-Language")
+	}
+
 	if strings.HasPrefix(strings.ToLower(lang), code.LANG_EN) {
 		return code.LANG_EN
 	}
