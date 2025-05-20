@@ -6,7 +6,6 @@ package log
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 
@@ -31,10 +30,10 @@ func (h *handler) GetFaultLogPageList() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetFaultLogPageListRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -44,10 +43,10 @@ func (h *handler) GetFaultLogPageList() core.HandlerFunc {
 		if req.PageSize == 0 {
 			req.PageSize = 10
 		}
-		userID := middleware.GetContextUserID(c)
+		userID := c.UserID()
 		err := h.dataService.CheckDatasourcePermission(userID, req.GroupID, &req.Namespaces, &req.Service, "")
 		if err != nil {
-			c.HandleError(err, code.AuthError, &response.GetFaultLogPageListResponse{
+			c.AbortWithPermissionError(err, code.AuthError, &response.GetFaultLogPageListResponse{
 				Pagination: &model.Pagination{
 					Total:       0,
 					CurrentPage: 0,
@@ -59,10 +58,10 @@ func (h *handler) GetFaultLogPageList() core.HandlerFunc {
 		}
 		resp, err := h.logService.GetFaultLogPageList(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetFaultLogPageListError,
-				c.ErrMessage(code.GetFaultLogPageListError)).WithError(err),
+				err,
 			)
 			return
 		}

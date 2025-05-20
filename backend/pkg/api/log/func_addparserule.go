@@ -26,19 +26,19 @@ func (h *handler) AddLogParseRule() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.AddLogParseRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 		resp, err := h.logService.AddLogParseRule(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.AddLogParseRuleError,
-				c.ErrMessage(code.AddLogParseRuleError)+err.Error()).WithError(err),
+				err,
 			)
 			return
 		}

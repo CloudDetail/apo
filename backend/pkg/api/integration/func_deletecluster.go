@@ -25,20 +25,20 @@ func (h *handler) DeleteCluster() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(integration.Cluster)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		err := h.integrationService.DeleteCluster(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.DeleteClusterFailed,
-				c.ErrMessage(code.DeleteClusterFailed)).WithError(err),
+				err,
 			)
 			return
 

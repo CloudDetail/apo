@@ -24,10 +24,11 @@ func (h *handler) GetNamespaceList() core.HandlerFunc {
 
 		resp, err := h.k8sService.GetNamespaceList()
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.K8sGetResourceError,
-				c.ErrMessage(code.K8sGetResourceError)).WithError(err))
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

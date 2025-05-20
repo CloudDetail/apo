@@ -30,10 +30,10 @@ func (h *handler) GetTraceFilters() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetTraceFiltersRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -42,10 +42,10 @@ func (h *handler) GetTraceFilters() core.HandlerFunc {
 		endTime := time.UnixMicro(req.EndTime)
 		resp, err := h.traceService.GetTraceFilters(startTime, endTime, req.NeedUpdate)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetTraceFiltersError,
-				c.ErrMessage(code.GetTraceFiltersError)).WithError(err),
+				err,
 			)
 			return
 		}

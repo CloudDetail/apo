@@ -26,19 +26,19 @@ func (h *handler) DeleteOtherTable() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.DeleteOtherTableRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 		resp, err := h.logService.DeleteOtherTable(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.DeleteOtherLogTableError,
-				c.ErrMessage(code.DeleteOtherLogTableError)+err.Error()).WithError(err),
+				err,
 			)
 			return
 		}

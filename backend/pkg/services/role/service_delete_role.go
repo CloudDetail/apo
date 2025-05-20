@@ -5,9 +5,9 @@ package role
 
 import (
 	"context"
-	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -18,7 +18,7 @@ func (s *service) DeleteRole(req *request.DeleteRoleRequest) error {
 	}
 
 	if !exists {
-		return model.NewErrWithMessage(errors.New("role does not exist"), code.RoleNotExistsError)
+		return core.Error(code.RoleNotExistsError, "role does not exist")
 	}
 
 	granted, err := s.dbRepo.RoleGranted(req.RoleID)
@@ -27,7 +27,7 @@ func (s *service) DeleteRole(req *request.DeleteRoleRequest) error {
 	}
 
 	if granted {
-		return model.NewErrWithMessage(errors.New("role has been granted"), code.RoleGrantedError)
+		return core.Error(code.RoleGrantedError, "role has been granted")
 	}
 
 	var revokeRoleFunc = func(ctx context.Context) error {

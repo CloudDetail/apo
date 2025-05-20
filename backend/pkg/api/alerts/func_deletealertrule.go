@@ -26,20 +26,20 @@ func (h *handler) DeleteAlertRule() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.DeleteAlertRuleRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		err := h.alertService.DeleteAlertRule(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.DeleteAlertRuleError,
-				c.ErrMessage(code.DeleteAlertRuleError)).WithError(err),
+				err,
 			)
 			return
 		}

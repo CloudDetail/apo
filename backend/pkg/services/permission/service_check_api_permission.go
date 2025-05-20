@@ -4,8 +4,8 @@
 package permission
 
 import (
-	"errors"
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
@@ -16,7 +16,7 @@ func (s *service) CheckApiPermission(userID int64, method string, path string) (
 	}
 
 	if !exists {
-		return false, model.NewErrWithMessage(errors.New("user does not exist"), code.UserNotExistsError)
+		return false, core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
 	featureIDs, err := s.getUserFeatureIDs(userID)
@@ -29,7 +29,7 @@ func (s *service) CheckApiPermission(userID int64, method string, path string) (
 	}
 
 	if api == nil {
-		return false, model.NewErrWithMessage(errors.New("api does not exist"), code.APINotExist)
+		return false, core.Error(code.APINotExist, "api does not exist")
 	}
 
 	fm, err := s.dbRepo.GetFeatureMappingByMapped(api.ID, model.MAPPED_TYP_API)

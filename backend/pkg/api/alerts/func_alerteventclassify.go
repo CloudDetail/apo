@@ -25,20 +25,20 @@ func (h *handler) AlertEventClassify() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.AlertEventClassifyRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		resp, err := h.alertService.AlertEventClassify(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetAlertEventClassifyError,
-				c.ErrMessage(code.GetAlertEventClassifyError)).WithError(err),
+				err,
 			)
 			return
 		}

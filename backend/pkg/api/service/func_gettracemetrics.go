@@ -6,7 +6,6 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -36,26 +35,26 @@ func (h *handler) GetTraceMetrics() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetTraceMetricsRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		userID := middleware.GetContextUserID(c)
+		userID := c.UserID()
 		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, []response.GetTraceMetricsResponse{})
+			c.AbortWithPermissionError(err, code.AuthError, []response.GetTraceMetricsResponse{})
 			return
 		}
 		resp, err := h.serviceInfoService.GetTraceMetrics(req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetTraceMetricsError,
-				c.ErrMessage(code.GetTraceMetricsError)).WithError(err),
+				err,
 			)
 			return
 		}

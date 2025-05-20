@@ -5,14 +5,15 @@ package team
 
 import (
 	"context"
-	"errors"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 func (s *service) TeamUserOperation(req *request.AssignToTeamRequest) error {
-	filter := model.TeamFilter {
+	filter := model.TeamFilter{
 		ID: req.TeamID,
 	}
 	exists, err := s.dbRepo.TeamExist(filter)
@@ -21,7 +22,7 @@ func (s *service) TeamUserOperation(req *request.AssignToTeamRequest) error {
 	}
 
 	if !exists {
-		return model.NewErrWithMessage(errors.New("team does not exist"), code.TeamNotExistError)
+		return core.Error(code.TeamNotExistError, "team does not exist")
 	}
 
 	exists, err = s.dbRepo.UserExists(req.UserList...)
@@ -30,7 +31,7 @@ func (s *service) TeamUserOperation(req *request.AssignToTeamRequest) error {
 	}
 
 	if !exists {
-		return model.NewErrWithMessage(errors.New("user does not exist"), code.UserNotExistsError)
+		return core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
 	hasUsers, err := s.dbRepo.GetTeamUsers(req.TeamID)
@@ -42,7 +43,7 @@ func (s *service) TeamUserOperation(req *request.AssignToTeamRequest) error {
 	for _, id := range hasUsers {
 		hasUserMap[id] = struct{}{}
 	}
-	
+
 	var toAdd, toDelete []int64
 	for _, id := range req.UserList {
 		if _, ok := hasUserMap[id]; !ok {

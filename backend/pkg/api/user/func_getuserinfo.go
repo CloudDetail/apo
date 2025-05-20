@@ -4,13 +4,10 @@
 package user
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -29,30 +26,24 @@ func (h *handler) GetUserInfo() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetUserInfoRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err))
+				err,
+			)
 			return
 		}
 		// TODO remove
 		if req.UserID == 0 {
-			req.UserID = middleware.GetContextUserID(c)
+			req.UserID = c.UserID()
 		}
 		resp, err := h.userService.GetUserInfo(req.UserID)
 		if err != nil {
-			var vErr model.ErrWithMessage
-			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					vErr.Code,
-					c.ErrMessage(vErr.Code)).WithError(err))
-			} else {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.GetUserInfoError,
-					c.ErrMessage(code.GetUserInfoError)).WithError(err))
-			}
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.GetUserInfoError,
+				err,
+			)
 			return
 		}
 		c.Payload(resp)
