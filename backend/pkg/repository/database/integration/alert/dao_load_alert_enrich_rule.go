@@ -3,29 +3,32 @@
 
 package alert
 
-import "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+)
 
-func (repo *subRepo) LoadAlertEnrichRule() ([]alert.AlertSource, map[alert.SourceFrom][]alert.AlertEnrichRuleVO, error) {
+func (repo *subRepo) LoadAlertEnrichRule(ctx core.Context) ([]alert.AlertSource, map[alert.SourceFrom][]alert.AlertEnrichRuleVO, error) {
 	var sources []alert.AlertSource
-	err := repo.db.Find(&sources).Error
+	err := repo.GetContextDB(ctx).Find(&sources).Error
 	if err != nil {
 		return nil, nil, err
 	}
 
 	var enrichRules []alert.AlertEnrichRule
-	err = repo.db.Find(&enrichRules).Error
+	err = repo.GetContextDB(ctx).Find(&enrichRules).Error
 	if err != nil {
 		return nil, nil, err
 	}
 
 	var enrichConditions []alert.AlertEnrichCondition
-	err = repo.db.Find(&enrichConditions).Error
+	err = repo.GetContextDB(ctx).Find(&enrichConditions).Error
 	if err != nil {
 		return nil, nil, err
 	}
 
 	var enrichSchemaTarget []alert.AlertEnrichSchemaTarget
-	err = repo.db.Find(&enrichSchemaTarget).Error
+	err = repo.GetContextDB(ctx).Find(&enrichSchemaTarget).Error
 	if err != nil {
 		return nil, nil, err
 	}

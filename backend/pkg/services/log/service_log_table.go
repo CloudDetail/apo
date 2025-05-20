@@ -29,7 +29,7 @@ var defaultRouteRuleMap = map[string]string{
 }
 
 func (s *service) InitParseLogTable(ctx core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
-	sqls, err := s.chRepo.CreateLogTable(req)
+	sqls, err := s.chRepo.CreateLogTable(ctx, req)
 	res := &response.LogTableResponse{Sqls: sqls}
 	if err != nil {
 		res.Err = err.Error()
@@ -51,9 +51,9 @@ func (s *service) InitParseLogTable(ctx core.Context, req *request.LogTableReque
 		ParseInfo: defaultParseInfo,
 	}
 	// does not exist to insert logtableinfo
-	err = s.dbRepo.OperateLogTableInfo(logtable, database.QUERY)
+	err = s.dbRepo.OperateLogTableInfo(ctx, logtable, database.QUERY)
 	if err != nil {
-		err = s.dbRepo.OperateLogTableInfo(logtable, database.INSERT)
+		err = s.dbRepo.OperateLogTableInfo(ctx, logtable, database.INSERT)
 		if err != nil {
 			res.Err = err.Error()
 			return res, nil
@@ -65,7 +65,7 @@ func (s *service) InitParseLogTable(ctx core.Context, req *request.LogTableReque
 
 func (s *service) DropLogTable(ctx core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
 
-	sqls, err := s.chRepo.DropLogTable(req)
+	sqls, err := s.chRepo.DropLogTable(ctx, req)
 	res := &response.LogTableResponse{Sqls: sqls}
 	if err != nil {
 		res.Err = err.Error()
@@ -76,7 +76,7 @@ func (s *service) DropLogTable(ctx core.Context, req *request.LogTableRequest) (
 		DataBase: req.DataBase,
 		Table:    req.TableName,
 	}
-	err = s.dbRepo.OperateLogTableInfo(logtable, database.DELETE)
+	err = s.dbRepo.OperateLogTableInfo(ctx, logtable, database.DELETE)
 	if err != nil {
 		res.Err = err.Error()
 	}
@@ -90,7 +90,7 @@ func (s *service) UpdateLogTable(ctx core.Context, req *request.LogTableRequest)
 		DataBase: req.DataBase,
 		Table:    req.TableName,
 	}
-	err := s.dbRepo.OperateLogTableInfo(logtable, database.QUERY)
+	err := s.dbRepo.OperateLogTableInfo(ctx, logtable, database.QUERY)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (s *service) UpdateLogTable(ctx core.Context, req *request.LogTableRequest)
 		return nil, err
 	}
 
-	sqls, err := s.chRepo.UpdateLogTable(req, oldFields)
+	sqls, err := s.chRepo.UpdateLogTable(ctx, req, oldFields)
 	res.Sqls = sqls
 	if err != nil {
 		return nil, err

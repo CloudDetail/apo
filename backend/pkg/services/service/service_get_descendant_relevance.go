@@ -20,7 +20,7 @@ import (
 // GetDescendantRelevance implements Service.
 func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
 	// Query all descendant nodes
-	nodes, err := s.chRepo.ListDescendantNodes(req)
+	nodes, err := s.chRepo.ListDescendantNodes(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 	if err != nil {
 		// Failed to query RED metric when adding log to TODO
 	}
-	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
+	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx, "", "", database.GLOBAL)
 	if err != nil {
 		// Failed to query the threshold when adding logs to TODO
 	}

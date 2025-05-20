@@ -13,7 +13,7 @@ import (
 )
 
 func (s *service) GetTraceFilterValues(ctx core.Context, startTime, endTime time.Time, searchText string, filter request.SpanTraceFilter) (*response.GetTraceFilterValueResponse, error) {
-	option, err := s.chRepo.GetFieldValues(searchText, &filter, startTime, endTime)
+	option, err := s.chRepo.GetFieldValues(ctx, searchText, &filter, startTime, endTime)
 	if err != nil {
 		return &response.GetTraceFilterValueResponse{
 			TraceFilterOptions: clickhouse.SpanTraceOptions{

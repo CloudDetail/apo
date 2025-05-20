@@ -11,7 +11,7 @@ import (
 )
 
 func (s *service) GetFlameGraphData(ctx core.Context, req *request.GetFlameDataRequest) (resp response.GetFlameDataResponse, err error) {
-	flameData, err := s.chRepo.GetFlameGraphData(req.StartTime, req.EndTime, req.NodeName,
+	flameData, err := s.chRepo.GetFlameGraphData(ctx, req.StartTime, req.EndTime, req.NodeName,
 		req.PID, req.TID, req.SampleType, req.SpanID, req.TraceID)
 	if err != nil {
 		return

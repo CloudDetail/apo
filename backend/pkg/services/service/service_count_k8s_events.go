@@ -29,7 +29,7 @@ func (s *service) CountK8sEvents(ctx core.Context, req *request.GetK8sEventsRequ
 		return resp, nil
 	}
 	// Use all pod instances as filter criteria to return a list of events related to the time period
-	counts, err := s.chRepo.CountK8sEvents(startTime, endTime, podInstances)
+	counts, err := s.chRepo.CountK8sEvents(ctx, startTime, endTime, podInstances)
 	if err != nil {
 		return resp, err
 	}

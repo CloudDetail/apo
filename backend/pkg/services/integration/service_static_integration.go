@@ -53,7 +53,7 @@ func (s *service) GetStaticIntegration(ctx core.Context) map[string]any {
 	ds.MetricAPI.ReplaceSecret()
 	resp["datasource"] = ds
 
-	if latestTraceAPI, err := s.dbRepo.GetLatestTraceAPIs(-1); err == nil {
+	if latestTraceAPI, err := s.dbRepo.GetLatestTraceAPIs(ctx, -1); err == nil {
 		if latestTraceAPI == nil {
 			resp["traceAPI"] = integration.TraceAPI{}
 		} else {

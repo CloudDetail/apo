@@ -11,17 +11,17 @@ import (
 
 func (s *service) CreateCluster(ctx core.Context, cluster *input.Cluster) error {
 	cluster.ID = uuid.NewString()
-	return s.dbRepo.CreateCluster(cluster)
+	return s.dbRepo.CreateCluster(ctx, cluster)
 }
 
 func (s *service) ListCluster(ctx core.Context) ([]input.Cluster, error) {
-	return s.dbRepo.ListCluster()
+	return s.dbRepo.ListCluster(ctx)
 }
 
 func (s *service) UpdateCluster(ctx core.Context, cluster *input.Cluster) error {
-	return s.dbRepo.UpdateCluster(cluster)
+	return s.dbRepo.UpdateCluster(ctx, cluster)
 }
 
 func (s *service) DeleteCluster(ctx core.Context, cluster *input.Cluster) error {
-	return s.dbRepo.DeleteCluster(cluster)
+	return s.dbRepo.DeleteCluster(ctx, cluster)
 }

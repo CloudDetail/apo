@@ -31,7 +31,7 @@ func (s *service) QueryLog(ctx core.Context, req *request.LogQueryRequest) (*res
 	}
 
 	req.PageNum = offset
-	logs, sql, err := s.chRepo.QueryAllLogs(req)
+	logs, sql, err := s.chRepo.QueryAllLogs(ctx, req)
 	res := &response.LogQueryResponse{Query: sql}
 	if err != nil {
 		res.Err = err.Error()
@@ -39,7 +39,7 @@ func (s *service) QueryLog(ctx core.Context, req *request.LogQueryRequest) (*res
 	}
 
 	// query column name and type
-	rows, err := s.chRepo.OtherLogTableInfo(&request.OtherTableInfoRequest{
+	rows, err := s.chRepo.OtherLogTableInfo(ctx, &request.OtherTableInfoRequest{
 		DataBase:  req.DataBase,
 		TableName: req.TableName,
 	})
@@ -63,7 +63,7 @@ func (s *service) QueryLog(ctx core.Context, req *request.LogQueryRequest) (*res
 			Table:    req.TableName,
 		}
 		// query log field json
-		s.dbRepo.OperateLogTableInfo(model, database.QUERY)
+		s.dbRepo.OperateLogTableInfo(ctx, model, database.QUERY)
 		var fields []request.Field
 		_ = json.Unmarshal([]byte(model.Fields), &fields)
 

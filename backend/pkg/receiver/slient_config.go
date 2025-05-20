@@ -19,7 +19,7 @@ func (r *InnerReceivers) GetSlienceConfigByAlertID(ctx core.Context, alertID str
 }
 
 func (r *InnerReceivers) ListSlienceConfig(ctx core.Context) ([]sc.AlertSlienceConfig, error) {
-	return r.database.GetAlertSlience()
+	return r.database.GetAlertSlience(ctx)
 }
 
 func (r *InnerReceivers) SetSlienceConfigByAlertID(ctx core.Context, alertID string, forDuration string) error {
@@ -42,22 +42,22 @@ func (r *InnerReceivers) SetSlienceConfigByAlertID(ctx core.Context, alertID str
 		slienceconfig.AlertName = cfg.AlertName
 		slienceconfig.Group = cfg.Group
 		slienceconfig.Tags = cfg.Tags
-		return r.database.UpdateAlertSlience(slienceconfig)
+		return r.database.UpdateAlertSlience(ctx, slienceconfig)
 	} else {
-		event, err := r.ch.GetLatestAlertEventByAlertID(alertID)
+		event, err := r.ch.GetLatestAlertEventByAlertID(ctx, alertID)
 		if err == nil && event != nil {
 			slienceconfig.AlertName = event.Name
 			slienceconfig.Tags = event.EnrichTags
 			slienceconfig.Group = event.Group
 		}
-		return r.database.AddAlertSlience(slienceconfig)
+		return r.database.AddAlertSlience(ctx, slienceconfig)
 	}
 }
 
 func (r *InnerReceivers) RemoveSlienceConfigByAlertID(ctx core.Context, alertID string) error {
 	if cfgPtr, loaded := r.slientCFGMap.LoadAndDelete(alertID); loaded {
 		cfg := cfgPtr.(*sc.AlertSlienceConfig)
-		return r.database.DeleteAlertSlience(cfg.ID)
+		return r.database.DeleteAlertSlience(ctx, cfg.ID)
 	}
 
 	return fmt.Errorf("alert[%s] is not slient", alertID)

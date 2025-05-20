@@ -269,6 +269,7 @@ func GetAlertStatusCH(ctx core.Context, chRepo clickhouse.Repo,
 
 		// Query the alarm information related to the instance
 		events, _ := chRepo.GetAlertEventsSample(
+			ctx,
 			1, startTime, endTime,
 			request.AlertFilter{Services: []string{serviceName}, Status: "firing"},
 			&model.RelatedInstances{
@@ -309,7 +310,7 @@ func GetAlertStatusCH(ctx core.Context, chRepo clickhouse.Repo,
 
 	if len(alertTypes) == 0 || contains(alertTypes, "k8sStatus") {
 		// Query K8s events of warning level and above
-		k8sEvents, _ := chRepo.GetK8sAlertEventsSample(startTime, endTime, instances)
+		k8sEvents, _ := chRepo.GetK8sAlertEventsSample(ctx, startTime, endTime, instances)
 		if len(k8sEvents) > 0 {
 			alertStatus.K8sStatus = model.STATUS_CRITICAL
 			for _, event := range k8sEvents {

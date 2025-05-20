@@ -9,7 +9,7 @@ import (
 )
 
 func (s *service) GetClusterIntegration(ctx core.Context, clusterID string) (*integration.ClusterIntegrationVO, error) {
-	config, err := s.dbRepo.GetIntegrationConfig(clusterID)
+	config, err := s.dbRepo.GetIntegrationConfig(ctx, clusterID)
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,7 @@ import (
 
 // GetFaultLogContent implements Service.
 func (s *service) GetFaultLogContent(ctx core.Context, req *request.GetFaultLogContentRequest) (*response.GetFaultLogContentResponse, error) {
-	logContest, sources, err := s.chRepo.QueryApplicationLogs(req)
+	logContest, sources, err := s.chRepo.QueryApplicationLogs(ctx, req)
 	if err != nil {
 		return nil, err
 	}

@@ -16,12 +16,12 @@ func (s *service) CheckRouterPermission(ctx core.Context, userID int64, routerTo
 		return false, err
 	}
 
-	menuMappings, err := s.dbRepo.GetFeatureMappingByFeature(features, model.MAPPED_TYP_MENU)
+	menuMappings, err := s.dbRepo.GetFeatureMappingByFeature(ctx, features, model.MAPPED_TYP_MENU)
 	if err != nil {
 		return false, err
 	}
 
-	routerMappings, err := s.dbRepo.GetFeatureMappingByFeature(features, model.MAPPED_TYP_ROUTER)
+	routerMappings, err := s.dbRepo.GetFeatureMappingByFeature(ctx, features, model.MAPPED_TYP_ROUTER)
 	if err != nil {
 		return false, err
 	}
@@ -36,12 +36,12 @@ func (s *service) CheckRouterPermission(ctx core.Context, userID int64, routerTo
 		routerIDs = append(routerIDs, mapping.MappedID)
 	}
 
-	routers, err := s.dbRepo.GetRouterByIDs(routerIDs)
+	routers, err := s.dbRepo.GetRouterByIDs(ctx, routerIDs)
 	if err != nil {
 		return false, err
 	}
 
-	itemRouters, err := s.dbRepo.GetItemsRouter(menuIDs)
+	itemRouters, err := s.dbRepo.GetItemsRouter(ctx, menuIDs)
 	if err != nil {
 		return false, err
 	}

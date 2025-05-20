@@ -63,7 +63,7 @@ func (s *service) GetServicesRYGLightStatus(ctx core.Context, startTime time.Tim
 		ServiceList: []*response.ServiceRYGResult{},
 	}
 
-	alertEventCount, _ := s.chRepo.GetAlertEventCountGroupByInstance(startTime,
+	alertEventCount, _ := s.chRepo.GetAlertEventCountGroupByInstance(ctx, startTime,
 		endTime,
 		request.AlertFilter{Status: "firing"},
 		nil,

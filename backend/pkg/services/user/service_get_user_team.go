@@ -11,7 +11,7 @@ import (
 )
 
 func (s *service) GetUserTeam(ctx core.Context, req *request.GetUserTeamRequest) (response.GetUserTeamResponse, error) {
-	exists, err := s.dbRepo.UserExists(req.UserID)
+	exists, err := s.dbRepo.UserExists(ctx, req.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -20,5 +20,5 @@ func (s *service) GetUserTeam(ctx core.Context, req *request.GetUserTeamRequest)
 		return nil, core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
-	return s.dbRepo.GetAssignedTeam(req.UserID)
+	return s.dbRepo.GetAssignedTeam(ctx, req.UserID)
 }

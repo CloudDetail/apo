@@ -69,7 +69,7 @@ func (s *service) AddLogParseRule(ctx core.Context, req *request.AddLogParseRequ
 	logReq.Buffer = req.LogTable.Buffer
 	logReq.IsStructured = req.IsStructured
 	logReq.FillerValue()
-	_, err := s.chRepo.CreateLogTable(logReq)
+	_, err := s.chRepo.CreateLogTable(ctx, logReq)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (s *service) AddLogParseRule(ctx core.Context, req *request.AddLogParseRequ
 		ParseRule:    req.ParseRule,
 	}
 
-	err = s.dbRepo.OperateLogTableInfo(&log, database.INSERT)
+	err = s.dbRepo.OperateLogTableInfo(ctx, &log, database.INSERT)
 	if err != nil {
 		return nil, err
 	}

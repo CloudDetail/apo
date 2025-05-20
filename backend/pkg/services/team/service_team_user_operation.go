@@ -4,8 +4,6 @@
 package team
 
 import (
-	"context"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -16,7 +14,7 @@ func (s *service) TeamUserOperation(ctx core.Context, req *request.AssignToTeamR
 	filter := model.TeamFilter{
 		ID: req.TeamID,
 	}
-	exists, err := s.dbRepo.TeamExist(filter)
+	exists, err := s.dbRepo.TeamExist(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -25,7 +23,7 @@ func (s *service) TeamUserOperation(ctx core.Context, req *request.AssignToTeamR
 		return core.Error(code.TeamNotExistError, "team does not exist")
 	}
 
-	exists, err = s.dbRepo.UserExists(req.UserList...)
+	exists, err = s.dbRepo.UserExists(ctx, req.UserList...)
 	if err != nil {
 		return err
 	}
@@ -34,7 +32,7 @@ func (s *service) TeamUserOperation(ctx core.Context, req *request.AssignToTeamR
 		return core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
-	hasUsers, err := s.dbRepo.GetTeamUsers(req.TeamID)
+	hasUsers, err := s.dbRepo.GetTeamUsers(ctx, req.TeamID)
 	if err != nil {
 		return err
 	}
@@ -57,13 +55,13 @@ func (s *service) TeamUserOperation(ctx core.Context, req *request.AssignToTeamR
 		toDelete = append(toDelete, id)
 	}
 
-	var inviteFunc = func(ctx context.Context) error {
+	var inviteFunc = func(ctx core.Context) error {
 		return s.dbRepo.InviteUserToTeam(ctx, req.TeamID, toAdd)
 	}
 
-	var removeFunc = func(ctx context.Context) error {
+	var removeFunc = func(ctx core.Context) error {
 		return s.dbRepo.RemoveFromTeamByTeam(ctx, req.TeamID, toDelete)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), inviteFunc, removeFunc)
+	return s.dbRepo.Transaction(ctx, inviteFunc, removeFunc)
 }

@@ -118,10 +118,10 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 
 	if config.Get().AlertReceiver.Enabled {
 		// migrate AMReceiver from ConfigMap to database
-		if r.pkg_db.CheckAMReceiverCount() <= 0 {
+		if r.pkg_db.CheckAMReceiverCount(nil) <= 0 {
 			receivers, total := r.k8sApi.GetAMConfigReceiver("", nil, nil, true)
 			if total > 0 {
-				migratedReceivers, err := r.pkg_db.MigrateAMReceiver(receivers)
+				migratedReceivers, err := r.pkg_db.MigrateAMReceiver(nil, receivers)
 				if err != nil {
 					logger.Fatal("failed to migrate amconfig ", zap.Error(err))
 				}

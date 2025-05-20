@@ -11,7 +11,7 @@ import (
 )
 
 func (s *service) GetTracePageList(ctx core.Context, req *request.GetTracePageListRequest) (*response.GetTracePageListResponse, error) {
-	list, total, err := s.chRepo.GetTracePageList(req)
+	list, total, err := s.chRepo.GetTracePageList(ctx, req)
 	if err != nil {
 		return nil, err
 	}

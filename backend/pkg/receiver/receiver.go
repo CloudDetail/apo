@@ -35,7 +35,7 @@ import (
 )
 
 type Receivers interface {
-	HandleAlertCheckRecord(ctx context.Context, record *model.WorkflowRecord) error
+	HandleAlertCheckRecord(ctx core.Context, record *model.WorkflowRecord) error
 
 	GetAMConfigReceiver(ctx core.Context, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
 	AddAMConfigReceiver(ctx core.Context, receiver amconfig.Receiver) error
@@ -72,7 +72,7 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 		return nil, err
 	}
 
-	receivers, _, err := dbRepo.GetAMConfigReceiver(nil, nil)
+	receivers, _, err := dbRepo.GetAMConfigReceiver(nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,8 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 		amReceiver.ch = chRepo
 	}
 
-	slienceCfgs, err := dbRepo.GetAlertSlience()
+	// ctx
+	slienceCfgs, err := dbRepo.GetAlertSlience(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +216,8 @@ func (r *InnerReceivers) cleanupSlience(ctx context.Context, interval time.Durat
 			r.slientCFGMap.Range(func(key, value any) bool {
 				val := value.(*slienceconfig.AlertSlienceConfig)
 				if now.After(val.EndAt) {
-					if err := r.database.DeleteAlertSlience(val.ID); err == nil {
+					// ctx
+					if err := r.database.DeleteAlertSlience(nil, val.ID); err == nil {
 						r.slientCFGMap.Delete(key)
 					}
 				}

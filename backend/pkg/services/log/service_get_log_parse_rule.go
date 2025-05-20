@@ -48,7 +48,7 @@ func (s *service) GetLogParseRule(ctx core.Context, req *request.QueryLogParseRe
 		DataBase: req.DataBase,
 		Table:    req.TableName,
 	}
-	err := s.dbRepo.OperateLogTableInfo(model, database.QUERY)
+	err := s.dbRepo.OperateLogTableInfo(ctx, model, database.QUERY)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return &response.LogParseResponse{
 			ParseName: defaultParseName,

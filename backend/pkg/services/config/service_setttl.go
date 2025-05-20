@@ -4,7 +4,6 @@
 package config
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -49,7 +48,7 @@ func prepareTTLInfo(tables []model.TablesQuery) []model.ModifyTableTTLMap {
 }
 
 func (s *service) SetTableTTL(ctx core.Context, tableNames []model.Table, day int) error {
-	tables, err := s.chRepo.GetTables(tableNames)
+	tables, err := s.chRepo.GetTables(ctx, tableNames)
 	if err != nil {
 		log.Println("[SetSingleTableTTL] Error getting tables: ", err)
 		return err
@@ -59,7 +58,7 @@ func (s *service) SetTableTTL(ctx core.Context, tableNames []model.Table, day in
 		log.Println("[SetSingleTableTTL] Error convertModifyTableTTLMap: ", err)
 		return err
 	}
-	err = s.chRepo.ModifyTableTTL(context.Background(), mapResult)
+	err = s.chRepo.ModifyTableTTL(ctx, mapResult)
 	if err != nil {
 		log.Println("[SetSingleTableTTL] Error ModifyTableTTL: ", err)
 		return err

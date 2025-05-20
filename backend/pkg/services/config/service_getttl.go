@@ -12,7 +12,7 @@ import (
 )
 
 func (s *service) GetTTL(ctx core.Context) (*response.GetTTLResponse, error) {
-	tables, err := s.chRepo.GetTables(model.GetAllTables())
+	tables, err := s.chRepo.GetTables(ctx, model.GetAllTables())
 	if err != nil {
 		log.Println("[GetTTL] Error getting tables: ", err)
 		return nil, err

@@ -4,7 +4,6 @@
 package user
 
 import (
-	"context"
 	"errors"
 	"unicode"
 
@@ -29,27 +28,27 @@ func (s *service) UpdateUserInfo(ctx core.Context, req *request.UpdateUserInfoRe
 	//	return err
 	//}
 	//
-	//var grantFunc = func(ctx context.Context) error {
+	//var grantFunc = func(ctx core.Context) error {
 	//	return s.dbRepo.GrantRoleWithUser(ctx, req.UserID, addRole)
 	//}
 	//
-	//var revokeFunc = func(ctx context.Context) error {
+	//var revokeFunc = func(ctx core.Context) error {
 	//	return s.dbRepo.RevokeRole(ctx, req.UserID, deleteRole)
 	//}
 
-	var updateInfoFunc = func(ctx context.Context) error {
+	var updateInfoFunc = func(ctx core.Context) error {
 		return s.dbRepo.UpdateUserInfo(ctx, req.UserID, req.Phone, req.Email, req.Corporation)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), updateInfoFunc)
+	return s.dbRepo.Transaction(ctx, updateInfoFunc)
 }
 
 func (s *service) UpdateUserPhone(ctx core.Context, req *request.UpdateUserPhoneRequest) error {
-	return s.dbRepo.UpdateUserPhone(req.UserID, req.Phone)
+	return s.dbRepo.UpdateUserPhone(ctx, req.UserID, req.Phone)
 }
 
 func (s *service) UpdateUserEmail(ctx core.Context, req *request.UpdateUserEmailRequest) error {
-	return s.dbRepo.UpdateUserEmail(req.UserID, req.Email)
+	return s.dbRepo.UpdateUserEmail(ctx, req.UserID, req.Email)
 }
 
 func (s *service) UpdateUserPassword(ctx core.Context, req *request.UpdateUserPasswordRequest) error {
@@ -57,23 +56,23 @@ func (s *service) UpdateUserPassword(ctx core.Context, req *request.UpdateUserPa
 		return err
 	}
 
-	user, err := s.dbRepo.GetUserInfo(req.UserID)
+	user, err := s.dbRepo.GetUserInfo(ctx, req.UserID)
 	if err != nil {
 		return err
 	}
 
-	var updatePasswordFunc = func(ctx context.Context) error {
-		return s.dbRepo.UpdateUserPassword(req.UserID, req.OldPassword, req.NewPassword)
+	var updatePasswordFunc = func(ctx core.Context) error {
+		return s.dbRepo.UpdateUserPassword(ctx, req.UserID, req.OldPassword, req.NewPassword)
 	}
 
-	var updateDifyPasswordFunc = func(ctx context.Context) error {
+	var updateDifyPasswordFunc = func(ctx core.Context) error {
 		resp, err := s.difyRepo.UpdatePassword(user.Username, req.OldPassword, req.NewPassword)
 		if err != nil || resp.Result != "success" {
 			return errors.New("failed to update password in dify")
 		}
 		return nil
 	}
-	return s.dbRepo.Transaction(context.Background(), updatePasswordFunc, updateDifyPasswordFunc)
+	return s.dbRepo.Transaction(ctx, updatePasswordFunc, updateDifyPasswordFunc)
 }
 
 func checkPasswordComplexity(password string) error {
@@ -131,25 +130,25 @@ func (s *service) RestPassword(ctx core.Context, req *request.ResetPasswordReque
 		return err
 	}
 
-	user, err := s.dbRepo.GetUserInfo(req.UserID)
+	user, err := s.dbRepo.GetUserInfo(ctx, req.UserID)
 	if err != nil {
 		return err
 	}
 
-	var resetPasswordFunc = func(ctx context.Context) error {
-		return s.dbRepo.RestPassword(req.UserID, req.NewPassword)
+	var resetPasswordFunc = func(ctx core.Context) error {
+		return s.dbRepo.RestPassword(ctx, req.UserID, req.NewPassword)
 	}
 
-	var resetDifyPasswordFunc = func(ctx context.Context) error {
+	var resetDifyPasswordFunc = func(ctx core.Context) error {
 		resp, err := s.difyRepo.ResetPassword(user.Username, req.NewPassword)
 		if err != nil || resp.Result != "success" {
 			return errors.New("failed to reset password in dify")
 		}
 		return nil
 	}
-	return s.dbRepo.Transaction(context.Background(), resetPasswordFunc, resetDifyPasswordFunc)
+	return s.dbRepo.Transaction(ctx, resetPasswordFunc, resetDifyPasswordFunc)
 }
 
 func (s *service) UpdateSelfInfo(ctx core.Context, req *request.UpdateSelfInfoRequest) error {
-	return s.dbRepo.UpdateUserInfo(context.Background(), req.UserID, req.Phone, req.Email, req.Corporation)
+	return s.dbRepo.UpdateUserInfo(ctx, req.UserID, req.Phone, req.Email, req.Corporation)
 }

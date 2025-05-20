@@ -3,7 +3,11 @@
 
 package database
 
+import
+
 // API represents an API endpoint definition
+core "github.com/CloudDetail/apo/backend/pkg/core"
+
 type API struct {
 	ID      int    `gorm:"primary_key;auto_increment"`
 	Path    string `gorm:"column:path;type:varchar(255);index:idx_path_method,unique" mapstructure:"path"`
@@ -15,8 +19,8 @@ func (API) TableName() string {
 	return "api"
 }
 
-func (repo *daoRepo) GetAPIByPath(path string, method string) (*API, error) {
+func (repo *daoRepo) GetAPIByPath(ctx core.Context, path string, method string) (*API, error) {
 	var api API
-	err := repo.db.Where("path = ? AND method = ?", path, method).Find(&api).Error
+	err := repo.GetContextDB(ctx).Where("path = ? AND method = ?", path, method).Find(&api).Error
 	return &api, err
 }

@@ -35,7 +35,7 @@ func (s *service) GetServiceMoreUrl(ctx core.Context, startTime time.Time, endTi
 		return nil, nil
 	}
 
-	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
+	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx, "", "", database.GLOBAL)
 	if err != nil {
 		return nil, err
 	}

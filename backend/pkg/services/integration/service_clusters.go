@@ -9,14 +9,14 @@ import (
 )
 
 func (s *service) ListCluster(ctx core.Context) ([]integration.Cluster, error) {
-	return s.dbRepo.ListCluster()
+	return s.dbRepo.ListCluster(ctx)
 }
 
 func (s *service) DeleteCluster(ctx core.Context, cluster *integration.Cluster) error {
-	err := s.dbRepo.DeleteCluster(cluster)
+	err := s.dbRepo.DeleteCluster(ctx, cluster)
 	if err != nil {
 		return err
 	}
 
-	return s.dbRepo.DeleteIntegrationConfig(cluster.ID)
+	return s.dbRepo.DeleteIntegrationConfig(ctx, cluster.ID)
 }

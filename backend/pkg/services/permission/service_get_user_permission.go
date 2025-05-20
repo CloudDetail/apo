@@ -10,12 +10,12 @@ import (
 
 func (s *service) getUserFeatureIDs(ctx core.Context, userID int64) ([]int, error) {
 	// 1. Get user's role
-	roles, err := s.dbRepo.GetUserRole(userID)
+	roles, err := s.dbRepo.GetUserRole(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 	// 2. Get user's team
-	teamIDs, err := s.dbRepo.GetUserTeams(userID)
+	teamIDs, err := s.dbRepo.GetUserTeams(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -25,17 +25,17 @@ func (s *service) getUserFeatureIDs(ctx core.Context, userID int64) ([]int, erro
 	for i := range roleIDs {
 		roleIDs[i] = int64(roles[i].RoleID)
 	}
-	rolesFeatures, err := s.dbRepo.GetSubjectsPermission(roleIDs, model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE)
+	rolesFeatures, err := s.dbRepo.GetSubjectsPermission(ctx, roleIDs, model.PERMISSION_SUB_TYP_ROLE, model.PERMISSION_TYP_FEATURE)
 	if err != nil {
 		return nil, err
 	}
 
-	uFeatureIDs, err := s.dbRepo.GetSubjectPermission(userID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE)
+	uFeatureIDs, err := s.dbRepo.GetSubjectPermission(ctx, userID, model.PERMISSION_SUB_TYP_USER, model.PERMISSION_TYP_FEATURE)
 	if err != nil {
 		return nil, err
 	}
 
-	teamFeatures, err := s.dbRepo.GetSubjectsPermission(teamIDs, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE)
+	teamFeatures, err := s.dbRepo.GetSubjectsPermission(ctx, teamIDs, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE)
 	if err != nil {
 		return nil, err
 	}

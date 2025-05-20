@@ -30,7 +30,7 @@ func (s *service) CreateAlertSource(ctx core.Context, source *alertin.AlertSourc
 		}
 	}
 
-	err := s.dbRepo.CreateAlertSource(source)
+	err := s.dbRepo.CreateAlertSource(ctx, source)
 	if err != nil {
 		return nil, err
 	}
@@ -76,11 +76,11 @@ func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.Al
 	}
 
 	var storeError error
-	err = s.dbRepo.AddAlertEnrichRule(newR)
+	err = s.dbRepo.AddAlertEnrichRule(nil, newR)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.AddAlertEnrichConditions(newC)
+	err = s.dbRepo.AddAlertEnrichConditions(nil, newC)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.AddAlertEnrichSchemaTarget(newS)
+	err = s.dbRepo.AddAlertEnrichSchemaTarget(nil, newS)
 	storeError = multierr.Append(storeError, err)
 
 	s.dispatcher.AddAlertSource(*source, enricher)

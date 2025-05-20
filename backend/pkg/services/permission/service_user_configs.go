@@ -21,7 +21,7 @@ func (s *service) GetUserConfig(ctx core.Context, req *request.GetUserConfigRequ
 		return resp, err
 	}
 
-	res, err := s.dbRepo.GetFeatureMappingByFeature(featureIDs, model.MAPPED_TYP_MENU)
+	res, err := s.dbRepo.GetFeatureMappingByFeature(ctx, featureIDs, model.MAPPED_TYP_MENU)
 	itemIDs := make([]int, len(res))
 	for i := range res {
 		itemIDs[i] = res[i].MappedID
@@ -30,12 +30,12 @@ func (s *service) GetUserConfig(ctx core.Context, req *request.GetUserConfigRequ
 		return resp, err
 	}
 
-	items, err := s.dbRepo.GetMenuItems()
+	items, err := s.dbRepo.GetMenuItems(ctx)
 	if err != nil {
 		return resp, err
 	}
 
-	err = s.dbRepo.FillItemRouter(&items)
+	err = s.dbRepo.FillItemRouter(ctx, &items)
 	if err != nil {
 		return resp, err
 	}
@@ -46,12 +46,12 @@ func (s *service) GetUserConfig(ctx core.Context, req *request.GetUserConfigRequ
 		}
 	}
 
-	err = s.dbRepo.GetRouterInsertedPage(routers, req.Language)
+	err = s.dbRepo.GetRouterInsertedPage(ctx, routers, req.Language)
 	if err != nil {
 		return resp, err
 	}
 
-	err = s.dbRepo.GetMenuItemTans(&items, req.Language)
+	err = s.dbRepo.GetMenuItemTans(ctx, &items, req.Language)
 	if err != nil {
 		return resp, err
 	}

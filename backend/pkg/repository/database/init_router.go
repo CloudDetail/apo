@@ -4,6 +4,7 @@
 package database
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"gorm.io/gorm"
 )
 
@@ -37,8 +38,8 @@ var validRouters = []Router{
 }
 
 // initRouterData TODO Add mapping of router to feature when permission control is required
-func (repo *daoRepo) initRouterData() error {
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+func (repo *daoRepo) initRouterData(ctx core.Context) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.AutoMigrate(&Router{}); err != nil {
 			return err
 		}

@@ -16,7 +16,7 @@ import (
 
 func (s *service) GetAlertSource(ctx core.Context, source *alert.SourceFrom) (*alert.AlertSource, error) {
 	// TODO support search by sourceName
-	alertSource, err := s.dbRepo.GetAlertSource(source.SourceID)
+	alertSource, err := s.dbRepo.GetAlertSource(ctx, source.SourceID)
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, alert.ErrAlertSourceNotExist{}
@@ -39,16 +39,16 @@ func (s *service) UpdateAlertSource(ctx core.Context, source *alert.AlertSource)
 		return nil, alert.ErrAlertSourceNotExist{}
 	}
 
-	err := s.dbRepo.UpdateAlertSource(source)
+	err := s.dbRepo.UpdateAlertSource(ctx, source)
 	return source, err
 }
 
 func (s *service) ListAlertSource(ctx core.Context) ([]alert.AlertSource, error) {
-	return s.dbRepo.ListAlertSource()
+	return s.dbRepo.ListAlertSource(ctx)
 }
 
 func (s *service) DeleteAlertSource(ctx core.Context, source alert.SourceFrom) (*alert.AlertSource, error) {
-	deletedSource, err := s.dbRepo.DeleteAlertSource(source)
+	deletedSource, err := s.dbRepo.DeleteAlertSource(ctx, source)
 	if err != nil {
 		return nil, err
 	}
@@ -56,11 +56,11 @@ func (s *service) DeleteAlertSource(ctx core.Context, source alert.SourceFrom) (
 	s.dispatcher.DeleteAlertSource(ctx, deletedSource)
 
 	var storeError error
-	err = s.dbRepo.DeleteAlertEnrichRuleBySourceId(source.SourceID)
+	err = s.dbRepo.DeleteAlertEnrichRuleBySourceId(ctx, source.SourceID)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.DeleteAlertEnrichConditionsBySourceId(source.SourceID)
+	err = s.dbRepo.DeleteAlertEnrichConditionsBySourceId(ctx, source.SourceID)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.DeleteAlertEnrichSchemaTargetBySourceId(source.SourceID)
+	err = s.dbRepo.DeleteAlertEnrichSchemaTargetBySourceId(ctx, source.SourceID)
 	storeError = multierr.Append(storeError, err)
 
 	return deletedSource, storeError

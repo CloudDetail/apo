@@ -11,7 +11,7 @@ import (
 )
 
 func (s *service) Login(ctx core.Context, req *request.LoginRequest) (response.LoginResponse, error) {
-	user, err := s.dbRepo.Login(req.Username, req.Password)
+	user, err := s.dbRepo.Login(ctx, req.Username, req.Password)
 	if err != nil {
 		return response.LoginResponse{}, err
 	}
