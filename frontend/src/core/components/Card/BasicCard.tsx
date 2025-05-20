@@ -1,15 +1,16 @@
-import React, { ReactElement } from 'react';
+import React, { CSSProperties, ReactElement } from 'react';
 import { SLOT_TYPES, CardTable, CardHeader } from './CardSlots';
 import { Card, Space } from 'antd';
 
 type CardProps = {
   children: React.ReactNode;
+  bodyStyle?: CSSProperties;
 };
 
 export const BasicCard: React.FC<CardProps> & {
   Header: typeof CardHeader;
   Table: typeof CardTable;
-} = ({ children }) => {
+} = ({ children, bodyStyle }) => {
   let headerContent: ReactElement[] = [];
   let tableContent: ReactElement | null = null;
   // let modalContent: ReactElement | null = null;
@@ -38,16 +39,14 @@ export const BasicCard: React.FC<CardProps> & {
 
   return (
     <Card
-      style={{
-        height: contentHeight,
-      }}
       styles={{
         body: {
-          height: '100%',
+          height: contentHeight,
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
           padding: '12px 24px',
+          ...bodyStyle
         },
       }}
     >

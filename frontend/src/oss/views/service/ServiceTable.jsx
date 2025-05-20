@@ -26,7 +26,8 @@ import React from 'react'
 import { ChartsProvider, useChartsContext } from 'src/core/contexts/ChartsContext'
 import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
-const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) => {
+const ServiceTable = React.memo(({ groupId, height }) => {
+  console.log('height: ', height)
   const { t, i18n } = useTranslation('oss/service')
   const navigate = useNavigate()
   const [data, setData] = useState([])
@@ -433,7 +434,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
     }
   }, [data, pageIndex, pageSize])
   return (
-    <BasicCard>
+    <BasicCard bodyStyle={height && { height: height }}>
       <LoadingSpinner loading={loading} />
 
       <BasicCard.Header>

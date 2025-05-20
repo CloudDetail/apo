@@ -15,8 +15,11 @@ $--cui-body-bg: rgba(255, 255, 255);
 
 $--ce-app-head-height: 60px;
 $--ee-app-head-height: 100px;
+$--service-page-tab-list-height: 60px;
 
 :root {
+  --service-page-tab-list-height: #{$--service-page-tab-list-height};
+
   --ce-app-head-height: #{$--ce-app-head-height};
   --ee-app-head-height: #{$--ee-app-head-height};
 
