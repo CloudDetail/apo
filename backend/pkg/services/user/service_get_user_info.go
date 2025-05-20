@@ -6,14 +6,14 @@ package user
 import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
 func (s *service) GetUserInfo(ctx core.Context, userID int64) (response.GetUserInfoResponse, error) {
 	var (
-		user database.User
+		user profile.User
 		err  error
 		resp response.GetUserInfoResponse
 	)

@@ -7,9 +7,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
 func (s *service) GetFeature(ctx core.Context, req *request.GetFeatureRequest) (response.GetFeatureResponse, error) {
@@ -23,8 +23,8 @@ func (s *service) GetFeature(ctx core.Context, req *request.GetFeatureRequest) (
 		return nil, err
 	}
 
-	featureMap := make(map[int]*database.Feature)
-	var rootFeatures []*database.Feature
+	featureMap := make(map[int]*profile.Feature)
+	var rootFeatures []*profile.Feature
 
 	for _, feature := range features {
 		f := feature
@@ -93,12 +93,12 @@ func (s *service) getUserFeatureWithSource(ctx core.Context, userID int64, langu
 	}
 
 	features, err := s.dbRepo.GetFeature(ctx, nil)
-	featureMap := make(map[int]database.Feature)
+	featureMap := make(map[int]profile.Feature)
 	for _, f := range features {
 		featureMap[f.FeatureID] = f
 	}
 
-	resp := make([]database.Feature, 0, len(roleFeatures)+len(teamFeatures)+len(userFeatures))
+	resp := make([]profile.Feature, 0, len(roleFeatures)+len(teamFeatures)+len(userFeatures))
 	for _, rf := range roleFeatures {
 		f, ok := featureMap[rf.PermissionID]
 		f.Source = model.PERMISSION_SUB_TYP_ROLE

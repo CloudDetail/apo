@@ -11,6 +11,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/config"
@@ -43,23 +44,23 @@ type Repo interface {
 
 	ListQuickAlertRuleMetric(ctx core.Context) ([]AlertMetricsData, error)
 
-	Login(ctx core.Context, username, password string) (*User, error)
-	CreateUser(ctx core.Context, user *User) error
+	Login(ctx core.Context, username, password string) (*profile.User, error)
+	CreateUser(ctx core.Context, user *profile.User) error
 	UpdateUserPhone(ctx core.Context, userID int64, phone string) error
 	UpdateUserEmail(ctx core.Context, userID int64, email string) error
 	UpdateUserPassword(ctx core.Context, userID int64, oldPassword, newPassword string) error
 	UpdateUserInfo(ctx core.Context, userID int64, phone string, email string, corporation string) error
-	GetUserInfo(ctx core.Context, userID int64) (User, error)
-	GetAnonymousUser(ctx core.Context) (User, error)
-	GetUserList(ctx core.Context, req *request.GetUserListRequest) ([]User, int64, error)
+	GetUserInfo(ctx core.Context, userID int64) (profile.User, error)
+	GetAnonymousUser(ctx core.Context) (profile.User, error)
+	GetUserList(ctx core.Context, req *request.GetUserListRequest) ([]profile.User, int64, error)
 	RemoveUser(ctx core.Context, userID int64) error
 	RestPassword(ctx core.Context, userID int64, newPassword string) error
 	UserExists(ctx core.Context, userID ...int64) (bool, error)
 
-	GetUserRole(ctx core.Context, userID int64) ([]UserRole, error)
-	GetUsersRole(ctx core.Context, userIDs []int64) ([]UserRole, error)
-	GetRoles(ctx core.Context, filter model.RoleFilter) ([]Role, error)
-	GetFeature(ctx core.Context, featureIDs []int) ([]Feature, error)
+	GetUserRole(ctx core.Context, userID int64) ([]profile.UserRole, error)
+	GetUsersRole(ctx core.Context, userIDs []int64) ([]profile.UserRole, error)
+	GetRoles(ctx core.Context, filter model.RoleFilter) ([]profile.Role, error)
+	GetFeature(ctx core.Context, featureIDs []int) ([]profile.Feature, error)
 	GetFeatureByName(ctx core.Context, name string) (int, error)
 	GrantRoleWithUser(ctx core.Context, userID int64, roleIDs []int) error
 	GrantRoleWithRole(ctx core.Context, roleID int, userIDs []int64) error
@@ -77,7 +78,7 @@ type Repo interface {
 	GetItemsRouter(ctx core.Context, itemIDs []int) ([]Router, error)
 	GetRouterByIDs(ctx core.Context, routerIDs []int) ([]Router, error)
 	GetRouterInsertedPage(ctx core.Context, routers []*Router, language string) error
-	GetFeatureTans(ctx core.Context, features *[]Feature, language string) error
+	GetFeatureTans(ctx core.Context, features *[]profile.Feature, language string) error
 	GetMenuItemTans(ctx core.Context, menuItems *[]MenuItem, language string) error
 
 	CreateDataGroup(ctx core.Context, group *DataGroup) error
@@ -94,23 +95,23 @@ type Repo interface {
 	GetFeatureMappingByMapped(ctx core.Context, mappedID int, mappedType string) (FeatureMapping, error)
 	GetMenuItems(ctx core.Context) ([]MenuItem, error)
 
-	GetTeamList(ctx core.Context, req *request.GetTeamRequest) ([]Team, int64, error)
+	GetTeamList(ctx core.Context, req *request.GetTeamRequest) ([]profile.Team, int64, error)
 	DeleteTeam(ctx core.Context, teamID int64) error
-	CreateTeam(ctx core.Context, team Team) error
+	CreateTeam(ctx core.Context, team profile.Team) error
 	TeamExist(ctx core.Context, filter model.TeamFilter) (bool, error)
-	GetTeam(ctx core.Context, teamID int64) (Team, error)
-	UpdateTeam(ctx core.Context, team Team) error
+	GetTeam(ctx core.Context, teamID int64) (profile.Team, error)
+	UpdateTeam(ctx core.Context, team profile.Team) error
 	InviteUserToTeam(ctx core.Context, teamID int64, userIDs []int64) error
 	AssignUserToTeam(ctx core.Context, userID int64, teamIDs []int64) error
 	GetUserTeams(ctx core.Context, userID int64) ([]int64, error)
 	GetTeamUsers(ctx core.Context, teamID int64) ([]int64, error)
-	GetTeamUserList(ctx core.Context, teamID int64) ([]User, error)
+	GetTeamUserList(ctx core.Context, teamID int64) ([]profile.User, error)
 	RemoveFromTeamByUser(ctx core.Context, userID int64, teamIDs []int64) error
 	RemoveFromTeamByTeam(ctx core.Context, teamID int64, userIDs []int64) error
 	DeleteAllUserTeam(ctx core.Context, id int64, by string) error
-	GetAssignedTeam(ctx core.Context, userID int64) ([]Team, error)
+	GetAssignedTeam(ctx core.Context, userID int64) ([]profile.Team, error)
 
-	CreateRole(ctx core.Context, role *Role) error
+	CreateRole(ctx core.Context, role *profile.Role) error
 	DeleteRole(ctx core.Context, roleID int) error
 	UpdateRole(ctx core.Context, roleID int, roleName, description string) error
 
@@ -268,7 +269,7 @@ func migrateTable(db *gorm.DB) error {
 		&amconfig.Receiver{},
 		&sc.AlertSlienceConfig{},
 		&amconfig.DingTalkConfig{},
-		&Feature{},
+		&profile.Feature{},
 		&FeatureMapping{},
 		&I18nTranslation{},
 		&InsertPage{},
@@ -276,16 +277,16 @@ func migrateTable(db *gorm.DB) error {
 		&MenuItem{},
 		&OtherLogTable{},
 		&AlertMetricsData{},
-		&Role{},
-		&UserRole{},
+		&profile.Role{},
+		&profile.UserRole{},
 		&Router{},
 		&Threshold{},
-		&User{},
+		&profile.User{},
 		&API{},
 		&AuthDataGroup{},
 		&DataGroup{},
 		&DatasourceGroup{},
-		&Team{},
-		&UserTeam{},
+		&profile.Team{},
+		&profile.UserTeam{},
 	)
 }

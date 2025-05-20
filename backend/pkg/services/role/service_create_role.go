@@ -7,8 +7,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
 func (s *service) CreateRole(ctx core.Context, req *request.CreateRoleRequest) error {
@@ -44,7 +44,7 @@ func (s *service) CreateRole(ctx core.Context, req *request.CreateRoleRequest) e
 		return core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
-	role := &database.Role{
+	role := &profile.Role{
 		RoleName:    req.RoleName,
 		Description: req.Description,
 	}
