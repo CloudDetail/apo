@@ -6,11 +6,12 @@ package database
 import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-var validRoles = []Role{
+var validRoles = []profile.Role{
 	{RoleName: model.ROLE_ADMIN},
 	{RoleName: model.ROLE_VIEWER},
 	{RoleName: model.ROLE_ANONYMOS},

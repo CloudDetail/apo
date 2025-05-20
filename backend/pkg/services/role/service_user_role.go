@@ -7,9 +7,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
 func (s *service) GetRoles(ctx core.Context) (response.GetRoleResponse, error) {
@@ -76,7 +76,7 @@ func (s *service) RoleOperation(ctx core.Context, req *request.RoleOperationRequ
 }
 
 // GetAddDeleteRoles Determine grant and revoke roles.
-func GetAddDeleteRoles(userRoles []database.UserRole, want []int, all []database.Role) (addRoles []int, deleteRoles []int, err error) {
+func GetAddDeleteRoles(userRoles []profile.UserRole, want []int, all []profile.Role) (addRoles []int, deleteRoles []int, err error) {
 	roleMap := make(map[int]struct{})
 	for _, role := range all {
 		roleMap[role.RoleID] = struct{}{}

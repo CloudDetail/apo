@@ -10,6 +10,7 @@ import (
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
@@ -57,7 +58,7 @@ func (repo *daoRepo) initFeatureMenuItems(ctx core.Context) error {
 
 	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		var featureIDs, menuItemIDs []int
-		if err := tx.Model(&Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
+		if err := tx.Model(&profile.Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
 			return err
 		}
 
@@ -80,7 +81,7 @@ func (repo *daoRepo) initFeatureMenuItems(ctx core.Context) error {
 				continue
 			}
 
-			var feature Feature
+			var feature profile.Feature
 			if err := tx.Where("feature_name = ?", mapping.FeatureName).First(&feature).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					continue
@@ -139,7 +140,7 @@ func (repo *daoRepo) initFeatureRouter(ctx core.Context) error {
 
 	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		var featureIDs, routerIDs []int
-		if err := tx.Model(&Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
+		if err := tx.Model(&profile.Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
 			return err
 		}
 
@@ -157,7 +158,7 @@ func (repo *daoRepo) initFeatureRouter(ctx core.Context) error {
 		}
 
 		for featureName, routerPaths := range featureRoutes {
-			var feature Feature
+			var feature profile.Feature
 			if err := tx.Where("feature_name = ?", featureName).First(&feature).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					continue
@@ -241,7 +242,7 @@ func (repo *daoRepo) initFeatureAPI(ctx core.Context) error {
 		}
 
 		var featureIDs, apiIDs []int
-		if err := tx.Model(&Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
+		if err := tx.Model(&profile.Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
 			return err
 		}
 
@@ -257,7 +258,7 @@ func (repo *daoRepo) initFeatureAPI(ctx core.Context) error {
 		}
 
 		for featureName, apis := range featureAPI {
-			var feature Feature
+			var feature profile.Feature
 			if !isValidFeature(featureName) {
 				continue
 			}

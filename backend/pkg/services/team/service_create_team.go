@@ -7,13 +7,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
 func (s *service) CreateTeam(ctx core.Context, req *request.CreateTeamRequest) error {
-	team := database.Team{
+	team := profile.Team{
 		TeamID:      util.Generator.GenerateID(),
 		TeamName:    req.TeamName,
 		Description: req.Description,

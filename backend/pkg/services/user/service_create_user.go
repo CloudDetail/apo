@@ -10,8 +10,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
@@ -32,7 +32,7 @@ func (s *service) CreateUser(ctx core.Context, req *request.CreateUserRequest) e
 		return err
 	}
 
-	user := &database.User{
+	user := &profile.User{
 		UserID:      util.Generator.GenerateID(),
 		Username:    req.Username,
 		Password:    req.Password,

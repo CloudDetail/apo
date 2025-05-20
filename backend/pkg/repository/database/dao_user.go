@@ -14,6 +14,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 	"gorm.io/gorm"
@@ -27,30 +28,13 @@ const (
 
 const AnonymousUsername = "anonymous"
 
-type User struct {
-	UserID      int64  `gorm:"column:user_id;primary_key" json:"userId,omitempty"`
-	Username    string `gorm:"column:username;uniqueIdx;type:varchar(20)" json:"username,omitempty"`
-	Password    string `gorm:"column:password;type:varchar(200)" json:"-"`
-	Phone       string `gorm:"column:phone;type:varchar(20)" json:"phone,omitempty"`
-	Email       string `gorm:"column:email;type:varchar(50)" json:"email,omitempty"`
-	Corporation string `gorm:"column:corporation;type:varchar(50)" json:"corporation,omitempty"`
-
-	RoleList    []Role    `gorm:"many2many:user_role;joinForeignKey:UserID;joinReferences:RoleID" json:"roleList,omitempty"`
-	TeamList    []Team    `gorm:"many2many:user_team;joinForeignKey:UserID;joinReferences:TeamID" json:"teamList,omitempty"`
-	FeatureList []Feature `gorm:"-" json:"featureList,omitempty"`
-}
-
-func (t *User) TableName() string {
-	return "user"
-}
-
 func (repo *daoRepo) createAdmin(ctx core.Context) error {
-	var admin User
+	var admin profile.User
 	err := repo.GetContextDB(ctx).Where("username = ?", model.ROLE_ADMIN).First(&admin).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			admin = User{
+			admin = profile.User{
 				UserID:   util.Generator.GenerateID(),
 				Username: model.ROLE_ADMIN,
 				Password: Encrypt(adminPasswd),
@@ -64,11 +48,11 @@ func (repo *daoRepo) createAdmin(ctx core.Context) error {
 		}
 	}
 
-	var role Role
+	var role profile.Role
 	if err = repo.GetContextDB(ctx).Where("role_name = ?", model.ROLE_ADMIN).First(&role).Error; err != nil {
 		return err
 	}
-	userRole := &UserRole{
+	userRole := &profile.UserRole{
 		UserID: admin.UserID,
 		RoleID: role.RoleID,
 	}
@@ -77,12 +61,12 @@ func (repo *daoRepo) createAdmin(ctx core.Context) error {
 
 func (repo *daoRepo) createAnonymousUser(ctx core.Context) error {
 	conf := config.Get().User.AnonymousUser
-	var anonymousUser User
+	var anonymousUser profile.User
 	err := repo.GetContextDB(ctx).Where("username = ?", AnonymousUsername).First(&anonymousUser).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			anonymousUser = User{
+			anonymousUser = profile.User{
 				UserID:   util.Generator.GenerateID(),
 				Username: AnonymousUsername,
 				// random password
@@ -97,7 +81,7 @@ func (repo *daoRepo) createAnonymousUser(ctx core.Context) error {
 		}
 	}
 
-	var role Role
+	var role profile.Role
 	if !isValidRoleName(conf.Role) {
 		return errors.New("invalid role")
 	}
@@ -114,11 +98,11 @@ func (repo *daoRepo) createAnonymousUser(ctx core.Context) error {
 		return errors.New("anonymous user does not exist")
 	}
 
-	var existingUserRole UserRole
+	var existingUserRole profile.UserRole
 	err = repo.GetContextDB(ctx).Where("user_id = ?", anonymousUser.UserID).First(&existingUserRole).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			userRole := &UserRole{
+			userRole := &profile.UserRole{
 				UserID: anonymousUser.UserID,
 				RoleID: role.RoleID,
 			}
@@ -139,8 +123,8 @@ func Encrypt(raw string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func (repo *daoRepo) Login(ctx core.Context, username, password string) (*User, error) {
-	var user User
+func (repo *daoRepo) Login(ctx core.Context, username, password string) (*profile.User, error) {
+	var user profile.User
 	err := repo.GetContextDB(ctx).Where("username = ?", username).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, core.Error(code.UserNotExistsError, "user does not exists")
@@ -155,10 +139,10 @@ func (repo *daoRepo) Login(ctx core.Context, username, password string) (*User, 
 	return &user, nil
 }
 
-func (repo *daoRepo) CreateUser(ctx core.Context, user *User) error {
+func (repo *daoRepo) CreateUser(ctx core.Context, user *profile.User) error {
 	db := repo.GetContextDB(ctx)
 	var count int64
-	err := db.Model(&User{}).Where("username = ?", user.Username).Count(&count).Error
+	err := db.Model(&profile.User{}).Where("username = ?", user.Username).Count(&count).Error
 	if err != nil {
 		return err
 	}
@@ -170,7 +154,7 @@ func (repo *daoRepo) CreateUser(ctx core.Context, user *User) error {
 }
 
 func (repo *daoRepo) UpdateUserPhone(ctx core.Context, userID int64, phone string) error {
-	var user User
+	var user profile.User
 	err := repo.GetContextDB(ctx).Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return core.Error(code.UserNotExistsError, "user does not exists")
@@ -182,7 +166,7 @@ func (repo *daoRepo) UpdateUserPhone(ctx core.Context, userID int64, phone strin
 }
 
 func (repo *daoRepo) UpdateUserEmail(ctx core.Context, userID int64, email string) error {
-	var user User
+	var user profile.User
 	err := repo.GetContextDB(ctx).Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return core.Error(code.UserNotExistsError, "user does not exists")
@@ -194,7 +178,7 @@ func (repo *daoRepo) UpdateUserEmail(ctx core.Context, userID int64, email strin
 }
 
 func (repo *daoRepo) UpdateUserPassword(ctx core.Context, userID int64, oldPassword, newPassword string) error {
-	var user User
+	var user profile.User
 	err := repo.GetContextDB(ctx).Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return core.Error(code.UserNotExistsError, "user does not exists")
@@ -209,7 +193,7 @@ func (repo *daoRepo) UpdateUserPassword(ctx core.Context, userID int64, oldPassw
 }
 
 func (repo *daoRepo) RestPassword(ctx core.Context, userID int64, newPassword string) error {
-	var user User
+	var user profile.User
 	err := repo.GetContextDB(ctx).Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return core.Error(code.UserNotExistsError, "user does not exists")
@@ -222,7 +206,7 @@ func (repo *daoRepo) RestPassword(ctx core.Context, userID int64, newPassword st
 }
 
 func (repo *daoRepo) UpdateUserInfo(ctx core.Context, userID int64, phone string, email string, corporation string) error {
-	var user User
+	var user profile.User
 	err := repo.GetContextDB(ctx).Where("user_id = ?", userID).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return core.Error(code.UserNotExistsError, "user does not exist ")
@@ -236,8 +220,8 @@ func (repo *daoRepo) UpdateUserInfo(ctx core.Context, userID int64, phone string
 	return repo.GetContextDB(ctx).Updates(&user).Error
 }
 
-func (repo *daoRepo) GetUserInfo(ctx core.Context, userID int64) (User, error) {
-	var user User
+func (repo *daoRepo) GetUserInfo(ctx core.Context, userID int64) (profile.User, error) {
+	var user profile.User
 	err := repo.GetContextDB(ctx).
 		Select(userFieldSql).
 		Preload("RoleList").
@@ -247,17 +231,17 @@ func (repo *daoRepo) GetUserInfo(ctx core.Context, userID int64) (User, error) {
 	return user, err
 }
 
-func (repo *daoRepo) GetAnonymousUser(ctx core.Context) (User, error) {
-	var user User
+func (repo *daoRepo) GetAnonymousUser(ctx core.Context) (profile.User, error) {
+	var user profile.User
 	err := repo.GetContextDB(ctx).Select(userFieldSql).Where("username = ?", AnonymousUsername).Find(&user).Error
 	return user, err
 }
 
-func (repo *daoRepo) GetUserList(ctx core.Context, req *request.GetUserListRequest) ([]User, int64, error) {
-	var users []User
+func (repo *daoRepo) GetUserList(ctx core.Context, req *request.GetUserListRequest) ([]profile.User, int64, error) {
+	var users []profile.User
 	var count int64
 
-	query := repo.GetContextDB(ctx).Model(&User{}).Preload("RoleList").Preload("TeamList")
+	query := repo.GetContextDB(ctx).Model(&profile.User{}).Preload("RoleList").Preload("TeamList")
 
 	if len(req.Username) > 0 {
 		query = query.Where("username LIKE ?", fmt.Sprintf("%%%s%%", req.Username))
@@ -299,13 +283,13 @@ func (repo *daoRepo) GetUserList(ctx core.Context, req *request.GetUserListReque
 }
 
 func (repo *daoRepo) RemoveUser(ctx core.Context, userID int64) error {
-	err := repo.GetContextDB(ctx).Model(&User{}).Where("user_id = ?", userID).Delete(nil).Error
+	err := repo.GetContextDB(ctx).Model(&profile.User{}).Where("user_id = ?", userID).Delete(nil).Error
 	if err != nil {
 		return err
 	}
 
 	err = repo.GetContextDB(ctx).
-		Model(&UserRole{}).
+		Model(&profile.UserRole{}).
 		Where("user_id = ?", userID).
 		Delete(nil).
 		Error
@@ -315,7 +299,7 @@ func (repo *daoRepo) RemoveUser(ctx core.Context, userID int64) error {
 	}
 
 	return repo.GetContextDB(ctx).
-		Model(&UserTeam{}).
+		Model(&profile.UserTeam{}).
 		Where("user_id = ?", userID).
 		Delete(nil).
 		Error
@@ -323,7 +307,7 @@ func (repo *daoRepo) RemoveUser(ctx core.Context, userID int64) error {
 
 func (repo *daoRepo) UserExists(ctx core.Context, userIDs ...int64) (bool, error) {
 	var count int64
-	if err := repo.GetContextDB(ctx).Model(&User{}).Where("user_id IN ?", userIDs).Count(&count).Error; err != nil {
+	if err := repo.GetContextDB(ctx).Model(&profile.User{}).Where("user_id IN ?", userIDs).Count(&count).Error; err != nil {
 		return false, err
 	}
 

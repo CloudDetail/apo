@@ -9,6 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"gorm.io/gorm"
 )
@@ -21,8 +22,8 @@ type AuthDataGroup struct {
 	GroupID     int64  `gorm:"column:data_group_id;index:group_id_idx" json:"-"`
 	Type        string `gorm:"column:type;default:view" json:"type"` // view, edit
 
-	User *User `gorm:"-" json:"user,omitempty"`
-	Team *Team `gorm:"-" json:"team,omitempty"`
+	User *profile.User `gorm:"-" json:"user,omitempty"`
+	Team *profile.Team `gorm:"-" json:"team,omitempty"`
 }
 
 func (adg AuthDataGroup) MarshalJSON() ([]byte, error) {
@@ -183,7 +184,7 @@ func (repo *daoRepo) GetDataGroupUsers(ctx core.Context, groupID int64) ([]AuthD
 	}
 
 	for i := 0; i < len(ags); i++ {
-		var user User
+		var user profile.User
 		err = repo.GetContextDB(ctx).
 			Select("user_id", "username").
 			First(&user, "user_id = ?", ags[i].SubjectID).Error
@@ -215,7 +216,7 @@ func (repo *daoRepo) GetDataGroupTeams(ctx core.Context, groupID int64) ([]AuthD
 	}
 
 	for i := 0; i < len(ags); i++ {
-		var team Team
+		var team profile.Team
 		err = repo.GetContextDB(ctx).
 			Select("team_id", "team_name").
 			First(&team, "team_id = ?", ags[i].SubjectID).Error

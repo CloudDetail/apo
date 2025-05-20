@@ -5,10 +5,11 @@ package database
 
 import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"gorm.io/gorm"
 )
 
-var validFeatures = []Feature{
+var validFeatures = []profile.Feature{
 	{FeatureName: "服务概览"},
 	{FeatureName: "工作流"},
 	{FeatureName: "日志检索"}, {FeatureName: "故障现场日志"}, {FeatureName: "全量日志"},
@@ -28,7 +29,7 @@ var validFeatures = []Feature{
 
 func (repo *daoRepo) initFeature(ctx core.Context) error {
 	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
-		var existingFeatures []Feature
+		var existingFeatures []profile.Feature
 		if err := tx.Where("custom = ?", false).Find(&existingFeatures).Error; err != nil {
 			return err
 		}
@@ -56,7 +57,7 @@ func (repo *daoRepo) initFeature(ctx core.Context) error {
 		// remove feature which not support to exist
 		for featureName, featureID := range existingFeatureMap {
 			if _, exists := newFeatureMap[featureName]; !exists {
-				if err := tx.Where("feature_id = ?", featureID).Delete(&Feature{}).Error; err != nil {
+				if err := tx.Where("feature_id = ?", featureID).Delete(&profile.Feature{}).Error; err != nil {
 					return err
 				}
 			}
@@ -71,12 +72,12 @@ func (repo *daoRepo) initFeature(ctx core.Context) error {
 			"接入中心": {"数据接入", "告警接入"},
 		}
 		for parentName, childNames := range parentChildMapping {
-			var parent Feature
+			var parent profile.Feature
 			if err := tx.Where("feature_name = ?", parentName).First(&parent).Error; err != nil {
 				return err
 			}
 			for _, childName := range childNames {
-				if err := tx.Model(&Feature{}).Where("feature_name = ?", childName).Update("parent_id", parent.FeatureID).Error; err != nil {
+				if err := tx.Model(&profile.Feature{}).Where("feature_name = ?", childName).Update("parent_id", parent.FeatureID).Error; err != nil {
 					return err
 				}
 			}
