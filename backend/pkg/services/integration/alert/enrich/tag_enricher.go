@@ -112,8 +112,15 @@ func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
 	}
 
 	if e.fromPattern != nil {
-		value = e.fromPattern.FindString(value)
-	}
+		vs := e.fromPattern.FindStringSubmatch(value)
+		if len(vs) > 1 {
+			value = vs[1] // Extract first capture group
+		} else if len(vs) == 1 {
+			value = vs[0] // Extract entire match (no capture group)
+		} else {
+			value = "" // No match found
+		}
+	} // else: retain original value if e.fromPattern is nil
 
 	switch e.RType {
 	case "tagMapping":
