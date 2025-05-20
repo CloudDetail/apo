@@ -29,7 +29,7 @@ type Repo interface {
 	// Query the list of downstream nodes
 	ListChildNodes(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error)
 	// Query the list of all descendant service nodes
-	ListDescendantNodes(ctx core.Context, req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error)
+	ListDescendantNodes(ctx core.Context, req *request.GetDescendantRelevanceRequest) (*model.TopologyNodes, error)
 	// 查询服务类戏的子孙节点的调用关系(不携带边信息)
 	ListDescendantRelationsWithoutEdge(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error)
 	// Query the calling relationship of all descendant nodes
