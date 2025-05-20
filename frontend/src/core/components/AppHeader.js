@@ -89,7 +89,7 @@ const AppHeader = ({ type = 'default' }) => {
                 style={{
                   backgroundColor: selectedKeys.includes(item.key)
                     ? token.colorPrimary
-                    : token.colorBgBase,
+                    : 'var(--header-menu-color)',
                   color: selectedKeys.includes(item.key)
                     ? 'var(--menu-selected-text-color)'
                     : token.colorText,
