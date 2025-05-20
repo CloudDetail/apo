@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 export const SLOT_TYPES = {
   LOADING: Symbol('CardLoading'),
   HEADER: Symbol('CardHeader'),

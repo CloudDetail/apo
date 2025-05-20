@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { CSSProperties, ReactElement } from 'react';
 import { SLOT_TYPES, CardTable, CardHeader } from './CardSlots';
 import { Card, Space } from 'antd';
@@ -13,7 +18,6 @@ export const BasicCard: React.FC<CardProps> & {
 } = ({ children, bodyStyle }) => {
   let headerContent: ReactElement[] = [];
   let tableContent: ReactElement | null = null;
-  // let modalContent: ReactElement | null = null;
   const otherContent: ReactElement[] = [];
 
   //@ts-ignore
