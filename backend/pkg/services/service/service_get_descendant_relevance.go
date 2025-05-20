@@ -21,7 +21,7 @@ import (
 // GetDescendantRelevance implements Service.
 func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
 	// Query all descendant nodes
-	nodes, err := s.chRepo.ListDescendantNodes(ctx, req)
+	nodes, err := s.chRepo.ListDescendantNodes(ctx, &req.GetDescendantMetricsRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -57,6 +57,7 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 		req.Service, req.Endpoint,
 		descendants, req.SortBy,
 	)
+
 	var sortResult []polarisanalyzer.Relevance
 	var sortType string
 	if err != nil || sortResp == nil {
@@ -72,6 +73,7 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 	var resp []response.GetDescendantRelevanceResponse
 	if req.WithAlert == "true" {
 		resp = s.fillDescendantWithAlertStatus(
+			ctx,
 			services, endpoints,
 			req, sortResult, sortType, resp, isTracedMap)
 	} else {
@@ -91,7 +93,7 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 	return resp, nil
 }
 
-func (s *service) fillDescendantWithAlertStatus(services []string, endpoints []string, req *request.GetDescendantRelevanceRequest, sortResult []polarisanalyzer.Relevance, sortType string, resp []response.GetDescendantRelevanceResponse, isTracedMap map[polarisanalyzer.ServiceNode]bool) []response.GetDescendantRelevanceResponse {
+func (s *service) fillDescendantWithAlertStatus(ctx core.Context, services []string, endpoints []string, req *request.GetDescendantRelevanceRequest, sortResult []polarisanalyzer.Relevance, sortType string, resp []response.GetDescendantRelevanceResponse, isTracedMap map[polarisanalyzer.ServiceNode]bool) []response.GetDescendantRelevanceResponse {
 	var alermCheckErr error
 
 	// 查询RED指标和阈值

@@ -11,7 +11,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetDescendantMetrics(ctx core.Context, req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantMetricsResponse, error) {
+func (s *service) GetDescendantMetrics(ctx core.Context, req *request.GetDescendantMetricsRequest) ([]response.GetDescendantMetricsResponse, error) {
 	// Query all descendant nodes
 	nodes, err := s.chRepo.ListDescendantNodes(ctx, req)
 	if err != nil {

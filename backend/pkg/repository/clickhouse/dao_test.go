@@ -159,7 +159,7 @@ func testDescendantRelations(t *testing.T, repo Repo) {
 			Endpoint:  "GET /wait/callOthers",
 		},
 	}
-	resp, err := repo.ListDescendantRelations(core.EmptyCtx(), req)
+	resp, err := repo.ListDescendantRelations(core.EmptyCtx(), &req.GetServiceEndpointTopologyRequest)
 	if err != nil {
 		t.Errorf("Error to list descendant relation: %v", err)
 	}
