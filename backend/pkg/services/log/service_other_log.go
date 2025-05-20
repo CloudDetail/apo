@@ -4,11 +4,12 @@
 package log
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) OtherTable(req *request.OtherTableRequest) (*response.OtherTableResponse, error) {
+func (s *service) OtherTable(ctx core.Context, req *request.OtherTableRequest) (*response.OtherTableResponse, error) {
 	res := &response.OtherTableResponse{}
 	rows, err := s.chRepo.OtherLogTable()
 	if err != nil {

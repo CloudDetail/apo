@@ -43,7 +43,7 @@ func (h *handler) GetServiceInstance() core.HandlerFunc {
 			return
 		}
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.InstancesRes{
 				Status: model.STATUS_NORMAL,
@@ -60,7 +60,7 @@ func (h *handler) GetServiceInstance() core.HandlerFunc {
 		step := time.Duration(req.Step * 1000)
 		serviceName := req.ServiceName
 		endpoint := req.Endpoint
-		data, err := h.serviceInfoService.GetInstancesNew(startTime, endTime, step, serviceName, endpoint)
+		data, err := h.serviceInfoService.GetInstancesNew(c, startTime, endTime, step, serviceName, endpoint)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

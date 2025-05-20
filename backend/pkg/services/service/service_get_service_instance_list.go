@@ -6,13 +6,14 @@ package service
 import (
 	"strconv"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-func (s *service) GetServiceInstanceList(req *request.GetServiceInstanceListRequest) ([]string, error) {
+func (s *service) GetServiceInstanceList(ctx core.Context, req *request.GetServiceInstanceListRequest) ([]string, error) {
 	// Get the list of active service instances
-	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime,[]string{req.ServiceName})
+	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, []string{req.ServiceName})
 	if err != nil {
 		return nil, err
 	}
@@ -20,7 +21,7 @@ func (s *service) GetServiceInstanceList(req *request.GetServiceInstanceListRequ
 	return instances.GetInstanceIds(), nil
 }
 
-func (s *service) GetServiceInstanceInfoList(req *request.GetServiceInstanceListRequest) ([]prometheus.InstanceKey, error) {
+func (s *service) GetServiceInstanceInfoList(ctx core.Context, req *request.GetServiceInstanceListRequest) ([]prometheus.InstanceKey, error) {
 	var ins []prometheus.InstanceKey
 	// Get instance
 	instanceList, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, req.ServiceName, "")

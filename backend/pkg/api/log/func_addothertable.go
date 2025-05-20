@@ -34,7 +34,7 @@ func (h *handler) AddOtherTable() core.HandlerFunc {
 			return
 		}
 		req.FillerValue()
-		resp, err := h.logService.AddOtherTable(req)
+		resp, err := h.logService.AddOtherTable(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

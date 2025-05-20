@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -18,7 +18,7 @@ import (
 
 var subTime = -time.Hour * 24 * 15
 
-func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err error) {
+func (s *service) GetDataSource(ctx core.Context) (resp response.GetDatasourceResponse, err error) {
 	var (
 		endTime        = time.Now()
 		startTime      = endTime.Add(subTime)
@@ -96,7 +96,7 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 	return resp, nil
 }
 
-func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, userID int64) (response.GetGroupDatasourceResponse, error) {
+func (s *service) GetGroupDatasource(ctx core.Context, req *request.GetGroupDatasourceRequest, userID int64) (response.GetGroupDatasourceResponse, error) {
 	var (
 		groups       []database.DataGroup
 		err          error
@@ -108,13 +108,13 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 		startTime    = endTime.Add(subTime)
 	)
 	if req.GroupID != 0 {
-		groups, err = s.getDataGroup(req.GroupID, req.Category)
+		groups, err = s.getDataGroup(ctx, req.GroupID, req.Category)
 	} else {
-		groups, err = s.getUserDataGroup(userID, req.Category)
+		groups, err = s.getUserDataGroup(ctx, userID, req.Category)
 	}
 
 	if len(groups) == 0 {
-		defaultGroup, err := s.getDefaultDataGroup(req.Category)
+		defaultGroup, err := s.getDefaultDataGroup(ctx, req.Category)
 		if err != nil {
 			return resp, err
 		}
@@ -194,7 +194,7 @@ func (s *service) getNested(datasource string, typ string) ([]string, error) {
 	return nested, err
 }
 
-func (s *service) getDataGroup(groupID int64, category string) ([]database.DataGroup, error) {
+func (s *service) getDataGroup(ctx core.Context, groupID int64, category string) ([]database.DataGroup, error) {
 	filter := model.DataGroupFilter{
 		ID: groupID,
 	}

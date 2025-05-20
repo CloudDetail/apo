@@ -33,7 +33,7 @@ func (h *handler) DeleteLogParseRule() core.HandlerFunc {
 			)
 			return
 		}
-		resp, err := h.logService.DeleteLogParseRule(req)
+		resp, err := h.logService.DeleteLogParseRule(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

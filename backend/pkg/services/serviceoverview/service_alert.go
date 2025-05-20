@@ -10,6 +10,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -24,7 +25,7 @@ func contains(arr []string, str string) bool {
 	}
 	return false
 }
-func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error) {
+func (s *service) GetServicesAlert(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error) {
 	svcInstances, err := s.promRepo.GetMultiServicesInstanceList(startTime.UnixMicro(), endTime.UnixMicro(), serviceNames)
 	if err != nil {
 		return nil, err
@@ -228,6 +229,7 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 
 		// fill alarm status
 		newServiceRes.AlertStatusCH = GetAlertStatusCH(
+			ctx,
 			s.chRepo, &newServiceRes.AlertReason, nil,
 			returnData, service.ServiceName, serviceInstances,
 			startTime, endTime,
@@ -248,7 +250,7 @@ func (s *service) GetServicesAlert(startTime time.Time, endTime time.Time, step 
 }
 
 // Fill in the alarm information from the Clickhouse and fill in the alertReason
-func GetAlertStatusCH(chRepo clickhouse.Repo,
+func GetAlertStatusCH(ctx core.Context, chRepo clickhouse.Repo,
 	alertReason *model.AlertReason, alertEventsCountMap *model.AlertEventLevelCountMap,
 	alertTypes []string, serviceName string, instances []*model.ServiceInstance, // filter
 	startTime, endTime time.Time,

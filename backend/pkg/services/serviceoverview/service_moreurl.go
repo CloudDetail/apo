@@ -9,11 +9,12 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule request.SortType) (res []response.ServiceDetail, err error) {
+func (s *service) GetServiceMoreUrl(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule request.SortType) (res []response.ServiceDetail, err error) {
 	filter := EndpointsFilter{
 		ServiceName: serviceNames,
 	}

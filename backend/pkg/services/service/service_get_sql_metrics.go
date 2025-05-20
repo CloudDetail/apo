@@ -7,6 +7,7 @@ import (
 	"sort"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -20,7 +21,7 @@ const (
 	SortByTps       = "tps"
 )
 
-func (s *service) GetSQLMetrics(req *request.GetSQLMetricsRequest) (*response.GetSQLMetricsResponse, error) {
+func (s *service) GetSQLMetrics(ctx core.Context, req *request.GetSQLMetricsRequest) (*response.GetSQLMetricsResponse, error) {
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 	step := time.Duration(req.Step) * time.Microsecond

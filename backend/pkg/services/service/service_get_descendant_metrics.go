@@ -6,11 +6,12 @@ package service
 import (
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetDescendantMetrics(req *request.GetDescendantMetricsRequest) ([]response.GetDescendantMetricsResponse, error) {
+func (s *service) GetDescendantMetrics(ctx core.Context, req *request.GetDescendantMetricsRequest) ([]response.GetDescendantMetricsResponse, error) {
 	// Query all descendant nodes
 	nodes, err := s.chRepo.ListDescendantNodes(req)
 	if err != nil {

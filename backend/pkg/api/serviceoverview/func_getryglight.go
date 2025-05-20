@@ -44,7 +44,7 @@ func (h *handler) GetRYGLight() core.HandlerFunc {
 		}
 
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, 0, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, response.ServiceRYGLightRes{
 				ServiceList: []*response.ServiceRYGResult{},
@@ -59,7 +59,7 @@ func (h *handler) GetRYGLight() core.HandlerFunc {
 			Namespace:            req.Namespace,
 		}
 
-		resp, err := h.serviceoverview.GetServicesRYGLightStatus(startTime, endTime, filter)
+		resp, err := h.serviceoverview.GetServicesRYGLightStatus(c, startTime, endTime, filter)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

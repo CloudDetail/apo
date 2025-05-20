@@ -43,7 +43,7 @@ func (h *handler) GetServiceEndpointTopology() core.HandlerFunc {
 		}
 
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetServiceEndpointTopologyResponse{
 				Parents:  []*model.TopologyNode{},
@@ -52,7 +52,7 @@ func (h *handler) GetServiceEndpointTopology() core.HandlerFunc {
 			})
 			return
 		}
-		resp, err := h.serviceInfoService.GetServiceEndpointTopology(req)
+		resp, err := h.serviceInfoService.GetServiceEndpointTopology(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

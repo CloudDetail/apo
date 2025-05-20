@@ -4,6 +4,7 @@
 package log
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -11,7 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func (s *service) DeleteLogParseRule(req *request.DeleteLogParseRequest) (*response.LogParseResponse, error) {
+func (s *service) DeleteLogParseRule(ctx core.Context, req *request.DeleteLogParseRequest) (*response.LogParseResponse, error) {
 	logReq := &request.LogTableRequest{
 		TableName: req.TableName,
 		DataBase:  req.DataBase,

@@ -42,7 +42,7 @@ func (h *handler) GetDataGroup() core.HandlerFunc {
 			}
 		}
 
-		resp, err := h.dataService.GetDataGroup(req)
+		resp, err := h.dataService.GetDataGroup(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

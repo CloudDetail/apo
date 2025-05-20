@@ -35,7 +35,7 @@ func (h *handler) GroupSubsOperation() core.HandlerFunc {
 			return
 		}
 
-		err := h.dataService.GroupSubsOperation(req)
+		err := h.dataService.GroupSubsOperation(c, req)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AssignDataGroupError, nil)
 			return

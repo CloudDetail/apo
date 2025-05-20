@@ -8,16 +8,17 @@ import (
 	"errors"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResponse, error) {
+func (s *service) QueryLog(ctx core.Context, req *request.LogQueryRequest) (*response.LogQueryResponse, error) {
 	// calculate offset, if offset > 10000, calculate from histogram
 	offset := (req.PageNum - 1) * req.PageSize
 	if offset > 10000 {
-		logcharts, _ := s.GetLogChart(req)
+		logcharts, _ := s.GetLogChart(ctx, req)
 		var count = 0
 		for _, chart := range logcharts.Histograms {
 			count += int(chart.Count)

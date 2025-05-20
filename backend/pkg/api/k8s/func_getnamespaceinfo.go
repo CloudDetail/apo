@@ -34,7 +34,7 @@ func (h *handler) GetNamespaceInfo() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.k8sService.GetNamespaceInfo(req)
+		resp, err := h.k8sService.GetNamespaceInfo(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

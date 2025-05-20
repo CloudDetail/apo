@@ -36,7 +36,7 @@ func (h *handler) GetServiceList() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.serviceInfoService.GetServiceList(req)
+		resp, err := h.serviceInfoService.GetServiceList(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

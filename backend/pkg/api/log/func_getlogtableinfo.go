@@ -33,7 +33,7 @@ func (h *handler) GetLogTableInfo() core.HandlerFunc {
 			)
 			return
 		}
-		resp, err := h.logService.GetLogTableInfo(req)
+		resp, err := h.logService.GetLogTableInfo(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

@@ -35,7 +35,7 @@ func (h *handler) GetPodInfo() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.k8sService.GetPodInfo(req)
+		resp, err := h.k8sService.GetPodInfo(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

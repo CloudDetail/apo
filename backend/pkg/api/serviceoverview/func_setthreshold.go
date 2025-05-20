@@ -47,7 +47,7 @@ func (h *handler) SetThreshold() core.HandlerFunc {
 		errorRate := req.ErrorRate
 		tps := req.Tps
 		log := req.Log
-		resp, err := h.serviceoverview.SetThreshold(level, serviceName, endpoint, latency, errorRate, tps, log)
+		resp, err := h.serviceoverview.SetThreshold(c, level, serviceName, endpoint, latency, errorRate, tps, log)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

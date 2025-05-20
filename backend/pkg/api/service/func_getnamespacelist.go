@@ -35,7 +35,7 @@ func (h *handler) GetNamespaceList() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.serviceInfoService.GetServiceNamespaceList(req)
+		resp, err := h.serviceInfoService.GetServiceNamespaceList(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

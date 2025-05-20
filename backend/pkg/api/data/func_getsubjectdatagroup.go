@@ -37,7 +37,7 @@ func (h *handler) GetSubjectDataGroup() core.HandlerFunc {
 			return
 		}
 
-		resp, err := h.dataService.GetSubjectDataGroup(req)
+		resp, err := h.dataService.GetSubjectDataGroup(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

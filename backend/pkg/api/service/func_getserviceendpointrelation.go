@@ -10,7 +10,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
@@ -44,7 +43,7 @@ func (h *handler) GetServiceEndpointRelation() core.HandlerFunc {
 		}
 
 		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetServiceEndpointRelationResponse{
 				Parents:       []*model.TopologyNode{},
@@ -53,7 +52,7 @@ func (h *handler) GetServiceEndpointRelation() core.HandlerFunc {
 			})
 			return
 		}
-		resp, err := h.serviceInfoService.GetServiceEndpointRelation(req)
+		resp, err := h.serviceInfoService.GetServiceEndpointRelation(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

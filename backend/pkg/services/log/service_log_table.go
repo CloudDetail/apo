@@ -6,6 +6,7 @@ package log
 import (
 	"encoding/json"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -27,7 +28,7 @@ var defaultRouteRuleMap = map[string]string{
 	"k8s.pod.name": "apo",
 }
 
-func (s *service) InitParseLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error) {
+func (s *service) InitParseLogTable(ctx core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
 	sqls, err := s.chRepo.CreateLogTable(req)
 	res := &response.LogTableResponse{Sqls: sqls}
 	if err != nil {
@@ -62,7 +63,7 @@ func (s *service) InitParseLogTable(req *request.LogTableRequest) (*response.Log
 	return res, nil
 }
 
-func (s *service) DropLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error) {
+func (s *service) DropLogTable(ctx core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
 
 	sqls, err := s.chRepo.DropLogTable(req)
 	res := &response.LogTableResponse{Sqls: sqls}
@@ -82,7 +83,7 @@ func (s *service) DropLogTable(req *request.LogTableRequest) (*response.LogTable
 	return res, nil
 }
 
-func (s *service) UpdateLogTable(req *request.LogTableRequest) (*response.LogTableResponse, error) {
+func (s *service) UpdateLogTable(ctx core.Context, req *request.LogTableRequest) (*response.LogTableResponse, error) {
 	res := &response.LogTableResponse{}
 	logtable := &database.LogTableInfo{
 		Cluster:  req.Cluster,

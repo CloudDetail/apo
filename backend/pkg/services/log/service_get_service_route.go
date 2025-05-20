@@ -7,11 +7,12 @@ import (
 	"strings"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetServiceRoute(req *request.GetServiceRouteRequest) (*response.GetServiceRouteResponse, error) {
+func (s *service) GetServiceRoute(ctx core.Context, req *request.GetServiceRouteRequest) (*response.GetServiceRouteResponse, error) {
 	serviceNames := []string{}
 	now := time.Now()
 	currentTimestamp := now.UnixMicro()

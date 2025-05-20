@@ -4,11 +4,12 @@
 package service
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 )
 
-func (s *service) GetErrorInstanceLogs(req *request.GetErrorInstanceLogsRequest) ([]clickhouse.FaultLogResult, error) {
+func (s *service) GetErrorInstanceLogs(ctx core.Context, req *request.GetErrorInstanceLogsRequest) ([]clickhouse.FaultLogResult, error) {
 	// Get the error instance fault site log
 	query := &clickhouse.FaultLogQuery{
 		StartTime: req.StartTime,

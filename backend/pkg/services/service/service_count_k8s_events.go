@@ -4,12 +4,13 @@
 package service
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // CountK8sEvents get K8s events
-func (s *service) CountK8sEvents(req *request.GetK8sEventsRequest) (*response.GetK8sEventsResponse, error) {
+func (s *service) CountK8sEvents(ctx core.Context, req *request.GetK8sEventsRequest) (*response.GetK8sEventsResponse, error) {
 	startTime := req.StartTime
 	endTime := req.EndTime
 	// Get all the instance information of the service first

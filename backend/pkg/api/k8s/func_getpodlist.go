@@ -32,7 +32,7 @@ func (h *handler) GetPodList() core.HandlerFunc {
 			)
 			return
 		}
-		resp, err := h.k8sService.GetPodList(req)
+		resp, err := h.k8sService.GetPodList(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

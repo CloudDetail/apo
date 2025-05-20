@@ -4,12 +4,13 @@
 package log
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) AddOtherTable(req *request.AddOtherTableRequest) (*response.AddOtherTableResponse, error) {
+func (s *service) AddOtherTable(ctx core.Context, req *request.AddOtherTableRequest) (*response.AddOtherTableResponse, error) {
 	res := &response.AddOtherTableResponse{}
 	model := &database.OtherLogTable{
 		Cluster:   req.Cluster,

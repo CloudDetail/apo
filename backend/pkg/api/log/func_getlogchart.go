@@ -42,7 +42,7 @@ func (h *handler) GetLogChart() core.HandlerFunc {
 		if req.LogField == "" {
 			req.LogField = "content"
 		}
-		resp, err := h.logService.GetLogChart(req)
+		resp, err := h.logService.GetLogChart(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
